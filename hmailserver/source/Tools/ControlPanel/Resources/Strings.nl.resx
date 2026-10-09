@@ -150,8 +150,8 @@
   <data name="1 alias" xml:space="preserve">
     <value>1 alias</value>
   </data>
-  <data name="1 blacklist" xml:space="preserve">
-    <value>1 blokkadelijst</value>
+  <data name="1 block list" xml:space="preserve">
+    <value>1 blokkeerlijst</value>
   </data>
   <data name="1 blocked sender" xml:space="preserve">
     <value>1 geblokkeerde afzender</value>
@@ -189,8 +189,8 @@
   <data name="1 server message" xml:space="preserve">
     <value>1 servermelding</value>
   </data>
-  <data name="1 white-list entry" xml:space="preserve">
-    <value>1 vermelding op de witte lijst</value>
+  <data name="1 spam exemption" xml:space="preserve">
+    <value>1 spamuitzondering</value>
   </data>
   <data name="1.  Scan this QR code with an authenticator app (Microsoft Authenticator, Google Authenticator, Authy, 1Password…)." xml:space="preserve">
     <value>1.  Scan deze QR-code met een authenticator-app (Microsoft Authenticator, Google Authenticator, Authy, 1Password…).</value>
@@ -207,8 +207,8 @@
   <data name="14 by default. The unread copies are deleted; the read ones stay." xml:space="preserve">
     <value>Standaard 14. De ongelezen kopieën worden verwijderd; de gelezen blijven.</value>
   </data>
-  <data name="1440 by default. The ban is an expiring IP range, as an auto-ban is. An authenticated session, the anti-spam white list, an incoming relay and an address on the never-ban list are never banned." xml:space="preserve">
-    <value>Standaard 1440. De ban is een IP-bereik dat verloopt, zoals bij automatisch verbannen. Een geauthenticeerde sessie, de antispam-whitelist, een inkomend relay en een adres op de nooit-verbannen-lijst worden nooit verbannen.</value>
+  <data name="1440 by default. The ban is an expiring IP range, as an auto-ban is. An authenticated session, the spam exemptions, an incoming relay and an address on the never-ban list are never banned." xml:space="preserve">
+    <value>Standaard 1440. De ban is een IP-bereik dat verloopt, zoals bij automatisch verbannen. Een geauthenticeerde sessie, de spamuitzonderingen, een inkomend relay en een adres op de nooit-verbannen-lijst worden nooit verbannen.</value>
   </data>
   <data name="15 by default, counted once no IMAP or POP3 session holds the key. After that the mail is readable again only after the next sign-in with the password." xml:space="preserve">
     <value>Standaard 15, geteld vanaf het moment dat geen IMAP- of POP3-sessie de sleutel meer vasthoudt. Daarna is de mail pas weer leesbaar na de volgende aanmelding met het wachtwoord.</value>
@@ -520,7 +520,7 @@
     <value>Er is een nieuw serviceaccountwachtwoord getypt EN "het opgeslagen wachtwoord verwijderen" is aangevinkt. Haal een van beide weg - raden wat bedoeld was, is niet aan deze pagina.</value>
   </data>
   <data name="A notice is sent to the envelope sender of every infected message. Virus senders forge that address almost without exception, so this mostly delivers mail to people who did not send anything — which is backscatter, and it is what gets a server onto a block list." xml:space="preserve">
-    <value>Er wordt een melding gestuurd naar de envelopafzender van elk geïnfecteerd bericht. Virusverzenders vervalsen dat adres vrijwel zonder uitzondering, dus dit bezorgt vooral mail aan mensen die niets hebben verstuurd — dat is backscatter, en daarmee belandt een server op een blokkadelijst.</value>
+    <value>Er wordt een melding gestuurd naar de envelopafzender van elk geïnfecteerd bericht. Virusverzenders vervalsen dat adres vrijwel zonder uitzondering, dus dit bezorgt vooral mail aan mensen die niets hebben verstuurd — dat is backscatter, en daarmee belandt een server op een blokkeerlijst.</value>
   </data>
   <data name="A one-time code required in addition to the administrator password, checked by the SERVER - so it applies to every client of that credential: this Control Panel, scripts using the COM API, and the REST API (which reads the code from an X-hMailServer-OTP header). The secret is stored on the server, in hMailServer.ini, machine-protected. It makes the administrator password worthless on its own. Keep the setup key safe: if the authenticator is lost, a local administrator clears AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
     <value>Een eenmalige code die naast het beheerderswachtwoord wordt vereist en door de SERVER wordt gecontroleerd - hij geldt dus voor elke client van die referentie: dit Control Panel, scripts die de COM-API gebruiken, en de REST-API (die de code leest uit een X-hMailServer-OTP-header). Het geheim wordt op de server opgeslagen, in hMailServer.ini, machinebeschermd. Het maakt het beheerderswachtwoord op zichzelf waardeloos. Bewaar de instelsleutel veilig: gaat de authenticator verloren, dan wist een lokale beheerder AdministratorTotpSecret uit hMailServer.ini om weer binnen te komen.</value>
@@ -636,8 +636,8 @@
   <data name="A service account password from an earlier version is stored in hMailServer.INI in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.INI with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
     <value>Een serviceaccountwachtwoord uit een eerdere versie staat als platte tekst in hMailServer.INI, en niets leest het nog: de service wordt geregistreerd door het installatieprogramma of met de knoppen op de kaart Windows-serviceaccount, en Windows bewaart zijn eigen kopie van elk wachtwoord. Verwijder de regel ServiceAccountPassword uit hMailServer.INI met een editor met verhoogde bevoegdheden, en de instelling met DELETE /api/v1/settings/ini/ServiceAccountPassword, zodat ook de kopie in de database verdwijnt.</value>
   </data>
-  <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender on the anti-spam white list, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
-    <value>Een sessie die groet met HELO 192.0.2.7, HELO [192.0.2.7] of HELO localhost, of MAIL FROM:&lt;user@192.0.2.7&gt; stuurt, heeft geen naam voor zichzelf gegeven, en een bericht dat zij verstuurt, wordt vastgehouden of gescoord zonder iets om het op een lijst te zetten. Uit: de server accepteert haar zoals altijd. Aan: zij krijgt 550 5.7.1 bij MAIL FROM, voordat de spamtests draaien: een adres met of zonder vierkante haken, één enkel label, een publieke suffix zoals co.uk en alles wat geen hostnaam is, wordt geweigerd, terwijl mail.co.uk een naam is. Er wordt niets aan DNS gevraagd; de suffixen zijn die van de Public Suffix List, de lijst waarop de quarantaine groepeert. Alleen niet-geauthenticeerde sessies van een IP-bereik dat de spamtests uitvoert, worden beoordeeld, nadat AUTH zijn kans heeft gehad - nooit een afzender op de antispam-witte lijst en nooit een inkomend relay, waarvan de HELO die van uw eigen gateway is.</value>
+  <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender on the spam exemptions, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
+    <value>Een sessie die groet met HELO 192.0.2.7, HELO [192.0.2.7] of HELO localhost, of MAIL FROM:&lt;user@192.0.2.7&gt; stuurt, heeft geen naam voor zichzelf gegeven, en een bericht dat zij verstuurt, wordt vastgehouden of gescoord zonder iets om het op een lijst te zetten. Uit: de server accepteert haar zoals altijd. Aan: zij krijgt 550 5.7.1 bij MAIL FROM, voordat de spamtests draaien: een adres met of zonder vierkante haken, één enkel label, een publieke suffix zoals co.uk en alles wat geen hostnaam is, wordt geweigerd, terwijl mail.co.uk een naam is. Er wordt niets aan DNS gevraagd; de suffixen zijn die van de Public Suffix List, de lijst waarop de quarantaine groepeert. Alleen niet-geauthenticeerde sessies van een IP-bereik dat de spamtests uitvoert, worden beoordeeld, nadat AUTH zijn kans heeft gehad - nooit een afzender op de spamuitzonderingen en nooit een inkomend relay, waarvan de HELO die van uw eigen gateway is.</value>
   </data>
   <data name="A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one." xml:space="preserve">
     <value>Een aandeel van de verbindingen, nooit meer dan de bezorgthreads: de accounts van één gehost domein, of alle doorgestuurde post samen, kunnen niet elke bezorgthread bezetten. De verzendlimiet per account regelt het volume; dit niet.</value>
@@ -939,11 +939,11 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Add _criterion…" xml:space="preserve">
     <value>_Criterium toevoegen…</value>
   </data>
-  <data name="Add a DNS blacklist" xml:space="preserve">
-    <value>Een DNS-blokkadelijst toevoegen</value>
+  <data name="Add a DNS block list" xml:space="preserve">
+    <value>Een DNS-blokkeerlijst toevoegen</value>
   </data>
-  <data name="Add a DNS blacklist; connections from listed addresses gain score or are refused." xml:space="preserve">
-    <value>Een DNS-blokkadelijst toevoegen; verbindingen vanaf vermelde adressen krijgen score of worden geweigerd.</value>
+  <data name="Add a DNS block list; connections from listed addresses gain score or are refused." xml:space="preserve">
+    <value>Een DNS-blokkeerlijst toevoegen; verbindingen vanaf vermelde adressen krijgen score of worden geweigerd.</value>
   </data>
   <data name="Add a SURBL server" xml:space="preserve">
     <value>Een SURBL-server toevoegen</value>
@@ -972,8 +972,8 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Add a domain to the list" xml:space="preserve">
     <value>Een domein aan de lijst toevoegen</value>
   </data>
-  <data name="Add a domain to the white and black list" xml:space="preserve">
-    <value>Een domein aan de witte en zwarte lijst toevoegen</value>
+  <data name="Add a greylisting exemption" xml:space="preserve">
+    <value>Een greylisting-uitzondering toevoegen</value>
   </data>
   <data name="Add a list entry" xml:space="preserve">
     <value>Een lijstvermelding toevoegen</value>
@@ -993,8 +993,8 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Add a security group" xml:space="preserve">
     <value>Een beveiligingsgroep toevoegen</value>
   </data>
-  <data name="Add a white-list entry" xml:space="preserve">
-    <value>Een vermelding op de witte lijst toevoegen</value>
+  <data name="Add a spam exemption" xml:space="preserve">
+    <value>Een spamuitzondering toevoegen</value>
   </data>
   <data name="Add a_lias" xml:space="preserve">
     <value>A_lias toevoegen</value>
@@ -1010,9 +1010,6 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   </data>
   <data name="Add alias" xml:space="preserve">
     <value>Alias toevoegen</value>
-  </data>
-  <data name="Add an IP address to the greylisting white list" xml:space="preserve">
-    <value>Een IP-adres aan de greylisting-witte lijst toevoegen</value>
   </data>
   <data name="Add an IP range for the device that allows SMTP delivery without requiring authentication." xml:space="preserve">
     <value>Een IP-bereik toevoegen voor het apparaat dat SMTP-bezorging toestaat zonder authenticatie te vereisen.</value>
@@ -1086,8 +1083,8 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Add signature to _replies" xml:space="preserve">
     <value>Handtekening toevoegen aan antwoo_rden</value>
   </data>
-  <data name="Add the address or IP range to the anti-spam white list." xml:space="preserve">
-    <value>Het adres of IP-bereik toevoegen aan de antispam-witte lijst.</value>
+  <data name="Add the address or IP range to the spam exemptions." xml:space="preserve">
+    <value>Het adres of IP-bereik toevoegen aan de spamuitzonderingen.</value>
   </data>
   <data name="Add the certificate" xml:space="preserve">
     <value>Het certificaat toevoegen</value>
@@ -1269,6 +1266,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="All linked domains" xml:space="preserve">
     <value>Alle gekoppelde domeinen</value>
   </data>
+  <data name="Allo_w and release" xml:space="preserve">
+    <value>Toestaan en vri_jgeven</value>
+  </data>
   <data name="Allow" xml:space="preserve">
     <value>Toestaan</value>
   </data>
@@ -1299,17 +1299,53 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Allow and block list" xml:space="preserve">
     <value>Toestaan- en blokkeerlijst</value>
   </data>
+  <data name="Allow and release" xml:space="preserve">
+    <value>Toestaan en vrijgeven</value>
+  </data>
   <data name="Allow incorrect line endings" xml:space="preserve">
     <value>Onjuiste regeleinden toestaan</value>
   </data>
+  <data name="Allow or block a domain" xml:space="preserve">
+    <value>Een domein toestaan of blokkeren</value>
+  </data>
   <data name="Allow plain-text authentication (AUTH PLAIN/LOGIN)" xml:space="preserve">
     <value>Authenticatie in klare tekst toestaan (AUTH PLAIN/LOGIN)</value>
+  </data>
+  <data name="Allow the checked messages' senders, then release" xml:space="preserve">
+    <value>De afzenders van de aangevinkte berichten toestaan en dan vrijgeven</value>
+  </data>
+  <data name="Allow the sender of this message, then release it" xml:space="preserve">
+    <value>De afzender van dit bericht toestaan en het dan vrijgeven</value>
+  </data>
+  <data name="Allow the sender, then release" xml:space="preserve">
+    <value>De afzender toestaan en dan vrijgeven</value>
+  </data>
+  <data name="Allow the senders of {0} message, then release it" xml:space="preserve">
+    <value>De afzender van {0} bericht toestaan en het dan vrijgeven</value>
+  </data>
+  <data name="Allow the senders of {0} messages, then release them" xml:space="preserve">
+    <value>De afzenders van {0} berichten toestaan en ze dan vrijgeven</value>
+  </data>
+  <data name="Allow this group's senders, then release" xml:space="preserve">
+    <value>De afzenders van deze groep toestaan en dan vrijgeven</value>
+  </data>
+  <data name="Allowed and blocked domains" xml:space="preserve">
+    <value>Toegestane en geblokkeerde domeinen</value>
   </data>
   <data name="Allowed as {0}." xml:space="preserve">
     <value>Toegestaan als {0}.</value>
   </data>
   <data name="Allowed signing algorithms (comma separated)" xml:space="preserve">
     <value>Toegestane ondertekeningsalgoritmen (door komma's gescheiden)</value>
+  </data>
+  <data name="Allowed. List entries: {0}. Messages released: {1}." xml:space="preserve">
+    <value>Toegestaan. Lijstitems: {0}. Berichten vrijgegeven: {1}.</value>
+  </data>
+  <data name="Allowed: not greylisted, not refused on score" xml:space="preserve">
+    <value>Toegestaan: niet gegreylist, niet geweigerd op score</value>
+  </data>
+  <data name="Allowed: not greylisted, not refused on the spam score" xml:space="preserve">
+    <value>Toegestaan: niet gegreylist, niet geweigerd op de spamscore</value>
   </data>
   <data name="Allows for this server's clock differing from the signer's. Without it, a clock running a few minutes fast turns other people's valid mail into DKIM failures." xml:space="preserve">
     <value>Houdt rekening met een afwijking tussen de klok van deze server en die van de ondertekenaar. Zonder dit maakt een klok die een paar minuten voorloopt van geldige mail van anderen DKIM-fouten.</value>
@@ -1389,6 +1425,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="An alias points one address at another without needing a second mailbox." xml:space="preserve">
     <value>Een alias laat één adres naar een ander wijzen zonder een tweede postvak nodig te hebben.</value>
   </data>
+  <data name="An allowed domain still runs every test and still marks at the mark threshold; a blocked one is refused before a single test runs." xml:space="preserve">
+    <value>Bij een toegestaan domein draait nog steeds elke test en wordt nog steeds gemarkeerd bij de markeerdrempel; een geblokkeerd domein wordt geweigerd voordat er één test draait.</value>
+  </data>
   <data name="An archive is usually kept for a legal or contractual reason, and that reason usually applies to particular domains rather than to every domain this server hosts. With a list here a message is archived only when its local sender or one of its recipients belongs to a listed domain, and only the copies for listed domains are made - a listed recipient still gets their copy when the sender's domain is not listed. Matched without regard to case." xml:space="preserve">
     <value>Een archief wordt meestal om een juridische of contractuele reden bewaard, en die reden geldt meestal voor bepaalde domeinen en niet voor elk domein dat deze server host. Met een lijst hier wordt een bericht alleen gearchiveerd wanneer de lokale afzender of een van de ontvangers tot een vermeld domein behoort, en alleen de kopieën voor vermelde domeinen worden gemaakt - een vermelde ontvanger krijgt zijn kopie ook wanneer het domein van de afzender niet is vermeld. Vergeleken zonder onderscheid tussen hoofd- en kleine letters.</value>
   </data>
@@ -1467,9 +1506,6 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   </data>
   <data name="Anti-spam settings (SpamAssassin)" xml:space="preserve">
     <value>Antispaminstellingen (SpamAssassin)</value>
-  </data>
-  <data name="Anti-spam white list" xml:space="preserve">
-    <value>Antispam-witte lijst</value>
   </data>
   <data name="Anti-virus" xml:space="preserve">
     <value>Antivirus</value>
@@ -1891,35 +1927,11 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Bind to address" xml:space="preserve">
     <value>Binden aan adres</value>
   </data>
-  <data name="Black: refused at MAIL FROM" xml:space="preserve">
-    <value>Zwart: geweigerd bij MAIL FROM</value>
-  </data>
-  <data name="Blacklist and delete" xml:space="preserve">
-    <value>Op de zwarte lijst zetten en verwijderen</value>
-  </data>
-  <data name="Blacklist the checked messages' senders, then delete" xml:space="preserve">
-    <value>De afzenders van de aangevinkte berichten op de zwarte lijst zetten en dan verwijderen</value>
-  </data>
-  <data name="Blacklist the sender of this message, then delete it" xml:space="preserve">
-    <value>De afzender van dit bericht op de zwarte lijst zetten en het dan verwijderen</value>
-  </data>
-  <data name="Blacklist the sender, then delete" xml:space="preserve">
-    <value>De afzender op de zwarte lijst zetten en dan verwijderen</value>
-  </data>
-  <data name="Blacklist the senders of {0} message, then delete it" xml:space="preserve">
-    <value>De afzender van {0} bericht op de zwarte lijst zetten en het dan verwijderen</value>
-  </data>
-  <data name="Blacklist the senders of {0} messages, then delete them" xml:space="preserve">
-    <value>De afzenders van {0} berichten op de zwarte lijst zetten en ze dan verwijderen</value>
-  </data>
-  <data name="Blacklist this group's senders, then delete" xml:space="preserve">
-    <value>De afzenders van deze groep op de zwarte lijst zetten en dan verwijderen</value>
-  </data>
-  <data name="Blacklisted. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
-    <value>Op de zwarte lijst gezet. Lijstitems: {0}. Berichten verwijderd: {1}.</value>
-  </data>
   <data name="Block" xml:space="preserve">
     <value>Blokkeren</value>
+  </data>
+  <data name="Block and delete" xml:space="preserve">
+    <value>Blokkeren en verwijderen</value>
   </data>
   <data name="Block lists and this server's own addresses" xml:space="preserve">
     <value>Blokkeerlijsten en de eigen adressen van deze server</value>
@@ -1936,11 +1948,35 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Block rather than allow" xml:space="preserve">
     <value>Blokkeren in plaats van toestaan</value>
   </data>
+  <data name="Block the checked messages' senders, then delete" xml:space="preserve">
+    <value>De afzenders van de aangevinkte berichten blokkeren en dan verwijderen</value>
+  </data>
+  <data name="Block the sender of this message, then delete it" xml:space="preserve">
+    <value>De afzender van dit bericht blokkeren en het dan verwijderen</value>
+  </data>
+  <data name="Block the sender, then delete" xml:space="preserve">
+    <value>De afzender blokkeren en dan verwijderen</value>
+  </data>
+  <data name="Block the senders of {0} message, then delete it" xml:space="preserve">
+    <value>De afzender van {0} bericht blokkeren en het dan verwijderen</value>
+  </data>
+  <data name="Block the senders of {0} messages, then delete them" xml:space="preserve">
+    <value>De afzenders van {0} berichten blokkeren en ze dan verwijderen</value>
+  </data>
+  <data name="Block this group's senders, then delete" xml:space="preserve">
+    <value>De afzenders van deze groep blokkeren en dan verwijderen</value>
+  </data>
   <data name="Blocked attachments" xml:space="preserve">
     <value>Geblokkeerde bijlagen</value>
   </data>
   <data name="Blocked senders" xml:space="preserve">
     <value>Geblokkeerde afzenders</value>
+  </data>
+  <data name="Blocked. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
+    <value>Geblokkeerd. Lijstitems: {0}. Berichten verwijderd: {1}.</value>
+  </data>
+  <data name="Blocked: refused at MAIL FROM" xml:space="preserve">
+    <value>Geblokkeerd: geweigerd bij MAIL FROM</value>
   </data>
   <data name="Blowfish (legacy)" xml:space="preserve">
     <value>Blowfish (verouderd)</value>
@@ -2197,8 +2233,8 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Change the language" xml:space="preserve">
     <value>De taal wijzigen</value>
   </data>
-  <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a blacklisted connecting IP, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
-    <value>Verandert wat er bij de verwijderdrempel gebeurt. Staat dit uit, dan wordt een bericht daarboven tijdens het SMTP-gesprek geweigerd met een 550 en krijgt de afzender dat te horen. Staat het aan, dan wordt het in plaats daarvan geaccepteerd met een 250 en vastgehouden voor beoordeling - de afzender denkt dat het is bezorgd en probeert het niet opnieuw, en juist dat maakt een vals positief herstelbaar zonder te bouncen naar een return path dat waarschijnlijk vervalst is; het betekent ook dat de beoordelingswachtrij de enige plek wordt waar dat bericht bestaat. Geldt voor controles die draaien nadat de berichttekst is ontvangen; een oordeel dat daarvóór valt (een verbindend IP op een zwarte lijst, een slechte HELO) heeft geen bericht om vast te houden en blijft een weigering.</value>
+  <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
+    <value>Verandert wat er bij de verwijderdrempel gebeurt. Staat dit uit, dan wordt een bericht daarboven tijdens het SMTP-gesprek geweigerd met een 550 en krijgt de afzender dat te horen. Staat het aan, dan wordt het in plaats daarvan geaccepteerd met een 250 en vastgehouden voor beoordeling - de afzender denkt dat het is bezorgd en probeert het niet opnieuw, en juist dat maakt een vals positief herstelbaar zonder te bouncen naar een return path dat waarschijnlijk vervalst is; het betekent ook dat de beoordelingswachtrij de enige plek wordt waar dat bericht bestaat. Geldt voor controles die draaien nadat de berichttekst is ontvangen; een oordeel dat daarvóór valt (een verbindend IP op een DNS-blokkeerlijst, een slechte HELO) heeft geen bericht om vast te houden en blijft een weigering.</value>
   </data>
   <data name="Changing the pepper after accounts exist stops every password stored as an Argon2id or scrypt hash from working, and each such account then needs a new password. PBKDF2 hashes, the default, are not peppered." xml:space="preserve">
     <value>Als de peper wordt gewijzigd terwijl er al accounts zijn, werkt geen enkel wachtwoord meer dat als Argon2id- of scrypt-hash is opgeslagen, en elk zo'n account heeft dan een nieuw wachtwoord nodig. PBKDF2-hashes, de standaard, krijgen geen peper.</value>
@@ -3177,14 +3213,11 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="DMARC tells receivers what to do with mail that fails SPF and DKIM, and where to report it." xml:space="preserve">
     <value>DMARC vertelt ontvangers wat ze moeten doen met mail die SPF en DKIM niet doorstaat, en waar ze dat melden.</value>
   </data>
-  <data name="DNS blacklist checks" xml:space="preserve">
-    <value>Controles op DNS-zwarte lijsten</value>
+  <data name="DNS block list checks" xml:space="preserve">
+    <value>Controles op DNS-blokkeerlijsten</value>
   </data>
-  <data name="DNS blacklists" xml:space="preserve">
-    <value>DNS-zwarte lijsten</value>
-  </data>
-  <data name="DNS blacklists (DNSBL)" xml:space="preserve">
-    <value>DNS-zwarte lijsten (DNSBL)</value>
+  <data name="DNS block lists (DNSBL)" xml:space="preserve">
+    <value>DNS-blokkeerlijsten (DNSBL)</value>
   </data>
   <data name="DNS cache" xml:space="preserve">
     <value>DNS-cache</value>
@@ -3757,9 +3790,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Domain or suffix" xml:space="preserve">
     <value>Domein of achtervoegsel</value>
   </data>
-  <data name="Domain white and black list" xml:space="preserve">
-    <value>Witte en zwarte lijst van domeinen</value>
-  </data>
   <data name="Domain whose DNS records are shown" xml:space="preserve">
     <value>Domein waarvan de DNS-records worden getoond</value>
   </data>
@@ -3865,8 +3895,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Edit criterion" xml:space="preserve">
     <value>Criterium bewerken</value>
   </data>
-  <data name="Edit the DNS blacklist" xml:space="preserve">
-    <value>De DNS-blokkadelijst bewerken</value>
+  <data name="Edit the DNS block list" xml:space="preserve">
+    <value>De DNS-blokkeerlijst bewerken</value>
   </data>
   <data name="Edit the SURBL server" xml:space="preserve">
     <value>De SURBL-server bewerken</value>
@@ -3895,8 +3925,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Edit the external account" xml:space="preserve">
     <value>Het externe account bewerken</value>
   </data>
-  <data name="Edit the greylisting white-list entry" xml:space="preserve">
-    <value>De vermelding op de greylisting-witte lijst bewerken</value>
+  <data name="Edit the greylisting exemption" xml:space="preserve">
+    <value>De greylisting-uitzondering bewerken</value>
   </data>
   <data name="Edit the list entry" xml:space="preserve">
     <value>De lijstvermelding bewerken</value>
@@ -3919,8 +3949,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Edit the server message" xml:space="preserve">
     <value>De servermelding bewerken</value>
   </data>
-  <data name="Edit the white-list entry" xml:space="preserve">
-    <value>De vermelding op de witte lijst bewerken</value>
+  <data name="Edit the spam exemption" xml:space="preserve">
+    <value>De spamuitzondering bewerken</value>
   </data>
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>Wordt bewerkt op de andere tabbladen van dit venster.</value>
@@ -4285,6 +4315,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Executable not found: {0}" xml:space="preserve">
     <value>Uitvoerbaar bestand niet gevonden: {0}</value>
   </data>
+  <data name="Exempt the sender or their IP range from spam protection." xml:space="preserve">
+    <value>Zonder de afzender of zijn IP-bereik uit van de spambescherming.</value>
+  </data>
   <data name="Exempt: may exchange mail with anyone" xml:space="preserve">
     <value>Vrijgesteld: mag met iedereen mailen</value>
   </data>
@@ -4534,8 +4567,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="For a MinIO or Ceph gateway behind a CA of your own. The host name is checked either way." xml:space="preserve">
     <value>Voor een MinIO- of Ceph-gateway achter een eigen CA. De hostnaam wordt hoe dan ook gecontroleerd.</value>
   </data>
-  <data name="For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed logons, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the domain white and black list still apply. Empty, the default, changes nothing." xml:space="preserve">
-    <value>Voor een provider waarvan de hosts een reverse-naam delen en waarvan de adressen wisselen: een verbindend adres wordt nooit automatisch gebannen - voor mislukte aanmeldingen, een spamval of een lege afzender - als een van zijn reverse-namen gedekt is door een naam hier en terug verwijst naar het adres. Verder wordt niets overgeslagen: greylisting, SPF, DKIM, DMARC en de witte en zwarte lijst van domeinen blijven gelden. Leeg, de standaard, verandert niets.</value>
+  <data name="For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed logons, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the allowed and blocked domains still apply. Empty, the default, changes nothing." xml:space="preserve">
+    <value>Voor een provider waarvan de hosts een reverse-naam delen en waarvan de adressen wisselen: een verbindend adres wordt nooit automatisch gebannen - voor mislukte aanmeldingen, een spamval of een lege afzender - als een van zijn reverse-namen gedekt is door een naam hier en terug verwijst naar het adres. Verder wordt niets overgeslagen: greylisting, SPF, DKIM, DMARC en de toegestane en geblokkeerde domeinen blijven gelden. Leeg, de standaard, verandert niets.</value>
   </data>
   <data name="For a record of who corresponds with whom, keeping it for ever should be a decision rather than a default - which is why 0 is offered as an option instead of being one." xml:space="preserve">
     <value>Bij een registratie van wie met wie correspondeert hoort het een bewuste beslissing te zijn om die voor altijd te bewaren, en geen standaard - daarom wordt 0 als optie aangeboden in plaats van de standaard te zijn.</value>
@@ -4699,6 +4732,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Greylisting bypass list" xml:space="preserve">
     <value>Greylisting-omzeilingslijst</value>
   </data>
+  <data name="Greylisting exemptions" xml:space="preserve">
+    <value>Greylisting-uitzonderingen</value>
+  </data>
   <data name="Greylisting record expiration, and SpamAssassin move-vs-copy" xml:space="preserve">
     <value>Het verlopen van greylistingrecords, en verplaatsen versus kopiëren bij SpamAssassin</value>
   </data>
@@ -4707,9 +4743,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Greylisting triplets cleared." xml:space="preserve">
     <value>Greylistingtriplets gewist.</value>
-  </data>
-  <data name="Greylisting white list" xml:space="preserve">
-    <value>Greylisting-witte lijst</value>
   </data>
   <data name="Gro_up by" xml:space="preserve">
     <value>Gro_eperen op</value>
@@ -5011,8 +5044,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="How the server uses the database it is already configured for. Where that database IS - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
     <value>Hoe de server de database gebruikt waarvoor hij al is geconfigureerd. WAAR die database staat - de server, de naam, de referenties en het type - wordt ingesteld door de installatiewizard en is hier bewust niet te bewerken, omdat een verkeerde waarde daar de server niet trager maakt maar helemaal niet laat starten. Geldt na een herstart van de service.</value>
   </data>
-  <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI)." xml:space="preserve">
-    <value>Hoe deze server MX-, PTR-, SPF-, DKIM-, DMARC- en blokkadelijstopzoekingen uitvoert (hMailServer.INI).</value>
+  <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups (hMailServer.INI)." xml:space="preserve">
+    <value>Hoe deze server MX-, PTR-, SPF-, DKIM-, DMARC- en blokkeerlijstopzoekingen uitvoert (hMailServer.INI).</value>
   </data>
   <data name="I _confirm the changes marked above." xml:space="preserve">
     <value>Ik _bevestig de hierboven gemarkeerde wijzigingen.</value>
@@ -5700,8 +5733,8 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Looking up {0}…" xml:space="preserve">
     <value>{0} wordt opgezocht…</value>
   </data>
-  <data name="Looks up the connecting address on each active blacklist; the score comes from the entry that matched" xml:space="preserve">
-    <value>Zoekt het verbindende adres op in elke actieve blokkadelijst; de score komt van de vermelding die overeenkwam</value>
+  <data name="Looks up the connecting address on each active block list; the score comes from the entry that matched" xml:space="preserve">
+    <value>Zoekt het verbindende adres op in elke actieve blokkeerlijst; de score komt van de vermelding die overeenkwam</value>
   </data>
   <data name="Looks up the domains of links found in the body on each active SURBL server" xml:space="preserve">
     <value>Zoekt de domeinen van de links in de berichttekst op bij elke actieve SURBL-server</value>
@@ -5724,8 +5757,8 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Lower the mark and delete thresholds, or turn on more of the checks." xml:space="preserve">
     <value>Verlaag de markeer- en verwijderdrempels, of schakel meer van de controles in.</value>
   </data>
-  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender on the anti-spam white list. The domain white and black list is a page of its own under Anti-spam." xml:space="preserve">
-    <value>MAIL FROM:&lt;&gt; is het retourpad van een bezorgrapport, en een rapport heeft precies één ontvanger: het adres dat het betreffende bericht verzond. Een lege afzender die daarna een tweede ontvanger noemt, is backscatter, een vervalst rapport of een aftasting. Uit: de server accepteert hem zoals altijd. Aan: de tweede en elke volgende RCPT TO krijgt 550 en ook de DATA van de transactie wordt geweigerd; een lege afzender met één ontvanger wordt nooit aangeraakt. Alleen niet-geauthenticeerde sessies van een IP-bereik dat de spamtests uitvoert, en nooit een afzender op de antispam-witte lijst. De witte en zwarte lijst van domeinen is een eigen pagina onder Antispam.</value>
+  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender on the spam exemptions. Allowed and blocked domains have a page of their own under Anti-spam." xml:space="preserve">
+    <value>MAIL FROM:&lt;&gt; is het retourpad van een bezorgrapport, en een rapport heeft precies één ontvanger: het adres dat het betreffende bericht verzond. Een lege afzender die daarna een tweede ontvanger noemt, is backscatter, een vervalst rapport of een aftasting. Uit: de server accepteert hem zoals altijd. Aan: de tweede en elke volgende RCPT TO krijgt 550 en ook de DATA van de transactie wordt geweigerd; een lege afzender met één ontvanger wordt nooit aangeraakt. Alleen niet-geauthenticeerde sessies van een IP-bereik dat de spamtests uitvoert, en nooit een afzender op de spamuitzonderingen. Toegestane en geblokkeerde domeinen hebben een eigen pagina onder Antispam.</value>
   </data>
   <data name="MD5 (legacy)" xml:space="preserve">
     <value>MD5 (verouderd)</value>
@@ -6154,7 +6187,7 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Messages still waiting to be delivered, why each is waiting, and when it will be retried." xml:space="preserve">
     <value>Berichten die nog op bezorging wachten, waarom elk wacht, en wanneer het opnieuw wordt geprobeerd.</value>
   </data>
-  <data name="Messages that link to more domains than the URI blocklists ask about" xml:space="preserve">
+  <data name="Messages that link to more domains than the URI block lists ask about" xml:space="preserve">
     <value>Berichten die naar meer domeinen linken dan de URI-blokkeerlijsten worden gevraagd</value>
   </data>
   <data name="Messages the server finished processing, per minute, sampled every 2 seconds." xml:space="preserve">
@@ -6814,8 +6847,8 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>Geen van de {0} IP-bereiken vereist TLS vóór authenticatie, dus een wachtwoord in klare tekst wordt overal geaccepteerd waar een poort dat toestaat.</value>
   </data>
-  <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the {0} entries on the anti-spam white list." xml:space="preserve">
-    <value>Niets hiervan geldt voor een geauthenticeerde sessie - spambescherming wordt volledig overgeslagen voor een client die zich heeft aangemeld, voor verbindingen vanuit een IP-bereik waarin spambescherming is uitgeschakeld, en voor de {0} vermeldingen op de antispam-witte lijst.</value>
+  <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges on the spam exemptions (entries: {0})." xml:space="preserve">
+    <value>Niets hiervan geldt voor een geauthenticeerde sessie - spambescherming wordt volledig overgeslagen voor een client die zich heeft aangemeld, voor verbindingen vanuit een IP-bereik waarin spambescherming is uitgeschakeld, en voor de afzenders en IP-bereiken op de spamuitzonderingen (vermeldingen: {0}).</value>
   </data>
   <data name="None yet: make one with the button below." xml:space="preserve">
     <value>Nog geen: maak er een met de knop hieronder.</value>
@@ -6871,8 +6904,8 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
     <value>Niet getest: deze configuratie zou een wachtwoord over onbeschermd LDAP met een simple bind verzenden, en AllowUnprotectedPassword staat uit - dus de server weigert elke aanmelding onder deze configuratie, en deze test weigert om dezelfde reden iets te verzenden. Kies LDAPS of StartTLS, of de bindmethode Negotiate, of sta het onbeschermde wachtwoord uitdrukkelijk toe.</value>
   </data>
-  <data name="Not the anti-spam white list, which is an IP range that skips every test, and not the allow and block list, which decides per recipient at delivery. example.com matches that domain alone; .example.com matches the domain and everything beneath it." xml:space="preserve">
-    <value>Niet de antispam-witte lijst, die een IP-bereik is dat elke test overslaat, en niet de toestaan-en-blokkeerlijst, die per ontvanger bij bezorging beslist. example.com komt alleen met dat domein overeen; .example.com met het domein en alles eronder.</value>
+  <data name="Not the spam exemptions, whose senders and IP ranges skip every test, and not the allow and block list, which decides per recipient at delivery. example.com matches that domain alone; .example.com matches the domain and everything beneath it." xml:space="preserve">
+    <value>Niet de spamuitzonderingen, waarvan de afzenders en IP-bereiken elke test overslaan, en niet de toestaan-en-blokkeerlijst, die per ontvanger bij bezorging beslist. example.com komt alleen met dat domein overeen; .example.com met het domein en alles eronder.</value>
   </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Pas geldig vanaf {0}</value>
@@ -8121,8 +8154,8 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="RFC 7208 4.6.4. A &quot;void lookup&quot; is a term of a sender's SPF policy - an a:, mx: or exists: - whose DNS query comes back with nothing at all. The separate limit of ten DNS-querying terms bounds what a policy can ask this server to look up; it does not bound what a policy can waste, and ten terms naming hosts that do not exist cost a full resolution each for a record that can never match. Two is what the RFC says. It also catches the ordinary case: a policy still listing hosts decommissioned years ago, which its owner would rather be told about. Raising it is safe; 0 switches the limit off, which is the setting for a correspondent whose policy is wrong in exactly this way and whose mail you would rather take." xml:space="preserve">
     <value>RFC 7208 4.6.4. Een "void lookup" is een term uit het SPF-beleid van een afzender - een a:, mx: of exists: - waarvan de DNS-query helemaal niets teruggeeft. De aparte limiet van tien DNS-bevragende termen begrenst wat een beleid deze server kan laten opzoeken; hij begrenst niet wat een beleid kan verspillen, en tien termen die niet-bestaande hosts noemen kosten elk een volledige resolutie voor een record dat nooit kan matchen. Twee is wat de RFC zegt. Het vangt ook het gewone geval: een beleid dat nog hosts vermeldt die jaren geleden zijn uitgefaseerd, waarover de eigenaar liever wordt ingelicht. Verhogen is veilig; 0 schakelt de limiet uit, en dat is de instelling voor een correspondent wiens beleid precies op deze manier fout is en van wie u de mail liever toch aanneemt.</value>
   </data>
-  <data name="RFC 7208's own answer to a check that could not be completed: try again when DNS works. The transaction is deferred with 451 4.4.3 and the temperror score above is ignored, because a deferred message is never accepted. Off, a temperror is accepted and scored. A sender on the domain white list is never deferred." xml:space="preserve">
-    <value>Het antwoord dat RFC 7208 zelf geeft op een controle die niet kon worden voltooid: opnieuw proberen als DNS weer werkt. De transactie wordt uitgesteld met 451 4.4.3 en de temperror-score hierboven wordt genegeerd, omdat een uitgesteld bericht nooit wordt geaccepteerd. Uit: een temperror wordt geaccepteerd en gescoord. Een afzender op de witte domeinlijst wordt nooit uitgesteld.</value>
+  <data name="RFC 7208's own answer to a check that could not be completed: try again when DNS works. The transaction is deferred with 451 4.4.3 and the temperror score above is ignored, because a deferred message is never accepted. Off, a temperror is accepted and scored. A sender from an allowed domain is never deferred." xml:space="preserve">
+    <value>Het antwoord dat RFC 7208 zelf geeft op een controle die niet kon worden voltooid: opnieuw proberen als DNS weer werkt. De transactie wordt uitgesteld met 451 4.4.3 en de temperror-score hierboven wordt genegeerd, omdat een uitgesteld bericht nooit wordt geaccepteerd. Uit: een temperror wordt geaccepteerd en gescoord. Een afzender uit een toegestaan domein wordt nooit uitgesteld.</value>
   </data>
   <data name="RSA/EC public key file (PEM, for RS*/ES* tokens)" xml:space="preserve">
     <value>Bestand met de publieke RSA-/EC-sleutel (PEM, voor RS*-/ES*-tokens)</value>
@@ -8193,11 +8226,11 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Re_voke / restore" xml:space="preserve">
     <value>Intrekken / _herstellen</value>
   </data>
-  <data name="Read at MAIL FROM: a black domain is refused with 550 before anything else runs, for every recipient. The entry covers the organization's domain and everything beneath it." xml:space="preserve">
-    <value>Gelezen bij MAIL FROM: een zwart domein wordt met 550 geweigerd voordat er iets anders wordt uitgevoerd, voor elke ontvanger. De vermelding dekt het domein van de organisatie en alles daaronder.</value>
+  <data name="Read at MAIL FROM: a blocked domain is refused with 550 before anything else runs, for every recipient. The entry covers the organisation's domain and everything beneath it." xml:space="preserve">
+    <value>Gelezen bij MAIL FROM: een geblokkeerd domein wordt met 550 geweigerd voordat er iets anders wordt uitgevoerd, voor elke ontvanger. De vermelding dekt het domein van de organisatie en alles daaronder.</value>
   </data>
-  <data name="Read at MAIL FROM: a white domain is not greylisted, and not refused or held on the spam score, while every test still runs and the mark threshold still marks. The entry covers the organization's domain and everything beneath it." xml:space="preserve">
-    <value>Gelezen bij MAIL FROM: een wit domein wordt niet onderworpen aan greylisting, en niet geweigerd of vastgehouden op basis van de spamscore, terwijl elke test toch wordt uitgevoerd en de markeringsdrempel toch markeert. De vermelding dekt het domein van de organisatie en alles daaronder.</value>
+  <data name="Read at MAIL FROM: an allowed domain is not greylisted, and not refused or held on the spam score, while every test still runs and the mark threshold still marks. The entry covers the organisation's domain and everything beneath it." xml:space="preserve">
+    <value>Gelezen bij MAIL FROM: een toegestaan domein wordt niet onderworpen aan greylisting, en niet geweigerd of vastgehouden op basis van de spamscore, terwijl elke test toch wordt uitgevoerd en de markeringsdrempel toch markeert. De vermelding dekt het domein van de organisatie en alles daaronder.</value>
   </data>
   <data name="Read at delivery, for every recipient: a blocked sender's mail is held for them where the quarantine is on, and marked as spam where it is not." xml:space="preserve">
     <value>Gelezen bij bezorging, voor elke ontvanger: de mail van een geblokkeerde afzender wordt voor hem vastgehouden waar de quarantaine aan staat, en gemarkeerd als spam waar dat niet zo is.</value>
@@ -8253,8 +8286,8 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Ready to switch" xml:space="preserve">
     <value>Klaar om over te stappen</value>
   </data>
-  <data name="Real-time blackhole lists checked against the connecting IP address." xml:space="preserve">
-    <value>Realtime blackhole-lijsten die worden gecontroleerd tegen het verbindende IP-adres.</value>
+  <data name="Real-time block lists checked against the connecting IP address." xml:space="preserve">
+    <value>Realtime blokkeerlijsten die worden gecontroleerd tegen het verbindende IP-adres.</value>
   </data>
   <data name="Reason" xml:space="preserve">
     <value>Reden</value>
@@ -8578,10 +8611,10 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
     <value>Het hersteladres van dit account verwijderen? Elke herstelkoppeling die er al naartoe onderweg is, stopt met werken, en de accounthouder stelt een nieuw adres in vanuit de webmail. De eenmalige codes blijven ongemoeid.</value>
   </data>
-  <data name="Remove {0} from the list?&#10;&#10;A black domain is accepted again at once; a white domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
+  <data name="Remove {0} from the list?&#10;&#10;A blocked domain is accepted again at once; an allowed domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
     <value>{0} van de lijst verwijderen?
 
-Een zwart domein wordt meteen weer geaccepteerd; een wit domein valt vanaf de volgende sessie weer onder greylisting en de spamscore.</value>
+Een geblokkeerd domein wordt meteen weer geaccepteerd; een toegestaan domein valt vanaf de volgende sessie weer onder greylisting en de spamscore.</value>
   </data>
   <data name="Remove {0} from the never-ban list?&#10;&#10;An address it spared can be auto-banned again from the next ban on." xml:space="preserve">
     <value>{0} uit de nooit-bannen-lijst verwijderen?
@@ -9696,11 +9729,11 @@ Doorgaan?</value>
   <data name="Sending _domain" xml:space="preserve">
     <value>Verzendend _domein</value>
   </data>
-  <data name="Sending domains this server has decided about: white skips greylisting and the score's refusals, black is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
-    <value>Afzenderdomeinen waarover deze server heeft beslist: wit slaat greylisting en de weigeringen van de score over, zwart wordt geweigerd bij MAIL FROM - per domein of HELO-achtervoegsel, niet per IP-adres.</value>
+  <data name="Sending domains this server has decided about: an allowed one skips greylisting and the score's refusals, a blocked one is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
+    <value>Afzenderdomeinen waarover deze server heeft beslist: een toegestaan domein slaat greylisting en de weigeringen van de score over, een geblokkeerd domein wordt geweigerd bij MAIL FROM - per domein of HELO-achtervoegsel, niet per IP-adres.</value>
   </data>
-  <data name="Sending organisations decided about by their domain rather than by the IP address of the week. White: not greylisted and never refused on the spam score, while every test still runs and logs. Black: refused at MAIL FROM before greylisting, scoring or any lookup. Matched on the envelope sender's domain, the HELO name, or either; inbound unauthenticated sessions only." xml:space="preserve">
-    <value>Verzendende organisaties beoordeeld op hun domein in plaats van op het IP-adres van de week. Wit: geen greylisting en nooit geweigerd op de spamscore, terwijl elke test blijft draaien en loggen. Zwart: geweigerd bij MAIL FROM vóór greylisting, scoren of welke opzoeking dan ook. Vergeleken met het domein van de envelopafzender, de HELO-naam of beide; alleen inkomende, niet-geauthenticeerde sessies.</value>
+  <data name="Sending organisations decided about by their domain rather than by the IP address of the week. Allowed: not greylisted and never refused on the spam score, while every test still runs and logs. Blocked: refused at MAIL FROM before greylisting, scoring or any lookup. Matched on the envelope sender's domain, the HELO name, or either; inbound unauthenticated sessions only." xml:space="preserve">
+    <value>Verzendende organisaties beoordeeld op hun domein in plaats van op het IP-adres van de week. Toegestaan: geen greylisting en nooit geweigerd op de spamscore, terwijl elke test blijft draaien en loggen. Geblokkeerd: geweigerd bij MAIL FROM vóór greylisting, scoren of welke opzoeking dan ook. Vergeleken met het domein van de envelopafzender, de HELO-naam of beide; alleen inkomende, niet-geauthenticeerde sessies.</value>
   </data>
   <data name="Sendout failed: {0}" xml:space="preserve">
     <value>Verzending mislukt: {0}</value>
@@ -10193,6 +10226,9 @@ Nu opnieuw starten?</value>
   </data>
   <data name="Spam delete threshold (score)" xml:space="preserve">
     <value>Verwijderdrempel voor spam (score)</value>
+  </data>
+  <data name="Spam exemptions" xml:space="preserve">
+    <value>Spamuitzonderingen</value>
   </data>
   <data name="Spam filtering overview" xml:space="preserve">
     <value>Overzicht van spamfiltering</value>
@@ -10781,14 +10817,14 @@ Het volgende bericht aan dit adres wordt verzonden, en het komt pas weer op de l
   <data name="The TCP/IP port list could not be read - {0}" xml:space="preserve">
     <value>De lijst met TCP/IP-poorten kon niet worden gelezen - {0}</value>
   </data>
-  <data name="The URI blocklists on the SURBL servers page are asked about every registrable domain and address a message links to, up to 200 for each message. A message whose links name more is not asked about whole: it scores the number below instead, once, however many lists are active, so that hiding a listed link among made-up domains does not come free. Nothing is scored while no URI blocklist is active." xml:space="preserve">
+  <data name="The URI block lists on the SURBL servers page are asked about every registrable domain and address a message links to, up to 200 for each message. A message whose links name more is not asked about whole: it scores the number below instead, once, however many lists are active, so that hiding a listed link among made-up domains does not come free. Nothing is scored while no URI block list is active." xml:space="preserve">
     <value>De URI-blokkeerlijsten op de pagina SURBL-servers worden gevraagd naar elk registreerbaar domein en elk adres waar een bericht naar linkt, tot 200 per bericht. Een bericht waarvan de links er meer noemen, wordt niet in zijn geheel gevraagd: het krijgt in plaats daarvan de score hieronder, één keer, ongeacht hoeveel lijsten actief zijn, zodat het verbergen van een vermelde link tussen verzonnen domeinen niet gratis is. Er wordt niets gescoord zolang geen URI-blokkeerlijst actief is.</value>
   </data>
   <data name="The Windows prompt was declined, so nothing was installed and nothing on the server was changed." xml:space="preserve">
     <value>De Windows-prompt is geweigerd, dus er is niets geïnstalleerd en op de server niets gewijzigd.</value>
   </data>
-  <data name="The _HELO name's domain, on the domain white and black list" xml:space="preserve">
-    <value>Het do_mein van de HELO-naam, op de witte en zwarte lijst van domeinen</value>
+  <data name="The _HELO name's domain, on the allowed and blocked domains" xml:space="preserve">
+    <value>Het do_mein van de HELO-naam, bij de toegestane en geblokkeerde domeinen</value>
   </data>
   <data name="The accepted TLS versions and cipher suites are set here." xml:space="preserve">
     <value>De geaccepteerde TLS-versies en ciphersuites worden hier ingesteld.</value>
@@ -11621,8 +11657,8 @@ Toch toevoegen?</value>
   <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
     <value>Het _adres van de afzender, op de toestaan- en blokkeerlijst van de server</value>
   </data>
-  <data name="The sender's _domain, on the domain white and black list" xml:space="preserve">
-    <value>Het _domein van de afzender, op de witte en zwarte lijst van domeinen</value>
+  <data name="The sender's _domain, on the allowed and blocked domains" xml:space="preserve">
+    <value>Het _domein van de afzender, bij de toegestane en geblokkeerde domeinen</value>
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>De verzendende server maakt verbinding, stuurt het bericht en wacht dan. Van zijn kant ziet u een time-out nadat de berichtinhoud is verzonden - Postfix meldt "timed out while sending end of data". Het bericht verschijnt nooit in uw wachtrij.</value>
@@ -12034,11 +12070,11 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="This server holds {0} accounts, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one." xml:space="preserve">
     <value>Deze server heeft {0} accounts en is dus in gebruik: een profiel wordt aangeboden aan een nieuwe server, en elk van de vier kan nog steeds met deze worden vergeleken.</value>
   </data>
+  <data name="This server is older than the Control Panel and cannot allow or block a sender from the quarantine. Upgrade the server." xml:space="preserve">
+    <value>Deze server is ouder dan het Control Panel en kan vanuit de quarantaine geen afzender toestaan of blokkeren. Werk de server bij.</value>
+  </data>
   <data name="This server is older than the Control Panel and cannot show a held message's headers or text. Upgrade the server." xml:space="preserve">
     <value>Deze server is ouder dan het Control Panel en kan de headers of de tekst van een vastgehouden bericht niet tonen. Werk de server bij.</value>
-  </data>
-  <data name="This server is older than the Control Panel and cannot whitelist or blacklist from the quarantine. Upgrade the server." xml:space="preserve">
-    <value>Deze server is ouder dan het Control Panel en kan vanuit de quarantaine niet op de witte of zwarte lijst zetten. Werk de server bij.</value>
   </data>
   <data name="This server now" xml:space="preserve">
     <value>Deze server nu</value>
@@ -12745,8 +12781,8 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="When a virus is found" xml:space="preserve">
     <value>Wanneer er een virus wordt gevonden</value>
   </data>
-  <data name="When during the SMTP conversation blacklist lookups happen. Which blacklists are queried is on the DNS blacklists page." xml:space="preserve">
-    <value>Wanneer tijdens het SMTP-gesprek de opzoekingen in zwarte lijsten plaatsvinden. Welke zwarte lijsten worden bevraagd, staat op de pagina DNS-zwarte lijsten.</value>
+  <data name="When during the SMTP conversation block list lookups happen. Which block lists are asked is on the DNS block lists (DNSBL) page." xml:space="preserve">
+    <value>Wanneer tijdens het SMTP-gesprek de opzoekingen in blokkeerlijsten plaatsvinden. Welke blokkeerlijsten worden bevraagd, staat op de pagina DNS-blokkeerlijsten (DNSBL).</value>
   </data>
   <data name="When the endpoint cannot be reached" xml:space="preserve">
     <value>Wanneer het eindpunt onbereikbaar is</value>
@@ -12882,45 +12918,6 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="Which way" xml:space="preserve">
     <value>Welke richting</value>
-  </data>
-  <data name="White list" xml:space="preserve">
-    <value>Witte lijst</value>
-  </data>
-  <data name="White still runs every test and still marks at the mark threshold; black refuses before a single test runs." xml:space="preserve">
-    <value>Wit draait nog steeds elke test en markeert nog steeds bij de markeerdrempel; zwart weigert voordat er één test draait.</value>
-  </data>
-  <data name="White-list the sender or their IP range so the message bypasses spam protection." xml:space="preserve">
-    <value>Zet de afzender of zijn IP-bereik op de witte lijst zodat het bericht de spambescherming overslaat.</value>
-  </data>
-  <data name="White: not greylisted, not refused on score" xml:space="preserve">
-    <value>Wit: niet gegreylist, niet geweigerd op score</value>
-  </data>
-  <data name="White: not greylisted, not refused on the spam score" xml:space="preserve">
-    <value>Wit: niet gegreylist, niet geweigerd op de spamscore</value>
-  </data>
-  <data name="Whitelist and release" xml:space="preserve">
-    <value>Op de witte lijst zetten en vrijgeven</value>
-  </data>
-  <data name="Whitelist the checked messages' senders, then release" xml:space="preserve">
-    <value>De afzenders van de aangevinkte berichten op de witte lijst zetten en dan vrijgeven</value>
-  </data>
-  <data name="Whitelist the sender of this message, then release it" xml:space="preserve">
-    <value>De afzender van dit bericht op de witte lijst zetten en het dan vrijgeven</value>
-  </data>
-  <data name="Whitelist the sender, then release" xml:space="preserve">
-    <value>De afzender op de witte lijst zetten en dan vrijgeven</value>
-  </data>
-  <data name="Whitelist the senders of {0} message, then release it" xml:space="preserve">
-    <value>De afzender van {0} bericht op de witte lijst zetten en het dan vrijgeven</value>
-  </data>
-  <data name="Whitelist the senders of {0} messages, then release them" xml:space="preserve">
-    <value>De afzenders van {0} berichten op de witte lijst zetten en ze dan vrijgeven</value>
-  </data>
-  <data name="Whitelist this group's senders, then release" xml:space="preserve">
-    <value>De afzenders van deze groep op de witte lijst zetten en dan vrijgeven</value>
-  </data>
-  <data name="Whitelisted. List entries: {0}. Messages released: {1}." xml:space="preserve">
-    <value>Op de witte lijst gezet. Lijstitems: {0}. Berichten vrijgegeven: {1}.</value>
   </data>
   <data name="Who" xml:space="preserve">
     <value>Wie</value>
@@ -13162,8 +13159,8 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="_Bind method (BindMethod)" xml:space="preserve">
     <value>_Bindmethode (BindMethod)</value>
   </data>
-  <data name="_Blacklist and delete" xml:space="preserve">
-    <value>O_p de zwarte lijst zetten en verwijderen</value>
+  <data name="_Block and delete" xml:space="preserve">
+    <value>Blokkeren en _verwijderen</value>
   </data>
   <data name="_Body canonicalization" xml:space="preserve">
     <value>_Body-canonicalisatie</value>
@@ -13660,9 +13657,6 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="_Warn the owner at (% of the limit; -1 = the server's, 0 = never)" xml:space="preserve">
     <value>Eigenaar _waarschuwen bij (% van de limiet; -1 = de waarde van de server, 0 = nooit)</value>
   </data>
-  <data name="_Whitelist and release" xml:space="preserve">
-    <value>Op d_e witte lijst zetten en vrijgeven</value>
-  </data>
   <data name="_Who may send to this list" xml:space="preserve">
     <value>_Wie naar deze lijst mag verzenden</value>
   </data>
@@ -13747,14 +13741,14 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="binding with the configured ServiceUsername - no ServicePassword is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
     <value>binden met de geconfigureerde ServiceUsername - er wordt geen ServicePassword opgeslagen of getypt, en een leeg wachtwoord wordt geweigerd voordat het wordt verzonden</value>
   </data>
-  <data name="blacklist" xml:space="preserve">
-    <value>blokkadelijst</value>
-  </data>
   <data name="block an ip" xml:space="preserve">
     <value>een IP blokkeren</value>
   </data>
   <data name="block executable attachments" xml:space="preserve">
     <value>uitvoerbare bijlagen blokkeren</value>
+  </data>
+  <data name="block list" xml:space="preserve">
+    <value>blokkeerlijst</value>
   </data>
   <data name="block mail from a bad reputation ip" xml:space="preserve">
     <value>mail van een IP met een slechte reputatie blokkeren</value>
@@ -14390,6 +14384,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="someone is trying to guess passwords" xml:space="preserve">
     <value>iemand probeert wachtwoorden te raden</value>
   </data>
+  <data name="spam exemption" xml:space="preserve">
+    <value>spamuitzondering</value>
+  </data>
   <data name="spamd is unreachable, overloaded, or accepting connections without answering." xml:space="preserve">
     <value>spamd is onbereikbaar, overbelast, of accepteert verbindingen zonder te antwoorden.</value>
   </data>
@@ -14432,9 +14429,6 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="the account's own domain" xml:space="preserve">
     <value>het eigen domein van het account</value>
   </data>
-  <data name="the address is one of the {0} on the greylisting white list" xml:space="preserve">
-    <value>het adres is een van de {0} op de witte lijst voor greylisting</value>
-  </data>
   <data name="the audience (aud) is not checked" xml:space="preserve">
     <value>de audience (aud) wordt niet gecontroleerd</value>
   </data>
@@ -14446,6 +14440,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="the configured UserSearchFilter is not a valid LDAP filter" xml:space="preserve">
     <value>de geconfigureerde UserSearchFilter is geen geldig LDAP-filter</value>
+  </data>
+  <data name="the connecting address is on the greylisting exemptions (entries: {0})" xml:space="preserve">
+    <value>het verbindende adres staat bij de greylisting-uitzonderingen (vermeldingen: {0})</value>
   </data>
   <data name="the connecting address is one of the sender domain's A or MX records" xml:space="preserve">
     <value>het verbindende adres is een van de A- of MX-records van het afzenderdomein</value>
@@ -14519,8 +14516,8 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
     <value>het domein of de HELO-host van de afzender is een van de {0} vermeldingen op de greylisting-omzeilingslijst en het bericht draagt de geslaagde SPF, DKIM of DMARC die deze vermelding vereist</value>
   </data>
-  <data name="the sender's domain or HELO name is white on the domain white and black list" xml:space="preserve">
-    <value>het domein of de HELO-naam van de afzender wit is op de witte en zwarte lijst van domeinen</value>
+  <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
+    <value>het domein of de HELO-naam van de afzender een toegestaan domein is</value>
   </data>
   <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
     <value>de server kan zijn database niet bereiken. Controleer de databaseverbinding en het hMailServer-foutenlogboek en druk daarna op Opnieuw laden. ({0})</value>
@@ -14602,9 +14599,6 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="which tls versions are allowed" xml:space="preserve">
     <value>welke TLS-versies zijn toegestaan</value>
-  </data>
-  <data name="white-list entry" xml:space="preserve">
-    <value>vermelding op de witte lijst</value>
   </data>
   <data name="why is mail queued" xml:space="preserve">
     <value>waarom staat mail in de wachtrij</value>
@@ -14783,8 +14777,8 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="{0} app passwords." xml:space="preserve">
     <value>{0} app-wachtwoorden.</value>
   </data>
-  <data name="{0} blacklists" xml:space="preserve">
-    <value>{0} blokkadelijsten</value>
+  <data name="{0} block lists" xml:space="preserve">
+    <value>{0} blokkeerlijsten</value>
   </data>
   <data name="{0} blocked senders" xml:space="preserve">
     <value>{0} geblokkeerde afzenders</value>
@@ -15179,6 +15173,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="{0} settings could not be written." xml:space="preserve">
     <value>{0} instellingen konden niet worden geschreven.</value>
   </data>
+  <data name="{0} spam exemptions" xml:space="preserve">
+    <value>{0} spamuitzonderingen</value>
+  </data>
   <data name="{0} stops here: the next thing it points at is not on this screen." xml:space="preserve">
     <value>“{0}” stopt hier: het volgende waarnaar de rondleiding wijst, staat niet op dit scherm.</value>
   </data>
@@ -15232,9 +15229,6 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="{0} was removed, with everything in it - mailboxes: {1}, distribution lists: {2}, rules: {3}, messages: {4}." xml:space="preserve">
     <value>{0} is verwijderd met alles erin - postbussen: {1}, distributielijsten: {2}, regels: {3}, berichten: {4}.</value>
-  </data>
-  <data name="{0} white-list entries" xml:space="preserve">
-    <value>{0} vermeldingen op de witte lijst</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} met volledige bevoegdheid</value>

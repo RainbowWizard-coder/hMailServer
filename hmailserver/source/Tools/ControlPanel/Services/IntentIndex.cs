@@ -172,15 +172,15 @@ namespace hMailServer.ControlPanel.Services
          new IntentEntry(N("check spf dkim and dmarc"), "antispam",
             N("Each check can be enabled separately and given its own score.")),
          new IntentEntry(N("legitimate mail is being marked as spam"), "spamwhitelist",
-            N("White-list the sender or their IP range so the message bypasses spam protection.")),
+            N("Exempt the sender or their IP range from spam protection.")),
          new IntentEntry(N("let a sender through the spam filter"), "spamwhitelist",
-            N("Add the address or IP range to the anti-spam white list.")),
+            N("Add the address or IP range to the spam exemptions.")),
          // Phrased around reputation rather than around "block an IP address":
          // that wording collides with the far more common request, which is to
          // refuse one specific address on the IP ranges page, and a query like
          // "ban an ip address" was landing here instead of there.
          new IntentEntry(N("block mail from a bad reputation ip"), "dnsbl",
-            N("Add a DNS blacklist; connections from listed addresses gain score or are refused.")),
+            N("Add a DNS block list; connections from listed addresses gain score or are refused.")),
          new IntentEntry(N("block spam links in message bodies"), "surbl",
             N("SURBL servers are checked against the links inside the message.")),
          new IntentEntry(N("mail from a new sender is delayed"), "greylistwhitelist",

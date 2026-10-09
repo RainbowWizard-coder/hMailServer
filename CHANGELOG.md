@@ -998,6 +998,21 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   columns in one order: Active, DNS host, Expected result, Score, Refusal text. `ActiveEntriesTests` holds the count,
   its level, the order and the German and Japanese names.
 
+- **Changed: the allow and block lists are named in one vocabulary in every language.** The lists had about five
+  names each - white list, whitelist, white-list and allow list; blacklist, black list, block list, blocklist and
+  real-time blackhole lists - so the domain list needed a notice to tell them apart, and the quarantine said
+  "Whitelist the sender" while writing to the allow and block list. By the owner's decision the White list page is
+  now **Spam exemptions**, the Greylisting white list **Greylisting exemptions**, the Domain white and black list
+  **Allowed and blocked domains** (its entries allowed and blocked), and the DNS blacklists **DNS block lists
+  (DNSBL)**, each page's heading the same as its name in the navigation; the quarantine's actions are "Allow the
+  sender, then release" and "Block the sender, then delete"; the per-recipient Allow and block list keeps its name.
+  Every old name stays a search alias, so a search for "White list" or "Domain white and black list" still finds the
+  page. Every catalogue follows: German says Zulassungsliste and Sperrliste, zulassen and sperren, where it said
+  Whitelist, Positivliste and Weißliste for the same thing; and in the eleven languages that called the greylisting
+  bypass list a list of exceptions it is now named for bypassing, so that it reads apart from the greylisting
+  exemptions beside it. `AllowBlockVocabularyTests` holds the names, the aliases, the headings, the English and
+  German catalogues to the one vocabulary and every language to the four names.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

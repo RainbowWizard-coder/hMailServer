@@ -2282,8 +2282,8 @@ namespace hMailServer.ControlPanel.Views
          // blocklists ask about every domain a message links to, up to 200, and
          // a message that names more is scored for it rather than asked about
          // in part - padding is how a listed link was hidden among others.
-         var linkDomains = Card(L("Messages that link to more domains than the URI blocklists ask about"),
-            L("The URI blocklists on the SURBL servers page are asked about every registrable domain and address a message links to, up to 200 for each message. A message whose links name more is not asked about whole: it scores the number below instead, once, however many lists are active, so that hiding a listed link among made-up domains does not come free. Nothing is scored while no URI blocklist is active."));
+         var linkDomains = Card(L("Messages that link to more domains than the URI block lists ask about"),
+            L("The URI block lists on the SURBL servers page are asked about every registrable domain and address a message links to, up to 200 for each message. A message whose links name more is not asked about whole: it scores the number below instead, once, however many lists are active, so that hiding a listed link among made-up domains does not come free. Nothing is scored while no URI block list is active."));
          linkDomains.Settings.Add(new ComText
          {
             Path = "AntiSpam.SurblTooManyDomainsScore",
@@ -2304,7 +2304,7 @@ namespace hMailServer.ControlPanel.Views
          // Directly under the delete threshold, because this setting changes what that
          // threshold DOES rather than adding a feature beside it.
          var quarantine = Card(L("Quarantine instead of refusing"),
-            L("Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a blacklisted connecting IP, a bad HELO) has no message to hold and stays a refusal."));
+            L("Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal."));
          quarantine.Settings.Add(new IniBool
          {
             Path = "QuarantineEnabled",
@@ -2346,7 +2346,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "AntiSpam.SPFTempErrorDefer",
             Label = L("Answer 451 to an SPF temperror instead of accepting it"),
-            Blurb = L("RFC 7208's own answer to a check that could not be completed: try again when DNS works. The transaction is deferred with 451 4.4.3 and the temperror score above is ignored, because a deferred message is never accepted. Off, a temperror is accepted and scored. A sender on the domain white list is never deferred.")
+            Blurb = L("RFC 7208's own answer to a check that could not be completed: try again when DNS works. The transaction is deferred with 451 4.4.3 and the temperror score above is ignored, because a deferred message is never accepted. Off, a temperror is accepted and scored. A sender from an allowed domain is never deferred.")
          });
          auth.Settings.Add(new ComText
          {
@@ -2416,7 +2416,7 @@ namespace hMailServer.ControlPanel.Views
          // recipient is a protocol lie, not "maybe spam", and it is answered with
          // a refusal and optionally a ban rather than points.
          var nullSender = Card(L("Null sender with several recipients"),
-            L("MAIL FROM:<> is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender on the anti-spam white list. The domain white and black list is a page of its own under Anti-spam."));
+            L("MAIL FROM:<> is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender on the spam exemptions. Allowed and blocked domains have a page of their own under Anti-spam."));
          nullSender.Settings.Add(new ComBool
          {
             Path = "AntiSpam.RejectMultiRcptNullSender",
@@ -2437,7 +2437,7 @@ namespace hMailServer.ControlPanel.Views
          // because a HELO and a sender's domain are wrong for different reasons
          // and an operator may trust one and not the other.
          var names = Card(L("HELO names and sender domains that are not host names"),
-            L("A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:<user@192.0.2.7>, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender on the anti-spam white list, and never an incoming relay, whose HELO is your own gateway's."));
+            L("A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:<user@192.0.2.7>, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender on the spam exemptions, and never an incoming relay, whose HELO is your own gateway's."));
          names.Settings.Add(new ComBool
          {
             Path = "AntiSpam.RefuseHeloNotFqdn",
@@ -2636,7 +2636,7 @@ namespace hMailServer.ControlPanel.Views
             Label = L("Minutes the sending address is banned (0 = no ban; up to 525600)"),
             Numeric = true,
             Maximum = 525600,
-            Blurb = L("1440 by default. The ban is an expiring IP range, as an auto-ban is. An authenticated session, the anti-spam white list, an incoming relay and an address on the never-ban list are never banned.")
+            Blurb = L("1440 by default. The ban is an expiring IP range, as an auto-ban is. An authenticated session, the spam exemptions, an incoming relay and an address on the never-ban list are never banned.")
          });
          traps.Settings.Add(new ComText
          {
@@ -3051,7 +3051,7 @@ namespace hMailServer.ControlPanel.Views
          // list of addresses above, for a provider whose addresses move. A table
          // of the server's, written by its own buttons; see NeverBanNameRows.
          var byName = Card(L("Never auto-ban by reverse name"),
-            L("For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed logons, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the domain white and black list still apply. Empty, the default, changes nothing."));
+            L("For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed logons, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the allowed and blocked domains still apply. Empty, the default, changes nothing."));
          byName.Settings.Add(new NeverBanNameRows
          {
             Path = "AutoBanNeverBanNames",

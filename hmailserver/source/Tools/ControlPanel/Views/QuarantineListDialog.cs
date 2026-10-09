@@ -56,20 +56,20 @@ namespace hMailServer.ControlPanel.Views
          heloGrouping_ = heloGrouping;
          bulk_ = bulk;
 
-         Title = block ? L("Blacklist and delete") : L("Whitelist and release");
+         Title = block ? L("Block and delete") : L("Allow and release");
 
          address_.Content = L("The sender's _address, on the server's allow and block list");
          domain_.Content = heloGrouping
-            ? L("The _HELO name's domain, on the domain white and black list")
-            : L("The sender's _domain, on the domain white and black list");
+            ? L("The _HELO name's domain, on the allowed and blocked domains")
+            : L("The sender's _domain, on the allowed and blocked domains");
 
          var addressNote = Note_(block
             ? L("Read at delivery, for every recipient: a blocked sender's mail is held for them where the quarantine is on, and marked as spam where it is not.")
             : L("Read at delivery, for every recipient: an allowed sender's mail is delivered unmarked, and the accounts' own spam thresholds do not run. A message the server-wide spam score holds during the SMTP conversation is still held; the domain list is the one that stops that."));
 
          var domainNote = Note_(block
-            ? L("Read at MAIL FROM: a black domain is refused with 550 before anything else runs, for every recipient. The entry covers the organization's domain and everything beneath it.")
-            : L("Read at MAIL FROM: a white domain is not greylisted, and not refused or held on the spam score, while every test still runs and the mark threshold still marks. The entry covers the organization's domain and everything beneath it."));
+            ? L("Read at MAIL FROM: a blocked domain is refused with 550 before anything else runs, for every recipient. The entry covers the organisation's domain and everything beneath it.")
+            : L("Read at MAIL FROM: an allowed domain is not greylisted, and not refused or held on the spam score, while every test still runs and the mark threshold still marks. The entry covers the organisation's domain and everything beneath it."));
 
          suffixOk_.Content = L("_List it anyway");
          suffixOk_.Click += (_, _) => UpdatePrimary_();
@@ -87,7 +87,7 @@ namespace hMailServer.ControlPanel.Views
 
          primary_ = new Wpf.Ui.Controls.Button
          {
-            Content = block ? L("_Blacklist and delete") : L("_Whitelist and release"),
+            Content = block ? L("_Block and delete") : L("Allo_w and release"),
             Appearance = block ? Wpf.Ui.Controls.ControlAppearance.Danger : Wpf.Ui.Controls.ControlAppearance.Primary,
             MinWidth = 88
          };
@@ -97,10 +97,10 @@ namespace hMailServer.ControlPanel.Views
          cancel.Click += (_, _) => { DialogResult = false; Close(); };
 
          string heading = block
-            ? (ids_.Count == 1 ? L("Blacklist the sender of this message, then delete it")
-               : Plural(ids_.Count, "Blacklist the senders of {0} message, then delete it", "Blacklist the senders of {0} messages, then delete them"))
-            : (ids_.Count == 1 ? L("Whitelist the sender of this message, then release it")
-               : Plural(ids_.Count, "Whitelist the senders of {0} message, then release it", "Whitelist the senders of {0} messages, then release them"));
+            ? (ids_.Count == 1 ? L("Block the sender of this message, then delete it")
+               : Plural(ids_.Count, "Block the senders of {0} message, then delete it", "Block the senders of {0} messages, then delete them"))
+            : (ids_.Count == 1 ? L("Allow the sender of this message, then release it")
+               : Plural(ids_.Count, "Allow the senders of {0} message, then release it", "Allow the senders of {0} messages, then release them"));
 
          UseFrame(heading, body, primary_, cancel,
             description: L("Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is."),
@@ -150,7 +150,7 @@ namespace hMailServer.ControlPanel.Views
 
             if (answer == null)
             {
-               plan_.Text = L("This server is older than the Control Panel and cannot whitelist or blacklist from the quarantine. Upgrade the server.");
+               plan_.Text = L("This server is older than the Control Panel and cannot allow or block a sender from the quarantine. Upgrade the server.");
                UpdatePrimary_();
                return;
             }

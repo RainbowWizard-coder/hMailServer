@@ -126,8 +126,8 @@ namespace hMailServer.ControlPanel.Services
 
       public string ReleaseTip => IsGroup ? L("Release this group") : L("Release");
       public string DeleteTip => IsGroup ? L("Delete this group") : L("Delete");
-      public string AllowTip => IsGroup ? L("Whitelist this group's senders, then release") : L("Whitelist the sender, then release");
-      public string BlockTip => IsGroup ? L("Blacklist this group's senders, then delete") : L("Blacklist the sender, then delete");
+      public string AllowTip => IsGroup ? L("Allow this group's senders, then release") : L("Allow the sender, then release");
+      public string BlockTip => IsGroup ? L("Block this group's senders, then delete") : L("Block the sender, then delete");
       public string CheckTip => IsGroup ? F("Check every message from {0}", GroupTitle) : L("Check this message");
       public string FoldTip => IsGroup ? (IsExpanded ? L("Fold this group") : L("Unfold this group")) : null;
       public string HeadersTip => IsGroup ? null : L("Show the headers");

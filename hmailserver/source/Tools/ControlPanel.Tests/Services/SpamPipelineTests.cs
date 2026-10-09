@@ -397,7 +397,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          Assert.Contains(SpamPipeline.Notes(Defaults()),
             n => n.Text.Contains("authenticated session", StringComparison.OrdinalIgnoreCase)
-                 && n.Text.Contains("white list", StringComparison.OrdinalIgnoreCase));
+                 && n.Text.Contains("spam exemptions", StringComparison.OrdinalIgnoreCase));
       }
 
       /// <summary>

@@ -150,8 +150,8 @@
   <data name="1 alias" xml:space="preserve">
     <value>1 alias</value>
   </data>
-  <data name="1 blacklist" xml:space="preserve">
-    <value>1 blacklist</value>
+  <data name="1 block list" xml:space="preserve">
+    <value>1 block list</value>
   </data>
   <data name="1 blocked sender" xml:space="preserve">
     <value>1 blocked sender</value>
@@ -189,8 +189,8 @@
   <data name="1 server message" xml:space="preserve">
     <value>1 server message</value>
   </data>
-  <data name="1 white-list entry" xml:space="preserve">
-    <value>1 white-list entry</value>
+  <data name="1 spam exemption" xml:space="preserve">
+    <value>1 spam exemption</value>
   </data>
   <data name="1.  Scan this QR code with an authenticator app (Microsoft Authenticator, Google Authenticator, Authy, 1Password…)." xml:space="preserve">
     <value>1.  Scan this QR code with an authenticator app (Microsoft Authenticator, Google Authenticator, Authy, 1Password…).</value>
@@ -207,8 +207,8 @@
   <data name="14 by default. The unread copies are deleted; the read ones stay." xml:space="preserve">
     <value>14 by default. The unread copies are deleted; the read ones stay.</value>
   </data>
-  <data name="1440 by default. The ban is an expiring IP range, as an auto-ban is. An authenticated session, the anti-spam white list, an incoming relay and an address on the never-ban list are never banned." xml:space="preserve">
-    <value>1440 by default. The ban is an expiring IP range, as an auto-ban is. An authenticated session, the anti-spam white list, an incoming relay and an address on the never-ban list are never banned.</value>
+  <data name="1440 by default. The ban is an expiring IP range, as an auto-ban is. An authenticated session, the spam exemptions, an incoming relay and an address on the never-ban list are never banned." xml:space="preserve">
+    <value>1440 by default. The ban is an expiring IP range, as an auto-ban is. An authenticated session, the spam exemptions, an incoming relay and an address on the never-ban list are never banned.</value>
   </data>
   <data name="15 by default, counted once no IMAP or POP3 session holds the key. After that the mail is readable again only after the next sign-in with the password." xml:space="preserve">
     <value>15 by default, counted once no IMAP or POP3 session holds the key. After that the mail is readable again only after the next sign-in with the password.</value>
@@ -636,8 +636,8 @@
   <data name="A service account password from an earlier version is stored in hMailServer.INI in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.INI with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
     <value>A service account password from an earlier version is stored in hMailServer.INI in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.INI with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too.</value>
   </data>
-  <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender on the anti-spam white list, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
-    <value>A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender on the anti-spam white list, and never an incoming relay, whose HELO is your own gateway's.</value>
+  <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender on the spam exemptions, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
+    <value>A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender on the spam exemptions, and never an incoming relay, whose HELO is your own gateway's.</value>
   </data>
   <data name="A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one." xml:space="preserve">
     <value>A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one.</value>
@@ -939,11 +939,11 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Add _criterion…" xml:space="preserve">
     <value>Add _criterion…</value>
   </data>
-  <data name="Add a DNS blacklist" xml:space="preserve">
-    <value>Add a DNS blacklist</value>
+  <data name="Add a DNS block list" xml:space="preserve">
+    <value>Add a DNS block list</value>
   </data>
-  <data name="Add a DNS blacklist; connections from listed addresses gain score or are refused." xml:space="preserve">
-    <value>Add a DNS blacklist; connections from listed addresses gain score or are refused.</value>
+  <data name="Add a DNS block list; connections from listed addresses gain score or are refused." xml:space="preserve">
+    <value>Add a DNS block list; connections from listed addresses gain score or are refused.</value>
   </data>
   <data name="Add a SURBL server" xml:space="preserve">
     <value>Add a SURBL server</value>
@@ -972,8 +972,8 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Add a domain to the list" xml:space="preserve">
     <value>Add a domain to the list</value>
   </data>
-  <data name="Add a domain to the white and black list" xml:space="preserve">
-    <value>Add a domain to the white and black list</value>
+  <data name="Add a greylisting exemption" xml:space="preserve">
+    <value>Add a greylisting exemption</value>
   </data>
   <data name="Add a list entry" xml:space="preserve">
     <value>Add a list entry</value>
@@ -993,8 +993,8 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Add a security group" xml:space="preserve">
     <value>Add a security group</value>
   </data>
-  <data name="Add a white-list entry" xml:space="preserve">
-    <value>Add a white-list entry</value>
+  <data name="Add a spam exemption" xml:space="preserve">
+    <value>Add a spam exemption</value>
   </data>
   <data name="Add a_lias" xml:space="preserve">
     <value>Add a_lias</value>
@@ -1010,9 +1010,6 @@ The Control Panel can only read message files when it runs on the same machine a
   </data>
   <data name="Add alias" xml:space="preserve">
     <value>Add alias</value>
-  </data>
-  <data name="Add an IP address to the greylisting white list" xml:space="preserve">
-    <value>Add an IP address to the greylisting white list</value>
   </data>
   <data name="Add an IP range for the device that allows SMTP delivery without requiring authentication." xml:space="preserve">
     <value>Add an IP range for the device that allows SMTP delivery without requiring authentication.</value>
@@ -1086,8 +1083,8 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Add signature to _replies" xml:space="preserve">
     <value>Add signature to _replies</value>
   </data>
-  <data name="Add the address or IP range to the anti-spam white list." xml:space="preserve">
-    <value>Add the address or IP range to the anti-spam white list.</value>
+  <data name="Add the address or IP range to the spam exemptions." xml:space="preserve">
+    <value>Add the address or IP range to the spam exemptions.</value>
   </data>
   <data name="Add the certificate" xml:space="preserve">
     <value>Add the certificate</value>
@@ -1269,6 +1266,9 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="All linked domains" xml:space="preserve">
     <value>All linked domains</value>
   </data>
+  <data name="Allo_w and release" xml:space="preserve">
+    <value>Allo_w and release</value>
+  </data>
   <data name="Allow" xml:space="preserve">
     <value>Allow</value>
   </data>
@@ -1299,17 +1299,53 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Allow and block list" xml:space="preserve">
     <value>Allow and block list</value>
   </data>
+  <data name="Allow and release" xml:space="preserve">
+    <value>Allow and release</value>
+  </data>
   <data name="Allow incorrect line endings" xml:space="preserve">
     <value>Allow incorrect line endings</value>
   </data>
+  <data name="Allow or block a domain" xml:space="preserve">
+    <value>Allow or block a domain</value>
+  </data>
   <data name="Allow plain-text authentication (AUTH PLAIN/LOGIN)" xml:space="preserve">
     <value>Allow plain-text authentication (AUTH PLAIN/LOGIN)</value>
+  </data>
+  <data name="Allow the checked messages' senders, then release" xml:space="preserve">
+    <value>Allow the checked messages' senders, then release</value>
+  </data>
+  <data name="Allow the sender of this message, then release it" xml:space="preserve">
+    <value>Allow the sender of this message, then release it</value>
+  </data>
+  <data name="Allow the sender, then release" xml:space="preserve">
+    <value>Allow the sender, then release</value>
+  </data>
+  <data name="Allow the senders of {0} message, then release it" xml:space="preserve">
+    <value>Allow the senders of {0} message, then release it</value>
+  </data>
+  <data name="Allow the senders of {0} messages, then release them" xml:space="preserve">
+    <value>Allow the senders of {0} messages, then release them</value>
+  </data>
+  <data name="Allow this group's senders, then release" xml:space="preserve">
+    <value>Allow this group's senders, then release</value>
+  </data>
+  <data name="Allowed and blocked domains" xml:space="preserve">
+    <value>Allowed and blocked domains</value>
   </data>
   <data name="Allowed as {0}." xml:space="preserve">
     <value>Allowed as {0}.</value>
   </data>
   <data name="Allowed signing algorithms (comma separated)" xml:space="preserve">
     <value>Allowed signing algorithms (comma separated)</value>
+  </data>
+  <data name="Allowed. List entries: {0}. Messages released: {1}." xml:space="preserve">
+    <value>Allowed. List entries: {0}. Messages released: {1}.</value>
+  </data>
+  <data name="Allowed: not greylisted, not refused on score" xml:space="preserve">
+    <value>Allowed: not greylisted, not refused on score</value>
+  </data>
+  <data name="Allowed: not greylisted, not refused on the spam score" xml:space="preserve">
+    <value>Allowed: not greylisted, not refused on the spam score</value>
   </data>
   <data name="Allows for this server's clock differing from the signer's. Without it, a clock running a few minutes fast turns other people's valid mail into DKIM failures." xml:space="preserve">
     <value>Allows for this server's clock differing from the signer's. Without it, a clock running a few minutes fast turns other people's valid mail into DKIM failures.</value>
@@ -1389,6 +1425,9 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="An alias points one address at another without needing a second mailbox." xml:space="preserve">
     <value>An alias points one address at another without needing a second mailbox.</value>
   </data>
+  <data name="An allowed domain still runs every test and still marks at the mark threshold; a blocked one is refused before a single test runs." xml:space="preserve">
+    <value>An allowed domain still runs every test and still marks at the mark threshold; a blocked one is refused before a single test runs.</value>
+  </data>
   <data name="An archive is usually kept for a legal or contractual reason, and that reason usually applies to particular domains rather than to every domain this server hosts. With a list here a message is archived only when its local sender or one of its recipients belongs to a listed domain, and only the copies for listed domains are made - a listed recipient still gets their copy when the sender's domain is not listed. Matched without regard to case." xml:space="preserve">
     <value>An archive is usually kept for a legal or contractual reason, and that reason usually applies to particular domains rather than to every domain this server hosts. With a list here a message is archived only when its local sender or one of its recipients belongs to a listed domain, and only the copies for listed domains are made - a listed recipient still gets their copy when the sender's domain is not listed. Matched without regard to case.</value>
   </data>
@@ -1467,9 +1506,6 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   </data>
   <data name="Anti-spam settings (SpamAssassin)" xml:space="preserve">
     <value>Anti-spam settings (SpamAssassin)</value>
-  </data>
-  <data name="Anti-spam white list" xml:space="preserve">
-    <value>Anti-spam white list</value>
   </data>
   <data name="Anti-virus" xml:space="preserve">
     <value>Anti-virus</value>
@@ -1891,35 +1927,11 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   <data name="Bind to address" xml:space="preserve">
     <value>Bind to address</value>
   </data>
-  <data name="Black: refused at MAIL FROM" xml:space="preserve">
-    <value>Black: refused at MAIL FROM</value>
-  </data>
-  <data name="Blacklist and delete" xml:space="preserve">
-    <value>Blacklist and delete</value>
-  </data>
-  <data name="Blacklist the checked messages' senders, then delete" xml:space="preserve">
-    <value>Blacklist the checked messages' senders, then delete</value>
-  </data>
-  <data name="Blacklist the sender of this message, then delete it" xml:space="preserve">
-    <value>Blacklist the sender of this message, then delete it</value>
-  </data>
-  <data name="Blacklist the sender, then delete" xml:space="preserve">
-    <value>Blacklist the sender, then delete</value>
-  </data>
-  <data name="Blacklist the senders of {0} message, then delete it" xml:space="preserve">
-    <value>Blacklist the senders of {0} message, then delete it</value>
-  </data>
-  <data name="Blacklist the senders of {0} messages, then delete them" xml:space="preserve">
-    <value>Blacklist the senders of {0} messages, then delete them</value>
-  </data>
-  <data name="Blacklist this group's senders, then delete" xml:space="preserve">
-    <value>Blacklist this group's senders, then delete</value>
-  </data>
-  <data name="Blacklisted. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
-    <value>Blacklisted. List entries: {0}. Messages deleted: {1}.</value>
-  </data>
   <data name="Block" xml:space="preserve">
     <value>Block</value>
+  </data>
+  <data name="Block and delete" xml:space="preserve">
+    <value>Block and delete</value>
   </data>
   <data name="Block lists and this server's own addresses" xml:space="preserve">
     <value>Block lists and this server's own addresses</value>
@@ -1936,11 +1948,35 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   <data name="Block rather than allow" xml:space="preserve">
     <value>Block rather than allow</value>
   </data>
+  <data name="Block the checked messages' senders, then delete" xml:space="preserve">
+    <value>Block the checked messages' senders, then delete</value>
+  </data>
+  <data name="Block the sender of this message, then delete it" xml:space="preserve">
+    <value>Block the sender of this message, then delete it</value>
+  </data>
+  <data name="Block the sender, then delete" xml:space="preserve">
+    <value>Block the sender, then delete</value>
+  </data>
+  <data name="Block the senders of {0} message, then delete it" xml:space="preserve">
+    <value>Block the senders of {0} message, then delete it</value>
+  </data>
+  <data name="Block the senders of {0} messages, then delete them" xml:space="preserve">
+    <value>Block the senders of {0} messages, then delete them</value>
+  </data>
+  <data name="Block this group's senders, then delete" xml:space="preserve">
+    <value>Block this group's senders, then delete</value>
+  </data>
   <data name="Blocked attachments" xml:space="preserve">
     <value>Blocked attachments</value>
   </data>
   <data name="Blocked senders" xml:space="preserve">
     <value>Blocked senders</value>
+  </data>
+  <data name="Blocked. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
+    <value>Blocked. List entries: {0}. Messages deleted: {1}.</value>
+  </data>
+  <data name="Blocked: refused at MAIL FROM" xml:space="preserve">
+    <value>Blocked: refused at MAIL FROM</value>
   </data>
   <data name="Blowfish (legacy)" xml:space="preserve">
     <value>Blowfish (legacy)</value>
@@ -2197,8 +2233,8 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   <data name="Change the language" xml:space="preserve">
     <value>Change the language</value>
   </data>
-  <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a blacklisted connecting IP, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
-    <value>Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a blacklisted connecting IP, a bad HELO) has no message to hold and stays a refusal.</value>
+  <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
+    <value>Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal.</value>
   </data>
   <data name="Changing the pepper after accounts exist stops every password stored as an Argon2id or scrypt hash from working, and each such account then needs a new password. PBKDF2 hashes, the default, are not peppered." xml:space="preserve">
     <value>Changing the pepper after accounts exist stops every password stored as an Argon2id or scrypt hash from working, and each such account then needs a new password. PBKDF2 hashes, the default, are not peppered.</value>
@@ -3177,14 +3213,11 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   <data name="DMARC tells receivers what to do with mail that fails SPF and DKIM, and where to report it." xml:space="preserve">
     <value>DMARC tells receivers what to do with mail that fails SPF and DKIM, and where to report it.</value>
   </data>
-  <data name="DNS blacklist checks" xml:space="preserve">
-    <value>DNS blacklist checks</value>
+  <data name="DNS block list checks" xml:space="preserve">
+    <value>DNS block list checks</value>
   </data>
-  <data name="DNS blacklists" xml:space="preserve">
-    <value>DNS blacklists</value>
-  </data>
-  <data name="DNS blacklists (DNSBL)" xml:space="preserve">
-    <value>DNS blacklists (DNSBL)</value>
+  <data name="DNS block lists (DNSBL)" xml:space="preserve">
+    <value>DNS block lists (DNSBL)</value>
   </data>
   <data name="DNS cache" xml:space="preserve">
     <value>DNS cache</value>
@@ -3757,9 +3790,6 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Domain or suffix" xml:space="preserve">
     <value>Domain or suffix</value>
   </data>
-  <data name="Domain white and black list" xml:space="preserve">
-    <value>Domain white and black list</value>
-  </data>
   <data name="Domain whose DNS records are shown" xml:space="preserve">
     <value>Domain whose DNS records are shown</value>
   </data>
@@ -3865,8 +3895,8 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Edit criterion" xml:space="preserve">
     <value>Edit criterion</value>
   </data>
-  <data name="Edit the DNS blacklist" xml:space="preserve">
-    <value>Edit the DNS blacklist</value>
+  <data name="Edit the DNS block list" xml:space="preserve">
+    <value>Edit the DNS block list</value>
   </data>
   <data name="Edit the SURBL server" xml:space="preserve">
     <value>Edit the SURBL server</value>
@@ -3895,8 +3925,8 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Edit the external account" xml:space="preserve">
     <value>Edit the external account</value>
   </data>
-  <data name="Edit the greylisting white-list entry" xml:space="preserve">
-    <value>Edit the greylisting white-list entry</value>
+  <data name="Edit the greylisting exemption" xml:space="preserve">
+    <value>Edit the greylisting exemption</value>
   </data>
   <data name="Edit the list entry" xml:space="preserve">
     <value>Edit the list entry</value>
@@ -3919,8 +3949,8 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Edit the server message" xml:space="preserve">
     <value>Edit the server message</value>
   </data>
-  <data name="Edit the white-list entry" xml:space="preserve">
-    <value>Edit the white-list entry</value>
+  <data name="Edit the spam exemption" xml:space="preserve">
+    <value>Edit the spam exemption</value>
   </data>
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>Edited on this dialog's other tabs.</value>
@@ -4285,6 +4315,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Executable not found: {0}" xml:space="preserve">
     <value>Executable not found: {0}</value>
   </data>
+  <data name="Exempt the sender or their IP range from spam protection." xml:space="preserve">
+    <value>Exempt the sender or their IP range from spam protection.</value>
+  </data>
   <data name="Exempt: may exchange mail with anyone" xml:space="preserve">
     <value>Exempt: may exchange mail with anyone</value>
   </data>
@@ -4534,8 +4567,8 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="For a MinIO or Ceph gateway behind a CA of your own. The host name is checked either way." xml:space="preserve">
     <value>For a MinIO or Ceph gateway behind a CA of your own. The host name is checked either way.</value>
   </data>
-  <data name="For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed logons, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the domain white and black list still apply. Empty, the default, changes nothing." xml:space="preserve">
-    <value>For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed logons, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the domain white and black list still apply. Empty, the default, changes nothing.</value>
+  <data name="For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed logons, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the allowed and blocked domains still apply. Empty, the default, changes nothing." xml:space="preserve">
+    <value>For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed logons, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the allowed and blocked domains still apply. Empty, the default, changes nothing.</value>
   </data>
   <data name="For a record of who corresponds with whom, keeping it for ever should be a decision rather than a default - which is why 0 is offered as an option instead of being one." xml:space="preserve">
     <value>For a record of who corresponds with whom, keeping it for ever should be a decision rather than a default - which is why 0 is offered as an option instead of being one.</value>
@@ -4699,6 +4732,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Greylisting bypass list" xml:space="preserve">
     <value>Greylisting bypass list</value>
   </data>
+  <data name="Greylisting exemptions" xml:space="preserve">
+    <value>Greylisting exemptions</value>
+  </data>
   <data name="Greylisting record expiration, and SpamAssassin move-vs-copy" xml:space="preserve">
     <value>Greylisting record expiration, and SpamAssassin move-vs-copy</value>
   </data>
@@ -4707,9 +4743,6 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Greylisting triplets cleared." xml:space="preserve">
     <value>Greylisting triplets cleared.</value>
-  </data>
-  <data name="Greylisting white list" xml:space="preserve">
-    <value>Greylisting white list</value>
   </data>
   <data name="Gro_up by" xml:space="preserve">
     <value>Gro_up by</value>
@@ -5011,8 +5044,8 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="How the server uses the database it is already configured for. Where that database IS - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
     <value>How the server uses the database it is already configured for. Where that database IS - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart.</value>
   </data>
-  <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI)." xml:space="preserve">
-    <value>How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI).</value>
+  <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups (hMailServer.INI)." xml:space="preserve">
+    <value>How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups (hMailServer.INI).</value>
   </data>
   <data name="I _confirm the changes marked above." xml:space="preserve">
     <value>I _confirm the changes marked above.</value>
@@ -5700,8 +5733,8 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="Looking up {0}…" xml:space="preserve">
     <value>Looking up {0}…</value>
   </data>
-  <data name="Looks up the connecting address on each active blacklist; the score comes from the entry that matched" xml:space="preserve">
-    <value>Looks up the connecting address on each active blacklist; the score comes from the entry that matched</value>
+  <data name="Looks up the connecting address on each active block list; the score comes from the entry that matched" xml:space="preserve">
+    <value>Looks up the connecting address on each active block list; the score comes from the entry that matched</value>
   </data>
   <data name="Looks up the domains of links found in the body on each active SURBL server" xml:space="preserve">
     <value>Looks up the domains of links found in the body on each active SURBL server</value>
@@ -5724,8 +5757,8 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="Lower the mark and delete thresholds, or turn on more of the checks." xml:space="preserve">
     <value>Lower the mark and delete thresholds, or turn on more of the checks.</value>
   </data>
-  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender on the anti-spam white list. The domain white and black list is a page of its own under Anti-spam." xml:space="preserve">
-    <value>MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender on the anti-spam white list. The domain white and black list is a page of its own under Anti-spam.</value>
+  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender on the spam exemptions. Allowed and blocked domains have a page of their own under Anti-spam." xml:space="preserve">
+    <value>MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender on the spam exemptions. Allowed and blocked domains have a page of their own under Anti-spam.</value>
   </data>
   <data name="MD5 (legacy)" xml:space="preserve">
     <value>MD5 (legacy)</value>
@@ -6154,8 +6187,8 @@ Nothing already there is removed.</value>
   <data name="Messages still waiting to be delivered, why each is waiting, and when it will be retried." xml:space="preserve">
     <value>Messages still waiting to be delivered, why each is waiting, and when it will be retried.</value>
   </data>
-  <data name="Messages that link to more domains than the URI blocklists ask about" xml:space="preserve">
-    <value>Messages that link to more domains than the URI blocklists ask about</value>
+  <data name="Messages that link to more domains than the URI block lists ask about" xml:space="preserve">
+    <value>Messages that link to more domains than the URI block lists ask about</value>
   </data>
   <data name="Messages the server finished processing, per minute, sampled every 2 seconds." xml:space="preserve">
     <value>Messages the server finished processing, per minute, sampled every 2 seconds.</value>
@@ -6814,8 +6847,8 @@ Nothing already there is removed.</value>
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one.</value>
   </data>
-  <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the {0} entries on the anti-spam white list." xml:space="preserve">
-    <value>None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the {0} entries on the anti-spam white list.</value>
+  <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges on the spam exemptions (entries: {0})." xml:space="preserve">
+    <value>None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges on the spam exemptions (entries: {0}).</value>
   </data>
   <data name="None yet: make one with the button below." xml:space="preserve">
     <value>None yet: make one with the button below.</value>
@@ -6871,8 +6904,8 @@ Nothing already there is removed.</value>
   <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
     <value>Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password.</value>
   </data>
-  <data name="Not the anti-spam white list, which is an IP range that skips every test, and not the allow and block list, which decides per recipient at delivery. example.com matches that domain alone; .example.com matches the domain and everything beneath it." xml:space="preserve">
-    <value>Not the anti-spam white list, which is an IP range that skips every test, and not the allow and block list, which decides per recipient at delivery. example.com matches that domain alone; .example.com matches the domain and everything beneath it.</value>
+  <data name="Not the spam exemptions, whose senders and IP ranges skip every test, and not the allow and block list, which decides per recipient at delivery. example.com matches that domain alone; .example.com matches the domain and everything beneath it." xml:space="preserve">
+    <value>Not the spam exemptions, whose senders and IP ranges skip every test, and not the allow and block list, which decides per recipient at delivery. example.com matches that domain alone; .example.com matches the domain and everything beneath it.</value>
   </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Not valid until {0}</value>
@@ -8121,8 +8154,8 @@ No new connections will be accepted and no mail will be delivered until it is re
   <data name="RFC 7208 4.6.4. A &quot;void lookup&quot; is a term of a sender's SPF policy - an a:, mx: or exists: - whose DNS query comes back with nothing at all. The separate limit of ten DNS-querying terms bounds what a policy can ask this server to look up; it does not bound what a policy can waste, and ten terms naming hosts that do not exist cost a full resolution each for a record that can never match. Two is what the RFC says. It also catches the ordinary case: a policy still listing hosts decommissioned years ago, which its owner would rather be told about. Raising it is safe; 0 switches the limit off, which is the setting for a correspondent whose policy is wrong in exactly this way and whose mail you would rather take." xml:space="preserve">
     <value>RFC 7208 4.6.4. A "void lookup" is a term of a sender's SPF policy - an a:, mx: or exists: - whose DNS query comes back with nothing at all. The separate limit of ten DNS-querying terms bounds what a policy can ask this server to look up; it does not bound what a policy can waste, and ten terms naming hosts that do not exist cost a full resolution each for a record that can never match. Two is what the RFC says. It also catches the ordinary case: a policy still listing hosts decommissioned years ago, which its owner would rather be told about. Raising it is safe; 0 switches the limit off, which is the setting for a correspondent whose policy is wrong in exactly this way and whose mail you would rather take.</value>
   </data>
-  <data name="RFC 7208's own answer to a check that could not be completed: try again when DNS works. The transaction is deferred with 451 4.4.3 and the temperror score above is ignored, because a deferred message is never accepted. Off, a temperror is accepted and scored. A sender on the domain white list is never deferred." xml:space="preserve">
-    <value>RFC 7208's own answer to a check that could not be completed: try again when DNS works. The transaction is deferred with 451 4.4.3 and the temperror score above is ignored, because a deferred message is never accepted. Off, a temperror is accepted and scored. A sender on the domain white list is never deferred.</value>
+  <data name="RFC 7208's own answer to a check that could not be completed: try again when DNS works. The transaction is deferred with 451 4.4.3 and the temperror score above is ignored, because a deferred message is never accepted. Off, a temperror is accepted and scored. A sender from an allowed domain is never deferred." xml:space="preserve">
+    <value>RFC 7208's own answer to a check that could not be completed: try again when DNS works. The transaction is deferred with 451 4.4.3 and the temperror score above is ignored, because a deferred message is never accepted. Off, a temperror is accepted and scored. A sender from an allowed domain is never deferred.</value>
   </data>
   <data name="RSA/EC public key file (PEM, for RS*/ES* tokens)" xml:space="preserve">
     <value>RSA/EC public key file (PEM, for RS*/ES* tokens)</value>
@@ -8193,11 +8226,11 @@ No new connections will be accepted and no mail will be delivered until it is re
   <data name="Re_voke / restore" xml:space="preserve">
     <value>Re_voke / restore</value>
   </data>
-  <data name="Read at MAIL FROM: a black domain is refused with 550 before anything else runs, for every recipient. The entry covers the organization's domain and everything beneath it." xml:space="preserve">
-    <value>Read at MAIL FROM: a black domain is refused with 550 before anything else runs, for every recipient. The entry covers the organization's domain and everything beneath it.</value>
+  <data name="Read at MAIL FROM: a blocked domain is refused with 550 before anything else runs, for every recipient. The entry covers the organisation's domain and everything beneath it." xml:space="preserve">
+    <value>Read at MAIL FROM: a blocked domain is refused with 550 before anything else runs, for every recipient. The entry covers the organisation's domain and everything beneath it.</value>
   </data>
-  <data name="Read at MAIL FROM: a white domain is not greylisted, and not refused or held on the spam score, while every test still runs and the mark threshold still marks. The entry covers the organization's domain and everything beneath it." xml:space="preserve">
-    <value>Read at MAIL FROM: a white domain is not greylisted, and not refused or held on the spam score, while every test still runs and the mark threshold still marks. The entry covers the organization's domain and everything beneath it.</value>
+  <data name="Read at MAIL FROM: an allowed domain is not greylisted, and not refused or held on the spam score, while every test still runs and the mark threshold still marks. The entry covers the organisation's domain and everything beneath it." xml:space="preserve">
+    <value>Read at MAIL FROM: an allowed domain is not greylisted, and not refused or held on the spam score, while every test still runs and the mark threshold still marks. The entry covers the organisation's domain and everything beneath it.</value>
   </data>
   <data name="Read at delivery, for every recipient: a blocked sender's mail is held for them where the quarantine is on, and marked as spam where it is not." xml:space="preserve">
     <value>Read at delivery, for every recipient: a blocked sender's mail is held for them where the quarantine is on, and marked as spam where it is not.</value>
@@ -8253,8 +8286,8 @@ No new connections will be accepted and no mail will be delivered until it is re
   <data name="Ready to switch" xml:space="preserve">
     <value>Ready to switch</value>
   </data>
-  <data name="Real-time blackhole lists checked against the connecting IP address." xml:space="preserve">
-    <value>Real-time blackhole lists checked against the connecting IP address.</value>
+  <data name="Real-time block lists checked against the connecting IP address." xml:space="preserve">
+    <value>Real-time block lists checked against the connecting IP address.</value>
   </data>
   <data name="Reason" xml:space="preserve">
     <value>Reason</value>
@@ -8578,10 +8611,10 @@ Run this if clients report messages appearing under the wrong UID, or after rest
   <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
     <value>Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone.</value>
   </data>
-  <data name="Remove {0} from the list?&#10;&#10;A black domain is accepted again at once; a white domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
+  <data name="Remove {0} from the list?&#10;&#10;A blocked domain is accepted again at once; an allowed domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
     <value>Remove {0} from the list?
 
-A black domain is accepted again at once; a white domain goes back under greylisting and the spam score from the next session.</value>
+A blocked domain is accepted again at once; an allowed domain goes back under greylisting and the spam score from the next session.</value>
   </data>
   <data name="Remove {0} from the never-ban list?&#10;&#10;An address it spared can be auto-banned again from the next ban on." xml:space="preserve">
     <value>Remove {0} from the never-ban list?
@@ -9696,11 +9729,11 @@ Continue?</value>
   <data name="Sending _domain" xml:space="preserve">
     <value>Sending _domain</value>
   </data>
-  <data name="Sending domains this server has decided about: white skips greylisting and the score's refusals, black is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
-    <value>Sending domains this server has decided about: white skips greylisting and the score's refusals, black is refused at MAIL FROM - by domain or HELO suffix, not by IP address.</value>
+  <data name="Sending domains this server has decided about: an allowed one skips greylisting and the score's refusals, a blocked one is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
+    <value>Sending domains this server has decided about: an allowed one skips greylisting and the score's refusals, a blocked one is refused at MAIL FROM - by domain or HELO suffix, not by IP address.</value>
   </data>
-  <data name="Sending organisations decided about by their domain rather than by the IP address of the week. White: not greylisted and never refused on the spam score, while every test still runs and logs. Black: refused at MAIL FROM before greylisting, scoring or any lookup. Matched on the envelope sender's domain, the HELO name, or either; inbound unauthenticated sessions only." xml:space="preserve">
-    <value>Sending organisations decided about by their domain rather than by the IP address of the week. White: not greylisted and never refused on the spam score, while every test still runs and logs. Black: refused at MAIL FROM before greylisting, scoring or any lookup. Matched on the envelope sender's domain, the HELO name, or either; inbound unauthenticated sessions only.</value>
+  <data name="Sending organisations decided about by their domain rather than by the IP address of the week. Allowed: not greylisted and never refused on the spam score, while every test still runs and logs. Blocked: refused at MAIL FROM before greylisting, scoring or any lookup. Matched on the envelope sender's domain, the HELO name, or either; inbound unauthenticated sessions only." xml:space="preserve">
+    <value>Sending organisations decided about by their domain rather than by the IP address of the week. Allowed: not greylisted and never refused on the spam score, while every test still runs and logs. Blocked: refused at MAIL FROM before greylisting, scoring or any lookup. Matched on the envelope sender's domain, the HELO name, or either; inbound unauthenticated sessions only.</value>
   </data>
   <data name="Sendout failed: {0}" xml:space="preserve">
     <value>Sendout failed: {0}</value>
@@ -10193,6 +10226,9 @@ Restart it now?</value>
   </data>
   <data name="Spam delete threshold (score)" xml:space="preserve">
     <value>Spam delete threshold (score)</value>
+  </data>
+  <data name="Spam exemptions" xml:space="preserve">
+    <value>Spam exemptions</value>
   </data>
   <data name="Spam filtering overview" xml:space="preserve">
     <value>Spam filtering overview</value>
@@ -10781,14 +10817,14 @@ The next message to it will be sent, and it is listed again only after as many h
   <data name="The TCP/IP port list could not be read - {0}" xml:space="preserve">
     <value>The TCP/IP port list could not be read - {0}</value>
   </data>
-  <data name="The URI blocklists on the SURBL servers page are asked about every registrable domain and address a message links to, up to 200 for each message. A message whose links name more is not asked about whole: it scores the number below instead, once, however many lists are active, so that hiding a listed link among made-up domains does not come free. Nothing is scored while no URI blocklist is active." xml:space="preserve">
-    <value>The URI blocklists on the SURBL servers page are asked about every registrable domain and address a message links to, up to 200 for each message. A message whose links name more is not asked about whole: it scores the number below instead, once, however many lists are active, so that hiding a listed link among made-up domains does not come free. Nothing is scored while no URI blocklist is active.</value>
+  <data name="The URI block lists on the SURBL servers page are asked about every registrable domain and address a message links to, up to 200 for each message. A message whose links name more is not asked about whole: it scores the number below instead, once, however many lists are active, so that hiding a listed link among made-up domains does not come free. Nothing is scored while no URI block list is active." xml:space="preserve">
+    <value>The URI block lists on the SURBL servers page are asked about every registrable domain and address a message links to, up to 200 for each message. A message whose links name more is not asked about whole: it scores the number below instead, once, however many lists are active, so that hiding a listed link among made-up domains does not come free. Nothing is scored while no URI block list is active.</value>
   </data>
   <data name="The Windows prompt was declined, so nothing was installed and nothing on the server was changed." xml:space="preserve">
     <value>The Windows prompt was declined, so nothing was installed and nothing on the server was changed.</value>
   </data>
-  <data name="The _HELO name's domain, on the domain white and black list" xml:space="preserve">
-    <value>The _HELO name's domain, on the domain white and black list</value>
+  <data name="The _HELO name's domain, on the allowed and blocked domains" xml:space="preserve">
+    <value>The _HELO name's domain, on the allowed and blocked domains</value>
   </data>
   <data name="The accepted TLS versions and cipher suites are set here." xml:space="preserve">
     <value>The accepted TLS versions and cipher suites are set here.</value>
@@ -11621,8 +11657,8 @@ Add it anyway?</value>
   <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
     <value>The sender's _address, on the server's allow and block list</value>
   </data>
-  <data name="The sender's _domain, on the domain white and black list" xml:space="preserve">
-    <value>The sender's _domain, on the domain white and black list</value>
+  <data name="The sender's _domain, on the allowed and blocked domains" xml:space="preserve">
+    <value>The sender's _domain, on the allowed and blocked domains</value>
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports "timed out while sending end of data". The message never appears in your queue.</value>
@@ -12034,11 +12070,11 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="This server holds {0} accounts, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one." xml:space="preserve">
     <value>This server holds {0} accounts, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one.</value>
   </data>
+  <data name="This server is older than the Control Panel and cannot allow or block a sender from the quarantine. Upgrade the server." xml:space="preserve">
+    <value>This server is older than the Control Panel and cannot allow or block a sender from the quarantine. Upgrade the server.</value>
+  </data>
   <data name="This server is older than the Control Panel and cannot show a held message's headers or text. Upgrade the server." xml:space="preserve">
     <value>This server is older than the Control Panel and cannot show a held message's headers or text. Upgrade the server.</value>
-  </data>
-  <data name="This server is older than the Control Panel and cannot whitelist or blacklist from the quarantine. Upgrade the server." xml:space="preserve">
-    <value>This server is older than the Control Panel and cannot whitelist or blacklist from the quarantine. Upgrade the server.</value>
   </data>
   <data name="This server now" xml:space="preserve">
     <value>This server now</value>
@@ -12745,8 +12781,8 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="When a virus is found" xml:space="preserve">
     <value>When a virus is found</value>
   </data>
-  <data name="When during the SMTP conversation blacklist lookups happen. Which blacklists are queried is on the DNS blacklists page." xml:space="preserve">
-    <value>When during the SMTP conversation blacklist lookups happen. Which blacklists are queried is on the DNS blacklists page.</value>
+  <data name="When during the SMTP conversation block list lookups happen. Which block lists are asked is on the DNS block lists (DNSBL) page." xml:space="preserve">
+    <value>When during the SMTP conversation block list lookups happen. Which block lists are asked is on the DNS block lists (DNSBL) page.</value>
   </data>
   <data name="When the endpoint cannot be reached" xml:space="preserve">
     <value>When the endpoint cannot be reached</value>
@@ -12882,45 +12918,6 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="Which way" xml:space="preserve">
     <value>Which way</value>
-  </data>
-  <data name="White list" xml:space="preserve">
-    <value>White list</value>
-  </data>
-  <data name="White still runs every test and still marks at the mark threshold; black refuses before a single test runs." xml:space="preserve">
-    <value>White still runs every test and still marks at the mark threshold; black refuses before a single test runs.</value>
-  </data>
-  <data name="White-list the sender or their IP range so the message bypasses spam protection." xml:space="preserve">
-    <value>White-list the sender or their IP range so the message bypasses spam protection.</value>
-  </data>
-  <data name="White: not greylisted, not refused on score" xml:space="preserve">
-    <value>White: not greylisted, not refused on score</value>
-  </data>
-  <data name="White: not greylisted, not refused on the spam score" xml:space="preserve">
-    <value>White: not greylisted, not refused on the spam score</value>
-  </data>
-  <data name="Whitelist and release" xml:space="preserve">
-    <value>Whitelist and release</value>
-  </data>
-  <data name="Whitelist the checked messages' senders, then release" xml:space="preserve">
-    <value>Whitelist the checked messages' senders, then release</value>
-  </data>
-  <data name="Whitelist the sender of this message, then release it" xml:space="preserve">
-    <value>Whitelist the sender of this message, then release it</value>
-  </data>
-  <data name="Whitelist the sender, then release" xml:space="preserve">
-    <value>Whitelist the sender, then release</value>
-  </data>
-  <data name="Whitelist the senders of {0} message, then release it" xml:space="preserve">
-    <value>Whitelist the senders of {0} message, then release it</value>
-  </data>
-  <data name="Whitelist the senders of {0} messages, then release them" xml:space="preserve">
-    <value>Whitelist the senders of {0} messages, then release them</value>
-  </data>
-  <data name="Whitelist this group's senders, then release" xml:space="preserve">
-    <value>Whitelist this group's senders, then release</value>
-  </data>
-  <data name="Whitelisted. List entries: {0}. Messages released: {1}." xml:space="preserve">
-    <value>Whitelisted. List entries: {0}. Messages released: {1}.</value>
   </data>
   <data name="Who" xml:space="preserve">
     <value>Who</value>
@@ -13162,8 +13159,8 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="_Bind method (BindMethod)" xml:space="preserve">
     <value>_Bind method (BindMethod)</value>
   </data>
-  <data name="_Blacklist and delete" xml:space="preserve">
-    <value>_Blacklist and delete</value>
+  <data name="_Block and delete" xml:space="preserve">
+    <value>_Block and delete</value>
   </data>
   <data name="_Body canonicalization" xml:space="preserve">
     <value>_Body canonicalization</value>
@@ -13660,9 +13657,6 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="_Warn the owner at (% of the limit; -1 = the server's, 0 = never)" xml:space="preserve">
     <value>_Warn the owner at (% of the limit; -1 = the server's, 0 = never)</value>
   </data>
-  <data name="_Whitelist and release" xml:space="preserve">
-    <value>_Whitelist and release</value>
-  </data>
   <data name="_Who may send to this list" xml:space="preserve">
     <value>_Who may send to this list</value>
   </data>
@@ -13747,14 +13741,14 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="binding with the configured ServiceUsername - no ServicePassword is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
     <value>binding with the configured ServiceUsername - no ServicePassword is stored or typed, and an empty password is refused before it is sent</value>
   </data>
-  <data name="blacklist" xml:space="preserve">
-    <value>blacklist</value>
-  </data>
   <data name="block an ip" xml:space="preserve">
     <value>block an ip</value>
   </data>
   <data name="block executable attachments" xml:space="preserve">
     <value>block executable attachments</value>
+  </data>
+  <data name="block list" xml:space="preserve">
+    <value>block list</value>
   </data>
   <data name="block mail from a bad reputation ip" xml:space="preserve">
     <value>block mail from a bad reputation ip</value>
@@ -14390,6 +14384,9 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="someone is trying to guess passwords" xml:space="preserve">
     <value>someone is trying to guess passwords</value>
   </data>
+  <data name="spam exemption" xml:space="preserve">
+    <value>spam exemption</value>
+  </data>
   <data name="spamd is unreachable, overloaded, or accepting connections without answering." xml:space="preserve">
     <value>spamd is unreachable, overloaded, or accepting connections without answering.</value>
   </data>
@@ -14432,9 +14429,6 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="the account's own domain" xml:space="preserve">
     <value>the account's own domain</value>
   </data>
-  <data name="the address is one of the {0} on the greylisting white list" xml:space="preserve">
-    <value>the address is one of the {0} on the greylisting white list</value>
-  </data>
   <data name="the audience (aud) is not checked" xml:space="preserve">
     <value>the audience (aud) is not checked</value>
   </data>
@@ -14446,6 +14440,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="the configured UserSearchFilter is not a valid LDAP filter" xml:space="preserve">
     <value>the configured UserSearchFilter is not a valid LDAP filter</value>
+  </data>
+  <data name="the connecting address is on the greylisting exemptions (entries: {0})" xml:space="preserve">
+    <value>the connecting address is on the greylisting exemptions (entries: {0})</value>
   </data>
   <data name="the connecting address is one of the sender domain's A or MX records" xml:space="preserve">
     <value>the connecting address is one of the sender domain's A or MX records</value>
@@ -14519,8 +14516,8 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
     <value>the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires</value>
   </data>
-  <data name="the sender's domain or HELO name is white on the domain white and black list" xml:space="preserve">
-    <value>the sender's domain or HELO name is white on the domain white and black list</value>
+  <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
+    <value>the sender's domain or HELO name is an allowed domain</value>
   </data>
   <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
     <value>the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})</value>
@@ -14602,9 +14599,6 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="which tls versions are allowed" xml:space="preserve">
     <value>which tls versions are allowed</value>
-  </data>
-  <data name="white-list entry" xml:space="preserve">
-    <value>white-list entry</value>
   </data>
   <data name="why is mail queued" xml:space="preserve">
     <value>why is mail queued</value>
@@ -14783,8 +14777,8 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="{0} app passwords." xml:space="preserve">
     <value>{0} app passwords.</value>
   </data>
-  <data name="{0} blacklists" xml:space="preserve">
-    <value>{0} blacklists</value>
+  <data name="{0} block lists" xml:space="preserve">
+    <value>{0} block lists</value>
   </data>
   <data name="{0} blocked senders" xml:space="preserve">
     <value>{0} blocked senders</value>
@@ -15179,6 +15173,9 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="{0} settings could not be written." xml:space="preserve">
     <value>{0} settings could not be written.</value>
   </data>
+  <data name="{0} spam exemptions" xml:space="preserve">
+    <value>{0} spam exemptions</value>
+  </data>
   <data name="{0} stops here: the next thing it points at is not on this screen." xml:space="preserve">
     <value>{0} stops here: the next thing it points at is not on this screen.</value>
   </data>
@@ -15232,9 +15229,6 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="{0} was removed, with everything in it - mailboxes: {1}, distribution lists: {2}, rules: {3}, messages: {4}." xml:space="preserve">
     <value>{0} was removed, with everything in it - mailboxes: {1}, distribution lists: {2}, rules: {3}, messages: {4}.</value>
-  </data>
-  <data name="{0} white-list entries" xml:space="preserve">
-    <value>{0} white-list entries</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} with full authority</value>

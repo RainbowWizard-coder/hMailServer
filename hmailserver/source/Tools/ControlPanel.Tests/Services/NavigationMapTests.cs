@@ -43,6 +43,13 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// PageSplitTests pins - the old title as an alias on both halves, a legacy
       /// path that still resolves, and each half signposting the other.
       ///
+      /// Three more were renamed by the owner's decision on the allow and block
+      /// words (review finding F214): White list is Spam exemptions, Greylisting
+      /// white list is Greylisting exemptions and DNS blacklists is DNS block
+      /// lists (DNSBL), as the Domain white and black list is Allowed and blocked
+      /// domains. Each keeps its old title as an alias and its legacy path, which
+      /// AllowBlockVocabularyTests pins.
+      ///
       /// Fails against the unfixed code because NavigationMap does not exist
       /// there; from now on it fails whenever a title moves.
       /// </summary>
@@ -61,9 +68,9 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("spamoverview", "Spam filtering overview")]
       [InlineData("antispam", "Anti-spam settings")]
       [InlineData("surbl", "SURBL servers")]
-      [InlineData("dnsbl", "DNS blacklists")]
-      [InlineData("spamwhitelist", "White list")]
-      [InlineData("greylistwhitelist", "Greylisting white list")]
+      [InlineData("dnsbl", "DNS block lists (DNSBL)")]
+      [InlineData("spamwhitelist", "Spam exemptions")]
+      [InlineData("greylistwhitelist", "Greylisting exemptions")]
       [InlineData("antivirus", "Anti-virus settings")]
       [InlineData("blockedattachments", "Blocked attachments")]
       [InlineData("logging", "Logging")]

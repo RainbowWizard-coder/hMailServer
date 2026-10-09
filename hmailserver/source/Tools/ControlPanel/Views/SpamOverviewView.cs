@@ -515,13 +515,13 @@ namespace hMailServer.ControlPanel.Views
       {
          Card card = Section(L("The lists behind the checks"), out StackPanel content);
 
-         content.Children.Add(ListRow(L("DNS blacklists"), config.ActiveDnsBlackLists, config.TotalDnsBlackLists, "dnsbl"));
+         content.Children.Add(ListRow(L("DNS block lists (DNSBL)"), config.ActiveDnsBlackLists, config.TotalDnsBlackLists, "dnsbl"));
          content.Children.Add(ListRow(L("SURBL servers"), config.ActiveSurblServers, config.TotalSurblServers, "surbl"));
-         content.Children.Add(ListRow(L("Anti-spam white list"), null, config.WhiteListEntries, "spamwhitelist"));
-         content.Children.Add(ListRow(L("Greylisting white list"), null, config.GreylistWhiteListEntries, "greylistwhitelist"));
+         content.Children.Add(ListRow(L("Spam exemptions"), null, config.WhiteListEntries, "spamwhitelist"));
+         content.Children.Add(ListRow(L("Greylisting exemptions"), null, config.GreylistWhiteListEntries, "greylistwhitelist"));
          content.Children.Add(ListRow(L("Greylisting bypass list"), null, config.GreylistBypassEntries, "greylistbypass"));
          content.Children.Add(ListRow(L("Allow and block list"), null, config.SenderListEntries, "senderlist"));
-         content.Children.Add(ListRow(L("Domain white and black list"), null, config.DomainPolicyListEntries, "domainpolicylist"));
+         content.Children.Add(ListRow(L("Allowed and blocked domains"), null, config.DomainPolicyListEntries, "domainpolicylist"));
 
          return card;
       }

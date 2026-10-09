@@ -671,14 +671,14 @@ namespace hMailServer.ControlPanel.Services
                   aliases: "SURBL|URI block list|Link blacklist|Body URL check|Spamhaus DBL",
                   seeAlso: "spamoverview|antispam|dnsbl"),
 
-               Page("dnsbl", N("DNS blacklists"),
+               Page("dnsbl", N("DNS block lists (DNSBL)"),
                   N("Block lists checked against the IP address that is connecting."),
-                  aliases: "DNSBL|DNS blacklists (DNSBL)|RBL|Blackhole list|Spamhaus|Barracuda|Block an IP by reputation",
+                  aliases: "DNSBL|DNS blacklists (DNSBL)|DNS blacklists|DNS block lists|RBL|Blackhole list|Spamhaus|Barracuda|Block an IP by reputation",
                   seeAlso: "spamoverview|antispam|surbl|ipranges"),
 
-               Page("spamwhitelist", N("White list"),
+               Page("spamwhitelist", N("Spam exemptions"),
                   N("Senders and IP ranges that bypass spam protection entirely."),
-                  aliases: "Anti-spam white list|Allow list|Safe senders|False positive|Let a sender through|Exempt from spam filter",
+                  aliases: "White list|Anti-spam white list|Whitelist|Spam filter exemptions|Allow list|Safe senders|False positive|Let a sender through|Exempt from spam filter",
                   seeAlso: "spamoverview|antispam|greylistwhitelist"),
 
                Page("blockedsenders", N("Blocked senders"),
@@ -696,12 +696,12 @@ namespace hMailServer.ControlPanel.Services
                   aliases: "Tenant allow list|Tenant block list|Sender allow list|Sender block list|Allow a sender for everyone|Never junk from|Precedence of sender lists",
                   seeAlso: "blockedsenders|spamwhitelist|quarantine"),
 
-               Page("greylistwhitelist", N("Greylisting white list"),
+               Page("greylistwhitelist", N("Greylisting exemptions"),
                   N("IP addresses exempt from the greylisting delay, for senders that will not retry."),
-                  aliases: "Greylist exemption|Greylisting delay|Slow mail|First message delayed|Retry delay",
+                  aliases: "Greylisting white list|Greylist whitelist|Greylist exemption|Greylisting delay|Slow mail|First message delayed|Retry delay",
                   seeAlso: "spamoverview|antispam|spamwhitelist|greylistbypass"),
 
-               // Beside the white list on purpose: that list exempts an ADDRESS from
+               // Beside the greylisting exemptions on purpose: that list exempts an ADDRESS from
                // greylisting on no evidence, this one exempts a DOMAIN on the evidence
                // its mail carries, and the difference is the whole point of it.
                Page("greylistbypass", N("Greylisting bypass list"),
@@ -711,11 +711,13 @@ namespace hMailServer.ControlPanel.Services
 
                // Keyed by domain where the two lists above are keyed by address,
                // for the correspondent whose outbound hosts change every week:
-               // white skips greylisting and the score's refusals while the tests
-               // still run, black is a 550 at MAIL FROM before anything runs.
-               Page("domainpolicylist", N("Domain white and black list"),
-                  N("Sending domains this server has decided about: white skips greylisting and the score's refusals, black is refused at MAIL FROM - by domain or HELO suffix, not by IP address."),
-                  aliases: "Domain white list|Domain black list|Domain whitelist|Domain blacklist|Always accept a domain|Never accept a domain|HELO suffix|Refuse a domain|Trust a domain whose SPF is broken|Rotating IP addresses",
+               // an allowed one skips greylisting and the score's refusals while the
+               // tests still run, a blocked one is a 550 at MAIL FROM before anything
+               // runs. Named in the allow and block words of every list here (review
+               // finding F214); the white and black names are its aliases.
+               Page("domainpolicylist", N("Allowed and blocked domains"),
+                  N("Sending domains this server has decided about: an allowed one skips greylisting and the score's refusals, a blocked one is refused at MAIL FROM - by domain or HELO suffix, not by IP address."),
+                  aliases: "Domain white and black list|Domain allow and block list|Domain white list|Domain black list|Domain whitelist|Domain blacklist|Always accept a domain|Never accept a domain|HELO suffix|Refuse a domain|Trust a domain whose SPF is broken|Rotating IP addresses",
                   seeAlso: "antispam|spamwhitelist|blockedsenders"),
 
                // The same argument as the spam overview above, and the anti-virus

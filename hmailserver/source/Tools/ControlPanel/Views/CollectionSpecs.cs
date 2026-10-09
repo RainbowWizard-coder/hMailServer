@@ -76,13 +76,13 @@ namespace hMailServer.ControlPanel.Views
 
       public static CollectionEditorView DnsBlackLists() => new(new CollectionSpec
       {
-         Title = L("DNS blacklists (DNSBL)"),
-         Subtitle = L("Real-time blackhole lists checked against the connecting IP address."),
-         ItemNoun = L("blacklist"),
-         AddTitle = N("Add a DNS blacklist"),
-         EditTitle = N("Edit the DNS blacklist"),
-         CountOne = N("1 blacklist"),
-         CountMany = N("{0} blacklists"),
+         Title = L("DNS block lists (DNSBL)"),
+         Subtitle = L("Real-time block lists checked against the connecting IP address."),
+         ItemNoun = L("block list"),
+         AddTitle = N("Add a DNS block list"),
+         EditTitle = N("Edit the DNS block list"),
+         CountOne = N("1 block list"),
+         CountMany = N("{0} block lists"),
          GetCollection = () => AntiSpam.DNSBlackLists,
          TickBoxesLast = true,
          ActiveProp = "Active", // no-loc: the property that switches an entry on
@@ -102,13 +102,13 @@ namespace hMailServer.ControlPanel.Views
 
       public static CollectionEditorView SpamWhiteList() => new(new CollectionSpec
       {
-         Title = L("Anti-spam white list"),
+         Title = L("Spam exemptions"),
          Subtitle = L("Senders or IP ranges that bypass spam protection entirely."),
-         ItemNoun = L("white-list entry"),
-         AddTitle = N("Add a white-list entry"),
-         EditTitle = N("Edit the white-list entry"),
-         CountOne = N("1 white-list entry"),
-         CountMany = N("{0} white-list entries"),
+         ItemNoun = L("spam exemption"),
+         AddTitle = N("Add a spam exemption"),
+         EditTitle = N("Edit the spam exemption"),
+         CountOne = N("1 spam exemption"),
+         CountMany = N("{0} spam exemptions"),
          GetCollection = () => AntiSpam.WhiteListAddresses,
          Fields =
          {
@@ -176,11 +176,11 @@ namespace hMailServer.ControlPanel.Views
 
       public static CollectionEditorView GreyListWhiteList() => new(new CollectionSpec
       {
-         Title = L("Greylisting white list"),
+         Title = L("Greylisting exemptions"),
          Subtitle = L("IP addresses exempt from greylisting delays."),
          ItemNoun = L("IP address"),
-         AddTitle = N("Add an IP address to the greylisting white list"),
-         EditTitle = N("Edit the greylisting white-list entry"),
+         AddTitle = N("Add a greylisting exemption"),
+         EditTitle = N("Edit the greylisting exemption"),
          CountOne = N("1 IP address"),
          CountMany = N("{0} IP addresses"),
          GetCollection = () => AntiSpam.GreyListingWhiteAddresses,

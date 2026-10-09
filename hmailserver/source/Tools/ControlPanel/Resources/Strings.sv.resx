@@ -150,8 +150,8 @@
   <data name="1 alias" xml:space="preserve">
     <value>1 alias</value>
   </data>
-  <data name="1 blacklist" xml:space="preserve">
-    <value>1 svartlista</value>
+  <data name="1 block list" xml:space="preserve">
+    <value>1 spärrlista</value>
   </data>
   <data name="1 blocked sender" xml:space="preserve">
     <value>1 blockerad avsändare</value>
@@ -160,7 +160,7 @@
     <value>1 som standard.</value>
   </data>
   <data name="1 bypass entry" xml:space="preserve">
-    <value>1 undantag</value>
+    <value>1 förbigångspost</value>
   </data>
   <data name="1 external account" xml:space="preserve">
     <value>1 externt konto</value>
@@ -189,8 +189,8 @@
   <data name="1 server message" xml:space="preserve">
     <value>1 servermeddelande</value>
   </data>
-  <data name="1 white-list entry" xml:space="preserve">
-    <value>1 vitlistepost</value>
+  <data name="1 spam exemption" xml:space="preserve">
+    <value>1 skräppostundantag</value>
   </data>
   <data name="1.  Scan this QR code with an authenticator app (Microsoft Authenticator, Google Authenticator, Authy, 1Password…)." xml:space="preserve">
     <value>1.  Skanna den här QR-koden med en autentiseringsapp (Microsoft Authenticator, Google Authenticator, Authy, 1Password…).</value>
@@ -207,8 +207,8 @@
   <data name="14 by default. The unread copies are deleted; the read ones stay." xml:space="preserve">
     <value>14 som standard. De olästa kopiorna tas bort; de lästa blir kvar.</value>
   </data>
-  <data name="1440 by default. The ban is an expiring IP range, as an auto-ban is. An authenticated session, the anti-spam white list, an incoming relay and an address on the never-ban list are never banned." xml:space="preserve">
-    <value>1440 som standard. Spärren är ett IP-intervall som löper ut, som vid automatisk spärr. En autentiserad session, skräppostens vitlista, ett inkommande relä och en adress på listan över aldrig spärrade spärras aldrig.</value>
+  <data name="1440 by default. The ban is an expiring IP range, as an auto-ban is. An authenticated session, the spam exemptions, an incoming relay and an address on the never-ban list are never banned." xml:space="preserve">
+    <value>1440 som standard. Spärren är ett IP-intervall som löper ut, som vid automatisk spärr. En autentiserad session, skräppostundantagen, ett inkommande relä och en adress på listan över aldrig spärrade spärras aldrig.</value>
   </data>
   <data name="15 by default, counted once no IMAP or POP3 session holds the key. After that the mail is readable again only after the next sign-in with the password." xml:space="preserve">
     <value>15 som standard, räknat från att ingen IMAP- eller POP3-session håller nyckeln. Därefter går posten att läsa igen först efter nästa inloggning med lösenordet.</value>
@@ -636,8 +636,8 @@
   <data name="A service account password from an earlier version is stored in hMailServer.INI in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.INI with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
     <value>Ett tjänstekontolösenord från en tidigare version är sparat i klartext i hMailServer.INI, och inget läser det längre: tjänsten registreras av installationsprogrammet eller med knapparna på kortet Windows-tjänstekonto, och Windows behåller en egen kopia av varje lösenord. Ta bort raden ServiceAccountPassword ur hMailServer.INI med en redigerare med förhöjd behörighet, och inställningen med DELETE /api/v1/settings/ini/ServiceAccountPassword, så att även databasens kopia försvinner.</value>
   </data>
-  <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender on the anti-spam white list, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
-    <value>En session som hälsar med HELO 192.0.2.7, HELO [192.0.2.7] eller HELO localhost, eller skickar MAIL FROM:&lt;user@192.0.2.7&gt;, har inte gett något namn på sig själv, och ett meddelande den skickar hålls kvar eller poängsätts utan något att föra upp det på en lista efter. Av: servern accepterar den som alltid. På: den besvaras med 550 5.7.1 vid MAIL FROM, innan skräpposttesterna körs: en adress med eller utan hakparenteser, en enda etikett, ett publikt suffix som co.uk och allt som inte är ett värdnamn avvisas, medan mail.co.uk är ett namn. DNS tillfrågas inte; suffixen kommer från Public Suffix List, listan som karantänen grupperar efter. Endast oautentiserade sessioner från ett IP-intervall som kör skräpposttesterna bedöms, och först efter att AUTH har haft sin chans - aldrig en avsändare på skräppostvitlistan och aldrig ett inkommande relä, vars HELO är er egen gateways.</value>
+  <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender on the spam exemptions, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
+    <value>En session som hälsar med HELO 192.0.2.7, HELO [192.0.2.7] eller HELO localhost, eller skickar MAIL FROM:&lt;user@192.0.2.7&gt;, har inte gett något namn på sig själv, och ett meddelande den skickar hålls kvar eller poängsätts utan något att föra upp det på en lista efter. Av: servern accepterar den som alltid. På: den besvaras med 550 5.7.1 vid MAIL FROM, innan skräpposttesterna körs: en adress med eller utan hakparenteser, en enda etikett, ett publikt suffix som co.uk och allt som inte är ett värdnamn avvisas, medan mail.co.uk är ett namn. DNS tillfrågas inte; suffixen kommer från Public Suffix List, listan som karantänen grupperar efter. Endast oautentiserade sessioner från ett IP-intervall som kör skräpposttesterna bedöms, och först efter att AUTH har haft sin chans - aldrig en avsändare bland skräppostundantagen och aldrig ett inkommande relä, vars HELO är er egen gateways.</value>
   </data>
   <data name="A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one." xml:space="preserve">
     <value>En andel av anslutningarna, aldrig fler än leveranstrådarna: kontona i en värdbaserad domän, eller all vidarebefordrad post tillsammans, kan inte uppta alla leveranstrådar. Sändgränsen per konto styr volymen; det här gör det inte.</value>
@@ -939,11 +939,11 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Add _criterion…" xml:space="preserve">
     <value>Lägg till _kriterium…</value>
   </data>
-  <data name="Add a DNS blacklist" xml:space="preserve">
-    <value>Lägg till en DNS-svartlista</value>
+  <data name="Add a DNS block list" xml:space="preserve">
+    <value>Lägg till en DNS-spärrlista</value>
   </data>
-  <data name="Add a DNS blacklist; connections from listed addresses gain score or are refused." xml:space="preserve">
-    <value>Lägg till en DNS-svartlista; anslutningar från listade adresser får poäng eller avvisas.</value>
+  <data name="Add a DNS block list; connections from listed addresses gain score or are refused." xml:space="preserve">
+    <value>Lägg till en DNS-spärrlista; anslutningar från listade adresser får poäng eller avvisas.</value>
   </data>
   <data name="Add a SURBL server" xml:space="preserve">
     <value>Lägg till en SURBL-server</value>
@@ -961,7 +961,7 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
     <value>Lägg till en blockerad avsändare</value>
   </data>
   <data name="Add a bypass entry" xml:space="preserve">
-    <value>Lägg till ett undantag</value>
+    <value>Lägg till en förbigångspost</value>
   </data>
   <data name="Add a domain alias" xml:space="preserve">
     <value>Lägg till ett domänalias</value>
@@ -972,8 +972,8 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Add a domain to the list" xml:space="preserve">
     <value>Lägg till en domän i listan</value>
   </data>
-  <data name="Add a domain to the white and black list" xml:space="preserve">
-    <value>Lägg till en domän i vit- och svartlistan</value>
+  <data name="Add a greylisting exemption" xml:space="preserve">
+    <value>Lägg till ett undantag från gråstlistning</value>
   </data>
   <data name="Add a list entry" xml:space="preserve">
     <value>Lägg till en listpost</value>
@@ -993,8 +993,8 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Add a security group" xml:space="preserve">
     <value>Lägg till en säkerhetsgrupp</value>
   </data>
-  <data name="Add a white-list entry" xml:space="preserve">
-    <value>Lägg till en vitlistepost</value>
+  <data name="Add a spam exemption" xml:space="preserve">
+    <value>Lägg till ett skräppostundantag</value>
   </data>
   <data name="Add a_lias" xml:space="preserve">
     <value>Lägg till _alias</value>
@@ -1010,9 +1010,6 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   </data>
   <data name="Add alias" xml:space="preserve">
     <value>Lägg till alias</value>
-  </data>
-  <data name="Add an IP address to the greylisting white list" xml:space="preserve">
-    <value>Lägg till en IP-adress i vitlistan för gråstlistning</value>
   </data>
   <data name="Add an IP range for the device that allows SMTP delivery without requiring authentication." xml:space="preserve">
     <value>Lägg till ett IP-intervall för enheten som tillåter SMTP-leverans utan att kräva autentisering.</value>
@@ -1086,8 +1083,8 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Add signature to _replies" xml:space="preserve">
     <value>Lägg till signatur i sva_r</value>
   </data>
-  <data name="Add the address or IP range to the anti-spam white list." xml:space="preserve">
-    <value>Lägg till adressen eller IP-intervallet i skräppostfiltrets vitlista.</value>
+  <data name="Add the address or IP range to the spam exemptions." xml:space="preserve">
+    <value>Lägg till adressen eller IP-intervallet i skräppostundantagen.</value>
   </data>
   <data name="Add the certificate" xml:space="preserve">
     <value>Lägg till certifikatet</value>
@@ -1269,6 +1266,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="All linked domains" xml:space="preserve">
     <value>Alla kopplade domäner</value>
   </data>
+  <data name="Allo_w and release" xml:space="preserve">
+    <value>_Tillåt och släpp</value>
+  </data>
   <data name="Allow" xml:space="preserve">
     <value>Tillåt</value>
   </data>
@@ -1299,17 +1299,53 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Allow and block list" xml:space="preserve">
     <value>Lista över tillåtna och blockerade</value>
   </data>
+  <data name="Allow and release" xml:space="preserve">
+    <value>Tillåt och släpp</value>
+  </data>
   <data name="Allow incorrect line endings" xml:space="preserve">
     <value>Tillåt felaktiga radslut</value>
   </data>
+  <data name="Allow or block a domain" xml:space="preserve">
+    <value>Tillåt eller blockera en domän</value>
+  </data>
   <data name="Allow plain-text authentication (AUTH PLAIN/LOGIN)" xml:space="preserve">
     <value>Tillåt autentisering i klartext (AUTH PLAIN/LOGIN)</value>
+  </data>
+  <data name="Allow the checked messages' senders, then release" xml:space="preserve">
+    <value>Tillåt avsändarna till de markerade meddelandena och släpp sedan</value>
+  </data>
+  <data name="Allow the sender of this message, then release it" xml:space="preserve">
+    <value>Tillåt avsändaren till det här meddelandet och släpp sedan det</value>
+  </data>
+  <data name="Allow the sender, then release" xml:space="preserve">
+    <value>Tillåt avsändaren och släpp sedan</value>
+  </data>
+  <data name="Allow the senders of {0} message, then release it" xml:space="preserve">
+    <value>Tillåt avsändaren till {0} meddelande och släpp sedan det</value>
+  </data>
+  <data name="Allow the senders of {0} messages, then release them" xml:space="preserve">
+    <value>Tillåt avsändarna till {0} meddelanden och släpp sedan dem</value>
+  </data>
+  <data name="Allow this group's senders, then release" xml:space="preserve">
+    <value>Tillåt den här gruppens avsändare och släpp sedan</value>
+  </data>
+  <data name="Allowed and blocked domains" xml:space="preserve">
+    <value>Tillåtna och blockerade domäner</value>
   </data>
   <data name="Allowed as {0}." xml:space="preserve">
     <value>Tillåtet som {0}.</value>
   </data>
   <data name="Allowed signing algorithms (comma separated)" xml:space="preserve">
     <value>Tillåtna signeringsalgoritmer (kommaseparerade)</value>
+  </data>
+  <data name="Allowed. List entries: {0}. Messages released: {1}." xml:space="preserve">
+    <value>Tillåten. Listposter: {0}. Släppta meddelanden: {1}.</value>
+  </data>
+  <data name="Allowed: not greylisted, not refused on score" xml:space="preserve">
+    <value>Tillåten: ingen gråstlistning, ingen avvisning på poäng</value>
+  </data>
+  <data name="Allowed: not greylisted, not refused on the spam score" xml:space="preserve">
+    <value>Tillåten: ingen gråstlistning, ingen avvisning på skräppostpoängen</value>
   </data>
   <data name="Allows for this server's clock differing from the signer's. Without it, a clock running a few minutes fast turns other people's valid mail into DKIM failures." xml:space="preserve">
     <value>Tar höjd för att den här serverns klocka skiljer sig från signerarens. Utan det förvandlar en klocka som går några minuter fram andras giltiga post till DKIM-fel.</value>
@@ -1389,6 +1425,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="An alias points one address at another without needing a second mailbox." xml:space="preserve">
     <value>Ett alias pekar en adress på en annan utan att behöva en andra brevlåda.</value>
   </data>
+  <data name="An allowed domain still runs every test and still marks at the mark threshold; a blocked one is refused before a single test runs." xml:space="preserve">
+    <value>En tillåten domän går fortfarande igenom varje test och markeras fortfarande vid markeringströskeln; en blockerad avvisas innan ett enda test körs.</value>
+  </data>
   <data name="An archive is usually kept for a legal or contractual reason, and that reason usually applies to particular domains rather than to every domain this server hosts. With a list here a message is archived only when its local sender or one of its recipients belongs to a listed domain, and only the copies for listed domains are made - a listed recipient still gets their copy when the sender's domain is not listed. Matched without regard to case." xml:space="preserve">
     <value>Ett arkiv hålls oftast av juridiska eller avtalsmässiga skäl, och det skälet gäller oftast vissa domäner snarare än varje domän den här servern hyser. Med en lista här arkiveras ett meddelande bara när dess lokala avsändare eller någon av dess mottagare hör till en listad domän, och bara kopiorna för listade domäner görs - en listad mottagare får fortfarande sin kopia när avsändarens domän inte är listad. Matchas utan hänsyn till skiftläge.</value>
   </data>
@@ -1467,9 +1506,6 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   </data>
   <data name="Anti-spam settings (SpamAssassin)" xml:space="preserve">
     <value>Skräppostinställningar (SpamAssassin)</value>
-  </data>
-  <data name="Anti-spam white list" xml:space="preserve">
-    <value>Vitlista för skräppost</value>
   </data>
   <data name="Anti-virus" xml:space="preserve">
     <value>Antivirus</value>
@@ -1891,35 +1927,11 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   <data name="Bind to address" xml:space="preserve">
     <value>Bind till adress</value>
   </data>
-  <data name="Black: refused at MAIL FROM" xml:space="preserve">
-    <value>Svart: avvisas vid MAIL FROM</value>
-  </data>
-  <data name="Blacklist and delete" xml:space="preserve">
-    <value>Svartlista och ta bort</value>
-  </data>
-  <data name="Blacklist the checked messages' senders, then delete" xml:space="preserve">
-    <value>Svartlista avsändarna till de markerade meddelandena och ta sedan bort</value>
-  </data>
-  <data name="Blacklist the sender of this message, then delete it" xml:space="preserve">
-    <value>Svartlista avsändaren till det här meddelandet och ta sedan bort det</value>
-  </data>
-  <data name="Blacklist the sender, then delete" xml:space="preserve">
-    <value>Svartlista avsändaren och ta sedan bort</value>
-  </data>
-  <data name="Blacklist the senders of {0} message, then delete it" xml:space="preserve">
-    <value>Svartlista avsändaren till {0} meddelande och ta sedan bort det</value>
-  </data>
-  <data name="Blacklist the senders of {0} messages, then delete them" xml:space="preserve">
-    <value>Svartlista avsändarna till {0} meddelanden och ta sedan bort dem</value>
-  </data>
-  <data name="Blacklist this group's senders, then delete" xml:space="preserve">
-    <value>Svartlista den här gruppens avsändare och ta sedan bort</value>
-  </data>
-  <data name="Blacklisted. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
-    <value>Svartlistad. Listposter: {0}. Borttagna meddelanden: {1}.</value>
-  </data>
   <data name="Block" xml:space="preserve">
     <value>Blockera</value>
+  </data>
+  <data name="Block and delete" xml:space="preserve">
+    <value>Blockera och ta bort</value>
   </data>
   <data name="Block lists and this server's own addresses" xml:space="preserve">
     <value>Spärrlistor och serverns egna adresser</value>
@@ -1936,11 +1948,35 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   <data name="Block rather than allow" xml:space="preserve">
     <value>Blockera i stället för att tillåta</value>
   </data>
+  <data name="Block the checked messages' senders, then delete" xml:space="preserve">
+    <value>Blockera avsändarna till de markerade meddelandena och ta sedan bort</value>
+  </data>
+  <data name="Block the sender of this message, then delete it" xml:space="preserve">
+    <value>Blockera avsändaren till det här meddelandet och ta sedan bort det</value>
+  </data>
+  <data name="Block the sender, then delete" xml:space="preserve">
+    <value>Blockera avsändaren och ta sedan bort</value>
+  </data>
+  <data name="Block the senders of {0} message, then delete it" xml:space="preserve">
+    <value>Blockera avsändaren till {0} meddelande och ta sedan bort det</value>
+  </data>
+  <data name="Block the senders of {0} messages, then delete them" xml:space="preserve">
+    <value>Blockera avsändarna till {0} meddelanden och ta sedan bort dem</value>
+  </data>
+  <data name="Block this group's senders, then delete" xml:space="preserve">
+    <value>Blockera den här gruppens avsändare och ta sedan bort</value>
+  </data>
   <data name="Blocked attachments" xml:space="preserve">
     <value>Blockerade bilagor</value>
   </data>
   <data name="Blocked senders" xml:space="preserve">
     <value>Blockerade avsändare</value>
+  </data>
+  <data name="Blocked. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
+    <value>Blockerad. Listposter: {0}. Borttagna meddelanden: {1}.</value>
+  </data>
+  <data name="Blocked: refused at MAIL FROM" xml:space="preserve">
+    <value>Blockerad: avvisas vid MAIL FROM</value>
   </data>
   <data name="Blowfish (legacy)" xml:space="preserve">
     <value>Blowfish (föråldrat)</value>
@@ -2197,8 +2233,8 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   <data name="Change the language" xml:space="preserve">
     <value>Byt språk</value>
   </data>
-  <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a blacklisted connecting IP, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
-    <value>Ändrar vad som händer vid borttagningströskeln. Av: ett meddelande över den avvisas under SMTP-konversationen med 550 och avsändaren får veta det. På: det godtas med 250 och hålls för granskning i stället - avsändaren tror att det levererades och försöker inte om, vilket är det som gör en falsk träff möjlig att återställa utan att studsa till en returväg som troligen är förfalskad, och som också betyder att granskningskön blir den enda plats där meddelandet finns. Gäller kontroller som körs efter att meddelandetexten tagits emot; en dom som nås före det (en svartlistad anslutande IP, ett dåligt HELO) har inget meddelande att hålla kvar och förblir en avvisning.</value>
+  <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
+    <value>Ändrar vad som händer vid borttagningströskeln. Av: ett meddelande över den avvisas under SMTP-konversationen med 550 och avsändaren får veta det. På: det godtas med 250 och hålls för granskning i stället - avsändaren tror att det levererades och försöker inte om, vilket är det som gör en falsk träff möjlig att återställa utan att studsa till en returväg som troligen är förfalskad, och som också betyder att granskningskön blir den enda plats där meddelandet finns. Gäller kontroller som körs efter att meddelandetexten tagits emot; en dom som nås före det (en anslutande IP på en DNS-spärrlista, ett dåligt HELO) har inget meddelande att hålla kvar och förblir en avvisning.</value>
   </data>
   <data name="Changing the pepper after accounts exist stops every password stored as an Argon2id or scrypt hash from working, and each such account then needs a new password. PBKDF2 hashes, the default, are not peppered." xml:space="preserve">
     <value>Ändras pepparn efter att konton finns slutar varje lösenord som lagrats som en Argon2id- eller scrypt-hash att fungera, och varje sådant konto behöver då ett nytt lösenord. PBKDF2-hashar, standarden, får ingen peppar.</value>
@@ -3177,14 +3213,11 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   <data name="DMARC tells receivers what to do with mail that fails SPF and DKIM, and where to report it." xml:space="preserve">
     <value>DMARC talar om för mottagare vad de ska göra med post som inte klarar SPF och DKIM, och vart de ska rapportera det.</value>
   </data>
-  <data name="DNS blacklist checks" xml:space="preserve">
-    <value>DNS-svartlistekontroller</value>
+  <data name="DNS block list checks" xml:space="preserve">
+    <value>DNS-spärrlistekontroller</value>
   </data>
-  <data name="DNS blacklists" xml:space="preserve">
-    <value>DNS-svartlistor</value>
-  </data>
-  <data name="DNS blacklists (DNSBL)" xml:space="preserve">
-    <value>DNS-svartlistor (DNSBL)</value>
+  <data name="DNS block lists (DNSBL)" xml:space="preserve">
+    <value>DNS-spärrlistor (DNSBL)</value>
   </data>
   <data name="DNS cache" xml:space="preserve">
     <value>DNS-cache</value>
@@ -3757,9 +3790,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Domain or suffix" xml:space="preserve">
     <value>Domän eller suffix</value>
   </data>
-  <data name="Domain white and black list" xml:space="preserve">
-    <value>Vit- och svartlista för domäner</value>
-  </data>
   <data name="Domain whose DNS records are shown" xml:space="preserve">
     <value>Domän vars DNS-poster visas</value>
   </data>
@@ -3865,8 +3895,8 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Edit criterion" xml:space="preserve">
     <value>Redigera kriterium</value>
   </data>
-  <data name="Edit the DNS blacklist" xml:space="preserve">
-    <value>Redigera DNS-svartlistan</value>
+  <data name="Edit the DNS block list" xml:space="preserve">
+    <value>Redigera DNS-spärrlistan</value>
   </data>
   <data name="Edit the SURBL server" xml:space="preserve">
     <value>Redigera SURBL-servern</value>
@@ -3878,7 +3908,7 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
     <value>Redigera den blockerade avsändaren</value>
   </data>
   <data name="Edit the bypass entry" xml:space="preserve">
-    <value>Redigera undantaget</value>
+    <value>Redigera förbigångsposten</value>
   </data>
   <data name="Edit the digest settings" xml:space="preserve">
     <value>Redigera inställningarna för sammanfattning</value>
@@ -3895,8 +3925,8 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Edit the external account" xml:space="preserve">
     <value>Redigera det externa kontot</value>
   </data>
-  <data name="Edit the greylisting white-list entry" xml:space="preserve">
-    <value>Redigera posten i vitlistan för gråstlistning</value>
+  <data name="Edit the greylisting exemption" xml:space="preserve">
+    <value>Redigera undantaget från gråstlistning</value>
   </data>
   <data name="Edit the list entry" xml:space="preserve">
     <value>Redigera listposten</value>
@@ -3919,8 +3949,8 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Edit the server message" xml:space="preserve">
     <value>Redigera servermeddelandet</value>
   </data>
-  <data name="Edit the white-list entry" xml:space="preserve">
-    <value>Redigera vitlisteposten</value>
+  <data name="Edit the spam exemption" xml:space="preserve">
+    <value>Redigera skräppostundantaget</value>
   </data>
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>Redigeras på dialogrutans andra flikar.</value>
@@ -4285,6 +4315,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Executable not found: {0}" xml:space="preserve">
     <value>Körbar fil hittades inte: {0}</value>
   </data>
+  <data name="Exempt the sender or their IP range from spam protection." xml:space="preserve">
+    <value>Undanta avsändaren eller dess IP-intervall från skräppostskyddet.</value>
+  </data>
   <data name="Exempt: may exchange mail with anyone" xml:space="preserve">
     <value>Undantagen: får utbyta post med vem som helst</value>
   </data>
@@ -4534,8 +4567,8 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="For a MinIO or Ceph gateway behind a CA of your own. The host name is checked either way." xml:space="preserve">
     <value>För en MinIO- eller Ceph-gateway bakom en egen CA. Värdnamnet kontrolleras i vilket fall som helst.</value>
   </data>
-  <data name="For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed logons, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the domain white and black list still apply. Empty, the default, changes nothing." xml:space="preserve">
-    <value>För en leverantör vars värdar delar ett omvänt namn och vars adresser flyttar: en anslutande adress spärras aldrig automatiskt - för misslyckade inloggningar, en skräppostfälla eller en tom avsändare - när ett av dess omvända namn omfattas av ett namn här och pekar tillbaka på adressen. Inget annat hoppas över: gråstlistning, SPF, DKIM, DMARC och domänens vit- och svartlista gäller fortfarande. Tom, standard, ändrar ingenting.</value>
+  <data name="For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed logons, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the allowed and blocked domains still apply. Empty, the default, changes nothing." xml:space="preserve">
+    <value>För en leverantör vars värdar delar ett omvänt namn och vars adresser flyttar: en anslutande adress spärras aldrig automatiskt - för misslyckade inloggningar, en skräppostfälla eller en tom avsändare - när ett av dess omvända namn omfattas av ett namn här och pekar tillbaka på adressen. Inget annat hoppas över: gråstlistning, SPF, DKIM, DMARC och de tillåtna och blockerade domänerna gäller fortfarande. Tom, standard, ändrar ingenting.</value>
   </data>
   <data name="For a record of who corresponds with whom, keeping it for ever should be a decision rather than a default - which is why 0 is offered as an option instead of being one." xml:space="preserve">
     <value>För ett register över vem som korresponderar med vem bör att behålla det för alltid vara ett beslut snarare än ett standardvärde - vilket är varför 0 erbjuds som ett alternativ i stället för att vara det.</value>
@@ -4697,7 +4730,10 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
     <value>Gråstlistning</value>
   </data>
   <data name="Greylisting bypass list" xml:space="preserve">
-    <value>Undantagslista för gråstlistning</value>
+    <value>Förbigångslista för gråstlistning</value>
+  </data>
+  <data name="Greylisting exemptions" xml:space="preserve">
+    <value>Undantag från gråstlistning</value>
   </data>
   <data name="Greylisting record expiration, and SpamAssassin move-vs-copy" xml:space="preserve">
     <value>Utgång av gråstlistningsposter, och SpamAssassin flytta-eller-kopiera</value>
@@ -4707,9 +4743,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Greylisting triplets cleared." xml:space="preserve">
     <value>Gråstlistningstripletter rensade.</value>
-  </data>
-  <data name="Greylisting white list" xml:space="preserve">
-    <value>Vitlista för gråstlistning</value>
   </data>
   <data name="Gro_up by" xml:space="preserve">
     <value>_Gruppera efter</value>
@@ -5011,8 +5044,8 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="How the server uses the database it is already configured for. Where that database IS - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
     <value>Hur servern använder den databas den redan är konfigurerad för. Var den databasen FINNS - servern, namnet, uppgifterna och typen - ställs in av installationsguiden och är medvetet inte redigerbart här, eftersom ett felaktigt värde där hindrar servern från att starta snarare än gör den långsammare. Gäller efter en omstart av tjänsten.</value>
   </data>
-  <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI)." xml:space="preserve">
-    <value>Hur den här servern slår upp MX, PTR, SPF, DKIM, DMARC och svartlistor (hMailServer.INI).</value>
+  <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups (hMailServer.INI)." xml:space="preserve">
+    <value>Hur den här servern slår upp MX, PTR, SPF, DKIM, DMARC och spärrlistor (hMailServer.INI).</value>
   </data>
   <data name="I _confirm the changes marked above." xml:space="preserve">
     <value>Jag bekräftar ändringarna som är _markerade ovan.</value>
@@ -5700,8 +5733,8 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Looking up {0}…" xml:space="preserve">
     <value>Slår upp {0}…</value>
   </data>
-  <data name="Looks up the connecting address on each active blacklist; the score comes from the entry that matched" xml:space="preserve">
-    <value>Slår upp den anslutande adressen på varje aktiv svartlista; poängen kommer från posten som matchade</value>
+  <data name="Looks up the connecting address on each active block list; the score comes from the entry that matched" xml:space="preserve">
+    <value>Slår upp den anslutande adressen på varje aktiv spärrlista; poängen kommer från posten som matchade</value>
   </data>
   <data name="Looks up the domains of links found in the body on each active SURBL server" xml:space="preserve">
     <value>Slår upp domänerna för länkar som hittats i kroppen på varje aktiv SURBL-server</value>
@@ -5724,8 +5757,8 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Lower the mark and delete thresholds, or turn on more of the checks." xml:space="preserve">
     <value>Sänk trösklarna för märkning och borttagning, eller slå på fler av kontrollerna.</value>
   </data>
-  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender on the anti-spam white list. The domain white and black list is a page of its own under Anti-spam." xml:space="preserve">
-    <value>MAIL FROM:&lt;&gt; är returvägen för en leveransrapport, och en rapport har exakt en mottagare: adressen som skickade meddelandet den gäller. En tom avsändare som sedan anger en andra mottagare är backscatter, en förfalskad rapport eller en sondering. Av: servern accepterar den som alltid. På: den andra och varje senare RCPT TO besvaras med 550 och transaktionens DATA avvisas också; en tom avsändare med en mottagare rörs aldrig. Endast oautentiserade sessioner från ett IP-intervall som kör skräpposttesterna, och aldrig en avsändare på skräppostvitlistan. Vit- och svartlistan för domäner är en egen sida under Skräppost.</value>
+  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender on the spam exemptions. Allowed and blocked domains have a page of their own under Anti-spam." xml:space="preserve">
+    <value>MAIL FROM:&lt;&gt; är returvägen för en leveransrapport, och en rapport har exakt en mottagare: adressen som skickade meddelandet den gäller. En tom avsändare som sedan anger en andra mottagare är backscatter, en förfalskad rapport eller en sondering. Av: servern accepterar den som alltid. På: den andra och varje senare RCPT TO besvaras med 550 och transaktionens DATA avvisas också; en tom avsändare med en mottagare rörs aldrig. Endast oautentiserade sessioner från ett IP-intervall som kör skräpposttesterna, och aldrig en avsändare bland skräppostundantagen. Tillåtna och blockerade domäner har en egen sida under Skräppost.</value>
   </data>
   <data name="MD5 (legacy)" xml:space="preserve">
     <value>MD5 (föråldrat)</value>
@@ -6154,8 +6187,8 @@ Inget som redan finns där tas bort.</value>
   <data name="Messages still waiting to be delivered, why each is waiting, and when it will be retried." xml:space="preserve">
     <value>Meddelanden som fortfarande väntar på leverans, varför vart och ett väntar, och när nästa försök görs.</value>
   </data>
-  <data name="Messages that link to more domains than the URI blocklists ask about" xml:space="preserve">
-    <value>Meddelanden som länkar till fler domäner än URI-blockeringslistorna tillfrågas om</value>
+  <data name="Messages that link to more domains than the URI block lists ask about" xml:space="preserve">
+    <value>Meddelanden som länkar till fler domäner än URI-spärrlistorna tillfrågas om</value>
   </data>
   <data name="Messages the server finished processing, per minute, sampled every 2 seconds." xml:space="preserve">
     <value>Meddelanden servern behandlat klart, per minut, mätt varannan sekund.</value>
@@ -6814,8 +6847,8 @@ Inget som redan finns där tas bort.</value>
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>Inget av de {0} IP-intervallen kräver TLS före autentisering, så ett klartextlösenord godtas överallt där en port tillåter ett.</value>
   </data>
-  <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the {0} entries on the anti-spam white list." xml:space="preserve">
-    <value>Inget av detta gäller en autentiserad session - skräppostskyddet hoppas över helt för en klient som loggat in, för anslutningar från ett IP-intervall med skräppostskyddet avstängt, och för de {0} posterna på skräppostfiltrets vitlista.</value>
+  <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges on the spam exemptions (entries: {0})." xml:space="preserve">
+    <value>Inget av detta gäller en autentiserad session - skräppostskyddet hoppas över helt för en klient som loggat in, för anslutningar från ett IP-intervall med skräppostskyddet avstängt, och för avsändare och IP-intervall bland skräppostundantagen (poster: {0}).</value>
   </data>
   <data name="None yet: make one with the button below." xml:space="preserve">
     <value>Inget ännu: skapa ett med knappen nedan.</value>
@@ -6871,8 +6904,8 @@ Inget som redan finns där tas bort.</value>
   <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
     <value>Inte testat: den här konfigurationen skulle skicka ett lösenord över oskyddad LDAP med en enkel bindning, och AllowUnprotectedPassword är av - så servern avvisar varje inloggning under den, och det här testet vägrar sända något av samma skäl. Välj LDAPS eller StartTLS, eller bindningsmetoden Negotiate, eller tillåt uttryckligen det oskyddade lösenordet.</value>
   </data>
-  <data name="Not the anti-spam white list, which is an IP range that skips every test, and not the allow and block list, which decides per recipient at delivery. example.com matches that domain alone; .example.com matches the domain and everything beneath it." xml:space="preserve">
-    <value>Inte skräppostvitlistan, som är ett IP-intervall som hoppar över varje test, och inte tillåt- och blockeringslistan, som avgör per mottagare vid leverans. example.com matchar bara den domänen; .example.com matchar domänen och allt under den.</value>
+  <data name="Not the spam exemptions, whose senders and IP ranges skip every test, and not the allow and block list, which decides per recipient at delivery. example.com matches that domain alone; .example.com matches the domain and everything beneath it." xml:space="preserve">
+    <value>Inte skräppostundantagen, vars avsändare och IP-intervall hoppar över varje test, och inte tillåt- och blockeringslistan, som avgör per mottagare vid leverans. example.com matchar bara den domänen; .example.com matchar domänen och allt under den.</value>
   </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Inte giltigt förrän {0}</value>
@@ -8121,8 +8154,8 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="RFC 7208 4.6.4. A &quot;void lookup&quot; is a term of a sender's SPF policy - an a:, mx: or exists: - whose DNS query comes back with nothing at all. The separate limit of ten DNS-querying terms bounds what a policy can ask this server to look up; it does not bound what a policy can waste, and ten terms naming hosts that do not exist cost a full resolution each for a record that can never match. Two is what the RFC says. It also catches the ordinary case: a policy still listing hosts decommissioned years ago, which its owner would rather be told about. Raising it is safe; 0 switches the limit off, which is the setting for a correspondent whose policy is wrong in exactly this way and whose mail you would rather take." xml:space="preserve">
     <value>RFC 7208 4.6.4. En "tom uppslagning" är en term i en avsändares SPF-policy - en a:, mx: eller exists: - vars DNS-fråga kommer tillbaka med ingenting alls. Den separata gränsen på tio DNS-frågande termer begränsar vad en policy kan be den här servern slå upp; den begränsar inte vad en policy kan slösa, och tio termer som namnger värdar som inte finns kostar en fullständig uppslagning var för en post som aldrig kan matcha. Två är vad RFC:n säger. Det fångar också det vanliga fallet: en policy som fortfarande listar värdar som avvecklades för år sedan, vilket dess ägare hellre vill få veta. Att höja det är säkert; 0 stänger av gränsen, vilket är inställningen för en korrespondent vars policy är fel på exakt det här sättet och vars post du hellre tar emot.</value>
   </data>
-  <data name="RFC 7208's own answer to a check that could not be completed: try again when DNS works. The transaction is deferred with 451 4.4.3 and the temperror score above is ignored, because a deferred message is never accepted. Off, a temperror is accepted and scored. A sender on the domain white list is never deferred." xml:space="preserve">
-    <value>RFC 7208:s eget svar på en kontroll som inte kunde slutföras: försök igen när DNS fungerar. Transaktionen skjuts upp med 451 4.4.3 och temperror-poängen ovan ignoreras, eftersom ett uppskjutet meddelande aldrig accepteras. Av: ett temperror accepteras och poängsätts. En avsändare på domänvitlistan skjuts aldrig upp.</value>
+  <data name="RFC 7208's own answer to a check that could not be completed: try again when DNS works. The transaction is deferred with 451 4.4.3 and the temperror score above is ignored, because a deferred message is never accepted. Off, a temperror is accepted and scored. A sender from an allowed domain is never deferred." xml:space="preserve">
+    <value>RFC 7208:s eget svar på en kontroll som inte kunde slutföras: försök igen när DNS fungerar. Transaktionen skjuts upp med 451 4.4.3 och temperror-poängen ovan ignoreras, eftersom ett uppskjutet meddelande aldrig accepteras. Av: ett temperror accepteras och poängsätts. En avsändare från en tillåten domän skjuts aldrig upp.</value>
   </data>
   <data name="RSA/EC public key file (PEM, for RS*/ES* tokens)" xml:space="preserve">
     <value>Publik RSA/EC-nyckelfil (PEM, för RS*/ES*-token)</value>
@@ -8193,11 +8226,11 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="Re_voke / restore" xml:space="preserve">
     <value>Åter_kalla / återställ</value>
   </data>
-  <data name="Read at MAIL FROM: a black domain is refused with 550 before anything else runs, for every recipient. The entry covers the organization's domain and everything beneath it." xml:space="preserve">
-    <value>Läses vid MAIL FROM: en svart domän avvisas med 550 innan något annat körs, för varje mottagare. Posten omfattar organisationens domän och allt därunder.</value>
+  <data name="Read at MAIL FROM: a blocked domain is refused with 550 before anything else runs, for every recipient. The entry covers the organisation's domain and everything beneath it." xml:space="preserve">
+    <value>Läses vid MAIL FROM: en blockerad domän avvisas med 550 innan något annat körs, för varje mottagare. Posten omfattar organisationens domän och allt därunder.</value>
   </data>
-  <data name="Read at MAIL FROM: a white domain is not greylisted, and not refused or held on the spam score, while every test still runs and the mark threshold still marks. The entry covers the organization's domain and everything beneath it." xml:space="preserve">
-    <value>Läses vid MAIL FROM: en vit domän greylistas inte, och avvisas eller kvarhålls inte på grund av skräppostpoängen, medan alla tester ändå körs och märkningsgränsen ändå märker. Posten omfattar organisationens domän och allt därunder.</value>
+  <data name="Read at MAIL FROM: an allowed domain is not greylisted, and not refused or held on the spam score, while every test still runs and the mark threshold still marks. The entry covers the organisation's domain and everything beneath it." xml:space="preserve">
+    <value>Läses vid MAIL FROM: en tillåten domän greylistas inte, och avvisas eller kvarhålls inte på grund av skräppostpoängen, medan alla tester ändå körs och märkningsgränsen ändå märker. Posten omfattar organisationens domän och allt därunder.</value>
   </data>
   <data name="Read at delivery, for every recipient: a blocked sender's mail is held for them where the quarantine is on, and marked as spam where it is not." xml:space="preserve">
     <value>Läses vid leverans, för varje mottagare: posten från en blockerad avsändare kvarhålls åt mottagaren där karantänen är på, och märks som skräppost där den inte är det.</value>
@@ -8253,8 +8286,8 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="Ready to switch" xml:space="preserve">
     <value>Redo att byta</value>
   </data>
-  <data name="Real-time blackhole lists checked against the connecting IP address." xml:space="preserve">
-    <value>Realtidssvartlistor som kontrolleras mot den anslutande IP-adressen.</value>
+  <data name="Real-time block lists checked against the connecting IP address." xml:space="preserve">
+    <value>Spärrlistor i realtid som kontrolleras mot den anslutande IP-adressen.</value>
   </data>
   <data name="Reason" xml:space="preserve">
     <value>Orsak</value>
@@ -8578,10 +8611,10 @@ Kör detta om klienter rapporterar meddelanden som dyker upp under fel UID, elle
   <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
     <value>Ta bort det här kontots återställningsadress? Varje återställningslänk som redan är på väg dit slutar fungera, och kontoinnehavaren sätter en ny adress i webbmailen. Engångskoderna lämnas i fred.</value>
   </data>
-  <data name="Remove {0} from the list?&#10;&#10;A black domain is accepted again at once; a white domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
+  <data name="Remove {0} from the list?&#10;&#10;A blocked domain is accepted again at once; an allowed domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
     <value>Ta bort {0} från listan?
 
-En svart domän accepteras genast igen; en vit domän hamnar under greylisting och skräppostpoängen igen från nästa session.</value>
+En blockerad domän accepteras genast igen; en tillåten domän hamnar under greylisting och skräppostpoängen igen från nästa session.</value>
   </data>
   <data name="Remove {0} from the never-ban list?&#10;&#10;An address it spared can be auto-banned again from the next ban on." xml:space="preserve">
     <value>Ta bort {0} från aldrig-spärra-listan?
@@ -9696,11 +9729,11 @@ Fortsätt?</value>
   <data name="Sending _domain" xml:space="preserve">
     <value>Sändande _domän</value>
   </data>
-  <data name="Sending domains this server has decided about: white skips greylisting and the score's refusals, black is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
-    <value>Avsändardomäner som den här servern har bestämt sig om: vit hoppar över greylisting och poängens avvisningar, svart avvisas vid MAIL FROM - per domän eller HELO-suffix, inte per IP-adress.</value>
+  <data name="Sending domains this server has decided about: an allowed one skips greylisting and the score's refusals, a blocked one is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
+    <value>Avsändardomäner som den här servern har bestämt sig om: en tillåten hoppar över greylisting och poängens avvisningar, en blockerad avvisas vid MAIL FROM - per domän eller HELO-suffix, inte per IP-adress.</value>
   </data>
-  <data name="Sending organisations decided about by their domain rather than by the IP address of the week. White: not greylisted and never refused on the spam score, while every test still runs and logs. Black: refused at MAIL FROM before greylisting, scoring or any lookup. Matched on the envelope sender's domain, the HELO name, or either; inbound unauthenticated sessions only." xml:space="preserve">
-    <value>Avsändande organisationer bedömda efter sin domän i stället för veckans IP-adress. Vit: ingen greylisting och aldrig avvisad på skräppostpoängen, medan varje test fortfarande körs och loggar. Svart: avvisas vid MAIL FROM före greylisting, poängsättning eller någon uppslagning. Matchas mot kuvertavsändarens domän, HELO-namnet eller endera; endast inkommande oautentiserade sessioner.</value>
+  <data name="Sending organisations decided about by their domain rather than by the IP address of the week. Allowed: not greylisted and never refused on the spam score, while every test still runs and logs. Blocked: refused at MAIL FROM before greylisting, scoring or any lookup. Matched on the envelope sender's domain, the HELO name, or either; inbound unauthenticated sessions only." xml:space="preserve">
+    <value>Avsändande organisationer bedömda efter sin domän i stället för veckans IP-adress. Tillåten: ingen greylisting och aldrig avvisad på skräppostpoängen, medan varje test fortfarande körs och loggar. Blockerad: avvisas vid MAIL FROM före greylisting, poängsättning eller någon uppslagning. Matchas mot kuvertavsändarens domän, HELO-namnet eller endera; endast inkommande oautentiserade sessioner.</value>
   </data>
   <data name="Sendout failed: {0}" xml:space="preserve">
     <value>Utskicket misslyckades: {0}</value>
@@ -10193,6 +10226,9 @@ Starta om den nu?</value>
   </data>
   <data name="Spam delete threshold (score)" xml:space="preserve">
     <value>Tröskel för borttagning av skräppost (poäng)</value>
+  </data>
+  <data name="Spam exemptions" xml:space="preserve">
+    <value>Skräppostundantag</value>
   </data>
   <data name="Spam filtering overview" xml:space="preserve">
     <value>Översikt över skräppostfiltrering</value>
@@ -10781,14 +10817,14 @@ Nästa meddelande till adressen skickas, och den hamnar på listan igen först e
   <data name="The TCP/IP port list could not be read - {0}" xml:space="preserve">
     <value>Listan över TCP/IP-portar kunde inte läsas - {0}</value>
   </data>
-  <data name="The URI blocklists on the SURBL servers page are asked about every registrable domain and address a message links to, up to 200 for each message. A message whose links name more is not asked about whole: it scores the number below instead, once, however many lists are active, so that hiding a listed link among made-up domains does not come free. Nothing is scored while no URI blocklist is active." xml:space="preserve">
-    <value>URI-blockeringslistorna på sidan SURBL-servrar tillfrågas om varje registrerbar domän och varje adress som ett meddelande länkar till, upp till 200 per meddelande. Ett meddelande vars länkar nämner fler tillfrågas inte om i sin helhet: det får i stället poängen nedan, en gång, hur många listor som än är aktiva, så att det inte är gratis att gömma en listad länk bland påhittade domäner. Ingenting poängsätts medan ingen URI-blockeringslista är aktiv.</value>
+  <data name="The URI block lists on the SURBL servers page are asked about every registrable domain and address a message links to, up to 200 for each message. A message whose links name more is not asked about whole: it scores the number below instead, once, however many lists are active, so that hiding a listed link among made-up domains does not come free. Nothing is scored while no URI block list is active." xml:space="preserve">
+    <value>URI-spärrlistorna på sidan SURBL-servrar tillfrågas om varje registrerbar domän och varje adress som ett meddelande länkar till, upp till 200 per meddelande. Ett meddelande vars länkar nämner fler tillfrågas inte om i sin helhet: det får i stället poängen nedan, en gång, hur många listor som än är aktiva, så att det inte är gratis att gömma en listad länk bland påhittade domäner. Ingenting poängsätts medan ingen URI-spärrlista är aktiv.</value>
   </data>
   <data name="The Windows prompt was declined, so nothing was installed and nothing on the server was changed." xml:space="preserve">
     <value>Windows-frågan avböjdes, så inget installerades och inget ändrades på servern.</value>
   </data>
-  <data name="The _HELO name's domain, on the domain white and black list" xml:space="preserve">
-    <value>HELO-_namnets domän, i vit- och svartlistan för domäner</value>
+  <data name="The _HELO name's domain, on the allowed and blocked domains" xml:space="preserve">
+    <value>HELO-_namnets domän, bland de tillåtna och blockerade domänerna</value>
   </data>
   <data name="The accepted TLS versions and cipher suites are set here." xml:space="preserve">
     <value>De godtagna TLS-versionerna och chiffersviterna sätts här.</value>
@@ -11621,8 +11657,8 @@ Lägg till det ändå?</value>
   <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
     <value>Avsändarens _adress, i serverns lista över tillåtna och blockerade</value>
   </data>
-  <data name="The sender's _domain, on the domain white and black list" xml:space="preserve">
-    <value>Avsändarens _domän, i vit- och svartlistan för domäner</value>
+  <data name="The sender's _domain, on the allowed and blocked domains" xml:space="preserve">
+    <value>Avsändarens _domän, bland de tillåtna och blockerade domänerna</value>
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>Den sändande servern ansluter, skickar meddelandet, och väntar sedan. Från dess sida ser du en tidsgräns efter att meddelandekroppen överförts - Postfix rapporterar "timed out while sending end of data". Meddelandet dyker aldrig upp i din kö.</value>
@@ -12034,11 +12070,11 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="This server holds {0} accounts, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one." xml:space="preserve">
     <value>Den här servern har {0} konton och är alltså i drift: en profil erbjuds en ny server, och vilken som helst av de fyra kan ändå jämföras med den här.</value>
   </data>
+  <data name="This server is older than the Control Panel and cannot allow or block a sender from the quarantine. Upgrade the server." xml:space="preserve">
+    <value>Den här servern är äldre än Control Panel och kan inte tillåta eller blockera en avsändare från karantänen. Uppgradera servern.</value>
+  </data>
   <data name="This server is older than the Control Panel and cannot show a held message's headers or text. Upgrade the server." xml:space="preserve">
     <value>Den här servern är äldre än Control Panel och kan inte visa huvudfälten eller texten för ett kvarhållet meddelande. Uppgradera servern.</value>
-  </data>
-  <data name="This server is older than the Control Panel and cannot whitelist or blacklist from the quarantine. Upgrade the server." xml:space="preserve">
-    <value>Den här servern är äldre än Control Panel och kan inte vitlista eller svartlista från karantänen. Uppgradera servern.</value>
   </data>
   <data name="This server now" xml:space="preserve">
     <value>Den här servern nu</value>
@@ -12745,8 +12781,8 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="When a virus is found" xml:space="preserve">
     <value>När ett virus hittas</value>
   </data>
-  <data name="When during the SMTP conversation blacklist lookups happen. Which blacklists are queried is on the DNS blacklists page." xml:space="preserve">
-    <value>När under SMTP-konversationen svartlisteuppslagningar sker. Vilka svartlistor som frågas finns på sidan DNS-svartlistor.</value>
+  <data name="When during the SMTP conversation block list lookups happen. Which block lists are asked is on the DNS block lists (DNSBL) page." xml:space="preserve">
+    <value>När under SMTP-konversationen spärrlisteuppslagningar sker. Vilka spärrlistor som frågas finns på sidan DNS-spärrlistor (DNSBL).</value>
   </data>
   <data name="When the endpoint cannot be reached" xml:space="preserve">
     <value>När slutpunkten inte går att nå</value>
@@ -12882,45 +12918,6 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="Which way" xml:space="preserve">
     <value>Vilket håll</value>
-  </data>
-  <data name="White list" xml:space="preserve">
-    <value>Vitlista</value>
-  </data>
-  <data name="White still runs every test and still marks at the mark threshold; black refuses before a single test runs." xml:space="preserve">
-    <value>Vit kör fortfarande varje test och markerar fortfarande vid markeringströskeln; svart avvisar innan ett enda test körs.</value>
-  </data>
-  <data name="White-list the sender or their IP range so the message bypasses spam protection." xml:space="preserve">
-    <value>Vitlista avsändaren eller dess IP-intervall så att meddelandet går förbi skräppostskyddet.</value>
-  </data>
-  <data name="White: not greylisted, not refused on score" xml:space="preserve">
-    <value>Vit: ingen greylisting, ingen avvisning på poäng</value>
-  </data>
-  <data name="White: not greylisted, not refused on the spam score" xml:space="preserve">
-    <value>Vit: ingen greylisting, ingen avvisning på skräppostpoängen</value>
-  </data>
-  <data name="Whitelist and release" xml:space="preserve">
-    <value>Vitlista och släpp</value>
-  </data>
-  <data name="Whitelist the checked messages' senders, then release" xml:space="preserve">
-    <value>Vitlista avsändarna till de markerade meddelandena och släpp sedan</value>
-  </data>
-  <data name="Whitelist the sender of this message, then release it" xml:space="preserve">
-    <value>Vitlista avsändaren till det här meddelandet och släpp sedan det</value>
-  </data>
-  <data name="Whitelist the sender, then release" xml:space="preserve">
-    <value>Vitlista avsändaren och släpp sedan</value>
-  </data>
-  <data name="Whitelist the senders of {0} message, then release it" xml:space="preserve">
-    <value>Vitlista avsändaren till {0} meddelande och släpp sedan det</value>
-  </data>
-  <data name="Whitelist the senders of {0} messages, then release them" xml:space="preserve">
-    <value>Vitlista avsändarna till {0} meddelanden och släpp sedan dem</value>
-  </data>
-  <data name="Whitelist this group's senders, then release" xml:space="preserve">
-    <value>Vitlista den här gruppens avsändare och släpp sedan</value>
-  </data>
-  <data name="Whitelisted. List entries: {0}. Messages released: {1}." xml:space="preserve">
-    <value>Vitlistad. Listposter: {0}. Släppta meddelanden: {1}.</value>
   </data>
   <data name="Who" xml:space="preserve">
     <value>Vem</value>
@@ -13162,8 +13159,8 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="_Bind method (BindMethod)" xml:space="preserve">
     <value>_Bindningsmetod (BindMethod)</value>
   </data>
-  <data name="_Blacklist and delete" xml:space="preserve">
-    <value>_Svartlista och ta bort</value>
+  <data name="_Block and delete" xml:space="preserve">
+    <value>_Blockera och ta bort</value>
   </data>
   <data name="_Body canonicalization" xml:space="preserve">
     <value>_Textkanonisering</value>
@@ -13660,9 +13657,6 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="_Warn the owner at (% of the limit; -1 = the server's, 0 = never)" xml:space="preserve">
     <value>Va_rna ägaren vid (% av gränsen; -1 = serverns värde, 0 = aldrig)</value>
   </data>
-  <data name="_Whitelist and release" xml:space="preserve">
-    <value>_Vitlista och släpp</value>
-  </data>
   <data name="_Who may send to this list" xml:space="preserve">
     <value>_Vem får skicka till listan</value>
   </data>
@@ -13747,14 +13741,14 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="binding with the configured ServiceUsername - no ServicePassword is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
     <value>binder med det konfigurerade ServiceUsername - inget ServicePassword är sparat eller inskrivet, och ett tomt lösenord avvisas innan det skickas</value>
   </data>
-  <data name="blacklist" xml:space="preserve">
-    <value>svartlista</value>
-  </data>
   <data name="block an ip" xml:space="preserve">
     <value>blockera en ip</value>
   </data>
   <data name="block executable attachments" xml:space="preserve">
     <value>blockera körbara bilagor</value>
+  </data>
+  <data name="block list" xml:space="preserve">
+    <value>spärrlista</value>
   </data>
   <data name="block mail from a bad reputation ip" xml:space="preserve">
     <value>blockera post från en ip med dåligt rykte</value>
@@ -13766,7 +13760,7 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
     <value>blockerad avsändare</value>
   </data>
   <data name="bypass entry" xml:space="preserve">
-    <value>undantag</value>
+    <value>förbigångspost</value>
   </data>
   <data name="certificate {0}" xml:space="preserve">
     <value>certifikat {0}</value>
@@ -14390,6 +14384,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="someone is trying to guess passwords" xml:space="preserve">
     <value>någon försöker gissa lösenord</value>
   </data>
+  <data name="spam exemption" xml:space="preserve">
+    <value>skräppostundantag</value>
+  </data>
   <data name="spamd is unreachable, overloaded, or accepting connections without answering." xml:space="preserve">
     <value>spamd är onåbar, överbelastad, eller tar emot anslutningar utan att svara.</value>
   </data>
@@ -14432,9 +14429,6 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="the account's own domain" xml:space="preserve">
     <value>kontots egen domän</value>
   </data>
-  <data name="the address is one of the {0} on the greylisting white list" xml:space="preserve">
-    <value>adressen är en av de {0} på gråstlistningens vitlista</value>
-  </data>
   <data name="the audience (aud) is not checked" xml:space="preserve">
     <value>mottagaren (aud) kontrolleras inte</value>
   </data>
@@ -14446,6 +14440,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="the configured UserSearchFilter is not a valid LDAP filter" xml:space="preserve">
     <value>det konfigurerade UserSearchFilter är inte ett giltigt LDAP-filter</value>
+  </data>
+  <data name="the connecting address is on the greylisting exemptions (entries: {0})" xml:space="preserve">
+    <value>den anslutande adressen finns bland undantagen från gråstlistning (poster: {0})</value>
   </data>
   <data name="the connecting address is one of the sender domain's A or MX records" xml:space="preserve">
     <value>den anslutande adressen är en av avsändardomänens A- eller MX-poster</value>
@@ -14519,8 +14516,8 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
     <value>avsändarens domän eller HELO-värd är en av de {0} posterna på undantagslistan för gråstlistning och meddelandet bär den godkända SPF, DKIM eller DMARC som posten kräver</value>
   </data>
-  <data name="the sender's domain or HELO name is white on the domain white and black list" xml:space="preserve">
-    <value>avsändarens domän eller HELO-namn är vitt på vit- och svartlistan för domäner</value>
+  <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
+    <value>avsändarens domän eller HELO-namn är en tillåten domän</value>
   </data>
   <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
     <value>servern kan inte nå sin databas. Kontrollera databasanslutningen och hMailServers fellogg, och tryck sedan på Ladda om. ({0})</value>
@@ -14602,9 +14599,6 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="which tls versions are allowed" xml:space="preserve">
     <value>vilka tls-versioner är tillåtna</value>
-  </data>
-  <data name="white-list entry" xml:space="preserve">
-    <value>vitlistepost</value>
   </data>
   <data name="why is mail queued" xml:space="preserve">
     <value>varför köas post</value>
@@ -14783,8 +14777,8 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="{0} app passwords." xml:space="preserve">
     <value>{0} applösenord.</value>
   </data>
-  <data name="{0} blacklists" xml:space="preserve">
-    <value>{0} svartlistor</value>
+  <data name="{0} block lists" xml:space="preserve">
+    <value>{0} spärrlistor</value>
   </data>
   <data name="{0} blocked senders" xml:space="preserve">
     <value>{0} blockerade avsändare</value>
@@ -14796,7 +14790,7 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
     <value>{0} mönster för blockerade bilagor är konfigurerade men bilageblockering är avstängd, så inget av dem tillämpas.</value>
   </data>
   <data name="{0} bypass entries" xml:space="preserve">
-    <value>{0} undantag</value>
+    <value>{0} förbigångsposter</value>
   </data>
   <data name="{0} case. Select it for its lines on the audit trail." xml:space="preserve">
     <value>{0} ärende. Välj det för dess rader i granskningsloggen.</value>
@@ -15179,6 +15173,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="{0} settings could not be written." xml:space="preserve">
     <value>{0} inställningar kunde inte skrivas.</value>
   </data>
+  <data name="{0} spam exemptions" xml:space="preserve">
+    <value>{0} skräppostundantag</value>
+  </data>
   <data name="{0} stops here: the next thing it points at is not on this screen." xml:space="preserve">
     <value>”{0}” stannar här: nästa sak den pekar på finns inte på den här skärmen.</value>
   </data>
@@ -15232,9 +15229,6 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="{0} was removed, with everything in it - mailboxes: {1}, distribution lists: {2}, rules: {3}, messages: {4}." xml:space="preserve">
     <value>{0} togs bort med allt innehåll - brevlådor: {1}, distributionslistor: {2}, regler: {3}, meddelanden: {4}.</value>
-  </data>
-  <data name="{0} white-list entries" xml:space="preserve">
-    <value>{0} vitlisteposter</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} med full behörighet</value>

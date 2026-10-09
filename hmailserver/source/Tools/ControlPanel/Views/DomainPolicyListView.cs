@@ -96,7 +96,7 @@ namespace hMailServer.ControlPanel.Views
          _ => L("Either")
       };
 
-      private static string ActionText_(string word) => word == "black" ? L("Black: refused at MAIL FROM") : L("White: not greylisted, not refused on score");
+      private static string ActionText_(string word) => word == "black" ? L("Blocked: refused at MAIL FROM") : L("Allowed: not greylisted, not refused on score");
 
       private static string Text_(JsonElement element, string name)
       {
@@ -245,7 +245,7 @@ namespace hMailServer.ControlPanel.Views
          // YesNo, No on Enter, like every other confirmation that changes what the
          // server does: a black domain removed is accepted again at once.
          if (MessageBox.Show(
-               F("Remove {0} from the list?\n\nA black domain is accepted again at once; a white domain goes back under greylisting and the spam score from the next session.", selected.Pattern),
+               F("Remove {0} from the list?\n\nA blocked domain is accepted again at once; an allowed domain goes back under greylisting and the spam score from the next session.", selected.Pattern),
                L("Remove from the domain list"), MessageBoxButton.YesNo, MessageBoxImage.Question,
                MessageBoxResult.No)
              != MessageBoxResult.Yes)
@@ -285,14 +285,14 @@ namespace hMailServer.ControlPanel.Views
 
          root.Children.Add(new PageHeader
          {
-            Title = L("Domain white and black list"),
-            Subtitle = L("Sending organisations decided about by their domain rather than by the IP address of the week. White: not greylisted and never refused on the spam score, while every test still runs and logs. Black: refused at MAIL FROM before greylisting, scoring or any lookup. Matched on the envelope sender's domain, the HELO name, or either; inbound unauthenticated sessions only.")
+            Title = L("Allowed and blocked domains"),
+            Subtitle = L("Sending organisations decided about by their domain rather than by the IP address of the week. Allowed: not greylisted and never refused on the spam score, while every test still runs and logs. Blocked: refused at MAIL FROM before greylisting, scoring or any lookup. Matched on the envelope sender's domain, the HELO name, or either; inbound unauthenticated sessions only.")
          });
 
          var explanation = new InlineNotice
          {
             Level = StatusLevel.Information,
-            Text = L("Not the anti-spam white list, which is an IP range that skips every test, and not the allow and block list, which decides per recipient at delivery. example.com matches that domain alone; .example.com matches the domain and everything beneath it.")
+            Text = L("Not the spam exemptions, whose senders and IP ranges skip every test, and not the allow and block list, which decides per recipient at delivery. example.com matches that domain alone; .example.com matches the domain and everything beneath it.")
          };
 
          toolbar_.PreviewKeyDown += (_, e) => { if (e.Key == System.Windows.Input.Key.Enter) Present_(); };
@@ -325,7 +325,7 @@ namespace hMailServer.ControlPanel.Views
          parts.Children.Add(status_);
 
          BuildColumns_();
-         AutomationProperties.SetName(entries_, L("Domain white and black list"));
+         AutomationProperties.SetName(entries_, L("Allowed and blocked domains"));
 
          var host = new Grid();
          host.Children.Add(entries_);
@@ -387,8 +387,8 @@ namespace hMailServer.ControlPanel.Views
          AutomationProperties.SetName(matchOn, L("Matched on"));
 
          var action = new ComboBox();
-         action.Items.Add(DialogFields.Combo(L("White: not greylisted, not refused on the spam score"), 0));
-         action.Items.Add(DialogFields.Combo(L("Black: refused at MAIL FROM"), 1));
+         action.Items.Add(DialogFields.Combo(L("Allowed: not greylisted, not refused on the spam score"), 0));
+         action.Items.Add(DialogFields.Combo(L("Blocked: refused at MAIL FROM"), 1));
          DialogFields.SelectCombo(action, 0, orFirst: true);
          AutomationProperties.SetName(action, L("Action"));
 
@@ -399,7 +399,7 @@ namespace hMailServer.ControlPanel.Views
          var patternRow = DialogFields.Field(L("_Domain or suffix"), pattern, L("example.com is that domain alone; .example.com is the domain and everything beneath it."));
          body.Children.Add(patternRow);
          body.Children.Add(DialogFields.Field(L("_Matched on"), matchOn, L("A domain with rotating outbound hosts is usually recognised by the HELO name; a domain that forges nothing by its envelope sender.")));
-         body.Children.Add(DialogFields.Field(L("A_ction"), action, L("White still runs every test and still marks at the mark threshold; black refuses before a single test runs.")));
+         body.Children.Add(DialogFields.Field(L("A_ction"), action, L("An allowed domain still runs every test and still marks at the mark threshold; a blocked one is refused before a single test runs.")));
          body.Children.Add(DialogFields.Field(L("_Note"), note, L("Kept with the entry, for whoever reads the list next.")));
 
          string result = null;
@@ -444,7 +444,7 @@ namespace hMailServer.ControlPanel.Views
          var cancel = new Wpf.Ui.Controls.Button { Content = L("Cancel"), MinWidth = 88 };
          cancel.Click += (_, _) => dialog.Close();
 
-         dialog.Frame(L("Add a domain to the white and black list"), body, ok, cancel,
+         dialog.Frame(L("Allow or block a domain"), body, ok, cancel,
             L("The entry applies to the next session from that domain. It is consulted for unauthenticated inbound sessions of an IP range that runs the spam tests, and never to override authentication."),
             width: 520);
 

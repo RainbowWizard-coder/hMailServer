@@ -450,8 +450,8 @@ namespace hMailServer.ControlPanel.Views
          var headerActions = new StackPanel { Orientation = Orientation.Horizontal };
          headerActions.Children.Add(HeaderButton_(SymbolRegular.CheckmarkCircle24, ThemeTokens.Success, false, L("Release the checked messages"), () => Act_(review_.CheckedIds, "release")));
          headerActions.Children.Add(HeaderButton_(SymbolRegular.DismissCircle24, ThemeTokens.Danger, false, L("Delete the checked messages"), () => Act_(review_.CheckedIds, "delete")));
-         headerActions.Children.Add(HeaderButton_(SymbolRegular.TextBulletListSquare24, ThemeTokens.Success, false, L("Whitelist the checked messages' senders, then release"), () => Act_(review_.CheckedIds, "allow")));
-         headerActions.Children.Add(HeaderButton_(SymbolRegular.TextBulletListSquare24, ThemeTokens.Danger, true, L("Blacklist the checked messages' senders, then delete"), () => Act_(review_.CheckedIds, "block")));
+         headerActions.Children.Add(HeaderButton_(SymbolRegular.TextBulletListSquare24, ThemeTokens.Success, false, L("Allow the checked messages' senders, then release"), () => Act_(review_.CheckedIds, "allow")));
+         headerActions.Children.Add(HeaderButton_(SymbolRegular.TextBulletListSquare24, ThemeTokens.Danger, true, L("Block the checked messages' senders, then delete"), () => Act_(review_.CheckedIds, "block")));
 
          list_.Columns.Add(TemplateColumn_(headerActions, FourActions_(), new DataGridLength(ActionsWidth), null));
 
@@ -690,7 +690,7 @@ namespace hMailServer.ControlPanel.Views
 
                      if (answer == null)
                      {
-                        Status_(StatusLevel.Critical, L("This server is older than the Control Panel and cannot whitelist or blacklist from the quarantine. Upgrade the server."));
+                        Status_(StatusLevel.Critical, L("This server is older than the Control Panel and cannot allow or block a sender from the quarantine. Upgrade the server."));
                         return;
                      }
 
@@ -742,8 +742,8 @@ namespace hMailServer.ControlPanel.Views
          {
             "release" => Plural(done, "Released {0} message to its recipients.", "Released {0} messages to their recipients."),
             "delete" => Plural(done, "Deleted {0} message.", "Deleted {0} messages."),
-            "allow" => F("Whitelisted. List entries: {0}. Messages released: {1}.", entries, done),
-            _ => F("Blacklisted. List entries: {0}. Messages deleted: {1}.", entries, done)
+            "allow" => F("Allowed. List entries: {0}. Messages released: {1}.", entries, done),
+            _ => F("Blocked. List entries: {0}. Messages deleted: {1}.", entries, done)
          };
 
          if (failed == 0)

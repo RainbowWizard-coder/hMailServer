@@ -150,7 +150,7 @@
   <data name="1 alias" xml:space="preserve">
     <value>1 alias</value>
   </data>
-  <data name="1 blacklist" xml:space="preserve">
+  <data name="1 block list" xml:space="preserve">
     <value>1 estolista</value>
   </data>
   <data name="1 blocked sender" xml:space="preserve">
@@ -189,8 +189,8 @@
   <data name="1 server message" xml:space="preserve">
     <value>1 palvelimen viesti</value>
   </data>
-  <data name="1 white-list entry" xml:space="preserve">
-    <value>1 sallittujen listan merkintä</value>
+  <data name="1 spam exemption" xml:space="preserve">
+    <value>1 roskapostipoikkeus</value>
   </data>
   <data name="1.  Scan this QR code with an authenticator app (Microsoft Authenticator, Google Authenticator, Authy, 1Password…)." xml:space="preserve">
     <value>1.  Lue tämä QR-koodi todennussovelluksella (Microsoft Authenticator, Google Authenticator, Authy, 1Password…).</value>
@@ -207,8 +207,8 @@
   <data name="14 by default. The unread copies are deleted; the read ones stay." xml:space="preserve">
     <value>Oletus 14. Lukemattomat kopiot poistetaan; luetut jäävät.</value>
   </data>
-  <data name="1440 by default. The ban is an expiring IP range, as an auto-ban is. An authenticated session, the anti-spam white list, an incoming relay and an address on the never-ban list are never banned." xml:space="preserve">
-    <value>Oletus 1440. Esto on vanheneva IP-alue, kuten automaattisessa estossa. Todennettua istuntoa, roskapostisuojauksen sallittujen luetteloa, saapuvaa välittäjää ja aina sallittujen luettelon osoitetta ei koskaan estetä.</value>
+  <data name="1440 by default. The ban is an expiring IP range, as an auto-ban is. An authenticated session, the spam exemptions, an incoming relay and an address on the never-ban list are never banned." xml:space="preserve">
+    <value>Oletus 1440. Esto on vanheneva IP-alue, kuten automaattisessa estossa. Todennettua istuntoa, roskapostipoikkeuksia, saapuvaa välittäjää ja aina sallittujen luettelon osoitetta ei koskaan estetä.</value>
   </data>
   <data name="15 by default, counted once no IMAP or POP3 session holds the key. After that the mail is readable again only after the next sign-in with the password." xml:space="preserve">
     <value>Oletus 15, laskettuna siitä, kun mikään IMAP- tai POP3-istunto ei enää pidä avainta. Sen jälkeen posti on luettavissa vasta seuraavan salasanalla kirjautumisen jälkeen.</value>
@@ -636,8 +636,8 @@
   <data name="A service account password from an earlier version is stored in hMailServer.INI in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.INI with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
     <value>Aiemman version palvelutilin salasana on tallennettu selväkielisenä hMailServer.INI-tiedostoon, eikä mikään enää lue sitä: palvelu rekisteröidään asennusohjelmalla tai Windows-palvelutili-kortin painikkeilla, ja Windows pitää jokaisesta salasanasta oman kopionsa. Poista ServiceAccountPassword-rivi hMailServer.INI-tiedostosta korotetuilla oikeuksilla toimivalla editorilla ja asetus komennolla DELETE /api/v1/settings/ini/ServiceAccountPassword, jotta myös tietokannan kopio häviää.</value>
   </data>
-  <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender on the anti-spam white list, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
-    <value>Istunto, joka tervehtii komennolla HELO 192.0.2.7, HELO [192.0.2.7] tai HELO localhost tai lähettää MAIL FROM:&lt;user@192.0.2.7&gt;, ei ole kertonut itsestään mitään nimeä, ja sen lähettämä viesti pidätetään tai pisteytetään ilman mitään, minkä mukaan sen voisi lisätä luetteloon. Pois: palvelin hyväksyy sen kuten aina. Päällä: siihen vastataan 550 5.7.1 MAIL FROM -vaiheessa ennen roskapostitestejä: osoite hakasulkeissa tai ilman, yksittäinen nimiö, julkinen pääte kuten co.uk ja kaikki, mikä ei ole isäntänimi, hylätään, kun taas mail.co.uk on nimi. DNS:ltä ei kysytä mitään; päätteet ovat Public Suffix List -luettelosta, jonka mukaan karanteeni ryhmittelee. Vain tunnistautumattomat istunnot IP-alueelta, joka ajaa roskapostitestit, arvioidaan, ja vasta kun AUTH on saanut tilaisuutensa - ei koskaan roskapostin valkolistalla olevaa lähettäjää eikä koskaan saapuvaa välittäjää, jonka HELO on oman yhdyskäytävänne.</value>
+  <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender on the spam exemptions, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
+    <value>Istunto, joka tervehtii komennolla HELO 192.0.2.7, HELO [192.0.2.7] tai HELO localhost tai lähettää MAIL FROM:&lt;user@192.0.2.7&gt;, ei ole kertonut itsestään mitään nimeä, ja sen lähettämä viesti pidätetään tai pisteytetään ilman mitään, minkä mukaan sen voisi lisätä luetteloon. Pois: palvelin hyväksyy sen kuten aina. Päällä: siihen vastataan 550 5.7.1 MAIL FROM -vaiheessa ennen roskapostitestejä: osoite hakasulkeissa tai ilman, yksittäinen nimiö, julkinen pääte kuten co.uk ja kaikki, mikä ei ole isäntänimi, hylätään, kun taas mail.co.uk on nimi. DNS:ltä ei kysytä mitään; päätteet ovat Public Suffix List -luettelosta, jonka mukaan karanteeni ryhmittelee. Vain tunnistautumattomat istunnot IP-alueelta, joka ajaa roskapostitestit, arvioidaan, ja vasta kun AUTH on saanut tilaisuutensa - ei koskaan roskapostipoikkeuksissa olevaa lähettäjää eikä koskaan saapuvaa välittäjää, jonka HELO on oman yhdyskäytävänne.</value>
   </data>
   <data name="A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one." xml:space="preserve">
     <value>Osuus yhteyksistä, ei koskaan enempää kuin toimitussäikeitä: yhden isännöidyn toimialueen tilit tai kaikki välitetty posti yhdessä eivät voi varata jokaista toimitussäiettä. Tilikohtainen lähetysraja hallitsee määrää; tämä ei.</value>
@@ -939,10 +939,10 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Add _criterion…" xml:space="preserve">
     <value>Lisää _ehto…</value>
   </data>
-  <data name="Add a DNS blacklist" xml:space="preserve">
+  <data name="Add a DNS block list" xml:space="preserve">
     <value>Lisää DNS-estolista</value>
   </data>
-  <data name="Add a DNS blacklist; connections from listed addresses gain score or are refused." xml:space="preserve">
+  <data name="Add a DNS block list; connections from listed addresses gain score or are refused." xml:space="preserve">
     <value>Lisää DNS-estolista; listatuista osoitteista tulevat yhteydet saavat pisteitä tai hylätään.</value>
   </data>
   <data name="Add a SURBL server" xml:space="preserve">
@@ -972,8 +972,8 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Add a domain to the list" xml:space="preserve">
     <value>Lisää verkkotunnus luetteloon</value>
   </data>
-  <data name="Add a domain to the white and black list" xml:space="preserve">
-    <value>Lisää verkkotunnus valko- ja mustalle listalle</value>
+  <data name="Add a greylisting exemption" xml:space="preserve">
+    <value>Lisää harmaalistauksen poikkeus</value>
   </data>
   <data name="Add a list entry" xml:space="preserve">
     <value>Lisää luettelon merkintä</value>
@@ -993,8 +993,8 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Add a security group" xml:space="preserve">
     <value>Lisää suojausryhmä</value>
   </data>
-  <data name="Add a white-list entry" xml:space="preserve">
-    <value>Lisää sallittujen listan merkintä</value>
+  <data name="Add a spam exemption" xml:space="preserve">
+    <value>Lisää roskapostipoikkeus</value>
   </data>
   <data name="Add a_lias" xml:space="preserve">
     <value>Lisää _alias</value>
@@ -1010,9 +1010,6 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   </data>
   <data name="Add alias" xml:space="preserve">
     <value>Lisää alias</value>
-  </data>
-  <data name="Add an IP address to the greylisting white list" xml:space="preserve">
-    <value>Lisää IP-osoite harmaalistauksen sallittujen listaan</value>
   </data>
   <data name="Add an IP range for the device that allows SMTP delivery without requiring authentication." xml:space="preserve">
     <value>Lisää IP-alue laitteelle, joka sallii SMTP-toimituksen ilman todennusta.</value>
@@ -1086,8 +1083,8 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Add signature to _replies" xml:space="preserve">
     <value>Lisää allekirjoitus _vastauksiin</value>
   </data>
-  <data name="Add the address or IP range to the anti-spam white list." xml:space="preserve">
-    <value>Lisää osoite tai IP-alue roskapostisuojauksen sallittujen listalle.</value>
+  <data name="Add the address or IP range to the spam exemptions." xml:space="preserve">
+    <value>Lisää osoite tai IP-alue roskapostipoikkeuksiin.</value>
   </data>
   <data name="Add the certificate" xml:space="preserve">
     <value>Lisää varmenne</value>
@@ -1269,6 +1266,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="All linked domains" xml:space="preserve">
     <value>Kaikki liitetyt verkkotunnukset</value>
   </data>
+  <data name="Allo_w and release" xml:space="preserve">
+    <value>Salli ja _vapauta</value>
+  </data>
   <data name="Allow" xml:space="preserve">
     <value>Salli</value>
   </data>
@@ -1299,17 +1299,53 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Allow and block list" xml:space="preserve">
     <value>Sallittujen ja estettyjen luettelo</value>
   </data>
+  <data name="Allow and release" xml:space="preserve">
+    <value>Salli ja vapauta</value>
+  </data>
   <data name="Allow incorrect line endings" xml:space="preserve">
     <value>Salli virheelliset rivinvaihdot</value>
   </data>
+  <data name="Allow or block a domain" xml:space="preserve">
+    <value>Salli tai estä verkkotunnus</value>
+  </data>
   <data name="Allow plain-text authentication (AUTH PLAIN/LOGIN)" xml:space="preserve">
     <value>Salli selväkielinen todennus (AUTH PLAIN/LOGIN)</value>
+  </data>
+  <data name="Allow the checked messages' senders, then release" xml:space="preserve">
+    <value>Salli valittujen viestien lähettäjät ja vapauta sitten</value>
+  </data>
+  <data name="Allow the sender of this message, then release it" xml:space="preserve">
+    <value>Salli tämän viestin lähettäjä ja vapauta sitten se</value>
+  </data>
+  <data name="Allow the sender, then release" xml:space="preserve">
+    <value>Salli lähettäjä ja vapauta sitten</value>
+  </data>
+  <data name="Allow the senders of {0} message, then release it" xml:space="preserve">
+    <value>Salli {0} viestin lähettäjä ja vapauta sitten viesti</value>
+  </data>
+  <data name="Allow the senders of {0} messages, then release them" xml:space="preserve">
+    <value>Salli {0} viestin lähettäjät ja vapauta sitten ne</value>
+  </data>
+  <data name="Allow this group's senders, then release" xml:space="preserve">
+    <value>Salli tämän ryhmän lähettäjät ja vapauta sitten</value>
+  </data>
+  <data name="Allowed and blocked domains" xml:space="preserve">
+    <value>Sallitut ja estetyt verkkotunnukset</value>
   </data>
   <data name="Allowed as {0}." xml:space="preserve">
     <value>Sallittu tilillä {0}.</value>
   </data>
   <data name="Allowed signing algorithms (comma separated)" xml:space="preserve">
     <value>Sallitut allekirjoitusalgoritmit (pilkuin erotettuina)</value>
+  </data>
+  <data name="Allowed. List entries: {0}. Messages released: {1}." xml:space="preserve">
+    <value>Sallittu. Listamerkintöjä: {0}. Vapautettuja viestejä: {1}.</value>
+  </data>
+  <data name="Allowed: not greylisted, not refused on score" xml:space="preserve">
+    <value>Sallittu: ei harmaalistausta, ei hylkäystä pisteiden perusteella</value>
+  </data>
+  <data name="Allowed: not greylisted, not refused on the spam score" xml:space="preserve">
+    <value>Sallittu: ei harmaalistausta, ei hylkäystä roskapostipisteiden perusteella</value>
   </data>
   <data name="Allows for this server's clock differing from the signer's. Without it, a clock running a few minutes fast turns other people's valid mail into DKIM failures." xml:space="preserve">
     <value>Sallii tämän palvelimen kellon poiketa allekirjoittajan kellosta. Ilman sitä muutaman minuutin edellä käyvä kello muuttaa muiden kelvollisen postin DKIM-virheiksi.</value>
@@ -1389,6 +1425,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="An alias points one address at another without needing a second mailbox." xml:space="preserve">
     <value>Alias ohjaa yhden osoitteen toiseen ilman toista postilaatikkoa.</value>
   </data>
+  <data name="An allowed domain still runs every test and still marks at the mark threshold; a blocked one is refused before a single test runs." xml:space="preserve">
+    <value>Sallitulle verkkotunnukselle ajetaan edelleen jokainen testi ja se merkitään edelleen merkintäkynnyksellä; estetty hylätään ennen kuin yhtäkään testiä ajetaan.</value>
+  </data>
   <data name="An archive is usually kept for a legal or contractual reason, and that reason usually applies to particular domains rather than to every domain this server hosts. With a list here a message is archived only when its local sender or one of its recipients belongs to a listed domain, and only the copies for listed domains are made - a listed recipient still gets their copy when the sender's domain is not listed. Matched without regard to case." xml:space="preserve">
     <value>Arkistoa pidetään yleensä oikeudellisesta tai sopimusperusteisesta syystä, ja tuo syy koskee yleensä tiettyjä verkkotunnuksia eikä kaikkia tämän palvelimen isännöimiä verkkotunnuksia. Kun tässä on lista, viesti arkistoidaan vain silloin kun sen paikallinen lähettäjä tai jokin sen vastaanottajista kuuluu listattuun verkkotunnukseen, ja kopiot tehdään vain listatuille verkkotunnuksille – listattu vastaanottaja saa silti kopionsa silloinkin kun lähettäjän verkkotunnusta ei ole listattu. Vertailu ei huomioi kirjainkokoa.</value>
   </data>
@@ -1467,9 +1506,6 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   </data>
   <data name="Anti-spam settings (SpamAssassin)" xml:space="preserve">
     <value>Roskapostisuojauksen asetukset (SpamAssassin)</value>
-  </data>
-  <data name="Anti-spam white list" xml:space="preserve">
-    <value>Roskapostisuojauksen sallittujen lista</value>
   </data>
   <data name="Anti-virus" xml:space="preserve">
     <value>Virustorjunta</value>
@@ -1891,35 +1927,11 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Bind to address" xml:space="preserve">
     <value>Sido osoitteeseen</value>
   </data>
-  <data name="Black: refused at MAIL FROM" xml:space="preserve">
-    <value>Musta: hylätään MAIL FROM -vaiheessa</value>
-  </data>
-  <data name="Blacklist and delete" xml:space="preserve">
-    <value>Lisää mustalle listalle ja poista</value>
-  </data>
-  <data name="Blacklist the checked messages' senders, then delete" xml:space="preserve">
-    <value>Lisää valittujen viestien lähettäjät mustalle listalle ja poista sitten</value>
-  </data>
-  <data name="Blacklist the sender of this message, then delete it" xml:space="preserve">
-    <value>Lisää tämän viestin lähettäjä mustalle listalle ja poista sitten se</value>
-  </data>
-  <data name="Blacklist the sender, then delete" xml:space="preserve">
-    <value>Lisää lähettäjä mustalle listalle ja poista sitten</value>
-  </data>
-  <data name="Blacklist the senders of {0} message, then delete it" xml:space="preserve">
-    <value>Lisää {0} viestin lähettäjä mustalle listalle ja poista sitten viesti</value>
-  </data>
-  <data name="Blacklist the senders of {0} messages, then delete them" xml:space="preserve">
-    <value>Lisää {0} viestin lähettäjät mustalle listalle ja poista sitten ne</value>
-  </data>
-  <data name="Blacklist this group's senders, then delete" xml:space="preserve">
-    <value>Lisää tämän ryhmän lähettäjät mustalle listalle ja poista sitten</value>
-  </data>
-  <data name="Blacklisted. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
-    <value>Lisätty mustalle listalle. Listamerkintöjä: {0}. Poistettuja viestejä: {1}.</value>
-  </data>
   <data name="Block" xml:space="preserve">
     <value>Estä</value>
+  </data>
+  <data name="Block and delete" xml:space="preserve">
+    <value>Estä ja poista</value>
   </data>
   <data name="Block lists and this server's own addresses" xml:space="preserve">
     <value>Estolistat ja tämän palvelimen omat osoitteet</value>
@@ -1936,11 +1948,35 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Block rather than allow" xml:space="preserve">
     <value>Estä sallimisen sijaan</value>
   </data>
+  <data name="Block the checked messages' senders, then delete" xml:space="preserve">
+    <value>Estä valittujen viestien lähettäjät ja poista sitten</value>
+  </data>
+  <data name="Block the sender of this message, then delete it" xml:space="preserve">
+    <value>Estä tämän viestin lähettäjä ja poista sitten se</value>
+  </data>
+  <data name="Block the sender, then delete" xml:space="preserve">
+    <value>Estä lähettäjä ja poista sitten</value>
+  </data>
+  <data name="Block the senders of {0} message, then delete it" xml:space="preserve">
+    <value>Estä {0} viestin lähettäjä ja poista sitten viesti</value>
+  </data>
+  <data name="Block the senders of {0} messages, then delete them" xml:space="preserve">
+    <value>Estä {0} viestin lähettäjät ja poista sitten ne</value>
+  </data>
+  <data name="Block this group's senders, then delete" xml:space="preserve">
+    <value>Estä tämän ryhmän lähettäjät ja poista sitten</value>
+  </data>
   <data name="Blocked attachments" xml:space="preserve">
     <value>Estetyt liitteet</value>
   </data>
   <data name="Blocked senders" xml:space="preserve">
     <value>Estetyt lähettäjät</value>
+  </data>
+  <data name="Blocked. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
+    <value>Estetty. Listamerkintöjä: {0}. Poistettuja viestejä: {1}.</value>
+  </data>
+  <data name="Blocked: refused at MAIL FROM" xml:space="preserve">
+    <value>Estetty: hylätään MAIL FROM -vaiheessa</value>
   </data>
   <data name="Blowfish (legacy)" xml:space="preserve">
     <value>Blowfish (vanha)</value>
@@ -2197,8 +2233,8 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Change the language" xml:space="preserve">
     <value>Vaihda kieli</value>
   </data>
-  <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a blacklisted connecting IP, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
-    <value>Muuttaa sitä, mitä poistokynnyksellä tapahtuu. Pois päältä: sen ylittävä viesti hylätään SMTP-keskustelun aikana koodilla 550 ja lähettäjälle kerrotaan. Päällä: se hyväksytään koodilla 250 ja pidätetään tarkastukseen - lähettäjä uskoo sen toimitetun eikä yritä uudelleen, minkä ansiosta väärä positiivinen on palautettavissa palauttamatta viestiä todennäköisesti väärennettyyn paluupolkuun, ja mikä tarkoittaa myös, että tarkastusjonosta tulee ainoa paikka, jossa viesti on olemassa. Koskee tarkistuksia, jotka ajetaan viestin rungon vastaanottamisen jälkeen; sitä ennen tehdyllä tuomiolla (estolistattu yhdistävä IP, huono HELO) ei ole pidätettävää viestiä, ja se pysyy hylkäyksenä.</value>
+  <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
+    <value>Muuttaa sitä, mitä poistokynnyksellä tapahtuu. Pois päältä: sen ylittävä viesti hylätään SMTP-keskustelun aikana koodilla 550 ja lähettäjälle kerrotaan. Päällä: se hyväksytään koodilla 250 ja pidätetään tarkastukseen - lähettäjä uskoo sen toimitetun eikä yritä uudelleen, minkä ansiosta väärä positiivinen on palautettavissa palauttamatta viestiä todennäköisesti väärennettyyn paluupolkuun, ja mikä tarkoittaa myös, että tarkastusjonosta tulee ainoa paikka, jossa viesti on olemassa. Koskee tarkistuksia, jotka ajetaan viestin rungon vastaanottamisen jälkeen; sitä ennen tehdyllä tuomiolla (DNS-estolistalla oleva yhdistävä IP, huono HELO) ei ole pidätettävää viestiä, ja se pysyy hylkäyksenä.</value>
   </data>
   <data name="Changing the pepper after accounts exist stops every password stored as an Argon2id or scrypt hash from working, and each such account then needs a new password. PBKDF2 hashes, the default, are not peppered." xml:space="preserve">
     <value>Pepperin vaihtaminen tilien luomisen jälkeen lopettaa jokaisen Argon2id- tai scrypt-tiivisteenä tallennetun salasanan toimimisen, ja jokainen tällainen tili tarvitsee sen jälkeen uuden salasanan. PBKDF2-tiivisteisiin, oletukseen, pepperiä ei käytetä.</value>
@@ -3177,13 +3213,10 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="DMARC tells receivers what to do with mail that fails SPF and DKIM, and where to report it." xml:space="preserve">
     <value>DMARC kertoo vastaanottajille, mitä tehdä postille, joka ei läpäise SPF:ää ja DKIM:ää, ja minne siitä raportoidaan.</value>
   </data>
-  <data name="DNS blacklist checks" xml:space="preserve">
+  <data name="DNS block list checks" xml:space="preserve">
     <value>DNS-estolistatarkistukset</value>
   </data>
-  <data name="DNS blacklists" xml:space="preserve">
-    <value>DNS-estolistat</value>
-  </data>
-  <data name="DNS blacklists (DNSBL)" xml:space="preserve">
+  <data name="DNS block lists (DNSBL)" xml:space="preserve">
     <value>DNS-estolistat (DNSBL)</value>
   </data>
   <data name="DNS cache" xml:space="preserve">
@@ -3757,9 +3790,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Domain or suffix" xml:space="preserve">
     <value>Verkkotunnus tai pääte</value>
   </data>
-  <data name="Domain white and black list" xml:space="preserve">
-    <value>Verkkotunnusten valko- ja musta lista</value>
-  </data>
   <data name="Domain whose DNS records are shown" xml:space="preserve">
     <value>Verkkotunnus, jonka DNS-tietueet näytetään</value>
   </data>
@@ -3865,7 +3895,7 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Edit criterion" xml:space="preserve">
     <value>Muokkaa ehtoa</value>
   </data>
-  <data name="Edit the DNS blacklist" xml:space="preserve">
+  <data name="Edit the DNS block list" xml:space="preserve">
     <value>Muokkaa DNS-estolistaa</value>
   </data>
   <data name="Edit the SURBL server" xml:space="preserve">
@@ -3895,8 +3925,8 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Edit the external account" xml:space="preserve">
     <value>Muokkaa ulkoista tiliä</value>
   </data>
-  <data name="Edit the greylisting white-list entry" xml:space="preserve">
-    <value>Muokkaa harmaalistauksen sallittujen listan merkintää</value>
+  <data name="Edit the greylisting exemption" xml:space="preserve">
+    <value>Muokkaa harmaalistauksen poikkeusta</value>
   </data>
   <data name="Edit the list entry" xml:space="preserve">
     <value>Muokkaa luettelon merkintää</value>
@@ -3919,8 +3949,8 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Edit the server message" xml:space="preserve">
     <value>Muokkaa palvelimen viestiä</value>
   </data>
-  <data name="Edit the white-list entry" xml:space="preserve">
-    <value>Muokkaa sallittujen listan merkintää</value>
+  <data name="Edit the spam exemption" xml:space="preserve">
+    <value>Muokkaa roskapostipoikkeusta</value>
   </data>
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>Muokataan tämän valintaikkunan muilla välilehdillä.</value>
@@ -4285,6 +4315,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Executable not found: {0}" xml:space="preserve">
     <value>Suoritettavaa tiedostoa ei löytynyt: {0}</value>
   </data>
+  <data name="Exempt the sender or their IP range from spam protection." xml:space="preserve">
+    <value>Vapauta lähettäjä tai hänen IP-alueensa roskapostisuojauksesta.</value>
+  </data>
   <data name="Exempt: may exchange mail with anyone" xml:space="preserve">
     <value>Vapautettu: saa vaihtaa postia kenen kanssa tahansa</value>
   </data>
@@ -4534,8 +4567,8 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="For a MinIO or Ceph gateway behind a CA of your own. The host name is checked either way." xml:space="preserve">
     <value>Omaan varmentajaan nojaavalle MinIO- tai Ceph-yhdyskäytävälle. Isäntänimi tarkistetaan joka tapauksessa.</value>
   </data>
-  <data name="For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed logons, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the domain white and black list still apply. Empty, the default, changes nothing." xml:space="preserve">
-    <value>Palveluntarjoajalle, jonka palvelimilla on yhteinen käänteinen nimi ja jonka osoitteet vaihtuvat: yhdistävää osoitetta ei koskaan estetä automaattisesti - epäonnistuneista kirjautumisista, roskapostiansasta tai tyhjästä lähettäjästä - kun jokin sen käänteisistä nimistä on tässä olevan nimen kattama ja osoittaa takaisin osoitteeseen. Mitään muuta ei ohiteta: harmaalistaus, SPF, DKIM, DMARC sekä verkkotunnusten salli- ja estolista ovat yhä voimassa. Tyhjä, oletus, ei muuta mitään.</value>
+  <data name="For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed logons, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the allowed and blocked domains still apply. Empty, the default, changes nothing." xml:space="preserve">
+    <value>Palveluntarjoajalle, jonka palvelimilla on yhteinen käänteinen nimi ja jonka osoitteet vaihtuvat: yhdistävää osoitetta ei koskaan estetä automaattisesti - epäonnistuneista kirjautumisista, roskapostiansasta tai tyhjästä lähettäjästä - kun jokin sen käänteisistä nimistä on tässä olevan nimen kattama ja osoittaa takaisin osoitteeseen. Mitään muuta ei ohiteta: harmaalistaus, SPF, DKIM, DMARC sekä sallitut ja estetyt verkkotunnukset ovat yhä voimassa. Tyhjä, oletus, ei muuta mitään.</value>
   </data>
   <data name="For a record of who corresponds with whom, keeping it for ever should be a decision rather than a default - which is why 0 is offered as an option instead of being one." xml:space="preserve">
     <value>Kun kyse on tiedosta, kuka kirjoittaa kenelle, ikuisen säilytyksen pitäisi olla päätös eikä oletus - siksi 0 tarjotaan vaihtoehtona sen sijaan, että se olisi oletus.</value>
@@ -4699,6 +4732,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Greylisting bypass list" xml:space="preserve">
     <value>Harmaalistauksen ohituslista</value>
   </data>
+  <data name="Greylisting exemptions" xml:space="preserve">
+    <value>Harmaalistauksen poikkeukset</value>
+  </data>
   <data name="Greylisting record expiration, and SpamAssassin move-vs-copy" xml:space="preserve">
     <value>Harmaalistaustietueiden vanheneminen ja SpamAssassinin siirto vai kopiointi</value>
   </data>
@@ -4707,9 +4743,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Greylisting triplets cleared." xml:space="preserve">
     <value>Harmaalistauksen kolmikot tyhjennetty.</value>
-  </data>
-  <data name="Greylisting white list" xml:space="preserve">
-    <value>Harmaalistauksen sallittujen lista</value>
   </data>
   <data name="Gro_up by" xml:space="preserve">
     <value>Ryhmittelyper_uste</value>
@@ -5011,7 +5044,7 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="How the server uses the database it is already configured for. Where that database IS - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
     <value>Miten palvelin käyttää tietokantaa, johon se on jo määritetty. Missä tuo tietokanta ON - palvelin, nimi, tunnistetiedot ja tyyppi - asetetaan asennusohjelmassa eikä sitä voi tarkoituksella muokata täällä, koska väärä arvo siellä estää palvelinta käynnistymästä sen sijaan, että hidastaisi sitä. Tulee voimaan palvelun uudelleenkäynnistyksen jälkeen.</value>
   </data>
-  <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI)." xml:space="preserve">
+  <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups (hMailServer.INI)." xml:space="preserve">
     <value>Miten tämä palvelin selvittää MX-, PTR-, SPF-, DKIM-, DMARC- ja estolistahaut (hMailServer.INI).</value>
   </data>
   <data name="I _confirm the changes marked above." xml:space="preserve">
@@ -5700,7 +5733,7 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Looking up {0}…" xml:space="preserve">
     <value>Haetaan {0}…</value>
   </data>
-  <data name="Looks up the connecting address on each active blacklist; the score comes from the entry that matched" xml:space="preserve">
+  <data name="Looks up the connecting address on each active block list; the score comes from the entry that matched" xml:space="preserve">
     <value>Hakee yhdistävän osoitteen jokaiselta aktiiviselta estolistalta; pistemäärä tulee täsmänneestä merkinnästä</value>
   </data>
   <data name="Looks up the domains of links found in the body on each active SURBL server" xml:space="preserve">
@@ -5724,8 +5757,8 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Lower the mark and delete thresholds, or turn on more of the checks." xml:space="preserve">
     <value>Laske merkintä- ja poistokynnyksiä tai ota käyttöön useampia tarkistuksia.</value>
   </data>
-  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender on the anti-spam white list. The domain white and black list is a page of its own under Anti-spam." xml:space="preserve">
-    <value>MAIL FROM:&lt;&gt; on toimitusraportin paluupolku, ja raportilla on täsmälleen yksi vastaanottaja: osoite, joka lähetti raportin kohteena olevan viestin. Tyhjä lähettäjä, joka nimeää toisen vastaanottajan, on backscatteria, väärennetty raportti tai tunnustelu. Pois: palvelin hyväksyy sen kuten aina. Päällä: toiseen ja jokaiseen myöhempään RCPT TO -komentoon vastataan 550 ja myös tapahtuman DATA hylätään; yhden vastaanottajan tyhjään lähettäjään ei koskaan kosketa. Vain tunnistautumattomat istunnot IP-alueelta, joka ajaa roskapostitestit, eikä koskaan roskapostin valkolistalla oleva lähettäjä. Verkkotunnusten valko- ja musta lista on oma sivunsa Roskaposti-osiossa.</value>
+  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender on the spam exemptions. Allowed and blocked domains have a page of their own under Anti-spam." xml:space="preserve">
+    <value>MAIL FROM:&lt;&gt; on toimitusraportin paluupolku, ja raportilla on täsmälleen yksi vastaanottaja: osoite, joka lähetti raportin kohteena olevan viestin. Tyhjä lähettäjä, joka nimeää toisen vastaanottajan, on backscatteria, väärennetty raportti tai tunnustelu. Pois: palvelin hyväksyy sen kuten aina. Päällä: toiseen ja jokaiseen myöhempään RCPT TO -komentoon vastataan 550 ja myös tapahtuman DATA hylätään; yhden vastaanottajan tyhjään lähettäjään ei koskaan kosketa. Vain tunnistautumattomat istunnot IP-alueelta, joka ajaa roskapostitestit, eikä koskaan roskapostipoikkeuksissa oleva lähettäjä. Sallituilla ja estetyillä verkkotunnuksilla on oma sivunsa Roskaposti-osiossa.</value>
   </data>
   <data name="MD5 (legacy)" xml:space="preserve">
     <value>MD5 (vanha)</value>
@@ -6154,7 +6187,7 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Messages still waiting to be delivered, why each is waiting, and when it will be retried." xml:space="preserve">
     <value>Viestit, jotka yhä odottavat toimitusta, miksi kukin odottaa ja milloin sitä yritetään uudelleen.</value>
   </data>
-  <data name="Messages that link to more domains than the URI blocklists ask about" xml:space="preserve">
+  <data name="Messages that link to more domains than the URI block lists ask about" xml:space="preserve">
     <value>Viestit, joiden linkit osoittavat useampaan verkkotunnukseen kuin URI-estolistoilta kysytään</value>
   </data>
   <data name="Messages the server finished processing, per minute, sampled every 2 seconds." xml:space="preserve">
@@ -6814,8 +6847,8 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>Yksikään {0} IP-alueesta ei vaadi TLS:ää ennen todennusta, joten selväkielinen salasana hyväksytään kaikkialla, missä portti sallii sellaisen.</value>
   </data>
-  <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the {0} entries on the anti-spam white list." xml:space="preserve">
-    <value>Mikään tästä ei koske todennettua istuntoa - roskapostisuojaus ohitetaan kokonaan kirjautuneelta asiakkaalta, yhteyksiltä IP-alueelta, jolla roskapostisuojaus on pois päältä, ja roskapostin sallittujen listan {0} merkinnältä.</value>
+  <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges on the spam exemptions (entries: {0})." xml:space="preserve">
+    <value>Mikään tästä ei koske todennettua istuntoa - roskapostisuojaus ohitetaan kokonaan kirjautuneelta asiakkaalta, yhteyksiltä IP-alueelta, jolla roskapostisuojaus on pois päältä, sekä roskapostipoikkeusten lähettäjiltä ja IP-alueilta (merkintöjä: {0}).</value>
   </data>
   <data name="None yet: make one with the button below." xml:space="preserve">
     <value>Ei vielä: luo sellainen alla olevalla painikkeella.</value>
@@ -6871,8 +6904,8 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
     <value>Ei testattu: tämä määritys lähettäisi salasanan suojaamattoman LDAP:n yli yksinkertaisella sidonnalla, ja AllowUnprotectedPassword on pois päältä - joten palvelin hylkää jokaisen kirjautumisen sen alla, ja tämä testi kieltäytyy lähettämästä mitään samasta syystä. Valitse LDAPS tai StartTLS tai Negotiate-sidontatapa, tai salli suojaamaton salasana nimenomaisesti.</value>
   </data>
-  <data name="Not the anti-spam white list, which is an IP range that skips every test, and not the allow and block list, which decides per recipient at delivery. example.com matches that domain alone; .example.com matches the domain and everything beneath it." xml:space="preserve">
-    <value>Ei roskapostin valkolista, joka on kaikki testit ohittava IP-alue, eikä salli- ja estolista, joka päättää vastaanottajakohtaisesti toimituksessa. example.com täsmää vain siihen verkkotunnukseen; .example.com täsmää verkkotunnukseen ja kaikkeen sen alla.</value>
+  <data name="Not the spam exemptions, whose senders and IP ranges skip every test, and not the allow and block list, which decides per recipient at delivery. example.com matches that domain alone; .example.com matches the domain and everything beneath it." xml:space="preserve">
+    <value>Ei roskapostipoikkeukset, joiden lähettäjät ja IP-alueet ohittavat kaikki testit, eikä salli- ja estolista, joka päättää vastaanottajakohtaisesti toimituksessa. example.com täsmää vain siihen verkkotunnukseen; .example.com täsmää verkkotunnukseen ja kaikkeen sen alla.</value>
   </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Ei voimassa ennen {0}</value>
@@ -8121,8 +8154,8 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="RFC 7208 4.6.4. A &quot;void lookup&quot; is a term of a sender's SPF policy - an a:, mx: or exists: - whose DNS query comes back with nothing at all. The separate limit of ten DNS-querying terms bounds what a policy can ask this server to look up; it does not bound what a policy can waste, and ten terms naming hosts that do not exist cost a full resolution each for a record that can never match. Two is what the RFC says. It also catches the ordinary case: a policy still listing hosts decommissioned years ago, which its owner would rather be told about. Raising it is safe; 0 switches the limit off, which is the setting for a correspondent whose policy is wrong in exactly this way and whose mail you would rather take." xml:space="preserve">
     <value>RFC 7208 4.6.4. "Tyhjä haku" on lähettäjän SPF-käytännön termi - a:, mx: tai exists: - jonka DNS-kysely palaa täysin tyhjänä. Erillinen kymmenen DNS-kyselytermin raja rajaa, mitä käytäntö voi pyytää tätä palvelinta hakemaan; se ei rajaa, mitä käytäntö voi tuhlata, ja kymmenen termiä, jotka nimeävät olemattomia koneita, maksavat kukin täyden selvityksen tietueesta, joka ei voi koskaan täsmätä. Kaksi on se, mitä RFC sanoo. Se nappaa myös tavallisen tapauksen: käytännön, joka luettelee yhä vuosia sitten poistettuja koneita, mistä sen omistaja mieluummin kuulisi. Nostaminen on turvallista; 0 kytkee rajan pois, mikä on asetus kirjeenvaihtajalle, jonka käytäntö on väärä juuri tällä tavalla ja jonka postin mieluummin otat vastaan.</value>
   </data>
-  <data name="RFC 7208's own answer to a check that could not be completed: try again when DNS works. The transaction is deferred with 451 4.4.3 and the temperror score above is ignored, because a deferred message is never accepted. Off, a temperror is accepted and scored. A sender on the domain white list is never deferred." xml:space="preserve">
-    <value>RFC 7208:n oma vastaus tarkistukseen, jota ei voitu saattaa loppuun: yritä uudelleen, kun DNS toimii. Tapahtuma lykätään vastauksella 451 4.4.3 ja yllä oleva temperror-pistemäärä ohitetaan, koska lykättyä viestiä ei koskaan hyväksytä. Pois: temperror hyväksytään ja pisteytetään. Verkkotunnusten valkolistalla olevaa lähettäjää ei koskaan lykätä.</value>
+  <data name="RFC 7208's own answer to a check that could not be completed: try again when DNS works. The transaction is deferred with 451 4.4.3 and the temperror score above is ignored, because a deferred message is never accepted. Off, a temperror is accepted and scored. A sender from an allowed domain is never deferred." xml:space="preserve">
+    <value>RFC 7208:n oma vastaus tarkistukseen, jota ei voitu saattaa loppuun: yritä uudelleen, kun DNS toimii. Tapahtuma lykätään vastauksella 451 4.4.3 ja yllä oleva temperror-pistemäärä ohitetaan, koska lykättyä viestiä ei koskaan hyväksytä. Pois: temperror hyväksytään ja pisteytetään. Sallitusta verkkotunnuksesta tulevaa lähettäjää ei koskaan lykätä.</value>
   </data>
   <data name="RSA/EC public key file (PEM, for RS*/ES* tokens)" xml:space="preserve">
     <value>RSA-/EC-julkisen avaimen tiedosto (PEM, RS*-/ES*-tokeneille)</value>
@@ -8193,11 +8226,11 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Re_voke / restore" xml:space="preserve">
     <value>_Kumoa / palauta</value>
   </data>
-  <data name="Read at MAIL FROM: a black domain is refused with 550 before anything else runs, for every recipient. The entry covers the organization's domain and everything beneath it." xml:space="preserve">
-    <value>Luetaan MAIL FROM -komennossa: musta verkkotunnus hylätään koodilla 550 ennen kuin mikään muu suoritetaan, jokaiselle vastaanottajalle. Merkintä kattaa organisaation verkkotunnuksen ja kaiken sen alla.</value>
+  <data name="Read at MAIL FROM: a blocked domain is refused with 550 before anything else runs, for every recipient. The entry covers the organisation's domain and everything beneath it." xml:space="preserve">
+    <value>Luetaan MAIL FROM -komennossa: estetty verkkotunnus hylätään koodilla 550 ennen kuin mikään muu suoritetaan, jokaiselle vastaanottajalle. Merkintä kattaa organisaation verkkotunnuksen ja kaiken sen alla.</value>
   </data>
-  <data name="Read at MAIL FROM: a white domain is not greylisted, and not refused or held on the spam score, while every test still runs and the mark threshold still marks. The entry covers the organization's domain and everything beneath it." xml:space="preserve">
-    <value>Luetaan MAIL FROM -komennossa: valkoista verkkotunnusta ei harmaalistata, eikä sitä hylätä tai pidätetä roskapostipisteiden perusteella, vaikka jokainen testi silti ajetaan ja merkintäkynnys silti merkitsee. Merkintä kattaa organisaation verkkotunnuksen ja kaiken sen alla.</value>
+  <data name="Read at MAIL FROM: an allowed domain is not greylisted, and not refused or held on the spam score, while every test still runs and the mark threshold still marks. The entry covers the organisation's domain and everything beneath it." xml:space="preserve">
+    <value>Luetaan MAIL FROM -komennossa: sallittua verkkotunnusta ei harmaalistata, eikä sitä hylätä tai pidätetä roskapostipisteiden perusteella, vaikka jokainen testi silti ajetaan ja merkintäkynnys silti merkitsee. Merkintä kattaa organisaation verkkotunnuksen ja kaiken sen alla.</value>
   </data>
   <data name="Read at delivery, for every recipient: a blocked sender's mail is held for them where the quarantine is on, and marked as spam where it is not." xml:space="preserve">
     <value>Luetaan toimituksen yhteydessä, jokaiselle vastaanottajalle: estetyn lähettäjän posti pidätetään vastaanottajalle, kun karanteeni on käytössä, ja merkitään roskapostiksi, kun se ei ole.</value>
@@ -8253,8 +8286,8 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Ready to switch" xml:space="preserve">
     <value>Valmis vaihtoon</value>
   </data>
-  <data name="Real-time blackhole lists checked against the connecting IP address." xml:space="preserve">
-    <value>Reaaliaikaiset estolistat (RBL), joita vasten yhdistävä IP-osoite tarkistetaan.</value>
+  <data name="Real-time block lists checked against the connecting IP address." xml:space="preserve">
+    <value>Reaaliaikaiset estolistat, joita vasten yhdistävä IP-osoite tarkistetaan.</value>
   </data>
   <data name="Reason" xml:space="preserve">
     <value>Syy</value>
@@ -8578,10 +8611,10 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
     <value>Poistetaanko tämän tilin palautusosoite? Jokainen jo matkalla oleva palautuslinkki lakkaa toimimasta, ja tilinhaltija asettaa uuden osoitteen verkkopostissa. Kertakäyttöisiin koodeihin ei kosketa.</value>
   </data>
-  <data name="Remove {0} from the list?&#10;&#10;A black domain is accepted again at once; a white domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
+  <data name="Remove {0} from the list?&#10;&#10;A blocked domain is accepted again at once; an allowed domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
     <value>Poistetaanko {0} luettelosta?
 
-Musta verkkotunnus hyväksytään heti uudelleen; valkoinen verkkotunnus palaa greylistingin ja roskapostipisteytyksen piiriin seuraavasta istunnosta alkaen.</value>
+Estetty verkkotunnus hyväksytään heti uudelleen; sallittu verkkotunnus palaa greylistingin ja roskapostipisteytyksen piiriin seuraavasta istunnosta alkaen.</value>
   </data>
   <data name="Remove {0} from the never-ban list?&#10;&#10;An address it spared can be auto-banned again from the next ban on." xml:space="preserve">
     <value>Poistetaanko {0} ei koskaan estettävien listalta?
@@ -9696,11 +9729,11 @@ Jatketaanko?</value>
   <data name="Sending _domain" xml:space="preserve">
     <value>Lähettävä _verkkotunnus</value>
   </data>
-  <data name="Sending domains this server has decided about: white skips greylisting and the score's refusals, black is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
-    <value>Lähettäjäverkkotunnukset, joista tämä palvelin on päättänyt: valkoinen ohittaa greylistingin ja pisteiden hylkäykset, musta hylätään MAIL FROM -vaiheessa - verkkotunnuksen tai HELO-päätteen, ei IP-osoitteen perusteella.</value>
+  <data name="Sending domains this server has decided about: an allowed one skips greylisting and the score's refusals, a blocked one is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
+    <value>Lähettäjäverkkotunnukset, joista tämä palvelin on päättänyt: sallittu ohittaa greylistingin ja pisteiden hylkäykset, estetty hylätään MAIL FROM -vaiheessa - verkkotunnuksen tai HELO-päätteen, ei IP-osoitteen perusteella.</value>
   </data>
-  <data name="Sending organisations decided about by their domain rather than by the IP address of the week. White: not greylisted and never refused on the spam score, while every test still runs and logs. Black: refused at MAIL FROM before greylisting, scoring or any lookup. Matched on the envelope sender's domain, the HELO name, or either; inbound unauthenticated sessions only." xml:space="preserve">
-    <value>Lähettävät organisaatiot arvioituna verkkotunnuksensa eikä viikon IP-osoitteen perusteella. Valkoinen: ei greylistingiä eikä koskaan hylkäystä roskapostipisteiden perusteella, vaikka jokainen testi ajetaan ja kirjataan edelleen. Musta: hylätään MAIL FROM -vaiheessa ennen greylistingiä, pisteytystä tai mitään hakua. Täsmätään kuoren lähettäjän verkkotunnukseen, HELO-nimeen tai kumpaan tahansa; vain saapuvat tunnistautumattomat istunnot.</value>
+  <data name="Sending organisations decided about by their domain rather than by the IP address of the week. Allowed: not greylisted and never refused on the spam score, while every test still runs and logs. Blocked: refused at MAIL FROM before greylisting, scoring or any lookup. Matched on the envelope sender's domain, the HELO name, or either; inbound unauthenticated sessions only." xml:space="preserve">
+    <value>Lähettävät organisaatiot arvioituna verkkotunnuksensa eikä viikon IP-osoitteen perusteella. Sallittu: ei greylistingiä eikä koskaan hylkäystä roskapostipisteiden perusteella, vaikka jokainen testi ajetaan ja kirjataan edelleen. Estetty: hylätään MAIL FROM -vaiheessa ennen greylistingiä, pisteytystä tai mitään hakua. Täsmätään kuoren lähettäjän verkkotunnukseen, HELO-nimeen tai kumpaan tahansa; vain saapuvat tunnistautumattomat istunnot.</value>
   </data>
   <data name="Sendout failed: {0}" xml:space="preserve">
     <value>Joukkolähetys epäonnistui: {0}</value>
@@ -10193,6 +10226,9 @@ Käynnistetäänkö se uudelleen nyt?</value>
   </data>
   <data name="Spam delete threshold (score)" xml:space="preserve">
     <value>Roskapostin poistokynnys (pistemäärä)</value>
+  </data>
+  <data name="Spam exemptions" xml:space="preserve">
+    <value>Roskapostipoikkeukset</value>
   </data>
   <data name="Spam filtering overview" xml:space="preserve">
     <value>Roskapostisuodatuksen yleiskatsaus</value>
@@ -10781,14 +10817,14 @@ Seuraava viesti tähän osoitteeseen lähetetään, ja osoite palaa listalle vas
   <data name="The TCP/IP port list could not be read - {0}" xml:space="preserve">
     <value>TCP/IP-porttiluetteloa ei voitu lukea - {0}</value>
   </data>
-  <data name="The URI blocklists on the SURBL servers page are asked about every registrable domain and address a message links to, up to 200 for each message. A message whose links name more is not asked about whole: it scores the number below instead, once, however many lists are active, so that hiding a listed link among made-up domains does not come free. Nothing is scored while no URI blocklist is active." xml:space="preserve">
+  <data name="The URI block lists on the SURBL servers page are asked about every registrable domain and address a message links to, up to 200 for each message. A message whose links name more is not asked about whole: it scores the number below instead, once, however many lists are active, so that hiding a listed link among made-up domains does not come free. Nothing is scored while no URI block list is active." xml:space="preserve">
     <value>SURBL-palvelimet-sivun URI-estolistoilta kysytään jokaista rekisteröitävää verkkotunnusta ja osoitetta, johon viesti linkittää, enintään 200 viestiä kohden. Viestiä, jonka linkit nimeävät useampia, ei kysytä kokonaan: se saa sen sijaan alla olevan pistemäärän kerran, olipa aktiivisia listoja kuinka monta tahansa, jotta listatun linkin piilottaminen keksittyjen verkkotunnusten joukkoon ei ole ilmaista. Mitään ei pisteytetä, kun yksikään URI-estolista ei ole aktiivinen.</value>
   </data>
   <data name="The Windows prompt was declined, so nothing was installed and nothing on the server was changed." xml:space="preserve">
     <value>Windowsin kehote hylättiin, joten mitään ei asennettu eikä palvelimella muutettu mitään.</value>
   </data>
-  <data name="The _HELO name's domain, on the domain white and black list" xml:space="preserve">
-    <value>HELO-_nimen verkkotunnus, verkkotunnusten valko- ja mustalla listalla</value>
+  <data name="The _HELO name's domain, on the allowed and blocked domains" xml:space="preserve">
+    <value>HELO-_nimen verkkotunnus, sallittuihin ja estettyihin verkkotunnuksiin</value>
   </data>
   <data name="The accepted TLS versions and cipher suites are set here." xml:space="preserve">
     <value>Hyväksytyt TLS-versiot ja salausryhmät asetetaan täällä.</value>
@@ -11621,8 +11657,8 @@ Lisätäänkö silti?</value>
   <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
     <value>Lähettäjän _osoite, palvelimen sallittujen ja estettyjen luettelossa</value>
   </data>
-  <data name="The sender's _domain, on the domain white and black list" xml:space="preserve">
-    <value>Lähettäjän _verkkotunnus, verkkotunnusten valko- ja mustalla listalla</value>
+  <data name="The sender's _domain, on the allowed and blocked domains" xml:space="preserve">
+    <value>Lähettäjän _verkkotunnus, sallittuihin ja estettyihin verkkotunnuksiin</value>
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>Lähettävä palvelin yhdistää, lähettää viestin ja sitten odottaa. Sen puolelta näet aikakatkaisun sen jälkeen, kun viestin runko on siirretty - Postfix raportoi "timed out while sending end of data". Viesti ei koskaan ilmesty jonoosi.</value>
@@ -12034,11 +12070,11 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="This server holds {0} accounts, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one." xml:space="preserve">
     <value>Tällä palvelimella on {0} tiliä, joten se on käytössä: profiilia tarjotaan uudelle palvelimelle, ja mitä tahansa neljästä voi silti verrata tähän.</value>
   </data>
+  <data name="This server is older than the Control Panel and cannot allow or block a sender from the quarantine. Upgrade the server." xml:space="preserve">
+    <value>Tämä palvelin on Control Panelia vanhempi eikä voi sallia tai estää lähettäjää karanteenista. Päivitä palvelin.</value>
+  </data>
   <data name="This server is older than the Control Panel and cannot show a held message's headers or text. Upgrade the server." xml:space="preserve">
     <value>Tämä palvelin on Control Panelia vanhempi eikä voi näyttää pidätetyn viestin otsakkeita tai tekstiä. Päivitä palvelin.</value>
-  </data>
-  <data name="This server is older than the Control Panel and cannot whitelist or blacklist from the quarantine. Upgrade the server." xml:space="preserve">
-    <value>Tämä palvelin on Control Panelia vanhempi eikä voi lisätä karanteenista lähettäjiä valkoiselle tai mustalle listalle. Päivitä palvelin.</value>
   </data>
   <data name="This server now" xml:space="preserve">
     <value>Tämä palvelin nyt</value>
@@ -12745,8 +12781,8 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="When a virus is found" xml:space="preserve">
     <value>Kun virus löytyy</value>
   </data>
-  <data name="When during the SMTP conversation blacklist lookups happen. Which blacklists are queried is on the DNS blacklists page." xml:space="preserve">
-    <value>Missä vaiheessa SMTP-keskustelua estolistahaut tapahtuvat. Se, mitä estolistoja kysytään, on DNS-estolistat-sivulla.</value>
+  <data name="When during the SMTP conversation block list lookups happen. Which block lists are asked is on the DNS block lists (DNSBL) page." xml:space="preserve">
+    <value>Missä vaiheessa SMTP-keskustelua estolistahaut tapahtuvat. Se, mitä estolistoja kysytään, on DNS-estolistat (DNSBL) -sivulla.</value>
   </data>
   <data name="When the endpoint cannot be reached" xml:space="preserve">
     <value>Kun päätepisteeseen ei saada yhteyttä</value>
@@ -12882,45 +12918,6 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="Which way" xml:space="preserve">
     <value>Kumpaan suuntaan</value>
-  </data>
-  <data name="White list" xml:space="preserve">
-    <value>Sallittujen lista</value>
-  </data>
-  <data name="White still runs every test and still marks at the mark threshold; black refuses before a single test runs." xml:space="preserve">
-    <value>Valkoinen ajaa edelleen jokaisen testin ja merkitsee edelleen merkintäkynnyksellä; musta hylkää ennen kuin yhtäkään testiä ajetaan.</value>
-  </data>
-  <data name="White-list the sender or their IP range so the message bypasses spam protection." xml:space="preserve">
-    <value>Lisää lähettäjä tai hänen IP-alueensa sallittujen listalle, jotta viesti ohittaa roskapostisuojauksen.</value>
-  </data>
-  <data name="White: not greylisted, not refused on score" xml:space="preserve">
-    <value>Valkoinen: ei greylistingiä, ei hylkäystä pisteiden perusteella</value>
-  </data>
-  <data name="White: not greylisted, not refused on the spam score" xml:space="preserve">
-    <value>Valkoinen: ei greylistingiä, ei hylkäystä roskapostipisteiden perusteella</value>
-  </data>
-  <data name="Whitelist and release" xml:space="preserve">
-    <value>Lisää valkoiselle listalle ja vapauta</value>
-  </data>
-  <data name="Whitelist the checked messages' senders, then release" xml:space="preserve">
-    <value>Lisää valittujen viestien lähettäjät valkoiselle listalle ja vapauta sitten</value>
-  </data>
-  <data name="Whitelist the sender of this message, then release it" xml:space="preserve">
-    <value>Lisää tämän viestin lähettäjä valkoiselle listalle ja vapauta sitten se</value>
-  </data>
-  <data name="Whitelist the sender, then release" xml:space="preserve">
-    <value>Lisää lähettäjä valkoiselle listalle ja vapauta sitten</value>
-  </data>
-  <data name="Whitelist the senders of {0} message, then release it" xml:space="preserve">
-    <value>Lisää {0} viestin lähettäjä valkoiselle listalle ja vapauta sitten viesti</value>
-  </data>
-  <data name="Whitelist the senders of {0} messages, then release them" xml:space="preserve">
-    <value>Lisää {0} viestin lähettäjät valkoiselle listalle ja vapauta sitten ne</value>
-  </data>
-  <data name="Whitelist this group's senders, then release" xml:space="preserve">
-    <value>Lisää tämän ryhmän lähettäjät valkoiselle listalle ja vapauta sitten</value>
-  </data>
-  <data name="Whitelisted. List entries: {0}. Messages released: {1}." xml:space="preserve">
-    <value>Lisätty valkoiselle listalle. Listamerkintöjä: {0}. Vapautettuja viestejä: {1}.</value>
   </data>
   <data name="Who" xml:space="preserve">
     <value>Kuka</value>
@@ -13162,8 +13159,8 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="_Bind method (BindMethod)" xml:space="preserve">
     <value>Sidontatapa (_BindMethod)</value>
   </data>
-  <data name="_Blacklist and delete" xml:space="preserve">
-    <value>Lisää _mustalle listalle ja poista</value>
+  <data name="_Block and delete" xml:space="preserve">
+    <value>_Estä ja poista</value>
   </data>
   <data name="_Body canonicalization" xml:space="preserve">
     <value>_Rungon kanonisointi</value>
@@ -13660,9 +13657,6 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="_Warn the owner at (% of the limit; -1 = the server's, 0 = never)" xml:space="preserve">
     <value>Varoita omi_stajaa kohdassa (% rajasta; -1 = palvelimen arvo, 0 = ei koskaan)</value>
   </data>
-  <data name="_Whitelist and release" xml:space="preserve">
-    <value>Lisää val_koiselle listalle ja vapauta</value>
-  </data>
   <data name="_Who may send to this list" xml:space="preserve">
     <value>_Kuka saa lähettää tälle listalle</value>
   </data>
@@ -13747,14 +13741,14 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="binding with the configured ServiceUsername - no ServicePassword is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
     <value>sidotaan määritetyllä ServiceUsername-tilillä – ServicePassword-arvoa ei tallenneta eikä kirjoiteta, ja tyhjä salasana hylätään ennen lähettämistä</value>
   </data>
-  <data name="blacklist" xml:space="preserve">
-    <value>estolista</value>
-  </data>
   <data name="block an ip" xml:space="preserve">
     <value>estä ip</value>
   </data>
   <data name="block executable attachments" xml:space="preserve">
     <value>estä suoritettavat liitteet</value>
+  </data>
+  <data name="block list" xml:space="preserve">
+    <value>estolista</value>
   </data>
   <data name="block mail from a bad reputation ip" xml:space="preserve">
     <value>estä posti huonomaineisesta ip:stä</value>
@@ -14390,6 +14384,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="someone is trying to guess passwords" xml:space="preserve">
     <value>joku yrittää arvata salasanoja</value>
   </data>
+  <data name="spam exemption" xml:space="preserve">
+    <value>roskapostipoikkeus</value>
+  </data>
   <data name="spamd is unreachable, overloaded, or accepting connections without answering." xml:space="preserve">
     <value>spamd ei ole tavoitettavissa, on ylikuormitettu tai hyväksyy yhteyksiä vastaamatta.</value>
   </data>
@@ -14432,9 +14429,6 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="the account's own domain" xml:space="preserve">
     <value>tilin oma verkkotunnus</value>
   </data>
-  <data name="the address is one of the {0} on the greylisting white list" xml:space="preserve">
-    <value>osoite on yksi harmaalistauksen sallittujen listan {0} merkinnästä</value>
-  </data>
   <data name="the audience (aud) is not checked" xml:space="preserve">
     <value>yleisöä (aud) ei tarkisteta</value>
   </data>
@@ -14446,6 +14440,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="the configured UserSearchFilter is not a valid LDAP filter" xml:space="preserve">
     <value>määritetty UserSearchFilter ei ole kelvollinen LDAP-suodatin</value>
+  </data>
+  <data name="the connecting address is on the greylisting exemptions (entries: {0})" xml:space="preserve">
+    <value>yhdistävä osoite on harmaalistauksen poikkeuksissa (merkintöjä: {0})</value>
   </data>
   <data name="the connecting address is one of the sender domain's A or MX records" xml:space="preserve">
     <value>yhdistävä osoite on yksi lähettäjän verkkotunnuksen A- tai MX-tietueista</value>
@@ -14519,8 +14516,8 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
     <value>lähettäjän verkkotunnus tai HELO-isäntä on yksi harmaalistauksen ohituslistan {0} merkinnästä ja viesti kantaa merkinnän vaatiman SPF-, DKIM- tai DMARC-läpäisyn</value>
   </data>
-  <data name="the sender's domain or HELO name is white on the domain white and black list" xml:space="preserve">
-    <value>lähettäjän verkkotunnus tai HELO-nimi on valkoisena verkkotunnusten valko- ja mustalla listalla</value>
+  <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
+    <value>lähettäjän verkkotunnus tai HELO-nimi on sallittu verkkotunnus</value>
   </data>
   <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
     <value>palvelin ei tavoita tietokantaansa. Tarkista tietokantayhteys ja hMailServerin virheloki ja paina sitten Lataa uudelleen. ({0})</value>
@@ -14602,9 +14599,6 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="which tls versions are allowed" xml:space="preserve">
     <value>mitkä tls-versiot ovat sallittuja</value>
-  </data>
-  <data name="white-list entry" xml:space="preserve">
-    <value>sallittujen listan merkintä</value>
   </data>
   <data name="why is mail queued" xml:space="preserve">
     <value>miksi posti on jonossa</value>
@@ -14783,7 +14777,7 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="{0} app passwords." xml:space="preserve">
     <value>{0} sovellussalasanaa.</value>
   </data>
-  <data name="{0} blacklists" xml:space="preserve">
+  <data name="{0} block lists" xml:space="preserve">
     <value>{0} estolistaa</value>
   </data>
   <data name="{0} blocked senders" xml:space="preserve">
@@ -15179,6 +15173,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="{0} settings could not be written." xml:space="preserve">
     <value>{0} asetusta ei voitu kirjoittaa.</value>
   </data>
+  <data name="{0} spam exemptions" xml:space="preserve">
+    <value>{0} roskapostipoikkeusta</value>
+  </data>
   <data name="{0} stops here: the next thing it points at is not on this screen." xml:space="preserve">
     <value>”{0}” päättyy tähän: seuraava kohde, johon se osoittaa, ei ole tällä näytöllä.</value>
   </data>
@@ -15232,9 +15229,6 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="{0} was removed, with everything in it - mailboxes: {1}, distribution lists: {2}, rules: {3}, messages: {4}." xml:space="preserve">
     <value>{0} poistettiin kaikkine sisältöineen - postilaatikot: {1}, jakelulistat: {2}, säännöt: {3}, viestit: {4}.</value>
-  </data>
-  <data name="{0} white-list entries" xml:space="preserve">
-    <value>{0} sallittujen listan merkintää</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} täysillä oikeuksilla</value>

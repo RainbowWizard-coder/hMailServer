@@ -326,10 +326,10 @@ namespace hMailServer.ControlPanel.Services
                   : L("No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state."),
                "blockedsenders", Unread(nameof(config.BlockedSenderCount))),
 
-            new SpamCheck("dnsbl", 2, L("DNS blacklists (DNSBL)"), SpamCheckPhase.BeforeTheBody,
+            new SpamCheck("dnsbl", 2, L("DNS block lists (DNSBL)"), SpamCheckPhase.BeforeTheBody,
                config.ActiveDnsBlackLists > 0, null,
                config.ActiveDnsBlackLists > 0 ? L("per list entry") : "-",
-               DescribeList(L("Looks up the connecting address on each active blacklist; the score comes from the entry that matched"),
+               DescribeList(L("Looks up the connecting address on each active block list; the score comes from the entry that matched"),
                   config.ActiveDnsBlackLists, config.TotalDnsBlackLists),
                "dnsbl", Unread(nameof(config.ActiveDnsBlackLists), nameof(config.TotalDnsBlackLists))),
 
@@ -510,11 +510,11 @@ namespace hMailServer.ControlPanel.Services
          if (config.BypassGreylistingOnSenderMx)
             bypasses.Add(L("the connecting address is one of the sender domain's A or MX records"));
          if (config.GreylistWhiteListEntries > 0)
-            bypasses.Add(F("the address is one of the {0} on the greylisting white list", config.GreylistWhiteListEntries));
+            bypasses.Add(F("the connecting address is on the greylisting exemptions (entries: {0})", config.GreylistWhiteListEntries));
          if (config.GreylistBypassEntries > 0)
             bypasses.Add(F("the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires", config.GreylistBypassEntries));
          if (config.DomainPolicyListEntries > 0)
-            bypasses.Add(L("the sender's domain or HELO name is white on the domain white and black list"));
+            bypasses.Add(L("the sender's domain or HELO name is an allowed domain"));
 
          string text = L("On. A sender/recipient/address triplet that has not been seen before is answered 451 \"Please try again later.\" at RCPT TO, and accepted when it retries. It runs after the connection checks above and adds no score.");
 
@@ -647,7 +647,7 @@ namespace hMailServer.ControlPanel.Services
          if (config.WasRead(nameof(config.WhiteListEntries)))
          {
             notes.Add(new SpamPipelineNote(StatusLevel.Information,
-               F("None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the {0} entries on the anti-spam white list.", config.WhiteListEntries)));
+               F("None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges on the spam exemptions (entries: {0}).", config.WhiteListEntries)));
          }
 
          return notes;

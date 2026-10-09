@@ -2707,7 +2707,7 @@ namespace hMailServer.ControlPanel.Views
 
             case Section.Dns:
                Header.Title = L("DNS resolver");
-               Header.Subtitle = L("How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI).");
+               Header.Subtitle = L("How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups (hMailServer.INI).");
                cards_.Add(new CardDef
                {
                   Title = L("Name servers"),
@@ -2734,8 +2734,8 @@ namespace hMailServer.ControlPanel.Views
                });
                cards_.Add(new CardDef
                {
-                  Title = L("DNS blacklist checks"),
-                  Blurb = L("When during the SMTP conversation blacklist lookups happen. Which blacklists are queried is on the DNS blacklists page."),
+                  Title = L("DNS block list checks"),
+                  Blurb = L("When during the SMTP conversation block list lookups happen. Which block lists are asked is on the DNS block lists (DNSBL) page."),
                   Settings =
                   {
                      new BoolSetting { Key = "DNSBLChecksAfterMailFrom", Default = true, Label = L("Run DNSBL checks after MAIL FROM (rather than at connect)") }
