@@ -2326,6 +2326,9 @@ Los detalles completos se escribieron en:
   <data name="Check sender MX records" xml:space="preserve">
     <value>Comprobar los registros MX del remitente</value>
   </data>
+  <data name="Check syntax checks the script saved on the server, and the editor holds changes that are not saved yet. Save &amp; reload to check what is on screen." xml:space="preserve">
+    <value>Comprobar la sintaxis comprueba el script guardado en el servidor, y el editor tiene cambios que aún no se han guardado. Use Guardar y recargar para comprobar lo que hay en pantalla.</value>
+  </data>
   <data name="Check that the internet-wide range does not allow deliveries to external accounts." xml:space="preserve">
     <value>Compruebe que el rango de todo Internet no permite entregas a cuentas externas.</value>
   </data>
@@ -5816,9 +5819,6 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   </data>
   <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
     <value>IP inferior (p. e_j. 10.0.0.0)</value>
-  </data>
-  <data name="Loaded from disk." xml:space="preserve">
-    <value>Cargado desde el disco.</value>
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Cargando…</value>
@@ -9623,6 +9623,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Saved at {0}." xml:space="preserve">
     <value>Guardado a las {0}.</value>
   </data>
+  <data name="Saved at {0}. No syntax errors. Scripting is off, so the server does not run these handlers." xml:space="preserve">
+    <value>Guardado a las {0}. Sin errores de sintaxis. Los scripts están desactivados, así que el servidor no ejecuta estos controladores.</value>
+  </data>
   <data name="Saved {0} - every setting on this page is in effect." xml:space="preserve">
     <value>Guardado {0} - todos los ajustes de esta página están en vigor.</value>
   </data>
@@ -9793,6 +9796,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="Scripting engine" xml:space="preserve">
     <value>Motor de scripts</value>
+  </data>
+  <data name="Scripting is off - these handlers are not run. The engine's switch is on the Advanced page." xml:space="preserve">
+    <value>Los scripts están desactivados - estos controladores no se ejecutan. El interruptor del motor está en la página Avanzado.</value>
   </data>
   <data name="Scroll Down" xml:space="preserve">
     <value>Desplazar hacia abajo</value>

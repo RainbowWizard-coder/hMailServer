@@ -2326,6 +2326,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Check sender MX records" xml:space="preserve">
     <value>Kontrollér afsenderens MX-poster</value>
   </data>
+  <data name="Check syntax checks the script saved on the server, and the editor holds changes that are not saved yet. Save &amp; reload to check what is on screen." xml:space="preserve">
+    <value>Kontrollér syntaks kontrollerer det script, der er gemt på serveren, og editoren har ændringer, der endnu ikke er gemt. Brug Gem og genindlæs for at kontrollere det, der står på skærmen.</value>
+  </data>
   <data name="Check that the internet-wide range does not allow deliveries to external accounts." xml:space="preserve">
     <value>Kontrollér, at det internetdækkende interval ikke tillader leveringer til eksterne konti.</value>
   </data>
@@ -5816,9 +5819,6 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   </data>
   <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
     <value>Nedre IP (_f.eks. 10.0.0.0)</value>
-  </data>
-  <data name="Loaded from disk." xml:space="preserve">
-    <value>Indlæst fra disken.</value>
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Indlæser…</value>
@@ -9623,6 +9623,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Den gem
   <data name="Saved at {0}." xml:space="preserve">
     <value>Gemt kl. {0}.</value>
   </data>
+  <data name="Saved at {0}. No syntax errors. Scripting is off, so the server does not run these handlers." xml:space="preserve">
+    <value>Gemt kl. {0}. Ingen syntaksfejl. Scripting er slået fra, så serveren kører ikke disse håndteringer.</value>
+  </data>
   <data name="Saved {0} - every setting on this page is in effect." xml:space="preserve">
     <value>Gemte {0} - alle indstillinger på denne side er i kraft.</value>
   </data>
@@ -9793,6 +9796,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Den gem
   </data>
   <data name="Scripting engine" xml:space="preserve">
     <value>Scriptmotor</value>
+  </data>
+  <data name="Scripting is off - these handlers are not run. The engine's switch is on the Advanced page." xml:space="preserve">
+    <value>Scripting er slået fra - disse håndteringer køres ikke. Motorens kontakt findes på siden Avanceret.</value>
   </data>
   <data name="Scroll Down" xml:space="preserve">
     <value>Rul ned</value>

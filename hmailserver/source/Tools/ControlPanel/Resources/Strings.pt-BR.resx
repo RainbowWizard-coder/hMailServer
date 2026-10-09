@@ -2326,6 +2326,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Check sender MX records" xml:space="preserve">
     <value>Verificar os registros MX do remetente</value>
   </data>
+  <data name="Check syntax checks the script saved on the server, and the editor holds changes that are not saved yet. Save &amp; reload to check what is on screen." xml:space="preserve">
+    <value>Verificar sintaxe verifica o script salvo no servidor, e o editor tem alterações ainda não salvas. Use Salvar e recarregar para verificar o que está na tela.</value>
+  </data>
   <data name="Check that the internet-wide range does not allow deliveries to external accounts." xml:space="preserve">
     <value>Verifique se a faixa de toda a internet não permite entregas para contas externas.</value>
   </data>
@@ -5816,9 +5819,6 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   </data>
   <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
     <value>IP in_ferior (ex.: 10.0.0.0)</value>
-  </data>
-  <data name="Loaded from disk." xml:space="preserve">
-    <value>Carregado do disco.</value>
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Carregando…</value>
@@ -9623,6 +9623,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Saved at {0}." xml:space="preserve">
     <value>Salvo às {0}.</value>
   </data>
+  <data name="Saved at {0}. No syntax errors. Scripting is off, so the server does not run these handlers." xml:space="preserve">
+    <value>Salvo às {0}. Sem erros de sintaxe. Os scripts estão desligados, então o servidor não executa estes manipuladores.</value>
+  </data>
   <data name="Saved {0} - every setting on this page is in effect." xml:space="preserve">
     <value>Salvo: {0} - todas as configurações desta página estão valendo.</value>
   </data>
@@ -9793,6 +9796,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="Scripting engine" xml:space="preserve">
     <value>Mecanismo de scripts</value>
+  </data>
+  <data name="Scripting is off - these handlers are not run. The engine's switch is on the Advanced page." xml:space="preserve">
+    <value>Os scripts estão desligados - estes manipuladores não são executados. O interruptor do mecanismo está na página Avançado.</value>
   </data>
   <data name="Scroll Down" xml:space="preserve">
     <value>Rolar para baixo</value>

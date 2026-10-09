@@ -2326,6 +2326,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Check sender MX records" xml:space="preserve">
     <value>Tarkista lähettäjän MX-tietueet</value>
   </data>
+  <data name="Check syntax checks the script saved on the server, and the editor holds changes that are not saved yet. Save &amp; reload to check what is on screen." xml:space="preserve">
+    <value>Tarkista syntaksi tarkistaa palvelimelle tallennetun komentosarjan, ja editorissa on muutoksia, joita ei ole vielä tallennettu. Tallenna ja lataa uudelleen tarkistaa sen, mikä on näytöllä.</value>
+  </data>
   <data name="Check that the internet-wide range does not allow deliveries to external accounts." xml:space="preserve">
     <value>Tarkista, ettei koko internetin kattava alue salli toimituksia ulkoisille tileille.</value>
   </data>
@@ -5816,9 +5819,6 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
     <value>Al_empi IP (esim. 10.0.0.0)</value>
-  </data>
-  <data name="Loaded from disk." xml:space="preserve">
-    <value>Ladattu levyltä.</value>
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Ladataan…</value>
@@ -9623,6 +9623,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Saved at {0}." xml:space="preserve">
     <value>Tallennettu klo {0}.</value>
   </data>
+  <data name="Saved at {0}. No syntax errors. Scripting is off, so the server does not run these handlers." xml:space="preserve">
+    <value>Tallennettu klo {0}. Ei syntaksivirheitä. Komentosarjat ovat pois päältä, joten palvelin ei suorita näitä käsittelijöitä.</value>
+  </data>
   <data name="Saved {0} - every setting on this page is in effect." xml:space="preserve">
     <value>Tallennettu {0} - kaikki tämän sivun asetukset ovat voimassa.</value>
   </data>
@@ -9793,6 +9796,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Scripting engine" xml:space="preserve">
     <value>Komentosarjamoottori</value>
+  </data>
+  <data name="Scripting is off - these handlers are not run. The engine's switch is on the Advanced page." xml:space="preserve">
+    <value>Komentosarjat ovat pois päältä - näitä käsittelijöitä ei suoriteta. Moottorin kytkin on Lisäasetukset-sivulla.</value>
   </data>
   <data name="Scroll Down" xml:space="preserve">
     <value>Vieritä alas</value>

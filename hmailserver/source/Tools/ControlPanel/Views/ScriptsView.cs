@@ -35,7 +35,28 @@ namespace hMailServer.ControlPanel.Views
 
       // The card around the editor carries the file's path as its description.
       private readonly Card card_ = new() { Padding = new Thickness(8) };
-      private readonly InlineNotice status_ = new() { Visibility = Visibility.Collapsed, Margin = new Thickness(0, 12, 0, 0) };
+
+      // Both under the header, where they are read before the script is: what the
+      // last save or check said, and whether the server runs these handlers at
+      // all. The result was an Information box at the foot of the page, where an
+      // ordinary load said "Loaded from disk.".
+      private readonly InlineNotice status_ = new() { Visibility = Visibility.Collapsed, Margin = new Thickness(0, 0, 0, 12) };
+      private readonly InlineNotice scriptingOff_ = new()
+      {
+         Level = StatusLevel.Warning,
+         Visibility = Visibility.Collapsed,
+         Margin = new Thickness(0, 0, 0, 12)
+      };
+
+      // The VBScript templates, offered only while the engine's language is
+      // VBScript: they were appended to a JScript file as readily.
+      private readonly ComboBox templates_ = new() { MinWidth = 240, VerticalAlignment = VerticalAlignment.Center };
+
+      // Scripting.Enabled and Scripting.Language as last read; on, and VBScript,
+      // until they are read - a read that failed is no reason to say the engine
+      // is off.
+      private bool scriptingOn_ = true;
+      private bool vbscript_ = true;
 
       private string scriptPath_;
 
@@ -73,8 +94,8 @@ namespace hMailServer.ControlPanel.Views
          var root = new Grid();
          root.SetResourceReference(MarginProperty, "AppPagePadding");
          root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-         root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
          root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+         root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
 
          // The editor is the only control in the Control Panel with AcceptsTab, so
          // it is the only one where Tab types a character instead of moving on.
@@ -88,23 +109,24 @@ namespace hMailServer.ControlPanel.Views
             L("Event handler script. Tab inserts a tab character; press Control and Tab together to move to the next control."));
          editor_.ToolTip = L("Tab indents. Use Ctrl+Tab to move focus out of the editor.");
 
-         var actions = new StackPanel { Orientation = Orientation.Horizontal };
+         // A WrapPanel: in German and Japanese the three buttons and the template
+         // list that sat here were wider than the header at the smallest window.
+         var actions = new WrapPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
 
-         var templateCombo = new ComboBox { MinWidth = 240, VerticalAlignment = VerticalAlignment.Center };
-         templateCombo.Items.Add(new ComboBoxItem { Content = L("Insert template\u2026"), Tag = "" });
+         templates_.Items.Add(new ComboBoxItem { Content = L("Insert template\u2026"), Tag = "" });
          foreach ((string name, string body) in ScriptTemplates)
-            templateCombo.Items.Add(new ComboBoxItem { Content = name, Tag = body });
-         templateCombo.SelectedIndex = 0;
-         System.Windows.Automation.AutomationProperties.SetName(templateCombo, L("Insert template\u2026"));
-         templateCombo.SelectionChanged += (s, e) =>
+            templates_.Items.Add(new ComboBoxItem { Content = name, Tag = body });
+         templates_.SelectedIndex = 0;
+         System.Windows.Automation.AutomationProperties.SetName(templates_, L("Insert template\u2026"));
+         System.Windows.Automation.AutomationProperties.SetAutomationId(templates_, "scripts-templates");
+         templates_.SelectionChanged += (s, e) =>
          {
-            if (templateCombo.SelectedItem is ComboBoxItem cbi && cbi.Tag is string body && body.Length > 0)
+            if (templates_.SelectedItem is ComboBoxItem cbi && cbi.Tag is string body && body.Length > 0)
             {
                InsertTemplate(body);
-               templateCombo.SelectedIndex = 0;
+               templates_.SelectedIndex = 0;
             }
          };
-         actions.Children.Add(templateCombo);
 
          // Ctrl+S and F5 press these two, whose captions say more than the
          // pages' Save changes and Reload (Views/PageCommands).
@@ -123,20 +145,36 @@ namespace hMailServer.ControlPanel.Views
             Actions = actions
          });
 
-         editor_.SetResourceReference(ForegroundProperty, "TextFillColorPrimaryBrush");
-         card_.Content = editor_;
-         Grid.SetRow(card_, 1);
-         root.Children.Add(card_);
+         // The notices under the header, the card under them.
+         var notices = new StackPanel();
+         System.Windows.Automation.AutomationProperties.SetAutomationId(scriptingOff_, "scripts-scripting-off");
+         scriptingOff_.Content = NoticeActions.OpenPage("advanced", "scripts-open-advanced");
+         notices.Children.Add(scriptingOff_);
+         notices.Children.Add(status_);
+         Grid.SetRow(notices, 1);
+         root.Children.Add(notices);
 
-         Grid.SetRow(status_, 2);
-         root.Children.Add(status_);
+         // The template list is the editor's own tool, so it is on the editor's
+         // card, above the text it inserts into.
+         editor_.SetResourceReference(ForegroundProperty, "TextFillColorPrimaryBrush");
+         var editorArea = new Grid();
+         editorArea.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+         editorArea.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+         templates_.Margin = new Thickness(0, 0, 0, 8);
+         templates_.HorizontalAlignment = HorizontalAlignment.Left;
+         editorArea.Children.Add(templates_);
+         Grid.SetRow(editor_, 1);
+         editorArea.Children.Add(editor_);
+         card_.Content = editorArea;
+         Grid.SetRow(card_, 2);
+         root.Children.Add(card_);
 
          Content = root;
       }
 
       private static Wpf.Ui.Controls.Button MakeButton(string text, Wpf.Ui.Controls.ControlAppearance appearance, RoutedEventHandler onClick)
       {
-         var b = new Wpf.Ui.Controls.Button { Content = text, Appearance = appearance, Margin = new Thickness(8, 0, 0, 0), MinWidth = 110 };
+         var b = new Wpf.Ui.Controls.Button { Content = text, Appearance = appearance, Margin = new Thickness(0, 0, 8, 4), MinWidth = 110 };
          b.Click += onClick;
          return b;
       }
@@ -205,7 +243,7 @@ End Sub
 
       private void InsertTemplate(string body)
       {
-         if (!editor_.IsEnabled)
+         if (!editor_.IsEnabled || !vbscript_)
             return;
 
          string separator = editor_.Text.Length > 0 ? "\r\n\r\n" : "";
@@ -215,9 +253,46 @@ End Sub
          Status_(StatusLevel.Information, L("Template appended. If you already have an OnAcceptMessage handler, merge the two into a single Sub before saving."));
       }
 
+      /// <summary>
+      /// Whether the server runs these handlers at all, and in which language:
+      /// Scripting.Enabled and Scripting.Language, which the Advanced page sets.
+      /// The page never said, so a script saved with the engine off was reported
+      /// "Saved and reloaded" and ran nowhere. Said as a Warning under the header
+      /// with the page that switches it on; and the VBScript templates are
+      /// offered only while the language is VBScript.
+      /// </summary>
+      private void ReadScriptingState_()
+      {
+         dynamic scripting = null;
+         try
+         {
+            scripting = ServerSession.Current.Application.Settings.Scripting;
+            scriptingOn_ = (bool)scripting.Enabled;
+            string language = ((string)scripting.Language ?? "").Trim();
+            vbscript_ = language.Length == 0 || string.Equals(language, "VBScript", StringComparison.OrdinalIgnoreCase); // no-loc: the engine's name
+         }
+         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+         {
+            // Not known: neither "off" nor "JScript" is said of a server that did
+            // not answer.
+            scriptingOn_ = true;
+            vbscript_ = true;
+         }
+         finally
+         {
+            ServerSession.Release((object)scripting);
+         }
+
+         scriptingOff_.Text = scriptingOn_ ? null : L("Scripting is off - these handlers are not run. The engine's switch is on the Advanced page.");
+         scriptingOff_.Visibility = scriptingOn_ ? Visibility.Collapsed : Visibility.Visible;
+         templates_.Visibility = vbscript_ ? Visibility.Visible : Visibility.Collapsed;
+      }
+
       private void LoadScript()
       {
          loaded_ = null;
+         status_.Visibility = Visibility.Collapsed;
+         ReadScriptingState_();
          scriptPath_ = ResolveScriptPath();
          if (scriptPath_ == null)
          {
@@ -231,9 +306,9 @@ End Sub
          try
          {
             editor_.Text = File.Exists(scriptPath_) ? File.ReadAllText(scriptPath_) : "";
-            if (File.Exists(scriptPath_))
-               Status_(StatusLevel.Information, L("Loaded from disk."));
-            else
+
+            // An ordinary load says nothing: the script is on screen.
+            if (!File.Exists(scriptPath_))
                Status_(StatusLevel.Information, L("File does not exist yet; saving will create it."));
             editor_.IsEnabled = true;
             loaded_ = editor_.Text;
@@ -302,10 +377,14 @@ End Sub
             scripting.Reload();
             string result = "";
             try { result = (string)scripting.CheckSyntax(); } catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* Deliberately ignored: best effort only, and the outcome of the surrounding operation does not depend on this succeeding. */ }
-            if (string.IsNullOrWhiteSpace(result))
+            // With the engine off the script was saved and checked, and runs
+            // nowhere: "reloaded" would say otherwise.
+            if (!string.IsNullOrWhiteSpace(result))
+               Status_(StatusLevel.Warning, F("Saved. Compiler reported: {0}", result));
+            else if (scriptingOn_)
                Status_(StatusLevel.Good, F("Saved and reloaded at {0}. No syntax errors.", DateTime.Now.ToLongTimeString()));
             else
-               Status_(StatusLevel.Warning, F("Saved. Compiler reported: {0}", result));
+               Status_(StatusLevel.Information, F("Saved at {0}. No syntax errors. Scripting is off, so the server does not run these handlers.", DateTime.Now.ToLongTimeString()));
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -321,6 +400,15 @@ End Sub
 
       private void CheckSyntax()
       {
+         // The server checks the script file it has, not this editor: after an
+         // edit, "No syntax errors reported." was said of the old code. Save &
+         // reload checks what is on screen, and says so as it saves.
+         if (HasUnsavedChanges)
+         {
+            Status_(StatusLevel.Information, L("Check syntax checks the script saved on the server, and the editor holds changes that are not saved yet. Save & reload to check what is on screen."));
+            return;
+         }
+
          dynamic scripting = ServerSession.Current.Application.Settings.Scripting;
          try
          {

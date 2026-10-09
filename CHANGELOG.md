@@ -969,6 +969,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   used from (optional)* with "For example 10.0.0.5 or 10.0.0.0/24" in each language. An empty store is said once, by
   the list's empty state, with *Create the first key...*, where an Information notice above it said the same. Held by
   `ApiKeysPageTests`.
+- **Fixed: the Event scripts page's Check syntax reported on the saved script after an edit, and the page never said
+  whether scripting was on.** The server checks the script file it has, so after an edit *Check syntax* said "No
+  syntax errors reported." of the old code; it now says that it checks the saved script and that *Save & reload*
+  checks what is on screen. The page reads the engine's switch and language: with scripting off, a Warning under the
+  header says these handlers are not run, with *Open Advanced*, and a save says it was saved and checked rather than
+  "Saved and reloaded"; the VBScript templates are offered only while the language is VBScript, where they were
+  appended to a JScript file as readily. The template list is on the editor's card, the header's buttons wrap in a
+  narrow window, the notices are under the header, and an ordinary load says nothing, where "Loaded from disk." was an
+  Information box at the foot of the page. Held by `ScriptsPageTests`.
 
 - **Fixed: a notice's severity word could stay English in another language, and Japanese left three status words in
   English.** The word a notice or a status pill puts before its sentence - Warning, Critical, Information, OK - was

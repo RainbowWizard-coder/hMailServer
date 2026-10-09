@@ -2326,6 +2326,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Check sender MX records" xml:space="preserve">
     <value>Verifica i record MX del mittente</value>
   </data>
+  <data name="Check syntax checks the script saved on the server, and the editor holds changes that are not saved yet. Save &amp; reload to check what is on screen." xml:space="preserve">
+    <value>Controlla la sintassi controlla lo script salvato sul server, e l'editor contiene modifiche non ancora salvate. Usa Salva e ricarica per controllare ciò che è sullo schermo.</value>
+  </data>
   <data name="Check that the internet-wide range does not allow deliveries to external accounts." xml:space="preserve">
     <value>Verifica che l'intervallo esteso a tutta Internet non consenta consegne verso account esterni.</value>
   </data>
@@ -5816,9 +5819,6 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   </data>
   <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
     <value>IP inf_eriore (es. 10.0.0.0)</value>
-  </data>
-  <data name="Loaded from disk." xml:space="preserve">
-    <value>Caricato da disco.</value>
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Caricamento…</value>
@@ -9623,6 +9623,9 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="Saved at {0}." xml:space="preserve">
     <value>Salvato alle {0}.</value>
   </data>
+  <data name="Saved at {0}. No syntax errors. Scripting is off, so the server does not run these handlers." xml:space="preserve">
+    <value>Salvato alle {0}. Nessun errore di sintassi. Lo scripting è disattivato, quindi il server non esegue questi gestori.</value>
+  </data>
   <data name="Saved {0} - every setting on this page is in effect." xml:space="preserve">
     <value>Salvato {0} - tutte le impostazioni di questa pagina sono in vigore.</value>
   </data>
@@ -9793,6 +9796,9 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   </data>
   <data name="Scripting engine" xml:space="preserve">
     <value>Motore di scripting</value>
+  </data>
+  <data name="Scripting is off - these handlers are not run. The engine's switch is on the Advanced page." xml:space="preserve">
+    <value>Lo scripting è disattivato - questi gestori non vengono eseguiti. L'interruttore del motore si trova nella pagina Avanzate.</value>
   </data>
   <data name="Scroll Down" xml:space="preserve">
     <value>Scorri giù</value>

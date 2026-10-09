@@ -2326,6 +2326,9 @@
   <data name="Check sender MX records" xml:space="preserve">
     <value>送信者の MX レコードを確認する</value>
   </data>
+  <data name="Check syntax checks the script saved on the server, and the editor holds changes that are not saved yet. Save &amp; reload to check what is on screen." xml:space="preserve">
+    <value>[構文を確認] はサーバーに保存されているスクリプトを確認しますが、エディターにはまだ保存されていない変更があります。画面上の内容を確認するには [保存して再読み込み] を使用してください。</value>
+  </data>
   <data name="Check that the internet-wide range does not allow deliveries to external accounts." xml:space="preserve">
     <value>インターネット全体の範囲が外部アカウントへの配信を許可していないことを確認してください。</value>
   </data>
@@ -5816,9 +5819,6 @@
   </data>
   <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
     <value>下限 IP (例: 10.0.0.0)(_W)</value>
-  </data>
-  <data name="Loaded from disk." xml:space="preserve">
-    <value>ディスクから読み込みました。</value>
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>読み込み中…</value>
@@ -9623,6 +9623,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Saved at {0}." xml:space="preserve">
     <value>{0} に保存しました。</value>
   </data>
+  <data name="Saved at {0}. No syntax errors. Scripting is off, so the server does not run these handlers." xml:space="preserve">
+    <value>{0} に保存しました。構文エラーはありません。スクリプトがオフのため、サーバーはこれらのハンドラーを実行しません。</value>
+  </data>
   <data name="Saved {0} - every setting on this page is in effect." xml:space="preserve">
     <value>{0} を保存しました。このページのすべての設定が有効です。</value>
   </data>
@@ -9793,6 +9796,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Scripting engine" xml:space="preserve">
     <value>スクリプト エンジン</value>
+  </data>
+  <data name="Scripting is off - these handlers are not run. The engine's switch is on the Advanced page." xml:space="preserve">
+    <value>スクリプトはオフです。これらのハンドラーは実行されません。エンジンのスイッチは詳細設定ページにあります。</value>
   </data>
   <data name="Scroll Down" xml:space="preserve">
     <value>下にスクロール</value>

@@ -2344,6 +2344,9 @@
   <data name="Check sender MX records" xml:space="preserve">
     <value>Перевіряти MX-записи відправника</value>
   </data>
+  <data name="Check syntax checks the script saved on the server, and the editor holds changes that are not saved yet. Save &amp; reload to check what is on screen." xml:space="preserve">
+    <value>«Перевірити синтаксис» перевіряє скрипт, збережений на сервері, а в редакторі є ще не збережені зміни. Щоб перевірити те, що на екрані, скористайтеся «Зберегти й перезавантажити».</value>
+  </data>
   <data name="Check that the internet-wide range does not allow deliveries to external accounts." xml:space="preserve">
     <value>Перевірте, що діапазон, який охоплює весь інтернет, не дозволяє доставку на зовнішні облікові записи.</value>
   </data>
@@ -5870,9 +5873,6 @@
   </data>
   <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
     <value>Н_ижня IP-адреса (напр. 10.0.0.0)</value>
-  </data>
-  <data name="Loaded from disk." xml:space="preserve">
-    <value>Завантажено з диска.</value>
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Завантаження…</value>
@@ -9707,6 +9707,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Saved at {0}." xml:space="preserve">
     <value>Збережено о {0}.</value>
   </data>
+  <data name="Saved at {0}. No syntax errors. Scripting is off, so the server does not run these handlers." xml:space="preserve">
+    <value>Збережено о {0}. Синтаксичних помилок немає. Скрипти вимкнено, тому сервер не виконує ці обробники.</value>
+  </data>
   <data name="Saved {0} - every setting on this page is in effect." xml:space="preserve">
     <value>Збережено {0} - усі параметри на цій сторінці діють.</value>
   </data>
@@ -9901,6 +9904,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Scripting engine" xml:space="preserve">
     <value>Рушій скриптів</value>
+  </data>
+  <data name="Scripting is off - these handlers are not run. The engine's switch is on the Advanced page." xml:space="preserve">
+    <value>Скрипти вимкнено - ці обробники не виконуються. Перемикач рушія - на сторінці «Додатково».</value>
   </data>
   <data name="Scroll Down" xml:space="preserve">
     <value>Прокрутити вниз</value>
