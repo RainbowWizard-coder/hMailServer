@@ -186,6 +186,12 @@
   <data name="1 rule" xml:space="preserve">
     <value>1 条规则</value>
   </data>
+  <data name="1 rule of the server, evaluated top to bottom." xml:space="preserve">
+    <value>服务器的规则 1 条，自上而下评估。</value>
+  </data>
+  <data name="1 rule of {0}, evaluated top to bottom." xml:space="preserve">
+    <value>{0} 的规则 1 条，自上而下评估。</value>
+  </data>
   <data name="1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
     <value>1 项已保存的设置只有在 hMailServer 服务重启后才会生效。现在重启服务吗？服务停止并重新启动期间，所有连接到服务器的客户端都会断开。</value>
   </data>
@@ -4921,9 +4927,6 @@
   <data name="Give {0} the role {1}, which holds everything, in every domain?" xml:space="preserve">
     <value>是否授予 {0} 角色 {1}？该角色在每个域中拥有全部权限。</value>
   </data>
-  <data name="Global rules" xml:space="preserve">
-    <value>全局规则</value>
-  </data>
   <data name="Global rules match on the message and take an action - move, tag, reply or refuse." xml:space="preserve">
     <value>全局规则对邮件进行匹配并执行操作 - 移动、标记、回复或拒绝。</value>
   </data>
@@ -6384,6 +6387,9 @@
   </data>
   <data name="Message restore {0} started - runs in the background on the server." xml:space="preserve">
     <value>邮件恢复 {0} 已开始 - 在服务器后台运行。</value>
+  </data>
+  <data name="Message rules of {0}, evaluated top to bottom." xml:space="preserve">
+    <value>{0} 的邮件规则，自上而下评估。</value>
   </data>
   <data name="Message size" xml:space="preserve">
     <value>邮件大小</value>
@@ -9425,9 +9431,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Rules" xml:space="preserve">
     <value>规则</value>
   </data>
-  <data name="Rules of" xml:space="preserve">
-    <value>规则所属</value>
-  </data>
   <data name="Run DNSBL checks after MAIL FROM (rather than at connect)" xml:space="preserve">
     <value>在 MAIL FROM 之后运行 DNSBL 检查（而不是在连接时）</value>
   </data>
@@ -10542,6 +10545,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Show password" xml:space="preserve">
     <value>显示密码</value>
+  </data>
+  <data name="Show rules _for" xml:space="preserve">
+    <value>显示规则的对象(_F)</value>
   </data>
   <data name="Show senders' brand logos (BIMI)" xml:space="preserve">
     <value>显示发件人的品牌徽标（BIMI）</value>
@@ -15988,6 +15994,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>{0} 条规则</value>
+  </data>
+  <data name="{0} rules of the server, evaluated top to bottom." xml:space="preserve">
+    <value>服务器的规则 {0} 条，自上而下评估。</value>
+  </data>
+  <data name="{0} rules of {1}, evaluated top to bottom." xml:space="preserve">
+    <value>{1} 的规则 {0} 条，自上而下评估。</value>
   </data>
   <data name="{0} rules, evaluated top to bottom." xml:space="preserve">
     <value>{0} 条规则，自上而下依次求值。</value>

@@ -186,6 +186,12 @@
   <data name="1 rule" xml:space="preserve">
     <value>1 regel</value>
   </data>
+  <data name="1 rule of the server, evaluated top to bottom." xml:space="preserve">
+    <value>1 regel van de server, van boven naar beneden geëvalueerd.</value>
+  </data>
+  <data name="1 rule of {0}, evaluated top to bottom." xml:space="preserve">
+    <value>1 regel van {0}, van boven naar beneden geëvalueerd.</value>
+  </data>
   <data name="1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
     <value>1 opgeslagen instelling wordt pas van kracht wanneer de hMailServer-service opnieuw start. De service nu herstarten? Alle clients die met de server verbonden zijn, worden verbroken terwijl hij stopt en opnieuw start.</value>
   </data>
@@ -4921,9 +4927,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Give {0} the role {1}, which holds everything, in every domain?" xml:space="preserve">
     <value>{0} de rol {1} toewijzen, die alles mag, in elk domein?</value>
   </data>
-  <data name="Global rules" xml:space="preserve">
-    <value>Globale regels</value>
-  </data>
   <data name="Global rules match on the message and take an action - move, tag, reply or refuse." xml:space="preserve">
     <value>Globale regels vergelijken met het bericht en voeren een actie uit - verplaatsen, markeren, antwoorden of weigeren.</value>
   </data>
@@ -6384,6 +6387,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="Message restore {0} started - runs in the background on the server." xml:space="preserve">
     <value>Herstel van bericht {0} gestart - loopt op de achtergrond op de server.</value>
+  </data>
+  <data name="Message rules of {0}, evaluated top to bottom." xml:space="preserve">
+    <value>Berichtregels van {0}, van boven naar beneden geëvalueerd.</value>
   </data>
   <data name="Message size" xml:space="preserve">
     <value>Berichtgrootte</value>
@@ -9425,9 +9431,6 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Rules" xml:space="preserve">
     <value>Regels</value>
   </data>
-  <data name="Rules of" xml:space="preserve">
-    <value>Regels van</value>
-  </data>
   <data name="Run DNSBL checks after MAIL FROM (rather than at connect)" xml:space="preserve">
     <value>DNSBL-controles na MAIL FROM uitvoeren (in plaats van bij het verbinden)</value>
   </data>
@@ -10542,6 +10545,9 @@ Nu opnieuw starten?</value>
   </data>
   <data name="Show password" xml:space="preserve">
     <value>Wachtwoord weergeven</value>
+  </data>
+  <data name="Show rules _for" xml:space="preserve">
+    <value>Regels tonen _voor</value>
   </data>
   <data name="Show senders' brand logos (BIMI)" xml:space="preserve">
     <value>Merklogo's van afzenders tonen (BIMI)</value>
@@ -15988,6 +15994,12 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>{0} regels</value>
+  </data>
+  <data name="{0} rules of the server, evaluated top to bottom." xml:space="preserve">
+    <value>{0} regels van de server, van boven naar beneden geëvalueerd.</value>
+  </data>
+  <data name="{0} rules of {1}, evaluated top to bottom." xml:space="preserve">
+    <value>{0} regels van {1}, van boven naar beneden geëvalueerd.</value>
   </data>
   <data name="{0} rules, evaluated top to bottom." xml:space="preserve">
     <value>{0} regels, van boven naar beneden geëvalueerd.</value>

@@ -186,6 +186,12 @@
   <data name="1 rule" xml:space="preserve">
     <value>Reguły: 1</value>
   </data>
+  <data name="1 rule of the server, evaluated top to bottom." xml:space="preserve">
+    <value>Reguły serwera: 1, sprawdzane od góry do dołu.</value>
+  </data>
+  <data name="1 rule of {0}, evaluated top to bottom." xml:space="preserve">
+    <value>Reguły domeny {0}: 1, sprawdzane od góry do dołu.</value>
+  </data>
   <data name="1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
     <value>1 zapisane ustawienie zacznie obowiązywać dopiero po ponownym uruchomieniu usługi hMailServer. Uruchomić usługę ponownie teraz? Wszyscy klienci połączeni z serwerem zostaną rozłączeni na czas jej zatrzymania i ponownego uruchomienia.</value>
   </data>
@@ -4975,9 +4981,6 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Give {0} the role {1}, which holds everything, in every domain?" xml:space="preserve">
     <value>Przypisać kontu {0} rolę {1}, która ma wszystkie uprawnienia we wszystkich domenach?</value>
   </data>
-  <data name="Global rules" xml:space="preserve">
-    <value>Reguły globalne</value>
-  </data>
   <data name="Global rules match on the message and take an action - move, tag, reply or refuse." xml:space="preserve">
     <value>Reguły globalne dopasowują się do wiadomości i wykonują akcję - przeniesienie, oznaczenie, odpowiedź lub odrzucenie.</value>
   </data>
@@ -6444,6 +6447,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   </data>
   <data name="Message restore {0} started - runs in the background on the server." xml:space="preserve">
     <value>Rozpoczęto przywracanie wiadomości {0} - działa w tle na serwerze.</value>
+  </data>
+  <data name="Message rules of {0}, evaluated top to bottom." xml:space="preserve">
+    <value>Reguły wiadomości domeny {0}, sprawdzane od góry do dołu.</value>
   </data>
   <data name="Message size" xml:space="preserve">
     <value>Rozmiar wiadomości</value>
@@ -9509,9 +9515,6 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Rules" xml:space="preserve">
     <value>Reguły</value>
   </data>
-  <data name="Rules of" xml:space="preserve">
-    <value>Reguły dla</value>
-  </data>
   <data name="Run DNSBL checks after MAIL FROM (rather than at connect)" xml:space="preserve">
     <value>Wykonuj kontrole DNSBL po MAIL FROM (a nie przy nawiązaniu połączenia)</value>
   </data>
@@ -10655,6 +10658,9 @@ Uruchomić ją ponownie teraz?</value>
   </data>
   <data name="Show password" xml:space="preserve">
     <value>Pokaż hasło</value>
+  </data>
+  <data name="Show rules _for" xml:space="preserve">
+    <value>Pokaż reguły _dla</value>
   </data>
   <data name="Show senders' brand logos (BIMI)" xml:space="preserve">
     <value>Pokazuj logo marki nadawców (BIMI)</value>
@@ -16296,6 +16302,12 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>Reguły: {0}</value>
+  </data>
+  <data name="{0} rules of the server, evaluated top to bottom." xml:space="preserve">
+    <value>Reguły serwera: {0}, sprawdzane od góry do dołu.</value>
+  </data>
+  <data name="{0} rules of {1}, evaluated top to bottom." xml:space="preserve">
+    <value>Reguły domeny {1}: {0}, sprawdzane od góry do dołu.</value>
   </data>
   <data name="{0} rules, evaluated top to bottom." xml:space="preserve">
     <value>{0} reguł, przetwarzanych od góry do dołu.</value>

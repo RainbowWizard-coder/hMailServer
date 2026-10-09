@@ -186,6 +186,12 @@
   <data name="1 rule" xml:space="preserve">
     <value>Правил: 1</value>
   </data>
+  <data name="1 rule of the server, evaluated top to bottom." xml:space="preserve">
+    <value>Правил сервера: 1, оцінюються згори донизу.</value>
+  </data>
+  <data name="1 rule of {0}, evaluated top to bottom." xml:space="preserve">
+    <value>Правил домену {0}: 1, оцінюються згори донизу.</value>
+  </data>
   <data name="1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
     <value>1 збережений параметр набуде чинності лише після перезапуску служби hMailServer. Перезапустити службу зараз? Усі клієнти, підключені до сервера, буде від'єднано, поки вона зупиняється й запускається знову.</value>
   </data>
@@ -4975,9 +4981,6 @@
   <data name="Give {0} the role {1}, which holds everything, in every domain?" xml:space="preserve">
     <value>Призначити {0} роль {1}, яка має все, в усіх доменах?</value>
   </data>
-  <data name="Global rules" xml:space="preserve">
-    <value>Глобальні правила</value>
-  </data>
   <data name="Global rules match on the message and take an action - move, tag, reply or refuse." xml:space="preserve">
     <value>Глобальні правила зіставляють повідомлення і виконують дію - перемістити, позначити, відповісти або відхилити.</value>
   </data>
@@ -6444,6 +6447,9 @@
   </data>
   <data name="Message restore {0} started - runs in the background on the server." xml:space="preserve">
     <value>Відновлення повідомлення {0} розпочато - виконується у фоні на сервері.</value>
+  </data>
+  <data name="Message rules of {0}, evaluated top to bottom." xml:space="preserve">
+    <value>Правила для повідомлень домену {0}, що оцінюються зверху вниз.</value>
   </data>
   <data name="Message size" xml:space="preserve">
     <value>Розмір повідомлення</value>
@@ -9509,9 +9515,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Rules" xml:space="preserve">
     <value>Правила</value>
   </data>
-  <data name="Rules of" xml:space="preserve">
-    <value>Правила для</value>
-  </data>
   <data name="Run DNSBL checks after MAIL FROM (rather than at connect)" xml:space="preserve">
     <value>Виконувати перевірки DNSBL після MAIL FROM (а не під час підключення)</value>
   </data>
@@ -10655,6 +10658,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Show password" xml:space="preserve">
     <value>Показати пароль</value>
+  </data>
+  <data name="Show rules _for" xml:space="preserve">
+    <value>Показати правила _для</value>
   </data>
   <data name="Show senders' brand logos (BIMI)" xml:space="preserve">
     <value>Показувати логотипи брендів відправників (BIMI)</value>
@@ -16296,6 +16302,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>Правил: {0}</value>
+  </data>
+  <data name="{0} rules of the server, evaluated top to bottom." xml:space="preserve">
+    <value>Правил сервера: {0}, оцінюються згори донизу.</value>
+  </data>
+  <data name="{0} rules of {1}, evaluated top to bottom." xml:space="preserve">
+    <value>Правил домену {1}: {0}, оцінюються згори донизу.</value>
   </data>
   <data name="{0} rules, evaluated top to bottom." xml:space="preserve">
     <value>{0} правил, оцінюються згори донизу.</value>

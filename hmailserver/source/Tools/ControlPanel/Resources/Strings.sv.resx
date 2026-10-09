@@ -186,6 +186,12 @@
   <data name="1 rule" xml:space="preserve">
     <value>1 regel</value>
   </data>
+  <data name="1 rule of the server, evaluated top to bottom." xml:space="preserve">
+    <value>1 regel för servern, utvärderad uppifrån och ned.</value>
+  </data>
+  <data name="1 rule of {0}, evaluated top to bottom." xml:space="preserve">
+    <value>1 regel för {0}, utvärderad uppifrån och ned.</value>
+  </data>
   <data name="1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
     <value>1 sparad inställning börjar gälla först när tjänsten hMailServer startas om. Starta om tjänsten nu? Alla klienter som är anslutna till servern kopplas från medan den stoppas och startar igen.</value>
   </data>
@@ -4921,9 +4927,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Give {0} the role {1}, which holds everything, in every domain?" xml:space="preserve">
     <value>Tilldela {0} rollen {1}, som har allt, i varje domän?</value>
   </data>
-  <data name="Global rules" xml:space="preserve">
-    <value>Globala regler</value>
-  </data>
   <data name="Global rules match on the message and take an action - move, tag, reply or refuse." xml:space="preserve">
     <value>Globala regler matchar på meddelandet och vidtar en åtgärd - flytta, märk, svara eller avvisa.</value>
   </data>
@@ -6384,6 +6387,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="Message restore {0} started - runs in the background on the server." xml:space="preserve">
     <value>Återställning av meddelande {0} startad - körs i bakgrunden på servern.</value>
+  </data>
+  <data name="Message rules of {0}, evaluated top to bottom." xml:space="preserve">
+    <value>Meddelanderegler för {0}, utvärderade uppifrån och ned.</value>
   </data>
   <data name="Message size" xml:space="preserve">
     <value>Meddelandestorlek</value>
@@ -9425,9 +9431,6 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Den b
   <data name="Rules" xml:space="preserve">
     <value>Regler</value>
   </data>
-  <data name="Rules of" xml:space="preserve">
-    <value>Regler för</value>
-  </data>
   <data name="Run DNSBL checks after MAIL FROM (rather than at connect)" xml:space="preserve">
     <value>Kör DNSBL-kontroller efter MAIL FROM (i stället för vid anslutning)</value>
   </data>
@@ -10542,6 +10545,9 @@ Starta om den nu?</value>
   </data>
   <data name="Show password" xml:space="preserve">
     <value>Visa lösenordet</value>
+  </data>
+  <data name="Show rules _for" xml:space="preserve">
+    <value>Visa regler _för</value>
   </data>
   <data name="Show senders' brand logos (BIMI)" xml:space="preserve">
     <value>Visa avsändarnas varumärkeslogotyper (BIMI)</value>
@@ -15988,6 +15994,12 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>{0} regler</value>
+  </data>
+  <data name="{0} rules of the server, evaluated top to bottom." xml:space="preserve">
+    <value>{0} regler för servern, utvärderade uppifrån och ned.</value>
+  </data>
+  <data name="{0} rules of {1}, evaluated top to bottom." xml:space="preserve">
+    <value>{0} regler för {1}, utvärderade uppifrån och ned.</value>
   </data>
   <data name="{0} rules, evaluated top to bottom." xml:space="preserve">
     <value>{0} regler, utvärderade uppifrån och ned.</value>

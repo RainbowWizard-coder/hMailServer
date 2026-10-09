@@ -186,6 +186,12 @@
   <data name="1 rule" xml:space="preserve">
     <value>1 rule</value>
   </data>
+  <data name="1 rule of the server, evaluated top to bottom." xml:space="preserve">
+    <value>1 rule of the server, evaluated top to bottom.</value>
+  </data>
+  <data name="1 rule of {0}, evaluated top to bottom." xml:space="preserve">
+    <value>1 rule of {0}, evaluated top to bottom.</value>
+  </data>
   <data name="1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
     <value>1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again.</value>
   </data>
@@ -4921,9 +4927,6 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Give {0} the role {1}, which holds everything, in every domain?" xml:space="preserve">
     <value>Give {0} the role {1}, which holds everything, in every domain?</value>
   </data>
-  <data name="Global rules" xml:space="preserve">
-    <value>Global rules</value>
-  </data>
   <data name="Global rules match on the message and take an action - move, tag, reply or refuse." xml:space="preserve">
     <value>Global rules match on the message and take an action - move, tag, reply or refuse.</value>
   </data>
@@ -6384,6 +6387,9 @@ Nothing already there is removed.</value>
   </data>
   <data name="Message restore {0} started - runs in the background on the server." xml:space="preserve">
     <value>Message restore {0} started - runs in the background on the server.</value>
+  </data>
+  <data name="Message rules of {0}, evaluated top to bottom." xml:space="preserve">
+    <value>Message rules of {0}, evaluated top to bottom.</value>
   </data>
   <data name="Message size" xml:space="preserve">
     <value>Message size</value>
@@ -9425,9 +9431,6 @@ Every folder is emptied first: mail that arrived since the backup is gone. It is
   <data name="Rules" xml:space="preserve">
     <value>Rules</value>
   </data>
-  <data name="Rules of" xml:space="preserve">
-    <value>Rules of</value>
-  </data>
   <data name="Run DNSBL checks after MAIL FROM (rather than at connect)" xml:space="preserve">
     <value>Run DNSBL checks after MAIL FROM (rather than at connect)</value>
   </data>
@@ -10542,6 +10545,9 @@ Restart it now?</value>
   </data>
   <data name="Show password" xml:space="preserve">
     <value>Show password</value>
+  </data>
+  <data name="Show rules _for" xml:space="preserve">
+    <value>Show rules _for</value>
   </data>
   <data name="Show senders' brand logos (BIMI)" xml:space="preserve">
     <value>Show senders' brand logos (BIMI)</value>
@@ -15988,6 +15994,12 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>{0} rules</value>
+  </data>
+  <data name="{0} rules of the server, evaluated top to bottom." xml:space="preserve">
+    <value>{0} rules of the server, evaluated top to bottom.</value>
+  </data>
+  <data name="{0} rules of {1}, evaluated top to bottom." xml:space="preserve">
+    <value>{0} rules of {1}, evaluated top to bottom.</value>
   </data>
   <data name="{0} rules, evaluated top to bottom." xml:space="preserve">
     <value>{0} rules, evaluated top to bottom.</value>

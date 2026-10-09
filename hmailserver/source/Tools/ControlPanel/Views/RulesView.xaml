@@ -19,7 +19,9 @@
 
         <!-- HeaderPanel is collapsed when the view is embedded in the account
              dialog (ConfigureForRules), where the tab names the page. -->
-        <scaffold:PageHeader x:Name="HeaderPanel" Title="{loc:L 'Global rules'}"
+        <!-- Titled as the navigation map names the page; "Global rules" is one of
+             its aliases, and the page shows a domain's rules as well. -->
+        <scaffold:PageHeader x:Name="HeaderPanel" Title="{loc:L 'Rules'}"
                              Subtitle="{loc:L 'Server-wide message rules, evaluated top to bottom.'}" />
 
         <!-- The list of rules and the criteria and actions under it take the
@@ -46,8 +48,19 @@
                      lines is split above and below each control, so that on one
                      line they stay centred on the search box. -->
                 <WrapPanel HorizontalAlignment="Right">
-                    <ComboBox x:Name="ScopeBox" MinWidth="200" Margin="0,2,8,2" SelectionChanged="Scope_Changed"
-                              AutomationProperties.Name="{loc:L 'Rules of'}" />
+                    <!-- Whose rules the list shows, captioned and wrapping with the
+                         actions as one: the list sat uncaptioned among them, reading
+                         "The server" between the search box and Move up (review
+                         finding F226). In the toolbar's filters slot it left the
+                         actions too little room to wrap into at 760 pixels, which cut
+                         them. Collapsed where the page is an account's rules. -->
+                    <StackPanel x:Name="ScopePanel" Orientation="Horizontal" Margin="0,2,8,2">
+                        <Label x:Name="ScopeLabel" Content="{loc:L 'Show rules _for'}" Target="{Binding ElementName=ScopeBox}"
+                               VerticalAlignment="Center" Margin="0,0,6,0" />
+                        <ComboBox x:Name="ScopeBox" MinWidth="200" SelectionChanged="Scope_Changed"
+                                  AutomationProperties.LabeledBy="{Binding ElementName=ScopeLabel}"
+                                  AutomationProperties.AutomationId="rules-scope" />
+                    </StackPanel>
                     <ui:Button x:Name="MoveUpButton" Content="{loc:L 'Move _up'}" Click="MoveUp_Click" Margin="0,2,8,2" />
                     <ui:Button x:Name="MoveDownButton" Content="{loc:L 'Move _down'}" Click="MoveDown_Click" Margin="0,2,8,2" />
                     <ui:Button x:Name="ToggleButton" Content="{loc:L 'Ena_ble / disable'}" Click="Toggle_Click" Margin="0,2,8,2" />
@@ -81,7 +94,7 @@
                               ScrollViewer.VerticalScrollBarVisibility="Visible"
                               AutoGenerateColumns="False" IsReadOnly="True"
                               SelectionMode="Single" SelectionChanged="RuleGrid_SelectionChanged"
-                              AutomationProperties.Name="{loc:L 'Global rules'}">
+                              AutomationProperties.Name="{loc:L 'Rules'}">
                         <DataGrid.Columns>
                             <!-- A floor under every column, so that a narrow window scrolls
                                  the grid sideways rather than squeezing the name, the one

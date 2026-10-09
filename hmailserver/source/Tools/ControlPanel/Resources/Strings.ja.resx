@@ -186,6 +186,12 @@
   <data name="1 rule" xml:space="preserve">
     <value>ルール 1 件</value>
   </data>
+  <data name="1 rule of the server, evaluated top to bottom." xml:space="preserve">
+    <value>サーバーのルール 1 件。上から順に評価されます。</value>
+  </data>
+  <data name="1 rule of {0}, evaluated top to bottom." xml:space="preserve">
+    <value>{0} のルール 1 件。上から順に評価されます。</value>
+  </data>
   <data name="1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
     <value>保存した設定 1 件は、hMailServer サービスを再起動したときにだけ有効になります。今すぐサービスを再起動しますか? サービスが停止して再開する間、サーバーに接続しているクライアントはすべて切断されます。</value>
   </data>
@@ -4921,9 +4927,6 @@
   <data name="Give {0} the role {1}, which holds everything, in every domain?" xml:space="preserve">
     <value>{0} にロール {1} を割り当てますか? このロールはすべてのドメインですべての権限を持ちます。</value>
   </data>
-  <data name="Global rules" xml:space="preserve">
-    <value>グローバル ルール</value>
-  </data>
   <data name="Global rules match on the message and take an action - move, tag, reply or refuse." xml:space="preserve">
     <value>グローバル ルールはメッセージに一致するとアクション (移動、タグ付け、返信、拒否) を実行します。</value>
   </data>
@@ -6384,6 +6387,9 @@
   </data>
   <data name="Message restore {0} started - runs in the background on the server." xml:space="preserve">
     <value>メッセージの復元 {0} を開始しました - サーバー上でバックグラウンド実行されます。</value>
+  </data>
+  <data name="Message rules of {0}, evaluated top to bottom." xml:space="preserve">
+    <value>{0} のメッセージ ルール。上から下へ評価されます。</value>
   </data>
   <data name="Message size" xml:space="preserve">
     <value>メッセージ サイズ</value>
@@ -9425,9 +9431,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Rules" xml:space="preserve">
     <value>ルール</value>
   </data>
-  <data name="Rules of" xml:space="preserve">
-    <value>ルールの対象</value>
-  </data>
   <data name="Run DNSBL checks after MAIL FROM (rather than at connect)" xml:space="preserve">
     <value>DNSBL のチェックを (接続時ではなく) MAIL FROM の後に実行する</value>
   </data>
@@ -10542,6 +10545,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Show password" xml:space="preserve">
     <value>パスワードを表示</value>
+  </data>
+  <data name="Show rules _for" xml:space="preserve">
+    <value>ルールの表示対象(_F)</value>
   </data>
   <data name="Show senders' brand logos (BIMI)" xml:space="preserve">
     <value>送信者のブランド ロゴを表示する (BIMI)</value>
@@ -15988,6 +15994,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>ルール {0} 件</value>
+  </data>
+  <data name="{0} rules of the server, evaluated top to bottom." xml:space="preserve">
+    <value>サーバーのルール {0} 件。上から順に評価されます。</value>
+  </data>
+  <data name="{0} rules of {1}, evaluated top to bottom." xml:space="preserve">
+    <value>{1} のルール {0} 件。上から順に評価されます。</value>
   </data>
   <data name="{0} rules, evaluated top to bottom." xml:space="preserve">
     <value>{0} 件のルール。上から順に評価されます。</value>

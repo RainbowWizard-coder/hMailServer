@@ -142,6 +142,9 @@ namespace hMailServer.ControlPanel.Views
       private bool scopesLoaded_;
       private bool suppressScope_;
 
+      // The domain whose rules the list shows, or null for the server's.
+      private string scopeDomain_;
+
       private void LoadScopes()
       {
          if (ScopeBox == null)
@@ -149,7 +152,7 @@ namespace hMailServer.ControlPanel.Views
 
          if (!serverLevel_)
          {
-            ScopeBox.Visibility = Visibility.Collapsed;
+            ScopePanel.Visibility = Visibility.Collapsed;
             return;
          }
 
@@ -181,7 +184,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            ScopeBox.Visibility = Visibility.Collapsed;
+            ScopePanel.Visibility = Visibility.Collapsed;
          }
          finally
          {
@@ -195,10 +198,14 @@ namespace hMailServer.ControlPanel.Views
             return;
 
          if (ScopeBox.SelectedIndex == 0)
+         {
+            scopeDomain_ = null;
             rulesProvider_ = () => ServerSession.Current.Application.Rules;
+         }
          else
          {
             string domainName = (string)ScopeBox.SelectedItem;
+            scopeDomain_ = domainName;
             rulesProvider_ = () =>
             {
                dynamic domains = ServerSession.Current.Application.Domains;
@@ -260,7 +267,7 @@ namespace hMailServer.ControlPanel.Views
             selectedRuleId_ = 0;
             CriteriaGrid.ItemsSource = null;
             ActionsGrid.ItemsSource = null;
-            HeaderPanel.Subtitle = L("Server-wide message rules, evaluated top to bottom.");
+            HeaderPanel.Subtitle = Subtitle_(0);
             return;
          }
 
@@ -268,12 +275,30 @@ namespace hMailServer.ControlPanel.Views
          RuleGrid.ItemsSource = rows;
          ListSearch.Apply(RuleGrid, SearchBar.SearchText);
          StatusText.Show(EmptyStatus, null, rows.Count, null, L("No rules defined yet - create one below."));
-         HeaderPanel.Subtitle = rows.Count == 0
-            ? L("Server-wide message rules, evaluated top to bottom.")
-            : Plural(rows.Count, "{0} rule, evaluated top to bottom.", "{0} rules, evaluated top to bottom.");
+         HeaderPanel.Subtitle = Subtitle_(rows.Count);
 
          CriteriaGrid.ItemsSource = null;
          ActionsGrid.ItemsSource = null;
+      }
+
+      /// <summary>
+      /// The subtitle: how many rules the list shows, and whose - the server's or the
+      /// domain's chosen in Show rules for - where it said "4 rule(s)" of whichever
+      /// was chosen (review finding F226). One whole sentence for none, one and
+      /// several, per scope.
+      /// </summary>
+      private string Subtitle_(int count)
+      {
+         if (scopeDomain_ == null)
+         {
+            return count == 0 ? L("Server-wide message rules, evaluated top to bottom.")
+               : count == 1 ? L("1 rule of the server, evaluated top to bottom.")
+               : F("{0} rules of the server, evaluated top to bottom.", count);
+         }
+
+         return count == 0 ? F("Message rules of {0}, evaluated top to bottom.", scopeDomain_)
+            : count == 1 ? F("1 rule of {0}, evaluated top to bottom.", scopeDomain_)
+            : F("{0} rules of {1}, evaluated top to bottom.", count, scopeDomain_);
       }
 
       private void Search_TextChanged(object sender, EventArgs e)

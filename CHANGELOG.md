@@ -1753,6 +1753,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   short name of its own, translated whole - Lookup, Read, Seen, Flags, Insert, Post, Create, Delete folder, Delete
   messages, Expunge, Administer, as the IMAP rights are named - and the entry dialog keeps the full captions.
 
+- **Fixed: the Rules page's scope list had no visible caption, and its title and subtitle ignored the scope chosen.**
+  A list reading "The server" sat between the search box and Move up with nothing to say what it chose - only a screen
+  reader heard "Rules of" - and after a domain was chosen the page still said "Global rules" and "4 rule(s), evaluated
+  top to bottom." The list is captioned Show rules for, its caption and list wrapping with the actions as one group,
+  the page is titled Rules as the navigation map names it (Global rules stays a search alias), and the subtitle names
+  whose rules it counts: "4 rules of the server, evaluated top to bottom.", "2 rules of example.com, evaluated top to
+  bottom.", one whole sentence for none, one and several in each case.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

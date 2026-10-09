@@ -186,6 +186,12 @@
   <data name="1 rule" xml:space="preserve">
     <value>1 regel</value>
   </data>
+  <data name="1 rule of the server, evaluated top to bottom." xml:space="preserve">
+    <value>1 regel for serveren, evaluert fra topp til bunn.</value>
+  </data>
+  <data name="1 rule of {0}, evaluated top to bottom." xml:space="preserve">
+    <value>1 regel for {0}, evaluert fra topp til bunn.</value>
+  </data>
   <data name="1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
     <value>1 lagret innstilling trer først i kraft når hMailServer-tjenesten startes på nytt. Starte tjenesten på nytt nå? Alle klienter som er koblet til serveren, kobles fra mens den stopper og starter igjen.</value>
   </data>
@@ -4921,9 +4927,6 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Give {0} the role {1}, which holds everything, in every domain?" xml:space="preserve">
     <value>Tildele {0} rollen {1}, som har alt, i hvert domene?</value>
   </data>
-  <data name="Global rules" xml:space="preserve">
-    <value>Globale regler</value>
-  </data>
   <data name="Global rules match on the message and take an action - move, tag, reply or refuse." xml:space="preserve">
     <value>Globale regler matcher på meldingen og utfører en handling - flytt, merk, svar eller avvis.</value>
   </data>
@@ -6384,6 +6387,9 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="Message restore {0} started - runs in the background on the server." xml:space="preserve">
     <value>Gjenoppretting av melding {0} startet - kjører i bakgrunnen på serveren.</value>
+  </data>
+  <data name="Message rules of {0}, evaluated top to bottom." xml:space="preserve">
+    <value>Meldingsregler for {0}, evaluert fra topp til bunn.</value>
   </data>
   <data name="Message size" xml:space="preserve">
     <value>Meldingsstørrelse</value>
@@ -9425,9 +9431,6 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Rules" xml:space="preserve">
     <value>Regler</value>
   </data>
-  <data name="Rules of" xml:space="preserve">
-    <value>Regler for</value>
-  </data>
   <data name="Run DNSBL checks after MAIL FROM (rather than at connect)" xml:space="preserve">
     <value>Kjør DNSBL-kontroller etter MAIL FROM (i stedet for ved tilkobling)</value>
   </data>
@@ -10542,6 +10545,9 @@ Starte den på nytt nå?</value>
   </data>
   <data name="Show password" xml:space="preserve">
     <value>Vis passordet</value>
+  </data>
+  <data name="Show rules _for" xml:space="preserve">
+    <value>Vis regler _for</value>
   </data>
   <data name="Show senders' brand logos (BIMI)" xml:space="preserve">
     <value>Vis avsendernes merkelogoer (BIMI)</value>
@@ -15988,6 +15994,12 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>{0} regler</value>
+  </data>
+  <data name="{0} rules of the server, evaluated top to bottom." xml:space="preserve">
+    <value>{0} regler for serveren, evaluert fra topp til bunn.</value>
+  </data>
+  <data name="{0} rules of {1}, evaluated top to bottom." xml:space="preserve">
+    <value>{0} regler for {1}, evaluert fra topp til bunn.</value>
   </data>
   <data name="{0} rules, evaluated top to bottom." xml:space="preserve">
     <value>{0} regler, evaluert fra topp til bunn.</value>
