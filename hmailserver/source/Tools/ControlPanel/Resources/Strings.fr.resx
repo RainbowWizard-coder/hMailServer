@@ -11421,6 +11421,9 @@ Le prochain message vers cette adresse sera envoyé, et elle n'y reviendra qu'ap
   <data name="The check is read-only: the server does not delete or repair anything." xml:space="preserve">
     <value>La vérification est en lecture seule : le serveur ne supprime ni ne répare rien.</value>
   </data>
+  <data name="The check itself failed: {0} This says nothing about the record." xml:space="preserve">
+    <value>La vérification elle-même a échoué : {0} Cela ne dit rien sur l'enregistrement.</value>
+  </data>
   <data name="The cipher list could not be read." xml:space="preserve">
     <value>La liste de chiffrements n'a pas pu être lue.</value>
   </data>

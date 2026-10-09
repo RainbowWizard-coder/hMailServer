@@ -11421,6 +11421,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The check is read-only: the server does not delete or repair anything." xml:space="preserve">
     <value>该检查是只读的：服务器不会删除或修复任何内容。</value>
   </data>
+  <data name="The check itself failed: {0} This says nothing about the record." xml:space="preserve">
+    <value>检查本身失败了: {0} 这并不说明记录有任何问题。</value>
+  </data>
   <data name="The cipher list could not be read." xml:space="preserve">
     <value>密码套件列表无法读取。</value>
   </data>

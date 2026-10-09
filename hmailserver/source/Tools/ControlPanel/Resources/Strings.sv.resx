@@ -11421,6 +11421,9 @@ Nästa meddelande till adressen skickas, och den hamnar på listan igen först e
   <data name="The check is read-only: the server does not delete or repair anything." xml:space="preserve">
     <value>Kontrollen är skrivskyddad: servern tar inte bort eller reparerar något.</value>
   </data>
+  <data name="The check itself failed: {0} This says nothing about the record." xml:space="preserve">
+    <value>Själva kontrollen misslyckades: {0} Det säger inget om posten.</value>
+  </data>
   <data name="The cipher list could not be read." xml:space="preserve">
     <value>Chifferlistan kunde inte läsas.</value>
   </data>

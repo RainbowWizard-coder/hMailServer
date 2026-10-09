@@ -11421,6 +11421,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The check is read-only: the server does not delete or repair anything." xml:space="preserve">
     <value>このチェックは読み取り専用です。サーバーは何も削除も修復もしません。</value>
   </data>
+  <data name="The check itself failed: {0} This says nothing about the record." xml:space="preserve">
+    <value>確認自体が失敗しました: {0} これはレコードについて何も示していません。</value>
+  </data>
   <data name="The cipher list could not be read." xml:space="preserve">
     <value>暗号リストを読み取れませんでした。</value>
   </data>

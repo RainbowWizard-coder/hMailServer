@@ -11421,6 +11421,9 @@ Het volgende bericht aan dit adres wordt verzonden, en het komt pas weer op de l
   <data name="The check is read-only: the server does not delete or repair anything." xml:space="preserve">
     <value>De controle is alleen-lezen: de server verwijdert of repareert niets.</value>
   </data>
+  <data name="The check itself failed: {0} This says nothing about the record." xml:space="preserve">
+    <value>De controle zelf is mislukt: {0} Dit zegt niets over het record.</value>
+  </data>
   <data name="The cipher list could not be read." xml:space="preserve">
     <value>De cipherlijst kon niet worden gelezen.</value>
   </data>

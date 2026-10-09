@@ -11421,6 +11421,9 @@ A próxima mensagem para esse endereço será enviada, e ele só volta à lista 
   <data name="The check is read-only: the server does not delete or repair anything." xml:space="preserve">
     <value>A verificação é somente leitura: o servidor não exclui nem repara nada.</value>
   </data>
+  <data name="The check itself failed: {0} This says nothing about the record." xml:space="preserve">
+    <value>A própria verificação falhou: {0} Isso não diz nada sobre o registro.</value>
+  </data>
   <data name="The cipher list could not be read." xml:space="preserve">
     <value>A lista de cifras não pôde ser lida.</value>
   </data>

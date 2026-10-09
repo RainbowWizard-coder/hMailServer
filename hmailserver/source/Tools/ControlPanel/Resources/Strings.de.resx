@@ -11421,6 +11421,9 @@ Die nächste Nachricht an diese Adresse wird gesendet, und sie kommt erst wieder
   <data name="The check is read-only: the server does not delete or repair anything." xml:space="preserve">
     <value>Die Prüfung ist schreibgeschützt: der Server löscht oder repariert nichts.</value>
   </data>
+  <data name="The check itself failed: {0} This says nothing about the record." xml:space="preserve">
+    <value>Die Prüfung selbst schlug fehl: {0} Das sagt nichts über den Eintrag aus.</value>
+  </data>
   <data name="The cipher list could not be read." xml:space="preserve">
     <value>Die Cipher-Liste konnte nicht gelesen werden.</value>
   </data>

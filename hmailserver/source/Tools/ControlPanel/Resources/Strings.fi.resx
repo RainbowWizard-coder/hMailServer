@@ -11421,6 +11421,9 @@ Seuraava viesti tähän osoitteeseen lähetetään, ja osoite palaa listalle vas
   <data name="The check is read-only: the server does not delete or repair anything." xml:space="preserve">
     <value>Tarkistus on vain lukeva: palvelin ei poista eikä korjaa mitään.</value>
   </data>
+  <data name="The check itself failed: {0} This says nothing about the record." xml:space="preserve">
+    <value>Itse tarkistus epäonnistui: {0} Tämä ei kerro tietueesta mitään.</value>
+  </data>
   <data name="The cipher list could not be read." xml:space="preserve">
     <value>Salausluetteloa ei voitu lukea.</value>
   </data>

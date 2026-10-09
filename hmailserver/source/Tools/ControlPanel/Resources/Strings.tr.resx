@@ -11421,6 +11421,9 @@ Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerekt
   <data name="The check is read-only: the server does not delete or repair anything." xml:space="preserve">
     <value>Denetim salt okunurdur: sunucu hiçbir şeyi silmez veya onarmaz.</value>
   </data>
+  <data name="The check itself failed: {0} This says nothing about the record." xml:space="preserve">
+    <value>Denetimin kendisi başarısız oldu: {0} Bu, kayıt hakkında hiçbir şey söylemez.</value>
+  </data>
   <data name="The cipher list could not be read." xml:space="preserve">
     <value>Şifre listesi okunamadı.</value>
   </data>

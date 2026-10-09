@@ -1568,9 +1568,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   clipboard best effort, so nobody could tell whether a copy had worked. *Check all records*, in the page header, runs
   every check of the domain at once and sums them up in one notice above the cards, at the worst level any check
   reached, a line per verdict naming its records, worst first - "Not published: DKIM, TLS-RPT", "Published and
-  correct: MX, SPF, DMARC" - while each card shows its own verdict as its Check does. Every copy button says
-  *Copied* beside a tick for two seconds, and a screen reader is told; a copy that failed, another program holding the
-  clipboard, is said in a toast with the reason.
+  correct: MX, SPF, DMARC" - while each card shows its own verdict as its Check does; a check a card already has
+  running is waited for, and a check that fails is said as "Lookup failed", on its card and in the notice. Every
+  copy button says *Copied* beside a tick for two seconds, and a screen reader is told; a copy that failed, another
+  program holding the clipboard, is said in a toast with the reason.
 
 ### Administration
 

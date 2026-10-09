@@ -1250,9 +1250,13 @@ namespace hMailServer.ControlPanel.Views
       /// that mta-sts.&lt;domain&gt; resolves, the certificate validates for that
       /// name, the listener answers, and what it serves - the internet's view can
       /// still differ if a firewall treats this machine specially, and the result
-      /// says so rather than claiming more than one vantage point can know.
+      /// says so rather than claiming more than one vantage point can know. A fetch
+      /// already running is the one returned, as a record's check is (RunCheck).
       /// </summary>
-      private async Task FetchMtaStsPolicy(string domainName, Wpf.Ui.Controls.Button button, StatusPill mark, TextBlock text)
+      private Task FetchMtaStsPolicy(string domainName, Wpf.Ui.Controls.Button button, StatusPill mark, TextBlock text)
+         => Running_(button, () => FetchMtaStsPolicyOnce_(domainName, button, mark, text));
+
+      private async Task FetchMtaStsPolicyOnce_(string domainName, Wpf.Ui.Controls.Button button, StatusPill mark, TextBlock text)
       {
          string url = "https://mta-sts." + domainName + "/.well-known/mta-sts.txt";
 
@@ -1669,13 +1673,14 @@ namespace hMailServer.ControlPanel.Views
       /// lookup on a worker thread (it blocks for the resolver's full timeout when
       /// the record is missing - the common case right after publishing), then
       /// applies the verdict the worker prepared. DnsTxtLookup never throws; it
-      /// reports through its results.
+      /// reports through its results, and anything else that throws is said on the
+      /// card as a lookup that failed. A check already running is the one returned.
       /// </summary>
-      private static async Task RunCheck(RecordBlock block, string host, Func<Action> work)
-      {
-         if (!block.Check.IsEnabled)
-            return;
+      private static Task RunCheck(RecordBlock block, string host, Func<Action> work)
+         => Running_(block.Check, () => RunCheckOnce_(block, host, work));
 
+      private static async Task RunCheckOnce_(RecordBlock block, string host, Func<Action> work)
+      {
          block.Check.IsEnabled = false;
          block.SetResult(StatusLevel.Information, L("Checking…"), F("Looking up {0}…", host));
 
@@ -1684,10 +1689,40 @@ namespace hMailServer.ControlPanel.Views
             Action apply = await Task.Run(work);
             apply();
          }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            // A check that threw says so on its card, where its pill went on
+            // saying "Checking…" and the exception reached the dispatcher from
+            // the button's handler, which has no caller to catch it.
+            block.SetResult(StatusLevel.Information, L("Lookup failed"),
+               F("The check itself failed: {0} This says nothing about the record.", ex.Message));
+         }
          finally
          {
             block.Check.IsEnabled = true;
          }
+      }
+
+      // The check each Check button has running, so that Check all records waits
+      // for a check already running, where it returned at once and summed the
+      // record up as its pill read then, "Checking…", and the summary was not
+      // written again when the check ended (review finding F277). Keyed by the
+      // button, which is made with its card: cards built again have new buttons,
+      // with nothing running.
+      private static readonly ConditionalWeakTable<UIElement, Task> running_ = new();
+
+      /// <summary>
+      /// The check <paramref name="button"/> has running, or the one
+      /// <paramref name="start"/> starts, which is its running one until it ends.
+      /// </summary>
+      private static Task Running_(UIElement button, Func<Task> start)
+      {
+         if (running_.TryGetValue(button, out Task running) && !running.IsCompleted)
+            return running;
+
+         Task task = start();
+         running_.AddOrUpdate(button, task);
+         return task;
       }
 
       private static void SetLookupFailed(RecordBlock block, string host, string error)
@@ -1946,16 +1981,13 @@ namespace hMailServer.ControlPanel.Views
          checkSummary_.Text = F("Checking every record of {0}…", domain.Name);
          checkSummary_.Visibility = Visibility.Visible;
 
+         // Each check on its own, so that one that throws is summed up as a lookup
+         // that failed and the others' verdicts are still said; a check a card
+         // already has running is waited for (Running_).
+         bool[] faulted;
          try
          {
-            await Task.WhenAll(checks.Select(check => check.Run()));
-         }
-         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
-         {
-            // A check that threw left its pill as it was, and is summed up as
-            // that: the other checks' verdicts are still worth saying, and an
-            // exception let out of here would reach the dispatcher, since a
-            // button's async handler has no caller to catch it.
+            faulted = await Task.WhenAll(checks.Select(Faulted_));
          }
          finally
          {
@@ -1967,9 +1999,27 @@ namespace hMailServer.ControlPanel.Views
          if (!ReferenceEquals(checks[0], checks_.FirstOrDefault()))
             return;
 
-         var results = checks.Select(check => new DnsCheckSummary.Result(check.Record, check.Mark.Level, check.Mark.Text)).ToList();
+         var results = checks.Select((check, i) => DnsCheckSummary.Verdict(check.Record, check.Mark.Level, check.Mark.Text, faulted[i])).ToList();
          checkSummary_.Level = DnsCheckSummary.Worst(results);
          checkSummary_.Text = DnsCheckSummary.Text(domain.Name, results);
+      }
+
+      /// <summary>
+      /// Runs one check for Check all records: true when it threw, which the
+      /// awaiting of every check at once would have thrown again into the button's
+      /// async handler, which has no caller to catch it.
+      /// </summary>
+      private static async Task<bool> Faulted_(RecordCheck check)
+      {
+         try
+         {
+            await check.Run();
+            return false;
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            return true;
+         }
       }
 
       /// <summary>A button that opens the page owning a related setting - the same

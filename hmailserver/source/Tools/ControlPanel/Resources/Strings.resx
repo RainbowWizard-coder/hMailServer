@@ -11421,6 +11421,9 @@ The next message to it will be sent, and it is listed again only after as many h
   <data name="The check is read-only: the server does not delete or repair anything." xml:space="preserve">
     <value>The check is read-only: the server does not delete or repair anything.</value>
   </data>
+  <data name="The check itself failed: {0} This says nothing about the record." xml:space="preserve">
+    <value>The check itself failed: {0} This says nothing about the record.</value>
+  </data>
   <data name="The cipher list could not be read." xml:space="preserve">
     <value>The cipher list could not be read.</value>
   </data>

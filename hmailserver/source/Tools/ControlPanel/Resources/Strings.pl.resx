@@ -11558,6 +11558,9 @@ Następna wiadomość na ten adres zostanie wysłana, a adres wróci na listę d
   <data name="The check is read-only: the server does not delete or repair anything." xml:space="preserve">
     <value>Kontrola jest tylko do odczytu: serwer niczego nie usuwa ani nie naprawia.</value>
   </data>
+  <data name="The check itself failed: {0} This says nothing about the record." xml:space="preserve">
+    <value>Samo sprawdzenie nie powiodło się: {0} Nie mówi to nic o rekordzie.</value>
+  </data>
   <data name="The cipher list could not be read." xml:space="preserve">
     <value>Nie udało się odczytać listy szyfrów.</value>
   </data>

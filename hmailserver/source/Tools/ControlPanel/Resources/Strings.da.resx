@@ -11421,6 +11421,9 @@ Den næste besked til adressen bliver sendt, og den kommer først på listen ige
   <data name="The check is read-only: the server does not delete or repair anything." xml:space="preserve">
     <value>Kontrollen er skrivebeskyttet: serveren sletter eller reparerer ikke noget.</value>
   </data>
+  <data name="The check itself failed: {0} This says nothing about the record." xml:space="preserve">
+    <value>Selve kontrollen mislykkedes: {0} Dette siger intet om posten.</value>
+  </data>
   <data name="The cipher list could not be read." xml:space="preserve">
     <value>Cipher-listen kunne ikke læses.</value>
   </data>

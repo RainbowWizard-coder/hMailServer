@@ -64,6 +64,57 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal(5, lines.Length);
       }
 
+      /// <summary>
+      /// A check that threw, or whose pill still reads Checking… once Check all records
+      /// has waited for it, is summed up as Lookup failed, as a card says a lookup that
+      /// failed: "Checking…" was listed as a verdict for a check that was not running.
+      /// </summary>
+      [Fact]
+      public void ACheckThatThrew_OrStillReadsChecking_IsSummedUpAsLookupFailed()
+      {
+         var failed = new DnsCheckSummary.Result("MX", StatusLevel.Information, "Lookup failed");
+         Assert.Equal(failed, DnsCheckSummary.Verdict("MX", StatusLevel.Good, "Published and correct", faulted: true));
+         Assert.Equal(failed, DnsCheckSummary.Verdict("MX", StatusLevel.Information, "Checking…", faulted: false));
+         Assert.Equal(new DnsCheckSummary.Result("MX", StatusLevel.Good, "Published and correct"),
+            DnsCheckSummary.Verdict("MX", StatusLevel.Good, "Published and correct", faulted: false));
+
+         var results = new[]
+         {
+            DnsCheckSummary.Verdict("MX", StatusLevel.Information, "Checking…", faulted: true),
+            DnsCheckSummary.Verdict("SPF", StatusLevel.Good, "Published and correct", faulted: false),
+            DnsCheckSummary.Verdict("DKIM", StatusLevel.Information, "Checking…", faulted: false),
+         };
+         Assert.Equal(new[] { "Lookup failed: MX, DKIM", "Published and correct: SPF" }, DnsCheckSummary.Lines(results));
+         Assert.DoesNotContain("Checking", DnsCheckSummary.Text("example.com", results), StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// Check all records waits for a check a card already has running, where it
+      /// returned at once and summed the record up as "Checking…"; the MTA-STS
+      /// policy's fetch the same; and a check that throws says so on its card.
+      /// </summary>
+      [Fact]
+      public void ACheckAlreadyRunning_IsTheOneCheckAllRecordsWaitsFor()
+      {
+         string page = ReadPage();
+         Assert.DoesNotContain("if (!block.Check.IsEnabled)", page, StringComparison.Ordinal);
+         string lines = page.Replace("\r\n", "\n");
+         Assert.Contains("private static Task RunCheck(RecordBlock block, string host, Func<Action> work)\n         => Running_(block.Check, () => RunCheckOnce_(block, host, work));",
+            lines, StringComparison.Ordinal);
+         Assert.Contains("private Task FetchMtaStsPolicy(string domainName, Wpf.Ui.Controls.Button button, StatusPill mark, TextBlock text)\n         => Running_(button, () => FetchMtaStsPolicyOnce_(domainName, button, mark, text));",
+            lines, StringComparison.Ordinal);
+
+         string running = WithheldRowTests.MemberText(page, "private static Task Running_(UIElement button, Func<Task> start)");
+         Assert.True(running != null, "DnsRecordsView.Running_ is gone.");
+         Assert.Contains("running_.TryGetValue(button, out Task running) && !running.IsCompleted", running, StringComparison.Ordinal);
+         Assert.Contains("running_.AddOrUpdate(button, task);", running, StringComparison.Ordinal);
+
+         string once = WithheldRowTests.MemberText(page, "private static async Task RunCheckOnce_(RecordBlock block, string host, Func<Action> work)");
+         Assert.True(once != null, "DnsRecordsView.RunCheckOnce_ is gone.");
+         Assert.Contains("catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))", once, StringComparison.Ordinal);
+         Assert.Contains("L(\"Lookup failed\")", once, StringComparison.Ordinal);
+      }
+
       /// <summary>Every card's check is one Check all records runs, the MTA-STS policy's fetch with them.</summary>
       [Fact]
       public void EveryRecordsCheck_IsOneCheckAllRecordsRuns()
@@ -76,11 +127,16 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          string all = WithheldRowTests.MemberText(page, "private async Task CheckAll_()");
          Assert.True(all != null, "DnsRecordsView.CheckAll_ is gone.");
-         Assert.Contains("await Task.WhenAll(checks.Select(check => check.Run()));", all, StringComparison.Ordinal);
+         Assert.Contains("faulted = await Task.WhenAll(checks.Select(Faulted_));", all, StringComparison.Ordinal);
 
-         // A check that throws is summed up as its pill was left, and the exception
-         // goes no further than the button's async handler, which has no caller.
-         Assert.Contains("catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))", all, StringComparison.Ordinal);
+         // A check that throws is summed up as a lookup that failed, and the
+         // exception goes no further than its own check: the button's async
+         // handler has no caller to catch it.
+         string faulted = WithheldRowTests.MemberText(page, "private static async Task<bool> Faulted_(RecordCheck check)");
+         Assert.True(faulted != null, "DnsRecordsView.Faulted_ is gone.");
+         Assert.Contains("await check.Run();", faulted, StringComparison.Ordinal);
+         Assert.Contains("catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))", faulted, StringComparison.Ordinal);
+         Assert.Contains("DnsCheckSummary.Verdict(check.Record, check.Mark.Level, check.Mark.Text, faulted[i])", all, StringComparison.Ordinal);
          Assert.Contains("checkSummary_.Level = DnsCheckSummary.Worst(results);", all, StringComparison.Ordinal);
          Assert.Contains("checkSummary_.Text = DnsCheckSummary.Text(domain.Name, results);", all, StringComparison.Ordinal);
 

@@ -11558,6 +11558,9 @@ Příští zpráva na tuto adresu bude odeslána a na seznam se adresa vrátí a
   <data name="The check is read-only: the server does not delete or repair anything." xml:space="preserve">
     <value>Kontrola je pouze pro čtení: server nic nemaže ani neopravuje.</value>
   </data>
+  <data name="The check itself failed: {0} This says nothing about the record." xml:space="preserve">
+    <value>Samotná kontrola selhala: {0} O záznamu to nevypovídá nic.</value>
+  </data>
   <data name="The cipher list could not be read." xml:space="preserve">
     <value>Seznam šifer se nepodařilo přečíst.</value>
   </data>

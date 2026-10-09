@@ -24,6 +24,18 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>One check's outcome: the record, the level its verdict is at, and the verdict's own word.</summary>
       public sealed record Result(string Record, StatusLevel Level, string Word);
 
+      /// <summary>
+      /// One check's outcome as the summary says it: the level and the word its pill
+      /// was left at - or Lookup failed at Information, as a card says a lookup that
+      /// failed, for a check that threw or whose pill still reads Checking… once Check
+      /// all records has waited for it, where the summary listed "Checking…: MX" as a
+      /// verdict for a check that was not running.
+      /// </summary>
+      public static Result Verdict(string record, StatusLevel level, string word, bool faulted)
+         => faulted || word == L("Checking…")
+            ? new Result(record, StatusLevel.Information, L("Lookup failed"))
+            : new Result(record, level, word);
+
       /// <summary>The worst level any check reached; Normal when there was none.</summary>
       public static StatusLevel Worst(IEnumerable<Result> results)
          => (results ?? Enumerable.Empty<Result>()).Select(r => r.Level).DefaultIfEmpty(StatusLevel.Normal).Max();

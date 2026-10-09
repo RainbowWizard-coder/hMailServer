@@ -11558,6 +11558,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The check is read-only: the server does not delete or repair anything." xml:space="preserve">
     <value>Проверка выполняется только на чтение: сервер ничего не удаляет и не исправляет.</value>
   </data>
+  <data name="The check itself failed: {0} This says nothing about the record." xml:space="preserve">
+    <value>Сама проверка не удалась: {0} Это ничего не говорит о записи.</value>
+  </data>
   <data name="The cipher list could not be read." xml:space="preserve">
     <value>Список шифров не удалось прочитать.</value>
   </data>
