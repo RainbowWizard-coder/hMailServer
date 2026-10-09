@@ -12566,9 +12566,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Збережений дайджест не є придатним значенням SHA-256, тому цей розділ нічого не автентифікує. Відкличте його і створіть заміну.</value>
   </data>
-  <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
-    <value>Збережений термін дії не вдалося прочитати у формі, якої очікує ця сторінка (РРРР-ММ-ДД ГГ:ХХ:СС), тому звідси не можна сказати, чи сервер ще приймає цей ключ. Якщо рядок редагували вручну, виправте його; інакше відкличте ключ і створіть заміну.</value>
-  </data>
   <data name="The stored-secrets key - what the database's secrets are sealed under" xml:space="preserve">
     <value>Ключ збережених секретів - те, чим запечатано секрети бази даних</value>
   </data>
@@ -12799,6 +12796,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="This mailbox cannot be moved at the moment: {0}" xml:space="preserve">
     <value>Цю скриньку зараз не можна перенести: {0}</value>
+  </data>
+  <data name="This page reads an expiry only in the form YYYY-MM-DD HH:MM:SS, so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
+    <value>Ця сторінка читає термін дії лише у формі РРРР-ММ-ДД ГГ:ХХ:СС, тому звідси не можна сказати, чи сервер ще приймає цей ключ. Якщо рядок редагували вручну, виправте його; інакше відкличте ключ і створіть заміну.</value>
   </data>
   <data name="This page used to collect every hMailServer.INI value without a home, which meant it was filed by where the value is stored rather than by what it does - and where a value is stored is the one thing you never need to know. Each of these now sits with the rest of its own feature. Nothing was removed and no value changed; only the page it is edited on." xml:space="preserve">
     <value>Раніше ця сторінка збирала кожне значення hMailServer.INI, у якого не було свого місця, - тобто розкладала їх за тим, де значення зберігається, а не за тим, що воно робить; а де зберігається значення - єдине, що вам ніколи не потрібно знати. Тепер кожне з них лежить разом із рештою своєї функції. Нічого не прибрано і жодне значення не змінено; змінилася лише сторінка, на якій воно редагується.</value>

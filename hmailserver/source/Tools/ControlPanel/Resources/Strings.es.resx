@@ -12403,9 +12403,6 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>El resumen almacenado no es un valor SHA-256 utilizable, así que esta sección no autentica nada. Revóquela y cree un reemplazo.</value>
   </data>
-  <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
-    <value>La caducidad guardada no pudo leerse en el formato que esta página espera (YYYY-MM-DD HH:MM:SS), así que desde aquí no puede saberse si el servidor sigue aceptando esta clave. Si la línea se editó a mano, corríjala; en caso contrario, revoque la clave y cree una de repuesto.</value>
-  </data>
   <data name="The stored-secrets key - what the database's secrets are sealed under" xml:space="preserve">
     <value>La clave de secretos almacenados - con la que se sellan los secretos de la base de datos</value>
   </data>
@@ -12636,6 +12633,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="This mailbox cannot be moved at the moment: {0}" xml:space="preserve">
     <value>Este buzón no se puede mover en este momento: {0}</value>
+  </data>
+  <data name="This page reads an expiry only in the form YYYY-MM-DD HH:MM:SS, so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
+    <value>Esta página solo lee una caducidad en el formato YYYY-MM-DD HH:MM:SS, así que desde aquí no puede saberse si el servidor sigue aceptando esta clave. Si la línea se editó a mano, corríjala; en caso contrario, revoque la clave y cree una de repuesto.</value>
   </data>
   <data name="This page used to collect every hMailServer.INI value without a home, which meant it was filed by where the value is stored rather than by what it does - and where a value is stored is the one thing you never need to know. Each of these now sits with the rest of its own feature. Nothing was removed and no value changed; only the page it is edited on." xml:space="preserve">
     <value>Esta página recogía antes todos los valores de hMailServer.INI que no tenían sitio propio, lo que significaba que quedaban archivados por dónde se guarda el valor y no por lo que hace - y dónde se guarda un valor es lo único que nunca necesita saber. Cada uno de ellos está ahora junto al resto de su propia función. No se quitó nada ni cambió ningún valor; solo la página en la que se edita.</value>

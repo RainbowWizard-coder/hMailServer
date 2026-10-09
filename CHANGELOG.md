@@ -971,15 +971,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `TcpIpPortsPageTests` hold the sentences, the brackets, the action and the server's state.
 - **Fixed: the REST API keys page's pills said how much attention a key wanted and not what it was, two of its texts
   were never translated, and an empty store was said twice.** Each key's pill read a severity word - *Warning* for a
-  key with full authority, *OK* for a read-only one, *Information* for an expired one; it now names the key's state
-  at its level: *Full authority* (Warning), *Read-only* (Good), *Expired* (Normal), *Ignored* (Warning) for a section
-  with no usable digest, and *Expiry unreadable* (Warning) for an expiry this page cannot read; the sentence beside
-  it says what that means for the key - "This key can change and delete things. Expires ...", "Expires ...", "Since
-  ..., every request it makes is refused.", "The stored digest is not a usable SHA-256 value..." - and no longer
-  names the state again, where "Read-only" stood beside "Read-only. Expires ..." and "Ignored" beside "Ignored by the
-  server - ...". The new key's line put the English "read-only" into every language, and the source field's example,
-  "10.0.0.5, or 10.0.0.0/24, or 10.0.0.1-10.0.0.99", carried the English "or" into German and Japanese under a
-  caption that promised a list where the store takes one value: the line uses the translated state, and the field is
+  key with full authority, *OK* for a read-only one, *Information* for an expired one; it now names the key's state at
+  its level: *Full authority* (Warning), *Read-only* (Good), *Expired* (Normal), *Ignored* (Warning) for a section
+  with no usable digest, and *Expiry unreadable* (Warning) for an expiry this page cannot read; the sentence beside it
+  says what that means for the key - "This key can change and delete things. Expires ...", "Expires ...", "Since ...,
+  every request it makes is refused.", "The stored digest is not a usable SHA-256 value...", "This page reads an
+  expiry only in the form YYYY-MM-DD HH:MM:SS, so whether the server still accepts this key cannot be told from
+  here..." - and no longer names the state again, where "Read-only" stood beside "Read-only. Expires ...", "Ignored"
+  beside "Ignored by the server - ..." and *Expiry unreadable* beside "The stored expiry could not be read in the form
+  this page expects...". The new key's line put the English "read-only" into every language, and the source field's
+  example, "10.0.0.5, or 10.0.0.0/24, or 10.0.0.1-10.0.0.99", carried the English "or" into German and Japanese under
+  a caption that promised a list where the store takes one value: the line uses the translated state, and the field is
   *Source address or range it may be used from (optional)* with "For example 10.0.0.5 or 10.0.0.0/24" in each
   language. An empty store is said once, by the list's empty state, with *Create the first key...*, where an
   Information notice above it said the same. Held by `ApiKeysPageTests`.

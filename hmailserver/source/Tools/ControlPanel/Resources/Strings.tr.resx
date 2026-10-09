@@ -12403,9 +12403,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Saklanan özet kullanılabilir bir SHA-256 değeri değil; bu yüzden bu bölüm hiçbir şeyi doğrulamıyor. İptal edip yerine yenisini oluşturun.</value>
   </data>
-  <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
-    <value>Saklanan süre sonu bu sayfanın beklediği biçimde (YYYY-AA-GG SS:DD:SS) okunamadı; bu yüzden sunucunun bu anahtarı hâlâ kabul edip etmediği buradan söylenemez. Satır elle düzenlendiyse düzeltin; aksi hâlde anahtarı iptal edip bir yenisini oluşturun.</value>
-  </data>
   <data name="The stored-secrets key - what the database's secrets are sealed under" xml:space="preserve">
     <value>Saklanan sırlar anahtarı - veritabanının sırlarının altında mühürlendiği şey</value>
   </data>
@@ -12636,6 +12633,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="This mailbox cannot be moved at the moment: {0}" xml:space="preserve">
     <value>Bu posta kutusu şu anda taşınamaz: {0}</value>
+  </data>
+  <data name="This page reads an expiry only in the form YYYY-MM-DD HH:MM:SS, so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
+    <value>Bu sayfa süre sonunu yalnızca YYYY-AA-GG SS:DD:SS biçiminde okur; bu yüzden sunucunun bu anahtarı hâlâ kabul edip etmediği buradan söylenemez. Satır elle düzenlendiyse düzeltin; aksi hâlde anahtarı iptal edip bir yenisini oluşturun.</value>
   </data>
   <data name="This page used to collect every hMailServer.INI value without a home, which meant it was filed by where the value is stored rather than by what it does - and where a value is stored is the one thing you never need to know. Each of these now sits with the rest of its own feature. Nothing was removed and no value changed; only the page it is edited on." xml:space="preserve">
     <value>Bu sayfa eskiden yuvası olmayan her hMailServer.INI değerini toplardı; bu da değerin ne yaptığına göre değil, nerede saklandığına göre dosyalandığı anlamına geliyordu - ve bir değerin nerede saklandığı, bilmenize hiç gerek olmayan tek şeydir. Bunların her biri artık kendi özelliğinin geri kalanıyla birlikte duruyor. Hiçbir şey kaldırılmadı ve hiçbir değer değişmedi; yalnızca düzenlendiği sayfa değişti.</value>

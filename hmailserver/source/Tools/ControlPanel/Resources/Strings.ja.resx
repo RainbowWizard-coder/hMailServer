@@ -12403,9 +12403,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>保存されているダイジェストが使用可能な SHA-256 値ではないため、このセクションは何も認証しません。失効させて代わりを作成してください。</value>
   </data>
-  <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
-    <value>保存された有効期限を、このページが期待する形式 (YYYY-MM-DD HH:MM:SS) で読み取れなかったため、サーバーがこのキーをまだ受け入れるかどうかはここからは分かりません。行を手で編集した場合は修正してください。そうでなければ、キーを失効させて代わりを作成してください。</value>
-  </data>
   <data name="The stored-secrets key - what the database's secrets are sealed under" xml:space="preserve">
     <value>保存シークレットの鍵 - データベースのシークレットを封印するもの</value>
   </data>
@@ -12636,6 +12633,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="This mailbox cannot be moved at the moment: {0}" xml:space="preserve">
     <value>このメールボックスは現在移動できません: {0}</value>
+  </data>
+  <data name="This page reads an expiry only in the form YYYY-MM-DD HH:MM:SS, so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
+    <value>このページが読み取る有効期限の形式は YYYY-MM-DD HH:MM:SS だけなので、サーバーがこのキーをまだ受け入れるかどうかはここからは分かりません。行を手で編集した場合は修正してください。そうでなければ、キーを失効させて代わりを作成してください。</value>
   </data>
   <data name="This page used to collect every hMailServer.INI value without a home, which meant it was filed by where the value is stored rather than by what it does - and where a value is stored is the one thing you never need to know. Each of these now sits with the rest of its own feature. Nothing was removed and no value changed; only the page it is edited on." xml:space="preserve">
     <value>このページはかつて、行き場のないすべての hMailServer.INI 値を集めていました。つまり、値が何をするかではなく、どこに保存されているかで分類されていたのです。値がどこに保存されているかは、知る必要がまったくない唯一の事柄です。これらはそれぞれ、今は自身の機能の他の設定と一緒に置かれています。何も削除されておらず、値も変わっていません。編集するページが変わっただけです。</value>

@@ -3,9 +3,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using Xunit;
 
 namespace hMailServer.ControlPanel.Tests.Services
@@ -67,6 +69,38 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("state = F(\"This key can change and delete things. Expires {0}.\"", row, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// The sentence beside "Expiry unreadable" starts from the reason - the one
+      /// form of expiry this page reads - and does not say again that the expiry
+      /// could not be read: it read "The stored expiry could not be read in the
+      /// form this page expects (YYYY-MM-DD HH:MM:SS), ...", German "Der
+      /// gespeicherte Ablauf konnte nicht in der Form gelesen werden, ...", the
+      /// pill's state in other words, which a test of the pill's own words beside
+      /// it did not see. No catalogue keeps the old sentence.
+      /// </summary>
+      [Fact]
+      public void TheSentenceBesideExpiryUnreadable_StartsFromTheReason_AndDoesNotSayTheExpiryCouldNotBeRead()
+      {
+         Match unreadable = Regex.Match(KeyRow(), @"state = key\.ExpiresAt == null\s*\?\s*L\(""((?:[^""\\]|\\.)*)""\)");
+         Assert.True(unreadable.Success, "The sentence beside Expiry unreadable is gone.");
+         string sentence = unreadable.Groups[1].Value;
+         Assert.StartsWith("This page reads an expiry only in the form YYYY-MM-DD HH:MM:SS, so ", sentence, StringComparison.Ordinal);
+         foreach (string again in new[] { "could not be read", "cannot be read", "unreadable" })
+            Assert.False(sentence.Contains(again, StringComparison.OrdinalIgnoreCase), "\"" + sentence + "\" says again that the expiry could not be read (\"" + again + "\").");
+
+         string resources = ResourcesDirectory();
+         foreach (string path in Directory.GetFiles(resources, "Strings*.resx"))
+         {
+            Dictionary<string, string> catalogue = ReadResx(path);
+            Assert.True(catalogue.TryGetValue(sentence, out string value) && value.Length > 0, Path.GetFileName(path) + " has no translation of the sentence beside Expiry unreadable.");
+            Assert.False(catalogue.Keys.Any(k => k.StartsWith("The stored expiry could not be read", StringComparison.Ordinal)), Path.GetFileName(path) + " still holds the old sentence.");
+         }
+
+         string german = ReadResx(Path.Join(resources, "Strings.de.resx"))[sentence];
+         Assert.False(german.StartsWith("Der gespeicherte Ablauf", StringComparison.Ordinal), "The German sentence says again that the expiry could not be read: " + german);
+         Assert.DoesNotContain("nicht gelesen", german, StringComparison.Ordinal);
+      }
+
       [Fact]
       public void AnExpiredKey_IsNormal_AndOneWhoseExpiryCannotBeRead_IsAWarning()
       {
@@ -102,6 +136,29 @@ namespace hMailServer.ControlPanel.Tests.Services
          string row = WithheldRowTests.MemberText(Source(), "private FrameworkElement BuildKeyRow_(ApiKeyRecord key)");
          Assert.True(row != null, "ApiKeysView.BuildKeyRow_ is gone.");
          return row;
+      }
+
+      private static Dictionary<string, string> ReadResx(string path)
+      {
+         var result = new Dictionary<string, string>(StringComparer.Ordinal);
+         foreach (XElement data in XDocument.Load(path).Root.Elements("data"))
+            result[(string)data.Attribute("name")] = data.Element("value")?.Value ?? "";
+         return result;
+      }
+
+      private static string ResourcesDirectory()
+      {
+         var directory = new DirectoryInfo(AppContext.BaseDirectory);
+         while (directory != null)
+         {
+            string candidate = Path.Join(directory.FullName, "ControlPanel", "Resources");
+            if (File.Exists(Path.Join(candidate, "Strings.resx")))
+               return candidate;
+            directory = directory.Parent;
+         }
+
+         Assert.Fail("ControlPanel/Resources could not be found from the test binaries.");
+         return null;
       }
 
       private static string Source()

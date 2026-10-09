@@ -384,7 +384,7 @@ namespace hMailServer.ControlPanel.Views
             // (rewrite the line, or revoke and re-create) is the same either way
             // without needing to assert which of us is right.
             state = key.ExpiresAt == null
-               ? L("The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement.")
+               ? L("This page reads an expiry only in the form YYYY-MM-DD HH:MM:SS, so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement.")
                : F("Since {0}, every request it makes is refused.", key.ExpiresAt.Value.ToString("d MMMM yyyy HH:mm", CultureInfo.CurrentCulture)); // no-loc
          }
          else if (!key.ReadOnly)
@@ -408,7 +408,8 @@ namespace hMailServer.ControlPanel.Views
          // It does not name the state again: "Read-only" in the pill beside
          // "Read-only. Expires ..." was said twice, to the eye and to a reader,
          // as were "Full authority", "Expired" and "Ignored" beside sentences
-         // that began with them.
+         // that began with them, and "Expiry unreadable" beside "The stored
+         // expiry could not be read in the form this page expects ...".
          stateRow.Children.Add(new StatusPill
          {
             Level = level,

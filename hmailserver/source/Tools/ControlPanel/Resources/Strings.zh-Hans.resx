@@ -12403,9 +12403,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>存储的摘要不是可用的 SHA-256 值，因此此节无法验证任何内容。请吊销它并创建一个替代品。</value>
   </data>
-  <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
-    <value>无法以本页预期的格式 (YYYY-MM-DD HH:MM:SS) 读取存储的到期时间，因此从此处无法判断服务器是否仍接受此密钥。如果该行是手动编辑的，请更正它；否则请吊销该密钥并创建一个替代。</value>
-  </data>
   <data name="The stored-secrets key - what the database's secrets are sealed under" xml:space="preserve">
     <value>存储机密密钥 - 数据库机密的封存所用</value>
   </data>
@@ -12636,6 +12633,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="This mailbox cannot be moved at the moment: {0}" xml:space="preserve">
     <value>此邮箱当前无法迁移：{0}</value>
+  </data>
+  <data name="This page reads an expiry only in the form YYYY-MM-DD HH:MM:SS, so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
+    <value>本页只读取 YYYY-MM-DD HH:MM:SS 格式的到期时间，因此从此处无法判断服务器是否仍接受此密钥。如果该行是手动编辑的，请更正它；否则请吊销该密钥并创建一个替代。</value>
   </data>
   <data name="This page used to collect every hMailServer.INI value without a home, which meant it was filed by where the value is stored rather than by what it does - and where a value is stored is the one thing you never need to know. Each of these now sits with the rest of its own feature. Nothing was removed and no value changed; only the page it is edited on." xml:space="preserve">
     <value>本页以前收集所有没有归属的 hMailServer.INI 值，也就是说它们是按值存放在哪里归档的，而不是按它们做什么 - 而值存放在哪里恰恰是您永远不需要知道的事。现在每一项都和它自己的功能放在一起。没有移除任何内容，也没有更改任何值；只有编辑它的页面变了。</value>

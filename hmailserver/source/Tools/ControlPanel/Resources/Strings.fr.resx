@@ -12403,9 +12403,6 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Le digest stocké n'est pas une valeur SHA-256 utilisable, donc cette section n'authentifie rien. Révoquez-la et créez un remplacement.</value>
   </data>
-  <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
-    <value>L'expiration stockée n'a pas pu être lue dans la forme attendue par cette page (AAAA-MM-JJ HH:MM:SS) : on ne peut donc pas dire d'ici si le serveur accepte encore cette clé. Si la ligne a été modifiée à la main, corrigez-la ; sinon, révoquez la clé et créez-en une de remplacement.</value>
-  </data>
   <data name="The stored-secrets key - what the database's secrets are sealed under" xml:space="preserve">
     <value>La clé des secrets stockés - ce sous quoi les secrets de la base de données sont scellés</value>
   </data>
@@ -12636,6 +12633,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="This mailbox cannot be moved at the moment: {0}" xml:space="preserve">
     <value>Cette boîte aux lettres ne peut pas être déplacée pour le moment : {0}</value>
+  </data>
+  <data name="This page reads an expiry only in the form YYYY-MM-DD HH:MM:SS, so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
+    <value>Cette page ne lit une expiration que sous la forme AAAA-MM-JJ HH:MM:SS : on ne peut donc pas dire d'ici si le serveur accepte encore cette clé. Si la ligne a été modifiée à la main, corrigez-la ; sinon, révoquez la clé et créez-en une de remplacement.</value>
   </data>
   <data name="This page used to collect every hMailServer.INI value without a home, which meant it was filed by where the value is stored rather than by what it does - and where a value is stored is the one thing you never need to know. Each of these now sits with the rest of its own feature. Nothing was removed and no value changed; only the page it is edited on." xml:space="preserve">
     <value>Cette page rassemblait autrefois toutes les valeurs de hMailServer.INI sans domicile, ce qui voulait dire qu'elles étaient classées selon l'endroit où la valeur est stockée plutôt que selon ce qu'elle fait - et l'endroit où une valeur est stockée est la seule chose que vous n'avez jamais besoin de savoir. Chacune d'elles se trouve maintenant avec le reste de sa propre fonction. Rien n'a été retiré et aucune valeur n'a changé ; seule la page sur laquelle elle se modifie.</value>

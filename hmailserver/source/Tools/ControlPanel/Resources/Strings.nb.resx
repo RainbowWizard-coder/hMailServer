@@ -12403,9 +12403,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Den lagrede digesten er ikke en brukbar SHA-256-verdi, så denne seksjonen autentiserer ingenting. Tilbakekall den og opprett en erstatning.</value>
   </data>
-  <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
-    <value>Det lagrede utløpet kunne ikke leses i formen denne siden forventer (ÅÅÅÅ-MM-DD TT:MM:SS), så om serveren fortsatt godtar denne nøkkelen, kan ikke avgjøres herfra. Hvis linjen ble redigert for hånd, rett den; ellers tilbakekall nøkkelen og opprett en erstatning.</value>
-  </data>
   <data name="The stored-secrets key - what the database's secrets are sealed under" xml:space="preserve">
     <value>Nøkkelen for lagrede hemmeligheter - det databasens hemmeligheter er forseglet under</value>
   </data>
@@ -12636,6 +12633,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="This mailbox cannot be moved at the moment: {0}" xml:space="preserve">
     <value>Denne postboksen kan ikke flyttes akkurat nå: {0}</value>
+  </data>
+  <data name="This page reads an expiry only in the form YYYY-MM-DD HH:MM:SS, so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
+    <value>Denne siden leser et utløp bare i formen ÅÅÅÅ-MM-DD TT:MM:SS, så om serveren fortsatt godtar denne nøkkelen, kan ikke avgjøres herfra. Hvis linjen ble redigert for hånd, rett den; ellers tilbakekall nøkkelen og opprett en erstatning.</value>
   </data>
   <data name="This page used to collect every hMailServer.INI value without a home, which meant it was filed by where the value is stored rather than by what it does - and where a value is stored is the one thing you never need to know. Each of these now sits with the rest of its own feature. Nothing was removed and no value changed; only the page it is edited on." xml:space="preserve">
     <value>Denne siden samlet tidligere hver hMailServer.INI-verdi uten et hjem, som betydde at den ble sortert etter hvor verdien lagres, ikke etter hva den gjør - og hvor en verdi lagres, er det ene du aldri trenger å vite. Hver av dem sitter nå sammen med resten av sin egen funksjon. Ingenting ble fjernet, og ingen verdi endret seg; bare siden den redigeres på.</value>
