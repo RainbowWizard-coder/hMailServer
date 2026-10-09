@@ -111,6 +111,152 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal(new[] { "new" }, tail.Read(log));
       }
 
+      // ---- the UTF-16LE logs ------------------------------------------------------------
+
+      // The script events and backup logs as the server writes them on Windows: UTF-16LE,
+      // the byte order mark first (Logger.cpp, WritesUtf16_; File::Write(String)).
+      private static readonly Encoding Utf16 = new UnicodeEncoding(bigEndian: false, byteOrderMark: false);
+
+      private static void AppendUtf16(Stream log, string text)
+      {
+         byte[] bytes = Utf16.GetBytes(text);
+         log.Seek(0, SeekOrigin.End);
+         log.Write(bytes, 0, bytes.Length);
+      }
+
+      private static MemoryStream Utf16Log(string text)
+      {
+         var log = new MemoryStream();
+         log.Write(new byte[] { 0xFF, 0xFE });
+         AppendUtf16(log, text);
+         return log;
+      }
+
+      [Fact]
+      public void AUtf16Log_WithItsMark_IsReadAsText_WithoutTheMarkOrANul()
+      {
+         // An events line - thread, "time", "text" - and a backup line - time, text.
+         using MemoryStream log = Utf16Log("4712\t\"2026-10-09 10:00:00.123\"\t\"OnAcceptMessage ran: ü 日本\"\r\n2026-10-09 10:01:00.456\tBackup started\r\n");
+         var tail = new LiveLogTail();
+
+         IReadOnlyList<string> read = tail.Read(log);
+         Assert.Equal(new[] { "4712\t\"2026-10-09 10:00:00.123\"\t\"OnAcceptMessage ran: ü 日本\"", "2026-10-09 10:01:00.456\tBackup started" }, read);
+         Assert.DoesNotContain(read, line => line.Contains('\0') || line.Contains('�') || line.Contains('﻿'));
+         Assert.Equal(log.Length, tail.Position);
+         Assert.Equal(1200, tail.Encoding.CodePage);
+
+         // So each splits into its parts, its quotes and tabs taken off.
+         LiveLogFiles.Parts events = LiveLogFiles.Split(read[0], LiveLogKind.Events);
+         Assert.Equal("4712", events.Thread);
+         Assert.Equal("2026-10-09 10:00:00.123", events.Time);
+         Assert.Equal("OnAcceptMessage ran: ü 日本", events.Text);
+         LiveLogFiles.Parts backup = LiveLogFiles.Split(read[1], LiveLogKind.Backup);
+         Assert.Equal("2026-10-09 10:01:00.456", backup.Time);
+         Assert.Equal("Backup started", backup.Text);
+      }
+
+      [Fact]
+      public void AUtf16Line_TheServerIsStillWriting_WaitsForItsEnd_HalfACharacterIncluded()
+      {
+         using MemoryStream log = Utf16Log("first\r\nsec");
+         var tail = new LiveLogTail();
+         Assert.Equal(new[] { "first" }, tail.Read(log));
+
+         // Half of the next character: the line waits whole, and so does the byte.
+         log.Seek(0, SeekOrigin.End);
+         log.WriteByte((byte)'o');
+         Assert.Empty(tail.Read(log));
+
+         log.WriteByte(0);
+         AppendUtf16(log, "nd\r\n");
+         Assert.Equal(new[] { "second" }, tail.Read(log));
+         Assert.Equal(log.Length, tail.Position);
+      }
+
+      [Fact]
+      public void AUtf16Line_EndsOnlyAtALineFeedOnACharactersBoundary()
+      {
+         // U+0A0A followed by U+0100 is the bytes 0A 0A 00 01: a line feed and a NUL
+         // side by side, across two characters - not a line's end.
+         using MemoryStream log = Utf16Log("aਊĀb\r\nc\r\n");
+         Assert.Equal(new[] { "aਊĀb", "c" }, new LiveLogTail().Read(log));
+      }
+
+      [Fact]
+      public void AUtf16TailBegunMidFile_AtAnOddByte_StartsAtTheNextWholeLine()
+      {
+         // A thousand lines of 100 characters with their CR LF, 200 bytes each, after
+         // the mark; the last character half written makes the length odd, so the
+         // tail would begin in the middle of a character, and begins a byte earlier.
+         string[] lines = Enumerable.Range(0, 1000).Select(i => (i + "\t\"2026-10-09 10:00:00.000\"\t\"event\"").PadRight(98, 'x')).ToArray();
+         using MemoryStream log = Utf16Log(string.Concat(lines.Select(line => line + "\r\n")));
+         log.Seek(0, SeekOrigin.End);
+         log.WriteByte((byte)'h');
+         Assert.Equal(2 + 200_000 + 1, log.Length);
+
+         var tail = new LiveLogTail();
+         tail.StartAt(log.Length);
+         Assert.Equal(1, tail.Position % 2);
+
+         // The tail's first byte, 200,003 - 65,536 = 134,467, rounds to 134,466: 64
+         // bytes, 32 characters, into line 672 (whose first byte is 2 + 672 * 200).
+         IReadOnlyList<string> read = tail.Read(log);
+         Assert.Equal(lines[673..], read);
+         Assert.Equal(log.Length - 1, tail.Position);
+      }
+
+      [Fact]
+      public void AUtf16TailBegunExactlyAtALinesStart_KeepsThatLine()
+      {
+         // The last TailBytes of the file are exactly its last line.
+         string last = new string('w', (int)LiveLogTail.TailBytes / 2 - 2);
+         using MemoryStream log = Utf16Log("zzzzzzzzzz\r\n" + last + "\r\n");
+
+         var tail = new LiveLogTail();
+         tail.StartAt(log.Length);
+         Assert.Equal(2 + 24, tail.Position);
+         Assert.Equal(new[] { last }, tail.Read(log));
+      }
+
+      [Fact]
+      public void AUtf16LogWithoutItsMark_IsUtf16Still_AsCopytruncateLeavesIt()
+      {
+         // logrotate's copytruncate empties the file and the server goes on writing
+         // UTF-16LE with no mark: the second byte NUL under a first that is not.
+         using var log = new MemoryStream();
+         AppendUtf16(log, "2026-10-09 10:01:00.456\tBackup started\r\n");
+         var tail = new LiveLogTail();
+         Assert.Equal(new[] { "2026-10-09 10:01:00.456\tBackup started" }, tail.Read(log));
+         Assert.Equal(1200, tail.Encoding.CodePage);
+      }
+
+      [Fact]
+      public void AReplacedLog_IsDecidedAgain_UTF8AfterUTF16()
+      {
+         using MemoryStream log = Utf16Log("old one\r\nold two\r\nold three\r\n");
+         var tail = new LiveLogTail();
+         Assert.Equal(3, tail.Read(log).Count);
+
+         log.SetLength(0);
+         Append(log, "new\r\n");
+         Assert.Equal(new[] { "new" }, tail.Read(log));
+         Assert.Equal(65001, tail.Encoding.CodePage);
+      }
+
+      [Fact]
+      public void AUtf8Log_StaysUtf8_AndAOneByteFileWaits()
+      {
+         using var log = new MemoryStream();
+         var tail = new LiveLogTail();
+         Append(log, "\"");
+         Assert.Empty(tail.Read(log));
+         Assert.Null(tail.Encoding);
+
+         Append(log, "SMTPD\"\t1\t\"ok\"\r\n");
+         Assert.Equal(new[] { "\"SMTPD\"\t1\t\"ok\"" }, tail.Read(log));
+         Assert.Equal(65001, tail.Encoding.CodePage);
+      }
+
       // ---- following -----------------------------------------------------------------
 
       [Fact]

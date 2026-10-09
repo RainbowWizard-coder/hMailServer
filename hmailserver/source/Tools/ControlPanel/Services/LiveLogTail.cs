@@ -30,6 +30,18 @@ namespace hMailServer.ControlPanel.Services
    /// list scrolls by line, so lines dropped from the top while somebody reads further
    /// down would slide what they read up by as many, and the view is moved back by that
    /// many instead.
+   ///
+   /// The encoding: the server writes its script events and backup logs on Windows in
+   /// UTF-16LE with a byte order mark, as it always has (Logger.cpp, WritesUtf16_), and
+   /// every other log in UTF-8. Read as UTF-8, each line of those two came out with a
+   /// NUL after every character and the mark as two replacement characters, and could
+   /// not be split into its parts. A file is UTF-16LE where it starts with the mark FF
+   /// FE, or where its second byte is NUL under a first that is not - the mark gone
+   /// with the rest of a file logrotate's copytruncate emptied, as Logger.cpp reads it -
+   /// and UTF-8 otherwise; it is decided at the first read with two bytes to read, and
+   /// again after the file has been replaced. In UTF-16LE a line ends with the pair 0A
+   /// 00 at an even offset, the tail begins on an even offset, and half a character at
+   /// the end waits with the rest of its line.
    /// </summary>
    public sealed class LiveLogTail
    {
@@ -42,8 +54,16 @@ namespace hMailServer.ControlPanel.Services
       private long position_;
       private bool startsMidLine_;
 
+      // The file's encoding, null until a read has had two bytes to decide it by; and
+      // the bytes of one of its code units, 1 for UTF-8 and 2 for UTF-16LE.
+      private Encoding encoding_;
+      private int unit_ = 1;
+
       /// <summary>Where the next read starts: the byte after the last whole line read.</summary>
       public long Position => position_;
+
+      /// <summary>The encoding the file is read in: UTF-8 or UTF-16LE; null before the first read that could tell.</summary>
+      public Encoding Encoding => encoding_;
 
       /// <summary>
       /// Starts the tail <see cref="TailBytes"/> before the end of a file this long, or
@@ -65,33 +85,43 @@ namespace hMailServer.ControlPanel.Services
       {
          if (log.Length < position_)
          {
-            position_ = 0;   // rotated
+            position_ = 0;   // rotated, and perhaps written in another encoding now
             startsMidLine_ = false;
+            encoding_ = null;
+         }
+
+         if (encoding_ == null)
+         {
+            // Too short to tell: waited for, as an unfinished line is.
+            if (log.Length < 2)
+               return Array.Empty<string>();
+
+            DecideEncoding_(log);
          }
 
          if (log.Length == position_)
             return Array.Empty<string>();
 
-         // A tail begun mid-line reads from the byte before it: when that byte is a line
-         // feed, the tail began exactly at a line's start and keeps that line.
-         long from = startsMidLine_ ? position_ - 1 : position_;
+         // A tail begun mid-line reads from the code unit before it: when that unit is
+         // a line feed, the tail began exactly at a line's start and keeps that line.
+         long from = startsMidLine_ ? position_ - unit_ : position_;
          log.Seek(from, SeekOrigin.Begin);
          byte[] bytes = new byte[log.Length - from];
          int count = ReadFully_(log, bytes);
-         int end = count > 0 ? Array.LastIndexOf(bytes, (byte)'\n', count - 1) : -1;
+         int end = LastLineEnd_(bytes, count);
          if (end < 0)
             return Array.Empty<string>();
 
          int start = 0;
          if (startsMidLine_)
-            start = Array.IndexOf(bytes, (byte)'\n', 0, end + 1) + 1;   // the byte before a line's start is a '\n'
-         else if (from == 0 && count >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF)
-            start = 3;                                                      // a byte order mark, as StreamReader dropped
+            start = AfterFirstLineEnd_(bytes, end);   // the unit before a line's start is a line feed
+         else if (from == 0)
+            start = MarkLength_(bytes, count);        // a byte order mark, as StreamReader dropped
          startsMidLine_ = false;
          position_ = from + end + 1;
 
          var lines = new List<string>();
-         foreach (string raw in Encoding.UTF8.GetString(bytes, start, end + 1 - start).Split('\n'))
+         foreach (string raw in encoding_.GetString(bytes, start, end + 1 - start).Split('\n'))
          {
             string line = raw.TrimEnd('\r');
             if (line.Length != 0)
@@ -99,6 +129,71 @@ namespace hMailServer.ControlPanel.Services
          }
 
          return lines;
+      }
+
+      /// <summary>
+      /// UTF-16LE where the file starts with FF FE, or with a byte that is not NUL
+      /// over one that is (Logger.cpp's ConvertUtf16Log_ asks the same); UTF-8
+      /// otherwise. A tail of a UTF-16LE file begins on a code unit: an odd start, from
+      /// a file whose last character was half written, goes back a byte.
+      /// </summary>
+      private void DecideEncoding_(Stream log)
+      {
+         var head = new byte[2];
+         log.Seek(0, SeekOrigin.Begin);
+         bool utf16 = ReadFully_(log, head) == 2 && ((head[0] == 0xFF && head[1] == 0xFE) || (head[0] != 0 && head[1] == 0));
+
+         encoding_ = utf16 ? new UnicodeEncoding(bigEndian: false, byteOrderMark: false) : new UTF8Encoding(false);
+         unit_ = utf16 ? 2 : 1;
+
+         if (utf16 && position_ % 2 != 0)
+         {
+            position_--;
+            startsMidLine_ = position_ > 0;
+         }
+      }
+
+      /// <summary>
+      /// The index of the last byte of the last whole line ending in the first
+      /// <paramref name="count"/> bytes - a '\n', or in UTF-16LE the 00 of an 0A 00 on
+      /// a code unit's boundary - or -1 where there is none.
+      /// </summary>
+      private int LastLineEnd_(byte[] bytes, int count)
+      {
+         if (unit_ == 1)
+            return count > 0 ? Array.LastIndexOf(bytes, (byte)'\n', count - 1) : -1;
+
+         for (int i = (count - 2) & ~1; i >= 0; i -= 2)
+         {
+            if (bytes[i] == (byte)'\n' && bytes[i + 1] == 0)
+               return i + 1;
+         }
+
+         return -1;
+      }
+
+      /// <summary>The index after the first line ending at or before <paramref name="last"/>, which is one.</summary>
+      private int AfterFirstLineEnd_(byte[] bytes, int last)
+      {
+         if (unit_ == 1)
+            return Array.IndexOf(bytes, (byte)'\n', 0, last + 1) + 1;
+
+         for (int i = 0; i < last; i += 2)
+         {
+            if (bytes[i] == (byte)'\n' && bytes[i + 1] == 0)
+               return i + 2;
+         }
+
+         return last + 1;
+      }
+
+      /// <summary>The length of the byte order mark the file starts with in its encoding, or 0.</summary>
+      private int MarkLength_(byte[] bytes, int count)
+      {
+         if (unit_ == 2)
+            return count >= 2 && bytes[0] == 0xFF && bytes[1] == 0xFE ? 2 : 0;
+
+         return count >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF ? 3 : 0;
       }
 
       /// <summary>
