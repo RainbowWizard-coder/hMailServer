@@ -97,6 +97,13 @@ namespace hMailServer.ControlPanel.Views
       {
          InitializeComponent();
          hMailServer.ControlPanel.Services.SelectionGate.Bind(CertGrid, DeleteButton);
+
+         // Delete deletes the selected certificate after asking and Insert goes to
+         // the add form; Enter in the form adds the certificate, and Enter in the
+         // passphrase box saves the passphrase (Views/GridKeys, FormSubmit).
+         GridKeys.Wire(CertGrid, null, GridKeys.Pressing(DeleteButton), GridKeys.Focusing(NewCertName));
+         FormSubmit.Bind((UIElement)AddCertButton.Parent, AddCertButton, NewCertName, NewCertFile, NewKeyFile, NewKeyPassphrase);
+         FormSubmit.Bind(PassphraseBox, SavePassphraseButton, PassphraseBox);
       }
 
       public void OnEnter() => Reload();

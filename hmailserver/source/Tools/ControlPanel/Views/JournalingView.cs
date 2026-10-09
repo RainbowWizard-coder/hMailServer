@@ -138,6 +138,8 @@ namespace hMailServer.ControlPanel.Views
          chosen_.Children.Add(toggle);
          chosen_.Children.Add(remove);
          SelectionGate.Bind(rules_, toggle, remove);
+         // Delete removes the selected rule after asking; Insert goes to the form.
+         GridKeys.Wire(rules_, null, GridKeys.Pressing(remove), GridKeys.Focusing(target_));
 
          cards.Children.Add(readNotice_);
 
@@ -197,6 +199,8 @@ namespace hMailServer.ControlPanel.Views
          System.Windows.Automation.AutomationProperties.SetAutomationId(add_, "journal-add");
          add_.Click += (s, e) => Add_();
          form.Children.Add(add_);
+         // Enter in the form adds the rule; Escape empties its three boxes.
+         FormSubmit.Bind(form, add_, target_, address_, note_);
 
          var editing = new StackPanel();
          editing.Children.Add(form);

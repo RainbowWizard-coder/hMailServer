@@ -52,6 +52,12 @@ namespace hMailServer.ControlPanel.Views
          }
 
          ShowNoRange();
+
+         // Enter and F2 open the selected range, Delete deletes it after asking,
+         // Insert goes to the add form, and Enter in the form adds the range;
+         // Escape empties its three boxes and leaves the priority (Views/GridKeys, FormSubmit).
+         GridKeys.Wire(RangeGrid, GridKeys.Pressing(PropertiesButton), GridKeys.Pressing(DeleteRangeButton), GridKeys.Focusing(NewName));
+         FormSubmit.Bind((UIElement)AddRangeButton.Parent, AddRangeButton, NewName, NewLower, NewUpper);
       }
 
       // What the card settled in after the range was read or saved: Clean, or Saved

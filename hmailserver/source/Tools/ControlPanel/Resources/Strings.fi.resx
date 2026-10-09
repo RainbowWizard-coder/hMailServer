@@ -999,6 +999,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Add a remote domain policy" xml:space="preserve">
     <value>Lisää etäverkkotunnuksen käytäntö</value>
   </data>
+  <data name="Add a row to a list, or go to the form that adds one" xml:space="preserve">
+    <value>Lisää rivi luetteloon tai siirry lomakkeeseen, joka lisää sen</value>
+  </data>
   <data name="Add a rule" xml:space="preserve">
     <value>Lisää sääntö</value>
   </data>
@@ -2512,8 +2515,8 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Close the help" xml:space="preserve">
     <value>Sulje ohje</value>
   </data>
-  <data name="Close the help while the keyboard is in it, and close a dialog" xml:space="preserve">
-    <value>Sulje ohje, kun näppäimistö on siinä, ja sulje valintaikkuna</value>
+  <data name="Close the help while the keyboard is in it, close a dialog, and empty a form on a page" xml:space="preserve">
+    <value>Sulje ohje, kun näppäimistö on siinä, sulje valintaikkuna ja tyhjennä sivun lomake</value>
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Sulje vastaanottajaluettelo</value>
@@ -3423,6 +3426,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Defaults to {0} days, which is what the API itself uses when a request does not name one. A key with no expiry is the property that makes the administrator password dangerous, so there is no &quot;never&quot; option." xml:space="preserve">
     <value>Oletus on {0} päivää, jota API itsekin käyttää, kun pyyntö ei nimeä arvoa. Avain ilman vanhenemista on se ominaisuus, joka tekee järjestelmänvalvojan salasanasta vaarallisen, joten "ei koskaan" -vaihtoehtoa ei ole.</value>
   </data>
+  <data name="Del" xml:space="preserve">
+    <value>Del</value>
+  </data>
   <data name="Delay for each further recipient (seconds, at most 30; 0 = off)" xml:space="preserve">
     <value>Viive jokaiselle lisävastaanottajalle (sekuntia, enintään 30; 0 = pois)</value>
   </data>
@@ -3615,6 +3621,9 @@ Tämä poistaa pysyvästi sen {1} tiliä, jokaisen niihin tallennetun viestin se
   </data>
   <data name="Delete the selected certificate" xml:space="preserve">
     <value>Poista valittu varmenne</value>
+  </data>
+  <data name="Delete the selected row of a list, after asking" xml:space="preserve">
+    <value>Poista luettelon valittu rivi kysymisen jälkeen</value>
   </data>
   <data name="Delete the spam exemption {0}? Mail it covers goes through the spam checks again." xml:space="preserve">
     <value>Poistetaanko roskapostipoikkeus {0}? Sen kattama posti käy taas läpi roskapostitarkistukset.</value>
@@ -4213,6 +4222,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Enrol {0} again? A new secret replaces the current one, and the codes the authenticator app shows now stop working until it scans the new QR code." xml:space="preserve">
     <value>Otetaanko tunnistustekijä käyttöön uudelleen tilille {0}? Uusi salaisuus korvaa nykyisen, ja todennussovelluksen nyt näyttämät koodit lakkaavat toimimasta, kunnes se skannaa uuden QR-koodin.</value>
   </data>
+  <data name="Enter" xml:space="preserve">
+    <value>Enter</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Anna ensin konenimi ja portti.</value>
   </data>
@@ -4269,6 +4281,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Anna palvelutilin salasana</value>
+  </data>
+  <data name="Enter, F2" xml:space="preserve">
+    <value>Enter, F2</value>
   </data>
   <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
     <value>Hakua vastaavat merkinnät: {0}/{1}.</value>
@@ -5379,6 +5394,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Initial delay (minutes)" xml:space="preserve">
     <value>Alkuviive (minuuttia)</value>
+  </data>
+  <data name="Ins" xml:space="preserve">
+    <value>Ins</value>
   </data>
   <data name="Insert / append messages" xml:space="preserve">
     <value>Lisää / liitä viestejä</value>
@@ -7591,6 +7609,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Open the member list of '{0}'." xml:space="preserve">
     <value>Avaa ryhmän '{0}' jäsenluettelo.</value>
   </data>
+  <data name="Open the selected row of a list" xml:space="preserve">
+    <value>Avaa luettelon valittu rivi</value>
+  </data>
   <data name="Open the setup checklist: every item, what is done and what to do next" xml:space="preserve">
     <value>Avaa käyttöönoton tarkistuslista: jokainen kohta, mikä on tehty ja mitä tehdään seuraavaksi</value>
   </data>
@@ -8060,6 +8081,9 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   </data>
   <data name="Press &quot;Check&quot; to look the record up through this machine's resolver." xml:space="preserve">
     <value>Paina "Tarkista" hakeaksesi tietueen tämän koneen nimiselvittimen kautta.</value>
+  </data>
+  <data name="Press the button of the form the keyboard is in, on a page as in a dialog" xml:space="preserve">
+    <value>Paina sen lomakkeen painiketta, jossa näppäimistö on, sivulla kuten valintaikkunassa</value>
   </data>
   <data name="Press the button, or go to the field, whose caption has that letter underlined" xml:space="preserve">
     <value>Paina painiketta tai siirry kenttään, jonka otsikossa kyseinen kirjain on alleviivattu</value>
@@ -10446,6 +10470,9 @@ Käynnistetäänkö se uudelleen nyt?</value>
   </data>
   <data name="Source addresses it may be used from (optional)" xml:space="preserve">
     <value>Lähdeosoitteet, joista sitä saa käyttää (valinnainen)</value>
+  </data>
+  <data name="Space" xml:space="preserve">
+    <value>Välilyönti</value>
   </data>
   <data name="Spam" xml:space="preserve">
     <value>Roskaposti</value>
@@ -15045,6 +15072,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} (subject '{1}')" xml:space="preserve">
     <value>{0} (aihe '{1}')</value>
+  </data>
+  <data name="{0} ({1})" xml:space="preserve">
+    <value>{0} ({1})</value>
   </data>
   <data name="{0} + {1} more" xml:space="preserve">
     <value>{0} + {1} lisää</value>

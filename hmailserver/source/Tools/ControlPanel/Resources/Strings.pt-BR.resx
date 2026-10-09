@@ -999,6 +999,9 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="Add a remote domain policy" xml:space="preserve">
     <value>Adicionar uma política de domínio remoto</value>
   </data>
+  <data name="Add a row to a list, or go to the form that adds one" xml:space="preserve">
+    <value>Adicionar uma linha a uma lista, ou ir para o formulário que a adiciona</value>
+  </data>
   <data name="Add a rule" xml:space="preserve">
     <value>Adicionar uma regra</value>
   </data>
@@ -2512,8 +2515,8 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Close the help" xml:space="preserve">
     <value>Fechar a ajuda</value>
   </data>
-  <data name="Close the help while the keyboard is in it, and close a dialog" xml:space="preserve">
-    <value>Fechar a ajuda enquanto o teclado estiver nela e fechar uma caixa de diálogo</value>
+  <data name="Close the help while the keyboard is in it, close a dialog, and empty a form on a page" xml:space="preserve">
+    <value>Fechar a ajuda enquanto o teclado estiver nela, fechar uma caixa de diálogo e esvaziar um formulário em uma página</value>
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Fechar a lista de destinatários</value>
@@ -3423,6 +3426,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Defaults to {0} days, which is what the API itself uses when a request does not name one. A key with no expiry is the property that makes the administrator password dangerous, so there is no &quot;never&quot; option." xml:space="preserve">
     <value>O padrão é {0} dias, que é o que a própria API usa quando uma requisição não indica um. Uma chave sem validade é a propriedade que torna a senha de administrador perigosa, então não existe a opção "nunca".</value>
   </data>
+  <data name="Del" xml:space="preserve">
+    <value>Del</value>
+  </data>
   <data name="Delay for each further recipient (seconds, at most 30; 0 = off)" xml:space="preserve">
     <value>Atraso para cada destinatário adicional (segundos, no máximo 30; 0 = desligado)</value>
   </data>
@@ -3615,6 +3621,9 @@ Isso remove permanentemente as suas {1} contas, todas as mensagens armazenadas n
   </data>
   <data name="Delete the selected certificate" xml:space="preserve">
     <value>Excluir o certificado selecionado</value>
+  </data>
+  <data name="Delete the selected row of a list, after asking" xml:space="preserve">
+    <value>Excluir a linha selecionada de uma lista, depois de perguntar</value>
   </data>
   <data name="Delete the spam exemption {0}? Mail it covers goes through the spam checks again." xml:space="preserve">
     <value>Excluir a exceção antispam {0}? Os e-mails que ela cobre voltam a passar pelas verificações antispam.</value>
@@ -4213,6 +4222,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Enrol {0} again? A new secret replaces the current one, and the codes the authenticator app shows now stop working until it scans the new QR code." xml:space="preserve">
     <value>Registrar {0} de novo? Um novo segredo substitui o atual, e os códigos que o aplicativo autenticador mostra agora param de funcionar até ele escanear o novo código QR.</value>
   </data>
+  <data name="Enter" xml:space="preserve">
+    <value>Enter</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Informe primeiro um nome de host e uma porta.</value>
   </data>
@@ -4269,6 +4281,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Digite a senha da conta de serviço</value>
+  </data>
+  <data name="Enter, F2" xml:space="preserve">
+    <value>Enter, F2</value>
   </data>
   <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
     <value>Entradas que correspondem à busca: {0} de {1}.</value>
@@ -5379,6 +5394,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   </data>
   <data name="Initial delay (minutes)" xml:space="preserve">
     <value>Atraso inicial (minutos)</value>
+  </data>
+  <data name="Ins" xml:space="preserve">
+    <value>Ins</value>
   </data>
   <data name="Insert / append messages" xml:space="preserve">
     <value>Inserir / acrescentar mensagens</value>
@@ -7591,6 +7609,9 @@ Nada do que já está lá é removido.</value>
   <data name="Open the member list of '{0}'." xml:space="preserve">
     <value>Abrir a lista de membros de '{0}'.</value>
   </data>
+  <data name="Open the selected row of a list" xml:space="preserve">
+    <value>Abrir a linha selecionada de uma lista</value>
+  </data>
   <data name="Open the setup checklist: every item, what is done and what to do next" xml:space="preserve">
     <value>Abrir a lista de configuração: cada item, o que está feito e o que fazer em seguida</value>
   </data>
@@ -8060,6 +8081,9 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   </data>
   <data name="Press &quot;Check&quot; to look the record up through this machine's resolver." xml:space="preserve">
     <value>Pressione "Verificar" para consultar o registro através do resolvedor desta máquina.</value>
+  </data>
+  <data name="Press the button of the form the keyboard is in, on a page as in a dialog" xml:space="preserve">
+    <value>Pressionar o botão do formulário em que o teclado está, em uma página como em uma caixa de diálogo</value>
   </data>
   <data name="Press the button, or go to the field, whose caption has that letter underlined" xml:space="preserve">
     <value>Pressionar o botão, ou ir para o campo, cujo rótulo tem essa letra sublinhada</value>
@@ -10446,6 +10470,9 @@ Reiniciá-lo agora?</value>
   </data>
   <data name="Source addresses it may be used from (optional)" xml:space="preserve">
     <value>Endereços de origem a partir dos quais ela pode ser usada (opcional)</value>
+  </data>
+  <data name="Space" xml:space="preserve">
+    <value>Espaço</value>
   </data>
   <data name="Spam" xml:space="preserve">
     <value>Spam</value>
@@ -15045,6 +15072,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="{0} (subject '{1}')" xml:space="preserve">
     <value>{0} (assunto '{1}')</value>
+  </data>
+  <data name="{0} ({1})" xml:space="preserve">
+    <value>{0} ({1})</value>
   </data>
   <data name="{0} + {1} more" xml:space="preserve">
     <value>{0} + mais {1}</value>

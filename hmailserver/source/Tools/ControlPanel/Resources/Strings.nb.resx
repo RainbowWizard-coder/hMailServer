@@ -999,6 +999,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Add a remote domain policy" xml:space="preserve">
     <value>Legg til en regel for et eksternt domene</value>
   </data>
+  <data name="Add a row to a list, or go to the form that adds one" xml:space="preserve">
+    <value>Legg til en rad i en liste, eller gå til skjemaet som legger til en</value>
+  </data>
   <data name="Add a rule" xml:space="preserve">
     <value>Legg til en regel</value>
   </data>
@@ -2512,8 +2515,8 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Close the help" xml:space="preserve">
     <value>Lukk hjelpen</value>
   </data>
-  <data name="Close the help while the keyboard is in it, and close a dialog" xml:space="preserve">
-    <value>Lukk hjelpen mens tastaturet er i den, og lukk en dialogboks</value>
+  <data name="Close the help while the keyboard is in it, close a dialog, and empty a form on a page" xml:space="preserve">
+    <value>Lukk hjelpen mens tastaturet er i den, lukk en dialogboks, og tøm et skjema på en side</value>
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Lukk mottakerlisten</value>
@@ -3423,6 +3426,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Defaults to {0} days, which is what the API itself uses when a request does not name one. A key with no expiry is the property that makes the administrator password dangerous, so there is no &quot;never&quot; option." xml:space="preserve">
     <value>Standard er {0} dager, som er det API-et selv bruker når en forespørsel ikke oppgir noe. En nøkkel uten utløp er egenskapen som gjør administratorpassordet farlig, så det finnes ikke noe "aldri"-alternativ.</value>
   </data>
+  <data name="Del" xml:space="preserve">
+    <value>Del</value>
+  </data>
   <data name="Delay for each further recipient (seconds, at most 30; 0 = off)" xml:space="preserve">
     <value>Forsinkelse for hver ytterligere mottaker (sekunder, høyst 30; 0 = av)</value>
   </data>
@@ -3615,6 +3621,9 @@ Dette fjerner permanent dets {1} kontoer, hver melding som er lagret i dem, og a
   </data>
   <data name="Delete the selected certificate" xml:space="preserve">
     <value>Slett det valgte sertifikatet</value>
+  </data>
+  <data name="Delete the selected row of a list, after asking" xml:space="preserve">
+    <value>Slett den valgte raden i en liste etter å ha spurt</value>
   </data>
   <data name="Delete the spam exemption {0}? Mail it covers goes through the spam checks again." xml:space="preserve">
     <value>Slette spamunntaket {0}? E-post det dekker, går gjennom søppelpostkontrollene igjen.</value>
@@ -4213,6 +4222,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Enrol {0} again? A new secret replaces the current one, and the codes the authenticator app shows now stop working until it scans the new QR code." xml:space="preserve">
     <value>Registrere {0} på nytt? En ny hemmelighet erstatter den nåværende, og kodene autentiseringsappen viser nå, slutter å virke til den skanner den nye QR-koden.</value>
   </data>
+  <data name="Enter" xml:space="preserve">
+    <value>Enter</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Skriv inn et vertsnavn og en port først.</value>
   </data>
@@ -4269,6 +4281,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Skriv inn tjenestekontoens passord</value>
+  </data>
+  <data name="Enter, F2" xml:space="preserve">
+    <value>Enter, F2</value>
   </data>
   <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
     <value>Oppføringer som passer til søket: {0} av {1}.</value>
@@ -5379,6 +5394,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Initial delay (minutes)" xml:space="preserve">
     <value>Startforsinkelse (minutter)</value>
+  </data>
+  <data name="Ins" xml:space="preserve">
+    <value>Ins</value>
   </data>
   <data name="Insert / append messages" xml:space="preserve">
     <value>Sett inn / legg til meldinger</value>
@@ -7591,6 +7609,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Open the member list of '{0}'." xml:space="preserve">
     <value>Åpne medlemslisten til '{0}'.</value>
   </data>
+  <data name="Open the selected row of a list" xml:space="preserve">
+    <value>Åpne den valgte raden i en liste</value>
+  </data>
   <data name="Open the setup checklist: every item, what is done and what to do next" xml:space="preserve">
     <value>Åpne sjekklisten for oppsett: hvert punkt, hva som er gjort og hva som skal gjøres nå</value>
   </data>
@@ -8060,6 +8081,9 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   </data>
   <data name="Press &quot;Check&quot; to look the record up through this machine's resolver." xml:space="preserve">
     <value>Trykk «Sjekk» for å slå opp oppføringen gjennom denne maskinens resolver.</value>
+  </data>
+  <data name="Press the button of the form the keyboard is in, on a page as in a dialog" xml:space="preserve">
+    <value>Trykk på knappen i skjemaet tastaturet er i, på en side som i en dialogboks</value>
   </data>
   <data name="Press the button, or go to the field, whose caption has that letter underlined" xml:space="preserve">
     <value>Trykk på knappen, eller gå til feltet, der den bokstaven er understreket i teksten</value>
@@ -10446,6 +10470,9 @@ Starte den på nytt nå?</value>
   </data>
   <data name="Source addresses it may be used from (optional)" xml:space="preserve">
     <value>Kildeadresser den kan brukes fra (valgfritt)</value>
+  </data>
+  <data name="Space" xml:space="preserve">
+    <value>Mellomrom</value>
   </data>
   <data name="Spam" xml:space="preserve">
     <value>Spam</value>
@@ -15045,6 +15072,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="{0} (subject '{1}')" xml:space="preserve">
     <value>{0} (emne '{1}')</value>
+  </data>
+  <data name="{0} ({1})" xml:space="preserve">
+    <value>{0} ({1})</value>
   </data>
   <data name="{0} + {1} more" xml:space="preserve">
     <value>{0} + {1} til</value>

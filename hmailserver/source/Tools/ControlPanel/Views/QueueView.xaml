@@ -53,7 +53,6 @@
         <scaffold:Card Grid.Row="3" Padding="8">
             <Grid>
                 <DataGrid x:Name="QueueGrid" AutoGenerateColumns="False" IsReadOnly="True"
-                          MouseDoubleClick="View_Click"
                           AutomationProperties.Name="{loc:L 'Delivery queue'}">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="90"

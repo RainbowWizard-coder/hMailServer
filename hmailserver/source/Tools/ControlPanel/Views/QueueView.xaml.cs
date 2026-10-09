@@ -35,6 +35,10 @@ namespace hMailServer.ControlPanel.Views
          InitializeComponent();
          // The three act on the selected message; enabled only while one is selected.
          hMailServer.ControlPanel.Services.SelectionGate.Bind(QueueGrid, ViewButton, RetryButton, RemoveButton);
+
+         // Enter and F2 show the selected message's source and Delete removes it
+         // after asking; a double-click on a message shows its source (Views/GridKeys).
+         GridKeys.Wire(QueueGrid, ViewButton, RemoveButton, null);
       }
 
       public void OnEnter() => Reload();

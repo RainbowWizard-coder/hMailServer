@@ -1005,6 +1005,9 @@
   <data name="Add a remote domain policy" xml:space="preserve">
     <value>Додати правило для зовнішнього домену</value>
   </data>
+  <data name="Add a row to a list, or go to the form that adds one" xml:space="preserve">
+    <value>Додати рядок до списку або перейти до форми, що його додає</value>
+  </data>
   <data name="Add a rule" xml:space="preserve">
     <value>Додати правило</value>
   </data>
@@ -2530,8 +2533,8 @@
   <data name="Close the help" xml:space="preserve">
     <value>Закрити довідку</value>
   </data>
-  <data name="Close the help while the keyboard is in it, and close a dialog" xml:space="preserve">
-    <value>Закрити довідку, поки в ній клавіатура, і закрити діалогове вікно</value>
+  <data name="Close the help while the keyboard is in it, close a dialog, and empty a form on a page" xml:space="preserve">
+    <value>Закрити довідку, поки в ній клавіатура, закрити діалогове вікно й очистити форму на сторінці</value>
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Закрити список отримувачів</value>
@@ -3441,6 +3444,9 @@
   <data name="Defaults to {0} days, which is what the API itself uses when a request does not name one. A key with no expiry is the property that makes the administrator password dangerous, so there is no &quot;never&quot; option." xml:space="preserve">
     <value>Типово {0} днів — саме стільки використовує сам API, коли запит не називає значення. Саме відсутність терміну дії робить пароль адміністратора небезпечним, тому варіанта «ніколи» тут немає.</value>
   </data>
+  <data name="Del" xml:space="preserve">
+    <value>Del</value>
+  </data>
   <data name="Delay for each further recipient (seconds, at most 30; 0 = off)" xml:space="preserve">
     <value>Затримка для кожного наступного отримувача (секунд, щонайбільше 30; 0 = вимкнено)</value>
   </data>
@@ -3638,6 +3644,9 @@
   </data>
   <data name="Delete the selected certificate" xml:space="preserve">
     <value>Видалити вибраний сертифікат</value>
+  </data>
+  <data name="Delete the selected row of a list, after asking" xml:space="preserve">
+    <value>Видалити вибраний рядок списку після підтвердження</value>
   </data>
   <data name="Delete the spam exemption {0}? Mail it covers goes through the spam checks again." xml:space="preserve">
     <value>Видалити виняток антиспаму {0}? Пошта, на яку він поширюється, знову проходить перевірки на спам.</value>
@@ -4249,6 +4258,9 @@
   <data name="Enrol {0} again? A new secret replaces the current one, and the codes the authenticator app shows now stop working until it scans the new QR code." xml:space="preserve">
     <value>Зареєструвати {0} знову? Новий секрет замінить поточний, і коди, які зараз показує застосунок автентифікації, перестануть працювати, доки він не відсканує новий QR-код.</value>
   </data>
+  <data name="Enter" xml:space="preserve">
+    <value>Enter</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Спершу введіть ім'я вузла та порт.</value>
   </data>
@@ -4305,6 +4317,9 @@
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Введіть пароль облікового запису служби</value>
+  </data>
+  <data name="Enter, F2" xml:space="preserve">
+    <value>Enter, F2</value>
   </data>
   <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
     <value>Записів, що відповідають пошуку: {0} з {1}.</value>
@@ -5433,6 +5448,9 @@
   </data>
   <data name="Initial delay (minutes)" xml:space="preserve">
     <value>Початкова затримка (хвилин)</value>
+  </data>
+  <data name="Ins" xml:space="preserve">
+    <value>Ins</value>
   </data>
   <data name="Insert / append messages" xml:space="preserve">
     <value>Вставляти / додавати повідомлення</value>
@@ -7669,6 +7687,9 @@
   <data name="Open the member list of '{0}'." xml:space="preserve">
     <value>Відкрити список учасників «{0}».</value>
   </data>
+  <data name="Open the selected row of a list" xml:space="preserve">
+    <value>Відкрити вибраний рядок списку</value>
+  </data>
   <data name="Open the setup checklist: every item, what is done and what to do next" xml:space="preserve">
     <value>Відкрити контрольний список налаштування: кожен пункт, що зроблено і що робити далі</value>
   </data>
@@ -8138,6 +8159,9 @@
   </data>
   <data name="Press &quot;Check&quot; to look the record up through this machine's resolver." xml:space="preserve">
     <value>Натисніть «Перевірити», щоб знайти запис через розв’язувач цього комп’ютера.</value>
+  </data>
+  <data name="Press the button of the form the keyboard is in, on a page as in a dialog" xml:space="preserve">
+    <value>Натиснути кнопку форми, у якій перебуває клавіатура, на сторінці так само, як у діалоговому вікні</value>
   </data>
   <data name="Press the button, or go to the field, whose caption has that letter underlined" xml:space="preserve">
     <value>Натиснути кнопку або перейти до поля, у підписі яких підкреслено цю літеру</value>
@@ -10559,6 +10583,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Source addresses it may be used from (optional)" xml:space="preserve">
     <value>Адреси джерела, з яких його можна використовувати (необов'язково)</value>
+  </data>
+  <data name="Space" xml:space="preserve">
+    <value>Пробіл</value>
   </data>
   <data name="Spam" xml:space="preserve">
     <value>Спам</value>
@@ -15218,6 +15245,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} (subject '{1}')" xml:space="preserve">
     <value>{0} (тема «{1}»)</value>
+  </data>
+  <data name="{0} ({1})" xml:space="preserve">
+    <value>{0} ({1})</value>
   </data>
   <data name="{0} + {1} more" xml:space="preserve">
     <value>{0} + ще {1}</value>

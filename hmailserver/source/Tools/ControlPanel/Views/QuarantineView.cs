@@ -291,7 +291,7 @@ namespace hMailServer.ControlPanel.Views
       /// theme's green and red, 2.5:1 on the new card, and every field's danger
       /// ring with them.
       /// </summary>
-      private static FrameworkElementFactory IconButton_(string action, SymbolRegular symbol, string colourKey, bool filled, string tipPath)
+      private static FrameworkElementFactory IconButton_(string action, SymbolRegular symbol, string colourKey, bool filled, string tipPath, string keyTipPath = null, string key = null)
       {
          var button = new FrameworkElementFactory(typeof(Wpf.Ui.Controls.Button));
          button.SetValue(FrameworkElement.TagProperty, action);
@@ -300,8 +300,10 @@ namespace hMailServer.ControlPanel.Views
          button.SetValue(FrameworkElement.MarginProperty, new Thickness(1, 0, 1, 0));
          button.SetValue(Control.BorderThicknessProperty, new Thickness(0));
          button.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
-         button.SetBinding(FrameworkElement.ToolTipProperty, new Binding(tipPath));
+         button.SetBinding(FrameworkElement.ToolTipProperty, new Binding(keyTipPath ?? tipPath));
          button.SetBinding(AutomationProperties.NameProperty, new Binding(tipPath));
+         if (key != null)
+            button.SetValue(AutomationProperties.AcceleratorKeyProperty, key);
 
          var icon = new FrameworkElementFactory(typeof(SymbolIcon));
          icon.SetValue(SymbolIcon.SymbolProperty, symbol);
@@ -323,8 +325,8 @@ namespace hMailServer.ControlPanel.Views
          panel.SetValue(FrameworkElement.WidthProperty, ActionsWidth);
          panel.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
 
-         panel.AppendChild(IconButton_("release", SymbolRegular.CheckmarkCircle24, KeepColourKey, false, nameof(QuarantineRow.ReleaseTip)));
-         panel.AppendChild(IconButton_("delete", SymbolRegular.DismissCircle24, RemoveColourKey, false, nameof(QuarantineRow.DeleteTip)));
+         panel.AppendChild(IconButton_("release", SymbolRegular.CheckmarkCircle24, KeepColourKey, false, nameof(QuarantineRow.ReleaseTip), nameof(QuarantineRow.ReleaseKeyTip), QuarantineRow.ReleaseKey));
+         panel.AppendChild(IconButton_("delete", SymbolRegular.DismissCircle24, RemoveColourKey, false, nameof(QuarantineRow.DeleteTip), nameof(QuarantineRow.DeleteKeyTip), L(QuarantineRow.DeleteKey)));
          panel.AppendChild(IconButton_("allow", SymbolRegular.TextBulletListSquare24, KeepColourKey, false, nameof(QuarantineRow.AllowTip)));
          panel.AppendChild(IconButton_("block", SymbolRegular.TextBulletListSquare24, RemoveColourKey, true, nameof(QuarantineRow.BlockTip)));
          return panel;
@@ -341,8 +343,9 @@ namespace hMailServer.ControlPanel.Views
          box.SetValue(FrameworkElement.MarginProperty, margin);
          box.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
          box.SetBinding(ToggleButton.IsCheckedProperty, new Binding(nameof(QuarantineRow.IsChecked)) { Mode = BindingMode.OneWay });
-         box.SetBinding(FrameworkElement.ToolTipProperty, new Binding(nameof(QuarantineRow.CheckTip)));
+         box.SetBinding(FrameworkElement.ToolTipProperty, new Binding(nameof(QuarantineRow.CheckKeyTip)));
          box.SetBinding(AutomationProperties.NameProperty, new Binding(nameof(QuarantineRow.CheckTip)));
+         box.SetValue(AutomationProperties.AcceleratorKeyProperty, L(QuarantineRow.SpaceKey));
          return box;
       }
 
@@ -358,12 +361,12 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>An icon before the text, for the headers and the preview; shown on message rows only.</summary>
-      private static FrameworkElementFactory WithIcon_(string action, SymbolRegular symbol, string tipPath, string textPath, string textTipPath)
+      private static FrameworkElementFactory WithIcon_(string action, SymbolRegular symbol, string tipPath, string textPath, string textTipPath, string keyTipPath = null, string key = null)
       {
          var dock = new FrameworkElementFactory(typeof(DockPanel));
          dock.SetValue(DockPanel.LastChildFillProperty, true);
 
-         FrameworkElementFactory button = IconButton_(action, symbol, null, false, tipPath);
+         FrameworkElementFactory button = IconButton_(action, symbol, null, false, tipPath, keyTipPath, key);
          button.SetValue(DockPanel.DockProperty, Dock.Left);
          dock.AppendChild(button);
          dock.AppendChild(Trimmed_(textPath, textTipPath));
@@ -511,7 +514,7 @@ namespace hMailServer.ControlPanel.Views
          list_.Columns.Add(score);
 
          list_.Columns.Add(TemplateColumn_(L("Subject"),
-            WithIcon_("preview", SymbolRegular.Glance24, nameof(QuarantineRow.PreviewTip), nameof(QuarantineRow.Subject), nameof(QuarantineRow.SubjectTip)),
+            WithIcon_("preview", SymbolRegular.Glance24, nameof(QuarantineRow.PreviewTip), nameof(QuarantineRow.Subject), nameof(QuarantineRow.SubjectTip), nameof(QuarantineRow.PreviewKeyTip), QuarantineRow.PreviewKey),
             new DataGridLength(2, DataGridLengthUnitType.Star), nameof(QuarantineColumn.Subject)));
 
          // Why this message was held, which is the question the page exists to
@@ -545,7 +548,69 @@ namespace hMailServer.ControlPanel.Views
          };
 
          list_.AddHandler(ButtonBase.ClickEvent, new RoutedEventHandler(OnRowClick_));
+         WireRowKeys_();
       }
+
+      /// <summary>
+      /// The grid is one tab stop, and its selected row answers the keyboard:
+      /// Space checks it, R releases it, Delete deletes it after asking, and P or
+      /// Enter previews its text - Enter folds or unfolds a group, whose R and
+      /// Delete act on every message in it. Each row carried about seven tab
+      /// stops - its box, four actions and two icons - and no key did what they
+      /// do (review finding F211); the icons stay for the mouse, and their tool
+      /// tips name the keys.
+      /// </summary>
+      private void WireRowKeys_()
+      {
+         KeyboardNavigation.SetTabNavigation(list_, KeyboardNavigationMode.Once);
+
+         list_.PreviewKeyDown += (_, e) =>
+         {
+            if (e.Handled || Keyboard.Modifiers != ModifierKeys.None || e.OriginalSource is TextBoxBase)
+               return;
+            if (list_.SelectedItem is not QuarantineRow row)
+               return;
+
+            string groupTitle = row.IsGroup ? row.GroupTitle : null;
+            switch (e.Key)
+            {
+               case Key.Space:
+                  review_.Toggle(row);
+                  selectAll_.IsChecked = review_.AllChecked;
+                  break;
+
+               case Key.R:
+                  Act_(QuarantineReview.IdsOf(row), "release", groupTitle);
+                  FocusRowAfter_();
+                  break;
+
+               case Key.Delete:
+                  Act_(QuarantineReview.IdsOf(row), "delete", groupTitle);
+                  FocusRowAfter_();
+                  break;
+
+               case Key.P when row.IsMessage:
+               case Key.Enter when row.IsMessage:
+                  ShowPreview_(row, list_.ItemContainerGenerator.ContainerFromItem(row) as FrameworkElement ?? list_);
+                  break;
+
+               case Key.Enter:
+                  review_.ToggleFold(row);
+                  Rebind_();
+                  FocusRowAfter_();
+                  break;
+
+               default:
+                  return;
+            }
+
+            e.Handled = true;
+         };
+      }
+
+      /// <summary>The keyboard back on the selected row once the list has been rebuilt.</summary>
+      private void FocusRowAfter_()
+         => Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, new Action(() => GridKeys.FocusSelectedRow(list_)));
 
       private static Button HeaderButton_(SymbolRegular symbol, string colourKey, bool filled, string tip, Action onClick)
       {

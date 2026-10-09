@@ -140,7 +140,7 @@
                               ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                               AutoGenerateColumns="False" IsReadOnly="True"
                               HeadersVisibility="None"
-                              SelectionMode="Single" MouseDoubleClick="EditCriterion_Click"
+                              SelectionMode="Single"
                               AutomationProperties.Name="{loc:L 'IF'}">
                         <DataGrid.Columns>
                             <DataGridTextColumn Binding="{Binding Description}" Width="*" MinWidth="160" ElementStyle="{StaticResource GridTrimmedText}" />
@@ -149,7 +149,7 @@
                 </scaffold:FillPanel>
                 <scaffold:Card.Footer>
                     <WrapPanel Orientation="Horizontal">
-                        <ui:Button Content="{loc:L 'Add _criterion…'}" Appearance="Primary" Click="AddCriterion_Click" Margin="0,0,8,4" />
+                        <ui:Button x:Name="AddCriterionButton" Content="{loc:L 'Add _criterion…'}" Appearance="Primary" Click="AddCriterion_Click" Margin="0,0,8,4" />
                         <ui:Button x:Name="EditCriterionButton" Content="{loc:L '_Edit criterion…'}" Click="EditCriterion_Click" Margin="0,0,8,4" />
                         <ui:Button x:Name="RemoveCriterionButton" Content="{loc:L '_Remove criterion'}" Style="{StaticResource DangerTextButton}" Click="RemoveCriterion_Click" Margin="0,0,0,4" />
                     </WrapPanel>
@@ -166,7 +166,7 @@
                               ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                               AutoGenerateColumns="False" IsReadOnly="True"
                               HeadersVisibility="None"
-                              SelectionMode="Single" MouseDoubleClick="EditAction_Click"
+                              SelectionMode="Single"
                               AutomationProperties.Name="{loc:L 'THEN'}">
                         <DataGrid.Columns>
                             <DataGridTextColumn Binding="{Binding Description}" Width="*" MinWidth="160" ElementStyle="{StaticResource GridTrimmedText}" />
@@ -188,7 +188,7 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                     <WrapPanel Orientation="Horizontal">
-                        <ui:Button Content="{loc:L 'Add ac_tion…'}" Appearance="Primary" Click="AddAction_Click" Margin="0,0,8,4" />
+                        <ui:Button x:Name="AddActionButton" Content="{loc:L 'Add ac_tion…'}" Appearance="Primary" Click="AddAction_Click" Margin="0,0,8,4" />
                         <ui:Button x:Name="EditActionButton" Content="{loc:L 'Ed_it action…'}" Click="EditAction_Click" Margin="0,0,8,4" />
                         <ui:Button x:Name="RemoveActionButton" Content="{loc:L 'Re_move action'}" Style="{StaticResource DangerTextButton}" Click="RemoveAction_Click" Margin="0,0,8,4" />
                     </WrapPanel>

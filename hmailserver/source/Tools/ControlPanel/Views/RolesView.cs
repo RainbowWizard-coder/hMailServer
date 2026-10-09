@@ -167,6 +167,8 @@ namespace hMailServer.ControlPanel.Views
          System.Windows.Automation.AutomationProperties.SetAutomationId(give_, "roles-assign");
          give_.Click += (s, e) => Assign_();
          form.Children.Add(give_);
+         // Enter in the form gives the role; Escape empties the two boxes.
+         FormSubmit.Bind(form, give_, address_, domains_);
 
          take_ = new Wpf.Ui.Controls.Button
          {

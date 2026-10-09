@@ -999,6 +999,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Add a remote domain policy" xml:space="preserve">
     <value>Lägg till en regel för extern domän</value>
   </data>
+  <data name="Add a row to a list, or go to the form that adds one" xml:space="preserve">
+    <value>Lägg till en rad i en lista, eller gå till formuläret som lägger till en</value>
+  </data>
   <data name="Add a rule" xml:space="preserve">
     <value>Lägg till en regel</value>
   </data>
@@ -2512,8 +2515,8 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Close the help" xml:space="preserve">
     <value>Stäng hjälpen</value>
   </data>
-  <data name="Close the help while the keyboard is in it, and close a dialog" xml:space="preserve">
-    <value>Stäng hjälpen medan tangentbordet är i den, och stäng en dialogruta</value>
+  <data name="Close the help while the keyboard is in it, close a dialog, and empty a form on a page" xml:space="preserve">
+    <value>Stäng hjälpen medan tangentbordet är i den, stäng en dialogruta och töm ett formulär på en sida</value>
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Stäng mottagarlistan</value>
@@ -3423,6 +3426,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Defaults to {0} days, which is what the API itself uses when a request does not name one. A key with no expiry is the property that makes the administrator password dangerous, so there is no &quot;never&quot; option." xml:space="preserve">
     <value>Standard {0} dagar, vilket är vad API:et självt använder när en begäran inte anger något. En nyckel utan utgångstid är den egenskap som gör administratörslösenordet farligt, så det finns inget alternativ "aldrig".</value>
   </data>
+  <data name="Del" xml:space="preserve">
+    <value>Del</value>
+  </data>
   <data name="Delay for each further recipient (seconds, at most 30; 0 = off)" xml:space="preserve">
     <value>Fördröjning för varje ytterligare mottagare (sekunder, högst 30; 0 = av)</value>
   </data>
@@ -3615,6 +3621,9 @@ Det tar permanent bort dess {1} konton, varje meddelande som lagras i dem, och a
   </data>
   <data name="Delete the selected certificate" xml:space="preserve">
     <value>Ta bort det valda certifikatet</value>
+  </data>
+  <data name="Delete the selected row of a list, after asking" xml:space="preserve">
+    <value>Ta bort den markerade raden i en lista, efter en fråga</value>
   </data>
   <data name="Delete the spam exemption {0}? Mail it covers goes through the spam checks again." xml:space="preserve">
     <value>Ta bort skräppostundantaget {0}? E-post som det omfattar går igenom skräppostkontrollerna igen.</value>
@@ -4213,6 +4222,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Enrol {0} again? A new secret replaces the current one, and the codes the authenticator app shows now stop working until it scans the new QR code." xml:space="preserve">
     <value>Registrera {0} igen? En ny hemlighet ersätter den nuvarande, och koderna som autentiseringsappen visar nu slutar fungera tills den har skannat den nya QR-koden.</value>
   </data>
+  <data name="Enter" xml:space="preserve">
+    <value>Enter</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Ange ett värdnamn och en port först.</value>
   </data>
@@ -4269,6 +4281,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Ange tjänstekontots lösenord</value>
+  </data>
+  <data name="Enter, F2" xml:space="preserve">
+    <value>Enter, F2</value>
   </data>
   <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
     <value>Poster som matchar sökningen: {0} av {1}.</value>
@@ -5379,6 +5394,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Initial delay (minutes)" xml:space="preserve">
     <value>Inledande fördröjning (minuter)</value>
+  </data>
+  <data name="Ins" xml:space="preserve">
+    <value>Ins</value>
   </data>
   <data name="Insert / append messages" xml:space="preserve">
     <value>Infoga / lägg till meddelanden</value>
@@ -7591,6 +7609,9 @@ Inget som redan finns där tas bort.</value>
   <data name="Open the member list of '{0}'." xml:space="preserve">
     <value>Öppna medlemslistan för '{0}'.</value>
   </data>
+  <data name="Open the selected row of a list" xml:space="preserve">
+    <value>Öppna den markerade raden i en lista</value>
+  </data>
   <data name="Open the setup checklist: every item, what is done and what to do next" xml:space="preserve">
     <value>Öppna konfigurationschecklistan: varje punkt, vad som är klart och vad som ska göras härnäst</value>
   </data>
@@ -8060,6 +8081,9 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   </data>
   <data name="Press &quot;Check&quot; to look the record up through this machine's resolver." xml:space="preserve">
     <value>Tryck på "Kontrollera" för att slå upp posten genom den här datorns resolver.</value>
+  </data>
+  <data name="Press the button of the form the keyboard is in, on a page as in a dialog" xml:space="preserve">
+    <value>Tryck på knappen i formuläret som tangentbordet är i, på en sida som i en dialogruta</value>
   </data>
   <data name="Press the button, or go to the field, whose caption has that letter underlined" xml:space="preserve">
     <value>Tryck på knappen, eller gå till fältet, vars text har den bokstaven understruken</value>
@@ -10446,6 +10470,9 @@ Starta om den nu?</value>
   </data>
   <data name="Source addresses it may be used from (optional)" xml:space="preserve">
     <value>Källadresser den får användas från (valfritt)</value>
+  </data>
+  <data name="Space" xml:space="preserve">
+    <value>Blanksteg</value>
   </data>
   <data name="Spam" xml:space="preserve">
     <value>Skräppost</value>
@@ -15045,6 +15072,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} (subject '{1}')" xml:space="preserve">
     <value>{0} (ämne '{1}')</value>
+  </data>
+  <data name="{0} ({1})" xml:space="preserve">
+    <value>{0} ({1})</value>
   </data>
   <data name="{0} + {1} more" xml:space="preserve">
     <value>{0} + {1} till</value>

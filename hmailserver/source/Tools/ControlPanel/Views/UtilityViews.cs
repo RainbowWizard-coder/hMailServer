@@ -99,6 +99,11 @@ namespace hMailServer.ControlPanel.Views
          Grid.SetColumn(add_, 3);
          row.Children.Add(add_);
 
+         // Delete deletes the selected relay after asking, Insert goes to the form,
+         // and Enter in the form adds; Escape empties it (Views/GridKeys, FormSubmit).
+         GridKeys.Wire(list_, null, GridKeys.Pressing(del), GridKeys.Focusing(name_));
+         FormSubmit.Bind(row, add_, name_, lower_, upper_);
+
          var addCard = new Card { Title = L("Add relay"), Content = row };
          Grid.SetRow(addCard, 3);
          grid.Children.Add(addCard);
@@ -275,6 +280,8 @@ namespace hMailServer.ControlPanel.Views
          inputRow.Children.Add(actions);
          Grid.SetRow(inputRow, 1);
          grid.Children.Add(inputRow);
+         // Enter in the domain box queries; Escape empties it.
+         FormSubmit.Bind(inputRow, run, domain_);
 
          System.Windows.Automation.AutomationProperties.SetName(output_, L("MX query"));
          var card = new Card
@@ -652,6 +659,8 @@ namespace hMailServer.ControlPanel.Views
          Grid.SetColumn(actions, 2);
          inputRow.Children.Add(actions);
          parts.Children.Add(inputRow);
+         // Enter in either domain box runs the checks.
+         FormSubmit.Bind(inputRow, run);
 
          System.Windows.Automation.AutomationProperties.SetName(output_, L("Diagnostics"));
          var card = new Card

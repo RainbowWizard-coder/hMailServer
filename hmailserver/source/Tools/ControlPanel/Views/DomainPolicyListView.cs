@@ -313,6 +313,8 @@ namespace hMailServer.ControlPanel.Views
          ButtonStyles.DangerText(remove);
          actions.Children.Add(remove);
          SelectionGate.Bind(entries_, remove);
+         // Delete deletes the selected entry after asking; Insert adds one.
+         GridKeys.Wire(entries_, null, remove, addButton_);
          actions.Children.Add(MakeButton(L("_Refresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload()));
          foreach (FrameworkElement button in actions.Children)
             button.Margin = new Thickness(button.Margin.Left, 2, button.Margin.Right, 2);

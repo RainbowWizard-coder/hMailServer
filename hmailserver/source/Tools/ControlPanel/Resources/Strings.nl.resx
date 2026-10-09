@@ -999,6 +999,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Add a remote domain policy" xml:space="preserve">
     <value>Een regel voor een extern domein toevoegen</value>
   </data>
+  <data name="Add a row to a list, or go to the form that adds one" xml:space="preserve">
+    <value>Een rij aan een lijst toevoegen, of naar het formulier gaan dat er een toevoegt</value>
+  </data>
   <data name="Add a rule" xml:space="preserve">
     <value>Een regel toevoegen</value>
   </data>
@@ -2512,8 +2515,8 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Close the help" xml:space="preserve">
     <value>Help sluiten</value>
   </data>
-  <data name="Close the help while the keyboard is in it, and close a dialog" xml:space="preserve">
-    <value>De help sluiten terwijl het toetsenbord erin staat, en een dialoogvenster sluiten</value>
+  <data name="Close the help while the keyboard is in it, close a dialog, and empty a form on a page" xml:space="preserve">
+    <value>De help sluiten terwijl het toetsenbord erin staat, een dialoogvenster sluiten en een formulier op een pagina leegmaken</value>
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>De ontvangerslijst sluiten</value>
@@ -3423,6 +3426,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Defaults to {0} days, which is what the API itself uses when a request does not name one. A key with no expiry is the property that makes the administrator password dangerous, so there is no &quot;never&quot; option." xml:space="preserve">
     <value>Standaard {0} dagen, wat de API zelf gebruikt wanneer een aanvraag er geen noemt. Een sleutel zonder vervaldatum is precies de eigenschap die het beheerderswachtwoord gevaarlijk maakt, dus er is geen optie "nooit".</value>
   </data>
+  <data name="Del" xml:space="preserve">
+    <value>Del</value>
+  </data>
   <data name="Delay for each further recipient (seconds, at most 30; 0 = off)" xml:space="preserve">
     <value>Vertraging voor elke volgende ontvanger (seconden, maximaal 30; 0 = uit)</value>
   </data>
@@ -3615,6 +3621,9 @@ Dit verwijdert definitief de {1} accounts ervan, samen met elk bericht dat daari
   </data>
   <data name="Delete the selected certificate" xml:space="preserve">
     <value>Het geselecteerde certificaat verwijderen</value>
+  </data>
+  <data name="Delete the selected row of a list, after asking" xml:space="preserve">
+    <value>De geselecteerde rij van een lijst verwijderen, na een vraag</value>
   </data>
   <data name="Delete the spam exemption {0}? Mail it covers goes through the spam checks again." xml:space="preserve">
     <value>De spamuitzondering {0} verwijderen? Mail die eronder valt, gaat weer door de spamcontroles.</value>
@@ -4213,6 +4222,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Enrol {0} again? A new secret replaces the current one, and the codes the authenticator app shows now stop working until it scans the new QR code." xml:space="preserve">
     <value>{0} opnieuw inschrijven? Een nieuw geheim vervangt het huidige, en de codes die de authenticator-app nu toont, werken niet meer totdat die de nieuwe QR-code heeft gescand.</value>
   </data>
+  <data name="Enter" xml:space="preserve">
+    <value>Enter</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Voer eerst een hostnaam en poort in.</value>
   </data>
@@ -4269,6 +4281,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Voer het wachtwoord van het serviceaccount in</value>
+  </data>
+  <data name="Enter, F2" xml:space="preserve">
+    <value>Enter, F2</value>
   </data>
   <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
     <value>Vermeldingen die overeenkomen met de zoekopdracht: {0} van {1}.</value>
@@ -5379,6 +5394,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Initial delay (minutes)" xml:space="preserve">
     <value>Initiële vertraging (minuten)</value>
+  </data>
+  <data name="Ins" xml:space="preserve">
+    <value>Ins</value>
   </data>
   <data name="Insert / append messages" xml:space="preserve">
     <value>Invoegen / berichten toevoegen</value>
@@ -7591,6 +7609,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Open the member list of '{0}'." xml:space="preserve">
     <value>De ledenlijst van '{0}' openen.</value>
   </data>
+  <data name="Open the selected row of a list" xml:space="preserve">
+    <value>De geselecteerde rij van een lijst openen</value>
+  </data>
   <data name="Open the setup checklist: every item, what is done and what to do next" xml:space="preserve">
     <value>De configuratiechecklist openen: elk onderdeel, wat klaar is en wat de volgende stap is</value>
   </data>
@@ -8060,6 +8081,9 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   </data>
   <data name="Press &quot;Check&quot; to look the record up through this machine's resolver." xml:space="preserve">
     <value>Druk op "Controleren" om het record op te zoeken via de resolver van deze machine.</value>
+  </data>
+  <data name="Press the button of the form the keyboard is in, on a page as in a dialog" xml:space="preserve">
+    <value>De knop indrukken van het formulier waarin het toetsenbord staat, op een pagina net als in een dialoogvenster</value>
   </data>
   <data name="Press the button, or go to the field, whose caption has that letter underlined" xml:space="preserve">
     <value>De knop indrukken, of naar het veld gaan, waarvan het opschrift die letter onderstreept heeft</value>
@@ -10446,6 +10470,9 @@ Nu opnieuw starten?</value>
   </data>
   <data name="Source addresses it may be used from (optional)" xml:space="preserve">
     <value>Bronadressen waarvandaan hij mag worden gebruikt (optioneel)</value>
+  </data>
+  <data name="Space" xml:space="preserve">
+    <value>Spatie</value>
   </data>
   <data name="Spam" xml:space="preserve">
     <value>Spam</value>
@@ -15045,6 +15072,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} (subject '{1}')" xml:space="preserve">
     <value>{0} (onderwerp '{1}')</value>
+  </data>
+  <data name="{0} ({1})" xml:space="preserve">
+    <value>{0} ({1})</value>
   </data>
   <data name="{0} + {1} more" xml:space="preserve">
     <value>{0} + {1} meer</value>

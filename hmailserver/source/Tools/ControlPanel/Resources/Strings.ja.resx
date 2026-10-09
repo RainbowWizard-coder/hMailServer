@@ -999,6 +999,9 @@
   <data name="Add a remote domain policy" xml:space="preserve">
     <value>リモート ドメインのポリシーを追加</value>
   </data>
+  <data name="Add a row to a list, or go to the form that adds one" xml:space="preserve">
+    <value>一覧に行を追加する、または行を追加するフォームに移動する</value>
+  </data>
   <data name="Add a rule" xml:space="preserve">
     <value>ルールを追加</value>
   </data>
@@ -2512,8 +2515,8 @@
   <data name="Close the help" xml:space="preserve">
     <value>ヘルプを閉じる</value>
   </data>
-  <data name="Close the help while the keyboard is in it, and close a dialog" xml:space="preserve">
-    <value>キーボードがヘルプ内にあるときにヘルプを閉じる。ダイアログを閉じる</value>
+  <data name="Close the help while the keyboard is in it, close a dialog, and empty a form on a page" xml:space="preserve">
+    <value>キーボードがヘルプ内にあるときにヘルプを閉じる。ダイアログを閉じる。ページのフォームを空にする</value>
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>受信者リストを閉じる</value>
@@ -3423,6 +3426,9 @@
   <data name="Defaults to {0} days, which is what the API itself uses when a request does not name one. A key with no expiry is the property that makes the administrator password dangerous, so there is no &quot;never&quot; option." xml:space="preserve">
     <value>既定は {0} 日で、リクエストで指定がない場合に API 自身が使う値です。有効期限のないキーこそが管理者パスワードを危険にしている性質なので、「無期限」という選択肢はありません。</value>
   </data>
+  <data name="Del" xml:space="preserve">
+    <value>Del</value>
+  </data>
   <data name="Delay for each further recipient (seconds, at most 30; 0 = off)" xml:space="preserve">
     <value>受信者が増えるごとの遅延 (秒、最大 30、0 = 無効)</value>
   </data>
@@ -3615,6 +3621,9 @@
   </data>
   <data name="Delete the selected certificate" xml:space="preserve">
     <value>選択した証明書を削除</value>
+  </data>
+  <data name="Delete the selected row of a list, after asking" xml:space="preserve">
+    <value>確認したうえで、一覧で選択した行を削除する</value>
   </data>
   <data name="Delete the spam exemption {0}? Mail it covers goes through the spam checks again." xml:space="preserve">
     <value>スパム対策の除外 {0} を削除しますか? これが対象としていたメールは、再びスパム チェックを受けます。</value>
@@ -4213,6 +4222,9 @@
   <data name="Enrol {0} again? A new secret replaces the current one, and the codes the authenticator app shows now stop working until it scans the new QR code." xml:space="preserve">
     <value>{0} を再登録しますか? 新しいシークレットが現在のものを置き換え、認証アプリが今表示しているコードは、新しい QR コードを読み取るまで使えなくなります。</value>
   </data>
+  <data name="Enter" xml:space="preserve">
+    <value>Enter</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>先にホスト名とポートを入力してください。</value>
   </data>
@@ -4269,6 +4281,9 @@
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>サービス アカウントのパスワードを入力してください</value>
+  </data>
+  <data name="Enter, F2" xml:space="preserve">
+    <value>Enter、F2</value>
   </data>
   <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
     <value>検索に一致したエントリ: {1} 件中 {0} 件。</value>
@@ -5379,6 +5394,9 @@
   </data>
   <data name="Initial delay (minutes)" xml:space="preserve">
     <value>初期遅延 (分)</value>
+  </data>
+  <data name="Ins" xml:space="preserve">
+    <value>Ins</value>
   </data>
   <data name="Insert / append messages" xml:space="preserve">
     <value>メッセージの挿入/追加</value>
@@ -7591,6 +7609,9 @@
   <data name="Open the member list of '{0}'." xml:space="preserve">
     <value>'{0}' のメンバー リストを開きます。</value>
   </data>
+  <data name="Open the selected row of a list" xml:space="preserve">
+    <value>一覧で選択した行を開く</value>
+  </data>
   <data name="Open the setup checklist: every item, what is done and what to do next" xml:space="preserve">
     <value>セットアップ チェックリストを開く: すべての項目、完了したもの、次に行うこと</value>
   </data>
@@ -8060,6 +8081,9 @@
   </data>
   <data name="Press &quot;Check&quot; to look the record up through this machine's resolver." xml:space="preserve">
     <value>「確認」を押すと、このコンピューターのリゾルバーを通じてレコードを参照します。</value>
+  </data>
+  <data name="Press the button of the form the keyboard is in, on a page as in a dialog" xml:space="preserve">
+    <value>キーボードがあるフォームのボタンを押す (ダイアログと同じくページでも)</value>
   </data>
   <data name="Press the button, or go to the field, whose caption has that letter underlined" xml:space="preserve">
     <value>その文字に下線が付いたボタンを押す、またはそのフィールドに移動する</value>
@@ -10446,6 +10470,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Source addresses it may be used from (optional)" xml:space="preserve">
     <value>使用を許可する送信元アドレス (省略可)</value>
+  </data>
+  <data name="Space" xml:space="preserve">
+    <value>スペース キー</value>
   </data>
   <data name="Spam" xml:space="preserve">
     <value>スパム</value>
@@ -15045,6 +15072,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} (subject '{1}')" xml:space="preserve">
     <value>{0} (件名 '{1}')</value>
+  </data>
+  <data name="{0} ({1})" xml:space="preserve">
+    <value>{0} ({1})</value>
   </data>
   <data name="{0} + {1} more" xml:space="preserve">
     <value>{0} + ほか {1} 件</value>

@@ -74,6 +74,15 @@ namespace hMailServer.ControlPanel.Views
          hMailServer.ControlPanel.Services.SelectionGate.Bind(CriteriaGrid, EditCriterionButton, RemoveCriterionButton);
          hMailServer.ControlPanel.Services.SelectionGate.Bind(ActionsGrid, EditActionButton, RemoveActionButton, ActionUpButton, ActionDownButton);
 
+         // The three lists' keys (Views/GridKeys): Delete deletes the selected rule
+         // after asking and Insert goes to the new rule's name; Enter and F2 edit a
+         // criterion or an action, Delete removes it and Insert adds one. Enter in
+         // the name adds the rule, and Escape empties it (Views/FormSubmit).
+         GridKeys.Wire(RuleGrid, null, GridKeys.Pressing(DeleteRuleButton), GridKeys.Focusing(NewRuleName));
+         GridKeys.Wire(CriteriaGrid, EditCriterionButton, RemoveCriterionButton, AddCriterionButton);
+         GridKeys.Wire(ActionsGrid, EditActionButton, RemoveActionButton, AddActionButton);
+         FormSubmit.Bind((UIElement)AddRuleButton.Parent, AddRuleButton, NewRuleName);
+
          suppressMatchMode_ = true;
          MatchMode.Items.Add(L("Match ALL criteria (AND)"));
          MatchMode.Items.Add(L("Match ANY criterion (OR)"));

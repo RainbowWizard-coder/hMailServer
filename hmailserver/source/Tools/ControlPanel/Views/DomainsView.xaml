@@ -245,7 +245,7 @@
                             <ui:Button Content="{loc:L '_Generate'}" Margin="0,0,8,0"
                                        Click="GenerateAccountPassword_Click"
                                        ToolTip="{loc:L 'Generate a strong password (copied to clipboard)'}" />
-                            <ui:Button Content="{loc:L '_Create account'}" Appearance="Primary" Click="AddAccount_Click"
+                            <ui:Button x:Name="AddAccountButton" Content="{loc:L '_Create account'}" Appearance="Primary" Click="AddAccount_Click"
                                        AutomationProperties.AutomationId="domains-accounts" Margin="0" />
                         </WrapPanel>
                     </Grid>
@@ -322,7 +322,7 @@
                             <scaffold:FieldRow Grid.Row="1" Label="{loc:L 'Delivers to'}" Margin="0,0,6,0">
                                 <ui:TextBox x:Name="NewAliasValue" PlaceholderText="target@anywhere" FontSize="12" />
                             </scaffold:FieldRow>
-                            <ui:Button Grid.Row="1" Grid.Column="1" Content="{loc:L 'Add a_lias'}" FontSize="12" Click="AddAlias_Click"
+                            <ui:Button x:Name="AddAliasButton" Grid.Row="1" Grid.Column="1" Content="{loc:L 'Add a_lias'}" FontSize="12" Click="AddAlias_Click"
                                        VerticalAlignment="Bottom" Margin="0"
                                        AutomationProperties.Name="{loc:L 'Add alias'}" />
                         </Grid>
@@ -370,7 +370,7 @@
                             <scaffold:FieldRow Label="{loc:L 'Address'}" Margin="0,0,6,0">
                                 <ui:TextBox x:Name="NewDistAddress" PlaceholderText="list@domain" FontSize="12" />
                             </scaffold:FieldRow>
-                            <ui:Button Grid.Column="1" Content="{loc:L 'Add li_st'}" FontSize="12" Click="AddDistList_Click"
+                            <ui:Button x:Name="AddListButton" Grid.Column="1" Content="{loc:L 'Add li_st'}" FontSize="12" Click="AddDistList_Click"
                                        VerticalAlignment="Bottom" Margin="0"
                                        AutomationProperties.Name="{loc:L 'Add distribution list'}" />
                         </Grid>

@@ -163,7 +163,11 @@ namespace hMailServer.ControlPanel.Services
          new KeyboardShortcut(N("Ctrl+F"), N("Go to the search box of this page")),
          new KeyboardShortcut(N("Ctrl+S"), N("Save the changes on this page")),
          new KeyboardShortcut(N("F6, Shift+F6"), N("Move to the next or the previous part of the window: the command bar, the navigation, the page and the help")),
-         new KeyboardShortcut(N("Esc"), N("Close the help while the keyboard is in it, and close a dialog")),
+         new KeyboardShortcut(N("Esc"), N("Close the help while the keyboard is in it, close a dialog, and empty a form on a page")),
+         new KeyboardShortcut(N("Enter, F2"), N("Open the selected row of a list")),
+         new KeyboardShortcut(N("Del"), N("Delete the selected row of a list, after asking")),
+         new KeyboardShortcut(N("Ins"), N("Add a row to a list, or go to the form that adds one")),
+         new KeyboardShortcut(N("Enter"), N("Press the button of the form the keyboard is in, on a page as in a dialog")),
          new KeyboardShortcut(N("Alt+underlined letter"), N("Press the button, or go to the field, whose caption has that letter underlined"))
       };
    }

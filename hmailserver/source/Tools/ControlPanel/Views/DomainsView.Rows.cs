@@ -177,5 +177,20 @@ namespace hMailServer.ControlPanel.Views
 
       private static DependencyObject ParentOf_(DependencyObject d)
          => d is Visual || d is System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetParent(d) : LogicalTreeHelper.GetParent(d);
+
+      /// <summary>
+      /// Enter in each of the page's four forms presses the form's button - Add
+      /// domain, Create account, Add alias, Add list - as a click does, and does
+      /// nothing while the button is disabled; Escape empties what was typed
+      /// (Views/FormSubmit). The keyboard user typed the last box and then tabbed
+      /// to the button.
+      /// </summary>
+      private void WireForms_()
+      {
+         FormSubmit.Bind((UIElement)AddDomainButton.Parent, AddDomainButton, NewDomainBox);
+         FormSubmit.Bind(AccountForm, AddAccountButton, NewAccountBox, NewAccountPassword);
+         FormSubmit.Bind((UIElement)AddAliasButton.Parent, AddAliasButton, NewAliasName, NewAliasValue);
+         FormSubmit.Bind((UIElement)AddListButton.Parent, AddListButton, NewDistAddress);
+      }
    }
 }

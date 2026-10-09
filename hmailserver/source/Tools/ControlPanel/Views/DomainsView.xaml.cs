@@ -35,6 +35,7 @@ namespace hMailServer.ControlPanel.Views
       {
          InitializeComponent();
          WireRows_();
+         WireForms_();
       }
 
       public void OnEnter() => ReloadDomains();

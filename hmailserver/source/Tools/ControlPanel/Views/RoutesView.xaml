@@ -49,7 +49,7 @@
         <scaffold:Card scaffold:FillPanel.Fill="True" MinHeight="157" Padding="8">
             <Grid>
                 <DataGrid x:Name="RouteGrid" AutoGenerateColumns="False" IsReadOnly="True"
-                          SelectionMode="Single" MouseDoubleClick="Edit_Click"
+                          SelectionMode="Single"
                           AutomationProperties.Name="{loc:L 'Routes'}">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="{loc:L 'Domain'}" Binding="{Binding DomainName}" Width="*" ElementStyle="{StaticResource GridTrimmedText}" />

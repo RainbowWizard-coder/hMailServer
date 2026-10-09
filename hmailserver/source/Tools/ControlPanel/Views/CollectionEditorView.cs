@@ -353,7 +353,11 @@ namespace hMailServer.ControlPanel.Views
          // vertical bar, as the rules page's list does, so that neither bar can
          // turn the other on and off for ever (ControlPanelDesign.md, Grids).
          ScrollViewer.SetVerticalScrollBarVisibility(grid_, ScrollBarVisibility.Visible);
-         grid_.MouseDoubleClick += (_, _) => EditSelected();
+         // Enter and F2 edit the selected row, Delete deletes it after asking and
+         // Insert adds one, each through its button; a double-click edits a row,
+         // where it was the grid's and a double-click on a header's divider, to
+         // fit a column, opened Edit as well (Views/GridKeys).
+         GridKeys.Wire(grid_, edit, del, addButton_);
          System.Windows.Automation.AutomationProperties.SetName(grid_, spec_.Title);
 
          foreach (FieldSpec f in spec_.Fields.Where(f => f.ShowInGrid))

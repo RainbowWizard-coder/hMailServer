@@ -399,6 +399,8 @@ namespace hMailServer.ControlPanel.Views
          ButtonStyles.DangerText(remove);
          actions.Children.Add(remove);
          SelectionGate.Bind(entries_, remove);
+         // Delete removes the selected address after asking; Insert adds one.
+         GridKeys.Wire(entries_, null, remove, addButton_);
          actions.Children.Add(MakeButton(L("_Refresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload()));
 
          root.Children.Add(new PageHeader

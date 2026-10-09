@@ -999,6 +999,9 @@
   <data name="Add a remote domain policy" xml:space="preserve">
     <value>添加远程域策略</value>
   </data>
+  <data name="Add a row to a list, or go to the form that adds one" xml:space="preserve">
+    <value>向列表添加一行，或转到添加行的表单</value>
+  </data>
   <data name="Add a rule" xml:space="preserve">
     <value>添加规则</value>
   </data>
@@ -2512,8 +2515,8 @@
   <data name="Close the help" xml:space="preserve">
     <value>关闭帮助</value>
   </data>
-  <data name="Close the help while the keyboard is in it, and close a dialog" xml:space="preserve">
-    <value>键盘在帮助中时关闭帮助；关闭对话框</value>
+  <data name="Close the help while the keyboard is in it, close a dialog, and empty a form on a page" xml:space="preserve">
+    <value>键盘在帮助中时关闭帮助；关闭对话框；清空页面上的表单</value>
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>关闭收件人列表</value>
@@ -3423,6 +3426,9 @@
   <data name="Defaults to {0} days, which is what the API itself uses when a request does not name one. A key with no expiry is the property that makes the administrator password dangerous, so there is no &quot;never&quot; option." xml:space="preserve">
     <value>默认为 {0} 天，这也是 API 本身在请求未指定时使用的值。没有到期时间的密钥正是让管理员密码变得危险的那个特性，因此没有“永不”选项。</value>
   </data>
+  <data name="Del" xml:space="preserve">
+    <value>Del</value>
+  </data>
   <data name="Delay for each further recipient (seconds, at most 30; 0 = off)" xml:space="preserve">
     <value>每增加一个收件人的延迟（秒，最多 30；0 = 关闭）</value>
   </data>
@@ -3615,6 +3621,9 @@
   </data>
   <data name="Delete the selected certificate" xml:space="preserve">
     <value>删除所选证书</value>
+  </data>
+  <data name="Delete the selected row of a list, after asking" xml:space="preserve">
+    <value>询问后删除列表中选中的行</value>
   </data>
   <data name="Delete the spam exemption {0}? Mail it covers goes through the spam checks again." xml:space="preserve">
     <value>是否删除反垃圾邮件豁免 {0}？它所涵盖的邮件将重新经过垃圾邮件检查。</value>
@@ -4213,6 +4222,9 @@
   <data name="Enrol {0} again? A new secret replaces the current one, and the codes the authenticator app shows now stop working until it scans the new QR code." xml:space="preserve">
     <value>是否重新注册 {0}？新的密钥将替换当前密钥，在身份验证器应用扫描新的二维码之前，它现在显示的验证码将无法使用。</value>
   </data>
+  <data name="Enter" xml:space="preserve">
+    <value>Enter</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>请先输入主机名和端口。</value>
   </data>
@@ -4269,6 +4281,9 @@
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>输入服务账户密码</value>
+  </data>
+  <data name="Enter, F2" xml:space="preserve">
+    <value>Enter、F2</value>
   </data>
   <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
     <value>与搜索匹配的条目：{1} 个中的 {0} 个。</value>
@@ -5379,6 +5394,9 @@
   </data>
   <data name="Initial delay (minutes)" xml:space="preserve">
     <value>初始延迟（分钟）</value>
+  </data>
+  <data name="Ins" xml:space="preserve">
+    <value>Ins</value>
   </data>
   <data name="Insert / append messages" xml:space="preserve">
     <value>插入 / 追加邮件</value>
@@ -7591,6 +7609,9 @@
   <data name="Open the member list of '{0}'." xml:space="preserve">
     <value>打开“{0}”的成员列表。</value>
   </data>
+  <data name="Open the selected row of a list" xml:space="preserve">
+    <value>打开列表中选中的行</value>
+  </data>
   <data name="Open the setup checklist: every item, what is done and what to do next" xml:space="preserve">
     <value>打开设置清单：每一项、已完成的内容和下一步要做的事</value>
   </data>
@@ -8060,6 +8081,9 @@
   </data>
   <data name="Press &quot;Check&quot; to look the record up through this machine's resolver." xml:space="preserve">
     <value>按“检查”通过本机的解析器查询该记录。</value>
+  </data>
+  <data name="Press the button of the form the keyboard is in, on a page as in a dialog" xml:space="preserve">
+    <value>按下键盘所在表单的按钮，在页面上与在对话框中一样</value>
   </data>
   <data name="Press the button, or go to the field, whose caption has that letter underlined" xml:space="preserve">
     <value>按下标题中带下划线字母的按钮，或转到该字段</value>
@@ -10446,6 +10470,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Source addresses it may be used from (optional)" xml:space="preserve">
     <value>可以从中使用它的来源地址 (可选)</value>
+  </data>
+  <data name="Space" xml:space="preserve">
+    <value>空格键</value>
   </data>
   <data name="Spam" xml:space="preserve">
     <value>垃圾邮件</value>
@@ -15045,6 +15072,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} (subject '{1}')" xml:space="preserve">
     <value>{0}（主题 '{1}'）</value>
+  </data>
+  <data name="{0} ({1})" xml:space="preserve">
+    <value>{0}（{1}）</value>
   </data>
   <data name="{0} + {1} more" xml:space="preserve">
     <value>{0} + 另外 {1} 个</value>

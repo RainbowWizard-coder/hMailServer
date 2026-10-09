@@ -56,7 +56,7 @@
             <Grid>
                 <DataGrid x:Name="PortGrid" AutoGenerateColumns="False" IsReadOnly="True"
                           AutomationProperties.AutomationId="ports-grid"
-                          SelectionMode="Single" MouseDoubleClick="Edit_Click"
+                          SelectionMode="Single"
                           AutomationProperties.Name="{loc:L 'TCP/IP ports'}">
                     <DataGrid.Columns>
                         <!-- Each width is the column's share of a window that has room; its

@@ -31,6 +31,12 @@ namespace hMailServer.ControlPanel.Views
       {
          InitializeComponent();
          hMailServer.ControlPanel.Services.SelectionGate.Bind(RouteGrid, PropertiesButton, DeleteButton);
+
+         // Enter and F2 open the selected route, Delete deletes it after asking,
+         // Insert goes to the add form, and Enter in the form adds the route;
+         // Escape empties its two boxes and leaves the port (Views/GridKeys, FormSubmit).
+         GridKeys.Wire(RouteGrid, GridKeys.Pressing(PropertiesButton), GridKeys.Pressing(DeleteButton), GridKeys.Focusing(NewDomain));
+         FormSubmit.Bind((UIElement)AddRouteButton.Parent, AddRouteButton, NewDomain, NewHost);
       }
 
       public void OnEnter() => Reload();

@@ -80,6 +80,12 @@ namespace hMailServer.ControlPanel.Views
          InitializeComponent();
          hMailServer.ControlPanel.Services.SelectionGate.Bind(PortGrid, PropertiesButton, DeleteButton);
          FloorColumns_();
+
+         // Enter and F2 open the selected port, Delete deletes it after asking,
+         // Insert goes to the add form, and Enter in the form adds the port;
+         // Escape empties the port box and leaves the address (Views/GridKeys, FormSubmit).
+         GridKeys.Wire(PortGrid, GridKeys.Pressing(PropertiesButton), GridKeys.Pressing(DeleteButton), GridKeys.Focusing(NewProtocol));
+         FormSubmit.Bind((UIElement)AddPortButton.Parent, AddPortButton, NewPort);
       }
 
       /// <summary>

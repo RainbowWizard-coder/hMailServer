@@ -75,7 +75,9 @@ namespace hMailServer.ControlPanel.Views
          Grid.SetRow(card, 2);
          root.Children.Add(card);
 
-         list_.MouseDoubleClick += (_, _) => EditPermissions();
+         // Enter and F2 open the selected folder's permissions, Delete deletes it
+         // and Insert adds one; a double-click on a folder opens its permissions.
+         GridKeys.Wire(list_, permissions, delete, addButton_);
 
          count_.SetResourceReference(StyleProperty, "TextCaption");
          Grid.SetRow(count_, 3);

@@ -108,7 +108,7 @@
             </StackPanel>
             <scaffold:Card.Footer>
                 <StackPanel Orientation="Horizontal">
-                    <ui:Button Content="{loc:L 'Save _passphrase'}" Appearance="Primary" Click="SavePassphrase_Click" Margin="0,0,8,0"
+                    <ui:Button x:Name="SavePassphraseButton" Content="{loc:L 'Save _passphrase'}" Appearance="Primary" Click="SavePassphrase_Click" Margin="0,0,8,0"
                                AutomationProperties.Name="{loc:L 'Save the private key passphrase for the selected certificate'}" />
                     <ui:Button Content="{loc:L '_Remove stored passphrase'}" Click="ClearPassphrase_Click"
                                AutomationProperties.Name="{loc:L 'Remove the stored private key passphrase from the selected certificate'}" />
@@ -162,7 +162,7 @@
                         <local:PasswordField x:Name="NewKeyPassphrase"
                                              AutomationProperties.Name="{loc:L 'Private key passphrase for the certificate being added'}" />
                     </scaffold:FieldRow>
-                    <ui:Button Grid.Column="4" Content="{loc:L '_Add'}" Appearance="Primary" Click="Add_Click"
+                    <ui:Button x:Name="AddCertButton" Grid.Column="4" Content="{loc:L '_Add'}" Appearance="Primary" Click="Add_Click"
                                VerticalAlignment="Bottom" Margin="0"
                                AutomationProperties.Name="{loc:L 'Add the certificate'}" />
                 </Grid>

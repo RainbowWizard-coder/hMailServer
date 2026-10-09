@@ -1397,6 +1397,21 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   key in the reader's language - Strg+F and Entf in German. `KeyboardShortcutsTests` holds the table, the order F6
   moves in, the window's wiring, and every re-read button to Refresh or Reload with its one access key.
 
+- **New: the Control Panel's lists answer Enter, F2, Delete and Insert, and Enter submits the forms on its pages.** No
+  list answered a key: a keyboard user selected a row and tabbed to the page header's buttons to open or delete it, a
+  double-click was the only other way to open a row - and on the collection pages a double-click on a column
+  header's divider, to fit the column, opened Edit for whatever row was selected - each quarantine row was about seven
+  tab stops with no key to release, delete or preview it, and Enter did nothing in the add forms of the routes, TCP/IP
+  ports, rules, incoming relays, SSL certificates, IP ranges and domains pages or in the MX query's and the
+  diagnostics' boxes. On every list page Enter and F2 now open the selected row, Delete deletes it with the page's own
+  question, and Insert adds a row or goes to the page's add form, each pressing the page's button for it, so a key
+  does nothing a disabled button would not, and the keyboard is back on the selected row afterwards; a double-click
+  opens a row only on the row. The quarantine's grid is one tab stop whose selected row answers Space (check), R
+  (release), Delete and P (preview), with the keys in the row icons' tool tips. Enter in a form on a page presses its
+  button as in a dialog, a box of several lines or an open list keeping its own, and Escape empties what was typed,
+  leaving defaults such as a port's 25. The palette's Keyboard shortcuts list names the keys. `GridKeysTests` holds
+  the helpers, every page's wiring, the quarantine's keys and the tool tips.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

@@ -64,7 +64,6 @@
             <Grid>
                 <DataGrid x:Name="RangeGrid" AutoGenerateColumns="False" IsReadOnly="True"
                           SelectionMode="Single" SelectionChanged="RangeGrid_SelectionChanged"
-                          MouseDoubleClick="Edit_Click"
                           AutomationProperties.Name="{loc:L 'IP ranges'}">
                     <DataGrid.Columns>
                         <!-- A floor under every column, so that a narrow window scrolls
