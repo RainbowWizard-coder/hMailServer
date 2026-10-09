@@ -15505,12 +15505,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
     <value>有 {0} 个客户端监听器提供 STARTTLS 但不作强制要求，因此不请求加密的客户端就会在没有加密的情况下完成身份验证，而且没有任何东西会报告这件事发生过。</value>
   </data>
-  <data name="{0} client listeners have no encryption available ({1}), so passwords used on them cross the network in the clear." xml:space="preserve">
-    <value>有 {0} 个客户端监听器（{1}）不提供加密，因此在它们上面使用的密码以明文经过网络。</value>
-  </data>
-  <data name="{0} client listeners offer STARTTLS without requiring it ({1}), so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>有 {0} 个客户端监听器（{1}）提供 STARTTLS 但不作强制要求，因此不请求加密的客户端就会在没有加密的情况下完成身份验证，而且没有任何东西会报告这件事发生过。</value>
-  </data>
   <data name="{0} closed. It picks up where you left off." xml:space="preserve">
     <value>“{0}”已关闭。下次会从您离开的地方继续。</value>
   </data>
@@ -15595,9 +15589,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} has expired and is refused" xml:space="preserve">
     <value>{0} 个已过期，会被拒绝</value>
   </data>
-  <data name="{0} has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
-    <value>{0} 不提供加密，因此在它上面使用的密码以明文经过网络。</value>
-  </data>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>{0} 没有配置 postmaster 地址，而本页不会凭空编造一个邮箱 - 请输入应当接收这些报告的地址。在输入之前，没有可复制的记录。</value>
   </data>
@@ -15624,9 +15615,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} is available (published {1})" xml:space="preserve">
     <value>{0} 可用（发布于 {1}）</value>
-  </data>
-  <data name="{0} is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
-    <value>{0} 配置为使用 TLS，却无法提供 TLS，因此该端口根本没有在监听。</value>
   </data>
   <data name="{0} is covered by {1} but does not resolve back to {2}, so it is not spared: anybody who holds an address can write its reverse name." xml:space="preserve">
     <value>{0} 被 {1} 覆盖，但不会正向解析回 {2}，因此不予豁免：任何持有地址的人都能自行写入其反向名称。</value>
@@ -15693,9 +15681,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
     <value>有 {0} 个监听器配置为使用 TLS，却无法提供 TLS，因此那些端口根本没有在监听。</value>
-  </data>
-  <data name="{0} listeners are configured for TLS but cannot serve it ({1}), so those ports are not listening at all." xml:space="preserve">
-    <value>有 {0} 个监听器（{1}）配置为使用 TLS，却无法提供 TLS，因此那些端口根本没有在监听。</value>
   </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} 封邮件</value>
@@ -15771,9 +15756,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} of {1}: {2}" xml:space="preserve">
     <value>第 {0} 项，共 {1} 项：{2}</value>
-  </data>
-  <data name="{0} offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>{0} 提供 STARTTLS 但不作强制要求，因此不请求加密的客户端就会在没有加密的情况下完成身份验证，而且没有任何东西会报告这件事发生过。</value>
   </data>
   <data name="{0} on port {1} has no encryption available. Mail clients authenticate on this port, so every password used on it is readable by anything between the client and this server." xml:space="preserve">
     <value>{0} 在端口 {1} 上没有可用的加密。邮件客户端会在此端口上进行身份验证，因此在它上面使用的每一个密码，对客户端与本服务器之间的任何东西来说都是可读的。</value>

@@ -346,7 +346,19 @@ namespace hMailServer.ControlPanel.Services
             : string.Join(", ", enabled);
       }
 
-      /// <summary>One sentence answering "is anything here in the clear".</summary>
+      /// <summary>
+      /// One sentence answering "is anything here in the clear", where no note
+      /// says it: every listener a mail client connects to requires encryption,
+      /// or where the server stands cannot be said. Null where the notes say it
+      /// (<see cref="NotesSayTheVerdict"/>) - no listener at all, or, listener by
+      /// listener, one that cannot serve TLS, one that offers a client no
+      /// encryption, STARTTLS that a client may skip - since they are the
+      /// verdict, each naming its listener and opening the page that puts it
+      /// right. The sentences that named those listeners again ("POP3 110 has no
+      /// encryption available...", "2 listeners are configured for TLS but cannot
+      /// serve it (IMAP 993, POP3 995)...") were never shown once the notes said
+      /// them, and are gone.
+      /// </summary>
       public static string Verdict(TlsPostureConfig config)
       {
          if (config == null)
@@ -357,42 +369,8 @@ namespace hMailServer.ControlPanel.Services
          if (!config.WasRead(nameof(config.Listeners)))
             return L("Where this server stands cannot be said: the listeners could not be read.");
 
-         IReadOnlyList<TlsListenerVerdict> listeners = Listeners(config);
-
-         if (listeners.Count == 0)
-            return L("No listeners are configured, so nothing can connect to this server.");
-
-         List<TlsListenerVerdict> broken = Broken(listeners);
-         List<TlsListenerVerdict> exposed = Exposed(listeners);
-         List<TlsListenerVerdict> optional = Optional(listeners);
-
-         // Each verdict is one whole text for one listener and one for several:
-         // a sentence put together from a counted noun, its verb and a pronoun
-         // read "przechodzą przez przez sieć" in Polish and "kann es aber nicht"
-         // in German, since no translator can agree three pieces that are
-         // translated apart. Each names its ports - "POP3 110 has no encryption
-         // available" - where it said "1 client listener" and left the reader to
-         // find which in the list below.
-         if (broken.Count > 0)
-         {
-            return broken.Count == 1
-               ? F("{0} is configured for TLS but cannot serve it, so that port is not listening at all.", Ports(broken))
-               : F("{0} listeners are configured for TLS but cannot serve it ({1}), so those ports are not listening at all.", broken.Count, Ports(broken));
-         }
-
-         if (exposed.Count > 0)
-         {
-            return exposed.Count == 1
-               ? F("{0} has no encryption available, so passwords used on it cross the network in the clear.", Ports(exposed))
-               : F("{0} client listeners have no encryption available ({1}), so passwords used on them cross the network in the clear.", exposed.Count, Ports(exposed));
-         }
-
-         if (optional.Count > 0)
-         {
-            return optional.Count == 1
-               ? F("{0} offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened.", Ports(optional))
-               : F("{0} client listeners offer STARTTLS without requiring it ({1}), so a client that does not ask for encryption authenticates without it and nothing reports that it happened.", optional.Count, Ports(optional));
-         }
+         if (NotesSayTheVerdict(config))
+            return null;
 
          return L("Every listener that a mail client connects to requires encryption before it will accept a password.");
       }
@@ -407,11 +385,13 @@ namespace hMailServer.ControlPanel.Services
          listeners.Where(v => IsClientPort(v.Listener) && v.Listener.Security == TlsListenerSecurity.StartTlsOptional).ToList();
 
       /// <summary>
-      /// The level the verdict is shown at: Critical for a listener that cannot
-      /// serve TLS, one that offers a client no encryption, or none at all;
-      /// a Warning for STARTTLS a client may skip; Good when every client port
-      /// requires encryption; Information when the listeners could not be read.
-      /// It was plain body text with no level.
+      /// Where this server stands, as a level: Critical for a listener that
+      /// cannot serve TLS, one that offers a client no encryption, or none at
+      /// all; a Warning for STARTTLS a client may skip; Good when every client
+      /// port requires encryption; Information when the listeners could not be
+      /// read. Good and Information are the level the verdict's sentence is shown
+      /// at - it was plain body text with no level; a Warning or a Critical is
+      /// said by the notes, at that level (<see cref="NotesSayTheVerdict"/>).
       /// </summary>
       public static StatusLevel VerdictLevel(TlsPostureConfig config)
       {
@@ -426,42 +406,21 @@ namespace hMailServer.ControlPanel.Services
       }
 
       /// <summary>
-      /// The page the verdict's action opens: TCP/IP ports, which owns each
-      /// listener's security, while the verdict names listeners there; none when
-      /// it has nothing to put right there.
-      /// </summary>
-      public static string VerdictPage(TlsPostureConfig config)
-      {
-         if (config == null || !config.WasRead(nameof(config.Listeners)))
-            return null;
-
-         IReadOnlyList<TlsListenerVerdict> listeners = Listeners(config);
-         return listeners.Count == 0 || Broken(listeners).Count > 0 || Exposed(listeners).Count > 0 || Optional(listeners).Count > 0
-            ? "ports"
-            : null;
-      }
-
-      /// <summary>
-      /// Whether the notes say what the verdict says: no listener at all, or,
-      /// listener by listener, one that cannot serve TLS, one that offers a client
-      /// no encryption, STARTTLS that a client may skip - each has a note at the
-      /// verdict's level that names it, says why, and opens the page that puts it
-      /// right. The overview then shows those notes and not the verdict as well:
-      /// under it, "POP3 110 has no encryption available, so passwords used on it
-      /// cross the network in the clear." and "POP3 on port 110 has no encryption
-      /// available. Mail clients authenticate on this port..." were two Critical
-      /// notices saying one thing, one more than the count beside the title. The
-      /// verdict of a server whose client ports all require encryption, and of
-      /// listeners not read, has no note to say it.
+      /// Whether the notes say what the verdict says: at the Warning level and
+      /// above - no listener at all, or, listener by listener, one that cannot
+      /// serve TLS, one that offers a client no encryption, STARTTLS that a client
+      /// may skip - each has a note at the verdict's level that names it, says
+      /// why, and opens the page that puts it right. The overview then shows those
+      /// notes and not the verdict as well: under it, "POP3 110 has no encryption
+      /// available, so passwords used on it cross the network in the clear." and
+      /// "POP3 on port 110 has no encryption available. Mail clients authenticate
+      /// on this port..." were two Critical notices saying one thing, one more
+      /// than the count beside the title. The verdict of a server whose client
+      /// ports all require encryption, and of listeners not read, has no note to
+      /// say it. The same test as the spam and virus overviews'.
       /// </summary>
       public static bool NotesSayTheVerdict(TlsPostureConfig config)
-      {
-         if (config == null || !config.WasRead(nameof(config.Listeners)))
-            return false;
-
-         IReadOnlyList<TlsListenerVerdict> listeners = Listeners(config);
-         return listeners.Count == 0 || Broken(listeners).Count > 0 || Exposed(listeners).Count > 0 || Optional(listeners).Count > 0;
-      }
+         => VerdictLevel(config) >= StatusLevel.Warning;
 
       /// <summary>The page a note is about unless it names another: SSL/TLS, which owns the versions and ciphers.</summary>
       public const string NotesPage = "tls";

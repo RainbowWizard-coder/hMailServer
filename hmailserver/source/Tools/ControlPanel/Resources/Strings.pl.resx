@@ -15723,14 +15723,8 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
     <value>Nasłuchy klientów oferujące STARTTLS bez wymagania go: {0}; klient, który nie prosi o szyfrowanie, uwierzytelnia się bez szyfrowania i nic o tym nie informuje.</value>
   </data>
-  <data name="{0} client listeners have no encryption available ({1}), so passwords used on them cross the network in the clear." xml:space="preserve">
-    <value>Nasłuchy klientów bez dostępnego szyfrowania: {0} ({1}); hasła używane na tych nasłuchach przechodzą przez sieć jawnym tekstem.</value>
-  </data>
   <data name="{0} client listeners have no encryption available, so passwords used on them cross the network in the clear.|few" xml:space="preserve">
     <value>Nasłuchy klientów bez dostępnego szyfrowania: {0}; hasła używane na tych nasłuchach przechodzą przez sieć jawnym tekstem.</value>
-  </data>
-  <data name="{0} client listeners offer STARTTLS without requiring it ({1}), so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>Nasłuchy klientów oferujące STARTTLS bez wymagania go: {0} ({1}); klient, który nie prosi o szyfrowanie, uwierzytelnia się bez szyfrowania i nic o tym nie informuje.</value>
   </data>
   <data name="{0} client listeners offer STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened.|few" xml:space="preserve">
     <value>Nasłuchy klientów oferujące STARTTLS bez wymagania go: {0}; klient, który nie prosi o szyfrowanie, uwierzytelnia się bez szyfrowania i nic o tym nie informuje.</value>
@@ -15843,9 +15837,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} has expired and is refused" xml:space="preserve">
     <value>{0} wygasł i jest odrzucany</value>
   </data>
-  <data name="{0} has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
-    <value>{0} nie ma dostępnego szyfrowania, więc hasła używane na tym nasłuchu przechodzą przez sieć jawnym tekstem.</value>
-  </data>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>{0} nie ma skonfigurowanego adresu postmaster, a ta strona nie wymyśli skrzynki pocztowej - należy podać adres, który ma otrzymywać raporty. Dopóki nie zostanie podany, nie ma rekordu do skopiowania.</value>
   </data>
@@ -15878,9 +15869,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} is available (published {1})" xml:space="preserve">
     <value>Dostępne jest {0} (opublikowano {1})</value>
-  </data>
-  <data name="{0} is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
-    <value>{0} jest skonfigurowany dla TLS, ale nie da się go tam obsłużyć, więc ten port w ogóle nie nasłuchuje.</value>
   </data>
   <data name="{0} is covered by {1} but does not resolve back to {2}, so it is not spared: anybody who holds an address can write its reverse name." xml:space="preserve">
     <value>{0} jest objęta wzorcem {1}, ale nie wskazuje z powrotem na {2}, więc adres nie jest oszczędzany: każdy, kto ma adres, może sam zapisać jego nazwę odwrotną.</value>
@@ -15950,9 +15938,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
     <value>Nasłuchy skonfigurowane dla TLS, którego nie da się tam obsłużyć: {0}; te porty w ogóle nie nasłuchują.</value>
-  </data>
-  <data name="{0} listeners are configured for TLS but cannot serve it ({1}), so those ports are not listening at all." xml:space="preserve">
-    <value>Nasłuchy skonfigurowane dla TLS, którego nie da się tam obsłużyć: {0} ({1}); te porty w ogóle nie nasłuchują.</value>
   </data>
   <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all.|few" xml:space="preserve">
     <value>Nasłuchy skonfigurowane dla TLS, którego nie da się tam obsłużyć: {0}; te porty w ogóle nie nasłuchują.</value>
@@ -16061,9 +16046,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} of {1}: {2}" xml:space="preserve">
     <value>{0} z {1}: {2}</value>
-  </data>
-  <data name="{0} offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>{0} oferuje STARTTLS bez wymagania go, więc klient, który nie prosi o szyfrowanie, uwierzytelnia się bez szyfrowania i nic o tym nie informuje.</value>
   </data>
   <data name="{0} on port {1} has no encryption available. Mail clients authenticate on this port, so every password used on it is readable by anything between the client and this server." xml:space="preserve">
     <value>{0} na porcie {1} nie ma dostępnego szyfrowania. Klienty pocztowe uwierzytelniają się na tym porcie, więc każde użyte na nim hasło jest czytelne dla wszystkiego, co znajduje się między klientem a tym serwerem.</value>

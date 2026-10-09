@@ -29,8 +29,10 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          string code = ReadView(file);
 
-         // The verdict, at its level.
-         Assert.Contains("OverviewNotices.Notice(" + pipeline + ".VerdictLevel(config), " + pipeline + ".Verdict(config),", code, StringComparison.Ordinal);
+         // The verdict, at its level, with no action: where it has something to
+         // put right a note says it, with the page.
+         Assert.Contains("OverviewNotices.Notice(" + pipeline + ".VerdictLevel(config), " + pipeline + ".Verdict(config), null,", code, StringComparison.Ordinal);
+         Assert.DoesNotContain("VerdictPage", code, StringComparison.Ordinal);
 
          // The problems under it, each with its page; the rest at the foot.
          Assert.Contains("List<" + note + "> problems = OverviewNotices.Problems(notes, n => n.Level);", code, StringComparison.Ordinal);
@@ -76,8 +78,13 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(verdict > guard && verdict - guard < 120, "The verdict's notice is not the one the guard keeps out.");
          Assert.Equal(verdict, code.LastIndexOf(notice, StringComparison.Ordinal));
 
+         // The transport encryption verdict has no sentence where the notes say
+         // it (TlsPosture.Verdict is null), so nothing leads the card then.
          if (pipeline == "TlsPosture")
+         {
+            Assert.DoesNotContain("OverviewNotices.Lead(", code, StringComparison.Ordinal);
             return;
+         }
 
          int lead = code.IndexOf("content.Children.Add(OverviewNotices.Lead(" + pipeline + ".Verdict(config), \"" + key + "-overview-verdict\"));", StringComparison.Ordinal);
          int otherwise = code.IndexOf("else", verdict, StringComparison.Ordinal);

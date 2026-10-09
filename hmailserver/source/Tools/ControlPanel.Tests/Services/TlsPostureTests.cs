@@ -134,7 +134,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal(StatusLevel.Critical, VerdictFor(config, 143).Level);
          Assert.Equal(StatusLevel.Critical, VerdictFor(config, 587).Level);
 
-         Assert.Contains("no encryption available", TlsPosture.Verdict(config));
+         Assert.True(HasNote(config, StatusLevel.Critical, "POP3 on port 110 has no encryption available"));
+         Assert.Null(TlsPosture.Verdict(config));
          Assert.Equal(StatusLevel.Critical, TlsPosture.WorstLevel(config));
       }
 
@@ -169,7 +170,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal("Will not start", verdict.Word);
          Assert.Contains("HM5113", verdict.Detail);
 
-         Assert.Contains("cannot serve it", TlsPosture.Verdict(config));
+         Assert.Null(TlsPosture.Verdict(config));
          Assert.True(HasNote(config, StatusLevel.Critical, "does not come up"));
       }
 
@@ -384,7 +385,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          TlsPostureConfig config = Healthy();
          config.Listeners = new List<TlsListener>();
 
-         Assert.Contains("No listeners are configured", TlsPosture.Verdict(config));
+         Assert.Null(TlsPosture.Verdict(config));
          Assert.Contains(TlsPosture.Notes(config), n => n.Level == StatusLevel.Critical && n.Text.StartsWith("No listeners are configured", StringComparison.Ordinal));
       }
 
@@ -435,7 +436,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal("Not read", imaps.Word);
          Assert.Contains("could not be read", imaps.Detail);
 
-         Assert.DoesNotContain("cannot serve it", TlsPosture.Verdict(config));
+         Assert.Equal("Every listener that a mail client connects to requires encryption before it will accept a password.", TlsPosture.Verdict(config));
          Assert.DoesNotContain(TlsPosture.Notes(config), n => n.Level == StatusLevel.Critical);
          Assert.DoesNotContain(TlsPosture.Notes(config), n => n.Text.Contains("does not come up"));
 
@@ -489,64 +490,68 @@ namespace hMailServer.ControlPanel.Tests.Services
       // pin the English of each so that no piece can come back.
 
       /// <summary>
-      /// Each verdict is a whole sentence for one listener and one for several, and
-      /// names its listeners - "POP3 110 has no encryption available" - where it
-      /// said "1 client listener" and left the reader to find which.
+      /// The verdict has a sentence only where no note says it: every client port
+      /// requiring encryption, or listeners not read. Where it is about listeners
+      /// the notes name each one - "POP3 on port 110 has no encryption
+      /// available..." - where it said "1 client listener" and left the reader to
+      /// find which; the sentences that named them again above the notes, "POP3
+      /// 110 has no encryption available..." and "2 listeners are configured for
+      /// TLS but cannot serve it (IMAP 993, POP3 995)...", were never shown and are
+      /// gone.
       /// </summary>
       [Fact]
-      public void TheVerdictIsOneWholeSentenceForOneListenerAndAnotherForSeveral_AndNamesThem()
+      public void TheVerdictHasASentence_OnlyWhereNoNoteSaysIt_AndTheNotesNameEachListener()
       {
          TlsPostureConfig config = Healthy();
+         Assert.Equal("Every listener that a mail client connects to requires encryption before it will accept a password.", TlsPosture.Verdict(config));
 
-         config.Listeners = new List<TlsListener> { Listener("IMAP", 143, TlsListenerSecurity.None) };
-         Assert.Equal("IMAP 143 has no encryption available, so passwords used on it cross the network in the clear.",
-            TlsPosture.Verdict(config));
-         config.Listeners.Add(Listener("POP3", 110, TlsListenerSecurity.None));
-         Assert.Equal("2 client listeners have no encryption available (IMAP 143, POP3 110), so passwords used on them cross the network in the clear.",
-            TlsPosture.Verdict(config));
+         config.Listeners = new List<TlsListener> { Listener("IMAP", 143, TlsListenerSecurity.None), Listener("POP3", 110, TlsListenerSecurity.None) };
+         Assert.Null(TlsPosture.Verdict(config));
+         Assert.True(HasNote(config, StatusLevel.Critical, "IMAP on port 143 has no encryption available."));
+         Assert.True(HasNote(config, StatusLevel.Critical, "POP3 on port 110 has no encryption available."));
 
-         config.Listeners = new List<TlsListener> { Listener("IMAP", 143, TlsListenerSecurity.StartTlsOptional) };
-         Assert.Equal("IMAP 143 offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened.",
-            TlsPosture.Verdict(config));
-         config.Listeners.Add(Listener("POP3", 110, TlsListenerSecurity.StartTlsOptional));
-         Assert.Equal("2 client listeners offer STARTTLS without requiring it (IMAP 143, POP3 110), so a client that does not ask for encryption authenticates without it and nothing reports that it happened.",
-            TlsPosture.Verdict(config));
+         config.Listeners = new List<TlsListener> { Listener("IMAP", 143, TlsListenerSecurity.StartTlsOptional), Listener("POP3", 110, TlsListenerSecurity.StartTlsOptional) };
+         Assert.Null(TlsPosture.Verdict(config));
+         Assert.True(HasNote(config, StatusLevel.Warning, "STARTTLS is optional on IMAP 143, POP3 110."));
 
-         config.Listeners = new List<TlsListener> { Listener("IMAP", 993, TlsListenerSecurity.Implicit, certificate: "") };
-         Assert.Equal("IMAP 993 is configured for TLS but cannot serve it, so that port is not listening at all.",
-            TlsPosture.Verdict(config));
-         config.Listeners.Add(Listener("POP3", 995, TlsListenerSecurity.Implicit, certificate: ""));
-         Assert.Equal("2 listeners are configured for TLS but cannot serve it (IMAP 993, POP3 995), so those ports are not listening at all.",
-            TlsPosture.Verdict(config));
+         config.Listeners = new List<TlsListener> { Listener("IMAP", 993, TlsListenerSecurity.Implicit, certificate: ""), Listener("POP3", 995, TlsListenerSecurity.Implicit, certificate: "") };
+         Assert.Null(TlsPosture.Verdict(config));
+         Assert.True(HasNote(config, StatusLevel.Critical, "IMAP on port 993 is set to use TLS with no certificate assigned"));
+         Assert.True(HasNote(config, StatusLevel.Critical, "POP3 on port 995 is set to use TLS with no certificate assigned"));
+
+         config.Unread.Add(nameof(config.Listeners));
+         Assert.Equal("Where this server stands cannot be said: the listeners could not be read.", TlsPosture.Verdict(config));
       }
 
       // ---- the verdict's level, and the problems' pages ----------------------------
 
       /// <summary>
-      /// The verdict is shown at its own level - it was plain body text - with
-      /// TCP/IP ports as its action while it names listeners there.
+      /// The verdict is shown at its own level - it was plain body text - Good or
+      /// Information; at the Warning level and above the notes say it, each with
+      /// TCP/IP ports or the page that puts it right.
       /// </summary>
       [Fact]
-      public void TheVerdict_HasALevel_AndOpensTcpIpPortsWhileItNamesListeners()
+      public void TheVerdict_HasALevel_AndTheNotesSayItAtWarningAndAbove()
       {
          TlsPostureConfig config = Healthy();
          Assert.Equal(StatusLevel.Good, TlsPosture.VerdictLevel(config));
-         Assert.Null(TlsPosture.VerdictPage(config));
+         Assert.False(TlsPosture.NotesSayTheVerdict(config));
 
          config.Listeners.Add(Listener("IMAP", 143, TlsListenerSecurity.StartTlsOptional));
          Assert.Equal(StatusLevel.Warning, TlsPosture.VerdictLevel(config));
-         Assert.Equal("ports", TlsPosture.VerdictPage(config));
+         Assert.True(TlsPosture.NotesSayTheVerdict(config));
 
          config.Listeners.Add(Listener("POP3", 110, TlsListenerSecurity.None));
          Assert.Equal(StatusLevel.Critical, TlsPosture.VerdictLevel(config));
-         Assert.Equal("ports", TlsPosture.VerdictPage(config));
+         Assert.True(TlsPosture.NotesSayTheVerdict(config));
 
          config.Listeners.Clear();
          Assert.Equal(StatusLevel.Critical, TlsPosture.VerdictLevel(config));
+         Assert.True(TlsPosture.NotesSayTheVerdict(config));
 
          config.Unread.Add(nameof(config.Listeners));
          Assert.Equal(StatusLevel.Information, TlsPosture.VerdictLevel(config));
-         Assert.Null(TlsPosture.VerdictPage(config));
+         Assert.False(TlsPosture.NotesSayTheVerdict(config));
       }
 
       /// <summary>
@@ -602,8 +607,9 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          healthy.Listeners.Clear();
          Assert.True(TlsPosture.NotesSayTheVerdict(healthy));
+         Assert.Null(TlsPosture.Verdict(healthy));
          Assert.Contains(TlsPosture.Notes(healthy), n => n.Level == StatusLevel.Critical && n.Page == "ports"
-            && n.Text == TlsPosture.Verdict(healthy));
+            && n.Text == "No listeners are configured, so nothing can connect to this server.");
 
          healthy.Listeners.Add(Listener("POP3", 110, TlsListenerSecurity.None));
          healthy.Unread.Add(nameof(healthy.Listeners));
@@ -642,11 +648,12 @@ namespace hMailServer.ControlPanel.Tests.Services
                config.Tls13Enabled = versions;
 
                StatusLevel verdict = TlsPosture.VerdictLevel(config);
+               Assert.Equal(verdict >= StatusLevel.Warning, TlsPosture.NotesSayTheVerdict(config));
+               Assert.Equal(verdict >= StatusLevel.Warning, TlsPosture.Verdict(config) == null);
                if (verdict < StatusLevel.Warning)
                   continue;
 
                Assert.Contains(TlsPosture.Notes(config), n => n.Level >= verdict);
-               Assert.True(TlsPosture.NotesSayTheVerdict(config));
             }
          }
       }
@@ -698,7 +705,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
             Assert.Equal("Startet nicht", VerdictFor(config, 993).Word);
             Assert.Equal(TlsListenerState.WillNotStart, VerdictFor(config, 993).State);
-            Assert.Contains("cannot serve it", TlsPosture.Verdict(config));
+            Assert.True(TlsPosture.NotesSayTheVerdict(config));
             Assert.Contains(TlsPosture.Notes(config), n => n.Level == StatusLevel.Critical && n.Text.StartsWith("IMAP on port 993", StringComparison.Ordinal));
             Assert.Equal(StatusLevel.Critical, TlsPosture.VerdictLevel(config));
          }
@@ -894,7 +901,9 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          foreach (TlsPostureConfig config in configs)
          {
-            var texts = new List<string> { TlsPosture.Verdict(config) };
+            var texts = new List<string>();
+            if (TlsPosture.Verdict(config) is string verdict)
+               texts.Add(verdict);
             texts.AddRange(TlsPosture.Notes(config).Select(n => n.Text));
             foreach (string text in texts)
             {

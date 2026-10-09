@@ -15505,12 +15505,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
     <value>{0} klientlyssnare erbjuder STARTTLS utan att kräva det, så en klient som inte ber om kryptering autentiserar utan den och inget rapporterar att det hände.</value>
   </data>
-  <data name="{0} client listeners have no encryption available ({1}), so passwords used on them cross the network in the clear." xml:space="preserve">
-    <value>{0} klientlyssnare har ingen kryptering tillgänglig ({1}), så lösenord som används på dem korsar nätverket i klartext.</value>
-  </data>
-  <data name="{0} client listeners offer STARTTLS without requiring it ({1}), so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>{0} klientlyssnare erbjuder STARTTLS utan att kräva det ({1}), så en klient som inte ber om kryptering autentiserar utan den och inget rapporterar att det hände.</value>
-  </data>
   <data name="{0} closed. It picks up where you left off." xml:space="preserve">
     <value>”{0}” stängd. Den fortsätter där du slutade.</value>
   </data>
@@ -15595,9 +15589,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} has expired and is refused" xml:space="preserve">
     <value>{0} har gått ut och nekas</value>
   </data>
-  <data name="{0} has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
-    <value>{0} har ingen kryptering tillgänglig, så lösenord som används på den korsar nätverket i klartext.</value>
-  </data>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>{0} har ingen postmaster-adress konfigurerad, och den här sidan hittar inte på en brevlåda - ange adressen som ska ta emot rapporterna. Tills en anges finns ingen post att kopiera.</value>
   </data>
@@ -15624,9 +15615,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} is available (published {1})" xml:space="preserve">
     <value>{0} finns tillgänglig (publicerad {1})</value>
-  </data>
-  <data name="{0} is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
-    <value>{0} är konfigurerad för TLS men kan inte leverera det, så den porten lyssnar inte alls.</value>
   </data>
   <data name="{0} is covered by {1} but does not resolve back to {2}, so it is not spared: anybody who holds an address can write its reverse name." xml:space="preserve">
     <value>{0} omfattas av {1} men pekar inte tillbaka på {2}, så adressen skonas inte: den som har en adress kan skriva dess omvända namn själv.</value>
@@ -15693,9 +15681,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
     <value>{0} lyssnare är konfigurerad för TLS men kan inte leverera det, så den porten lyssnar inte alls.</value>
-  </data>
-  <data name="{0} listeners are configured for TLS but cannot serve it ({1}), so those ports are not listening at all." xml:space="preserve">
-    <value>{0} lyssnare är konfigurerade för TLS men kan inte leverera det ({1}), så de portarna lyssnar inte alls.</value>
   </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} meddelande</value>
@@ -15771,9 +15756,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} of {1}: {2}" xml:space="preserve">
     <value>{0} av {1}: {2}</value>
-  </data>
-  <data name="{0} offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>{0} erbjuder STARTTLS utan att kräva det, så en klient som inte ber om kryptering autentiserar utan den och inget rapporterar att det hände.</value>
   </data>
   <data name="{0} on port {1} has no encryption available. Mail clients authenticate on this port, so every password used on it is readable by anything between the client and this server." xml:space="preserve">
     <value>{0} på port {1} har ingen kryptering tillgänglig. E-postklienter autentiserar på den här porten, så varje lösenord som används på den är läsbart för allt mellan klienten och den här servern.</value>

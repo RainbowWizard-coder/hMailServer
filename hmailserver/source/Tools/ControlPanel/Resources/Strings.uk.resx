@@ -15723,14 +15723,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
     <value>Клієнтських слухачів, що пропонують STARTTLS, не вимагаючи його: {0}; клієнт, який не просить шифрування, автентифікується без нього, і ніщо не повідомляє, що це сталося.</value>
   </data>
-  <data name="{0} client listeners have no encryption available ({1}), so passwords used on them cross the network in the clear." xml:space="preserve">
-    <value>Клієнтських слухачів без доступного шифрування: {0} ({1}); паролі, використані на них, перетинають мережу відкритим текстом.</value>
-  </data>
   <data name="{0} client listeners have no encryption available, so passwords used on them cross the network in the clear.|few" xml:space="preserve">
     <value>Клієнтських слухачів без доступного шифрування: {0}; паролі, використані на них, перетинають мережу відкритим текстом.</value>
-  </data>
-  <data name="{0} client listeners offer STARTTLS without requiring it ({1}), so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>Клієнтських слухачів, що пропонують STARTTLS, не вимагаючи його: {0} ({1}); клієнт, який не просить шифрування, автентифікується без нього, і ніщо не повідомляє, що це сталося.</value>
   </data>
   <data name="{0} client listeners offer STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened.|few" xml:space="preserve">
     <value>Клієнтських слухачів, що пропонують STARTTLS, не вимагаючи його: {0}; клієнт, який не просить шифрування, автентифікується без нього, і ніщо не повідомляє, що це сталося.</value>
@@ -15843,9 +15837,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} has expired and is refused" xml:space="preserve">
     <value>{0} прострочений і відхиляється</value>
   </data>
-  <data name="{0} has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
-    <value>{0} не має доступного шифрування, тому паролі, використані на ньому, перетинають мережу відкритим текстом.</value>
-  </data>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>Для {0} не налаштовано адресу postmaster, а ця сторінка не вигадуватиме поштову скриньку — введіть адресу, яка має отримувати звіти. Доки її не введено, копіювати нема якого запису.</value>
   </data>
@@ -15878,9 +15869,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} is available (published {1})" xml:space="preserve">
     <value>{0} доступна (опубліковано {1})</value>
-  </data>
-  <data name="{0} is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
-    <value>{0} налаштовано для TLS, але він не може його надати, тому цей порт взагалі не прослуховується.</value>
   </data>
   <data name="{0} is covered by {1} but does not resolve back to {2}, so it is not spared: anybody who holds an address can write its reverse name." xml:space="preserve">
     <value>{0} покрито шаблоном {1}, але воно не розв'язується назад у {2}, тож адресу не звільнено: будь-хто, хто має адресу, може сам записати її зворотне ім'я.</value>
@@ -15950,9 +15938,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
     <value>Слухачів, налаштованих для TLS, які не можуть його надати: {0}; ці порти взагалі не прослуховуються.</value>
-  </data>
-  <data name="{0} listeners are configured for TLS but cannot serve it ({1}), so those ports are not listening at all." xml:space="preserve">
-    <value>Слухачів, налаштованих для TLS, які не можуть його надати: {0} ({1}); ці порти взагалі не прослуховуються.</value>
   </data>
   <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all.|few" xml:space="preserve">
     <value>Слухачів, налаштованих для TLS, які не можуть його надати: {0}; ці порти взагалі не прослуховуються.</value>
@@ -16061,9 +16046,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} of {1}: {2}" xml:space="preserve">
     <value>{0} з {1}: {2}</value>
-  </data>
-  <data name="{0} offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>{0} пропонує STARTTLS, не вимагаючи його, тому клієнт, який не просить шифрування, автентифікується без нього, і ніщо не повідомляє, що це сталося.</value>
   </data>
   <data name="{0} on port {1} has no encryption available. Mail clients authenticate on this port, so every password used on it is readable by anything between the client and this server." xml:space="preserve">
     <value>{0} на порту {1} не має доступного шифрування. На цьому порту автентифікуються поштові клієнти, тому кожен пароль, використаний на ньому, може прочитати будь-що між клієнтом і цим сервером.</value>

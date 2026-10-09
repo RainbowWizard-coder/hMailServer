@@ -15723,14 +15723,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
     <value>Klientských listenerů, které nabízejí STARTTLS, aniž by ho vyžadovaly: {0}; klient, který o šifrování nepožádá, se ověří bez něj a nic nehlásí, že se to stalo.</value>
   </data>
-  <data name="{0} client listeners have no encryption available ({1}), so passwords used on them cross the network in the clear." xml:space="preserve">
-    <value>Klientských listenerů bez jakéhokoli šifrování: {0} ({1}); hesla použitá na nich procházejí sítí v otevřeném textu.</value>
-  </data>
   <data name="{0} client listeners have no encryption available, so passwords used on them cross the network in the clear.|few" xml:space="preserve">
     <value>Klientských listenerů bez jakéhokoli šifrování: {0}; hesla použitá na nich procházejí sítí v otevřeném textu.</value>
-  </data>
-  <data name="{0} client listeners offer STARTTLS without requiring it ({1}), so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>Klientských listenerů, které nabízejí STARTTLS, aniž by ho vyžadovaly: {0} ({1}); klient, který o šifrování nepožádá, se ověří bez něj a nic nehlásí, že se to stalo.</value>
   </data>
   <data name="{0} client listeners offer STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened.|few" xml:space="preserve">
     <value>Klientských listenerů, které nabízejí STARTTLS, aniž by ho vyžadovaly: {0}; klient, který o šifrování nepožádá, se ověří bez něj a nic nehlásí, že se to stalo.</value>
@@ -15843,9 +15837,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} has expired and is refused" xml:space="preserve">
     <value>{0} vypršel a je odmítán</value>
   </data>
-  <data name="{0} has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
-    <value>{0} nemá k dispozici žádné šifrování, takže hesla použitá na něm procházejí sítí v otevřeném textu.</value>
-  </data>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>{0} nemá nastavenou adresu postmastera a tato stránka si poštovní schránku nevymyslí – zadejte adresu, která má hlášení přijímat. Dokud není zadána, není žádný záznam ke zkopírování.</value>
   </data>
@@ -15878,9 +15869,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} is available (published {1})" xml:space="preserve">
     <value>{0} je k dispozici (publikováno {1})</value>
-  </data>
-  <data name="{0} is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
-    <value>{0} má nastavené TLS, ale nemůže ho poskytovat, takže na tomto portu se vůbec nenaslouchá.</value>
   </data>
   <data name="{0} is covered by {1} but does not resolve back to {2}, so it is not spared: anybody who holds an address can write its reverse name." xml:space="preserve">
     <value>{0} je pokryt vzorem {1}, ale nepřekládá se zpět na {2}, takže adresa ušetřena není: kdokoli, kdo má adresu, si může její reverzní název napsat sám.</value>
@@ -15950,9 +15938,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
     <value>Listenerů s nastaveným TLS, které ho ale nemohou poskytovat: {0}; na těchto portech se vůbec nenaslouchá.</value>
-  </data>
-  <data name="{0} listeners are configured for TLS but cannot serve it ({1}), so those ports are not listening at all." xml:space="preserve">
-    <value>Listenerů s nastaveným TLS, které ho ale nemohou poskytovat: {0} ({1}); na těchto portech se vůbec nenaslouchá.</value>
   </data>
   <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all.|few" xml:space="preserve">
     <value>Listenerů s nastaveným TLS, které ho ale nemohou poskytovat: {0}; na těchto portech se vůbec nenaslouchá.</value>
@@ -16061,9 +16046,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} of {1}: {2}" xml:space="preserve">
     <value>{0} z {1}: {2}</value>
-  </data>
-  <data name="{0} offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>{0} nabízí STARTTLS, aniž by ho vyžadoval, takže klient, který o šifrování nepožádá, se ověří bez něj a nic nehlásí, že se to stalo.</value>
   </data>
   <data name="{0} on port {1} has no encryption available. Mail clients authenticate on this port, so every password used on it is readable by anything between the client and this server." xml:space="preserve">
     <value>{0} na portu {1} nemá k dispozici žádné šifrování. Poštovní klienti se na tomto portu ověřují, takže každé heslo na něm použité je čitelné pro cokoli mezi klientem a tímto serverem.</value>

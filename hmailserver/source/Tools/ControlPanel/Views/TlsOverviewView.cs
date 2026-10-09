@@ -455,20 +455,18 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
-      /// The verdict as a notice at its level, with the page that puts it right;
-      /// then every problem, worst first, each with the page that puts it right.
-      /// Where the problems say the verdict listener by listener, they are the
-      /// verdict, and it is not said a second time above them.
+      /// The verdict as a notice at its level, Good or Information, with no
+      /// action, since it has nothing to put right; then every problem, worst
+      /// first, each with the page that puts it right. Where the problems say the
+      /// verdict listener by listener, they are the verdict, and it is not said a
+      /// second time above them (TlsPosture.Verdict has no sentence then).
       /// </summary>
       private static Card VerdictCard(TlsPostureConfig config, IReadOnlyList<TlsPostureNote> problems)
       {
          Card card = Section(L("Where this server stands"), out StackPanel content);
 
          if (!TlsPosture.NotesSayTheVerdict(config))
-         {
-            content.Children.Add(OverviewNotices.Notice(TlsPosture.VerdictLevel(config), TlsPosture.Verdict(config),
-               TlsPosture.VerdictPage(config), "tls-overview-verdict"));
-         }
+            content.Children.Add(OverviewNotices.Notice(TlsPosture.VerdictLevel(config), TlsPosture.Verdict(config), null, "tls-overview-verdict"));
 
          foreach (TlsPostureNote problem in problems)
             content.Children.Add(OverviewNotices.Notice(problem.Level, problem.Text, problem.Page, "tls-overview-problem"));
