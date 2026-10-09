@@ -425,10 +425,12 @@ namespace hMailServer.ControlPanel.Views
          var revoke = new Wpf.Ui.Controls.Button   // per row: no access key, the rows are reached with the arrow keys
          {
             Content = L("Revoke"),
-            Appearance = Wpf.Ui.Controls.ControlAppearance.Danger,
             VerticalAlignment = VerticalAlignment.Top,
             MinWidth = 84
          };
+         // A row's revoke is a list delete: red words on a secondary button, as on
+         // every list page; the filled red is the confirmation's own (F183).
+         ButtonStyles.DangerText(revoke);
          System.Windows.Automation.AutomationProperties.SetName(revoke,
             F("Revoke the API key {0}", key.Label.Length > 0 ? key.Label : key.Id));
          System.Windows.Automation.AutomationProperties.SetAutomationId(revoke, "apikeys-revoke-" + key.Id);

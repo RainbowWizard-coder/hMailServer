@@ -13863,9 +13863,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="_Remove message" xml:space="preserve">
     <value>_Poista viesti</value>
   </data>
-  <data name="_Remove selected" xml:space="preserve">
-    <value>_Poista valitut</value>
-  </data>
   <data name="_Remove stored passphrase" xml:space="preserve">
     <value>_Poista tallennettu tunnuslause</value>
   </data>

@@ -13863,9 +13863,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_Remove message" xml:space="preserve">
     <value>Bericht _verwijderen</value>
   </data>
-  <data name="_Remove selected" xml:space="preserve">
-    <value>_Selectie verwijderen</value>
-  </data>
   <data name="_Remove stored passphrase" xml:space="preserve">
     <value>_Opgeslagen wachtwoordzin verwijderen</value>
   </data>

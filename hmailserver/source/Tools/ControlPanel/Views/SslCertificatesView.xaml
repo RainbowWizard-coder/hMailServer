@@ -39,7 +39,7 @@
         <scaffold:Toolbar x:Name="SearchBar" SearchPlaceholder="{loc:L 'Search certificates'}"
                           SearchTextChanged="Search_TextChanged">
             <scaffold:Toolbar.Actions>
-                <ui:Button x:Name="DeleteButton" Content="{loc:L '_Delete selected'}" Appearance="Danger" Click="Delete_Click"
+                <ui:Button x:Name="DeleteButton" Content="{loc:L '_Delete selected'}" Style="{StaticResource DangerTextButton}" Click="Delete_Click"
                            AutomationProperties.Name="{loc:L 'Delete the selected certificate'}" />
             </scaffold:Toolbar.Actions>
         </scaffold:Toolbar>

@@ -13863,9 +13863,6 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="_Remove message" xml:space="preserve">
     <value>Nachricht _entfernen</value>
   </data>
-  <data name="_Remove selected" xml:space="preserve">
-    <value>Ausgewählte _entfernen</value>
-  </data>
   <data name="_Remove stored passphrase" xml:space="preserve">
     <value>Gespeicherte Passphrase _entfernen</value>
   </data>

@@ -13863,9 +13863,6 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="_Remove message" xml:space="preserve">
     <value>_Quitar el mensaje</value>
   </data>
-  <data name="_Remove selected" xml:space="preserve">
-    <value>_Quitar lo seleccionado</value>
-  </data>
   <data name="_Remove stored passphrase" xml:space="preserve">
     <value>_Quitar la frase de contraseña guardada</value>
   </data>

@@ -87,12 +87,16 @@ namespace hMailServer.ControlPanel.Views
          add.Click += (s, e) => AddMember();
          actions.Children.Add(add);
 
+         // A list's Remove: red words on a secondary button, pressed only while an
+         // account is chosen (review findings F183 and F076). It was the filled red
+         // of a confirmation's own answer, and live with nothing chosen.
          var remove = new Wpf.Ui.Controls.Button
          {
             Content = L("_Remove"),
-            Appearance = Wpf.Ui.Controls.ControlAppearance.Danger,
             MinWidth = 90
          };
+         ButtonStyles.DangerText(remove);
+         SelectionGate.Bind(list_, remove);
          AutomationProperties.SetName(remove, L("Remove the selected account from this group"));
          AutomationProperties.SetAutomationId(remove, "group-members-remove");
          remove.Click += (s, e) => RemoveSelected();

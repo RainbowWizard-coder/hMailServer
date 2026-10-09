@@ -14021,9 +14021,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_Remove message" xml:space="preserve">
     <value>_Вилучити повідомлення</value>
   </data>
-  <data name="_Remove selected" xml:space="preserve">
-    <value>_Вилучити вибране</value>
-  </data>
   <data name="_Remove stored passphrase" xml:space="preserve">
     <value>_Вилучити збережену парольну фразу</value>
   </data>

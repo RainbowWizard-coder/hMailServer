@@ -14021,9 +14021,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="_Remove message" xml:space="preserve">
     <value>_Usuń wiadomość</value>
   </data>
-  <data name="_Remove selected" xml:space="preserve">
-    <value>_Usuń zaznaczone</value>
-  </data>
   <data name="_Remove stored passphrase" xml:space="preserve">
     <value>_Usuń zapisane hasło klucza</value>
   </data>

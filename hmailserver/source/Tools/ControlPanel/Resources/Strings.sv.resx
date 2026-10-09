@@ -13863,9 +13863,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="_Remove message" xml:space="preserve">
     <value>_Ta bort meddelandet</value>
   </data>
-  <data name="_Remove selected" xml:space="preserve">
-    <value>Ta bort _valda</value>
-  </data>
   <data name="_Remove stored passphrase" xml:space="preserve">
     <value>Ta bort sparad lösenfra_s</value>
   </data>

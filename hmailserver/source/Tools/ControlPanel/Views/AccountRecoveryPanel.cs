@@ -50,8 +50,12 @@ namespace hMailServer.ControlPanel.Views
          domainName_ = domainName;
          address_ = address;
 
-         clear_ = MakeButton(L("_Clear the recovery address"), Wpf.Ui.Controls.ControlAppearance.Danger, (_, _) => Clear());
-         clearCodes_ = MakeButton(L("Clear the recovery co_des"), Wpf.Ui.Controls.ControlAppearance.Danger, (_, _) => ClearCodes());
+         // Red words on secondary buttons; the filled red is the confirmation's own
+         // answer (review finding F183).
+         clear_ = MakeButton(L("_Clear the recovery address"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Clear());
+         clearCodes_ = MakeButton(L("Clear the recovery co_des"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => ClearCodes());
+         ButtonStyles.DangerText(clear_);
+         ButtonStyles.DangerText(clearCodes_);
 
          Build();
       }

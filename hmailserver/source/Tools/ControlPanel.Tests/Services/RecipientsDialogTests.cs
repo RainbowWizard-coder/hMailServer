@@ -32,10 +32,11 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal(2, Regex.Matches(addRow, @"bottom\.ColumnDefinitions\.Add").Count);
          Assert.Contains("L(\"_Add\")", addRow, StringComparison.Ordinal);
          Assert.DoesNotContain("L(\"Add from A_D…\")", addRow, StringComparison.Ordinal);
-         Assert.DoesNotContain("L(\"_Remove selected\")", addRow, StringComparison.Ordinal);
+         Assert.DoesNotContain("L(\"_Remove\")", addRow, StringComparison.Ordinal);
 
-         // Add from AD… and Remove selected in a WrapPanel under the list, before
-         // the delivery row and the add row.
+         // Add from AD… and Remove (Remove selected until review finding F076: a
+         // list's Remove takes out the chosen entry) in a WrapPanel under the
+         // list, before the delivery row and the add row.
          // The list sits on a card (as the public folders list does), so the
          // card's line is the list's place in the body.
          int list = ctor.IndexOf("Content = listBox_", StringComparison.Ordinal);
@@ -45,7 +46,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          string between = ctor.Substring(list, actions - list);
          Assert.Contains("new WrapPanel { HorizontalAlignment = HorizontalAlignment.Right", between, StringComparison.Ordinal);
          Assert.Contains("L(\"Add from A_D…\")", between, StringComparison.Ordinal);
-         Assert.Contains("L(\"_Remove selected\")", between, StringComparison.Ordinal);
+         Assert.Contains("L(\"_Remove\")", between, StringComparison.Ordinal);
          Assert.Contains("ButtonStyles.DangerText(removeButton);", between, StringComparison.Ordinal);
          Assert.Contains("SelectionGate.Bind(listBox_, removeButton);", between, StringComparison.Ordinal);
       }

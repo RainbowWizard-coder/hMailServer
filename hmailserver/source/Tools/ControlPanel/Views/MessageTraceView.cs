@@ -306,6 +306,7 @@ namespace hMailServer.ControlPanel.Views
          actions.Children.Add(follow);
          hMailServer.ControlPanel.Services.SelectionGate.Bind(list_, follow);
          removeExpired_ = MakeButton(L("_Remove expired"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => SweepExpired());
+         ButtonStyles.DangerText(removeExpired_);
          actions.Children.Add(removeExpired_);
          toolbar_.Actions = actions;
          Grid.SetRow(toolbar_, 1);

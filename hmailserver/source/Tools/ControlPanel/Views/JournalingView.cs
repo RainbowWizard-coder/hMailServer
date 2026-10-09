@@ -131,6 +131,7 @@ namespace hMailServer.ControlPanel.Views
          toggle.Click += (s, e) => Toggle_();
 
          var remove = new Wpf.Ui.Controls.Button { Content = L("Re_move the rule") };
+         ButtonStyles.DangerText(remove);
          System.Windows.Automation.AutomationProperties.SetAutomationId(remove, "journal-remove");
          remove.Click += (s, e) => Remove_();
 

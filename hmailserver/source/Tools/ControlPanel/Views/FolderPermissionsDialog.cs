@@ -88,8 +88,16 @@ namespace hMailServer.ControlPanel.Views
          add.Click += (s, e) => AddOrEdit(-1);
          var edit = new Wpf.Ui.Controls.Button { Content = L("_Edit"), Margin = new Thickness(0, 0, DesignTokens.Space.Sm, 0), MinWidth = 88 };
          edit.Click += (s, e) => { if (list_.SelectedIndex >= 0) AddOrEdit(ids_[list_.SelectedIndex]); };
-         var del = new Wpf.Ui.Controls.Button { Content = L("_Delete"), Appearance = Wpf.Ui.Controls.ControlAppearance.Danger, MinWidth = 88 };
+         // Remove, not Delete: it takes an entry out of a list the folder outlives,
+         // as the group members' and the distribution lists' Remove do; red words on
+         // a secondary button, not the filled red of a confirmation's own answer;
+         // and Edit and Remove act on the chosen entry, so they can be pressed only
+         // while there is one, where a press with none did nothing (review findings
+         // F183, F076 and F184).
+         var del = new Wpf.Ui.Controls.Button { Content = L("_Remove"), MinWidth = 88 };
+         ButtonStyles.DangerText(del);
          del.Click += (s, e) => DeleteSelected();
+         SelectionGate.Bind(list_, edit, del);
          actions.Children.Add(add);
          actions.Children.Add(edit);
          actions.Children.Add(del);

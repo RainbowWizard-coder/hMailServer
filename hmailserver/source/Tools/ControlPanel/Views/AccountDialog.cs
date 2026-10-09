@@ -171,6 +171,12 @@ namespace hMailServer.ControlPanel.Views
       private AccountRecoveryPanel recovery_;
       private RulesView accountRules_;
       private readonly ListBox folderList_ = new() { Height = 220 };
+
+      // Each row's folder name, by index: a row shows "(not subscribed)" after the
+      // name in the current language, which taking it off again in English left on
+      // in every other, so that the question named the wrong folder and the server
+      // found none by that name.
+      private readonly List<string> folderNames_ = new();
       private readonly TextBlock folderStatus_ = new();
       private readonly InlineNotice folderNotice_ = DialogFields.Notice();
 
@@ -710,7 +716,13 @@ namespace hMailServer.ControlPanel.Views
          var actions = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, DesignTokens.Space.Md) };
          var add = new Wpf.Ui.Controls.Button { Content = L("_Add folder"), Margin = new Thickness(0, 0, DesignTokens.Space.Sm, 0) };
          add.Click += (s, e) => AddFolder();
-         var del = new Wpf.Ui.Controls.Button { Content = L("_Delete folder"), Appearance = Wpf.Ui.Controls.ControlAppearance.Danger, Margin = new Thickness(0, 0, DesignTokens.Space.Sm, 0) };
+         // Red words on secondary buttons, here and under Maintenance and The
+         // person's data: the filled red is the confirmation's own answer; and
+         // Delete folder acts on the chosen folder, so it can be pressed only while
+         // one is chosen (review findings F183 and F076).
+         var del = new Wpf.Ui.Controls.Button { Content = L("_Delete folder"), Margin = new Thickness(0, 0, DesignTokens.Space.Sm, 0) };
+         ButtonStyles.DangerText(del);
+         SelectionGate.Bind(folderList_, del);
          del.Click += (s, e) => DeleteFolder();
          var refresh = new Wpf.Ui.Controls.Button { Content = L("_Refresh") };
          refresh.Click += (s, e) => LoadFolders();
@@ -725,7 +737,8 @@ namespace hMailServer.ControlPanel.Views
          panel.Children.Add(DialogFields.Separator());
          panel.Children.Add(DialogFields.Caption(L("Maintenance")));
          var maint = new StackPanel { Orientation = Orientation.Horizontal };
-         var empty = new Wpf.Ui.Controls.Button { Content = L("_Empty mailbox"), Appearance = Wpf.Ui.Controls.ControlAppearance.Danger, Margin = new Thickness(0, 0, DesignTokens.Space.Sm, 0) };
+         var empty = new Wpf.Ui.Controls.Button { Content = L("_Empty mailbox"), Margin = new Thickness(0, 0, DesignTokens.Space.Sm, 0) };
+         ButtonStyles.DangerText(empty);
          empty.Click += (s, e) => EmptyMailbox();
          var unlock = new Wpf.Ui.Controls.Button { Content = L("_Unlock mailbox") };
          unlock.Click += (s, e) => UnlockMailbox();
@@ -742,7 +755,8 @@ namespace hMailServer.ControlPanel.Views
          var privacy = new StackPanel { Orientation = Orientation.Horizontal };
          var exportAll = new Wpf.Ui.Controls.Button { Content = L("Export everythin_g...") };
          exportAll.Click += (s, e) => ExportEverything();
-         var erase = new Wpf.Ui.Controls.Button { Content = L("Erase _traces..."), Appearance = Wpf.Ui.Controls.ControlAppearance.Danger, Margin = new Thickness(8, 0, 0, 0) };
+         var erase = new Wpf.Ui.Controls.Button { Content = L("Erase _traces..."), Margin = new Thickness(8, 0, 0, 0) };
+         ButtonStyles.DangerText(erase);
          erase.Click += (s, e) => EraseTraces();
          privacy.Children.Add(exportAll);
          privacy.Children.Add(erase);
@@ -755,6 +769,7 @@ namespace hMailServer.ControlPanel.Views
       private void LoadFolders()
       {
          folderList_.Items.Clear();
+         folderNames_.Clear();
          dynamic domains = ServerSession.Current.Application.Domains;
          try
          {
@@ -766,6 +781,7 @@ namespace hMailServer.ControlPanel.Views
                dynamic f = folders.Item[i];
                string name = (string)f.Name;
                bool sub = (bool)f.Subscribed;
+               folderNames_.Add(name);
                folderList_.Items.Add(sub ? name : F("{0}  (not subscribed)", name));
                ServerSession.Release(f);
             }
@@ -815,12 +831,13 @@ namespace hMailServer.ControlPanel.Views
       private void DeleteFolder()
       {
          folderNotice_.Hide();
-         if (folderList_.SelectedItem is not string display)
+         int index = folderList_.SelectedIndex;
+         if (index < 0 || index >= folderNames_.Count)
          {
             folderNotice_.Show(StatusLevel.Warning, L("Select a folder first."));
             return;
          }
-         string name = display.Replace("  (not subscribed)", "");
+         string name = folderNames_[index];
 
          // Still a question, and still a destructive one, so it stays a box.
          if (!MessageBox.Confirm(F("Delete the folder '{0}' and all messages in it?", name), L("Control Panel"), L("_Delete folder"), destructive: true))

@@ -13863,9 +13863,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Remove message" xml:space="preserve">
     <value>移除邮件(_R)</value>
   </data>
-  <data name="_Remove selected" xml:space="preserve">
-    <value>移除所选项(_R)</value>
-  </data>
   <data name="_Remove stored passphrase" xml:space="preserve">
     <value>移除已存储的密码短语(_R)</value>
   </data>

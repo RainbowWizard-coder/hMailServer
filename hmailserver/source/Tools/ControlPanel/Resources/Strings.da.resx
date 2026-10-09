@@ -13863,9 +13863,6 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="_Remove message" xml:space="preserve">
     <value>_Fjern meddelelse</value>
   </data>
-  <data name="_Remove selected" xml:space="preserve">
-    <value>_Fjern valgte</value>
-  </data>
   <data name="_Remove stored passphrase" xml:space="preserve">
     <value>_Fjern gemt adgangssætning</value>
   </data>

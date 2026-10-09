@@ -1064,6 +1064,15 @@ namespace hMailServer.ControlPanel.Views
          /// </summary>
          public bool CaptionAbove = true;
 
+         /// <summary>
+         /// Whether the button deletes, clears or discards something - the
+         /// greylisting records, the sandbox's token, the search index - and so is
+         /// drawn as a list page's destructive action, red words on a secondary
+         /// button, as the confirmation it asks is drawn as destructive (review
+         /// finding F183). It was a plain secondary button beside the tests.
+         /// </summary>
+         public bool Destructive;
+
          protected override bool CaptionOnRow => CaptionAbove;
 
          private System.Windows.Controls.TextBlock result_;
@@ -1079,6 +1088,8 @@ namespace hMailServer.ControlPanel.Views
                HorizontalAlignment = HorizontalAlignment.Left
             };
             SetAid(btn, "action-" + Slug(ButtonText));
+            if (Destructive)
+               ButtonStyles.DangerText(btn);
 
             // Collapsed until there is a result: an empty line still takes its
             // margin and its line height, which pushed the note under the button
@@ -2552,6 +2563,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "AntiSpam.GreyListingEnabled",
             ButtonText = L("Clear greylisting triplets"),
+            Destructive = true,
             Action = () =>
             {
                // Asked first, with Cancel on Enter: every known sender is delayed
@@ -2849,6 +2861,7 @@ namespace hMailServer.ControlPanel.Views
          sandbox.Settings.Add(new ComAction
          {
             ButtonText = L("Remove the token"),
+            Destructive = true,
             Action = () =>
             {
                if (!Dialogs.Confirm(L("Remove the sandbox's bearer token? Requests to the sandbox are then sent without one."), L("Sandbox"), L("_Remove"), destructive: true))
@@ -3919,6 +3932,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "MessageIndexing.Enabled",
             ButtonText = L("Discard the index and rebuild it"),
+            Destructive = true,
             Blurb = L("Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should. Worth doing when the index has more entries than the server has messages, which means entries for mail that no longer exists."),
             Action = () => RebuildIndex_()
          });

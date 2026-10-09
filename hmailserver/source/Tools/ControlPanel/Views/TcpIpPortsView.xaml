@@ -41,7 +41,7 @@
                     <ui:Button x:Name="PropertiesButton" Content="{loc:L '_Properties'}" Click="Edit_Click" Margin="0,2,8,2" />
                     <ui:Button x:Name="DeleteButton" Content="{loc:L '_Delete selected'}"
                                Style="{StaticResource DangerTextButton}" Click="Delete_Click" Margin="0,2,8,2" />
-                    <ui:Button x:Name="RestoreDefaultsButton" Content="{loc:L '_Restore defaults'}" Click="RestoreDefaults_Click" Margin="0,2,0,2"
+                    <ui:Button x:Name="RestoreDefaultsButton" Content="{loc:L '_Restore defaults'}" Style="{StaticResource DangerTextButton}" Click="RestoreDefaults_Click" Margin="0,2,0,2"
                                ToolTip="{loc:L 'Replaces every port with the standard set: SMTP 25 and 587, POP3 110, IMAP 143, all without connection security.'}" />
                 </WrapPanel>
             </scaffold:Toolbar.Actions>

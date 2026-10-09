@@ -13863,9 +13863,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="_Remove message" xml:space="preserve">
     <value>İletiyi _kaldır</value>
   </data>
-  <data name="_Remove selected" xml:space="preserve">
-    <value>_Seçileni kaldır</value>
-  </data>
   <data name="_Remove stored passphrase" xml:space="preserve">
     <value>Saklanan parola ifadesini _kaldır</value>
   </data>

@@ -13863,9 +13863,6 @@ It will keep trying as you use the application.</value>
   <data name="_Remove message" xml:space="preserve">
     <value>_Remove message</value>
   </data>
-  <data name="_Remove selected" xml:space="preserve">
-    <value>_Remove selected</value>
-  </data>
   <data name="_Remove stored passphrase" xml:space="preserve">
     <value>_Remove stored passphrase</value>
   </data>

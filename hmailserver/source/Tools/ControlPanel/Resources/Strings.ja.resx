@@ -13863,9 +13863,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Remove message" xml:space="preserve">
     <value>メッセージを削除(_R)</value>
   </data>
-  <data name="_Remove selected" xml:space="preserve">
-    <value>選択したものを削除(_R)</value>
-  </data>
   <data name="_Remove stored passphrase" xml:space="preserve">
     <value>保存済みパスフレーズを削除(_R)</value>
   </data>

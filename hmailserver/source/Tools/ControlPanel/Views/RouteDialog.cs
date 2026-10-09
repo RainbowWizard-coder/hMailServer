@@ -123,6 +123,8 @@ namespace hMailServer.ControlPanel.Views
          Grid.SetColumn(addBtn, 1);
          addRow.Children.Add(addBtn);
          var removeBtn = new Wpf.Ui.Controls.Button { Content = L("_Remove"), Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0) };
+         ButtonStyles.DangerText(removeBtn);
+         SelectionGate.Bind(addressList_, removeBtn);
          removeBtn.Click += (s, e) => RemoveAddress();
          Grid.SetColumn(removeBtn, 2);
          addRow.Children.Add(removeBtn);

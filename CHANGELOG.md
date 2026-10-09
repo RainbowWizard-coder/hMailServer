@@ -1280,6 +1280,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   trace alike - cannot be pressed at a window of 0 and says why in its tool tip; and the sendout's subject, the
   wildcard and how many active accounts of active domains it reaches, counted as the server counts them, saying so and
   sending nothing where that is none. An empty message is refused on its field.
+- **Fixed: the Control Panel drew destructive buttons too loud on lists and too quiet where they delete in bulk.** The
+  group members' *Remove*, the folder permissions' *Delete*, the account dialog's *Delete folder*, *Empty mailbox* and
+  *Erase traces...*, its two-factor *Remove* and recovery *Clear* buttons, the SSL certificates' *Delete selected* and
+  every API key's *Revoke* wore the filled red of a confirmation's own answer, and the group members' and folder
+  permissions' buttons were live with nothing chosen; while the journaling page's *Remove the rule*, the domain white
+  and black list's *Remove*, both *Restore defaults*, both *Remove expired* and *Clear greylisting triplets* were
+  plain buttons. Each is now drawn by its weight: a list's delete, remove or revoke and a button that deletes or
+  replaces in bulk is red words on a secondary button, grey while it cannot be pressed, as the list pages' deletes
+  already were, and the filled red is kept for the act itself - a confirmation's destructive answer and the backup
+  page's restore. The buttons that act on a chosen entry can be pressed only while one is chosen. The folder
+  permissions' *Delete* and the distribution list's *Remove selected* both read *Remove*, the word for taking an entry
+  out of a list the thing outlives. Deleting an account's IMAP folder in any language but English no longer names and
+  looks for the folder with "(not subscribed)" still after its name.
 
 ### Administration
 

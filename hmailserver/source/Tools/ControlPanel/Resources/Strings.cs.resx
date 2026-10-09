@@ -14021,9 +14021,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Remove message" xml:space="preserve">
     <value>_Odebrat zprávu</value>
   </data>
-  <data name="_Remove selected" xml:space="preserve">
-    <value>_Odebrat vybrané</value>
-  </data>
   <data name="_Remove stored passphrase" xml:space="preserve">
     <value>_Odstranit uložené přístupové heslo</value>
   </data>

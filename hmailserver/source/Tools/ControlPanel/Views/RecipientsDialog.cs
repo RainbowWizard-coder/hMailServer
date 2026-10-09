@@ -70,7 +70,7 @@ namespace hMailServer.ControlPanel.Views
          // The list pages' one Delete style (ButtonStyles.DangerText): red words
          // while there is a member to remove, the disabled grey while none is
          // chosen - not the filled red of a confirmation, live over an empty list.
-         var removeButton = new Wpf.Ui.Controls.Button { Content = L("_Remove selected"), Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0) };
+         var removeButton = new Wpf.Ui.Controls.Button { Content = L("_Remove"), Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0) };
          ButtonStyles.DangerText(removeButton);
          SelectionGate.Bind(listBox_, removeButton);
          removeButton.Click += (s, e) => RemoveSelected();
