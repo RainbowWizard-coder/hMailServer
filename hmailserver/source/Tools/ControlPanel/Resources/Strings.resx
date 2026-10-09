@@ -921,6 +921,9 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Active sessions" xml:space="preserve">
     <value>Active sessions</value>
   </data>
+  <data name="Active: {0} of {1}" xml:space="preserve">
+    <value>Active: {0} of {1}</value>
+  </data>
   <data name="Ad_ministration level" xml:space="preserve">
     <value>Ad_ministration level</value>
   </data>
@@ -8353,6 +8356,9 @@ Run this if clients report messages appearing under the wrong UID, or after rest
   <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
     <value>Refusal te_xt (what the 550 says to the sender)</value>
   </data>
+  <data name="Refusal text" xml:space="preserve">
+    <value>Refusal text</value>
+  </data>
   <data name="Refuse a HELO name that is not a fully qualified domain name" xml:space="preserve">
     <value>Refuse a HELO name that is not a fully qualified domain name</value>
   </data>
@@ -8454,9 +8460,6 @@ Run this if clients report messages appearing under the wrong UID, or after rest
   </data>
   <data name="Reject logins using a weaker stored hash than" xml:space="preserve">
     <value>Reject logins using a weaker stored hash than</value>
-  </data>
-  <data name="Reject message" xml:space="preserve">
-    <value>Reject message</value>
   </data>
   <data name="Reject the most commonly used passwords" xml:space="preserve">
     <value>Reject the most commonly used passwords</value>
@@ -12681,6 +12684,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="What the provider knows this server as: Entra ID's Identifier, Okta's Audience URI." xml:space="preserve">
     <value>What the provider knows this server as: Entra ID's Identifier, Okta's Audience URI.</value>
+  </data>
+  <data name="What the sender is told when this list refuses the message" xml:space="preserve">
+    <value>What the sender is told when this list refuses the message</value>
   </data>
   <data name="What the server does as the message-store volume fills. Both values are absolute megabytes rather than percentages, because what decides whether the next message fits is how many bytes are left, not what fraction of the volume they are." xml:space="preserve">
     <value>What the server does as the message-store volume fills. Both values are absolute megabytes rather than percentages, because what decides whether the next message fits is how many bytes are left, not what fraction of the volume they are.</value>

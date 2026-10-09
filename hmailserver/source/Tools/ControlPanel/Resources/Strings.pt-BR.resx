@@ -921,6 +921,9 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="Active sessions" xml:space="preserve">
     <value>Sessões ativas</value>
   </data>
+  <data name="Active: {0} of {1}" xml:space="preserve">
+    <value>Ativos: {0} de {1}</value>
+  </data>
   <data name="Ad_ministration level" xml:space="preserve">
     <value>Nível de ad_ministração</value>
   </data>
@@ -8353,6 +8356,9 @@ Execute isto se os clientes relatarem mensagens aparecendo com o UID errado, ou 
   <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
     <value>Te_xto de recusa (o que o 550 diz ao remetente)</value>
   </data>
+  <data name="Refusal text" xml:space="preserve">
+    <value>Texto de recusa</value>
+  </data>
   <data name="Refuse a HELO name that is not a fully qualified domain name" xml:space="preserve">
     <value>Recusar um nome HELO que não seja um nome de domínio totalmente qualificado</value>
   </data>
@@ -8454,9 +8460,6 @@ Execute isto se os clientes relatarem mensagens aparecendo com o UID errado, ou 
   </data>
   <data name="Reject logins using a weaker stored hash than" xml:space="preserve">
     <value>Rejeitar logins que usem um hash armazenado mais fraco que</value>
-  </data>
-  <data name="Reject message" xml:space="preserve">
-    <value>Rejeitar mensagem</value>
   </data>
   <data name="Reject the most commonly used passwords" xml:space="preserve">
     <value>Rejeitar as senhas mais usadas</value>
@@ -12681,6 +12684,9 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   </data>
   <data name="What the provider knows this server as: Entra ID's Identifier, Okta's Audience URI." xml:space="preserve">
     <value>Como o provedor conhece este servidor: o Identifier do Entra ID, a Audience URI do Okta.</value>
+  </data>
+  <data name="What the sender is told when this list refuses the message" xml:space="preserve">
+    <value>O que o remetente fica sabendo quando esta lista recusa a mensagem</value>
   </data>
   <data name="What the server does as the message-store volume fills. Both values are absolute megabytes rather than percentages, because what decides whether the next message fits is how many bytes are left, not what fraction of the volume they are." xml:space="preserve">
     <value>O que o servidor faz conforme o volume do repositório de mensagens enche. Os dois valores são megabytes absolutos e não porcentagens, porque o que decide se a próxima mensagem cabe é quantos bytes restam, e não que fração do volume eles representam.</value>

@@ -927,6 +927,9 @@
   <data name="Active sessions" xml:space="preserve">
     <value>Активні сеанси</value>
   </data>
+  <data name="Active: {0} of {1}" xml:space="preserve">
+    <value>Активно: {0} з {1}</value>
+  </data>
   <data name="Ad_ministration level" xml:space="preserve">
     <value>_Рівень адміністрування</value>
   </data>
@@ -8428,6 +8431,9 @@
   <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
     <value>Текст відмови (що 550 каже відправнику) (_X)</value>
   </data>
+  <data name="Refusal text" xml:space="preserve">
+    <value>Текст відмови</value>
+  </data>
   <data name="Refuse a HELO name that is not a fully qualified domain name" xml:space="preserve">
     <value>Відхиляти ім'я HELO, яке не є повним доменним ім'ям</value>
   </data>
@@ -8532,9 +8538,6 @@
   </data>
   <data name="Reject logins using a weaker stored hash than" xml:space="preserve">
     <value>Відхиляти входи зі збереженим хешем, слабшим за</value>
-  </data>
-  <data name="Reject message" xml:space="preserve">
-    <value>Відхилити повідомлення</value>
   </data>
   <data name="Reject the most commonly used passwords" xml:space="preserve">
     <value>Відхиляти найпоширеніші паролі</value>
@@ -12833,6 +12836,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="What the provider knows this server as: Entra ID's Identifier, Okta's Audience URI." xml:space="preserve">
     <value>Під яким іменем постачальник знає цей сервер: Identifier в Entra ID, Audience URI в Okta.</value>
+  </data>
+  <data name="What the sender is told when this list refuses the message" xml:space="preserve">
+    <value>Що повідомляється відправникові, коли цей список відхиляє повідомлення</value>
   </data>
   <data name="What the server does as the message-store volume fills. Both values are absolute megabytes rather than percentages, because what decides whether the next message fits is how many bytes are left, not what fraction of the volume they are." xml:space="preserve">
     <value>Що робить сервер у міру заповнення тому сховища повідомлень. Обидва значення - абсолютні мегабайти, а не відсотки, бо чи вміститься наступне повідомлення, вирішує кількість байтів, що залишилися, а не їхня частка від тому.</value>

@@ -927,6 +927,9 @@ Control Panel может читать файлы сообщений только
   <data name="Active sessions" xml:space="preserve">
     <value>Активные сеансы</value>
   </data>
+  <data name="Active: {0} of {1}" xml:space="preserve">
+    <value>Активно: {0} из {1}</value>
+  </data>
   <data name="Ad_ministration level" xml:space="preserve">
     <value>У_ровень администрирования</value>
   </data>
@@ -8428,6 +8431,9 @@ Control Panel может читать файлы сообщений только
   <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
     <value>Текст отказа (что 550 говорит отправителю) (_X)</value>
   </data>
+  <data name="Refusal text" xml:space="preserve">
+    <value>Текст отказа</value>
+  </data>
   <data name="Refuse a HELO name that is not a fully qualified domain name" xml:space="preserve">
     <value>Отклонять имя HELO, которое не является полным доменным именем</value>
   </data>
@@ -8532,9 +8538,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Reject logins using a weaker stored hash than" xml:space="preserve">
     <value>Отклонять входы с сохранённым хешем слабее чем</value>
-  </data>
-  <data name="Reject message" xml:space="preserve">
-    <value>Отклонить сообщение</value>
   </data>
   <data name="Reject the most commonly used passwords" xml:space="preserve">
     <value>Отклонять самые распространённые пароли</value>
@@ -12833,6 +12836,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="What the provider knows this server as: Entra ID's Identifier, Okta's Audience URI." xml:space="preserve">
     <value>Под каким именем поставщик знает этот сервер: Identifier в Entra ID, Audience URI в Okta.</value>
+  </data>
+  <data name="What the sender is told when this list refuses the message" xml:space="preserve">
+    <value>Что сообщается отправителю, когда этот список отклоняет сообщение</value>
   </data>
   <data name="What the server does as the message-store volume fills. Both values are absolute megabytes rather than percentages, because what decides whether the next message fits is how many bytes are left, not what fraction of the volume they are." xml:space="preserve">
     <value>Что делает сервер по мере заполнения тома хранилища сообщений. Оба значения - абсолютные мегабайты, а не проценты, потому что вместится ли следующее сообщение, решает число оставшихся байтов, а не их доля от тома.</value>

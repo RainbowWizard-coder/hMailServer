@@ -921,6 +921,9 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
   <data name="Active sessions" xml:space="preserve">
     <value>Sesiones activas</value>
   </data>
+  <data name="Active: {0} of {1}" xml:space="preserve">
+    <value>Activos: {0} de {1}</value>
+  </data>
   <data name="Ad_ministration level" xml:space="preserve">
     <value>Nivel de ad_ministración</value>
   </data>
@@ -8353,6 +8356,9 @@ Ejecute esto si los clientes informan de mensajes que aparecen con un UID equivo
   <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
     <value>Te_xto de rechazo (lo que el 550 dice al remitente)</value>
   </data>
+  <data name="Refusal text" xml:space="preserve">
+    <value>Texto de rechazo</value>
+  </data>
   <data name="Refuse a HELO name that is not a fully qualified domain name" xml:space="preserve">
     <value>Rechazar un nombre HELO que no es un nombre de dominio completo (FQDN)</value>
   </data>
@@ -8454,9 +8460,6 @@ Ejecute esto si los clientes informan de mensajes que aparecen con un UID equivo
   </data>
   <data name="Reject logins using a weaker stored hash than" xml:space="preserve">
     <value>Rechazar los inicios de sesión que usen un hash guardado más débil que</value>
-  </data>
-  <data name="Reject message" xml:space="preserve">
-    <value>Rechazar el mensaje</value>
   </data>
   <data name="Reject the most commonly used passwords" xml:space="preserve">
     <value>Rechazar las contraseñas más utilizadas</value>
@@ -12681,6 +12684,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   </data>
   <data name="What the provider knows this server as: Entra ID's Identifier, Okta's Audience URI." xml:space="preserve">
     <value>Como conoce el proveedor a este servidor: el Identifier de Entra ID, la Audience URI de Okta.</value>
+  </data>
+  <data name="What the sender is told when this list refuses the message" xml:space="preserve">
+    <value>Lo que se le dice al remitente cuando esta lista rechaza el mensaje</value>
   </data>
   <data name="What the server does as the message-store volume fills. Both values are absolute megabytes rather than percentages, because what decides whether the next message fits is how many bytes are left, not what fraction of the volume they are." xml:space="preserve">
     <value>Qué hace el servidor a medida que se llena el volumen del almacén de mensajes. Ambos valores son megabytes absolutos y no porcentajes, porque lo que decide si el siguiente mensaje cabe es cuántos bytes quedan, no qué fracción del volumen suponen.</value>

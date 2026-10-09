@@ -921,6 +921,9 @@
   <data name="Active sessions" xml:space="preserve">
     <value>アクティブなセッション</value>
   </data>
+  <data name="Active: {0} of {1}" xml:space="preserve">
+    <value>有効: {1} 件中 {0} 件</value>
+  </data>
   <data name="Ad_ministration level" xml:space="preserve">
     <value>管理レベル(_M)</value>
   </data>
@@ -8353,6 +8356,9 @@
   <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
     <value>拒否テキスト（550 が送信者に伝える文）(_X)</value>
   </data>
+  <data name="Refusal text" xml:space="preserve">
+    <value>拒否時のメッセージ</value>
+  </data>
   <data name="Refuse a HELO name that is not a fully qualified domain name" xml:space="preserve">
     <value>完全修飾ドメイン名 (FQDN) ではない HELO 名を拒否する</value>
   </data>
@@ -8454,9 +8460,6 @@
   </data>
   <data name="Reject logins using a weaker stored hash than" xml:space="preserve">
     <value>保存済みハッシュが次より弱いログインを拒否する</value>
-  </data>
-  <data name="Reject message" xml:space="preserve">
-    <value>メッセージを拒否する</value>
   </data>
   <data name="Reject the most commonly used passwords" xml:space="preserve">
     <value>よく使われるパスワードを拒否する</value>
@@ -12681,6 +12684,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="What the provider knows this server as: Entra ID's Identifier, Okta's Audience URI." xml:space="preserve">
     <value>プロバイダーがこのサーバーを識別する名前: Entra ID の Identifier、Okta の Audience URI。</value>
+  </data>
+  <data name="What the sender is told when this list refuses the message" xml:space="preserve">
+    <value>このリストがメッセージを拒否したときに送信者へ伝える内容</value>
   </data>
   <data name="What the server does as the message-store volume fills. Both values are absolute megabytes rather than percentages, because what decides whether the next message fits is how many bytes are left, not what fraction of the volume they are." xml:space="preserve">
     <value>メッセージ ストアのボリュームが埋まっていくときにサーバーが行うこと。両方の値はパーセンテージではなく絶対的なメガバイトです。次のメッセージが収まるかどうかを決めるのは、残りバイト数であって、ボリュームに対する割合ではないからです。</value>

@@ -927,6 +927,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Active sessions" xml:space="preserve">
     <value>Aktivní relace</value>
   </data>
+  <data name="Active: {0} of {1}" xml:space="preserve">
+    <value>Aktivní: {0} z {1}</value>
+  </data>
   <data name="Ad_ministration level" xml:space="preserve">
     <value>Úroveň sprá_vy</value>
   </data>
@@ -8428,6 +8431,9 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
   <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
     <value>Te_xt odmítnutí (co odesílateli řekne 550)</value>
   </data>
+  <data name="Refusal text" xml:space="preserve">
+    <value>Text odmítnutí</value>
+  </data>
   <data name="Refuse a HELO name that is not a fully qualified domain name" xml:space="preserve">
     <value>Odmítnout název HELO, který není plně kvalifikovaný název domény</value>
   </data>
@@ -8532,9 +8538,6 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
   </data>
   <data name="Reject logins using a weaker stored hash than" xml:space="preserve">
     <value>Odmítat přihlášení s uloženým hashem slabším než</value>
-  </data>
-  <data name="Reject message" xml:space="preserve">
-    <value>Odmítnout zprávu</value>
   </data>
   <data name="Reject the most commonly used passwords" xml:space="preserve">
     <value>Odmítat nejčastěji používaná hesla</value>
@@ -12833,6 +12836,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="What the provider knows this server as: Entra ID's Identifier, Okta's Audience URI." xml:space="preserve">
     <value>Pod čím zná poskytovatel tento server: Identifier v Entra ID, Audience URI v Okta.</value>
+  </data>
+  <data name="What the sender is told when this list refuses the message" xml:space="preserve">
+    <value>Co se odesílatel dozví, když tento seznam zprávu odmítne</value>
   </data>
   <data name="What the server does as the message-store volume fills. Both values are absolute megabytes rather than percentages, because what decides whether the next message fits is how many bytes are left, not what fraction of the volume they are." xml:space="preserve">
     <value>Co server dělá, když se svazek s úložištěm zpráv zaplňuje. Obě hodnoty jsou absolutní megabajty, ne procenta, protože o tom, zda se další zpráva vejde, rozhoduje počet zbývajících bajtů, ne jejich podíl na svazku.</value>

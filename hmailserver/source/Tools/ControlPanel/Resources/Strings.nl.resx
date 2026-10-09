@@ -921,6 +921,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Active sessions" xml:space="preserve">
     <value>Actieve sessies</value>
   </data>
+  <data name="Active: {0} of {1}" xml:space="preserve">
+    <value>Actief: {0} van {1}</value>
+  </data>
   <data name="Ad_ministration level" xml:space="preserve">
     <value>Be_heerniveau</value>
   </data>
@@ -8353,6 +8356,9 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
     <value>Weigeringste_kst (wat de 550 tegen de afzender zegt)</value>
   </data>
+  <data name="Refusal text" xml:space="preserve">
+    <value>Weigeringstekst</value>
+  </data>
   <data name="Refuse a HELO name that is not a fully qualified domain name" xml:space="preserve">
     <value>Een HELO-naam weigeren die geen volledig gekwalificeerde domeinnaam is</value>
   </data>
@@ -8454,9 +8460,6 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   </data>
   <data name="Reject logins using a weaker stored hash than" xml:space="preserve">
     <value>Aanmeldingen weigeren die een zwakkere opgeslagen hash gebruiken dan</value>
-  </data>
-  <data name="Reject message" xml:space="preserve">
-    <value>Bericht weigeren</value>
   </data>
   <data name="Reject the most commonly used passwords" xml:space="preserve">
     <value>De meest gebruikte wachtwoorden weigeren</value>
@@ -12681,6 +12684,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="What the provider knows this server as: Entra ID's Identifier, Okta's Audience URI." xml:space="preserve">
     <value>Als wat de provider deze server kent: de Identifier van Entra ID, de Audience URI van Okta.</value>
+  </data>
+  <data name="What the sender is told when this list refuses the message" xml:space="preserve">
+    <value>Wat de afzender te horen krijgt als deze lijst het bericht weigert</value>
   </data>
   <data name="What the server does as the message-store volume fills. Both values are absolute megabytes rather than percentages, because what decides whether the next message fits is how many bytes are left, not what fraction of the volume they are." xml:space="preserve">
     <value>Wat de server doet naarmate het volume met de berichtenopslag volloopt. Beide waarden zijn absolute megabytes en geen percentages, want wat bepaalt of het volgende bericht past, is hoeveel bytes er over zijn en niet welk deel van het volume dat is.</value>

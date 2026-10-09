@@ -921,6 +921,9 @@ Das Control Panel kann Nachrichtendateien nur lesen, wenn es auf demselben Rechn
   <data name="Active sessions" xml:space="preserve">
     <value>Aktive Sitzungen</value>
   </data>
+  <data name="Active: {0} of {1}" xml:space="preserve">
+    <value>Aktiv: {0} von {1}</value>
+  </data>
   <data name="Ad_ministration level" xml:space="preserve">
     <value>Ad_ministrationsebene</value>
   </data>
@@ -8353,6 +8356,9 @@ Führen Sie dies aus, wenn Clients melden, dass Nachrichten unter der falschen U
   <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
     <value>Ablehnungste_xt (was 550 dem Absender sagt)</value>
   </data>
+  <data name="Refusal text" xml:space="preserve">
+    <value>Ablehnungstext</value>
+  </data>
   <data name="Refuse a HELO name that is not a fully qualified domain name" xml:space="preserve">
     <value>Einen HELO-Namen abweisen, der kein vollqualifizierter Domainname ist</value>
   </data>
@@ -8454,9 +8460,6 @@ Führen Sie dies aus, wenn Clients melden, dass Nachrichten unter der falschen U
   </data>
   <data name="Reject logins using a weaker stored hash than" xml:space="preserve">
     <value>Anmeldungen mit einem schwächeren gespeicherten Hash ablehnen als</value>
-  </data>
-  <data name="Reject message" xml:space="preserve">
-    <value>Nachricht ablehnen</value>
   </data>
   <data name="Reject the most commonly used passwords" xml:space="preserve">
     <value>Die am häufigsten verwendeten Passwörter ablehnen</value>
@@ -12681,6 +12684,9 @@ Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
   </data>
   <data name="What the provider knows this server as: Entra ID's Identifier, Okta's Audience URI." xml:space="preserve">
     <value>Als was der Anbieter diesen Server kennt: der Identifier von Entra ID, die Audience URI von Okta.</value>
+  </data>
+  <data name="What the sender is told when this list refuses the message" xml:space="preserve">
+    <value>Was dem Absender gesagt wird, wenn diese Liste die Nachricht ablehnt</value>
   </data>
   <data name="What the server does as the message-store volume fills. Both values are absolute megabytes rather than percentages, because what decides whether the next message fits is how many bytes are left, not what fraction of the volume they are." xml:space="preserve">
     <value>Was der Server tut, während das Laufwerk des Nachrichtenspeichers voll läuft. Beide Werte sind absolute Megabyte statt Prozentsätze, denn was darüber entscheidet, ob die nächste Nachricht hineinpasst, ist, wie viele Bytes übrig sind, und nicht, welchen Anteil des Laufwerks sie ausmachen.</value>

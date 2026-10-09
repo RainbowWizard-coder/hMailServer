@@ -921,6 +921,9 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Active sessions" xml:space="preserve">
     <value>Aktive sessioner</value>
   </data>
+  <data name="Active: {0} of {1}" xml:space="preserve">
+    <value>Aktive: {0} af {1}</value>
+  </data>
   <data name="Ad_ministration level" xml:space="preserve">
     <value>Ad_ministrationsniveau</value>
   </data>
@@ -8353,6 +8356,9 @@ Kør dette, hvis klienter melder om meddelelser, der dukker op under det forkert
   <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
     <value>Afvi_sningstekst (hvad 550 siger til afsenderen)</value>
   </data>
+  <data name="Refusal text" xml:space="preserve">
+    <value>Afvisningstekst</value>
+  </data>
   <data name="Refuse a HELO name that is not a fully qualified domain name" xml:space="preserve">
     <value>Afvis et HELO-navn, der ikke er et fuldt kvalificeret domænenavn</value>
   </data>
@@ -8454,9 +8460,6 @@ Kør dette, hvis klienter melder om meddelelser, der dukker op under det forkert
   </data>
   <data name="Reject logins using a weaker stored hash than" xml:space="preserve">
     <value>Afvis pålogninger, der bruger en svagere gemt hash end</value>
-  </data>
-  <data name="Reject message" xml:space="preserve">
-    <value>Afvis meddelelse</value>
   </data>
   <data name="Reject the most commonly used passwords" xml:space="preserve">
     <value>Afvis de mest brugte adgangskoder</value>
@@ -12681,6 +12684,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="What the provider knows this server as: Entra ID's Identifier, Okta's Audience URI." xml:space="preserve">
     <value>Det, udbyderen kender serveren som: Entra ID's Identifier, Oktas Audience URI.</value>
+  </data>
+  <data name="What the sender is told when this list refuses the message" xml:space="preserve">
+    <value>Det, afsenderen får at vide, når denne liste afviser meddelelsen</value>
   </data>
   <data name="What the server does as the message-store volume fills. Both values are absolute megabytes rather than percentages, because what decides whether the next message fits is how many bytes are left, not what fraction of the volume they are." xml:space="preserve">
     <value>Hvad serveren gør, når meddelelseslagerets volumen fyldes. Begge værdier er absolutte megabyte snarere end procenter, fordi det, der afgør, om der er plads til den næste meddelelse, er, hvor mange bytes der er tilbage, ikke hvilken brøkdel af volumenet de er.</value>

@@ -55,6 +55,7 @@ namespace hMailServer.ControlPanel.Views
          CountMany = N("{0} SURBL servers"),
          GetCollection = () => AntiSpam.SURBLServers,
          TickBoxesLast = true,
+         ActiveProp = "Active", // no-loc: the property that switches an entry on
          Fields =
          {
             // A new list starts active, its box after the fields that say what
@@ -64,9 +65,12 @@ namespace hMailServer.ControlPanel.Views
             // listing (SURBL.cpp). Each field says what goes in it.
             new FieldSpec { Prop = "Active", Label = L("Active"), Kind = FieldKind.Bool, GridWidth = 70, Default = true },
             new FieldSpec { Prop = "DNSHost", Label = L("DNS host"), Required = true, Hint = L("Such as multi.surbl.org or dbl.spamhaus.org") },
-            new FieldSpec { Prop = "RejectMessage", Label = L("Reject message") },
             new FieldSpec { Prop = "ExpectedResult", Label = L("Expected result"), GridWidth = 130, Hint = L("The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-126, or several joined by |. Left empty, any answer but the list's own error codes is a listing.") },
-            new FieldSpec { Prop = "Score", Label = L("Score"), Kind = FieldKind.Number, GridWidth = 80, Default = 5, Hint = L("Added to the message's spam score when this list matches") }
+            new FieldSpec { Prop = "Score", Label = L("Score"), Kind = FieldKind.Number, GridWidth = 80, Default = 5, Hint = L("Added to the message's spam score when this list matches") },
+            // A noun, not "Reject message", which read as a command and was
+            // translated as one - "Nachricht ablehnen" (review finding F268).
+            // Last, in the order the DNS blacklists page shows its columns too.
+            new FieldSpec { Prop = "RejectMessage", Label = L("Refusal text"), Hint = L("What the sender is told when this list refuses the message") }
          }
       });
 
@@ -81,6 +85,7 @@ namespace hMailServer.ControlPanel.Views
          CountMany = N("{0} blacklists"),
          GetCollection = () => AntiSpam.DNSBlackLists,
          TickBoxesLast = true,
+         ActiveProp = "Active", // no-loc: the property that switches an entry on
          Fields =
          {
             // As for a SURBL server, but the expected result is required here:
@@ -90,8 +95,8 @@ namespace hMailServer.ControlPanel.Views
             new FieldSpec { Prop = "Active", Label = L("Active"), Kind = FieldKind.Bool, GridWidth = 70, Default = true },
             new FieldSpec { Prop = "DNSHost", Label = L("DNS host"), Required = true, Hint = L("Such as zen.spamhaus.org or bl.spamcop.net") },
             new FieldSpec { Prop = "ExpectedResult", Label = L("Expected result"), GridWidth = 130, Required = true, Hint = L("The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-11, a wildcard such as 127.0.0.*, or several joined by |") },
-            new FieldSpec { Prop = "RejectMessage", Label = L("Reject message") },
-            new FieldSpec { Prop = "Score", Label = L("Score"), Kind = FieldKind.Number, GridWidth = 80, Default = 5, Hint = L("Added to the message's spam score when this list matches") }
+            new FieldSpec { Prop = "Score", Label = L("Score"), Kind = FieldKind.Number, GridWidth = 80, Default = 5, Hint = L("Added to the message's spam score when this list matches") },
+            new FieldSpec { Prop = "RejectMessage", Label = L("Refusal text"), Hint = L("What the sender is told when this list refuses the message") }
          }
       });
 

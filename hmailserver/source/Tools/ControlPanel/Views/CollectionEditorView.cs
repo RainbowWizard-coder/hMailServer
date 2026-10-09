@@ -124,6 +124,12 @@ namespace hMailServer.ControlPanel.Views
          // the entry off. The grid keeps the spec's order either way.
          public bool TickBoxesLast;
 
+         // The Bool property that switches an entry on, for a list whose pill
+         // counts the entries that are on rather than all of them: "Active: 2
+         // of 3", at Warning when none is (review finding F268). Null counts
+         // every entry.
+         public string ActiveProp;
+
          // The count beside the title, one whole catalogued text for one entry
          // and one for any other number, each marked with N() and translated
          // where it is shown: "1 security group" and "{0} security groups". A
@@ -455,8 +461,10 @@ namespace hMailServer.ControlPanel.Views
          }
 
          ReadFailure.Clear(status_, addButton_);
+         int activeCount = ActiveCount_();
+         countBadge_.Level = ActiveEntries.PillLevel(activeCount, rows_.Count);
          countBadge_.Visibility = Visibility.Visible;
-         countBadge_.Text = rows_.Count == 1
+         countBadge_.Text = activeCount >= 0 ? ActiveEntries.PillText(activeCount, rows_.Count) : rows_.Count == 1
             ? L(spec_.CountOne)
             : F(spec_.CountMany, rows_.Count);
       }
@@ -561,6 +569,25 @@ namespace hMailServer.ControlPanel.Views
             ServerSession.Release(item);
          }
          return null;
+      }
+
+      /// <summary>
+      /// How many of the rows have the spec's ActiveProp on, or -1 for a spec
+      /// that counts every entry and for an empty list, whose count stays the
+      /// spec's own beside the empty state.
+      /// </summary>
+      private int ActiveCount_()
+      {
+         if (spec_.ActiveProp == null || rows_.Count == 0)
+            return -1;
+
+         int active = 0;
+         foreach (Row row in rows_)
+         {
+            if (row.Values.TryGetValue(spec_.ActiveProp, out object on) && on is true)
+               active++;
+         }
+         return active;
       }
 
       // ---- COM reflection helpers -------------------------------------------
