@@ -586,7 +586,23 @@ class DesktopReader:
             if item is None:
                 self.unresolved_paths.append((page, 'GetCollection ' + chain.group(1).strip()))
                 continue
-            for prop in re.findall(r'new\s+FieldSpec\s*\{[^}]*?\bProp\s*=\s*"(\w+)"', body):
+            # The fields may be built by a helper of the same file rather than
+            # written in the spec - a list two specs share, as the sender list's
+            # page and the domain dialog's allow and block tab share
+            # SenderListFields(width) - and then the FieldSpecs are in the
+            # helper's body, not the spec's. Without this, the five properties
+            # of SenderListEntry dropped out of the report when the helper
+            # was introduced, as if the desktop had stopped writing them.
+            fields_body = body
+            helper = re.search(r'\bFields\s*=\s*(\w+)\s*\(', body)
+            if helper:
+                decl = re.search(r'\bList<FieldSpec>\s+' + re.escape(helper.group(1))
+                                 + r'\s*\([^)]*\)\s*(?:=>\s*new\s*(?:List<FieldSpec>)?\s*\(\)\s*)?\{', text)
+                if decl:
+                    fields_body = body + balanced(text, decl.end() - 1)
+                else:
+                    self.unresolved_paths.append((page, 'Fields ' + helper.group(1) + '(...)'))
+            for prop in re.findall(r'new\s+FieldSpec\s*\{[^}]*?\bProp\s*=\s*"(\w+)"', fields_body):
                 if prop in item.props and item.props[prop]['put']:
                     self.accesses.append(Access(item.short, prop, 'write', page, 'collection editor'))
                 elif prop in item.props:
