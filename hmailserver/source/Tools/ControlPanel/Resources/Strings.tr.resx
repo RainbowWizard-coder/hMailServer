@@ -2371,9 +2371,6 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Choose a rule in the list." xml:space="preserve">
     <value>Listeden bir kural seçin.</value>
   </data>
-  <data name="Choose an assignment in the list, or type the account address." xml:space="preserve">
-    <value>Listeden bir atama seçin veya hesap adresini yazın.</value>
-  </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>En az bir gün ötede bir süre sonu tarihi seçin. Bugün süresi dolan bir anahtar, oluşturulduğu günün ortasında çalışmayı bırakırdı.</value>
   </data>
@@ -10737,6 +10734,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Etiketleme ve yasal uyarı</value>
+  </data>
+  <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
+    <value>{0} rolü {1} hesabından alınsın mı? Hesapta yalnızca yönetici düzeyinin verdiği yetkiler kalır.</value>
   </data>
   <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>{0}, {1} engelleme listesinden kaldırılsın mı?

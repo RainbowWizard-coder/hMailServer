@@ -2371,9 +2371,6 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Choose a rule in the list." xml:space="preserve">
     <value>Wählen Sie eine Regel in der Liste.</value>
   </data>
-  <data name="Choose an assignment in the list, or type the account address." xml:space="preserve">
-    <value>Wählen Sie eine Zuweisung in der Liste, oder geben Sie die Kontoadresse ein.</value>
-  </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Wählen Sie ein Ablaufdatum, das mindestens einen Tag entfernt ist. Ein Schlüssel, der heute abläuft, würde mitten an dem Tag aufhören zu funktionieren, an dem er erzeugt wurde.</value>
   </data>
@@ -10737,6 +10734,9 @@ Jetzt neu starten?</value>
   </data>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Markierung und Haftungsausschluss</value>
+  </data>
+  <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
+    <value>{1} die Rolle {0} entziehen? Das Konto behält nur, was seine Administratorstufe ihm gibt.</value>
   </data>
   <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>{0} von der Unterdrückungsliste von {1} nehmen?

@@ -2371,9 +2371,6 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Choose a rule in the list." xml:space="preserve">
     <value>Valitse sääntö luettelosta.</value>
   </data>
-  <data name="Choose an assignment in the list, or type the account address." xml:space="preserve">
-    <value>Valitse määritys luettelosta tai kirjoita tilin osoite.</value>
-  </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Valitse vanhenemispäivä, joka on vähintään päivän päässä. Tänään vanheneva avain lakkaisi toimimasta kesken sen päivän, jona se luotiin.</value>
   </data>
@@ -10737,6 +10734,9 @@ Käynnistetäänkö se uudelleen nyt?</value>
   </data>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Merkintä ja vastuuvapauslauseke</value>
+  </data>
+  <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
+    <value>Otetaanko rooli {0} pois tililtä {1}? Tilille jää vain se, minkä sen ylläpitotaso sille antaa.</value>
   </data>
   <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>Poistetaanko {0} verkkotunnuksen {1} estolistalta?

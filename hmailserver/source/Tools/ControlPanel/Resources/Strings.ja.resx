@@ -2371,9 +2371,6 @@
   <data name="Choose a rule in the list." xml:space="preserve">
     <value>一覧からルールを選んでください。</value>
   </data>
-  <data name="Choose an assignment in the list, or type the account address." xml:space="preserve">
-    <value>一覧から割り当てを選ぶか、アカウントのアドレスを入力してください。</value>
-  </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>少なくとも 1 日先の有効期限を選択してください。今日期限が切れる鍵は、作成した当日の途中で動作しなくなります。</value>
   </data>
@@ -10737,6 +10734,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>タグ付けと免責事項</value>
+  </data>
+  <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
+    <value>{1} からロール {0} を外しますか? このアカウントには、その管理者レベルが与える権限だけが残ります。</value>
   </data>
   <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>{0} を {1} の抑止リストから外しますか？

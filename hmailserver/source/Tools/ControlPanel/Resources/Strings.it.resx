@@ -2371,9 +2371,6 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Choose a rule in the list." xml:space="preserve">
     <value>Scegliere una regola nell'elenco.</value>
   </data>
-  <data name="Choose an assignment in the list, or type the account address." xml:space="preserve">
-    <value>Scegli un'assegnazione nell'elenco, oppure digita l'indirizzo dell'account.</value>
-  </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Scegli una data di scadenza almeno a un giorno di distanza. Una chiave che scade oggi smetterebbe di funzionare a metà del giorno in cui è stata creata.</value>
   </data>
@@ -10737,6 +10734,9 @@ Riavviarlo ora?</value>
   </data>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Etichettatura e informativa</value>
+  </data>
+  <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
+    <value>Togliere il ruolo {0} a {1}? L'account conserva solo ciò che gli dà il suo livello di amministrazione.</value>
   </data>
   <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>Togliere {0} dalla lista di soppressione di {1}?

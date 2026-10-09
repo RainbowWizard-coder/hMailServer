@@ -2371,9 +2371,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Choose a rule in the list." xml:space="preserve">
     <value>Kies een regel in de lijst.</value>
   </data>
-  <data name="Choose an assignment in the list, or type the account address." xml:space="preserve">
-    <value>Kies een toewijzing in de lijst, of typ het accountadres.</value>
-  </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Kies een vervaldatum die minstens een dag in de toekomst ligt. Een sleutel die vandaag verloopt, zou halverwege de dag waarop hij is gemaakt stoppen met werken.</value>
   </data>
@@ -10737,6 +10734,9 @@ Nu opnieuw starten?</value>
   </data>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Markering en disclaimer</value>
+  </data>
+  <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
+    <value>De rol {0} afnemen van {1}? Het account houdt alleen wat zijn beheerdersniveau het geeft.</value>
   </data>
   <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>{0} van de onderdrukkingslijst van {1} halen?

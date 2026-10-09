@@ -2389,9 +2389,6 @@ Control Panel может читать файлы сообщений только
   <data name="Choose a rule in the list." xml:space="preserve">
     <value>Выберите правило в списке.</value>
   </data>
-  <data name="Choose an assignment in the list, or type the account address." xml:space="preserve">
-    <value>Выберите назначение в списке или введите адрес учётной записи.</value>
-  </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Выберите дату окончания срока действия не раньше чем через день. Ключ, срок действия которого истекает сегодня, перестал бы работать в тот же день, когда был создан.</value>
   </data>
@@ -10853,6 +10850,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Пометка и оговорка</value>
+  </data>
+  <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
+    <value>Отобрать роль {0} у {1}? У учётной записи останутся только права, которые даёт её уровень администратора.</value>
   </data>
   <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>Убрать {0} из списка подавления домена {1}?

@@ -2389,9 +2389,6 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Choose a rule in the list." xml:space="preserve">
     <value>Wybierz regułę z listy.</value>
   </data>
-  <data name="Choose an assignment in the list, or type the account address." xml:space="preserve">
-    <value>Wybierz przypisanie z listy albo wpisz adres konta.</value>
-  </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Należy wybrać datę wygaśnięcia oddaloną co najmniej o dzień. Klucz wygasający dzisiaj przestałby działać w połowie dnia, w którym powstał.</value>
   </data>
@@ -10853,6 +10850,9 @@ Uruchomić ją ponownie teraz?</value>
   </data>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Oznaczanie i oświadczenie</value>
+  </data>
+  <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
+    <value>Odebrać rolę {0} kontu {1}? Konto zachowa tylko uprawnienia wynikające z jego poziomu administratora.</value>
   </data>
   <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>Usunąć {0} z listy blokowanych domeny {1}?

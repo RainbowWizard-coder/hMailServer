@@ -2389,9 +2389,6 @@
   <data name="Choose a rule in the list." xml:space="preserve">
     <value>Виберіть правило у списку.</value>
   </data>
-  <data name="Choose an assignment in the list, or type the account address." xml:space="preserve">
-    <value>Виберіть призначення у списку або введіть адресу облікового запису.</value>
-  </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Виберіть дату завершення терміну дії щонайменше на день уперед. Ключ, термін дії якого спливає сьогодні, перестав би працювати посеред того самого дня, коли його створено.</value>
   </data>
@@ -10853,6 +10850,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Позначення та застереження</value>
+  </data>
+  <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
+    <value>Відібрати роль {0} в {1}? Обліковому запису залишаться лише права, які дає його рівень адміністратора.</value>
   </data>
   <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>Вилучити {0} зі списку придушення домену {1}?

@@ -121,6 +121,40 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("L(\"_Apply\")", apply, StringComparison.Ordinal);
       }
 
+      // ---- Administrator roles (F069) ------------------------------------------------------
+
+      [Fact]
+      public void TheRolesQuestion_NamesTheRoleAndTheAccount()
+      {
+         string question = Confirmations.TakeRoleAway("helpdesk", "helen@example.test");
+         Assert.Contains("helpdesk", question, StringComparison.Ordinal);
+         Assert.Contains("helen@example.test", question, StringComparison.Ordinal);
+         Assert.Contains("admin level", question, StringComparison.Ordinal);
+      }
+
+      [Fact]
+      public void TakeTheRoleAway_ActsOnTheChosenRowAlone_AsksFirst_AndIsADangerTextButtonGatedByTheList()
+      {
+         string page = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", "RolesView.cs"));
+
+         string unassign = WithheldRowTests.MemberText(page, "private void Unassign_()");
+         Assert.True(unassign != null, "RolesView.Unassign_ is gone.");
+         Assert.DoesNotContain("address_.Text", unassign, StringComparison.Ordinal);
+         int asks = unassign.IndexOf("Confirmations.TakeRoleAway(row.Role, row.Address)", StringComparison.Ordinal);
+         int writes = unassign.IndexOf("Write_(row.Address, \"\", \"\")", StringComparison.Ordinal);
+         Assert.True(asks >= 0 && writes > asks, "Take the role away writes without asking first.");
+         Assert.Contains("destructive: true", unassign, StringComparison.Ordinal);
+
+         Assert.Contains("ButtonStyles.DangerText(take_);", page, StringComparison.Ordinal);
+         Assert.Contains("SelectionGate.Bind(assignmentGrid_, take_);", page, StringComparison.Ordinal);
+
+         // A read that failed or worked enables Give the role alone: the gate is
+         // the selection's, and ReadFailure enabling Take the role away would
+         // override it with nothing chosen.
+         Assert.DoesNotContain("Reload_, give_, take_", page, StringComparison.Ordinal);
+         Assert.DoesNotContain("ReadFailure.Clear(readNotice_, give_, take_)", page, StringComparison.Ordinal);
+      }
+
       [Theory]
       [InlineData("DomainsView.xaml.cs", "private void DeleteAccount_(string address)", "Confirmations.DeleteAccount(address)", "L(\"_Delete account\")")]
       [InlineData("DomainsView.xaml.cs", "private void DeleteAlias_(string name)", "Confirmations.DeleteAlias(name)", "L(\"_Delete alias\")")]

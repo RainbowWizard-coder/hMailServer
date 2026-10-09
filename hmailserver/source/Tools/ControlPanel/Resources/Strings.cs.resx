@@ -2389,9 +2389,6 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Choose a rule in the list." xml:space="preserve">
     <value>Vyberte pravidlo v seznamu.</value>
   </data>
-  <data name="Choose an assignment in the list, or type the account address." xml:space="preserve">
-    <value>Vyberte přidělení v seznamu nebo zadejte adresu účtu.</value>
-  </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Zvolte datum vypršení platnosti alespoň o den vzdálené. Klíč, kterému platnost vyprší dnes, by přestal fungovat uprostřed dne, kdy vznikl.</value>
   </data>
@@ -10853,6 +10850,9 @@ Restartovat ji nyní?</value>
   </data>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Označování a doložka</value>
+  </data>
+  <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
+    <value>Odebrat roli {0} účtu {1}? Účet si ponechá jen oprávnění dané svou úrovní správce.</value>
   </data>
   <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>Odebrat {0} ze seznamu blokovaných domény {1}?

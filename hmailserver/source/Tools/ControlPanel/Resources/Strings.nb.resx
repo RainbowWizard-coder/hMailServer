@@ -2371,9 +2371,6 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Choose a rule in the list." xml:space="preserve">
     <value>Velg en regel i listen.</value>
   </data>
-  <data name="Choose an assignment in the list, or type the account address." xml:space="preserve">
-    <value>Velg en tildeling i listen, eller skriv kontoadressen.</value>
-  </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Velg en utløpsdato minst én dag fram i tid. En nøkkel som utløper i dag, ville sluttet å virke midt på dagen den ble laget.</value>
   </data>
@@ -10737,6 +10734,9 @@ Starte den på nytt nå?</value>
   </data>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Merking og ansvarsfraskrivelse</value>
+  </data>
+  <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
+    <value>Ta rollen {0} fra {1}? Kontoen beholder bare det administratornivået gir den.</value>
   </data>
   <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>Ta {0} av sperrelisten for {1}?

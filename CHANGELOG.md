@@ -1262,6 +1262,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   inactive when that is ticked and how many directory entries it skips, before saying that no message is deleted and
   no account removed. Each is asked with its act on the button, *Delete certificate*, *Delete range*, *Apply*, as the
   never-ban list's *Remove* and the IP ranges page's *Replace all ranges* are.
+- **Fixed: the Administrator roles page's Take the role away acted at once, and on an address typed for something
+  else.** It removed the selected assignment without asking, and with nothing selected it took the role of whatever
+  address was typed into the form for giving one; it was an ordinary button beside the primary *Give the role*, live
+  at all times. It now acts on the assignment chosen in the list alone, can be pressed only while one is chosen, is
+  drawn as the list pages' destructive action, red words on a secondary button, and asks first - *Take the role
+  helpdesk away from helen@example.test? The account keeps only what its admin level gives it.* - with Cancel the
+  answer Enter gives.
 
 ### Administration
 

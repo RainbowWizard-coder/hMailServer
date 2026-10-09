@@ -12,7 +12,7 @@ namespace hMailServer.ControlPanel.Services
    /// releases something, where the question has more to say than its page's one
    /// line: each is one whole sentence of the catalogue per case, which names the
    /// thing acted on and says what follows, and Views/Dialogs.Confirm asks it with a
-   /// button named for the act (review findings F185, F065 and F128). A count that
+   /// button named for the act (review findings F185, F065, F128 and F069). A count that
    /// changes the sentence is one sentence per number, never a noun inflected by the
    /// code, so that each language counts its own way.
    /// </summary>
@@ -98,6 +98,11 @@ namespace hMailServer.ControlPanel.Services
 
          return target + "\r\n\r\n" + counts + "\r\n\r\n" + L("No message is deleted and no account is removed.");
       }
+
+      // ---- Administrator roles (F069) --------------------------------------------------
+
+      public static string TakeRoleAway(string role, string address)
+         => F("Take the role {0} away from {1}? The account keeps only what its admin level gives it.", role, address);
 
       // ---- Delivery queue, REST API keys, restarts (F185) -----------------------------
 

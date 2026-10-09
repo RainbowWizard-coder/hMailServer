@@ -2371,9 +2371,6 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Choose a rule in the list." xml:space="preserve">
     <value>Choose a rule in the list.</value>
   </data>
-  <data name="Choose an assignment in the list, or type the account address." xml:space="preserve">
-    <value>Choose an assignment in the list, or type the account address.</value>
-  </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made.</value>
   </data>
@@ -10737,6 +10734,9 @@ Restart it now?</value>
   </data>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Tagging and disclaimer</value>
+  </data>
+  <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
+    <value>Take the role {0} away from {1}? The account keeps only what its admin level gives it.</value>
   </data>
   <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>Take {0} off the suppression list of {1}?

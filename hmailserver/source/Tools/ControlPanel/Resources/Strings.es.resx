@@ -2371,9 +2371,6 @@ Los detalles completos se escribieron en:
   <data name="Choose a rule in the list." xml:space="preserve">
     <value>Elija una regla de la lista.</value>
   </data>
-  <data name="Choose an assignment in the list, or type the account address." xml:space="preserve">
-    <value>Elija una asignación de la lista o escriba la dirección de la cuenta.</value>
-  </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Elija una fecha de caducidad a al menos un día. Una clave que caduca hoy dejaría de funcionar a mitad del día en que se creó.</value>
   </data>
@@ -10737,6 +10734,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Etiquetado y descargo</value>
+  </data>
+  <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
+    <value>¿Quitar el rol {0} a {1}? La cuenta conserva solo lo que le da su nivel de administrador.</value>
   </data>
   <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>¿Quitar {0} de la lista de supresión de {1}?

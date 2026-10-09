@@ -91,7 +91,8 @@ namespace hMailServer.ControlPanel.Views
       // the form is for what the form says (Services/ReadFailure).
       private readonly InlineNotice readNotice_ = new() { Visibility = Visibility.Collapsed };
 
-      // Give the role and Take the role away wait for a read that works.
+      // Give the role waits for a read that works; Take the role away for a row
+      // of a read that worked, chosen in the list.
       private Wpf.Ui.Controls.Button give_;
       private Wpf.Ui.Controls.Button take_;
 
@@ -177,6 +178,14 @@ namespace hMailServer.ControlPanel.Views
          take_.Click += (s, e) => Unassign_();
          form.Children.Add(take_);
 
+         // Take the role away takes it from the assignment chosen in the list and
+         // nothing else, so it can be pressed only while one is chosen, and it is the
+         // list pages' destructive action, red words on a secondary button (review
+         // finding F069). It was live at all times and, with nothing chosen, took
+         // the role of whatever address was typed into the form for giving one.
+         ButtonStyles.DangerText(take_);
+         SelectionGate.Bind(assignmentGrid_, take_);
+
          var held = new StackPanel();
          held.Children.Add(assignmentGrid_);
          held.Children.Add(empty_);
@@ -253,16 +262,17 @@ namespace hMailServer.ControlPanel.Views
             // Neither the rows of the last read nor "Nobody has been given a role
             // yet." is a fact this page has now: the roles, the assignments and
             // the choice of role go, the notice above the cards says what
-            // happened, at Critical, with Try again, and the two buttons that
-            // write wait for a read that works (Services/ReadFailure).
-            ReadFailure.Show(readNotice_, empty_, assignmentGrid_, L("Could not read the roles: "), why, Reload_, give_, take_);
+            // happened, at Critical, with Try again, Give the role waits for a
+            // read that works (Services/ReadFailure), and Take the role away, with
+            // no row left to choose, cannot be pressed.
+            ReadFailure.Show(readNotice_, empty_, assignmentGrid_, L("Could not read the roles: "), why, Reload_, give_);
             roleGrid_.ItemsSource = null;
             roleChoice_.ItemsSource = null;
             assignmentGrid_.Visibility = Visibility.Collapsed;
             return;
          }
 
-         ReadFailure.Clear(readNotice_, give_, take_);
+         ReadFailure.Clear(readNotice_, give_);
          roleGrid_.ItemsSource = roles;
          roles_ = roles;
          assignmentGrid_.ItemsSource = assignments;
@@ -312,23 +322,21 @@ namespace hMailServer.ControlPanel.Views
          Write_(address, role, (domains_.Text ?? "").Trim());
       }
 
+      /// <summary>
+      /// Takes the role of the assignment chosen in the list away, after asking, the
+      /// role and the account named and Cancel the answer Enter gives. Only that
+      /// row: with none chosen it took the role of whatever address was typed into
+      /// the form for giving one, without a word (review finding F069).
+      /// </summary>
       private void Unassign_()
       {
-         if (assignmentGrid_.SelectedItem is AssignmentRow row)
-         {
-            Write_(row.Address, "", "");
+         if (assignmentGrid_.SelectedItem is not AssignmentRow row)
             return;
-         }
 
-         string address = (address_.Text ?? "").Trim();
-
-         if (address.Length == 0)
-         {
-            Warn_(L("Choose an assignment in the list, or type the account address."));
+         if (!Dialogs.Confirm(Confirmations.TakeRoleAway(row.Role, row.Address), L("Control Panel"), L("_Take the role away"), destructive: true))
             return;
-         }
 
-         Write_(address, "", "");
+         Write_(row.Address, "", "");
       }
 
       private void Write_(string address, string role, string domains)

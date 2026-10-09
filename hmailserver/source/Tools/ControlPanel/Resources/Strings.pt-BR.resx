@@ -2371,9 +2371,6 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Choose a rule in the list." xml:space="preserve">
     <value>Escolha uma regra na lista.</value>
   </data>
-  <data name="Choose an assignment in the list, or type the account address." xml:space="preserve">
-    <value>Escolha uma atribuição na lista ou digite o endereço da conta.</value>
-  </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Escolha uma data de validade a pelo menos um dia de distância. Uma chave que expira hoje pararia de funcionar no meio do dia em que foi criada.</value>
   </data>
@@ -10737,6 +10734,9 @@ Reiniciá-lo agora?</value>
   </data>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Marcação e aviso legal</value>
+  </data>
+  <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
+    <value>Retirar a função {0} de {1}? A conta fica apenas com o que o seu nível de administrador lhe dá.</value>
   </data>
   <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>Tirar {0} da lista de supressão de {1}?

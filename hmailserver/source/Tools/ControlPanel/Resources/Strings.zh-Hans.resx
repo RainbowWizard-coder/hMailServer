@@ -2371,9 +2371,6 @@
   <data name="Choose a rule in the list." xml:space="preserve">
     <value>请在列表中选择一条规则。</value>
   </data>
-  <data name="Choose an assignment in the list, or type the account address." xml:space="preserve">
-    <value>请在列表中选择一项分配，或输入账户地址。</value>
-  </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>请选择至少一天之后的到期日期。今天就到期的密钥会在制作当天进行到一半时停止工作。</value>
   </data>
@@ -10737,6 +10734,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>标记与免责声明</value>
+  </data>
+  <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
+    <value>是否从 {1} 收回角色 {0}？该账户将只保留其管理员级别所赋予的权限。</value>
   </data>
   <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>要将 {0} 从 {1} 的抑制列表中移除吗？
