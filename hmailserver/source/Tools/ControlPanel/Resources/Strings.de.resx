@@ -2647,6 +2647,9 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Connected" xml:space="preserve">
     <value>Verbunden</value>
   </data>
+  <data name="Connected now" xml:space="preserve">
+    <value>Jetzt verbunden</value>
+  </data>
   <data name="Connected server: hMailServer {0} @ {1}" xml:space="preserve">
     <value>Verbundener Server: hMailServer {0} @ {1}</value>
   </data>
@@ -7186,6 +7189,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="Not in the directory" xml:space="preserve">
     <value>Nicht im Verzeichnis</value>
   </data>
+  <data name="Not known here: the server is on another computer" xml:space="preserve">
+    <value>Hier unbekannt: Der Server läuft auf einem anderen Computer</value>
+  </data>
   <data name="Not listening" xml:space="preserve">
     <value>Lauscht nicht</value>
   </data>
@@ -8297,9 +8303,6 @@ Es werden keine neuen Verbindungen angenommen und keine Mail zugestellt, bis er 
   </data>
   <data name="Private key file" xml:space="preserve">
     <value>Private Schlüsseldatei</value>
-  </data>
-  <data name="Processed messages" xml:space="preserve">
-    <value>Verarbeitete Nachrichten</value>
   </data>
   <data name="Produce or obtain a CA (for example with OpenSSL or your PKI), save the CA certificate, with any intermediate ones, as a PEM bundle on the server, point the port's CA file at it, and issue a client certificate from that CA to every client that must connect. hMailServer verifies against the bundle but cannot create the CA or the client certificates." xml:space="preserve">
     <value>Erzeugen oder beschaffen Sie eine CA (zum Beispiel mit OpenSSL oder Ihrer PKI), speichern Sie das CA-Zertifikat, mit allen Zwischenzertifikaten, als PEM-Bündel auf dem Server, richten Sie die CA-Datei des Ports darauf, und stellen Sie jedem Client, der sich verbinden muss, ein Client-Zertifikat aus dieser CA aus. hMailServer prüft gegen das Bündel, kann aber weder die CA noch die Client-Zertifikate erzeugen.</value>
@@ -10630,6 +10633,12 @@ Jetzt neu starten?</value>
   <data name="Since" xml:space="preserve">
     <value>Seit</value>
   </data>
+  <data name="Since the service started" xml:space="preserve">
+    <value>Seit dem Start des Dienstes</value>
+  </data>
+  <data name="Since the service started ({0})" xml:space="preserve">
+    <value>Seit dem Start des Dienstes ({0})</value>
+  </data>
   <data name="Since {0}" xml:space="preserve">
     <value>Seit {0}</value>
   </data>
@@ -10699,11 +10708,11 @@ Jetzt neu starten?</value>
   <data name="Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score." xml:space="preserve">
     <value>Spam URI Realtime Block Lists. Nachrichten, deren Links im Text auf diesen Hosts auflösen, bekommen Spambewertung.</value>
   </data>
-  <data name="Spam blocked" xml:space="preserve">
-    <value>Spam blockiert</value>
-  </data>
   <data name="Spam delete threshold (score)" xml:space="preserve">
     <value>Spam-Löschschwelle (Bewertung)</value>
+  </data>
+  <data name="Spam detected" xml:space="preserve">
+    <value>Spam erkannt</value>
   </data>
   <data name="Spam exemptions" xml:space="preserve">
     <value>Spam-Ausnahmen</value>
@@ -10713,9 +10722,6 @@ Jetzt neu starten?</value>
   </data>
   <data name="Spam mark threshold (score)" xml:space="preserve">
     <value>Spam-Markierungsschwelle (Bewertung)</value>
-  </data>
-  <data name="Spam removed" xml:space="preserve">
-    <value>Spam entfernt</value>
   </data>
   <data name="Spam traps" xml:space="preserve">
     <value>Spam-Fallen</value>
@@ -12988,11 +12994,11 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="Up to 64 visible ASCII characters." xml:space="preserve">
     <value>Bis zu 64 sichtbare ASCII-Zeichen.</value>
   </data>
-  <data name="Update" xml:space="preserve">
-    <value>Aktualisierung</value>
-  </data>
   <data name="Update feed URL (empty = the built-in feed; set for a mirror)" xml:space="preserve">
     <value>URL des Update-Feeds (leer = der eingebaute Feed; für einen Spiegel setzen)</value>
+  </data>
+  <data name="Update status" xml:space="preserve">
+    <value>Aktualisierung</value>
   </data>
   <data name="Updated" xml:space="preserve">
     <value>Aktualisiert</value>
@@ -15446,6 +15452,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="{0} (route #{1})" xml:space="preserve">
     <value>{0} (Route Nr. {1})</value>
   </data>
+  <data name="{0} (server time)" xml:space="preserve">
+    <value>{0} (Serverzeit)</value>
+  </data>
   <data name="{0} (subject '{1}')" xml:space="preserve">
     <value>{0} (Betreff '{1}')</value>
   </data>
@@ -15638,6 +15647,12 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
     <value>{0} konnte von diesem Rechner aus nicht gelesen werden: {1}</value>
   </data>
+  <data name="{0} d {1} h" xml:space="preserve">
+    <value>{0} T. {1} Std.</value>
+  </data>
+  <data name="{0} d {1} h {2} min" xml:space="preserve">
+    <value>{0} T. {1} Std. {2} Min.</value>
+  </data>
   <data name="{0} data table" xml:space="preserve">
     <value>Datentabelle {0}</value>
   </data>
@@ -15694,6 +15709,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} Ordner.</value>
+  </data>
+  <data name="{0} h {1} min" xml:space="preserve">
+    <value>{0} Std. {1} Min.</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} wurde nach {1} verschoben.</value>
@@ -15832,6 +15850,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="{0} messages waiting for delivery." xml:space="preserve">
     <value>{0} Nachrichten warten auf Zustellung.</value>
+  </data>
+  <data name="{0} min" xml:space="preserve">
+    <value>{0} Min.</value>
   </data>
   <data name="{0} minute ago" xml:space="preserve">
     <value>vor {0} Minute</value>

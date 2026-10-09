@@ -138,7 +138,7 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <TextBlock x:Name="KpiSpam" Text="—" Style="{StaticResource KpiValue}" />
-                        <TextBlock Grid.Row="1" Text="{loc:L 'Spam blocked'}" Style="{StaticResource KpiLabel}" />
+                        <TextBlock Grid.Row="1" Text="{loc:L 'Spam detected'}" Style="{StaticResource KpiLabel}" />
                     </Grid>
                 </scaffold:Card>
                 <scaffold:Card MinHeight="96">

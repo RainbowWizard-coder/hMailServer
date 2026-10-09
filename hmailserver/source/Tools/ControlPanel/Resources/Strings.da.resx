@@ -2647,6 +2647,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Connected" xml:space="preserve">
     <value>Forbundet</value>
   </data>
+  <data name="Connected now" xml:space="preserve">
+    <value>Forbundet nu</value>
+  </data>
   <data name="Connected server: hMailServer {0} @ {1}" xml:space="preserve">
     <value>Forbundet server: hMailServer {0} @ {1}</value>
   </data>
@@ -7186,6 +7189,9 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Not in the directory" xml:space="preserve">
     <value>Ikke i kataloget</value>
   </data>
+  <data name="Not known here: the server is on another computer" xml:space="preserve">
+    <value>Ukendt her: serveren er på en anden computer</value>
+  </data>
   <data name="Not listening" xml:space="preserve">
     <value>Lytter ikke</value>
   </data>
@@ -8297,9 +8303,6 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   </data>
   <data name="Private key file" xml:space="preserve">
     <value>Privat nøglefil</value>
-  </data>
-  <data name="Processed messages" xml:space="preserve">
-    <value>Behandlede meddelelser</value>
   </data>
   <data name="Produce or obtain a CA (for example with OpenSSL or your PKI), save the CA certificate, with any intermediate ones, as a PEM bundle on the server, point the port's CA file at it, and issue a client certificate from that CA to every client that must connect. hMailServer verifies against the bundle but cannot create the CA or the client certificates." xml:space="preserve">
     <value>Frembring eller skaf en CA (for eksempel med OpenSSL eller din PKI), gem CA-certifikatet, med eventuelle mellemliggende certifikater, som et PEM-bundt på serveren, peg portens CA-fil på det, og udsted et klientcertifikat fra den CA til hver klient, der skal forbinde. hMailServer verificerer mod bundtet, men kan ikke oprette CA'en eller klientcertifikaterne.</value>
@@ -10630,6 +10633,12 @@ Genstart den nu?</value>
   <data name="Since" xml:space="preserve">
     <value>Siden</value>
   </data>
+  <data name="Since the service started" xml:space="preserve">
+    <value>Siden tjenesten startede</value>
+  </data>
+  <data name="Since the service started ({0})" xml:space="preserve">
+    <value>Siden tjenesten startede ({0})</value>
+  </data>
   <data name="Since {0}" xml:space="preserve">
     <value>Siden {0}</value>
   </data>
@@ -10699,11 +10708,11 @@ Genstart den nu?</value>
   <data name="Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score." xml:space="preserve">
     <value>Spam URI Realtime Block Lists. Meddelelser, hvis links i brødteksten slår op på disse værter, får spamscore.</value>
   </data>
-  <data name="Spam blocked" xml:space="preserve">
-    <value>Spam blokeret</value>
-  </data>
   <data name="Spam delete threshold (score)" xml:space="preserve">
     <value>Sletningstærskel for spam (score)</value>
+  </data>
+  <data name="Spam detected" xml:space="preserve">
+    <value>Spam fundet</value>
   </data>
   <data name="Spam exemptions" xml:space="preserve">
     <value>Spamundtagelser</value>
@@ -10713,9 +10722,6 @@ Genstart den nu?</value>
   </data>
   <data name="Spam mark threshold (score)" xml:space="preserve">
     <value>Markeringstærskel for spam (score)</value>
-  </data>
-  <data name="Spam removed" xml:space="preserve">
-    <value>Spam fjernet</value>
   </data>
   <data name="Spam traps" xml:space="preserve">
     <value>Spamfælder</value>
@@ -12988,11 +12994,11 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="Up to 64 visible ASCII characters." xml:space="preserve">
     <value>Op til 64 synlige ASCII-tegn.</value>
   </data>
-  <data name="Update" xml:space="preserve">
-    <value>Opdatering</value>
-  </data>
   <data name="Update feed URL (empty = the built-in feed; set for a mirror)" xml:space="preserve">
     <value>URL til opdateringsfeed (tom = det indbyggede feed; angiv den for et spejl)</value>
+  </data>
+  <data name="Update status" xml:space="preserve">
+    <value>Opdateringsstatus</value>
   </data>
   <data name="Updated" xml:space="preserve">
     <value>Opdateret</value>
@@ -15446,6 +15452,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="{0} (route #{1})" xml:space="preserve">
     <value>{0} (rute nr. {1})</value>
   </data>
+  <data name="{0} (server time)" xml:space="preserve">
+    <value>{0} (servertid)</value>
+  </data>
   <data name="{0} (subject '{1}')" xml:space="preserve">
     <value>{0} (emne '{1}')</value>
   </data>
@@ -15638,6 +15647,12 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
     <value>{0} kunne ikke læses fra denne maskine: {1}</value>
   </data>
+  <data name="{0} d {1} h" xml:space="preserve">
+    <value>{0} d. {1} t.</value>
+  </data>
+  <data name="{0} d {1} h {2} min" xml:space="preserve">
+    <value>{0} d. {1} t. {2} min.</value>
+  </data>
   <data name="{0} data table" xml:space="preserve">
     <value>{0} datatabel</value>
   </data>
@@ -15694,6 +15709,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} mapper.</value>
+  </data>
+  <data name="{0} h {1} min" xml:space="preserve">
+    <value>{0} t. {1} min.</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} er blevet flyttet til {1}.</value>
@@ -15832,6 +15850,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="{0} messages waiting for delivery." xml:space="preserve">
     <value>{0} meddelelser venter på levering.</value>
+  </data>
+  <data name="{0} min" xml:space="preserve">
+    <value>{0} min.</value>
   </data>
   <data name="{0} minute ago" xml:space="preserve">
     <value>for {0} minut siden</value>

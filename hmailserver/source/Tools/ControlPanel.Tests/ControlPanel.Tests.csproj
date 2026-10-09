@@ -34,6 +34,12 @@
     <Compile Include="..\ControlPanel\Services\LiveLogFiles.cs" />
   </ItemGroup>
 
+  <!-- Server status's start time as the server's, and its uptime, worked out only
+       where the server's clock is this computer's, in catalogued units. -->
+  <ItemGroup>
+    <Compile Include="..\ControlPanel\Services\ServerUptimeText.cs" />
+  </ItemGroup>
+
   <!-- Chart accessibility: the palette, the catalogue, the table view and the
        status vocabulary. These are compiled straight into the test assembly rather
        than routed through ControlPanel.Core, because the app compiles them too (they

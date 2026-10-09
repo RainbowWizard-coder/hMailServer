@@ -2647,6 +2647,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Connected" xml:space="preserve">
     <value>Yhdistetty</value>
   </data>
+  <data name="Connected now" xml:space="preserve">
+    <value>Yhteydessä nyt</value>
+  </data>
   <data name="Connected server: hMailServer {0} @ {1}" xml:space="preserve">
     <value>Yhdistetty palvelin: hMailServer {0} @ {1}</value>
   </data>
@@ -7186,6 +7189,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Not in the directory" xml:space="preserve">
     <value>Ei hakemistossa</value>
   </data>
+  <data name="Not known here: the server is on another computer" xml:space="preserve">
+    <value>Ei tiedossa täällä: palvelin on toisessa tietokoneessa</value>
+  </data>
   <data name="Not listening" xml:space="preserve">
     <value>Ei kuuntele</value>
   </data>
@@ -8297,9 +8303,6 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   </data>
   <data name="Private key file" xml:space="preserve">
     <value>Yksityisen avaimen tiedosto</value>
-  </data>
-  <data name="Processed messages" xml:space="preserve">
-    <value>Käsitellyt viestit</value>
   </data>
   <data name="Produce or obtain a CA (for example with OpenSSL or your PKI), save the CA certificate, with any intermediate ones, as a PEM bundle on the server, point the port's CA file at it, and issue a client certificate from that CA to every client that must connect. hMailServer verifies against the bundle but cannot create the CA or the client certificates." xml:space="preserve">
     <value>Tuota tai hanki CA (esimerkiksi OpenSSL:llä tai omalla PKI:lläsi), tallenna CA:n varmenne mahdollisine välivarmenteineen PEM-pakettina palvelimelle, osoita portin CA-tiedosto siihen ja myönnä tuosta CA:sta asiakasvarmenne jokaiselle asiakkaalle, jonka on yhdistettävä. hMailServer tarkistaa pakettia vasten, mutta ei voi luoda CA:ta eikä asiakasvarmenteita.</value>
@@ -10630,6 +10633,12 @@ Käynnistetäänkö se uudelleen nyt?</value>
   <data name="Since" xml:space="preserve">
     <value>Alkaen</value>
   </data>
+  <data name="Since the service started" xml:space="preserve">
+    <value>Palvelun käynnistymisestä lähtien</value>
+  </data>
+  <data name="Since the service started ({0})" xml:space="preserve">
+    <value>Palvelun käynnistymisestä lähtien ({0})</value>
+  </data>
   <data name="Since {0}" xml:space="preserve">
     <value>Alkaen {0}</value>
   </data>
@@ -10699,11 +10708,11 @@ Käynnistetäänkö se uudelleen nyt?</value>
   <data name="Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score." xml:space="preserve">
     <value>Roskapostin URI-reaaliaikaiset estolistat. Viestit, joiden rungon linkit selviävät näihin koneisiin, saavat roskapostipisteitä.</value>
   </data>
-  <data name="Spam blocked" xml:space="preserve">
-    <value>Roskapostia estetty</value>
-  </data>
   <data name="Spam delete threshold (score)" xml:space="preserve">
     <value>Roskapostin poistokynnys (pistemäärä)</value>
+  </data>
+  <data name="Spam detected" xml:space="preserve">
+    <value>Roskapostia havaittu</value>
   </data>
   <data name="Spam exemptions" xml:space="preserve">
     <value>Roskapostipoikkeukset</value>
@@ -10713,9 +10722,6 @@ Käynnistetäänkö se uudelleen nyt?</value>
   </data>
   <data name="Spam mark threshold (score)" xml:space="preserve">
     <value>Roskapostin merkintäkynnys (pistemäärä)</value>
-  </data>
-  <data name="Spam removed" xml:space="preserve">
-    <value>Roskapostia poistettu</value>
   </data>
   <data name="Spam traps" xml:space="preserve">
     <value>Roskapostiansat</value>
@@ -12988,11 +12994,11 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="Up to 64 visible ASCII characters." xml:space="preserve">
     <value>Enintään 64 näkyvää ASCII-merkkiä.</value>
   </data>
-  <data name="Update" xml:space="preserve">
-    <value>Päivitä</value>
-  </data>
   <data name="Update feed URL (empty = the built-in feed; set for a mirror)" xml:space="preserve">
     <value>Päivityssyötteen URL (tyhjä = sisäänrakennettu syöte; aseta peilipalvelinta varten)</value>
+  </data>
+  <data name="Update status" xml:space="preserve">
+    <value>Päivityksen tila</value>
   </data>
   <data name="Updated" xml:space="preserve">
     <value>Päivitetty</value>
@@ -15446,6 +15452,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} (route #{1})" xml:space="preserve">
     <value>{0} (reitti #{1})</value>
   </data>
+  <data name="{0} (server time)" xml:space="preserve">
+    <value>{0} (palvelimen aikaa)</value>
+  </data>
   <data name="{0} (subject '{1}')" xml:space="preserve">
     <value>{0} (aihe '{1}')</value>
   </data>
@@ -15638,6 +15647,12 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
     <value>Kohdetta {0} ei voitu lukea tältä koneelta: {1}</value>
   </data>
+  <data name="{0} d {1} h" xml:space="preserve">
+    <value>{0} pv {1} h</value>
+  </data>
+  <data name="{0} d {1} h {2} min" xml:space="preserve">
+    <value>{0} pv {1} h {2} min</value>
+  </data>
   <data name="{0} data table" xml:space="preserve">
     <value>{0}-datataulu</value>
   </data>
@@ -15694,6 +15709,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} kansiota.</value>
+  </data>
+  <data name="{0} h {1} min" xml:space="preserve">
+    <value>{0} h {1} min</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} on siirretty osoitteeseen {1}.</value>
@@ -15832,6 +15850,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} messages waiting for delivery." xml:space="preserve">
     <value>{0} viestiä odottaa toimitusta.</value>
+  </data>
+  <data name="{0} min" xml:space="preserve">
+    <value>{0} min</value>
   </data>
   <data name="{0} minute ago" xml:space="preserve">
     <value>{0} minuutti sitten</value>

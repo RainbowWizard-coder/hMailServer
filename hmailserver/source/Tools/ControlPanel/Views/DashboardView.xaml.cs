@@ -356,9 +356,9 @@ namespace hMailServer.ControlPanel.Views
             var snap = session.ReadStatus();
 
             SetKpi_(KpiProcessed, L("Messages processed"), snap.ProcessedMessages.ToString("N0"));
-            SetKpi_(KpiSpam, L("Spam blocked"), snap.SpamBlocked.ToString("N0"));
+            SetKpi_(KpiSpam, L("Spam detected"), snap.SpamBlocked.ToString("N0"));
             SetKpi_(KpiViruses, L("Viruses removed"), snap.VirusesRemoved.ToString("N0"));
-            SetKpi_(KpiUptime, L("Uptime"), FormatUptime(snap.StartTime));
+            SetKpi_(KpiUptime, L("Uptime"), ServerUptimeText.Uptime(snap.StartTime, DateTime.Now, ServerSession.IsLocalSession, compact: true));
             ShowQueue_(snap.QueueLength);
 
             // Two clocks on purpose. The table's Time column has to be local time
@@ -788,18 +788,5 @@ namespace hMailServer.ControlPanel.Views
 
       private void OpenExternalSetup_Click(object sender, RoutedEventArgs e)
          => (Application.Current?.MainWindow as MainWindow)?.NavigateTo("externalsetup");
-
-      private static string FormatUptime(string startTime)
-      {
-         if (DateTime.TryParse(startTime, out DateTime started))
-         {
-            TimeSpan up = DateTime.Now - started;
-            if (up.TotalSeconds < 0) return startTime;
-            if (up.TotalDays >= 1) return $"{(int)up.TotalDays}d {up.Hours}h";
-            if (up.TotalHours >= 1) return $"{up.Hours}h {up.Minutes}m";
-            return $"{Math.Max(0, (int)up.TotalMinutes)}m";
-         }
-         return string.IsNullOrEmpty(startTime) ? "-" : startTime;
-      }
    }
 }

@@ -2647,6 +2647,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Connected" xml:space="preserve">
     <value>Bağlı</value>
   </data>
+  <data name="Connected now" xml:space="preserve">
+    <value>Şu anda bağlı</value>
+  </data>
   <data name="Connected server: hMailServer {0} @ {1}" xml:space="preserve">
     <value>Bağlı sunucu: hMailServer {0} @ {1}</value>
   </data>
@@ -7186,6 +7189,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Not in the directory" xml:space="preserve">
     <value>Dizinde yok</value>
   </data>
+  <data name="Not known here: the server is on another computer" xml:space="preserve">
+    <value>Burada bilinmiyor: sunucu başka bir bilgisayarda</value>
+  </data>
   <data name="Not listening" xml:space="preserve">
     <value>Dinlemiyor</value>
   </data>
@@ -8297,9 +8303,6 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   </data>
   <data name="Private key file" xml:space="preserve">
     <value>Özel anahtar dosyası</value>
-  </data>
-  <data name="Processed messages" xml:space="preserve">
-    <value>İşlenen iletiler</value>
   </data>
   <data name="Produce or obtain a CA (for example with OpenSSL or your PKI), save the CA certificate, with any intermediate ones, as a PEM bundle on the server, point the port's CA file at it, and issue a client certificate from that CA to every client that must connect. hMailServer verifies against the bundle but cannot create the CA or the client certificates." xml:space="preserve">
     <value>Bir CA üretin ya da edinin (örneğin OpenSSL ile ya da kendi PKI'nizle), CA sertifikasını, varsa ara sertifikalarıyla birlikte, sunucuda bir PEM paketi olarak kaydedin, portun CA dosyasını ona yöneltin ve bağlanması gereken her istemciye o CA'dan bir istemci sertifikası verin. hMailServer pakete karşı doğrular ama CA'yı ya da istemci sertifikalarını oluşturamaz.</value>
@@ -10630,6 +10633,12 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Since" xml:space="preserve">
     <value>Başlangıç</value>
   </data>
+  <data name="Since the service started" xml:space="preserve">
+    <value>Hizmet başladığından beri</value>
+  </data>
+  <data name="Since the service started ({0})" xml:space="preserve">
+    <value>Hizmet başladığından beri ({0})</value>
+  </data>
   <data name="Since {0}" xml:space="preserve">
     <value>{0} tarihinden beri</value>
   </data>
@@ -10699,11 +10708,11 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score." xml:space="preserve">
     <value>Spam URI Gerçek Zamanlı Engelleme Listeleri. Gövdesindeki bağlantılar bu ana bilgisayarlara çözümlenen iletiler spam puanı kazanır.</value>
   </data>
-  <data name="Spam blocked" xml:space="preserve">
-    <value>Engellenen spam</value>
-  </data>
   <data name="Spam delete threshold (score)" xml:space="preserve">
     <value>Spam silme eşiği (puan)</value>
+  </data>
+  <data name="Spam detected" xml:space="preserve">
+    <value>Algılanan spam</value>
   </data>
   <data name="Spam exemptions" xml:space="preserve">
     <value>Spam istisnaları</value>
@@ -10713,9 +10722,6 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Spam mark threshold (score)" xml:space="preserve">
     <value>Spam işaretleme eşiği (puan)</value>
-  </data>
-  <data name="Spam removed" xml:space="preserve">
-    <value>Kaldırılan spam</value>
   </data>
   <data name="Spam traps" xml:space="preserve">
     <value>Spam tuzakları</value>
@@ -12988,11 +12994,11 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="Up to 64 visible ASCII characters." xml:space="preserve">
     <value>En fazla 64 görünür ASCII karakter.</value>
   </data>
-  <data name="Update" xml:space="preserve">
-    <value>Güncelleştir</value>
-  </data>
   <data name="Update feed URL (empty = the built-in feed; set for a mirror)" xml:space="preserve">
     <value>Güncelleştirme beslemesi URL'si (boş = yerleşik besleme; bir yansı için ayarlayın)</value>
+  </data>
+  <data name="Update status" xml:space="preserve">
+    <value>Güncelleştirme durumu</value>
   </data>
   <data name="Updated" xml:space="preserve">
     <value>Güncellendi</value>
@@ -15446,6 +15452,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} (route #{1})" xml:space="preserve">
     <value>{0} (rota #{1})</value>
   </data>
+  <data name="{0} (server time)" xml:space="preserve">
+    <value>{0} (sunucu saati)</value>
+  </data>
   <data name="{0} (subject '{1}')" xml:space="preserve">
     <value>{0} (konu '{1}')</value>
   </data>
@@ -15638,6 +15647,12 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
     <value>{0} bu makineden okunamadı: {1}</value>
   </data>
+  <data name="{0} d {1} h" xml:space="preserve">
+    <value>{0} gün {1} sa</value>
+  </data>
+  <data name="{0} d {1} h {2} min" xml:space="preserve">
+    <value>{0} gün {1} sa {2} dk</value>
+  </data>
   <data name="{0} data table" xml:space="preserve">
     <value>{0} veri tablosu</value>
   </data>
@@ -15694,6 +15709,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} klasör.</value>
+  </data>
+  <data name="{0} h {1} min" xml:space="preserve">
+    <value>{0} sa {1} dk</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} posta kutusu {1} adresine taşındı.</value>
@@ -15832,6 +15850,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0} messages waiting for delivery." xml:space="preserve">
     <value>{0} ileti teslim bekliyor.</value>
+  </data>
+  <data name="{0} min" xml:space="preserve">
+    <value>{0} dk</value>
   </data>
   <data name="{0} minute ago" xml:space="preserve">
     <value>{0} dakika önce</value>

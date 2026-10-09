@@ -467,7 +467,7 @@ namespace hMailServer.ControlPanel.Views
                   preparationStep = null;
                }
             }
-            SetValue_(UpdateValue, L("Update"), UpdateStatusText.For(updateState, availableVersion,
+            SetValue_(UpdateValue, L("Update status"), UpdateStatusText.For(updateState, availableVersion,
                (string)status.AvailableVersionPublished, (string)status.UpdateLastChecked, (string)status.UpdateLastError, applyOutcome, preparationStep));
             ServerSession.Release(status);
             // Download once a newer release is known (a failed download can be retried);
@@ -478,7 +478,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
          {
-            SetValue_(UpdateValue, L("Update"), NotRead_(fatalCheck));
+            SetValue_(UpdateValue, L("Update status"), NotRead_(fatalCheck));
             DownloadUpdateButton.IsEnabled = false;
             InstallUpdateButton.IsEnabled = false;
          }
@@ -519,20 +519,25 @@ namespace hMailServer.ControlPanel.Views
          try
          {
             var snap = ServerSession.Current.ReadStatus();
-            SetValue_(ProcessedValue, L("Processed messages"), snap.ProcessedMessages.ToString("N0"));
-            SetValue_(SpamValue, L("Spam removed"), snap.SpamBlocked.ToString("N0"));
+            SetValue_(ProcessedValue, L("Messages processed"), snap.ProcessedMessages.ToString("N0"));
+            SetValue_(SpamValue, L("Spam detected"), snap.SpamBlocked.ToString("N0"));
             SetValue_(VirusValue, L("Viruses removed"), snap.VirusesRemoved.ToString("N0"));
             SetValue_(SmtpValue, L("SMTP sessions"), snap.SmtpSessions.ToString());
             SetValue_(ImapValue, L("IMAP sessions"), snap.ImapSessions.ToString());
             SetValue_(Pop3Value, L("POP3 sessions"), snap.Pop3Sessions.ToString());
-            SetValue_(StartedValue, L("Started"), string.IsNullOrEmpty(snap.StartTime) ? "-" : snap.StartTime);
-            SetValue_(UptimeValue, L("Uptime"), FormatUptime(snap.StartTime));
+            // The start is the server's time; the uptime is worked out only where the
+            // server's clock is this computer's (review finding F247).
+            SetValue_(StartedValue, L("Started"), ServerUptimeText.Started(snap.StartTime));
+            SetValue_(UptimeValue, L("Uptime"), ServerUptimeText.Uptime(snap.StartTime, DateTime.Now, ServerSession.IsLocalSession));
+            SinceStartHeading.Text = ServerUptimeText.ParseStart(snap.StartTime) is DateTime started
+               ? F("Since the service started ({0})", started.ToString("g", System.Globalization.CultureInfo.CurrentCulture))
+               : L("Since the service started");
          }
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
          {
             string notRead = NotRead_(fatalCheck);
-            SetValue_(ProcessedValue, L("Processed messages"), notRead);
-            SetValue_(SpamValue, L("Spam removed"), notRead);
+            SetValue_(ProcessedValue, L("Messages processed"), notRead);
+            SetValue_(SpamValue, L("Spam detected"), notRead);
             SetValue_(VirusValue, L("Viruses removed"), notRead);
             SetValue_(SmtpValue, L("SMTP sessions"), notRead);
             SetValue_(ImapValue, L("IMAP sessions"), notRead);
@@ -712,17 +717,5 @@ namespace hMailServer.ControlPanel.Views
          return 1;
       }
 
-      private static string FormatUptime(string startTime)
-      {
-         if (DateTime.TryParse(startTime, out DateTime started))
-         {
-            TimeSpan up = DateTime.Now - started;
-            if (up.TotalSeconds < 0) return startTime;
-            if (up.TotalDays >= 1) return (int)up.TotalDays + "d " + up.Hours + "h " + up.Minutes + "m";
-            if (up.TotalHours >= 1) return up.Hours + "h " + up.Minutes + "m";
-            return Math.Max(0, (int)up.TotalMinutes) + "m";
-         }
-         return string.IsNullOrEmpty(startTime) ? "-" : startTime;
-      }
    }
 }

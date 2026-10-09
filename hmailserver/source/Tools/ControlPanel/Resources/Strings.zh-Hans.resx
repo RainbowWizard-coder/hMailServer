@@ -2647,6 +2647,9 @@
   <data name="Connected" xml:space="preserve">
     <value>已连接</value>
   </data>
+  <data name="Connected now" xml:space="preserve">
+    <value>当前连接</value>
+  </data>
   <data name="Connected server: hMailServer {0} @ {1}" xml:space="preserve">
     <value>已连接的服务器：hMailServer {0} @ {1}</value>
   </data>
@@ -7186,6 +7189,9 @@
   <data name="Not in the directory" xml:space="preserve">
     <value>不在目录中</value>
   </data>
+  <data name="Not known here: the server is on another computer" xml:space="preserve">
+    <value>此处无法得知：服务器在另一台计算机上</value>
+  </data>
   <data name="Not listening" xml:space="preserve">
     <value>未监听</value>
   </data>
@@ -8297,9 +8303,6 @@
   </data>
   <data name="Private key file" xml:space="preserve">
     <value>私钥文件</value>
-  </data>
-  <data name="Processed messages" xml:space="preserve">
-    <value>已处理的邮件</value>
   </data>
   <data name="Produce or obtain a CA (for example with OpenSSL or your PKI), save the CA certificate, with any intermediate ones, as a PEM bundle on the server, point the port's CA file at it, and issue a client certificate from that CA to every client that must connect. hMailServer verifies against the bundle but cannot create the CA or the client certificates." xml:space="preserve">
     <value>生成或获取一个 CA（例如用 OpenSSL 或您的 PKI），把 CA 证书（连同可能有的中间证书）保存为服务器上的 PEM 证书包，把端口的 CA 文件指向它，然后用该 CA 向每个必须连接的客户端颁发客户端证书。hMailServer 会根据该证书包进行验证，但无法创建 CA 或客户端证书。</value>
@@ -10630,6 +10633,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Since" xml:space="preserve">
     <value>列入时间</value>
   </data>
+  <data name="Since the service started" xml:space="preserve">
+    <value>自服务启动以来</value>
+  </data>
+  <data name="Since the service started ({0})" xml:space="preserve">
+    <value>自服务启动以来（{0}）</value>
+  </data>
   <data name="Since {0}" xml:space="preserve">
     <value>自 {0} 起</value>
   </data>
@@ -10699,11 +10708,11 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score." xml:space="preserve">
     <value>垃圾邮件 URI 实时拦截列表。正文中的链接解析到这些主机的邮件会增加垃圾邮件分数。</value>
   </data>
-  <data name="Spam blocked" xml:space="preserve">
-    <value>已阻止的垃圾邮件</value>
-  </data>
   <data name="Spam delete threshold (score)" xml:space="preserve">
     <value>垃圾邮件删除阈值 (分数)</value>
+  </data>
+  <data name="Spam detected" xml:space="preserve">
+    <value>检测到的垃圾邮件</value>
   </data>
   <data name="Spam exemptions" xml:space="preserve">
     <value>反垃圾邮件豁免</value>
@@ -10713,9 +10722,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Spam mark threshold (score)" xml:space="preserve">
     <value>垃圾邮件标记阈值 (分数)</value>
-  </data>
-  <data name="Spam removed" xml:space="preserve">
-    <value>已清除的垃圾邮件</value>
   </data>
   <data name="Spam traps" xml:space="preserve">
     <value>垃圾邮件陷阱</value>
@@ -12988,11 +12994,11 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Up to 64 visible ASCII characters." xml:space="preserve">
     <value>最多 64 个可见 ASCII 字符。</value>
   </data>
-  <data name="Update" xml:space="preserve">
-    <value>更新</value>
-  </data>
   <data name="Update feed URL (empty = the built-in feed; set for a mirror)" xml:space="preserve">
     <value>更新源 URL（留空 = 内置的源；使用镜像时请填写）</value>
+  </data>
+  <data name="Update status" xml:space="preserve">
+    <value>更新状态</value>
   </data>
   <data name="Updated" xml:space="preserve">
     <value>已更新</value>
@@ -15446,6 +15452,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} (route #{1})" xml:space="preserve">
     <value>{0}（路由 #{1}）</value>
   </data>
+  <data name="{0} (server time)" xml:space="preserve">
+    <value>{0}（服务器时间）</value>
+  </data>
   <data name="{0} (subject '{1}')" xml:space="preserve">
     <value>{0}（主题 '{1}'）</value>
   </data>
@@ -15638,6 +15647,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
     <value>无法从本机读取 {0}：{1}</value>
   </data>
+  <data name="{0} d {1} h" xml:space="preserve">
+    <value>{0} 天 {1} 小时</value>
+  </data>
+  <data name="{0} d {1} h {2} min" xml:space="preserve">
+    <value>{0} 天 {1} 小时 {2} 分钟</value>
+  </data>
   <data name="{0} data table" xml:space="preserve">
     <value>{0} 数据表</value>
   </data>
@@ -15694,6 +15709,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} 个文件夹。</value>
+  </data>
+  <data name="{0} h {1} min" xml:space="preserve">
+    <value>{0} 小时 {1} 分钟</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} 已迁移到 {1}。</value>
@@ -15832,6 +15850,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} messages waiting for delivery." xml:space="preserve">
     <value>有 {0} 封邮件正在等待投递。</value>
+  </data>
+  <data name="{0} min" xml:space="preserve">
+    <value>{0} 分钟</value>
   </data>
   <data name="{0} minute ago" xml:space="preserve">
     <value>{0} 分钟前</value>

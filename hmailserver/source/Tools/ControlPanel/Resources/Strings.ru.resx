@@ -2665,6 +2665,9 @@ Control Panel может читать файлы сообщений только
   <data name="Connected" xml:space="preserve">
     <value>Подключено</value>
   </data>
+  <data name="Connected now" xml:space="preserve">
+    <value>Подключено сейчас</value>
+  </data>
   <data name="Connected server: hMailServer {0} @ {1}" xml:space="preserve">
     <value>Подключённый сервер: hMailServer {0} @ {1}</value>
   </data>
@@ -7258,6 +7261,9 @@ Control Panel может читать файлы сообщений только
   <data name="Not in the directory" xml:space="preserve">
     <value>Нет в каталоге</value>
   </data>
+  <data name="Not known here: the server is on another computer" xml:space="preserve">
+    <value>Здесь неизвестно: сервер на другом компьютере</value>
+  </data>
   <data name="Not listening" xml:space="preserve">
     <value>Не прослушивает</value>
   </data>
@@ -8375,9 +8381,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Private key file" xml:space="preserve">
     <value>Файл закрытого ключа</value>
-  </data>
-  <data name="Processed messages" xml:space="preserve">
-    <value>Обработанные сообщения</value>
   </data>
   <data name="Produce or obtain a CA (for example with OpenSSL or your PKI), save the CA certificate, with any intermediate ones, as a PEM bundle on the server, point the port's CA file at it, and issue a client certificate from that CA to every client that must connect. hMailServer verifies against the bundle but cannot create the CA or the client certificates." xml:space="preserve">
     <value>Создайте или получите ЦС (например, средствами OpenSSL или своей инфраструктуры PKI), сохраните сертификат ЦС вместе с промежуточными, если они есть, на сервере в виде набора PEM, укажите на этот файл в параметре файла ЦС для порта и выпустите этим ЦС клиентский сертификат для каждого клиента, который должен подключаться. hMailServer выполняет проверку по этому набору, но не может ни создать ЦС, ни выпустить клиентские сертификаты.</value>
@@ -10743,6 +10746,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Since" xml:space="preserve">
     <value>С</value>
   </data>
+  <data name="Since the service started" xml:space="preserve">
+    <value>С момента запуска службы</value>
+  </data>
+  <data name="Since the service started ({0})" xml:space="preserve">
+    <value>С момента запуска службы ({0})</value>
+  </data>
   <data name="Since {0}" xml:space="preserve">
     <value>С {0}</value>
   </data>
@@ -10812,11 +10821,11 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score." xml:space="preserve">
     <value>Spam URI Realtime Block Lists. Сообщения, ссылки в теле которых разрешаются на этих узлах, получают оценку спама.</value>
   </data>
-  <data name="Spam blocked" xml:space="preserve">
-    <value>Заблокировано спама</value>
-  </data>
   <data name="Spam delete threshold (score)" xml:space="preserve">
     <value>Порог удаления спама (оценка)</value>
+  </data>
+  <data name="Spam detected" xml:space="preserve">
+    <value>Обнаружено спама</value>
   </data>
   <data name="Spam exemptions" xml:space="preserve">
     <value>Исключения антиспама</value>
@@ -10826,9 +10835,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Spam mark threshold (score)" xml:space="preserve">
     <value>Порог пометки спама (оценка)</value>
-  </data>
-  <data name="Spam removed" xml:space="preserve">
-    <value>Удалено спама</value>
   </data>
   <data name="Spam traps" xml:space="preserve">
     <value>Ловушки для спама</value>
@@ -13140,11 +13146,11 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Up to 64 visible ASCII characters." xml:space="preserve">
     <value>До 64 видимых символов ASCII.</value>
   </data>
-  <data name="Update" xml:space="preserve">
-    <value>Обновить</value>
-  </data>
   <data name="Update feed URL (empty = the built-in feed; set for a mirror)" xml:space="preserve">
     <value>URL ленты обновлений (пусто — встроенная лента; укажите для зеркала)</value>
+  </data>
+  <data name="Update status" xml:space="preserve">
+    <value>Состояние обновления</value>
   </data>
   <data name="Updated" xml:space="preserve">
     <value>Обновлено</value>
@@ -15619,6 +15625,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} (route #{1})" xml:space="preserve">
     <value>{0} (маршрут №{1})</value>
   </data>
+  <data name="{0} (server time)" xml:space="preserve">
+    <value>{0} (время сервера)</value>
+  </data>
   <data name="{0} (subject '{1}')" xml:space="preserve">
     <value>{0} (тема «{1}»)</value>
   </data>
@@ -15865,6 +15874,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
     <value>Не удалось прочитать {0} с этого компьютера: {1}</value>
   </data>
+  <data name="{0} d {1} h" xml:space="preserve">
+    <value>{0} д {1} ч</value>
+  </data>
+  <data name="{0} d {1} h {2} min" xml:space="preserve">
+    <value>{0} д {1} ч {2} мин</value>
+  </data>
   <data name="{0} data table" xml:space="preserve">
     <value>Таблица данных {0}</value>
   </data>
@@ -15942,6 +15957,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} folders.|few" xml:space="preserve">
     <value>Папок: {0}.</value>
+  </data>
+  <data name="{0} h {1} min" xml:space="preserve">
+    <value>{0} ч {1} мин</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} перенесён на {1}.</value>
@@ -16110,6 +16128,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} messages|few" xml:space="preserve">
     <value>{0} сообщения</value>
+  </data>
+  <data name="{0} min" xml:space="preserve">
+    <value>{0} мин</value>
   </data>
   <data name="{0} minute ago" xml:space="preserve">
     <value>{0} мин. назад</value>

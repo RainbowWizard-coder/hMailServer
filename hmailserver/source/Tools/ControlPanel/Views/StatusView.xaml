@@ -71,7 +71,7 @@
                         <TextBlock Grid.Row="2" Grid.Column="1" x:Name="StartedValue" Style="{StaticResource TextBody}" Margin="0,0,0,8" />
                         <TextBlock Grid.Row="3" Grid.Column="0" Text="{loc:L 'Uptime'}" Style="{StaticResource TextCaption}" Margin="0,0,16,8" VerticalAlignment="Center" />
                         <TextBlock Grid.Row="3" Grid.Column="1" x:Name="UptimeValue" Style="{StaticResource TextBody}" Margin="0,0,0,8" />
-                        <TextBlock Grid.Row="4" Grid.Column="0" Text="{loc:L 'Update'}" Style="{StaticResource TextCaption}" Margin="0,0,16,0" VerticalAlignment="Top" />
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="{loc:L 'Update status'}" Style="{StaticResource TextCaption}" Margin="0,0,16,0" VerticalAlignment="Top" />
                         <TextBlock Grid.Row="4" Grid.Column="1" x:Name="UpdateValue" Style="{StaticResource TextBody}" />
                     </Grid>
                     <scaffold:Card.Footer>
@@ -117,30 +117,38 @@
                 </scaffold:Card>
             </Grid>
 
-            <!-- Statistics -->
+            <!-- Statistics: what the service counted since it started, then what is
+                 connected now, each under a line that says which (review finding
+                 F247). Six figures side by side read as one kind; the counters are
+                 named as the Dashboard names them. -->
             <scaffold:Card Title="{loc:L 'Statistics'}" Margin="{StaticResource AppCardGap}">
-                <UniformGrid Columns="3">
+                <StackPanel>
+                <TextBlock x:Name="SinceStartHeading" Text="{loc:L 'Since the service started'}" Style="{StaticResource TextCaption}" FontWeight="SemiBold" Margin="0,0,0,4" />
+                <UniformGrid Columns="3" Margin="0,0,0,12">
                     <StackPanel Margin="0,0,0,8">
-                        <TextBlock Text="{loc:L 'Processed messages'}" Style="{StaticResource TextCaption}" />
+                        <TextBlock Text="{loc:L 'Messages processed'}" Style="{StaticResource TextCaption}" />
                         <TextBlock x:Name="ProcessedValue" Style="{StaticResource TextSubtitle}" />
                     </StackPanel>
                     <StackPanel Margin="0,0,0,8">
-                        <TextBlock Text="{loc:L 'Spam removed'}" Style="{StaticResource TextCaption}" />
+                        <TextBlock Text="{loc:L 'Spam detected'}" Style="{StaticResource TextCaption}" />
                         <TextBlock x:Name="SpamValue" Style="{StaticResource TextSubtitle}" />
                     </StackPanel>
                     <StackPanel Margin="0,0,0,8">
                         <TextBlock Text="{loc:L 'Viruses removed'}" Style="{StaticResource TextCaption}" />
                         <TextBlock x:Name="VirusValue" Style="{StaticResource TextSubtitle}" />
                     </StackPanel>
-                    <StackPanel Margin="0,8,0,0">
+                </UniformGrid>
+                <TextBlock Text="{loc:L 'Connected now'}" Style="{StaticResource TextCaption}" FontWeight="SemiBold" Margin="0,0,0,4" />
+                <UniformGrid Columns="3">
+                    <StackPanel Margin="0,0,0,8">
                         <TextBlock Text="{loc:L 'SMTP sessions'}" Style="{StaticResource TextCaption}" />
                         <TextBlock x:Name="SmtpValue" Style="{StaticResource TextSubtitle}" />
                     </StackPanel>
-                    <StackPanel Margin="0,8,0,0">
+                    <StackPanel Margin="0,0,0,8">
                         <TextBlock Text="{loc:L 'IMAP sessions'}" Style="{StaticResource TextCaption}" />
                         <TextBlock x:Name="ImapValue" Style="{StaticResource TextSubtitle}" />
                     </StackPanel>
-                    <StackPanel Margin="0,8,0,0">
+                    <StackPanel Margin="0,0,0,8">
                         <TextBlock Text="{loc:L 'POP3 sessions'}" Style="{StaticResource TextCaption}" />
                         <TextBlock x:Name="Pop3Value" Style="{StaticResource TextSubtitle}" />
                     </StackPanel>
@@ -162,6 +170,7 @@
                         </StackPanel>
                     </StackPanel>
                 </UniformGrid>
+                </StackPanel>
             </scaffold:Card>
         </StackPanel>
     </ScrollViewer>

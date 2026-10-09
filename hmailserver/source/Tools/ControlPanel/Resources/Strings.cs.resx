@@ -2665,6 +2665,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Connected" xml:space="preserve">
     <value>Připojeno</value>
   </data>
+  <data name="Connected now" xml:space="preserve">
+    <value>Připojeno nyní</value>
+  </data>
   <data name="Connected server: hMailServer {0} @ {1}" xml:space="preserve">
     <value>Připojený server: hMailServer {0} @ {1}</value>
   </data>
@@ -7258,6 +7261,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Not in the directory" xml:space="preserve">
     <value>Není v adresáři</value>
   </data>
+  <data name="Not known here: the server is on another computer" xml:space="preserve">
+    <value>Zde neznámo: server je na jiném počítači</value>
+  </data>
   <data name="Not listening" xml:space="preserve">
     <value>Nenaslouchá</value>
   </data>
@@ -8375,9 +8381,6 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   </data>
   <data name="Private key file" xml:space="preserve">
     <value>Soubor soukromého klíče</value>
-  </data>
-  <data name="Processed messages" xml:space="preserve">
-    <value>Zpracované zprávy</value>
   </data>
   <data name="Produce or obtain a CA (for example with OpenSSL or your PKI), save the CA certificate, with any intermediate ones, as a PEM bundle on the server, point the port's CA file at it, and issue a client certificate from that CA to every client that must connect. hMailServer verifies against the bundle but cannot create the CA or the client certificates." xml:space="preserve">
     <value>Vytvořte nebo získejte CA (například pomocí OpenSSL nebo své PKI), uložte certifikát CA, případně i s mezilehlými certifikáty, jako balík PEM na server, nasměrujte soubor CA daného portu na něj a z této CA vydejte klientský certifikát každému klientovi, který se musí připojovat. hMailServer ověřuje proti balíku, ale CA ani klientské certifikáty vytvořit neumí.</value>
@@ -10743,6 +10746,12 @@ Restartovat ji nyní?</value>
   <data name="Since" xml:space="preserve">
     <value>Od</value>
   </data>
+  <data name="Since the service started" xml:space="preserve">
+    <value>Od spuštění služby</value>
+  </data>
+  <data name="Since the service started ({0})" xml:space="preserve">
+    <value>Od spuštění služby ({0})</value>
+  </data>
   <data name="Since {0}" xml:space="preserve">
     <value>Od {0}</value>
   </data>
@@ -10812,11 +10821,11 @@ Restartovat ji nyní?</value>
   <data name="Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score." xml:space="preserve">
     <value>Spam URI Realtime Block Lists. Zprávy, jejichž odkazy v těle se na těchto hostitelích najdou, získají spamové skóre.</value>
   </data>
-  <data name="Spam blocked" xml:space="preserve">
-    <value>Zablokovaný spam</value>
-  </data>
   <data name="Spam delete threshold (score)" xml:space="preserve">
     <value>Práh pro smazání spamu (skóre)</value>
+  </data>
+  <data name="Spam detected" xml:space="preserve">
+    <value>Zjištěný spam</value>
   </data>
   <data name="Spam exemptions" xml:space="preserve">
     <value>Výjimky z antispamu</value>
@@ -10826,9 +10835,6 @@ Restartovat ji nyní?</value>
   </data>
   <data name="Spam mark threshold (score)" xml:space="preserve">
     <value>Práh pro označení spamu (skóre)</value>
-  </data>
-  <data name="Spam removed" xml:space="preserve">
-    <value>Odstraněný spam</value>
   </data>
   <data name="Spam traps" xml:space="preserve">
     <value>Pasti na spam</value>
@@ -13140,11 +13146,11 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Up to 64 visible ASCII characters." xml:space="preserve">
     <value>Nejvýše 64 viditelných znaků ASCII.</value>
   </data>
-  <data name="Update" xml:space="preserve">
-    <value>Aktualizovat</value>
-  </data>
   <data name="Update feed URL (empty = the built-in feed; set for a mirror)" xml:space="preserve">
     <value>URL zdroje aktualizací (prázdné = vestavěný zdroj; nastavte pro zrcadlo)</value>
+  </data>
+  <data name="Update status" xml:space="preserve">
+    <value>Stav aktualizace</value>
   </data>
   <data name="Updated" xml:space="preserve">
     <value>Aktualizováno</value>
@@ -15619,6 +15625,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} (route #{1})" xml:space="preserve">
     <value>{0} (trasa č. {1})</value>
   </data>
+  <data name="{0} (server time)" xml:space="preserve">
+    <value>{0} (čas serveru)</value>
+  </data>
   <data name="{0} (subject '{1}')" xml:space="preserve">
     <value>{0} (předmět '{1}')</value>
   </data>
@@ -15865,6 +15874,12 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
     <value>{0} se z tohoto počítače nepodařilo přečíst: {1}</value>
   </data>
+  <data name="{0} d {1} h" xml:space="preserve">
+    <value>{0} d {1} h</value>
+  </data>
+  <data name="{0} d {1} h {2} min" xml:space="preserve">
+    <value>{0} d {1} h {2} min</value>
+  </data>
   <data name="{0} data table" xml:space="preserve">
     <value>Datová tabulka {0}</value>
   </data>
@@ -15942,6 +15957,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} folders.|few" xml:space="preserve">
     <value>{0} složky.</value>
+  </data>
+  <data name="{0} h {1} min" xml:space="preserve">
+    <value>{0} h {1} min</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} byla přesunuta na {1}.</value>
@@ -16110,6 +16128,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} messages|few" xml:space="preserve">
     <value>{0} zprávy</value>
+  </data>
+  <data name="{0} min" xml:space="preserve">
+    <value>{0} min</value>
   </data>
   <data name="{0} minute ago" xml:space="preserve">
     <value>před {0} minutou</value>

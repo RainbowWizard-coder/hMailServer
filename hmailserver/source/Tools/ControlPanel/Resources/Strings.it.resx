@@ -2647,6 +2647,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Connected" xml:space="preserve">
     <value>Connesso</value>
   </data>
+  <data name="Connected now" xml:space="preserve">
+    <value>Connessi ora</value>
+  </data>
   <data name="Connected server: hMailServer {0} @ {1}" xml:space="preserve">
     <value>Server connesso: hMailServer {0} @ {1}</value>
   </data>
@@ -7186,6 +7189,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Not in the directory" xml:space="preserve">
     <value>Non nella directory</value>
   </data>
+  <data name="Not known here: the server is on another computer" xml:space="preserve">
+    <value>Non noto qui: il server è su un altro computer</value>
+  </data>
   <data name="Not listening" xml:space="preserve">
     <value>Non in ascolto</value>
   </data>
@@ -8297,9 +8303,6 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   </data>
   <data name="Private key file" xml:space="preserve">
     <value>File della chiave privata</value>
-  </data>
-  <data name="Processed messages" xml:space="preserve">
-    <value>Messaggi elaborati</value>
   </data>
   <data name="Produce or obtain a CA (for example with OpenSSL or your PKI), save the CA certificate, with any intermediate ones, as a PEM bundle on the server, point the port's CA file at it, and issue a client certificate from that CA to every client that must connect. hMailServer verifies against the bundle but cannot create the CA or the client certificates." xml:space="preserve">
     <value>Crea o procurati una CA (per esempio con OpenSSL o con la tua PKI), salva il certificato della CA, con gli eventuali intermedi, come bundle PEM sul server, fai puntare a esso il file CA della porta, ed emetti un certificato client da quella CA per ogni client che deve connettersi. hMailServer verifica rispetto al bundle ma non può creare né la CA né i certificati client.</value>
@@ -10630,6 +10633,12 @@ Riavviarlo ora?</value>
   <data name="Since" xml:space="preserve">
     <value>Dal</value>
   </data>
+  <data name="Since the service started" xml:space="preserve">
+    <value>Dall'avvio del servizio</value>
+  </data>
+  <data name="Since the service started ({0})" xml:space="preserve">
+    <value>Dall'avvio del servizio ({0})</value>
+  </data>
   <data name="Since {0}" xml:space="preserve">
     <value>Dal {0}</value>
   </data>
@@ -10699,11 +10708,11 @@ Riavviarlo ora?</value>
   <data name="Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score." xml:space="preserve">
     <value>Spam URI Realtime Block List. I messaggi i cui link nel corpo si risolvono su questi host guadagnano punteggio di spam.</value>
   </data>
-  <data name="Spam blocked" xml:space="preserve">
-    <value>Spam bloccato</value>
-  </data>
   <data name="Spam delete threshold (score)" xml:space="preserve">
     <value>Soglia di eliminazione dello spam (punteggio)</value>
+  </data>
+  <data name="Spam detected" xml:space="preserve">
+    <value>Spam rilevato</value>
   </data>
   <data name="Spam exemptions" xml:space="preserve">
     <value>Esenzioni antispam</value>
@@ -10713,9 +10722,6 @@ Riavviarlo ora?</value>
   </data>
   <data name="Spam mark threshold (score)" xml:space="preserve">
     <value>Soglia di contrassegno dello spam (punteggio)</value>
-  </data>
-  <data name="Spam removed" xml:space="preserve">
-    <value>Spam rimosso</value>
   </data>
   <data name="Spam traps" xml:space="preserve">
     <value>Trappole per spam</value>
@@ -12988,11 +12994,11 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="Up to 64 visible ASCII characters." xml:space="preserve">
     <value>Fino a 64 caratteri ASCII visibili.</value>
   </data>
-  <data name="Update" xml:space="preserve">
-    <value>Aggiorna</value>
-  </data>
   <data name="Update feed URL (empty = the built-in feed; set for a mirror)" xml:space="preserve">
     <value>URL del feed degli aggiornamenti (vuoto = il feed integrato; impostalo per un mirror)</value>
+  </data>
+  <data name="Update status" xml:space="preserve">
+    <value>Stato dell'aggiornamento</value>
   </data>
   <data name="Updated" xml:space="preserve">
     <value>Aggiornato</value>
@@ -15446,6 +15452,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="{0} (route #{1})" xml:space="preserve">
     <value>{0} (rotta n. {1})</value>
   </data>
+  <data name="{0} (server time)" xml:space="preserve">
+    <value>{0} (ora del server)</value>
+  </data>
   <data name="{0} (subject '{1}')" xml:space="preserve">
     <value>{0} (oggetto '{1}')</value>
   </data>
@@ -15638,6 +15647,12 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
     <value>Non è stato possibile leggere {0} da questa macchina: {1}</value>
   </data>
+  <data name="{0} d {1} h" xml:space="preserve">
+    <value>{0} g {1} h</value>
+  </data>
+  <data name="{0} d {1} h {2} min" xml:space="preserve">
+    <value>{0} g {1} h {2} min</value>
+  </data>
   <data name="{0} data table" xml:space="preserve">
     <value>tabella dati {0}</value>
   </data>
@@ -15694,6 +15709,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} cartelle.</value>
+  </data>
+  <data name="{0} h {1} min" xml:space="preserve">
+    <value>{0} h {1} min</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} è stata spostata a {1}.</value>
@@ -15832,6 +15850,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="{0} messages waiting for delivery." xml:space="preserve">
     <value>{0} messaggi in attesa di consegna.</value>
+  </data>
+  <data name="{0} min" xml:space="preserve">
+    <value>{0} min</value>
   </data>
   <data name="{0} minute ago" xml:space="preserve">
     <value>{0} minuto fa</value>

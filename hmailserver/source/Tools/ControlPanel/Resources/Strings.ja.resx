@@ -2647,6 +2647,9 @@
   <data name="Connected" xml:space="preserve">
     <value>接続済み</value>
   </data>
+  <data name="Connected now" xml:space="preserve">
+    <value>現在の接続</value>
+  </data>
   <data name="Connected server: hMailServer {0} @ {1}" xml:space="preserve">
     <value>接続中のサーバー: hMailServer {0} @ {1}</value>
   </data>
@@ -7186,6 +7189,9 @@
   <data name="Not in the directory" xml:space="preserve">
     <value>ディレクトリにない</value>
   </data>
+  <data name="Not known here: the server is on another computer" xml:space="preserve">
+    <value>ここでは不明 (サーバーは別のコンピューター上にあります)</value>
+  </data>
   <data name="Not listening" xml:space="preserve">
     <value>待ち受けていません</value>
   </data>
@@ -8297,9 +8303,6 @@
   </data>
   <data name="Private key file" xml:space="preserve">
     <value>秘密鍵ファイル</value>
-  </data>
-  <data name="Processed messages" xml:space="preserve">
-    <value>処理したメッセージ</value>
   </data>
   <data name="Produce or obtain a CA (for example with OpenSSL or your PKI), save the CA certificate, with any intermediate ones, as a PEM bundle on the server, point the port's CA file at it, and issue a client certificate from that CA to every client that must connect. hMailServer verifies against the bundle but cannot create the CA or the client certificates." xml:space="preserve">
     <value>CA を作成するか入手し (たとえば OpenSSL や自社の PKI で)、CA 証明書を (中間証明書があればそれも含めて) PEM バンドルとしてサーバーに保存し、ポートの CA ファイルをそれに向け、接続が必要なすべてのクライアントにその CA からクライアント証明書を発行してください。hMailServer はバンドルに対して検証を行いますが、CA やクライアント証明書を作成することはできません。</value>
@@ -10630,6 +10633,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Since" xml:space="preserve">
     <value>登録日時</value>
   </data>
+  <data name="Since the service started" xml:space="preserve">
+    <value>サービスの開始以降</value>
+  </data>
+  <data name="Since the service started ({0})" xml:space="preserve">
+    <value>サービスの開始以降 ({0})</value>
+  </data>
   <data name="Since {0}" xml:space="preserve">
     <value>開始 {0}</value>
   </data>
@@ -10699,11 +10708,11 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score." xml:space="preserve">
     <value>Spam URI Realtime Block Lists。本文内のリンクがこれらのホストに解決されるメッセージにはスパム スコアが加算されます。</value>
   </data>
-  <data name="Spam blocked" xml:space="preserve">
-    <value>ブロックしたスパム</value>
-  </data>
   <data name="Spam delete threshold (score)" xml:space="preserve">
     <value>スパム削除しきい値 (スコア)</value>
+  </data>
+  <data name="Spam detected" xml:space="preserve">
+    <value>検出したスパム</value>
   </data>
   <data name="Spam exemptions" xml:space="preserve">
     <value>スパム対策の除外</value>
@@ -10713,9 +10722,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Spam mark threshold (score)" xml:space="preserve">
     <value>スパム マークしきい値 (スコア)</value>
-  </data>
-  <data name="Spam removed" xml:space="preserve">
-    <value>除去したスパム</value>
   </data>
   <data name="Spam traps" xml:space="preserve">
     <value>スパム トラップ</value>
@@ -12988,11 +12994,11 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Up to 64 visible ASCII characters." xml:space="preserve">
     <value>表示可能な ASCII 文字で最大 64 文字。</value>
   </data>
-  <data name="Update" xml:space="preserve">
-    <value>更新</value>
-  </data>
   <data name="Update feed URL (empty = the built-in feed; set for a mirror)" xml:space="preserve">
     <value>更新フィードの URL (空 = 組み込みのフィード。ミラーを使う場合は指定します)</value>
+  </data>
+  <data name="Update status" xml:space="preserve">
+    <value>更新の状態</value>
   </data>
   <data name="Updated" xml:space="preserve">
     <value>更新</value>
@@ -15446,6 +15452,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} (route #{1})" xml:space="preserve">
     <value>{0} (ルート #{1})</value>
   </data>
+  <data name="{0} (server time)" xml:space="preserve">
+    <value>{0} (サーバー時刻)</value>
+  </data>
   <data name="{0} (subject '{1}')" xml:space="preserve">
     <value>{0} (件名 '{1}')</value>
   </data>
@@ -15638,6 +15647,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
     <value>{0} をこのコンピューターから読み取れませんでした: {1}</value>
   </data>
+  <data name="{0} d {1} h" xml:space="preserve">
+    <value>{0} 日 {1} 時間</value>
+  </data>
+  <data name="{0} d {1} h {2} min" xml:space="preserve">
+    <value>{0} 日 {1} 時間 {2} 分</value>
+  </data>
   <data name="{0} data table" xml:space="preserve">
     <value>{0} のデータ テーブル</value>
   </data>
@@ -15694,6 +15709,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>フォルダー {0} 件。</value>
+  </data>
+  <data name="{0} h {1} min" xml:space="preserve">
+    <value>{0} 時間 {1} 分</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} を {1} に移動しました。</value>
@@ -15832,6 +15850,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} messages waiting for delivery." xml:space="preserve">
     <value>{0} 件のメッセージが配信を待っています。</value>
+  </data>
+  <data name="{0} min" xml:space="preserve">
+    <value>{0} 分</value>
   </data>
   <data name="{0} minute ago" xml:space="preserve">
     <value>{0} 分前</value>

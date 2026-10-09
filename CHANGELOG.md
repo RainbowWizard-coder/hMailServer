@@ -1734,6 +1734,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   a scan of a check that is off is Information, with how old it is and a button to the Server limits & expert settings
   page, and one of a check that is on but has not scanned since is a Warning that says how old it is.
 
+- **Fixed: Server status worked the uptime out from the Control Panel's clock, its statistics had no period, and the
+  counters had other names on the Dashboard.** The uptime was the server's local start time subtracted from the clock
+  of the computer the Control Panel runs on, wrong by the difference between their time zones, in units fixed as "d h
+  m" in every language ("5d 3h 12m" in Japanese); the server gives no clock of its own, so the uptime is now worked
+  out only where the two clocks are one, a session on the server's own computer, and says it is not known here
+  otherwise, in each language's own units ("5 T. 3 Std. 12 Min.", "5 日 3 時間 12 分"), the Dashboard's tile as well; the
+  start is shown in the reader's date format and marked as the server's time. The statistics are under two lines,
+  Since the service started, with the time, and Connected now, where six figures sat side by side as one kind; the
+  counters are named the same on both pages, Messages processed and Spam detected - the counter is every message the
+  spam checks detected, deleted or only marked, where Server status said Spam removed and the Dashboard Spam blocked;
+  and the row of the update's state is captioned Update status, where its caption was the verb, "Aktualisieren" in
+  German.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

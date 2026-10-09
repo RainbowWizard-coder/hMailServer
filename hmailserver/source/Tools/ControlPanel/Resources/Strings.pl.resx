@@ -2665,6 +2665,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Connected" xml:space="preserve">
     <value>Połączono</value>
   </data>
+  <data name="Connected now" xml:space="preserve">
+    <value>Połączone teraz</value>
+  </data>
   <data name="Connected server: hMailServer {0} @ {1}" xml:space="preserve">
     <value>Połączony serwer: hMailServer {0} @ {1}</value>
   </data>
@@ -7258,6 +7261,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Not in the directory" xml:space="preserve">
     <value>Brak w katalogu</value>
   </data>
+  <data name="Not known here: the server is on another computer" xml:space="preserve">
+    <value>Nieznany tutaj: serwer działa na innym komputerze</value>
+  </data>
   <data name="Not listening" xml:space="preserve">
     <value>Nie nasłuchuje</value>
   </data>
@@ -8375,9 +8381,6 @@ Do czasu wznowienia nie będą przyjmowane nowe połączenia ani dostarczana poc
   </data>
   <data name="Private key file" xml:space="preserve">
     <value>Plik klucza prywatnego</value>
-  </data>
-  <data name="Processed messages" xml:space="preserve">
-    <value>Przetworzone wiadomości</value>
   </data>
   <data name="Produce or obtain a CA (for example with OpenSSL or your PKI), save the CA certificate, with any intermediate ones, as a PEM bundle on the server, point the port's CA file at it, and issue a client certificate from that CA to every client that must connect. hMailServer verifies against the bundle but cannot create the CA or the client certificates." xml:space="preserve">
     <value>Należy utworzyć lub pozyskać urząd certyfikacji (na przykład za pomocą OpenSSL lub własnej infrastruktury PKI), zapisać certyfikat urzędu, wraz z ewentualnymi certyfikatami pośrednimi, na serwerze jako pakiet PEM, wskazać ten plik w ustawieniu pliku CA danego portu i wystawić z tego urzędu certyfikat klienta dla każdego klienta, który ma się łączyć. hMailServer weryfikuje względem tego pakietu, ale nie potrafi utworzyć ani urzędu certyfikacji, ani certyfikatów klientów.</value>
@@ -10743,6 +10746,12 @@ Uruchomić ją ponownie teraz?</value>
   <data name="Since" xml:space="preserve">
     <value>Od</value>
   </data>
+  <data name="Since the service started" xml:space="preserve">
+    <value>Od uruchomienia usługi</value>
+  </data>
+  <data name="Since the service started ({0})" xml:space="preserve">
+    <value>Od uruchomienia usługi ({0})</value>
+  </data>
   <data name="Since {0}" xml:space="preserve">
     <value>Od {0}</value>
   </data>
@@ -10812,11 +10821,11 @@ Uruchomić ją ponownie teraz?</value>
   <data name="Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score." xml:space="preserve">
     <value>Spam URI Realtime Block Lists. Wiadomości, których odnośniki w treści rozwiązują się na tych hostach, otrzymują punkty spamowe.</value>
   </data>
-  <data name="Spam blocked" xml:space="preserve">
-    <value>Zablokowany spam</value>
-  </data>
   <data name="Spam delete threshold (score)" xml:space="preserve">
     <value>Próg usuwania spamu (punktacja)</value>
+  </data>
+  <data name="Spam detected" xml:space="preserve">
+    <value>Wykryty spam</value>
   </data>
   <data name="Spam exemptions" xml:space="preserve">
     <value>Wyjątki antyspamowe</value>
@@ -10826,9 +10835,6 @@ Uruchomić ją ponownie teraz?</value>
   </data>
   <data name="Spam mark threshold (score)" xml:space="preserve">
     <value>Próg oznaczania spamu (punktacja)</value>
-  </data>
-  <data name="Spam removed" xml:space="preserve">
-    <value>Usunięty spam</value>
   </data>
   <data name="Spam traps" xml:space="preserve">
     <value>Pułapki na spam</value>
@@ -13140,11 +13146,11 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="Up to 64 visible ASCII characters." xml:space="preserve">
     <value>Do 64 widocznych znaków ASCII.</value>
   </data>
-  <data name="Update" xml:space="preserve">
-    <value>Aktualizuj</value>
-  </data>
   <data name="Update feed URL (empty = the built-in feed; set for a mirror)" xml:space="preserve">
     <value>Adres URL źródła aktualizacji (puste = wbudowane źródło; należy ustawić dla kopii lustrzanej)</value>
+  </data>
+  <data name="Update status" xml:space="preserve">
+    <value>Stan aktualizacji</value>
   </data>
   <data name="Updated" xml:space="preserve">
     <value>Zaktualizowano</value>
@@ -15619,6 +15625,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} (route #{1})" xml:space="preserve">
     <value>{0} (trasa #{1})</value>
   </data>
+  <data name="{0} (server time)" xml:space="preserve">
+    <value>{0} (czas serwera)</value>
+  </data>
   <data name="{0} (subject '{1}')" xml:space="preserve">
     <value>{0} (temat „{1}”)</value>
   </data>
@@ -15865,6 +15874,12 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
     <value>Nie udało się odczytać {0} z tego komputera: {1}</value>
   </data>
+  <data name="{0} d {1} h" xml:space="preserve">
+    <value>{0} d {1} godz.</value>
+  </data>
+  <data name="{0} d {1} h {2} min" xml:space="preserve">
+    <value>{0} d {1} godz. {2} min</value>
+  </data>
   <data name="{0} data table" xml:space="preserve">
     <value>Tabela danych {0}</value>
   </data>
@@ -15942,6 +15957,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} folders.|few" xml:space="preserve">
     <value>{0} foldery.</value>
+  </data>
+  <data name="{0} h {1} min" xml:space="preserve">
+    <value>{0} godz. {1} min</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} została przeniesiona do {1}.</value>
@@ -16110,6 +16128,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} messages|few" xml:space="preserve">
     <value>{0} wiadomości</value>
+  </data>
+  <data name="{0} min" xml:space="preserve">
+    <value>{0} min</value>
   </data>
   <data name="{0} minute ago" xml:space="preserve">
     <value>{0} minutę temu</value>

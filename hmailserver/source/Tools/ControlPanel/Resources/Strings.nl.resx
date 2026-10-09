@@ -2647,6 +2647,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Connected" xml:space="preserve">
     <value>Verbonden</value>
   </data>
+  <data name="Connected now" xml:space="preserve">
+    <value>Nu verbonden</value>
+  </data>
   <data name="Connected server: hMailServer {0} @ {1}" xml:space="preserve">
     <value>Verbonden server: hMailServer {0} @ {1}</value>
   </data>
@@ -7186,6 +7189,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Not in the directory" xml:space="preserve">
     <value>Niet in de directory</value>
   </data>
+  <data name="Not known here: the server is on another computer" xml:space="preserve">
+    <value>Hier onbekend: de server staat op een andere computer</value>
+  </data>
   <data name="Not listening" xml:space="preserve">
     <value>Luistert niet</value>
   </data>
@@ -8297,9 +8303,6 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   </data>
   <data name="Private key file" xml:space="preserve">
     <value>Privésleutelbestand</value>
-  </data>
-  <data name="Processed messages" xml:space="preserve">
-    <value>Verwerkte berichten</value>
   </data>
   <data name="Produce or obtain a CA (for example with OpenSSL or your PKI), save the CA certificate, with any intermediate ones, as a PEM bundle on the server, point the port's CA file at it, and issue a client certificate from that CA to every client that must connect. hMailServer verifies against the bundle but cannot create the CA or the client certificates." xml:space="preserve">
     <value>Maak of verkrijg een CA (bijvoorbeeld met OpenSSL of uw PKI), sla het CA-certificaat, met eventuele tussenliggende certificaten, als PEM-bundel op de server op, laat het CA-bestand van de poort daarnaar wijzen, en geef vanuit die CA een clientcertificaat uit aan elke client die moet kunnen verbinden. hMailServer verifieert tegen de bundel, maar kan de CA en de clientcertificaten niet aanmaken.</value>
@@ -10630,6 +10633,12 @@ Nu opnieuw starten?</value>
   <data name="Since" xml:space="preserve">
     <value>Sinds</value>
   </data>
+  <data name="Since the service started" xml:space="preserve">
+    <value>Sinds de start van de service</value>
+  </data>
+  <data name="Since the service started ({0})" xml:space="preserve">
+    <value>Sinds de start van de service ({0})</value>
+  </data>
   <data name="Since {0}" xml:space="preserve">
     <value>Sinds {0}</value>
   </data>
@@ -10699,11 +10708,11 @@ Nu opnieuw starten?</value>
   <data name="Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score." xml:space="preserve">
     <value>Spam URI Realtime Block Lists. Berichten waarvan de links in de berichttekst op deze hosts oplossen, krijgen spamscore.</value>
   </data>
-  <data name="Spam blocked" xml:space="preserve">
-    <value>Spam geblokkeerd</value>
-  </data>
   <data name="Spam delete threshold (score)" xml:space="preserve">
     <value>Verwijderdrempel voor spam (score)</value>
+  </data>
+  <data name="Spam detected" xml:space="preserve">
+    <value>Spam gedetecteerd</value>
   </data>
   <data name="Spam exemptions" xml:space="preserve">
     <value>Spamuitzonderingen</value>
@@ -10713,9 +10722,6 @@ Nu opnieuw starten?</value>
   </data>
   <data name="Spam mark threshold (score)" xml:space="preserve">
     <value>Markeringsdrempel voor spam (score)</value>
-  </data>
-  <data name="Spam removed" xml:space="preserve">
-    <value>Spam verwijderd</value>
   </data>
   <data name="Spam traps" xml:space="preserve">
     <value>Spamvallen</value>
@@ -12988,11 +12994,11 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="Up to 64 visible ASCII characters." xml:space="preserve">
     <value>Tot 64 zichtbare ASCII-tekens.</value>
   </data>
-  <data name="Update" xml:space="preserve">
-    <value>Bijwerken</value>
-  </data>
   <data name="Update feed URL (empty = the built-in feed; set for a mirror)" xml:space="preserve">
     <value>URL van de updatefeed (leeg = de ingebouwde feed; instellen voor een spiegel)</value>
+  </data>
+  <data name="Update status" xml:space="preserve">
+    <value>Updatestatus</value>
   </data>
   <data name="Updated" xml:space="preserve">
     <value>Bijgewerkt</value>
@@ -15446,6 +15452,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} (route #{1})" xml:space="preserve">
     <value>{0} (route #{1})</value>
   </data>
+  <data name="{0} (server time)" xml:space="preserve">
+    <value>{0} (servertijd)</value>
+  </data>
   <data name="{0} (subject '{1}')" xml:space="preserve">
     <value>{0} (onderwerp '{1}')</value>
   </data>
@@ -15638,6 +15647,12 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
     <value>{0} kon niet vanaf deze machine worden gelezen: {1}</value>
   </data>
+  <data name="{0} d {1} h" xml:space="preserve">
+    <value>{0} d {1} u</value>
+  </data>
+  <data name="{0} d {1} h {2} min" xml:space="preserve">
+    <value>{0} d {1} u {2} min</value>
+  </data>
   <data name="{0} data table" xml:space="preserve">
     <value>{0}-gegevenstabel</value>
   </data>
@@ -15694,6 +15709,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} mappen.</value>
+  </data>
+  <data name="{0} h {1} min" xml:space="preserve">
+    <value>{0} u {1} min</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} is verplaatst naar {1}.</value>
@@ -15832,6 +15850,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} messages waiting for delivery." xml:space="preserve">
     <value>{0} berichten wachten op bezorging.</value>
+  </data>
+  <data name="{0} min" xml:space="preserve">
+    <value>{0} min</value>
   </data>
   <data name="{0} minute ago" xml:space="preserve">
     <value>{0} minuut geleden</value>

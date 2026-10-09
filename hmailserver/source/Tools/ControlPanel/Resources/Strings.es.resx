@@ -2647,6 +2647,9 @@ Los detalles completos se escribieron en:
   <data name="Connected" xml:space="preserve">
     <value>Conectado</value>
   </data>
+  <data name="Connected now" xml:space="preserve">
+    <value>Conectados ahora</value>
+  </data>
   <data name="Connected server: hMailServer {0} @ {1}" xml:space="preserve">
     <value>Servidor conectado: hMailServer {0} @ {1}</value>
   </data>
@@ -7186,6 +7189,9 @@ No se elimina nada de lo que ya está.</value>
   <data name="Not in the directory" xml:space="preserve">
     <value>No está en el directorio</value>
   </data>
+  <data name="Not known here: the server is on another computer" xml:space="preserve">
+    <value>No se sabe aquí: el servidor está en otro equipo</value>
+  </data>
   <data name="Not listening" xml:space="preserve">
     <value>No está escuchando</value>
   </data>
@@ -8297,9 +8303,6 @@ No se aceptarán conexiones nuevas ni se entregará correo hasta que se reanude.
   </data>
   <data name="Private key file" xml:space="preserve">
     <value>Archivo de clave privada</value>
-  </data>
-  <data name="Processed messages" xml:space="preserve">
-    <value>Mensajes procesados</value>
   </data>
   <data name="Produce or obtain a CA (for example with OpenSSL or your PKI), save the CA certificate, with any intermediate ones, as a PEM bundle on the server, point the port's CA file at it, and issue a client certificate from that CA to every client that must connect. hMailServer verifies against the bundle but cannot create the CA or the client certificates." xml:space="preserve">
     <value>Cree u obtenga una CA (por ejemplo con OpenSSL o con su PKI), guarde el certificado de la CA, con los intermedios que tenga, como un paquete PEM en el servidor, apunte a él el archivo de CA del puerto y emita desde esa CA un certificado de cliente para cada cliente que deba conectarse. hMailServer verifica contra el paquete, pero no puede crear ni la CA ni los certificados de cliente.</value>
@@ -10630,6 +10633,12 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Since" xml:space="preserve">
     <value>Desde</value>
   </data>
+  <data name="Since the service started" xml:space="preserve">
+    <value>Desde que se inició el servicio</value>
+  </data>
+  <data name="Since the service started ({0})" xml:space="preserve">
+    <value>Desde que se inició el servicio ({0})</value>
+  </data>
   <data name="Since {0}" xml:space="preserve">
     <value>Desde {0}</value>
   </data>
@@ -10699,11 +10708,11 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score." xml:space="preserve">
     <value>Listas de bloqueo en tiempo real de URI de spam. Los mensajes cuyos enlaces del cuerpo resuelvan en estos hosts ganan puntuación de spam.</value>
   </data>
-  <data name="Spam blocked" xml:space="preserve">
-    <value>Spam bloqueado</value>
-  </data>
   <data name="Spam delete threshold (score)" xml:space="preserve">
     <value>Umbral de borrado de spam (puntuación)</value>
+  </data>
+  <data name="Spam detected" xml:space="preserve">
+    <value>Spam detectado</value>
   </data>
   <data name="Spam exemptions" xml:space="preserve">
     <value>Exenciones antispam</value>
@@ -10713,9 +10722,6 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="Spam mark threshold (score)" xml:space="preserve">
     <value>Umbral de marcado de spam (puntuación)</value>
-  </data>
-  <data name="Spam removed" xml:space="preserve">
-    <value>Spam eliminado</value>
   </data>
   <data name="Spam traps" xml:space="preserve">
     <value>Trampas de spam</value>
@@ -12988,11 +12994,11 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="Up to 64 visible ASCII characters." xml:space="preserve">
     <value>Hasta 64 caracteres ASCII visibles.</value>
   </data>
-  <data name="Update" xml:space="preserve">
-    <value>Actualizar</value>
-  </data>
   <data name="Update feed URL (empty = the built-in feed; set for a mirror)" xml:space="preserve">
     <value>URL de la fuente de actualizaciones (vacío = la fuente integrada; indíquela para una réplica)</value>
+  </data>
+  <data name="Update status" xml:space="preserve">
+    <value>Estado de la actualización</value>
   </data>
   <data name="Updated" xml:space="preserve">
     <value>Actualizado</value>
@@ -15446,6 +15452,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="{0} (route #{1})" xml:space="preserve">
     <value>{0} (ruta n.º {1})</value>
   </data>
+  <data name="{0} (server time)" xml:space="preserve">
+    <value>{0} (hora del servidor)</value>
+  </data>
   <data name="{0} (subject '{1}')" xml:space="preserve">
     <value>{0} (asunto '{1}')</value>
   </data>
@@ -15638,6 +15647,12 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
     <value>{0} no pudo leerse desde esta máquina: {1}</value>
   </data>
+  <data name="{0} d {1} h" xml:space="preserve">
+    <value>{0} d {1} h</value>
+  </data>
+  <data name="{0} d {1} h {2} min" xml:space="preserve">
+    <value>{0} d {1} h {2} min</value>
+  </data>
   <data name="{0} data table" xml:space="preserve">
     <value>Tabla de datos de {0}</value>
   </data>
@@ -15694,6 +15709,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} carpetas.</value>
+  </data>
+  <data name="{0} h {1} min" xml:space="preserve">
+    <value>{0} h {1} min</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} se ha movido a {1}.</value>
@@ -15832,6 +15850,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="{0} messages waiting for delivery." xml:space="preserve">
     <value>{0} mensajes esperando entrega.</value>
+  </data>
+  <data name="{0} min" xml:space="preserve">
+    <value>{0} min</value>
   </data>
   <data name="{0} minute ago" xml:space="preserve">
     <value>hace {0} minuto</value>

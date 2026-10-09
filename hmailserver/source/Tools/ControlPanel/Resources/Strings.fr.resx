@@ -2647,6 +2647,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Connected" xml:space="preserve">
     <value>Connecté</value>
   </data>
+  <data name="Connected now" xml:space="preserve">
+    <value>Connectés maintenant</value>
+  </data>
   <data name="Connected server: hMailServer {0} @ {1}" xml:space="preserve">
     <value>Serveur connecté : hMailServer {0} @ {1}</value>
   </data>
@@ -7186,6 +7189,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="Not in the directory" xml:space="preserve">
     <value>Absent de l'annuaire</value>
   </data>
+  <data name="Not known here: the server is on another computer" xml:space="preserve">
+    <value>Inconnu ici : le serveur est sur un autre ordinateur</value>
+  </data>
   <data name="Not listening" xml:space="preserve">
     <value>Pas à l'écoute</value>
   </data>
@@ -8297,9 +8303,6 @@ Aucune nouvelle connexion ne sera acceptée et aucun courrier ne sera livré jus
   </data>
   <data name="Private key file" xml:space="preserve">
     <value>Fichier de clé privée</value>
-  </data>
-  <data name="Processed messages" xml:space="preserve">
-    <value>Messages traités</value>
   </data>
   <data name="Produce or obtain a CA (for example with OpenSSL or your PKI), save the CA certificate, with any intermediate ones, as a PEM bundle on the server, point the port's CA file at it, and issue a client certificate from that CA to every client that must connect. hMailServer verifies against the bundle but cannot create the CA or the client certificates." xml:space="preserve">
     <value>Produisez ou obtenez une AC (par exemple avec OpenSSL ou votre PKI), enregistrez le certificat de l'AC, avec ses éventuels certificats intermédiaires, sous forme de bundle PEM sur le serveur, faites pointer le fichier d'AC du port dessus, et émettez un certificat client depuis cette AC pour chaque client qui doit se connecter. hMailServer vérifie par rapport au bundle mais ne peut créer ni l'AC ni les certificats clients.</value>
@@ -10630,6 +10633,12 @@ Le redémarrer maintenant ?</value>
   <data name="Since" xml:space="preserve">
     <value>Depuis</value>
   </data>
+  <data name="Since the service started" xml:space="preserve">
+    <value>Depuis le démarrage du service</value>
+  </data>
+  <data name="Since the service started ({0})" xml:space="preserve">
+    <value>Depuis le démarrage du service ({0})</value>
+  </data>
   <data name="Since {0}" xml:space="preserve">
     <value>Depuis {0}</value>
   </data>
@@ -10699,11 +10708,11 @@ Le redémarrer maintenant ?</value>
   <data name="Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score." xml:space="preserve">
     <value>Spam URI Realtime Block Lists. Les messages dont les liens du corps se résolvent sur ces hôtes gagnent du score de spam.</value>
   </data>
-  <data name="Spam blocked" xml:space="preserve">
-    <value>Spam bloqué</value>
-  </data>
   <data name="Spam delete threshold (score)" xml:space="preserve">
     <value>Seuil de suppression du spam (score)</value>
+  </data>
+  <data name="Spam detected" xml:space="preserve">
+    <value>Spam détecté</value>
   </data>
   <data name="Spam exemptions" xml:space="preserve">
     <value>Exemptions anti-spam</value>
@@ -10713,9 +10722,6 @@ Le redémarrer maintenant ?</value>
   </data>
   <data name="Spam mark threshold (score)" xml:space="preserve">
     <value>Seuil de marquage du spam (score)</value>
-  </data>
-  <data name="Spam removed" xml:space="preserve">
-    <value>Spam supprimé</value>
   </data>
   <data name="Spam traps" xml:space="preserve">
     <value>Pièges à spam</value>
@@ -12988,11 +12994,11 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="Up to 64 visible ASCII characters." xml:space="preserve">
     <value>Jusqu'à 64 caractères ASCII visibles.</value>
   </data>
-  <data name="Update" xml:space="preserve">
-    <value>Mettre à jour</value>
-  </data>
   <data name="Update feed URL (empty = the built-in feed; set for a mirror)" xml:space="preserve">
     <value>URL du flux de mises à jour (vide = le flux intégré ; renseignez-la pour un miroir)</value>
+  </data>
+  <data name="Update status" xml:space="preserve">
+    <value>État de la mise à jour</value>
   </data>
   <data name="Updated" xml:space="preserve">
     <value>Mis à jour</value>
@@ -15446,6 +15452,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="{0} (route #{1})" xml:space="preserve">
     <value>{0} (route n° {1})</value>
   </data>
+  <data name="{0} (server time)" xml:space="preserve">
+    <value>{0} (heure du serveur)</value>
+  </data>
   <data name="{0} (subject '{1}')" xml:space="preserve">
     <value>{0} (objet « {1} »)</value>
   </data>
@@ -15638,6 +15647,12 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
     <value>{0} n'a pas pu être lu depuis cette machine : {1}</value>
   </data>
+  <data name="{0} d {1} h" xml:space="preserve">
+    <value>{0} j {1} h</value>
+  </data>
+  <data name="{0} d {1} h {2} min" xml:space="preserve">
+    <value>{0} j {1} h {2} min</value>
+  </data>
   <data name="{0} data table" xml:space="preserve">
     <value>table de données {0}</value>
   </data>
@@ -15694,6 +15709,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} dossiers.</value>
+  </data>
+  <data name="{0} h {1} min" xml:space="preserve">
+    <value>{0} h {1} min</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} a été déplacé vers {1}.</value>
@@ -15832,6 +15850,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="{0} messages waiting for delivery." xml:space="preserve">
     <value>{0} messages en attente de livraison.</value>
+  </data>
+  <data name="{0} min" xml:space="preserve">
+    <value>{0} min</value>
   </data>
   <data name="{0} minute ago" xml:space="preserve">
     <value>il y a {0} minute</value>

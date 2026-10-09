@@ -2647,6 +2647,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Connected" xml:space="preserve">
     <value>Connected</value>
   </data>
+  <data name="Connected now" xml:space="preserve">
+    <value>Connected now</value>
+  </data>
   <data name="Connected server: hMailServer {0} @ {1}" xml:space="preserve">
     <value>Connected server: hMailServer {0} @ {1}</value>
   </data>
@@ -7186,6 +7189,9 @@ Nothing already there is removed.</value>
   <data name="Not in the directory" xml:space="preserve">
     <value>Not in the directory</value>
   </data>
+  <data name="Not known here: the server is on another computer" xml:space="preserve">
+    <value>Not known here: the server is on another computer</value>
+  </data>
   <data name="Not listening" xml:space="preserve">
     <value>Not listening</value>
   </data>
@@ -8297,9 +8303,6 @@ No new connections will be accepted and no mail will be delivered until it is re
   </data>
   <data name="Private key file" xml:space="preserve">
     <value>Private key file</value>
-  </data>
-  <data name="Processed messages" xml:space="preserve">
-    <value>Processed messages</value>
   </data>
   <data name="Produce or obtain a CA (for example with OpenSSL or your PKI), save the CA certificate, with any intermediate ones, as a PEM bundle on the server, point the port's CA file at it, and issue a client certificate from that CA to every client that must connect. hMailServer verifies against the bundle but cannot create the CA or the client certificates." xml:space="preserve">
     <value>Produce or obtain a CA (for example with OpenSSL or your PKI), save the CA certificate, with any intermediate ones, as a PEM bundle on the server, point the port's CA file at it, and issue a client certificate from that CA to every client that must connect. hMailServer verifies against the bundle but cannot create the CA or the client certificates.</value>
@@ -10630,6 +10633,12 @@ Restart it now?</value>
   <data name="Since" xml:space="preserve">
     <value>Since</value>
   </data>
+  <data name="Since the service started" xml:space="preserve">
+    <value>Since the service started</value>
+  </data>
+  <data name="Since the service started ({0})" xml:space="preserve">
+    <value>Since the service started ({0})</value>
+  </data>
   <data name="Since {0}" xml:space="preserve">
     <value>Since {0}</value>
   </data>
@@ -10699,11 +10708,11 @@ Restart it now?</value>
   <data name="Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score." xml:space="preserve">
     <value>Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score.</value>
   </data>
-  <data name="Spam blocked" xml:space="preserve">
-    <value>Spam blocked</value>
-  </data>
   <data name="Spam delete threshold (score)" xml:space="preserve">
     <value>Spam delete threshold (score)</value>
+  </data>
+  <data name="Spam detected" xml:space="preserve">
+    <value>Spam detected</value>
   </data>
   <data name="Spam exemptions" xml:space="preserve">
     <value>Spam exemptions</value>
@@ -10713,9 +10722,6 @@ Restart it now?</value>
   </data>
   <data name="Spam mark threshold (score)" xml:space="preserve">
     <value>Spam mark threshold (score)</value>
-  </data>
-  <data name="Spam removed" xml:space="preserve">
-    <value>Spam removed</value>
   </data>
   <data name="Spam traps" xml:space="preserve">
     <value>Spam traps</value>
@@ -12988,11 +12994,11 @@ It will keep trying as you use the application.</value>
   <data name="Up to 64 visible ASCII characters." xml:space="preserve">
     <value>Up to 64 visible ASCII characters.</value>
   </data>
-  <data name="Update" xml:space="preserve">
-    <value>Update</value>
-  </data>
   <data name="Update feed URL (empty = the built-in feed; set for a mirror)" xml:space="preserve">
     <value>Update feed URL (empty = the built-in feed; set for a mirror)</value>
+  </data>
+  <data name="Update status" xml:space="preserve">
+    <value>Update status</value>
   </data>
   <data name="Updated" xml:space="preserve">
     <value>Updated</value>
@@ -15446,6 +15452,9 @@ It will keep trying as you use the application.</value>
   <data name="{0} (route #{1})" xml:space="preserve">
     <value>{0} (route #{1})</value>
   </data>
+  <data name="{0} (server time)" xml:space="preserve">
+    <value>{0} (server time)</value>
+  </data>
   <data name="{0} (subject '{1}')" xml:space="preserve">
     <value>{0} (subject '{1}')</value>
   </data>
@@ -15638,6 +15647,12 @@ It will keep trying as you use the application.</value>
   <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
     <value>{0} could not be read from this machine: {1}</value>
   </data>
+  <data name="{0} d {1} h" xml:space="preserve">
+    <value>{0} d {1} h</value>
+  </data>
+  <data name="{0} d {1} h {2} min" xml:space="preserve">
+    <value>{0} d {1} h {2} min</value>
+  </data>
   <data name="{0} data table" xml:space="preserve">
     <value>{0} data table</value>
   </data>
@@ -15694,6 +15709,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} folders.</value>
+  </data>
+  <data name="{0} h {1} min" xml:space="preserve">
+    <value>{0} h {1} min</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} has been moved to {1}.</value>
@@ -15832,6 +15850,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="{0} messages waiting for delivery." xml:space="preserve">
     <value>{0} messages waiting for delivery.</value>
+  </data>
+  <data name="{0} min" xml:space="preserve">
+    <value>{0} min</value>
   </data>
   <data name="{0} minute ago" xml:space="preserve">
     <value>{0} minute ago</value>

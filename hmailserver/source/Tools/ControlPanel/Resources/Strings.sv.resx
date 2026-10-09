@@ -2647,6 +2647,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Connected" xml:space="preserve">
     <value>Ansluten</value>
   </data>
+  <data name="Connected now" xml:space="preserve">
+    <value>Anslutna nu</value>
+  </data>
   <data name="Connected server: hMailServer {0} @ {1}" xml:space="preserve">
     <value>Ansluten server: hMailServer {0} @ {1}</value>
   </data>
@@ -7186,6 +7189,9 @@ Inget som redan finns där tas bort.</value>
   <data name="Not in the directory" xml:space="preserve">
     <value>Inte i katalogen</value>
   </data>
+  <data name="Not known here: the server is on another computer" xml:space="preserve">
+    <value>Okänd här: servern finns på en annan dator</value>
+  </data>
   <data name="Not listening" xml:space="preserve">
     <value>Lyssnar inte</value>
   </data>
@@ -8297,9 +8303,6 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   </data>
   <data name="Private key file" xml:space="preserve">
     <value>Privat nyckelfil</value>
-  </data>
-  <data name="Processed messages" xml:space="preserve">
-    <value>Behandlade meddelanden</value>
   </data>
   <data name="Produce or obtain a CA (for example with OpenSSL or your PKI), save the CA certificate, with any intermediate ones, as a PEM bundle on the server, point the port's CA file at it, and issue a client certificate from that CA to every client that must connect. hMailServer verifies against the bundle but cannot create the CA or the client certificates." xml:space="preserve">
     <value>Skapa eller skaffa en CA (till exempel med OpenSSL eller din PKI), spara CA-certifikatet, med eventuella mellanliggande certifikat, som ett PEM-paket på servern, peka portens CA-fil på det, och utfärda ett klientcertifikat från den CA:n till varje klient som måste ansluta. hMailServer verifierar mot paketet men kan inte skapa CA:n eller klientcertifikaten.</value>
@@ -10630,6 +10633,12 @@ Starta om den nu?</value>
   <data name="Since" xml:space="preserve">
     <value>Sedan</value>
   </data>
+  <data name="Since the service started" xml:space="preserve">
+    <value>Sedan tjänsten startade</value>
+  </data>
+  <data name="Since the service started ({0})" xml:space="preserve">
+    <value>Sedan tjänsten startade ({0})</value>
+  </data>
   <data name="Since {0}" xml:space="preserve">
     <value>Sedan {0}</value>
   </data>
@@ -10699,11 +10708,11 @@ Starta om den nu?</value>
   <data name="Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score." xml:space="preserve">
     <value>Spam URI Realtime Block Lists. Meddelanden vars länkar i texten slår upp på de här värdarna får skräppostpoäng.</value>
   </data>
-  <data name="Spam blocked" xml:space="preserve">
-    <value>Skräppost blockerad</value>
-  </data>
   <data name="Spam delete threshold (score)" xml:space="preserve">
     <value>Tröskel för borttagning av skräppost (poäng)</value>
+  </data>
+  <data name="Spam detected" xml:space="preserve">
+    <value>Skräppost upptäckt</value>
   </data>
   <data name="Spam exemptions" xml:space="preserve">
     <value>Skräppostundantag</value>
@@ -10713,9 +10722,6 @@ Starta om den nu?</value>
   </data>
   <data name="Spam mark threshold (score)" xml:space="preserve">
     <value>Tröskel för märkning av skräppost (poäng)</value>
-  </data>
-  <data name="Spam removed" xml:space="preserve">
-    <value>Skräppost borttagen</value>
   </data>
   <data name="Spam traps" xml:space="preserve">
     <value>Skräppostfällor</value>
@@ -12988,11 +12994,11 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Up to 64 visible ASCII characters." xml:space="preserve">
     <value>Upp till 64 synliga ASCII-tecken.</value>
   </data>
-  <data name="Update" xml:space="preserve">
-    <value>Uppdatering</value>
-  </data>
   <data name="Update feed URL (empty = the built-in feed; set for a mirror)" xml:space="preserve">
     <value>URL för uppdateringsflöde (tom = det inbyggda flödet; ange för en spegel)</value>
+  </data>
+  <data name="Update status" xml:space="preserve">
+    <value>Uppdateringsstatus</value>
   </data>
   <data name="Updated" xml:space="preserve">
     <value>Uppdaterad</value>
@@ -15446,6 +15452,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} (route #{1})" xml:space="preserve">
     <value>{0} (rutt nr {1})</value>
   </data>
+  <data name="{0} (server time)" xml:space="preserve">
+    <value>{0} (servertid)</value>
+  </data>
   <data name="{0} (subject '{1}')" xml:space="preserve">
     <value>{0} (ämne '{1}')</value>
   </data>
@@ -15638,6 +15647,12 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
     <value>{0} kunde inte läsas från den här datorn: {1}</value>
   </data>
+  <data name="{0} d {1} h" xml:space="preserve">
+    <value>{0} d {1} tim</value>
+  </data>
+  <data name="{0} d {1} h {2} min" xml:space="preserve">
+    <value>{0} d {1} tim {2} min</value>
+  </data>
   <data name="{0} data table" xml:space="preserve">
     <value>Datatabell för {0}</value>
   </data>
@@ -15694,6 +15709,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} mappar.</value>
+  </data>
+  <data name="{0} h {1} min" xml:space="preserve">
+    <value>{0} tim {1} min</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} har flyttats till {1}.</value>
@@ -15832,6 +15850,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} messages waiting for delivery." xml:space="preserve">
     <value>{0} meddelanden väntar på leverans.</value>
+  </data>
+  <data name="{0} min" xml:space="preserve">
+    <value>{0} min</value>
   </data>
   <data name="{0} minute ago" xml:space="preserve">
     <value>{0} minut sedan</value>
