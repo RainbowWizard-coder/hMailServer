@@ -5422,9 +5422,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="How account passwords are hashed, how much work a new hash costs, and the weakest stored hash still allowed to log on. Existing passwords keep their current hash until they are next changed - or, when a work factor was raised, until they are next used to log on." xml:space="preserve">
     <value>Miten tilien salasanat tiivistetään, kuinka paljon työtä uusi tiiviste maksaa ja heikoin tallennettu tiiviste, jolla vielä saa kirjautua. Nykyiset salasanat säilyttävät nykyisen tiivisteensä, kunnes ne seuraavan kerran vaihdetaan - tai, kun työkerrointa nostettiin, kunnes niitä seuraavan kerran käytetään kirjautumiseen.</value>
   </data>
-  <data name="How accounts prove who they are: password hashing, OAuth2 / XOAUTH2, and required mechanisms." xml:space="preserve">
-    <value>Miten tilit todistavat, keitä ne ovat: salasanojen tiivistys, OAuth2 / XOAUTH2 ja vaaditut mekanismit.</value>
-  </data>
   <data name="How entries reach the collector" xml:space="preserve">
     <value>Miten merkinnät päätyvät keräimelle</value>
   </data>
@@ -5461,8 +5458,11 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="How mail gets in, where it goes next, and what happens to it on the way." xml:space="preserve">
     <value>Miten posti tulee sisään, minne se menee seuraavaksi ja mitä sille tapahtuu matkalla.</value>
   </data>
-  <data name="How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered." xml:space="preserve">
-    <value>Miten postilaatikoiden käyttäjät todistavat, keitä he ovat: ulkoiset identiteetintarjoajat, miten salasanat tallennetaan ja missä SMTP AUTH tarjotaan.</value>
+  <data name="How mailbox passwords are stored, where SMTP AUTH is offered, and tokens from an external identity provider (OAuth2 / XOAUTH2)." xml:space="preserve">
+    <value>Miten postilaatikkojen salasanat tallennetaan, missä SMTP AUTH tarjotaan ja ulkoisen identiteetintarjoajan tokenit (OAuth2 / XOAUTH2).</value>
+  </data>
+  <data name="How mailbox users prove who they are: how their passwords are stored, where SMTP AUTH is offered, and tokens from an external identity provider." xml:space="preserve">
+    <value>Miten postilaatikoiden käyttäjät todistavat, keitä he ovat: miten heidän salasanansa tallennetaan, missä SMTP AUTH tarjotaan ja ulkoisen identiteetintarjoajan tokenit.</value>
   </data>
   <data name="How many database connections the server keeps open and shares between its worker threads. Raising it helps only when threads are visibly waiting for a connection - see the database connection acquire timeout on the Server limits &amp; expert settings page, which is what they are waiting on." xml:space="preserve">
     <value>Kuinka monta tietokantayhteyttä palvelin pitää auki ja jakaa työsäikeidensä kesken. Nostaminen auttaa vain, kun säikeet selvästi odottavat yhteyttä - katso tietokantayhteyden hankinnan aikakatkaisu Palvelimen rajat ja asiantuntija-asetukset -sivulla, sitä ne odottavat.</value>
@@ -11734,6 +11734,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="The administrator signs in with a password alone." xml:space="preserve">
     <value>Ylläpitäjä kirjautuu pelkällä salasanalla.</value>
   </data>
+  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry." xml:space="preserve">
+    <value>Järjestelmänvalvojan salasana ja toinen tunnistustekijä sekä säännöt, joita jokaisen postilaatikon salasanan on noudatettava: pituus, tietovuototarkistus, uudelleenkäyttö ja vanheneminen.</value>
+  </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>Ylläpitäjän salasanan tukena on kertakäyttökoodi.</value>
   </data>
@@ -11975,9 +11978,6 @@ Valitse yllä oleva avain ja kopioi se käsin - sitä ei näytetä uudelleen.</v
   </data>
   <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page." xml:space="preserve">
     <value>ARC-sinetöinnin vastinpari: saapuvassa postissa luotetun sinetöijän kelvollinen ARC-ketju voi kumota DMARC-epäonnistumisen pistemäärän viestiltä, jonka DMARC-läpäisyn edelleenlähetys tuhosi (RFC 8617). Se määritetään sivun Roskapostisuojauksen asetukset Lähettäjän todennus -välilehdellä, koska se tallennetaan muiden roskapostisuojauksen asetusten kanssa eikä hMailServer.INI-tiedostoon. Kun luotettujen sinetöijien luettelo on tyhjä, toiminto ei tee tarkoituksella yhtään mitään: kuka tahansa voi sepittää kokonaisen ARC-ketjun ja sinetöidä sen omassa DNS:ssään julkaistuilla avaimilla, ja se läpäisee tarkistuksen täydellisesti, joten läpäisevä ketju ei todista mitään, ellet jo luota sinetöijään. Luettelo ei ole toiminnon valinta - se on itse toiminto. Kumoaminen ei koskaan ylitä DMARC-epäonnistumisen pistemäärää ja se on voimassa vain, kun DMARC-pisteytys on käytössä Roskapostisuojauksen asetukset -sivulla.</value>
-  </data>
-  <data name="The credentials used to administer this server." xml:space="preserve">
-    <value>Tunnistetiedot, joilla tätä palvelinta hallitaan.</value>
   </data>
   <data name="The current password counts as the most recent one, so setting a password to itself is refused too - the repeat somebody is most likely to try." xml:space="preserve">
     <value>Nykyinen salasana lasketaan viimeisimmäksi, joten saman salasanan asettaminen uudelleen hylätään myös - se on toisto, jota joku todennäköisimmin yrittää.</value>
@@ -12648,9 +12648,6 @@ Lisätäänkö silti?</value>
   </data>
   <data name="The server" xml:space="preserve">
     <value>Palvelin</value>
-  </data>
-  <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
-    <value>Palvelimen hallintasalasana ja se, kuka ylipäätään saa käyttää näitä työkaluja.</value>
   </data>
   <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
     <value>Palvelin vastasi jotain, mitä tämä Control Panel ei pystynyt lukemaan ({0})</value>
@@ -14038,6 +14035,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="Which way" xml:space="preserve">
     <value>Kumpaan suuntaan</value>
+  </data>
+  <data name="While this is off the server uses none of the settings below, so they cannot be changed until it is on." xml:space="preserve">
+    <value>Kun tämä on pois päältä, palvelin ei käytä mitään alla olevista asetuksista, joten niitä ei voi muuttaa ennen kuin tämä on päällä.</value>
   </data>
   <data name="Who" xml:space="preserve">
     <value>Kuka</value>

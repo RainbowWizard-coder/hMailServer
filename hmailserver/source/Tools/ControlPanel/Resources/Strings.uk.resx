@@ -5486,9 +5486,6 @@
   <data name="How account passwords are hashed, how much work a new hash costs, and the weakest stored hash still allowed to log on. Existing passwords keep their current hash until they are next changed - or, when a work factor was raised, until they are next used to log on." xml:space="preserve">
     <value>Як хешуються паролі облікових записів, скільки роботи коштує новий хеш і який найслабший збережений хеш ще допускається до входу. Наявні паролі зберігають поточний хеш, доки їх не змінять наступного разу - або, якщо підвищено фактор роботи, доки їх наступного разу не використають для входу.</value>
   </data>
-  <data name="How accounts prove who they are: password hashing, OAuth2 / XOAUTH2, and required mechanisms." xml:space="preserve">
-    <value>Як облікові записи доводять, хто вони: хешування паролів, OAuth2 / XOAUTH2 і обов'язкові механізми.</value>
-  </data>
   <data name="How entries reach the collector" xml:space="preserve">
     <value>Як записи потрапляють до збирача</value>
   </data>
@@ -5525,8 +5522,11 @@
   <data name="How mail gets in, where it goes next, and what happens to it on the way." xml:space="preserve">
     <value>Як пошта потрапляє всередину, куди йде далі і що з нею відбувається дорогою.</value>
   </data>
-  <data name="How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered." xml:space="preserve">
-    <value>Як користувачі скриньок доводять, хто вони: зовнішні постачальники ідентичності, як зберігаються паролі і де пропонується SMTP AUTH.</value>
+  <data name="How mailbox passwords are stored, where SMTP AUTH is offered, and tokens from an external identity provider (OAuth2 / XOAUTH2)." xml:space="preserve">
+    <value>Як зберігаються паролі поштових скриньок, де пропонується SMTP AUTH і токени зовнішнього провайдера ідентифікації (OAuth2 / XOAUTH2).</value>
+  </data>
+  <data name="How mailbox users prove who they are: how their passwords are stored, where SMTP AUTH is offered, and tokens from an external identity provider." xml:space="preserve">
+    <value>Як користувачі скриньок доводять, хто вони: як зберігаються їхні паролі, де пропонується SMTP AUTH і токени зовнішнього провайдера ідентифікації.</value>
   </data>
   <data name="How many database connections the server keeps open and shares between its worker threads. Raising it helps only when threads are visibly waiting for a connection - see the database connection acquire timeout on the Server limits &amp; expert settings page, which is what they are waiting on." xml:space="preserve">
     <value>Скільки з'єднань з базою даних сервер тримає відкритими і ділить між робочими потоками. Збільшення допомагає лише тоді, коли потоки помітно чекають на з'єднання - див. час очікування отримання з'єднання з базою даних на сторінці «Обмеження сервера та експертні параметри»; саме на нього вони чекають.</value>
@@ -11864,6 +11864,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The administrator signs in with a password alone." xml:space="preserve">
     <value>Адміністратор входить лише за паролем.</value>
   </data>
+  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry." xml:space="preserve">
+    <value>Пароль і другий фактор адміністратора, а також правила для кожного пароля поштової скриньки: довжина, перевірка на витоки, повторне використання та термін дії.</value>
+  </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>Пароль адміністратора підкріплено одноразовим кодом.</value>
   </data>
@@ -12126,9 +12129,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page." xml:space="preserve">
     <value>Зворотний бік запечатування ARC: для вхідної пошти дійсний ланцюжок ARC від довіреного запечатувача може компенсувати оцінку за провал DMARC для повідомлення, чий успішний DMARC був зруйнований пересиланням (RFC 8617). Налаштовується на вкладці «Автентифікація відправника» сторінки «Параметри захисту від спаму», бо зберігається разом з іншими параметрами захисту від спаму, а не в hMailServer.INI. З порожнім списком довірених запечатувачів функція навмисно не робить узагалі нічого: будь-хто може сфабрикувати цілий ланцюжок ARC і запечатати його ключами, опублікованими у власному DNS, і він пройде перевірку бездоганно, тому ланцюжок, що проходить, нічого не доводить, якщо ви вже не довіряєте запечатувачу. Список - не параметр функції, він і є функцією. Компенсація ніколи не перевищує оцінку за провал DMARC і діє лише доки на сторінці «Параметри захисту від спаму» увімкнено оцінювання DMARC.</value>
-  </data>
-  <data name="The credentials used to administer this server." xml:space="preserve">
-    <value>Облікові дані, якими адмініструють цей сервер.</value>
   </data>
   <data name="The current password counts as the most recent one, so setting a password to itself is refused too - the repeat somebody is most likely to try." xml:space="preserve">
     <value>Поточний пароль вважається найновішим, тому встановити пароль у нього самого теж відмовлено - це повтор, який хтось спробує найімовірніше.</value>
@@ -12811,9 +12811,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The server" xml:space="preserve">
     <value>Сервер</value>
-  </data>
-  <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
-    <value>Пароль адміністрування сервера і хто взагалі має право користуватися цими інструментами.</value>
   </data>
   <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
     <value>Сервер відповів так, що цей Control Panel не зміг прочитати відповідь ({0})</value>
@@ -14207,6 +14204,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Which way" xml:space="preserve">
     <value>У який бік</value>
+  </data>
+  <data name="While this is off the server uses none of the settings below, so they cannot be changed until it is on." xml:space="preserve">
+    <value>Поки це вимкнено, сервер не використовує жодного з налаштувань нижче, тож їх не можна змінити, доки це не ввімкнено.</value>
   </data>
   <data name="Who" xml:space="preserve">
     <value>Хто</value>

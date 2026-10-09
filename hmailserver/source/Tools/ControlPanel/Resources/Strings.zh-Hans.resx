@@ -5422,9 +5422,6 @@
   <data name="How account passwords are hashed, how much work a new hash costs, and the weakest stored hash still allowed to log on. Existing passwords keep their current hash until they are next changed - or, when a work factor was raised, until they are next used to log on." xml:space="preserve">
     <value>账户密码如何哈希、新哈希要花费多少工作量，以及仍允许登录的最弱存储哈希。现有密码保持其当前哈希，直到下一次更改 - 或者在工作因子提高后，直到下一次用它登录。</value>
   </data>
-  <data name="How accounts prove who they are: password hashing, OAuth2 / XOAUTH2, and required mechanisms." xml:space="preserve">
-    <value>账户如何证明自己的身份：密码哈希、OAuth2 / XOAUTH2 以及必需的机制。</value>
-  </data>
   <data name="How entries reach the collector" xml:space="preserve">
     <value>条目如何送达收集器</value>
   </data>
@@ -5461,8 +5458,11 @@
   <data name="How mail gets in, where it goes next, and what happens to it on the way." xml:space="preserve">
     <value>邮件如何进入、接下来去哪里，以及途中会发生什么。</value>
   </data>
-  <data name="How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered." xml:space="preserve">
-    <value>邮箱用户如何证明自己的身份：外部身份提供方、密码如何存储，以及在哪里提供 SMTP AUTH。</value>
+  <data name="How mailbox passwords are stored, where SMTP AUTH is offered, and tokens from an external identity provider (OAuth2 / XOAUTH2)." xml:space="preserve">
+    <value>邮箱密码如何存储、在哪里提供 SMTP AUTH，以及来自外部身份提供方的令牌（OAuth2 / XOAUTH2）。</value>
+  </data>
+  <data name="How mailbox users prove who they are: how their passwords are stored, where SMTP AUTH is offered, and tokens from an external identity provider." xml:space="preserve">
+    <value>邮箱用户如何证明自己的身份：密码如何存储、在哪里提供 SMTP AUTH，以及来自外部身份提供方的令牌。</value>
   </data>
   <data name="How many database connections the server keeps open and shares between its worker threads. Raising it helps only when threads are visibly waiting for a connection - see the database connection acquire timeout on the Server limits &amp; expert settings page, which is what they are waiting on." xml:space="preserve">
     <value>服务器保持打开并在工作线程之间共享的数据库连接数。只有在线程明显在等待连接时提高它才有帮助 - 请参阅“服务器限制和专家设置”页上的数据库连接获取超时，那正是它们所等待的。</value>
@@ -11734,6 +11734,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The administrator signs in with a password alone." xml:space="preserve">
     <value>管理员仅凭密码登录。</value>
   </data>
+  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry." xml:space="preserve">
+    <value>管理员的密码和第二因素，以及每个邮箱密码必须遵守的规则：长度、泄露检查、重用与过期。</value>
+  </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>管理员密码有一次性代码保护。</value>
   </data>
@@ -11975,9 +11978,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page." xml:space="preserve">
     <value>ARC 密封的对应功能: 对于入站邮件，来自受信任密封者的有效 ARC 链可以抵消因转发而破坏了 DMARC 通过结果的邮件的 DMARC 失败分数 (RFC 8617)。它在“反垃圾邮件设置”页的“发件人身份验证”选项卡上配置，因为它与其他反垃圾邮件设置一起存储，而不是存放在 hMailServer.INI 中。受信任密封者列表为空时，此功能有意什么也不做: 任何人都可以伪造一整条 ARC 链，并用发布在自己 DNS 中的密钥密封它，而它会完美地通过验证，所以除非您已经信任该密封者，否则通过验证的链什么也证明不了。这个列表不是该功能的一个选项 - 它就是该功能本身。抵消量永远不会超过 DMARC 失败分数，并且仅在“反垃圾邮件设置”页上启用了 DMARC 评分时才生效。</value>
-  </data>
-  <data name="The credentials used to administer this server." xml:space="preserve">
-    <value>用于管理本服务器的凭据。</value>
   </data>
   <data name="The current password counts as the most recent one, so setting a password to itself is refused too - the repeat somebody is most likely to try." xml:space="preserve">
     <value>当前密码算作最近一次使用的密码，因此把密码设为它本身也会被拒绝 - 这是最有可能被尝试的重复。</value>
@@ -12648,9 +12648,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The server" xml:space="preserve">
     <value>服务器</value>
-  </data>
-  <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
-    <value>服务器管理密码，以及究竟谁可以使用这些工具。</value>
   </data>
   <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
     <value>服务器返回了此控制面板无法读取的内容 ({0})</value>
@@ -14038,6 +14035,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Which way" xml:space="preserve">
     <value>哪个方向</value>
+  </data>
+  <data name="While this is off the server uses none of the settings below, so they cannot be changed until it is on." xml:space="preserve">
+    <value>关闭此项时，服务器不使用下方的任何设置，因此在开启之前无法更改它们。</value>
   </data>
   <data name="Who" xml:space="preserve">
     <value>操作者</value>

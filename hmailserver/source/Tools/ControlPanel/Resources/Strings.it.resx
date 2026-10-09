@@ -5422,9 +5422,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="How account passwords are hashed, how much work a new hash costs, and the weakest stored hash still allowed to log on. Existing passwords keep their current hash until they are next changed - or, when a work factor was raised, until they are next used to log on." xml:space="preserve">
     <value>Come vengono generati gli hash delle password degli account, quanto lavoro costa un nuovo hash, e l'hash memorizzato più debole ancora ammesso all'accesso. Le password esistenti mantengono il loro hash attuale fino alla modifica successiva - o, quando un fattore di lavoro è stato alzato, fino alla volta successiva in cui vengono usate per accedere.</value>
   </data>
-  <data name="How accounts prove who they are: password hashing, OAuth2 / XOAUTH2, and required mechanisms." xml:space="preserve">
-    <value>Come gli account dimostrano la propria identità: hashing delle password, OAuth2 / XOAUTH2 e meccanismi obbligatori.</value>
-  </data>
   <data name="How entries reach the collector" xml:space="preserve">
     <value>Come le voci raggiungono il collector</value>
   </data>
@@ -5461,8 +5458,11 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="How mail gets in, where it goes next, and what happens to it on the way." xml:space="preserve">
     <value>Come la posta entra, dove va poi, e cosa le succede lungo il percorso.</value>
   </data>
-  <data name="How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered." xml:space="preserve">
-    <value>Come gli utenti delle caselle dimostrano la propria identità: provider di identità esterni, come vengono memorizzate le password e dove viene offerto AUTH su SMTP.</value>
+  <data name="How mailbox passwords are stored, where SMTP AUTH is offered, and tokens from an external identity provider (OAuth2 / XOAUTH2)." xml:space="preserve">
+    <value>Come vengono memorizzate le password delle caselle, dove viene offerto AUTH su SMTP e i token di un provider di identità esterno (OAuth2 / XOAUTH2).</value>
+  </data>
+  <data name="How mailbox users prove who they are: how their passwords are stored, where SMTP AUTH is offered, and tokens from an external identity provider." xml:space="preserve">
+    <value>Come gli utenti delle caselle dimostrano la propria identità: come vengono memorizzate le loro password, dove viene offerto AUTH su SMTP e i token di un provider di identità esterno.</value>
   </data>
   <data name="How many database connections the server keeps open and shares between its worker threads. Raising it helps only when threads are visibly waiting for a connection - see the database connection acquire timeout on the Server limits &amp; expert settings page, which is what they are waiting on." xml:space="preserve">
     <value>Quante connessioni al database il server tiene aperte e condivide fra i suoi thread di lavoro. Alzarlo aiuta solo quando i thread sono visibilmente in attesa di una connessione - vedi il timeout di acquisizione di una connessione al database nella pagina Limiti del server e impostazioni avanzate, che è ciò che stanno aspettando.</value>
@@ -11734,6 +11734,9 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="The administrator signs in with a password alone." xml:space="preserve">
     <value>L'amministratore accede con la sola password.</value>
   </data>
+  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry." xml:space="preserve">
+    <value>La password e il secondo fattore dell'amministratore, e le regole che ogni password di casella deve rispettare: lunghezza, controllo delle violazioni, riuso e scadenza.</value>
+  </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>La password dell'amministratore è protetta da un codice monouso.</value>
   </data>
@@ -11975,9 +11978,6 @@ Selezionare la chiave qui sopra e copiarla a mano - non verrà mostrata di nuovo
   </data>
   <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page." xml:space="preserve">
     <value>Il corrispettivo della sigillatura ARC: sulla posta in entrata, una catena ARC valida proveniente da un sigillatore fidato può compensare il punteggio di fallimento DMARC di un messaggio il cui superamento DMARC è stato distrutto dall'inoltro (RFC 8617). Si configura nella scheda Autenticazione mittente della pagina Impostazioni antispam, perché è memorizzato insieme alle altre impostazioni antispam anziché in hMailServer.INI. Con l'elenco dei sigillatori fidati vuoto la funzione non fa assolutamente nulla, ed è voluto: chiunque può fabbricare un'intera catena ARC e sigillarla con chiavi pubblicate nel proprio DNS, e verrà convalidata perfettamente, quindi una catena che passa non dimostra nulla se non si ha già fiducia nel sigillatore. L'elenco non è un'opzione della funzione - è la funzione. La compensazione non supera mai il punteggio di fallimento DMARC e si applica solo mentre il punteggio DMARC è attivo nella pagina Impostazioni antispam.</value>
-  </data>
-  <data name="The credentials used to administer this server." xml:space="preserve">
-    <value>Le credenziali usate per amministrare questo server.</value>
   </data>
   <data name="The current password counts as the most recent one, so setting a password to itself is refused too - the repeat somebody is most likely to try." xml:space="preserve">
     <value>La password attuale conta come la più recente, quindi anche impostare una password uguale a sé stessa viene rifiutato - la ripetizione che qualcuno è più propenso a tentare.</value>
@@ -12648,9 +12648,6 @@ Aggiungerlo comunque?</value>
   </data>
   <data name="The server" xml:space="preserve">
     <value>Il server</value>
-  </data>
-  <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
-    <value>La password di amministrazione del server e chi è autorizzato a usare questi strumenti.</value>
   </data>
   <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
     <value>Il server ha risposto qualcosa che questo Control Panel non è riuscito a leggere ({0})</value>
@@ -14038,6 +14035,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="Which way" xml:space="preserve">
     <value>In quale direzione</value>
+  </data>
+  <data name="While this is off the server uses none of the settings below, so they cannot be changed until it is on." xml:space="preserve">
+    <value>Finché questa opzione è disattivata il server non usa nessuna delle impostazioni sottostanti, che quindi non si possono modificare finché non viene attivata.</value>
   </data>
   <data name="Who" xml:space="preserve">
     <value>Chi</value>

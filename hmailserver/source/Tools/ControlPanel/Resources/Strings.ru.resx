@@ -5486,9 +5486,6 @@ Control Panel может читать файлы сообщений только
   <data name="How account passwords are hashed, how much work a new hash costs, and the weakest stored hash still allowed to log on. Existing passwords keep their current hash until they are next changed - or, when a work factor was raised, until they are next used to log on." xml:space="preserve">
     <value>Как хешируются пароли учётных записей, сколько работы стоит новый хеш и какой самый слабый из сохранённых хешей ещё допускается для входа. Существующие пароли сохраняют текущий хеш до следующей смены — или, если был повышен коэффициент трудоёмкости, до следующего входа с ними.</value>
   </data>
-  <data name="How accounts prove who they are: password hashing, OAuth2 / XOAUTH2, and required mechanisms." xml:space="preserve">
-    <value>Как учётные записи подтверждают, кто они: хеширование паролей, OAuth2 / XOAUTH2 и обязательные механизмы.</value>
-  </data>
   <data name="How entries reach the collector" xml:space="preserve">
     <value>Как записи попадают к сборщику</value>
   </data>
@@ -5525,8 +5522,11 @@ Control Panel может читать файлы сообщений только
   <data name="How mail gets in, where it goes next, and what happens to it on the way." xml:space="preserve">
     <value>Как почта попадает внутрь, куда она отправляется дальше и что происходит с ней по дороге.</value>
   </data>
-  <data name="How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered." xml:space="preserve">
-    <value>Как пользователи почтовых ящиков подтверждают, кто они: внешние поставщики удостоверений, способ хранения паролей и то, где предлагается SMTP AUTH.</value>
+  <data name="How mailbox passwords are stored, where SMTP AUTH is offered, and tokens from an external identity provider (OAuth2 / XOAUTH2)." xml:space="preserve">
+    <value>Способ хранения паролей почтовых ящиков, то, где предлагается SMTP AUTH, и токены внешнего поставщика удостоверений (OAuth2 / XOAUTH2).</value>
+  </data>
+  <data name="How mailbox users prove who they are: how their passwords are stored, where SMTP AUTH is offered, and tokens from an external identity provider." xml:space="preserve">
+    <value>Как пользователи почтовых ящиков подтверждают, кто они: способ хранения их паролей, то, где предлагается SMTP AUTH, и токены внешнего поставщика удостоверений.</value>
   </data>
   <data name="How many database connections the server keeps open and shares between its worker threads. Raising it helps only when threads are visibly waiting for a connection - see the database connection acquire timeout on the Server limits &amp; expert settings page, which is what they are waiting on." xml:space="preserve">
     <value>Сколько подключений к базе данных сервер держит открытыми и делит между своими рабочими потоками. Увеличивать это значение имеет смысл только тогда, когда потоки заметно ждут подключения, — см. тайм-аут получения подключения к базе данных на странице «Ограничения сервера и экспертные параметры»: именно его они и ждут.</value>
@@ -11864,6 +11864,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The administrator signs in with a password alone." xml:space="preserve">
     <value>Администратор входит только по паролю.</value>
   </data>
+  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry." xml:space="preserve">
+    <value>Пароль и второй фактор администратора, а также правила для каждого пароля почтового ящика: длина, проверка по утечкам, повторное использование и срок действия.</value>
+  </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>Пароль администратора подкреплён одноразовым кодом.</value>
   </data>
@@ -12126,9 +12129,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page." xml:space="preserve">
     <value>Обратная сторона запечатывания ARC: для входящей почты действительная цепочка ARC от доверенного запечатывающего может компенсировать оценку за провал DMARC у сообщения, чей успешный DMARC был разрушен пересылкой (RFC 8617). Настраивается на вкладке «Аутентификация отправителя» страницы «Параметры антиспама», потому что хранится вместе с остальными параметрами защиты от спама, а не в hMailServer.INI. При пустом списке доверенных запечатывающих функция намеренно не делает вообще ничего: кто угодно может сфабриковать целую цепочку ARC и запечатать её ключами, опубликованными в собственном DNS, и она пройдёт проверку безупречно, поэтому проходящая цепочка ничего не доказывает, если вы уже не доверяете запечатывающему. Список - не параметр функции, он и есть функция. Компенсация никогда не превышает оценку за провал DMARC и действует только пока на странице «Параметры антиспама» включена оценка DMARC.</value>
-  </data>
-  <data name="The credentials used to administer this server." xml:space="preserve">
-    <value>Учётные данные, которыми администрируют этот сервер.</value>
   </data>
   <data name="The current password counts as the most recent one, so setting a password to itself is refused too - the repeat somebody is most likely to try." xml:space="preserve">
     <value>Текущий пароль считается самым последним, поэтому установить пароль в него же тоже отказано - это повтор, который кто-то попробует с наибольшей вероятностью.</value>
@@ -12811,9 +12811,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The server" xml:space="preserve">
     <value>Сервер</value>
-  </data>
-  <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
-    <value>Пароль администрирования сервера и кто вообще имеет право пользоваться этими инструментами.</value>
   </data>
   <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
     <value>Сервер ответил так, что этот Control Panel не смог прочитать ответ ({0})</value>
@@ -14207,6 +14204,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Which way" xml:space="preserve">
     <value>В какую сторону</value>
+  </data>
+  <data name="While this is off the server uses none of the settings below, so they cannot be changed until it is on." xml:space="preserve">
+    <value>Пока это выключено, сервер не использует ни одной из настроек ниже, поэтому их нельзя изменить, пока это не включено.</value>
   </data>
   <data name="Who" xml:space="preserve">
     <value>Кто</value>

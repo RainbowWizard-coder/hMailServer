@@ -5422,9 +5422,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="How account passwords are hashed, how much work a new hash costs, and the weakest stored hash still allowed to log on. Existing passwords keep their current hash until they are next changed - or, when a work factor was raised, until they are next used to log on." xml:space="preserve">
     <value>Hoe accountwachtwoorden worden gehasht, hoeveel werk een nieuwe hash kost, en de zwakste opgeslagen hash waarmee nog mag worden aangemeld. Bestaande wachtwoorden houden hun huidige hash totdat ze de volgende keer worden gewijzigd - of, wanneer een werkfactor is verhoogd, totdat ze de volgende keer worden gebruikt om aan te melden.</value>
   </data>
-  <data name="How accounts prove who they are: password hashing, OAuth2 / XOAUTH2, and required mechanisms." xml:space="preserve">
-    <value>Hoe accounts bewijzen wie ze zijn: wachtwoordhashing, OAuth2 / XOAUTH2, en vereiste mechanismen.</value>
-  </data>
   <data name="How entries reach the collector" xml:space="preserve">
     <value>Hoe de regels bij de collector komen</value>
   </data>
@@ -5461,8 +5458,11 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="How mail gets in, where it goes next, and what happens to it on the way." xml:space="preserve">
     <value>Hoe mail binnenkomt, waar die vervolgens heen gaat, en wat er onderweg mee gebeurt.</value>
   </data>
-  <data name="How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered." xml:space="preserve">
-    <value>Hoe postvakgebruikers bewijzen wie ze zijn: externe identiteitsproviders, hoe wachtwoorden worden opgeslagen, en waar SMTP AUTH wordt aangeboden.</value>
+  <data name="How mailbox passwords are stored, where SMTP AUTH is offered, and tokens from an external identity provider (OAuth2 / XOAUTH2)." xml:space="preserve">
+    <value>Hoe postvakwachtwoorden worden opgeslagen, waar SMTP AUTH wordt aangeboden, en tokens van een externe identiteitsprovider (OAuth2 / XOAUTH2).</value>
+  </data>
+  <data name="How mailbox users prove who they are: how their passwords are stored, where SMTP AUTH is offered, and tokens from an external identity provider." xml:space="preserve">
+    <value>Hoe postvakgebruikers bewijzen wie ze zijn: hoe hun wachtwoorden worden opgeslagen, waar SMTP AUTH wordt aangeboden, en tokens van een externe identiteitsprovider.</value>
   </data>
   <data name="How many database connections the server keeps open and shares between its worker threads. Raising it helps only when threads are visibly waiting for a connection - see the database connection acquire timeout on the Server limits &amp; expert settings page, which is what they are waiting on." xml:space="preserve">
     <value>Hoeveel databaseverbindingen de server openhoudt en deelt tussen zijn workerthreads. Dit verhogen helpt alleen wanneer threads zichtbaar op een verbinding staan te wachten - zie de time-out voor het verkrijgen van een databaseverbinding op de pagina Serverlimieten en expertinstellingen, want daarop wachten ze.</value>
@@ -11734,6 +11734,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="The administrator signs in with a password alone." xml:space="preserve">
     <value>De beheerder meldt zich alleen met een wachtwoord aan.</value>
   </data>
+  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry." xml:space="preserve">
+    <value>Het wachtwoord en de tweede factor van de beheerder, en de regels waaraan elk postvakwachtwoord moet voldoen: lengte, de controle op datalekken, hergebruik en verval.</value>
+  </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>Het wachtwoord van de beheerder wordt gedekt door een eenmalige code.</value>
   </data>
@@ -11975,9 +11978,6 @@ Selecteer de sleutel hierboven en kopieer die met de hand - hij wordt niet opnie
   </data>
   <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page." xml:space="preserve">
     <value>De tegenhanger van ARC-verzegeling: bij inkomende mail kan een geldige ARC-keten van een vertrouwde verzegelaar de DMARC-faalscore compenseren voor een bericht waarvan het geslaagde DMARC-resultaat door doorsturen is vernietigd (RFC 8617). Het wordt ingesteld op het tabblad Afzender-auth van de pagina Antispaminstellingen, omdat het bij de andere antispaminstellingen wordt opgeslagen en niet in hMailServer.INI. Met een lege lijst van vertrouwde verzegelaars doet de functie helemaal niets, en dat is bewust: iedereen kan een complete ARC-keten fabriceren en verzegelen met sleutels die hij in zijn eigen DNS publiceert, en die valideert perfect - een geslaagde keten bewijst dus niets tenzij u de verzegelaar al vertrouwt. De lijst is geen optie van de functie, het is de functie. De compensatie is nooit groter dan de DMARC-faalscore en geldt alleen zolang DMARC-scoring is ingeschakeld op de pagina Antispaminstellingen.</value>
-  </data>
-  <data name="The credentials used to administer this server." xml:space="preserve">
-    <value>De referenties waarmee deze server wordt beheerd.</value>
   </data>
   <data name="The current password counts as the most recent one, so setting a password to itself is refused too - the repeat somebody is most likely to try." xml:space="preserve">
     <value>Het huidige wachtwoord telt als het meest recente, dus een wachtwoord op zichzelf instellen wordt ook geweigerd - juist de herhaling die iemand het eerst zal proberen.</value>
@@ -12648,9 +12648,6 @@ Toch toevoegen?</value>
   </data>
   <data name="The server" xml:space="preserve">
     <value>De server</value>
-  </data>
-  <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
-    <value>Het beheerderswachtwoord van de server, en wie deze hulpmiddelen überhaupt mag gebruiken.</value>
   </data>
   <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
     <value>De server antwoordde iets wat dit Control Panel niet kon lezen ({0})</value>
@@ -14038,6 +14035,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="Which way" xml:space="preserve">
     <value>Welke richting</value>
+  </data>
+  <data name="While this is off the server uses none of the settings below, so they cannot be changed until it is on." xml:space="preserve">
+    <value>Zolang dit uit staat, gebruikt de server geen van de instellingen hieronder, dus ze kunnen pas worden gewijzigd als het aan staat.</value>
   </data>
   <data name="Who" xml:space="preserve">
     <value>Wie</value>

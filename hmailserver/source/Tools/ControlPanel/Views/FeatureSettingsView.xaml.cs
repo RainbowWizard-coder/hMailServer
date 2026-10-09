@@ -1312,6 +1312,13 @@ namespace hMailServer.ControlPanel.Views
          public string Blurb;
          public List<Setting> Settings = new();
          public List<WarningDef> Warnings = new();
+
+         /// <summary>
+         /// The key of the card's switch when the server reads the card's other
+         /// settings only while it is on, or null: those rows' editors follow the
+         /// switch and are greyed while it is off (<see cref="WireEnabledBy_"/>).
+         /// </summary>
+         public string EnabledByKey;
       }
 
       // The master switches the settings under them follow (Setting.DependsOn).
@@ -2988,14 +2995,20 @@ namespace hMailServer.ControlPanel.Views
 
             case Section.Authentication:
                Header.PageKey = "authentication";
-               Header.Subtitle = L("How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered.");
-               cards_.Add(new CardDef
+               Header.Subtitle = L("How mailbox users prove who they are: how their passwords are stored, where SMTP AUTH is offered, and tokens from an external identity provider.");
+
+               // OAuth2 is the last card (the owner's decision of 9 October 2026,
+               // review finding F238): the page opened on its fifteen fields, live
+               // while OAuth2 is off, with password storage and SMTP AUTH - what every
+               // server uses - below the fold. Defined here and added after the others.
+               var oauth2 = new CardDef
                {
                   Title = L("OAuth2 / external identity provider"),
                   Blurb = L("Accept OAuth2 / OpenID Connect bearer tokens (XOAUTH2) from an external identity provider for IMAP, POP3 and SMTP submission, validated against the issuer's signing key. The mailbox named by the token still has to exist as a local account."),
+                  EnabledByKey = "OAuth2Enabled", // no-loc
                   Settings =
                   {
-                     new BoolSetting { Key = "OAuth2Enabled", Default = false, Label = L("Accept OAuth2 bearer tokens (XOAUTH2)") },
+                     new BoolSetting { Key = "OAuth2Enabled", Default = false, Label = L("Accept OAuth2 bearer tokens (XOAUTH2)"), Blurb = L("While this is off the server uses none of the settings below, so they cannot be changed until it is on.") },
                      new BoolSetting { Key = "OAuth2RequireTLS", DependsOn = OAuth2Switch, Default = true, Label = L("Require TLS for token authentication") },
                      new TextSetting { Key = "OAuth2Issuer", DependsOn = OAuth2Switch, Label = L("Expected token issuer (iss)"), Placeholder = "https://login.microsoftonline.com/<tenant>/v2.0" },
                      new TextSetting { Key = "OAuth2Audience", DependsOn = OAuth2Switch, Label = L("Expected audience (aud)"), Placeholder = L("your application / client id") },
@@ -3028,7 +3041,7 @@ namespace hMailServer.ControlPanel.Views
                         Compute = ComputeOAuth2State_
                      }
                   }
-               });
+               };
                cards_.Add(new CardDef
                {
                   Title = L("Password storage"),
@@ -3091,6 +3104,7 @@ namespace hMailServer.ControlPanel.Views
                      new ElsewhereSetting("webmail", L("Passkeys, single sign-on with OpenID Connect or SAML, and account recovery"))
                   }
                });
+               cards_.Add(oauth2);
                break;
 
             case Section.Dns:
@@ -3242,6 +3256,7 @@ namespace hMailServer.ControlPanel.Views
       {
          CardsPanel.Children.Clear();
          warningRows_.Clear();
+         editors_.Clear();
          store_.ForgetFallback();
          readFromFile_ = null;
          readFromFileNotice_ = null;
@@ -3266,7 +3281,10 @@ namespace hMailServer.ControlPanel.Views
             // closes the card.
             var fields = new StackPanel();
             foreach (Setting setting in card.Settings)
+            {
                fields.Children.Add(setting.Built = setting.CreateEditor(store_));
+               editors_[setting] = setting.Built;
+            }
 
             if (fields.Children.Count > 0 && fields.Children[fields.Children.Count - 1] is FrameworkElement last)
                last.Margin = new Thickness(0);
@@ -3305,6 +3323,9 @@ namespace hMailServer.ControlPanel.Views
          foreach (CardDef card in cards_)
             foreach (Setting setting in card.Settings)
                setting.OnEditorChanged(EditorChanged_);
+
+         foreach (CardDef card in cards_)
+            WireEnabledBy_(card);
 
          // What every editor was filled with, which is what an unsaved change is
          // measured from.
@@ -3346,6 +3367,52 @@ namespace hMailServer.ControlPanel.Views
             : L("Stored in the server's settings database.");
          SaveButton.IsEnabled = true;
          SetState_(SettingsPageState.Clean, null);
+      }
+
+      /// <summary>
+      /// The row each setting's editor was built in, by the last build of the page:
+      /// what a card's switch greys (<see cref="WireEnabledBy_"/>).
+      /// </summary>
+      private readonly Dictionary<Setting, FrameworkElement> editors_ = new(ReferenceEqualityComparer.Instance);
+
+      /// <summary>
+      /// A card whose settings the server reads only while its switch is on
+      /// (<see cref="CardDef.EnabledByKey"/>): every other row's editor follows the
+      /// switch, greyed while it is off and back as soon as it is ticked, so that the
+      /// fifteen OAuth2 fields under an unticked box no longer read as settings in
+      /// force (review finding F238). The caption stays as it was, so the row still
+      /// says what it holds. A row the server's environment or the update's trust
+      /// holds stays as its row set it.
+      /// </summary>
+      private void WireEnabledBy_(CardDef card)
+      {
+         if (string.IsNullOrEmpty(card.EnabledByKey))
+            return;
+
+         Setting toggle = card.Settings.FirstOrDefault(setting =>
+            setting is BoolSetting && string.Equals(setting.Key, card.EnabledByKey, StringComparison.OrdinalIgnoreCase));
+         if (toggle == null)
+            return;
+
+         var followers = new List<(UIElement Editor, bool Allowed)>();
+         foreach (Setting setting in card.Settings)
+         {
+            if (ReferenceEquals(setting, toggle) || !editors_.TryGetValue(setting, out FrameworkElement built))
+               continue;
+
+            UIElement editor = built is FieldRow row && row.Content is UIElement content ? content : built;
+            followers.Add((editor, editor.IsEnabled));
+         }
+
+         void Follow()
+         {
+            bool on = toggle.LiveValue == "1";
+            foreach ((UIElement editor, bool allowed) in followers)
+               editor.IsEnabled = allowed && on;
+         }
+
+         toggle.OnEditorChanged(Follow);
+         Follow();
       }
 
       /// <summary>An editor changed: the warnings that read it, and the pill.</summary>

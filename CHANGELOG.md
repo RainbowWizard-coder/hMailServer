@@ -2254,6 +2254,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the HELO name alone; a list that cannot be read says so while the others answer, and the line then says the answer
   may change (review finding F269).
 
+- **Fixed: the Authentication page opened on fifteen OAuth2 fields, live while OAuth2 was off, and Ctrl+K sent
+  two-factor and SASL searches to it.** Password storage and SMTP AUTH - what every server uses - were below the fold,
+  and "Two-factor", "SASL", "CRAM-MD5" and "APOP" opened a page with none of them, while "2FA", "TOTP" and the mailbox
+  password policy on Administrative access found nothing. The cards are now Password storage, SMTP authentication,
+  Sign-in to the webmail and the Control Deck, and OAuth2 last (the owner's decision of 9 October 2026); the OAuth2
+  fields are greyed while Accept OAuth2 bearer tokens is unticked, as a note under it says, and follow it as it is
+  ticked. The second factor's names - Two-factor, 2FA, TOTP, One-time code - and the mailbox password rules' -
+  Password policy, Password expiry, Password history, Breached passwords - open Administrative access, whose subtitle
+  and description now say that it holds the administrator's password and second factor and the rules every mailbox
+  password is held to; SASL, AUTH PLAIN, AUTH LOGIN, CRAM-MD5 and APOP open Protocols, where the mechanisms this
+  server offers are switched; and Authentication's Related links begin with Protocols, Directory authentication (LDAP)
+  and Administrative access.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

@@ -5060,7 +5060,10 @@ namespace hMailServer.ControlPanel.Views
       private void BuildAdminAccess()
       {
          Header.PageKey = "adminaccess";
-         Header.Subtitle = L("The credentials used to administer this server.");
+         // Says what the page holds - the rules for mailbox passwords as well, which
+         // the old subtitle, naming the administrator's credentials alone, left out
+         // (review finding F238) - as the navigation map's description does.
+         Header.Subtitle = L("The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry.");
 
          // Changed in a dialog of its own - the password in use now, the new one and
          // the new one again - and never by this page's Save: one unconfirmed box,

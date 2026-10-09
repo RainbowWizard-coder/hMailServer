@@ -5422,9 +5422,6 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="How account passwords are hashed, how much work a new hash costs, and the weakest stored hash still allowed to log on. Existing passwords keep their current hash until they are next changed - or, when a work factor was raised, until they are next used to log on." xml:space="preserve">
     <value>Hvordan kontoadgangskoder hashes, hvor meget arbejde en ny hash koster, og den svageste gemte hash, der stadig må logge på. Eksisterende adgangskoder beholder deres nuværende hash, indtil de næste gang ændres – eller, når en arbejdsfaktor er blevet hævet, indtil de næste gang bruges til at logge på.</value>
   </data>
-  <data name="How accounts prove who they are: password hashing, OAuth2 / XOAUTH2, and required mechanisms." xml:space="preserve">
-    <value>Hvordan konti beviser, hvem de er: adgangskodehashing, OAuth2 / XOAUTH2 og påkrævede mekanismer.</value>
-  </data>
   <data name="How entries reach the collector" xml:space="preserve">
     <value>Hvordan posterne når samleren</value>
   </data>
@@ -5461,8 +5458,11 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="How mail gets in, where it goes next, and what happens to it on the way." xml:space="preserve">
     <value>Hvordan post kommer ind, hvor den går hen derefter, og hvad der sker med den undervejs.</value>
   </data>
-  <data name="How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered." xml:space="preserve">
-    <value>Hvordan postkassebrugere beviser, hvem de er: eksterne identitetsudbydere, hvordan adgangskoder gemmes, og hvor SMTP AUTH tilbydes.</value>
+  <data name="How mailbox passwords are stored, where SMTP AUTH is offered, and tokens from an external identity provider (OAuth2 / XOAUTH2)." xml:space="preserve">
+    <value>Hvordan postkasseadgangskoder gemmes, hvor SMTP AUTH tilbydes, og tokens fra en ekstern identitetsudbyder (OAuth2 / XOAUTH2).</value>
+  </data>
+  <data name="How mailbox users prove who they are: how their passwords are stored, where SMTP AUTH is offered, and tokens from an external identity provider." xml:space="preserve">
+    <value>Hvordan postkassebrugere beviser, hvem de er: hvordan deres adgangskoder gemmes, hvor SMTP AUTH tilbydes, og tokens fra en ekstern identitetsudbyder.</value>
   </data>
   <data name="How many database connections the server keeps open and shares between its worker threads. Raising it helps only when threads are visibly waiting for a connection - see the database connection acquire timeout on the Server limits &amp; expert settings page, which is what they are waiting on." xml:space="preserve">
     <value>Hvor mange databaseforbindelser serveren holder åbne og deler mellem sine worker-tråde. At hæve tallet hjælper kun, når tråde synligt venter på en forbindelse – se timeouten for at få en databaseforbindelse på siden Servergrænser og ekspertindstillinger, som er det, de venter på.</value>
@@ -11734,6 +11734,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="The administrator signs in with a password alone." xml:space="preserve">
     <value>Administratoren logger ind med en adgangskode alene.</value>
   </data>
+  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry." xml:space="preserve">
+    <value>Administratorens adgangskode og anden faktor samt de regler, som enhver postkasseadgangskode skal overholde: længde, kontrol mod datalæk, genbrug og udløb.</value>
+  </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>Administratorens adgangskode er dækket af en engangskode.</value>
   </data>
@@ -11975,9 +11978,6 @@ Markér nøglen ovenfor og kopiér den manuelt - den vises ikke igen.</value>
   </data>
   <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page." xml:space="preserve">
     <value>Modstykket til ARC-forsegling: på indgående post kan en gyldig ARC-kæde fra en betroet forsegler opveje DMARC-fejlscoren for en meddelelse, hvis DMARC-godkendelse blev ødelagt af videresendelse (RFC 8617). Det konfigureres på fanen Afsendergodkendelse på siden Antispam-indstillinger, fordi det gemmes sammen med de andre antispam-indstillinger og ikke i hMailServer.INI. Med en tom liste over betroede forseglere gør funktionen slet ingenting, og det er med vilje: enhver kan fabrikere en hel ARC-kæde og forsegle den med nøgler publiceret i sit eget DNS, og den vil validere perfekt, så en godkendt kæde beviser intet, medmindre du allerede stoler på forsegleren. Listen er ikke en mulighed i funktionen - den er funktionen. Opvejningen overstiger aldrig DMARC-fejlscoren og gælder kun, mens DMARC-scoring er aktiveret på siden Antispam-indstillinger.</value>
-  </data>
-  <data name="The credentials used to administer this server." xml:space="preserve">
-    <value>De legitimationsoplysninger, der bruges til at administrere denne server.</value>
   </data>
   <data name="The current password counts as the most recent one, so setting a password to itself is refused too - the repeat somebody is most likely to try." xml:space="preserve">
     <value>Den nuværende adgangskode tæller som den seneste, så at sætte en adgangskode til sig selv afvises også - den gentagelse, nogen mest sandsynligt vil prøve.</value>
@@ -12648,9 +12648,6 @@ Tilføj alligevel?</value>
   </data>
   <data name="The server" xml:space="preserve">
     <value>Serveren</value>
-  </data>
-  <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
-    <value>Serverens administrationsadgangskode, og hvem der overhovedet må bruge disse værktøjer.</value>
   </data>
   <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
     <value>Serveren svarede noget, som dette Control Panel ikke kunne læse ({0})</value>
@@ -14038,6 +14035,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="Which way" xml:space="preserve">
     <value>Hvilken vej</value>
+  </data>
+  <data name="While this is off the server uses none of the settings below, so they cannot be changed until it is on." xml:space="preserve">
+    <value>Så længe dette er slået fra, bruger serveren ingen af indstillingerne nedenfor, så de kan ikke ændres, før det er slået til.</value>
   </data>
   <data name="Who" xml:space="preserve">
     <value>Hvem</value>

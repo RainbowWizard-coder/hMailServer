@@ -5486,9 +5486,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="How account passwords are hashed, how much work a new hash costs, and the weakest stored hash still allowed to log on. Existing passwords keep their current hash until they are next changed - or, when a work factor was raised, until they are next used to log on." xml:space="preserve">
     <value>Jak se hashují hesla účtů, kolik práce stojí nový hash a nejslabší uložený hash, který se ještě smí přihlásit. Stávající hesla si ponechají svůj hash, dokud se příště nezmění - nebo, byl-li zvýšen pracovní faktor, dokud se příště nepoužijí k přihlášení.</value>
   </data>
-  <data name="How accounts prove who they are: password hashing, OAuth2 / XOAUTH2, and required mechanisms." xml:space="preserve">
-    <value>Jak účty prokazují, kdo jsou: hashování hesel, OAuth2 / XOAUTH2 a vyžadované mechanismy.</value>
-  </data>
   <data name="How entries reach the collector" xml:space="preserve">
     <value>Jak se záznamy dostanou ke sběrači</value>
   </data>
@@ -5525,8 +5522,11 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="How mail gets in, where it goes next, and what happens to it on the way." xml:space="preserve">
     <value>Jak se pošta dostane dovnitř, kam jde dál a co se s ní cestou děje.</value>
   </data>
-  <data name="How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered." xml:space="preserve">
-    <value>Jak uživatelé schránek prokazují, kdo jsou: externí poskytovatelé identity, jak se ukládají hesla a kde se nabízí SMTP AUTH.</value>
+  <data name="How mailbox passwords are stored, where SMTP AUTH is offered, and tokens from an external identity provider (OAuth2 / XOAUTH2)." xml:space="preserve">
+    <value>Jak se ukládají hesla schránek, kde se nabízí SMTP AUTH a tokeny od externího poskytovatele identity (OAuth2 / XOAUTH2).</value>
+  </data>
+  <data name="How mailbox users prove who they are: how their passwords are stored, where SMTP AUTH is offered, and tokens from an external identity provider." xml:space="preserve">
+    <value>Jak uživatelé schránek prokazují, kdo jsou: jak se ukládají jejich hesla, kde se nabízí SMTP AUTH a tokeny od externího poskytovatele identity.</value>
   </data>
   <data name="How many database connections the server keeps open and shares between its worker threads. Raising it helps only when threads are visibly waiting for a connection - see the database connection acquire timeout on the Server limits &amp; expert settings page, which is what they are waiting on." xml:space="preserve">
     <value>Kolik databázových spojení server drží otevřených a sdílí mezi pracovními vlákny. Zvýšení pomůže jen tehdy, když vlákna viditelně čekají na spojení - viz timeout získání databázového spojení na stránce Limity serveru a expertní nastavení, což je to, na co čekají.</value>
@@ -11864,6 +11864,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="The administrator signs in with a password alone." xml:space="preserve">
     <value>Správce se přihlašuje pouze heslem.</value>
   </data>
+  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry." xml:space="preserve">
+    <value>Heslo a druhý faktor správce a pravidla, kterým podléhá každé heslo schránky: délka, kontrola úniků, opakované použití a vypršení platnosti.</value>
+  </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>Heslo správce je kryto jednorázovým kódem.</value>
   </data>
@@ -12126,9 +12129,6 @@ Označte klíč výše a zkopírujte ho ručně - znovu už se nezobrazí.</valu
   </data>
   <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page." xml:space="preserve">
     <value>Protějšek pečetění ARC: u příchozí pošty může platný řetězec ARC od důvěryhodného pečetitele vyrovnat skóre za selhání DMARC u zprávy, jejíž úspěšný DMARC zničilo přeposlání (RFC 8617). Konfiguruje se na kartě Ověření odesílatele stránky Nastavení antispamu, protože se ukládá s ostatními antispamovými nastaveními, ne v hMailServer.INI. S prázdným seznamem důvěryhodných pečetitelů funkce záměrně nedělá vůbec nic: kdokoli může vyrobit celý řetězec ARC a zapečetit ho klíči zveřejněnými ve vlastním DNS, a projde ověřením dokonale, takže procházející řetězec nic nedokazuje, pokud pečetiteli už nedůvěřujete. Seznam není volba funkce - seznam je ta funkce. Vyrovnání nikdy nepřekročí skóre za selhání DMARC a platí jen dokud je na stránce Nastavení antispamu zapnuté skórování DMARC.</value>
-  </data>
-  <data name="The credentials used to administer this server." xml:space="preserve">
-    <value>Přihlašovací údaje, kterými se tento server spravuje.</value>
   </data>
   <data name="The current password counts as the most recent one, so setting a password to itself is refused too - the repeat somebody is most likely to try." xml:space="preserve">
     <value>Současné heslo se počítá jako to nejnovější, takže nastavit heslo na sebe samo je také odmítnuto - to je opakování, které někdo zkusí nejspíš.</value>
@@ -12811,9 +12811,6 @@ Přesto přidat?</value>
   </data>
   <data name="The server" xml:space="preserve">
     <value>Server</value>
-  </data>
-  <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
-    <value>Heslo správy serveru a kdo vůbec smí tyto nástroje používat.</value>
   </data>
   <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
     <value>Server odpověděl něčím, co tento Control Panel neumí přečíst ({0})</value>
@@ -14207,6 +14204,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="Which way" xml:space="preserve">
     <value>Kterým směrem</value>
+  </data>
+  <data name="While this is off the server uses none of the settings below, so they cannot be changed until it is on." xml:space="preserve">
+    <value>Dokud je toto vypnuto, server nepoužívá žádné z nastavení níže, a proto je nelze měnit, dokud se nezapne.</value>
   </data>
   <data name="Who" xml:space="preserve">
     <value>Kdo</value>

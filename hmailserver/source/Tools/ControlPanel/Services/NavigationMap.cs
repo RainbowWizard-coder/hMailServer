@@ -592,9 +592,16 @@ namespace hMailServer.ControlPanel.Services
                   aliases: "Listeners|Bindings|Port 25|Port 465|Port 587|Submission|Port 993|Port 995|STARTTLS|Implicit TLS|Interface|Bind address|Open a port",
                   seeAlso: "certs|tls|protocols"),
 
+               // The switches for how a client authenticates - AUTH PLAIN and LOGIN on
+               // SMTP, SASL PLAIN on IMAP - are this page's, so their names are its
+               // aliases; they sent the palette to Authentication, which has none of
+               // them (review finding F238). This server offers neither CRAM-MD5 nor
+               // APOP, so a search for them lands where the mechanisms it does offer
+               // are switched.
                Page("protocols", N("Protocols"),
                   N("Per-protocol limits and behaviour for SMTP, POP3 and IMAP."),
-                  aliases: "SMTP|POP3|IMAP|Timeouts|Max connections|Message size limit|Max message size|Host name|HELO name|EHLO|Authentication required|Welcome banner",
+                  aliases: "SMTP|POP3|IMAP|Timeouts|Max connections|Message size limit|Max message size|Host name|HELO name|EHLO|Authentication required|Welcome banner|" +
+                           "SASL|SASL PLAIN|AUTH PLAIN|AUTH LOGIN|Plain-text authentication|CRAM-MD5|APOP",
                   seeAlso: "ports|delivery|authentication|servermessages"),
 
                Page("webservices", N("Web services & autoconfiguration"),
@@ -787,14 +794,24 @@ namespace hMailServer.ControlPanel.Services
                N("Who may connect, who may authenticate, and what happens when someone keeps trying."),
                "Access & abuse protection|Security|Access control|Authentication|Abuse|Brute force|Who can connect",
 
+               // Its cards in the order a server needs them: password storage, SMTP
+               // AUTH, the browser pages' sign-in, then OAuth2. Two-factor, SASL,
+               // CRAM-MD5 and APOP were its aliases and none of them is here: the
+               // second factor is on Administrative access, the mechanisms on
+               // Protocols (review finding F238).
                Page("authentication", N("Authentication"),
-                  N("How accounts prove who they are: password hashing, OAuth2 / XOAUTH2, and required mechanisms."),
-                  aliases: "Password hashing|bcrypt|Argon2|OAuth2|XOAUTH2|Modern authentication|Microsoft 365|Google|SASL|CRAM-MD5|APOP|Two-factor|Pepper",
-                  seeAlso: "adminaccess|autoban|ipranges|protocols"),
+                  N("How mailbox passwords are stored, where SMTP AUTH is offered, and tokens from an external identity provider (OAuth2 / XOAUTH2)."),
+                  aliases: "Password hashing|Password storage|bcrypt|Argon2|scrypt|PBKDF2|Pepper|SMTP AUTH|OAuth2|XOAUTH2|Modern authentication|Microsoft 365|Google",
+                  seeAlso: "protocols|ldap|adminaccess|autoban|ipranges"),
 
+               // The administrator's password and second factor, and - because
+               // "Password" is where somebody looks for it - the policy for mailbox
+               // passwords, which nothing in the title says: its aliases find it.
                Page("adminaccess", N("Administrative access"),
-                  N("The server administration password, and who is allowed to use these tools at all."),
-                  aliases: "Admin password|Administrator password|Change the admin password|Remote administration|COM API access",
+                  N("The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry."),
+                  aliases: "Admin password|Administrator password|Change the admin password|Remote administration|COM API access|" +
+                           "Two-factor|Second factor|2FA|TOTP|One-time code|Authenticator app|" +
+                           "Password policy|Password rules|Password length|Password complexity|Password expiry|Password history|Breached passwords|Pwned passwords",
                   seeAlso: "roles|authentication"),
 
                Page("ipranges", N("IP ranges"),
