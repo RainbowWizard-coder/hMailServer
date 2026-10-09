@@ -636,7 +636,7 @@
   <data name="A service account password from an earlier version is stored in hMailServer.INI in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.INI with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
     <value>Önceki bir sürümden kalan bir hizmet hesabı parolası hMailServer.INI içinde düz metin olarak saklanıyor ve artık hiçbir şey onu okumuyor: hizmet, yükleyici tarafından veya Windows hizmet hesabı kartındaki düğmelerle kaydedilir ve Windows her parolanın kendi kopyasını tutar. ServiceAccountPassword satırını yükseltilmiş bir düzenleyiciyle hMailServer.INI dosyasından, ayarı da DELETE /api/v1/settings/ini/ServiceAccountPassword ile silin; böylece veritabanındaki kopya da gider.</value>
   </data>
-  <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender on the spam exemptions, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
+  <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender in the spam exemptions, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
     <value>HELO 192.0.2.7, HELO [192.0.2.7] ya da HELO localhost ile selamlayan veya MAIL FROM:&lt;user@192.0.2.7&gt; gönderen bir oturum kendisi için hiçbir ad vermemiştir ve gönderdiği ileti, onu bir listeye yazmak için hiçbir dayanak olmadan bekletilir ya da puanlanır. Kapalıyken sunucu bunu her zamanki gibi kabul eder. Açıkken spam testleri çalışmadan önce MAIL FROM aşamasında 550 5.7.1 ile yanıtlanır: köşeli parantezli ya da parantezsiz bir adres, tek bir etiket, co.uk gibi genel bir sonek ve ana bilgisayar adı olmayan her şey reddedilir; mail.co.uk ise bir addır. DNS'e hiçbir şey sorulmaz; sonekler, karantinanın gruplamada kullandığı Public Suffix List listesinden gelir. Yalnızca spam testlerini çalıştıran bir IP aralığından gelen kimliği doğrulanmamış oturumlar, AUTH fırsatını kullandıktan sonra değerlendirilir; spam istisnalarındaki bir gönderen ve HELO'su kendi ağ geçidinize ait olan gelen bir aktarıcı asla değerlendirilmez.</value>
   </data>
   <data name="A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one." xml:space="preserve">
@@ -5757,7 +5757,7 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Lower the mark and delete thresholds, or turn on more of the checks." xml:space="preserve">
     <value>İşaretleme ve silme eşiklerini düşürün ya da denetimlerin daha fazlasını açın.</value>
   </data>
-  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender on the spam exemptions. Allowed and blocked domains have a page of their own under Anti-spam." xml:space="preserve">
+  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. Allowed and blocked domains have a page of their own under Anti-spam." xml:space="preserve">
     <value>MAIL FROM:&lt;&gt; bir teslim raporunun dönüş yoludur ve bir raporun tam olarak bir alıcısı vardır: ilgili iletiyi gönderen adres. Ardından ikinci bir alıcı belirten boş gönderen, backscatter, sahte bir rapor ya da bir yoklamadır. Kapalıyken sunucu bunu her zamanki gibi kabul eder. Açıkken ikinci ve sonraki her RCPT TO 550 ile yanıtlanır ve işlemin DATA’sı da reddedilir; tek alıcılı boş gönderene asla dokunulmaz. Yalnızca spam testlerini çalıştıran bir IP aralığından gelen kimliği doğrulanmamış oturumlar için geçerlidir ve spam istisnalarındaki bir gönderene asla uygulanmaz. İzin verilen ve engellenen alan adları Anti-spam altında kendi sayfasındadır.</value>
   </data>
   <data name="MD5 (legacy)" xml:space="preserve">
@@ -6847,7 +6847,7 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>{0} IP aralığının hiçbiri kimlik doğrulamasından önce TLS gerektirmiyor; bu yüzden bir portun izin verdiği her yerde düz metin parola kabul ediliyor.</value>
   </data>
-  <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges on the spam exemptions (entries: {0})." xml:space="preserve">
+  <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges in the spam exemptions (entries: {0})." xml:space="preserve">
     <value>Bunların hiçbiri kimliği doğrulanmış bir oturuma uygulanmaz - oturum açmış bir istemci için, spam koruması kapatılmış bir IP aralığından gelen bağlantılar için ve spam istisnalarındaki gönderenler ile IP aralıkları için (kayıt: {0}) spam koruması tümüyle atlanır.</value>
   </data>
   <data name="None yet: make one with the button below." xml:space="preserve">
@@ -10829,8 +10829,8 @@ Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerekt
   <data name="The Windows prompt was declined, so nothing was installed and nothing on the server was changed." xml:space="preserve">
     <value>Windows istemi reddedildi; bu nedenle hiçbir şey yüklenmedi ve sunucuda hiçbir şey değişmedi.</value>
   </data>
-  <data name="The _HELO name's domain, on the allowed and blocked domains" xml:space="preserve">
-    <value>HELO a_dının alan adı, izin verilen ve engellenen alan adlarına</value>
+  <data name="The _HELO name's domain, on the list of allowed and blocked domains" xml:space="preserve">
+    <value>HELO a_dının alan adı, izin verilen ve engellenen alan adları listesinde</value>
   </data>
   <data name="The accepted TLS versions and cipher suites are set here." xml:space="preserve">
     <value>Kabul edilen TLS sürümleri ve şifre paketleri burada ayarlanır.</value>
@@ -11663,8 +11663,8 @@ Yine de eklensin mi?</value>
   <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
     <value>Gönderenin _adresi, sunucunun izin ve engel listesinde</value>
   </data>
-  <data name="The sender's _domain, on the allowed and blocked domains" xml:space="preserve">
-    <value>Gönderenin a_lan adı, izin verilen ve engellenen alan adlarına</value>
+  <data name="The sender's _domain, on the list of allowed and blocked domains" xml:space="preserve">
+    <value>Gönderenin a_lan adı, izin verilen ve engellenen alan adları listesinde</value>
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>Gönderen sunucu bağlanır, iletiyi gönderir ve sonra bekler. Onun tarafından, ileti gövdesi iletildikten sonra bir zaman aşımı görürsünüz - Postfix "timed out while sending end of data" der. İleti kuyruğunuzda hiç görünmez.</value>
@@ -14447,11 +14447,11 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="the configured UserSearchFilter is not a valid LDAP filter" xml:space="preserve">
     <value>yapılandırılan UserSearchFilter geçerli bir LDAP filtresi değil</value>
   </data>
-  <data name="the connecting address is on the greylisting exemptions (entries: {0})" xml:space="preserve">
-    <value>bağlanan adres greylisting istisnalarında (kayıt: {0})</value>
-  </data>
   <data name="the connecting address is one of the sender domain's A or MX records" xml:space="preserve">
     <value>bağlanan adres, gönderen etki alanının A ya da MX kayıtlarından biri</value>
+  </data>
+  <data name="the connecting address matches one of the greylisting exemptions (entries: {0})" xml:space="preserve">
+    <value>bağlanan adres greylisting istisnalarından biriyle eşleşiyor (kayıt: {0})</value>
   </data>
   <data name="the connection to the hMailServer service was lost - it was most likely restarted. The Control Panel will reconnect by itself; press Reload to try again." xml:space="preserve">
     <value>hMailServer hizmetiyle bağlantı koptu - büyük olasılıkla yeniden başlatıldı. Denetim Masası kendiliğinden yeniden bağlanır; yeniden denemek için Yeniden yükle'ye basın.</value>

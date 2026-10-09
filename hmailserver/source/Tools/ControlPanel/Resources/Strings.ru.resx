@@ -642,7 +642,7 @@
   <data name="A service account password from an earlier version is stored in hMailServer.INI in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.INI with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
     <value>Пароль учётной записи службы из прежней версии хранится в hMailServer.INI открытым текстом, и его больше ничто не читает: служба регистрируется установщиком или кнопками на карточке «Учётная запись службы Windows», а Windows хранит собственную копию любого пароля. Удалите строку ServiceAccountPassword из hMailServer.INI редактором с повышенными правами, а параметр — командой DELETE /api/v1/settings/ini/ServiceAccountPassword, чтобы исчезла и копия в базе данных.</value>
   </data>
-  <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender on the spam exemptions, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
+  <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender in the spam exemptions, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
     <value>Сеанс, который приветствует HELO 192.0.2.7, HELO [192.0.2.7] или HELO localhost либо отправляет MAIL FROM:&lt;user@192.0.2.7&gt;, не назвал себя никаким именем, и отправленное им письмо задерживается или получает баллы, а внести его в список не по чему. Выключено: сервер принимает его, как и всегда. Включено: на MAIL FROM даётся 550 5.7.1 ещё до запуска антиспам-проверок: адрес в квадратных скобках или без них, одиночная метка, публичный суффикс вроде co.uk и всё, что не является именем хоста, отклоняются, тогда как mail.co.uk - это имя. DNS ни о чём не спрашивается; суффиксы берутся из Public Suffix List, списка, по которому группирует карантин. Оцениваются только неаутентифицированные сеансы из диапазона IP, для которого выполняются антиспам-проверки, и только после того, как у AUTH был шанс, - никогда отправитель из исключений антиспама и никогда входящий ретранслятор, чей HELO принадлежит вашему собственному шлюзу.</value>
   </data>
   <data name="A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one." xml:space="preserve">
@@ -5811,7 +5811,7 @@ Control Panel может читать файлы сообщений только
   <data name="Lower the mark and delete thresholds, or turn on more of the checks." xml:space="preserve">
     <value>Снизьте пороги пометки и удаления или включите больше проверок.</value>
   </data>
-  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender on the spam exemptions. Allowed and blocked domains have a page of their own under Anti-spam." xml:space="preserve">
+  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. Allowed and blocked domains have a page of their own under Anti-spam." xml:space="preserve">
     <value>MAIL FROM:&lt;&gt; - это обратный путь отчёта о доставке, а у отчёта ровно один получатель: адрес, отправивший письмо, о котором идёт речь. Пустой отправитель, который затем называет второго получателя, - это backscatter, поддельный отчёт или зондирование. Выключено: сервер принимает его, как и всегда. Включено: на второй и каждый следующий RCPT TO даётся 550, а DATA транзакции тоже отклоняется; пустой отправитель с одним получателем не затрагивается никогда. Только неаутентифицированные сеансы из диапазона IP, для которого выполняются антиспам-проверки, и никогда - отправитель из исключений антиспама. Разрешённые и заблокированные домены - отдельная страница в разделе «Антиспам».</value>
   </data>
   <data name="MD5 (legacy)" xml:space="preserve">
@@ -6919,7 +6919,7 @@ Control Panel может читать файлы сообщений только
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one.|few" xml:space="preserve">
     <value>Ни один из {0} диапазонов IP не требует TLS перед аутентификацией, поэтому пароль открытым текстом принимается везде, где его допускает порт.</value>
   </data>
-  <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges on the spam exemptions (entries: {0})." xml:space="preserve">
+  <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges in the spam exemptions (entries: {0})." xml:space="preserve">
     <value>Ничто из этого не относится к аутентифицированному сеансу: защита от спама полностью пропускается для клиента, который вошёл в систему, для подключений из диапазона IP с отключённой защитой от спама и для отправителей и диапазонов IP из исключений антиспама (записей: {0}).</value>
   </data>
   <data name="None yet: make one with the button below." xml:space="preserve">
@@ -10945,8 +10945,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The Windows prompt was declined, so nothing was installed and nothing on the server was changed." xml:space="preserve">
     <value>Запрос Windows был отклонён, поэтому ничего не установлено и на сервере ничего не изменилось.</value>
   </data>
-  <data name="The _HELO name's domain, on the allowed and blocked domains" xml:space="preserve">
-    <value>_Домен имени HELO, в разрешённые и заблокированные домены</value>
+  <data name="The _HELO name's domain, on the list of allowed and blocked domains" xml:space="preserve">
+    <value>_Домен имени HELO, в списке разрешённых и заблокированных доменов</value>
   </data>
   <data name="The accepted TLS versions and cipher suites are set here." xml:space="preserve">
     <value>Здесь задаются принимаемые версии TLS и наборы шифров.</value>
@@ -11809,8 +11809,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
     <value>_Адрес отправителя, в списке разрешённых и заблокированных сервера</value>
   </data>
-  <data name="The sender's _domain, on the allowed and blocked domains" xml:space="preserve">
-    <value>Д_омен отправителя, в разрешённые и заблокированные домены</value>
+  <data name="The sender's _domain, on the list of allowed and blocked domains" xml:space="preserve">
+    <value>Д_омен отправителя, в списке разрешённых и заблокированных доменов</value>
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>Отправляющий сервер подключается, отправляет сообщение, а затем ждёт. С его стороны вы видите тайм-аут после того, как тело сообщения было передано - Postfix сообщает «timed out while sending end of data». Сообщение так и не появляется в вашей очереди.</value>
@@ -14620,11 +14620,11 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="the configured UserSearchFilter is not a valid LDAP filter" xml:space="preserve">
     <value>настроенный UserSearchFilter не является допустимым фильтром LDAP</value>
   </data>
-  <data name="the connecting address is on the greylisting exemptions (entries: {0})" xml:space="preserve">
-    <value>подключающийся адрес есть в исключениях серых списков (записей: {0})</value>
-  </data>
   <data name="the connecting address is one of the sender domain's A or MX records" xml:space="preserve">
     <value>подключающийся адрес присутствует среди A- или MX-записей домена отправителя</value>
+  </data>
+  <data name="the connecting address matches one of the greylisting exemptions (entries: {0})" xml:space="preserve">
+    <value>подключающийся адрес совпадает с одним из исключений серых списков (записей: {0})</value>
   </data>
   <data name="the connection to the hMailServer service was lost - it was most likely restarted. The Control Panel will reconnect by itself; press Reload to try again." xml:space="preserve">
     <value>подключение к службе hMailServer потеряно — скорее всего, она была перезапущена. Control Panel подключится заново сам; нажмите «Перезагрузить», чтобы повторить попытку.</value>

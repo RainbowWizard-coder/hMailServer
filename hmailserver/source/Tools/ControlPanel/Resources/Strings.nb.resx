@@ -636,8 +636,8 @@
   <data name="A service account password from an earlier version is stored in hMailServer.INI in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.INI with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
     <value>Et tjenestekontopassord fra en tidligere versjon er lagret i klartekst i hMailServer.INI, og ingenting leser det lenger: tjenesten registreres av installasjonsprogrammet eller med knappene på kortet Windows-tjenestekonto, og Windows beholder sin egen kopi av ethvert passord. Slett linjen ServiceAccountPassword fra hMailServer.INI med et redigeringsprogram med forhøyede rettigheter, og innstillingen med DELETE /api/v1/settings/ini/ServiceAccountPassword, slik at også databasens kopi forsvinner.</value>
   </data>
-  <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender on the spam exemptions, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
-    <value>En økt som hilser med HELO 192.0.2.7, HELO [192.0.2.7] eller HELO localhost, eller sender MAIL FROM:&lt;user@192.0.2.7&gt;, har ikke oppgitt noe navn på seg selv, og en melding den sender, holdes tilbake eller får poeng uten noe å føre den opp på en liste etter. Av: serveren godtar den som alltid. På: den besvares med 550 5.7.1 ved MAIL FROM, før søppelposttestene kjører: en adresse med eller uten hakeparenteser, én enkelt etikett, et offentlig suffiks som co.uk og alt som ikke er et vertsnavn, avvises, mens mail.co.uk er et navn. DNS spørres ikke; suffiksene er fra Public Suffix List, listen karantenen grupperer etter. Bare uautentiserte økter fra et IP-område som kjører søppelposttestene, vurderes, og først etter at AUTH har hatt sjansen - aldri en avsender på spamunntakene og aldri et innkommende relé, hvis HELO er deres egen gateways.</value>
+  <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender in the spam exemptions, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
+    <value>En økt som hilser med HELO 192.0.2.7, HELO [192.0.2.7] eller HELO localhost, eller sender MAIL FROM:&lt;user@192.0.2.7&gt;, har ikke oppgitt noe navn på seg selv, og en melding den sender, holdes tilbake eller får poeng uten noe å føre den opp på en liste etter. Av: serveren godtar den som alltid. På: den besvares med 550 5.7.1 ved MAIL FROM, før søppelposttestene kjører: en adresse med eller uten hakeparenteser, én enkelt etikett, et offentlig suffiks som co.uk og alt som ikke er et vertsnavn, avvises, mens mail.co.uk er et navn. DNS spørres ikke; suffiksene er fra Public Suffix List, listen karantenen grupperer etter. Bare uautentiserte økter fra et IP-område som kjører søppelposttestene, vurderes, og først etter at AUTH har hatt sjansen - aldri en avsender blant spamunntakene og aldri et innkommende relé, hvis HELO er deres egen gateways.</value>
   </data>
   <data name="A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one." xml:space="preserve">
     <value>En andel av tilkoblingene, aldri flere enn leveringstrådene: kontoene i ett driftet domene, eller all videresendt post til sammen, kan ikke oppta alle leveringstrådene. Sendegrensen per konto styrer volumet; dette gjør ikke det.</value>
@@ -5757,8 +5757,8 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Lower the mark and delete thresholds, or turn on more of the checks." xml:space="preserve">
     <value>Senk merke- og sletteterskelen, eller slå på flere av kontrollene.</value>
   </data>
-  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender on the spam exemptions. Allowed and blocked domains have a page of their own under Anti-spam." xml:space="preserve">
-    <value>MAIL FROM:&lt;&gt; er returstien for en leveringsrapport, og en rapport har nøyaktig én mottaker: adressen som sendte meldingen den gjelder. En tom avsender som deretter oppgir en andre mottaker, er backscatter, en forfalsket rapport eller en sondering. Av: serveren godtar den som alltid. På: den andre og hver senere RCPT TO besvares med 550, og transaksjonens DATA avvises også; en tom avsender med én mottaker røres aldri. Bare uautentiserte økter fra et IP-område som kjører søppelposttestene, og aldri en avsender på spamunntakene. Tillatte og blokkerte domener har en egen side under Antispam.</value>
+  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. Allowed and blocked domains have a page of their own under Anti-spam." xml:space="preserve">
+    <value>MAIL FROM:&lt;&gt; er returstien for en leveringsrapport, og en rapport har nøyaktig én mottaker: adressen som sendte meldingen den gjelder. En tom avsender som deretter oppgir en andre mottaker, er backscatter, en forfalsket rapport eller en sondering. Av: serveren godtar den som alltid. På: den andre og hver senere RCPT TO besvares med 550, og transaksjonens DATA avvises også; en tom avsender med én mottaker røres aldri. Bare uautentiserte økter fra et IP-område som kjører søppelposttestene, og aldri en avsender blant spamunntakene. Tillatte og blokkerte domener har en egen side under Antispam.</value>
   </data>
   <data name="MD5 (legacy)" xml:space="preserve">
     <value>MD5 (eldre)</value>
@@ -6847,8 +6847,8 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>Ingen av de {0} IP-områdene krever TLS før autentisering, så et klartekstpassord godtas overalt der en port tillater ett.</value>
   </data>
-  <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges on the spam exemptions (entries: {0})." xml:space="preserve">
-    <value>Ingenting av dette gjelder en autentisert økt - spambeskyttelse hoppes helt over for en klient som logget på, for tilkoblinger fra et IP-område med spambeskyttelse slått av, og for avsendere og IP-områder på spamunntakene (oppføringer: {0}).</value>
+  <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges in the spam exemptions (entries: {0})." xml:space="preserve">
+    <value>Ingenting av dette gjelder en autentisert økt - spambeskyttelse hoppes helt over for en klient som logget på, for tilkoblinger fra et IP-område med spambeskyttelse slått av, og for avsendere og IP-områder blant spamunntakene (oppføringer: {0}).</value>
   </data>
   <data name="None yet: make one with the button below." xml:space="preserve">
     <value>Ingen ennå: lag et med knappen nedenfor.</value>
@@ -10829,8 +10829,8 @@ Neste melding til adressen blir sendt, og den kommer først på listen igjen ett
   <data name="The Windows prompt was declined, so nothing was installed and nothing on the server was changed." xml:space="preserve">
     <value>Windows-spørsmålet ble avslått, så ingenting ble installert, og ingenting ble endret på serveren.</value>
   </data>
-  <data name="The _HELO name's domain, on the allowed and blocked domains" xml:space="preserve">
-    <value>HELO-_navnets domene, i de tillatte og blokkerte domenene</value>
+  <data name="The _HELO name's domain, on the list of allowed and blocked domains" xml:space="preserve">
+    <value>HELO-_navnets domene, på listen over tillatte og blokkerte domener</value>
   </data>
   <data name="The accepted TLS versions and cipher suites are set here." xml:space="preserve">
     <value>De godtatte TLS-versjonene og chiffersuitene settes her.</value>
@@ -11663,8 +11663,8 @@ Legg til likevel?</value>
   <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
     <value>Avsenderens _adresse, på serverens liste over tillatte og blokkerte</value>
   </data>
-  <data name="The sender's _domain, on the allowed and blocked domains" xml:space="preserve">
-    <value>Avsenderens _domene, i de tillatte og blokkerte domenene</value>
+  <data name="The sender's _domain, on the list of allowed and blocked domains" xml:space="preserve">
+    <value>Avsenderens _domene, på listen over tillatte og blokkerte domener</value>
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>Den avsendende serveren kobler til, sender meldingen og venter så. Fra dens side ser du et tidsavbrudd etter at meldingskroppen ble overført - Postfix rapporterer "timed out while sending end of data". Meldingen dukker aldri opp i køen din.</value>
@@ -14447,11 +14447,11 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="the configured UserSearchFilter is not a valid LDAP filter" xml:space="preserve">
     <value>det konfigurerte UserSearchFilter er ikke et gyldig LDAP-filter</value>
   </data>
-  <data name="the connecting address is on the greylisting exemptions (entries: {0})" xml:space="preserve">
-    <value>den tilkoblende adressen er blant unntakene fra grålisting (oppføringer: {0})</value>
-  </data>
   <data name="the connecting address is one of the sender domain's A or MX records" xml:space="preserve">
     <value>adressen som kobler til, er en av avsenderdomenets A- eller MX-oppføringer</value>
+  </data>
+  <data name="the connecting address matches one of the greylisting exemptions (entries: {0})" xml:space="preserve">
+    <value>den tilkoblende adressen samsvarer med ett av unntakene fra grålisting (oppføringer: {0})</value>
   </data>
   <data name="the connection to the hMailServer service was lost - it was most likely restarted. The Control Panel will reconnect by itself; press Reload to try again." xml:space="preserve">
     <value>forbindelsen til hMailServer-tjenesten gikk tapt - den ble mest sannsynlig startet på nytt. Control Panel kobler til igjen av seg selv; trykk Last på nytt for å prøve igjen.</value>

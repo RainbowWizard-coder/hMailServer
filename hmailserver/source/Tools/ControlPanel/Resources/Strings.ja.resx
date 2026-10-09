@@ -636,7 +636,7 @@
   <data name="A service account password from an earlier version is stored in hMailServer.INI in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.INI with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
     <value>以前のバージョンのサービス アカウントのパスワードが hMailServer.INI に平文で保存されていますが、もう何もそれを読み取りません。サービスはインストーラーまたは「Windows サービス アカウント」カードのボタンで登録され、Windows はすべてのパスワードの独自のコピーを保持します。管理者として実行したエディターで hMailServer.INI から ServiceAccountPassword の行を削除し、DELETE /api/v1/settings/ini/ServiceAccountPassword で設定も削除して、データベースのコピーも消してください。</value>
   </data>
-  <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender on the spam exemptions, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
+  <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender in the spam exemptions, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
     <value>HELO 192.0.2.7、HELO [192.0.2.7]、HELO localhost で挨拶する、または MAIL FROM:&lt;user@192.0.2.7&gt; を送るセッションは、自分の名前を何も示しておらず、そのセッションが送るメッセージは、リストに載せる手がかりがないまま保留またはスコア付けされます。オフの場合、サーバーは従来どおり受け入れます。オンの場合、スパムテストの実行前に MAIL FROM で 550 5.7.1 を返します。角かっこの有無にかかわらずアドレス、単一ラベル、co.uk のようなパブリック接尾辞、ホスト名でないものはすべて拒否され、mail.co.uk は名前として扱われます。DNS には何も問い合わせません。接尾辞は、検疫がグループ化に使うリストである Public Suffix List のものです。判定の対象は、スパムテストを実行する IP 範囲からの未認証セッションのみで、AUTH の機会が過ぎた後に行います。スパム対策の除外にある送信者と、HELO が自組織のゲートウェイのものである受信リレーは決して対象になりません。</value>
   </data>
   <data name="A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one." xml:space="preserve">
@@ -5757,7 +5757,7 @@
   <data name="Lower the mark and delete thresholds, or turn on more of the checks." xml:space="preserve">
     <value>マークと削除のしきい値を下げるか、より多くのチェックをオンにしてください。</value>
   </data>
-  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender on the spam exemptions. Allowed and blocked domains have a page of their own under Anti-spam." xml:space="preserve">
+  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. Allowed and blocked domains have a page of their own under Anti-spam." xml:space="preserve">
     <value>MAIL FROM:&lt;&gt; は配信レポートの返送経路であり、レポートの宛先はちょうど 1 つ、すなわち対象メッセージを送った送信元アドレスです。空の送信者がその後に 2 つ目の宛先を指定するなら、それはバックスキャッター、偽造レポート、または探査です。オフの場合、サーバーは従来どおり受け入れます。オンの場合、2 つ目以降の RCPT TO には 550 を返し、そのトランザクションの DATA も拒否します。宛先が 1 つの空の送信者には一切触れません。スパムテストを実行する IP 範囲からの未認証セッションのみが対象で、スパム対策の除外にある送信者には決して適用されません。許可・ブロックするドメインは、アンチスパムの下にある独立したページです。</value>
   </data>
   <data name="MD5 (legacy)" xml:space="preserve">
@@ -6847,7 +6847,7 @@
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>{0} 件の IP 範囲のいずれも認証前に TLS を必須としていないため、ポートが許可する場所では平文のパスワードが受け入れられます。</value>
   </data>
-  <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges on the spam exemptions (entries: {0})." xml:space="preserve">
+  <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges in the spam exemptions (entries: {0})." xml:space="preserve">
     <value>認証済みのセッションにはこのいずれも当てはまりません。ログオンしたクライアント、スパム対策がオフの IP 範囲からの接続、およびスパム対策の除外にある送信者と IP 範囲 (エントリ数: {0}) については、スパム対策は完全にスキップされます。</value>
   </data>
   <data name="None yet: make one with the button below." xml:space="preserve">
@@ -10829,8 +10829,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The Windows prompt was declined, so nothing was installed and nothing on the server was changed." xml:space="preserve">
     <value>Windows の確認が拒否されたため、何もインストールされず、サーバー上の何も変更されていません。</value>
   </data>
-  <data name="The _HELO name's domain, on the allowed and blocked domains" xml:space="preserve">
-    <value>HELO 名のドメイン、許可・ブロックするドメインへ(_H)</value>
+  <data name="The _HELO name's domain, on the list of allowed and blocked domains" xml:space="preserve">
+    <value>HELO 名のドメイン、許可・ブロックするドメインの一覧へ(_H)</value>
   </data>
   <data name="The accepted TLS versions and cipher suites are set here." xml:space="preserve">
     <value>受け入れる TLS バージョンと暗号スイートはここで設定します。</value>
@@ -11663,8 +11663,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
     <value>送信者のアドレス、サーバーの許可・ブロック一覧へ(_A)</value>
   </data>
-  <data name="The sender's _domain, on the allowed and blocked domains" xml:space="preserve">
-    <value>送信者のドメイン、許可・ブロックするドメインへ(_D)</value>
+  <data name="The sender's _domain, on the list of allowed and blocked domains" xml:space="preserve">
+    <value>送信者のドメイン、許可・ブロックするドメインの一覧へ(_D)</value>
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>送信側サーバーは接続し、メッセージを送信してから待機します。送信側からは、メッセージ本文を送信した後にタイムアウトが見えます。Postfix は "timed out while sending end of data" と報告します。メッセージはあなたのキューには決して現れません。</value>
@@ -14447,11 +14447,11 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="the configured UserSearchFilter is not a valid LDAP filter" xml:space="preserve">
     <value>設定されている UserSearchFilter は有効な LDAP フィルターではありません</value>
   </data>
-  <data name="the connecting address is on the greylisting exemptions (entries: {0})" xml:space="preserve">
-    <value>接続元アドレスがグレイリスティングの除外に含まれている (エントリ数: {0})</value>
-  </data>
   <data name="the connecting address is one of the sender domain's A or MX records" xml:space="preserve">
     <value>接続元アドレスが、送信者ドメインの A または MX レコードのいずれかです</value>
+  </data>
+  <data name="the connecting address matches one of the greylisting exemptions (entries: {0})" xml:space="preserve">
+    <value>接続元アドレスがグレイリスティングの除外のいずれかに一致する (エントリ数: {0})</value>
   </data>
   <data name="the connection to the hMailServer service was lost - it was most likely restarted. The Control Panel will reconnect by itself; press Reload to try again." xml:space="preserve">
     <value>hMailServer サービスへの接続が失われました。おそらく再起動されたものと思われます。コントロールパネルは自動的に再接続します。もう一度試すには「再読み込み」を押してください。</value>

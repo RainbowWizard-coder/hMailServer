@@ -1007,20 +1007,24 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   switch that reads true is on; an empty list, or one without a switch, takes none), its level, the overview's use of
   its words in every language, the order and the German and Japanese names.
 
-- **Changed: the allow and block lists are named in one vocabulary in every language.** The lists had about five
-  names each - white list, whitelist, white-list and allow list; blacklist, black list, block list, blocklist and
-  real-time blackhole lists - so the domain list needed a notice to tell them apart, and the quarantine said
-  "Whitelist the sender" while writing to the allow and block list. By the owner's decision the White list page is
-  now **Spam exemptions**, the Greylisting white list **Greylisting exemptions**, the Domain white and black list
-  **Allowed and blocked domains** (its entries allowed and blocked), and the DNS blacklists **DNS block lists
-  (DNSBL)**, each page's heading the same as its name in the navigation; the quarantine's actions are "Allow the
-  sender, then release" and "Block the sender, then delete"; the per-recipient Allow and block list keeps its name.
-  Every old name stays a search alias, so a search for "White list" or "Domain white and black list" still finds the
-  page. Every catalogue follows: German says Zulassungsliste and Sperrliste, zulassen and sperren, where it said
-  Whitelist, Positivliste and Weißliste for the same thing; and in the eleven languages that called the greylisting
-  bypass list a list of exceptions it is now named for bypassing, so that it reads apart from the greylisting
-  exemptions beside it. `AllowBlockVocabularyTests` holds the names, the aliases, the headings, the English and
-  German catalogues to the one vocabulary and every language to the four names.
+- **Changed: the allow and block lists are named in one vocabulary in every language.** The lists had about five names
+  each - white list, whitelist, white-list and allow list; blacklist, black list, block list, blocklist and real-time
+  blackhole lists - so the domain list needed a notice to tell them apart, and the quarantine said "Whitelist the
+  sender" while writing to the allow and block list. By the owner's decision the White list page is now **Spam
+  exemptions**, the Greylisting white list **Greylisting exemptions**, the Domain white and black list **Allowed and
+  blocked domains** (its entries allowed and blocked), and the DNS blacklists **DNS block lists (DNSBL)**, each page's
+  heading the same as its name in the navigation; the quarantine's actions are "Allow the sender, then release" and
+  "Block the sender, then delete"; the per-recipient Allow and block list keeps its name. Every old name stays a
+  search alias, so a search for "White list" or "Domain white and black list" still finds the page. Every catalogue
+  follows: German says Zulassungsliste and Sperrliste, zulassen and sperren, where it said Whitelist, Positivliste and
+  Weißliste for the same thing; and in the eleven languages that called the greylisting bypass list a list of
+  exceptions it is now named for bypassing, so that it reads apart from the greylisting exemptions beside it. A
+  sentence that needs a list keeps its noun: the quarantine offers the sender's domain "on the list of allowed and
+  blocked domains", beneath the address "on the server's allow and block list", and the notes speak of a sender "in
+  the spam exemptions" and an address that "matches one of the greylisting exemptions", where the new names stood in
+  for the list itself. `AllowBlockVocabularyTests` holds the names, the aliases, the headings, the English and German
+  catalogues to the one vocabulary and every language to the four names, and no English text to putting a thing "on" a
+  name that is not a list.
 
 - **Fixed: the German Control Panel said one thing in several words, and some of them wrongly.** It said Domain and
   Domäne on one screen; Sperrliste for the suppression list as for the block lists; "Läuft ab 2026-10-20", which reads

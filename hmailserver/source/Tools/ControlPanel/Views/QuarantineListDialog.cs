@@ -60,8 +60,8 @@ namespace hMailServer.ControlPanel.Views
 
          address_.Content = L("The sender's _address, on the server's allow and block list");
          domain_.Content = heloGrouping
-            ? L("The _HELO name's domain, on the allowed and blocked domains")
-            : L("The sender's _domain, on the allowed and blocked domains");
+            ? L("The _HELO name's domain, on the list of allowed and blocked domains")
+            : L("The sender's _domain, on the list of allowed and blocked domains");
 
          var addressNote = Note_(block
             ? L("Read at delivery, for every recipient: a blocked sender's mail is held for them where the quarantine is on, and marked as spam where it is not.")

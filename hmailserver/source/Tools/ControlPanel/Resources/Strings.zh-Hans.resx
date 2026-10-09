@@ -636,7 +636,7 @@
   <data name="A service account password from an earlier version is stored in hMailServer.INI in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.INI with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
     <value>早期版本的服务账户密码以明文形式保存在 hMailServer.INI 中，而且已不再被任何程序读取：服务由安装程序或“Windows 服务账户”卡片上的按钮注册，Windows 会自行保存每个密码的副本。请用以管理员身份运行的编辑器从 hMailServer.INI 中删除 ServiceAccountPassword 行，并用 DELETE /api/v1/settings/ini/ServiceAccountPassword 删除该设置，使数据库中的副本也一并删除。</value>
   </data>
-  <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender on the spam exemptions, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
+  <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender in the spam exemptions, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
     <value>以 HELO 192.0.2.7、HELO [192.0.2.7] 或 HELO localhost 问候、或发送 MAIL FROM:&lt;user@192.0.2.7&gt; 的会话，没有为自己给出任何名称，它发送的邮件会被暂扣或计分，却没有任何可据以列入名单的依据。关闭时，服务器像以往一样接受它。开启时，在运行反垃圾邮件测试之前，于 MAIL FROM 阶段回应 550 5.7.1：带或不带方括号的地址、单个标签、co.uk 这样的公共后缀，以及任何不是主机名的内容都会被拒绝，而 mail.co.uk 是名称。不查询 DNS；后缀来自 Public Suffix List，即隔离区分组所用的列表。只评判来自运行反垃圾邮件测试的 IP 范围的未认证会话，且在 AUTH 有机会完成之后进行；绝不评判反垃圾邮件豁免中的发件人，也绝不评判 HELO 属于您自己网关的传入中继。</value>
   </data>
   <data name="A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one." xml:space="preserve">
@@ -5757,7 +5757,7 @@
   <data name="Lower the mark and delete thresholds, or turn on more of the checks." xml:space="preserve">
     <value>降低标记和删除阈值，或者打开更多的检查。</value>
   </data>
-  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender on the spam exemptions. Allowed and blocked domains have a page of their own under Anti-spam." xml:space="preserve">
+  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. Allowed and blocked domains have a page of their own under Anti-spam." xml:space="preserve">
     <value>MAIL FROM:&lt;&gt; 是投递报告的回传路径，而报告只有一个收件人：发送该报告所涉邮件的地址。空发件人随后又指定第二个收件人，就是反向散射、伪造的报告或探测。关闭时，服务器像以往一样接受它。开启时，第二个及之后的每个 RCPT TO 都回应 550，该事务的 DATA 也被拒绝；只有一个收件人的空发件人从不受影响。仅适用于运行反垃圾邮件测试的 IP 范围内的未认证会话，绝不适用于反垃圾邮件豁免中的发件人。允许与拦截的域在“反垃圾邮件”下有自己的页面。</value>
   </data>
   <data name="MD5 (legacy)" xml:space="preserve">
@@ -6847,7 +6847,7 @@
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>{0} 个 IP 范围中没有一个要求在身份验证之前使用 TLS，因此只要端口允许，明文密码就会被接受。</value>
   </data>
-  <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges on the spam exemptions (entries: {0})." xml:space="preserve">
+  <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges in the spam exemptions (entries: {0})." xml:space="preserve">
     <value>这些都不适用于已通过身份验证的会话 - 对于已登录的客户端、来自关闭了垃圾邮件防护的 IP 范围的连接，以及反垃圾邮件豁免中的发件人和 IP 范围（条目：{0}），垃圾邮件防护会被完全跳过。</value>
   </data>
   <data name="None yet: make one with the button below." xml:space="preserve">
@@ -10829,8 +10829,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The Windows prompt was declined, so nothing was installed and nothing on the server was changed." xml:space="preserve">
     <value>Windows 提示被拒绝，因此没有安装任何内容，服务器上也没有任何更改。</value>
   </data>
-  <data name="The _HELO name's domain, on the allowed and blocked domains" xml:space="preserve">
-    <value>HELO 名称的域，写入允许与拦截的域(_H)</value>
+  <data name="The _HELO name's domain, on the list of allowed and blocked domains" xml:space="preserve">
+    <value>HELO 名称的域，写入允许与拦截的域名单(_H)</value>
   </data>
   <data name="The accepted TLS versions and cipher suites are set here." xml:space="preserve">
     <value>接受的 TLS 版本和密码套件在此设置。</value>
@@ -11663,8 +11663,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
     <value>发件人的地址，写入服务器的允许与拦截名单(_A)</value>
   </data>
-  <data name="The sender's _domain, on the allowed and blocked domains" xml:space="preserve">
-    <value>发件人的域，写入允许与拦截的域(_D)</value>
+  <data name="The sender's _domain, on the list of allowed and blocked domains" xml:space="preserve">
+    <value>发件人的域，写入允许与拦截的域名单(_D)</value>
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>发送方服务器连接、发送邮件，然后等待。从它那一侧看，在邮件正文传输完毕后出现超时 - Postfix 会报告 "timed out while sending end of data"。该邮件永远不会出现在您的队列中。</value>
@@ -14447,11 +14447,11 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="the configured UserSearchFilter is not a valid LDAP filter" xml:space="preserve">
     <value>配置的 UserSearchFilter 不是有效的 LDAP 筛选器</value>
   </data>
-  <data name="the connecting address is on the greylisting exemptions (entries: {0})" xml:space="preserve">
-    <value>连接地址在灰名单豁免中（条目：{0}）</value>
-  </data>
   <data name="the connecting address is one of the sender domain's A or MX records" xml:space="preserve">
     <value>连接地址是发件人域的 A 或 MX 记录之一</value>
+  </data>
+  <data name="the connecting address matches one of the greylisting exemptions (entries: {0})" xml:space="preserve">
+    <value>连接地址与其中一条灰名单豁免匹配（条目：{0}）</value>
   </data>
   <data name="the connection to the hMailServer service was lost - it was most likely restarted. The Control Panel will reconnect by itself; press Reload to try again." xml:space="preserve">
     <value>与 hMailServer 服务的连接已断开 - 很可能是它被重启了。控制面板会自行重新连接；请按“重新加载”再试一次。</value>

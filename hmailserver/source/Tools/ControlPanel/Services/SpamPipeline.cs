@@ -510,7 +510,7 @@ namespace hMailServer.ControlPanel.Services
          if (config.BypassGreylistingOnSenderMx)
             bypasses.Add(L("the connecting address is one of the sender domain's A or MX records"));
          if (config.GreylistWhiteListEntries > 0)
-            bypasses.Add(F("the connecting address is on the greylisting exemptions (entries: {0})", config.GreylistWhiteListEntries));
+            bypasses.Add(F("the connecting address matches one of the greylisting exemptions (entries: {0})", config.GreylistWhiteListEntries));
          if (config.GreylistBypassEntries > 0)
             bypasses.Add(F("the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires", config.GreylistBypassEntries));
          if (config.DomainPolicyListEntries > 0)
@@ -647,7 +647,7 @@ namespace hMailServer.ControlPanel.Services
          if (config.WasRead(nameof(config.WhiteListEntries)))
          {
             notes.Add(new SpamPipelineNote(StatusLevel.Information,
-               F("None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges on the spam exemptions (entries: {0}).", config.WhiteListEntries)));
+               F("None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges in the spam exemptions (entries: {0}).", config.WhiteListEntries)));
          }
 
          return notes;

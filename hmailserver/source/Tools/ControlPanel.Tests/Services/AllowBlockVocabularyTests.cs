@@ -60,6 +60,28 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(found.Count == 0, "Still white or black: " + string.Join(" | ", found));
       }
 
+      /// <summary>
+      /// A list's new name is a set of entries, not a list, so a sentence that
+      /// needs a list says so: the quarantine dialog offered "The sender's
+      /// domain, on the allowed and blocked domains" under "The sender's address,
+      /// on the server's allow and block list", and the notes said "a sender on
+      /// the spam exemptions" and "is on the greylisting exemptions" (review
+      /// finding F214, second pass).
+      /// </summary>
+      [Fact]
+      public void NoEnglishTextPutsAThingOnANameThatIsNotAList()
+      {
+         var onAName = new Regex(@"\bon the (spam exemptions|greylisting exemptions|allowed and blocked domains)\b", RegexOptions.IgnoreCase);
+         Dictionary<string, string> english = ReadResx("Strings.resx");
+         List<string> found = english.Keys.Where(key => onAName.IsMatch(key)).ToList();
+         Assert.True(found.Count == 0, "On a name that is not a list: " + string.Join(" | ", found));
+
+         Assert.True(english.ContainsKey("The sender's _domain, on the list of allowed and blocked domains"));
+         Assert.True(english.ContainsKey("The _HELO name's domain, on the list of allowed and blocked domains"));
+         Assert.True(english.ContainsKey("the connecting address matches one of the greylisting exemptions (entries: {0})"));
+         Assert.Contains("L(\"The sender's _domain, on the list of allowed and blocked domains\")", ReadSource("QuarantineListDialog.cs"), StringComparison.Ordinal);
+      }
+
       [Fact]
       public void GermanSaysZulassenAndSperrenAndNothingElse()
       {

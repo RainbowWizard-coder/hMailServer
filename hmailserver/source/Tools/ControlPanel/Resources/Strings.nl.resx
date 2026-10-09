@@ -636,8 +636,8 @@
   <data name="A service account password from an earlier version is stored in hMailServer.INI in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.INI with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
     <value>Een serviceaccountwachtwoord uit een eerdere versie staat als platte tekst in hMailServer.INI, en niets leest het nog: de service wordt geregistreerd door het installatieprogramma of met de knoppen op de kaart Windows-serviceaccount, en Windows bewaart zijn eigen kopie van elk wachtwoord. Verwijder de regel ServiceAccountPassword uit hMailServer.INI met een editor met verhoogde bevoegdheden, en de instelling met DELETE /api/v1/settings/ini/ServiceAccountPassword, zodat ook de kopie in de database verdwijnt.</value>
   </data>
-  <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender on the spam exemptions, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
-    <value>Een sessie die groet met HELO 192.0.2.7, HELO [192.0.2.7] of HELO localhost, of MAIL FROM:&lt;user@192.0.2.7&gt; stuurt, heeft geen naam voor zichzelf gegeven, en een bericht dat zij verstuurt, wordt vastgehouden of gescoord zonder iets om het op een lijst te zetten. Uit: de server accepteert haar zoals altijd. Aan: zij krijgt 550 5.7.1 bij MAIL FROM, voordat de spamtests draaien: een adres met of zonder vierkante haken, één enkel label, een publieke suffix zoals co.uk en alles wat geen hostnaam is, wordt geweigerd, terwijl mail.co.uk een naam is. Er wordt niets aan DNS gevraagd; de suffixen zijn die van de Public Suffix List, de lijst waarop de quarantaine groepeert. Alleen niet-geauthenticeerde sessies van een IP-bereik dat de spamtests uitvoert, worden beoordeeld, nadat AUTH zijn kans heeft gehad - nooit een afzender op de spamuitzonderingen en nooit een inkomend relay, waarvan de HELO die van uw eigen gateway is.</value>
+  <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender in the spam exemptions, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
+    <value>Een sessie die groet met HELO 192.0.2.7, HELO [192.0.2.7] of HELO localhost, of MAIL FROM:&lt;user@192.0.2.7&gt; stuurt, heeft geen naam voor zichzelf gegeven, en een bericht dat zij verstuurt, wordt vastgehouden of gescoord zonder iets om het op een lijst te zetten. Uit: de server accepteert haar zoals altijd. Aan: zij krijgt 550 5.7.1 bij MAIL FROM, voordat de spamtests draaien: een adres met of zonder vierkante haken, één enkel label, een publieke suffix zoals co.uk en alles wat geen hostnaam is, wordt geweigerd, terwijl mail.co.uk een naam is. Er wordt niets aan DNS gevraagd; de suffixen zijn die van de Public Suffix List, de lijst waarop de quarantaine groepeert. Alleen niet-geauthenticeerde sessies van een IP-bereik dat de spamtests uitvoert, worden beoordeeld, nadat AUTH zijn kans heeft gehad - nooit een afzender uit de spamuitzonderingen en nooit een inkomend relay, waarvan de HELO die van uw eigen gateway is.</value>
   </data>
   <data name="A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one." xml:space="preserve">
     <value>Een aandeel van de verbindingen, nooit meer dan de bezorgthreads: de accounts van één gehost domein, of alle doorgestuurde post samen, kunnen niet elke bezorgthread bezetten. De verzendlimiet per account regelt het volume; dit niet.</value>
@@ -5757,8 +5757,8 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Lower the mark and delete thresholds, or turn on more of the checks." xml:space="preserve">
     <value>Verlaag de markeer- en verwijderdrempels, of schakel meer van de controles in.</value>
   </data>
-  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender on the spam exemptions. Allowed and blocked domains have a page of their own under Anti-spam." xml:space="preserve">
-    <value>MAIL FROM:&lt;&gt; is het retourpad van een bezorgrapport, en een rapport heeft precies één ontvanger: het adres dat het betreffende bericht verzond. Een lege afzender die daarna een tweede ontvanger noemt, is backscatter, een vervalst rapport of een aftasting. Uit: de server accepteert hem zoals altijd. Aan: de tweede en elke volgende RCPT TO krijgt 550 en ook de DATA van de transactie wordt geweigerd; een lege afzender met één ontvanger wordt nooit aangeraakt. Alleen niet-geauthenticeerde sessies van een IP-bereik dat de spamtests uitvoert, en nooit een afzender op de spamuitzonderingen. Toegestane en geblokkeerde domeinen hebben een eigen pagina onder Antispam.</value>
+  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. Allowed and blocked domains have a page of their own under Anti-spam." xml:space="preserve">
+    <value>MAIL FROM:&lt;&gt; is het retourpad van een bezorgrapport, en een rapport heeft precies één ontvanger: het adres dat het betreffende bericht verzond. Een lege afzender die daarna een tweede ontvanger noemt, is backscatter, een vervalst rapport of een aftasting. Uit: de server accepteert hem zoals altijd. Aan: de tweede en elke volgende RCPT TO krijgt 550 en ook de DATA van de transactie wordt geweigerd; een lege afzender met één ontvanger wordt nooit aangeraakt. Alleen niet-geauthenticeerde sessies van een IP-bereik dat de spamtests uitvoert, en nooit een afzender uit de spamuitzonderingen. Toegestane en geblokkeerde domeinen hebben een eigen pagina onder Antispam.</value>
   </data>
   <data name="MD5 (legacy)" xml:space="preserve">
     <value>MD5 (verouderd)</value>
@@ -6847,8 +6847,8 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>Geen van de {0} IP-bereiken vereist TLS vóór authenticatie, dus een wachtwoord in klare tekst wordt overal geaccepteerd waar een poort dat toestaat.</value>
   </data>
-  <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges on the spam exemptions (entries: {0})." xml:space="preserve">
-    <value>Niets hiervan geldt voor een geauthenticeerde sessie - spambescherming wordt volledig overgeslagen voor een client die zich heeft aangemeld, voor verbindingen vanuit een IP-bereik waarin spambescherming is uitgeschakeld, en voor de afzenders en IP-bereiken op de spamuitzonderingen (vermeldingen: {0}).</value>
+  <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges in the spam exemptions (entries: {0})." xml:space="preserve">
+    <value>Niets hiervan geldt voor een geauthenticeerde sessie - spambescherming wordt volledig overgeslagen voor een client die zich heeft aangemeld, voor verbindingen vanuit een IP-bereik waarin spambescherming is uitgeschakeld, en voor de afzenders en IP-bereiken in de spamuitzonderingen (vermeldingen: {0}).</value>
   </data>
   <data name="None yet: make one with the button below." xml:space="preserve">
     <value>Nog geen: maak er een met de knop hieronder.</value>
@@ -10829,8 +10829,8 @@ Het volgende bericht aan dit adres wordt verzonden, en het komt pas weer op de l
   <data name="The Windows prompt was declined, so nothing was installed and nothing on the server was changed." xml:space="preserve">
     <value>De Windows-prompt is geweigerd, dus er is niets geïnstalleerd en op de server niets gewijzigd.</value>
   </data>
-  <data name="The _HELO name's domain, on the allowed and blocked domains" xml:space="preserve">
-    <value>Het do_mein van de HELO-naam, bij de toegestane en geblokkeerde domeinen</value>
+  <data name="The _HELO name's domain, on the list of allowed and blocked domains" xml:space="preserve">
+    <value>Het do_mein van de HELO-naam, op de lijst van toegestane en geblokkeerde domeinen</value>
   </data>
   <data name="The accepted TLS versions and cipher suites are set here." xml:space="preserve">
     <value>De geaccepteerde TLS-versies en ciphersuites worden hier ingesteld.</value>
@@ -11663,8 +11663,8 @@ Toch toevoegen?</value>
   <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
     <value>Het _adres van de afzender, op de toestaan- en blokkeerlijst van de server</value>
   </data>
-  <data name="The sender's _domain, on the allowed and blocked domains" xml:space="preserve">
-    <value>Het _domein van de afzender, bij de toegestane en geblokkeerde domeinen</value>
+  <data name="The sender's _domain, on the list of allowed and blocked domains" xml:space="preserve">
+    <value>Het _domein van de afzender, op de lijst van toegestane en geblokkeerde domeinen</value>
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>De verzendende server maakt verbinding, stuurt het bericht en wacht dan. Van zijn kant ziet u een time-out nadat de berichtinhoud is verzonden - Postfix meldt "timed out while sending end of data". Het bericht verschijnt nooit in uw wachtrij.</value>
@@ -14447,11 +14447,11 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="the configured UserSearchFilter is not a valid LDAP filter" xml:space="preserve">
     <value>de geconfigureerde UserSearchFilter is geen geldig LDAP-filter</value>
   </data>
-  <data name="the connecting address is on the greylisting exemptions (entries: {0})" xml:space="preserve">
-    <value>het verbindende adres staat bij de greylisting-uitzonderingen (vermeldingen: {0})</value>
-  </data>
   <data name="the connecting address is one of the sender domain's A or MX records" xml:space="preserve">
     <value>het verbindende adres is een van de A- of MX-records van het afzenderdomein</value>
+  </data>
+  <data name="the connecting address matches one of the greylisting exemptions (entries: {0})" xml:space="preserve">
+    <value>het verbindende adres komt overeen met een van de greylisting-uitzonderingen (vermeldingen: {0})</value>
   </data>
   <data name="the connection to the hMailServer service was lost - it was most likely restarted. The Control Panel will reconnect by itself; press Reload to try again." xml:space="preserve">
     <value>de verbinding met de hMailServer-service is verbroken - hoogstwaarschijnlijk is hij herstart. Het Control Panel maakt zelf opnieuw verbinding; druk op Opnieuw laden om het nu te proberen.</value>

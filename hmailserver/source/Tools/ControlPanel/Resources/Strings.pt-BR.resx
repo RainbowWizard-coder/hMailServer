@@ -636,7 +636,7 @@
   <data name="A service account password from an earlier version is stored in hMailServer.INI in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.INI with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
     <value>Uma senha de conta de serviço de uma versão anterior está armazenada em texto simples em hMailServer.INI, e nada mais a lê: o serviço é registrado pelo instalador ou pelos botões do cartão Conta de serviço do Windows, e o Windows mantém sua própria cópia de qualquer senha. Exclua a linha ServiceAccountPassword de hMailServer.INI com um editor elevado, e a configuração com DELETE /api/v1/settings/ini/ServiceAccountPassword, para que a cópia do banco de dados também desapareça.</value>
   </data>
-  <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender on the spam exemptions, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
+  <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender in the spam exemptions, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
     <value>Uma sessão que cumprimenta com HELO 192.0.2.7, HELO [192.0.2.7] ou HELO localhost, ou envia MAIL FROM:&lt;user@192.0.2.7&gt;, não deu nenhum nome para si mesma, e uma mensagem que ela envia é retida ou pontuada sem nada pelo qual listá-la. Desligado, o servidor a aceita como sempre fez. Ligado, ela recebe 550 5.7.1 no MAIL FROM, antes de os testes antispam serem executados: um endereço com ou sem colchetes, um rótulo único, um sufixo público como co.uk e tudo o que não for um nome de host são recusados, enquanto mail.co.uk é um nome. Nada é perguntado ao DNS; os sufixos são os da Public Suffix List, a lista pela qual a quarentena agrupa. Somente sessões não autenticadas de uma faixa de IP que executa os testes antispam são julgadas, depois que o AUTH teve sua chance - nunca um remetente das exceções antispam e nunca um relay de entrada, cujo HELO é o do seu próprio gateway.</value>
   </data>
   <data name="A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one." xml:space="preserve">
@@ -5757,7 +5757,7 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   <data name="Lower the mark and delete thresholds, or turn on more of the checks." xml:space="preserve">
     <value>Reduza os limiares de marcação e de exclusão, ou ative mais das verificações.</value>
   </data>
-  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender on the spam exemptions. Allowed and blocked domains have a page of their own under Anti-spam." xml:space="preserve">
+  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. Allowed and blocked domains have a page of their own under Anti-spam." xml:space="preserve">
     <value>MAIL FROM:&lt;&gt; é o caminho de retorno de um relatório de entrega, e um relatório tem exatamente um destinatário: o endereço que enviou a mensagem à qual ele se refere. Um remetente vazio que em seguida nomeia um segundo destinatário é backscatter, um relatório forjado ou uma sondagem. Desligado, o servidor o aceita como sempre fez. Ligado, o segundo RCPT TO e cada um seguinte recebe 550 e o DATA da transação também é recusado; um remetente vazio com um destinatário nunca é tocado. Somente sessões não autenticadas de uma faixa de IP que executa os testes antispam, e nunca um remetente das exceções antispam. Os domínios permitidos e bloqueados têm página própria em Antispam.</value>
   </data>
   <data name="MD5 (legacy)" xml:space="preserve">
@@ -6847,7 +6847,7 @@ Nada do que já está lá é removido.</value>
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>Nenhuma das {0} faixas de IP exige TLS antes da autenticação, então uma senha em texto claro é aceita onde quer que uma porta a permita.</value>
   </data>
-  <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges on the spam exemptions (entries: {0})." xml:space="preserve">
+  <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges in the spam exemptions (entries: {0})." xml:space="preserve">
     <value>Nada disso vale para uma sessão autenticada - a proteção contra spam é totalmente ignorada para um cliente que fez login, para conexões vindas de uma faixa de IP com a proteção contra spam desligada, e para os remetentes e faixas de IP das exceções antispam (entradas: {0}).</value>
   </data>
   <data name="None yet: make one with the button below." xml:space="preserve">
@@ -10829,8 +10829,8 @@ A próxima mensagem para esse endereço será enviada, e ele só volta à lista 
   <data name="The Windows prompt was declined, so nothing was installed and nothing on the server was changed." xml:space="preserve">
     <value>O aviso do Windows foi recusado, então nada foi instalado e nada foi alterado no servidor.</value>
   </data>
-  <data name="The _HELO name's domain, on the allowed and blocked domains" xml:space="preserve">
-    <value>O do_mínio do nome HELO, nos domínios permitidos e bloqueados</value>
+  <data name="The _HELO name's domain, on the list of allowed and blocked domains" xml:space="preserve">
+    <value>O do_mínio do nome HELO, na lista de domínios permitidos e bloqueados</value>
   </data>
   <data name="The accepted TLS versions and cipher suites are set here." xml:space="preserve">
     <value>As versões de TLS e as suítes de cifras aceitas são definidas aqui.</value>
@@ -11663,8 +11663,8 @@ Adicionar mesmo assim?</value>
   <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
     <value>O _endereço do remetente, na lista de permitidos e bloqueados do servidor</value>
   </data>
-  <data name="The sender's _domain, on the allowed and blocked domains" xml:space="preserve">
-    <value>O _domínio do remetente, nos domínios permitidos e bloqueados</value>
+  <data name="The sender's _domain, on the list of allowed and blocked domains" xml:space="preserve">
+    <value>O _domínio do remetente, na lista de domínios permitidos e bloqueados</value>
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>O servidor remetente conecta, envia a mensagem e então espera. Do lado dele você vê um tempo limite depois que o corpo da mensagem foi transmitido - o Postfix relata "timed out while sending end of data". A mensagem nunca aparece na sua fila.</value>
@@ -14447,11 +14447,11 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   <data name="the configured UserSearchFilter is not a valid LDAP filter" xml:space="preserve">
     <value>o UserSearchFilter configurado não é um filtro LDAP válido</value>
   </data>
-  <data name="the connecting address is on the greylisting exemptions (entries: {0})" xml:space="preserve">
-    <value>o endereço que se conecta está nas exceções do greylisting (entradas: {0})</value>
-  </data>
   <data name="the connecting address is one of the sender domain's A or MX records" xml:space="preserve">
     <value>o endereço que conecta é um dos registros A ou MX do domínio do remetente</value>
+  </data>
+  <data name="the connecting address matches one of the greylisting exemptions (entries: {0})" xml:space="preserve">
+    <value>o endereço que se conecta corresponde a uma das exceções do greylisting (entradas: {0})</value>
   </data>
   <data name="the connection to the hMailServer service was lost - it was most likely restarted. The Control Panel will reconnect by itself; press Reload to try again." xml:space="preserve">
     <value>a conexão com o serviço hMailServer foi perdida - ele provavelmente foi reiniciado. O Control Panel se reconectará sozinho; pressione Recarregar para tentar de novo.</value>
