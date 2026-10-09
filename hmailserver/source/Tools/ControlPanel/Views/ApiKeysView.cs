@@ -400,7 +400,13 @@ namespace hMailServer.ControlPanel.Views
             state = F("Expires {0}.", key.ExpiresAt.Value.ToString("d MMMM yyyy HH:mm", CultureInfo.CurrentCulture)); // no-loc
          }
 
-         var stateRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 6, 0, 0) };
+         // A grid and not a horizontal stack: a stack measures the sentence with
+         // all the width it asks for, so in a narrow window the sentence ran on
+         // under Revoke and was cut off where it should have wrapped. The pill
+         // keeps its width and the sentence wraps in what is left of the row.
+         var stateRow = new Grid { Margin = new Thickness(0, 6, 0, 0) };
+         stateRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+         stateRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
          // The pill carries the colour, the shape and the state's name together,
          // and is named "Warning: Full authority" by the component; the sentence
@@ -418,8 +424,11 @@ namespace hMailServer.ControlPanel.Views
             VerticalAlignment = VerticalAlignment.Top
          });
 
-         var stateText = new TextBlock { Text = state, TextWrapping = TextWrapping.Wrap, MaxWidth = 560 };
+         // Left, so that a sentence held to its measure in a wide window stays
+         // beside the pill rather than centred in the column.
+         var stateText = new TextBlock { Text = state, TextWrapping = TextWrapping.Wrap, MaxWidth = 560, HorizontalAlignment = HorizontalAlignment.Left };
          stateText.SetResourceReference(StyleProperty, "TextCaption");
+         Grid.SetColumn(stateText, 1);
          stateRow.Children.Add(stateText);
 
          details.Children.Add(stateRow);

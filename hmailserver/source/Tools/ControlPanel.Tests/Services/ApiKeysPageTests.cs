@@ -101,6 +101,27 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain("nicht gelesen", german, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// The sentence beside a pill wraps in the width the row has. The pill and
+      /// the sentence were a horizontal stack, which measures the sentence with
+      /// all the width it asks for, so in the narrowest window (760 by 520) every
+      /// longer sentence ran on under Revoke and was cut off - "This page reads an
+      /// expiry only in the form YYYY-MM-DD HH:MM:SS," and then nothing, German
+      /// "Dieser Schlüssel kann Dinge ändern und löschen. Läuft am 29 Dezemb".
+      /// </summary>
+      [Fact]
+      public void TheSentenceBesideAPill_WrapsInTheWidthTheRowHas()
+      {
+         string row = KeyRow();
+         Assert.Contains("var stateRow = new Grid { Margin = new Thickness(0, 6, 0, 0) };", row, StringComparison.Ordinal);
+         int auto = row.IndexOf("stateRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });", StringComparison.Ordinal);
+         int star = row.IndexOf("stateRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });", StringComparison.Ordinal);
+         Assert.True(auto >= 0 && star > auto, "The pill's column is not Auto before the sentence's Star column.");
+         Assert.Contains("Grid.SetColumn(stateText, 1);", row, StringComparison.Ordinal);
+         Assert.Matches(new Regex(@"var stateText = new TextBlock \{[^}]*TextWrapping = TextWrapping\.Wrap[^}]*HorizontalAlignment = HorizontalAlignment\.Left[^}]*\};"), row);
+         Assert.DoesNotContain("Orientation = Orientation.Horizontal", row, StringComparison.Ordinal);
+      }
+
       [Fact]
       public void AnExpiredKey_IsNormal_AndOneWhoseExpiryCannotBeRead_IsAWarning()
       {

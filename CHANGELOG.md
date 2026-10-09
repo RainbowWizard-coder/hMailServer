@@ -984,7 +984,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   a caption that promised a list where the store takes one value: the line uses the translated state, and the field is
   *Source address or range it may be used from (optional)* with "For example 10.0.0.5 or 10.0.0.0/24" in each
   language. An empty store is said once, by the list's empty state, with *Create the first key...*, where an
-  Information notice above it said the same. Held by `ApiKeysPageTests`.
+  Information notice above it said the same. In the narrowest window the sentence beside the pill wraps in the width
+  the row has, where it ran on under *Revoke* and was cut off. Held by `ApiKeysPageTests`.
 - **Fixed: the Event scripts page's Check syntax reported on the saved script after an edit, and the page never said
   whether scripting was on.** The server checks the script file it has, so after an edit *Check syntax* said "No
   syntax errors reported." of the old code; it now says that it checks the saved script and that *Save & reload*
