@@ -3498,8 +3498,11 @@ Los detalles completos se escribieron en:
   <data name="Delete the SURBL server {0}?" xml:space="preserve">
     <value>¿Borrar el servidor SURBL {0}?</value>
   </data>
-  <data name="Delete the alias {0}?" xml:space="preserve">
-    <value>¿Borrar el alias {0}?</value>
+  <data name="Delete the account {0}? Its mailbox and every message in it are deleted. There is no undo." xml:space="preserve">
+    <value>¿Borrar la cuenta {0}? Se borran su buzón y todos los mensajes que contiene. No se puede deshacer.</value>
+  </data>
+  <data name="Delete the alias {0}? Mail to it is no longer delivered." xml:space="preserve">
+    <value>¿Borrar el alias {0}? El correo dirigido a él ya no se entrega.</value>
   </data>
   <data name="Delete the app password {0}? The client using it stops connecting at once." xml:space="preserve">
     <value>¿Borrar la contraseña de aplicación {0}? El cliente que la usa deja de conectarse de inmediato.</value>
@@ -3513,8 +3516,8 @@ Los detalles completos se escribieron en:
   <data name="Delete the checked messages" xml:space="preserve">
     <value>Eliminar los mensajes seleccionados</value>
   </data>
-  <data name="Delete the distribution list {0}?" xml:space="preserve">
-    <value>¿Borrar la lista de distribución {0}?</value>
+  <data name="Delete the distribution list {0}? Mail to it is no longer delivered; the members' mailboxes are not affected." xml:space="preserve">
+    <value>¿Borrar la lista de distribución {0}? El correo dirigido a ella ya no se entrega; los buzones de los miembros no se ven afectados.</value>
   </data>
   <data name="Delete the domain alias {0}? Mail to addresses at that name is no longer delivered to this domain." xml:space="preserve">
     <value>¿Borrar el alias de dominio {0}? El correo a direcciones con ese nombre ya no se entrega a este dominio.</value>
@@ -3528,6 +3531,15 @@ Esto elimina permanentemente su {1} cuenta, cada mensaje almacenado en ella y to
     <value>¿Borrar el dominio {0}?
 
 Esto elimina permanentemente sus {1} cuentas, cada mensaje almacenado en ellas y todos los alias y listas de distribución del dominio. No se puede deshacer.</value>
+  </data>
+  <data name="Delete the domain {0}? It has no accounts; its aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>¿Borrar el dominio {0}? No tiene cuentas; sus alias y listas de distribución se borran con él. No se puede deshacer.</value>
+  </data>
+  <data name="Delete the domain {0}? Its one account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>¿Borrar el dominio {0}? Su única cuenta, cada mensaje almacenado en ella y los alias y listas de distribución del dominio se borran con él. No se puede deshacer.</value>
+  </data>
+  <data name="Delete the domain {0}? Its {1} accounts, every message stored in them, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>¿Borrar el dominio {0}? Sus {1} cuentas, cada mensaje almacenado en ellas y los alias y listas de distribución del dominio se borran con él. No se puede deshacer.</value>
   </data>
   <data name="Delete the entry {0}?" xml:space="preserve">
     <value>¿Borrar la entrada {0}?</value>
@@ -3550,8 +3562,8 @@ Esto elimina permanentemente sus {1} cuentas, cada mensaje almacenado en ellas y
   <data name="Delete the list entry {0}?" xml:space="preserve">
     <value>¿Borrar la entrada de la lista {0}?</value>
   </data>
-  <data name="Delete the public folder '{0}' and all messages in it?" xml:space="preserve">
-    <value>¿Borrar la carpeta pública '{0}' y todos los mensajes que contiene?</value>
+  <data name="Delete the public folder {0} and every message in it?" xml:space="preserve">
+    <value>¿Borrar la carpeta pública {0} y cada mensaje que contiene?</value>
   </data>
   <data name="Delete the remote domain policy {0}? Mail to and from that domain follows the server-wide settings again." xml:space="preserve">
     <value>¿Borrar la política de dominio remoto {0}? El correo hacia y desde ese dominio vuelve a seguir los ajustes de todo el servidor.</value>
@@ -3610,9 +3622,6 @@ Al remitente se le dijo que fue aceptado, así que nada lo reintentará y no hay
   </data>
   <data name="Delete unconfirmed after (days)" xml:space="preserve">
     <value>Borrar los no confirmados después de (días)</value>
-  </data>
-  <data name="Delete {0}?" xml:space="preserve">
-    <value>¿Borrar {0}?</value>
   </data>
   <data name="Deleted" xml:space="preserve">
     <value>Eliminado</value>

@@ -3498,8 +3498,11 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Delete the SURBL server {0}?" xml:space="preserve">
     <value>De SURBL-server {0} verwijderen?</value>
   </data>
-  <data name="Delete the alias {0}?" xml:space="preserve">
-    <value>De alias {0} verwijderen?</value>
+  <data name="Delete the account {0}? Its mailbox and every message in it are deleted. There is no undo." xml:space="preserve">
+    <value>Het account {0} verwijderen? Het postvak en elk bericht erin worden verwijderd. Dit kan niet ongedaan worden gemaakt.</value>
+  </data>
+  <data name="Delete the alias {0}? Mail to it is no longer delivered." xml:space="preserve">
+    <value>De alias {0} verwijderen? Mail aan deze alias wordt niet meer bezorgd.</value>
   </data>
   <data name="Delete the app password {0}? The client using it stops connecting at once." xml:space="preserve">
     <value>Het app-wachtwoord {0} verwijderen? De client die het gebruikt kan meteen geen verbinding meer maken.</value>
@@ -3513,8 +3516,8 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Delete the checked messages" xml:space="preserve">
     <value>De aangevinkte berichten verwijderen</value>
   </data>
-  <data name="Delete the distribution list {0}?" xml:space="preserve">
-    <value>De distributielijst {0} verwijderen?</value>
+  <data name="Delete the distribution list {0}? Mail to it is no longer delivered; the members' mailboxes are not affected." xml:space="preserve">
+    <value>De distributielijst {0} verwijderen? Mail aan deze lijst wordt niet meer bezorgd; de postvakken van de leden blijven onaangetast.</value>
   </data>
   <data name="Delete the domain alias {0}? Mail to addresses at that name is no longer delivered to this domain." xml:space="preserve">
     <value>De domeinalias {0} verwijderen? Mail aan adressen onder die naam wordt niet meer aan dit domein bezorgd.</value>
@@ -3528,6 +3531,15 @@ Dit verwijdert definitief het {1} account ervan, samen met elk bericht dat daari
     <value>Het domein {0} verwijderen?
 
 Dit verwijdert definitief de {1} accounts ervan, samen met elk bericht dat daarin is opgeslagen en alle aliassen en distributielijsten van het domein. Dit kan niet ongedaan worden gemaakt.</value>
+  </data>
+  <data name="Delete the domain {0}? It has no accounts; its aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>Het domein {0} verwijderen? Het heeft geen accounts; de aliassen en distributielijsten worden samen met het domein verwijderd. Dit kan niet ongedaan worden gemaakt.</value>
+  </data>
+  <data name="Delete the domain {0}? Its one account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>Het domein {0} verwijderen? Het enige account, elk bericht dat daarin is opgeslagen en de aliassen en distributielijsten van het domein worden samen met het domein verwijderd. Dit kan niet ongedaan worden gemaakt.</value>
+  </data>
+  <data name="Delete the domain {0}? Its {1} accounts, every message stored in them, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>Het domein {0} verwijderen? De {1} accounts, elk bericht dat daarin is opgeslagen en de aliassen en distributielijsten van het domein worden samen met het domein verwijderd. Dit kan niet ongedaan worden gemaakt.</value>
   </data>
   <data name="Delete the entry {0}?" xml:space="preserve">
     <value>De vermelding {0} verwijderen?</value>
@@ -3550,8 +3562,8 @@ Dit verwijdert definitief de {1} accounts ervan, samen met elk bericht dat daari
   <data name="Delete the list entry {0}?" xml:space="preserve">
     <value>De lijstvermelding {0} verwijderen?</value>
   </data>
-  <data name="Delete the public folder '{0}' and all messages in it?" xml:space="preserve">
-    <value>De openbare map '{0}' en alle berichten erin verwijderen?</value>
+  <data name="Delete the public folder {0} and every message in it?" xml:space="preserve">
+    <value>De openbare map {0} en elk bericht erin verwijderen?</value>
   </data>
   <data name="Delete the remote domain policy {0}? Mail to and from that domain follows the server-wide settings again." xml:space="preserve">
     <value>De regel voor het externe domein {0} verwijderen? Mail van en naar dat domein volgt weer de instellingen voor de hele server.</value>
@@ -3610,9 +3622,6 @@ De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert 
   </data>
   <data name="Delete unconfirmed after (days)" xml:space="preserve">
     <value>Onbevestigde records verwijderen na (dagen)</value>
-  </data>
-  <data name="Delete {0}?" xml:space="preserve">
-    <value>{0} verwijderen?</value>
   </data>
   <data name="Deleted" xml:space="preserve">
     <value>Verwijderd</value>

@@ -11,7 +11,7 @@ namespace hMailServer.ControlPanel.Services
    /// releases something, where the question has more to say than its page's one
    /// line: each is one whole sentence of the catalogue per case, which names the
    /// thing acted on and says what follows, and Views/Dialogs.Confirm asks it with a
-   /// button named for the act (review finding F185). A count that changes the
+   /// button named for the act (review findings F185 and F065). A count that changes the
    /// sentence is one sentence per number, never a noun inflected by the code, so
    /// that each language counts its own way.
    /// </summary>
@@ -25,6 +25,35 @@ namespace hMailServer.ControlPanel.Services
       /// </summary>
       public static bool CancelTakesEnter(bool destructive, bool? cancelByDefault)
          => cancelByDefault ?? destructive;
+
+      // ---- Domains & accounts, public folders (F065) ---------------------------------
+
+      public static string DeleteAccount(string address)
+         => F("Delete the account {0}? Its mailbox and every message in it are deleted. There is no undo.", address);
+
+      public static string DeleteAlias(string alias)
+         => F("Delete the alias {0}? Mail to it is no longer delivered.", alias);
+
+      public static string DeleteDistributionList(string address)
+         => F("Delete the distribution list {0}? Mail to it is no longer delivered; the members' mailboxes are not affected.", address);
+
+      /// <summary>
+      /// The domain's question, one whole sentence by how many accounts go with it,
+      /// where the count was a translated fragment ("its 1 account") put into it.
+      /// </summary>
+      public static string DeleteDomain(string name, int accounts)
+      {
+         if (accounts <= 0)
+            return F("Delete the domain {0}? It has no accounts; its aliases and distribution lists are deleted with it. There is no undo.", name);
+
+         if (accounts == 1)
+            return F("Delete the domain {0}? Its one account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo.", name);
+
+         return F("Delete the domain {0}? Its {1} accounts, every message stored in them, and the domain's aliases and distribution lists are deleted with it. There is no undo.", name, accounts);
+      }
+
+      public static string DeletePublicFolder(string name)
+         => F("Delete the public folder {0} and every message in it?", name);
 
       // ---- Delivery queue, REST API keys, restarts (F185) -----------------------------
 

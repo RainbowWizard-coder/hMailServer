@@ -356,7 +356,7 @@ namespace hMailServer.ControlPanel.Views
          if (DomainList.SelectedItem == null)
             return;
 
-         if (!MessageBox.Confirm(F("Delete the alias {0}?", name), L("Control Panel"), L("_Delete alias"), destructive: true))
+         if (!MessageBox.Confirm(Confirmations.DeleteAlias(name), L("Control Panel"), L("_Delete alias"), destructive: true))
             return;
 
          dynamic domains = ServerSession.Current.Application.Domains;
@@ -466,7 +466,7 @@ namespace hMailServer.ControlPanel.Views
          if (DomainList.SelectedItem == null)
             return;
 
-         if (!MessageBox.Confirm(F("Delete the distribution list {0}?", address), L("Control Panel"), L("_Delete list"), destructive: true))
+         if (!MessageBox.Confirm(Confirmations.DeleteDistributionList(address), L("Control Panel"), L("_Delete list"), destructive: true))
             return;
 
          dynamic domains = ServerSession.Current.Application.Domains;
@@ -602,12 +602,7 @@ namespace hMailServer.ControlPanel.Views
                ServerSession.Release(domain);
             }
 
-            if (!MessageBox.Confirm(
-                   PluralF(accountCount,
-                      "Delete the domain {0}?\n\nThis permanently removes its {1} account, every message stored in it, and all of the domain's aliases and distribution lists. There is no undo.",
-                      "Delete the domain {0}?\n\nThis permanently removes its {1} accounts, every message stored in them, and all of the domain's aliases and distribution lists. There is no undo.",
-                      name, accountCount),
-                   L("Control Panel"), L("_Delete domain"), destructive: true))
+            if (!MessageBox.Confirm(Confirmations.DeleteDomain(name, accountCount), L("Control Panel"), L("_Delete domain"), destructive: true))
                return;
 
             domains.DeleteByDBID(domainId);
@@ -747,7 +742,7 @@ namespace hMailServer.ControlPanel.Views
          if (domainName == null)
             return;
 
-         if (!MessageBox.Confirm(F("Delete {0}?", address), L("Control Panel"), L("_Delete account"), destructive: true))
+         if (!MessageBox.Confirm(Confirmations.DeleteAccount(address), L("Control Panel"), L("_Delete account"), destructive: true))
             return;
 
          dynamic domains = ServerSession.Current.Application.Domains;

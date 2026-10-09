@@ -3498,8 +3498,11 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Delete the SURBL server {0}?" xml:space="preserve">
     <value>Slet SURBL-serveren {0}?</value>
   </data>
-  <data name="Delete the alias {0}?" xml:space="preserve">
-    <value>Slet aliasset {0}?</value>
+  <data name="Delete the account {0}? Its mailbox and every message in it are deleted. There is no undo." xml:space="preserve">
+    <value>Slet kontoen {0}? Dens postkasse og hver eneste meddelelse i den slettes. Det kan ikke fortrydes.</value>
+  </data>
+  <data name="Delete the alias {0}? Mail to it is no longer delivered." xml:space="preserve">
+    <value>Slet aliasset {0}? Post til det leveres ikke længere.</value>
   </data>
   <data name="Delete the app password {0}? The client using it stops connecting at once." xml:space="preserve">
     <value>Slet app-adgangskoden {0}? Den klient, der bruger den, holder straks op med at kunne forbinde.</value>
@@ -3513,8 +3516,8 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Delete the checked messages" xml:space="preserve">
     <value>Slet de markerede meddelelser</value>
   </data>
-  <data name="Delete the distribution list {0}?" xml:space="preserve">
-    <value>Slet distributionslisten {0}?</value>
+  <data name="Delete the distribution list {0}? Mail to it is no longer delivered; the members' mailboxes are not affected." xml:space="preserve">
+    <value>Slet distributionslisten {0}? Post til den leveres ikke længere; medlemmernes postkasser berøres ikke.</value>
   </data>
   <data name="Delete the domain alias {0}? Mail to addresses at that name is no longer delivered to this domain." xml:space="preserve">
     <value>Slet domænealiasset {0}? Post til adresser under det navn leveres ikke længere til dette domæne.</value>
@@ -3528,6 +3531,15 @@ Dette fjerner permanent dets {1} konto, hver eneste meddelelse, der er gemt i de
     <value>Slet domænet {0}?
 
 Dette fjerner permanent dets {1} konti, hver eneste meddelelse, der er gemt i dem, og alle domænets aliasser og distributionslister. Det kan ikke fortrydes.</value>
+  </data>
+  <data name="Delete the domain {0}? It has no accounts; its aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>Slet domænet {0}? Det har ingen konti; dets aliasser og distributionslister slettes sammen med det. Det kan ikke fortrydes.</value>
+  </data>
+  <data name="Delete the domain {0}? Its one account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>Slet domænet {0}? Dets ene konto, hver meddelelse, der er gemt i den, og domænets aliasser og distributionslister slettes sammen med det. Det kan ikke fortrydes.</value>
+  </data>
+  <data name="Delete the domain {0}? Its {1} accounts, every message stored in them, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>Slet domænet {0}? Dets {1} konti, hver meddelelse, der er gemt i dem, og domænets aliasser og distributionslister slettes sammen med det. Det kan ikke fortrydes.</value>
   </data>
   <data name="Delete the entry {0}?" xml:space="preserve">
     <value>Slet posten {0}?</value>
@@ -3550,8 +3562,8 @@ Dette fjerner permanent dets {1} konti, hver eneste meddelelse, der er gemt i de
   <data name="Delete the list entry {0}?" xml:space="preserve">
     <value>Slet listeposten {0}?</value>
   </data>
-  <data name="Delete the public folder '{0}' and all messages in it?" xml:space="preserve">
-    <value>Slet den offentlige mappe '{0}' og alle meddelelser i den?</value>
+  <data name="Delete the public folder {0} and every message in it?" xml:space="preserve">
+    <value>Slet den offentlige mappe {0} og hver eneste meddelelse i den?</value>
   </data>
   <data name="Delete the remote domain policy {0}? Mail to and from that domain follows the server-wide settings again." xml:space="preserve">
     <value>Slet politikken for eksternt domæne {0}? Post til og fra det domæne følger igen de serverbrede indstillinger.</value>
@@ -3610,9 +3622,6 @@ Afsenderen fik at vide, at den var accepteret, så intet forsøger igen, og der 
   </data>
   <data name="Delete unconfirmed after (days)" xml:space="preserve">
     <value>Slet ubekræftede efter (dage)</value>
-  </data>
-  <data name="Delete {0}?" xml:space="preserve">
-    <value>Slet {0}?</value>
   </data>
   <data name="Deleted" xml:space="preserve">
     <value>Slettet</value>

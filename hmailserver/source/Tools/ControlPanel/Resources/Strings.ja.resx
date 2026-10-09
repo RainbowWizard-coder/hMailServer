@@ -3498,8 +3498,11 @@
   <data name="Delete the SURBL server {0}?" xml:space="preserve">
     <value>SURBL サーバー {0} を削除しますか?</value>
   </data>
-  <data name="Delete the alias {0}?" xml:space="preserve">
-    <value>エイリアス {0} を削除しますか?</value>
+  <data name="Delete the account {0}? Its mailbox and every message in it are deleted. There is no undo." xml:space="preserve">
+    <value>アカウント {0} を削除しますか? そのメールボックスと、中のすべてのメッセージが削除されます。元に戻すことはできません。</value>
+  </data>
+  <data name="Delete the alias {0}? Mail to it is no longer delivered." xml:space="preserve">
+    <value>エイリアス {0} を削除しますか? このエイリアス宛てのメールは配信されなくなります。</value>
   </data>
   <data name="Delete the app password {0}? The client using it stops connecting at once." xml:space="preserve">
     <value>アプリ パスワード {0} を削除しますか? これを使っているクライアントは直ちに接続できなくなります。</value>
@@ -3513,8 +3516,8 @@
   <data name="Delete the checked messages" xml:space="preserve">
     <value>チェックしたメッセージを削除</value>
   </data>
-  <data name="Delete the distribution list {0}?" xml:space="preserve">
-    <value>配布リスト {0} を削除しますか?</value>
+  <data name="Delete the distribution list {0}? Mail to it is no longer delivered; the members' mailboxes are not affected." xml:space="preserve">
+    <value>配布リスト {0} を削除しますか? このリスト宛てのメールは配信されなくなります。メンバーのメールボックスには影響しません。</value>
   </data>
   <data name="Delete the domain alias {0}? Mail to addresses at that name is no longer delivered to this domain." xml:space="preserve">
     <value>ドメイン エイリアス {0} を削除しますか? その名前のアドレス宛てのメールは、このドメインに配信されなくなります。</value>
@@ -3528,6 +3531,15 @@
     <value>ドメイン {0} を削除しますか?
 
 これにより、このドメインの {1} 件のアカウント、そこに保存されているすべてのメッセージ、およびこのドメインのすべてのエイリアスと配布リストが完全に削除されます。元に戻すことはできません。</value>
+  </data>
+  <data name="Delete the domain {0}? It has no accounts; its aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>ドメイン {0} を削除しますか? アカウントはありません。このドメインのエイリアスと配布リストも一緒に削除されます。元に戻すことはできません。</value>
+  </data>
+  <data name="Delete the domain {0}? Its one account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>ドメイン {0} を削除しますか? その唯一のアカウント、そこに保存されているすべてのメッセージ、およびこのドメインのエイリアスと配布リストも一緒に削除されます。元に戻すことはできません。</value>
+  </data>
+  <data name="Delete the domain {0}? Its {1} accounts, every message stored in them, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>ドメイン {0} を削除しますか? その {1} 件のアカウント、そこに保存されているすべてのメッセージ、およびこのドメインのエイリアスと配布リストも一緒に削除されます。元に戻すことはできません。</value>
   </data>
   <data name="Delete the entry {0}?" xml:space="preserve">
     <value>エントリ {0} を削除しますか?</value>
@@ -3550,8 +3562,8 @@
   <data name="Delete the list entry {0}?" xml:space="preserve">
     <value>一覧のエントリ {0} を削除しますか?</value>
   </data>
-  <data name="Delete the public folder '{0}' and all messages in it?" xml:space="preserve">
-    <value>公開フォルダー '{0}' とその中のすべてのメッセージを削除しますか?</value>
+  <data name="Delete the public folder {0} and every message in it?" xml:space="preserve">
+    <value>公開フォルダー {0} とその中のすべてのメッセージを削除しますか?</value>
   </data>
   <data name="Delete the remote domain policy {0}? Mail to and from that domain follows the server-wide settings again." xml:space="preserve">
     <value>リモートドメインのポリシー {0} を削除しますか? そのドメインとの間のメールは、再びサーバー全体の設定に従います。</value>
@@ -3610,9 +3622,6 @@
   </data>
   <data name="Delete unconfirmed after (days)" xml:space="preserve">
     <value>未確認のものを削除するまでの日数 (日)</value>
-  </data>
-  <data name="Delete {0}?" xml:space="preserve">
-    <value>{0} を削除しますか?</value>
   </data>
   <data name="Deleted" xml:space="preserve">
     <value>削除</value>

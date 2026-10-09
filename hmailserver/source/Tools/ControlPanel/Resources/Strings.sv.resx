@@ -3498,8 +3498,11 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Delete the SURBL server {0}?" xml:space="preserve">
     <value>Ta bort SURBL-servern {0}?</value>
   </data>
-  <data name="Delete the alias {0}?" xml:space="preserve">
-    <value>Ta bort aliaset {0}?</value>
+  <data name="Delete the account {0}? Its mailbox and every message in it are deleted. There is no undo." xml:space="preserve">
+    <value>Ta bort kontot {0}? Dess brevlåda och varje meddelande i den tas bort. Det går inte att ångra.</value>
+  </data>
+  <data name="Delete the alias {0}? Mail to it is no longer delivered." xml:space="preserve">
+    <value>Ta bort aliaset {0}? E-post till det levereras inte längre.</value>
   </data>
   <data name="Delete the app password {0}? The client using it stops connecting at once." xml:space="preserve">
     <value>Ta bort applösenordet {0}? Klienten som använder det slutar ansluta omedelbart.</value>
@@ -3513,8 +3516,8 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Delete the checked messages" xml:space="preserve">
     <value>Ta bort de markerade meddelandena</value>
   </data>
-  <data name="Delete the distribution list {0}?" xml:space="preserve">
-    <value>Ta bort distributionslistan {0}?</value>
+  <data name="Delete the distribution list {0}? Mail to it is no longer delivered; the members' mailboxes are not affected." xml:space="preserve">
+    <value>Ta bort distributionslistan {0}? E-post till den levereras inte längre; medlemmarnas brevlådor påverkas inte.</value>
   </data>
   <data name="Delete the domain alias {0}? Mail to addresses at that name is no longer delivered to this domain." xml:space="preserve">
     <value>Ta bort domänaliaset {0}? E-post till adresser under det namnet levereras inte längre till den här domänen.</value>
@@ -3528,6 +3531,15 @@ Det tar permanent bort dess {1} konto, varje meddelande som lagras i det, och al
     <value>Ta bort domänen {0}?
 
 Det tar permanent bort dess {1} konton, varje meddelande som lagras i dem, och alla domänens alias och distributionslistor. Det går inte att ångra.</value>
+  </data>
+  <data name="Delete the domain {0}? It has no accounts; its aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>Ta bort domänen {0}? Den har inga konton; dess alias och distributionslistor tas bort tillsammans med den. Det går inte att ångra.</value>
+  </data>
+  <data name="Delete the domain {0}? Its one account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>Ta bort domänen {0}? Dess enda konto, varje meddelande som lagras i det och domänens alias och distributionslistor tas bort tillsammans med den. Det går inte att ångra.</value>
+  </data>
+  <data name="Delete the domain {0}? Its {1} accounts, every message stored in them, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>Ta bort domänen {0}? Dess {1} konton, varje meddelande som lagras i dem och domänens alias och distributionslistor tas bort tillsammans med den. Det går inte att ångra.</value>
   </data>
   <data name="Delete the entry {0}?" xml:space="preserve">
     <value>Ta bort posten {0}?</value>
@@ -3550,8 +3562,8 @@ Det tar permanent bort dess {1} konton, varje meddelande som lagras i dem, och a
   <data name="Delete the list entry {0}?" xml:space="preserve">
     <value>Ta bort listposten {0}?</value>
   </data>
-  <data name="Delete the public folder '{0}' and all messages in it?" xml:space="preserve">
-    <value>Ta bort den publika mappen '{0}' och alla meddelanden i den?</value>
+  <data name="Delete the public folder {0} and every message in it?" xml:space="preserve">
+    <value>Ta bort den publika mappen {0} och varje meddelande i den?</value>
   </data>
   <data name="Delete the remote domain policy {0}? Mail to and from that domain follows the server-wide settings again." xml:space="preserve">
     <value>Ta bort regeln för den externa domänen {0}? E-post till och från den domänen följer åter inställningarna för hela servern.</value>
@@ -3610,9 +3622,6 @@ Avsändaren fick veta att det accepterades, så inget kommer att försöka igen 
   </data>
   <data name="Delete unconfirmed after (days)" xml:space="preserve">
     <value>Ta bort obekräftade efter (dagar)</value>
-  </data>
-  <data name="Delete {0}?" xml:space="preserve">
-    <value>Ta bort {0}?</value>
   </data>
   <data name="Deleted" xml:space="preserve">
     <value>Borttaget</value>

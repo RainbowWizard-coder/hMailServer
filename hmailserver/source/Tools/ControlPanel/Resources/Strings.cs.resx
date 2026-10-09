@@ -3516,8 +3516,11 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Delete the SURBL server {0}?" xml:space="preserve">
     <value>Odstranit server SURBL {0}?</value>
   </data>
-  <data name="Delete the alias {0}?" xml:space="preserve">
-    <value>Odstranit alias {0}?</value>
+  <data name="Delete the account {0}? Its mailbox and every message in it are deleted. There is no undo." xml:space="preserve">
+    <value>Odstranit účet {0}? Smaže se jeho poštovní schránka a každá zpráva v ní. Nelze vrátit zpět.</value>
+  </data>
+  <data name="Delete the alias {0}? Mail to it is no longer delivered." xml:space="preserve">
+    <value>Odstranit alias {0}? Pošta na něj se už nebude doručovat.</value>
   </data>
   <data name="Delete the app password {0}? The client using it stops connecting at once." xml:space="preserve">
     <value>Odstranit heslo aplikace {0}? Klient, který ho používá, se okamžitě přestane připojovat.</value>
@@ -3531,8 +3534,8 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Delete the checked messages" xml:space="preserve">
     <value>Odstranit zaškrtnuté zprávy</value>
   </data>
-  <data name="Delete the distribution list {0}?" xml:space="preserve">
-    <value>Odstranit distribuční seznam {0}?</value>
+  <data name="Delete the distribution list {0}? Mail to it is no longer delivered; the members' mailboxes are not affected." xml:space="preserve">
+    <value>Odstranit distribuční seznam {0}? Pošta na něj se už nebude doručovat; poštovních schránek členů se to nedotkne.</value>
   </data>
   <data name="Delete the domain alias {0}? Mail to addresses at that name is no longer delivered to this domain." xml:space="preserve">
     <value>Odstranit alias domény {0}? Pošta na adresy s tímto názvem se už nebude doručovat do této domény.</value>
@@ -3551,6 +3554,15 @@ Tím se trvale odstraní jejích {1} účtů, každá zpráva v nich uložená a
     <value>Odstranit doménu {0}?
 
 Tím se trvale odstraní její {1} účty, každá zpráva v nich uložená a všechny aliasy a distribuční seznamy domény. Nelze vrátit zpět.</value>
+  </data>
+  <data name="Delete the domain {0}? It has no accounts; its aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>Odstranit doménu {0}? Nemá žádné účty; spolu s ní se odstraní její aliasy a distribuční seznamy. Nelze vrátit zpět.</value>
+  </data>
+  <data name="Delete the domain {0}? Its one account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>Odstranit doménu {0}? Spolu s ní se odstraní její jediný účet, každá zpráva v něm uložená a aliasy a distribuční seznamy domény. Nelze vrátit zpět.</value>
+  </data>
+  <data name="Delete the domain {0}? Its {1} accounts, every message stored in them, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>Odstranit doménu {0}? Spolu s ní se odstraní její účty (počet: {1}), každá zpráva v nich uložená a aliasy a distribuční seznamy domény. Nelze vrátit zpět.</value>
   </data>
   <data name="Delete the entry {0}?" xml:space="preserve">
     <value>Odstranit položku {0}?</value>
@@ -3573,8 +3585,8 @@ Tím se trvale odstraní její {1} účty, každá zpráva v nich uložená a v�
   <data name="Delete the list entry {0}?" xml:space="preserve">
     <value>Odstranit položku seznamu {0}?</value>
   </data>
-  <data name="Delete the public folder '{0}' and all messages in it?" xml:space="preserve">
-    <value>Odstranit veřejnou složku '{0}' a všechny zprávy v ní?</value>
+  <data name="Delete the public folder {0} and every message in it?" xml:space="preserve">
+    <value>Odstranit veřejnou složku {0} a každou zprávu v ní?</value>
   </data>
   <data name="Delete the remote domain policy {0}? Mail to and from that domain follows the server-wide settings again." xml:space="preserve">
     <value>Odstranit pravidlo pro vzdálenou doménu {0}? Pošta do této domény a z ní se opět řídí nastavením celého serveru.</value>
@@ -3643,9 +3655,6 @@ Odesílateli bylo řečeno, že byla přijata, takže nic ji nezopakuje a jiná 
   </data>
   <data name="Delete unconfirmed after (days)" xml:space="preserve">
     <value>Mazat nepotvrzené po (dny)</value>
-  </data>
-  <data name="Delete {0}?" xml:space="preserve">
-    <value>Odstranit {0}?</value>
   </data>
   <data name="Deleted" xml:space="preserve">
     <value>Smazáno</value>

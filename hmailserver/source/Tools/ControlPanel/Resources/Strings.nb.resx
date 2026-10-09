@@ -3498,8 +3498,11 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Delete the SURBL server {0}?" xml:space="preserve">
     <value>Slette SURBL-serveren {0}?</value>
   </data>
-  <data name="Delete the alias {0}?" xml:space="preserve">
-    <value>Slette aliaset {0}?</value>
+  <data name="Delete the account {0}? Its mailbox and every message in it are deleted. There is no undo." xml:space="preserve">
+    <value>Slette kontoen {0}? Postboksen og hver melding i den slettes. Det kan ikke angres.</value>
+  </data>
+  <data name="Delete the alias {0}? Mail to it is no longer delivered." xml:space="preserve">
+    <value>Slette aliaset {0}? E-post til det leveres ikke lenger.</value>
   </data>
   <data name="Delete the app password {0}? The client using it stops connecting at once." xml:space="preserve">
     <value>Slette app-passordet {0}? Klienten som bruker det, slutter straks å koble til.</value>
@@ -3513,8 +3516,8 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Delete the checked messages" xml:space="preserve">
     <value>Slett de merkede meldingene</value>
   </data>
-  <data name="Delete the distribution list {0}?" xml:space="preserve">
-    <value>Slette distribusjonslisten {0}?</value>
+  <data name="Delete the distribution list {0}? Mail to it is no longer delivered; the members' mailboxes are not affected." xml:space="preserve">
+    <value>Slette distribusjonslisten {0}? E-post til den leveres ikke lenger; medlemmenes postbokser berøres ikke.</value>
   </data>
   <data name="Delete the domain alias {0}? Mail to addresses at that name is no longer delivered to this domain." xml:space="preserve">
     <value>Slette domenealiaset {0}? E-post til adresser under det navnet leveres ikke lenger til dette domenet.</value>
@@ -3528,6 +3531,15 @@ Dette fjerner permanent dets {1} konto, hver melding som er lagret i den, og all
     <value>Slette domenet {0}?
 
 Dette fjerner permanent dets {1} kontoer, hver melding som er lagret i dem, og alle domenets aliaser og distribusjonslister. Det kan ikke angres.</value>
+  </data>
+  <data name="Delete the domain {0}? It has no accounts; its aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>Slette domenet {0}? Det har ingen kontoer; aliasene og distribusjonslistene slettes sammen med det. Det kan ikke angres.</value>
+  </data>
+  <data name="Delete the domain {0}? Its one account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>Slette domenet {0}? Den ene kontoen, hver melding som er lagret i den, og domenets aliaser og distribusjonslister slettes sammen med det. Det kan ikke angres.</value>
+  </data>
+  <data name="Delete the domain {0}? Its {1} accounts, every message stored in them, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>Slette domenet {0}? De {1} kontoene, hver melding som er lagret i dem, og domenets aliaser og distribusjonslister slettes sammen med det. Det kan ikke angres.</value>
   </data>
   <data name="Delete the entry {0}?" xml:space="preserve">
     <value>Slette oppføringen {0}?</value>
@@ -3550,8 +3562,8 @@ Dette fjerner permanent dets {1} kontoer, hver melding som er lagret i dem, og a
   <data name="Delete the list entry {0}?" xml:space="preserve">
     <value>Slette listeoppføringen {0}?</value>
   </data>
-  <data name="Delete the public folder '{0}' and all messages in it?" xml:space="preserve">
-    <value>Slette den offentlige mappen '{0}' og alle meldingene i den?</value>
+  <data name="Delete the public folder {0} and every message in it?" xml:space="preserve">
+    <value>Slette den offentlige mappen {0} og hver melding i den?</value>
   </data>
   <data name="Delete the remote domain policy {0}? Mail to and from that domain follows the server-wide settings again." xml:space="preserve">
     <value>Slette regelen for eksternt domene {0}? E-post til og fra det domenet følger igjen innstillingene for hele serveren.</value>
@@ -3610,9 +3622,6 @@ Avsenderen fikk beskjed om at den ble godtatt, så ingenting vil prøve på nytt
   </data>
   <data name="Delete unconfirmed after (days)" xml:space="preserve">
     <value>Slett ubekreftede etter (dager)</value>
-  </data>
-  <data name="Delete {0}?" xml:space="preserve">
-    <value>Slette {0}?</value>
   </data>
   <data name="Deleted" xml:space="preserve">
     <value>Slettet</value>

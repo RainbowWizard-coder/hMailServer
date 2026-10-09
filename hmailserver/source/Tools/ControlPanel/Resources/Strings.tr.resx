@@ -3498,8 +3498,11 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Delete the SURBL server {0}?" xml:space="preserve">
     <value>{0} SURBL sunucusu silinsin mi?</value>
   </data>
-  <data name="Delete the alias {0}?" xml:space="preserve">
-    <value>{0} diğer adı silinsin mi?</value>
+  <data name="Delete the account {0}? Its mailbox and every message in it are deleted. There is no undo." xml:space="preserve">
+    <value>{0} hesabı silinsin mi? Posta kutusu ve içindeki tüm iletiler silinir. Geri alınamaz.</value>
+  </data>
+  <data name="Delete the alias {0}? Mail to it is no longer delivered." xml:space="preserve">
+    <value>{0} diğer adı silinsin mi? Ona gönderilen posta artık teslim edilmez.</value>
   </data>
   <data name="Delete the app password {0}? The client using it stops connecting at once." xml:space="preserve">
     <value>{0} uygulama parolası silinsin mi? Onu kullanan istemci hemen bağlanamaz olur.</value>
@@ -3513,8 +3516,8 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Delete the checked messages" xml:space="preserve">
     <value>İşaretli iletileri sil</value>
   </data>
-  <data name="Delete the distribution list {0}?" xml:space="preserve">
-    <value>{0} dağıtım listesi silinsin mi?</value>
+  <data name="Delete the distribution list {0}? Mail to it is no longer delivered; the members' mailboxes are not affected." xml:space="preserve">
+    <value>{0} dağıtım listesi silinsin mi? Ona gönderilen posta artık teslim edilmez; üyelerin posta kutuları etkilenmez.</value>
   </data>
   <data name="Delete the domain alias {0}? Mail to addresses at that name is no longer delivered to this domain." xml:space="preserve">
     <value>{0} etki alanı diğer adı silinsin mi? O addaki adreslere gelen posta artık bu etki alanına teslim edilmez.</value>
@@ -3528,6 +3531,15 @@ Bu işlem etki alanının {1} hesabını, içinde saklanan her iletiyi ve etki a
     <value>{0} etki alanı silinsin mi?
 
 Bu işlem etki alanının {1} hesabını, içlerinde saklanan her iletiyi ve etki alanının tüm diğer adlarıyla dağıtım listelerini kalıcı olarak kaldırır. Geri alınamaz.</value>
+  </data>
+  <data name="Delete the domain {0}? It has no accounts; its aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>{0} etki alanı silinsin mi? Hiç hesabı yok; diğer adları ve dağıtım listeleri onunla birlikte silinir. Geri alınamaz.</value>
+  </data>
+  <data name="Delete the domain {0}? Its one account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>{0} etki alanı silinsin mi? Tek hesabı, o hesapta saklanan her ileti ve etki alanının diğer adlarıyla dağıtım listeleri onunla birlikte silinir. Geri alınamaz.</value>
+  </data>
+  <data name="Delete the domain {0}? Its {1} accounts, every message stored in them, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>{0} etki alanı silinsin mi? {1} hesabı, bu hesaplarda saklanan her ileti ve etki alanının diğer adlarıyla dağıtım listeleri onunla birlikte silinir. Geri alınamaz.</value>
   </data>
   <data name="Delete the entry {0}?" xml:space="preserve">
     <value>{0} kaydı silinsin mi?</value>
@@ -3550,8 +3562,8 @@ Bu işlem etki alanının {1} hesabını, içlerinde saklanan her iletiyi ve etk
   <data name="Delete the list entry {0}?" xml:space="preserve">
     <value>{0} liste kaydı silinsin mi?</value>
   </data>
-  <data name="Delete the public folder '{0}' and all messages in it?" xml:space="preserve">
-    <value>'{0}' genel klasörü ve içindeki tüm iletiler silinsin mi?</value>
+  <data name="Delete the public folder {0} and every message in it?" xml:space="preserve">
+    <value>{0} genel klasörü ve içindeki her ileti silinsin mi?</value>
   </data>
   <data name="Delete the remote domain policy {0}? Mail to and from that domain follows the server-wide settings again." xml:space="preserve">
     <value>{0} uzak alan adı ilkesi silinsin mi? O alan adına giden ve oradan gelen posta yeniden sunucu genelindeki ayarlara uyar.</value>
@@ -3610,9 +3622,6 @@ Gönderene kabul edildiği söylendi; bu nedenle hiçbir şey yeniden denemeyece
   </data>
   <data name="Delete unconfirmed after (days)" xml:space="preserve">
     <value>Onaylanmamışları şu süre sonra sil (gün)</value>
-  </data>
-  <data name="Delete {0}?" xml:space="preserve">
-    <value>{0} silinsin mi?</value>
   </data>
   <data name="Deleted" xml:space="preserve">
     <value>Silindi</value>

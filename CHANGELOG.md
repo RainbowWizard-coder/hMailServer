@@ -1244,6 +1244,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   save says that a restart drops every open session and takes *Later* on Enter; and the account dialog's recovery tab,
   which still raised the grey Win32 box, uses the themed one. The Control Panel's tests hold every page to the one
   shape, so that a Yes and No question cannot come back.
+- **Fixed: the Domains & accounts and Public folders pages' deletes did not say what goes.** *Delete
+  user00@example.com?* did not say that the mailbox and every message in it went with the account, and the five
+  deletes were four sentence shapes, the domain's built from a translated fragment (*its 1 account*) put into a
+  template. Each is now one whole question that says what goes and what does not: the account's mailbox and every
+  message in it, with no undo; that mail to an alias or a distribution list is no longer delivered, and that the
+  list's members' mailboxes are not affected; the domain's accounts, every message stored in them and its aliases and
+  distribution lists, one sentence for a domain with no account, one and several; and the public folder with every
+  message in it, named without quotes.
 
 ### Administration
 

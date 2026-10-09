@@ -3516,8 +3516,11 @@ Control Panel может читать файлы сообщений только
   <data name="Delete the SURBL server {0}?" xml:space="preserve">
     <value>Удалить сервер SURBL {0}?</value>
   </data>
-  <data name="Delete the alias {0}?" xml:space="preserve">
-    <value>Удалить псевдоним {0}?</value>
+  <data name="Delete the account {0}? Its mailbox and every message in it are deleted. There is no undo." xml:space="preserve">
+    <value>Удалить учётную запись {0}? Её почтовый ящик и все сообщения в нём будут удалены. Отменить это действие нельзя.</value>
+  </data>
+  <data name="Delete the alias {0}? Mail to it is no longer delivered." xml:space="preserve">
+    <value>Удалить псевдоним {0}? Почта на него больше не доставляется.</value>
   </data>
   <data name="Delete the app password {0}? The client using it stops connecting at once." xml:space="preserve">
     <value>Удалить пароль приложения {0}? Клиент, который им пользуется, сразу перестанет подключаться.</value>
@@ -3531,8 +3534,8 @@ Control Panel может читать файлы сообщений только
   <data name="Delete the checked messages" xml:space="preserve">
     <value>Удалить отмеченные сообщения</value>
   </data>
-  <data name="Delete the distribution list {0}?" xml:space="preserve">
-    <value>Удалить список рассылки {0}?</value>
+  <data name="Delete the distribution list {0}? Mail to it is no longer delivered; the members' mailboxes are not affected." xml:space="preserve">
+    <value>Удалить список рассылки {0}? Почта на него больше не доставляется; почтовые ящики участников это не затрагивает.</value>
   </data>
   <data name="Delete the domain alias {0}? Mail to addresses at that name is no longer delivered to this domain." xml:space="preserve">
     <value>Удалить псевдоним домена {0}? Почта на адреса с этим именем больше не доставляется в этот домен.</value>
@@ -3551,6 +3554,15 @@ Control Panel может читать файлы сообщений только
     <value>Удалить домен {0}?
 
 Будут безвозвратно удалены его {1} учётные записи, все хранящиеся в них сообщения, а также все псевдонимы и списки рассылки этого домена. Отменить это действие нельзя.</value>
+  </data>
+  <data name="Delete the domain {0}? It has no accounts; its aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>Удалить домен {0}? В нём нет учётных записей; его псевдонимы и списки рассылки будут удалены вместе с ним. Отменить это действие нельзя.</value>
+  </data>
+  <data name="Delete the domain {0}? Its one account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>Удалить домен {0}? Вместе с ним будут удалены его единственная учётная запись, все хранящиеся в ней сообщения, а также псевдонимы и списки рассылки домена. Отменить это действие нельзя.</value>
+  </data>
+  <data name="Delete the domain {0}? Its {1} accounts, every message stored in them, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>Удалить домен {0}? Вместе с ним будут удалены его учётные записи (количество: {1}), все хранящиеся в них сообщения, а также псевдонимы и списки рассылки домена. Отменить это действие нельзя.</value>
   </data>
   <data name="Delete the entry {0}?" xml:space="preserve">
     <value>Удалить запись {0}?</value>
@@ -3573,8 +3585,8 @@ Control Panel может читать файлы сообщений только
   <data name="Delete the list entry {0}?" xml:space="preserve">
     <value>Удалить запись списка {0}?</value>
   </data>
-  <data name="Delete the public folder '{0}' and all messages in it?" xml:space="preserve">
-    <value>Удалить общую папку «{0}» и все сообщения в ней?</value>
+  <data name="Delete the public folder {0} and every message in it?" xml:space="preserve">
+    <value>Удалить общую папку {0} и все сообщения в ней?</value>
   </data>
   <data name="Delete the remote domain policy {0}? Mail to and from that domain follows the server-wide settings again." xml:space="preserve">
     <value>Удалить правило для внешнего домена {0}? Почта в этот домен и из него снова подчиняется общим параметрам сервера.</value>
@@ -3643,9 +3655,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Delete unconfirmed after (days)" xml:space="preserve">
     <value>Удалять неподтверждённые записи через (дней)</value>
-  </data>
-  <data name="Delete {0}?" xml:space="preserve">
-    <value>Удалить {0}?</value>
   </data>
   <data name="Deleted" xml:space="preserve">
     <value>Удалено</value>
