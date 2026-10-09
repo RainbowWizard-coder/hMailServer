@@ -47,6 +47,9 @@
     <Compile Include="..\ControlPanel\Services\ChartCatalog.cs" />
     <Compile Include="..\ControlPanel\Services\ChartDataTable.cs" />
     <Compile Include="..\ControlPanel\Services\StatusSemantics.cs" />
+    <!-- The pill of a list whose entries can be switched off: how many are on, of how
+         many, at Warning when none is (review finding F268). -->
+    <Compile Include="..\ControlPanel\Services\ActiveEntries.cs" />
     <!-- The design tokens and the server status pill's vocabulary. The numbers,
          the High Contrast derivation and the colour-vision separation of the
          information colour are decided in DesignTokens; the pill's word and
@@ -118,9 +121,6 @@
          StatusSemantics above precisely so that it does not. -->
     <Compile Include="..\ControlPanel\Services\VirusPipeline.cs" />
     <Compile Include="..\ControlPanel\Services\TlsPosture.cs" />
-    <!-- The pill of a list whose entries can be switched off: how many are on, of how
-         many, at Warning when none is (review finding F268). -->
-    <Compile Include="..\ControlPanel\Services\ActiveEntries.cs" />
     <!-- The server's refusals the Control Panel translates where it shows them.
          Linked so a test can hold each sentence to the server source it copies and
          to every complete catalogue: a sentence that drifted from the server would
