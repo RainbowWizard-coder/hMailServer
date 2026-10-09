@@ -1232,18 +1232,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Fifty-six questions were asked with Yes and No, or OK and Cancel: Enter deleted a collection list's entry, removed a
   message from the delivery queue and revoked an API key, while the quarantine, the suppression list and the audit
   trail declined on Enter; a merge into a mailbox, which removes nothing, had the same red Yes as a replace that
-  empties it; the restart offered after a settings save restarted the service on Enter, dropping every open session;
-  and a collection list asked *Delete this security group?* without naming the group. Every question is now asked the
-  one way, `Dialogs.Confirm`, as the few newer ones already were: the thing acted on is named in the question, the
-  button says what it does - *Delete account*, *Revoke key*, *Replace mailbox*, *Merge*, *Pause the mail server*,
-  *Restart now* - and the other button is Cancel or says what declining does (*Later*, *Keep working*, *Keep the next
-  key*); the button that deletes, revokes or replaces something is never the one Enter presses. Each collection list
-  asks its own whole question with the entry's name, *Delete the SURBL server multi.surbl.org?* or *Delete the
-  security group Sales?* with what goes with the group, where it put the list's noun into one template; the queue's
-  question names the message's sender and recipients and says that it is deleted without a bounce; the restart after a
-  save says that a restart drops every open session and takes *Later* on Enter; and the account dialog's recovery tab,
-  which still raised the grey Win32 box, uses the themed one. The Control Panel's tests hold every page to the one
-  shape, so that a Yes and No question cannot come back.
+  empties it; the restart offered after a settings save restarted the service on Enter, dropping every open session,
+  as the window's *Apply now* and the TCP/IP ports page's offer after a save reinitialised the server on Enter, and
+  the Status page's *Install the update* and *Pause the mail server* stopped it; and a collection list asked *Delete
+  this security group?* without naming the group. Every question is now asked the one way, `Dialogs.Confirm`, as the
+  few newer ones already were: the thing acted on is named in the question, the button says what it does - *Delete
+  account*, *Revoke key*, *Replace mailbox*, *Merge*, *Pause the mail server*, *Restart now* - and the other button is
+  Cancel or says what declining does (*Later*, *Keep working*, *Keep the next key*); the button that deletes, revokes
+  or replaces something, or stops the server's services - a restart, a reinitialise, an update's install, a pause - is
+  never the one Enter presses. Each collection list asks its own whole question with the entry's name, *Delete the
+  SURBL server multi.surbl.org?* or *Delete the security group Sales?* with what goes with the group, where it put the
+  list's noun into one template; the queue's question names the message's sender and recipients and says that it is
+  deleted without a bounce; the restart after a save says that a restart drops every open session and takes *Later* on
+  Enter; and the account dialog's recovery tab, which still raised the grey Win32 box, uses the themed one. The
+  Control Panel's tests hold every page to the one shape, so that a Yes and No question cannot come back.
 - **Fixed: the Domains & accounts and Public folders pages' deletes did not say what goes.** *Delete
   user00@example.com?* did not say that the mailbox and every message in it went with the account, and the five
   deletes were four sentence shapes, the domain's built from a translated fragment (*its 1 account*) put into a

@@ -16,11 +16,12 @@ namespace hMailServer.ControlPanel.Tests.Services
    /// The Control Panel asks before an act in one way (review findings F185 and
    /// F066): Views/Dialogs.Confirm, with the thing acted on named in the question,
    /// the act named on the button and Enter on Cancel whenever the act deletes,
-   /// revokes or replaces something. Confirmations came in several shapes - Yes and
-   /// No, Enter answering Yes on some and No on others, OK and Cancel, a red Yes on a
-   /// merge that removes nothing, "Delete this security group?" naming no group, one
-   /// recovery panel still on the grey Win32 box - and these hold every page to the
-   /// one shape, so that a new page cannot bring an old one back.
+   /// revokes or replaces something, or stops the server's services. Confirmations
+   /// came in several shapes - Yes and No, Enter answering Yes on some and No on
+   /// others, OK and Cancel, a red Yes on a merge that removes nothing, "Delete this
+   /// security group?" naming no group, one recovery panel still on the grey Win32
+   /// box - and these hold every page to the one shape, so that a new page cannot
+   /// bring an old one back.
    /// </summary>
    public class ConfirmationPatternTests
    {
@@ -177,6 +178,65 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("L(\"_Restart now\")", ask, StringComparison.Ordinal);
          Assert.Contains("decline: L(\"_Later\")", ask, StringComparison.Ordinal);
          Assert.Contains("cancelByDefault: true", ask, StringComparison.Ordinal);
+      }
+
+      // Each question before an act that stops the server's services, so that every
+      // open session drops: the file, the member that asks, the act's button and the
+      // decline's, empty for Cancel. The restart after a save is the test above.
+      private static readonly (string File, string Member, string Action, string Decline)[] StopsTheServer_ =
+      {
+         ("MainWindow.xaml.cs", "private void ApplyPending_Click(object sender, RoutedEventArgs e)", "_Apply now", "_Later"),
+         ("Views/TcpIpPortsView.xaml.cs", "private void OfferReinitialize_()", "_Reinitialise now", "_Later"),
+         ("Views/StatusView.xaml.cs", "private void RunUpdateAction_(string action)", "_Install the update", "_Later"),
+         ("Views/StatusView.xaml.cs", "private void PauseResume_Click(object sender, RoutedEventArgs e)", "_Pause the mail server", ""),
+      };
+
+      public static TheoryData<string, string, string, string> StopsTheServer
+      {
+         get
+         {
+            var rows = new TheoryData<string, string, string, string>();
+            foreach ((string file, string member, string action, string decline) in StopsTheServer_)
+               rows.Add(file, member, action, decline);
+            return rows;
+         }
+      }
+
+      /// <summary>
+      /// An act that stops the server's services gives Enter to the decline whether
+      /// the person pressed for it or it is offered after a save (docs/ControlPanelDesign.md),
+      /// where the window's Apply now, which reinitialises the server, took Enter while
+      /// the TCP/IP ports page's offer of the same reinitialise gave it to Later, and the
+      /// Status page's Install the update and Pause took it too.
+      /// </summary>
+      [Theory]
+      [MemberData(nameof(StopsTheServer))]
+      public void AnActThatStopsTheServersServices_GivesEnterToTheDecline(string file, string member, string action, string decline)
+      {
+         string text = WithheldRowTests.MemberText(ReadControlPanelFile(file.Replace('/', Path.DirectorySeparatorChar)), member);
+         Assert.True(text != null, file + ": " + member + " is gone.");
+         string ask = Calls(text, "MessageBox.Confirm(").SingleOrDefault(call => call.Contains("L(\"" + action + "\")", StringComparison.Ordinal));
+         Assert.True(ask != null, file + ": " + member + " does not ask with " + action + ".");
+         Assert.Contains("cancelByDefault: true", ask, StringComparison.Ordinal);
+         if (decline.Length == 0)
+            Assert.DoesNotContain("decline:", ask, StringComparison.Ordinal);
+         else
+            Assert.Contains("decline: L(\"" + decline + "\")", ask, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// Every page that reinitialises the server, installs an update or pauses it is
+      /// one of the questions above, so that a new one is held to the same Enter.
+      /// </summary>
+      [Fact]
+      public void EveryPageThatStopsTheServersServices_IsHeldToItsEnter()
+      {
+         var held = new HashSet<string>(StopsTheServer_.Select(row => row.File.Replace('/', Path.DirectorySeparatorChar)), StringComparer.Ordinal);
+         var stops = new Regex(@"\.Reinitialize\(\)|\.InstallUpdate\(\)|\bapp\.Stop\(\)");
+         var offenders = SourceFiles().Where(source => stops.IsMatch(source.Source) && !held.Contains(source.Relative))
+            .Select(source => source.Relative).ToList();
+         Assert.True(offenders.Count == 0,
+            "A page stops the server's services without being held to giving Enter to the decline; add its question to StopsTheServer:\n" + string.Join("\n", offenders));
       }
 
       [Fact]

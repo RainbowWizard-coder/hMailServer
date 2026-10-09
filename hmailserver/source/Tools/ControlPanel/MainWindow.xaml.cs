@@ -1507,7 +1507,8 @@ namespace hMailServer.ControlPanel
             // below reports what it finds.
          }
 
-         if (!MessageBox.Confirm(SettingApplies.ApplyNowQuestion(draining), L("Control Panel"), L("_Apply now")))
+         if (!MessageBox.Confirm(SettingApplies.ApplyNowQuestion(draining), L("Control Panel"), L("_Apply now"),
+                cancelByDefault: true, decline: L("_Later")))
             return;
 
          ApplyPendingButton.IsEnabled = false;
