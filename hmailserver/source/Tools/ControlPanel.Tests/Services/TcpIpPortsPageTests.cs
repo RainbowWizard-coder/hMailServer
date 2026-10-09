@@ -143,7 +143,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          int warning = summary.IndexOf("ShowSummary_(StatusLevel.Warning, ListenerProbe.NotListeningSummary(names)", StringComparison.Ordinal);
          Assert.True(state >= 0 && information > state && warning > information, "The server's state is not read before the warning.");
          Assert.Contains("int? state = ReadServerState_();", summary, StringComparison.Ordinal);
-         Assert.Contains("NoticeActions.OpenPage(\"status\",", summary, StringComparison.Ordinal);
+         Assert.Contains("OpenStatusButton_()", summary, StringComparison.Ordinal);
+         Assert.Contains("NoticeActions.OpenPage(\"status\",", WithheldRowTests.MemberText(code, "private Wpf.Ui.Controls.Button OpenStatusButton_()") ?? "", StringComparison.Ordinal);
          string notRunning = summary.Substring(information, summary.IndexOf("return;", information, StringComparison.Ordinal) - information);
          Assert.DoesNotContain("ReinitialiseButton_", notRunning, StringComparison.Ordinal);
 
@@ -156,6 +157,43 @@ namespace hMailServer.ControlPanel.Tests.Services
          int ask = reinitialise.IndexOf("ListenerProbe.ReinitialiseQuestionWhenNotRunning(ReadServerState_())", StringComparison.Ordinal);
          int act = reinitialise.IndexOf("Application.Reinitialize()", StringComparison.Ordinal);
          Assert.True(ask >= 0 && act > ask, "A reinitialise of a server not running does not ask first.");
+      }
+
+      /// <summary>
+      /// The line's actions are made once and kept across reads, and the keyboard
+      /// focus leaves the line before its action does: Reinitialise now read the
+      /// page again as its last step, which put a new button in the focused one's
+      /// place or collapsed the line, and the focus fell to the window, so Tab and
+      /// a screen reader started again from the top of the page.
+      /// </summary>
+      [Fact]
+      public void TheLinesActions_AreKeptAcrossReads_AndTheFocusLeavesTheLineFirst()
+      {
+         string code = Source();
+
+         string button = WithheldRowTests.MemberText(code, "private Wpf.Ui.Controls.Button ReinitialiseButton_()");
+         Assert.True(button != null, "ReinitialiseButton_ is gone.");
+         Assert.Contains("if (reinitialiseButton_ != null)", button, StringComparison.Ordinal);
+         Assert.Contains("return reinitialiseButton_ = button;", button, StringComparison.Ordinal);
+         Assert.Contains("=> openStatusButton_ ??= NoticeActions.OpenPage(", code, StringComparison.Ordinal);
+
+         string show = WithheldRowTests.MemberText(code, "private void ShowSummary_(StatusLevel level, string text, object action = null)");
+         Assert.True(show != null, "ShowSummary_ is gone.");
+         int guard = show.IndexOf("if (!ReferenceEquals(ListenerSummary.Content, action) && ListenerSummary.IsKeyboardFocusWithin)", StringComparison.Ordinal);
+         int content = show.IndexOf("ListenerSummary.Content = action;", StringComparison.Ordinal);
+         Assert.True(guard >= 0 && content > guard, "The focused action leaves the line before the focus does.");
+
+         string hide = WithheldRowTests.MemberText(code, "private void HideSummary_()");
+         Assert.True(hide != null, "HideSummary_ is gone.");
+         Assert.True(hide.IndexOf("MoveFocusFromSummary_();", StringComparison.Ordinal) < hide.IndexOf("Visibility.Collapsed", StringComparison.Ordinal));
+
+         // Every way the line is put away goes through HideSummary_.
+         Assert.Single(System.Text.RegularExpressions.Regex.Matches(code, @"ListenerSummary\.Visibility = Visibility\.Collapsed;"));
+
+         string move = WithheldRowTests.MemberText(code, "private void MoveFocusFromSummary_()");
+         Assert.True(move != null, "MoveFocusFromSummary_ is gone.");
+         Assert.Contains("PortGrid.Focus()", move, StringComparison.Ordinal);
+         Assert.Contains("FocusNavigationDirection.Next", move, StringComparison.Ordinal);
       }
 
       private static string Source() => ReadControlPanelFile(Path.Join("Views", "TcpIpPortsView.xaml.cs"));

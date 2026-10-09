@@ -156,7 +156,7 @@ namespace hMailServer.ControlPanel.Views
             // (Services/ReadFailure).
             ReadFailure.Show(Notice, EmptyStatus, PortGrid, L("Could not read the ports: "), ex, Reload,
                AddPortButton, RestoreDefaultsButton);
-            ListenerSummary.Visibility = Visibility.Collapsed;
+            HideSummary_();
          }
       }
 
@@ -268,7 +268,7 @@ namespace hMailServer.ControlPanel.Views
 
          if (down.Count == 0)
          {
-            ListenerSummary.Visibility = Visibility.Collapsed;
+            HideSummary_();
             return;
          }
 
@@ -280,8 +280,7 @@ namespace hMailServer.ControlPanel.Views
          string notRunning = ListenerProbe.WhyNoPortIsListenedOn(state);
          if (notRunning != null)
          {
-            ShowSummary_(StatusLevel.Information, notRunning,
-               state == ListenerProbe.ServerStopped ? NoticeActions.OpenPage("status", "ports-open-status") : null);
+            ShowSummary_(StatusLevel.Information, notRunning, state == ListenerProbe.ServerStopped ? OpenStatusButton_() : null);
             return;
          }
 
@@ -317,11 +316,57 @@ namespace hMailServer.ControlPanel.Views
       /// server is not running.</summary>
       private void ShowSummary_(StatusLevel level, string text, object action = null)
       {
+         // The action that holds the focus leaves the line only after the focus
+         // has: the same action stays, and with it the focus.
+         if (!ReferenceEquals(ListenerSummary.Content, action) && ListenerSummary.IsKeyboardFocusWithin)
+            MoveFocusFromSummary_();
+
          ListenerSummary.Level = level;
          ListenerSummary.Text = text;
          ListenerSummary.Content = action;
          ListenerSummary.Visibility = Visibility.Visible;
       }
+
+      /// <summary>The line put away, with the focus moved out of it first.</summary>
+      private void HideSummary_()
+      {
+         if (ListenerSummary.IsKeyboardFocusWithin)
+            MoveFocusFromSummary_();
+
+         ListenerSummary.Visibility = Visibility.Collapsed;
+      }
+
+      /// <summary>
+      /// Moves the keyboard focus out of the line before its action leaves the
+      /// tree: to the list of ports, to Try again where the read failed and the
+      /// list is not shown, or else to the next control - not to the window,
+      /// where it fell when Reinitialise now read the page again and the line
+      /// collapsed or changed, and Tab and a screen reader started again from the
+      /// top of the page. ReadFailure.Clear does the same for its own button.
+      /// </summary>
+      private void MoveFocusFromSummary_()
+      {
+         if (PortGrid.IsVisible && PortGrid.IsEnabled && PortGrid.Focus())
+            return;
+
+         if (Notice.IsVisible && Notice.MoveFocus(new TraversalRequest(FocusNavigationDirection.First)))
+            return;
+
+         if (Keyboard.FocusedElement is UIElement focused && ListenerSummary.IsAncestorOf(focused))
+            focused.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
+      }
+
+      // The line's two actions, each made once and kept across reads: a new
+      // button in the old one's place took the keyboard focus with it to the
+      // window whenever the page was read again with the focus on it - which
+      // Reinitialise now does as its last step - as Services/ReadFailure keeps
+      // its Try again for the same reason.
+      private Wpf.Ui.Controls.Button reinitialiseButton_;
+      private Wpf.Ui.Controls.Button openStatusButton_;
+
+      /// <summary>The paused server's action: Open Server status, where Resume is.</summary>
+      private Wpf.Ui.Controls.Button OpenStatusButton_()
+         => openStatusButton_ ??= NoticeActions.OpenPage("status", "ports-open-status");
 
       /// <summary>
       /// The listener warning's action, which asks first, naming what it does to
@@ -329,6 +374,9 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private Wpf.Ui.Controls.Button ReinitialiseButton_()
       {
+         if (reinitialiseButton_ != null)
+            return reinitialiseButton_;
+
          var button = new Wpf.Ui.Controls.Button
          {
             Content = L("Reinitialise _now"),
@@ -343,7 +391,7 @@ namespace hMailServer.ControlPanel.Views
                    L("Control Panel"), L("_Reinitialise"), destructive: false, cancelByDefault: true))
                Reinitialise_();
          };
-         return button;
+         return reinitialiseButton_ = button;
       }
 
       /// <summary>
