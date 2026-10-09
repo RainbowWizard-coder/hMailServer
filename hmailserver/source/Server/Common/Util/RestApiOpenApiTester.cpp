@@ -9,7 +9,6 @@
 #include "JsonDocument.h"
 
 #include <stdexcept>
-#include <string_view>
 
 namespace HM
 {
@@ -343,10 +342,10 @@ namespace HM
          }
 
          void
-         Literal_(std::string_view word)
+         Literal_(const std::string &word)
          {
             if (text_.compare(at_, word.size(), word) != 0)
-               Fail_(std::string("not ").append(word));
+               Fail_("not " + word);
             at_ += word.size();
          }
 
@@ -611,7 +610,7 @@ namespace HM
       struct Served
       {
          const char *methods;  // the methods, separated by spaces; "*" for any
-         std::string_view path; // the path, or the prefix of every path under it
+         std::string path;     // the path, or the prefix of every path under it
          bool under;
       };
 
