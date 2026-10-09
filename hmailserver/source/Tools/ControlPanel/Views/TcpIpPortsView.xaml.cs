@@ -272,6 +272,19 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
+         // A server that is not running listens on none of its ports, and that is
+         // the reason: said at the Information level, with Open Server status
+         // where a resume is the answer, and never Reinitialise now, which would
+         // end maintenance mode or resume the paused server.
+         int? state = ReadServerState_();
+         string notRunning = ListenerProbe.WhyNoPortIsListenedOn(state);
+         if (notRunning != null)
+         {
+            ShowSummary_(StatusLevel.Information, notRunning,
+               state == ListenerProbe.ServerStopped ? NoticeActions.OpenPage("status", "ports-open-status") : null);
+            return;
+         }
+
          var names = new List<string>();
          foreach (PortRow row in down)
             names.Add(row.Protocol + " " + ListenerProbe.Endpoint(row.Address, row.Port));
@@ -282,8 +295,26 @@ namespace hMailServer.ControlPanel.Views
          ShowSummary_(StatusLevel.Warning, ListenerProbe.NotListeningSummary(names), ReinitialiseButton_());
       }
 
+      /// <summary>
+      /// The server's state (ListenerProbe.ServerStopped and the rest), or null
+      /// when it could not be read - and then a port not listened on is judged as
+      /// it was, a fault of its own.
+      /// </summary>
+      private static int? ReadServerState_()
+      {
+         try
+         {
+            return (int)ServerSession.Current.Application.ServerState;
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            return null;
+         }
+      }
+
       /// <summary>The summary as a notice at its level: a warning for a dead port,
-      /// information when the answer cannot be read from this machine.</summary>
+      /// information when the answer cannot be read from this machine or the
+      /// server is not running.</summary>
       private void ShowSummary_(StatusLevel level, string text, object action = null)
       {
          ListenerSummary.Level = level;
@@ -411,9 +442,23 @@ namespace hMailServer.ControlPanel.Views
          Reinitialise_();
       }
 
-      /// <summary>Application.Reinitialize, with the outcome said and the page read again.</summary>
+      /// <summary>
+      /// Application.Reinitialize, with the outcome said and the page read again.
+      /// A server in maintenance mode or paused is asked about again, whichever
+      /// question came first - the warning's or the one after a save - since a
+      /// reinitialise ends maintenance mode and resumes a paused server
+      /// (ListenerProbe.ReinitialiseQuestionWhenNotRunning).
+      /// </summary>
       private void Reinitialise_()
       {
+         string notRunning = ListenerProbe.ReinitialiseQuestionWhenNotRunning(ReadServerState_());
+         if (notRunning != null
+             && MessageBox.Show(notRunning, L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+         {
+            Reload();
+            return;
+         }
+
          Mouse.OverrideCursor = Cursors.Wait;
          string failure = null;
          try

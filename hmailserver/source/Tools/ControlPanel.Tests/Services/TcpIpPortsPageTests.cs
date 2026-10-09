@@ -123,6 +123,41 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("Reload();", reinitialise, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// With the server paused, in maintenance mode, starting or stopping, no
+      /// port is listened on, and the page says why at the Information level with
+      /// no Reinitialise now, which would end maintenance mode or resume the
+      /// paused server: it blamed a port just added and offered it. The state is
+      /// read before the warning is built, and a reinitialise of a server that is
+      /// not running - from the warning or after a save - asks again first.
+      /// </summary>
+      [Fact]
+      public void AServerNotRunning_IsSaidAtInformation_WithNoReinitialise_AndAReinitialiseOfItAsksAgain()
+      {
+         string code = Source();
+         string summary = WithheldRowTests.MemberText(code, "private void ShowListenerSummary(List<PortRow> rows, bool local)");
+         Assert.True(summary != null, "ShowListenerSummary is gone.");
+
+         int state = summary.IndexOf("ListenerProbe.WhyNoPortIsListenedOn(state)", StringComparison.Ordinal);
+         int information = summary.IndexOf("ShowSummary_(StatusLevel.Information, notRunning,", StringComparison.Ordinal);
+         int warning = summary.IndexOf("ShowSummary_(StatusLevel.Warning, ListenerProbe.NotListeningSummary(names)", StringComparison.Ordinal);
+         Assert.True(state >= 0 && information > state && warning > information, "The server's state is not read before the warning.");
+         Assert.Contains("int? state = ReadServerState_();", summary, StringComparison.Ordinal);
+         Assert.Contains("NoticeActions.OpenPage(\"status\",", summary, StringComparison.Ordinal);
+         string notRunning = summary.Substring(information, summary.IndexOf("return;", information, StringComparison.Ordinal) - information);
+         Assert.DoesNotContain("ReinitialiseButton_", notRunning, StringComparison.Ordinal);
+
+         string read = WithheldRowTests.MemberText(code, "private static int? ReadServerState_()");
+         Assert.True(read != null, "ReadServerState_ is gone.");
+         Assert.Contains("(int)ServerSession.Current.Application.ServerState", read, StringComparison.Ordinal);
+         Assert.Contains("return null;", read, StringComparison.Ordinal);
+
+         string reinitialise = WithheldRowTests.MemberText(code, "private void Reinitialise_()");
+         int ask = reinitialise.IndexOf("ListenerProbe.ReinitialiseQuestionWhenNotRunning(ReadServerState_())", StringComparison.Ordinal);
+         int act = reinitialise.IndexOf("Application.Reinitialize()", StringComparison.Ordinal);
+         Assert.True(ask >= 0 && act > ask, "A reinitialise of a server not running does not ask first.");
+      }
+
       private static string Source() => ReadControlPanelFile(Path.Join("Views", "TcpIpPortsView.xaml.cs"));
 
       private static string ReadControlPanelFile(string relative)

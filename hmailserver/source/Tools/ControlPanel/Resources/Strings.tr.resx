@@ -12170,8 +12170,20 @@ Yanıt veren sunucunun kendi çözümleyicisi - SMTP teslimatının kullandığ�
   <data name="The server is draining. A reinitialise ends maintenance mode: the listeners open again and delivery resumes. Reinitialise the server now?" xml:space="preserve">
     <value>Sunucu boşaltılıyor. Yeniden başlatma (Reinitialize) bakım modunu sona erdirir: dinleyiciler yeniden açılır ve teslim sürer. Sunucu şimdi yeniden başlatılsın mı?</value>
   </data>
+  <data name="The server is in maintenance mode, so its listeners are closed and none of its ports is being listened on. They open again when maintenance mode ends." xml:space="preserve">
+    <value>Sunucu bakım modunda, bu yüzden dinleyicileri kapalı ve portlarının hiçbiri dinlenmiyor. Bakım modu sona erdiğinde yeniden açılırlar.</value>
+  </data>
   <data name="The server is measuring the message store; open this page again in a minute for the figures." xml:space="preserve">
     <value>Sunucu ileti deposunu ölçüyor; rakamları görmek için bu sayfayı bir dakika sonra yeniden açın.</value>
+  </data>
+  <data name="The server is paused, so none of its ports is being listened on. Resuming it opens them again." xml:space="preserve">
+    <value>Sunucu duraklatıldı, bu yüzden portlarının hiçbiri dinlenmiyor. Sürdürüldüğünde yeniden açılırlar.</value>
+  </data>
+  <data name="The server is paused. A reinitialise starts it again: the listeners open and delivery resumes. Reinitialise the server now?" xml:space="preserve">
+    <value>Sunucu duraklatıldı. Yeniden başlatma (Reinitialize) onu yeniden çalıştırır: dinleyiciler açılır ve teslim sürer. Sunucu şimdi yeniden başlatılsın mı?</value>
+  </data>
+  <data name="The server is starting or stopping, so whether its ports are being listened on cannot be said yet. Open this page again in a moment." xml:space="preserve">
+    <value>Sunucu başlatılıyor veya durduruluyor, bu yüzden portlarının dinlenip dinlenmediği henüz söylenemez. Bu sayfayı birazdan yeniden açın.</value>
   </data>
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
     <value>Sunucu geçmiş tutmuyor: hMailServer.ini içinde MetricsHistoryDays 0. Onu tutulacak gün sayısına ayarlayın.</value>

@@ -12170,8 +12170,20 @@ Tähän vastaa palvelimen oma nimiselvitin - sama, jota SMTP-toimitus käyttää
   <data name="The server is draining. A reinitialise ends maintenance mode: the listeners open again and delivery resumes. Reinitialise the server now?" xml:space="preserve">
     <value>Palvelinta tyhjennetään. Uudelleenalustus päättää huoltotilan: kuuntelijat avautuvat uudelleen ja toimitus jatkuu. Alustetaanko palvelin uudelleen nyt?</value>
   </data>
+  <data name="The server is in maintenance mode, so its listeners are closed and none of its ports is being listened on. They open again when maintenance mode ends." xml:space="preserve">
+    <value>Palvelin on huoltotilassa, joten sen kuuntelijat ovat suljettuina eikä mitään sen porttia kuunnella. Ne avautuvat uudelleen, kun huoltotila päättyy.</value>
+  </data>
   <data name="The server is measuring the message store; open this page again in a minute for the figures." xml:space="preserve">
     <value>Palvelin mittaa viestivarastoa; avaa tämä sivu uudelleen minuutin päästä nähdäksesi luvut.</value>
+  </data>
+  <data name="The server is paused, so none of its ports is being listened on. Resuming it opens them again." xml:space="preserve">
+    <value>Palvelin on keskeytetty, joten mitään sen porttia ei kuunnella. Kun sitä jatketaan, ne avautuvat uudelleen.</value>
+  </data>
+  <data name="The server is paused. A reinitialise starts it again: the listeners open and delivery resumes. Reinitialise the server now?" xml:space="preserve">
+    <value>Palvelin on keskeytetty. Uudelleenalustus käynnistää sen uudelleen: kuuntelijat avautuvat ja toimitus jatkuu. Alustetaanko palvelin uudelleen nyt?</value>
+  </data>
+  <data name="The server is starting or stopping, so whether its ports are being listened on cannot be said yet. Open this page again in a moment." xml:space="preserve">
+    <value>Palvelin käynnistyy tai pysähtyy, joten vielä ei voi sanoa, kuunnellaanko sen portteja. Avaa tämä sivu uudelleen hetken kuluttua.</value>
   </data>
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
     <value>Palvelin ei säilytä historiaa: MetricsHistoryDays on 0 hMailServer.ini-tiedostossa. Aseta se säilytettävien päivien määräksi.</value>

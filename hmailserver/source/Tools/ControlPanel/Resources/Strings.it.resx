@@ -12170,8 +12170,20 @@ Aggiungerlo comunque?</value>
   <data name="The server is draining. A reinitialise ends maintenance mode: the listeners open again and delivery resumes. Reinitialise the server now?" xml:space="preserve">
     <value>Il server è in svuotamento. Una reinizializzazione termina la modalità di manutenzione: i listener si riaprono e la consegna riprende. Reinizializzare il server ora?</value>
   </data>
+  <data name="The server is in maintenance mode, so its listeners are closed and none of its ports is being listened on. They open again when maintenance mode ends." xml:space="preserve">
+    <value>Il server è in modalità di manutenzione, quindi i suoi listener sono chiusi e nessuna delle sue porte è in ascolto. Si riaprono quando la modalità di manutenzione termina.</value>
+  </data>
   <data name="The server is measuring the message store; open this page again in a minute for the figures." xml:space="preserve">
     <value>Il server sta misurando l'archivio messaggi; riapri questa pagina tra un minuto per vedere i dati.</value>
+  </data>
+  <data name="The server is paused, so none of its ports is being listened on. Resuming it opens them again." xml:space="preserve">
+    <value>Il server è sospeso, quindi nessuna delle sue porte è in ascolto. Riprenderlo le riapre.</value>
+  </data>
+  <data name="The server is paused. A reinitialise starts it again: the listeners open and delivery resumes. Reinitialise the server now?" xml:space="preserve">
+    <value>Il server è sospeso. Una reinizializzazione lo riavvia: i listener si aprono e la consegna riprende. Reinizializzare il server ora?</value>
+  </data>
+  <data name="The server is starting or stopping, so whether its ports are being listened on cannot be said yet. Open this page again in a moment." xml:space="preserve">
+    <value>Il server si sta avviando o arrestando, quindi non si può ancora dire se le sue porte sono in ascolto. Riapri questa pagina tra un momento.</value>
   </data>
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
     <value>Il server non conserva alcuno storico: MetricsHistoryDays è 0 in hMailServer.ini. Impostarlo ai giorni da conservare.</value>

@@ -12316,8 +12316,20 @@ Odpowiada tu własny resolwer serwera - ten sam, którego używa dostarczanie SM
   <data name="The server is draining. A reinitialise ends maintenance mode: the listeners open again and delivery resumes. Reinitialise the server now?" xml:space="preserve">
     <value>Serwer jest opróżniany. Ponowna inicjalizacja kończy tryb konserwacji: nasłuchiwanie zostaje ponownie otwarte, a doręczanie wznowione. Ponownie zainicjalizować serwer teraz?</value>
   </data>
+  <data name="The server is in maintenance mode, so its listeners are closed and none of its ports is being listened on. They open again when maintenance mode ends." xml:space="preserve">
+    <value>Serwer jest w trybie konserwacji, więc jego nasłuchiwanie jest zamknięte i na żadnym z jego portów nie odbywa się nasłuch. Zostanie ponownie otwarte po zakończeniu trybu konserwacji.</value>
+  </data>
   <data name="The server is measuring the message store; open this page again in a minute for the figures." xml:space="preserve">
     <value>Serwer mierzy magazyn wiadomości; otwórz tę stronę ponownie za minutę, aby zobaczyć liczby.</value>
+  </data>
+  <data name="The server is paused, so none of its ports is being listened on. Resuming it opens them again." xml:space="preserve">
+    <value>Serwer jest wstrzymany, więc na żadnym z jego portów nie odbywa się nasłuch. Po wznowieniu serwera zostaną ponownie otwarte.</value>
+  </data>
+  <data name="The server is paused. A reinitialise starts it again: the listeners open and delivery resumes. Reinitialise the server now?" xml:space="preserve">
+    <value>Serwer jest wstrzymany. Ponowna inicjalizacja uruchomi go znowu: nasłuchiwanie zostanie otwarte, a doręczanie wznowione. Ponownie zainicjalizować serwer teraz?</value>
+  </data>
+  <data name="The server is starting or stopping, so whether its ports are being listened on cannot be said yet. Open this page again in a moment." xml:space="preserve">
+    <value>Serwer jest uruchamiany lub zatrzymywany, więc nie można jeszcze stwierdzić, czy na jego portach odbywa się nasłuch. Należy otworzyć tę stronę ponownie za chwilę.</value>
   </data>
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
     <value>Serwer nie przechowuje historii: MetricsHistoryDays wynosi 0 w pliku hMailServer.ini. Należy ustawić liczbę dni do zachowania.</value>

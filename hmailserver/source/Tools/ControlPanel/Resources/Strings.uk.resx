@@ -12316,8 +12316,20 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The server is draining. A reinitialise ends maintenance mode: the listeners open again and delivery resumes. Reinitialise the server now?" xml:space="preserve">
     <value>Сервер розвантажується. Повторна ініціалізація завершує режим обслуговування: прослуховувачі знову відкриваються, і доставка відновлюється. Виконати повторну ініціалізацію сервера зараз?</value>
   </data>
+  <data name="The server is in maintenance mode, so its listeners are closed and none of its ports is being listened on. They open again when maintenance mode ends." xml:space="preserve">
+    <value>Сервер перебуває в режимі обслуговування, тому його прослуховувачі закриті й жоден із його портів не прослуховується. Вони знову відкриються, коли режим обслуговування завершиться.</value>
+  </data>
   <data name="The server is measuring the message store; open this page again in a minute for the figures." xml:space="preserve">
     <value>Сервер вимірює сховище повідомлень; відкрийте цю сторінку знову за хвилину, щоб побачити цифри.</value>
+  </data>
+  <data name="The server is paused, so none of its ports is being listened on. Resuming it opens them again." xml:space="preserve">
+    <value>Сервер призупинено, тому жоден із його портів не прослуховується. Після відновлення роботи вони знову відкриються.</value>
+  </data>
+  <data name="The server is paused. A reinitialise starts it again: the listeners open and delivery resumes. Reinitialise the server now?" xml:space="preserve">
+    <value>Сервер призупинено. Повторна ініціалізація знову запустить його: прослуховувачі відкриються, і доставка відновиться. Виконати повторну ініціалізацію сервера зараз?</value>
+  </data>
+  <data name="The server is starting or stopping, so whether its ports are being listened on cannot be said yet. Open this page again in a moment." xml:space="preserve">
+    <value>Сервер запускається або зупиняється, тому поки не можна сказати, чи прослуховуються його порти. Відкрийте цю сторінку знову трохи згодом.</value>
   </data>
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
     <value>Сервер не зберігає історії: MetricsHistoryDays у hMailServer.ini дорівнює 0. Задайте кількість днів зберігання.</value>

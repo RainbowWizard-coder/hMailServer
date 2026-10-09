@@ -12170,8 +12170,20 @@ C'est le propre résolveur du serveur qui répond - le même que celui qu'utilis
   <data name="The server is draining. A reinitialise ends maintenance mode: the listeners open again and delivery resumes. Reinitialise the server now?" xml:space="preserve">
     <value>Le serveur est en vidange. Une réinitialisation met fin au mode maintenance : les écoutes s'ouvrent de nouveau et la remise reprend. Réinitialiser le serveur maintenant ?</value>
   </data>
+  <data name="The server is in maintenance mode, so its listeners are closed and none of its ports is being listened on. They open again when maintenance mode ends." xml:space="preserve">
+    <value>Le serveur est en mode maintenance : ses écoutes sont fermées et aucun de ses ports n'est écouté. Elles se rouvrent à la fin du mode maintenance.</value>
+  </data>
   <data name="The server is measuring the message store; open this page again in a minute for the figures." xml:space="preserve">
     <value>Le serveur mesure le stockage des messages ; rouvrez cette page dans une minute pour voir les chiffres.</value>
+  </data>
+  <data name="The server is paused, so none of its ports is being listened on. Resuming it opens them again." xml:space="preserve">
+    <value>Le serveur est suspendu, aucun de ses ports n'est donc écouté. Sa reprise les rouvre.</value>
+  </data>
+  <data name="The server is paused. A reinitialise starts it again: the listeners open and delivery resumes. Reinitialise the server now?" xml:space="preserve">
+    <value>Le serveur est suspendu. Une réinitialisation le redémarre : les écoutes s'ouvrent et la remise reprend. Réinitialiser le serveur maintenant ?</value>
+  </data>
+  <data name="The server is starting or stopping, so whether its ports are being listened on cannot be said yet. Open this page again in a moment." xml:space="preserve">
+    <value>Le serveur démarre ou s'arrête : on ne peut pas encore dire si ses ports sont écoutés. Rouvrez cette page dans un instant.</value>
   </data>
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
     <value>Le serveur ne conserve aucun historique : MetricsHistoryDays vaut 0 dans hMailServer.ini. Mettez-y le nombre de jours à conserver.</value>

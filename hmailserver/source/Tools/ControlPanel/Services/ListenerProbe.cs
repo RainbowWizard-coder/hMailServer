@@ -214,6 +214,46 @@ namespace hMailServer.ControlPanel.Services
             : F("{0} configured ports are not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which.", endpoints.Count, names);
       }
 
+      /// <summary>ServerStatus's states, as the COM enum numbers them (Application.ServerState).</summary>
+      public const int ServerStopped = 1, ServerStarting = 2, ServerRunning = 3, ServerStopping = 4, ServerDraining = 5;
+
+      /// <summary>
+      /// Why no configured port is being listened on while the server is not
+      /// running, said at the Information level in place of the warning: paused
+      /// (Application.Stop stops the servers and closes every listener), in
+      /// maintenance mode (EnterDrain closes every acceptor until it is left), or
+      /// starting or stopping. Null when it is running, or its state could not
+      /// be read, and a port not listened on is a fault of its own.
+      ///
+      /// The warning blamed a port just added and offered Reinitialise now, which
+      /// stops the servers and starts them again - so it ended maintenance mode or
+      /// resumed the paused server, under a question that said only that clients
+      /// are disconnected for a moment.
+      /// </summary>
+      public static string WhyNoPortIsListenedOn(int? serverState) => serverState switch
+      {
+         ServerStopped => L("The server is paused, so none of its ports is being listened on. Resuming it opens them again."),
+         ServerDraining => L("The server is in maintenance mode, so its listeners are closed and none of its ports is being listened on. They open again when maintenance mode ends."),
+         ServerStarting or ServerStopping => L("The server is starting or stopping, so whether its ports are being listened on cannot be said yet. Open this page again in a moment."),
+         _ => null
+      };
+
+      /// <summary>
+      /// The question a reinitialise asks before it is done to a server that is
+      /// not running, whichever question came first: in maintenance mode the one
+      /// Apply now asks (SettingApplies.ApplyNowQuestion), and while paused one
+      /// that says it starts the server again. A reinitialise stops the servers and
+      /// starts them again, which ends maintenance mode and resumes a paused
+      /// server. Null when the server is running, starting or stopping, or its
+      /// state could not be read.
+      /// </summary>
+      public static string ReinitialiseQuestionWhenNotRunning(int? serverState) => serverState switch
+      {
+         ServerDraining => SettingApplies.ApplyNowQuestion(draining: true),
+         ServerStopped => L("The server is paused. A reinitialise starts it again: the listeners open and delivery resumes. Reinitialise the server now?"),
+         _ => null
+      };
+
       /// <summary>The word shown beside the badge. Always present, never colour alone.</summary>
       public static string WordFor(ListenerState state) => state switch
       {

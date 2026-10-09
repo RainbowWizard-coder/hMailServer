@@ -12170,8 +12170,20 @@ Quem responde é o resolvedor do próprio servidor - o mesmo que a entrega SMTP 
   <data name="The server is draining. A reinitialise ends maintenance mode: the listeners open again and delivery resumes. Reinitialise the server now?" xml:space="preserve">
     <value>O servidor está sendo drenado. Uma reinicialização completa encerra o modo de manutenção: os listeners voltam a abrir e a entrega é retomada. Reinicializar o servidor agora?</value>
   </data>
+  <data name="The server is in maintenance mode, so its listeners are closed and none of its ports is being listened on. They open again when maintenance mode ends." xml:space="preserve">
+    <value>O servidor está em modo de manutenção, então seus listeners estão fechados e nenhuma de suas portas está sendo escutada. Eles voltam a abrir quando o modo de manutenção termina.</value>
+  </data>
   <data name="The server is measuring the message store; open this page again in a minute for the figures." xml:space="preserve">
     <value>O servidor está medindo o armazenamento de mensagens; abra esta página de novo em um minuto para ver os números.</value>
+  </data>
+  <data name="The server is paused, so none of its ports is being listened on. Resuming it opens them again." xml:space="preserve">
+    <value>O servidor está pausado, então nenhuma de suas portas está sendo escutada. Retomá-lo as abre de novo.</value>
+  </data>
+  <data name="The server is paused. A reinitialise starts it again: the listeners open and delivery resumes. Reinitialise the server now?" xml:space="preserve">
+    <value>O servidor está pausado. Uma reinicialização completa o inicia de novo: os listeners se abrem e a entrega é retomada. Reinicializar o servidor agora?</value>
+  </data>
+  <data name="The server is starting or stopping, so whether its ports are being listened on cannot be said yet. Open this page again in a moment." xml:space="preserve">
+    <value>O servidor está iniciando ou parando, então ainda não é possível dizer se suas portas estão sendo escutadas. Abra esta página de novo daqui a pouco.</value>
   </data>
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
     <value>O servidor não mantém histórico: MetricsHistoryDays é 0 no hMailServer.ini. Defina-o com os dias a manter.</value>

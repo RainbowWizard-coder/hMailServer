@@ -12170,8 +12170,20 @@ Dit is de eigen resolver van de server die antwoordt - dezelfde die de SMTP-bezo
   <data name="The server is draining. A reinitialise ends maintenance mode: the listeners open again and delivery resumes. Reinitialise the server now?" xml:space="preserve">
     <value>De server loopt leeg. Een herinitialisatie beëindigt de onderhoudsmodus: de listeners gaan weer open en de bezorging wordt hervat. De server nu herinitialiseren?</value>
   </data>
+  <data name="The server is in maintenance mode, so its listeners are closed and none of its ports is being listened on. They open again when maintenance mode ends." xml:space="preserve">
+    <value>De server staat in onderhoudsmodus, dus zijn listeners zijn gesloten en op geen van zijn poorten wordt geluisterd. Ze gaan weer open wanneer de onderhoudsmodus eindigt.</value>
+  </data>
   <data name="The server is measuring the message store; open this page again in a minute for the figures." xml:space="preserve">
     <value>De server meet de berichtenopslag; open deze pagina over een minuut opnieuw voor de cijfers.</value>
+  </data>
+  <data name="The server is paused, so none of its ports is being listened on. Resuming it opens them again." xml:space="preserve">
+    <value>De server is gepauzeerd, dus op geen van zijn poorten wordt geluisterd. Hervatten opent ze weer.</value>
+  </data>
+  <data name="The server is paused. A reinitialise starts it again: the listeners open and delivery resumes. Reinitialise the server now?" xml:space="preserve">
+    <value>De server is gepauzeerd. Een herinitialisatie start hem weer: de listeners gaan open en de bezorging wordt hervat. De server nu herinitialiseren?</value>
+  </data>
+  <data name="The server is starting or stopping, so whether its ports are being listened on cannot be said yet. Open this page again in a moment." xml:space="preserve">
+    <value>De server wordt gestart of gestopt, dus of er op zijn poorten wordt geluisterd, valt nog niet te zeggen. Open deze pagina zo meteen opnieuw.</value>
   </data>
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
     <value>De server bewaart geen geschiedenis: MetricsHistoryDays is 0 in hMailServer.ini. Zet die op het aantal te bewaren dagen.</value>

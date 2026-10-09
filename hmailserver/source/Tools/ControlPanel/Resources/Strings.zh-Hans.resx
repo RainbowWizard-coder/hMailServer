@@ -12170,8 +12170,20 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The server is draining. A reinitialise ends maintenance mode: the listeners open again and delivery resumes. Reinitialise the server now?" xml:space="preserve">
     <value>服务器正在排空。重新初始化会结束维护模式：侦听器重新打开，投递恢复。现在重新初始化服务器吗？</value>
   </data>
+  <data name="The server is in maintenance mode, so its listeners are closed and none of its ports is being listened on. They open again when maintenance mode ends." xml:space="preserve">
+    <value>服务器处于维护模式，因此其侦听器已关闭，它的任何端口都未被监听。维护模式结束后，侦听器会重新打开。</value>
+  </data>
   <data name="The server is measuring the message store; open this page again in a minute for the figures." xml:space="preserve">
     <value>服务器正在测量邮件存储；请一分钟后重新打开此页面查看数字。</value>
+  </data>
+  <data name="The server is paused, so none of its ports is being listened on. Resuming it opens them again." xml:space="preserve">
+    <value>服务器已暂停，因此它的任何端口都未被监听。恢复后，这些端口会重新打开。</value>
+  </data>
+  <data name="The server is paused. A reinitialise starts it again: the listeners open and delivery resumes. Reinitialise the server now?" xml:space="preserve">
+    <value>服务器已暂停。重新初始化会让它重新启动：侦听器打开，投递恢复。现在重新初始化服务器吗？</value>
+  </data>
+  <data name="The server is starting or stopping, so whether its ports are being listened on cannot be said yet. Open this page again in a moment." xml:space="preserve">
+    <value>服务器正在启动或停止，因此尚无法判断其端口是否被监听。请稍后再次打开此页面。</value>
   </data>
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
     <value>服务器不保留历史: hMailServer.ini 中的 MetricsHistoryDays 为 0。请将其设为要保留的天数。</value>

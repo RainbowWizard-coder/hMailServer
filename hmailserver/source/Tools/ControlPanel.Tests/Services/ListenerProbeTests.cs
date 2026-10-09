@@ -293,5 +293,44 @@ namespace hMailServer.ControlPanel.Tests.Services
             Assert.EndsWith("the error log says which.", text);
          }
       }
+
+      /// <summary>
+      /// A server that is not running listens on none of its ports, and the page
+      /// says why at the Information level - paused, in maintenance mode, starting
+      /// or stopping - where its warning blamed a port just added and offered
+      /// Reinitialise now, which ends maintenance mode and resumes a paused
+      /// server. A running server, or one whose state could not be read, leaves
+      /// the warning to say what it says.
+      /// </summary>
+      [Fact]
+      public void WhyNoPortIsListenedOn_SaysTheServerIsNotRunning_AndNothingWhileItIs()
+      {
+         Assert.Equal(1, ListenerProbe.ServerStopped);
+         Assert.Equal(3, ListenerProbe.ServerRunning);
+         Assert.Equal(5, ListenerProbe.ServerDraining);
+
+         Assert.StartsWith("The server is paused, so none of its ports is being listened on.", ListenerProbe.WhyNoPortIsListenedOn(ListenerProbe.ServerStopped));
+         Assert.StartsWith("The server is in maintenance mode, so its listeners are closed", ListenerProbe.WhyNoPortIsListenedOn(ListenerProbe.ServerDraining));
+         Assert.StartsWith("The server is starting or stopping", ListenerProbe.WhyNoPortIsListenedOn(ListenerProbe.ServerStarting));
+         Assert.StartsWith("The server is starting or stopping", ListenerProbe.WhyNoPortIsListenedOn(ListenerProbe.ServerStopping));
+         Assert.Null(ListenerProbe.WhyNoPortIsListenedOn(ListenerProbe.ServerRunning));
+         Assert.Null(ListenerProbe.WhyNoPortIsListenedOn(null));
+      }
+
+      /// <summary>
+      /// A reinitialise of a server in maintenance mode asks the question Apply now
+      /// asks, which says that it ends maintenance mode, and of a paused one says
+      /// that it starts it again; of a running one, or one whose state could not be
+      /// read, it asks nothing more.
+      /// </summary>
+      [Fact]
+      public void ReinitialiseQuestionWhenNotRunning_SaysWhatAReinitialiseEnds()
+      {
+         Assert.Equal(SettingApplies.ApplyNowQuestion(draining: true), ListenerProbe.ReinitialiseQuestionWhenNotRunning(ListenerProbe.ServerDraining));
+         Assert.Contains("maintenance mode", ListenerProbe.ReinitialiseQuestionWhenNotRunning(ListenerProbe.ServerDraining));
+         Assert.StartsWith("The server is paused. A reinitialise starts it again", ListenerProbe.ReinitialiseQuestionWhenNotRunning(ListenerProbe.ServerStopped));
+         Assert.Null(ListenerProbe.ReinitialiseQuestionWhenNotRunning(ListenerProbe.ServerRunning));
+         Assert.Null(ListenerProbe.ReinitialiseQuestionWhenNotRunning(null));
+      }
    }
 }

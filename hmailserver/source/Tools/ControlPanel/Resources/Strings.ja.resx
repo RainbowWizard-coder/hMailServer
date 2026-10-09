@@ -12170,8 +12170,20 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The server is draining. A reinitialise ends maintenance mode: the listeners open again and delivery resumes. Reinitialise the server now?" xml:space="preserve">
     <value>サーバーはドレイン中です。再初期化するとメンテナンス モードが終了し、リスナーが再び開いて配信が再開されます。今すぐサーバーを再初期化しますか?</value>
   </data>
+  <data name="The server is in maintenance mode, so its listeners are closed and none of its ports is being listened on. They open again when maintenance mode ends." xml:space="preserve">
+    <value>サーバーはメンテナンス モード中のため、リスナーが閉じられ、どのポートも待ち受けされていません。メンテナンス モードが終了すると、再び開きます。</value>
+  </data>
   <data name="The server is measuring the message store; open this page again in a minute for the figures." xml:space="preserve">
     <value>サーバーがメッセージストアを測定しています。1 分後にこのページを開き直すと数値が表示されます。</value>
+  </data>
+  <data name="The server is paused, so none of its ports is being listened on. Resuming it opens them again." xml:space="preserve">
+    <value>サーバーは一時停止中のため、どのポートも待ち受けされていません。再開すると、再び待ち受けが始まります。</value>
+  </data>
+  <data name="The server is paused. A reinitialise starts it again: the listeners open and delivery resumes. Reinitialise the server now?" xml:space="preserve">
+    <value>サーバーは一時停止中です。再初期化するとサーバーが再び開始し、リスナーが開いて配信が再開されます。今すぐサーバーを再初期化しますか?</value>
+  </data>
+  <data name="The server is starting or stopping, so whether its ports are being listened on cannot be said yet. Open this page again in a moment." xml:space="preserve">
+    <value>サーバーは開始中または停止中のため、ポートが待ち受けされているかどうかはまだわかりません。しばらくしてから、このページをもう一度開いてください。</value>
   </data>
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
     <value>サーバーは履歴を保持していません。hMailServer.ini の MetricsHistoryDays が 0 です。保持する日数に設定してください。</value>
