@@ -498,6 +498,10 @@ namespace hMailServer.ControlPanel.Views
             "ldap-clear-service-password",
             L("The blank-keeps-it rule above means there would otherwise be no way to delete a stored password from this page - for instance after switching to Negotiate or a DN template, neither of which needs one.")));
 
+         // Ticked or unticked, the password box above says what a blank box does now.
+         clearServicePassword_.Checked += (s, e) => ShowServicePasswordPlaceholder_();
+         clearServicePassword_.Unchecked += (s, e) => ShowServicePasswordPlaceholder_();
+
          // ServiceDomain is deliberately NOT an editor. LdapSettings.cpp reads the
          // key, and nothing anywhere consumes it: the service credential binds with
          // ServiceUsername and ServicePassword alone (LdapDirectoryAuthenticator's
@@ -736,10 +740,8 @@ namespace hMailServer.ControlPanel.Views
 
          storedServicePassword_ = IniRead_("ServicePassword", "").Length > 0;
          servicePassword_.Password = "";
-         servicePassword_.PlaceholderText = storedServicePassword_
-            ? L("A password is stored - leave blank to keep it")
-            : L("Enter the service account password");
          clearServicePassword_.IsChecked = false;
+         ShowServicePasswordPlaceholder_();
 
          int timeoutSeconds = IniReadInt_("TimeoutSeconds", 10);
          if (timeoutSeconds < 1)
@@ -770,6 +772,18 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
+      /// What a blank service account password box does at the save, in its
+      /// placeholder: keeps the stored password, or there is none to keep - and
+      /// nothing while "Remove the stored service account password when saving" is
+      /// ticked under it, when a blank box removes it: "leave blank to keep it" said
+      /// the opposite of the box.
+      /// </summary>
+      private void ShowServicePasswordPlaceholder_()
+         => servicePassword_.PlaceholderText = clearServicePassword_.IsChecked is true ? ""
+            : storedServicePassword_ ? L("A password is stored - leave blank to keep it")
+            : L("Enter the service account password");
+
+      /// <summary>
       /// No editor filled: the values a file that cannot be read would give are its
       /// fallbacks, and a fallback shown in a box reads as the setting.
       /// </summary>
@@ -788,8 +802,10 @@ namespace hMailServer.ControlPanel.Views
          serviceUsername_.Text = "";
          storedServicePassword_ = false;
          servicePassword_.Password = "";
-         servicePassword_.PlaceholderText = "";
+         // Unticked first: the box's Unchecked would give the cleared field a
+         // placeholder again.
          clearServicePassword_.IsChecked = false;
+         servicePassword_.PlaceholderText = "";
          timeout_.Text = "";
          fallback_.IsChecked = false;
          serviceDomainNote_.Text = "";
@@ -882,10 +898,8 @@ namespace hMailServer.ControlPanel.Views
 
          storedServicePassword_ = IniRead_("ServicePassword", "").Length > 0;
          servicePassword_.Password = "";
-         servicePassword_.PlaceholderText = storedServicePassword_
-            ? L("A password is stored - leave blank to keep it")
-            : L("Enter the service account password");
          clearServicePassword_.IsChecked = false;
+         ShowServicePasswordPlaceholder_();
 
          RefreshState_();
          baseline_.Take(EditorValues_());

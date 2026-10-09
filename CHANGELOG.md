@@ -1258,8 +1258,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   changes* and leaving the page asks - and the computed warnings that ask whether a secret is set follow it, where a
   value **Generate** filled in changed neither, as the box was watched for typing alone. A new value typed with the
   box ticked is refused before anything on the page is written, in the notice under the header, as the Directory
-  authentication page refuses its own; and removing the password pepper is asked about as changing it is, since it
-  stops the passwords peppered with it.
+  authentication page refuses its own; and removing the password pepper is asked about as changing it is, since it stops
+  the passwords peppered with it. While the box is ticked, the field above it no longer says that a blank box keeps the
+  secret: its placeholder is empty, and its hint - the field's help text, which a screen reader reads on the field -
+  says what the setting is and no more, where both said "A secret is configured - leave blank to keep it" directly above
+  the ticked box. A secret's field without **Generate** is as wide as the fields around it, where it was as wide as its
+  placeholder, and would have shrunk to its reveal button with the placeholder emptied. Directory authentication's
+  service account password box drops "A password is stored - leave blank to keep it" in the same way while *Remove the
+  stored service account password when saving* is ticked.
 
 - **Fixed: the IP ranges page's permissions card said a save by adding "(saved)" to its title, and said nothing of a
   change.** The card now keeps the settings pages' model in a pill beside *Save permissions*: none while the boxes

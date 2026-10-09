@@ -482,19 +482,25 @@ namespace hMailServer.ControlPanel.Views
          /// <summary>The removal is a change the page has not saved, as a typed value is.</summary>
          public override bool IsChanged => base.IsChanged || RemovesStored;
 
+         // Nothing while the removal is ticked: a blank box then removes the stored
+         // secret, and "leave blank to keep it" in the box said the opposite of the
+         // box ticked under it.
          private string Placeholder_()
-            => hasStored_
-               ? L("A secret is configured — leave blank to keep it")
-               : (string.IsNullOrEmpty(Hint) ? L("Enter a secret") : Hint);
+            => RemovesStored ? ""
+               : hasStored_ ? L("A secret is configured — leave blank to keep it")
+               : string.IsNullOrEmpty(Hint) ? L("Enter a secret")
+               : Hint;
 
          // A PasswordBox's placeholder is not part of its accessible name, and
          // whether a secret is already stored is the one thing this control
          // conveys that its label does not - leaving the field blank keeps the
          // existing value, so a listener who cannot see the placeholder has no
          // way to know whether there is one. The row's hint carries it, under
-         // the editor and in its help text alike.
+         // the editor and in its help text alike - except while the removal is
+         // ticked, when a blank box does not keep it: the hint said that it did,
+         // and so did the help text a screen reader reads on the field.
          private string Hint_()
-            => !hasStored_ ? Blurb
+            => !hasStored_ || RemovesStored ? Blurb
                : Sentences(Placeholder_(), Blurb);
 
          public override FrameworkElement CreateEditor(IniFeatureStore store)
@@ -511,7 +517,12 @@ namespace hMailServer.ControlPanel.Views
 
             if (!OfferGenerate)
             {
+               // MinWidth as well: WPF-UI's password box, aligned left, draws its
+               // border as wide as what it holds within the width it is given, so it
+               // was as wide as its placeholder - and, with the placeholder emptied
+               // while the removal is ticked, no wider than its reveal button.
                box_.Width = EditorWidth;
+               box_.MinWidth = EditorWidth;
                box_.HorizontalAlignment = HorizontalAlignment.Left;
                return Arrange_(Row(box_, Label, hint: hint));
             }
@@ -564,6 +575,10 @@ namespace hMailServer.ControlPanel.Views
             AutomationProperties.SetName(remove_,
                F("Remove the stored secret when saving - {0}", AccessibleName ?? Label ?? L("this secret")));
 
+            // Ticked or unticked, the field above says what a blank box does now.
+            remove_.Checked += (s, e) => ShowWhatABlankBoxDoes_();
+            remove_.Unchecked += (s, e) => ShowWhatABlankBoxDoes_();
+
             var panel = new StackPanel();
             panel.SetResourceReference(MarginProperty, "AppFieldGap");
             panel.Children.Add(row);
@@ -588,16 +603,28 @@ namespace hMailServer.ControlPanel.Views
          private void ShowStored_(bool stored)
          {
             hasStored_ = stored;
-            box_.PlaceholderText = Placeholder_();
-            row_.Hint = Hint_();
             remove_.IsChecked = false;
             remove_.Visibility = stored ? Visibility.Visible : Visibility.Collapsed;
-            AutomationProperties.SetHelpText(box_, row_.Hint ?? "");
+            ShowWhatABlankBoxDoes_();
 
             // The field's gap is the panel's; inside it, the small step between the
             // parts that are on screen.
             row_.Margin = new Thickness(0, 0, 0, stored || warning_ != null ? DesignTokens.Space.Sm : 0);
             remove_.Margin = new Thickness(0, 0, 0, warning_ != null ? DesignTokens.Space.Sm : 0);
+         }
+
+         /// <summary>
+         /// What a blank box does at the save, in the placeholder, the row's hint and
+         /// the field's help text: keeps the stored secret, or removes it while the box
+         /// under it is ticked - when the placeholder is empty and the hint says what
+         /// the setting is and no more. The help text is the row's, as FieldRow makes
+         /// it: the hint, then when a save applies.
+         /// </summary>
+         private void ShowWhatABlankBoxDoes_()
+         {
+            box_.PlaceholderText = Placeholder_();
+            row_.Hint = Hint_();
+            AutomationProperties.SetHelpText(box_, Sentences(row_.Hint, row_.Applies, row_.Error));
          }
 
          public override void Save(IniFeatureStore store)

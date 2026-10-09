@@ -90,6 +90,69 @@ namespace hMailServer.ControlPanel.Tests.Services
             "Removing the password pepper is not asked about.");
       }
 
+      /// <summary>
+      /// While the box that removes a stored secret is ticked, the field above it no
+      /// longer says that a blank box keeps the secret: its placeholder is empty and its
+      /// row hint - which is the field's help text, read by a screen reader on the field
+      /// - says what the setting is and no more; unticked, both say again that a secret
+      /// is stored. "A secret is configured — leave blank to keep it" stayed in the box
+      /// and under it, directly above the ticked "Remove the stored secret when saving",
+      /// and Directory authentication's "A password is stored - leave blank to keep it"
+      /// above its ticked "Remove the stored service account password when saving"
+      /// (review finding F239, T2.5 item 5).
+      /// </summary>
+      [Fact]
+      public void WhileTheRemovalIsTicked_TheFieldDoesNotSayABlankBoxKeepsTheSecret()
+      {
+         string page = SaveStateModelTests.ReadControlPanelFile("Views/FeatureSettingsView.xaml.cs");
+         string secret = SaveStateModelTests.ClassBody_(page, "private class SecretSetting : Setting");
+
+         Assert.Contains("remove_.Checked += (s, e) => ShowWhatABlankBoxDoes_();", secret, StringComparison.Ordinal);
+         Assert.Contains("remove_.Unchecked += (s, e) => ShowWhatABlankBoxDoes_();", secret, StringComparison.Ordinal);
+
+         string placeholder = WithheldRowTests.MemberText(secret, "private string Placeholder_()");
+         Assert.True(placeholder != null && Regex.IsMatch(placeholder, @"^\s*=>\s*RemovesStored \? """""), "The placeholder is not empty while the removal is ticked: " + placeholder);
+         string hint = WithheldRowTests.MemberText(secret, "private string Hint_()");
+         Assert.True(hint != null && hint.Contains("!hasStored_ || RemovesStored ? Blurb", StringComparison.Ordinal), "The row hint says a blank box keeps the secret while the removal is ticked: " + hint);
+
+         // The emptied box keeps its width: WPF-UI's password box, aligned left, draws
+         // its border as wide as what it holds, and shrank to its reveal button.
+         Assert.Contains("box_.MinWidth = EditorWidth;", secret, StringComparison.Ordinal);
+
+         string shows = WithheldRowTests.MemberText(secret, "private void ShowWhatABlankBoxDoes_()");
+         Assert.True(shows != null, "SecretSetting.ShowWhatABlankBoxDoes_ is gone.");
+         Assert.Contains("box_.PlaceholderText = Placeholder_();", shows, StringComparison.Ordinal);
+         Assert.Contains("row_.Hint = Hint_();", shows, StringComparison.Ordinal);
+         Assert.Contains("AutomationProperties.SetHelpText(box_, Sentences(row_.Hint, row_.Applies, row_.Error));", shows, StringComparison.Ordinal);
+
+         // A save that stored or removed the secret unticks the box before the field
+         // says again what a blank box does.
+         string stored = WithheldRowTests.MemberText(secret, "private void ShowStored_(bool stored)");
+         Assert.True(stored != null, "SecretSetting.ShowStored_ is gone.");
+         int unticks = stored.IndexOf("remove_.IsChecked = false;", StringComparison.Ordinal);
+         int says = stored.IndexOf("ShowWhatABlankBoxDoes_();", StringComparison.Ordinal);
+         Assert.True(unticks >= 0 && says > unticks, "ShowStored_ says what a blank box does before it unticks the removal.");
+
+         // Directory authentication's service account password, the same way: one place
+         // sets its placeholder, as the box is ticked and unticked and as a read or a save
+         // leaves it unticked - and the cleared editors of an unreadable file, none.
+         string ldap = SaveStateModelTests.ReadControlPanelFile("Views/LdapSettingsView.cs");
+         Assert.Contains("clearServicePassword_.Checked += (s, e) => ShowServicePasswordPlaceholder_();", ldap, StringComparison.Ordinal);
+         Assert.Contains("clearServicePassword_.Unchecked += (s, e) => ShowServicePasswordPlaceholder_();", ldap, StringComparison.Ordinal);
+         string ldapPlaceholder = WithheldRowTests.MemberText(ldap, "private void ShowServicePasswordPlaceholder_()");
+         Assert.True(ldapPlaceholder != null && ldapPlaceholder.Contains("servicePassword_.PlaceholderText = clearServicePassword_.IsChecked is true ? \"\"", StringComparison.Ordinal),
+            "Directory authentication's password box says a blank box keeps the password while its removal is ticked.");
+         Assert.Equal(2, Regex.Matches(ldap, @"servicePassword_\.PlaceholderText = ").Count);
+         foreach (string member in new[] { "private void Load_()", "private bool Save_()" })
+         {
+            string body = WithheldRowTests.MemberText(ldap, member);
+            Assert.True(body != null, "LdapSettingsView." + member + " is gone.");
+            int untick = body.IndexOf("clearServicePassword_.IsChecked = false;", StringComparison.Ordinal);
+            int show = body.IndexOf("ShowServicePasswordPlaceholder_();", StringComparison.Ordinal);
+            Assert.True(untick >= 0 && show > untick, "LdapSettingsView." + member + " does not untick the removal and then say what a blank box does.");
+         }
+      }
+
       private const string LdapRefusal = "A new service account password has been typed, and \"Remove the stored service account password when saving\" is ticked under it. Clear the password or untick the box - guessing which was meant is not this page's decision to make.";
       private const string LdapBox = "Remove the stored service account pass_word when saving";
       private const string SecretRefusal = "A new value has been typed for \"{0}\", and \"Remove the stored secret when saving\" is ticked under it. Clear the value or untick the box - guessing which was meant is not this page's decision to make.";
