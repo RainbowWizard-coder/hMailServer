@@ -170,31 +170,17 @@ namespace hMailServer.ControlPanel
          SystemParameters.StaticPropertyChanged += OnSystemParametersChanged;
          Closing += (s, e) => SystemParameters.StaticPropertyChanged -= OnSystemParametersChanged;
 
-         // Ctrl+K command palette, and the two keys a running tour claims -
-         // F6 to reach its card, Escape to leave it, and Escape only while the
-         // keyboard is already inside the card, so the page keeps its own.
+         // The two keys a running tour claims - F6 to reach its card, Escape to
+         // leave it, and Escape only while the keyboard is already inside the
+         // card, so the page keeps its own - then the keys the window answers on
+         // every page (MainWindow.Keys.cs): Ctrl+K for the palette, F1 for the
+         // help, F5, Ctrl+F, Ctrl+S and F6.
          PreviewKeyDown += (s, e) =>
          {
-            if (HandleTourKey_(e))
-            {
+            if (HandleTourKey_(e) || HandleShellKey_(e))
                e.Handled = true;
-               return;
-            }
-
-            if (connected_ && e.Key == Key.K && Keyboard.Modifiers == ModifierKeys.Control)
-            {
-               ShowPalette();
-               e.Handled = true;
-            }
-
-            // F1, the platform's help key: the pane beside the page, open or
-            // closed. Only once there is a page to be helped with.
-            if (connected_ && e.Key == Key.F1 && Keyboard.Modifiers == ModifierKeys.None)
-            {
-               ToggleHelp_();
-               e.Handled = true;
-            }
          };
+         WireShellKeys_();
 
          // Opened again by hMailServer.Updater after an administrator's install of an
          // update (docs/ServiceAccount.md, "The live update"): sign in with the
@@ -773,6 +759,12 @@ namespace hMailServer.ControlPanel
 
          var palette = new NavigationPalette(this, paletteUsage_, currentPage_);
          palette.ShowDialog();
+
+         if (palette.ShowShortcuts)
+         {
+            ShowKeyboardShortcuts_();
+            return;
+         }
 
          // A tour row before a page row: a tour opens the page it starts on
          // itself, and navigating first would put the reader on a page and then

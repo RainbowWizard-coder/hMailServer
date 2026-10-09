@@ -69,6 +69,9 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>The id of the tour to start, or null. Never set together with <see cref="SelectedPage"/>.</summary>
       public string SelectedTour { get; private set; }
 
+      /// <summary>True when the keyboard shortcuts row was chosen; neither a page nor a tour is then.</summary>
+      public bool ShowShortcuts { get; private set; }
+
       /// <summary>
       /// <paramref name="usage"/> and <paramref name="currentPage"/> shape the
       /// shortcuts offered with an empty query; both may be null.
@@ -306,8 +309,10 @@ namespace hMailServer.ControlPanel.Views
                break;
 
             case PaletteRowKind.Tour:
+            case PaletteRowKind.Shortcuts:
                // A tour has no location to name - it walks several pages - so
-               // the whole second line is what it will show the reader.
+               // the whole second line is what it will show the reader; nor has
+               // the list of keys, which is about every page.
                location = "";
                break;
          }
@@ -401,8 +406,9 @@ namespace hMailServer.ControlPanel.Views
          // apart would be an unpleasant bug to diagnose, and the Tag is free.
          if (resultsList_.SelectedItem is ListBoxItem container && container.Tag is PaletteRow row && row.IsSelectable)
          {
-            SelectedTour = row.Tour;
-            SelectedPage = row.Tour == null ? row.Page : null;
+            ShowShortcuts = row.Kind == PaletteRowKind.Shortcuts;
+            SelectedTour = ShowShortcuts ? null : row.Tour;
+            SelectedPage = ShowShortcuts || row.Tour != null ? null : row.Page;
          }
 
          Close();

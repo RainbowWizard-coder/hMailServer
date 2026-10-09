@@ -101,7 +101,7 @@ namespace hMailServer.ControlPanel.Views
 
          var actions = new StackPanel { Orientation = Orientation.Horizontal };
 
-         var reload = new Wpf.Ui.Controls.Button { Content = L("_Reload") };
+         var reload = new Wpf.Ui.Controls.Button { Content = L("_Refresh") };
          System.Windows.Automation.AutomationProperties.SetAutomationId(reload, "journal-reload");
          reload.Click += (s, e) => Reload_();
          actions.Children.Add(reload);

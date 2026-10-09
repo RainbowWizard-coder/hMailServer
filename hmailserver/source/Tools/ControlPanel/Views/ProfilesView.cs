@@ -531,7 +531,7 @@ namespace hMailServer.ControlPanel.Views
          actions.Children.Add(discard_);
          decline_ = MakeButton(L("Keep the _shipped settings"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => DeclineProfiles());
          actions.Children.Add(decline_);
-         actions.Children.Add(MakeButton(L("Re_fresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload(null)));
+         actions.Children.Add(MakeButton(L("_Refresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload(null)));
          parts.Children.Add(actions);
 
          parts.Children.Add(status_);

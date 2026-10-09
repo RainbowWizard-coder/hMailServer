@@ -593,7 +593,7 @@ namespace hMailServer.ControlPanel.Views
          MaxHeight = 260,
          Visibility = Visibility.Collapsed
       };
-      private readonly Wpf.Ui.Controls.Button consistencyRefresh_ = new() { Content = L("Re_fresh") };
+      private readonly Wpf.Ui.Controls.Button consistencyRefresh_ = new() { Content = L("_Refresh") };
       private readonly Wpf.Ui.Controls.Button consistencyOpen_ = new()
       {
          Content = L("_Open report"),
@@ -643,7 +643,7 @@ namespace hMailServer.ControlPanel.Views
          inputRow.Children.Add(Captioned(L("Remote domain"), testDomain_));
          // Bottom-aligned, level with the two captioned inputs' boxes.
          var actions = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Bottom };
-         var run = new Wpf.Ui.Controls.Button { Content = L("_Run diagnostics"), Appearance = Wpf.Ui.Controls.ControlAppearance.Primary };
+         var run = new Wpf.Ui.Controls.Button { Content = L("Run _diagnostics"), Appearance = Wpf.Ui.Controls.ControlAppearance.Primary };
          run.Click += async (s, e) => await Run();
          actions.Children.Add(run);
          var copy = new Wpf.Ui.Controls.Button { Content = L("_Copy"), Margin = new Thickness(8, 0, 0, 0) };

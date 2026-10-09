@@ -266,7 +266,7 @@ namespace hMailServer.ControlPanel.Views
          actions.Children.Add(MakeButton(L("_Verify the chain"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => VerifyChain()));
          actions.Children.Add(MakeButton(L("_Newer"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => { offset_ = Math.Max(0, offset_ - PageSize); Reload(); }));
          actions.Children.Add(MakeButton(L("_Older"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => { if (offset_ + PageSize < total_) { offset_ += PageSize; Reload(); } }));
-         actions.Children.Add(MakeButton(L("Re_fresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload()));
+         actions.Children.Add(MakeButton(L("_Refresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload()));
          foreach (FrameworkElement button in actions.Children)
             button.Margin = new Thickness(button.Margin.Left, 3, button.Margin.Right, 3);
          toolbar_.Actions = actions;

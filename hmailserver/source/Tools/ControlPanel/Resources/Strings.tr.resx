@@ -1389,6 +1389,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Also turned off by a limit of 0 below, whatever this box says." xml:space="preserve">
     <value>Bu kutuda ne yazarsa yazsın, aşağıdaki 0 sınırı da bunu kapatır.</value>
   </data>
+  <data name="Alt+underlined letter" xml:space="preserve">
+    <value>Alt+altı çizili harf</value>
+  </data>
   <data name="Alternative domain names treated as this domain. Mail sent to user@alias is delivered to user@{0}." xml:space="preserve">
     <value>Bu etki alanı gibi işlem gören diğer etki alanı adları. user@alias adresine gönderilen postalar user@{0} adresine teslim edilir.</value>
   </data>
@@ -2509,6 +2512,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Close the help" xml:space="preserve">
     <value>Yardımı kapat</value>
   </data>
+  <data name="Close the help while the keyboard is in it, and close a dialog" xml:space="preserve">
+    <value>Klavye yardımın içindeyken yardımı kapat; bir iletişim kutusunu kapat</value>
+  </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Alıcı listesini kapat</value>
   </data>
@@ -3170,6 +3176,15 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Critical, High and Medium" xml:space="preserve">
     <value>Kritik, Yüksek ve Orta</value>
+  </data>
+  <data name="Ctrl+F" xml:space="preserve">
+    <value>Ctrl+F</value>
+  </data>
+  <data name="Ctrl+K" xml:space="preserve">
+    <value>Ctrl+K</value>
+  </data>
+  <data name="Ctrl+S" xml:space="preserve">
+    <value>Ctrl+S</value>
   </data>
   <data name="Current key" xml:space="preserve">
     <value>Geçerli anahtar</value>
@@ -4300,6 +4315,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Errors only (severity 3)" xml:space="preserve">
     <value>Yalnızca hatalar (önem düzeyi 3)</value>
   </data>
+  <data name="Esc" xml:space="preserve">
+    <value>Esc</value>
+  </data>
   <data name="Evaluate DMARC policies" xml:space="preserve">
     <value>DMARC ilkelerini değerlendir</value>
   </data>
@@ -4545,6 +4563,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Extra delivery attempts per additional MX host (0 = default)" xml:space="preserve">
     <value>Her ek MX ana bilgisayarı için ek teslim denemesi (0 = varsayılan)</value>
+  </data>
+  <data name="F6, Shift+F6" xml:space="preserve">
+    <value>F6, Shift+F6</value>
   </data>
   <data name="Facility (0 to 23)" xml:space="preserve">
     <value>Facility (0 - 23)</value>
@@ -4812,6 +4833,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Go to the related page {0}" xml:space="preserve">
     <value>İlgili {0} sayfasına git</value>
+  </data>
+  <data name="Go to the search box of this page" xml:space="preserve">
+    <value>Bu sayfanın arama kutusuna git</value>
   </data>
   <data name="Google authorization endpoint" xml:space="preserve">
     <value>Google yetkilendirme uç noktası</value>
@@ -5543,6 +5567,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   </data>
   <data name="Key unreadable" xml:space="preserve">
     <value>Anahtar okunamıyor</value>
+  </data>
+  <data name="Keyboard shortcuts" xml:space="preserve">
+    <value>Klavye kısayolları</value>
   </data>
   <data name="Keys one account may hold (1 to 64)" xml:space="preserve">
     <value>Bir hesabın sahip olabileceği anahtarlar (1 ile 64 arası)</value>
@@ -6465,6 +6492,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Move to NT SERVICE\hMailServer…" xml:space="preserve">
     <value>NT SERVICE\hMailServer'a geçir…</value>
+  </data>
+  <data name="Move to the next or the previous part of the window: the command bar, the navigation, the page and the help" xml:space="preserve">
+    <value>Pencerenin sonraki veya önceki bölümüne geç: komut çubuğu, gezinti, sayfa ve yardım</value>
   </data>
   <data name="Moving a message into the folder designated Junk reports it to sa-learn as spam, and moving one back out reports it as ham, so the filter learns from what people already do rather than from a separate ritual nobody performs. Off by default: it runs sa-learn per move, and a user who files newsletters in Junk is teaching the filter that newsletters are spam for everyone the scanner serves." xml:space="preserve">
     <value>Bir iletiyi \Junk olarak belirlenmiş klasöre taşımak onu sa-learn'e spam olarak bildirir, oradan geri çıkarmak ise ham olarak bildirir; böylece filtre, kimsenin yerine getirmediği ayrı bir tören yerine insanların zaten yaptıklarından öğrenir. Varsayılan olarak kapalıdır: her taşımada sa-learn'i çalıştırır ve haber bültenlerini Junk klasörüne koyan bir kullanıcı, filtreye haber bültenlerinin tarayıcının hizmet ettiği herkes için spam olduğunu öğretmiş olur.</value>
@@ -7525,6 +7555,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Open on the _wiki" xml:space="preserve">
     <value>_Wikide aç</value>
   </data>
+  <data name="Open or close the help for this page" xml:space="preserve">
+    <value>Bu sayfanın yardımını aç veya kapat</value>
+  </data>
   <data name="Open the Control Panel on the server itself to change the account the service runs as or grant it its folders." xml:space="preserve">
     <value>Hizmetin çalıştığı hesabı değiştirmek veya ona klasörlerini vermek için Denetim Masası'nı sunucunun kendisinde açın.</value>
   </data>
@@ -8028,6 +8061,9 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   <data name="Press &quot;Check&quot; to look the record up through this machine's resolver." xml:space="preserve">
     <value>Kaydı bu makinenin çözümleyicisi üzerinden aramak için "Denetle" düğmesine basın.</value>
   </data>
+  <data name="Press the button, or go to the field, whose caption has that letter underlined" xml:space="preserve">
+    <value>Etiketinde o harfin altı çizili olan düğmeye bas veya alana git</value>
+  </data>
   <data name="Preview changes nothing and reports exactly what Apply would do - they share one decider in the server, so a preview cannot describe an action the apply would not take. Apply stays disabled until a preview has been run with the options as they stand." xml:space="preserve">
     <value>Ön izleme hiçbir şeyi değiştirmez ve Uygula'nın tam olarak ne yapacağını bildirir - sunucuda tek bir karar vericiyi paylaşırlar; bu yüzden ön izleme, uygulamanın yapmayacağı bir eylemi anlatamaz. Uygula, seçenekler olduğu hâliyle bir ön izleme çalıştırılana kadar devre dışı kalır.</value>
   </data>
@@ -8328,8 +8364,8 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   <data name="Re-read these settings from hMailServer.INI" xml:space="preserve">
     <value>Bu ayarları hMailServer.INI'den yeniden oku</value>
   </data>
-  <data name="Re_fresh" xml:space="preserve">
-    <value>_Yenile</value>
+  <data name="Re_move" xml:space="preserve">
+    <value>K_aldır</value>
   </data>
   <data name="Re_move action" xml:space="preserve">
     <value>Eylemi kaldı_r</value>
@@ -8517,6 +8553,9 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   </data>
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>Günlük düzeyini düşürün ya da kaç günlük günlüğün saklanacağını ayarlayın.</value>
+  </data>
+  <data name="Refresh a list, or reload a settings page" xml:space="preserve">
+    <value>Bir listeyi yenile veya bir ayarlar sayfasını yeniden yükle</value>
   </data>
   <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
     <value>Ret metni (550’nin gönderene söylediği) (_X)</value>
@@ -9137,6 +9176,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Run DNSBL checks after MAIL FROM (rather than at connect)" xml:space="preserve">
     <value>DNSBL denetimlerini (bağlantıda değil) MAIL FROM'dan sonra çalıştır</value>
   </data>
+  <data name="Run _diagnostics" xml:space="preserve">
+    <value>Tanılamayı _çalıştır</value>
+  </data>
   <data name="Run _every (minutes)" xml:space="preserve">
     <value>_Her şu kadar dakikada bir çalıştır</value>
   </data>
@@ -9403,6 +9445,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Save the account and reopen it first." xml:space="preserve">
     <value>Önce hesabı kaydedip yeniden açın.</value>
+  </data>
+  <data name="Save the changes on this page" xml:space="preserve">
+    <value>Bu sayfadaki değişiklikleri kaydet</value>
   </data>
   <data name="Save the counters to disk every N seconds (default 10)" xml:space="preserve">
     <value>Sayaçları her N saniyede diske kaydet (varsayılan 10)</value>
@@ -11541,6 +11586,9 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   </data>
   <data name="The key store's location is not known from here. It sits beside hMailServer.INI, which is found through this machine's registry and service table - so keys can only be managed from the server itself, not from a Control Panel connected to another host." xml:space="preserve">
     <value>Anahtar deposunun yeri buradan bilinmiyor. hMailServer.INI'nin yanında durur ve o dosya bu makinenin kayıt defteri ve hizmet tablosu üzerinden bulunur - bu yüzden anahtarlar yalnızca sunucunun kendisinden yönetilebilir, başka bir ana bilgisayara bağlı bir Denetim Masası'ndan değil.</value>
+  </data>
+  <data name="The keys that work on every page, and the keys of a list" xml:space="preserve">
+    <value>Her sayfada çalışan tuşlar ve bir listenin tuşları</value>
   </data>
   <data name="The label has to be {0} characters or fewer." xml:space="preserve">
     <value>Etiket en fazla {0} karakter olmalı.</value>
@@ -13738,7 +13786,7 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
     <value>_Yeni parola</value>
   </data>
   <data name="_Newer" xml:space="preserve">
-    <value>Ye_ni</value>
+    <value>_Yeni</value>
   </data>
   <data name="_Note" xml:space="preserve">
     <value>_Not</value>
@@ -13928,9 +13976,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="_Route" xml:space="preserve">
     <value>R_ota</value>
-  </data>
-  <data name="_Run diagnostics" xml:space="preserve">
-    <value>Tanılamayı _çalıştır</value>
   </data>
   <data name="_Save" xml:space="preserve">
     <value>_Kaydet</value>

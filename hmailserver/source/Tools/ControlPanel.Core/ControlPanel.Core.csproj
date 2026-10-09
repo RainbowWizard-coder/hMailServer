@@ -111,6 +111,10 @@
     <!-- The order the generated Add and Edit dialog lays its fields out in, and the
          words for a required field left empty. -->
     <Compile Include="..\ControlPanel\Services\FieldDialogRules.cs" />
+    <!-- The keys the window answers on every page, the order F6 moves through
+         the window's parts in, and the list the palette's Keyboard shortcuts row
+         shows: one table, held by KeyboardShortcutsTests. -->
+    <Compile Include="..\ControlPanel\Services\KeyboardShortcuts.cs" />
   </ItemGroup>
 
   <!-- The operator documentation, embedded straight from the repository as

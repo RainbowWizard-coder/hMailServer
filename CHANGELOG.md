@@ -1380,6 +1380,23 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   again if a second factor is refused. The help button stays, dimmed, beside the theme toggle and the administrator's
   menu.
 
+- **New: the Control Panel answers F5, Ctrl+F, Ctrl+S and F6 on every page, and Escape closes the help pane.** Only
+  Ctrl+K and F1 existed: a keyboard user tabbed through a page's header to refresh it, find its search box or save
+  it, and tabbed through every control of the window to get from the navigation to the page or the help, which closed
+  only by its own button or a second F1. F5 now presses the page's Refresh, or a settings page's Reload, which asks
+  before it throws edits away; Ctrl+S presses its Save changes; Ctrl+F puts the keyboard in its search box - on the
+  domains page the one beside the list the keyboard is in - and opens the palette on a page without one; F6 and
+  Shift+F6 move round the command bar, the navigation, the page, the help pane and the pending bar, to the sidebar's
+  row for the page on screen and back to the control of the page that last had the keyboard; and Escape in the help
+  pane closes it and puts the keyboard on the Help button. Each key presses the page's own button, so it does what a
+  click does and nothing a disabled button would not. Refresh is Alt+R on every list page, where six pages said
+  Re_fresh (Alt+F) because the R was taken - the domain white and black list's Remove is now Delete, the delivery
+  queue's and the suppression list's Remove is Alt+M, and the diagnostics page's Run diagnostics is Alt+D - and the
+  REST API keys, journaling and administrator roles pages, which are lists, say Refresh where they said Reload, the
+  settings pages' verb (the owner's decision of 9 October 2026). The palette's new Keyboard shortcuts row lists every
+  key in the reader's language - Strg+F and Entf in German. `KeyboardShortcutsTests` holds the table, the order F6
+  moves in, the window's wiring, and every re-read button to Refresh or Reload with its one access key.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

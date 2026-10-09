@@ -1389,6 +1389,9 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="Also turned off by a limit of 0 below, whatever this box says." xml:space="preserve">
     <value>Também desligado por um limite de 0 abaixo, diga o que disser esta caixa.</value>
   </data>
+  <data name="Alt+underlined letter" xml:space="preserve">
+    <value>Alt+letra sublinhada</value>
+  </data>
   <data name="Alternative domain names treated as this domain. Mail sent to user@alias is delivered to user@{0}." xml:space="preserve">
     <value>Nomes de domínio alternativos tratados como este domínio. E-mails enviados para usuario@alias são entregues em usuario@{0}.</value>
   </data>
@@ -2509,6 +2512,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Close the help" xml:space="preserve">
     <value>Fechar a ajuda</value>
   </data>
+  <data name="Close the help while the keyboard is in it, and close a dialog" xml:space="preserve">
+    <value>Fechar a ajuda enquanto o teclado estiver nela e fechar uma caixa de diálogo</value>
+  </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Fechar a lista de destinatários</value>
   </data>
@@ -3170,6 +3176,15 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   </data>
   <data name="Critical, High and Medium" xml:space="preserve">
     <value>Crítico, Alto e Médio</value>
+  </data>
+  <data name="Ctrl+F" xml:space="preserve">
+    <value>Ctrl+F</value>
+  </data>
+  <data name="Ctrl+K" xml:space="preserve">
+    <value>Ctrl+K</value>
+  </data>
+  <data name="Ctrl+S" xml:space="preserve">
+    <value>Ctrl+S</value>
   </data>
   <data name="Current key" xml:space="preserve">
     <value>Chave atual</value>
@@ -4300,6 +4315,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Errors only (severity 3)" xml:space="preserve">
     <value>Somente erros (gravidade 3)</value>
   </data>
+  <data name="Esc" xml:space="preserve">
+    <value>Esc</value>
+  </data>
   <data name="Evaluate DMARC policies" xml:space="preserve">
     <value>Avaliar as políticas DMARC</value>
   </data>
@@ -4545,6 +4563,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   </data>
   <data name="Extra delivery attempts per additional MX host (0 = default)" xml:space="preserve">
     <value>Tentativas de entrega extras por host MX adicional (0 = padrão)</value>
+  </data>
+  <data name="F6, Shift+F6" xml:space="preserve">
+    <value>F6, Shift+F6</value>
   </data>
   <data name="Facility (0 to 23)" xml:space="preserve">
     <value>Facility (0 a 23)</value>
@@ -4812,6 +4833,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   </data>
   <data name="Go to the related page {0}" xml:space="preserve">
     <value>Ir para a página relacionada {0}</value>
+  </data>
+  <data name="Go to the search box of this page" xml:space="preserve">
+    <value>Ir para a caixa de pesquisa desta página</value>
   </data>
   <data name="Google authorization endpoint" xml:space="preserve">
     <value>Endpoint de autorização do Google</value>
@@ -5543,6 +5567,9 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   </data>
   <data name="Key unreadable" xml:space="preserve">
     <value>Chave ilegível</value>
+  </data>
+  <data name="Keyboard shortcuts" xml:space="preserve">
+    <value>Atalhos de teclado</value>
   </data>
   <data name="Keys one account may hold (1 to 64)" xml:space="preserve">
     <value>Chaves que uma conta pode ter (1 a 64)</value>
@@ -6465,6 +6492,9 @@ Nada do que já está lá é removido.</value>
   </data>
   <data name="Move to NT SERVICE\hMailServer…" xml:space="preserve">
     <value>Mudar para NT SERVICE\hMailServer…</value>
+  </data>
+  <data name="Move to the next or the previous part of the window: the command bar, the navigation, the page and the help" xml:space="preserve">
+    <value>Ir para a parte seguinte ou anterior da janela: a barra de comandos, a navegação, a página e a ajuda</value>
   </data>
   <data name="Moving a message into the folder designated Junk reports it to sa-learn as spam, and moving one back out reports it as ham, so the filter learns from what people already do rather than from a separate ritual nobody performs. Off by default: it runs sa-learn per move, and a user who files newsletters in Junk is teaching the filter that newsletters are spam for everyone the scanner serves." xml:space="preserve">
     <value>Mover uma mensagem para a pasta designada como Junk a reporta ao sa-learn como spam, e tirar uma de lá a reporta como ham, de modo que o filtro aprende com o que as pessoas já fazem em vez de com um ritual separado que ninguém cumpre. Desligado por padrão: ele executa o sa-learn a cada movimentação, e um usuário que arquiva newsletters na Junk está ensinando ao filtro que newsletters são spam para todos que o verificador atende.</value>
@@ -7525,6 +7555,9 @@ Nada do que já está lá é removido.</value>
   <data name="Open on the _wiki" xml:space="preserve">
     <value>Abrir na _wiki</value>
   </data>
+  <data name="Open or close the help for this page" xml:space="preserve">
+    <value>Abrir ou fechar a ajuda desta página</value>
+  </data>
   <data name="Open the Control Panel on the server itself to change the account the service runs as or grant it its folders." xml:space="preserve">
     <value>Abra o Control Panel no próprio servidor para mudar a conta do serviço ou conceder a ele suas pastas.</value>
   </data>
@@ -8028,6 +8061,9 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   <data name="Press &quot;Check&quot; to look the record up through this machine's resolver." xml:space="preserve">
     <value>Pressione "Verificar" para consultar o registro através do resolvedor desta máquina.</value>
   </data>
+  <data name="Press the button, or go to the field, whose caption has that letter underlined" xml:space="preserve">
+    <value>Pressionar o botão, ou ir para o campo, cujo rótulo tem essa letra sublinhada</value>
+  </data>
   <data name="Preview changes nothing and reports exactly what Apply would do - they share one decider in the server, so a preview cannot describe an action the apply would not take. Apply stays disabled until a preview has been run with the options as they stand." xml:space="preserve">
     <value>A prévia não altera nada e relata exatamente o que Aplicar faria - as duas compartilham um único decisor no servidor, então uma prévia não pode descrever uma ação que a aplicação não tomaria. Aplicar fica desativado até que uma prévia tenha sido executada com as opções como estão.</value>
   </data>
@@ -8328,8 +8364,8 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   <data name="Re-read these settings from hMailServer.INI" xml:space="preserve">
     <value>Reler estas configurações do hMailServer.INI</value>
   </data>
-  <data name="Re_fresh" xml:space="preserve">
-    <value>Atuali_zar</value>
+  <data name="Re_move" xml:space="preserve">
+    <value>Re_mover</value>
   </data>
   <data name="Re_move action" xml:space="preserve">
     <value>Rem_over ação</value>
@@ -8517,6 +8553,9 @@ Execute isto se os clientes relatarem mensagens aparecendo com o UID errado, ou 
   </data>
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>Reduza o nível de log, ou defina quantos dias de logs são mantidos.</value>
+  </data>
+  <data name="Refresh a list, or reload a settings page" xml:space="preserve">
+    <value>Atualizar uma lista ou recarregar uma página de configurações</value>
   </data>
   <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
     <value>Te_xto de recusa (o que o 550 diz ao remetente)</value>
@@ -9137,6 +9176,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Run DNSBL checks after MAIL FROM (rather than at connect)" xml:space="preserve">
     <value>Executar as verificações DNSBL após o MAIL FROM (em vez de na conexão)</value>
   </data>
+  <data name="Run _diagnostics" xml:space="preserve">
+    <value>_Executar diagnóstico</value>
+  </data>
   <data name="Run _every (minutes)" xml:space="preserve">
     <value>Executar a _cada (minutos)</value>
   </data>
@@ -9403,6 +9445,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="Save the account and reopen it first." xml:space="preserve">
     <value>Salve a conta e reabra-a primeiro.</value>
+  </data>
+  <data name="Save the changes on this page" xml:space="preserve">
+    <value>Salvar as alterações desta página</value>
   </data>
   <data name="Save the counters to disk every N seconds (default 10)" xml:space="preserve">
     <value>Gravar os contadores em disco a cada N segundos (padrão 10)</value>
@@ -11541,6 +11586,9 @@ não pôde ser carregado. A mensagem provavelmente já foi entregue e não está
   </data>
   <data name="The key store's location is not known from here. It sits beside hMailServer.INI, which is found through this machine's registry and service table - so keys can only be managed from the server itself, not from a Control Panel connected to another host." xml:space="preserve">
     <value>A localização do repositório de chaves não é conhecida daqui. Ele fica ao lado do hMailServer.INI, que é encontrado pelo registro e pela tabela de serviços desta máquina - então as chaves só podem ser gerenciadas a partir do próprio servidor, e não de um Control Panel conectado a outro host.</value>
+  </data>
+  <data name="The keys that work on every page, and the keys of a list" xml:space="preserve">
+    <value>As teclas que funcionam em todas as páginas e as teclas de uma lista</value>
   </data>
   <data name="The label has to be {0} characters or fewer." xml:space="preserve">
     <value>O rótulo tem que ter {0} caracteres ou menos.</value>
@@ -13928,9 +13976,6 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="_Route" xml:space="preserve">
     <value>_Rota</value>
-  </data>
-  <data name="_Run diagnostics" xml:space="preserve">
-    <value>_Executar diagnóstico</value>
   </data>
   <data name="_Save" xml:space="preserve">
     <value>_Salvar</value>

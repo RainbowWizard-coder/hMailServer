@@ -256,14 +256,15 @@ namespace hMailServer.ControlPanel
       /// the page, and a tour that ate it would be exactly the "in the way of
       /// the keyboard" the feature promises not to be. F6 is the platform's
       /// "next pane": it is how somebody reaches the tour's buttons from
-      /// wherever they are.
+      /// wherever they are. From the card itself F6 goes on round the window's
+      /// parts, as it does while no tour runs (MainWindow.Keys.cs).
       /// </summary>
       private bool HandleTourKey_(KeyEventArgs e)
       {
          if (!TourRunning)
             return false;
 
-         if (e.Key == Key.F6 && Keyboard.Modifiers == ModifierKeys.None)
+         if (e.Key == Key.F6 && Keyboard.Modifiers == ModifierKeys.None && !TourLayer.HasFocusWithin)
          {
             TourLayer.FocusCard();
             return true;

@@ -1389,6 +1389,9 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   <data name="Also turned off by a limit of 0 below, whatever this box says." xml:space="preserve">
     <value>Disattivato anche da un limite di 0 qui sotto, qualunque cosa dica questa casella.</value>
   </data>
+  <data name="Alt+underlined letter" xml:space="preserve">
+    <value>Alt+lettera sottolineata</value>
+  </data>
   <data name="Alternative domain names treated as this domain. Mail sent to user@alias is delivered to user@{0}." xml:space="preserve">
     <value>Nomi di dominio alternativi trattati come questo dominio. La posta inviata a utente@alias viene consegnata a utente@{0}.</value>
   </data>
@@ -2509,6 +2512,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Close the help" xml:space="preserve">
     <value>Chiudi la guida</value>
   </data>
+  <data name="Close the help while the keyboard is in it, and close a dialog" xml:space="preserve">
+    <value>Chiude la guida mentre la tastiera è al suo interno, e chiude una finestra di dialogo</value>
+  </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Chiudi l'elenco dei destinatari</value>
   </data>
@@ -3170,6 +3176,15 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   </data>
   <data name="Critical, High and Medium" xml:space="preserve">
     <value>Critico, Alto e Medio</value>
+  </data>
+  <data name="Ctrl+F" xml:space="preserve">
+    <value>Ctrl+F</value>
+  </data>
+  <data name="Ctrl+K" xml:space="preserve">
+    <value>Ctrl+K</value>
+  </data>
+  <data name="Ctrl+S" xml:space="preserve">
+    <value>Ctrl+S</value>
   </data>
   <data name="Current key" xml:space="preserve">
     <value>Chiave attuale</value>
@@ -4300,6 +4315,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Errors only (severity 3)" xml:space="preserve">
     <value>Solo errori (gravità 3)</value>
   </data>
+  <data name="Esc" xml:space="preserve">
+    <value>Esc</value>
+  </data>
   <data name="Evaluate DMARC policies" xml:space="preserve">
     <value>Valuta i criteri DMARC</value>
   </data>
@@ -4545,6 +4563,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Extra delivery attempts per additional MX host (0 = default)" xml:space="preserve">
     <value>Tentativi di consegna aggiuntivi per ogni host MX in più (0 = predefinito)</value>
+  </data>
+  <data name="F6, Shift+F6" xml:space="preserve">
+    <value>F6, Maiusc+F6</value>
   </data>
   <data name="Facility (0 to 23)" xml:space="preserve">
     <value>Facility (da 0 a 23)</value>
@@ -4812,6 +4833,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Go to the related page {0}" xml:space="preserve">
     <value>Vai alla pagina correlata {0}</value>
+  </data>
+  <data name="Go to the search box of this page" xml:space="preserve">
+    <value>Vai alla casella di ricerca di questa pagina</value>
   </data>
   <data name="Google authorization endpoint" xml:space="preserve">
     <value>Endpoint di autorizzazione di Google</value>
@@ -5543,6 +5567,9 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   </data>
   <data name="Key unreadable" xml:space="preserve">
     <value>Chiave illeggibile</value>
+  </data>
+  <data name="Keyboard shortcuts" xml:space="preserve">
+    <value>Scorciatoie da tastiera</value>
   </data>
   <data name="Keys one account may hold (1 to 64)" xml:space="preserve">
     <value>Chiavi che un account può avere (da 1 a 64)</value>
@@ -6465,6 +6492,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="Move to NT SERVICE\hMailServer…" xml:space="preserve">
     <value>Passa a NT SERVICE\hMailServer…</value>
+  </data>
+  <data name="Move to the next or the previous part of the window: the command bar, the navigation, the page and the help" xml:space="preserve">
+    <value>Passa alla parte successiva o precedente della finestra: la barra dei comandi, la navigazione, la pagina e la guida</value>
   </data>
   <data name="Moving a message into the folder designated Junk reports it to sa-learn as spam, and moving one back out reports it as ham, so the filter learns from what people already do rather than from a separate ritual nobody performs. Off by default: it runs sa-learn per move, and a user who files newsletters in Junk is teaching the filter that newsletters are spam for everyone the scanner serves." xml:space="preserve">
     <value>Spostare un messaggio nella cartella designata come Junk lo segnala a sa-learn come spam, e riportarne uno fuori lo segnala come ham, così il filtro impara da ciò che le persone già fanno anziché da un rituale a parte che nessuno esegue. Disattivato per impostazione predefinita: esegue sa-learn a ogni spostamento, e un utente che archivia le newsletter in Junk sta insegnando al filtro che le newsletter sono spam per tutti coloro che lo scanner serve.</value>
@@ -7525,6 +7555,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Open on the _wiki" xml:space="preserve">
     <value>Apri sul _wiki</value>
   </data>
+  <data name="Open or close the help for this page" xml:space="preserve">
+    <value>Apri o chiudi la guida di questa pagina</value>
+  </data>
   <data name="Open the Control Panel on the server itself to change the account the service runs as or grant it its folders." xml:space="preserve">
     <value>Aprite il Control Panel sul server stesso per cambiare l'account del servizio o concedergli le sue cartelle.</value>
   </data>
@@ -8028,6 +8061,9 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   <data name="Press &quot;Check&quot; to look the record up through this machine's resolver." xml:space="preserve">
     <value>Premi "Verifica" per cercare il record tramite il resolver di questa macchina.</value>
   </data>
+  <data name="Press the button, or go to the field, whose caption has that letter underlined" xml:space="preserve">
+    <value>Premi il pulsante, o vai al campo, la cui etichetta ha quella lettera sottolineata</value>
+  </data>
   <data name="Preview changes nothing and reports exactly what Apply would do - they share one decider in the server, so a preview cannot describe an action the apply would not take. Apply stays disabled until a preview has been run with the options as they stand." xml:space="preserve">
     <value>L'anteprima non cambia nulla e riporta esattamente ciò che farebbe Applica - condividono un unico decisore nel server, quindi un'anteprima non può descrivere un'azione che l'applicazione non compirebbe. Applica resta disattivato finché non viene eseguita un'anteprima con le opzioni così come sono.</value>
   </data>
@@ -8328,8 +8364,8 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   <data name="Re-read these settings from hMailServer.INI" xml:space="preserve">
     <value>Rileggi queste impostazioni da hMailServer.INI</value>
   </data>
-  <data name="Re_fresh" xml:space="preserve">
-    <value>A_ggiorna</value>
+  <data name="Re_move" xml:space="preserve">
+    <value>R_imuovi</value>
   </data>
   <data name="Re_move action" xml:space="preserve">
     <value>Rim_uovi azione</value>
@@ -8517,6 +8553,9 @@ Esegui questa operazione se i client segnalano messaggi che compaiono con l'UID 
   </data>
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>Abbassa il livello dei registri, o imposta per quanti giorni i registri vengono conservati.</value>
+  </data>
+  <data name="Refresh a list, or reload a settings page" xml:space="preserve">
+    <value>Aggiorna un elenco o ricarica una pagina di impostazioni</value>
   </data>
   <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
     <value>Testo di rifiuto (ciò che il 550 dice al mittente) (_X)</value>
@@ -9137,6 +9176,9 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="Run DNSBL checks after MAIL FROM (rather than at connect)" xml:space="preserve">
     <value>Esegui i controlli DNSBL dopo MAIL FROM (anziché alla connessione)</value>
   </data>
+  <data name="Run _diagnostics" xml:space="preserve">
+    <value>_Esegui la diagnostica</value>
+  </data>
   <data name="Run _every (minutes)" xml:space="preserve">
     <value>Esegui _ogni (minuti)</value>
   </data>
@@ -9403,6 +9445,9 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   </data>
   <data name="Save the account and reopen it first." xml:space="preserve">
     <value>Salva prima l'account e riaprilo.</value>
+  </data>
+  <data name="Save the changes on this page" xml:space="preserve">
+    <value>Salva le modifiche di questa pagina</value>
   </data>
   <data name="Save the counters to disk every N seconds (default 10)" xml:space="preserve">
     <value>Salva i contatori su disco ogni N secondi (predefinito 10)</value>
@@ -11541,6 +11586,9 @@ non ha potuto essere caricato. Il messaggio è probabilmente già stato consegna
   </data>
   <data name="The key store's location is not known from here. It sits beside hMailServer.INI, which is found through this machine's registry and service table - so keys can only be managed from the server itself, not from a Control Panel connected to another host." xml:space="preserve">
     <value>La posizione dell'archivio delle chiavi non è nota da qui. Si trova accanto a hMailServer.INI, che viene individuato tramite il registro di sistema e la tabella dei servizi di questa macchina - quindi le chiavi possono essere gestite solo dal server stesso, non da un Control Panel connesso a un altro host.</value>
+  </data>
+  <data name="The keys that work on every page, and the keys of a list" xml:space="preserve">
+    <value>I tasti che funzionano in ogni pagina e i tasti di un elenco</value>
   </data>
   <data name="The label has to be {0} characters or fewer." xml:space="preserve">
     <value>L'etichetta deve avere al massimo {0} caratteri.</value>
@@ -13738,7 +13786,7 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
     <value>_Nuova password</value>
   </data>
   <data name="_Newer" xml:space="preserve">
-    <value>Più _recenti</value>
+    <value>P_iù recenti</value>
   </data>
   <data name="_Note" xml:space="preserve">
     <value>_Nota</value>
@@ -13822,7 +13870,7 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
     <value>Ri_pristina</value>
   </data>
   <data name="_Put back what it changed" xml:space="preserve">
-    <value>_Ripristina ciò che ha cambiato</value>
+    <value>Ripristina ciò che _ha cambiato</value>
   </data>
   <data name="_Put the message back" xml:space="preserve">
     <value>Rimetti il messaggio (_j)</value>
@@ -13928,9 +13976,6 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="_Route" xml:space="preserve">
     <value>_Rotta</value>
-  </data>
-  <data name="_Run diagnostics" xml:space="preserve">
-    <value>_Esegui la diagnostica</value>
   </data>
   <data name="_Save" xml:space="preserve">
     <value>_Salva</value>

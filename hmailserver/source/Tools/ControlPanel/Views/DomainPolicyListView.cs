@@ -309,11 +309,11 @@ namespace hMailServer.ControlPanel.Views
          var actions = new WrapPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
          addButton_ = MakeButton(L("_Add…"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => AddEntry());
          actions.Children.Add(addButton_);
-         var remove = MakeButton(L("_Remove"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => RemoveSelected());
+         var remove = MakeButton(L("_Delete"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => RemoveSelected());
          ButtonStyles.DangerText(remove);
          actions.Children.Add(remove);
          SelectionGate.Bind(entries_, remove);
-         actions.Children.Add(MakeButton(L("Re_fresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload()));
+         actions.Children.Add(MakeButton(L("_Refresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload()));
          foreach (FrameworkElement button in actions.Children)
             button.Margin = new Thickness(button.Margin.Left, 2, button.Margin.Right, 2);
          toolbar_.Actions = actions;

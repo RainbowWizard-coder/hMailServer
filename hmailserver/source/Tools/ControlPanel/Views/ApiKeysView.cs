@@ -85,7 +85,7 @@ namespace hMailServer.ControlPanel.Views
          create.Click += (s, e) => CreateKey_();
          actions.Children.Add(create);
 
-         var reload = new Wpf.Ui.Controls.Button { Content = L("_Reload") };
+         var reload = new Wpf.Ui.Controls.Button { Content = L("_Refresh") };
          System.Windows.Automation.AutomationProperties.SetName(reload, L("Re-read the key store from disk"));
          System.Windows.Automation.AutomationProperties.SetAutomationId(reload, "apikeys-reload");
          reload.Click += (s, e) => Reload_();

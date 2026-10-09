@@ -32,7 +32,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          // Add…, Remove and Refresh, built before the header that holds them.
          int header = build.IndexOf("root.Children.Add(new PageHeader", StringComparison.Ordinal);
-         foreach (string caption in new[] { "L(\"_Add…\")", "L(\"_Remove\")", "L(\"Re_fresh\")" })
+         foreach (string caption in new[] { "L(\"_Add…\")", "L(\"Re_move\")", "L(\"_Refresh\")" })
          {
             int at = build.IndexOf(caption, StringComparison.Ordinal);
             Assert.True(at >= 0 && at < header, caption + " is not built for the page header.");

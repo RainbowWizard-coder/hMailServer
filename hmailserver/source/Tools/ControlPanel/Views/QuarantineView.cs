@@ -1063,7 +1063,7 @@ namespace hMailServer.ControlPanel.Views
          removeExpired_ = MakeButton(L("Remove _expired"), ControlAppearance.Secondary, (_, _) => SweepExpired());
          ButtonStyles.DangerText(removeExpired_);
          actions.Children.Add(removeExpired_);
-         actions.Children.Add(MakeButton(L("Re_fresh"), ControlAppearance.Secondary, (_, _) => Reload()));
+         actions.Children.Add(MakeButton(L("_Refresh"), ControlAppearance.Secondary, (_, _) => Reload()));
          actions.Children.Add(MakeButton(L("Di_gest settings"), ControlAppearance.Secondary, (_, _) => EditDigestSettings()));
 
          root.Children.Add(new PageHeader

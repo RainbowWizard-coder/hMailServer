@@ -106,9 +106,15 @@ namespace hMailServer.ControlPanel.Views
          };
          actions.Children.Add(templateCombo);
 
-         actions.Children.Add(MakeButton(L("_Save & reload"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => SaveScript()));
+         // Ctrl+S and F5 press these two, whose captions say more than the
+         // pages' Save changes and Reload (Views/PageCommands).
+         var save = MakeButton(L("_Save & reload"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => SaveScript());
+         PageCommands.SetCommand(save, PageCommand.Save);
+         actions.Children.Add(save);
          actions.Children.Add(MakeButton(L("_Check syntax"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => CheckSyntax()));
-         actions.Children.Add(MakeButton(L("_Reload from disk"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => ReloadFromDisk_()));
+         var reload = MakeButton(L("_Reload from disk"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => ReloadFromDisk_());
+         PageCommands.SetCommand(reload, PageCommand.Refresh);
+         actions.Children.Add(reload);
 
          root.Children.Add(new PageHeader
          {

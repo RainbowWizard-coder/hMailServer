@@ -395,11 +395,11 @@ namespace hMailServer.ControlPanel.Views
          var actions = new StackPanel { Orientation = Orientation.Horizontal };
          addButton_ = MakeButton(L("_Add…"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => AddEntry());
          actions.Children.Add(addButton_);
-         var remove = MakeButton(L("_Remove"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => RemoveSelected());
+         var remove = MakeButton(L("Re_move"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => RemoveSelected());
          ButtonStyles.DangerText(remove);
          actions.Children.Add(remove);
          SelectionGate.Bind(entries_, remove);
-         actions.Children.Add(MakeButton(L("Re_fresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload()));
+         actions.Children.Add(MakeButton(L("_Refresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload()));
 
          root.Children.Add(new PageHeader
          {

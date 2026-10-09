@@ -1389,6 +1389,9 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   <data name="Also turned off by a limit of 0 below, whatever this box says." xml:space="preserve">
     <value>Également désactivé par une limite de 0 ci-dessous, quoi que dise cette case.</value>
   </data>
+  <data name="Alt+underlined letter" xml:space="preserve">
+    <value>Alt+lettre soulignée</value>
+  </data>
   <data name="Alternative domain names treated as this domain. Mail sent to user@alias is delivered to user@{0}." xml:space="preserve">
     <value>Noms de domaine alternatifs traités comme ce domaine. Le courrier envoyé à utilisateur@alias est livré à utilisateur@{0}.</value>
   </data>
@@ -2509,6 +2512,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Close the help" xml:space="preserve">
     <value>Fermer l'aide</value>
   </data>
+  <data name="Close the help while the keyboard is in it, and close a dialog" xml:space="preserve">
+    <value>Fermer l'aide quand le clavier s'y trouve, et fermer une boîte de dialogue</value>
+  </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Fermer la liste des destinataires</value>
   </data>
@@ -3171,6 +3177,15 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Critical, High and Medium" xml:space="preserve">
     <value>Critique, Élevé et Moyen</value>
   </data>
+  <data name="Ctrl+F" xml:space="preserve">
+    <value>Ctrl+F</value>
+  </data>
+  <data name="Ctrl+K" xml:space="preserve">
+    <value>Ctrl+K</value>
+  </data>
+  <data name="Ctrl+S" xml:space="preserve">
+    <value>Ctrl+S</value>
+  </data>
   <data name="Current key" xml:space="preserve">
     <value>Clé actuelle</value>
   </data>
@@ -3747,7 +3762,7 @@ L'expéditeur a été informé qu'il était accepté, donc rien ne réessaiera e
     <value>Appareils sur lesquels un compte peut recevoir des notifications (1 à 50)</value>
   </data>
   <data name="Di_gest settings" xml:space="preserve">
-    <value>Réglages du _récapitulatif</value>
+    <value>Réglages _du récapitulatif</value>
   </data>
   <data name="Diagnosing stalled mail" xml:space="preserve">
     <value>Diagnostiquer le courrier bloqué</value>
@@ -4300,6 +4315,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Errors only (severity 3)" xml:space="preserve">
     <value>Erreurs seulement (gravité 3)</value>
   </data>
+  <data name="Esc" xml:space="preserve">
+    <value>Échap</value>
+  </data>
   <data name="Evaluate DMARC policies" xml:space="preserve">
     <value>Évaluer les politiques DMARC</value>
   </data>
@@ -4545,6 +4563,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   </data>
   <data name="Extra delivery attempts per additional MX host (0 = default)" xml:space="preserve">
     <value>Tentatives de livraison supplémentaires par hôte MX additionnel (0 = défaut)</value>
+  </data>
+  <data name="F6, Shift+F6" xml:space="preserve">
+    <value>F6, Maj+F6</value>
   </data>
   <data name="Facility (0 to 23)" xml:space="preserve">
     <value>Facility (0 à 23)</value>
@@ -4812,6 +4833,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   </data>
   <data name="Go to the related page {0}" xml:space="preserve">
     <value>Aller à la page associée {0}</value>
+  </data>
+  <data name="Go to the search box of this page" xml:space="preserve">
+    <value>Aller à la zone de recherche de cette page</value>
   </data>
   <data name="Google authorization endpoint" xml:space="preserve">
     <value>Point d'autorisation Google</value>
@@ -5543,6 +5567,9 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   </data>
   <data name="Key unreadable" xml:space="preserve">
     <value>Clé illisible</value>
+  </data>
+  <data name="Keyboard shortcuts" xml:space="preserve">
+    <value>Raccourcis clavier</value>
   </data>
   <data name="Keys one account may hold (1 to 64)" xml:space="preserve">
     <value>Clés qu'un compte peut détenir (1 à 64)</value>
@@ -6465,6 +6492,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   </data>
   <data name="Move to NT SERVICE\hMailServer…" xml:space="preserve">
     <value>Passer à NT SERVICE\hMailServer…</value>
+  </data>
+  <data name="Move to the next or the previous part of the window: the command bar, the navigation, the page and the help" xml:space="preserve">
+    <value>Passer à la partie suivante ou précédente de la fenêtre : la barre de commandes, la navigation, la page et l'aide</value>
   </data>
   <data name="Moving a message into the folder designated Junk reports it to sa-learn as spam, and moving one back out reports it as ham, so the filter learns from what people already do rather than from a separate ritual nobody performs. Off by default: it runs sa-learn per move, and a user who files newsletters in Junk is teaching the filter that newsletters are spam for everyone the scanner serves." xml:space="preserve">
     <value>Déplacer un message dans le dossier désigné Junk le signale à sa-learn comme spam, et l'en ressortir le signale comme ham, si bien que le filtre apprend de ce que les gens font déjà plutôt que d'un rituel séparé que personne n'accomplit. Désactivé par défaut : cela exécute sa-learn à chaque déplacement, et un utilisateur qui range des newsletters dans Junk apprend au filtre que les newsletters sont du spam pour tous ceux que l'analyseur dessert.</value>
@@ -7525,6 +7555,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="Open on the _wiki" xml:space="preserve">
     <value>Ouvrir sur le _wiki</value>
   </data>
+  <data name="Open or close the help for this page" xml:space="preserve">
+    <value>Ouvrir ou fermer l'aide de cette page</value>
+  </data>
   <data name="Open the Control Panel on the server itself to change the account the service runs as or grant it its folders." xml:space="preserve">
     <value>Ouvrez le Control Panel sur le serveur lui-même pour changer le compte du service ou lui accorder ses dossiers.</value>
   </data>
@@ -8028,6 +8061,9 @@ Aucune nouvelle connexion ne sera acceptée et aucun courrier ne sera livré jus
   <data name="Press &quot;Check&quot; to look the record up through this machine's resolver." xml:space="preserve">
     <value>Cliquez sur « Vérifier » pour rechercher l'enregistrement via le résolveur de cette machine.</value>
   </data>
+  <data name="Press the button, or go to the field, whose caption has that letter underlined" xml:space="preserve">
+    <value>Appuyer sur le bouton, ou aller au champ, dont le libellé a cette lettre soulignée</value>
+  </data>
   <data name="Preview changes nothing and reports exactly what Apply would do - they share one decider in the server, so a preview cannot describe an action the apply would not take. Apply stays disabled until a preview has been run with the options as they stand." xml:space="preserve">
     <value>L'aperçu ne change rien et rapporte exactement ce que l'application ferait - ils partagent un même décideur dans le serveur, un aperçu ne peut donc pas décrire une action que l'application ne prendrait pas. « Appliquer » reste désactivé tant qu'un aperçu n'a pas été exécuté avec les options telles qu'elles sont.</value>
   </data>
@@ -8328,8 +8364,8 @@ Aucune nouvelle connexion ne sera acceptée et aucun courrier ne sera livré jus
   <data name="Re-read these settings from hMailServer.INI" xml:space="preserve">
     <value>Relire ces réglages depuis hMailServer.INI</value>
   </data>
-  <data name="Re_fresh" xml:space="preserve">
-    <value>_Actualiser</value>
+  <data name="Re_move" xml:space="preserve">
+    <value>Re_tirer</value>
   </data>
   <data name="Re_move action" xml:space="preserve">
     <value>_Supprimer l'action</value>
@@ -8517,6 +8553,9 @@ Exécutez ceci si des clients signalent des messages apparaissant sous le mauvai
   </data>
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>Réduisez le niveau de journalisation, ou définissez combien de jours de journaux sont conservés.</value>
+  </data>
+  <data name="Refresh a list, or reload a settings page" xml:space="preserve">
+    <value>Rafraîchir une liste ou recharger une page de réglages</value>
   </data>
   <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
     <value>Te_xte de refus (ce que le 550 dit à l’expéditeur)</value>
@@ -9137,6 +9176,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Run DNSBL checks after MAIL FROM (rather than at connect)" xml:space="preserve">
     <value>Exécuter les vérifications DNSBL après MAIL FROM (plutôt qu'à la connexion)</value>
   </data>
+  <data name="Run _diagnostics" xml:space="preserve">
+    <value>_Lancer les diagnostics</value>
+  </data>
   <data name="Run _every (minutes)" xml:space="preserve">
     <value>Exécuter _toutes les (minutes)</value>
   </data>
@@ -9403,6 +9445,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   </data>
   <data name="Save the account and reopen it first." xml:space="preserve">
     <value>Enregistrez d'abord le compte et rouvrez-le.</value>
+  </data>
+  <data name="Save the changes on this page" xml:space="preserve">
+    <value>Enregistrer les modifications de cette page</value>
   </data>
   <data name="Save the counters to disk every N seconds (default 10)" xml:space="preserve">
     <value>Enregistrer les compteurs sur le disque toutes les N secondes (10 par défaut)</value>
@@ -11541,6 +11586,9 @@ n'a pas pu être chargé. Le message a probablement été livré et n'est plus d
   </data>
   <data name="The key store's location is not known from here. It sits beside hMailServer.INI, which is found through this machine's registry and service table - so keys can only be managed from the server itself, not from a Control Panel connected to another host." xml:space="preserve">
     <value>L'emplacement du magasin de clés n'est pas connu d'ici. Il se trouve à côté de hMailServer.INI, lequel est localisé via le registre et la table des services de cette machine - les clés ne peuvent donc être gérées que depuis le serveur lui-même, pas depuis un Control Panel connecté à un autre hôte.</value>
+  </data>
+  <data name="The keys that work on every page, and the keys of a list" xml:space="preserve">
+    <value>Les touches qui fonctionnent sur chaque page, et les touches d'une liste</value>
   </data>
   <data name="The label has to be {0} characters or fewer." xml:space="preserve">
     <value>Le libellé doit faire {0} caractères ou moins.</value>
@@ -13738,7 +13786,7 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
     <value>_Nouveau mot de passe</value>
   </data>
   <data name="_Newer" xml:space="preserve">
-    <value>Plus _récentes</value>
+    <value>_Plus récentes</value>
   </data>
   <data name="_Note" xml:space="preserve">
     <value>_Note</value>
@@ -13822,7 +13870,7 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
     <value>Re_mettre</value>
   </data>
   <data name="_Put back what it changed" xml:space="preserve">
-    <value>_Rétablir ce qu'il a changé</value>
+    <value>Rétablir ce qu'_il a changé</value>
   </data>
   <data name="_Put the message back" xml:space="preserve">
     <value>Remettre le message (_f)</value>
@@ -13928,9 +13976,6 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="_Route" xml:space="preserve">
     <value>_Route</value>
-  </data>
-  <data name="_Run diagnostics" xml:space="preserve">
-    <value>_Lancer les diagnostics</value>
   </data>
   <data name="_Save" xml:space="preserve">
     <value>_Enregistrer</value>

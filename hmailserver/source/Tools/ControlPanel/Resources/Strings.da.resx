@@ -1389,6 +1389,9 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Also turned off by a limit of 0 below, whatever this box says." xml:space="preserve">
     <value>Slås også fra af en grænse på 0 nedenfor, uanset hvad dette felt siger.</value>
   </data>
+  <data name="Alt+underlined letter" xml:space="preserve">
+    <value>Alt+understreget bogstav</value>
+  </data>
   <data name="Alternative domain names treated as this domain. Mail sent to user@alias is delivered to user@{0}." xml:space="preserve">
     <value>Alternative domænenavne, der behandles som dette domæne. Post sendt til user@alias leveres til user@{0}.</value>
   </data>
@@ -2509,6 +2512,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Close the help" xml:space="preserve">
     <value>Luk hjælpen</value>
   </data>
+  <data name="Close the help while the keyboard is in it, and close a dialog" xml:space="preserve">
+    <value>Luk hjælpen, mens tastaturet er i den, og luk en dialogboks</value>
+  </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Luk modtagerlisten</value>
   </data>
@@ -3170,6 +3176,15 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   </data>
   <data name="Critical, High and Medium" xml:space="preserve">
     <value>Kritisk, Høj og Medium</value>
+  </data>
+  <data name="Ctrl+F" xml:space="preserve">
+    <value>Ctrl+F</value>
+  </data>
+  <data name="Ctrl+K" xml:space="preserve">
+    <value>Ctrl+K</value>
+  </data>
+  <data name="Ctrl+S" xml:space="preserve">
+    <value>Ctrl+S</value>
   </data>
   <data name="Current key" xml:space="preserve">
     <value>Aktuel nøgle</value>
@@ -4300,6 +4315,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Errors only (severity 3)" xml:space="preserve">
     <value>Kun fejl (alvorsgrad 3)</value>
   </data>
+  <data name="Esc" xml:space="preserve">
+    <value>Esc</value>
+  </data>
   <data name="Evaluate DMARC policies" xml:space="preserve">
     <value>Evaluér DMARC-politikker</value>
   </data>
@@ -4545,6 +4563,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Extra delivery attempts per additional MX host (0 = default)" xml:space="preserve">
     <value>Ekstra leveringsforsøg pr. yderligere MX-vært (0 = standard)</value>
+  </data>
+  <data name="F6, Shift+F6" xml:space="preserve">
+    <value>F6, Skift+F6</value>
   </data>
   <data name="Facility (0 to 23)" xml:space="preserve">
     <value>Facility (0 til 23)</value>
@@ -4812,6 +4833,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Go to the related page {0}" xml:space="preserve">
     <value>Gå til den relaterede side {0}</value>
+  </data>
+  <data name="Go to the search box of this page" xml:space="preserve">
+    <value>Gå til denne sides søgefelt</value>
   </data>
   <data name="Google authorization endpoint" xml:space="preserve">
     <value>Googles godkendelsesslutpunkt</value>
@@ -5543,6 +5567,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   </data>
   <data name="Key unreadable" xml:space="preserve">
     <value>Nøglen kan ikke læses</value>
+  </data>
+  <data name="Keyboard shortcuts" xml:space="preserve">
+    <value>Tastaturgenveje</value>
   </data>
   <data name="Keys one account may hold (1 to 64)" xml:space="preserve">
     <value>Nøgler, som en konto må have (1 til 64)</value>
@@ -6465,6 +6492,9 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="Move to NT SERVICE\hMailServer…" xml:space="preserve">
     <value>Skift til NT SERVICE\hMailServer…</value>
+  </data>
+  <data name="Move to the next or the previous part of the window: the command bar, the navigation, the page and the help" xml:space="preserve">
+    <value>Gå til den næste eller den forrige del af vinduet: kommandolinjen, navigationen, siden og hjælpen</value>
   </data>
   <data name="Moving a message into the folder designated Junk reports it to sa-learn as spam, and moving one back out reports it as ham, so the filter learns from what people already do rather than from a separate ritual nobody performs. Off by default: it runs sa-learn per move, and a user who files newsletters in Junk is teaching the filter that newsletters are spam for everyone the scanner serves." xml:space="preserve">
     <value>At flytte en meddelelse ind i den mappe, der er udpeget som Junk, rapporterer den til sa-learn som spam, og at flytte en ud igen rapporterer den som ham, så filteret lærer af det, folk allerede gør, frem for af et særskilt ritual, som ingen udfører. Slået fra som standard: den kører sa-learn pr. flytning, og en bruger, der lægger nyhedsbreve i Junk, lærer filteret, at nyhedsbreve er spam for alle, som scanneren betjener.</value>
@@ -7525,6 +7555,9 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Open on the _wiki" xml:space="preserve">
     <value>Åbn på _wikien</value>
   </data>
+  <data name="Open or close the help for this page" xml:space="preserve">
+    <value>Åbn eller luk hjælpen til denne side</value>
+  </data>
   <data name="Open the Control Panel on the server itself to change the account the service runs as or grant it its folders." xml:space="preserve">
     <value>Åbn Control Panel på selve serveren for at skifte tjenestens konto eller give den dens mapper.</value>
   </data>
@@ -8028,6 +8061,9 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   <data name="Press &quot;Check&quot; to look the record up through this machine's resolver." xml:space="preserve">
     <value>Tryk på "Kontrollér" for at slå posten op gennem denne maskines resolver.</value>
   </data>
+  <data name="Press the button, or go to the field, whose caption has that letter underlined" xml:space="preserve">
+    <value>Tryk på knappen, eller gå til feltet, hvis tekst har det bogstav understreget</value>
+  </data>
   <data name="Preview changes nothing and reports exactly what Apply would do - they share one decider in the server, so a preview cannot describe an action the apply would not take. Apply stays disabled until a preview has been run with the options as they stand." xml:space="preserve">
     <value>Forhåndsvisning ændrer ingenting og rapporterer nøjagtigt, hvad Anvend ville gøre - de deler én beslutningstager i serveren, så en forhåndsvisning kan ikke beskrive en handling, som anvendelsen ikke ville udføre. Anvend forbliver deaktiveret, indtil der er kørt en forhåndsvisning med indstillingerne, som de er nu.</value>
   </data>
@@ -8328,8 +8364,8 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   <data name="Re-read these settings from hMailServer.INI" xml:space="preserve">
     <value>Genindlæs disse indstillinger fra hMailServer.INI</value>
   </data>
-  <data name="Re_fresh" xml:space="preserve">
-    <value>O_pdatér</value>
+  <data name="Re_move" xml:space="preserve">
+    <value>_Fjern</value>
   </data>
   <data name="Re_move action" xml:space="preserve">
     <value>F_jern handling</value>
@@ -8517,6 +8553,9 @@ Kør dette, hvis klienter melder om meddelelser, der dukker op under det forkert
   </data>
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>Sænk logniveauet, eller angiv, hvor mange dages logfiler der beholdes.</value>
+  </data>
+  <data name="Refresh a list, or reload a settings page" xml:space="preserve">
+    <value>Opdatér en liste, eller genindlæs en indstillingsside</value>
   </data>
   <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
     <value>Afvi_sningstekst (hvad 550 siger til afsenderen)</value>
@@ -9137,6 +9176,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Den gem
   <data name="Run DNSBL checks after MAIL FROM (rather than at connect)" xml:space="preserve">
     <value>Kør DNSBL-kontroller efter MAIL FROM (i stedet for ved forbindelse)</value>
   </data>
+  <data name="Run _diagnostics" xml:space="preserve">
+    <value>_Kør diagnostik</value>
+  </data>
   <data name="Run _every (minutes)" xml:space="preserve">
     <value>Kør _hvert (minutter)</value>
   </data>
@@ -9403,6 +9445,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Den gem
   </data>
   <data name="Save the account and reopen it first." xml:space="preserve">
     <value>Gem kontoen og åbn den igen først.</value>
+  </data>
+  <data name="Save the changes on this page" xml:space="preserve">
+    <value>Gem ændringerne på denne side</value>
   </data>
   <data name="Save the counters to disk every N seconds (default 10)" xml:space="preserve">
     <value>Gem tællerne på disk hvert N. sekund (standard 10)</value>
@@ -11542,6 +11587,9 @@ kunne ikke indlæses. Meddelelsen er sandsynligvis leveret og ikke længere i k�
   <data name="The key store's location is not known from here. It sits beside hMailServer.INI, which is found through this machine's registry and service table - so keys can only be managed from the server itself, not from a Control Panel connected to another host." xml:space="preserve">
     <value>Nøglelagerets placering kendes ikke herfra. Det ligger ved siden af hMailServer.INI, som findes gennem denne maskines registreringsdatabase og tjenestetabel - så nøgler kan kun administreres fra selve serveren, ikke fra et Control Panel forbundet til en anden vært.</value>
   </data>
+  <data name="The keys that work on every page, and the keys of a list" xml:space="preserve">
+    <value>De taster, der virker på alle sider, og tasterne i en liste</value>
+  </data>
   <data name="The label has to be {0} characters or fewer." xml:space="preserve">
     <value>Etiketten skal være på {0} tegn eller færre.</value>
   </data>
@@ -13381,7 +13429,7 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
     <value>_Anvend nu</value>
   </data>
   <data name="_Apply this profile" xml:space="preserve">
-    <value>_Anvend denne profil</value>
+    <value>Anvend _denne profil</value>
   </data>
   <data name="_Bind address" xml:space="preserve">
     <value>_Bindingsadresse</value>
@@ -13928,9 +13976,6 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="_Route" xml:space="preserve">
     <value>_Rute</value>
-  </data>
-  <data name="_Run diagnostics" xml:space="preserve">
-    <value>_Kør diagnostik</value>
   </data>
   <data name="_Save" xml:space="preserve">
     <value>_Gem</value>

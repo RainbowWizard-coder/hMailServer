@@ -1398,6 +1398,9 @@ Control Panel может читать файлы сообщений только
   <data name="Also turned off by a limit of 0 below, whatever this box says." xml:space="preserve">
     <value>Также отключается ограничением 0 ниже, независимо от состояния этого флажка.</value>
   </data>
+  <data name="Alt+underlined letter" xml:space="preserve">
+    <value>Alt+подчёркнутая буква</value>
+  </data>
   <data name="Alternative domain names treated as this domain. Mail sent to user@alias is delivered to user@{0}." xml:space="preserve">
     <value>Альтернативные имена доменов, которые трактуются как этот домен. Почта на user@alias доставляется на user@{0}.</value>
   </data>
@@ -2527,6 +2530,9 @@ Control Panel может читать файлы сообщений только
   <data name="Close the help" xml:space="preserve">
     <value>Закрыть справку</value>
   </data>
+  <data name="Close the help while the keyboard is in it, and close a dialog" xml:space="preserve">
+    <value>Закрыть справку, пока в ней клавиатура, и закрыть диалоговое окно</value>
+  </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Закрыть список получателей</value>
   </data>
@@ -2726,7 +2732,7 @@ Control Panel может читать файлы сообщений только
     <value>Скопируйте это сейчас — оно не сохраняется, и показать его снова нельзя</value>
   </data>
   <data name="Copy to clip_board" xml:space="preserve">
-    <value>Копировать в _буфер обмена</value>
+    <value>_Копировать в буфер обмена</value>
   </data>
   <data name="Copy value" xml:space="preserve">
     <value>Копировать значение</value>
@@ -3188,6 +3194,15 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Critical, High and Medium" xml:space="preserve">
     <value>Критические, высокие и средние</value>
+  </data>
+  <data name="Ctrl+F" xml:space="preserve">
+    <value>Ctrl+F</value>
+  </data>
+  <data name="Ctrl+K" xml:space="preserve">
+    <value>Ctrl+K</value>
+  </data>
+  <data name="Ctrl+S" xml:space="preserve">
+    <value>Ctrl+S</value>
   </data>
   <data name="Current key" xml:space="preserve">
     <value>Текущий ключ</value>
@@ -4339,6 +4354,9 @@ Control Panel может читать файлы сообщений только
   <data name="Errors only (severity 3)" xml:space="preserve">
     <value>Только ошибки (важность 3)</value>
   </data>
+  <data name="Esc" xml:space="preserve">
+    <value>Esc</value>
+  </data>
   <data name="Evaluate DMARC policies" xml:space="preserve">
     <value>Оценивать политики DMARC</value>
   </data>
@@ -4599,6 +4617,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Extra delivery attempts per additional MX host (0 = default)" xml:space="preserve">
     <value>Дополнительные попытки доставки на каждый дополнительный узел MX (0 — по умолчанию)</value>
+  </data>
+  <data name="F6, Shift+F6" xml:space="preserve">
+    <value>F6, Shift+F6</value>
   </data>
   <data name="Facility (0 to 23)" xml:space="preserve">
     <value>Facility (от 0 до 23)</value>
@@ -4866,6 +4887,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Go to the related page {0}" xml:space="preserve">
     <value>Перейти на связанную страницу {0}</value>
+  </data>
+  <data name="Go to the search box of this page" xml:space="preserve">
+    <value>Перейти к полю поиска на этой странице</value>
   </data>
   <data name="Google authorization endpoint" xml:space="preserve">
     <value>Конечная точка авторизации Google</value>
@@ -5597,6 +5621,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Key unreadable" xml:space="preserve">
     <value>Ключ не читается</value>
+  </data>
+  <data name="Keyboard shortcuts" xml:space="preserve">
+    <value>Сочетания клавиш</value>
   </data>
   <data name="Keys one account may hold (1 to 64)" xml:space="preserve">
     <value>Ключи, которые может иметь учётная запись (от 1 до 64)</value>
@@ -6528,6 +6555,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Move to NT SERVICE\hMailServer…" xml:space="preserve">
     <value>Перейти на NT SERVICE\hMailServer…</value>
+  </data>
+  <data name="Move to the next or the previous part of the window: the command bar, the navigation, the page and the help" xml:space="preserve">
+    <value>Перейти к следующей или предыдущей части окна: панели команд, навигации, странице и справке</value>
   </data>
   <data name="Moving a message into the folder designated Junk reports it to sa-learn as spam, and moving one back out reports it as ham, so the filter learns from what people already do rather than from a separate ritual nobody performs. Off by default: it runs sa-learn per move, and a user who files newsletters in Junk is teaching the filter that newsletters are spam for everyone the scanner serves." xml:space="preserve">
     <value>Перемещение сообщения в папку, обозначенную \Junk, сообщает sa-learn, что это спам, а перемещение обратно — что это ham, так что фильтр учится на том, что люди и так делают, а не на отдельном ритуале, который никто не выполняет. По умолчанию выключено: sa-learn запускается на каждое перемещение, а пользователь, складывающий новостные рассылки в Junk, учит фильтр тому, что новостные рассылки — это спам, для всех, кого обслуживает сканер.</value>
@@ -7603,6 +7633,9 @@ Control Panel может читать файлы сообщений только
   <data name="Open on the _wiki" xml:space="preserve">
     <value>Открыть в _вики</value>
   </data>
+  <data name="Open or close the help for this page" xml:space="preserve">
+    <value>Открыть или закрыть справку по этой странице</value>
+  </data>
   <data name="Open the Control Panel on the server itself to change the account the service runs as or grant it its folders." xml:space="preserve">
     <value>Откройте Control Panel на самом сервере, чтобы сменить учётную запись службы или предоставить ей её папки.</value>
   </data>
@@ -8106,6 +8139,9 @@ Control Panel может читать файлы сообщений только
   <data name="Press &quot;Check&quot; to look the record up through this machine's resolver." xml:space="preserve">
     <value>Нажмите «Проверить», чтобы найти запись через резолвер этого компьютера.</value>
   </data>
+  <data name="Press the button, or go to the field, whose caption has that letter underlined" xml:space="preserve">
+    <value>Нажать кнопку или перейти к полю, в подписи которых подчёркнута эта буква</value>
+  </data>
   <data name="Preview changes nothing and reports exactly what Apply would do - they share one decider in the server, so a preview cannot describe an action the apply would not take. Apply stays disabled until a preview has been run with the options as they stand." xml:space="preserve">
     <value>Предварительный просмотр ничего не изменяет и в точности сообщает, что сделало бы применение: в сервере у них общий механизм принятия решений, поэтому предварительный просмотр не может описать действие, которого применение не выполнило бы. Применение остаётся недоступным, пока предварительный просмотр не будет выполнен с текущими значениями параметров.</value>
   </data>
@@ -8406,8 +8442,8 @@ Control Panel может читать файлы сообщений только
   <data name="Re-read these settings from hMailServer.INI" xml:space="preserve">
     <value>Перечитать эти параметры из hMailServer.INI</value>
   </data>
-  <data name="Re_fresh" xml:space="preserve">
-    <value>О_бновить</value>
+  <data name="Re_move" xml:space="preserve">
+    <value>_Убрать</value>
   </data>
   <data name="Re_move action" xml:space="preserve">
     <value>Уда_лить действие</value>
@@ -8595,6 +8631,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>Понизьте уровень журналирования или задайте, сколько дней хранятся журналы.</value>
+  </data>
+  <data name="Refresh a list, or reload a settings page" xml:space="preserve">
+    <value>Обновить список или перезагрузить страницу параметров</value>
   </data>
   <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
     <value>Текст отказа (что 550 говорит отправителю) (_X)</value>
@@ -9221,6 +9260,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Run DNSBL checks after MAIL FROM (rather than at connect)" xml:space="preserve">
     <value>Выполнять проверки DNSBL после MAIL FROM (а не при подключении)</value>
   </data>
+  <data name="Run _diagnostics" xml:space="preserve">
+    <value>_Запустить диагностику</value>
+  </data>
   <data name="Run _every (minutes)" xml:space="preserve">
     <value>_Запускать каждые (минут)</value>
   </data>
@@ -9487,6 +9529,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Save the account and reopen it first." xml:space="preserve">
     <value>Сначала сохраните учётную запись и откройте её снова.</value>
+  </data>
+  <data name="Save the changes on this page" xml:space="preserve">
+    <value>Сохранить изменения на этой странице</value>
   </data>
   <data name="Save the counters to disk every N seconds (default 10)" xml:space="preserve">
     <value>Сохранять счётчики на диск каждые N секунд (по умолчанию 10)</value>
@@ -11687,6 +11732,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The key store's location is not known from here. It sits beside hMailServer.INI, which is found through this machine's registry and service table - so keys can only be managed from the server itself, not from a Control Panel connected to another host." xml:space="preserve">
     <value>Расположение хранилища ключей отсюда неизвестно. Оно лежит рядом с hMailServer.INI, который находится через реестр и таблицу служб этой машины - поэтому управлять ключами можно только с самого сервера, а не из Control Panel, подключённого к другому хосту.</value>
+  </data>
+  <data name="The keys that work on every page, and the keys of a list" xml:space="preserve">
+    <value>Клавиши, которые работают на любой странице, и клавиши списка</value>
   </data>
   <data name="The label has to be {0} characters or fewer." xml:space="preserve">
     <value>Метка должна быть не длиннее {0} символов.</value>
@@ -14086,9 +14134,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Route" xml:space="preserve">
     <value>_Маршрут</value>
-  </data>
-  <data name="_Run diagnostics" xml:space="preserve">
-    <value>_Запустить диагностику</value>
   </data>
   <data name="_Save" xml:space="preserve">
     <value>_Сохранить</value>

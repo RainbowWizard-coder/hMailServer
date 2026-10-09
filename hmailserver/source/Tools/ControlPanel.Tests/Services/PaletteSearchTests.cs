@@ -344,7 +344,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void EveryRow_SaysWhereItGoes()
       {
          foreach (PaletteRow row in PaletteSearch.Query("tls", null, null)
-                     .Where(r => r.IsSelectable && r.Kind != PaletteRowKind.Tour))
+                     .Where(r => r.IsSelectable && r.Kind != PaletteRowKind.Tour && r.Kind != PaletteRowKind.Shortcuts))
          {
             Assert.False(string.IsNullOrWhiteSpace(row.Page));
             Assert.NotNull(NavigationMap.Find(row.Page));
@@ -412,9 +412,9 @@ namespace hMailServer.ControlPanel.Tests.Services
          // Tours before the full page list: the palette's own list of
          // forty-seven pages is exactly the thing a tour exists to make
          // navigable, and a tour underneath it would be found by nobody who
-         // needed it.
+         // needed it. The keyboard shortcuts after them, for the same reason.
          Assert.Equal(new[] { PaletteSearch.RecentSection, PaletteSearch.MostUsedSection,
-                              PaletteSearch.TourSection, PaletteSearch.PageSection },
+                              PaletteSearch.TourSection, PaletteSearch.HelpSection, PaletteSearch.PageSection },
             sections);
 
          List<string> mostUsed = rows.Where(r => r.Section == PaletteSearch.MostUsedSection && r.IsSelectable)
@@ -443,8 +443,9 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          IReadOnlyList<PaletteRow> rows = PaletteSearch.Query("", usage, null);
 
+         // The rows that open a page: a tour and the keyboard shortcuts open none.
          List<string> shortcuts = rows
-            .Where(r => r.IsSelectable && r.Section != PaletteSearch.PageSection)
+            .Where(r => r.IsSelectable && r.Section != PaletteSearch.PageSection && r.Page != null)
             .Select(r => r.Page)
             .ToList();
 
@@ -464,7 +465,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          IReadOnlyList<PaletteRow> rows = PaletteSearch.Query("", usage, null);
 
          Assert.DoesNotContain("aPageWeDeleted", rows.Select(r => r.Page ?? ""));
-         Assert.All(rows.Where(r => r.IsSelectable && r.Kind != PaletteRowKind.Tour),
+         Assert.All(rows.Where(r => r.IsSelectable && r.Kind != PaletteRowKind.Tour && r.Kind != PaletteRowKind.Shortcuts),
             r => Assert.NotNull(NavigationMap.Find(r.Page)));
 
          // A tour row carries a tour rather than a page, and never both.

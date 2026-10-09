@@ -476,8 +476,11 @@ namespace hMailServer.ControlPanel.Tests.Services
          if (code != null)
          {
             Assert.Contains("private void Search_Click", code);
-            // The shortcut has to keep working as well as the button.
-            Assert.Matches(new Regex("Key\\.K[\\s\\S]{0,200}?ShowPalette"), code);
+            // The shortcut has to keep working as well as the button: Ctrl+K is
+            // the palette's in the window's table of keys, and the window shows
+            // the palette for it (MainWindow.Keys.cs).
+            Assert.Equal(ShellCommand.Palette, KeyboardShortcuts.Resolve("K", true, false, false));
+            Assert.Matches(new Regex("ShellCommand\\.Palette:[\\s\\S]{0,200}?ShowPalette"), ReadControlPanelFile("MainWindow.Keys.cs"));
          }
       }
 

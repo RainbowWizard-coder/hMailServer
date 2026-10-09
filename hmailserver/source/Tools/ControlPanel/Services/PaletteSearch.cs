@@ -29,7 +29,13 @@ namespace hMailServer.ControlPanel.Services
       /// opens the page its first stop is on itself, and a palette that
       /// navigated first would move the reader twice.
       /// </summary>
-      Tour
+      Tour,
+
+      /// <summary>
+      /// The list of the keys the Control Panel answers on every page. It opens
+      /// a list rather than a page, so it carries no page either.
+      /// </summary>
+      Shortcuts
    }
 
    /// <summary>One row of the command palette.</summary>
@@ -139,6 +145,11 @@ namespace hMailServer.ControlPanel.Services
       public static readonly string PageSection = N("Pages");
       public static readonly string SettingSection = N("Settings");
       public static readonly string TourSection = N("Tours");
+      public static readonly string HelpSection = N("Help");
+
+      /// <summary>The keyboard shortcuts row's two lines.</summary>
+      public static readonly string ShortcutsTitle = N("Keyboard shortcuts");
+      public static readonly string ShortcutsDetail = N("The keys that work on every page, and the keys of a list");
 
       /// <summary>Rows offered per shortcut section when nothing has been typed.</summary>
       public const int MaxShortcuts = 5;
@@ -166,6 +177,10 @@ namespace hMailServer.ControlPanel.Services
       // "show me around" has said what they want in so many words, and there is
       // nothing else in the application it could mean.
       private const int TourBase = -1;
+
+      // Somebody who types "keyboard" or "shortcut" has named the list in so many
+      // words, as somebody who types "show me around" has named a tour.
+      private const int ShortcutsBase = -1;
       private const int TaskBase = 2;
       private const int PageAliasBase = 4;
       private const int LegacyPathBase = 6;
@@ -266,6 +281,7 @@ namespace hMailServer.ControlPanel.Services
          // navigable, and a tour offered underneath it would be found by
          // nobody who needed it.
          Emit(rows, TourSection, TourRows(null));
+         Emit(rows, HelpSection, ShortcutsRows(null));
 
          var pageRows = new List<PaletteRow>();
          foreach (NavNode page in VisiblePages_())
@@ -302,6 +318,7 @@ namespace hMailServer.ControlPanel.Services
       private static IReadOnlyList<PaletteRow> Matches(SearchQuery query, PaletteUsage usage)
       {
          List<PaletteRow> tours = TourRows(query);
+         List<PaletteRow> help = ShortcutsRows(query);
          List<PaletteRow> tasks = MatchTasks(query);
          List<PaletteRow> pages = MatchPages(query);
          List<PaletteRow> settings = MatchSettings(query);
@@ -324,7 +341,8 @@ namespace hMailServer.ControlPanel.Services
             (0, TourSection, tours),
             (1, TaskSection, tasks),
             (2, PageSection, pages),
-            (3, SettingSection, settings)
+            (3, SettingSection, settings),
+            (4, HelpSection, help)
          };
 
          var rows = new List<PaletteRow>();
@@ -364,6 +382,29 @@ namespace hMailServer.ControlPanel.Services
          }
 
          return rows;
+      }
+
+      /// <summary>
+      /// The keyboard shortcuts row, when the query names it - or always, for the
+      /// unfiltered overview a null query is. Matched on its title loosely, so
+      /// that "keys" and "kbd" find it, and on its second line.
+      /// </summary>
+      private static List<PaletteRow> ShortcutsRows(SearchQuery query)
+      {
+         int score = 0;
+         if (query != null)
+         {
+            score = Min(query.ScoreLoose(L(ShortcutsTitle)), query.Score(L(ShortcutsDetail)));
+            if (score == SearchTerms.NoMatch)
+               return new List<PaletteRow>();
+
+            score += ShortcutsBase;
+         }
+
+         return new List<PaletteRow>
+         {
+            new PaletteRow(PaletteRowKind.Shortcuts, HelpSection, L(ShortcutsTitle), null, L(ShortcutsDetail), null, score)
+         };
       }
 
       private static List<PaletteRow> MatchTasks(SearchQuery query)
