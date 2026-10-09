@@ -90,6 +90,22 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("checkSummary_.Visibility = Visibility.Collapsed;", build, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// Check all records is named by its label, "Check all records", as a voice
+      /// command says it and as it is seen (WCAG 2.5.3, the rule review finding F017
+      /// set for this page's buttons); the sentence that says what it does is its
+      /// help text and its tool tip, where it was its accessible name.
+      /// </summary>
+      [Fact]
+      public void CheckAllRecords_IsNamedByItsLabel_AndSaysWhatItDoesInItsHelpText()
+      {
+         string page = ReadPage();
+         Assert.Contains("Content = L(\"Check _all records\")", page, StringComparison.Ordinal);
+         Assert.DoesNotContain("SetName(checkAll_,", page, StringComparison.Ordinal);
+         Assert.Contains("AutomationProperties.SetHelpText(checkAll_, L(\"Check every record of the domain and sum up what is published\"));", page, StringComparison.Ordinal);
+         Assert.Contains("checkAll_.ToolTip = L(\"Check every record of the domain and sum up what is published\");", page, StringComparison.Ordinal);
+      }
+
       /// <summary>Every copy says it copied, on the button, or why it did not, in a toast.</summary>
       [Fact]
       public void EveryCopy_SaysItCopied_OrWhyItDidNot()

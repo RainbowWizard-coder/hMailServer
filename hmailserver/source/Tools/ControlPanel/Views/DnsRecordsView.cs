@@ -153,8 +153,11 @@ namespace hMailServer.ControlPanel.Views
 
          // Every record of the domain checked at once, where it took a Check on
          // each of seven cards and a scroll past all of them to read the seven
-         // lines (review finding F277).
-         System.Windows.Automation.AutomationProperties.SetName(checkAll_, L("Check every record of the domain and sum up what is published"));
+         // lines (review finding F277). Its accessible name is its label, as a
+         // voice command says it and as it is seen (WCAG 2.5.3); what it does is
+         // its help text and its tool tip.
+         System.Windows.Automation.AutomationProperties.SetHelpText(checkAll_, L("Check every record of the domain and sum up what is published"));
+         checkAll_.ToolTip = L("Check every record of the domain and sum up what is published");
          System.Windows.Automation.AutomationProperties.SetAutomationId(checkAll_, "dns-records-check-all");
          checkAll_.Click += async (s, e) => await CheckAll_();
          var actions = new StackPanel { Orientation = Orientation.Horizontal };
