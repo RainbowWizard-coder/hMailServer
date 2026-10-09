@@ -12160,6 +12160,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="These belong together: expiry without history teaches people to alternate between two passwords, which is worse than not expiring at all. History only ever refuses a CHANGE, at the moment somebody is able to pick something else, so nobody is locked out by it. Expiry refuses a LOGON - read its description before turning it on." xml:space="preserve">
     <value>Tyto dvě patří k sobě: vypršení bez historie učí lidi střídat dvě hesla, což je horší než nevypršet vůbec. Historie jen odmítne ZMĚNU, ve chvíli, kdy si dotyčný může vybrat něco jiného, takže nikoho nezamkne. Vypršení odmítne PŘIHLÁŠENÍ - než ho zapnete, přečtěte si jeho popis.</value>
   </data>
+  <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
+    <value>Tato nastavení se čtou přes REST API, které tato relace nemůže použít.</value>
+  </data>
   <data name="These settings could not be read from the server." xml:space="preserve">
     <value>Tato nastavení se ze serveru nepodařilo přečíst.</value>
   </data>
@@ -12302,6 +12305,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="This server's entity ID (empty = the base address followed by /saml)" xml:space="preserve">
     <value>ID entity tohoto serveru (prázdné = základní adresa, za níž následuje /saml)</value>
+  </data>
+  <data name="This session holds no password the REST API can sign in with. Sign in again with the administrator's user name and password." xml:space="preserve">
+    <value>Tato relace nemá heslo, se kterým by se REST API mohlo přihlásit. Přihlaste se znovu uživatelským jménem a heslem správce.</value>
   </data>
   <data name="This setting lives on each IP range rather than with the rest of TLS, which is the main reason it goes unnoticed. It is the only control that refuses a plaintext password regardless of what the port allows, so it is what makes an optional-STARTTLS port safe for clients." xml:space="preserve">
     <value>Toto nastavení žije na každém rozsahu IP, a ne se zbytkem TLS, což je hlavní důvod, proč zůstává nepovšimnuto. Je to jediný prvek, který odmítne heslo v otevřeném textu bez ohledu na to, co port povoluje, takže je to on, kdo dělá port s volitelným STARTTLS bezpečným pro klienty.</value>
@@ -13673,6 +13679,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Older" xml:space="preserve">
     <value>_Starší</value>
+  </data>
+  <data name="_Open API &amp; monitoring" xml:space="preserve">
+    <value>_Otevřít API a monitorování</value>
   </data>
   <data name="_Open Anti-spam settings" xml:space="preserve">
     <value>_Otevřít Nastavení antispamu</value>

@@ -12011,6 +12011,9 @@ It will keep trying as you use the application.</value>
   <data name="These belong together: expiry without history teaches people to alternate between two passwords, which is worse than not expiring at all. History only ever refuses a CHANGE, at the moment somebody is able to pick something else, so nobody is locked out by it. Expiry refuses a LOGON - read its description before turning it on." xml:space="preserve">
     <value>These belong together: expiry without history teaches people to alternate between two passwords, which is worse than not expiring at all. History only ever refuses a CHANGE, at the moment somebody is able to pick something else, so nobody is locked out by it. Expiry refuses a LOGON - read its description before turning it on.</value>
   </data>
+  <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
+    <value>These settings are read through the REST API, which this session cannot use.</value>
+  </data>
   <data name="These settings could not be read from the server." xml:space="preserve">
     <value>These settings could not be read from the server.</value>
   </data>
@@ -12150,6 +12153,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="This server's entity ID (empty = the base address followed by /saml)" xml:space="preserve">
     <value>This server's entity ID (empty = the base address followed by /saml)</value>
+  </data>
+  <data name="This session holds no password the REST API can sign in with. Sign in again with the administrator's user name and password." xml:space="preserve">
+    <value>This session holds no password the REST API can sign in with. Sign in again with the administrator's user name and password.</value>
   </data>
   <data name="This setting lives on each IP range rather than with the rest of TLS, which is the main reason it goes unnoticed. It is the only control that refuses a plaintext password regardless of what the port allows, so it is what makes an optional-STARTTLS port safe for clients." xml:space="preserve">
     <value>This setting lives on each IP range rather than with the rest of TLS, which is the main reason it goes unnoticed. It is the only control that refuses a plaintext password regardless of what the port allows, so it is what makes an optional-STARTTLS port safe for clients.</value>
@@ -13515,6 +13521,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="_Older" xml:space="preserve">
     <value>_Older</value>
+  </data>
+  <data name="_Open API &amp; monitoring" xml:space="preserve">
+    <value>_Open API &amp; monitoring</value>
   </data>
   <data name="_Open Anti-spam settings" xml:space="preserve">
     <value>_Open Anti-spam settings</value>

@@ -12011,6 +12011,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="These belong together: expiry without history teaches people to alternate between two passwords, which is worse than not expiring at all. History only ever refuses a CHANGE, at the moment somebody is able to pick something else, so nobody is locked out by it. Expiry refuses a LOGON - read its description before turning it on." xml:space="preserve">
     <value>Nämä kuuluvat yhteen: vanheneminen ilman historiaa opettaa ihmiset vuorottelemaan kahta salasanaa, mikä on pahempi kuin olla vanhenematta lainkaan. Historia hylkää vain VAIHDON, sillä hetkellä, kun joku voi valita jotain muuta, joten se ei lukitse ketään ulos. Vanheneminen hylkää KIRJAUTUMISEN - lue sen kuvaus ennen kuin otat sen käyttöön.</value>
   </data>
+  <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
+    <value>Nämä asetukset luetaan REST-rajapinnan kautta, jota tämä istunto ei voi käyttää.</value>
+  </data>
   <data name="These settings could not be read from the server." xml:space="preserve">
     <value>Näitä asetuksia ei voitu lukea palvelimelta.</value>
   </data>
@@ -12150,6 +12153,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="This server's entity ID (empty = the base address followed by /saml)" xml:space="preserve">
     <value>Tämän palvelimen entiteettitunnus (tyhjä = perusosoite ja perään /saml)</value>
+  </data>
+  <data name="This session holds no password the REST API can sign in with. Sign in again with the administrator's user name and password." xml:space="preserve">
+    <value>Tässä istunnossa ei ole salasanaa, jolla REST-rajapintaan voisi kirjautua. Kirjaudu uudelleen ylläpitäjän käyttäjänimellä ja salasanalla.</value>
   </data>
   <data name="This setting lives on each IP range rather than with the rest of TLS, which is the main reason it goes unnoticed. It is the only control that refuses a plaintext password regardless of what the port allows, so it is what makes an optional-STARTTLS port safe for clients." xml:space="preserve">
     <value>Tämä asetus asuu jokaisella IP-alueella eikä muun TLS:n kanssa, mikä on pääsyy siihen, että se jää huomaamatta. Se on ainoa säädin, joka hylkää selväkielisen salasanan riippumatta siitä, mitä portti sallii, joten juuri se tekee valinnaisen STARTTLS:n portista turvallisen asiakkaille.</value>
@@ -13515,6 +13521,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="_Older" xml:space="preserve">
     <value>_Vanhemmat</value>
+  </data>
+  <data name="_Open API &amp; monitoring" xml:space="preserve">
+    <value>_Avaa API ja valvonta</value>
   </data>
   <data name="_Open Anti-spam settings" xml:space="preserve">
     <value>_Avaa Roskapostisuojauksen asetukset</value>

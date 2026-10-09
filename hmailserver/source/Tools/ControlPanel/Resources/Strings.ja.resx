@@ -12011,6 +12011,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="These belong together: expiry without history teaches people to alternate between two passwords, which is worse than not expiring at all. History only ever refuses a CHANGE, at the moment somebody is able to pick something else, so nobody is locked out by it. Expiry refuses a LOGON - read its description before turning it on." xml:space="preserve">
     <value>これらは対になっています。履歴なしの期限切れは、2 つのパスワードを交互に使うことを人々に教え、それは期限切れがまったくないよりも悪い状態です。履歴は、誰かが別のものを選べるその瞬間に「変更」を拒否するだけなので、誰もロックアウトされません。期限切れは「ログオン」を拒否します。オンにする前にその説明を読んでください。</value>
   </data>
+  <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
+    <value>これらの設定は REST API を通じて読み取りますが、このセッションでは REST API を使用できません。</value>
+  </data>
   <data name="These settings could not be read from the server." xml:space="preserve">
     <value>これらの設定をサーバーから読み取れませんでした。</value>
   </data>
@@ -12150,6 +12153,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="This server's entity ID (empty = the base address followed by /saml)" xml:space="preserve">
     <value>このサーバーのエンティティ ID (空 = ベース アドレスに /saml を付けたもの)</value>
+  </data>
+  <data name="This session holds no password the REST API can sign in with. Sign in again with the administrator's user name and password." xml:space="preserve">
+    <value>このセッションには、REST API へのサインインに使えるパスワードがありません。管理者のユーザー名とパスワードでもう一度サインインしてください。</value>
   </data>
   <data name="This setting lives on each IP range rather than with the rest of TLS, which is the main reason it goes unnoticed. It is the only control that refuses a plaintext password regardless of what the port allows, so it is what makes an optional-STARTTLS port safe for clients." xml:space="preserve">
     <value>この設定は TLS の他の設定と一緒ではなく、各 IP 範囲にあるため、見過ごされがちです。ポートが何を許可していようと平文パスワードを拒否する唯一の制御であり、STARTTLS が任意のポートをクライアントにとって安全にするのはこれです。</value>
@@ -13515,6 +13521,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Older" xml:space="preserve">
     <value>古い方(_O)</value>
+  </data>
+  <data name="_Open API &amp; monitoring" xml:space="preserve">
+    <value>API と監視を開く(_O)</value>
   </data>
   <data name="_Open Anti-spam settings" xml:space="preserve">
     <value>スパム対策の設定を開く(_O)</value>

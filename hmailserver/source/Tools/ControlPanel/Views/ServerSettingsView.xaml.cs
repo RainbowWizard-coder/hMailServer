@@ -1616,6 +1616,11 @@ namespace hMailServer.ControlPanel.Views
       {
          public IReadOnlyDictionary<string, System.Text.Json.JsonElement> Values;
          public string Refusal;
+
+         // The refusal is the session's, not the group's: the REST API could not be
+         // used at all - no session, no credential, no listener, no answer - so
+         // every group says the same, and it is said once per tab, not per card.
+         public bool SessionWide;
       }
 
       // The REST settings groups this page's rows are in, read when the page is built.
@@ -5127,6 +5132,11 @@ namespace hMailServer.ControlPanel.Views
                Margin = new Thickness(0, DesignTokens.Space.Xs, DesignTokens.Space.Md, DesignTokens.Space.Xs)
             };
 
+            // Why this tab's REST settings cannot be read when the REST API cannot
+            // be used at all: said once, under the strip, where it was said on every
+            // card that held one - three times on the Sign-in tab.
+            string tabRestProblem = null;
+
             foreach (CardDef card in tab.Cards)
             {
                var fields = new StackPanel();
@@ -5151,7 +5161,20 @@ namespace hMailServer.ControlPanel.Views
                   {
                      if (!restGroups_.TryGetValue(rest.Group, out RestGroup group) || group.Values == null)
                      {
-                        restProblem ??= group?.Refusal ?? L("These settings could not be read from the server.");
+                        // The REST API could not be used at all: the reason is said
+                        // once, under the tab strip, and the row is marked Not read
+                        // here, so the card is never a bare heading. A refusal of
+                        // this group alone is the card's, at its top.
+                        if (group != null && group.SessionWide)
+                        {
+                           tabRestProblem ??= group.Refusal;
+                           if (setting.WantsInitialValue)
+                              fields.Children.Add(lastRow = UnreadRow_(setting));
+                        }
+                        else
+                        {
+                           restProblem ??= group?.Refusal ?? L("These settings could not be read from the server.");
+                        }
                         continue;
                      }
 
@@ -5242,6 +5265,9 @@ namespace hMailServer.ControlPanel.Views
                });
             }
 
+            if (tabRestProblem != null)
+               panel.Children.Insert(0, RestTabNotice_(tabRestProblem));
+
             var scroll = new ScrollViewer
             {
                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
@@ -5284,6 +5310,40 @@ namespace hMailServer.ControlPanel.Views
          // and the page does not announce unsaved changes before anybody has
          // typed anything.
          Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, new Action(() => building_ = false));
+      }
+
+      /// <summary>
+      /// What a tab says when the REST API could not be used at all, once, under the
+      /// strip: that its settings are read through the REST API, which this session
+      /// cannot use, and why - in the session's words, which say what to do - with
+      /// the page where the API's listener is set one press away. Its rows are marked
+      /// Not read on their cards (UnreadRow_).
+      /// </summary>
+      private static Scaffold.InlineNotice RestTabNotice_(string reason)
+      {
+         var notice = new Scaffold.InlineNotice
+         {
+            Level = StatusLevel.Warning,
+            Text = L("These settings are read through the REST API, which this session cannot use.") + " " + reason,
+            Margin = new Thickness(0, 0, 0, DesignTokens.Space.Md)
+         };
+         System.Windows.Automation.AutomationProperties.SetAutomationId(notice, "settings-rest-unusable");
+
+         // Without a session there is nothing to open: sign-in comes first.
+         if (ServerSession.Current != null)
+         {
+            var open = new Wpf.Ui.Controls.Button
+            {
+               Content = L("_Open API & monitoring"),
+               Appearance = Wpf.Ui.Controls.ControlAppearance.Secondary,
+               VerticalAlignment = VerticalAlignment.Center
+            };
+            System.Windows.Automation.AutomationProperties.SetAutomationId(open, "settings-open-api");
+            open.Click += (_, _) => (Application.Current?.MainWindow as MainWindow)?.NavigateTo("api");
+            notice.Content = open;
+         }
+
+         return notice;
       }
 
       /// <summary>
@@ -5933,14 +5993,20 @@ namespace hMailServer.ControlPanel.Views
          {
             if (refusal != null)
             {
-               restGroups_[group] = new RestGroup { Refusal = refusal };
+               restGroups_[group] = new RestGroup { Refusal = refusal, SessionWide = true };
                continue;
             }
 
             RestSettingsClient.Reply reply = client.Get(group, AskForCode_);
             if (!reply.Ok)
             {
-               restGroups_[group] = new RestGroup { Refusal = client.RefusalFor(reply) };
+               // No answer, or a session that could not be made (Reply.Refusal): the
+               // same for every group, and said once per tab.
+               restGroups_[group] = new RestGroup
+               {
+                  Refusal = client.RefusalFor(reply),
+                  SessionWide = reply.Status == 0 || !string.IsNullOrEmpty(reply.Refusal)
+               };
 
                // No answer at all - a port a firewall drops, a listener that took the
                // connection and said nothing: the groups after it are not asked, each

@@ -1169,6 +1169,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   leaves them as they are on the server; and the page's sentence says the same of the page - one sentence per number
   - with the first reason last. `FailureStateTests` holds both roads to an unread row, the REST key the server does
   not answer and the COM read that threw, to the row and the count, and the page's sentence to its wording.
+- **Fixed: settings cards reached over the REST API said "Sign in to a server first." under a Connected pill, once
+  per card.** Passkeys, OIDC, SAML, What people may do, OpenPGP, S/MIME, Web Push, Import, Reports, Managed mailing
+  lists and Compromised accounts each carried that Warning - three times on the webmail page's Sign-in tab - when the
+  shell showed a session and an administrator: the session simply held no credential the REST API takes. A session
+  with no credential is now told that it holds no password the REST API can sign in with, and to sign in again with
+  the administrator's user name and password; "Sign in to a server first." is left to a page with no session at all.
+  When the REST API cannot be used at all - no credential, no listener, no answer, a session that could not be made -
+  the reason is said once per tab, under the tab strip, as "These settings are read through the REST API, which this
+  session cannot use." and the session's own sentence, with an *Open API & monitoring* button; each of the tab's REST
+  settings is marked *Not read* on its card, so that no card is a bare heading. A refusal of one settings group alone
+  stays on that group's card. `FailureStateTests` holds the sentence, the once-per-tab notice and its button, and the
+  rows to it.
 
 ### Administration
 

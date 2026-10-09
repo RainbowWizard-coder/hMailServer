@@ -12160,6 +12160,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="These belong together: expiry without history teaches people to alternate between two passwords, which is worse than not expiring at all. History only ever refuses a CHANGE, at the moment somebody is able to pick something else, so nobody is locked out by it. Expiry refuses a LOGON - read its description before turning it on." xml:space="preserve">
     <value>Te ustawienia idą w parze: wygasanie bez historii uczy ludzi przełączania się między dwoma hasłami, co jest gorsze niż brak wygasania w ogóle. Historia odrzuca wyłącznie ZMIANĘ, w chwili gdy ktoś może wybrać coś innego, więc nikogo przez nią nie odcina. Wygasanie odrzuca LOGOWANIE - przed jego włączeniem należy przeczytać jego opis.</value>
   </data>
+  <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
+    <value>Te ustawienia są odczytywane przez REST API, z którego ta sesja nie może korzystać.</value>
+  </data>
   <data name="These settings could not be read from the server." xml:space="preserve">
     <value>Nie udało się odczytać tych ustawień z serwera.</value>
   </data>
@@ -12302,6 +12305,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="This server's entity ID (empty = the base address followed by /saml)" xml:space="preserve">
     <value>Identyfikator jednostki tego serwera (puste = adres bazowy, po którym następuje /saml)</value>
+  </data>
+  <data name="This session holds no password the REST API can sign in with. Sign in again with the administrator's user name and password." xml:space="preserve">
+    <value>Ta sesja nie ma hasła, którym REST API mogłoby się zalogować. Zaloguj się ponownie nazwą użytkownika i hasłem administratora.</value>
   </data>
   <data name="This setting lives on each IP range rather than with the rest of TLS, which is the main reason it goes unnoticed. It is the only control that refuses a plaintext password regardless of what the port allows, so it is what makes an optional-STARTTLS port safe for clients." xml:space="preserve">
     <value>To ustawienie znajduje się przy każdym zakresie adresów IP, a nie przy reszcie ustawień TLS, i to jest główny powód, dla którego bywa niezauważane. Jest to jedyny mechanizm, który odrzuca hasło w jawnym tekście niezależnie od tego, na co pozwala port, więc to on sprawia, że port z opcjonalnym STARTTLS jest dla klientów bezpieczny.</value>
@@ -13673,6 +13679,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="_Older" xml:space="preserve">
     <value>_Starsze</value>
+  </data>
+  <data name="_Open API &amp; monitoring" xml:space="preserve">
+    <value>_Otwórz API i monitorowanie</value>
   </data>
   <data name="_Open Anti-spam settings" xml:space="preserve">
     <value>_Otwórz Ustawienia antyspamowe</value>

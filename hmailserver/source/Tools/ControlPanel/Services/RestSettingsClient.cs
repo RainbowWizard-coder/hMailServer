@@ -137,10 +137,14 @@ namespace hMailServer.ControlPanel.Services
          if (signedIn_ && endpoint_ != null)
             return true;
 
+         // A session that holds no credential the API takes. "Sign in to a server
+         // first." was said here under a Connected pill, on every card that held a
+         // REST setting: the shell had a session, and the sentence denied it. The
+         // page that has no session at all says that sentence itself.
          string authorization = authorization_?.Invoke();
          if (authorization == null)
          {
-            refusal = L("Sign in to a server first.");
+            refusal = L("This session holds no password the REST API can sign in with. Sign in again with the administrator's user name and password.");
             return false;
          }
 

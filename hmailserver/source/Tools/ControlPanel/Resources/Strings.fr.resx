@@ -12011,6 +12011,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="These belong together: expiry without history teaches people to alternate between two passwords, which is worse than not expiring at all. History only ever refuses a CHANGE, at the moment somebody is able to pick something else, so nobody is locked out by it. Expiry refuses a LOGON - read its description before turning it on." xml:space="preserve">
     <value>Ces deux-là vont ensemble : une expiration sans historique apprend aux gens à alterner entre deux mots de passe, ce qui est pire que de ne pas expirer du tout. L'historique ne refuse jamais qu'un CHANGEMENT, au moment où quelqu'un est en mesure d'en choisir un autre : personne n'est donc bloqué par lui. L'expiration, elle, refuse une CONNEXION - lisez sa description avant de l'activer.</value>
   </data>
+  <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
+    <value>Ces réglages sont lus par l'API REST, que cette session ne peut pas utiliser.</value>
+  </data>
   <data name="These settings could not be read from the server." xml:space="preserve">
     <value>Ces réglages n'ont pas pu être lus sur le serveur.</value>
   </data>
@@ -12150,6 +12153,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="This server's entity ID (empty = the base address followed by /saml)" xml:space="preserve">
     <value>ID d'entité de ce serveur (vide = l'adresse de base suivie de /saml)</value>
+  </data>
+  <data name="This session holds no password the REST API can sign in with. Sign in again with the administrator's user name and password." xml:space="preserve">
+    <value>Cette session ne détient aucun mot de passe avec lequel l'API REST pourrait se connecter. Reconnectez-vous avec le nom d'utilisateur et le mot de passe de l'administrateur.</value>
   </data>
   <data name="This setting lives on each IP range rather than with the rest of TLS, which is the main reason it goes unnoticed. It is the only control that refuses a plaintext password regardless of what the port allows, so it is what makes an optional-STARTTLS port safe for clients." xml:space="preserve">
     <value>Ce réglage vit sur chaque plage IP plutôt qu'avec le reste de TLS, ce qui est la principale raison pour laquelle il passe inaperçu. C'est le seul contrôle qui refuse un mot de passe en clair quel que soit ce que le port autorise : c'est donc lui qui rend un port à STARTTLS facultatif sûr pour les clients.</value>
@@ -13515,6 +13521,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="_Older" xml:space="preserve">
     <value>Plus a_nciennes</value>
+  </data>
+  <data name="_Open API &amp; monitoring" xml:space="preserve">
+    <value>_Ouvrir API et supervision</value>
   </data>
   <data name="_Open Anti-spam settings" xml:space="preserve">
     <value>_Ouvrir Réglages anti-spam</value>

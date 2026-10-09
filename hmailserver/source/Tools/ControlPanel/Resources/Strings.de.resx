@@ -12011,6 +12011,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="These belong together: expiry without history teaches people to alternate between two passwords, which is worse than not expiring at all. History only ever refuses a CHANGE, at the moment somebody is able to pick something else, so nobody is locked out by it. Expiry refuses a LOGON - read its description before turning it on." xml:space="preserve">
     <value>Diese beiden gehören zusammen: ein Ablauf ohne Historie bringt Leuten bei, zwischen zwei Passwörtern zu wechseln, was schlimmer ist, als gar nichts ablaufen zu lassen. Die Historie lehnt immer nur eine ÄNDERUNG ab, in dem Moment, in dem jemand etwas anderes wählen kann, sie sperrt also niemanden aus. Der Ablauf lehnt eine ANMELDUNG ab - lesen Sie seine Beschreibung, bevor Sie ihn einschalten.</value>
   </data>
+  <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
+    <value>Diese Einstellungen werden über die REST-API gelesen, die diese Sitzung nicht nutzen kann.</value>
+  </data>
   <data name="These settings could not be read from the server." xml:space="preserve">
     <value>Diese Einstellungen konnten nicht vom Server gelesen werden.</value>
   </data>
@@ -12150,6 +12153,9 @@ Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
   </data>
   <data name="This server's entity ID (empty = the base address followed by /saml)" xml:space="preserve">
     <value>Entity-ID dieses Servers (leer = die Basisadresse gefolgt von /saml)</value>
+  </data>
+  <data name="This session holds no password the REST API can sign in with. Sign in again with the administrator's user name and password." xml:space="preserve">
+    <value>Diese Sitzung hat kein Passwort, mit dem sich die REST-API anmelden könnte. Melden Sie sich erneut mit dem Benutzernamen und Passwort des Administrators an.</value>
   </data>
   <data name="This setting lives on each IP range rather than with the rest of TLS, which is the main reason it goes unnoticed. It is the only control that refuses a plaintext password regardless of what the port allows, so it is what makes an optional-STARTTLS port safe for clients." xml:space="preserve">
     <value>Diese Einstellung sitzt bei jedem IP-Bereich statt beim Rest von TLS, was der Hauptgrund dafür ist, dass sie übersehen wird. Sie ist die einzige Stellschraube, die ein Klartextpasswort ablehnt, unabhängig davon, was der Port erlaubt, und daher das, was einen Port mit optionalem STARTTLS für Clients sicher macht.</value>
@@ -13515,6 +13521,9 @@ Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
   </data>
   <data name="_Older" xml:space="preserve">
     <value>Ä_ltere</value>
+  </data>
+  <data name="_Open API &amp; monitoring" xml:space="preserve">
+    <value>API und Überwachung _öffnen</value>
   </data>
   <data name="_Open Anti-spam settings" xml:space="preserve">
     <value>Anti-Spam-Einstellungen _öffnen</value>

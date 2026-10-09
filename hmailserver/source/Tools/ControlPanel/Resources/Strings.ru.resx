@@ -12160,6 +12160,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="These belong together: expiry without history teaches people to alternate between two passwords, which is worse than not expiring at all. History only ever refuses a CHANGE, at the moment somebody is able to pick something else, so nobody is locked out by it. Expiry refuses a LOGON - read its description before turning it on." xml:space="preserve">
     <value>Они принадлежат друг другу: истечение срока без истории учит людей чередовать два пароля, что хуже, чем не истекать вовсе. История только отказывает в ИЗМЕНЕНИИ, в момент, когда кто-то может выбрать что-то другое, поэтому никого она не запирает. Истечение срока отказывает во ВХОДЕ - прочитайте его описание, прежде чем включать.</value>
   </data>
+  <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
+    <value>Эти параметры читаются через REST API, который этот сеанс не может использовать.</value>
+  </data>
   <data name="These settings could not be read from the server." xml:space="preserve">
     <value>Не удалось прочитать эти параметры с сервера.</value>
   </data>
@@ -12302,6 +12305,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="This server's entity ID (empty = the base address followed by /saml)" xml:space="preserve">
     <value>Идентификатор сущности этого сервера (пусто = базовый адрес, за которым следует /saml)</value>
+  </data>
+  <data name="This session holds no password the REST API can sign in with. Sign in again with the administrator's user name and password." xml:space="preserve">
+    <value>В этом сеансе нет пароля, с которым REST API мог бы выполнить вход. Войдите снова с именем пользователя и паролем администратора.</value>
   </data>
   <data name="This setting lives on each IP range rather than with the rest of TLS, which is the main reason it goes unnoticed. It is the only control that refuses a plaintext password regardless of what the port allows, so it is what makes an optional-STARTTLS port safe for clients." xml:space="preserve">
     <value>Этот параметр живёт на каждом диапазоне IP, а не вместе с остальным TLS, и это главная причина, почему его не замечают. Это единственный элемент управления, который отклоняет пароль открытым текстом независимо от того, что разрешает порт, поэтому именно он делает порт с необязательным STARTTLS безопасным для клиентов.</value>
@@ -13673,6 +13679,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Older" xml:space="preserve">
     <value>_Старее</value>
+  </data>
+  <data name="_Open API &amp; monitoring" xml:space="preserve">
+    <value>_Открыть «API и мониторинг»</value>
   </data>
   <data name="_Open Anti-spam settings" xml:space="preserve">
     <value>_Открыть «Параметры антиспама»</value>

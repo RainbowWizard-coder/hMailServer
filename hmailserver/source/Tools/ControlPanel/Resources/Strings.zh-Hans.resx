@@ -12011,6 +12011,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="These belong together: expiry without history teaches people to alternate between two passwords, which is worse than not expiring at all. History only ever refuses a CHANGE, at the moment somebody is able to pick something else, so nobody is locked out by it. Expiry refuses a LOGON - read its description before turning it on." xml:space="preserve">
     <value>这两项是配套的: 没有历史记录的过期会教人们在两个密码之间来回切换，这比根本不过期更糟。历史记录只在有人可以选择其他密码的那一刻拒绝一次“更改”，因此不会把任何人锁在外面。过期拒绝的是“登录” - 开启之前请阅读它的说明。</value>
   </data>
+  <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
+    <value>这些设置通过 REST API 读取，而此会话无法使用 REST API。</value>
+  </data>
   <data name="These settings could not be read from the server." xml:space="preserve">
     <value>无法从服务器读取这些设置。</value>
   </data>
@@ -12150,6 +12153,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="This server's entity ID (empty = the base address followed by /saml)" xml:space="preserve">
     <value>本服务器的实体 ID（空 = 基础地址加上 /saml）</value>
+  </data>
+  <data name="This session holds no password the REST API can sign in with. Sign in again with the administrator's user name and password." xml:space="preserve">
+    <value>此会话没有可供 REST API 登录的密码。请使用管理员的用户名和密码重新登录。</value>
   </data>
   <data name="This setting lives on each IP range rather than with the rest of TLS, which is the main reason it goes unnoticed. It is the only control that refuses a plaintext password regardless of what the port allows, so it is what makes an optional-STARTTLS port safe for clients." xml:space="preserve">
     <value>此设置位于每个 IP 范围上而不是与其他 TLS 设置放在一起，这是它被忽视的主要原因。它是唯一一个无论端口允许什么都会拒绝明文密码的控制项，因此正是它让可选 STARTTLS 的端口对客户端来说是安全的。</value>
@@ -13515,6 +13521,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="_Older" xml:space="preserve">
     <value>较旧(_O)</value>
+  </data>
+  <data name="_Open API &amp; monitoring" xml:space="preserve">
+    <value>打开 API 与监控(_O)</value>
   </data>
   <data name="_Open Anti-spam settings" xml:space="preserve">
     <value>打开反垃圾邮件设置(_O)</value>

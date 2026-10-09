@@ -288,6 +288,55 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain("(s)", one + many, StringComparison.Ordinal);
       }
 
+      // ---- REST-backed cards give the real reason once per tab --------------------
+
+      /// <summary>
+      /// A session that holds no credential the REST API takes is told so, and not
+      /// "Sign in to a server first." - which was said under a Connected pill on
+      /// every card that held a REST setting.
+      /// </summary>
+      [Fact]
+      public void ASessionWithNoCredential_IsNotToldToSignIn()
+      {
+         var client = new hMailServer.ControlPanel.Services.RestSettingsClient(() => null,
+            () => throw new InvalidOperationException("No listener is asked for before a credential."));
+
+         Assert.False(client.Open(null, false, out string refusal));
+         Assert.NotEqual("Sign in to a server first.", refusal);
+         Assert.Contains("no password the REST API can sign in with", refusal, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// When the REST API cannot be used at all, the reason is said once per tab,
+      /// under the strip, with the API & monitoring page one press away, and each
+      /// REST row is marked Not read on its card; a refusal of one group alone stays
+      /// on that group's card.
+      /// </summary>
+      [Fact]
+      public void ARestApiThatCannotBeUsed_IsSaidOncePerTab()
+      {
+         string source = ReadView("ServerSettingsView.xaml.cs");
+
+         string load = WithheldRowTests.MemberText(source, "private void LoadRestGroups_()");
+         Assert.Contains("new RestGroup { Refusal = refusal, SessionWide = true }", load, StringComparison.Ordinal);
+         Assert.Contains("SessionWide = reply.Status == 0 || !string.IsNullOrEmpty(reply.Refusal)", load, StringComparison.Ordinal);
+
+         string build = WithheldRowTests.MemberText(source, "private void BuildUi()");
+         Assert.Matches(new Regex(@"if \(group != null && group\.SessionWide\)\s*\{\s*tabRestProblem \?\?= group\.Refusal;\s*if \(setting\.WantsInitialValue\)\s*fields\.Children\.Add\(lastRow = UnreadRow_\(setting\)\);"), build);
+         Assert.Contains("panel.Children.Insert(0, RestTabNotice_(tabRestProblem));", build, StringComparison.Ordinal);
+
+         // Declared per tab, so that each tab says it once and no tab says another's.
+         int tabLoop = build.IndexOf("foreach (TabDef tab in tabs_)", StringComparison.Ordinal);
+         int declared = build.IndexOf("string tabRestProblem = null;", StringComparison.Ordinal);
+         int cardLoop = build.IndexOf("foreach (CardDef card in tab.Cards)", StringComparison.Ordinal);
+         Assert.True(tabLoop >= 0 && tabLoop < declared && declared < cardLoop, "The REST reason is not kept per tab.");
+
+         string notice = WithheldRowTests.MemberText(source, "private static Scaffold.InlineNotice RestTabNotice_(string reason)");
+         Assert.Contains("L(\"These settings are read through the REST API, which this session cannot use.\") + \" \" + reason", notice, StringComparison.Ordinal);
+         Assert.Contains("L(\"_Open API & monitoring\")", notice, StringComparison.Ordinal);
+         Assert.Contains("NavigateTo(\"api\")", notice, StringComparison.Ordinal);
+      }
+
       /// <summary>
       /// Every COM read the checks count as failed also records whether the link
       /// went. (A document that could not be parsed is caught by type, and is never

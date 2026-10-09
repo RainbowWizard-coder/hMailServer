@@ -12011,6 +12011,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="These belong together: expiry without history teaches people to alternate between two passwords, which is worse than not expiring at all. History only ever refuses a CHANGE, at the moment somebody is able to pick something else, so nobody is locked out by it. Expiry refuses a LOGON - read its description before turning it on." xml:space="preserve">
     <value>De här hör ihop: utgång utan historik lär människor att växla mellan två lösenord, vilket är värre än att inte gå ut alls. Historik avvisar bara någonsin ett BYTE, i den stund någon kan välja något annat, så ingen låses ute av den. Utgång avvisar en INLOGGNING - läs dess beskrivning innan du slår på den.</value>
   </data>
+  <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
+    <value>De här inställningarna läses via REST-API:t, som den här sessionen inte kan använda.</value>
+  </data>
   <data name="These settings could not be read from the server." xml:space="preserve">
     <value>De här inställningarna kunde inte läsas från servern.</value>
   </data>
@@ -12150,6 +12153,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="This server's entity ID (empty = the base address followed by /saml)" xml:space="preserve">
     <value>Serverns entitets-ID (tomt = basadressen följd av /saml)</value>
+  </data>
+  <data name="This session holds no password the REST API can sign in with. Sign in again with the administrator's user name and password." xml:space="preserve">
+    <value>Den här sessionen har inget lösenord som REST-API:t kan logga in med. Logga in igen med administratörens användarnamn och lösenord.</value>
   </data>
   <data name="This setting lives on each IP range rather than with the rest of TLS, which is the main reason it goes unnoticed. It is the only control that refuses a plaintext password regardless of what the port allows, so it is what makes an optional-STARTTLS port safe for clients." xml:space="preserve">
     <value>Den här inställningen finns på varje IP-intervall snarare än hos resten av TLS, vilket är huvudskälet till att den går obemärkt förbi. Det är den enda kontrollen som avvisar ett klartextlösenord oavsett vad porten tillåter, så det är den som gör en port med valfri STARTTLS säker för klienter.</value>
@@ -13515,6 +13521,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="_Older" xml:space="preserve">
     <value>_Äldre</value>
+  </data>
+  <data name="_Open API &amp; monitoring" xml:space="preserve">
+    <value>_Öppna API &amp; övervakning</value>
   </data>
   <data name="_Open Anti-spam settings" xml:space="preserve">
     <value>_Öppna Skräppostinställningar</value>
