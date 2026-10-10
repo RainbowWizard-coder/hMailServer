@@ -3381,6 +3381,9 @@
   <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
     <value>已清除计数的登录失败。已被封禁的地址在其封禁结束之前仍保持封禁 - 在“当前封禁”下使用“解除封禁”可立即让其进入。</value>
   </data>
+  <data name="Counting external accounts…" xml:space="preserve">
+    <value>正在统计外部账户…</value>
+  </data>
   <data name="Countries" xml:space="preserve">
     <value>国家</value>
   </data>
@@ -4870,14 +4873,14 @@
   <data name="Every message goes through {0} scanners in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
     <value>每封邮件依次经过 {0} 个扫描器，每个扫描器都会被问及整封邮件，然后再分别问及每个附件。这很彻底，但并非没有代价：扫描发生在发件方等待其 "250 OK" 的期间。</value>
   </data>
-  <data name="Every message is scanned by one scanner." xml:space="preserve">
-    <value>每封邮件都由 1 个扫描器扫描。</value>
+  <data name="Every message is scanned by one scanner: {0}." xml:space="preserve">
+    <value>每封邮件都由 1 个扫描器扫描：{0}。</value>
   </data>
-  <data name="Every message is scanned by {0} scanner." xml:space="preserve">
-    <value>每封邮件都由 {0} 个扫描器扫描。</value>
+  <data name="Every message is scanned by three scanners in turn: {0}, then {1}, then {2}." xml:space="preserve">
+    <value>每封邮件都由 3 个扫描器依次扫描：先 {0}，再 {1}，然后 {2}。</value>
   </data>
-  <data name="Every message is scanned by {0} scanners." xml:space="preserve">
-    <value>每封邮件都由 {0} 个扫描器扫描。</value>
+  <data name="Every message is scanned by two scanners in turn: {0}, then {1}." xml:space="preserve">
+    <value>每封邮件都由 2 个扫描器依次扫描：先 {0}，再 {1}。</value>
   </data>
   <data name="Every message still in the delivery queue, the last error the server got for it, and when it is retried." xml:space="preserve">
     <value>仍在投递队列中的每封邮件、服务器为它收到的最后一个错误，以及重试时间。</value>
@@ -6528,6 +6531,21 @@
   <data name="Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts." xml:space="preserve">
     <value>来自组织外部的邮件可以加上标记，让读者一眼就能看出。当会话未登录、邮件不是经由受信任的入站中继到达，并且信封发件人和 From 地址都不属于本服务器托管的域时，发件人即为外部。</value>
   </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox's verdict before it is delivered." xml:space="preserve">
+    <value>来自外部、带有提交类型附件的邮件会在投递前等待沙箱的判定。</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one quarantines it, and no verdict in time delivers it with a header saying so." xml:space="preserve">
+    <value>来自外部、带有提交类型附件的邮件会等待沙箱：判定为干净则投递，判定为恶意则隔离，未及时判定则投递并附上说明这一点的邮件头。</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one quarantines it, and no verdict in time returns it to its sender." xml:space="preserve">
+    <value>来自外部、带有提交类型附件的邮件会等待沙箱：判定为干净则投递，判定为恶意则隔离，未及时判定则退回给发件人。</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one returns it to its sender while quarantining is off, and no verdict in time delivers it with a header saying so." xml:space="preserve">
+    <value>来自外部、带有提交类型附件的邮件会等待沙箱：判定为干净则投递，判定为恶意则在隔离关闭期间退回给发件人，未及时判定则投递并附上说明这一点的邮件头。</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one returns it to its sender while quarantining is off, and no verdict in time returns it too." xml:space="preserve">
+    <value>来自外部、带有提交类型附件的邮件会等待沙箱：判定为干净则投递，判定为恶意则在隔离关闭期间退回给发件人，未及时判定也会退回。</value>
+  </data>
   <data name="Mail is addressed to a domain, so the server needs one before it can receive anything." xml:space="preserve">
     <value>邮件是寄给域的，所以服务器需要先有一个域才能接收任何邮件。</value>
   </data>
@@ -6931,20 +6949,20 @@
   <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message or a group, and the buttons over the list on every checked message." xml:space="preserve">
     <value>这些是服务器原本会拒绝、但被暂挂以便有人查看的邮件。发件人都已被告知邮件已被接受，因此放着不管也不会再次收到：放行会投递它，删除则是最终操作。图标作用于一封邮件或一个组，列表上方的按钮则作用于每一封已勾选的邮件。</value>
   </data>
-  <data name="Messages up to {0} are scanned by one scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>不超过 {0} 的邮件由 1 个扫描器扫描；更大的邮件会在完全不扫描的情况下投递。</value>
-  </data>
-  <data name="Messages up to {0} are scanned by {1} scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>不超过 {0} 的邮件由 {1} 个扫描器扫描；更大的邮件会在完全不扫描的情况下投递。</value>
-  </data>
-  <data name="Messages up to {0} are scanned by {1} scanners; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>不超过 {0} 的邮件由 {1} 个扫描器扫描；更大的邮件会在完全不扫描的情况下投递。</value>
-  </data>
   <data name="Messages up to {0}. A larger message is delivered without being scanned — it is not refused, and nothing is logged." xml:space="preserve">
     <value>不超过 {0} 的邮件。更大的邮件会在不扫描的情况下投递 — 不会被拒绝，也不会记录任何内容。</value>
   </data>
   <data name="Messages waiting for delivery." xml:space="preserve">
     <value>等待投递的邮件。</value>
+  </data>
+  <data name="Messages within the size limit are scanned by one scanner: {0}." xml:space="preserve">
+    <value>大小限制以内的邮件由 1 个扫描器扫描：{0}。</value>
+  </data>
+  <data name="Messages within the size limit are scanned by three scanners in turn: {0}, then {1}, then {2}." xml:space="preserve">
+    <value>大小限制以内的邮件由 3 个扫描器依次扫描：先 {0}，再 {1}，然后 {2}。</value>
+  </data>
+  <data name="Messages within the size limit are scanned by two scanners in turn: {0}, then {1}." xml:space="preserve">
+    <value>大小限制以内的邮件由 2 个扫描器依次扫描：先 {0}，再 {1}。</value>
   </data>
   <data name="Messages: {0}, {1} MB as clients see them. Their files take {2} MB and the parts held once {3} MB, which saves {4}%. Files compressed: {5}. Measured {6}." xml:space="preserve">
     <value>邮件：{0} 封，客户端看到的大小为 {1} MB。其文件占用 {2} MB，只存一次的部分占用 {3} MB，节省了 {4}%。已压缩的文件：{5} 个。测量于 {6}。</value>
@@ -13133,6 +13151,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The sandbox is off, which is the default: nothing is held and nothing is submitted." xml:space="preserve">
     <value>沙箱已关闭，这是默认设置：不保留任何邮件，也不提交任何文件。</value>
+  </data>
+  <data name="The sandbox is switched on, but its submit or verdict address is empty." xml:space="preserve">
+    <value>沙箱已打开，但其提交地址或判定地址为空。</value>
   </data>
   <data name="The sandbox settings could not be read from the server, so this page cannot say whether one is configured." xml:space="preserve">
     <value>无法从服务器读取沙箱设置，因此本页面无法判断是否已配置沙箱。</value>

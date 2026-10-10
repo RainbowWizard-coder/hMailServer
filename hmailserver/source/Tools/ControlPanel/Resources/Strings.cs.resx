@@ -3405,6 +3405,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
     <value>Započítaná neúspěšná přihlášení byla vymazána. Adresy, které už jsou zablokované, zůstanou zablokované, dokud jejich ban neskončí - Zrušit ban v části Zablokováno nyní některou hned pustí dovnitř.</value>
   </data>
+  <data name="Counting external accounts…" xml:space="preserve">
+    <value>Počítání externích účtů…</value>
+  </data>
   <data name="Countries" xml:space="preserve">
     <value>Země</value>
   </data>
@@ -4931,17 +4934,14 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Every message goes through {0} scanners in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;.|few" xml:space="preserve">
     <value>Každá zpráva projde postupně každým z {0} skenerů a každý je dotázán na celou zprávu a pak na každou přílohu zvlášť. Je to důkladné a není to zadarmo: skenování probíhá, zatímco odesílatel čeká na své „250 OK“.</value>
   </data>
-  <data name="Every message is scanned by one scanner." xml:space="preserve">
-    <value>Každou zprávu skenuje jeden skener.</value>
+  <data name="Every message is scanned by one scanner: {0}." xml:space="preserve">
+    <value>Každou zprávu kontroluje jeden skener: {0}.</value>
   </data>
-  <data name="Every message is scanned by {0} scanner." xml:space="preserve">
-    <value>Každou zprávu skenuje {0} skener.</value>
+  <data name="Every message is scanned by three scanners in turn: {0}, then {1}, then {2}." xml:space="preserve">
+    <value>Každou zprávu kontrolují postupně tři skenery: {0}, potom {1}, potom {2}.</value>
   </data>
-  <data name="Every message is scanned by {0} scanners." xml:space="preserve">
-    <value>Každou zprávu skenuje každý z {0} skenerů.</value>
-  </data>
-  <data name="Every message is scanned by {0} scanners.|few" xml:space="preserve">
-    <value>Každou zprávu skenuje každý z {0} skenerů.</value>
+  <data name="Every message is scanned by two scanners in turn: {0}, then {1}." xml:space="preserve">
+    <value>Každou zprávu kontrolují postupně dva skenery: {0}, potom {1}.</value>
   </data>
   <data name="Every message still in the delivery queue, the last error the server got for it, and when it is retried." xml:space="preserve">
     <value>Každá zpráva stále v doručovací frontě, poslední chyba, kterou pro ni server dostal, a kdy se zopakuje.</value>
@@ -6604,6 +6604,21 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts." xml:space="preserve">
     <value>Poštu z vnějšku organizace lze označit tak, aby ji čtenář poznal na první pohled. Odesílatel je zvenčí, když se relace nepřihlásila, zpráva nepřišla přes důvěryhodné příchozí relé a ani odesílatel obálky, ani adresa From nepatří doméně, kterou tento server hostuje.</value>
   </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox's verdict before it is delivered." xml:space="preserve">
+    <value>Pošta zvenčí s přílohou odesílaného typu čeká před doručením na verdikt sandboxu.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one quarantines it, and no verdict in time delivers it with a header saying so." xml:space="preserve">
+    <value>Pošta zvenčí s přílohou odesílaného typu čeká na sandbox: čistý verdikt ji doručí, škodlivý ji pošle do karantény a bez včasného verdiktu se doručí s hlavičkou, která to uvádí.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one quarantines it, and no verdict in time returns it to its sender." xml:space="preserve">
+    <value>Pošta zvenčí s přílohou odesílaného typu čeká na sandbox: čistý verdikt ji doručí, škodlivý ji pošle do karantény a bez včasného verdiktu se vrátí odesílateli.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one returns it to its sender while quarantining is off, and no verdict in time delivers it with a header saying so." xml:space="preserve">
+    <value>Pošta zvenčí s přílohou odesílaného typu čeká na sandbox: čistý verdikt ji doručí, škodlivý ji vrátí odesílateli, dokud je karanténa vypnutá, a bez včasného verdiktu se doručí s hlavičkou, která to uvádí.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one returns it to its sender while quarantining is off, and no verdict in time returns it too." xml:space="preserve">
+    <value>Pošta zvenčí s přílohou odesílaného typu čeká na sandbox: čistý verdikt ji doručí, škodlivý ji vrátí odesílateli, dokud je karanténa vypnutá, a bez včasného verdiktu se vrátí také.</value>
+  </data>
   <data name="Mail is addressed to a domain, so the server needs one before it can receive anything." xml:space="preserve">
     <value>Pošta se adresuje doméně, takže server nějakou potřebuje, než může cokoli přijmout.</value>
   </data>
@@ -7010,23 +7025,20 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message or a group, and the buttons over the list on every checked message." xml:space="preserve">
     <value>Zprávy, které by server jinak odmítl, zadržené, aby se na ně někdo mohl podívat. Odesílateli každé z nich bylo řečeno, že byla přijata, takže nic nedorazí znovu samo od sebe: uvolnění jednu doručí a odstranění je konečné. Ikony působí na jednu zprávu nebo skupinu a tlačítka nad seznamem na každou zaškrtnutou zprávu.</value>
   </data>
-  <data name="Messages up to {0} are scanned by one scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>Zprávy do velikosti {0} kontroluje jeden skener; cokoli většího se doručí zcela bez kontroly.</value>
-  </data>
-  <data name="Messages up to {0} are scanned by {1} scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>Zprávy do velikosti {0} kontroluje {1} skener; cokoli většího se doručí zcela bez kontroly.</value>
-  </data>
-  <data name="Messages up to {0} are scanned by {1} scanners; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>Zprávy do velikosti {0} kontroluje každý z {1} skenerů; cokoli většího se doručí zcela bez kontroly.</value>
-  </data>
-  <data name="Messages up to {0} are scanned by {1} scanners; anything larger is delivered without being scanned at all.|few" xml:space="preserve">
-    <value>Zprávy do velikosti {0} kontroluje každý z {1} skenerů; cokoli většího se doručí zcela bez kontroly.</value>
-  </data>
   <data name="Messages up to {0}. A larger message is delivered without being scanned — it is not refused, and nothing is logged." xml:space="preserve">
     <value>Zprávy do velikosti {0}. Větší zpráva se doručí bez kontroly — není odmítnuta a nic se nezapíše do logu.</value>
   </data>
   <data name="Messages waiting for delivery." xml:space="preserve">
     <value>Zprávy čekající na doručení.</value>
+  </data>
+  <data name="Messages within the size limit are scanned by one scanner: {0}." xml:space="preserve">
+    <value>Zprávy v rámci limitu velikosti kontroluje jeden skener: {0}.</value>
+  </data>
+  <data name="Messages within the size limit are scanned by three scanners in turn: {0}, then {1}, then {2}." xml:space="preserve">
+    <value>Zprávy v rámci limitu velikosti kontrolují postupně tři skenery: {0}, potom {1}, potom {2}.</value>
+  </data>
+  <data name="Messages within the size limit are scanned by two scanners in turn: {0}, then {1}." xml:space="preserve">
+    <value>Zprávy v rámci limitu velikosti kontrolují postupně dva skenery: {0}, potom {1}.</value>
   </data>
   <data name="Messages: {0}, {1} MB as clients see them. Their files take {2} MB and the parts held once {3} MB, which saves {4}%. Files compressed: {5}. Measured {6}." xml:space="preserve">
     <value>Zprávy: {0}, {1} MB tak, jak je vidí klienti. Jejich soubory zabírají {2} MB a části uložené jednou {3} MB, což šetří {4} %. Komprimované soubory: {5}. Změřeno {6}.</value>
@@ -13317,6 +13329,9 @@ Přesto přidat?</value>
   </data>
   <data name="The sandbox is off, which is the default: nothing is held and nothing is submitted." xml:space="preserve">
     <value>Sandbox je vypnutý, což je výchozí stav: nic se nezadržuje a nic se neodesílá.</value>
+  </data>
+  <data name="The sandbox is switched on, but its submit or verdict address is empty." xml:space="preserve">
+    <value>Sandbox je zapnutý, ale jeho adresa pro odesílání nebo pro verdikt je prázdná.</value>
   </data>
   <data name="The sandbox settings could not be read from the server, so this page cannot say whether one is configured." xml:space="preserve">
     <value>Nastavení sandboxu se nepodařilo načíst ze serveru, takže tato stránka nemůže říct, zda je nějaký nakonfigurován.</value>

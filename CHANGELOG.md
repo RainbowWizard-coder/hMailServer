@@ -2983,6 +2983,25 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   counts the changes ("Saved 3 changes at 14:20:00 - applied immediately."), or says no setting had changed.
   `AntiSpamPageTests` holds the checks, the sentence and the page's wiring.
 
+- **Fixed: the virus scanning overview froze while it counted every account's fetch accounts, cut its key pill in
+  other languages, and said nothing of the sandbox.** The page read everything on the UI thread, the walk of up to
+  1,000 accounts for their external POP3 fetch accounts among it - one round trip each - so a large installation's
+  window stopped answering, and what showed while it read was the page as it had been; the "On, but cannot run" pill
+  was held to 170 pixels and cut in German, French and Russian with no tool tip; the attachment sandbox, which holds
+  and quarantines messages for what they carry, was not mentioned; and the verdict counted the scanners and repeated
+  the size rule the next card states (review finding F265). The cards are now drawn from the quick reads and the fetch
+  accounts counted off the UI thread, "Counting external accounts…" where the count goes, the title's pill saying no
+  "No problems found" until the count is in and the keyboard kept where it was when the page is drawn again; a count
+  of a page read again or left is dropped. The scanners' pills take their whole words, each as wide as its own word
+  where an Off was stretched to the width of the column's longest, and a status pill that its row squeezes says the
+  whole word in a tool tip. A card, Attachments opened in a sandbox, says whether the sandbox is on, with a pill and a
+  Settings… button that opens the Sandbox tab of Anti-virus settings, and what its verdicts do - delivered when clean,
+  quarantined when malicious or returned while quarantining is off, and delivered with a header or returned when no
+  verdict comes in time - and switched on with an address empty it is a Warning among the problems. The verdict names
+  the scanners in the order they run ("Every message is scanned by two scanners in turn: Custom scanner, then
+  ClamAV.") and, with a size limit, says "within the size limit" and leaves the limit to the Warning under it.
+  `VirusPipelineTests` and `VirusOverviewPageTests` hold the sentences and the wiring.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

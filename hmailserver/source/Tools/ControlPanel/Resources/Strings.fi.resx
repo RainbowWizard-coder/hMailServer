@@ -3381,6 +3381,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
     <value>Lasketut kirjautumisvirheet tyhjennetty. Jo estetyt osoitteet pysyvät estettyinä, kunnes niiden esto päättyy - Poista esto kohdassa Estettynä nyt päästää osoitteen heti takaisin.</value>
   </data>
+  <data name="Counting external accounts…" xml:space="preserve">
+    <value>Lasketaan ulkoisia tilejä…</value>
+  </data>
   <data name="Countries" xml:space="preserve">
     <value>Maat</value>
   </data>
@@ -4870,14 +4873,14 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Every message goes through {0} scanners in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
     <value>Jokainen viesti kulkee vuorollaan {0} tarkistimen läpi, ja kultakin kysytään koko viestistä ja sitten jokaisesta liitteestä erikseen. Se on perusteellista eikä ilmaista: skannaus tapahtuu, kun lähettäjä odottaa "250 OK" -vastaustaan.</value>
   </data>
-  <data name="Every message is scanned by one scanner." xml:space="preserve">
-    <value>Jokaisen viestin skannaa yksi tarkistin.</value>
+  <data name="Every message is scanned by one scanner: {0}." xml:space="preserve">
+    <value>Jokaisen viestin skannaa yksi tarkistin: {0}.</value>
   </data>
-  <data name="Every message is scanned by {0} scanner." xml:space="preserve">
-    <value>Jokaisen viestin skannaa {0} tarkistin.</value>
+  <data name="Every message is scanned by three scanners in turn: {0}, then {1}, then {2}." xml:space="preserve">
+    <value>Jokaisen viestin skannaa vuorollaan kolme tarkistinta: {0}, sitten {1}, sitten {2}.</value>
   </data>
-  <data name="Every message is scanned by {0} scanners." xml:space="preserve">
-    <value>Jokaisen viestin skannaa {0} tarkistinta.</value>
+  <data name="Every message is scanned by two scanners in turn: {0}, then {1}." xml:space="preserve">
+    <value>Jokaisen viestin skannaa vuorollaan kaksi tarkistinta: {0}, sitten {1}.</value>
   </data>
   <data name="Every message still in the delivery queue, the last error the server got for it, and when it is retried." xml:space="preserve">
     <value>Jokainen yhä toimitusjonossa oleva viesti, viimeisin virhe, jonka palvelin sille sai, ja milloin sitä yritetään uudelleen.</value>
@@ -6528,6 +6531,21 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts." xml:space="preserve">
     <value>Organisaation ulkopuolelta tuleva posti voidaan merkitä niin, että lukija näkee sen yhdellä silmäyksellä. Lähettäjä on ulkopuolinen, kun istunto ei kirjautunut sisään, viesti ei tullut luotetun saapuvan välityksen kautta eikä kirjekuoren lähettäjä tai From-osoite kuulu toimialueelle, jota tämä palvelin isännöi.</value>
   </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox's verdict before it is delivered." xml:space="preserve">
+    <value>Ulkopuolelta tuleva posti, jossa on lähetettävää tyyppiä oleva liite, odottaa hiekkalaatikon tuomiota ennen toimitusta.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one quarantines it, and no verdict in time delivers it with a header saying so." xml:space="preserve">
+    <value>Ulkopuolelta tuleva posti, jossa on lähetettävää tyyppiä oleva liite, odottaa hiekkalaatikkoa: puhdas tuomio toimittaa sen, haitallinen asettaa sen karanteeniin, ja jos tuomiota ei tule ajoissa, se toimitetaan otsakkeella, joka kertoo sen.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one quarantines it, and no verdict in time returns it to its sender." xml:space="preserve">
+    <value>Ulkopuolelta tuleva posti, jossa on lähetettävää tyyppiä oleva liite, odottaa hiekkalaatikkoa: puhdas tuomio toimittaa sen, haitallinen asettaa sen karanteeniin, ja jos tuomiota ei tule ajoissa, se palautetaan lähettäjälle.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one returns it to its sender while quarantining is off, and no verdict in time delivers it with a header saying so." xml:space="preserve">
+    <value>Ulkopuolelta tuleva posti, jossa on lähetettävää tyyppiä oleva liite, odottaa hiekkalaatikkoa: puhdas tuomio toimittaa sen, haitallinen palauttaa sen lähettäjälle, kun karanteeni on pois käytöstä, ja jos tuomiota ei tule ajoissa, se toimitetaan otsakkeella, joka kertoo sen.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one returns it to its sender while quarantining is off, and no verdict in time returns it too." xml:space="preserve">
+    <value>Ulkopuolelta tuleva posti, jossa on lähetettävää tyyppiä oleva liite, odottaa hiekkalaatikkoa: puhdas tuomio toimittaa sen, haitallinen palauttaa sen lähettäjälle, kun karanteeni on pois käytöstä, ja jos tuomiota ei tule ajoissa, se palautetaan samoin.</value>
+  </data>
   <data name="Mail is addressed to a domain, so the server needs one before it can receive anything." xml:space="preserve">
     <value>Posti osoitetaan verkkotunnukselle, joten palvelin tarvitsee sellaisen ennen kuin se voi vastaanottaa mitään.</value>
   </data>
@@ -6931,20 +6949,20 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message or a group, and the buttons over the list on every checked message." xml:space="preserve">
     <value>Viestit, jotka palvelin olisi muuten hylännyt, on pidätetty, jotta joku voi tarkistaa ne. Jokaisen lähettäjälle ilmoitettiin, että viesti oli hyväksytty, joten mikään ei saavu uudelleen itsestään: yhden vapauttaminen toimittaa sen, ja yhden poistaminen on lopullista. Kuvakkeet vaikuttavat yhteen viestiin tai ryhmään ja luettelon yläpuolella olevat painikkeet kaikkiin valittuihin viesteihin.</value>
   </data>
-  <data name="Messages up to {0} are scanned by one scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>Enintään {0}:n kokoiset viestit skannaa yksi tarkistin; kaikki suurempi toimitetaan skannaamatta lainkaan.</value>
-  </data>
-  <data name="Messages up to {0} are scanned by {1} scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>Enintään {0}:n kokoiset viestit skannaa {1} tarkistin; kaikki suurempi toimitetaan skannaamatta lainkaan.</value>
-  </data>
-  <data name="Messages up to {0} are scanned by {1} scanners; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>Enintään {0}:n kokoiset viestit skannaa {1} tarkistinta; kaikki suurempi toimitetaan skannaamatta lainkaan.</value>
-  </data>
   <data name="Messages up to {0}. A larger message is delivered without being scanned — it is not refused, and nothing is logged." xml:space="preserve">
     <value>Enintään {0}:n kokoiset viestit. Suurempi viesti toimitetaan skannaamatta — sitä ei hylätä, eikä mitään kirjata lokiin.</value>
   </data>
   <data name="Messages waiting for delivery." xml:space="preserve">
     <value>Toimitusta odottavat viestit.</value>
+  </data>
+  <data name="Messages within the size limit are scanned by one scanner: {0}." xml:space="preserve">
+    <value>Kokorajan sisällä olevat viestit skannaa yksi tarkistin: {0}.</value>
+  </data>
+  <data name="Messages within the size limit are scanned by three scanners in turn: {0}, then {1}, then {2}." xml:space="preserve">
+    <value>Kokorajan sisällä olevat viestit skannaa vuorollaan kolme tarkistinta: {0}, sitten {1}, sitten {2}.</value>
+  </data>
+  <data name="Messages within the size limit are scanned by two scanners in turn: {0}, then {1}." xml:space="preserve">
+    <value>Kokorajan sisällä olevat viestit skannaa vuorollaan kaksi tarkistinta: {0}, sitten {1}.</value>
   </data>
   <data name="Messages: {0}, {1} MB as clients see them. Their files take {2} MB and the parts held once {3} MB, which saves {4}%. Files compressed: {5}. Measured {6}." xml:space="preserve">
     <value>Viestejä: {0}, {1} Mt asiakasohjelmien näkemänä. Niiden tiedostot vievät {2} Mt ja kerran tallennetut osat {3} Mt, mikä säästää {4} %. Pakattuja tiedostoja: {5}. Mitattu {6}.</value>
@@ -13133,6 +13151,9 @@ Lisätäänkö silti?</value>
   </data>
   <data name="The sandbox is off, which is the default: nothing is held and nothing is submitted." xml:space="preserve">
     <value>Hiekkalaatikko on pois päältä, mikä on oletus: mitään ei pidätetä eikä mitään lähetetä.</value>
+  </data>
+  <data name="The sandbox is switched on, but its submit or verdict address is empty." xml:space="preserve">
+    <value>Hiekkalaatikko on päällä, mutta sen lähetys- tai tuomio-osoite on tyhjä.</value>
   </data>
   <data name="The sandbox settings could not be read from the server, so this page cannot say whether one is configured." xml:space="preserve">
     <value>Hiekkalaatikon asetuksia ei voitu lukea palvelimelta, joten tämä sivu ei voi kertoa, onko sellainen määritetty.</value>

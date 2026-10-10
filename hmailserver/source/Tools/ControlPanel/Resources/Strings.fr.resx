@@ -3381,6 +3381,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
     <value>Échecs de connexion comptés effacés. Les adresses déjà bannies le restent jusqu'à la fin de leur bannissement - Lever le bannissement sous Bannis maintenant en laisse revenir une aussitôt.</value>
   </data>
+  <data name="Counting external accounts…" xml:space="preserve">
+    <value>Décompte des comptes externes…</value>
+  </data>
   <data name="Countries" xml:space="preserve">
     <value>Pays</value>
   </data>
@@ -4870,14 +4873,14 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Every message goes through {0} scanners in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
     <value>Chaque message passe par {0} analyseurs tour à tour, et chacun est interrogé sur le message entier puis sur chaque pièce jointe séparément. C'est minutieux et ce n'est pas gratuit : l'analyse a lieu pendant que l'expéditeur attend son « 250 OK ».</value>
   </data>
-  <data name="Every message is scanned by one scanner." xml:space="preserve">
-    <value>Chaque message est analysé par un analyseur.</value>
+  <data name="Every message is scanned by one scanner: {0}." xml:space="preserve">
+    <value>Chaque message est analysé par un analyseur : {0}.</value>
   </data>
-  <data name="Every message is scanned by {0} scanner." xml:space="preserve">
-    <value>Chaque message est analysé par {0} analyseur.</value>
+  <data name="Every message is scanned by three scanners in turn: {0}, then {1}, then {2}." xml:space="preserve">
+    <value>Chaque message est analysé tour à tour par trois analyseurs : {0}, puis {1}, puis {2}.</value>
   </data>
-  <data name="Every message is scanned by {0} scanners." xml:space="preserve">
-    <value>Chaque message est analysé par {0} analyseurs.</value>
+  <data name="Every message is scanned by two scanners in turn: {0}, then {1}." xml:space="preserve">
+    <value>Chaque message est analysé tour à tour par deux analyseurs : {0}, puis {1}.</value>
   </data>
   <data name="Every message still in the delivery queue, the last error the server got for it, and when it is retried." xml:space="preserve">
     <value>Chaque message encore dans la file de livraison, la dernière erreur que le serveur a reçue pour lui, et quand il sera réessayé.</value>
@@ -6528,6 +6531,21 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts." xml:space="preserve">
     <value>Le courrier venu de l'extérieur de l'organisation peut être marqué pour qu'un lecteur le voie d'un coup d'œil. Un expéditeur est à l'extérieur lorsque la session ne s'est pas authentifiée, que le message n'est pas arrivé par un relais entrant de confiance et que ni l'expéditeur d'enveloppe ni l'adresse From n'appartiennent à un domaine hébergé par ce serveur.</value>
   </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox's verdict before it is delivered." xml:space="preserve">
+    <value>Le courrier venu de l'extérieur avec une pièce jointe d'un type soumis attend le verdict du bac à sable avant d'être distribué.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one quarantines it, and no verdict in time delivers it with a header saying so." xml:space="preserve">
+    <value>Le courrier venu de l'extérieur avec une pièce jointe d'un type soumis attend le bac à sable : un verdict propre le distribue, un verdict malveillant le met en quarantaine, et sans verdict à temps il est distribué avec un en-tête qui le dit.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one quarantines it, and no verdict in time returns it to its sender." xml:space="preserve">
+    <value>Le courrier venu de l'extérieur avec une pièce jointe d'un type soumis attend le bac à sable : un verdict propre le distribue, un verdict malveillant le met en quarantaine, et sans verdict à temps il est renvoyé à l'expéditeur.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one returns it to its sender while quarantining is off, and no verdict in time delivers it with a header saying so." xml:space="preserve">
+    <value>Le courrier venu de l'extérieur avec une pièce jointe d'un type soumis attend le bac à sable : un verdict propre le distribue, un verdict malveillant le renvoie à l'expéditeur tant que la quarantaine est désactivée, et sans verdict à temps il est distribué avec un en-tête qui le dit.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one returns it to its sender while quarantining is off, and no verdict in time returns it too." xml:space="preserve">
+    <value>Le courrier venu de l'extérieur avec une pièce jointe d'un type soumis attend le bac à sable : un verdict propre le distribue, un verdict malveillant le renvoie à l'expéditeur tant que la quarantaine est désactivée, et sans verdict à temps il est renvoyé lui aussi.</value>
+  </data>
   <data name="Mail is addressed to a domain, so the server needs one before it can receive anything." xml:space="preserve">
     <value>Le courrier est adressé à un domaine ; le serveur en a donc besoin d'un avant de pouvoir recevoir quoi que ce soit.</value>
   </data>
@@ -6931,20 +6949,20 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message or a group, and the buttons over the list on every checked message." xml:space="preserve">
     <value>Messages que le serveur aurait sinon refusés, retenus pour que quelqu'un puisse les regarder. L'expéditeur de chacun a été informé qu'il était accepté, donc aucun ne reviendra de lui-même : libérer l'un le distribue, et en supprimer un est définitif. Les icônes agissent sur un message ou un groupe, et les boutons au-dessus de la liste sur chaque message coché.</value>
   </data>
-  <data name="Messages up to {0} are scanned by one scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>Les messages jusqu'à {0} sont analysés par un analyseur ; tout ce qui est plus grand est livré sans être analysé du tout.</value>
-  </data>
-  <data name="Messages up to {0} are scanned by {1} scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>Les messages jusqu'à {0} sont analysés par {1} analyseur ; tout ce qui est plus grand est livré sans être analysé du tout.</value>
-  </data>
-  <data name="Messages up to {0} are scanned by {1} scanners; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>Les messages jusqu'à {0} sont analysés par {1} analyseurs ; tout ce qui est plus grand est livré sans être analysé du tout.</value>
-  </data>
   <data name="Messages up to {0}. A larger message is delivered without being scanned — it is not refused, and nothing is logged." xml:space="preserve">
     <value>Les messages jusqu'à {0}. Un message plus grand est livré sans être analysé — il n'est pas refusé, et rien n'est journalisé.</value>
   </data>
   <data name="Messages waiting for delivery." xml:space="preserve">
     <value>Messages en attente de livraison.</value>
+  </data>
+  <data name="Messages within the size limit are scanned by one scanner: {0}." xml:space="preserve">
+    <value>Les messages dans la limite de taille sont analysés par un analyseur : {0}.</value>
+  </data>
+  <data name="Messages within the size limit are scanned by three scanners in turn: {0}, then {1}, then {2}." xml:space="preserve">
+    <value>Les messages dans la limite de taille sont analysés tour à tour par trois analyseurs : {0}, puis {1}, puis {2}.</value>
+  </data>
+  <data name="Messages within the size limit are scanned by two scanners in turn: {0}, then {1}." xml:space="preserve">
+    <value>Les messages dans la limite de taille sont analysés tour à tour par deux analyseurs : {0}, puis {1}.</value>
   </data>
   <data name="Messages: {0}, {1} MB as clients see them. Their files take {2} MB and the parts held once {3} MB, which saves {4}%. Files compressed: {5}. Measured {6}." xml:space="preserve">
     <value>Messages : {0}, {1} Mo tels que les clients les voient. Leurs fichiers occupent {2} Mo et les parties conservées une fois {3} Mo, soit {4} % d'économie. Fichiers compressés : {5}. Mesuré {6}.</value>
@@ -13133,6 +13151,9 @@ L'ajouter quand même ?</value>
   </data>
   <data name="The sandbox is off, which is the default: nothing is held and nothing is submitted." xml:space="preserve">
     <value>Le bac à sable est désactivé, ce qui est la valeur par défaut : rien n'est retenu et rien n'est soumis.</value>
+  </data>
+  <data name="The sandbox is switched on, but its submit or verdict address is empty." xml:space="preserve">
+    <value>Le bac à sable est activé, mais son adresse de soumission ou de verdict est vide.</value>
   </data>
   <data name="The sandbox settings could not be read from the server, so this page cannot say whether one is configured." xml:space="preserve">
     <value>Les paramètres du bac à sable n'ont pas pu être lus sur le serveur ; cette page ne peut donc pas dire si un bac à sable est configuré.</value>

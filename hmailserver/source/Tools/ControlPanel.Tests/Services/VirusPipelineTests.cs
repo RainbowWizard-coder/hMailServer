@@ -219,7 +219,10 @@ namespace hMailServer.ControlPanel.Tests.Services
          VirusPipelineConfig config = Scanning();
          config.MaxScanKilobytes = 1024;
 
-         Assert.Contains("delivered without being scanned", VirusPipeline.Verdict(config));
+         // The verdict says "within the size limit"; the Warning under it says the
+         // limit and what becomes of a larger message (review finding F265).
+         Assert.Contains("within the size limit", VirusPipeline.Verdict(config));
+         Assert.DoesNotContain("1,024 KB", VirusPipeline.Verdict(config));
 
          // Named as a warning, and the note has to say the message is delivered
          // rather than refused - that is the part an administrator gets wrong.
@@ -463,29 +466,53 @@ namespace hMailServer.ControlPanel.Tests.Services
          return config;
       }
 
+      /// <summary>
+      /// The verdict names the scanners that can run, in the order the server
+      /// tries them, where it counted them; and with a size limit it says "within
+      /// the size limit" and no more, where it said the limit and what becomes of
+      /// a larger message, which the Warning under it and the next card's first
+      /// line say too (review finding F265). A whole sentence for each count.
+      /// </summary>
       [Fact]
-      public void TheVerdictIsOneWholeSentenceForOneScannerAndAnotherForSeveral()
+      public void TheVerdictNamesTheScannersInTurn_InOneWholeSentencePerCount()
       {
          VirusPipelineConfig config = Scanning();
-         Assert.Equal("Every message is scanned by one scanner. If a virus is found, the whole message is deleted and never delivered.",
+         Assert.Equal("Every message is scanned by one scanner: ClamAV. If a virus is found, the whole message is deleted and never delivered.",
             VirusPipeline.Verdict(config));
 
          config.Action = VirusAction.StripAttachments;
-         Assert.Equal("Every message is scanned by one scanner. If a virus is found, the attachments are stripped and the message is still delivered.",
+         Assert.Equal("Every message is scanned by one scanner: ClamAV. If a virus is found, the attachments are stripped and the message is still delivered.",
             VirusPipeline.Verdict(config));
 
          config = TwoScanners();
          Assert.Equal(2, VirusPipeline.CountUsable(config));
-         Assert.Equal("Every message is scanned by 2 scanners. If a virus is found, the whole message is deleted and never delivered.",
+         Assert.Equal("Every message is scanned by two scanners in turn: Custom scanner, then ClamAV. If a virus is found, the whole message is deleted and never delivered.",
             VirusPipeline.Verdict(config));
 
          config.MaxScanKilobytes = 512;
-         Assert.Equal("Messages up to 512 KB are scanned by 2 scanners; anything larger is delivered without being scanned at all. If a virus is found, the whole message is deleted and never delivered.",
+         Assert.Equal("Messages within the size limit are scanned by two scanners in turn: Custom scanner, then ClamAV. If a virus is found, the whole message is deleted and never delivered.",
             VirusPipeline.Verdict(config));
+         Assert.True(HasNote(config, StatusLevel.Warning, "Messages larger than 512 KB are not scanned."));
 
          config = Scanning();
          config.MaxScanKilobytes = 512;
-         Assert.Equal("Messages up to 512 KB are scanned by one scanner; anything larger is delivered without being scanned at all. If a virus is found, the whole message is deleted and never delivered.",
+         Assert.Equal("Messages within the size limit are scanned by one scanner: ClamAV. If a virus is found, the whole message is deleted and never delivered.",
+            VirusPipeline.Verdict(config));
+
+         config = TwoScanners();
+         config.ClamWinEnabled = true;
+         config.ClamWinExecutable = @"C:\ClamWin\clamscan.exe";
+         config.ClamWinDatabaseFolder = @"C:\ClamWin\db";
+         Assert.Equal("Every message is scanned by three scanners in turn: ClamWin, then Custom scanner, then ClamAV. If a virus is found, the whole message is deleted and never delivered.",
+            VirusPipeline.Verdict(config));
+         config.MaxScanKilobytes = 512;
+         Assert.Equal("Messages within the size limit are scanned by three scanners in turn: ClamWin, then Custom scanner, then ClamAV. If a virus is found, the whole message is deleted and never delivered.",
+            VirusPipeline.Verdict(config));
+
+         // A scanner switched on that cannot run is not named.
+         config = Scanning();
+         config.CustomScannerEnabled = true;
+         Assert.Equal("Every message is scanned by one scanner: ClamAV. If a virus is found, the whole message is deleted and never delivered.",
             VirusPipeline.Verdict(config));
       }
 
@@ -656,6 +683,64 @@ namespace hMailServer.ControlPanel.Tests.Services
             if (verdict >= StatusLevel.Warning)
                Assert.Contains(VirusPipeline.Notes(config), n => n.Level >= verdict);
          }
+      }
+
+      /// <summary>
+      /// The attachment sandbox, which the overview did not mention (review
+      /// finding F265): off as shipped; on, what its verdicts do, by the two
+      /// settings that decide it; on with an address empty, a Warning, on the card
+      /// and among the problems, in the external setup checklist's words; and
+      /// nothing said of a value not read.
+      /// </summary>
+      [Fact]
+      public void TheSandbox_SaysWhetherItIsOnAndWhatItsVerdictsDo()
+      {
+         VirusPipelineConfig config = Scanning();
+         (StatusLevel level, string state, string sentence) = VirusPipeline.Sandbox(config);
+         Assert.Equal((StatusLevel.Normal, "Off"), (level, state));
+         Assert.Equal("The sandbox is off, which is the default: nothing is held and nothing is submitted.", sentence);
+         Assert.DoesNotContain(VirusPipeline.Notes(config), n => n.Text.Contains("sandbox", StringComparison.OrdinalIgnoreCase));
+
+         config.SandboxEnabled = true;
+         config.SandboxSubmitUrl = "https://sandbox.example/submit";
+         config.SandboxVerdictUrl = "";
+         (level, state, sentence) = VirusPipeline.Sandbox(config);
+         Assert.Equal((StatusLevel.Warning, "On, but cannot run"), (level, state));
+         Assert.Equal("The sandbox is switched on, but its submit or verdict address is empty.", sentence);
+         VirusPipelineNote inert = VirusPipeline.Notes(config).Single(n => n.Text.StartsWith("The sandbox is ON but an address is empty", StringComparison.Ordinal));
+         Assert.Equal((StatusLevel.Warning, "antivirus"), (inert.Level, inert.Page));
+
+         config.SandboxVerdictUrl = "https://sandbox.example/verdict";
+         Assert.DoesNotContain(VirusPipeline.Notes(config), n => n.Text.Contains("sandbox", StringComparison.OrdinalIgnoreCase));
+         (level, state, sentence) = VirusPipeline.Sandbox(config);
+         Assert.Equal((StatusLevel.Good, "On"), (level, state));
+         Assert.Equal("Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one returns it to its sender while quarantining is off, and no verdict in time delivers it with a header saying so.", sentence);
+
+         config.SandboxTimeoutReturns = true;
+         Assert.Equal("Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one returns it to its sender while quarantining is off, and no verdict in time returns it too.",
+            VirusPipeline.Sandbox(config).Sentence);
+
+         config.QuarantineEnabled = true;
+         Assert.Equal("Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one quarantines it, and no verdict in time returns it to its sender.",
+            VirusPipeline.Sandbox(config).Sentence);
+
+         config.SandboxTimeoutReturns = false;
+         Assert.Equal("Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one quarantines it, and no verdict in time delivers it with a header saying so.",
+            VirusPipeline.Sandbox(config).Sentence);
+
+         // What the verdicts do, not read: the sentence that does not say.
+         config.Unread.Add(nameof(config.QuarantineEnabled));
+         Assert.Equal("Mail from outside with an attachment of a submitted type waits for the sandbox's verdict before it is delivered.",
+            VirusPipeline.Sandbox(config).Sentence);
+
+         // The switch not read: nothing is said, and no note.
+         config.Unread.Add(nameof(config.SandboxEnabled));
+         config.SandboxVerdictUrl = "";
+         (level, state, sentence) = VirusPipeline.Sandbox(config);
+         Assert.Equal((StatusLevel.Normal, "Not read", "These settings could not be read."), (level, state, sentence));
+         Assert.DoesNotContain(VirusPipeline.Notes(config), n => n.Text.Contains("sandbox", StringComparison.OrdinalIgnoreCase));
+
+         Assert.Equal("Not read", VirusPipeline.Sandbox(null).State);
       }
 
       /// <summary>

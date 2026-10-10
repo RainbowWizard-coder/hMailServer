@@ -3381,6 +3381,9 @@
   <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
     <value>数えられていたサインインの失敗をクリアしました。すでにブロックされているアドレスは、そのブロックが終わるまでブロックされたままです。「現在のブロック」の「ブロックを解除」で、すぐに受け入れることができます。</value>
   </data>
+  <data name="Counting external accounts…" xml:space="preserve">
+    <value>外部アカウントを数えています…</value>
+  </data>
   <data name="Countries" xml:space="preserve">
     <value>国</value>
   </data>
@@ -4870,14 +4873,14 @@
   <data name="Every message goes through {0} scanners in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
     <value>すべてのメッセージは {0} 件のスキャナーを順に通過し、それぞれにメッセージ全体について、次に各添付ファイルについて個別に問い合わせます。徹底的ですが無料ではありません。スキャンは送信者が "250 OK" を待っている間に行われます。</value>
   </data>
-  <data name="Every message is scanned by one scanner." xml:space="preserve">
-    <value>すべてのメッセージは 1 件のスキャナーによってスキャンされます。</value>
+  <data name="Every message is scanned by one scanner: {0}." xml:space="preserve">
+    <value>すべてのメッセージは 1 件のスキャナーでスキャンされます：{0}。</value>
   </data>
-  <data name="Every message is scanned by {0} scanner." xml:space="preserve">
-    <value>すべてのメッセージは {0} 件のスキャナーによってスキャンされます。</value>
+  <data name="Every message is scanned by three scanners in turn: {0}, then {1}, then {2}." xml:space="preserve">
+    <value>すべてのメッセージは 3 件のスキャナーで順にスキャンされます：{0}、次に {1}、次に {2}。</value>
   </data>
-  <data name="Every message is scanned by {0} scanners." xml:space="preserve">
-    <value>すべてのメッセージは {0} 件のスキャナーによってスキャンされます。</value>
+  <data name="Every message is scanned by two scanners in turn: {0}, then {1}." xml:space="preserve">
+    <value>すべてのメッセージは 2 件のスキャナーで順にスキャンされます：{0}、次に {1}。</value>
   </data>
   <data name="Every message still in the delivery queue, the last error the server got for it, and when it is retried." xml:space="preserve">
     <value>配信キューにまだ残っているすべてのメッセージ、サーバーがそれについて最後に受け取ったエラー、次に再試行される時刻。</value>
@@ -6528,6 +6531,21 @@
   <data name="Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts." xml:space="preserve">
     <value>組織外から届いたメールには印を付けて、読み手が一目で分かるようにできます。送信者が外部だと判断されるのは、セッションがサインインしておらず、メッセージが信頼された受信リレーを経由しておらず、エンベロープ送信者も From アドレスもこのサーバーがホストするドメインに属していない場合です。</value>
   </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox's verdict before it is delivered." xml:space="preserve">
+    <value>外部から届いた、送信対象の種類の添付ファイルを含むメールは、配信前にサンドボックスの判定を待ちます。</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one quarantines it, and no verdict in time delivers it with a header saying so." xml:space="preserve">
+    <value>外部から届いた、送信対象の種類の添付ファイルを含むメールはサンドボックスを待ちます。クリーンの判定なら配信され、悪意ありの判定なら検疫され、時間内に判定がなければその旨のヘッダーを付けて配信されます。</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one quarantines it, and no verdict in time returns it to its sender." xml:space="preserve">
+    <value>外部から届いた、送信対象の種類の添付ファイルを含むメールはサンドボックスを待ちます。クリーンの判定なら配信され、悪意ありの判定なら検疫され、時間内に判定がなければ送信者に返送されます。</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one returns it to its sender while quarantining is off, and no verdict in time delivers it with a header saying so." xml:space="preserve">
+    <value>外部から届いた、送信対象の種類の添付ファイルを含むメールはサンドボックスを待ちます。クリーンの判定なら配信され、悪意ありの判定なら検疫がオフの間は送信者に返送され、時間内に判定がなければその旨のヘッダーを付けて配信されます。</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one returns it to its sender while quarantining is off, and no verdict in time returns it too." xml:space="preserve">
+    <value>外部から届いた、送信対象の種類の添付ファイルを含むメールはサンドボックスを待ちます。クリーンの判定なら配信され、悪意ありの判定なら検疫がオフの間は送信者に返送され、時間内に判定がなければ同じく返送されます。</value>
+  </data>
   <data name="Mail is addressed to a domain, so the server needs one before it can receive anything." xml:space="preserve">
     <value>メールはドメイン宛てに届くため、サーバーが何かを受信するにはまずドメインが必要です。</value>
   </data>
@@ -6931,20 +6949,20 @@
   <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message or a group, and the buttons over the list on every checked message." xml:space="preserve">
     <value>本来ならサーバーが拒否していたはずのメッセージを、誰かが確認できるよう保留しています。送信者にはそれぞれ受理されたと伝えてあるため、放っておいても再び届くことはありません。解放すれば配信され、削除すれば元に戻せません。アイコンは 1 件のメッセージまたは 1 つのグループに、一覧の上のボタンはチェックしたすべてのメッセージに作用します。</value>
   </data>
-  <data name="Messages up to {0} are scanned by one scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>{0} までのメッセージは 1 件のスキャナーによってスキャンされます。それより大きいものはまったくスキャンされずに配信されます。</value>
-  </data>
-  <data name="Messages up to {0} are scanned by {1} scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>{0} までのメッセージは {1} 件のスキャナーによってスキャンされます。それより大きいものはまったくスキャンされずに配信されます。</value>
-  </data>
-  <data name="Messages up to {0} are scanned by {1} scanners; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>{0} までのメッセージは {1} 件のスキャナーによってスキャンされます。それより大きいものはまったくスキャンされずに配信されます。</value>
-  </data>
   <data name="Messages up to {0}. A larger message is delivered without being scanned — it is not refused, and nothing is logged." xml:space="preserve">
     <value>{0} までのメッセージ。それより大きいメッセージはスキャンされずに配信されます — 拒否はされず、何もログに記録されません。</value>
   </data>
   <data name="Messages waiting for delivery." xml:space="preserve">
     <value>配信を待っているメッセージ。</value>
+  </data>
+  <data name="Messages within the size limit are scanned by one scanner: {0}." xml:space="preserve">
+    <value>サイズ制限内のメッセージは 1 件のスキャナーでスキャンされます：{0}。</value>
+  </data>
+  <data name="Messages within the size limit are scanned by three scanners in turn: {0}, then {1}, then {2}." xml:space="preserve">
+    <value>サイズ制限内のメッセージは 3 件のスキャナーで順にスキャンされます：{0}、次に {1}、次に {2}。</value>
+  </data>
+  <data name="Messages within the size limit are scanned by two scanners in turn: {0}, then {1}." xml:space="preserve">
+    <value>サイズ制限内のメッセージは 2 件のスキャナーで順にスキャンされます：{0}、次に {1}。</value>
   </data>
   <data name="Messages: {0}, {1} MB as clients see them. Their files take {2} MB and the parts held once {3} MB, which saves {4}%. Files compressed: {5}. Measured {6}." xml:space="preserve">
     <value>メッセージ: {0} 件、クライアントから見て {1} MB。ファイルは {2} MB、一度だけ保存された部分は {3} MB を使い、{4}% の節約です。圧縮済みのファイル: {5} 件。{6} に測定。</value>
@@ -13133,6 +13151,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The sandbox is off, which is the default: nothing is held and nothing is submitted." xml:space="preserve">
     <value>サンドボックスはオフです (既定)。何も保留されず、何も送信されません。</value>
+  </data>
+  <data name="The sandbox is switched on, but its submit or verdict address is empty." xml:space="preserve">
+    <value>サンドボックスはオンですが、送信先または判定の取得先のアドレスが空です。</value>
   </data>
   <data name="The sandbox settings could not be read from the server, so this page cannot say whether one is configured." xml:space="preserve">
     <value>サーバーからサンドボックスの設定を読み取れなかったため、このページでは設定されているかどうかを判断できません。</value>

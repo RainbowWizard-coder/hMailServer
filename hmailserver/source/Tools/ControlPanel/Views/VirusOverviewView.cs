@@ -4,11 +4,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using hMailServer.ControlPanel.Services;
 
 // The Control Panel has its own Typography (the type scale, in Services) and
@@ -17,6 +22,7 @@ using hMailServer.ControlPanel.Services;
 using Typography = hMailServer.ControlPanel.Services.Typography;
 using Card = hMailServer.ControlPanel.Views.Scaffold.Card;
 using InlineNotice = hMailServer.ControlPanel.Views.Scaffold.InlineNotice;
+using LoadingState = hMailServer.ControlPanel.Views.Scaffold.LoadingState;
 using PageHeader = hMailServer.ControlPanel.Views.Scaffold.PageHeader;
 using StatusPill = hMailServer.ControlPanel.Views.Scaffold.StatusPill;
 using static hMailServer.ControlPanel.Services.Loc;
@@ -97,8 +103,29 @@ namespace hMailServer.ControlPanel.Views
 
       public void OnEnter() => Reload();
 
-      public void OnLeave()
+      // A count of the fetch accounts still running is of a page that was left.
+      public void OnLeave() => StopCounting_();
+
+      // ---- the fetch-account walk, off the UI thread -------------------------
+
+      // Which read the page is drawing: a walk that ends after the page was read
+      // again, or left, belongs to a read nobody is looking at.
+      private int generation_;
+
+      // The walk running, to stop it when the page is read again or left.
+      private CancellationTokenSource walk_;
+
+      // True from a read until its walk has ended: the What gets scanned card says
+      // the accounts are being counted, and the title's pill does not say "No
+      // problems found" of notes still to come.
+      private bool counting_;
+
+      private void StopCounting_()
       {
+         generation_++;
+         walk_?.Cancel();
+         walk_ = null;
+         counting_ = false;
       }
 
       // ---- reading the configuration -----------------------------------------
@@ -167,7 +194,17 @@ namespace hMailServer.ControlPanel.Views
             config.AttachmentBlockingEnabled = Read(config, nameof(config.AttachmentBlockingEnabled), () => (bool)antiVirus.EnableAttachmentBlocking);
             config.BlockedAttachmentPatterns = CountCollection(config, nameof(config.BlockedAttachmentPatterns), () => antiVirus.BlockedAttachments);
 
-            CountFetchAccounts(config);
+            // The attachment sandbox's settings are the server's, not the anti-virus
+            // object's. QuarantineEnabled is a [Settings] key, read as AVFailAction
+            // is, and decides where a malicious verdict sends a message.
+            config.SandboxEnabled = Read(config, nameof(config.SandboxEnabled), () => (bool)settings.SandboxEnabled);
+            config.SandboxSubmitUrl = Read(config, nameof(config.SandboxSubmitUrl), () => (string)settings.SandboxSubmitUrl) ?? "";
+            config.SandboxVerdictUrl = Read(config, nameof(config.SandboxVerdictUrl), () => (string)settings.SandboxVerdictUrl) ?? "";
+            config.SandboxTimeoutReturns = Read(config, nameof(config.SandboxTimeoutReturns), () => (int)settings.SandboxTimeoutAction == 1);
+            config.QuarantineEnabled = Read(config, nameof(config.QuarantineEnabled), () => new IniFeatureStore().ReadBool("QuarantineEnabled", false));
+
+            // The fetch accounts are counted after the page is drawn, off the UI
+            // thread (CountFetchAccounts_).
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -235,18 +272,25 @@ namespace hMailServer.ControlPanel.Views
       /// fetched message that flag comes from the fetch account rather than from
       /// anything here.
       ///
-      /// Bounded, though. Fetch accounts hang off individual accounts and there is no
-      /// server-wide collection of them, so this is one COM round trip per account
-      /// and a large installation would leave the page unresponsive for as long as it
-      /// took. The cap is not silent: past it the config is marked incomplete and the
-      /// note says "at least", because a number presented as a total when it is a
-      /// floor is worse than no number.
+      /// Off the UI thread, after the cards are drawn from the quick reads: fetch
+      /// accounts hang off individual accounts and there is no server-wide
+      /// collection of them, so this is one COM round trip per account, and the
+      /// page was read whole on the UI thread - a large installation's window
+      /// stopped answering until the last account had been read, with nothing on
+      /// screen to say why (review finding F265). Bounded still: past the cap the
+      /// count is marked incomplete and the note says "at least", because a number
+      /// presented as a total when it is a floor is worse than no number. Touches
+      /// nothing of the page's: what it found, or the exception it stopped at, is
+      /// its result, and the page takes it in on the UI thread.
       /// </summary>
       private const int MaxAccountsWalked = 1000;
 
-      private void CountFetchAccounts(VirusPipelineConfig config)
+      /// <summary>What the walk found: the counts, whether it stopped at the cap, or the failure it stopped at.</summary>
+      private readonly record struct FetchAccountCount(int Total, int ScanningOff, bool Incomplete, Exception Failure);
+
+      private static FetchAccountCount CountFetchAccounts_(CancellationToken cancel)
       {
-         int accountsWalked = 0;
+         int accountsWalked = 0, total = 0, scanningOff = 0;
          dynamic domains = null;
 
          try
@@ -267,11 +311,12 @@ namespace hMailServer.ControlPanel.Views
 
                   for (int a = 0; a < accountCount; a++)
                   {
+                     // The page was read again or left: what is counted is for nobody.
+                     if (cancel.IsCancellationRequested)
+                        return new FetchAccountCount(total, scanningOff, true, null);
+
                      if (accountsWalked >= MaxAccountsWalked)
-                     {
-                        config.FetchAccountScanIncomplete = true;
-                        return;
-                     }
+                        return new FetchAccountCount(total, scanningOff, true, null);
 
                      accountsWalked++;
 
@@ -291,10 +336,10 @@ namespace hMailServer.ControlPanel.Views
                            try
                            {
                               fetchAccount = fetchAccounts.Item[f];
-                              config.FetchAccountsTotal++;
+                              total++;
 
                               if (!(bool)fetchAccount.UseAntiVirus)
-                                 config.FetchAccountsWithScanningOff++;
+                                 scanningOff++;
                            }
                            finally
                            {
@@ -315,14 +360,12 @@ namespace hMailServer.ControlPanel.Views
                   ServerSession.Release((object)domain);
                }
             }
+
+            return new FetchAccountCount(total, scanningOff, false, null);
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            // Counted as one failed read rather than several: the page still has
-            // everything else, and the fetch-account note simply does not appear.
-            failedReads_++;
-            firstError_ ??= ServerSession.DescribeComError(ex);
-            config.Unread.Add(nameof(config.FetchAccountsWithScanningOff));
+            return new FetchAccountCount(total, scanningOff, false, ex);
          }
          finally
          {
@@ -330,25 +373,94 @@ namespace hMailServer.ControlPanel.Views
          }
       }
 
+      /// <summary>
+      /// Runs the walk for the read <paramref name="generation"/> drew, and draws the
+      /// page again with what it found - or, when it failed, with one failed read
+      /// more and no fetch-account note, as the walk on the UI thread did. A walk
+      /// that ends after the page was read again or left changes nothing.
+      /// </summary>
+      private async void CountFetchAccountsThenDraw_(VirusPipelineConfig config, int generation)
+      {
+         using var cancel = new CancellationTokenSource();
+         walk_ = cancel;
+
+         FetchAccountCount count;
+         try
+         {
+            count = await Task.Run(() => CountFetchAccounts_(cancel.Token));
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            count = new FetchAccountCount(0, 0, false, ex);
+         }
+
+         if (generation != generation_ || cancel.IsCancellationRequested)
+            return;
+
+         walk_ = null;
+         counting_ = false;
+
+         if (count.Failure != null)
+         {
+            // Counted as one failed read rather than several: the page still has
+            // everything else, and the fetch-account note simply does not appear.
+            failedReads_++;
+            firstError_ ??= ServerSession.DescribeComError(count.Failure);
+            config.Unread.Add(nameof(config.FetchAccountsWithScanningOff));
+         }
+         else
+         {
+            config.FetchAccountsTotal = count.Total;
+            config.FetchAccountsWithScanningOff = count.ScanningOff;
+            config.FetchAccountScanIncomplete = count.Incomplete;
+         }
+
+         Draw_(config);
+      }
+
       // ---- drawing ------------------------------------------------------------
 
+      /// <summary>
+      /// Reads the configuration and draws it, then counts the fetch accounts off
+      /// the UI thread and draws the page again with what the count found.
+      /// </summary>
       private void Reload()
       {
-         VirusPipelineConfig config = ReadConfig();
+         // A count still running is of the read this one replaces.
+         StopCounting_();
 
-         body_.Children.Clear();
+         VirusPipelineConfig config = ReadConfig();
 
          // Nothing could be read: no cards, since every value in them would be a
          // default drawn as a finding, and one Critical notice with Try again
          // (Services/ReadFailure).
          if (!configRead_)
          {
+            body_.Children.Clear();
             ReadFailure.Show(readFailure_, null, null, L("The anti-virus configuration could not be read: "), firstError_, Reload);
             header_.Status = null;
             status_.Text = "";
             return;
          }
 
+         counting_ = true;
+         Draw_(config);
+         CountFetchAccountsThenDraw_(config, generation_);
+      }
+
+      /// <summary>
+      /// Draws the cards from <paramref name="config"/> - while the fetch accounts
+      /// are counted, and again once they are. The keyboard stays where it was: a
+      /// control of the cards that had it is found again in the new cards by its
+      /// automation id and its place among those that share it, where the count
+      /// ending a few seconds after the page opened would take it out of a link
+      /// the reader had tabbed to.
+      /// </summary>
+      private void Draw_(VirusPipelineConfig config)
+      {
+         (string id, int nth) = FocusedPlace_();
+
+         body_.Children.Clear();
          ReadFailure.Clear(readFailure_);
 
          // The problems - Warning and above - under the verdict, each with the
@@ -360,14 +472,17 @@ namespace hMailServer.ControlPanel.Views
          // "No problems found" only where every value was read: the notes that
          // follow from a value not read are left out, and the count said so in
          // green beside the Warning that says the sections may be incomplete.
+         // Nor while the fetch accounts are counted: a fetch account with
+         // scanning off is a problem the count has not reached yet.
          header_.Status = OverviewNotices.ProblemsPill(problems.Count, problems.Count == 0 ? StatusLevel.Good : problems[0].Level,
-            failedReads_ == 0 && VirusPipeline.VerdictLevel(config) != StatusLevel.Information);
+            !counting_ && failedReads_ == 0 && VirusPipeline.VerdictLevel(config) != StatusLevel.Information);
 
          body_.Children.Add(VerdictCard(config, problems));
          body_.Children.Add(ScannersCard(config));
          body_.Children.Add(WhatIsScannedCard(config));
          body_.Children.Add(InfectedCard(config));
          body_.Children.Add(AttachmentsCard(config));
+         body_.Children.Add(SandboxCard(config));
 
          if (worthKnowing.Count > 0)
             body_.Children.Add(NotesCard(worthKnowing));
@@ -386,6 +501,54 @@ namespace hMailServer.ControlPanel.Views
                ? F("Some values could not be read, so the sections below may be incomplete. Why: {0}", firstError_)
                : F("Some values could not be read, so the sections below may be incomplete. The first reason: {0}", firstError_);
          readFailure_.Visibility = failedReads_ == 0 ? Visibility.Collapsed : Visibility.Visible;
+
+         if (id != null)
+            Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() => Refocus_(id, nth)));
+      }
+
+      /// <summary>
+      /// The automation id of the control in the cards that has the keyboard, and
+      /// its place among the cards' controls of that id; no id when the keyboard
+      /// is elsewhere.
+      /// </summary>
+      private (string Id, int Nth) FocusedPlace_()
+      {
+         if (Keyboard.FocusedElement is not FrameworkElement focused || !body_.IsAncestorOf(focused))
+            return (null, 0);
+
+         string id = AutomationProperties.GetAutomationId(focused);
+         if (string.IsNullOrEmpty(id))
+            return (null, 0);
+
+         List<FrameworkElement> same = WithId_(body_, id);
+         return (id, Math.Max(0, same.IndexOf(focused)));
+      }
+
+      private void Refocus_(string id, int nth)
+      {
+         List<FrameworkElement> same = WithId_(body_, id);
+         if (same.Count > 0)
+            same[Math.Min(nth, same.Count - 1)].Focus();
+      }
+
+      /// <summary>The elements under <paramref name="root"/> with automation id <paramref name="id"/>, in the order of the visual tree.</summary>
+      private static List<FrameworkElement> WithId_(DependencyObject root, string id)
+      {
+         var found = new List<FrameworkElement>();
+         var stack = new Stack<DependencyObject>();
+         stack.Push(root);
+         while (stack.Count > 0)
+         {
+            DependencyObject node = stack.Pop();
+            if (node is FrameworkElement element && string.Equals(AutomationProperties.GetAutomationId(element), id, StringComparison.Ordinal))
+               found.Add(element);
+
+            int children = VisualTreeHelper.GetChildrenCount(node);
+            for (int at = children - 1; at >= 0; at--)
+               stack.Push(VisualTreeHelper.GetChild(node, at));
+         }
+
+         return found;
       }
 
       /// <summary>One section of the page. Named Section and not Card because the
@@ -510,9 +673,11 @@ namespace hMailServer.ControlPanel.Views
                : scanner.Usable ? StatusLevel.Good
                : StatusLevel.Critical,
             Text = scanner.StateText,
-            MaxWidth = 170,
             Margin = new Thickness(0, 6, 14, 6),
-            VerticalAlignment = VerticalAlignment.Top
+            VerticalAlignment = VerticalAlignment.Top,
+            // Its own word's width at the column's start: the column is as wide as
+            // its longest word, "On, but cannot run", which an Off stretched to.
+            HorizontalAlignment = HorizontalAlignment.Left
          };
 
          Grid.SetRow(state, row);
@@ -543,7 +708,14 @@ namespace hMailServer.ControlPanel.Views
          content.Children.Add(Paragraph(L("Each message is scanned twice over: once as the whole file on disk, and then once per attachment, each written out to the temporary folder and handed to the scanner on its own. The second pass is what catches an attachment inside a structure the scanner does not decode for itself. If the message cannot be parsed as MIME the per-attachment pass is skipped and an error is logged."),
             Typography.Caption));
 
-         if (config.WasRead(nameof(config.FetchAccountsWithScanningOff)) && config.FetchAccountsTotal > 0)
+         // Counted after the page is drawn: the wait is said where the count goes.
+         if (counting_)
+         {
+            var counting = new LoadingState { Text = L("Counting external accounts…"), Padding = new Thickness(0, 8, 0, 12) };
+            AutomationProperties.SetAutomationId(counting, "virus-overview-counting");
+            content.Children.Add(counting);
+         }
+         else if (config.WasRead(nameof(config.FetchAccountsWithScanningOff)) && config.FetchAccountsTotal > 0)
          {
             content.Children.Add(Paragraph(Sentences(PluralF(config.FetchAccountsWithScanningOff,
                   "Mail collected from external POP3 accounts is scanned only when that fetch account says so — {0} of {1} currently has anti-virus switched off. That switch is on the account, not on this page.",
@@ -595,6 +767,50 @@ namespace hMailServer.ControlPanel.Views
          return card;
       }
 
+      /// <summary>
+      /// The attachment sandbox: whether it is on, as the scanners' rows say it,
+      /// and what it does to a message - the other thing that holds or quarantines
+      /// a message for what it carries, which the page did not mention (review
+      /// finding F265). The judgement is VirusPipeline.Sandbox's.
+      /// </summary>
+      private static Card SandboxCard(VirusPipelineConfig config)
+      {
+         Card card = Section(L("Attachments opened in a sandbox"), out StackPanel content);
+         (StatusLevel level, string state, string sentence) = VirusPipeline.Sandbox(config);
+
+         var grid = new Grid();
+         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });   // what it does
+         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });                       // state
+         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });                       // link
+
+         var text = new TextBlock { Text = sentence, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 6, 12, 6) };
+         text.SetResourceReference(StyleProperty, "TextBody");
+         AutomationProperties.SetAutomationId(text, "virus-overview-sandbox");
+         grid.Children.Add(text);
+
+         var pill = new StatusPill
+         {
+            Level = level,
+            Text = state,
+            Margin = new Thickness(0, 6, 14, 6),
+            VerticalAlignment = VerticalAlignment.Top
+         };
+         AutomationProperties.SetAutomationId(pill, "virus-overview-sandbox-state");
+         Grid.SetColumn(pill, 1);
+         grid.Children.Add(pill);
+
+         // On the tab that holds them, Sandbox, where the page opens on its first.
+         FrameworkElement link = PageLink("antivirus", L("Settings…"),
+            F("Open {0}, which owns the {1} settings", L(NavigationMap.TitleOf("antivirus")), L("Sandbox")), N("Sandbox"));
+         link.Margin = new Thickness(0, 4, 0, 4);
+         link.VerticalAlignment = VerticalAlignment.Top;
+         Grid.SetColumn(link, 2);
+         grid.Children.Add(link);
+
+         content.Children.Add(grid);
+         return card;
+      }
+
       private static Card NotesCard(IReadOnlyList<VirusPipelineNote> notes)
       {
          Card card = Section(L("Worth knowing about this configuration"), out StackPanel content);
@@ -620,9 +836,11 @@ namespace hMailServer.ControlPanel.Views
       ///
       /// The whole page is read-only, so these links are the only way out of it, and
       /// they are the reason it can stay read-only: every value shown here is one
-      /// click from the single place that edits it.
+      /// click from the single place that edits it. With <paramref name="tab"/>, the
+      /// English header of the page's tab that holds the settings, it opens that tab
+      /// (MainWindow.NavigateToTab).
       /// </summary>
-      private static FrameworkElement PageLink(string page, string caption, string accessibleName)
+      private static FrameworkElement PageLink(string page, string caption, string accessibleName, string tab = null)
       {
          var button = new Wpf.Ui.Controls.Button
          {
@@ -636,8 +854,9 @@ namespace hMailServer.ControlPanel.Views
             HorizontalAlignment = HorizontalAlignment.Left
          };
          ControlHelp.NameLink(button, caption, accessibleName);
-         System.Windows.Automation.AutomationProperties.SetAutomationId(button, "virus-overview-open-" + page);
-         button.Click += (s, e) => (Application.Current?.MainWindow as MainWindow)?.NavigateTo(page);
+         System.Windows.Automation.AutomationProperties.SetAutomationId(button,
+            "virus-overview-open-" + page + (tab == null ? "" : "-" + tab.ToLowerInvariant()));
+         button.Click += (s, e) => (Application.Current?.MainWindow as MainWindow)?.NavigateToTab(page, tab);
          return button;
       }
    }

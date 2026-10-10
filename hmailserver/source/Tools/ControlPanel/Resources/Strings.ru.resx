@@ -3405,6 +3405,9 @@ Control Panel может читать файлы сообщений только
   <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
     <value>Подсчитанные неудачные входы очищены. Уже заблокированные адреса остаются заблокированными до конца блокировки - кнопка «Снять блокировку» в разделе «Заблокировано сейчас» сразу впускает адрес.</value>
   </data>
+  <data name="Counting external accounts…" xml:space="preserve">
+    <value>Подсчёт внешних учётных записей…</value>
+  </data>
   <data name="Countries" xml:space="preserve">
     <value>Страны</value>
   </data>
@@ -4931,17 +4934,14 @@ Control Panel может читать файлы сообщений только
   <data name="Every message goes through {0} scanners in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;.|few" xml:space="preserve">
     <value>Каждое сообщение проходит по очереди через каждый из {0} сканеров, и каждого спрашивают сначала о сообщении целиком, а затем о каждом вложении отдельно. Это тщательно и это не бесплатно: проверка выполняется, пока отправитель ждёт своего «250 OK».</value>
   </data>
-  <data name="Every message is scanned by one scanner." xml:space="preserve">
-    <value>Каждое сообщение проверяется одним сканером.</value>
+  <data name="Every message is scanned by one scanner: {0}." xml:space="preserve">
+    <value>Каждое сообщение проверяет один сканер: {0}.</value>
   </data>
-  <data name="Every message is scanned by {0} scanner." xml:space="preserve">
-    <value>Каждое сообщение проверяет каждый из {0} сканера.</value>
+  <data name="Every message is scanned by three scanners in turn: {0}, then {1}, then {2}." xml:space="preserve">
+    <value>Каждое сообщение по очереди проверяют три сканера: {0}, затем {1}, затем {2}.</value>
   </data>
-  <data name="Every message is scanned by {0} scanners." xml:space="preserve">
-    <value>Каждое сообщение проверяет каждый из {0} сканеров.</value>
-  </data>
-  <data name="Every message is scanned by {0} scanners.|few" xml:space="preserve">
-    <value>Каждое сообщение проверяет каждый из {0} сканеров.</value>
+  <data name="Every message is scanned by two scanners in turn: {0}, then {1}." xml:space="preserve">
+    <value>Каждое сообщение по очереди проверяют два сканера: {0}, затем {1}.</value>
   </data>
   <data name="Every message still in the delivery queue, the last error the server got for it, and when it is retried." xml:space="preserve">
     <value>Все сообщения, ещё находящиеся в очереди доставки, последняя ошибка, полученная сервером по каждому из них, и время следующей попытки.</value>
@@ -6604,6 +6604,21 @@ Control Panel может читать файлы сообщений только
   <data name="Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts." xml:space="preserve">
     <value>Почту из-за пределов организации можно пометить, чтобы читатель увидел это сразу. Отправитель считается внешним, когда сеанс не вошёл в систему, сообщение пришло не через доверенный входящий ретранслятор, и ни отправитель конверта, ни адрес From не принадлежат домену, который обслуживает этот сервер.</value>
   </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox's verdict before it is delivered." xml:space="preserve">
+    <value>Почта извне с вложением отправляемого типа перед доставкой ждёт вердикта песочницы.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one quarantines it, and no verdict in time delivers it with a header saying so." xml:space="preserve">
+    <value>Почта извне с вложением отправляемого типа ждёт песочницу: чистый вердикт доставляет её, вредоносный помещает её в карантин, а без вердикта вовремя она доставляется с заголовком, который об этом говорит.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one quarantines it, and no verdict in time returns it to its sender." xml:space="preserve">
+    <value>Почта извне с вложением отправляемого типа ждёт песочницу: чистый вердикт доставляет её, вредоносный помещает её в карантин, а без вердикта вовремя она возвращается отправителю.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one returns it to its sender while quarantining is off, and no verdict in time delivers it with a header saying so." xml:space="preserve">
+    <value>Почта извне с вложением отправляемого типа ждёт песочницу: чистый вердикт доставляет её, вредоносный возвращает её отправителю, пока карантин выключен, а без вердикта вовремя она доставляется с заголовком, который об этом говорит.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one returns it to its sender while quarantining is off, and no verdict in time returns it too." xml:space="preserve">
+    <value>Почта извне с вложением отправляемого типа ждёт песочницу: чистый вердикт доставляет её, вредоносный возвращает её отправителю, пока карантин выключен, а без вердикта вовремя она тоже возвращается.</value>
+  </data>
   <data name="Mail is addressed to a domain, so the server needs one before it can receive anything." xml:space="preserve">
     <value>Почта адресуется домену, поэтому серверу нужен домен, прежде чем он сможет что-либо принимать.</value>
   </data>
@@ -7010,23 +7025,20 @@ Control Panel может читать файлы сообщений только
   <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message or a group, and the buttons over the list on every checked message." xml:space="preserve">
     <value>Сообщения, которые сервер иначе отклонил бы, задержаны, чтобы кто-то мог их посмотреть. Отправителю каждого из них сообщили, что оно принято, поэтому ничто не придёт снова само по себе: выпуск одного доставляет его, а удаление окончательно. Значки действуют на одно сообщение или группу, а кнопки над списком - на каждое отмеченное сообщение.</value>
   </data>
-  <data name="Messages up to {0} are scanned by one scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>Сообщения размером до {0} проверяет один сканер; всё, что крупнее, доставляется вообще без проверки.</value>
-  </data>
-  <data name="Messages up to {0} are scanned by {1} scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>Сообщения размером до {0} проверяет каждый из {1} сканера; всё, что крупнее, доставляется вообще без проверки.</value>
-  </data>
-  <data name="Messages up to {0} are scanned by {1} scanners; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>Сообщения размером до {0} проверяет каждый из {1} сканеров; всё, что крупнее, доставляется вообще без проверки.</value>
-  </data>
-  <data name="Messages up to {0} are scanned by {1} scanners; anything larger is delivered without being scanned at all.|few" xml:space="preserve">
-    <value>Сообщения размером до {0} проверяет каждый из {1} сканеров; всё, что крупнее, доставляется вообще без проверки.</value>
-  </data>
   <data name="Messages up to {0}. A larger message is delivered without being scanned — it is not refused, and nothing is logged." xml:space="preserve">
     <value>Сообщения размером до {0}. Более крупное сообщение доставляется без проверки — оно не отклоняется, и в журнал ничего не пишется.</value>
   </data>
   <data name="Messages waiting for delivery." xml:space="preserve">
     <value>Сообщения, ожидающие доставки.</value>
+  </data>
+  <data name="Messages within the size limit are scanned by one scanner: {0}." xml:space="preserve">
+    <value>Сообщения в пределах ограничения размера проверяет один сканер: {0}.</value>
+  </data>
+  <data name="Messages within the size limit are scanned by three scanners in turn: {0}, then {1}, then {2}." xml:space="preserve">
+    <value>Сообщения в пределах ограничения размера по очереди проверяют три сканера: {0}, затем {1}, затем {2}.</value>
+  </data>
+  <data name="Messages within the size limit are scanned by two scanners in turn: {0}, then {1}." xml:space="preserve">
+    <value>Сообщения в пределах ограничения размера по очереди проверяют два сканера: {0}, затем {1}.</value>
   </data>
   <data name="Messages: {0}, {1} MB as clients see them. Their files take {2} MB and the parts held once {3} MB, which saves {4}%. Files compressed: {5}. Measured {6}." xml:space="preserve">
     <value>Сообщений: {0}, {1} МБ с точки зрения клиентов. Их файлы занимают {2} МБ, а части, хранимые один раз, — {3} МБ, что экономит {4} %. Сжатых файлов: {5}. Измерено {6}.</value>
@@ -13317,6 +13329,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The sandbox is off, which is the default: nothing is held and nothing is submitted." xml:space="preserve">
     <value>Песочница выключена, это значение по умолчанию: ничего не задерживается и ничего не отправляется.</value>
+  </data>
+  <data name="The sandbox is switched on, but its submit or verdict address is empty." xml:space="preserve">
+    <value>Песочница включена, но её адрес отправки или вердикта пуст.</value>
   </data>
   <data name="The sandbox settings could not be read from the server, so this page cannot say whether one is configured." xml:space="preserve">
     <value>Не удалось прочитать настройки песочницы с сервера, поэтому эта страница не может сказать, настроена ли она.</value>

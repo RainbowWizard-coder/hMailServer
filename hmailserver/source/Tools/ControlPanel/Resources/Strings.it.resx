@@ -3381,6 +3381,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
     <value>Accessi non riusciti conteggiati azzerati. Gli indirizzi già banditi restano banditi finché il loro ban non termina - Revoca ban in Bannati ora ne fa rientrare uno subito.</value>
   </data>
+  <data name="Counting external accounts…" xml:space="preserve">
+    <value>Conteggio degli account esterni…</value>
+  </data>
   <data name="Countries" xml:space="preserve">
     <value>Paesi</value>
   </data>
@@ -4870,14 +4873,14 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Every message goes through {0} scanners in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
     <value>Ogni messaggio passa per {0} scanner a turno, e a ciascuno viene chiesto prima dell'intero messaggio e poi di ogni allegato separatamente. È accurato e non è gratis: la scansione avviene mentre il mittente attende il suo "250 OK".</value>
   </data>
-  <data name="Every message is scanned by one scanner." xml:space="preserve">
-    <value>Ogni messaggio viene scansionato da uno scanner.</value>
+  <data name="Every message is scanned by one scanner: {0}." xml:space="preserve">
+    <value>Ogni messaggio viene scansionato da uno scanner: {0}.</value>
   </data>
-  <data name="Every message is scanned by {0} scanner." xml:space="preserve">
-    <value>Ogni messaggio viene scansionato da {0} scanner.</value>
+  <data name="Every message is scanned by three scanners in turn: {0}, then {1}, then {2}." xml:space="preserve">
+    <value>Ogni messaggio viene scansionato a turno da tre scanner: {0}, poi {1}, poi {2}.</value>
   </data>
-  <data name="Every message is scanned by {0} scanners." xml:space="preserve">
-    <value>Ogni messaggio viene scansionato da {0} scanner.</value>
+  <data name="Every message is scanned by two scanners in turn: {0}, then {1}." xml:space="preserve">
+    <value>Ogni messaggio viene scansionato a turno da due scanner: {0}, poi {1}.</value>
   </data>
   <data name="Every message still in the delivery queue, the last error the server got for it, and when it is retried." xml:space="preserve">
     <value>Ogni messaggio ancora nella coda di consegna, l'ultimo errore che il server ha ricevuto per esso, e quando viene riprovato.</value>
@@ -6528,6 +6531,21 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts." xml:space="preserve">
     <value>La posta proveniente dall'esterno dell'organizzazione può essere contrassegnata perché il lettore la riconosca a colpo d'occhio. Un mittente è esterno quando la sessione non ha effettuato l'accesso, il messaggio non è arrivato tramite un relay in ingresso attendibile e né il mittente della busta né l'indirizzo From appartengono a un dominio ospitato da questo server.</value>
   </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox's verdict before it is delivered." xml:space="preserve">
+    <value>La posta dall'esterno con un allegato di un tipo inviato attende il verdetto della sandbox prima di essere consegnata.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one quarantines it, and no verdict in time delivers it with a header saying so." xml:space="preserve">
+    <value>La posta dall'esterno con un allegato di un tipo inviato attende la sandbox: un verdetto pulito la consegna, uno dannoso la mette in quarantena e, senza verdetto in tempo, viene consegnata con un'intestazione che lo dice.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one quarantines it, and no verdict in time returns it to its sender." xml:space="preserve">
+    <value>La posta dall'esterno con un allegato di un tipo inviato attende la sandbox: un verdetto pulito la consegna, uno dannoso la mette in quarantena e, senza verdetto in tempo, viene restituita al mittente.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one returns it to its sender while quarantining is off, and no verdict in time delivers it with a header saying so." xml:space="preserve">
+    <value>La posta dall'esterno con un allegato di un tipo inviato attende la sandbox: un verdetto pulito la consegna, uno dannoso la restituisce al mittente finché la quarantena è disattivata e, senza verdetto in tempo, viene consegnata con un'intestazione che lo dice.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one returns it to its sender while quarantining is off, and no verdict in time returns it too." xml:space="preserve">
+    <value>La posta dall'esterno con un allegato di un tipo inviato attende la sandbox: un verdetto pulito la consegna, uno dannoso la restituisce al mittente finché la quarantena è disattivata e, senza verdetto in tempo, viene restituita anch'essa.</value>
+  </data>
   <data name="Mail is addressed to a domain, so the server needs one before it can receive anything." xml:space="preserve">
     <value>La posta è indirizzata a un dominio, quindi il server ne ha bisogno di uno prima di poter ricevere qualcosa.</value>
   </data>
@@ -6931,20 +6949,20 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message or a group, and the buttons over the list on every checked message." xml:space="preserve">
     <value>Messaggi che il server avrebbe altrimenti rifiutato, trattenuti perché qualcuno possa esaminarli. Al mittente di ciascuno è stato detto che era stato accettato, quindi nessuno arriverà di nuovo da solo: rilasciarne uno lo consegna, ed eliminarne uno è definitivo. Le icone agiscono su un messaggio o su un gruppo, e i pulsanti sopra l'elenco su ogni messaggio selezionato.</value>
   </data>
-  <data name="Messages up to {0} are scanned by one scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>I messaggi fino a {0} vengono scansionati da uno scanner; tutto ciò che è più grande viene consegnato senza alcuna scansione.</value>
-  </data>
-  <data name="Messages up to {0} are scanned by {1} scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>I messaggi fino a {0} vengono scansionati da {1} scanner; tutto ciò che è più grande viene consegnato senza alcuna scansione.</value>
-  </data>
-  <data name="Messages up to {0} are scanned by {1} scanners; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>I messaggi fino a {0} vengono scansionati da {1} scanner; tutto ciò che è più grande viene consegnato senza alcuna scansione.</value>
-  </data>
   <data name="Messages up to {0}. A larger message is delivered without being scanned — it is not refused, and nothing is logged." xml:space="preserve">
     <value>Messaggi fino a {0}. Un messaggio più grande viene consegnato senza essere scansionato — non viene rifiutato, e nulla viene registrato.</value>
   </data>
   <data name="Messages waiting for delivery." xml:space="preserve">
     <value>Messaggi in attesa di consegna.</value>
+  </data>
+  <data name="Messages within the size limit are scanned by one scanner: {0}." xml:space="preserve">
+    <value>I messaggi entro il limite di dimensione vengono scansionati da uno scanner: {0}.</value>
+  </data>
+  <data name="Messages within the size limit are scanned by three scanners in turn: {0}, then {1}, then {2}." xml:space="preserve">
+    <value>I messaggi entro il limite di dimensione vengono scansionati a turno da tre scanner: {0}, poi {1}, poi {2}.</value>
+  </data>
+  <data name="Messages within the size limit are scanned by two scanners in turn: {0}, then {1}." xml:space="preserve">
+    <value>I messaggi entro il limite di dimensione vengono scansionati a turno da due scanner: {0}, poi {1}.</value>
   </data>
   <data name="Messages: {0}, {1} MB as clients see them. Their files take {2} MB and the parts held once {3} MB, which saves {4}%. Files compressed: {5}. Measured {6}." xml:space="preserve">
     <value>Messaggi: {0}, {1} MB come li vedono i client. I loro file occupano {2} MB e le parti conservate una volta {3} MB, con un risparmio del {4}%. File compressi: {5}. Misurato {6}.</value>
@@ -13133,6 +13151,9 @@ Aggiungerlo comunque?</value>
   </data>
   <data name="The sandbox is off, which is the default: nothing is held and nothing is submitted." xml:space="preserve">
     <value>La sandbox è disattivata, che è l'impostazione predefinita: nulla viene trattenuto e nulla viene inviato.</value>
+  </data>
+  <data name="The sandbox is switched on, but its submit or verdict address is empty." xml:space="preserve">
+    <value>La sandbox è attivata, ma il suo indirizzo di invio o di verdetto è vuoto.</value>
   </data>
   <data name="The sandbox settings could not be read from the server, so this page cannot say whether one is configured." xml:space="preserve">
     <value>Non è stato possibile leggere dal server le impostazioni della sandbox, quindi questa pagina non può dire se ne è configurata una.</value>

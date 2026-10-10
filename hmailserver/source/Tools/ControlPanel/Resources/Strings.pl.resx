@@ -3405,6 +3405,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
     <value>Zliczone nieudane logowania wyczyszczone. Adresy już zablokowane pozostają zablokowane do końca blokady - Zdejmij blokadę w sekcji Zablokowane teraz od razu wpuszcza adres.</value>
   </data>
+  <data name="Counting external accounts…" xml:space="preserve">
+    <value>Liczenie kont zewnętrznych…</value>
+  </data>
   <data name="Countries" xml:space="preserve">
     <value>Kraje</value>
   </data>
@@ -4931,17 +4934,14 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Every message goes through {0} scanners in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;.|few" xml:space="preserve">
     <value>Każda wiadomość przechodzi kolejno przez każdy z {0} skanerów, a każdy z nich jest pytany o całą wiadomość, a potem osobno o każdy załącznik. Jest to dokładne i nie jest darmowe: skanowanie odbywa się, gdy nadawca czeka na swoje „250 OK”.</value>
   </data>
-  <data name="Every message is scanned by one scanner." xml:space="preserve">
-    <value>Każda wiadomość jest skanowana przez jeden skaner.</value>
+  <data name="Every message is scanned by one scanner: {0}." xml:space="preserve">
+    <value>Każdą wiadomość skanuje jeden skaner: {0}.</value>
   </data>
-  <data name="Every message is scanned by {0} scanner." xml:space="preserve">
-    <value>Każdą wiadomość skanuje {0} skaner.</value>
+  <data name="Every message is scanned by three scanners in turn: {0}, then {1}, then {2}." xml:space="preserve">
+    <value>Każdą wiadomość skanują po kolei trzy skanery: {0}, potem {1}, potem {2}.</value>
   </data>
-  <data name="Every message is scanned by {0} scanners." xml:space="preserve">
-    <value>Każdą wiadomość skanuje każdy z {0} skanerów.</value>
-  </data>
-  <data name="Every message is scanned by {0} scanners.|few" xml:space="preserve">
-    <value>Każdą wiadomość skanuje każdy z {0} skanerów.</value>
+  <data name="Every message is scanned by two scanners in turn: {0}, then {1}." xml:space="preserve">
+    <value>Każdą wiadomość skanują po kolei dwa skanery: {0}, potem {1}.</value>
   </data>
   <data name="Every message still in the delivery queue, the last error the server got for it, and when it is retried." xml:space="preserve">
     <value>Wszystkie wiadomości wciąż znajdujące się w kolejce dostarczania, ostatni błąd, jaki serwer dla nich otrzymał, oraz termin ponowienia próby.</value>
@@ -6604,6 +6604,21 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   <data name="Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts." xml:space="preserve">
     <value>Pocztę spoza organizacji można oznaczyć tak, aby czytelnik zobaczył to od razu. Nadawca jest z zewnątrz, gdy sesja się nie zalogowała, wiadomość nie przyszła przez zaufany przekaźnik przychodzący, a ani nadawca koperty, ani adres From nie należy do domeny hostowanej przez ten serwer.</value>
   </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox's verdict before it is delivered." xml:space="preserve">
+    <value>Poczta z zewnątrz z załącznikiem przesyłanego typu czeka przed dostarczeniem na werdykt piaskownicy.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one quarantines it, and no verdict in time delivers it with a header saying so." xml:space="preserve">
+    <value>Poczta z zewnątrz z załącznikiem przesyłanego typu czeka na piaskownicę: czysty werdykt ją dostarcza, złośliwy kieruje ją do kwarantanny, a bez werdyktu na czas jest dostarczana z nagłówkiem, który to mówi.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one quarantines it, and no verdict in time returns it to its sender." xml:space="preserve">
+    <value>Poczta z zewnątrz z załącznikiem przesyłanego typu czeka na piaskownicę: czysty werdykt ją dostarcza, złośliwy kieruje ją do kwarantanny, a bez werdyktu na czas jest zwracana nadawcy.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one returns it to its sender while quarantining is off, and no verdict in time delivers it with a header saying so." xml:space="preserve">
+    <value>Poczta z zewnątrz z załącznikiem przesyłanego typu czeka na piaskownicę: czysty werdykt ją dostarcza, złośliwy zwraca ją nadawcy, dopóki kwarantanna jest wyłączona, a bez werdyktu na czas jest dostarczana z nagłówkiem, który to mówi.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one returns it to its sender while quarantining is off, and no verdict in time returns it too." xml:space="preserve">
+    <value>Poczta z zewnątrz z załącznikiem przesyłanego typu czeka na piaskownicę: czysty werdykt ją dostarcza, złośliwy zwraca ją nadawcy, dopóki kwarantanna jest wyłączona, a bez werdyktu na czas również jest zwracana.</value>
+  </data>
   <data name="Mail is addressed to a domain, so the server needs one before it can receive anything." xml:space="preserve">
     <value>Poczta jest adresowana do domeny, więc serwer potrzebuje jej, zanim będzie mógł cokolwiek odebrać.</value>
   </data>
@@ -7010,23 +7025,20 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message or a group, and the buttons over the list on every checked message." xml:space="preserve">
     <value>Wiadomości, które serwer w innym razie by odrzucił, wstrzymane, aby ktoś mógł je obejrzeć. Nadawcy każdej z nich powiedziano, że została przyjęta, więc nic nie nadejdzie ponownie samo z siebie: zwolnienie jednej ją doręcza, a usunięcie jest ostateczne. Ikony działają na jedną wiadomość lub grupę, a przyciski nad listą na każdą zaznaczoną wiadomość.</value>
   </data>
-  <data name="Messages up to {0} are scanned by one scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>Wiadomości do {0} są skanowane przez jeden skaner; wszystko większe jest dostarczane w ogóle bez skanowania.</value>
-  </data>
-  <data name="Messages up to {0} are scanned by {1} scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>Wiadomości do {0} skanuje {1} skaner; wszystko większe jest dostarczane w ogóle bez skanowania.</value>
-  </data>
-  <data name="Messages up to {0} are scanned by {1} scanners; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>Wiadomości do {0} skanuje każdy z {1} skanerów; wszystko większe jest dostarczane w ogóle bez skanowania.</value>
-  </data>
-  <data name="Messages up to {0} are scanned by {1} scanners; anything larger is delivered without being scanned at all.|few" xml:space="preserve">
-    <value>Wiadomości do {0} skanuje każdy z {1} skanerów; wszystko większe jest dostarczane w ogóle bez skanowania.</value>
-  </data>
   <data name="Messages up to {0}. A larger message is delivered without being scanned — it is not refused, and nothing is logged." xml:space="preserve">
     <value>Wiadomości do {0}. Większa wiadomość jest dostarczana bez skanowania — nie jest odrzucana i nic nie trafia do dziennika.</value>
   </data>
   <data name="Messages waiting for delivery." xml:space="preserve">
     <value>Wiadomości czekające na dostarczenie.</value>
+  </data>
+  <data name="Messages within the size limit are scanned by one scanner: {0}." xml:space="preserve">
+    <value>Wiadomości mieszczące się w limicie rozmiaru skanuje jeden skaner: {0}.</value>
+  </data>
+  <data name="Messages within the size limit are scanned by three scanners in turn: {0}, then {1}, then {2}." xml:space="preserve">
+    <value>Wiadomości mieszczące się w limicie rozmiaru skanują po kolei trzy skanery: {0}, potem {1}, potem {2}.</value>
+  </data>
+  <data name="Messages within the size limit are scanned by two scanners in turn: {0}, then {1}." xml:space="preserve">
+    <value>Wiadomości mieszczące się w limicie rozmiaru skanują po kolei dwa skanery: {0}, potem {1}.</value>
   </data>
   <data name="Messages: {0}, {1} MB as clients see them. Their files take {2} MB and the parts held once {3} MB, which saves {4}%. Files compressed: {5}. Measured {6}." xml:space="preserve">
     <value>Wiadomości: {0}, {1} MB tak, jak widzą je klienci. Ich pliki zajmują {2} MB, a części przechowywane raz {3} MB, co oszczędza {4}%. Skompresowane pliki: {5}. Zmierzono {6}.</value>
@@ -13317,6 +13329,9 @@ Dodać mimo to?</value>
   </data>
   <data name="The sandbox is off, which is the default: nothing is held and nothing is submitted." xml:space="preserve">
     <value>Piaskownica jest wyłączona, co jest ustawieniem domyślnym: nic nie jest zatrzymywane ani przesyłane.</value>
+  </data>
+  <data name="The sandbox is switched on, but its submit or verdict address is empty." xml:space="preserve">
+    <value>Piaskownica jest włączona, ale jej adres przesyłania lub werdyktu jest pusty.</value>
   </data>
   <data name="The sandbox settings could not be read from the server, so this page cannot say whether one is configured." xml:space="preserve">
     <value>Nie udało się odczytać ustawień piaskownicy z serwera, więc ta strona nie może powiedzieć, czy jakaś jest skonfigurowana.</value>

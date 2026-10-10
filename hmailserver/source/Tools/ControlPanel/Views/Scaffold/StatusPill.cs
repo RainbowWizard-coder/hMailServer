@@ -2,11 +2,15 @@
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Automation.Peers;
 using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using hMailServer.ControlPanel.Services;
 
 namespace hMailServer.ControlPanel.Views.Scaffold
@@ -29,6 +33,11 @@ namespace hMailServer.ControlPanel.Views.Scaffold
    /// themselves, until the list page pattern moved them here (review finding
    /// F288). A pill that is no live region - the setting's default, Off - asks for
    /// nothing, so the shell's pill and a grid's cells are as they were.
+   ///
+   /// A pill its row squeezes ends its word in an ellipsis and says the whole
+   /// word in a tool tip, unless the page gave it a tool tip of its own. The
+   /// accessible name always held the whole word; a reader who sees the pill
+   /// had "On, but cann…" and nothing to point at (review finding F265).
    ///
    /// <code>
    /// &lt;scaffold:StatusPill Level="Good" Text="{loc:L 'Connected'}" /&gt;
@@ -79,11 +88,28 @@ namespace hMailServer.ControlPanel.Views.Scaffold
       // it: the component only replaces a name it wrote.
       private string ownName_;
 
+      // The template's word, watched for being cut (TipWhenTrimmed_).
+      private TextBlock label_;
+
+      // The tool tip this component gave itself, the whole word of a cut pill. A
+      // tool tip the page set is not this one, and is left alone.
+      private object ownTip_;
+
       public override void OnApplyTemplate()
       {
+         if (label_ != null)
+            label_.SizeChanged -= Label_SizeChanged;
+
          base.OnApplyTemplate();
+
+         label_ = Part<TextBlock>("PART_Text");
+         if (label_ != null)
+            label_.SizeChanged += Label_SizeChanged;
+
          Apply_();
       }
+
+      private void Label_SizeChanged(object sender, SizeChangedEventArgs e) => TipWhenTrimmed_();
 
       private static void OnPresentationChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
       {
@@ -91,6 +117,48 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          pill.Apply_();
          if (pill.IsLive_())
             Announce.Request(pill);
+
+         // A new word in a box held to the same width changes no size: whether it
+         // is cut is asked once it is laid out.
+         if (e.Property == TextProperty && pill.label_ != null)
+            pill.Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(pill.TipWhenTrimmed_));
+      }
+
+      /// <summary>
+      /// Gives the pill its whole word as a tool tip while the word is cut - its
+      /// width in the word's own font wider than the room the row left it - and
+      /// takes that tool tip away once the word fits again.
+      /// </summary>
+      private void TipWhenTrimmed_()
+      {
+         TextBlock label = label_;
+         string text = Text;
+         bool trimmed = label != null && !string.IsNullOrEmpty(text) && label.ActualWidth > 0 &&
+            NaturalWidth_(label, text) > label.ActualWidth + 1;
+
+         if (trimmed)
+         {
+            if (ToolTip == null || ReferenceEquals(ToolTip, ownTip_))
+            {
+               ownTip_ = text;
+               ToolTip = text;
+            }
+         }
+         else if (ownTip_ != null)
+         {
+            if (ReferenceEquals(ToolTip, ownTip_))
+               ClearValue(ToolTipProperty);
+            ownTip_ = null;
+         }
+      }
+
+      /// <summary>The width <paramref name="text"/> takes in <paramref name="label"/>'s font, as the window draws it.</summary>
+      private static double NaturalWidth_(TextBlock label, string text)
+      {
+         var words = new FormattedText(text, CultureInfo.CurrentUICulture, label.FlowDirection,
+            new Typeface(label.FontFamily, label.FontStyle, label.FontWeight, label.FontStretch), label.FontSize, Brushes.Black, null,
+            TextOptions.GetTextFormattingMode(label), VisualTreeHelper.GetDpi(label).PixelsPerDip);
+         return words.WidthIncludingTrailingWhitespace;
       }
 
       // Whether the pill has something to say as a live region. Asked before a

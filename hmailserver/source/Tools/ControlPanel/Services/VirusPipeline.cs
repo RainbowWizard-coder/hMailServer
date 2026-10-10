@@ -20,11 +20,12 @@ namespace hMailServer.ControlPanel.Services
    public sealed class VirusScannerEntry
    {
       internal VirusScannerEntry(string key, int order, string name, bool enabled, bool usable,
-         string detail, string problem, string page, bool unread = false)
+         string detail, string problem, string page, bool unread = false, string shortName = null)
       {
          Key = key;
          Order = order;
          Name = name;
+         ShortName = shortName ?? name;
          Unread = unread;
          // A scanner whose settings could not be read is neither on nor off, and
          // neither usable nor broken: the row says "Not read", and nothing that
@@ -48,6 +49,13 @@ namespace hMailServer.ControlPanel.Services
       public int Order { get; }
 
       public string Name { get; }
+
+      /// <summary>
+      /// The name in a sentence that lists the scanners - ClamWin, Custom scanner,
+      /// ClamAV - where <see cref="Name"/> says what each is as well, in brackets
+      /// that a list of three would run together (review finding F265).
+      /// </summary>
+      public string ShortName { get; }
 
       /// <summary>Whether the administrator has switched it on.</summary>
       public bool Enabled { get; }
@@ -182,6 +190,33 @@ namespace hMailServer.ControlPanel.Services
       public bool FetchAccountScanIncomplete { get; set; }
 
       /// <summary>
+      /// Settings.SandboxEnabled: attachments of a submitted type in mail from
+      /// outside are sent to a sandbox and the message held for its verdict
+      /// (docs/Sandbox.md) - after the anti-virus scan and before the rules.
+      /// </summary>
+      public bool SandboxEnabled { get; set; }
+
+      /// <summary>Settings.SandboxSubmitUrl. Empty holds and submits nothing, whatever the switch says.</summary>
+      public string SandboxSubmitUrl { get; set; } = "";
+
+      /// <summary>Settings.SandboxVerdictUrl. Empty holds and submits nothing, whatever the switch says.</summary>
+      public string SandboxVerdictUrl { get; set; } = "";
+
+      /// <summary>
+      /// Settings.SandboxTimeoutAction is 1: a hold the sandbox did not answer for in
+      /// time, or answered error, is returned to its sender (5.7.1); 0, the default,
+      /// delivers it with a header saying so.
+      /// </summary>
+      public bool SandboxTimeoutReturns { get; set; }
+
+      /// <summary>
+      /// QuarantineEnabled ([Settings]): a malicious verdict quarantines the message.
+      /// Off, as shipped, it is returned to its sender with 5.7.1 instead, since the
+      /// quarantine's digest and release are off with it (docs/Sandbox.md).
+      /// </summary>
+      public bool QuarantineEnabled { get; set; }
+
+      /// <summary>
       /// The properties that could not be read, by name, kept by the page that
       /// fills this snapshot. A value that could not be read is the type's
       /// default, which here is a real configuration - a threshold of 0, a check
@@ -260,7 +295,8 @@ namespace hMailServer.ControlPanel.Services
                   : IsBlank(config.ClamWinDatabaseFolder) ? L("No signature database folder is set.")
                   : null,
             "antivirus",
-            Unread(nameof(config.ClamWinEnabled), nameof(config.ClamWinExecutable), nameof(config.ClamWinDatabaseFolder))));
+            Unread(nameof(config.ClamWinEnabled), nameof(config.ClamWinExecutable), nameof(config.ClamWinDatabaseFolder)),
+            "ClamWin")); // no-loc: the product's name
 
          // 2. The custom scanner. Only the executable is required; the return value
          //    that means "infected" is a number and 0 is a legitimate choice, so it
@@ -276,7 +312,8 @@ namespace hMailServer.ControlPanel.Services
                ? L("No executable path is set.")
                : null,
             "antivirus",
-            Unread(nameof(config.CustomScannerEnabled), nameof(config.CustomScannerExecutable), nameof(config.CustomScannerVirusReturnValue))));
+            Unread(nameof(config.CustomScannerEnabled), nameof(config.CustomScannerExecutable), nameof(config.CustomScannerVirusReturnValue)),
+            L("Custom scanner")));
 
          // 3. ClamAV over the network (clamd INSTREAM). A port of 0 is not a
          //    default, it is an address nothing listens on.
@@ -294,7 +331,8 @@ namespace hMailServer.ControlPanel.Services
                : config.ClamAvPort > 65535 ? L("The port is outside the range 1-65535.")
                : null,
             "antivirus",
-            Unread(nameof(config.ClamAvEnabled), nameof(config.ClamAvHost), nameof(config.ClamAvPort))));
+            Unread(nameof(config.ClamAvEnabled), nameof(config.ClamAvHost), nameof(config.ClamAvPort)),
+            "ClamAV")); // no-loc: the product's name
 
          return scanners;
       }
@@ -375,22 +413,28 @@ namespace hMailServer.ControlPanel.Services
                   "No message is scanned for viruses. Attachment blocking is still stripping {0} file-name patterns, but nothing examines the contents of a message.");
          }
 
-         string scanned;
-         if (config.MaxScanKilobytes > 0)
+         // The scanners by name, in the order the server tries them, where the
+         // verdict counted them - "scanned by 2 scanners" sent the reader to the
+         // card below to find out which. With a size limit the sentence says
+         // "within the size limit" and no more: the limit and what becomes of a
+         // larger message are the Warning under the verdict, and the next card's
+         // first line, which the verdict said a third time (review finding F265).
+         // A sentence for each count, the names after a colon, so that no
+         // language has to decline a name it cannot.
+         List<string> names = Scanners(config).Where(scanner => scanner.Usable).Select(scanner => scanner.ShortName).ToList();
+         bool limited = config.MaxScanKilobytes > 0;
+         string scanned = names.Count switch
          {
-            scanned = usable == 1
-               ? F("Messages up to {0} are scanned by one scanner; anything larger is delivered without being scanned at all.", Kilobytes(config.MaxScanKilobytes))
-               : PluralF(usable,
-                  "Messages up to {0} are scanned by {1} scanner; anything larger is delivered without being scanned at all.",
-                  "Messages up to {0} are scanned by {1} scanners; anything larger is delivered without being scanned at all.",
-                  Kilobytes(config.MaxScanKilobytes), usable);
-         }
-         else
-         {
-            scanned = usable == 1
-               ? L("Every message is scanned by one scanner.")
-               : Plural(usable, "Every message is scanned by {0} scanner.", "Every message is scanned by {0} scanners.");
-         }
+            1 => limited
+               ? F("Messages within the size limit are scanned by one scanner: {0}.", names[0])
+               : F("Every message is scanned by one scanner: {0}.", names[0]),
+            2 => limited
+               ? F("Messages within the size limit are scanned by two scanners in turn: {0}, then {1}.", names[0], names[1])
+               : F("Every message is scanned by two scanners in turn: {0}, then {1}.", names[0], names[1]),
+            _ => limited
+               ? F("Messages within the size limit are scanned by three scanners in turn: {0}, then {1}, then {2}.", names[0], names[1], names[2])
+               : F("Every message is scanned by three scanners in turn: {0}, then {1}, then {2}.", names[0], names[1], names[2])
+         };
 
          // The first sentence is whole, and the second is written whole in the
          // text that places it, so that a language with no space between
@@ -398,6 +442,45 @@ namespace hMailServer.ControlPanel.Services
          return config.Action == VirusAction.DeleteMessage
             ? F("{0} If a virus is found, the whole message is deleted and never delivered.", scanned)
             : F("{0} If a virus is found, the attachments are stripped and the message is still delivered.", scanned);
+      }
+
+      /// <summary>
+      /// The attachment sandbox (docs/Sandbox.md) as the overview's card says it:
+      /// the word on its pill, the pill's level and one sentence. The sandbox is
+      /// the other thing that holds or quarantines a message for what it carries,
+      /// and the overview did not mention it (review finding F265). Off is the
+      /// default and says nothing is held; switched on with an address empty is
+      /// the state that looks on and holds nothing - the server refuses to save
+      /// it so, but an address emptied over COM while it was on leaves it so.
+      /// Nothing is said of a value not read.
+      /// </summary>
+      public static (StatusLevel Level, string State, string Sentence) Sandbox(VirusPipelineConfig config)
+      {
+         if (config == null || !config.WasRead(nameof(config.SandboxEnabled), nameof(config.SandboxSubmitUrl), nameof(config.SandboxVerdictUrl)))
+            return (StatusLevel.Normal, L("Not read"), L("These settings could not be read."));
+
+         if (!config.SandboxEnabled)
+            return (StatusLevel.Normal, L("Off"), L("The sandbox is off, which is the default: nothing is held and nothing is submitted."));
+
+         if (IsBlank(config.SandboxSubmitUrl) || IsBlank(config.SandboxVerdictUrl))
+            return (StatusLevel.Warning, L("On, but cannot run"), L("The sandbox is switched on, but its submit or verdict address is empty."));
+
+         // What the verdicts do turns on two more settings; not read, the sentence
+         // is the one that does not say.
+         if (!config.WasRead(nameof(config.SandboxTimeoutReturns), nameof(config.QuarantineEnabled)))
+            return (StatusLevel.Good, L("On"), L("Mail from outside with an attachment of a submitted type waits for the sandbox's verdict before it is delivered."));
+
+         // A whole sentence for each pair: a malicious verdict quarantines the
+         // message, or returns it while quarantining is off; no verdict in time
+         // delivers it with a header, or returns it (SandboxTimeoutAction).
+         string sentence = (config.QuarantineEnabled, config.SandboxTimeoutReturns) switch
+         {
+            (true, false) => L("Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one quarantines it, and no verdict in time delivers it with a header saying so."),
+            (true, true) => L("Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one quarantines it, and no verdict in time returns it to its sender."),
+            (false, false) => L("Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one returns it to its sender while quarantining is off, and no verdict in time delivers it with a header saying so."),
+            (false, true) => L("Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one returns it to its sender while quarantining is off, and no verdict in time returns it too.")
+         };
+         return (StatusLevel.Good, L("On"), sentence);
       }
 
       /// <summary>
@@ -506,6 +589,14 @@ namespace hMailServer.ControlPanel.Services
          {
             notes.Add(new VirusPipelineNote(StatusLevel.Warning,
                L("A notice is sent to the envelope sender of every infected message. Virus senders forge that address almost without exception, so this mostly delivers mail to people who did not send anything — which is backscatter, and it is what gets a server onto a block list.")));
+         }
+
+         // The sandbox switched on with an address empty: on the page that sets it,
+         // and in the words of the external setup checklist, which says the same.
+         if (Sandbox(config).Level == StatusLevel.Warning)
+         {
+            notes.Add(new VirusPipelineNote(StatusLevel.Warning,
+               L("The sandbox is ON but an address is empty, so nothing is held and nothing is submitted until both are set - the application log says so at every start. Set both addresses, or turn it off.")));
          }
 
          if (blocking && config.AttachmentBlockingEnabled && config.BlockedAttachmentPatterns == 0)

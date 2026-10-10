@@ -3381,6 +3381,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
     <value>Getelde mislukte aanmeldingen gewist. Adressen die al verbannen zijn, blijven verbannen totdat hun verbanning afloopt - Verbanning opheffen onder Nu verbannen laat er meteen een toe.</value>
   </data>
+  <data name="Counting external accounts…" xml:space="preserve">
+    <value>Externe accounts tellen…</value>
+  </data>
   <data name="Countries" xml:space="preserve">
     <value>Landen</value>
   </data>
@@ -4870,14 +4873,14 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Every message goes through {0} scanners in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
     <value>Elk bericht gaat achtereenvolgens door {0} scanners, en elk daarvan krijgt eerst het hele bericht en daarna elke bijlage afzonderlijk voorgelegd. Dat is grondig en het is niet gratis: de scan gebeurt terwijl de afzender op zijn "250 OK" wacht.</value>
   </data>
-  <data name="Every message is scanned by one scanner." xml:space="preserve">
-    <value>Elk bericht wordt gescand door één scanner.</value>
+  <data name="Every message is scanned by one scanner: {0}." xml:space="preserve">
+    <value>Elk bericht wordt gescand door één scanner: {0}.</value>
   </data>
-  <data name="Every message is scanned by {0} scanner." xml:space="preserve">
-    <value>Elk bericht wordt gescand door {0} scanner.</value>
+  <data name="Every message is scanned by three scanners in turn: {0}, then {1}, then {2}." xml:space="preserve">
+    <value>Elk bericht wordt om beurten gescand door drie scanners: {0}, daarna {1}, daarna {2}.</value>
   </data>
-  <data name="Every message is scanned by {0} scanners." xml:space="preserve">
-    <value>Elk bericht wordt gescand door {0} scanners.</value>
+  <data name="Every message is scanned by two scanners in turn: {0}, then {1}." xml:space="preserve">
+    <value>Elk bericht wordt om beurten gescand door twee scanners: {0}, daarna {1}.</value>
   </data>
   <data name="Every message still in the delivery queue, the last error the server got for it, and when it is retried." xml:space="preserve">
     <value>Elk bericht dat nog in de bezorgwachtrij staat, de laatste fout die de server ervoor kreeg, en wanneer het opnieuw wordt geprobeerd.</value>
@@ -6528,6 +6531,21 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts." xml:space="preserve">
     <value>Post van buiten de organisatie kan gemarkeerd worden zodat een lezer het in één oogopslag ziet. Een afzender is van buiten wanneer de sessie niet is aangemeld, het bericht niet via een vertrouwd inkomend relais is binnengekomen en noch de envelopafzender noch het From-adres bij een domein hoort dat deze server host.</value>
   </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox's verdict before it is delivered." xml:space="preserve">
+    <value>Mail van buiten met een bijlage van een ingediend type wacht op het oordeel van de sandbox voordat die wordt bezorgd.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one quarantines it, and no verdict in time delivers it with a header saying so." xml:space="preserve">
+    <value>Mail van buiten met een bijlage van een ingediend type wacht op de sandbox: een schoon oordeel bezorgt die, een kwaadaardig oordeel zet die in quarantaine, en zonder tijdig oordeel wordt die bezorgd met een header die dat zegt.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one quarantines it, and no verdict in time returns it to its sender." xml:space="preserve">
+    <value>Mail van buiten met een bijlage van een ingediend type wacht op de sandbox: een schoon oordeel bezorgt die, een kwaadaardig oordeel zet die in quarantaine, en zonder tijdig oordeel wordt die teruggestuurd naar de afzender.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one returns it to its sender while quarantining is off, and no verdict in time delivers it with a header saying so." xml:space="preserve">
+    <value>Mail van buiten met een bijlage van een ingediend type wacht op de sandbox: een schoon oordeel bezorgt die, een kwaadaardig oordeel stuurt die terug naar de afzender zolang quarantaine uit staat, en zonder tijdig oordeel wordt die bezorgd met een header die dat zegt.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one returns it to its sender while quarantining is off, and no verdict in time returns it too." xml:space="preserve">
+    <value>Mail van buiten met een bijlage van een ingediend type wacht op de sandbox: een schoon oordeel bezorgt die, een kwaadaardig oordeel stuurt die terug naar de afzender zolang quarantaine uit staat, en zonder tijdig oordeel wordt die ook teruggestuurd.</value>
+  </data>
   <data name="Mail is addressed to a domain, so the server needs one before it can receive anything." xml:space="preserve">
     <value>Mail is aan een domein geadresseerd, dus de server heeft er een nodig voordat hij iets kan ontvangen.</value>
   </data>
@@ -6931,20 +6949,20 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message or a group, and the buttons over the list on every checked message." xml:space="preserve">
     <value>Berichten die de server anders zou hebben geweigerd, vastgehouden zodat iemand ernaar kan kijken. Elke afzender is verteld dat zijn bericht was geaccepteerd, dus geen ervan komt vanzelf opnieuw binnen: één vrijgeven bezorgt het, en één verwijderen is definitief. De pictogrammen werken op één bericht of een groep, en de knoppen boven de lijst op elk aangevinkt bericht.</value>
   </data>
-  <data name="Messages up to {0} are scanned by one scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>Berichten tot {0} worden gescand door één scanner; alles wat groter is, wordt bezorgd zonder ook maar te zijn gescand.</value>
-  </data>
-  <data name="Messages up to {0} are scanned by {1} scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>Berichten tot {0} worden gescand door {1} scanner; alles wat groter is, wordt bezorgd zonder ook maar te zijn gescand.</value>
-  </data>
-  <data name="Messages up to {0} are scanned by {1} scanners; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>Berichten tot {0} worden gescand door {1} scanners; alles wat groter is, wordt bezorgd zonder ook maar te zijn gescand.</value>
-  </data>
   <data name="Messages up to {0}. A larger message is delivered without being scanned — it is not refused, and nothing is logged." xml:space="preserve">
     <value>Berichten tot {0}. Een groter bericht wordt bezorgd zonder te zijn gescand — het wordt niet geweigerd, en er wordt niets gelogd.</value>
   </data>
   <data name="Messages waiting for delivery." xml:space="preserve">
     <value>Berichten die op bezorging wachten.</value>
+  </data>
+  <data name="Messages within the size limit are scanned by one scanner: {0}." xml:space="preserve">
+    <value>Berichten binnen de groottelimiet worden gescand door één scanner: {0}.</value>
+  </data>
+  <data name="Messages within the size limit are scanned by three scanners in turn: {0}, then {1}, then {2}." xml:space="preserve">
+    <value>Berichten binnen de groottelimiet worden om beurten gescand door drie scanners: {0}, daarna {1}, daarna {2}.</value>
+  </data>
+  <data name="Messages within the size limit are scanned by two scanners in turn: {0}, then {1}." xml:space="preserve">
+    <value>Berichten binnen de groottelimiet worden om beurten gescand door twee scanners: {0}, daarna {1}.</value>
   </data>
   <data name="Messages: {0}, {1} MB as clients see them. Their files take {2} MB and the parts held once {3} MB, which saves {4}%. Files compressed: {5}. Measured {6}." xml:space="preserve">
     <value>Berichten: {0}, {1} MB zoals clients ze zien. Hun bestanden nemen {2} MB in en de één keer bewaarde delen {3} MB, een besparing van {4}%. Gecomprimeerde bestanden: {5}. Gemeten {6}.</value>
@@ -13133,6 +13151,9 @@ Toch toevoegen?</value>
   </data>
   <data name="The sandbox is off, which is the default: nothing is held and nothing is submitted." xml:space="preserve">
     <value>De sandbox staat uit, wat de standaard is: er wordt niets vastgehouden en niets ingediend.</value>
+  </data>
+  <data name="The sandbox is switched on, but its submit or verdict address is empty." xml:space="preserve">
+    <value>De sandbox staat aan, maar het indien- of oordeeladres is leeg.</value>
   </data>
   <data name="The sandbox settings could not be read from the server, so this page cannot say whether one is configured." xml:space="preserve">
     <value>De sandboxinstellingen konden niet van de server worden gelezen, dus deze pagina kan niet zeggen of er een is geconfigureerd.</value>

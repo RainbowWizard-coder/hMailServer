@@ -3381,6 +3381,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
     <value>Sayılan oturum açma hataları temizlendi. Zaten yasaklanmış adresler yasakları bitene kadar yasaklı kalır - Şu anda yasaklı bölümündeki Yasağı kaldır birini hemen içeri alır.</value>
   </data>
+  <data name="Counting external accounts…" xml:space="preserve">
+    <value>Dış hesaplar sayılıyor…</value>
+  </data>
   <data name="Countries" xml:space="preserve">
     <value>Ülkeler</value>
   </data>
@@ -4870,14 +4873,14 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Every message goes through {0} scanners in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
     <value>Her ileti sırayla {0} tarayıcı üzerinden geçer ve her birine önce iletinin tamamı, sonra her ek ayrı ayrı sorulur. Bu kapsamlıdır ve bedelsiz değildir: tarama, gönderen "250 OK" yanıtını beklerken yapılır.</value>
   </data>
-  <data name="Every message is scanned by one scanner." xml:space="preserve">
-    <value>Her ileti bir tarayıcı tarafından taranır.</value>
+  <data name="Every message is scanned by one scanner: {0}." xml:space="preserve">
+    <value>Her ileti bir tarayıcı tarafından taranır: {0}.</value>
   </data>
-  <data name="Every message is scanned by {0} scanner." xml:space="preserve">
-    <value>Her ileti {0} tarayıcı tarafından taranır.</value>
+  <data name="Every message is scanned by three scanners in turn: {0}, then {1}, then {2}." xml:space="preserve">
+    <value>Her ileti sırayla üç tarayıcı tarafından taranır: {0}, ardından {1}, ardından {2}.</value>
   </data>
-  <data name="Every message is scanned by {0} scanners." xml:space="preserve">
-    <value>Her ileti {0} tarayıcı tarafından taranır.</value>
+  <data name="Every message is scanned by two scanners in turn: {0}, then {1}." xml:space="preserve">
+    <value>Her ileti sırayla iki tarayıcı tarafından taranır: {0}, ardından {1}.</value>
   </data>
   <data name="Every message still in the delivery queue, the last error the server got for it, and when it is retried." xml:space="preserve">
     <value>Teslim kuyruğunda hâlâ bekleyen her ileti, sunucunun onun için aldığı son hata ve ne zaman yeniden deneneceği.</value>
@@ -6528,6 +6531,21 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts." xml:space="preserve">
     <value>Kuruluş dışından gelen posta, okuyucunun bir bakışta görmesi için işaretlenebilir. Oturum oturum açmadıysa, ileti güvenilen bir gelen aktarıcıdan geçmediyse ve ne zarf göndericisi ne de From adresi bu sunucunun barındırdığı bir etki alanına aitse, gönderen dışarıdandır.</value>
   </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox's verdict before it is delivered." xml:space="preserve">
+    <value>Dışarıdan gelen ve gönderilen türde bir ek içeren posta, teslim edilmeden önce korumalı alanın kararını bekler.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one quarantines it, and no verdict in time delivers it with a header saying so." xml:space="preserve">
+    <value>Dışarıdan gelen ve gönderilen türde bir ek içeren posta korumalı alanı bekler: temiz bir karar onu teslim eder, kötü amaçlı bir karar onu karantinaya alır ve zamanında karar gelmezse bunu belirten bir üst bilgiyle teslim edilir.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one quarantines it, and no verdict in time returns it to its sender." xml:space="preserve">
+    <value>Dışarıdan gelen ve gönderilen türde bir ek içeren posta korumalı alanı bekler: temiz bir karar onu teslim eder, kötü amaçlı bir karar onu karantinaya alır ve zamanında karar gelmezse gönderene geri döndürülür.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one returns it to its sender while quarantining is off, and no verdict in time delivers it with a header saying so." xml:space="preserve">
+    <value>Dışarıdan gelen ve gönderilen türde bir ek içeren posta korumalı alanı bekler: temiz bir karar onu teslim eder, kötü amaçlı bir karar karantina kapalıyken onu gönderene geri döndürür ve zamanında karar gelmezse bunu belirten bir üst bilgiyle teslim edilir.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one returns it to its sender while quarantining is off, and no verdict in time returns it too." xml:space="preserve">
+    <value>Dışarıdan gelen ve gönderilen türde bir ek içeren posta korumalı alanı bekler: temiz bir karar onu teslim eder, kötü amaçlı bir karar karantina kapalıyken onu gönderene geri döndürür ve zamanında karar gelmezse o da geri döndürülür.</value>
+  </data>
   <data name="Mail is addressed to a domain, so the server needs one before it can receive anything." xml:space="preserve">
     <value>Posta bir alan adına gönderilir; sunucunun bir şey alabilmesi için önce bir alan adı gerekir.</value>
   </data>
@@ -6931,20 +6949,20 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message or a group, and the buttons over the list on every checked message." xml:space="preserve">
     <value>Sunucunun aksi halde reddedeceği iletiler, birisi bakabilsin diye bekletiliyor. Bunların her birinin gönderenine kabul edildiği söylendi; bu yüzden hiçbir şey kendiliğinden yeniden gelmeyecek: birini serbest bırakmak onu teslim eder, birini silmek ise kesindir. Simgeler bir iletiye ya da bir gruba, listenin üstündeki düğmeler ise işaretli her iletiye etki eder.</value>
   </data>
-  <data name="Messages up to {0} are scanned by one scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>{0} boyutuna kadar iletiler bir tarayıcı tarafından taranır; daha büyük olan her şey hiç taranmadan teslim edilir.</value>
-  </data>
-  <data name="Messages up to {0} are scanned by {1} scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>{0} boyutuna kadar iletiler {1} tarayıcı tarafından taranır; daha büyük olan her şey hiç taranmadan teslim edilir.</value>
-  </data>
-  <data name="Messages up to {0} are scanned by {1} scanners; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>{0} boyutuna kadar iletiler {1} tarayıcı tarafından taranır; daha büyük olan her şey hiç taranmadan teslim edilir.</value>
-  </data>
   <data name="Messages up to {0}. A larger message is delivered without being scanned — it is not refused, and nothing is logged." xml:space="preserve">
     <value>{0} boyutuna kadar iletiler. Daha büyük bir ileti taranmadan teslim edilir — reddedilmez ve hiçbir şey günlüğe yazılmaz.</value>
   </data>
   <data name="Messages waiting for delivery." xml:space="preserve">
     <value>Teslim bekleyen iletiler.</value>
+  </data>
+  <data name="Messages within the size limit are scanned by one scanner: {0}." xml:space="preserve">
+    <value>Boyut sınırı içindeki iletiler bir tarayıcı tarafından taranır: {0}.</value>
+  </data>
+  <data name="Messages within the size limit are scanned by three scanners in turn: {0}, then {1}, then {2}." xml:space="preserve">
+    <value>Boyut sınırı içindeki iletiler sırayla üç tarayıcı tarafından taranır: {0}, ardından {1}, ardından {2}.</value>
+  </data>
+  <data name="Messages within the size limit are scanned by two scanners in turn: {0}, then {1}." xml:space="preserve">
+    <value>Boyut sınırı içindeki iletiler sırayla iki tarayıcı tarafından taranır: {0}, ardından {1}.</value>
   </data>
   <data name="Messages: {0}, {1} MB as clients see them. Their files take {2} MB and the parts held once {3} MB, which saves {4}%. Files compressed: {5}. Measured {6}." xml:space="preserve">
     <value>İletiler: {0}, istemcilerin gördüğü haliyle {1} MB. Dosyaları {2} MB, bir kez saklanan parçalar {3} MB yer kaplıyor; bu %{4} tasarruf demek. Sıkıştırılmış dosyalar: {5}. Ölçüldü: {6}.</value>
@@ -13133,6 +13151,9 @@ Yine de eklensin mi?</value>
   </data>
   <data name="The sandbox is off, which is the default: nothing is held and nothing is submitted." xml:space="preserve">
     <value>Korumalı alan kapalı, varsayılan budur: hiçbir şey bekletilmez ve hiçbir şey gönderilmez.</value>
+  </data>
+  <data name="The sandbox is switched on, but its submit or verdict address is empty." xml:space="preserve">
+    <value>Korumalı alan açık, ancak gönderim ya da karar adresi boş.</value>
   </data>
   <data name="The sandbox settings could not be read from the server, so this page cannot say whether one is configured." xml:space="preserve">
     <value>Korumalı alan ayarları sunucudan okunamadı, bu yüzden bu sayfa yapılandırılmış olup olmadığını söyleyemiyor.</value>

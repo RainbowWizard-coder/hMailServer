@@ -3381,6 +3381,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
     <value>Talte pålogningsfejl ryddet. Adresser, der allerede er blokeret, forbliver blokeret, indtil deres blokering udløber - Ophæv blokering under Blokeret nu lukker en ind med det samme.</value>
   </data>
+  <data name="Counting external accounts…" xml:space="preserve">
+    <value>Tæller eksterne konti…</value>
+  </data>
   <data name="Countries" xml:space="preserve">
     <value>Lande</value>
   </data>
@@ -4870,14 +4873,14 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Every message goes through {0} scanners in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
     <value>Hver meddelelse går gennem {0} scannere efter tur, og hver af dem bliver spurgt om hele meddelelsen og derefter om hver vedhæftet fil for sig. Det er grundigt, og det er ikke gratis: scanningen sker, mens afsenderen venter på sit "250 OK".</value>
   </data>
-  <data name="Every message is scanned by one scanner." xml:space="preserve">
-    <value>Hver meddelelse scannes af én scanner.</value>
+  <data name="Every message is scanned by one scanner: {0}." xml:space="preserve">
+    <value>Hver meddelelse scannes af én scanner: {0}.</value>
   </data>
-  <data name="Every message is scanned by {0} scanner." xml:space="preserve">
-    <value>Hver meddelelse scannes af {0} scanner.</value>
+  <data name="Every message is scanned by three scanners in turn: {0}, then {1}, then {2}." xml:space="preserve">
+    <value>Hver meddelelse scannes af tre scannere efter tur: {0}, derefter {1}, derefter {2}.</value>
   </data>
-  <data name="Every message is scanned by {0} scanners." xml:space="preserve">
-    <value>Hver meddelelse scannes af {0} scannere.</value>
+  <data name="Every message is scanned by two scanners in turn: {0}, then {1}." xml:space="preserve">
+    <value>Hver meddelelse scannes af to scannere efter tur: {0}, derefter {1}.</value>
   </data>
   <data name="Every message still in the delivery queue, the last error the server got for it, and when it is retried." xml:space="preserve">
     <value>Hver meddelelse, der stadig ligger i leveringskøen, den seneste fejl, serveren fik for den, og hvornår der forsøges igen.</value>
@@ -6528,6 +6531,21 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts." xml:space="preserve">
     <value>Post udefra kan mærkes, så en læser ser det med det samme. En afsender er udefra, når sessionen ikke loggede på, meddelelsen ikke kom gennem et betroet indgående relæ, og hverken konvolutafsenderen eller From-adressen hører til et domæne, denne server er vært for.</value>
   </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox's verdict before it is delivered." xml:space="preserve">
+    <value>Post udefra med en vedhæftning af en indsendt type venter på sandkassens dom, før den leveres.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one quarantines it, and no verdict in time delivers it with a header saying so." xml:space="preserve">
+    <value>Post udefra med en vedhæftning af en indsendt type venter på sandkassen: en ren dom leverer den, en skadelig sætter den i karantæne, og ingen dom i tide leverer den med en header, der siger det.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one quarantines it, and no verdict in time returns it to its sender." xml:space="preserve">
+    <value>Post udefra med en vedhæftning af en indsendt type venter på sandkassen: en ren dom leverer den, en skadelig sætter den i karantæne, og ingen dom i tide returnerer den til afsenderen.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one returns it to its sender while quarantining is off, and no verdict in time delivers it with a header saying so." xml:space="preserve">
+    <value>Post udefra med en vedhæftning af en indsendt type venter på sandkassen: en ren dom leverer den, en skadelig returnerer den til afsenderen, mens karantæne er slået fra, og ingen dom i tide leverer den med en header, der siger det.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one returns it to its sender while quarantining is off, and no verdict in time returns it too." xml:space="preserve">
+    <value>Post udefra med en vedhæftning af en indsendt type venter på sandkassen: en ren dom leverer den, en skadelig returnerer den til afsenderen, mens karantæne er slået fra, og ingen dom i tide returnerer den også.</value>
+  </data>
   <data name="Mail is addressed to a domain, so the server needs one before it can receive anything." xml:space="preserve">
     <value>Post adresseres til et domæne, så serveren skal have et, før den kan modtage noget.</value>
   </data>
@@ -6931,20 +6949,20 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message or a group, and the buttons over the list on every checked message." xml:space="preserve">
     <value>Meddelelser, som serveren ellers ville have afvist, tilbageholdt, så nogen kan se på dem. Afsenderen af hver af dem fik besked om, at den var blevet accepteret, så intet kommer igen af sig selv: at frigive én leverer den, og at slette én er endeligt. Ikonerne virker på én meddelelse eller en gruppe, og knapperne over listen på alle markerede meddelelser.</value>
   </data>
-  <data name="Messages up to {0} are scanned by one scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>Meddelelser op til {0} scannes af én scanner; alt større leveres uden overhovedet at blive scannet.</value>
-  </data>
-  <data name="Messages up to {0} are scanned by {1} scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>Meddelelser op til {0} scannes af {1} scanner; alt større leveres uden overhovedet at blive scannet.</value>
-  </data>
-  <data name="Messages up to {0} are scanned by {1} scanners; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>Meddelelser op til {0} scannes af {1} scannere; alt større leveres uden overhovedet at blive scannet.</value>
-  </data>
   <data name="Messages up to {0}. A larger message is delivered without being scanned — it is not refused, and nothing is logged." xml:space="preserve">
     <value>Meddelelser op til {0}. En større meddelelse leveres uden at blive scannet — den afvises ikke, og intet logges.</value>
   </data>
   <data name="Messages waiting for delivery." xml:space="preserve">
     <value>Meddelelser, der venter på levering.</value>
+  </data>
+  <data name="Messages within the size limit are scanned by one scanner: {0}." xml:space="preserve">
+    <value>Meddelelser inden for størrelsesgrænsen scannes af én scanner: {0}.</value>
+  </data>
+  <data name="Messages within the size limit are scanned by three scanners in turn: {0}, then {1}, then {2}." xml:space="preserve">
+    <value>Meddelelser inden for størrelsesgrænsen scannes af tre scannere efter tur: {0}, derefter {1}, derefter {2}.</value>
+  </data>
+  <data name="Messages within the size limit are scanned by two scanners in turn: {0}, then {1}." xml:space="preserve">
+    <value>Meddelelser inden for størrelsesgrænsen scannes af to scannere efter tur: {0}, derefter {1}.</value>
   </data>
   <data name="Messages: {0}, {1} MB as clients see them. Their files take {2} MB and the parts held once {3} MB, which saves {4}%. Files compressed: {5}. Measured {6}." xml:space="preserve">
     <value>Meddelelser: {0}, {1} MB som klienterne ser dem. Deres filer fylder {2} MB og de dele, der gemmes én gang, {3} MB, hvilket sparer {4} %. Komprimerede filer: {5}. Målt {6}.</value>
@@ -13133,6 +13151,9 @@ Tilføj alligevel?</value>
   </data>
   <data name="The sandbox is off, which is the default: nothing is held and nothing is submitted." xml:space="preserve">
     <value>Sandkassen er slået fra, hvilket er standard: intet tilbageholdes, og intet indsendes.</value>
+  </data>
+  <data name="The sandbox is switched on, but its submit or verdict address is empty." xml:space="preserve">
+    <value>Sandkassen er slået til, men dens indsendelses- eller domsadresse er tom.</value>
   </data>
   <data name="The sandbox settings could not be read from the server, so this page cannot say whether one is configured." xml:space="preserve">
     <value>Sandkassens indstillinger kunne ikke læses fra serveren, så denne side kan ikke sige, om en er konfigureret.</value>

@@ -3405,6 +3405,9 @@
   <data name="Counted sign-in failures cleared. Addresses already banned stay banned until their ban ends - Lift ban under Banned now lets one in at once." xml:space="preserve">
     <value>Лічильники невдалих входів очищено. Адреси, які вже заблоковано, залишаються заблокованими до кінця блокування - кнопка «Зняти блокування» в розділі «Заблоковано зараз» одразу впускає адресу.</value>
   </data>
+  <data name="Counting external accounts…" xml:space="preserve">
+    <value>Підрахунок зовнішніх облікових записів…</value>
+  </data>
   <data name="Countries" xml:space="preserve">
     <value>Країни</value>
   </data>
@@ -4931,17 +4934,14 @@
   <data name="Every message goes through {0} scanners in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;.|few" xml:space="preserve">
     <value>Кожне повідомлення проходить по черзі через кожен із {0} сканерів, і кожного запитують про повідомлення цілком, а потім про кожне вкладення окремо. Це ретельно, і це не безкоштовно: сканування відбувається, поки відправник чекає на своє «250 OK».</value>
   </data>
-  <data name="Every message is scanned by one scanner." xml:space="preserve">
-    <value>Кожне повідомлення сканується одним сканером.</value>
+  <data name="Every message is scanned by one scanner: {0}." xml:space="preserve">
+    <value>Кожне повідомлення сканує один сканер: {0}.</value>
   </data>
-  <data name="Every message is scanned by {0} scanner." xml:space="preserve">
-    <value>Кожне повідомлення сканує кожен із {0} сканера.</value>
+  <data name="Every message is scanned by three scanners in turn: {0}, then {1}, then {2}." xml:space="preserve">
+    <value>Кожне повідомлення по черзі сканують три сканери: {0}, потім {1}, потім {2}.</value>
   </data>
-  <data name="Every message is scanned by {0} scanners." xml:space="preserve">
-    <value>Кожне повідомлення сканує кожен із {0} сканерів.</value>
-  </data>
-  <data name="Every message is scanned by {0} scanners.|few" xml:space="preserve">
-    <value>Кожне повідомлення сканує кожен із {0} сканерів.</value>
+  <data name="Every message is scanned by two scanners in turn: {0}, then {1}." xml:space="preserve">
+    <value>Кожне повідомлення по черзі сканують два сканери: {0}, потім {1}.</value>
   </data>
   <data name="Every message still in the delivery queue, the last error the server got for it, and when it is retried." xml:space="preserve">
     <value>Кожне повідомлення, що досі в черзі доставки, остання помилка, яку сервер отримав для нього, і коли буде повторна спроба.</value>
@@ -6604,6 +6604,21 @@
   <data name="Mail from outside the organisation can be marked so that a reader sees it at a glance. A sender is outside when the session did not sign in, the message did not arrive through a trusted incoming relay, and neither the envelope sender nor the From address belongs to a domain this server hosts." xml:space="preserve">
     <value>Пошту з-поза меж організації можна позначити, щоб читач побачив це відразу. Відправник є зовнішнім, коли сеанс не ввійшов у систему, повідомлення надійшло не через довірений вхідний ретранслятор, і ні відправник конверта, ні адреса From не належать домену, який обслуговує цей сервер.</value>
   </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox's verdict before it is delivered." xml:space="preserve">
+    <value>Пошта ззовні з вкладенням типу, що надсилається, перед доставкою чекає на вердикт пісочниці.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one quarantines it, and no verdict in time delivers it with a header saying so." xml:space="preserve">
+    <value>Пошта ззовні з вкладенням типу, що надсилається, чекає на пісочницю: чистий вердикт доставляє її, шкідливий поміщає її в карантин, а без вчасного вердикту вона доставляється із заголовком, який про це каже.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one quarantines it, and no verdict in time returns it to its sender." xml:space="preserve">
+    <value>Пошта ззовні з вкладенням типу, що надсилається, чекає на пісочницю: чистий вердикт доставляє її, шкідливий поміщає її в карантин, а без вчасного вердикту вона повертається відправникові.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one returns it to its sender while quarantining is off, and no verdict in time delivers it with a header saying so." xml:space="preserve">
+    <value>Пошта ззовні з вкладенням типу, що надсилається, чекає на пісочницю: чистий вердикт доставляє її, шкідливий повертає її відправникові, поки карантин вимкнено, а без вчасного вердикту вона доставляється із заголовком, який про це каже.</value>
+  </data>
+  <data name="Mail from outside with an attachment of a submitted type waits for the sandbox: a clean verdict delivers it, a malicious one returns it to its sender while quarantining is off, and no verdict in time returns it too." xml:space="preserve">
+    <value>Пошта ззовні з вкладенням типу, що надсилається, чекає на пісочницю: чистий вердикт доставляє її, шкідливий повертає її відправникові, поки карантин вимкнено, а без вчасного вердикту вона теж повертається.</value>
+  </data>
   <data name="Mail is addressed to a domain, so the server needs one before it can receive anything." xml:space="preserve">
     <value>Пошта адресується домену, тому серверу потрібен домен, перш ніж він зможе щось отримувати.</value>
   </data>
@@ -7010,23 +7025,20 @@
   <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message or a group, and the buttons over the list on every checked message." xml:space="preserve">
     <value>Повідомлення, які сервер інакше відхилив би, затримані, щоб хтось міг на них подивитися. Відправнику кожного з них сказали, що його прийнято, тому ніщо не надійде знову само собою: випуск одного доставляє його, а видалення остаточне. Піктограми діють на одне повідомлення або групу, а кнопки над списком - на кожне позначене повідомлення.</value>
   </data>
-  <data name="Messages up to {0} are scanned by one scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>Повідомлення до {0} сканує один сканер; будь-що більше доставляється взагалі без сканування.</value>
-  </data>
-  <data name="Messages up to {0} are scanned by {1} scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>Повідомлення до {0} сканує кожен із {1} сканера; будь-що більше доставляється взагалі без сканування.</value>
-  </data>
-  <data name="Messages up to {0} are scanned by {1} scanners; anything larger is delivered without being scanned at all." xml:space="preserve">
-    <value>Повідомлення до {0} сканує кожен із {1} сканерів; будь-що більше доставляється взагалі без сканування.</value>
-  </data>
-  <data name="Messages up to {0} are scanned by {1} scanners; anything larger is delivered without being scanned at all.|few" xml:space="preserve">
-    <value>Повідомлення до {0} сканує кожен із {1} сканерів; будь-що більше доставляється взагалі без сканування.</value>
-  </data>
   <data name="Messages up to {0}. A larger message is delivered without being scanned — it is not refused, and nothing is logged." xml:space="preserve">
     <value>Повідомлення до {0}. Більше повідомлення доставляється без сканування — воно не відхиляється, і в журнал нічого не записується.</value>
   </data>
   <data name="Messages waiting for delivery." xml:space="preserve">
     <value>Повідомлення, що чекають на доставку.</value>
+  </data>
+  <data name="Messages within the size limit are scanned by one scanner: {0}." xml:space="preserve">
+    <value>Повідомлення в межах обмеження розміру сканує один сканер: {0}.</value>
+  </data>
+  <data name="Messages within the size limit are scanned by three scanners in turn: {0}, then {1}, then {2}." xml:space="preserve">
+    <value>Повідомлення в межах обмеження розміру по черзі сканують три сканери: {0}, потім {1}, потім {2}.</value>
+  </data>
+  <data name="Messages within the size limit are scanned by two scanners in turn: {0}, then {1}." xml:space="preserve">
+    <value>Повідомлення в межах обмеження розміру по черзі сканують два сканери: {0}, потім {1}.</value>
   </data>
   <data name="Messages: {0}, {1} MB as clients see them. Their files take {2} MB and the parts held once {3} MB, which saves {4}%. Files compressed: {5}. Measured {6}." xml:space="preserve">
     <value>Повідомлень: {0}, {1} МБ з погляду клієнтів. Їхні файли займають {2} МБ, а частини, що зберігаються один раз, — {3} МБ, що заощаджує {4} %. Стиснених файлів: {5}. Виміряно {6}.</value>
@@ -13317,6 +13329,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The sandbox is off, which is the default: nothing is held and nothing is submitted." xml:space="preserve">
     <value>Пісочницю вимкнено, це типове значення: нічого не затримується і нічого не надсилається.</value>
+  </data>
+  <data name="The sandbox is switched on, but its submit or verdict address is empty." xml:space="preserve">
+    <value>Пісочницю ввімкнено, але її адреса надсилання або вердикту порожня.</value>
   </data>
   <data name="The sandbox settings could not be read from the server, so this page cannot say whether one is configured." xml:space="preserve">
     <value>Не вдалося прочитати налаштування пісочниці із сервера, тож ця сторінка не може сказати, чи налаштовано її.</value>
