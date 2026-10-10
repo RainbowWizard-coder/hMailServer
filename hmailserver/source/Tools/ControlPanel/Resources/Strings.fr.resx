@@ -5140,9 +5140,6 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Expired {0} days ago." xml:space="preserve">
     <value>A expiré il y a {0} jours.</value>
   </data>
-  <data name="Expires" xml:space="preserve">
-    <value>Expire</value>
-  </data>
   <data name="Expires (server time)" xml:space="preserve">
     <value>Expire (heure du serveur)</value>
   </data>
@@ -7603,14 +7600,14 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="Next step: {0}." xml:space="preserve">
     <value>Étape suivante : {0}.</value>
   </data>
+  <data name="Next try (server time)" xml:space="preserve">
+    <value>Prochain essai (heure du serveur)</value>
+  </data>
   <data name="Next try at {0}" xml:space="preserve">
     <value>Prochain essai le {0}</value>
   </data>
   <data name="Next try in {0}" xml:space="preserve">
     <value>Prochain essai dans {0}</value>
-  </data>
-  <data name="Next try (server time)" xml:space="preserve">
-    <value>Prochain essai (heure du serveur)</value>
   </data>
   <data name="Next year" xml:space="preserve">
     <value>Année suivante</value>

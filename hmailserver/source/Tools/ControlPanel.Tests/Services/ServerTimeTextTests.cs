@@ -216,6 +216,13 @@ namespace hMailServer.ControlPanel.Tests.Services
             Assert.Contains("nameof(" + sort + ")", column.Value, StringComparison.Ordinal);
          }
 
+         // The allow and block list's Expires, a date the server gives, is the reader's form
+         // under a header that names the server's clock.
+         string editor = WithheldRowTests.MemberText(HostedAddressTests.ReadControlPanelFile(Path.Join("Views", "CollectionEditorView.cs")), "internal static string FormatCell(object v)");
+         Assert.Contains("if (v is DateTime when) return when.Year < 1970 ? \"\" : ServerTimeText.Cell(when);", editor, StringComparison.Ordinal);
+         Assert.Contains("Prop = \"ExpiresTime\", Label = L(\"Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)\"), GridLabel = L(\"Expires (server time)\")",
+            HostedAddressTests.ReadControlPanelFile(Path.Join("Views", "CollectionSpecs.cs")), StringComparison.Ordinal);
+
          // The allowed and blocked domains' Added sorts by the server's own form, as the times do.
          string policy = WithheldRowTests.MemberText(Read("DomainPolicyListView.cs"), "private void BuildColumns_()");
          Assert.Contains("Binding = new System.Windows.Data.Binding(nameof(EntryView.Added)),", policy, StringComparison.Ordinal);
@@ -247,6 +254,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("Services", "CertificateInspector.cs")]
       [InlineData("Views", "FeatureSettingsView.xaml.cs")]
       [InlineData("Views", "ServerSettingsView.xaml.cs")]
+      [InlineData("Views", "CollectionEditorView.cs")]
       public void NoneOfTheseWritesADateInAFormOfItsOwn(string folder, string file)
       {
          string source = HostedAddressTests.ReadControlPanelFile(Path.Join(folder, file));

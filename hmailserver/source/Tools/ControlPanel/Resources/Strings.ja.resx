@@ -5150,9 +5150,6 @@
   <data name="Expired {0} days ago." xml:space="preserve">
     <value>{0} 日前に期限切れになりました。</value>
   </data>
-  <data name="Expires" xml:space="preserve">
-    <value>有効期限</value>
-  </data>
   <data name="Expires (server time)" xml:space="preserve">
     <value>有効期限 (サーバー時刻)</value>
   </data>
@@ -7613,14 +7610,14 @@
   <data name="Next step: {0}." xml:space="preserve">
     <value>次の手順: {0}。</value>
   </data>
+  <data name="Next try (server time)" xml:space="preserve">
+    <value>次の試行 (サーバー時刻)</value>
+  </data>
   <data name="Next try at {0}" xml:space="preserve">
     <value>次の試行: {0}</value>
   </data>
   <data name="Next try in {0}" xml:space="preserve">
     <value>次の試行まで {0}</value>
-  </data>
-  <data name="Next try (server time)" xml:space="preserve">
-    <value>次の試行 (サーバー時刻)</value>
   </data>
   <data name="Next year" xml:space="preserve">
     <value>次の年</value>

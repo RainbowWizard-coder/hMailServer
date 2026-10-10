@@ -5140,9 +5140,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Expired {0} days ago." xml:space="preserve">
     <value>Vanheni {0} päivää sitten.</value>
   </data>
-  <data name="Expires" xml:space="preserve">
-    <value>Vanhenee</value>
-  </data>
   <data name="Expires (server time)" xml:space="preserve">
     <value>Vanhenee (palvelimen aikaa)</value>
   </data>
@@ -7603,14 +7600,14 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Next step: {0}." xml:space="preserve">
     <value>Seuraava vaihe: {0}.</value>
   </data>
+  <data name="Next try (server time)" xml:space="preserve">
+    <value>Seuraava yritys (palvelimen aikaa)</value>
+  </data>
   <data name="Next try at {0}" xml:space="preserve">
     <value>Seuraava yritys: {0}</value>
   </data>
   <data name="Next try in {0}" xml:space="preserve">
     <value>Seuraava yritys {0} kuluttua</value>
-  </data>
-  <data name="Next try (server time)" xml:space="preserve">
-    <value>Seuraava yritys (palvelimen aikaa)</value>
   </data>
   <data name="Next year" xml:space="preserve">
     <value>Seuraava vuosi</value>

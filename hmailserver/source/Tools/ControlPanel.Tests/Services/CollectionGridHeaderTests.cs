@@ -78,7 +78,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(fields != null, "SenderListFields is gone, so the server's and a domain's lists can differ.");
          Assert.Contains("Prop = \"Blocked\", Label = L(\"Block rather than allow\"), GridLabel = L(\"Action\"), GridTrue = L(\"Block\"), GridFalse = L(\"Allow\")", fields, StringComparison.Ordinal);
          Assert.Matches(new Regex(@"Prop = ""Expires"".*ShowInGrid = false"), fields);
-         Assert.Matches(new Regex(@"Prop = ""ExpiresTime"".*GridLabel = L\(""Expires""\), GridOnlyWhen = ""Expires"", GridEmpty = L\(""Never""\), GridWidth = 150"), fields);
+         Assert.Matches(new Regex(@"Prop = ""ExpiresTime"".*GridLabel = L\(""Expires \(server time\)""\), GridOnlyWhen = ""Expires"", GridEmpty = L\(""Never""\), GridWidth = 150"), fields);
 
          // Both lists are the one set of fields.
          Assert.Equal(2, Regex.Matches(Specs(), @"Fields = SenderListFields\(\d+\)").Count);

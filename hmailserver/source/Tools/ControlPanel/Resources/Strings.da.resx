@@ -5140,9 +5140,6 @@ Ingen post røres - indekset er udledt af den - men indtil genopbygningen har in
   <data name="Expired {0} days ago." xml:space="preserve">
     <value>Udløb for {0} dage siden.</value>
   </data>
-  <data name="Expires" xml:space="preserve">
-    <value>Udløber</value>
-  </data>
   <data name="Expires (server time)" xml:space="preserve">
     <value>Udløber (servertid)</value>
   </data>
@@ -7603,14 +7600,14 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Next step: {0}." xml:space="preserve">
     <value>Næste trin: {0}.</value>
   </data>
+  <data name="Next try (server time)" xml:space="preserve">
+    <value>Næste forsøg (servertid)</value>
+  </data>
   <data name="Next try at {0}" xml:space="preserve">
     <value>Næste forsøg: {0}</value>
   </data>
   <data name="Next try in {0}" xml:space="preserve">
     <value>Næste forsøg om {0}</value>
-  </data>
-  <data name="Next try (server time)" xml:space="preserve">
-    <value>Næste forsøg (servertid)</value>
   </data>
   <data name="Next year" xml:space="preserve">
     <value>Næste år</value>

@@ -5140,9 +5140,6 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Expired {0} days ago." xml:space="preserve">
     <value>Vor {0} Tagen abgelaufen.</value>
   </data>
-  <data name="Expires" xml:space="preserve">
-    <value>Ablauf</value>
-  </data>
   <data name="Expires (server time)" xml:space="preserve">
     <value>Ablauf (Serverzeit)</value>
   </data>
@@ -7603,14 +7600,14 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="Next step: {0}." xml:space="preserve">
     <value>Nächster Schritt: {0}.</value>
   </data>
+  <data name="Next try (server time)" xml:space="preserve">
+    <value>Nächster Versuch (Serverzeit)</value>
+  </data>
   <data name="Next try at {0}" xml:space="preserve">
     <value>Nächster Versuch am {0}</value>
   </data>
   <data name="Next try in {0}" xml:space="preserve">
     <value>Nächster Versuch in {0}</value>
-  </data>
-  <data name="Next try (server time)" xml:space="preserve">
-    <value>Nächster Versuch (Serverzeit)</value>
   </data>
   <data name="Next year" xml:space="preserve">
     <value>Nächstes Jahr</value>

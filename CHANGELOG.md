@@ -3767,8 +3767,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   come), and in one from another computer the dates under "Created (server time)" and "Next try (server time)"; both
   columns sort by the time. The message trace's times are under "When (server time)", to the second, and the
   suppression list's under "Since (server time)", "Expires (server time)", "Last bounce (server time)" and "Last
-  delivered (server time)", each column sorted by the time. The audit trail's When and the eDiscovery page's Opened
-  and When are in this computer's time with the seconds, headed "(server time)" in a session on the server and "(this
+  delivered (server time)", each column sorted by the time, and the server's and each domain's allow and block list
+  says when an entry expires in the reader's short date and time under "Expires (server time)", where it wrote the
+  general form with the seconds and named no clock. The audit trail's When and the eDiscovery page's Opened and When
+  are in this computer's time with the seconds, headed "(server time)" in a session on the server and "(this
   computer's time)" in one from elsewhere, and sort by the time; the API keys say "Expires 07/01/2027 10:00 (server
   time)." A day in a sentence - a certificate's "Valid until 09/12/2026", the day a profile was applied - is the
   reader's short date, the key rotation's times and when the message store was measured the reader's short date and

@@ -1080,6 +1080,10 @@ namespace hMailServer.ControlPanel.Views
       {
          if (v == null) return "";
          if (v is bool b) return b ? L("Yes") : L("No");
+         // A date the server gives (a VT_DATE, its own local time) in the reader's short
+         // date and time, as every date is (Services/ServerTimeText), where it was the
+         // general form with the seconds; its "no date", before 1970, is none.
+         if (v is DateTime when) return when.Year < 1970 ? "" : ServerTimeText.Cell(when);
          return Convert.ToString(v, CultureInfo.CurrentCulture);
       }
 

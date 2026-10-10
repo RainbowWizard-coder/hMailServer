@@ -5216,9 +5216,6 @@
   <data name="Expired {0} days ago.|few" xml:space="preserve">
     <value>Термін дії минув {0} дні тому.</value>
   </data>
-  <data name="Expires" xml:space="preserve">
-    <value>Спливає</value>
-  </data>
   <data name="Expires (server time)" xml:space="preserve">
     <value>Спливає (час сервера)</value>
   </data>
@@ -7694,14 +7691,14 @@
   <data name="Next step: {0}." xml:space="preserve">
     <value>Наступний крок: {0}.</value>
   </data>
+  <data name="Next try (server time)" xml:space="preserve">
+    <value>Наступна спроба (час сервера)</value>
+  </data>
   <data name="Next try at {0}" xml:space="preserve">
     <value>Наступна спроба: {0}</value>
   </data>
   <data name="Next try in {0}" xml:space="preserve">
     <value>Наступна спроба через {0}</value>
-  </data>
-  <data name="Next try (server time)" xml:space="preserve">
-    <value>Наступна спроба (час сервера)</value>
   </data>
   <data name="Next year" xml:space="preserve">
     <value>Наступний рік</value>

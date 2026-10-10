@@ -5216,9 +5216,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Expired {0} days ago.|few" xml:space="preserve">
     <value>Platnost vypršela před {0} dny.</value>
   </data>
-  <data name="Expires" xml:space="preserve">
-    <value>Vyprší</value>
-  </data>
   <data name="Expires (server time)" xml:space="preserve">
     <value>Vyprší (čas serveru)</value>
   </data>
@@ -7694,14 +7691,14 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Next step: {0}." xml:space="preserve">
     <value>Další krok: {0}.</value>
   </data>
+  <data name="Next try (server time)" xml:space="preserve">
+    <value>Další pokus (čas serveru)</value>
+  </data>
   <data name="Next try at {0}" xml:space="preserve">
     <value>Další pokus: {0}</value>
   </data>
   <data name="Next try in {0}" xml:space="preserve">
     <value>Další pokus za {0}</value>
-  </data>
-  <data name="Next try (server time)" xml:space="preserve">
-    <value>Další pokus (čas serveru)</value>
   </data>
   <data name="Next year" xml:space="preserve">
     <value>Další rok</value>

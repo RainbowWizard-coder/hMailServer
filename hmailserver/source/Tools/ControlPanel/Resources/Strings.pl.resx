@@ -5216,9 +5216,6 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Expired {0} days ago.|few" xml:space="preserve">
     <value>Wygasł {0} dni temu.</value>
   </data>
-  <data name="Expires" xml:space="preserve">
-    <value>Wygasa</value>
-  </data>
   <data name="Expires (server time)" xml:space="preserve">
     <value>Wygasa (czas serwera)</value>
   </data>
@@ -7694,14 +7691,14 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Next step: {0}." xml:space="preserve">
     <value>Następny krok: {0}.</value>
   </data>
+  <data name="Next try (server time)" xml:space="preserve">
+    <value>Następna próba (czas serwera)</value>
+  </data>
   <data name="Next try at {0}" xml:space="preserve">
     <value>Następna próba: {0}</value>
   </data>
   <data name="Next try in {0}" xml:space="preserve">
     <value>Następna próba za {0}</value>
-  </data>
-  <data name="Next try (server time)" xml:space="preserve">
-    <value>Następna próba (czas serwera)</value>
   </data>
   <data name="Next year" xml:space="preserve">
     <value>Następny rok</value>

@@ -5140,9 +5140,6 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Expired {0} days ago." xml:space="preserve">
     <value>Expirou há {0} dias.</value>
   </data>
-  <data name="Expires" xml:space="preserve">
-    <value>Expira</value>
-  </data>
   <data name="Expires (server time)" xml:space="preserve">
     <value>Expira (horário do servidor)</value>
   </data>
@@ -7603,14 +7600,14 @@ Nada do que já está lá é removido.</value>
   <data name="Next step: {0}." xml:space="preserve">
     <value>Próximo passo: {0}.</value>
   </data>
+  <data name="Next try (server time)" xml:space="preserve">
+    <value>Próxima tentativa (horário do servidor)</value>
+  </data>
   <data name="Next try at {0}" xml:space="preserve">
     <value>Próxima tentativa em {0}</value>
   </data>
   <data name="Next try in {0}" xml:space="preserve">
     <value>Próxima tentativa daqui a {0}</value>
-  </data>
-  <data name="Next try (server time)" xml:space="preserve">
-    <value>Próxima tentativa (horário do servidor)</value>
   </data>
   <data name="Next year" xml:space="preserve">
     <value>Próximo ano</value>

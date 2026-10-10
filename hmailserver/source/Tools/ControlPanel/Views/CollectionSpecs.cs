@@ -191,7 +191,7 @@ namespace hMailServer.ControlPanel.Views
          new FieldSpec { Prop = "Blocked", Label = L("Block rather than allow"), GridLabel = L("Action"), GridTrue = L("Block"), GridFalse = L("Allow"), Kind = FieldKind.Bool, GridWidth = 90, Default = false },
          new FieldSpec { Prop = "Reason", Label = L("Reason") },
          new FieldSpec { Prop = "Expires", Label = L("Stops mattering at a date"), Kind = FieldKind.Bool, ShowInGrid = false, Default = false },
-         new FieldSpec { Prop = "ExpiresTime", Label = L("Expires on (YYYY-MM-DD HH:MM:SS)"), GridLabel = L("Expires"), GridOnlyWhen = "Expires", GridEmpty = L("Never"), GridWidth = 150 } // no-loc: GridOnlyWhen names the Bool property
+         new FieldSpec { Prop = "ExpiresTime", Label = L("Expires on (YYYY-MM-DD HH:MM:SS)"), GridLabel = L("Expires (server time)"), GridOnlyWhen = "Expires", GridEmpty = L("Never"), GridWidth = 150 } // no-loc: GridOnlyWhen names the Bool property
       };
 
       public static CollectionEditorView GreyListWhiteList() => new(new CollectionSpec
