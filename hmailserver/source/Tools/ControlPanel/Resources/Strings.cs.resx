@@ -6914,6 +6914,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Message trace" xml:space="preserve">
     <value>Trasování zpráv</value>
   </data>
+  <data name="Message {0} cannot be followed here: the trace records queue ids only up to {1}. Search for its sender or a recipient instead." xml:space="preserve">
+    <value>Zprávu {0} zde nelze sledovat: trasování zaznamenává id fronty jen do {1}. Vyhledejte místo toho jejího odesílatele nebo příjemce.</value>
+  </data>
   <data name="Message {0} removed." xml:space="preserve">
     <value>Zpráva {0} byla odstraněna.</value>
   </data>

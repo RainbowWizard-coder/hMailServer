@@ -6838,6 +6838,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Message trace" xml:space="preserve">
     <value>Tracciamento dei messaggi</value>
   </data>
+  <data name="Message {0} cannot be followed here: the trace records queue ids only up to {1}. Search for its sender or a recipient instead." xml:space="preserve">
+    <value>Il messaggio {0} non può essere seguito qui: il tracciamento registra gli id di coda solo fino a {1}. Cerca invece il suo mittente o un destinatario.</value>
+  </data>
   <data name="Message {0} removed." xml:space="preserve">
     <value>Messaggio {0} rimosso.</value>
   </data>

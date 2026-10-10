@@ -6914,6 +6914,9 @@ Control Panel может читать файлы сообщений только
   <data name="Message trace" xml:space="preserve">
     <value>Трассировка сообщений</value>
   </data>
+  <data name="Message {0} cannot be followed here: the trace records queue ids only up to {1}. Search for its sender or a recipient instead." xml:space="preserve">
+    <value>Сообщение {0} здесь нельзя проследить: трассировка записывает идентификаторы очереди только до {1}. Вместо этого найдите его отправителя или получателя.</value>
+  </data>
   <data name="Message {0} removed." xml:space="preserve">
     <value>Сообщение {0} удалено.</value>
   </data>

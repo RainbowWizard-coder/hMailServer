@@ -18,6 +18,23 @@ namespace hMailServer.ControlPanel.Services
    public static class QueueWords
    {
       /// <summary>
+      /// Whether Message trace can follow a queued message: the server's message ids are
+      /// 64-bit and outgrow 32 bits on a long-lived installation, while the trace keeps a
+      /// queue id in 32 - its SearchByQueueID takes a COM long, and its events' QueueID
+      /// is one.
+      /// </summary>
+      public static bool CanFollow(long queueId) => queueId > 0 && queueId <= int.MaxValue;
+
+      /// <summary>
+      /// What Message trace says where Trace message cannot follow a message for its id,
+      /// and what the reader can do instead: the page was left as it was, saying nothing,
+      /// so that on such a server Trace message never worked and never said why (the
+      /// skeptic's review of F248).
+      /// </summary>
+      public static string CannotFollow(long queueId)
+         => F("Message {0} cannot be followed here: the trace records queue ids only up to {1}. Search for its sender or a recipient instead.", queueId, int.MaxValue);
+
+      /// <summary>
       /// Where a queued message stands, from the server's locked flag and its next
       /// try: being delivered now; due, its next try passed or never set (the server's
       /// 1901); the wait to its next try where the server's clock is this computer's;

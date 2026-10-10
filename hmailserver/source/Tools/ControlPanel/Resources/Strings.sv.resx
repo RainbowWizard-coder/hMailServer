@@ -6838,6 +6838,9 @@ Inget som redan finns där tas bort.</value>
   <data name="Message trace" xml:space="preserve">
     <value>Meddelandespårning</value>
   </data>
+  <data name="Message {0} cannot be followed here: the trace records queue ids only up to {1}. Search for its sender or a recipient instead." xml:space="preserve">
+    <value>Meddelande {0} kan inte följas här: spårningen registrerar kö-id bara upp till {1}. Sök i stället efter dess avsändare eller en mottagare.</value>
+  </data>
   <data name="Message {0} removed." xml:space="preserve">
     <value>Meddelande {0} borttaget.</value>
   </data>

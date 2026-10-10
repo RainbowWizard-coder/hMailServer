@@ -234,12 +234,27 @@ namespace hMailServer.ControlPanel.Views
       /// Every event of one queued message, oldest first, as Follow this message shows
       /// them: the delivery queue's Trace message (review finding F248). The trace keeps
       /// queue ids the server's COM interface takes as 32-bit; a larger one is not
-      /// followed.
+      /// followed, and the page says so and what to search for instead, with the last
+      /// search's events taken away so that they are not read as this message's - where
+      /// it was left showing whatever it showed before, without a word. Refresh says it
+      /// again.
       /// </summary>
       public void FollowQueuedMessage(long queueId)
       {
-         if (queueId > 0 && queueId <= int.MaxValue)
+         if (QueueWords.CanFollow(queueId))
+         {
             Follow_((int)queueId);
+            return;
+         }
+
+         if (queueId <= int.MaxValue)
+            return;
+
+         Remember_(() => FollowQueuedMessage(queueId));
+         list_.ItemsSource = null;
+         empty_.Visibility = Visibility.Collapsed;
+         count_.Visibility = Visibility.Collapsed;
+         Status_(StatusLevel.Information, QueueWords.CannotFollow(queueId));
       }
 
       private void Follow_(int queueId)

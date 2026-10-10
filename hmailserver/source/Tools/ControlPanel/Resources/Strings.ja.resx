@@ -6838,6 +6838,9 @@
   <data name="Message trace" xml:space="preserve">
     <value>メッセージ トレース</value>
   </data>
+  <data name="Message {0} cannot be followed here: the trace records queue ids only up to {1}. Search for its sender or a recipient instead." xml:space="preserve">
+    <value>メッセージ {0} はここでは追跡できません: トレースが記録するキュー ID は {1} までです。代わりに送信者か受信者で検索してください。</value>
+  </data>
   <data name="Message {0} removed." xml:space="preserve">
     <value>メッセージ {0} を削除しました。</value>
   </data>

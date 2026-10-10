@@ -6914,6 +6914,9 @@
   <data name="Message trace" xml:space="preserve">
     <value>Трасування повідомлень</value>
   </data>
+  <data name="Message {0} cannot be followed here: the trace records queue ids only up to {1}. Search for its sender or a recipient instead." xml:space="preserve">
+    <value>Повідомлення {0} тут не можна простежити: трасування записує ідентифікатори черги лише до {1}. Натомість знайдіть його відправника або отримувача.</value>
+  </data>
   <data name="Message {0} removed." xml:space="preserve">
     <value>Повідомлення {0} вилучено.</value>
   </data>

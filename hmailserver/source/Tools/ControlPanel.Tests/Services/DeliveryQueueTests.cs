@@ -92,6 +92,40 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.False(TimeUntilText.IsNever("soon"));
       }
 
+      /// <summary>
+      /// Trace message on a message whose id is past 32 bits - the server's ids are
+      /// 64-bit and outgrow 32 on a long-lived installation, the trace keeps 32 - opened
+      /// Message trace and left it as it was, saying nothing; on such a server Trace
+      /// message never worked for any message. The trace page says why and what to
+      /// search for instead, and takes the last search's events away.
+      /// </summary>
+      [Theory]
+      [InlineData(1L, true)]
+      [InlineData(2147483647L, true)]
+      [InlineData(2147483648L, false)]
+      [InlineData(5000000000L, false)]
+      [InlineData(0L, false)]
+      [InlineData(-1L, false)]
+      public void TraceMessage_FollowsTheIdsTheTraceKeeps(long id, bool follows)
+         => Assert.Equal(follows, QueueWords.CanFollow(id));
+
+      [Fact]
+      public void TraceMessage_SaysWhyAMessageCannotBeFollowed()
+      {
+         Assert.Equal("Message 5000000000 cannot be followed here: the trace records queue ids only up to 2147483647. Search for its sender or a recipient instead.",
+            QueueWords.CannotFollow(5000000000L));
+
+         Match follow = Regex.Match(Read("MessageTraceView.cs"), @"public void FollowQueuedMessage\(long queueId\)\s*\{(.*?)\n      \}", RegexOptions.Singleline);
+         Assert.True(follow.Success, "MessageTraceView.FollowQueuedMessage is gone.");
+         string body = follow.Groups[1].Value;
+         Assert.Contains("if (QueueWords.CanFollow(queueId))", body, StringComparison.Ordinal);
+         int cleared = body.IndexOf("list_.ItemsSource = null;", StringComparison.Ordinal);
+         int said = body.IndexOf("Status_(StatusLevel.Information, QueueWords.CannotFollow(queueId));", StringComparison.Ordinal);
+         Assert.True(cleared > 0 && said > cleared, "A message the trace cannot follow is not said, or the last search's events stay under it.");
+         Assert.Contains("count_.Visibility = Visibility.Collapsed;", body, StringComparison.Ordinal);
+         Assert.Contains("Remember_(() => FollowQueuedMessage(queueId));", body, StringComparison.Ordinal);
+      }
+
       [Fact]
       public void WhatTheButtonsDid_NamesOneMessage_AndCountsMore()
       {

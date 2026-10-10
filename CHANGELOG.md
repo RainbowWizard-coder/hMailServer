@@ -2870,9 +2870,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   its tool tip, or, connected to another computer, whose clock may not be this one's, the next try in the reader's
   date and time marked "(server time)" - and sorts the messages being delivered first and then by their next try.
   Trace message, in the toolbar and as each row's own icon, opens the Message trace page with every event of that
-  message, oldest first, as its Follow this message does. The ID column is narrow and left-aligned, and From,
-  Recipients and State keep a width the grid scrolls sideways for. `DeliveryQueueTests` holds the state words and
-  their order, the outcomes, the question and the page's lines.
+  message, oldest first, as its Follow this message does - or, for a message whose id is past the 2147483647 the
+  trace keeps, says so there and to search for its sender or a recipient instead. The ID column is narrow and
+  left-aligned, and From, Recipients and State keep a width the grid scrolls sideways for. `DeliveryQueueTests` holds
+  the state words and their order, the outcomes, the question and the page's lines.
 
 - **Fixed: the Auto-ban page kept its two never-ban lists in two shapes, and an address entry the server ignored was
   said only in its error log.** The list by address, `AutoBanNeverBan`, was one comma-separated box saved with Save

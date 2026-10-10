@@ -6838,6 +6838,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Message trace" xml:space="preserve">
     <value>Viestin jäljitys</value>
   </data>
+  <data name="Message {0} cannot be followed here: the trace records queue ids only up to {1}. Search for its sender or a recipient instead." xml:space="preserve">
+    <value>Viestiä {0} ei voi seurata täällä: jäljitys tallentaa jonotunnukset vain lukuun {1} asti. Hae sen sijaan sen lähettäjää tai vastaanottajaa.</value>
+  </data>
   <data name="Message {0} removed." xml:space="preserve">
     <value>Viesti {0} poistettu.</value>
   </data>

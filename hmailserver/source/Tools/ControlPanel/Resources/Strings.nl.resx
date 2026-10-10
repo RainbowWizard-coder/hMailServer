@@ -6838,6 +6838,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Message trace" xml:space="preserve">
     <value>Berichttracering</value>
   </data>
+  <data name="Message {0} cannot be followed here: the trace records queue ids only up to {1}. Search for its sender or a recipient instead." xml:space="preserve">
+    <value>Bericht {0} kan hier niet worden gevolgd: de tracering legt wachtrij-id's alleen vast tot {1}. Zoek in plaats daarvan op de afzender of een ontvanger.</value>
+  </data>
   <data name="Message {0} removed." xml:space="preserve">
     <value>Bericht {0} verwijderd.</value>
   </data>

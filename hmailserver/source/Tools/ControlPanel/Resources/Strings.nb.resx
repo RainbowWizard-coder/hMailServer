@@ -6838,6 +6838,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Message trace" xml:space="preserve">
     <value>Meldingssporing</value>
   </data>
+  <data name="Message {0} cannot be followed here: the trace records queue ids only up to {1}. Search for its sender or a recipient instead." xml:space="preserve">
+    <value>Melding {0} kan ikke følges her: sporingen registrerer bare kø-id-er opp til {1}. Søk i stedet etter avsenderen eller en mottaker.</value>
+  </data>
   <data name="Message {0} removed." xml:space="preserve">
     <value>Melding {0} fjernet.</value>
   </data>
