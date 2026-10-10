@@ -132,6 +132,9 @@
   <data name="0 keeps every message until it is released or deleted, so watch the disk." xml:space="preserve">
     <value>0 uchová každou zprávu, dokud nebude uvolněna nebo smazána, takže hlídejte disk.</value>
   </data>
+  <data name="0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after." xml:space="preserve">
+    <value>0 uchová vše a je to záměrně výchozí hodnota: archiv se obvykle uchovává z právního nebo smluvního důvodu a server, který by z něj po aktualizaci začal mazat, by ničil přesně to, co mu bylo svěřeno k uchování. Úklid odstraňuje vždy jen soubory .eml, takže cokoli jiného v archivu uchováváte, zůstane nedotčeno, a probíhá při startu a poté každých dvanáct hodin.</value>
+  </data>
   <data name="0 keeps the entry until it is removed." xml:space="preserve">
     <value>0 ponechá záznam, dokud nebude odebrán.</value>
   </data>
@@ -4200,6 +4203,9 @@ Odesílateli bylo řečeno, že byla přijata, takže nic ji nezopakuje a jiná 
   <data name="Delivery throughput" xml:space="preserve">
     <value>Propustnost doručování</value>
   </data>
+  <data name="Delivery, retries and throttling" xml:space="preserve">
+    <value>Doručování, opakované pokusy a omezování toku</value>
+  </data>
   <data name="Depends" xml:space="preserve">
     <value>Záleží</value>
   </data>
@@ -4691,8 +4697,8 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Enable message indexing" xml:space="preserve">
     <value>Povolit indexování zpráv</value>
   </data>
-  <data name="Enable or disable the protocol servers. Changes apply after pressing Save. ManageSieve (for managing Sieve scripts) is enabled on the API &amp; monitoring page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
-    <value>Povolte nebo zakažte protokolové servery. Změny se projeví po stisknutí Uložit. ManageSieve (pro správu skriptů Sieve) se povoluje na stránce API a monitorování; ověřování tokenem OAuth2 je na stránce Ověřování.</value>
+  <data name="Enable or disable the protocol servers. Changes apply when you press Save changes. ManageSieve (for managing Sieve scripts) is enabled on the API &amp; monitoring page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
+    <value>Povolte nebo zakažte protokolové servery. Změny se projeví po stisknutí tlačítka Uložit změny. ManageSieve (pro správu skriptů Sieve) se povoluje na stránce API a monitorování; ověřování tokenem OAuth2 je na stránce Ověřování.</value>
   </data>
   <data name="Enable server-side event scripts" xml:space="preserve">
     <value>Povolit serverové skripty událostí</value>
@@ -5035,9 +5041,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Every check in the order the server runs them, its score, and what the total does to the message." xml:space="preserve">
     <value>Každá kontrola v pořadí, v jakém je server spouští, její skóre a co součet udělá se zprávou.</value>
-  </data>
-  <data name="Every counter the metrics endpoint exposes is server-wide, which is what stops metrics becoming reporting: you can see how much mail the server handled, never how much any one domain did. This adds a count of messages sent and received per hosted domain. Off by default, and that is a cardinality decision rather than a cautious one - every label value is a separate time series in whatever scrapes this, so an operator hosting several thousand domains should choose to pay for that rather than find out. Only domains this server hosts are ever labelled, so no amount of mail from strangers can create series." xml:space="preserve">
-    <value>Každý čítač, který endpoint metrik zveřejňuje, je celoserverový, a to je to, co brání metrikám stát se reportingem: vidíte, kolik pošty server zpracoval, nikdy ne kolik jí zpracovala jedna doména. Toto přidává počet odeslaných a přijatých zpráv na každou hostovanou doménu. Ve výchozím stavu vypnuto, a je to rozhodnutí o kardinalitě, ne opatrnost - každá hodnota štítku je samostatná časová řada v čemkoli, co to sbírá, takže provozovatel hostující několik tisíc domén by si měl vybrat, že za to zaplatí, místo aby to zjistil. Štítky dostávají jen domény, které tento server hostuje, takže žádné množství pošty od cizích nemůže vytvořit řady.</value>
   </data>
   <data name="Every error the server reports" xml:space="preserve">
     <value>Každá chyba, kterou server hlásí</value>
@@ -8528,8 +8531,8 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="On by default, and only an explicit 0 in the INI turns it off. Turned off, the encrypted connection no longer proves it reaches your directory: anyone who can intercept it can present any certificate and collect every password sent over it. The server notes the disabling in its application log once per service start. Only meaningful for LDAPS and StartTLS." xml:space="preserve">
     <value>Ve výchozím nastavení zapnuto a vypne to jedině výslovná 0 v INI. Když je to vypnuto, šifrované připojení už nedokazuje, že vede k vašemu adresáři: kdokoli, kdo je dokáže zachytit, může předložit libovolný certifikát a sbírat každé heslo, které se po něm odešle. Server toto vypnutí zapíše do aplikačního logu jednou při každém startu služby. Má význam jen pro LDAPS a StartTLS.</value>
   </data>
-  <data name="On by default, and the one switch here whose default is not the cautious one. With it off, a message for a mailbox that is already over quota is accepted and then answered with a non-delivery report addressed to the envelope sender - which the traffic that fills mailboxes fastest has forged. That report then goes from this server to somebody who sent nothing, which is backscatter, and it is this server's reputation that pays for it. Refusing at RCPT TO with a temporary 452 instead leaves the message in the sending server's queue, so a legitimate sender's mail waits for the mailbox to be emptied and is eventually reported by the machine that knows who the sender really is." xml:space="preserve">
-    <value>Ve výchozím nastavení zapnuto a je to zdejší jediný přepínač, jehož výchozí hodnota není ta opatrná. Když je vypnutý, zpráva pro poštovní schránku, která je už nad kvótou, se přijme a pak se na ni odpoví zprávou o nedoručení adresovanou odesílateli obálky – a ten je u provozu, který schránky plní nejrychleji, zfalšovaný. To hlášení pak jde z tohoto serveru někomu, kdo nic neposlal, což je backscatter, a platí za to pověst tohoto serveru. Odmítnutí už při RCPT TO dočasnou odpovědí 452 naopak nechá zprávu ve frontě odesílajícího serveru, takže pošta legitimního odesílatele počká, až se poštovní schránka vyprázdní, a nakonec ji ohlásí počítač, který ví, kdo odesílatel doopravdy je.</value>
+  <data name="On by default, and the one switch here whose default is not the cautious one. With it off, a message for a mailbox that is already over quota is accepted and then answered with a non-delivery report addressed to the envelope sender - which the traffic that fills mailboxes fastest has forged." xml:space="preserve">
+    <value>Ve výchozím nastavení zapnuto a je to zdejší jediný přepínač, jehož výchozí hodnota není ta opatrná. Když je vypnutý, zpráva pro poštovní schránku, která je už nad kvótou, se přijme a pak se na ni odpoví zprávou o nedoručení adresovanou odesílateli obálky – a ten je u provozu, který schránky plní nejrychleji, zfalšovaný.</value>
   </data>
   <data name="On by default, which is how Entra ID and ADFS sign. Off accepts a signature over the whole response." xml:space="preserve">
     <value>Ve výchozím stavu zapnuto, tak podepisují Entra ID a ADFS. Vypnuté přijme podpis nad celou odpovědí.</value>
@@ -8615,8 +8618,8 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="OnAcceptMessage → webhook (SIEM / Slack / Teams)" xml:space="preserve">
     <value>OnAcceptMessage → webhook (SIEM / Slack / Teams)</value>
   </data>
-  <data name="Once a day the server asks the DNS block lists below whether an address it sends from is listed, and raises the reputation.listed alert when one is. It checks the delivery bind address and the addresses the global rules bind; a server behind NAT has to be told its public address here, because nothing on the machine can find it." xml:space="preserve">
-    <value>Jednou denně se server zeptá níže uvedených seznamů blokovaných DNS, zda je některá adresa, ze které odesílá, na seznamu, a vyvolá upozornění reputation.listed, když ano. Kontroluje adresu vazby doručování a adresy, na které se vážou globální pravidla; serveru za NAT je třeba zde sdělit jeho veřejnou adresu, protože nic na počítači ji nemůže zjistit.</value>
+  <data name="Once a day the server asks the DNS block lists below whether an address it sends from is listed, and raises the alert 'reputation.listed' when one is. It checks the delivery bind address and the addresses the global rules bind; a server behind NAT has to be told its public address here, because nothing on the machine can find it." xml:space="preserve">
+    <value>Jednou denně se server zeptá níže uvedených seznamů blokovaných DNS, zda je některá adresa, ze které odesílá, na seznamu, a vyvolá upozornění 'reputation.listed', když ano. Kontroluje adresu vazby doručování a adresy, na které se vážou globální pravidla; serveru za NAT je třeba zde sdělit jeho veřejnou adresu, protože nic na počítači ji nemůže zjistit.</value>
   </data>
   <data name="Once a minute the server writes one row per metric - sessions, messages processed, delivered, deferred and bounced, spam and viruses, authentication and TLS outcomes, missing message files - to hm_metricsamples, and keeps them this many days. It is what the dashboard's 24 hours, 7 days and 30 days views and GET /api/v1/metrics/history read. A week of minute-resolution history is about a hundred and forty thousand small rows. 0 turns the sampler off." xml:space="preserve">
     <value>Jednou za minutu zapíše server jeden řádek na metriku – relace, zpracované, doručené, odložené a vrácené zprávy, spam a viry, výsledky ověřování a TLS, chybějící soubory zpráv – do hm_metricsamples a uchovává je tento počet dní. Právě z toho čtou pohledy přehledu na 24 hodin, 7 dní a 30 dní a GET /api/v1/metrics/history. Týden historie s minutovým rozlišením je zhruba sto čtyřicet tisíc malých řádků. 0 vzorkování vypne.</value>
@@ -14273,6 +14276,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>Tato akce nemá žádné další parametry.</value>
   </data>
+  <data name="This adds a count of messages sent and received per hosted domain. Only domains this server hosts are ever labelled, so no amount of mail from strangers can create series." xml:space="preserve">
+    <value>Toto přidává počet odeslaných a přijatých zpráv na každou hostovanou doménu. Štítky dostávají jen domény, které tento server hostuje, takže žádné množství pošty od cizích nemůže vytvořit řady.</value>
+  </data>
   <data name="This case's lines could not be read; the notice above says why." xml:space="preserve">
     <value>Řádky tohoto případu nebylo možné přečíst; proč, říká oznámení výše.</value>
   </data>
@@ -15431,8 +15437,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="With the manager on, the list answers its own addresses - its -subscribe, -unsubscribe, -request, -owner and -bounces addresses - and sends each member a copy of their own, with their own way to leave. Each member's delivery and bounces are shown in the Control Deck." xml:space="preserve">
     <value>Když je zapnutý správce seznamu, seznam odpovídá na vlastní adresy - adresy -subscribe, -unsubscribe, -request, -owner a -bounces - a posílá každému členovi jeho vlastní kopii, s jeho vlastním způsobem, jak ze seznamu odejít. Doručení a nedoručenky každého člena jsou vidět na stránce Control Deck.</value>
   </data>
-  <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected." xml:space="preserve">
-    <value>Se zapnutým nastavením musí být MAIL FROM v ověřené relaci vlastní adresa účtu, alias, který se na ni překládá, nebo jiná schránka, jejíž vlastník účtu udělil právo post (p) na svůj INBOX - tak se uděluje Odeslat jako pro sdílenou schránku, z editoru ACL kteréhokoli klienta IMAP (SETACL) nebo přes COM API. Cokoli jiného se odmítne s 550 5.7.1 dřív, než se přijme jediný bajt zprávy, takže jeden kompromitovaný nebo nedbalý účet už nemůže posílat jako všechny ostatní. Ve výchozím stavu vypnuto, protože dřív to nic neomezovalo a instalace na tom může záviset; prázdný odesílatel je vždy povolen. Neověřené relace to neovlivní.</value>
+  <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other." xml:space="preserve">
+    <value>Se zapnutým nastavením musí být MAIL FROM v ověřené relaci vlastní adresa účtu, alias, který se na ni překládá, nebo jiná schránka, jejíž vlastník účtu udělil právo post (p) na svůj INBOX - tak se uděluje Odeslat jako pro sdílenou schránku, z editoru ACL kteréhokoli klienta IMAP (SETACL) nebo přes COM API. Cokoli jiného se odmítne s 550 5.7.1 dřív, než se přijme jediný bajt zprávy, takže jeden kompromitovaný nebo nedbalý účet už nemůže posílat jako všechny ostatní.</value>
   </data>
   <data name="With this on, an account's own vacation message still answers colleagues, but outside senders get the domain's generic text instead - so personal detail in a vacation message stays inside the organisation." xml:space="preserve">
     <value>Se zapnutým nastavením vlastní zpráva o nepřítomnosti účtu stále odpovídá kolegům, ale vnější odesílatelé dostanou místo ní obecný text domény - takže osobní podrobnosti ve zprávě o nepřítomnosti zůstanou uvnitř organizace.</value>

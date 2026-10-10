@@ -132,6 +132,9 @@
   <data name="0 keeps every message until it is released or deleted, so watch the disk." xml:space="preserve">
     <value>0 会保留每封邮件，直到它被放行或删除，因此请留意磁盘空间。</value>
   </data>
+  <data name="0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after." xml:space="preserve">
+    <value>0 表示保留全部，而且这是刻意为之的默认值：保留存档通常出于法律或合同上的原因，而一台在升级后开始从中删除内容的服务器，恰恰会销毁它被要求保留的东西。清理只会删除 .eml 文件，因此您在存档中保存的其他内容不会被动；它在启动时运行，此后每十二小时运行一次。</value>
+  </data>
   <data name="0 keeps the entry until it is removed." xml:space="preserve">
     <value>0 表示保留该条目，直到被移除。</value>
   </data>
@@ -4148,6 +4151,9 @@
   <data name="Delivery throughput" xml:space="preserve">
     <value>投递吞吐量</value>
   </data>
+  <data name="Delivery, retries and throttling" xml:space="preserve">
+    <value>投递、重试和限速</value>
+  </data>
   <data name="Depends" xml:space="preserve">
     <value>视情况</value>
   </data>
@@ -4639,8 +4645,8 @@
   <data name="Enable message indexing" xml:space="preserve">
     <value>启用邮件索引</value>
   </data>
-  <data name="Enable or disable the protocol servers. Changes apply after pressing Save. ManageSieve (for managing Sieve scripts) is enabled on the API &amp; monitoring page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
-    <value>启用或禁用协议服务器。更改在按“保存”后生效。ManageSieve（用于管理 Sieve 脚本）在“API 与监控”页启用；OAuth2 令牌身份验证在“身份验证”页。</value>
+  <data name="Enable or disable the protocol servers. Changes apply when you press Save changes. ManageSieve (for managing Sieve scripts) is enabled on the API &amp; monitoring page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
+    <value>启用或禁用协议服务器。按“保存更改”后，更改生效。ManageSieve（用于管理 Sieve 脚本）在“API 与监控”页启用；OAuth2 令牌身份验证在“身份验证”页。</value>
   </data>
   <data name="Enable server-side event scripts" xml:space="preserve">
     <value>启用服务器端事件脚本</value>
@@ -4977,9 +4983,6 @@
   </data>
   <data name="Every check in the order the server runs them, its score, and what the total does to the message." xml:space="preserve">
     <value>每项检查按服务器运行它们的顺序列出，以及它的分数，还有总分会对邮件产生什么影响。</value>
-  </data>
-  <data name="Every counter the metrics endpoint exposes is server-wide, which is what stops metrics becoming reporting: you can see how much mail the server handled, never how much any one domain did. This adds a count of messages sent and received per hosted domain. Off by default, and that is a cardinality decision rather than a cautious one - every label value is a separate time series in whatever scrapes this, so an operator hosting several thousand domains should choose to pay for that rather than find out. Only domains this server hosts are ever labelled, so no amount of mail from strangers can create series." xml:space="preserve">
-    <value>指标端点公开的每一个计数器都是服务器范围的，这正是防止指标变成报告的原因：您能看到服务器处理了多少邮件，却永远看不到任何一个域处理了多少。此项会为每个托管域添加已发送和已接收邮件的计数。默认关闭，这是出于基数考虑而不是出于谨慎 - 在抓取它的任何系统中，每个标签值都是一个单独的时间序列，因此托管数千个域的运维人员应当主动选择为此付出代价，而不是事后才发现。只会为本服务器托管的域打标签，因此无论陌生人发来多少邮件都无法创建序列。</value>
   </data>
   <data name="Every error the server reports" xml:space="preserve">
     <value>服务器报告的所有错误</value>
@@ -8434,8 +8437,8 @@
   <data name="On by default, and only an explicit 0 in the INI turns it off. Turned off, the encrypted connection no longer proves it reaches your directory: anyone who can intercept it can present any certificate and collect every password sent over it. The server notes the disabling in its application log once per service start. Only meaningful for LDAPS and StartTLS." xml:space="preserve">
     <value>默认打开，只有 INI 中明确的 0 才会关闭它。关闭后，加密连接不再能证明它到达的是您的目录：任何能截获它的人都可以出示任意证书并收集经由它发送的每一个密码。服务器每次服务启动时会在应用程序日志中记录一次此项已禁用。仅对 LDAPS 和 StartTLS 有意义。</value>
   </data>
-  <data name="On by default, and the one switch here whose default is not the cautious one. With it off, a message for a mailbox that is already over quota is accepted and then answered with a non-delivery report addressed to the envelope sender - which the traffic that fills mailboxes fastest has forged. That report then goes from this server to somebody who sent nothing, which is backscatter, and it is this server's reputation that pays for it. Refusing at RCPT TO with a temporary 452 instead leaves the message in the sending server's queue, so a legitimate sender's mail waits for the mailbox to be emptied and is eventually reported by the machine that knows who the sender really is." xml:space="preserve">
-    <value>默认打开，是这里唯一一个默认值不是保守选项的开关。关闭它时，发给已超出配额的邮箱的邮件会先被接受，然后以一份寄给信封发件人的未送达报告作答 - 而最快填满邮箱的那类流量恰恰伪造了信封发件人。这份报告随后从本服务器发给一个什么都没发过的人，这就是反向散射，付出代价的是本服务器的声誉。改为在 RCPT TO 时以临时的 452 拒绝，则邮件留在发送服务器的队列中，合法发件人的邮件会等到邮箱被清空，并最终由知道发件人究竟是谁的那台机器来报告。</value>
+  <data name="On by default, and the one switch here whose default is not the cautious one. With it off, a message for a mailbox that is already over quota is accepted and then answered with a non-delivery report addressed to the envelope sender - which the traffic that fills mailboxes fastest has forged." xml:space="preserve">
+    <value>默认打开，是这里唯一一个默认值不是保守选项的开关。关闭它时，发给已超出配额的邮箱的邮件会先被接受，然后以一份寄给信封发件人的未送达报告作答 - 而最快填满邮箱的那类流量恰恰伪造了信封发件人。</value>
   </data>
   <data name="On by default, which is how Entra ID and ADFS sign. Off accepts a signature over the whole response." xml:space="preserve">
     <value>默认打开，Entra ID 和 ADFS 就是这样签名的。关闭时接受对整个响应的签名。</value>
@@ -8521,8 +8524,8 @@
   <data name="OnAcceptMessage → webhook (SIEM / Slack / Teams)" xml:space="preserve">
     <value>OnAcceptMessage → Webhook（SIEM / Slack / Teams）</value>
   </data>
-  <data name="Once a day the server asks the DNS block lists below whether an address it sends from is listed, and raises the reputation.listed alert when one is. It checks the delivery bind address and the addresses the global rules bind; a server behind NAT has to be told its public address here, because nothing on the machine can find it." xml:space="preserve">
-    <value>服务器每天一次向下面的 DNS 拦截列表查询其发送地址是否被列入，如果被列入就触发 reputation.listed 警报。它检查投递的绑定地址和全局规则绑定的地址；位于 NAT 后面的服务器必须在这里告知其公共地址，因为计算机上没有任何东西能找到它。</value>
+  <data name="Once a day the server asks the DNS block lists below whether an address it sends from is listed, and raises the alert 'reputation.listed' when one is. It checks the delivery bind address and the addresses the global rules bind; a server behind NAT has to be told its public address here, because nothing on the machine can find it." xml:space="preserve">
+    <value>服务器每天一次向下面的 DNS 拦截列表查询其发送地址是否被列入，如果被列入就触发 'reputation.listed' 警报。它检查投递的绑定地址和全局规则绑定的地址；位于 NAT 后面的服务器必须在这里告知其公共地址，因为计算机上没有任何东西能找到它。</value>
   </data>
   <data name="Once a minute the server writes one row per metric - sessions, messages processed, delivered, deferred and bounced, spam and viruses, authentication and TLS outcomes, missing message files - to hm_metricsamples, and keeps them this many days. It is what the dashboard's 24 hours, 7 days and 30 days views and GET /api/v1/metrics/history read. A week of minute-resolution history is about a hundred and forty thousand small rows. 0 turns the sampler off." xml:space="preserve">
     <value>服务器每分钟为每个指标写入一行 - 会话、已处理、已投递、已推迟和已退回的邮件、垃圾邮件和病毒、身份验证和 TLS 结果、缺失的邮件文件 - 写入 hm_metricsamples，并保留这么多天。仪表板的 24 小时、7 天和 30 天视图以及 GET /api/v1/metrics/history 读取的正是这些数据。一周的分钟级历史大约是十四万行小记录。0 会关闭采样器。</value>
@@ -14095,6 +14098,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>此操作没有额外参数。</value>
   </data>
+  <data name="This adds a count of messages sent and received per hosted domain. Only domains this server hosts are ever labelled, so no amount of mail from strangers can create series." xml:space="preserve">
+    <value>此项会为每个托管域添加已发送和已接收邮件的计数。只会为本服务器托管的域打标签，因此无论陌生人发来多少邮件都无法创建序列。</value>
+  </data>
   <data name="This case's lines could not be read; the notice above says why." xml:space="preserve">
     <value>无法读取此案件的行；原因见上方的通知。</value>
   </data>
@@ -15247,8 +15253,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="With the manager on, the list answers its own addresses - its -subscribe, -unsubscribe, -request, -owner and -bounces addresses - and sends each member a copy of their own, with their own way to leave. Each member's delivery and bounces are shown in the Control Deck." xml:space="preserve">
     <value>启用列表管理器后，列表会响应自己的地址 - 即 -subscribe、-unsubscribe、-request、-owner 和 -bounces 地址 - 并向每个成员发送各自专属的副本，附有各自退出的方式。每个成员的投递情况和退信都会显示在 Control Deck 中。</value>
   </data>
-  <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected." xml:space="preserve">
-    <value>开启后，已验证会话中的 MAIL FROM 必须是账户自己的地址、解析到它的别名，或所有者已向该账户授予其 INBOX 上投递 (p) 权限的另一个邮箱 - 共享邮箱的“代表发送”就是这样授予的，可通过任何 IMAP 客户端的 ACL 编辑器 (SETACL) 或通过 COM API。其他任何情况都会在接受邮件的第一个字节之前以 550 5.7.1 拒绝，因此一个被攻陷或粗心的账户再也不能冒充所有其他账户发送。默认关闭，因为以前没有任何东西限制这一点，现有安装可能依赖它；空发件人始终允许。未验证的会话不受影响。</value>
+  <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other." xml:space="preserve">
+    <value>开启后，已验证会话中的 MAIL FROM 必须是账户自己的地址、解析到它的别名，或所有者已向该账户授予其 INBOX 上投递 (p) 权限的另一个邮箱 - 共享邮箱的“代表发送”就是这样授予的，可通过任何 IMAP 客户端的 ACL 编辑器 (SETACL) 或通过 COM API。其他任何情况都会在接受邮件的第一个字节之前以 550 5.7.1 拒绝，因此一个被攻陷或粗心的账户再也不能冒充所有其他账户发送。</value>
   </data>
   <data name="With this on, an account's own vacation message still answers colleagues, but outside senders get the domain's generic text instead - so personal detail in a vacation message stays inside the organisation." xml:space="preserve">
     <value>开启后，账户自己的休假消息仍会回复同事，但外部发件人会收到域的通用文本 - 这样休假消息中的个人细节就留在了组织内部。</value>

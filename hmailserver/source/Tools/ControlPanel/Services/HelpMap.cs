@@ -140,7 +140,9 @@ namespace hMailServer.ControlPanel.Services
 
             // Listeners, TLS and certificates. RemoteDomains.md's Outbound TLS,
             // which all five TLS pages opened, is one remote domain's policy.
-            ["protocols"] = HelpTarget.NoGuide,
+            // The page's settings say what each does in two sentences; the reasons
+            // they gave at length are its document's (review finding F310).
+            ["protocols"] = new HelpTarget("Protocols.md"),
             ["ports"] = new HelpTarget("SecureDefaults.md", "What a new installation starts with"),
             ["webservices"] = HelpTarget.NoGuide,
             ["webmail"] = new HelpTarget("PasskeysAndSingleSignOn.md"),
@@ -191,6 +193,8 @@ namespace hMailServer.ControlPanel.Services
             ["delivery#Feedback"] = new HelpTarget("Complaints.md"),
             ["delivery#Reputation"] = new HelpTarget("ReputationWatch.md"),
             ["delivery#Mailing lists"] = new HelpTarget("MailingLists.md"),
+
+            ["protocols#SMTP"] = new HelpTarget("Protocols.md", "SMTP"),
 
             ["antispam#Sender auth"] = new HelpTarget("SmtpPolicy.md", "SPF's other results (#286)"),
             ["antispam#Host checks"] = new HelpTarget("SmtpPolicy.md"),

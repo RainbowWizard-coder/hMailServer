@@ -132,6 +132,9 @@
   <data name="0 keeps every message until it is released or deleted, so watch the disk." xml:space="preserve">
     <value>0 behåller varje meddelande tills det släpps eller tas bort, så håll ett öga på disken.</value>
   </data>
+  <data name="0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after." xml:space="preserve">
+    <value>0 behåller allt, och det är standardvärdet med avsikt: ett arkiv hålls oftast av juridiska eller avtalsmässiga skäl, och en server som började ta bort ur ett vid uppgradering skulle förstöra exakt det den sagts att behålla. Svepet tar bara någonsin bort .eml-filer, så allt annat du förvarar i arkivet lämnas i fred, och det körs vid start och var tolfte timme därefter.</value>
+  </data>
   <data name="0 keeps the entry until it is removed." xml:space="preserve">
     <value>0 behåller posten tills den tas bort.</value>
   </data>
@@ -4148,6 +4151,9 @@ Avsändaren fick veta att det accepterades, så inget kommer att försöka igen 
   <data name="Delivery throughput" xml:space="preserve">
     <value>Leveransgenomströmning</value>
   </data>
+  <data name="Delivery, retries and throttling" xml:space="preserve">
+    <value>Leverans, omförsök och strypning</value>
+  </data>
   <data name="Depends" xml:space="preserve">
     <value>Beror på</value>
   </data>
@@ -4639,8 +4645,8 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Enable message indexing" xml:space="preserve">
     <value>Aktivera meddelandeindexering</value>
   </data>
-  <data name="Enable or disable the protocol servers. Changes apply after pressing Save. ManageSieve (for managing Sieve scripts) is enabled on the API &amp; monitoring page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
-    <value>Aktivera eller inaktivera protokollservrarna. Ändringar gäller efter att du tryckt på Spara. ManageSieve (för att hantera Sieve-skript) aktiveras på sidan API &amp; övervakning; OAuth2-tokenautentisering finns på sidan Autentisering.</value>
+  <data name="Enable or disable the protocol servers. Changes apply when you press Save changes. ManageSieve (for managing Sieve scripts) is enabled on the API &amp; monitoring page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
+    <value>Aktivera eller inaktivera protokollservrarna. Ändringar gäller när du trycker på Spara ändringar. ManageSieve (för att hantera Sieve-skript) aktiveras på sidan API &amp; övervakning; OAuth2-tokenautentisering finns på sidan Autentisering.</value>
   </data>
   <data name="Enable server-side event scripts" xml:space="preserve">
     <value>Aktivera händelseskript på serversidan</value>
@@ -4977,9 +4983,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Every check in the order the server runs them, its score, and what the total does to the message." xml:space="preserve">
     <value>Varje kontroll i den ordning servern kör dem, dess poäng, och vad summan gör med meddelandet.</value>
-  </data>
-  <data name="Every counter the metrics endpoint exposes is server-wide, which is what stops metrics becoming reporting: you can see how much mail the server handled, never how much any one domain did. This adds a count of messages sent and received per hosted domain. Off by default, and that is a cardinality decision rather than a cautious one - every label value is a separate time series in whatever scrapes this, so an operator hosting several thousand domains should choose to pay for that rather than find out. Only domains this server hosts are ever labelled, so no amount of mail from strangers can create series." xml:space="preserve">
-    <value>Varje räknare som mätvärdesslutpunkten exponerar är serverövergripande, vilket är det som hindrar mätvärden från att bli rapportering: du kan se hur mycket post servern hanterade, aldrig hur mycket någon enskild domän gjorde. Detta lägger till ett antal skickade och mottagna meddelanden per hyst domän. Av som standard, och det är ett kardinalitetsbeslut snarare än ett försiktigt - varje etikettvärde är en separat tidsserie i det som skrapar detta, så en operatör som hyser flera tusen domäner bör välja att betala för det snarare än att upptäcka det. Bara domäner den här servern hyser etiketteras någonsin, så ingen mängd post från främlingar kan skapa serier.</value>
   </data>
   <data name="Every error the server reports" xml:space="preserve">
     <value>Alla fel som servern rapporterar</value>
@@ -8434,8 +8437,8 @@ Inget som redan finns där tas bort.</value>
   <data name="On by default, and only an explicit 0 in the INI turns it off. Turned off, the encrypted connection no longer proves it reaches your directory: anyone who can intercept it can present any certificate and collect every password sent over it. The server notes the disabling in its application log once per service start. Only meaningful for LDAPS and StartTLS." xml:space="preserve">
     <value>På som standard, och bara ett uttryckligt 0 i INI-filen stänger av det. Avstängt bevisar den krypterade anslutningen inte längre att den når din katalog: vem som helst som kan avlyssna den kan visa upp vilket certifikat som helst och samla in varje lösenord som skickas över den. Servern noterar avstängningen i sin programlogg en gång per start av tjänsten. Bara meningsfullt för LDAPS och StartTLS.</value>
   </data>
-  <data name="On by default, and the one switch here whose default is not the cautious one. With it off, a message for a mailbox that is already over quota is accepted and then answered with a non-delivery report addressed to the envelope sender - which the traffic that fills mailboxes fastest has forged. That report then goes from this server to somebody who sent nothing, which is backscatter, and it is this server's reputation that pays for it. Refusing at RCPT TO with a temporary 452 instead leaves the message in the sending server's queue, so a legitimate sender's mail waits for the mailbox to be emptied and is eventually reported by the machine that knows who the sender really is." xml:space="preserve">
-    <value>På som standard, och den enda strömbrytaren här vars standard inte är den försiktiga. Med den av godtas ett meddelande till en brevlåda som redan är över kvoten och besvaras sedan med en leveransrapport adresserad till kuvertavsändaren - som den trafik som fyller brevlådor snabbast har förfalskat. Den rapporten går då från den här servern till någon som inte skickat något, vilket är backscatter, och det är den här serverns anseende som betalar för det. Att avvisa vid RCPT TO med ett tillfälligt 452 lämnar i stället meddelandet i den sändande serverns kö, så en legitim avsändares post väntar på att brevlådan töms och rapporteras till slut av den maskin som vet vem avsändaren verkligen är.</value>
+  <data name="On by default, and the one switch here whose default is not the cautious one. With it off, a message for a mailbox that is already over quota is accepted and then answered with a non-delivery report addressed to the envelope sender - which the traffic that fills mailboxes fastest has forged." xml:space="preserve">
+    <value>På som standard, och den enda strömbrytaren här vars standard inte är den försiktiga. Med den av godtas ett meddelande till en brevlåda som redan är över kvoten och besvaras sedan med en leveransrapport adresserad till kuvertavsändaren - som den trafik som fyller brevlådor snabbast har förfalskat.</value>
   </data>
   <data name="On by default, which is how Entra ID and ADFS sign. Off accepts a signature over the whole response." xml:space="preserve">
     <value>På som standard, vilket är så Entra ID och ADFS signerar. Av godtar en signatur över hela svaret.</value>
@@ -8521,8 +8524,8 @@ Inget som redan finns där tas bort.</value>
   <data name="OnAcceptMessage → webhook (SIEM / Slack / Teams)" xml:space="preserve">
     <value>OnAcceptMessage → webhook (SIEM / Slack / Teams)</value>
   </data>
-  <data name="Once a day the server asks the DNS block lists below whether an address it sends from is listed, and raises the reputation.listed alert when one is. It checks the delivery bind address and the addresses the global rules bind; a server behind NAT has to be told its public address here, because nothing on the machine can find it." xml:space="preserve">
-    <value>En gång om dagen frågar servern DNS-spärrlistorna nedan om någon adress som den skickar från är listad, och utlöser larmet reputation.listed när en är det. Den kontrollerar leveransens bindningsadress och de adresser som de globala reglerna binder till; en server bakom NAT måste få veta sin publika adress här, eftersom inget på datorn kan hitta den.</value>
+  <data name="Once a day the server asks the DNS block lists below whether an address it sends from is listed, and raises the alert 'reputation.listed' when one is. It checks the delivery bind address and the addresses the global rules bind; a server behind NAT has to be told its public address here, because nothing on the machine can find it." xml:space="preserve">
+    <value>En gång om dagen frågar servern DNS-spärrlistorna nedan om någon adress som den skickar från är listad, och utlöser larmet 'reputation.listed' när en är det. Den kontrollerar leveransens bindningsadress och de adresser som de globala reglerna binder till; en server bakom NAT måste få veta sin publika adress här, eftersom inget på datorn kan hitta den.</value>
   </data>
   <data name="Once a minute the server writes one row per metric - sessions, messages processed, delivered, deferred and bounced, spam and viruses, authentication and TLS outcomes, missing message files - to hm_metricsamples, and keeps them this many days. It is what the dashboard's 24 hours, 7 days and 30 days views and GET /api/v1/metrics/history read. A week of minute-resolution history is about a hundred and forty thousand small rows. 0 turns the sampler off." xml:space="preserve">
     <value>En gång i minuten skriver servern en rad per mätvärde - sessioner, behandlade, levererade, uppskjutna och studsade meddelanden, skräppost och virus, autentiserings- och TLS-utfall, saknade meddelandefiler - till hm_metricsamples, och behåller dem så här många dagar. Det är vad översiktens vyer 24 timmar, 7 dagar och 30 dagar och GET /api/v1/metrics/history läser. En veckas historik med minutupplösning är ungefär hundrafyrtiotusen små rader. 0 stänger av provtagaren.</value>
@@ -14095,6 +14098,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>Den här åtgärden har inga ytterligare parametrar.</value>
   </data>
+  <data name="This adds a count of messages sent and received per hosted domain. Only domains this server hosts are ever labelled, so no amount of mail from strangers can create series." xml:space="preserve">
+    <value>Detta lägger till ett antal skickade och mottagna meddelanden per hyst domän. Bara domäner den här servern hyser etiketteras någonsin, så ingen mängd post från främlingar kan skapa serier.</value>
+  </data>
   <data name="This case's lines could not be read; the notice above says why." xml:space="preserve">
     <value>Ärendets rader kunde inte läsas; meddelandet ovan säger varför.</value>
   </data>
@@ -15247,8 +15253,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="With the manager on, the list answers its own addresses - its -subscribe, -unsubscribe, -request, -owner and -bounces addresses - and sends each member a copy of their own, with their own way to leave. Each member's delivery and bounces are shown in the Control Deck." xml:space="preserve">
     <value>När listhanteraren är på svarar listan på sina egna adresser - dess -subscribe-, -unsubscribe-, -request-, -owner- och -bounces-adresser - och skickar varje medlem sin egen kopia, med sitt eget sätt att lämna listan. Varje medlems leverans och studsar visas i Control Deck.</value>
   </data>
-  <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected." xml:space="preserve">
-    <value>Med detta på måste MAIL FROM i en autentiserad session vara kontots egen adress, ett alias som leder till den, eller en annan brevlåda vars ägare har gett kontot rättigheten post (p) på sin INBOX - vilket är så Send-As för en delad brevlåda tilldelas, från valfri IMAP-klients ACL-redigerare (SETACL) eller över COM API:et. Allt annat avvisas med 550 5.7.1 innan en byte av meddelandet godtas, så ett komprometterat eller slarvigt konto kan inte längre skicka som alla andra. Av som standard eftersom inget begränsade detta förut och en installation kan vara beroende av det; nollavsändaren tillåts alltid. Oautentiserade sessioner påverkas inte.</value>
+  <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other." xml:space="preserve">
+    <value>Med detta på måste MAIL FROM i en autentiserad session vara kontots egen adress, ett alias som leder till den, eller en annan brevlåda vars ägare har gett kontot rättigheten post (p) på sin INBOX - vilket är så Send-As för en delad brevlåda tilldelas, från valfri IMAP-klients ACL-redigerare (SETACL) eller över COM API:et. Allt annat avvisas med 550 5.7.1 innan en byte av meddelandet godtas, så ett komprometterat eller slarvigt konto kan inte längre skicka som alla andra.</value>
   </data>
   <data name="With this on, an account's own vacation message still answers colleagues, but outside senders get the domain's generic text instead - so personal detail in a vacation message stays inside the organisation." xml:space="preserve">
     <value>Med detta på svarar ett kontos eget frånvaromeddelande fortfarande kollegor, men utomstående avsändare får domänens allmänna text i stället - så personliga detaljer i ett frånvaromeddelande stannar inom organisationen.</value>

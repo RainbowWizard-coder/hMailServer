@@ -3268,7 +3268,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   list, and a criterion is one whole text a language can order; the criteria's card is titled IF, level with THEN,
   with the match mode its first row under the caption Match; and the list of rules has a Summary column, a rule's
   first criterion and first action, which the search reads, where it said only the number, the name and whether the
-  rule was on (F309). `DnsRecordsCopyTests` and `RulePartTextTests` hold it.
+  rule was on (F309). Delivery of e-mail and Protocols: the first Delivery card, which repeated the page's title, is
+  Delivery, retries and throttling; the reputation watch quotes its alert's identifier, "raises the alert
+  'reputation.listed'"; the eight idle timeouts stand two to a line, each minimum beside its maximum, where the eighth
+  was below the fold; four SMTP settings' blurbs of six and seven lines say what the setting does in two sentences,
+  and their reasons are the Protocols page's new help document, docs/Protocols.md, where the page had none; and
+  "Changes apply after pressing Save" names the button as it is captioned, Save changes (F310). `DnsRecordsCopyTests`,
+  `RulePartTextTests` and `ProtocolsAndDeliveryCopyTests` hold it.
 
 ### Administration
 

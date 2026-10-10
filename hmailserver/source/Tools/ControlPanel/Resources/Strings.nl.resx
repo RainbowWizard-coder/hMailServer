@@ -132,6 +132,9 @@
   <data name="0 keeps every message until it is released or deleted, so watch the disk." xml:space="preserve">
     <value>0 bewaart elk bericht tot het wordt vrijgegeven of verwijderd, dus houd de schijf in de gaten.</value>
   </data>
+  <data name="0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after." xml:space="preserve">
+    <value>0 bewaart alles, en dat is met opzet de standaard: een archief wordt meestal om een juridische of contractuele reden bewaard, en een server die er bij een upgrade uit begon te verwijderen zou precies vernietigen wat hem is opgedragen te bewaren. De opruiming verwijdert alleen .eml-bestanden, dus al het andere dat u in het archief bewaart blijft met rust, en hij draait bij het opstarten en daarna elke twaalf uur.</value>
+  </data>
   <data name="0 keeps the entry until it is removed." xml:space="preserve">
     <value>0 houdt de vermelding tot ze wordt verwijderd.</value>
   </data>
@@ -4148,6 +4151,9 @@ De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert 
   <data name="Delivery throughput" xml:space="preserve">
     <value>Bezorgdoorvoer</value>
   </data>
+  <data name="Delivery, retries and throttling" xml:space="preserve">
+    <value>Bezorging, nieuwe pogingen en snelheidsbeperking</value>
+  </data>
   <data name="Depends" xml:space="preserve">
     <value>Hangt ervan af</value>
   </data>
@@ -4639,8 +4645,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Enable message indexing" xml:space="preserve">
     <value>Berichtindexering inschakelen</value>
   </data>
-  <data name="Enable or disable the protocol servers. Changes apply after pressing Save. ManageSieve (for managing Sieve scripts) is enabled on the API &amp; monitoring page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
-    <value>Schakel de protocolservers in of uit. Wijzigingen gelden nadat u op Opslaan hebt gedrukt. ManageSieve (voor het beheren van Sieve-scripts) wordt ingeschakeld op de pagina API en monitoring; OAuth2-tokenauthenticatie staat op de pagina Authenticatie.</value>
+  <data name="Enable or disable the protocol servers. Changes apply when you press Save changes. ManageSieve (for managing Sieve scripts) is enabled on the API &amp; monitoring page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
+    <value>Schakel de protocolservers in of uit. Wijzigingen gelden zodra u op Wijzigingen opslaan drukt. ManageSieve (voor het beheren van Sieve-scripts) wordt ingeschakeld op de pagina API en monitoring; OAuth2-tokenauthenticatie staat op de pagina Authenticatie.</value>
   </data>
   <data name="Enable server-side event scripts" xml:space="preserve">
     <value>Gebeurtenisscripts op de server inschakelen</value>
@@ -4977,9 +4983,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Every check in the order the server runs them, its score, and what the total does to the message." xml:space="preserve">
     <value>Elke controle in de volgorde waarin de server ze uitvoert, de score ervan, en wat het totaal met het bericht doet.</value>
-  </data>
-  <data name="Every counter the metrics endpoint exposes is server-wide, which is what stops metrics becoming reporting: you can see how much mail the server handled, never how much any one domain did. This adds a count of messages sent and received per hosted domain. Off by default, and that is a cardinality decision rather than a cautious one - every label value is a separate time series in whatever scrapes this, so an operator hosting several thousand domains should choose to pay for that rather than find out. Only domains this server hosts are ever labelled, so no amount of mail from strangers can create series." xml:space="preserve">
-    <value>Elke teller die het metrics-eindpunt blootstelt geldt voor de hele server, en dat is wat voorkomt dat metrics rapportage worden: u ziet hoeveel mail de server heeft verwerkt, nooit hoeveel één domein heeft gedaan. Dit voegt een telling toe van verzonden en ontvangen berichten per gehost domein. Standaard uit, en dat is een beslissing over cardinaliteit en geen voorzichtigheid - elke labelwaarde is een aparte tijdreeks in wat dit ook scrapet, dus een beheerder die enkele duizenden domeinen host hoort daar bewust voor te kiezen in plaats van er achteraf achter te komen. Alleen domeinen die deze server host krijgen ooit een label, dus geen enkele hoeveelheid mail van vreemden kan reeksen aanmaken.</value>
   </data>
   <data name="Every error the server reports" xml:space="preserve">
     <value>Elke fout die de server meldt</value>
@@ -8434,8 +8437,8 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="On by default, and only an explicit 0 in the INI turns it off. Turned off, the encrypted connection no longer proves it reaches your directory: anyone who can intercept it can present any certificate and collect every password sent over it. The server notes the disabling in its application log once per service start. Only meaningful for LDAPS and StartTLS." xml:space="preserve">
     <value>Staat standaard aan, en alleen een expliciete 0 in de INI zet het uit. Uitgezet bewijst de versleutelde verbinding niet meer dat hij uw directory bereikt: iedereen die hem kan onderscheppen, kan elk willekeurig certificaat tonen en elk wachtwoord dat erover gaat verzamelen. De server noteert de uitschakeling eenmaal per servicestart in zijn toepassingslogboek. Alleen zinvol voor LDAPS en StartTLS.</value>
   </data>
-  <data name="On by default, and the one switch here whose default is not the cautious one. With it off, a message for a mailbox that is already over quota is accepted and then answered with a non-delivery report addressed to the envelope sender - which the traffic that fills mailboxes fastest has forged. That report then goes from this server to somebody who sent nothing, which is backscatter, and it is this server's reputation that pays for it. Refusing at RCPT TO with a temporary 452 instead leaves the message in the sending server's queue, so a legitimate sender's mail waits for the mailbox to be emptied and is eventually reported by the machine that knows who the sender really is." xml:space="preserve">
-    <value>Staat standaard aan, en is de enige schakelaar hier waarvan de standaard niet de voorzichtige is. Staat hij uit, dan wordt een bericht voor een postvak dat al over zijn quotum is geaccepteerd en daarna beantwoord met een niet-bezorgingsrapport gericht aan de envelopafzender - en juist het verkeer dat postvakken het snelst vult, heeft dat adres vervalst. Dat rapport gaat dan van deze server naar iemand die niets heeft verstuurd, en dat is backscatter, waarvoor de reputatie van deze server betaalt. Bij RCPT TO weigeren met een tijdelijke 452 laat het bericht in plaats daarvan in de wachtrij van de verzendende server staan, zodat de mail van een legitieme afzender wacht tot het postvak is geleegd en uiteindelijk wordt gemeld door de machine die weet wie de afzender werkelijk is.</value>
+  <data name="On by default, and the one switch here whose default is not the cautious one. With it off, a message for a mailbox that is already over quota is accepted and then answered with a non-delivery report addressed to the envelope sender - which the traffic that fills mailboxes fastest has forged." xml:space="preserve">
+    <value>Staat standaard aan, en is de enige schakelaar hier waarvan de standaard niet de voorzichtige is. Staat hij uit, dan wordt een bericht voor een postvak dat al over zijn quotum is geaccepteerd en daarna beantwoord met een niet-bezorgingsrapport gericht aan de envelopafzender - en juist het verkeer dat postvakken het snelst vult, heeft dat adres vervalst.</value>
   </data>
   <data name="On by default, which is how Entra ID and ADFS sign. Off accepts a signature over the whole response." xml:space="preserve">
     <value>Standaard aan; zo ondertekenen Entra ID en ADFS. Uit aanvaardt een handtekening over het hele antwoord.</value>
@@ -8521,8 +8524,8 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="OnAcceptMessage → webhook (SIEM / Slack / Teams)" xml:space="preserve">
     <value>OnAcceptMessage → webhook (SIEM / Slack / Teams)</value>
   </data>
-  <data name="Once a day the server asks the DNS block lists below whether an address it sends from is listed, and raises the reputation.listed alert when one is. It checks the delivery bind address and the addresses the global rules bind; a server behind NAT has to be told its public address here, because nothing on the machine can find it." xml:space="preserve">
-    <value>Eens per dag vraagt de server de DNS-blokkeerlijsten hieronder of een adres waarvandaan hij verzendt, vermeld staat, en geeft de waarschuwing reputation.listed wanneer dat zo is. Hij controleert het bindadres voor bezorging en de adressen waaraan de globale regels binden; een server achter NAT moet hier zijn openbare adres krijgen, omdat niets op de machine het kan vinden.</value>
+  <data name="Once a day the server asks the DNS block lists below whether an address it sends from is listed, and raises the alert 'reputation.listed' when one is. It checks the delivery bind address and the addresses the global rules bind; a server behind NAT has to be told its public address here, because nothing on the machine can find it." xml:space="preserve">
+    <value>Eens per dag vraagt de server de DNS-blokkeerlijsten hieronder of een adres waarvandaan hij verzendt, vermeld staat, en geeft de waarschuwing 'reputation.listed' wanneer dat zo is. Hij controleert het bindadres voor bezorging en de adressen waaraan de globale regels binden; een server achter NAT moet hier zijn openbare adres krijgen, omdat niets op de machine het kan vinden.</value>
   </data>
   <data name="Once a minute the server writes one row per metric - sessions, messages processed, delivered, deferred and bounced, spam and viruses, authentication and TLS outcomes, missing message files - to hm_metricsamples, and keeps them this many days. It is what the dashboard's 24 hours, 7 days and 30 days views and GET /api/v1/metrics/history read. A week of minute-resolution history is about a hundred and forty thousand small rows. 0 turns the sampler off." xml:space="preserve">
     <value>Eenmaal per minuut schrijft de server één rij per metriek - sessies, verwerkte, bezorgde, uitgestelde en gebouncete berichten, spam en virussen, authenticatie- en TLS-uitkomsten, ontbrekende berichtbestanden - naar hm_metricsamples, en bewaart die dit aantal dagen. Het is wat de weergaven 24 uur, 7 dagen en 30 dagen van het dashboard en GET /api/v1/metrics/history lezen. Een week geschiedenis met minuutresolutie is ongeveer honderdveertigduizend kleine rijen. 0 schakelt de bemonstering uit.</value>
@@ -14095,6 +14098,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>Deze actie heeft geen aanvullende parameters.</value>
   </data>
+  <data name="This adds a count of messages sent and received per hosted domain. Only domains this server hosts are ever labelled, so no amount of mail from strangers can create series." xml:space="preserve">
+    <value>Dit voegt een telling toe van verzonden en ontvangen berichten per gehost domein. Alleen domeinen die deze server host krijgen ooit een label, dus geen enkele hoeveelheid mail van vreemden kan reeksen aanmaken.</value>
+  </data>
   <data name="This case's lines could not be read; the notice above says why." xml:space="preserve">
     <value>De regels van deze zaak konden niet worden gelezen; de melding hierboven zegt waarom.</value>
   </data>
@@ -15247,8 +15253,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="With the manager on, the list answers its own addresses - its -subscribe, -unsubscribe, -request, -owner and -bounces addresses - and sends each member a copy of their own, with their own way to leave. Each member's delivery and bounces are shown in the Control Deck." xml:space="preserve">
     <value>Als de lijstbeheerder aan staat, beantwoordt de lijst haar eigen adressen - de adressen -subscribe, -unsubscribe, -request, -owner en -bounces - en stuurt elk lid een eigen kopie, met een eigen manier om de lijst te verlaten. De aflevering en bounces van elk lid worden getoond in het Control Deck.</value>
   </data>
-  <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected." xml:space="preserve">
-    <value>Hiermee aan moet MAIL FROM in een geauthenticeerde sessie het eigen adres van het account zijn, een alias die daarnaar verwijst, of een ander postvak waarvan de eigenaar het account het post-recht (p) op zijn INBOX heeft verleend - zo wordt Send-As voor een gedeeld postvak verleend, vanuit de ACL-editor van elke IMAP-client (SETACL) of via de COM-API. Al het andere wordt geweigerd met 550 5.7.1 voordat er één byte van het bericht is geaccepteerd, zodat één gecompromitteerd of onzorgvuldig account niet langer als elk ander account kan versturen. Standaard uit, omdat hier voorheen niets aan gebonden was en een installatie daarvan kan afhangen; de lege afzender is altijd toegestaan. Niet-geauthenticeerde sessies blijven ongemoeid.</value>
+  <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other." xml:space="preserve">
+    <value>Hiermee aan moet MAIL FROM in een geauthenticeerde sessie het eigen adres van het account zijn, een alias die daarnaar verwijst, of een ander postvak waarvan de eigenaar het account het post-recht (p) op zijn INBOX heeft verleend - zo wordt Send-As voor een gedeeld postvak verleend, vanuit de ACL-editor van elke IMAP-client (SETACL) of via de COM-API. Al het andere wordt geweigerd met 550 5.7.1 voordat er één byte van het bericht is geaccepteerd, zodat één gecompromitteerd of onzorgvuldig account niet langer als elk ander account kan versturen.</value>
   </data>
   <data name="With this on, an account's own vacation message still answers colleagues, but outside senders get the domain's generic text instead - so personal detail in a vacation message stays inside the organisation." xml:space="preserve">
     <value>Hiermee aan beantwoordt het eigen vakantiebericht van een account nog steeds collega's, maar krijgen afzenders van buiten in plaats daarvan de algemene tekst van het domein - zo blijven persoonlijke details in een vakantiebericht binnen de organisatie.</value>

@@ -1867,6 +1867,10 @@ namespace hMailServer.ControlPanel.Views
          public string Title;
          public string Blurb;
          public readonly List<ComSetting> Settings = new();
+
+         // Two settings to a line, the first and the second, the third and the
+         // fourth: a minimum beside its maximum (PairRows_).
+         public bool Pairs;
       }
 
       private class TabDef
@@ -2117,7 +2121,7 @@ namespace hMailServer.ControlPanel.Views
          Header.Subtitle = L("Which services this server runs, connection limits and greetings.");
 
          var services = Card(L("Services"),
-            L("Enable or disable the protocol servers. Changes apply after pressing Save. ManageSieve (for managing Sieve scripts) is enabled on the API & monitoring page; OAuth2 token authentication is on the Authentication page."));
+            L("Enable or disable the protocol servers. Changes apply when you press Save changes. ManageSieve (for managing Sieve scripts) is enabled on the API & monitoring page; OAuth2 token authentication is on the Authentication page."));
          services.Settings.Add(new ComBool { Path = "ServiceSMTP", Label = L("SMTP server") });
          services.Settings.Add(new ComBool { Path = "ServiceIMAP", Label = L("IMAP server") });
          services.Settings.Add(new ComBool { Path = "ServicePOP3", Label = L("POP3 server") });
@@ -2135,7 +2139,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "RejectFullMailboxAtRcpt",
             Label = L("Refuse a full mailbox during the conversation (452 4.2.2)"),
-            Blurb = L("On by default, and the one switch here whose default is not the cautious one. With it off, a message for a mailbox that is already over quota is accepted and then answered with a non-delivery report addressed to the envelope sender - which the traffic that fills mailboxes fastest has forged. That report then goes from this server to somebody who sent nothing, which is backscatter, and it is this server's reputation that pays for it. Refusing at RCPT TO with a temporary 452 instead leaves the message in the sending server's queue, so a legitimate sender's mail waits for the mailbox to be emptied and is eventually reported by the machine that knows who the sender really is."),
+            Blurb = L("On by default, and the one switch here whose default is not the cautious one. With it off, a message for a mailbox that is already over quota is accepted and then answered with a non-delivery report addressed to the envelope sender - which the traffic that fills mailboxes fastest has forged."),
             IniStore = iniStore_
          });
          smtp.Settings.Add(new IniBool
@@ -2143,7 +2147,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "SmtpAuthenticatedSenderCheck",
             Label = L("An authenticated session may only send as an address its account owns or has been granted"),
             Default = false,
-            Blurb = L("With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected."),
+            Blurb = L("With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other."),
             IniStore = iniStore_
          });
          smtp.Settings.Add(new IniNumber
@@ -2173,7 +2177,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "ArchiveRetentionDays",
             Label = L("Delete archived messages after (days; 0 = keep for ever)"),
             Default = 0,
-            Blurb = L("The archive folder is a raw copy of every message that passes through the server, so on a busy server it is a directory that only grows; this prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after."),
+            Blurb = L("0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after."),
             IniStore = iniStore_
          });
 
@@ -2181,7 +2185,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "MetricsPerDomainEnabled",
             Label = L("Expose per-domain message counters on /metrics"),
-            Blurb = L("Every counter the metrics endpoint exposes is server-wide, which is what stops metrics becoming reporting: you can see how much mail the server handled, never how much any one domain did. This adds a count of messages sent and received per hosted domain. Off by default, and that is a cardinality decision rather than a cautious one - every label value is a separate time series in whatever scrapes this, so an operator hosting several thousand domains should choose to pay for that rather than find out. Only domains this server hosts are ever labelled, so no amount of mail from strangers can create series."),
+            Blurb = L("This adds a count of messages sent and received per hosted domain. Only domains this server hosts are ever labelled, so no amount of mail from strangers can create series."),
             IniStore = iniStore_
          });
          smtp.Settings.Add(new ComBool { Path = "AllowIncorrectLineEndings", Label = L("Allow incorrect line endings") });
@@ -2278,6 +2282,9 @@ namespace hMailServer.ControlPanel.Views
          // ways across the protocol tabs because the server/client distinction is
          // the thing that confuses people, and it only reads clearly when all
          // eight are in one place.
+         // The minimum and the maximum of each timeout side by side, two to a
+         // line, where the eight stood in one column and the eighth was below the
+         // fold (review finding F310).
          var idle = Card(L("Idle timeouts"),
             L("How long a connection may sit idle before it is closed, per protocol, in seconds. \"Server\" is hMailServer accepting a connection from a mail client or another mail server; \"client\" is hMailServer connecting out to deliver mail or to fetch it from an external POP3 account. The effective timeout moves between the minimum and the maximum with server load, so a busy server drops idle connections sooner."));
          idle.Settings.Add(new IniNumber { Path = "SMTPDMinTimeout", Label = L("SMTP server minimum timeout (seconds)"), Default = 10, IniStore = iniStore_ });
@@ -2288,6 +2295,7 @@ namespace hMailServer.ControlPanel.Views
          idle.Settings.Add(new IniNumber { Path = "POP3DMaxTimeout", Label = L("POP3 server maximum timeout (seconds)"), Default = 600, IniStore = iniStore_ });
          idle.Settings.Add(new IniNumber { Path = "POP3CMinTimeout", Label = L("POP3 client minimum timeout (seconds)"), Default = 30, IniStore = iniStore_ });
          idle.Settings.Add(new IniNumber { Path = "POP3CMaxTimeout", Label = L("POP3 client maximum timeout (seconds)"), Default = 900, IniStore = iniStore_ });
+         idle.Pairs = true;
          Tab(L("Timeouts")).Cards.Add(idle);
 
          // On the IMAP tab because that is what it repairs, and because somebody
@@ -2310,7 +2318,9 @@ namespace hMailServer.ControlPanel.Views
          Header.PageKey = "delivery";
          Header.Subtitle = L("Outbound delivery, retries and the smart host.");
 
-         var del = Card(L("Delivery of e-mail"),
+         // The card's own name, where it repeated the page's title, Delivery of
+         // e-mail, above the same page's other cards (review finding F310).
+         var del = Card(L("Delivery, retries and throttling"),
             L("Outbound delivery, retries and throttling. Keeping forwarded mail SPF-aligned (SRS) and bounce tagging (BATV) are on the Transport security page."));
          del.Settings.Add(new ComText { Path = "SMTPNoOfTries", Label = L("Number of delivery retries"), Numeric = true });
          del.Settings.Add(new ComText { Path = "SMTPMinutesBetweenTry", Label = L("Minutes between retries"), Numeric = true });
@@ -2603,7 +2613,7 @@ namespace hMailServer.ControlPanel.Views
          // Whether this server's own sending addresses are on the block lists its
          // recipients consult - the outbound half of reputation.
          var reputation = Card(L("Block lists and this server's own addresses"),
-            L("Once a day the server asks the DNS block lists below whether an address it sends from is listed, and raises the reputation.listed alert when one is. It checks the delivery bind address and the addresses the global rules bind; a server behind NAT has to be told its public address here, because nothing on the machine can find it."));
+            L("Once a day the server asks the DNS block lists below whether an address it sends from is listed, and raises the alert 'reputation.listed' when one is. It checks the delivery bind address and the addresses the global rules bind; a server behind NAT has to be told its public address here, because nothing on the machine can find it."));
          reputation.Settings.Add(new ComBool
          {
             Path = "ReputationWatchEnabled",
@@ -5558,6 +5568,42 @@ namespace hMailServer.ControlPanel.Views
             settings[i].AccessibleName = names[i];
       }
 
+      /// <summary>
+      /// A card's rows two to a line, in two columns of the card's width: the
+      /// first beside the second, the third beside the fourth, so that a minimum
+      /// is read beside its maximum. The boxes of a line share their captions'
+      /// height (FieldRow.LabelGroup), so that a caption that wraps in one column
+      /// moves neither box out of line; the last line keeps no gap under it.
+      /// </summary>
+      private static void PairRows_(StackPanel fields)
+      {
+         var rows = fields.Children.OfType<Scaffold.FieldRow>().ToList();
+         if (rows.Count < 2 || rows.Count != fields.Children.Count)
+            return;
+
+         fields.Children.Clear();
+         var grid = new Grid();
+         Grid.SetIsSharedSizeScope(grid, true);
+         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(DesignTokens.Space.Md) });
+         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+         int lines = (rows.Count + 1) / 2;
+         for (int i = 0; i < rows.Count; i++)
+         {
+            int line = i / 2;
+            if (i % 2 == 0)
+               grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            Scaffold.FieldRow row = rows[i];
+            row.LabelGroup = "PairLine" + line.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            if (line == lines - 1)
+               row.Margin = new Thickness(0);
+            Grid.SetRow(row, line);
+            Grid.SetColumn(row, i % 2 == 0 ? 0 : 2);
+            grid.Children.Add(row);
+         }
+         fields.Children.Add(grid);
+      }
+
       private void BuildUi()
       {
          // The notice back under the header while the tabs that held it go.
@@ -5712,6 +5758,9 @@ namespace hMailServer.ControlPanel.Views
                // make that card taller than the one beside it for no reason.
                if (lastRow != null)
                   lastRow.Margin = new Thickness(0);
+
+               if (card.Pairs)
+                  PairRows_(fields);
 
                if (restProblem != null)
                {

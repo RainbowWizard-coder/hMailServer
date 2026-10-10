@@ -132,6 +132,9 @@
   <data name="0 keeps every message until it is released or deleted, so watch the disk." xml:space="preserve">
     <value>0 conserva ogni messaggio finché non viene rilasciato o eliminato, quindi tieni d'occhio il disco.</value>
   </data>
+  <data name="0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after." xml:space="preserve">
+    <value>0 conserva tutto, ed è l'impostazione predefinita di proposito: un archivio di solito viene conservato per un motivo legale o contrattuale, e un server che iniziasse a cancellarne all'aggiornamento distruggerebbe esattamente ciò che gli è stato detto di conservare. La scansione rimuove solo file .eml, quindi qualunque altra cosa tu conservi nell'archivio viene lasciata in pace, e viene eseguita all'avvio e ogni dodici ore dopo.</value>
+  </data>
   <data name="0 keeps the entry until it is removed." xml:space="preserve">
     <value>0 mantiene la voce finché non viene rimossa.</value>
   </data>
@@ -4148,6 +4151,9 @@ Al mittente è stato detto che era stato accettato, quindi nulla riproverà e no
   <data name="Delivery throughput" xml:space="preserve">
     <value>Velocità di consegna</value>
   </data>
+  <data name="Delivery, retries and throttling" xml:space="preserve">
+    <value>Consegna, nuovi tentativi e limitazione della frequenza</value>
+  </data>
   <data name="Depends" xml:space="preserve">
     <value>Dipende</value>
   </data>
@@ -4639,8 +4645,8 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Enable message indexing" xml:space="preserve">
     <value>Attiva l'indicizzazione dei messaggi</value>
   </data>
-  <data name="Enable or disable the protocol servers. Changes apply after pressing Save. ManageSieve (for managing Sieve scripts) is enabled on the API &amp; monitoring page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
-    <value>Attiva o disattiva i server dei protocolli. Le modifiche si applicano dopo aver premuto Salva. ManageSieve (per gestire gli script Sieve) si attiva nella pagina API e monitoraggio; l'autenticazione tramite token OAuth2 si trova nella pagina Autenticazione.</value>
+  <data name="Enable or disable the protocol servers. Changes apply when you press Save changes. ManageSieve (for managing Sieve scripts) is enabled on the API &amp; monitoring page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
+    <value>Attiva o disattiva i server dei protocolli. Le modifiche si applicano quando premi Salva le modifiche. ManageSieve (per gestire gli script Sieve) si attiva nella pagina API e monitoraggio; l'autenticazione tramite token OAuth2 si trova nella pagina Autenticazione.</value>
   </data>
   <data name="Enable server-side event scripts" xml:space="preserve">
     <value>Attiva gli script di evento lato server</value>
@@ -4977,9 +4983,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Every check in the order the server runs them, its score, and what the total does to the message." xml:space="preserve">
     <value>Ogni controllo nell'ordine in cui il server li esegue, il suo punteggio, e cosa fa al messaggio il totale.</value>
-  </data>
-  <data name="Every counter the metrics endpoint exposes is server-wide, which is what stops metrics becoming reporting: you can see how much mail the server handled, never how much any one domain did. This adds a count of messages sent and received per hosted domain. Off by default, and that is a cardinality decision rather than a cautious one - every label value is a separate time series in whatever scrapes this, so an operator hosting several thousand domains should choose to pay for that rather than find out. Only domains this server hosts are ever labelled, so no amount of mail from strangers can create series." xml:space="preserve">
-    <value>Ogni contatore che l'endpoint delle metriche espone riguarda l'intero server, ed è questo che impedisce alle metriche di diventare rendicontazione: puoi vedere quanta posta ha gestito il server, mai quanta ne ha gestita un singolo dominio. Questo aggiunge un conteggio dei messaggi inviati e ricevuti per ogni dominio ospitato. Disattivato per impostazione predefinita, ed è una decisione di cardinalità più che di prudenza - ogni valore di etichetta è una serie temporale a sé in qualunque cosa raccolga questi dati, quindi un operatore che ospita diverse migliaia di domini deve scegliere di pagarne il costo invece di scoprirlo. Vengono etichettati solo i domini ospitati da questo server, quindi nessuna quantità di posta da estranei può creare serie.</value>
   </data>
   <data name="Every error the server reports" xml:space="preserve">
     <value>Ogni errore segnalato dal server</value>
@@ -8434,8 +8437,8 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="On by default, and only an explicit 0 in the INI turns it off. Turned off, the encrypted connection no longer proves it reaches your directory: anyone who can intercept it can present any certificate and collect every password sent over it. The server notes the disabling in its application log once per service start. Only meaningful for LDAPS and StartTLS." xml:space="preserve">
     <value>Attivato per impostazione predefinita, e solo uno 0 esplicito nell'INI lo disattiva. Da disattivato, la connessione cifrata non dimostra più di raggiungere la propria directory: chiunque possa intercettarla può presentare un certificato qualsiasi e raccogliere ogni password inviata su di essa. Il server annota la disattivazione nel proprio registro applicativo una volta per ogni avvio del servizio. Ha senso solo per LDAPS e StartTLS.</value>
   </data>
-  <data name="On by default, and the one switch here whose default is not the cautious one. With it off, a message for a mailbox that is already over quota is accepted and then answered with a non-delivery report addressed to the envelope sender - which the traffic that fills mailboxes fastest has forged. That report then goes from this server to somebody who sent nothing, which is backscatter, and it is this server's reputation that pays for it. Refusing at RCPT TO with a temporary 452 instead leaves the message in the sending server's queue, so a legitimate sender's mail waits for the mailbox to be emptied and is eventually reported by the machine that knows who the sender really is." xml:space="preserve">
-    <value>Attivato per impostazione predefinita, ed è l'unico interruttore qui il cui valore predefinito non è quello prudente. Con esso disattivato, un messaggio destinato a una casella già oltre la quota viene accettato e poi seguito da un avviso di mancato recapito indirizzato al mittente della busta - che il traffico che riempie più in fretta le caselle ha falsificato. Quell'avviso parte allora da questo server verso qualcuno che non ha inviato nulla, il che è backscatter, ed è la reputazione di questo server a pagarne il prezzo. Rifiutare invece a RCPT TO con un 452 temporaneo lascia il messaggio nella coda del server mittente, così la posta di un mittente legittimo attende che la casella venga svuotata e viene infine segnalata dalla macchina che sa chi è davvero il mittente.</value>
+  <data name="On by default, and the one switch here whose default is not the cautious one. With it off, a message for a mailbox that is already over quota is accepted and then answered with a non-delivery report addressed to the envelope sender - which the traffic that fills mailboxes fastest has forged." xml:space="preserve">
+    <value>Attivato per impostazione predefinita, ed è l'unico interruttore qui il cui valore predefinito non è quello prudente. Con esso disattivato, un messaggio destinato a una casella già oltre la quota viene accettato e poi seguito da un avviso di mancato recapito indirizzato al mittente della busta - che il traffico che riempie più in fretta le caselle ha falsificato.</value>
   </data>
   <data name="On by default, which is how Entra ID and ADFS sign. Off accepts a signature over the whole response." xml:space="preserve">
     <value>Attivo per impostazione predefinita, che è come firmano Entra ID e ADFS. Da disattivato accetta una firma sull'intera risposta.</value>
@@ -8521,8 +8524,8 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="OnAcceptMessage → webhook (SIEM / Slack / Teams)" xml:space="preserve">
     <value>OnAcceptMessage → webhook (SIEM / Slack / Teams)</value>
   </data>
-  <data name="Once a day the server asks the DNS block lists below whether an address it sends from is listed, and raises the reputation.listed alert when one is. It checks the delivery bind address and the addresses the global rules bind; a server behind NAT has to be told its public address here, because nothing on the machine can find it." xml:space="preserve">
-    <value>Una volta al giorno il server chiede alle liste di blocco DNS qui sotto se un indirizzo da cui invia è in lista, e solleva l'avviso reputation.listed quando lo è. Controlla l'indirizzo di binding della consegna e gli indirizzi a cui si legano le regole globali; a un server dietro NAT va indicato qui il suo indirizzo pubblico, perché niente sulla macchina può trovarlo.</value>
+  <data name="Once a day the server asks the DNS block lists below whether an address it sends from is listed, and raises the alert 'reputation.listed' when one is. It checks the delivery bind address and the addresses the global rules bind; a server behind NAT has to be told its public address here, because nothing on the machine can find it." xml:space="preserve">
+    <value>Una volta al giorno il server chiede alle liste di blocco DNS qui sotto se un indirizzo da cui invia è in lista, e solleva l'avviso 'reputation.listed' quando lo è. Controlla l'indirizzo di binding della consegna e gli indirizzi a cui si legano le regole globali; a un server dietro NAT va indicato qui il suo indirizzo pubblico, perché niente sulla macchina può trovarlo.</value>
   </data>
   <data name="Once a minute the server writes one row per metric - sessions, messages processed, delivered, deferred and bounced, spam and viruses, authentication and TLS outcomes, missing message files - to hm_metricsamples, and keeps them this many days. It is what the dashboard's 24 hours, 7 days and 30 days views and GET /api/v1/metrics/history read. A week of minute-resolution history is about a hundred and forty thousand small rows. 0 turns the sampler off." xml:space="preserve">
     <value>Una volta al minuto il server scrive una riga per metrica - sessioni, messaggi elaborati, consegnati, rinviati e respinti, spam e virus, esiti di autenticazione e TLS, file di messaggio mancanti - in hm_metricsamples, e le conserva per questo numero di giorni. È ciò che leggono le viste 24 ore, 7 giorni e 30 giorni della dashboard e GET /api/v1/metrics/history. Una settimana di storico con risoluzione al minuto sono circa centoquarantamila piccole righe. 0 disattiva il campionatore.</value>
@@ -14095,6 +14098,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>Questa azione non ha parametri aggiuntivi.</value>
   </data>
+  <data name="This adds a count of messages sent and received per hosted domain. Only domains this server hosts are ever labelled, so no amount of mail from strangers can create series." xml:space="preserve">
+    <value>Questo aggiunge un conteggio dei messaggi inviati e ricevuti per ogni dominio ospitato. Vengono etichettati solo i domini ospitati da questo server, quindi nessuna quantità di posta da estranei può creare serie.</value>
+  </data>
   <data name="This case's lines could not be read; the notice above says why." xml:space="preserve">
     <value>Non è stato possibile leggere le righe di questo caso; l'avviso qui sopra dice perché.</value>
   </data>
@@ -15247,8 +15253,8 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="With the manager on, the list answers its own addresses - its -subscribe, -unsubscribe, -request, -owner and -bounces addresses - and sends each member a copy of their own, with their own way to leave. Each member's delivery and bounces are shown in the Control Deck." xml:space="preserve">
     <value>Con il gestore della lista attivo, la lista risponde ai propri indirizzi - i suoi indirizzi -subscribe, -unsubscribe, -request, -owner e -bounces - e invia a ogni membro una copia propria, con un proprio modo per lasciarla. La consegna e i rimbalzi di ogni membro sono mostrati nel Control Deck.</value>
   </data>
-  <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected." xml:space="preserve">
-    <value>Con questa opzione attiva, il MAIL FROM in una sessione autenticata deve essere l'indirizzo dell'account stesso, un alias che si risolve in esso, oppure un'altra casella il cui proprietario ha concesso all'account il diritto di invio (p) sulla propria INBOX - che è il modo in cui si concede il Send-As per una casella condivisa, dall'editor ACL di qualsiasi client IMAP (SETACL) o tramite l'API COM. Qualunque altra cosa viene rifiutata con 550 5.7.1 prima che venga accettato un solo byte del messaggio, così che un account compromesso o poco attento non possa più inviare come tutti gli altri. Disattivato per impostazione predefinita perché prima nulla poneva questo vincolo e un'installazione potrebbe dipenderne; il mittente nullo è sempre consentito. Le sessioni non autenticate non sono interessate.</value>
+  <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other." xml:space="preserve">
+    <value>Con questa opzione attiva, il MAIL FROM in una sessione autenticata deve essere l'indirizzo dell'account stesso, un alias che si risolve in esso, oppure un'altra casella il cui proprietario ha concesso all'account il diritto di invio (p) sulla propria INBOX - che è il modo in cui si concede il Send-As per una casella condivisa, dall'editor ACL di qualsiasi client IMAP (SETACL) o tramite l'API COM. Qualunque altra cosa viene rifiutata con 550 5.7.1 prima che venga accettato un solo byte del messaggio, così che un account compromesso o poco attento non possa più inviare come tutti gli altri.</value>
   </data>
   <data name="With this on, an account's own vacation message still answers colleagues, but outside senders get the domain's generic text instead - so personal detail in a vacation message stays inside the organisation." xml:space="preserve">
     <value>Con questa opzione attiva, il messaggio di assenza di un account continua a rispondere ai colleghi, ma i mittenti esterni ricevono invece il testo generico del dominio - così i dettagli personali contenuti in un messaggio di assenza restano all'interno dell'organizzazione.</value>
