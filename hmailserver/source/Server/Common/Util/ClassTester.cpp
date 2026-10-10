@@ -84,6 +84,7 @@
 #include "ServiceAccount.h"
 #include "../Persistence/MessageStoreFormat.h"
 #include "MailboxCrypto.h"
+#include "MailboxKeys.h"
 #include "../../SMTP/DeliveryReportParser.h"
 #include "../../SMTP/ComplaintTracker.h"
 #include "DomainReports.h"
@@ -865,6 +866,14 @@ namespace HM
       // encryption stage is in MessageStoreFormat's test above.
       OutputDebugString(_T("hMailServer: Testing MailboxCrypto\n"));
       MailboxCrypto::Test();
+
+      // The idle sweep closes no key in use: a key used in the clock's next
+      // second while a sweep waits for the keys' lock stays open. Until 10
+      // October 2026 a sweep read the clock before it took the lock, and such a
+      // use read as a clock gone back (MailboxKeys.h).
+      OutputDebugString(_T("hMailServer: Testing the mailbox keys' idle sweep against a key in use\n"));
+      MailboxKeyIdleTester mailboxKeyIdleTester;
+      mailboxKeyIdleTester.Test();
 
       // Parameter substitution matters most on the two backends the bench does not
       // usually run: MySQL and PostgreSQL report GetSupportsCommandParameters() as

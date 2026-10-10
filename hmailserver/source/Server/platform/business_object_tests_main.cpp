@@ -38,6 +38,11 @@
 //     next run was a local DATE moved on by a minute's span, which came out a
 //     rounding error above the second it meant, and the task - the minute's
 //     RemoveExpiredRecords among them - waited a whole turn more.
+//   - The mailbox keys' idle sweep closes no key in use (MailboxKeyIdleTester,
+//     Common/Util/MailboxKeys.cpp): a key used in the clock's next second while a
+//     sweep waits for the keys' lock stays open. Until 10 October 2026 a sweep read
+//     the clock before it took the lock, and such a use read as a clock gone back,
+//     which closes the key.
 //   - A message's X-hMailServer-LoopCount, which comes with mail from anyone, is a
 //     count only when it is digits, and never above the limit (LoopCountTester,
 //     Common/Rules/RuleGuard.cpp): MessageData and the Sieve evaluator read it with
@@ -105,6 +110,7 @@
 #include "../Common/Tracking/ChangeNotification.h"
 #include "../Common/Threading/WorkQueue.h"
 #include "../Common/Scripting/ScriptObjectContainer.h"
+#include "../Common/Util/MailboxKeys.h"
 #include "../Common/Util/OidcSignIn.h"
 #include "../Common/Util/RestApiServer.h"
 
@@ -378,6 +384,13 @@ namespace
    }
 
    void
+   TestMailboxKeyIdleSweep()
+   {
+      HM::MailboxKeyIdleTester tester;
+      tester.Test();
+   }
+
+   void
    TestLoopCount()
    {
       HM::LoopCountTester tester;
@@ -433,6 +446,7 @@ main(int /*argc*/, char * /*argv*/[])
    int failed = 0;
    failed += Run(&TestAccountCopy, "an account's copy: every member, the retention and the mailbox key wrap among them");
    failed += Run(&TestScheduledTaskTimes, "a scheduled task due at a second is due at a turn within it, run after run, in whole seconds, and one late by more than its period resumes from now");
+   failed += Run(&TestMailboxKeyIdleSweep, "the mailbox keys' idle sweep closes no key in use: a key used in the clock's next second while a sweep waits for the keys' lock stays open");
    failed += Run(&TestFetchAccountRetention, "an external account's DaysToKeepMessages: one meaning for POP3 and IMAP, and what a value stored before schema 6106 or archived before 6.3.6 means in it");
    failed += Run(&TestMessageCopy, "a message's copy: every member it carries, and the one it leaves out");
    failed += Run(&TestDiagnosticResult, "a DiagnosticResult made empty is not a success");

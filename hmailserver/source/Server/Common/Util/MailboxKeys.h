@@ -422,4 +422,17 @@ namespace HM
       // The minimum length of a recovery passphrase, in characters.
       static const int MinimumPassphraseLength = 12;
    };
+
+   // The idle sweep against a key in use (MailboxKeys.cpp): a sweep that
+   // starts while a use holds the keys' lock, the use writing its time in the
+   // clock's next second before it lets the lock go, leaves the key open.
+   // Until 10 October 2026 a sweep read the clock before it took the keys'
+   // lock, so such a use read as a clock gone back and the key was closed. No
+   // database or configuration: ClassTester runs it in the server,
+   // business-object-tests on Linux.
+   class MailboxKeyIdleTester
+   {
+   public:
+      void Test();
+   };
 }

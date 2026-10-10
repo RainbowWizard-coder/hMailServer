@@ -704,6 +704,11 @@ the tag's associated data protects; and `ParseHeader`'s refusals of containers t
 server never writes - a stage after the encryption, the encryption twice, deflate twice,
 an encrypted one naming a part held once, one carrying a digest - beside the same header
 rebuilt unchanged, which opens.
+`MailboxKeyIdleTester` (run by `ClassTester::DoTests`, and by `business-object-tests` on
+Linux): an idle sweep that starts while a use holds the keys' lock, the use writing its
+time in the clock's next second before it lets the lock go, leaves the key open. Until 10
+October 2026 a sweep read the clock before it took the lock, so that such a use read as a
+clock gone back and closed the key.
 
 `RegressionTests/Infrastructure/EncryptionAtRest.cs` (REST on 10140, a webhook endpoint that never
 answers on 10149), with a negative control wherever a behaviour has a refusal:

@@ -29,10 +29,15 @@
 
 #include <openssl/sha.h>
 
+#include <atomic>
+#include <chrono>
 #include <ctime>
+#include <exception>
 #include <map>
 #include <mutex>
+#include <stdexcept>
 #include <string>
+#include <thread>
 #include <vector>
 
 #ifdef _DEBUG
@@ -451,6 +456,47 @@ namespace HM
 
          // What was decoded with it a moment ago goes with it.
          MessageStore::ForgetDecodes();
+      }
+
+      // Every key nothing holds and nobody has used for minutes closed
+      // (MailboxKeys::CloseIdle, which reads minutes from the setting).
+      //
+      // The clock is read with OpenLock taken, as every use writes last_used
+      // with it taken, so that no use made before the sweep took the lock can
+      // be in the sweep's future. Until 10 October 2026 the clock was read
+      // before the lock was taken: a sign-in that opened a key, a webmail
+      // request or a session's end that set last_used to the next second while
+      // the sweep waited for the lock, or had been put off the processor before
+      // taking it, read as a clock that had gone back, and the key just opened
+      // or used was closed - the opener's Hold found no key, and a webmail
+      // session made under that opening was ended.
+      //
+      // A last use after the time read under the lock is a clock that has been
+      // put back, and closes the key all the same: kept open, it would stay
+      // open past its idle minutes for as long as the clock was put back.
+      void CloseIdleAfter(int minutes)
+      {
+         bool closed = false;
+         {
+            std::lock_guard<std::mutex> guard(OpenLock());
+            const __int64 now = Now();
+            for (std::map<__int64, OpenKey>::iterator it = OpenKeys().begin(); it != OpenKeys().end(); )
+            {
+               const bool idle = it->second.holds <= 0 && (now < it->second.last_used || now - it->second.last_used >= (__int64) minutes * 60);
+               if (!idle)
+               {
+                  ++it;
+                  continue;
+               }
+
+               MailboxCrypto::Forget(it->second.private_key);
+               it = OpenKeys().erase(it);
+               closed = true;
+            }
+         }
+
+         if (closed)
+            MessageStore::ForgetDecodes();
       }
 
       // ---- writes ----------------------------------------------------------------------
@@ -933,27 +979,7 @@ namespace HM
       if (minutes < 1)
          minutes = 1;
 
-      const __int64 now = Now();
-      bool closed = false;
-      {
-         std::lock_guard<std::mutex> guard(OpenLock());
-         for (std::map<__int64, OpenKey>::iterator it = OpenKeys().begin(); it != OpenKeys().end(); )
-         {
-            const bool idle = it->second.holds <= 0 && (now < it->second.last_used || now - it->second.last_used >= (__int64) minutes * 60);
-            if (!idle)
-            {
-               ++it;
-               continue;
-            }
-
-            MailboxCrypto::Forget(it->second.private_key);
-            it = OpenKeys().erase(it);
-            closed = true;
-         }
-      }
-
-      if (closed)
-         MessageStore::ForgetDecodes();
+      CloseIdleAfter(minutes);
    }
 
    // ---- the idle sweep ------------------------------------------------------------------------
@@ -1052,6 +1078,90 @@ namespace HM
    MailboxKeys::OpenFor(__int64 accountId, const std::string &publicKey, const std::string &privateKey)
    {
       OpenInMemory(accountId, publicKey, privateKey, std::string());
+   }
+
+   void
+   MailboxKeyIdleTester::Test()
+   {
+      // An id no account has - an account's is positive - and two halves drawn
+      // here, which no message is encrypted to, so that nothing else reads or
+      // holds this key while it is open.
+      const __int64 accountId = -20261010;
+      const std::string publicKey = MailboxCrypto::RandomBytes(32);
+      std::string privateKey = MailboxCrypto::RandomBytes(32);
+      MailboxCrypto::ForgetOnExit forgetPrivateKey(privateKey);
+      MailboxKeys::OpenFor(accountId, publicKey, privateKey);
+
+      // The interleaving the sweep has to survive, made rather than waited
+      // for: a sweep starts while a use holds the keys' lock, and the use
+      // writes its time in the clock's next second before it lets the lock
+      // go. A sweep that read the clock before it waited for the lock - as
+      // until 10 October 2026 - holds a time before that use and takes it for
+      // a clock gone back, which closes the key; one that reads the clock with
+      // the lock taken holds the use's second or a later one. The longest idle
+      // minutes there are, 1440, so that in the running server (ClassTester)
+      // the sweep closes no other key that the sweep of any setting would not.
+      std::atomic<bool> sweeping(false);
+      std::exception_ptr sweepFailed;
+      bool usedOpen = false;
+      std::thread sweep;
+
+      // The sweep's thread joined however this ends: a thread object
+      // destroyed while it can still be joined ends the process.
+      struct JoinOnExit
+      {
+         explicit JoinOnExit(std::thread &thread) : thread_(thread) {}
+         ~JoinOnExit() { if (thread_.joinable()) thread_.join(); }
+         std::thread &thread_;
+      } joinOnExit(sweep);
+
+      {
+         std::unique_lock<std::mutex> use(OpenLock());
+
+         sweep = std::thread([&sweeping, &sweepFailed]()
+         {
+            try
+            {
+               sweeping.store(true);
+               CloseIdleAfter(1440);
+            }
+            catch (...)
+            {
+               sweepFailed = std::current_exception();
+            }
+         });
+
+         // The sweep started and, a fifth of a second later, long since at
+         // the lock and waiting for it.
+         while (!sweeping.load())
+            std::this_thread::yield();
+         std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+         // The use, in the next second, its time written as Touch writes it.
+         const __int64 second = Now();
+         while (Now() == second)
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
+
+         std::map<__int64, OpenKey>::iterator found = OpenKeys().find(accountId);
+         if (found != OpenKeys().end())
+         {
+            found->second.last_used = Now();
+            usedOpen = true;
+         }
+      }
+
+      sweep.join();
+      const bool closed = !MailboxKeys::IsOpen(accountId);
+      CloseNow(accountId);
+
+      if (sweepFailed)
+         std::rethrow_exception(sweepFailed);
+
+      if (!usedOpen)
+         throw std::logic_error("MailboxKeys: the key opened for the idle sweep's test was closed before its use");
+
+      if (closed)
+         throw std::logic_error("MailboxKeys: a sweep of the idle keys closed a key used while the sweep waited for the keys' lock - the use, a second after the clock the sweep had read, was taken for a clock gone back");
    }
 
    // ---- sign-in -------------------------------------------------------------------------------

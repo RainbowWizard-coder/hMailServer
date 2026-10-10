@@ -418,6 +418,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   minutes, to being due at each and never a second early, and one late by more than its period to resuming from the
   turn. Found by the batch's regression gate, where `EncryptionAtRest.AWebmailSessionWhoseKeyClosedIsEnded` waited
   out its 150 seconds for a key whose sweep had been put off a turn.
+- **Fixed: a mailbox key encrypted at rest could be closed the moment it was opened or used, by an idle sweep that had
+  read the clock a second before.** The sweep that closes idle keys read the clock before it took the lock the open
+  keys are kept under, and a key whose last use was later than the time it had read counted as idle, as it does when
+  the clock has been put back (from 6.3.4, which brought encryption at rest). A password sign-in that opened the key,
+  a webmail request or the end of a session that came in the next second, while the sweep waited for the lock or had
+  been put off the processor before taking it, was such a use: the key was closed at once, the session signing in
+  found no key to hold, and a webmail session made under that opening was ended. The window is short - the time
+  between reading the clock and taking the lock, microseconds unless the thread is put off the processor - but the
+  sweep now runs every ten seconds where it ran once a minute (*Security*, above). It now reads the clock with the
+  lock taken, as every use writes its time, so that only a clock that has been put back closes a key that way.
+  `MailboxKeyIdleTester` (`business-object-tests` on Linux) starts a sweep while a use holds the lock, the use writing
+  its time in the clock's next second before it lets the lock go, and finds the key open: with the clock read before
+  the lock, as it was, the key was closed in 10 runs of 10. Found by the re-check of the batch's fixes.
 
 ### Downloads and the release
 
