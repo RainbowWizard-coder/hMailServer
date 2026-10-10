@@ -179,7 +179,8 @@ namespace hMailServer.ControlPanel.Views
       {
          if (trail_ == null)
          {
-            // One read at a time; it shows what is typed in when it ends.
+            // One read at a time; it shows what is typed in when it ends, and a read
+            // the page asked for again meanwhile (generation_) starts once it ends.
             if (readingTrail_)
                return;
 
@@ -207,9 +208,15 @@ namespace hMailServer.ControlPanel.Views
                walking_.Visibility = Visibility.Collapsed;
             }
 
-            // The page was opened again, or refreshed, while the trail was read.
+            // The page was opened again, or refreshed, while the trail was read: that
+            // Reload found this read running and left the trail to it, so it reads
+            // again now, for what is typed in then - where it returned, and the list
+            // stayed empty, with no rows, no empty or loading state and no pager.
             if (generation != generation_)
+            {
+               Reload();
                return;
+            }
 
             if (failure != null || read.Error != null)
             {

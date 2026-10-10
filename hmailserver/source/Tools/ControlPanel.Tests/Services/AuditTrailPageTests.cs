@@ -153,6 +153,25 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain("GetAuditTrail(actor", code, StringComparison.Ordinal);
       }
 
+      [Fact]
+      public void ARead_AskedForAgainWhileTheTrailIsRead_StartsWhenThatReadEnds()
+      {
+         string code = ReadControlPanelFile(Path.Join("Views", "AuditTrailView.cs")).Replace("\r\n", "\n");
+         string search = WithheldRowTests.MemberText(code, "private async void Search_()");
+         Assert.True(search != null, "AuditTrailView.Search_ is gone.");
+
+         // Refresh, and the page opened again, start a new generation and read again;
+         // with a read running, Search_ leaves the trail to it.
+         Assert.Contains("(_, _) => { generation_++; trail_ = null; Reload(); }", code, StringComparison.Ordinal);
+         Assert.Contains("if (readingTrail_)\n               return;", search, StringComparison.Ordinal);
+
+         // That read, ending in an older generation, reads again rather than return
+         // and leave the list empty, with no rows, state or pager.
+         Assert.Contains("if (generation != generation_)\n            {\n               Reload();\n               return;\n            }", search, StringComparison.Ordinal);
+         Assert.True(search.IndexOf("readingTrail_ = false;", StringComparison.Ordinal) < search.IndexOf("if (generation != generation_)", StringComparison.Ordinal),
+            "The read is not over when Search_ reads again, so the new read would find it running.");
+      }
+
       private static string ReadControlPanelFile(string relative)
       {
          var directory = new DirectoryInfo(AppContext.BaseDirectory);
