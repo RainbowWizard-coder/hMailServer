@@ -27,7 +27,7 @@
   <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
     <value>„{0}“ se neuložilo: {1}</value>
   </data>
-  <data name="'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
+  <data name="'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have signed in." xml:space="preserve">
     <value>„Odesílat může kdokoli v doméně“ znamená, že adresa odesílatele je v doméně hostované tímto serverem, což si může nárokovat i cizí osoba, pokud seznam zároveň nevyžaduje ověření. Pokud má být seznam omezen na přihlášené osoby, zaškrtněte to níže.</value>
   </data>
   <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
@@ -435,7 +435,7 @@
   <data name="A domain may issue S/MIME certificates to its people from its own authority." xml:space="preserve">
     <value>Doména může vydávat svým lidem certifikáty S/MIME z vlastní certifikační autority.</value>
   </data>
-  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
+  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never sign in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
     <value>Název domény zde vyžaduje, aby počítač SERVERU byl připojen do této domény, protože Windows jej ověřují funkcí LogonUser. Z počítače, který připojen není, selže každý pokus, jako by bylo heslo špatné – včetně případu, kdy je název domény jen napsán s překlepem – takže poštovní schránka nastavená tímto způsobem na nepřipojeném serveru se nikdy nepřihlásí a nikdy neřekne proč. Pokud server není připojen k doméně, použijte místo toho ověřování proti adresáři LDAP na stránce Ověřování proti adresáři (LDAP): to se k adresáři připojuje po síti a žádné připojení k doméně nevyžaduje.</value>
   </data>
   <data name="A domain named {0} is already on this server, and it is not the sample domain this page makes, so no sample can be made here and this page will not remove it. If you do not want that domain, delete it on the Domains page." xml:space="preserve">
@@ -1543,11 +1543,11 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Answer from the Windows DNS resolver cache when possible" xml:space="preserve">
     <value>Odpovídat pokud možno z cache DNS resolveru systému Windows</value>
   </data>
-  <data name="Answer the same sender a_gain after this many days (0 = once per absence)" xml:space="preserve">
-    <value>_Odpovědět stejnému odesílateli znovu po (dnech, 0 = jednou za nepřítomnost)</value>
+  <data name="Answer the same sender a_gain after (days; 0 = once per absence)" xml:space="preserve">
+    <value>_Odpovědět stejnému odesílateli znovu po (dnech; 0 = jednou za nepřítomnost)</value>
   </data>
-  <data name="Answer the same sender again after (da_ys, 0 = once per absence)" xml:space="preserve">
-    <value>Odpovědět stejnému odesílateli znovu po (dn_ech, 0 = jednou za nepřítomnost)</value>
+  <data name="Answer the same sender again after (da_ys; 0 = once per absence)" xml:space="preserve">
+    <value>Odpovědět stejnému odesílateli znovu po (dn_ech; 0 = jednou za nepřítomnost)</value>
   </data>
   <data name="Answered, but not with a policy" xml:space="preserve">
     <value>Odpovězeno, ale ne politikou</value>
@@ -1594,7 +1594,7 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="App passwords" xml:space="preserve">
     <value>Hesla aplikací</value>
   </data>
-  <data name="Append to account signature" xml:space="preserve">
+  <data name="Append to the account's signature" xml:space="preserve">
     <value>Připojit za podpis účtu</value>
   </data>
   <data name="Application (client) ID" xml:space="preserve">
@@ -1876,7 +1876,7 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="B_ind address" xml:space="preserve">
     <value>_Adresa pro navázání</value>
   </data>
-  <data name="B_ody canonicalization" xml:space="preserve">
+  <data name="B_ody canonicalisation" xml:space="preserve">
     <value>K_anonizace těla</value>
   </data>
   <data name="Back" xml:space="preserve">
@@ -4643,6 +4643,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>Kopie každého místního příjemce se stane dalším názvem téhož souboru ve složce archivu, takže zpráva pro deset schránek stojí jednu kopii místo deseti. Vyžaduje archivní složku na NTFS; pokud odkaz nelze vytvořit, server soubor zkopíruje a řekne to v logu SMTP.</value>
   </data>
+  <data name="Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
+    <value>Každá zpráva doručená na tento účet je po filtrech zašifrována vlastním klíčem OpenPGP účtu a tento server nemůže její poštu číst, prohledávat, exportovat ani obnovit. Vypnout to může jen daná osoba z webmailu; zde to nejde.</value>
+  </data>
   <data name="Every message goes through {0} scanner in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
     <value>Každá zpráva projde skenerem {0} a ten je dotázán na celou zprávu a pak na každou přílohu zvlášť. Je to důkladné a není to zadarmo: skenování probíhá, zatímco odesílatel čeká na své „250 OK“.</value>
   </data>
@@ -5797,8 +5800,8 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Keep" xml:space="preserve">
     <value>Ponechat</value>
   </data>
-  <data name="Keep archived messages for (_days, 0 = for ever)" xml:space="preserve">
-    <value>Uchovávat archivované _zprávy po (dny, 0 = navždy)</value>
+  <data name="Keep archived messages for (_days; 0 = for ever)" xml:space="preserve">
+    <value>Uchovávat archivované _zprávy po (dny; 0 = navždy)</value>
   </data>
   <data name="Keep greylisting active during the record-expiration window" xml:space="preserve">
     <value>Ponechat greylisting aktivní během okna před vypršením záznamu</value>
@@ -5917,11 +5920,11 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Last delivered" xml:space="preserve">
     <value>Naposledy doručeno</value>
   </data>
-  <data name="Last l_ogon" xml:space="preserve">
-    <value>P_oslední přihlášení</value>
-  </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Poslední kontrola: {0}.</value>
+  </data>
+  <data name="Last sign-in" xml:space="preserve">
+    <value>Poslední přihlášení</value>
   </data>
   <data name="Last status" xml:space="preserve">
     <value>Poslední stav</value>
@@ -6277,6 +6280,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Mail is not moving, the service is running, nothing has crashed and the log seems to stop mid-transaction. The server is not silent about this any more: the answer is usually in one line of the log, and this page says which." xml:space="preserve">
     <value>Pošta se nehýbe, služba běží, nic nespadlo a log jako by končil uprostřed transakce. Server o tom už nemlčí: odpověď bývá v jednom řádku logu a tato stránka říká, ve kterém.</value>
   </data>
+  <data name="Mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes." xml:space="preserve">
+    <value>Pošta se ukládá tak, jak přichází. Osoba to zapíná na stránce Zabezpečení webmailu, jakmile server schránky s nulovým přístupem povolí.</value>
+  </data>
   <data name="Mail is stuck or slow" xml:space="preserve">
     <value>Pošta uvázla nebo je pomalá</value>
   </data>
@@ -6480,11 +6486,11 @@ Každý odběr Web Push vytvořený se současným párem okamžitě přestane f
   <data name="Maximise" xml:space="preserve">
     <value>Maximalizovat</value>
   </data>
-  <data name="Maximum _domain size (MB, 0 = unlimited)" xml:space="preserve">
-    <value>Maximální velikost _domény (MB, 0 = bez omezení)</value>
+  <data name="Maximum _domain size (MB; 0 = no limit)" xml:space="preserve">
+    <value>Maximální velikost _domény (MB; 0 = bez limitu)</value>
   </data>
-  <data name="Maximum _message size (KB, 0 = unlimited)" xml:space="preserve">
-    <value>Maximální velikost _zprávy (KB, 0 = bez omezení)</value>
+  <data name="Maximum _message size (KB; 0 = no limit)" xml:space="preserve">
+    <value>Maximální velikost _zprávy (KB; 0 = bez limitu)</value>
   </data>
   <data name="Maximum account size (MB)" xml:space="preserve">
     <value>Maximální velikost účtu (MB)</value>
@@ -6513,8 +6519,8 @@ Každý odběr Web Push vytvořený se současným párem okamžitě přestane f
   <data name="Maximum size (MB)" xml:space="preserve">
     <value>Maximální velikost (MB)</value>
   </data>
-  <data name="Maximum size for _accounts created in this domain (MB, 0 = unlimited)" xml:space="preserve">
-    <value>Maximální _velikost účtů vytvořených v této doméně (MB, 0 = bez omezení)</value>
+  <data name="Maximum size for _accounts created in this domain (MB; 0 = no limit)" xml:space="preserve">
+    <value>Maximální _velikost účtů vytvořených v této doméně (MB; 0 = bez limitu)</value>
   </data>
   <data name="Maximum time for one IMAP search (seconds; 0 = no limit)" xml:space="preserve">
     <value>Maximální doba jednoho hledání IMAP (sekundy; 0 = bez omezení)</value>
@@ -7706,9 +7712,6 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Off. No message is deferred on a first attempt." xml:space="preserve">
     <value>Vypnuto. Žádná zpráva se při prvním pokusu neodkládá.</value>
   </data>
-  <data name="Off: mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes." xml:space="preserve">
-    <value>Vypnuto: pošta se ukládá tak, jak přichází. Osoba to zapíná na stránce Zabezpečení webmailu, jakmile server schránky s nulovým přístupem povolí.</value>
-  </data>
   <data name="Off: record and judge nothing" xml:space="preserve">
     <value>Vypnuto: nic nezaznamenávat ani neposuzovat</value>
   </data>
@@ -7813,9 +7816,6 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="On. A sender/recipient/address triplet that has not been seen before is answered 451 &quot;Please try again later.&quot; at RCPT TO, and accepted when it retries. It runs after the connection checks above and adds no score." xml:space="preserve">
     <value>Zapnuto. Trojice odesílatel/příjemce/adresa, která ještě nebyla viděna, dostane při RCPT TO odpověď 451 „Please try again later.“ a je přijata, až když se pokus zopakuje. Běží až po kontrolách připojení výše a nepřidává žádné skóre.</value>
-  </data>
-  <data name="On: every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
-    <value>Zapnuto: každá zpráva doručená na tento účet je po filtrech zašifrována vlastním klíčem OpenPGP účtu a tento server nemůže její poštu číst, prohledávat, exportovat ani obnovit. Vypnout to může jen daná osoba z webmailu; zde to nejde.</value>
   </data>
   <data name="OnAcceptMessage → external AV / DLP scanner" xml:space="preserve">
     <value>OnAcceptMessage → externí AV / DLP skener</value>
@@ -8138,9 +8138,6 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Oversigning (RFC 6376 5.4) lists a header field name in the signature's h= tag once more often than the field occurs, which makes ADDING another one - a second From:, an injected Subject: - break the signature. Off by default: oversigning a field that a mailing list or forwarder legitimately adds costs those messages their DKIM pass." xml:space="preserve">
     <value>Oversigning (RFC 6376 5.4) uvede název hlavičkového pole ve značce h= podpisu o jednou víc, než kolikrát se pole vyskytuje, takže PŘIDÁNÍ dalšího – druhého From:, podstrčeného Subject: – podpis rozbije. Ve výchozím nastavení vypnuto: oversigning pole, které poštovní konference nebo přeposílající server legitimně přidává, stojí tyto zprávy jejich úspěšné ověření DKIM.</value>
   </data>
-  <data name="Overwrite account signature" xml:space="preserve">
-    <value>Přepsat podpis účtu</value>
-  </data>
   <data name="Own value of {0}" xml:space="preserve">
     <value>Vlastní hodnota {0}</value>
   </data>
@@ -8246,8 +8243,8 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Partly saved" xml:space="preserve">
     <value>Částečně uloženo</value>
   </data>
-  <data name="Pass_word (leave blank to keep the stored one)" xml:space="preserve">
-    <value>He_slo (nechte prázdné, aby zůstalo uložené)</value>
+  <data name="Pass_word (leave empty to keep current)" xml:space="preserve">
+    <value>He_slo (nechte prázdné, aby zůstalo současné)</value>
   </data>
   <data name="Passed" xml:space="preserve">
     <value>Prošla</value>
@@ -9320,6 +9317,9 @@ Každý vlastní rozsah – včetně všech položek auto-banu – bude odstran�
     <value>Nahradit VŠECHNY nakonfigurované porty výchozími?
 
 SMTP 25 a 587, POP3 110, IMAP 143 – bez zabezpečení připojení a s ověřováním SMTP Zapnuto na obou portech SMTP, takže port 25, který je návnadou, bude opět přijímat AUTH. TLS porty a vlastní vazby budou odstraněny. Změna se projeví po reinicializaci serveru.</value>
+  </data>
+  <data name="Replace the account's signature" xml:space="preserve">
+    <value>Nahradit podpis účtu</value>
   </data>
   <data name="Replace the certificate here; the expiry date of each one is listed." xml:space="preserve">
     <value>Certifikát vyměňte zde; u každého je uvedeno datum vypršení platnosti.</value>
@@ -13437,7 +13437,7 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Use a custom virus scanner" xml:space="preserve">
     <value>Používat vlastní antivirový skener</value>
   </data>
-  <data name="Use only if account has no signature" xml:space="preserve">
+  <data name="Use only when the account has no signature" xml:space="preserve">
     <value>Použít jen tehdy, když účet nemá podpis</value>
   </data>
   <data name="Used as the envelope sender of every copy the list sends, so delivery failures - a dead subscriber, a full mailbox - reach the list owner instead of whoever happened to post last." xml:space="preserve">
@@ -14118,6 +14118,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Yours alone: the note is not in the directory listing, not in the webmail and not in the cards a phone syncs." xml:space="preserve">
     <value>Jen vaše: poznámka není ve výpisu adresáře, není ve webmailu a není v kartách, které synchronizuje telefon.</value>
   </data>
+  <data name="Zero-access mailbox" xml:space="preserve">
+    <value>Schránka s nulovým přístupem</value>
+  </data>
   <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
     <value>Archivy zip (*.zip)|*.zip</value>
   </data>
@@ -14295,7 +14298,7 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Delete list" xml:space="preserve">
     <value>_Odstranit seznam</value>
   </data>
-  <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep forever)" xml:space="preserve">
+  <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep for ever)" xml:space="preserve">
     <value>_Mazat zprávy starší než (dny; 0 = politika domény, -1 = uchovat navždy)</value>
   </data>
   <data name="_Delete port" xml:space="preserve">
@@ -14442,7 +14445,7 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_HTML signature" xml:space="preserve">
     <value>_HTML podpis</value>
   </data>
-  <data name="_Header canonicalization" xml:space="preserve">
+  <data name="_Header canonicalisation" xml:space="preserve">
     <value>Kanonizace _hlavičky</value>
   </data>
   <data name="_Header name" xml:space="preserve">
@@ -14691,8 +14694,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Query" xml:space="preserve">
     <value>_Dotaz</value>
   </data>
-  <data name="_Quota (MB, 0 = unlimited)" xml:space="preserve">
-    <value>_Kvóta (MB, 0 = bez omezení)</value>
+  <data name="_Quota (MB; 0 = no limit)" xml:space="preserve">
+    <value>_Kvóta (MB; 0 = bez limitu)</value>
   </data>
   <data name="_Raise webhook events about this domain's mail and accounts" xml:space="preserve">
     <value>_Vyvolávat události webhooků o poště a účtech této domény</value>
@@ -14897,9 +14900,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Work telephone" xml:space="preserve">
     <value>_Telefon do práce</value>
-  </data>
-  <data name="_Zero-access mailbox" xml:space="preserve">
-    <value>Schránka s _nulovým přístupem</value>
   </data>
   <data name="a digit" xml:space="preserve">
     <value>číslice</value>

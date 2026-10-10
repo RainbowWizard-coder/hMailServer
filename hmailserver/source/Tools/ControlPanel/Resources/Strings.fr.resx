@@ -27,7 +27,7 @@
   <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
     <value>« {0} » n'a pas été enregistré : {1}</value>
   </data>
-  <data name="'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
+  <data name="'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have signed in." xml:space="preserve">
     <value>« N'importe qui dans le domaine peut envoyer » signifie que l'adresse de l'expéditeur est dans un domaine hébergé par ce serveur, ce qu'un tiers peut prétendre à moins que la liste n'exige aussi une authentification. Cochez cela ci-dessous si la liste doit être réservée aux personnes connectées.</value>
   </data>
   <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
@@ -432,7 +432,7 @@
   <data name="A domain may issue S/MIME certificates to its people from its own authority." xml:space="preserve">
     <value>Un domaine peut délivrer des certificats S/MIME à ses utilisateurs depuis sa propre autorité.</value>
   </data>
-  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
+  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never sign in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
     <value>Un nom de domaine ici exige que l'ordinateur du SERVEUR lui-même soit joint à ce domaine, parce que Windows le valide avec LogonUser. Depuis un ordinateur non joint, chaque tentative échoue comme si le mot de passe était faux - y compris quand le nom de domaine est simplement mal orthographié - si bien qu'une boîte configurée ainsi sur un serveur non joint ne peut jamais se connecter et ne dit jamais pourquoi. Si le serveur n'est pas joint au domaine, utilisez plutôt l'authentification d'annuaire LDAP sur la page Authentification par annuaire (LDAP) : elle se lie à l'annuaire par le réseau et ne nécessite aucune jonction au domaine.</value>
   </data>
   <data name="A domain named {0} is already on this server, and it is not the sample domain this page makes, so no sample can be made here and this page will not remove it. If you do not want that domain, delete it on the Domains page." xml:space="preserve">
@@ -1531,11 +1531,11 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Answer from the Windows DNS resolver cache when possible" xml:space="preserve">
     <value>Répondre depuis le cache du résolveur DNS Windows quand c'est possible</value>
   </data>
-  <data name="Answer the same sender a_gain after this many days (0 = once per absence)" xml:space="preserve">
-    <value>_Répondre de nouveau au même expéditeur après (jours, 0 = une fois par absence)</value>
+  <data name="Answer the same sender a_gain after (days; 0 = once per absence)" xml:space="preserve">
+    <value>_Répondre de nouveau au même expéditeur après (jours ; 0 = une fois par absence)</value>
   </data>
-  <data name="Answer the same sender again after (da_ys, 0 = once per absence)" xml:space="preserve">
-    <value>Répondre de nouveau au même expéditeur après (_jours, 0 = une fois par absence)</value>
+  <data name="Answer the same sender again after (da_ys; 0 = once per absence)" xml:space="preserve">
+    <value>Répondre de nouveau au même expéditeur après (_jours ; 0 = une fois par absence)</value>
   </data>
   <data name="Answered, but not with a policy" xml:space="preserve">
     <value>A répondu, mais pas avec une politique</value>
@@ -1582,7 +1582,7 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="App passwords" xml:space="preserve">
     <value>Mots de passe d'application</value>
   </data>
-  <data name="Append to account signature" xml:space="preserve">
+  <data name="Append to the account's signature" xml:space="preserve">
     <value>Ajouter à la signature du compte</value>
   </data>
   <data name="Application (client) ID" xml:space="preserve">
@@ -1855,7 +1855,7 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="B_ind address" xml:space="preserve">
     <value>Adresse de _liaison</value>
   </data>
-  <data name="B_ody canonicalization" xml:space="preserve">
+  <data name="B_ody canonicalisation" xml:space="preserve">
     <value>Canonicalisation _du corps</value>
   </data>
   <data name="Back" xml:space="preserve">
@@ -4594,6 +4594,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>La copie de chaque destinataire local devient un autre nom pour le même fichier dans le dossier d'archive, donc un message vers dix boîtes coûte une copie au lieu de dix. Nécessite un dossier d'archive NTFS ; si le lien ne peut pas être créé, le serveur copie le fichier et le dit dans le journal SMTP.</value>
   </data>
+  <data name="Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
+    <value>Chaque message livré à ce compte est chiffré, après les filtres, avec la clé OpenPGP du compte, et ce serveur ne peut ni lire, ni rechercher, ni exporter, ni récupérer son courrier. Seule la personne peut le désactiver, depuis le webmail ; rien ici ne le peut.</value>
+  </data>
   <data name="Every message goes through {0} scanner in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
     <value>Chaque message passe par {0} analyseur, qui est interrogé sur le message entier puis sur chaque pièce jointe séparément. C'est minutieux et ce n'est pas gratuit : l'analyse a lieu pendant que l'expéditeur attend son « 250 OK ».</value>
   </data>
@@ -5733,8 +5736,8 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="Keep" xml:space="preserve">
     <value>Conserver</value>
   </data>
-  <data name="Keep archived messages for (_days, 0 = for ever)" xml:space="preserve">
-    <value>Conserver les messages archivés pendant (_jours, 0 = pour toujours)</value>
+  <data name="Keep archived messages for (_days; 0 = for ever)" xml:space="preserve">
+    <value>Conserver les messages archivés pendant (_jours ; 0 = pour toujours)</value>
   </data>
   <data name="Keep greylisting active during the record-expiration window" xml:space="preserve">
     <value>Garder le greylisting actif pendant la fenêtre d'expiration des enregistrements</value>
@@ -5853,11 +5856,11 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="Last delivered" xml:space="preserve">
     <value>Dernière remise</value>
   </data>
-  <data name="Last l_ogon" xml:space="preserve">
-    <value>Dernière c_onnexion</value>
-  </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Dernière analyse : {0}.</value>
+  </data>
+  <data name="Last sign-in" xml:space="preserve">
+    <value>Dernière connexion</value>
   </data>
   <data name="Last status" xml:space="preserve">
     <value>Dernier statut</value>
@@ -6210,6 +6213,9 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="Mail is not moving, the service is running, nothing has crashed and the log seems to stop mid-transaction. The server is not silent about this any more: the answer is usually in one line of the log, and this page says which." xml:space="preserve">
     <value>Le courrier ne circule plus, le service tourne, rien n'a planté et le journal semble s'arrêter au milieu d'une transaction. Le serveur n'est plus muet là-dessus : la réponse tient généralement dans une ligne du journal, et cette page dit laquelle.</value>
   </data>
+  <data name="Mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes." xml:space="preserve">
+    <value>Le courrier est stocké tel qu'il arrive. La personne l'active depuis la page Sécurité du webmail une fois que le serveur autorise les boîtes à accès zéro.</value>
+  </data>
   <data name="Mail is stuck or slow" xml:space="preserve">
     <value>Le courrier est bloqué ou lent</value>
   </data>
@@ -6410,11 +6416,11 @@ Chaque abonnement Web Push fait avec la paire actuelle cesse aussitôt de foncti
   <data name="Maximise" xml:space="preserve">
     <value>Agrandir</value>
   </data>
-  <data name="Maximum _domain size (MB, 0 = unlimited)" xml:space="preserve">
-    <value>Taille maximale du _domaine (Mo, 0 = illimité)</value>
+  <data name="Maximum _domain size (MB; 0 = no limit)" xml:space="preserve">
+    <value>Taille maximale du _domaine (Mo ; 0 = pas de limite)</value>
   </data>
-  <data name="Maximum _message size (KB, 0 = unlimited)" xml:space="preserve">
-    <value>Taille maximale du _message (Ko, 0 = illimité)</value>
+  <data name="Maximum _message size (KB; 0 = no limit)" xml:space="preserve">
+    <value>Taille maximale du _message (Ko ; 0 = pas de limite)</value>
   </data>
   <data name="Maximum account size (MB)" xml:space="preserve">
     <value>Taille maximale du compte (Mo)</value>
@@ -6443,8 +6449,8 @@ Chaque abonnement Web Push fait avec la paire actuelle cesse aussitôt de foncti
   <data name="Maximum size (MB)" xml:space="preserve">
     <value>Taille maximale (Mo)</value>
   </data>
-  <data name="Maximum size for _accounts created in this domain (MB, 0 = unlimited)" xml:space="preserve">
-    <value>Taille maximale des _comptes créés dans ce domaine (Mo, 0 = illimité)</value>
+  <data name="Maximum size for _accounts created in this domain (MB; 0 = no limit)" xml:space="preserve">
+    <value>Taille maximale des _comptes créés dans ce domaine (Mo ; 0 = pas de limite)</value>
   </data>
   <data name="Maximum time for one IMAP search (seconds; 0 = no limit)" xml:space="preserve">
     <value>Temps maximal pour une recherche IMAP (secondes ; 0 = pas de limite)</value>
@@ -7618,9 +7624,6 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="Off. No message is deferred on a first attempt." xml:space="preserve">
     <value>Désactivé. Aucun message n'est différé à une première tentative.</value>
   </data>
-  <data name="Off: mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes." xml:space="preserve">
-    <value>Désactivé : le courrier est stocké tel qu'il arrive. La personne l'active depuis la page Sécurité du webmail une fois que le serveur autorise les boîtes à accès zéro.</value>
-  </data>
   <data name="Off: record and judge nothing" xml:space="preserve">
     <value>Désactivé : ne rien enregistrer ni évaluer</value>
   </data>
@@ -7725,9 +7728,6 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   </data>
   <data name="On. A sender/recipient/address triplet that has not been seen before is answered 451 &quot;Please try again later.&quot; at RCPT TO, and accepted when it retries. It runs after the connection checks above and adds no score." xml:space="preserve">
     <value>Activé. Un triplet expéditeur/destinataire/adresse jamais vu auparavant reçoit la réponse 451 « Please try again later. » au RCPT TO, et est accepté lorsqu'il réessaie. Cela s'exécute après les vérifications de connexion ci-dessus et n'ajoute aucun score.</value>
-  </data>
-  <data name="On: every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
-    <value>Activé : chaque message livré à ce compte est chiffré, après les filtres, avec la clé OpenPGP du compte, et ce serveur ne peut ni lire, ni rechercher, ni exporter, ni récupérer son courrier. Seule la personne peut le désactiver, depuis le webmail ; rien ici ne le peut.</value>
   </data>
   <data name="OnAcceptMessage → external AV / DLP scanner" xml:space="preserve">
     <value>OnAcceptMessage → analyseur AV / DLP externe</value>
@@ -8050,9 +8050,6 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="Oversigning (RFC 6376 5.4) lists a header field name in the signature's h= tag once more often than the field occurs, which makes ADDING another one - a second From:, an injected Subject: - break the signature. Off by default: oversigning a field that a mailing list or forwarder legitimately adds costs those messages their DKIM pass." xml:space="preserve">
     <value>Le sur-signage (RFC 6376 5.4) liste un nom de champ d'en-tête dans la balise h= de la signature une fois de plus que le champ n'apparaît, ce qui fait qu'en AJOUTER un autre - un second From:, un Subject: injecté - casse la signature. Désactivé par défaut : sur-signer un champ qu'une liste de diffusion ou un service de transfert ajoute légitimement coûte à ces messages leur succès DKIM.</value>
   </data>
-  <data name="Overwrite account signature" xml:space="preserve">
-    <value>Écraser la signature du compte</value>
-  </data>
   <data name="Own value of {0}" xml:space="preserve">
     <value>Valeur propre de {0}</value>
   </data>
@@ -8158,8 +8155,8 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="Partly saved" xml:space="preserve">
     <value>Partiellement enregistré</value>
   </data>
-  <data name="Pass_word (leave blank to keep the stored one)" xml:space="preserve">
-    <value>_Mot de passe (laisser vide pour conserver celui qui est enregistré)</value>
+  <data name="Pass_word (leave empty to keep current)" xml:space="preserve">
+    <value>_Mot de passe (laisser vide pour conserver l'actuel)</value>
   </data>
   <data name="Passed" xml:space="preserve">
     <value>Réussi</value>
@@ -9220,6 +9217,9 @@ Chaque plage personnalisée - y compris les entrées de bannissement automatique
     <value>Remplacer TOUS les ports configurés par ceux par défaut ?
 
 SMTP 25 et 587, POP3 110, IMAP 143 - sans sécurité de connexion et avec l'authentification SMTP Activé sur les deux ports SMTP : un port 25 qui est un leurre accepte donc de nouveau AUTH. Les ports TLS et les liaisons personnalisées seront supprimés. Le changement prend effet à la réinitialisation du serveur.</value>
+  </data>
+  <data name="Replace the account's signature" xml:space="preserve">
+    <value>Remplacer la signature du compte</value>
   </data>
   <data name="Replace the certificate here; the expiry date of each one is listed." xml:space="preserve">
     <value>Remplacez le certificat ici ; la date d'expiration de chacun est listée.</value>
@@ -13271,8 +13271,8 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="Use a custom virus scanner" xml:space="preserve">
     <value>Utiliser un antivirus personnalisé</value>
   </data>
-  <data name="Use only if account has no signature" xml:space="preserve">
-    <value>Utiliser uniquement si le compte n'a pas de signature</value>
+  <data name="Use only when the account has no signature" xml:space="preserve">
+    <value>Utiliser uniquement quand le compte n'a pas de signature</value>
   </data>
   <data name="Used as the envelope sender of every copy the list sends, so delivery failures - a dead subscriber, a full mailbox - reach the list owner instead of whoever happened to post last." xml:space="preserve">
     <value>Utilisée comme expéditeur d'enveloppe de chaque copie que la liste envoie, pour que les échecs de livraison - un abonné disparu, une boîte pleine - atteignent le propriétaire de la liste plutôt que celui qui se trouve avoir posté en dernier.</value>
@@ -13946,6 +13946,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="Yours alone: the note is not in the directory listing, not in the webmail and not in the cards a phone syncs." xml:space="preserve">
     <value>À vous seul : la note ne figure ni dans le listing de l'annuaire, ni dans le webmail, ni dans les fiches qu'un téléphone synchronise.</value>
   </data>
+  <data name="Zero-access mailbox" xml:space="preserve">
+    <value>Boîte à accès zéro</value>
+  </data>
   <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
     <value>Archives zip (*.zip)|*.zip</value>
   </data>
@@ -14123,7 +14126,7 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="_Delete list" xml:space="preserve">
     <value>_Supprimer la liste</value>
   </data>
-  <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep forever)" xml:space="preserve">
+  <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep for ever)" xml:space="preserve">
     <value>_Supprimer les messages plus vieux que (jours ; 0 = la politique du domaine, -1 = conserver indéfiniment)</value>
   </data>
   <data name="_Delete port" xml:space="preserve">
@@ -14270,7 +14273,7 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="_HTML signature" xml:space="preserve">
     <value>Signature _HTML</value>
   </data>
-  <data name="_Header canonicalization" xml:space="preserve">
+  <data name="_Header canonicalisation" xml:space="preserve">
     <value>Canonicalisation des en-_têtes</value>
   </data>
   <data name="_Header name" xml:space="preserve">
@@ -14519,8 +14522,8 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="_Query" xml:space="preserve">
     <value>_Requête</value>
   </data>
-  <data name="_Quota (MB, 0 = unlimited)" xml:space="preserve">
-    <value>_Quota (Mo, 0 = illimité)</value>
+  <data name="_Quota (MB; 0 = no limit)" xml:space="preserve">
+    <value>_Quota (Mo ; 0 = pas de limite)</value>
   </data>
   <data name="_Raise webhook events about this domain's mail and accounts" xml:space="preserve">
     <value>_Déclencher des événements webhook sur le courrier et les comptes de ce domaine</value>
@@ -14725,9 +14728,6 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="_Work telephone" xml:space="preserve">
     <value>_Téléphone professionnel</value>
-  </data>
-  <data name="_Zero-access mailbox" xml:space="preserve">
-    <value>_Boîte à accès zéro</value>
   </data>
   <data name="a digit" xml:space="preserve">
     <value>un chiffre</value>

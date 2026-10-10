@@ -442,11 +442,11 @@ namespace hMailServer.ControlPanel.Views
       private ScrollViewer BuildLimits()
       {
          var panel = DialogFields.TabPanel();
-         maxSizeRow_ = Label(L("Maximum _domain size (MB, 0 = unlimited)"), maxSize_);
+         maxSizeRow_ = Label(L("Maximum _domain size (MB; 0 = no limit)"), maxSize_);
          panel.Children.Add(maxSizeRow_);
-         maxMessageSizeRow_ = Label(L("Maximum _message size (KB, 0 = unlimited)"), maxMessageSize_);
+         maxMessageSizeRow_ = Label(L("Maximum _message size (KB; 0 = no limit)"), maxMessageSize_);
          panel.Children.Add(maxMessageSizeRow_);
-         maxAccountSizeRow_ = Label(L("Maximum size for _accounts created in this domain (MB, 0 = unlimited)"), maxAccountSize_);
+         maxAccountSizeRow_ = Label(L("Maximum size for _accounts created in this domain (MB; 0 = no limit)"), maxAccountSize_);
          panel.Children.Add(maxAccountSizeRow_);
          retentionRow_ = Label(L("Delete messages in this domain's mailboxes _older than (days; 0 = no policy, an account's own value overrides it)"), retentionDays_);
          panel.Children.Add(retentionRow_);
@@ -490,9 +490,9 @@ namespace hMailServer.ControlPanel.Views
 
       private ScrollViewer BuildSignature()
       {
-         signatureMethod_.Items.Add(DialogFields.Combo(L("Use only if account has no signature"), 1));
-         signatureMethod_.Items.Add(DialogFields.Combo(L("Overwrite account signature"), 2));
-         signatureMethod_.Items.Add(DialogFields.Combo(L("Append to account signature"), 3));
+         signatureMethod_.Items.Add(DialogFields.Combo(L("Use only when the account has no signature"), 1));
+         signatureMethod_.Items.Add(DialogFields.Combo(L("Replace the account's signature"), 2));
+         signatureMethod_.Items.Add(DialogFields.Combo(L("Append to the account's signature"), 3));
 
          var panel = DialogFields.TabPanel();
          panel.Children.Add(DialogFields.Check(signatureOn_));
@@ -532,7 +532,7 @@ namespace hMailServer.ControlPanel.Views
          panel.Children.Add(DialogFields.Check(relayAuthOn_));
          FieldRow userRow = Label(L("_User name"), relayUser_);
          panel.Children.Add(userRow);
-         FieldRow passwordRow = Label(L("Pass_word (leave blank to keep the stored one)"), relayPassword_);
+         FieldRow passwordRow = Label(L("Pass_word (leave empty to keep current)"), relayPassword_);
          panel.Children.Add(passwordRow);
 
          // The credential is presented only while the relay requires it (ServerTargetResolver).
@@ -555,7 +555,7 @@ namespace hMailServer.ControlPanel.Views
          panel.Children.Add(internalSubjectRow);
          FieldRow internalMessageRow = Label(L("Message for local s_enders (empty = same as above)"), oooInternalMessage_);
          panel.Children.Add(internalMessageRow);
-         FieldRow daysRow = Label(L("Answer the same sender a_gain after this many days (0 = once per absence)"), oooDays_);
+         FieldRow daysRow = Label(L("Answer the same sender a_gain after (days; 0 = once per absence)"), oooDays_);
          panel.Children.Add(daysRow);
 
          // The text for local senders and the interval are the domain-wide reply's
@@ -645,8 +645,8 @@ namespace hMailServer.ControlPanel.Views
          dkimDnsPanel_.Children.Add(dkimCopy);
          panel.Children.Add(dkimDnsPanel_);
 
-         panel.Children.Add(Label(L("_Header canonicalization"), dkimHeaderCanon_));
-         panel.Children.Add(Label(L("B_ody canonicalization"), dkimBodyCanon_));
+         panel.Children.Add(Label(L("_Header canonicalisation"), dkimHeaderCanon_));
+         panel.Children.Add(Label(L("B_ody canonicalisation"), dkimBodyCanon_));
          panel.Children.Add(Label(L("Signing _algorithm"), dkimAlgorithm_));
 
          panel.Children.Add(DialogFields.Separator());

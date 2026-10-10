@@ -39,6 +39,15 @@ namespace hMailServer.ControlPanel.Views
       public static FieldRow Field(string caption, FrameworkElement editor, string hint = null)
          => new() { Label = caption, Content = editor, Hint = hint };
 
+      /// <summary>
+      /// A row whose value is read, not edited - the account's last sign-in, whether its
+      /// mailbox is zero-access: the caption over the value with no Alt key, since there is
+      /// no editor for a key to put the keyboard in (review finding F292).
+      /// build/check-mnemonics.py holds such a caption, and its translations, to carrying none.
+      /// </summary>
+      public static FieldRow ReadOnlyField(string caption, FrameworkElement value, string hint = null)
+         => new() { Label = caption, Content = value, Hint = hint };
+
       /// <summary>Adds the line under the editor after the row was built by a dialog's own <c>Label</c>.</summary>
       public static FieldRow WithHint(this FieldRow row, string hint)
       {

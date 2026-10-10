@@ -2075,6 +2075,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   virus scanner" in docs/SealedMail.md, where the help opens for the Anti-virus settings page. In all seventeen
   languages.
 
+- **Fixed: the account and domain dialogs phrased the same things differently.** The account dialog's "Last l_ogon" is
+  "Last sign-in", in the reader's short date and time with "(server time)" where it was the server's date as the
+  machine's culture wrote it - and Never for the date the server keeps when there is none, which it showed as 30
+  December 1899; "Zero-access mailbox" reads Off or On, with what that means under it, where the explanation was the
+  value; neither read-only row carries an Alt key any more; and a Windows domain account on an unjoined server "can
+  never sign in". The domain's signature choices are "Use only when the account has no signature", "Replace the
+  account's signature" and "Append to the account's signature"; its relay password is "leave empty to keep current" as
+  the account's is; DKIM's rows are spelt canonicalisation; and every range in the three dialogs says what 0 means one
+  way - "(MB; 0 = no limit)", "(days; 0 = for ever)", "(days; 0 = once per absence)". In all seventeen languages.
+  build/check-mnemonics.py holds a read-only row's caption (DialogFields.ReadOnlyField) to carrying no key, in English
+  and in every catalogue.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

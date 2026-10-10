@@ -95,7 +95,7 @@ namespace hMailServer.ControlPanel.Views
          mode_.Items.Add(DialogFields.Combo(L("Announcements only"), 2));
          mode_.Items.Add(DialogFields.Combo(L("Anyone in the domain can send"), 3));
          body.Children.Add(Label(L("_Who may send to this list"), mode_)
-            .WithHint(L("'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in.")));
+            .WithHint(L("'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have signed in.")));
 
          body.Children.Add(DialogFields.Field(null, requireAuth_));
          body.Children.Add(Label(L("_Require sender address (empty = any)"), requireSender_));
@@ -127,7 +127,7 @@ namespace hMailServer.ControlPanel.Views
          archive_.Items.Add(DialogFields.Combo(L("For the members"), 1));
          archive_.Items.Add(DialogFields.Combo(L("Public"), 2));
          body.Children.Add(Label(L("Ar_chive"), archive_));
-         archiveDaysRow_ = Label(L("Keep archived messages for (_days, 0 = for ever)"), archiveDays_);
+         archiveDaysRow_ = Label(L("Keep archived messages for (_days; 0 = for ever)"), archiveDays_);
          body.Children.Add(archiveDaysRow_);
 
          body.Children.Add(DialogFields.Field(null, digest_));

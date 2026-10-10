@@ -27,7 +27,7 @@
   <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
     <value>"{0}" kaydedilmedi: {1}</value>
   </data>
-  <data name="'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
+  <data name="'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have signed in." xml:space="preserve">
     <value>'Etki alanındaki herkes gönderebilir', gönderenin adresinin bu sunucunun barındırdığı bir etki alanında olması demektir; liste ayrıca kimlik doğrulama da istemedikçe bunu dışarıdan biri de iddia edebilir. Liste yalnızca oturum açmış kişilerle sınırlanacaksa aşağıda bunu işaretleyin.</value>
   </data>
   <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
@@ -432,7 +432,7 @@
   <data name="A domain may issue S/MIME certificates to its people from its own authority." xml:space="preserve">
     <value>Bir etki alanı, kendi kişilerine kendi sertifika yetkilisinden S/MIME sertifikaları verebilir.</value>
   </data>
-  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
+  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never sign in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
     <value>Buraya bir etki alanı adı yazılması, SUNUCUNUN kendi bilgisayarının o etki alanına katılmış olmasını gerektirir; çünkü Windows bunu LogonUser ile doğrular. Katılmamış bir bilgisayarda her deneme, parola yanlışmış gibi başarısız olur - etki alanı adı yalnızca yanlış yazıldığında bile - dolayısıyla katılmamış bir sunucuda bu biçimde yapılandırılan bir posta kutusu hiçbir zaman oturum açamaz ve nedenini de hiçbir zaman söylemez. Sunucu bir etki alanına katılmamışsa, bunun yerine Dizin kimlik doğrulaması (LDAP) sayfasındaki LDAP dizin kimlik doğrulamasını kullanın: bu yöntem dizine ağ üzerinden bind ile bağlanır ve etki alanına katılım gerektirmez.</value>
   </data>
   <data name="A domain named {0} is already on this server, and it is not the sample domain this page makes, so no sample can be made here and this page will not remove it. If you do not want that domain, delete it on the Domains page." xml:space="preserve">
@@ -1531,11 +1531,11 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Answer from the Windows DNS resolver cache when possible" xml:space="preserve">
     <value>Mümkün olduğunda Windows DNS çözümleyici önbelleğinden yanıtla</value>
   </data>
-  <data name="Answer the same sender a_gain after this many days (0 = once per absence)" xml:space="preserve">
-    <value>_Aynı gönderene yeniden yanıt ver (gün, 0 = yokluk başına bir kez)</value>
+  <data name="Answer the same sender a_gain after (days; 0 = once per absence)" xml:space="preserve">
+    <value>_Aynı gönderene yeniden yanıt ver (gün; 0 = yokluk başına bir kez)</value>
   </data>
-  <data name="Answer the same sender again after (da_ys, 0 = once per absence)" xml:space="preserve">
-    <value>Aynı gönderene yeniden yanıt ver (g_ün, 0 = yokluk başına bir kez)</value>
+  <data name="Answer the same sender again after (da_ys; 0 = once per absence)" xml:space="preserve">
+    <value>Aynı gönderene yeniden yanıt ver (g_ün; 0 = yokluk başına bir kez)</value>
   </data>
   <data name="Answered, but not with a policy" xml:space="preserve">
     <value>Yanıt verdi, ama bir ilkeyle değil</value>
@@ -1582,8 +1582,8 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="App passwords" xml:space="preserve">
     <value>Uygulama parolaları</value>
   </data>
-  <data name="Append to account signature" xml:space="preserve">
-    <value>Hesap imzasına ekle</value>
+  <data name="Append to the account's signature" xml:space="preserve">
+    <value>Hesabın imzasına ekle</value>
   </data>
   <data name="Application (client) ID" xml:space="preserve">
     <value>Uygulama (istemci) kimliği</value>
@@ -1855,7 +1855,7 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="B_ind address" xml:space="preserve">
     <value>_Bağlama adresi</value>
   </data>
-  <data name="B_ody canonicalization" xml:space="preserve">
+  <data name="B_ody canonicalisation" xml:space="preserve">
     <value>Gö_vde kurallaştırması</value>
   </data>
   <data name="Back" xml:space="preserve">
@@ -4594,6 +4594,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>Her yerel alıcının kopyası, arşiv klasörü içindeki aynı dosyanın başka bir adı olur; böylece on posta kutusuna giden bir ileti on değil bir kopyaya mal olur. NTFS bir arşiv klasörü gerektirir; bağlantı oluşturulamazsa sunucu dosyayı kopyalar ve bunu SMTP günlüğünde söyler.</value>
   </data>
+  <data name="Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
+    <value>Bu hesaba teslim edilen her ileti, süzgeçlerden sonra hesabın kendi OpenPGP anahtarıyla şifrelenir ve bu sunucu postasını okuyamaz, arayamaz, dışa aktaramaz veya kurtaramaz. Yalnızca kişi web postasından kapatabilir; burada hiçbir şey kapatamaz.</value>
+  </data>
   <data name="Every message goes through {0} scanner in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
     <value>Her ileti sırayla {0} tarayıcı üzerinden geçer ve her birine önce iletinin tamamı, sonra her ek ayrı ayrı sorulur. Bu kapsamlıdır ve bedelsiz değildir: tarama, gönderen "250 OK" yanıtını beklerken yapılır.</value>
   </data>
@@ -5733,8 +5736,8 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Keep" xml:space="preserve">
     <value>Tut</value>
   </data>
-  <data name="Keep archived messages for (_days, 0 = for ever)" xml:space="preserve">
-    <value>Arşivlenen _iletileri (gün, 0 = sonsuza kadar) süreyle sakla</value>
+  <data name="Keep archived messages for (_days; 0 = for ever)" xml:space="preserve">
+    <value>Arşivlenen _iletileri (gün; 0 = sonsuza kadar) süreyle sakla</value>
   </data>
   <data name="Keep greylisting active during the record-expiration window" xml:space="preserve">
     <value>Kayıt süre sonu penceresi boyunca greylisting'i etkin tut</value>
@@ -5853,11 +5856,11 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Last delivered" xml:space="preserve">
     <value>Son teslim</value>
   </data>
-  <data name="Last l_ogon" xml:space="preserve">
-    <value>So_n oturum açma</value>
-  </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Son tarama: {0}.</value>
+  </data>
+  <data name="Last sign-in" xml:space="preserve">
+    <value>Son oturum açma</value>
   </data>
   <data name="Last status" xml:space="preserve">
     <value>Son durum</value>
@@ -6210,6 +6213,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Mail is not moving, the service is running, nothing has crashed and the log seems to stop mid-transaction. The server is not silent about this any more: the answer is usually in one line of the log, and this page says which." xml:space="preserve">
     <value>Posta hareket etmiyor, hizmet çalışıyor, hiçbir şey çökmedi ve günlük işlemin ortasında duruyor gibi görünüyor. Sunucu artık bu konuda sessiz değil: yanıt genellikle günlüğün tek bir satırındadır ve bu sayfa hangisi olduğunu söyler.</value>
   </data>
+  <data name="Mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes." xml:space="preserve">
+    <value>Posta geldiği gibi saklanır. Sunucu sıfır erişimli posta kutularına izin verdiğinde kişi bunu web postasının Güvenlik sayfasından açar.</value>
+  </data>
   <data name="Mail is stuck or slow" xml:space="preserve">
     <value>Posta takıldı ya da yavaş</value>
   </data>
@@ -6410,11 +6416,11 @@ Geçerli çiftle yapılan her Web Push aboneliği hemen çalışmayı bırakır 
   <data name="Maximise" xml:space="preserve">
     <value>Ekranı kapla</value>
   </data>
-  <data name="Maximum _domain size (MB, 0 = unlimited)" xml:space="preserve">
-    <value>En _büyük etki alanı boyutu (MB, 0 = sınırsız)</value>
+  <data name="Maximum _domain size (MB; 0 = no limit)" xml:space="preserve">
+    <value>En _büyük etki alanı boyutu (MB; 0 = sınır yok)</value>
   </data>
-  <data name="Maximum _message size (KB, 0 = unlimited)" xml:space="preserve">
-    <value>En büyük _ileti boyutu (KB, 0 = sınırsız)</value>
+  <data name="Maximum _message size (KB; 0 = no limit)" xml:space="preserve">
+    <value>En büyük _ileti boyutu (KB; 0 = sınır yok)</value>
   </data>
   <data name="Maximum account size (MB)" xml:space="preserve">
     <value>En büyük hesap boyutu (MB)</value>
@@ -6443,8 +6449,8 @@ Geçerli çiftle yapılan her Web Push aboneliği hemen çalışmayı bırakır 
   <data name="Maximum size (MB)" xml:space="preserve">
     <value>En büyük boyut (MB)</value>
   </data>
-  <data name="Maximum size for _accounts created in this domain (MB, 0 = unlimited)" xml:space="preserve">
-    <value>Bu etki alanında oluşturulan _hesaplar için en büyük boyut (MB, 0 = sınırsız)</value>
+  <data name="Maximum size for _accounts created in this domain (MB; 0 = no limit)" xml:space="preserve">
+    <value>Bu etki alanında oluşturulan _hesaplar için en büyük boyut (MB; 0 = sınır yok)</value>
   </data>
   <data name="Maximum time for one IMAP search (seconds; 0 = no limit)" xml:space="preserve">
     <value>Tek bir IMAP araması için en fazla süre (saniye; 0 = sınır yok)</value>
@@ -7618,9 +7624,6 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Off. No message is deferred on a first attempt." xml:space="preserve">
     <value>Kapalı. Hiçbir ileti ilk denemede ertelenmiyor.</value>
   </data>
-  <data name="Off: mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes." xml:space="preserve">
-    <value>Kapalı: posta geldiği gibi saklanır. Sunucu sıfır erişimli posta kutularına izin verdiğinde kişi bunu web postasının Güvenlik sayfasından açar.</value>
-  </data>
   <data name="Off: record and judge nothing" xml:space="preserve">
     <value>Kapalı: hiçbir şey kaydetme veya puanlama</value>
   </data>
@@ -7725,9 +7728,6 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="On. A sender/recipient/address triplet that has not been seen before is answered 451 &quot;Please try again later.&quot; at RCPT TO, and accepted when it retries. It runs after the connection checks above and adds no score." xml:space="preserve">
     <value>Açık. Daha önce görülmemiş bir gönderen/alıcı/adres üçlüsü RCPT TO'da 451 "Please try again later." ile yanıtlanır ve yeniden denediğinde kabul edilir. Yukarıdaki bağlantı denetimlerinden sonra çalışır ve puan eklemez.</value>
-  </data>
-  <data name="On: every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
-    <value>Açık: bu hesaba teslim edilen her ileti, süzgeçlerden sonra hesabın kendi OpenPGP anahtarıyla şifrelenir ve bu sunucu postasını okuyamaz, arayamaz, dışa aktaramaz veya kurtaramaz. Yalnızca kişi web postasından kapatabilir; burada hiçbir şey kapatamaz.</value>
   </data>
   <data name="OnAcceptMessage → external AV / DLP scanner" xml:space="preserve">
     <value>OnAcceptMessage → dış AV / DLP tarayıcısı</value>
@@ -8050,9 +8050,6 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Oversigning (RFC 6376 5.4) lists a header field name in the signature's h= tag once more often than the field occurs, which makes ADDING another one - a second From:, an injected Subject: - break the signature. Off by default: oversigning a field that a mailing list or forwarder legitimately adds costs those messages their DKIM pass." xml:space="preserve">
     <value>Aşırı imzalama (RFC 6376 5.4), bir başlık alanı adını imzanın h= etiketinde alanın geçtiğinden bir kez daha fazla listeler; bu da bir tane daha EKLEMEYİ - ikinci bir From:, sokuşturulmuş bir Subject: - imzayı bozar hâle getirir. Varsayılan olarak kapalıdır: bir posta listesinin ya da ileticinin meşru olarak eklediği bir alanı aşırı imzalamak o iletilere DKIM geçişlerine mal olur.</value>
   </data>
-  <data name="Overwrite account signature" xml:space="preserve">
-    <value>Hesap imzasının üzerine yaz</value>
-  </data>
   <data name="Own value of {0}" xml:space="preserve">
     <value>{0} için kendi değer</value>
   </data>
@@ -8158,7 +8155,7 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Partly saved" xml:space="preserve">
     <value>Kısmen kaydedildi</value>
   </data>
-  <data name="Pass_word (leave blank to keep the stored one)" xml:space="preserve">
+  <data name="Pass_word (leave empty to keep current)" xml:space="preserve">
     <value>Parola (_saklananı korumak için boş bırakın)</value>
   </data>
   <data name="Passed" xml:space="preserve">
@@ -9220,6 +9217,9 @@ Otomatik yasaklama girdileri dâhil her özel aralık kaldırılır ve yerine 'B
     <value>Yapılandırılmış TÜM portlar varsayılanlarla değiştirilsin mi?
 
 SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki SMTP portunda SMTP kimlik doğrulaması Açık olarak; bu nedenle bal küpü olan bir port 25 yeniden AUTH kabul eder. TLS portları ve özel bağlamalar kaldırılır. Değişiklik sunucu yeniden başlatıldığında (Reinitialize) geçerli olur.</value>
+  </data>
+  <data name="Replace the account's signature" xml:space="preserve">
+    <value>Hesabın imzasını değiştir</value>
   </data>
   <data name="Replace the certificate here; the expiry date of each one is listed." xml:space="preserve">
     <value>Sertifikayı burada değiştirin; her birinin süre sonu tarihi listelenir.</value>
@@ -13271,8 +13271,8 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="Use a custom virus scanner" xml:space="preserve">
     <value>Özel bir virüs tarayıcısı kullan</value>
   </data>
-  <data name="Use only if account has no signature" xml:space="preserve">
-    <value>Yalnızca hesabın imzası yoksa kullan</value>
+  <data name="Use only when the account has no signature" xml:space="preserve">
+    <value>Yalnızca hesabın imzası olmadığında kullan</value>
   </data>
   <data name="Used as the envelope sender of every copy the list sends, so delivery failures - a dead subscriber, a full mailbox - reach the list owner instead of whoever happened to post last." xml:space="preserve">
     <value>Listenin gönderdiği her kopyanın zarf göndericisi olarak kullanılır; böylece teslim başarısızlıkları - ölü bir abone, dolu bir posta kutusu - en son kim yazdıysa ona değil, liste sahibine ulaşır.</value>
@@ -13946,6 +13946,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="Yours alone: the note is not in the directory listing, not in the webmail and not in the cards a phone syncs." xml:space="preserve">
     <value>Yalnızca size ait: not rehber listesinde, web postasında ve bir telefonun eşitlediği kartlarda yer almaz.</value>
   </data>
+  <data name="Zero-access mailbox" xml:space="preserve">
+    <value>Sıfır erişimli posta kutusu</value>
+  </data>
   <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
     <value>Zip arşivleri (*.zip)|*.zip</value>
   </data>
@@ -14123,7 +14126,7 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="_Delete list" xml:space="preserve">
     <value>Listeyi _sil</value>
   </data>
-  <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep forever)" xml:space="preserve">
+  <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep for ever)" xml:space="preserve">
     <value>Şundan eski iletileri _sil (gün; 0 = etki alanının ilkesi, -1 = sonsuza dek sakla)</value>
   </data>
   <data name="_Delete port" xml:space="preserve">
@@ -14270,7 +14273,7 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="_HTML signature" xml:space="preserve">
     <value>_HTML imzası</value>
   </data>
-  <data name="_Header canonicalization" xml:space="preserve">
+  <data name="_Header canonicalisation" xml:space="preserve">
     <value>_Başlık kurallaştırması</value>
   </data>
   <data name="_Header name" xml:space="preserve">
@@ -14519,8 +14522,8 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="_Query" xml:space="preserve">
     <value>_Sorgu</value>
   </data>
-  <data name="_Quota (MB, 0 = unlimited)" xml:space="preserve">
-    <value>Kota (_MB, 0 = sınırsız)</value>
+  <data name="_Quota (MB; 0 = no limit)" xml:space="preserve">
+    <value>Kota (_MB; 0 = sınır yok)</value>
   </data>
   <data name="_Raise webhook events about this domain's mail and accounts" xml:space="preserve">
     <value>Bu etki alanının postası ve hesapları hakkında webhook _olayları oluştur</value>
@@ -14725,9 +14728,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="_Work telephone" xml:space="preserve">
     <value>İş _telefonu</value>
-  </data>
-  <data name="_Zero-access mailbox" xml:space="preserve">
-    <value>Sıfır erişimli posta k_utusu</value>
   </data>
   <data name="a digit" xml:space="preserve">
     <value>bir rakam</value>

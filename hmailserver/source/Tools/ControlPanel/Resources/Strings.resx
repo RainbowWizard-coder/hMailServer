@@ -27,8 +27,8 @@
   <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
     <value>"{0}" was not saved: {1}</value>
   </data>
-  <data name="'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
-    <value>'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in.</value>
+  <data name="'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have signed in." xml:space="preserve">
+    <value>'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have signed in.</value>
   </data>
   <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
     <value>'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it.</value>
@@ -432,8 +432,8 @@
   <data name="A domain may issue S/MIME certificates to its people from its own authority." xml:space="preserve">
     <value>A domain may issue S/MIME certificates to its people from its own authority.</value>
   </data>
-  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
-    <value>A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join.</value>
+  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never sign in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
+    <value>A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never sign in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join.</value>
   </data>
   <data name="A domain named {0} is already on this server, and it is not the sample domain this page makes, so no sample can be made here and this page will not remove it. If you do not want that domain, delete it on the Domains page." xml:space="preserve">
     <value>A domain named {0} is already on this server, and it is not the sample domain this page makes, so no sample can be made here and this page will not remove it. If you do not want that domain, delete it on the Domains page.</value>
@@ -1531,11 +1531,11 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Answer from the Windows DNS resolver cache when possible" xml:space="preserve">
     <value>Answer from the Windows DNS resolver cache when possible</value>
   </data>
-  <data name="Answer the same sender a_gain after this many days (0 = once per absence)" xml:space="preserve">
-    <value>Answer the same sender a_gain after this many days (0 = once per absence)</value>
+  <data name="Answer the same sender a_gain after (days; 0 = once per absence)" xml:space="preserve">
+    <value>Answer the same sender a_gain after (days; 0 = once per absence)</value>
   </data>
-  <data name="Answer the same sender again after (da_ys, 0 = once per absence)" xml:space="preserve">
-    <value>Answer the same sender again after (da_ys, 0 = once per absence)</value>
+  <data name="Answer the same sender again after (da_ys; 0 = once per absence)" xml:space="preserve">
+    <value>Answer the same sender again after (da_ys; 0 = once per absence)</value>
   </data>
   <data name="Answered, but not with a policy" xml:space="preserve">
     <value>Answered, but not with a policy</value>
@@ -1582,8 +1582,8 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="App passwords" xml:space="preserve">
     <value>App passwords</value>
   </data>
-  <data name="Append to account signature" xml:space="preserve">
-    <value>Append to account signature</value>
+  <data name="Append to the account's signature" xml:space="preserve">
+    <value>Append to the account's signature</value>
   </data>
   <data name="Application (client) ID" xml:space="preserve">
     <value>Application (client) ID</value>
@@ -1855,8 +1855,8 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="B_ind address" xml:space="preserve">
     <value>B_ind address</value>
   </data>
-  <data name="B_ody canonicalization" xml:space="preserve">
-    <value>B_ody canonicalization</value>
+  <data name="B_ody canonicalisation" xml:space="preserve">
+    <value>B_ody canonicalisation</value>
   </data>
   <data name="Back" xml:space="preserve">
     <value>Back</value>
@@ -4594,6 +4594,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log.</value>
   </data>
+  <data name="Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
+    <value>Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can.</value>
+  </data>
   <data name="Every message goes through {0} scanner in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
     <value>Every message goes through {0} scanner in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its "250 OK".</value>
   </data>
@@ -5733,8 +5736,8 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="Keep" xml:space="preserve">
     <value>Keep</value>
   </data>
-  <data name="Keep archived messages for (_days, 0 = for ever)" xml:space="preserve">
-    <value>Keep archived messages for (_days, 0 = for ever)</value>
+  <data name="Keep archived messages for (_days; 0 = for ever)" xml:space="preserve">
+    <value>Keep archived messages for (_days; 0 = for ever)</value>
   </data>
   <data name="Keep greylisting active during the record-expiration window" xml:space="preserve">
     <value>Keep greylisting active during the record-expiration window</value>
@@ -5853,11 +5856,11 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="Last delivered" xml:space="preserve">
     <value>Last delivered</value>
   </data>
-  <data name="Last l_ogon" xml:space="preserve">
-    <value>Last l_ogon</value>
-  </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Last scan: {0}.</value>
+  </data>
+  <data name="Last sign-in" xml:space="preserve">
+    <value>Last sign-in</value>
   </data>
   <data name="Last status" xml:space="preserve">
     <value>Last status</value>
@@ -6210,6 +6213,9 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="Mail is not moving, the service is running, nothing has crashed and the log seems to stop mid-transaction. The server is not silent about this any more: the answer is usually in one line of the log, and this page says which." xml:space="preserve">
     <value>Mail is not moving, the service is running, nothing has crashed and the log seems to stop mid-transaction. The server is not silent about this any more: the answer is usually in one line of the log, and this page says which.</value>
   </data>
+  <data name="Mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes." xml:space="preserve">
+    <value>Mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes.</value>
+  </data>
   <data name="Mail is stuck or slow" xml:space="preserve">
     <value>Mail is stuck or slow</value>
   </data>
@@ -6410,11 +6416,11 @@ Every Web Push subscription made under the present pair stops working at once, a
   <data name="Maximise" xml:space="preserve">
     <value>Maximise</value>
   </data>
-  <data name="Maximum _domain size (MB, 0 = unlimited)" xml:space="preserve">
-    <value>Maximum _domain size (MB, 0 = unlimited)</value>
+  <data name="Maximum _domain size (MB; 0 = no limit)" xml:space="preserve">
+    <value>Maximum _domain size (MB; 0 = no limit)</value>
   </data>
-  <data name="Maximum _message size (KB, 0 = unlimited)" xml:space="preserve">
-    <value>Maximum _message size (KB, 0 = unlimited)</value>
+  <data name="Maximum _message size (KB; 0 = no limit)" xml:space="preserve">
+    <value>Maximum _message size (KB; 0 = no limit)</value>
   </data>
   <data name="Maximum account size (MB)" xml:space="preserve">
     <value>Maximum account size (MB)</value>
@@ -6443,8 +6449,8 @@ Every Web Push subscription made under the present pair stops working at once, a
   <data name="Maximum size (MB)" xml:space="preserve">
     <value>Maximum size (MB)</value>
   </data>
-  <data name="Maximum size for _accounts created in this domain (MB, 0 = unlimited)" xml:space="preserve">
-    <value>Maximum size for _accounts created in this domain (MB, 0 = unlimited)</value>
+  <data name="Maximum size for _accounts created in this domain (MB; 0 = no limit)" xml:space="preserve">
+    <value>Maximum size for _accounts created in this domain (MB; 0 = no limit)</value>
   </data>
   <data name="Maximum time for one IMAP search (seconds; 0 = no limit)" xml:space="preserve">
     <value>Maximum time for one IMAP search (seconds; 0 = no limit)</value>
@@ -7618,9 +7624,6 @@ Nothing already there is removed.</value>
   <data name="Off. No message is deferred on a first attempt." xml:space="preserve">
     <value>Off. No message is deferred on a first attempt.</value>
   </data>
-  <data name="Off: mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes." xml:space="preserve">
-    <value>Off: mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes.</value>
-  </data>
   <data name="Off: record and judge nothing" xml:space="preserve">
     <value>Off: record and judge nothing</value>
   </data>
@@ -7725,9 +7728,6 @@ Nothing already there is removed.</value>
   </data>
   <data name="On. A sender/recipient/address triplet that has not been seen before is answered 451 &quot;Please try again later.&quot; at RCPT TO, and accepted when it retries. It runs after the connection checks above and adds no score." xml:space="preserve">
     <value>On. A sender/recipient/address triplet that has not been seen before is answered 451 "Please try again later." at RCPT TO, and accepted when it retries. It runs after the connection checks above and adds no score.</value>
-  </data>
-  <data name="On: every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
-    <value>On: every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can.</value>
   </data>
   <data name="OnAcceptMessage → external AV / DLP scanner" xml:space="preserve">
     <value>OnAcceptMessage → external AV / DLP scanner</value>
@@ -8050,9 +8050,6 @@ Nothing already there is removed.</value>
   <data name="Oversigning (RFC 6376 5.4) lists a header field name in the signature's h= tag once more often than the field occurs, which makes ADDING another one - a second From:, an injected Subject: - break the signature. Off by default: oversigning a field that a mailing list or forwarder legitimately adds costs those messages their DKIM pass." xml:space="preserve">
     <value>Oversigning (RFC 6376 5.4) lists a header field name in the signature's h= tag once more often than the field occurs, which makes ADDING another one - a second From:, an injected Subject: - break the signature. Off by default: oversigning a field that a mailing list or forwarder legitimately adds costs those messages their DKIM pass.</value>
   </data>
-  <data name="Overwrite account signature" xml:space="preserve">
-    <value>Overwrite account signature</value>
-  </data>
   <data name="Own value of {0}" xml:space="preserve">
     <value>Own value of {0}</value>
   </data>
@@ -8158,8 +8155,8 @@ Nothing already there is removed.</value>
   <data name="Partly saved" xml:space="preserve">
     <value>Partly saved</value>
   </data>
-  <data name="Pass_word (leave blank to keep the stored one)" xml:space="preserve">
-    <value>Pass_word (leave blank to keep the stored one)</value>
+  <data name="Pass_word (leave empty to keep current)" xml:space="preserve">
+    <value>Pass_word (leave empty to keep current)</value>
   </data>
   <data name="Passed" xml:space="preserve">
     <value>Passed</value>
@@ -9220,6 +9217,9 @@ Every custom range - including any auto-ban entries - will be removed and replac
     <value>Replace ALL configured ports with the defaults?
 
 SMTP 25 and 587, POP3 110, IMAP 143 - without connection security, and with SMTP authentication On on both SMTP ports, so a port 25 that is a honeypot takes AUTH again. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialised.</value>
+  </data>
+  <data name="Replace the account's signature" xml:space="preserve">
+    <value>Replace the account's signature</value>
   </data>
   <data name="Replace the certificate here; the expiry date of each one is listed." xml:space="preserve">
     <value>Replace the certificate here; the expiry date of each one is listed.</value>
@@ -13271,8 +13271,8 @@ It will keep trying as you use the application.</value>
   <data name="Use a custom virus scanner" xml:space="preserve">
     <value>Use a custom virus scanner</value>
   </data>
-  <data name="Use only if account has no signature" xml:space="preserve">
-    <value>Use only if account has no signature</value>
+  <data name="Use only when the account has no signature" xml:space="preserve">
+    <value>Use only when the account has no signature</value>
   </data>
   <data name="Used as the envelope sender of every copy the list sends, so delivery failures - a dead subscriber, a full mailbox - reach the list owner instead of whoever happened to post last." xml:space="preserve">
     <value>Used as the envelope sender of every copy the list sends, so delivery failures - a dead subscriber, a full mailbox - reach the list owner instead of whoever happened to post last.</value>
@@ -13946,6 +13946,9 @@ It will keep trying as you use the application.</value>
   <data name="Yours alone: the note is not in the directory listing, not in the webmail and not in the cards a phone syncs." xml:space="preserve">
     <value>Yours alone: the note is not in the directory listing, not in the webmail and not in the cards a phone syncs.</value>
   </data>
+  <data name="Zero-access mailbox" xml:space="preserve">
+    <value>Zero-access mailbox</value>
+  </data>
   <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
     <value>Zip archives (*.zip)|*.zip</value>
   </data>
@@ -14123,8 +14126,8 @@ It will keep trying as you use the application.</value>
   <data name="_Delete list" xml:space="preserve">
     <value>_Delete list</value>
   </data>
-  <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep forever)" xml:space="preserve">
-    <value>_Delete messages older than (days; 0 = the domain's policy, -1 = keep forever)</value>
+  <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep for ever)" xml:space="preserve">
+    <value>_Delete messages older than (days; 0 = the domain's policy, -1 = keep for ever)</value>
   </data>
   <data name="_Delete port" xml:space="preserve">
     <value>_Delete port</value>
@@ -14270,8 +14273,8 @@ It will keep trying as you use the application.</value>
   <data name="_HTML signature" xml:space="preserve">
     <value>_HTML signature</value>
   </data>
-  <data name="_Header canonicalization" xml:space="preserve">
-    <value>_Header canonicalization</value>
+  <data name="_Header canonicalisation" xml:space="preserve">
+    <value>_Header canonicalisation</value>
   </data>
   <data name="_Header name" xml:space="preserve">
     <value>_Header name</value>
@@ -14519,8 +14522,8 @@ It will keep trying as you use the application.</value>
   <data name="_Query" xml:space="preserve">
     <value>_Query</value>
   </data>
-  <data name="_Quota (MB, 0 = unlimited)" xml:space="preserve">
-    <value>_Quota (MB, 0 = unlimited)</value>
+  <data name="_Quota (MB; 0 = no limit)" xml:space="preserve">
+    <value>_Quota (MB; 0 = no limit)</value>
   </data>
   <data name="_Raise webhook events about this domain's mail and accounts" xml:space="preserve">
     <value>_Raise webhook events about this domain's mail and accounts</value>
@@ -14725,9 +14728,6 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="_Work telephone" xml:space="preserve">
     <value>_Work telephone</value>
-  </data>
-  <data name="_Zero-access mailbox" xml:space="preserve">
-    <value>_Zero-access mailbox</value>
   </data>
   <data name="a digit" xml:space="preserve">
     <value>a digit</value>

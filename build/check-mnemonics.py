@@ -50,6 +50,11 @@ What is checked
   * Exempt: Cancel, OK and Close (Escape and Enter are their keys, by platform
     convention), a message box's Yes and No, the "…" browse buttons, and
     captions that come from data.
+  * A read-only row - DialogFields.ReadOnlyField("...", value), the account
+    dialog's Last sign-in and Zero-access mailbox - labels a value, not an
+    editor, so there is nothing for a key to put the keyboard in: its caption
+    carries no key, in English or in any catalogue (review finding F292, where
+    the two were "Last l_ogon" and "_Zero-access mailbox").
   * One verb, one key: a button, check box or radio button carries the same
     key wherever its caption appears in English - Refresh is Alt+R on every
     page, never Alt+F on the pages where R was taken - so that a key learnt
@@ -396,6 +401,43 @@ def cs_captions(path):
     return out
 
 
+READ_ONLY_ROW = r"\bDialogFields\.ReadOnlyField\(\s*" + LITERAL
+
+
+def read_only_captions(path):
+    """The captions of a code-built view's read-only rows (DialogFields.ReadOnlyField),
+    which label a value and so carry no key."""
+    with open(path, encoding="utf-8") as handle:
+        src = handle.read()
+    return [Caption(path, line_of(src, m.start()), "read-only", unescape_cs(m.group(1)))
+            for m in re.finditer(READ_ONLY_ROW, src)]
+
+
+def read_only_problems(captions):
+    """A read-only row's caption with a key, in English or in a catalogue."""
+    import xml.etree.ElementTree as ET
+    problems = [f"{location(c)}: \"{c.raw}\" captions a read-only row, which has no editor for a key to reach; "
+                "take its mnemonic out" for c in captions if c.key is not None]
+    resources = os.path.join(ROOT, "Resources")
+    if not os.path.isdir(resources):
+        return problems
+    for name in sorted(os.listdir(resources)):
+        m = re.fullmatch(r"Strings\.([A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*)\.resx", name)
+        if not m:
+            continue
+        catalogue = {}
+        for data in ET.parse(os.path.join(resources, name)).getroot().findall("data"):
+            value = data.find("value")
+            if value is not None and value.text:
+                catalogue[data.get("name")] = value.text
+        for c in captions:
+            raw = catalogue.get(c.raw)
+            if raw is not None and parse(raw)[1] is not None:
+                problems.append(f"{location(c)}: [{m.group(1)}] \"{raw}\" captions a read-only row (translation of "
+                                f"\"{c.raw}\"); take its mnemonic out")
+    return problems
+
+
 def placed_captions(own, call, files):
     """A shared helper's captions, copied onto every page whose code makes the call
     that places them: into the scope of the class the call is in, and for a XAML
@@ -690,6 +732,18 @@ def self_test():
         fixed = page("Fixed.cs", open(members, encoding="utf-8").read().replace('L(\"_Remove\")))', 'L(\"Re_move\")))'))
         expect("a confirmation's Re_move beside the page's Re_move", one_key_per_caption(cs_captions(fixed)) + collisions(cs_captions(fixed)), False)
 
+        # a read-only row carries no key, and is not a field that must have one (F292)
+        account = page("Account.cs", "namespace T\n{\n   public class AccountDialog : Window\n   {\n"
+                       "      private ScrollViewer BuildGeneral()\n      {\n"
+                       "         panel.Children.Add(DialogFields.ReadOnlyField(L(\"Last l_ogon\"), lastLogon_));\n"
+                       "         panel.Children.Add(DialogFields.ReadOnlyField(L(\"Zero-access mailbox\"), zeroAccess_));\n"
+                       "         return null;\n      }\n   }\n}\n")
+        rows = read_only_captions(account)
+        expect("the read-only rows are read", [c for c in rows if c.text in ("Last logon", "Zero-access mailbox")] if len(rows) == 2 else [], True)
+        expect("a read-only row's Last l_ogon", [p for p in read_only_problems(rows) if "Last l_ogon" in p], True)
+        expect("a read-only row's Zero-access mailbox", [p for p in read_only_problems(rows) if "Zero-access" in p], False)
+        expect("a read-only row as a field with no key", [c for c in cs_captions(account) if c.key is None], False)
+
     print("self-test: " + ("FAIL" if failures else "OK"))
     return 1 if failures else 0
 
@@ -731,6 +785,9 @@ def main():
     problems += collisions(all_captions + placed)
     problems += one_key_per_caption(all_captions)
     problems += language_problems(all_captions + placed)
+    # read-only rows: no key, in English or in any catalogue
+    read_only = [c for path in files if path.endswith(".cs") for c in read_only_captions(path)]
+    problems += read_only_problems(read_only)
     if listing:
         for c in all_captions + placed:
             print(f"{location(c)}: [{c.scope}] {'Alt+' + c.key if c.key else '   -'}  {c.text}" + (f"  (from {os.path.relpath(c.file, ROOT)})" if c.via else ""))

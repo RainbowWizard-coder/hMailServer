@@ -27,7 +27,7 @@
   <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
     <value>«{0}» ble ikke lagret: {1}</value>
   </data>
-  <data name="'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
+  <data name="'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have signed in." xml:space="preserve">
     <value>«Alle i domenet kan sende» betyr at avsenderadressen ligger på et domene denne serveren er vert for, og det kan en utenforstående utgi seg for med mindre listen også krever autentisering. Kryss av for det nedenfor hvis listen skal være begrenset til folk som har logget inn.</value>
   </data>
   <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
@@ -432,7 +432,7 @@
   <data name="A domain may issue S/MIME certificates to its people from its own authority." xml:space="preserve">
     <value>Et domene kan utstede S/MIME-sertifikater til sine folk fra sin egen utsteder.</value>
   </data>
-  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
+  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never sign in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
     <value>Et domenenavn her krever at SERVERENS egen maskin er meldt inn i det domenet, fordi Windows validerer det med LogonUser. Fra en maskin som ikke er meldt inn, feiler hvert forsøk som om passordet var feil - også når domenenavnet rett og slett er stavet feil - så en postboks som er satt opp slik på en server uten domenemedlemskap kan aldri logge inn og sier aldri hvorfor. Er ikke serveren meldt inn i et domene, bruk LDAP-katalogautentisering på siden Katalogautentisering (LDAP) i stedet: den binder seg til katalogen over nettverket og krever ingen domeneinnmelding.</value>
   </data>
   <data name="A domain named {0} is already on this server, and it is not the sample domain this page makes, so no sample can be made here and this page will not remove it. If you do not want that domain, delete it on the Domains page." xml:space="preserve">
@@ -1531,11 +1531,11 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Answer from the Windows DNS resolver cache when possible" xml:space="preserve">
     <value>Svar fra Windows' DNS-resolverbuffer når det er mulig</value>
   </data>
-  <data name="Answer the same sender a_gain after this many days (0 = once per absence)" xml:space="preserve">
-    <value>Besvar samme avsender igjen e_tter (dager, 0 = én gang per fravær)</value>
+  <data name="Answer the same sender a_gain after (days; 0 = once per absence)" xml:space="preserve">
+    <value>Besvar samme avsender igjen e_tter (dager; 0 = én gang per fravær)</value>
   </data>
-  <data name="Answer the same sender again after (da_ys, 0 = once per absence)" xml:space="preserve">
-    <value>Besvar samme avsender igjen etter (da_ger, 0 = én gang per fravær)</value>
+  <data name="Answer the same sender again after (da_ys; 0 = once per absence)" xml:space="preserve">
+    <value>Besvar samme avsender igjen etter (da_ger; 0 = én gang per fravær)</value>
   </data>
   <data name="Answered, but not with a policy" xml:space="preserve">
     <value>Svarte, men ikke med en policy</value>
@@ -1582,7 +1582,7 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="App passwords" xml:space="preserve">
     <value>App-passord</value>
   </data>
-  <data name="Append to account signature" xml:space="preserve">
+  <data name="Append to the account's signature" xml:space="preserve">
     <value>Legg til etter kontoens signatur</value>
   </data>
   <data name="Application (client) ID" xml:space="preserve">
@@ -1855,7 +1855,7 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="B_ind address" xml:space="preserve">
     <value>B_indingsadresse</value>
   </data>
-  <data name="B_ody canonicalization" xml:space="preserve">
+  <data name="B_ody canonicalisation" xml:space="preserve">
     <value>Kanonisering av _meldingskropp</value>
   </data>
   <data name="Back" xml:space="preserve">
@@ -4594,6 +4594,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>Hver lokale mottakers kopi blir et nytt navn for den samme filen i arkivmappen, så en melding til ti postbokser koster én kopi i stedet for ti. Trenger en NTFS-arkivmappe; hvis koblingen ikke kan opprettes, kopierer serveren filen og sier fra i SMTP-loggen.</value>
   </data>
+  <data name="Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
+    <value>Hver melding som leveres til kontoen krypteres, etter filtrene, med kontoens egen OpenPGP-nøkkel, og denne serveren kan verken lese, søke i, eksportere eller gjenopprette posten. Bare personen kan slå det av, fra webmailen; ingenting her kan.</value>
+  </data>
   <data name="Every message goes through {0} scanner in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
     <value>Hver melding går gjennom {0} skanner, og den blir spurt om hele meldingen og deretter om hvert vedlegg separat. Det er grundig, og det er ikke gratis: skanningen skjer mens avsenderen venter på sin "250 OK".</value>
   </data>
@@ -5733,8 +5736,8 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Keep" xml:space="preserve">
     <value>Behold</value>
   </data>
-  <data name="Keep archived messages for (_days, 0 = for ever)" xml:space="preserve">
-    <value>_Behold arkiverte meldinger i (dager, 0 = for alltid)</value>
+  <data name="Keep archived messages for (_days; 0 = for ever)" xml:space="preserve">
+    <value>_Behold arkiverte meldinger i (dager; 0 = for alltid)</value>
   </data>
   <data name="Keep greylisting active during the record-expiration window" xml:space="preserve">
     <value>Hold gråliste aktiv i vinduet for utløp av oppføringer</value>
@@ -5853,11 +5856,11 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Last delivered" xml:space="preserve">
     <value>Sist levert</value>
   </data>
-  <data name="Last l_ogon" xml:space="preserve">
-    <value>S_iste pålogging</value>
-  </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Siste skanning: {0}.</value>
+  </data>
+  <data name="Last sign-in" xml:space="preserve">
+    <value>Siste pålogging</value>
   </data>
   <data name="Last status" xml:space="preserve">
     <value>Siste status</value>
@@ -6210,6 +6213,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Mail is not moving, the service is running, nothing has crashed and the log seems to stop mid-transaction. The server is not silent about this any more: the answer is usually in one line of the log, and this page says which." xml:space="preserve">
     <value>Post beveger seg ikke, tjenesten kjører, ingenting har krasjet og loggen ser ut til å stoppe midt i en transaksjon. Serveren er ikke lenger taus om dette: svaret er vanligvis i én linje i loggen, og denne siden sier hvilken.</value>
   </data>
+  <data name="Mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes." xml:space="preserve">
+    <value>Post lagres slik den kommer. Personen slår det på fra webmailens sikkerhetsside når serveren tillater postkasser med nulltilgang.</value>
+  </data>
   <data name="Mail is stuck or slow" xml:space="preserve">
     <value>Post sitter fast eller er treg</value>
   </data>
@@ -6410,11 +6416,11 @@ Hvert Web Push-abonnement under det nåværende paret slutter å virke med en ga
   <data name="Maximise" xml:space="preserve">
     <value>Maksimer</value>
   </data>
-  <data name="Maximum _domain size (MB, 0 = unlimited)" xml:space="preserve">
-    <value>Maksimal _domenestørrelse (MB, 0 = ubegrenset)</value>
+  <data name="Maximum _domain size (MB; 0 = no limit)" xml:space="preserve">
+    <value>Maksimal _domenestørrelse (MB; 0 = ingen grense)</value>
   </data>
-  <data name="Maximum _message size (KB, 0 = unlimited)" xml:space="preserve">
-    <value>Maksimal _meldingsstørrelse (KB, 0 = ubegrenset)</value>
+  <data name="Maximum _message size (KB; 0 = no limit)" xml:space="preserve">
+    <value>Maksimal _meldingsstørrelse (KB; 0 = ingen grense)</value>
   </data>
   <data name="Maximum account size (MB)" xml:space="preserve">
     <value>Maksimal kontostørrelse (MB)</value>
@@ -6443,8 +6449,8 @@ Hvert Web Push-abonnement under det nåværende paret slutter å virke med en ga
   <data name="Maximum size (MB)" xml:space="preserve">
     <value>Maksimal størrelse (MB)</value>
   </data>
-  <data name="Maximum size for _accounts created in this domain (MB, 0 = unlimited)" xml:space="preserve">
-    <value>Maksimal størrelse for _kontoer opprettet i dette domenet (MB, 0 = ubegrenset)</value>
+  <data name="Maximum size for _accounts created in this domain (MB; 0 = no limit)" xml:space="preserve">
+    <value>Maksimal størrelse for _kontoer opprettet i dette domenet (MB; 0 = ingen grense)</value>
   </data>
   <data name="Maximum time for one IMAP search (seconds; 0 = no limit)" xml:space="preserve">
     <value>Maks tid for ett IMAP-søk (sekunder; 0 = ingen grense)</value>
@@ -7618,9 +7624,6 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Off. No message is deferred on a first attempt." xml:space="preserve">
     <value>Av. Ingen melding utsettes ved første forsøk.</value>
   </data>
-  <data name="Off: mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes." xml:space="preserve">
-    <value>Av: post lagres slik den kommer. Personen slår det på fra webmailens sikkerhetsside når serveren tillater postkasser med nulltilgang.</value>
-  </data>
   <data name="Off: record and judge nothing" xml:space="preserve">
     <value>Av: registrer og vurder ingenting</value>
   </data>
@@ -7725,9 +7728,6 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="On. A sender/recipient/address triplet that has not been seen before is answered 451 &quot;Please try again later.&quot; at RCPT TO, and accepted when it retries. It runs after the connection checks above and adds no score." xml:space="preserve">
     <value>På. En avsender/mottaker/adresse-trippel som ikke er sett før, besvares med 451 "Please try again later." ved RCPT TO, og godtas når den prøver på nytt. Den kjører etter tilkoblingskontrollene ovenfor og legger ikke til poeng.</value>
-  </data>
-  <data name="On: every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
-    <value>På: hver melding som leveres til kontoen krypteres, etter filtrene, med kontoens egen OpenPGP-nøkkel, og denne serveren kan verken lese, søke i, eksportere eller gjenopprette posten. Bare personen kan slå det av, fra webmailen; ingenting her kan.</value>
   </data>
   <data name="OnAcceptMessage → external AV / DLP scanner" xml:space="preserve">
     <value>OnAcceptMessage → ekstern AV-/DLP-skanner</value>
@@ -8050,9 +8050,6 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Oversigning (RFC 6376 5.4) lists a header field name in the signature's h= tag once more often than the field occurs, which makes ADDING another one - a second From:, an injected Subject: - break the signature. Off by default: oversigning a field that a mailing list or forwarder legitimately adds costs those messages their DKIM pass." xml:space="preserve">
     <value>Oversignering (RFC 6376 5.4) fører opp et headerfeltnavn i signaturens h=-tagg én gang oftere enn feltet forekommer, noe som gjør at det å LEGGE TIL ett til - en andre From:, et injisert Subject: - bryter signaturen. Av som standard: å oversignere et felt som en e-postliste eller en videresender legitimt legger til, koster de meldingene DKIM-godkjenningen.</value>
   </data>
-  <data name="Overwrite account signature" xml:space="preserve">
-    <value>Overstyr kontoens signatur</value>
-  </data>
   <data name="Own value of {0}" xml:space="preserve">
     <value>Egen verdi for {0}</value>
   </data>
@@ -8158,8 +8155,8 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Partly saved" xml:space="preserve">
     <value>Delvis lagret</value>
   </data>
-  <data name="Pass_word (leave blank to keep the stored one)" xml:space="preserve">
-    <value>Pass_ord (la stå tomt for å beholde det lagrede)</value>
+  <data name="Pass_word (leave empty to keep current)" xml:space="preserve">
+    <value>Pass_ord (la stå tomt for å beholde det nåværende)</value>
   </data>
   <data name="Passed" xml:space="preserve">
     <value>Bestått</value>
@@ -9220,6 +9217,9 @@ Hvert egendefinerte område - inkludert eventuelle oppføringer fra automatisk b
     <value>Erstatte ALLE konfigurerte porter med standardene?
 
 SMTP 25 og 587, POP3 110, IMAP 143 - uten tilkoblingssikkerhet og med SMTP-autentisering På på begge SMTP-portene, så en port 25 som er en honningkrukke, tar imot AUTH igjen. TLS-porter og egendefinerte bindinger fjernes. Endringen trer i kraft når serveren reinitialiseres.</value>
+  </data>
+  <data name="Replace the account's signature" xml:space="preserve">
+    <value>Erstatt kontoens signatur</value>
   </data>
   <data name="Replace the certificate here; the expiry date of each one is listed." xml:space="preserve">
     <value>Bytt ut sertifikatet her; utløpsdatoen til hvert av dem er oppført.</value>
@@ -13271,8 +13271,8 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="Use a custom virus scanner" xml:space="preserve">
     <value>Bruk en egendefinert virusskanner</value>
   </data>
-  <data name="Use only if account has no signature" xml:space="preserve">
-    <value>Bruk bare hvis kontoen ikke har signatur</value>
+  <data name="Use only when the account has no signature" xml:space="preserve">
+    <value>Bruk bare når kontoen ikke har signatur</value>
   </data>
   <data name="Used as the envelope sender of every copy the list sends, so delivery failures - a dead subscriber, a full mailbox - reach the list owner instead of whoever happened to post last." xml:space="preserve">
     <value>Brukes som konvoluttavsender for hver kopi listen sender, slik at leveringsfeil - en død abonnent, en full postboks - når listeeieren i stedet for den som tilfeldigvis skrev sist.</value>
@@ -13946,6 +13946,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="Yours alone: the note is not in the directory listing, not in the webmail and not in the cards a phone syncs." xml:space="preserve">
     <value>Bare din: notatet står ikke i kataloglisten, ikke i nettposten og ikke i kortene en telefon synkroniserer.</value>
   </data>
+  <data name="Zero-access mailbox" xml:space="preserve">
+    <value>Postkasse med nulltilgang</value>
+  </data>
   <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
     <value>Zip-arkiver (*.zip)|*.zip</value>
   </data>
@@ -14123,7 +14126,7 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="_Delete list" xml:space="preserve">
     <value>_Slett liste</value>
   </data>
-  <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep forever)" xml:space="preserve">
+  <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep for ever)" xml:space="preserve">
     <value>_Slett meldinger eldre enn (dager; 0 = domenets policy, -1 = behold for alltid)</value>
   </data>
   <data name="_Delete port" xml:space="preserve">
@@ -14270,7 +14273,7 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="_HTML signature" xml:space="preserve">
     <value>_HTML-signatur</value>
   </data>
-  <data name="_Header canonicalization" xml:space="preserve">
+  <data name="_Header canonicalisation" xml:space="preserve">
     <value>Kanonisering av _header</value>
   </data>
   <data name="_Header name" xml:space="preserve">
@@ -14519,8 +14522,8 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="_Query" xml:space="preserve">
     <value>_Spørring</value>
   </data>
-  <data name="_Quota (MB, 0 = unlimited)" xml:space="preserve">
-    <value>_Kvote (MB, 0 = ubegrenset)</value>
+  <data name="_Quota (MB; 0 = no limit)" xml:space="preserve">
+    <value>_Kvote (MB; 0 = ingen grense)</value>
   </data>
   <data name="_Raise webhook events about this domain's mail and accounts" xml:space="preserve">
     <value>_Utløs webhook-hendelser om domenets post og kontoer</value>
@@ -14725,9 +14728,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="_Work telephone" xml:space="preserve">
     <value>A_rbeidstelefon</value>
-  </data>
-  <data name="_Zero-access mailbox" xml:space="preserve">
-    <value>Postkasse med n_ulltilgang</value>
   </data>
   <data name="a digit" xml:space="preserve">
     <value>et siffer</value>

@@ -27,7 +27,7 @@
   <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
     <value>「{0}」は保存されませんでした: {1}</value>
   </data>
-  <data name="'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
+  <data name="'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have signed in." xml:space="preserve">
     <value>「ドメイン内の全員が送信できる」とは、送信者アドレスがこのサーバーでホストしているドメインのものであることを意味します。リストが認証も必須にしていない限り、外部の人間でもこれを詐称できます。ログインした人だけにリストを限定する必要がある場合は、下のチェックボックスをオンにしてください。</value>
   </data>
   <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
@@ -432,7 +432,7 @@
   <data name="A domain may issue S/MIME certificates to its people from its own authority." xml:space="preserve">
     <value>ドメインは、自分の認証局からその利用者に S/MIME 証明書を発行できます。</value>
   </data>
-  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
+  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never sign in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
     <value>ここにドメイン名を指定する場合、サーバー自身のコンピューターがそのドメインに参加している必要があります。Windows が LogonUser で検証するためです。参加していないコンピューターからは、ドメイン名を単に打ち間違えた場合も含め、すべての試行がパスワードが違うときとまったく同じように失敗します。そのため、ドメインに参加していないサーバーでこのように設定したメールボックスは決してログインできず、その理由も示されません。サーバーがドメインに参加していない場合は、代わりに[ディレクトリ認証 (LDAP)] ページの LDAP ディレクトリ認証を使用してください。こちらはネットワーク越しにディレクトリへバインドするため、ドメインへの参加は不要です。</value>
   </data>
   <data name="A domain named {0} is already on this server, and it is not the sample domain this page makes, so no sample can be made here and this page will not remove it. If you do not want that domain, delete it on the Domains page." xml:space="preserve">
@@ -1531,10 +1531,10 @@
   <data name="Answer from the Windows DNS resolver cache when possible" xml:space="preserve">
     <value>可能な場合は Windows の DNS リゾルバー キャッシュから応答する</value>
   </data>
-  <data name="Answer the same sender a_gain after this many days (0 = once per absence)" xml:space="preserve">
+  <data name="Answer the same sender a_gain after (days; 0 = once per absence)" xml:space="preserve">
     <value>同じ送信者に再び返信するまでの日数 (0 = 不在ごとに 1 回)(_F)</value>
   </data>
-  <data name="Answer the same sender again after (da_ys, 0 = once per absence)" xml:space="preserve">
+  <data name="Answer the same sender again after (da_ys; 0 = once per absence)" xml:space="preserve">
     <value>同じ送信者に再び返信するまでの日数 (0 = 不在ごとに 1 回)(_Y)</value>
   </data>
   <data name="Answered, but not with a policy" xml:space="preserve">
@@ -1582,7 +1582,7 @@
   <data name="App passwords" xml:space="preserve">
     <value>アプリ パスワード</value>
   </data>
-  <data name="Append to account signature" xml:space="preserve">
+  <data name="Append to the account's signature" xml:space="preserve">
     <value>アカウントの署名の後に追加する</value>
   </data>
   <data name="Application (client) ID" xml:space="preserve">
@@ -1855,7 +1855,7 @@
   <data name="B_ind address" xml:space="preserve">
     <value>バインド アドレス(_I)</value>
   </data>
-  <data name="B_ody canonicalization" xml:space="preserve">
+  <data name="B_ody canonicalisation" xml:space="preserve">
     <value>本文の正規化(_O)</value>
   </data>
   <data name="Back" xml:space="preserve">
@@ -4594,6 +4594,9 @@
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>ローカルの各受信者のコピーは、アーカイブ フォルダー内の同じファイルの別名になるため、10 個のメールボックス宛てのメッセージのコストは 10 コピーではなく 1 コピーで済みます。NTFS のアーカイブ フォルダーが必要です。リンクを作成できない場合、サーバーはファイルをコピーし、その旨を SMTP ログに記録します。</value>
   </data>
+  <data name="Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
+    <value>このアカウントに配信されるすべてのメッセージは、フィルターの後にアカウント自身の OpenPGP 鍵で暗号化され、このサーバーはそのメールを読むことも、検索も、エクスポートも、復旧もできません。オフにできるのは本人だけで、ウェブメールから行います。ここからはできません。</value>
+  </data>
   <data name="Every message goes through {0} scanner in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
     <value>すべてのメッセージは {0} 件のスキャナーを順に通過し、それぞれにメッセージ全体について、次に各添付ファイルについて個別に問い合わせます。徹底的ですが無料ではありません。スキャンは送信者が "250 OK" を待っている間に行われます。</value>
   </data>
@@ -5733,7 +5736,7 @@
   <data name="Keep" xml:space="preserve">
     <value>維持</value>
   </data>
-  <data name="Keep archived messages for (_days, 0 = for ever)" xml:space="preserve">
+  <data name="Keep archived messages for (_days; 0 = for ever)" xml:space="preserve">
     <value>アーカイブしたメッセージの保持期間 (日数、0 = 無期限)(_D)</value>
   </data>
   <data name="Keep greylisting active during the record-expiration window" xml:space="preserve">
@@ -5853,11 +5856,11 @@
   <data name="Last delivered" xml:space="preserve">
     <value>最後の配信</value>
   </data>
-  <data name="Last l_ogon" xml:space="preserve">
-    <value>最終ログオン(_O)</value>
-  </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>前回のスキャン: {0}。</value>
+  </data>
+  <data name="Last sign-in" xml:space="preserve">
+    <value>最終サインイン</value>
   </data>
   <data name="Last status" xml:space="preserve">
     <value>最後のステータス</value>
@@ -6210,6 +6213,9 @@
   <data name="Mail is not moving, the service is running, nothing has crashed and the log seems to stop mid-transaction. The server is not silent about this any more: the answer is usually in one line of the log, and this page says which." xml:space="preserve">
     <value>メールが動かず、サービスは実行中で、何もクラッシュしておらず、ログはトランザクションの途中で止まっているように見えます。サーバーはもうこれについて沈黙しません。答えはたいていログの 1 行にあり、このページはどの行かを示します。</value>
   </data>
+  <data name="Mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes." xml:space="preserve">
+    <value>メールは届いたまま保存されます。サーバーがゼロアクセスのメールボックスを許可すると、本人がウェブメールのセキュリティページからオンにします。</value>
+  </data>
   <data name="Mail is stuck or slow" xml:space="preserve">
     <value>メールが詰まっている、または遅い</value>
   </data>
@@ -6410,10 +6416,10 @@
   <data name="Maximise" xml:space="preserve">
     <value>最大化</value>
   </data>
-  <data name="Maximum _domain size (MB, 0 = unlimited)" xml:space="preserve">
+  <data name="Maximum _domain size (MB; 0 = no limit)" xml:space="preserve">
     <value>ドメインの最大サイズ (MB、0 = 無制限)(_D)</value>
   </data>
-  <data name="Maximum _message size (KB, 0 = unlimited)" xml:space="preserve">
+  <data name="Maximum _message size (KB; 0 = no limit)" xml:space="preserve">
     <value>メッセージの最大サイズ (KB、0 = 無制限)(_M)</value>
   </data>
   <data name="Maximum account size (MB)" xml:space="preserve">
@@ -6443,7 +6449,7 @@
   <data name="Maximum size (MB)" xml:space="preserve">
     <value>最大サイズ (MB)</value>
   </data>
-  <data name="Maximum size for _accounts created in this domain (MB, 0 = unlimited)" xml:space="preserve">
+  <data name="Maximum size for _accounts created in this domain (MB; 0 = no limit)" xml:space="preserve">
     <value>このドメインで作成するアカウントの最大サイズ (MB、0 = 無制限)(_A)</value>
   </data>
   <data name="Maximum time for one IMAP search (seconds; 0 = no limit)" xml:space="preserve">
@@ -7618,9 +7624,6 @@
   <data name="Off. No message is deferred on a first attempt." xml:space="preserve">
     <value>オフ。初回の試行で延期されるメッセージはありません。</value>
   </data>
-  <data name="Off: mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes." xml:space="preserve">
-    <value>オフ: メールは届いたまま保存されます。サーバーがゼロアクセスのメールボックスを許可すると、本人がウェブメールのセキュリティページからオンにします。</value>
-  </data>
   <data name="Off: record and judge nothing" xml:space="preserve">
     <value>オフ: 何も記録も採点もしない</value>
   </data>
@@ -7725,9 +7728,6 @@
   </data>
   <data name="On. A sender/recipient/address triplet that has not been seen before is answered 451 &quot;Please try again later.&quot; at RCPT TO, and accepted when it retries. It runs after the connection checks above and adds no score." xml:space="preserve">
     <value>オン。初めて見る送信者/受信者/アドレスのトリプレットには RCPT TO で 451 "Please try again later." が返され、再試行時に受け入れられます。上の接続チェックの後に実行され、スコアは加えません。</value>
-  </data>
-  <data name="On: every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
-    <value>オン: このアカウントに配信されるすべてのメッセージは、フィルターの後にアカウント自身の OpenPGP 鍵で暗号化され、このサーバーはそのメールを読むことも、検索も、エクスポートも、復旧もできません。オフにできるのは本人だけで、ウェブメールから行います。ここからはできません。</value>
   </data>
   <data name="OnAcceptMessage → external AV / DLP scanner" xml:space="preserve">
     <value>OnAcceptMessage → 外部 AV / DLP スキャナー</value>
@@ -8050,9 +8050,6 @@
   <data name="Oversigning (RFC 6376 5.4) lists a header field name in the signature's h= tag once more often than the field occurs, which makes ADDING another one - a second From:, an injected Subject: - break the signature. Off by default: oversigning a field that a mailing list or forwarder legitimately adds costs those messages their DKIM pass." xml:space="preserve">
     <value>オーバーサイニング (RFC 6376 5.4) は、署名の h= タグにヘッダー フィールド名を、そのフィールドが実際に現れる回数より 1 回多く列挙します。これにより、もう 1 つ追加すること (2 つ目の From:、挿入された Subject:) が署名を壊すようになります。既定では無効です。メーリング リストや転送サーバーが正当に追加するフィールドをオーバーサイニングすると、それらのメッセージは DKIM の検証に失敗します。</value>
   </data>
-  <data name="Overwrite account signature" xml:space="preserve">
-    <value>アカウントの署名を上書きする</value>
-  </data>
   <data name="Own value of {0}" xml:space="preserve">
     <value>{0} の独自の値</value>
   </data>
@@ -8158,8 +8155,8 @@
   <data name="Partly saved" xml:space="preserve">
     <value>一部のみ保存しました</value>
   </data>
-  <data name="Pass_word (leave blank to keep the stored one)" xml:space="preserve">
-    <value>パスワード (空欄のままにすると保存済みのものを維持)(_W)</value>
+  <data name="Pass_word (leave empty to keep current)" xml:space="preserve">
+    <value>パスワード (空のままにすると現在のものを維持)(_W)</value>
   </data>
   <data name="Passed" xml:space="preserve">
     <value>合格</value>
@@ -9220,6 +9217,9 @@
     <value>設定済みのすべてのポートを既定値に置き換えますか?
 
 SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく、両方の SMTP ポートの SMTP 認証は [オン] です。そのため、ハニーポットになっているポート 25 は再び AUTH を受け付けます。TLS ポートとカスタムのバインドは削除されます。この変更はサーバーを再初期化したときに有効になります。</value>
+  </data>
+  <data name="Replace the account's signature" xml:space="preserve">
+    <value>アカウントの署名を置き換える</value>
   </data>
   <data name="Replace the certificate here; the expiry date of each one is listed." xml:space="preserve">
     <value>証明書はここで置き換えます。それぞれの有効期限が一覧に表示されます。</value>
@@ -13271,7 +13271,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Use a custom virus scanner" xml:space="preserve">
     <value>カスタム ウイルス スキャナーを使う</value>
   </data>
-  <data name="Use only if account has no signature" xml:space="preserve">
+  <data name="Use only when the account has no signature" xml:space="preserve">
     <value>アカウントに署名がない場合のみ使う</value>
   </data>
   <data name="Used as the envelope sender of every copy the list sends, so delivery failures - a dead subscriber, a full mailbox - reach the list owner instead of whoever happened to post last." xml:space="preserve">
@@ -13946,6 +13946,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Yours alone: the note is not in the directory listing, not in the webmail and not in the cards a phone syncs." xml:space="preserve">
     <value>あなただけのものです。メモはディレクトリの一覧にも、ウェブメールにも、携帯電話が同期するカードにも載りません。</value>
   </data>
+  <data name="Zero-access mailbox" xml:space="preserve">
+    <value>ゼロアクセスのメールボックス</value>
+  </data>
   <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
     <value>Zip アーカイブ (*.zip)|*.zip</value>
   </data>
@@ -14123,7 +14126,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Delete list" xml:space="preserve">
     <value>リストを削除(_D)</value>
   </data>
-  <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep forever)" xml:space="preserve">
+  <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep for ever)" xml:space="preserve">
     <value>次の日数より古いメッセージを削除する (日、0 = ドメインのポリシー、-1 = 無期限に保持)(_D)</value>
   </data>
   <data name="_Delete port" xml:space="preserve">
@@ -14270,7 +14273,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_HTML signature" xml:space="preserve">
     <value>HTML 署名(_H)</value>
   </data>
-  <data name="_Header canonicalization" xml:space="preserve">
+  <data name="_Header canonicalisation" xml:space="preserve">
     <value>ヘッダーの正規化(_H)</value>
   </data>
   <data name="_Header name" xml:space="preserve">
@@ -14519,7 +14522,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Query" xml:space="preserve">
     <value>照会(_Q)</value>
   </data>
-  <data name="_Quota (MB, 0 = unlimited)" xml:space="preserve">
+  <data name="_Quota (MB; 0 = no limit)" xml:space="preserve">
     <value>クォータ (MB、0 = 無制限)(_Q)</value>
   </data>
   <data name="_Raise webhook events about this domain's mail and accounts" xml:space="preserve">
@@ -14725,9 +14728,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Work telephone" xml:space="preserve">
     <value>勤務先電話番号 (_C)</value>
-  </data>
-  <data name="_Zero-access mailbox" xml:space="preserve">
-    <value>ゼロアクセスのメールボックス(_Z)</value>
   </data>
   <data name="a digit" xml:space="preserve">
     <value>数字</value>

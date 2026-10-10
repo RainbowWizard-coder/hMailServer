@@ -56,6 +56,7 @@ namespace hMailServer.ControlPanel.Views
       private readonly Wpf.Ui.Controls.TextBox generatedShow_ = new();
       private readonly TextBlock pwStrength_ = new() { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, DesignTokens.Space.Md) };
       private readonly TextBlock lastLogon_ = new();
+      private FieldRow zeroAccessRow_;
       // Read-only by design (docs/ZeroAccess.md): the person's own switch,
       // thrown from the webmail once the server allows it; an administrator
       // sees the state and cannot change it.
@@ -261,10 +262,10 @@ namespace hMailServer.ControlPanel.Views
 
          panel.Children.Add(Label(L("Ad_ministration level"), adminLevel_));
 
-         quotaRow_ = Label(L("_Quota (MB, 0 = unlimited)"), quota_);
+         quotaRow_ = Label(L("_Quota (MB; 0 = no limit)"), quota_);
          panel.Children.Add(quotaRow_);
 
-         retentionRow_ = Label(L("_Delete messages older than (days; 0 = the domain's policy, -1 = keep forever)"), retentionDays_);
+         retentionRow_ = Label(L("_Delete messages older than (days; 0 = the domain's policy, -1 = keep for ever)"), retentionDays_);
          panel.Children.Add(retentionRow_);
 
          restrictedDelivery_.Items.Add(DialogFields.Combo(L("Follows the domain"), 0));
@@ -309,11 +310,13 @@ namespace hMailServer.ControlPanel.Views
          UpdatePasswordStrength();
          panel.Children.Add(Label(L("New _password (leave empty to keep current)"), passwordBlock));
 
+         // Read, not edited: no Alt key (review finding F292).
          lastLogon_.SetResourceReference(FrameworkElement.StyleProperty, "TextBody");
-         panel.Children.Add(Label(L("Last l_ogon"), lastLogon_));
+         panel.Children.Add(DialogFields.ReadOnlyField(L("Last sign-in"), lastLogon_));
 
          zeroAccess_.SetResourceReference(FrameworkElement.StyleProperty, "TextBody");
-         panel.Children.Add(Label(L("_Zero-access mailbox"), zeroAccess_));
+         zeroAccessRow_ = DialogFields.ReadOnlyField(L("Zero-access mailbox"), zeroAccess_);
+         panel.Children.Add(zeroAccessRow_);
          return DialogFields.Scroll(panel);
       }
 
@@ -356,7 +359,7 @@ namespace hMailServer.ControlPanel.Views
          panel.Children.Add(DialogFields.Check(vacationAbortSpam_));
          panel.Children.Add(DialogFields.Separator());
 
-         FieldRow daysRow = Label(L("Answer the same sender again after (da_ys, 0 = once per absence)"), vacationDays_);
+         FieldRow daysRow = Label(L("Answer the same sender again after (da_ys; 0 = once per absence)"), vacationDays_);
          panel.Children.Add(daysRow);
          panel.Children.Add(DialogFields.Note(L("Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above.")));
          FieldRow internalSubjectRow = Label(L("Subject for _colleagues (empty = same as above)"), vacationInternalSubject_);
@@ -478,7 +481,7 @@ namespace hMailServer.ControlPanel.Views
          // (review finding F197).
          DialogFields.EnabledBy(isAd_, domainRow, userRow, browse);
 
-         panel.Children.Add(DialogFields.Note(L("A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join.")));
+         panel.Children.Add(DialogFields.Note(L("A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never sign in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join.")));
 
          adDomain_.TextChanged += (s, e) => RefreshDirectoryEffect_();
          isAd_.Checked += (s, e) => RefreshDirectoryEffect_();
@@ -1027,15 +1030,18 @@ namespace hMailServer.ControlPanel.Views
             spamDelete_.Text = ((int)a.SpamDeleteThreshold).ToString();
             firstName_.Text = (string)a.PersonFirstName ?? "";
             lastName_.Text = (string)a.PersonLastName ?? "";
-            try { lastLogon_.Text = Convert.ToString(a.LastLogonTime); } catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { lastLogon_.Text = L("Never"); }
-            if (string.IsNullOrWhiteSpace(lastLogon_.Text)) lastLogon_.Text = L("Never");
+            object lastSignIn = null;
+            try { lastSignIn = a.LastLogonTime; } catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { }
+            lastLogon_.Text = LastSignInText.Format(lastSignIn);
 
             // Account.ZeroAccess arrived with schema 6083; tolerate a server without it.
             try
             {
-               zeroAccess_.Text = (bool)a.ZeroAccess
-                  ? L("On: every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can.")
-                  : L("Off: mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes.");
+               bool zeroAccess = (bool)a.ZeroAccess;
+               zeroAccess_.Text = zeroAccess ? L("On") : L("Off");
+               zeroAccessRow_.Hint = zeroAccess
+                  ? L("Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can.")
+                  : L("Mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes.");
             }
             catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { zeroAccess_.Text = L("Off"); }
 

@@ -40,6 +40,12 @@
     <Compile Include="..\ControlPanel\Services\ServerUptimeText.cs" />
   </ItemGroup>
 
+  <!-- The account dialog's last sign-in, in the reader's format as the server's time,
+       and Never for the date the server keeps for none (review finding F292). -->
+  <ItemGroup>
+    <Compile Include="..\ControlPanel\Services\LastSignInText.cs" />
+  </ItemGroup>
+
   <!-- Chart accessibility: the palette, the catalogue, the table view and the
        status vocabulary. These are compiled straight into the test assembly rather
        than routed through ControlPanel.Core, because the app compiles them too (they

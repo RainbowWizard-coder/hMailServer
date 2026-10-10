@@ -27,7 +27,7 @@
   <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
     <value>«{0}» не збережено: {1}</value>
   </data>
-  <data name="'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
+  <data name="'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have signed in." xml:space="preserve">
     <value>«Надсилати може будь-хто в домені» означає, що адреса відправника належить до домену, який обслуговує цей сервер, а це може заявити про себе й стороння особа, якщо список додатково не вимагає автентифікації. Установіть відповідний прапорець нижче, якщо список має бути обмежений тими, хто ввійшов у систему.</value>
   </data>
   <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
@@ -435,7 +435,7 @@
   <data name="A domain may issue S/MIME certificates to its people from its own authority." xml:space="preserve">
     <value>Домен може видавати своїм людям сертифікати S/MIME від власного центру сертифікації.</value>
   </data>
-  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
+  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never sign in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
     <value>Ім’я домену тут вимагає, щоб сам комп’ютер СЕРВЕРА було приєднано до цього домену, бо Windows перевіряє його через LogonUser. З комп’ютера, не приєднаного до домену, кожна спроба завершується так, ніби пароль неправильний, — зокрема й тоді, коли ім’я домену просто написано з помилкою, — тож поштова скринька, налаштована таким чином на неприєднаному сервері, ніколи не зможе увійти й ніколи не скаже чому. Якщо сервер не приєднано до домену, скористайтеся натомість автентифікацією через каталог LDAP на сторінці «Автентифікація через каталог (LDAP)»: вона виконує прив’язку до каталогу мережею й не потребує приєднання до домену.</value>
   </data>
   <data name="A domain named {0} is already on this server, and it is not the sample domain this page makes, so no sample can be made here and this page will not remove it. If you do not want that domain, delete it on the Domains page." xml:space="preserve">
@@ -1543,11 +1543,11 @@
   <data name="Answer from the Windows DNS resolver cache when possible" xml:space="preserve">
     <value>Відповідати з кешу DNS-розв’язувача Windows, коли це можливо</value>
   </data>
-  <data name="Answer the same sender a_gain after this many days (0 = once per absence)" xml:space="preserve">
-    <value>Відповідати тому самому відправнику знову через (д_нів, 0 = один раз за відсутність)</value>
+  <data name="Answer the same sender a_gain after (days; 0 = once per absence)" xml:space="preserve">
+    <value>Відповідати тому самому відправнику знову через (д_нів; 0 = один раз за відсутність)</value>
   </data>
-  <data name="Answer the same sender again after (da_ys, 0 = once per absence)" xml:space="preserve">
-    <value>Відповідати тому самому відправнику знову через (дн_ів, 0 = один раз за відсутність)</value>
+  <data name="Answer the same sender again after (da_ys; 0 = once per absence)" xml:space="preserve">
+    <value>Відповідати тому самому відправнику знову через (дн_ів; 0 = один раз за відсутність)</value>
   </data>
   <data name="Answered, but not with a policy" xml:space="preserve">
     <value>Відповідь отримано, але це не політика</value>
@@ -1594,7 +1594,7 @@
   <data name="App passwords" xml:space="preserve">
     <value>Паролі програм</value>
   </data>
-  <data name="Append to account signature" xml:space="preserve">
+  <data name="Append to the account's signature" xml:space="preserve">
     <value>Додавати в кінець підпису облікового запису</value>
   </data>
   <data name="Application (client) ID" xml:space="preserve">
@@ -1876,7 +1876,7 @@
   <data name="B_ind address" xml:space="preserve">
     <value>_Адреса прив’язки</value>
   </data>
-  <data name="B_ody canonicalization" xml:space="preserve">
+  <data name="B_ody canonicalisation" xml:space="preserve">
     <value>Ка_нонізація тіла</value>
   </data>
   <data name="Back" xml:space="preserve">
@@ -4643,6 +4643,9 @@
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>Копія кожного локального отримувача стає ще одним іменем того самого файлу в папці архіву, тому повідомлення десятьом скринькам коштує однієї копії замість десяти. Потрібна папка архіву на NTFS; якщо посилання створити не вдається, сервер копіює файл і повідомляє про це в журналі SMTP.</value>
   </data>
+  <data name="Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
+    <value>Кожен лист, доставлений на цей обліковий запис, після фільтрів шифрується його власним ключем OpenPGP, і цей сервер не може читати, шукати, експортувати чи відновлювати цю пошту. Вимкнути це може лише сама людина з вебпошти; тут це неможливо.</value>
+  </data>
   <data name="Every message goes through {0} scanner in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
     <value>Кожне повідомлення проходить по черзі через кожен із {0} сканера, і кожного запитують про повідомлення цілком, а потім про кожне вкладення окремо. Це ретельно, і це не безкоштовно: сканування відбувається, поки відправник чекає на своє «250 OK».</value>
   </data>
@@ -5797,8 +5800,8 @@
   <data name="Keep" xml:space="preserve">
     <value>Залишити</value>
   </data>
-  <data name="Keep archived messages for (_days, 0 = for ever)" xml:space="preserve">
-    <value>Зберігати архівовані повідомлення (днів, 0 = _назавжди)</value>
+  <data name="Keep archived messages for (_days; 0 = for ever)" xml:space="preserve">
+    <value>Зберігати архівовані повідомлення (днів; 0 = _назавжди)</value>
   </data>
   <data name="Keep greylisting active during the record-expiration window" xml:space="preserve">
     <value>Не вимикати сірий список протягом вікна закінчення терміну дії записів</value>
@@ -5917,11 +5920,11 @@
   <data name="Last delivered" xml:space="preserve">
     <value>Остання доставка</value>
   </data>
-  <data name="Last l_ogon" xml:space="preserve">
-    <value>О_станній вхід</value>
-  </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Останнє сканування: {0}.</value>
+  </data>
+  <data name="Last sign-in" xml:space="preserve">
+    <value>Останній вхід</value>
   </data>
   <data name="Last status" xml:space="preserve">
     <value>Останній статус</value>
@@ -6277,6 +6280,9 @@
   <data name="Mail is not moving, the service is running, nothing has crashed and the log seems to stop mid-transaction. The server is not silent about this any more: the answer is usually in one line of the log, and this page says which." xml:space="preserve">
     <value>Пошта не рухається, служба працює, ніщо не впало, а журнал ніби обривається посеред транзакції. Сервер більше не мовчить про це: відповідь зазвичай в одному рядку журналу, і ця сторінка каже, в якому саме.</value>
   </data>
+  <data name="Mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes." xml:space="preserve">
+    <value>Пошта зберігається як є. Людина вмикає це на сторінці Безпека вебпошти, коли сервер дозволяє скриньки з нульовим доступом.</value>
+  </data>
   <data name="Mail is stuck or slow" xml:space="preserve">
     <value>Пошта застрягла або йде повільно</value>
   </data>
@@ -6480,11 +6486,11 @@
   <data name="Maximise" xml:space="preserve">
     <value>Розгорнути</value>
   </data>
-  <data name="Maximum _domain size (MB, 0 = unlimited)" xml:space="preserve">
-    <value>_Максимальний розмір домену (МБ, 0 = без обмеження)</value>
+  <data name="Maximum _domain size (MB; 0 = no limit)" xml:space="preserve">
+    <value>_Максимальний розмір домену (МБ; 0 = без обмеження)</value>
   </data>
-  <data name="Maximum _message size (KB, 0 = unlimited)" xml:space="preserve">
-    <value>Максимальний _розмір повідомлення (КБ, 0 = без обмеження)</value>
+  <data name="Maximum _message size (KB; 0 = no limit)" xml:space="preserve">
+    <value>Максимальний _розмір повідомлення (КБ; 0 = без обмеження)</value>
   </data>
   <data name="Maximum account size (MB)" xml:space="preserve">
     <value>Максимальний розмір облікового запису (МБ)</value>
@@ -6513,8 +6519,8 @@
   <data name="Maximum size (MB)" xml:space="preserve">
     <value>Максимальний розмір (МБ)</value>
   </data>
-  <data name="Maximum size for _accounts created in this domain (MB, 0 = unlimited)" xml:space="preserve">
-    <value>Максимальний розмір облікових записів, створених у _цьому домені (МБ, 0 = без обмеження)</value>
+  <data name="Maximum size for _accounts created in this domain (MB; 0 = no limit)" xml:space="preserve">
+    <value>Максимальний розмір облікових записів, створених у _цьому домені (МБ; 0 = без обмеження)</value>
   </data>
   <data name="Maximum time for one IMAP search (seconds; 0 = no limit)" xml:space="preserve">
     <value>Максимальний час одного пошуку IMAP (секунд; 0 = без обмеження)</value>
@@ -7706,9 +7712,6 @@
   <data name="Off. No message is deferred on a first attempt." xml:space="preserve">
     <value>Вимкнено. Жодне повідомлення не відкладається за першої спроби.</value>
   </data>
-  <data name="Off: mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes." xml:space="preserve">
-    <value>Вимкнено: пошта зберігається як є. Людина вмикає це на сторінці Безпека вебпошти, коли сервер дозволяє скриньки з нульовим доступом.</value>
-  </data>
   <data name="Off: record and judge nothing" xml:space="preserve">
     <value>Вимкнено: нічого не записувати й не оцінювати</value>
   </data>
@@ -7813,9 +7816,6 @@
   </data>
   <data name="On. A sender/recipient/address triplet that has not been seen before is answered 451 &quot;Please try again later.&quot; at RCPT TO, and accepted when it retries. It runs after the connection checks above and adds no score." xml:space="preserve">
     <value>Увімкнено. Трійці відправник/отримувач/адреса, якої раніше не бачили, на RCPT TO відповідають 451 «Please try again later.», а за повторної спроби приймають. Виконується після перевірок підключення вище й не додає оцінки.</value>
-  </data>
-  <data name="On: every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
-    <value>Увімкнено: кожен лист, доставлений на цей обліковий запис, після фільтрів шифрується його власним ключем OpenPGP, і цей сервер не може читати, шукати, експортувати чи відновлювати цю пошту. Вимкнути це може лише сама людина з вебпошти; тут це неможливо.</value>
   </data>
   <data name="OnAcceptMessage → external AV / DLP scanner" xml:space="preserve">
     <value>OnAcceptMessage → зовнішній сканер антивірусу / DLP</value>
@@ -8138,9 +8138,6 @@
   <data name="Oversigning (RFC 6376 5.4) lists a header field name in the signature's h= tag once more often than the field occurs, which makes ADDING another one - a second From:, an injected Subject: - break the signature. Off by default: oversigning a field that a mailing list or forwarder legitimately adds costs those messages their DKIM pass." xml:space="preserve">
     <value>Надлишкове підписування (RFC 6376 5.4) перелічує ім’я поля заголовка в теґу h= підпису на один раз частіше, ніж поле трапляється, через що ДОДАВАННЯ ще одного — другого From:, підставленого Subject: — ламає підпис. Типово вимкнено: надлишкове підписування поля, яке список розсилки або пересилач додає законно, коштує тим повідомленням проходження DKIM.</value>
   </data>
-  <data name="Overwrite account signature" xml:space="preserve">
-    <value>Перезаписати підпис облікового запису</value>
-  </data>
   <data name="Own value of {0}" xml:space="preserve">
     <value>Власне значення {0}</value>
   </data>
@@ -8246,8 +8243,8 @@
   <data name="Partly saved" xml:space="preserve">
     <value>Збережено частково</value>
   </data>
-  <data name="Pass_word (leave blank to keep the stored one)" xml:space="preserve">
-    <value>Па_роль (залиште порожнім, щоб зберегти збережений)</value>
+  <data name="Pass_word (leave empty to keep current)" xml:space="preserve">
+    <value>Па_роль (залиште порожнім, щоб зберегти поточний)</value>
   </data>
   <data name="Passed" xml:space="preserve">
     <value>Пройдено</value>
@@ -9320,6 +9317,9 @@
     <value>Замінити ВСІ налаштовані порти типовими?
 
 SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключення та з автентифікацією SMTP «Увімкнено» на обох SMTP-портах, тож порт 25, який був пасткою, знову приймає AUTH. Порти TLS і власні прив’язки буде вилучено. Зміна набуває чинності після повторної ініціалізації сервера.</value>
+  </data>
+  <data name="Replace the account's signature" xml:space="preserve">
+    <value>Замінювати підпис облікового запису</value>
   </data>
   <data name="Replace the certificate here; the expiry date of each one is listed." xml:space="preserve">
     <value>Замініть сертифікат тут; для кожного зазначено дату закінчення терміну дії.</value>
@@ -13437,8 +13437,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Use a custom virus scanner" xml:space="preserve">
     <value>Використовувати власний антивірусний сканер</value>
   </data>
-  <data name="Use only if account has no signature" xml:space="preserve">
-    <value>Використовувати лише якщо обліковий запис не має підпису</value>
+  <data name="Use only when the account has no signature" xml:space="preserve">
+    <value>Використовувати лише тоді, коли обліковий запис не має підпису</value>
   </data>
   <data name="Used as the envelope sender of every copy the list sends, so delivery failures - a dead subscriber, a full mailbox - reach the list owner instead of whoever happened to post last." xml:space="preserve">
     <value>Використовується як відправник конверта кожної копії, яку надсилає список, щоб збої доставки - мертвий підписник, повна скринька - доходили до власника списку, а не до того, хто випадково написав останнім.</value>
@@ -14118,6 +14118,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Yours alone: the note is not in the directory listing, not in the webmail and not in the cards a phone syncs." xml:space="preserve">
     <value>Лише ваша: примітки немає ні в списку каталогу, ні у вебпошті, ні в картках, які синхронізує телефон.</value>
   </data>
+  <data name="Zero-access mailbox" xml:space="preserve">
+    <value>Скринька з нульовим доступом</value>
+  </data>
   <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
     <value>Zip-архіви (*.zip)|*.zip</value>
   </data>
@@ -14295,7 +14298,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_Delete list" xml:space="preserve">
     <value>_Видалити список</value>
   </data>
-  <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep forever)" xml:space="preserve">
+  <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep for ever)" xml:space="preserve">
     <value>_Видаляти повідомлення, старші за (днів; 0 = політика домену, -1 = зберігати завжди)</value>
   </data>
   <data name="_Delete port" xml:space="preserve">
@@ -14442,7 +14445,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_HTML signature" xml:space="preserve">
     <value>Підпис _HTML</value>
   </data>
-  <data name="_Header canonicalization" xml:space="preserve">
+  <data name="_Header canonicalisation" xml:space="preserve">
     <value>К_анонізація заголовків</value>
   </data>
   <data name="_Header name" xml:space="preserve">
@@ -14691,8 +14694,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_Query" xml:space="preserve">
     <value>_Запит</value>
   </data>
-  <data name="_Quota (MB, 0 = unlimited)" xml:space="preserve">
-    <value>_Квота (МБ, 0 = без обмеження)</value>
+  <data name="_Quota (MB; 0 = no limit)" xml:space="preserve">
+    <value>_Квота (МБ; 0 = без обмеження)</value>
   </data>
   <data name="_Raise webhook events about this domain's mail and accounts" xml:space="preserve">
     <value>_Генерувати події вебхуків про пошту й облікові записи цього домену</value>
@@ -14897,9 +14900,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Work telephone" xml:space="preserve">
     <value>Робочий телефон (_C)</value>
-  </data>
-  <data name="_Zero-access mailbox" xml:space="preserve">
-    <value>Скринька з нульовим _доступом</value>
   </data>
   <data name="a digit" xml:space="preserve">
     <value>цифра</value>

@@ -27,7 +27,7 @@
   <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
     <value>«{0}» не сохранено: {1}</value>
   </data>
-  <data name="'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
+  <data name="'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have signed in." xml:space="preserve">
     <value>«Отправлять может любой в домене» означает, что адрес отправителя принадлежит домену, размещённому на этом сервере, а такой адрес может назвать и посторонний, если список дополнительно не требует аутентификации. Установите соответствующий флажок ниже, если список должен быть доступен только тем, кто вошёл в систему.</value>
   </data>
   <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
@@ -435,7 +435,7 @@
   <data name="A domain may issue S/MIME certificates to its people from its own authority." xml:space="preserve">
     <value>Домен может выдавать своим людям сертификаты S/MIME от собственного центра сертификации.</value>
   </data>
-  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
+  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never sign in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
     <value>Имя домена здесь требует, чтобы сам компьютер СЕРВЕРА был присоединён к этому домену, поскольку Windows проверяет его через LogonUser. С компьютера, не присоединённого к домену, любая попытка завершается так, будто пароль неверен, — в том числе когда имя домена просто написано с ошибкой, — поэтому настроенный таким образом почтовый ящик на неприсоединённом сервере никогда не сможет войти и никогда не скажет почему. Если сервер не присоединён к домену, используйте вместо этого аутентификацию через каталог LDAP на странице «Аутентификация через каталог (LDAP)»: она выполняет привязку к каталогу по сети и присоединения к домену не требует.</value>
   </data>
   <data name="A domain named {0} is already on this server, and it is not the sample domain this page makes, so no sample can be made here and this page will not remove it. If you do not want that domain, delete it on the Domains page." xml:space="preserve">
@@ -1543,11 +1543,11 @@ Control Panel может читать файлы сообщений только
   <data name="Answer from the Windows DNS resolver cache when possible" xml:space="preserve">
     <value>Отвечать из кэша DNS-резолвера Windows, когда это возможно</value>
   </data>
-  <data name="Answer the same sender a_gain after this many days (0 = once per absence)" xml:space="preserve">
-    <value>Отвечать тому же отправителю снова через (д_ней, 0 = один раз за отсутствие)</value>
+  <data name="Answer the same sender a_gain after (days; 0 = once per absence)" xml:space="preserve">
+    <value>Отвечать тому же отправителю снова через (д_ней; 0 = один раз за отсутствие)</value>
   </data>
-  <data name="Answer the same sender again after (da_ys, 0 = once per absence)" xml:space="preserve">
-    <value>Отвечать тому _же отправителю снова через (дней, 0 = один раз за отсутствие)</value>
+  <data name="Answer the same sender again after (da_ys; 0 = once per absence)" xml:space="preserve">
+    <value>Отвечать тому _же отправителю снова через (дней; 0 = один раз за отсутствие)</value>
   </data>
   <data name="Answered, but not with a policy" xml:space="preserve">
     <value>Ответ получен, но это не политика</value>
@@ -1594,7 +1594,7 @@ Control Panel может читать файлы сообщений только
   <data name="App passwords" xml:space="preserve">
     <value>Пароли приложений</value>
   </data>
-  <data name="Append to account signature" xml:space="preserve">
+  <data name="Append to the account's signature" xml:space="preserve">
     <value>Добавлять к подписи учётной записи</value>
   </data>
   <data name="Application (client) ID" xml:space="preserve">
@@ -1876,7 +1876,7 @@ Control Panel может читать файлы сообщений только
   <data name="B_ind address" xml:space="preserve">
     <value>_Адрес привязки</value>
   </data>
-  <data name="B_ody canonicalization" xml:space="preserve">
+  <data name="B_ody canonicalisation" xml:space="preserve">
     <value>Канонизация _тела</value>
   </data>
   <data name="Back" xml:space="preserve">
@@ -4643,6 +4643,9 @@ Control Panel может читать файлы сообщений только
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>Копия каждого локального получателя становится ещё одним именем того же файла внутри папки архива, поэтому сообщение для десяти почтовых ящиков стоит одной копии, а не десяти. Требуется папка архива на NTFS; если создать ссылку не удаётся, сервер копирует файл и сообщает об этом в журнале SMTP.</value>
   </data>
+  <data name="Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
+    <value>Каждое письмо, доставленное на эту учётную запись, после фильтров шифруется её собственным ключом OpenPGP, и этот сервер не может читать, искать, экспортировать или восстанавливать её почту. Выключить это может только сам человек из веб-почты; здесь это невозможно.</value>
+  </data>
   <data name="Every message goes through {0} scanner in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
     <value>Каждое сообщение проходит по очереди через каждый из {0} сканера, и каждого спрашивают сначала о сообщении целиком, а затем о каждом вложении отдельно. Это тщательно и это не бесплатно: проверка выполняется, пока отправитель ждёт своего «250 OK».</value>
   </data>
@@ -5797,8 +5800,8 @@ Control Panel может читать файлы сообщений только
   <data name="Keep" xml:space="preserve">
     <value>Сохранить</value>
   </data>
-  <data name="Keep archived messages for (_days, 0 = for ever)" xml:space="preserve">
-    <value>Хра_нить архивированные сообщения (дней, 0 = вечно)</value>
+  <data name="Keep archived messages for (_days; 0 = for ever)" xml:space="preserve">
+    <value>Хра_нить архивированные сообщения (дней; 0 = вечно)</value>
   </data>
   <data name="Keep greylisting active during the record-expiration window" xml:space="preserve">
     <value>Оставлять серые списки активными в окне истечения записей</value>
@@ -5917,11 +5920,11 @@ Control Panel может читать файлы сообщений только
   <data name="Last delivered" xml:space="preserve">
     <value>Последняя доставка</value>
   </data>
-  <data name="Last l_ogon" xml:space="preserve">
-    <value>Последний в_ход</value>
-  </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Последняя проверка: {0}.</value>
+  </data>
+  <data name="Last sign-in" xml:space="preserve">
+    <value>Последний вход</value>
   </data>
   <data name="Last status" xml:space="preserve">
     <value>Последний статус</value>
@@ -6277,6 +6280,9 @@ Control Panel может читать файлы сообщений только
   <data name="Mail is not moving, the service is running, nothing has crashed and the log seems to stop mid-transaction. The server is not silent about this any more: the answer is usually in one line of the log, and this page says which." xml:space="preserve">
     <value>Почта не движется, служба работает, ничего не упало, а журнал словно обрывается посреди транзакции. Сервер больше не молчит об этом: ответ обычно находится в одной строке журнала, и эта страница говорит, в какой.</value>
   </data>
+  <data name="Mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes." xml:space="preserve">
+    <value>Почта сохраняется как есть. Человек включает это на странице Безопасность веб-почты, когда сервер разрешает ящики с нулевым доступом.</value>
+  </data>
   <data name="Mail is stuck or slow" xml:space="preserve">
     <value>Почта застряла или идёт медленно</value>
   </data>
@@ -6480,11 +6486,11 @@ Control Panel может читать файлы сообщений только
   <data name="Maximise" xml:space="preserve">
     <value>Развернуть</value>
   </data>
-  <data name="Maximum _domain size (MB, 0 = unlimited)" xml:space="preserve">
-    <value>Максимальный размер _домена (МБ, 0 — без ограничения)</value>
+  <data name="Maximum _domain size (MB; 0 = no limit)" xml:space="preserve">
+    <value>Максимальный размер _домена (МБ; 0 — без ограничения)</value>
   </data>
-  <data name="Maximum _message size (KB, 0 = unlimited)" xml:space="preserve">
-    <value>_Максимальный размер сообщения (КБ, 0 — без ограничения)</value>
+  <data name="Maximum _message size (KB; 0 = no limit)" xml:space="preserve">
+    <value>_Максимальный размер сообщения (КБ; 0 — без ограничения)</value>
   </data>
   <data name="Maximum account size (MB)" xml:space="preserve">
     <value>Максимальный размер учётной записи (МБ)</value>
@@ -6513,8 +6519,8 @@ Control Panel может читать файлы сообщений только
   <data name="Maximum size (MB)" xml:space="preserve">
     <value>Максимальный размер (МБ)</value>
   </data>
-  <data name="Maximum size for _accounts created in this domain (MB, 0 = unlimited)" xml:space="preserve">
-    <value>Максимальный размер _учётных записей, создаваемых в этом домене (МБ, 0 — без ограничения)</value>
+  <data name="Maximum size for _accounts created in this domain (MB; 0 = no limit)" xml:space="preserve">
+    <value>Максимальный размер _учётных записей, создаваемых в этом домене (МБ; 0 — без ограничения)</value>
   </data>
   <data name="Maximum time for one IMAP search (seconds; 0 = no limit)" xml:space="preserve">
     <value>Максимальное время на один поиск IMAP (секунд; 0 — без ограничения)</value>
@@ -7706,9 +7712,6 @@ Control Panel может читать файлы сообщений только
   <data name="Off. No message is deferred on a first attempt." xml:space="preserve">
     <value>Выключено. Ни одно сообщение не откладывается при первой попытке.</value>
   </data>
-  <data name="Off: mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes." xml:space="preserve">
-    <value>Выключено: почта сохраняется как есть. Человек включает это на странице Безопасность веб-почты, когда сервер разрешает ящики с нулевым доступом.</value>
-  </data>
   <data name="Off: record and judge nothing" xml:space="preserve">
     <value>Выкл.: ничего не записывать и не оценивать</value>
   </data>
@@ -7813,9 +7816,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="On. A sender/recipient/address triplet that has not been seen before is answered 451 &quot;Please try again later.&quot; at RCPT TO, and accepted when it retries. It runs after the connection checks above and adds no score." xml:space="preserve">
     <value>Включено. Тройке «отправитель/получатель/адрес», которая ещё не встречалась, на RCPT TO отвечают 451 «Please try again later.», а при повторной попытке принимают. Работает после проверок подключения выше и оценку не увеличивает.</value>
-  </data>
-  <data name="On: every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
-    <value>Включено: каждое письмо, доставленное на эту учётную запись, после фильтров шифруется её собственным ключом OpenPGP, и этот сервер не может читать, искать, экспортировать или восстанавливать её почту. Выключить это может только сам человек из веб-почты; здесь это невозможно.</value>
   </data>
   <data name="OnAcceptMessage → external AV / DLP scanner" xml:space="preserve">
     <value>OnAcceptMessage → внешний сканер AV / DLP</value>
@@ -8138,9 +8138,6 @@ Control Panel может читать файлы сообщений только
   <data name="Oversigning (RFC 6376 5.4) lists a header field name in the signature's h= tag once more often than the field occurs, which makes ADDING another one - a second From:, an injected Subject: - break the signature. Off by default: oversigning a field that a mailing list or forwarder legitimately adds costs those messages their DKIM pass." xml:space="preserve">
     <value>Избыточное подписывание (RFC 6376, 5.4) указывает имя поля заголовка в теге h= подписи на один раз больше, чем это поле встречается, из-за чего ДОБАВЛЕНИЕ ещё одного — второго From: или внедрённого Subject: — ломает подпись. По умолчанию выключено: избыточное подписывание поля, которое законно добавляет список рассылки или пересылающий сервер, стоит таким сообщениям успешной проверки DKIM.</value>
   </data>
-  <data name="Overwrite account signature" xml:space="preserve">
-    <value>Перезаписывать подпись учётной записи</value>
-  </data>
   <data name="Own value of {0}" xml:space="preserve">
     <value>Собственное значение {0}</value>
   </data>
@@ -8246,8 +8243,8 @@ Control Panel может читать файлы сообщений только
   <data name="Partly saved" xml:space="preserve">
     <value>Сохранено частично</value>
   </data>
-  <data name="Pass_word (leave blank to keep the stored one)" xml:space="preserve">
-    <value>Пароль (_оставьте пустым, чтобы сохранить прежний)</value>
+  <data name="Pass_word (leave empty to keep current)" xml:space="preserve">
+    <value>Пароль (_оставьте пустым, чтобы сохранить текущий)</value>
   </data>
   <data name="Passed" xml:space="preserve">
     <value>Пройдена</value>
@@ -9320,6 +9317,9 @@ Control Panel может читать файлы сообщений только
     <value>Заменить ВСЕ настроенные порты на значения по умолчанию?
 
 SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключения и с аутентификацией SMTP «Вкл.» на обоих SMTP-портах, поэтому порт 25, который был ловушкой, снова принимает AUTH. Порты TLS и пользовательские привязки будут удалены. Изменение вступит в силу при повторной инициализации сервера.</value>
+  </data>
+  <data name="Replace the account's signature" xml:space="preserve">
+    <value>Заменять подпись учётной записи</value>
   </data>
   <data name="Replace the certificate here; the expiry date of each one is listed." xml:space="preserve">
     <value>Замените сертификат здесь; для каждого из них указана дата окончания срока действия.</value>
@@ -13437,8 +13437,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Use a custom virus scanner" xml:space="preserve">
     <value>Использовать пользовательский антивирусный сканер</value>
   </data>
-  <data name="Use only if account has no signature" xml:space="preserve">
-    <value>Использовать, только если у учётной записи нет подписи</value>
+  <data name="Use only when the account has no signature" xml:space="preserve">
+    <value>Использовать, только когда у учётной записи нет подписи</value>
   </data>
   <data name="Used as the envelope sender of every copy the list sends, so delivery failures - a dead subscriber, a full mailbox - reach the list owner instead of whoever happened to post last." xml:space="preserve">
     <value>Используется как отправитель конверта каждой копии, которую рассылает список, чтобы сбои доставки - умерший подписчик, полный ящик - доходили до владельца списка, а не до того, кто случайно написал последним.</value>
@@ -14118,6 +14118,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Yours alone: the note is not in the directory listing, not in the webmail and not in the cards a phone syncs." xml:space="preserve">
     <value>Только ваша: заметки нет ни в списке каталога, ни в веб-почте, ни в карточках, которые синхронизирует телефон.</value>
   </data>
+  <data name="Zero-access mailbox" xml:space="preserve">
+    <value>Ящик с нулевым доступом</value>
+  </data>
   <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
     <value>Zip-архивы (*.zip)|*.zip</value>
   </data>
@@ -14295,7 +14298,7 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Delete list" xml:space="preserve">
     <value>_Удалить список</value>
   </data>
-  <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep forever)" xml:space="preserve">
+  <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep for ever)" xml:space="preserve">
     <value>Удалять сообщения старше (_дней; 0 — политика домена, -1 — хранить вечно)</value>
   </data>
   <data name="_Delete port" xml:space="preserve">
@@ -14442,7 +14445,7 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_HTML signature" xml:space="preserve">
     <value>Подпись _HTML</value>
   </data>
-  <data name="_Header canonicalization" xml:space="preserve">
+  <data name="_Header canonicalisation" xml:space="preserve">
     <value>Канонизация _заголовков</value>
   </data>
   <data name="_Header name" xml:space="preserve">
@@ -14691,8 +14694,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Query" xml:space="preserve">
     <value>_Запрос</value>
   </data>
-  <data name="_Quota (MB, 0 = unlimited)" xml:space="preserve">
-    <value>_Квота (МБ, 0 — без ограничения)</value>
+  <data name="_Quota (MB; 0 = no limit)" xml:space="preserve">
+    <value>_Квота (МБ; 0 — без ограничения)</value>
   </data>
   <data name="_Raise webhook events about this domain's mail and accounts" xml:space="preserve">
     <value>_Генерировать события веб-хуков о почте и учётных записях этого домена</value>
@@ -14897,9 +14900,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Work telephone" xml:space="preserve">
     <value>Рабочий телефон (_C)</value>
-  </data>
-  <data name="_Zero-access mailbox" xml:space="preserve">
-    <value>_Ящик с нулевым доступом</value>
   </data>
   <data name="a digit" xml:space="preserve">
     <value>цифра</value>
