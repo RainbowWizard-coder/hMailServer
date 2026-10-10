@@ -3010,11 +3010,11 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Copy every sample of {0} to the clipboard as tab-separated text" xml:space="preserve">
     <value>Elk meetpunt van {0} als tabgescheiden tekst naar het klembord kopiëren</value>
   </data>
-  <data name="Copy host" xml:space="preserve">
-    <value>Host kopiëren</value>
+  <data name="Copy name" xml:space="preserve">
+    <value>Naam kopiëren</value>
   </data>
-  <data name="Copy host of the {0} record" xml:space="preserve">
-    <value>Host kopiëren ({0}-record)</value>
+  <data name="Copy name of the {0} record" xml:space="preserve">
+    <value>Naam kopiëren ({0}-record)</value>
   </data>
   <data name="Copy the HELO host name" xml:space="preserve">
     <value>De HELO-hostnaam kopiëren</value>
@@ -7426,6 +7426,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Name" xml:space="preserve">
     <value>Naam</value>
   </data>
+  <data name="Name - {0}" xml:space="preserve">
+    <value>Naam - {0}</value>
+  </data>
   <data name="Name or address contains" xml:space="preserve">
     <value>Naam of adres bevat</value>
   </data>
@@ -7738,11 +7741,11 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No domain has been added yet." xml:space="preserve">
     <value>Er is nog geen domein toegevoegd.</value>
   </data>
-  <data name="No domains are configured, so there are no per-domain records to produce. Add a domain first." xml:space="preserve">
-    <value>Er zijn geen domeinen geconfigureerd, dus er zijn geen records per domein te maken. Voeg eerst een domein toe.</value>
-  </data>
   <data name="No domains are configured, so there is nothing to sign and no record to publish." xml:space="preserve">
     <value>Er zijn geen domeinen geconfigureerd, dus er is niets te ondertekenen en geen record te publiceren.</value>
+  </data>
+  <data name="No domains yet - the per-domain records appear once one is added." xml:space="preserve">
+    <value>Nog geen domeinen - de records per domein verschijnen zodra er een is toegevoegd.</value>
   </data>
   <data name="No domains yet. Add the first one to start receiving mail." xml:space="preserve">
     <value>Nog geen domeinen. Voeg het eerste toe zodat de server post kan ontvangen.</value>
@@ -9709,17 +9712,11 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   <data name="Record expiration interval (minutes)" xml:space="preserve">
     <value>Vervalinterval van records (minuten)</value>
   </data>
-  <data name="Record type: MX. Host/Name - {0}:" xml:space="preserve">
-    <value>Recordtype: MX. Host/naam - {0}:</value>
+  <data name="Record type: MX" xml:space="preserve">
+    <value>Recordtype: MX</value>
   </data>
-  <data name="Record type: MX. Host/Name:" xml:space="preserve">
-    <value>Recordtype: MX. Host/naam:</value>
-  </data>
-  <data name="Record type: TXT. Host/Name - {0}:" xml:space="preserve">
-    <value>Recordtype: TXT. Host/naam - {0}:</value>
-  </data>
-  <data name="Record type: TXT. Host/Name:" xml:space="preserve">
-    <value>Recordtype: TXT. Host/naam:</value>
+  <data name="Record type: TXT" xml:space="preserve">
+    <value>Recordtype: TXT</value>
   </data>
   <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom." xml:space="preserve">
     <value>Legt voor elke bezorging, weigering en quarantaine een doorzoekbare rij vast, zodat "wat is er gebeurd met het bericht dat Jane om 14:20 verstuurde" kan worden beantwoord door te zoeken in plaats van door logboeken te grepen. Het zijn dezelfde gebeurtenissen die het AWStats-journaal altijd al zag; dit geeft ze een plek waar ze bevraagd kunnen worden. Staat standaard uit, omdat het adressen van afzenders en ontvangers opslaat - wat het tot een register maakt van wie met wie correspondeert.</value>
@@ -15822,6 +15819,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="_Open Anti-virus settings" xml:space="preserve">
     <value>Antivirusinstellingen o_penen</value>
+  </data>
+  <data name="_Open Domains" xml:space="preserve">
+    <value>Domeinen _openen</value>
   </data>
   <data name="_Open Logging" xml:space="preserve">
     <value>Logboekregistratie _openen</value>

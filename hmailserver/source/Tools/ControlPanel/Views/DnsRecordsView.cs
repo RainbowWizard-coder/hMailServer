@@ -29,6 +29,7 @@ using FieldRow = hMailServer.ControlPanel.Views.Scaffold.FieldRow;
 using InlineNotice = hMailServer.ControlPanel.Views.Scaffold.InlineNotice;
 using PageHeader = hMailServer.ControlPanel.Views.Scaffold.PageHeader;
 using StatusPill = hMailServer.ControlPanel.Views.Scaffold.StatusPill;
+using EmptyState = hMailServer.ControlPanel.Views.Scaffold.EmptyState;
 
 // This file needs System.IO (the DKIM key file is read to derive the public key) and
 // System.Windows.Shapes (the status marks), and both declare a Path. The alias picks
@@ -134,6 +135,19 @@ namespace hMailServer.ControlPanel.Views
       // notice then says at Critical, as the shell's pill does.
       private bool linkLost_;
 
+      // The domain list, hidden with nothing in it to choose; and what the page
+      // says in its place while the server hosts no domain, with the way to add
+      // one (review finding F306: an empty, enabled list above a bare sentence and
+      // a twelve-pixel link).
+      private FieldRow domainRow_;
+      private readonly EmptyState noDomains_ = new()
+      {
+         Icon = Wpf.Ui.Controls.SymbolRegular.Globe24,
+         Text = L("No domains yet - the per-domain records appear once one is added."),
+         Margin = new Thickness(0, 8, 0, 0),
+         Visibility = Visibility.Collapsed
+      };
+
       /// <summary>Shared by the MTA-STS policy fetches. Redirects are NOT followed,
       /// because RFC 8461 section 3.3 forbids senders from following them - a
       /// policy behind a redirect is a policy senders never see.</summary>
@@ -175,7 +189,15 @@ namespace hMailServer.ControlPanel.Views
          domainCombo_.SelectionChanged += (s, e) => BuildCards();
          // A caption names its field and ends in no colon, as every other caption
          // above a field does (review finding F043).
-         page.Children.Add(new FieldRow { Label = L("_Domain"), Content = domainCombo_ });
+         domainRow_ = new FieldRow { Label = L("_Domain"), Content = domainCombo_ };
+         page.Children.Add(domainRow_);
+
+         var openDomains = new Wpf.Ui.Controls.Button { Content = L("_Open Domains") };
+         ControlHelp.Explain(openDomains, L("Open Domains, where domains are added"));
+         System.Windows.Automation.AutomationProperties.SetAutomationId(openDomains, "dns-records-open-domains");
+         openDomains.Click += (s, e) => (Application.Current?.MainWindow as MainWindow)?.NavigateTo("domains");
+         noDomains_.Action = openDomains;
+         page.Children.Add(noDomains_);
 
          page.Children.Add(readFailure_);
          System.Windows.Automation.AutomationProperties.SetAutomationId(checkSummary_, "dns-records-check-summary");
@@ -408,17 +430,15 @@ namespace hMailServer.ControlPanel.Views
          DomainInfo domain = SelectedDomain();
          checkAll_.IsEnabled = domain != null;
 
+         // No domain to choose: the list goes, and the empty state says so in its
+         // place - unless the list could not be read, which the notice says, and
+         // which is no claim that the server hosts none.
+         domainRow_.Visibility = domains_.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+         noDomains_.Visibility = domains_.Count == 0 && failedReads_ == 0 ? Visibility.Visible : Visibility.Collapsed;
+
          if (domain == null)
          {
-            var none = new TextBlock
-            {
-               Text = L("No domains are configured, so there are no per-domain records to produce. Add a domain first."),
-               FontSize = Typography.Body,
-               TextWrapping = TextWrapping.Wrap,
-               Margin = new Thickness(0, 16, 0, 0)
-            };
-            body_.Children.Add(none);
-            body_.Children.Add(PageLink("domains", L("Open Domains…"), L("Open Domains, where domains are added")));
+            // nothing per domain to show
          }
          else
          {
@@ -1573,11 +1593,11 @@ namespace hMailServer.ControlPanel.Views
       {
          var block = new RecordBlock();
 
-         // Each label whole, the type, the host and the note in one text a language can order.
-         string typeLabel = hostNote != null
-            ? (mx ? F("Record type: MX. Host/Name - {0}:", hostNote) : F("Record type: TXT. Host/Name - {0}:", hostNote))
-            : (mx ? L("Record type: MX. Host/Name:") : L("Record type: TXT. Host/Name:"));
-         parent.Children.Add(Label(typeLabel));
+         // The type, then the name's caption with its note, each one whole text a
+         // language can order, where one caption said both, "Record type: MX.
+         // Host/Name - the domain itself ...:" (review finding F306).
+         parent.Children.Add(Label(mx ? L("Record type: MX") : L("Record type: TXT")));
+         parent.Children.Add(Label(hostNote != null ? F("Name - {0}", hostNote) : L("Name")));
 
          block.HostBox = ReadOnlyBox(0);
          block.HostBox.Text = host;
@@ -1588,7 +1608,9 @@ namespace hMailServer.ControlPanel.Views
 
          parent.Children.Add(Label(mx ? L("MX value - the priority, then the name of the server that takes the mail:") : L("TXT value:")));
 
-         block.ValueBox = ReadOnlyBox(44);
+         // One line for an MX value, which is one line: its box was 46 pixels for
+         // it below a 28-pixel name (review finding F306). A TXT value wraps.
+         block.ValueBox = ReadOnlyBox(mx ? 0 : 44);
          block.ValueBox.Text = value;
          block.ValueBox.SetResourceReference(Control.ForegroundProperty, "TextFillColorPrimaryBrush");
          System.Windows.Automation.AutomationProperties.SetName(block.ValueBox, F("{0} record value", recordName));
@@ -1609,8 +1631,10 @@ namespace hMailServer.ControlPanel.Views
 
          var copyRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 4) };
 
-         var copyHost = new Wpf.Ui.Controls.Button { Content = L("Copy host") };   // per record: no access key, the rows are reached with the arrow keys
-         System.Windows.Automation.AutomationProperties.SetName(copyHost, F("Copy host of the {0} record", recordName));
+         // Copy name, beside Copy value, where Copy host stood beside the PTR card's
+         // Copy host name, which copies the HELO name (review finding F306).
+         var copyHost = new Wpf.Ui.Controls.Button { Content = L("Copy name") };   // per record: no access key, the rows are reached with the arrow keys
+         System.Windows.Automation.AutomationProperties.SetName(copyHost, F("Copy name of the {0} record", recordName));
          System.Windows.Automation.AutomationProperties.SetAutomationId(copyHost, idPrefix + "-copy-host");
          copyHost.Click += (s, e) => CopyAndConfirm_(copyHost, block.HostBox.Text);
          copyRow.Children.Add(copyHost);

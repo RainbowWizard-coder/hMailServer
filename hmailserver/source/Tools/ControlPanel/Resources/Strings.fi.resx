@@ -3010,11 +3010,11 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Copy every sample of {0} to the clipboard as tab-separated text" xml:space="preserve">
     <value>Kopioi jokainen {0}-näyte leikepöydälle sarkaimin erotettuna tekstinä</value>
   </data>
-  <data name="Copy host" xml:space="preserve">
-    <value>Kopioi kone</value>
+  <data name="Copy name" xml:space="preserve">
+    <value>Kopioi nimi</value>
   </data>
-  <data name="Copy host of the {0} record" xml:space="preserve">
-    <value>Kopioi kone ({0}-tietue)</value>
+  <data name="Copy name of the {0} record" xml:space="preserve">
+    <value>Kopioi nimi ({0}-tietue)</value>
   </data>
   <data name="Copy the HELO host name" xml:space="preserve">
     <value>Kopioi HELO-konenimi</value>
@@ -7426,6 +7426,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Name" xml:space="preserve">
     <value>Nimi</value>
   </data>
+  <data name="Name - {0}" xml:space="preserve">
+    <value>Nimi - {0}</value>
+  </data>
   <data name="Name or address contains" xml:space="preserve">
     <value>Nimi tai osoite sisältää</value>
   </data>
@@ -7738,11 +7741,11 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="No domain has been added yet." xml:space="preserve">
     <value>Yhtään verkkotunnusta ei ole vielä lisätty.</value>
   </data>
-  <data name="No domains are configured, so there are no per-domain records to produce. Add a domain first." xml:space="preserve">
-    <value>Verkkotunnuksia ei ole määritetty, joten verkkotunnuskohtaisia tietueita ei voi tuottaa. Lisää ensin verkkotunnus.</value>
-  </data>
   <data name="No domains are configured, so there is nothing to sign and no record to publish." xml:space="preserve">
     <value>Verkkotunnuksia ei ole määritetty, joten ei ole mitään allekirjoitettavaa eikä tietuetta julkaistavaksi.</value>
+  </data>
+  <data name="No domains yet - the per-domain records appear once one is added." xml:space="preserve">
+    <value>Ei vielä verkkotunnuksia - verkkotunnuskohtaiset tietueet näkyvät, kun yksi on lisätty.</value>
   </data>
   <data name="No domains yet. Add the first one to start receiving mail." xml:space="preserve">
     <value>Ei vielä verkkotunnuksia. Lisää ensimmäinen, jotta palvelin voi vastaanottaa postia.</value>
@@ -9709,17 +9712,11 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   <data name="Record expiration interval (minutes)" xml:space="preserve">
     <value>Tietueiden vanhenemisväli (minuuttia)</value>
   </data>
-  <data name="Record type: MX. Host/Name - {0}:" xml:space="preserve">
-    <value>Tietuetyyppi: MX. Kone/Nimi - {0}:</value>
+  <data name="Record type: MX" xml:space="preserve">
+    <value>Tietuetyyppi: MX</value>
   </data>
-  <data name="Record type: MX. Host/Name:" xml:space="preserve">
-    <value>Tietuetyyppi: MX. Kone/Nimi:</value>
-  </data>
-  <data name="Record type: TXT. Host/Name - {0}:" xml:space="preserve">
-    <value>Tietuetyyppi: TXT. Kone/Nimi - {0}:</value>
-  </data>
-  <data name="Record type: TXT. Host/Name:" xml:space="preserve">
-    <value>Tietuetyyppi: TXT. Kone/Nimi:</value>
+  <data name="Record type: TXT" xml:space="preserve">
+    <value>Tietuetyyppi: TXT</value>
   </data>
   <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom." xml:space="preserve">
     <value>Tallentaa kyseltävissä olevan rivin jokaisesta toimituksesta, hylkäyksestä ja karanteenista, joten "mitä tapahtui viestille, jonka Jane lähetti 14:20" voidaan vastata hakemalla lokien grep-selaamisen sijaan. Tapahtumat ovat samat, jotka AWStats-päiväkirja on aina nähnyt; tämä antaa niille paikan, josta niitä voi kysyä. Oletuksena pois päältä, koska se tallentaa lähettäjän ja vastaanottajan osoitteet - mikä tekee siitä tallenteen siitä, kuka kirjoittaa kenelle.</value>
@@ -15822,6 +15819,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="_Open Anti-virus settings" xml:space="preserve">
     <value>_Avaa Virustorjunnan asetukset</value>
+  </data>
+  <data name="_Open Domains" xml:space="preserve">
+    <value>_Avaa Verkkotunnukset</value>
   </data>
   <data name="_Open Logging" xml:space="preserve">
     <value>_Avaa Lokitus</value>

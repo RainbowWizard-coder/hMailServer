@@ -3256,6 +3256,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   page, published under both keys Wpf.Ui's text fields read. `PlaceholderExampleTests` holds the captions, the boxes
   and yourdomain's absence, and `DesignTokensTests` the dark text on every dark surface a field or a hint sits on.
 
+- **Fixed: small copy and layout defects, page by page.** DNS records: one caption said two things, "Record type: MX.
+  Host/Name - the domain itself ...:", where the type and the name's caption are now two lines, "Record type: MX" and
+  "Name - the domain itself ..."; Copy host, a card from the PTR card's Copy host name, is Copy name beside Copy
+  value; with no domain the page drew an empty, enabled domain list above a bare sentence and a twelve-pixel link,
+  where it now hides the list and shows an empty state, "No domains yet - the per-domain records appear once one is
+  added.", with Open Domains (and nothing that claims no domain where the list could not be read); and the one-line MX
+  value has a box one line tall (review finding F306). `DnsRecordsCopyTests` holds it.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

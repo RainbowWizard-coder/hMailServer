@@ -144,21 +144,22 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
-      /// The DNS records page's record type is one text with its note -
-      /// "Record type: MX. Host/Name - {0}:" - where it was L("Record type: MX.
-      /// Host/Name") + " — " + note + ":", whose two spaces after the stop
-      /// Japanese and Chinese copied as "MX。  ホスト/名前"; and no Japanese or
-      /// Chinese text has a space after its 。, as the domain dialog's
-      /// restriction hint had inside one paragraph (review finding F283, second
-      /// pass).
+      /// The DNS records page's record type and its name's caption are whole
+      /// texts - "Record type: MX", then "Name - {0}" with its note - where it
+      /// was L("Record type: MX. Host/Name") + " — " + note + ":", whose two
+      /// spaces after the stop Japanese and Chinese copied as "MX。  ホスト/名前",
+      /// and then one text that said both (review finding F306); and no
+      /// Japanese or Chinese text has a space after its 。, as the domain
+      /// dialog's restriction hint had inside one paragraph (review finding
+      /// F283, second pass).
       /// </summary>
       [Fact]
       public void NoJapaneseOrChineseTextHasASpaceAfterItsFullStop()
       {
          Dictionary<string, string> english = Catalogue(null);
-         foreach (string whole in new[] { "Record type: MX. Host/Name - {0}:", "Record type: TXT. Host/Name - {0}:", "Record type: TXT. Host/Name:" })
+         foreach (string whole in new[] { "Record type: MX", "Record type: TXT", "Name - {0}" })
             Assert.True(english.ContainsKey(whole), "The catalogue lacks '" + whole + "'.");
-         Assert.DoesNotContain(english.Keys, key => key.StartsWith("Record type: ", StringComparison.Ordinal) && key.Contains(".  ", StringComparison.Ordinal));
+         Assert.DoesNotContain(english.Keys, key => key.StartsWith("Record type: ", StringComparison.Ordinal) && key.Contains(". ", StringComparison.Ordinal));
 
          foreach (string tag in new[] { "ja", "zh-Hans" })
          {
