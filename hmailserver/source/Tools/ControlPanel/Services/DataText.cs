@@ -20,11 +20,15 @@ namespace hMailServer.ControlPanel.Services
    {
       /// <summary>
       /// A colon-separated list - OpenSSL's cipher and group lists - with a place to
-      /// break after each colon (a zero-width space), so that it wraps between its
-      /// items and never inside one, whose names are joined by hyphens.
+      /// break after each colon (a zero-width space) and none at its hyphens (each a
+      /// non-breaking hyphen), so that it wraps between its items and never inside
+      /// one, whose names are joined by hyphens: a hyphen is a place to break, and
+      /// with the colons alone the overview still broke "ECDHE-RSA-" / "AES256-GCM-".
       /// </summary>
       public static string BreakAfterColons(string list)
-         => string.IsNullOrEmpty(list) ? list ?? "" : list.Replace(":", ":\u200B", StringComparison.Ordinal);
+         => string.IsNullOrEmpty(list)
+            ? list ?? ""
+            : list.Replace("-", "\u2011", StringComparison.Ordinal).Replace(":", ":\u200B", StringComparison.Ordinal);
 
       /// <summary>
       /// A long path cut in its middle - its root and first folder, an ellipsis, its

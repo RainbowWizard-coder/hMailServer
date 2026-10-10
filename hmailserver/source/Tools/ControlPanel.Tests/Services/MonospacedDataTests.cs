@@ -29,9 +29,10 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          string shown = DataText.BreakAfterColons("ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384");
 
-         Assert.Equal("ECDHE-ECDSA-AES128-GCM-SHA256:\u200BECDHE-RSA-AES256-GCM-SHA384", shown);
+         Assert.Equal("ECDHE-ECDSA-AES128-GCM-SHA256:\u200BECDHE-RSA-AES256-GCM-SHA384".Replace("-", "\u2011", StringComparison.Ordinal), shown);
+         Assert.DoesNotContain('-', shown);
          Assert.Equal("", DataText.BreakAfterColons(null));
-         Assert.Equal("AEAD-ONLY", DataText.BreakAfterColons("AEAD-ONLY"));
+         Assert.Equal("AEAD\u2011ONLY", DataText.BreakAfterColons("AEAD-ONLY"));
       }
 
       [Fact]
