@@ -2092,9 +2092,11 @@ TerminateServer()
    // Stop-Service, services.msc and a Windows shutdown report error 1053 while
    // the drain is still honouring its window - and told, about once a second,
    // that the stop is still progressing (the checkpoint), which the drain's
-   // wait loop does through the callback. The thirty seconds on top is the
-   // installer's own margin for the same wait.
-   ServiceStatus.dwWaitHint = (HM::IniFileSettings::Instance()->GetShutdownDrainSeconds() + 30) * 1000;
+   // wait loop does through the callback. The ninety seconds on top are the
+   // installer's own margin for the same wait (GetServiceStopBudgetMs in
+   // hMailServerInnoExtension.iss): the minute the stop gives the message
+   // indexer's thread, and thirty seconds of headroom.
+   ServiceStatus.dwWaitHint = (HM::IniFileSettings::Instance()->GetShutdownDrainSeconds() + 90) * 1000;
    ServiceStatus.dwCheckPoint++;
    ReportServiceStatus(SERVICE_STOP_PENDING, 0);
 

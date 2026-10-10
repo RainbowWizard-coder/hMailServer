@@ -4158,6 +4158,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   there, no statement over 1.6 seconds. The sweep of the message metadata for the messages that are gone, which the
   indexer makes at every start whether the full-text index is on or not, is cut the same way: it was one statement
   over the whole table, which a stop of the servers had to wait for (*Correctness*, above).
+- **The Windows installer gives the service's stop the minute the stop may spend on the message indexer.** Setup,
+  the silent install a live update runs, and the uninstaller wait for the service to report that it has stopped for
+  `ShutdownDrainSeconds` plus 30 seconds (from 6.3.4), and then refuse to go on. The service's stop now waits up to
+  a minute for the indexer's thread when it is in a long statement (*Correctness*, above), so an update could be
+  refused while the stop was still within that minute. The wait is now `ShutdownDrainSeconds` plus 90 seconds, and
+  the wait hint the service gives the service controller for its stop says the same. Found by the re-check of the
+  batch's message indexer fix.
 
 ### Build and tests
 

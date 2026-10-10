@@ -1174,8 +1174,13 @@ end;
 // The time the hMailServer service is given to stop, derived from
 // ShutdownDrainSeconds rather than guessed: that setting deliberately holds the
 // stop open while sessions finish, so a fixed timeout would have been wrong on
-// exactly the installations that use it. 30 seconds of headroom on top of the
-// configured drain period.
+// exactly the installations that use it. 90 seconds on top of the configured
+// drain period: the minute the stop gives the message indexer's thread when it
+// is in a statement (Application::ShutDown), and 30 seconds of headroom. Until
+// 10 October 2026 it was the 30 seconds alone, and an update, the silent
+// installer a live update runs, or an uninstall refused with "did not stop"
+// while the service still waited, within its minute, for an indexer in a long
+// statement.
 function GetServiceStopBudgetMs() : Integer;
 var
    szIniFile   : AnsiString;
@@ -1186,7 +1191,7 @@ begin
    if (Length(szIniFile) > 0) then
       drainSeconds := GetIniInt('Settings', 'ShutdownDrainSeconds', 0, 0, 3600, szIniFile);
 
-   Result := (drainSeconds + 30) * 1000;
+   Result := (drainSeconds + 90) * 1000;
 end;
 
 // The id of the process the hMailServer service runs in, while it has one: 0 once

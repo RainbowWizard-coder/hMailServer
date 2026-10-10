@@ -2422,9 +2422,10 @@ installer's signature is a SKIP.
    database newer than the binary.
 2. The uninstaller stops the service at `usUninstall`, which comes before
    `[UninstallRun]` and before any file is deleted, and it waits for the
-   process to exit. The stop gets `ShutdownDrainSeconds` plus 30 seconds, and
-   the process gets 30 seconds more. The upgrade's stop at the Ready page does
-   the same. Every file the server's process loads is marked
+   process to exit. The stop gets `ShutdownDrainSeconds` plus 90 seconds - the
+   minute the service's stop gives the message indexer's thread, and 30 seconds
+   of headroom - and the process gets 30 seconds more. The upgrade's stop at the
+   Ready page does the same. Every file the server's process loads is marked
    `uninsrestartdelete`, so a file still in use when the wait ends is queued
    for deletion at the next restart, and the uninstaller says so.
 3. `hMailServer.exe /Unregister` removes the event source, and does it last.
