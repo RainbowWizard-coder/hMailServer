@@ -2311,15 +2311,34 @@ int main(int argc, char *argv[])
    // latency on a stop is not worth a self-pipe here: systemd's default
    // TimeoutStopSec is 90 seconds and the drain below is what actually takes the
    // time.
+   //
+   // SIGHUP's reinitialise runs on a thread of its own, so that this loop sees a
+   // SIGTERM while it runs: until 10 October 2026 it ran here, and since its stop
+   // waits for the message indexer until it has ended, a SIGTERM during it was
+   // not acted on until the indexer's statement ended - 91 seconds in the
+   // re-check's run, the servers started again first, and with a statement that
+   // never ends until systemd's or OpenRC's SIGKILL. The stop below waits for
+   // it, the indexer a minute at most (Application::ShutDown). A SIGHUP while
+   // one runs is answered by another once it has ended, as before.
+   std::atomic<bool> reloading(false);
+   boost::thread reloader;
    while (!stop_requested)
    {
-      if (reload_requested)
+      if (reload_requested && !reloading.load())
       {
          reload_requested = 0;
+         if (reloader.joinable())
+            reloader.join();
+
          HM::Logger::Instance()->LogApplication(_T("SIGHUP: re-reading the configuration."));
-         const HM::String result = HM::Application::Instance()->Reinitialize();
-         if (!result.IsEmpty())
-            HM::Logger::Instance()->LogApplication(HM::String(_T("SIGHUP: the configuration was not re-read: ")) + result);
+         reloading = true;
+         reloader = boost::thread([&reloading]()
+         {
+            const HM::String result = HM::Application::Instance()->Reinitialize();
+            if (!result.IsEmpty())
+               HM::Logger::Instance()->LogApplication(HM::String(_T("SIGHUP: the configuration was not re-read: ")) + result);
+            reloading = false;
+         });
       }
 
       struct timespec pause;
@@ -2342,7 +2361,13 @@ int main(int argc, char *argv[])
    // the database closed (Application::ShutDown). Until 10 October 2026 a
    // SIGTERM during such a reinitialise closed the database under it, and the
    // process faulted on its way out.
-   const bool ended = HM::Application::Instance()->ShutDown();
+   bool ended = HM::Application::Instance()->ShutDown();
+
+   // A SIGHUP reinitialise ShutDown waited for has returned, or returns now that
+   // the lock is let go of, refused; one ShutDown gave up on is left to the
+   // process's end with the indexer it waits for.
+   if (ended && reloader.joinable() && !reloader.try_join_for(boost::chrono::seconds(10)))
+      ended = false;
 
    HM::Logger::Instance()->LogApplication(_T("Stopped."));
 

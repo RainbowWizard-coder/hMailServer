@@ -518,6 +518,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   fix the first waits the indexer's minute and ends with nothing closed under it, and the second waits for the
   reinitialise and stops the servers it started, in ten runs of ten. Found by the re-check of the batch's
   message indexer fix.
+- **Fixed: on Linux, a SIGTERM during a SIGHUP's reinitialise was not acted on until the reinitialise had
+  finished.** The server ran the reinitialise on the thread that watches for signals (from 6.3.0, the first Linux
+  release), so a SIGTERM waited for it; and since the reinitialise's stop waits for the message indexer until it
+  has ended (above), it waited as long as the indexer's statement, the servers started again before they stopped -
+  91.8 seconds in the re-check's run with the indexer held by another session's lock - and with a statement that
+  never ends until the service manager's `SIGKILL` (`TimeoutStopSec=300` under systemd, `TERM/300/KILL/5` under
+  OpenRC). The reinitialise now runs on a thread of its own, and a SIGTERM during it is acted on at once: the stop
+  waits for the reinitialise, the indexer a minute at most, and nothing is started again. A SIGHUP while one runs is
+  answered by another once it has ended, as before. In the same run the server now ends 60.2 seconds after the
+  SIGTERM, starting nothing; with the lock let go of during the wait, the reinitialise stops short and the server
+  ends at once. Found by the re-check of the batch's message indexer fix.
 
 ### Downloads and the release
 
