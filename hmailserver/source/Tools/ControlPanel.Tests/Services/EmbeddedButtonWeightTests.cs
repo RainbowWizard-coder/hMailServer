@@ -62,7 +62,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// Add's weight is the dialog's tab's, not the editor's embedded form's: the
       /// Groups page hosts the editor embedded, without its chrome, and drew its Add
       /// as Secondary when the weight followed that, leaving the page no Primary
-      /// button. The four factories built for a dialog's tab say so, every editor a
+      /// button. The three factories built for a dialog's tab say so, every editor a
       /// dialog builds is one of them, no page's is, and the Groups page's does not.
       /// </summary>
       [Fact]
@@ -78,7 +78,7 @@ namespace hMailServer.ControlPanel.Tests.Services
                forDialogTab.Add(factories[i].Groups[1].Value);
          }
 
-         Assert.Equal(new[] { "AccountRules", "DomainAliases", "DomainSenderList", "FetchAccounts" }, forDialogTab.OrderBy(n => n, StringComparer.Ordinal));
+         Assert.Equal(new[] { "DomainAliases", "DomainSenderList", "FetchAccounts" }, forDialogTab.OrderBy(n => n, StringComparer.Ordinal));
 
          var problems = new List<string>();
          int tabs = 0;

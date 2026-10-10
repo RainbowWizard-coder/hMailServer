@@ -55,8 +55,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          string specs = Read(Path.Join("Views", "CollectionSpecs.cs"));
          int start = specs.IndexOf("public static CollectionEditorView FetchAccounts(", StringComparison.Ordinal);
-         int end = specs.IndexOf("public static CollectionEditorView AccountRules(", start, StringComparison.Ordinal);
-         Assert.True(start >= 0 && end > start, "CollectionSpecs no longer has FetchAccounts before AccountRules.");
+         int end = start < 0 ? -1 : specs.IndexOf(SavedAsMadeNoteTests.DialogTabEnd, start, StringComparison.Ordinal);
+         Assert.True(start >= 0 && end > start, "CollectionSpecs no longer has FetchAccounts as a dialog tab's editor.");
          string block = specs.Substring(start, end - start);
 
          foreach (Match m in Regex.Matches(block, @"new FieldSpec\s*\{(.*?)\}", RegexOptions.Singleline))

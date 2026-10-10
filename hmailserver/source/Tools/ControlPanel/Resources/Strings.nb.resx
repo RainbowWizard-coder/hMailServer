@@ -198,9 +198,6 @@
   <data name="1 remote domain policy" xml:space="preserve">
     <value>1 regel for eksternt domene</value>
   </data>
-  <data name="1 rule" xml:space="preserve">
-    <value>1 regel</value>
-  </data>
   <data name="1 security group" xml:space="preserve">
     <value>1 sikkerhetsgruppe</value>
   </data>
@@ -545,9 +542,6 @@
   </data>
   <data name="A migration rather than a collection: every folder, verbatim, with its flags and dates." xml:space="preserve">
     <value>En migrering heller enn en innsamling: hver mappe, ordrett, med flagg og datoer.</value>
-  </data>
-  <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
-    <value>En moderne administrasjonsapp for hMailServer: sanntidsoversikt, domener og kontoer, leveringskø, loggstrømming, alle serverinnstillinger og transportsikkerhetsfunksjonene i 6.x (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
   </data>
   <data name="A name cannot begin or end with &quot;{0}&quot; or have two together: &quot;{0}&quot; separates a folder from its sub-folder." xml:space="preserve">
     <value>Et navn kan ikke begynne eller slutte med «{0}» eller ha to etter hverandre: «{0}» skiller en mappe fra undermappen dens.</value>
@@ -1080,9 +1074,6 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Add a row to a list, or go to the form that adds one" xml:space="preserve">
     <value>Legg til en rad i en liste, eller gå til skjemaet som legger til en</value>
   </data>
-  <data name="Add a rule" xml:space="preserve">
-    <value>Legg til en regel</value>
-  </data>
   <data name="Add a security group" xml:space="preserve">
     <value>Legg til en sikkerhetsgruppe</value>
   </data>
@@ -1322,6 +1313,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   </data>
   <data name="Administer (manage ACL)" xml:space="preserve">
     <value>Administrere (håndtere ACL)</value>
+  </data>
+  <data name="Administers an hMailServer: its domains and accounts, the delivery queue, the logs, the server's settings and its transport security." xml:space="preserve">
+    <value>Administrerer en hMailServer: domenene og kontoene, leveringskøen, loggene, serverens innstillinger og transportsikkerheten.</value>
   </data>
   <data name="Administrative access" xml:space="preserve">
     <value>Administrativ tilgang</value>
@@ -1861,6 +1855,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>Spør en nøkkelserver når domenet deres ikke har nøkkel</value>
   </data>
+  <data name="Ask on the forum, or report a defect on the issue tracker. Copy the version details into either: they are what anyone helping asks for first." xml:space="preserve">
+    <value>Spør i forumet, eller meld en feil i feilsporingen. Kopier versjonsopplysningene inn i begge: det er det alle som hjelper, spør om først.</value>
+  </data>
   <data name="Asking the service to take the backup." xml:space="preserve">
     <value>Ber tjenesten ta sikkerhetskopien.</value>
   </data>
@@ -2337,6 +2334,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   </data>
   <data name="Bucket (S3) or container (Azure)" xml:space="preserve">
     <value>Bucket (S3) eller container (Azure)</value>
+  </data>
+  <data name="Building and packaging" xml:space="preserve">
+    <value>Bygging og pakking</value>
   </data>
   <data name="Builds a search index so IMAP SEARCH and the web client are faster." xml:space="preserve">
     <value>Bygger en søkeindeks slik at IMAP SEARCH og webklienten blir raskere.</value>
@@ -2917,8 +2917,8 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Connected now" xml:space="preserve">
     <value>Tilkoblet nå</value>
   </data>
-  <data name="Connected server: hMailServer {0} @ {1}" xml:space="preserve">
-    <value>Tilkoblet server: hMailServer {0} @ {1}</value>
+  <data name="Connected to" xml:space="preserve">
+    <value>Koblet til</value>
   </data>
   <data name="Connected to a remote server: hMailServer.ini cannot be read from here, so mode and max_age shown are the shipped defaults." xml:space="preserve">
     <value>Koblet til en ekstern server: hMailServer.ini kan ikke leses herfra, så mode og max_age som vises, er standardene som følger med.</value>
@@ -4528,9 +4528,6 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Edit the remote domain policy" xml:space="preserve">
     <value>Rediger regelen for det eksterne domenet</value>
   </data>
-  <data name="Edit the rule" xml:space="preserve">
-    <value>Rediger regelen</value>
-  </data>
   <data name="Edit the security group" xml:space="preserve">
     <value>Rediger sikkerhetsgruppen</value>
   </data>
@@ -5422,6 +5419,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
     <value>For token skaffet utenfor denne serveren. La stå tomt ved normal bruk - faste token utløper, og ingenting her vil fornye dem.</value>
   </data>
+  <data name="Forum" xml:space="preserve">
+    <value>Forum</value>
+  </data>
   <data name="Forward _to" xml:space="preserve">
     <value>Videresend _til</value>
   </data>
@@ -5511,6 +5511,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Generated password copied to clipboard — reveal it with the eye icon." xml:space="preserve">
     <value>Generert passord kopiert til utklippstavlen — vis det med øyeikonet.</value>
+  </data>
+  <data name="Get help" xml:space="preserve">
+    <value>Få hjelp</value>
   </data>
   <data name="Give at least one active domain a DKIM selector and key file, and publish that domain's DKIM TXT record - the receiving server verifies the seal against the same record DKIM signing uses." xml:space="preserve">
     <value>Gi minst ett aktivt domene en DKIM-selektor og nøkkelfil, og publiser det domenets DKIM-TXT-oppføring - den mottakende serveren verifiserer forseglingen mot den samme oppføringen DKIM-signering bruker.</value>
@@ -6225,6 +6228,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Issuer (empty = no single sign-on)" xml:space="preserve">
     <value>Utsteder (tomt = ingen enkel pålogging)</value>
   </data>
+  <data name="Issues" xml:space="preserve">
+    <value>Feilrapporter</value>
+  </data>
   <data name="Issues and renews certificates automatically, but only if the certificate authority can fetch the http-01 challenge from this server." xml:space="preserve">
     <value>Utsteder og fornyer sertifikater automatisk, men bare hvis sertifikatautoriteten kan hente http-01-utfordringen fra denne serveren.</value>
   </data>
@@ -6518,6 +6524,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   </data>
   <data name="Levels" xml:space="preserve">
     <value>Nivåer</value>
+  </data>
+  <data name="Licence" xml:space="preserve">
+    <value>Lisens</value>
   </data>
   <data name="Lift ban" xml:space="preserve">
     <value>Opphev blokkering</value>
@@ -7746,6 +7755,9 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="No distribution lists for this domain." xml:space="preserve">
     <value>Ingen distribusjonslister for dette domenet.</value>
+  </data>
+  <data name="No document contains &quot;{0}&quot;." xml:space="preserve">
+    <value>Ingen dokumenter inneholder «{0}».</value>
   </data>
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>Ingen domener har DKIM-signering slått på, så ingen DNS-oppføring kreves.</value>
@@ -9096,9 +9108,6 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   <data name="Per-account overrides of the server-wide spam handling, applied to this account's copy at delivery. They cannot reach back into the SMTP conversation: a message the global settings refuse, quarantine or greylist is stopped for every recipient before any per-account setting can run." xml:space="preserve">
     <value>Overstyringer per konto av den serveromfattende spamhåndteringen, brukt på denne kontoens kopi ved levering. De kan ikke nå tilbake inn i SMTP-samtalen: en melding de globale innstillingene avviser, setter i karantene eller grålister, stoppes for hver mottaker før noen innstilling per konto kan kjøre.</value>
   </data>
-  <data name="Per-account rules. You can add, rename, enable/disable and delete rules here; matching criteria and actions are managed on the server." xml:space="preserve">
-    <value>Regler per konto. Du kan legge til, gi nytt navn til, aktivere/deaktivere og slette regler her; kriterier og handlinger administreres på serveren.</value>
-  </data>
   <data name="Per-account sending limits" xml:space="preserve">
     <value>Sendegrenser per konto</value>
   </data>
@@ -9309,8 +9318,8 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   <data name="Program to run when an address is banned or unbanned (empty = none)" xml:space="preserve">
     <value>Program som kjøres når en adresse utestenges eller frigis (tomt = ingen)</value>
   </data>
-  <data name="Progressive Robot Ltd is a software engineering company that builds and modernises production software — taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling." xml:space="preserve">
-    <value>Progressive Robot Ltd er et programvareselskap som bygger og moderniserer produksjonsprogramvare — tar modne systemer fra den virkelige verden og løfter dem opp til dagens standarder for sikkerhet, pålitelighet og verktøy.</value>
+  <data name="Progressive Robot Ltd is a software engineering company. It maintains the hMailServer 6.x line, an independent fork of the open-source mail server." xml:space="preserve">
+    <value>Progressive Robot Ltd er et programvareutviklingsselskap. Det vedlikeholder hMailServer 6.x-serien, en uavhengig fork av åpen kildekode-postserveren.</value>
   </data>
   <data name="Prometheus metrics (/metrics), OpenTelemetry export of traces, metrics and logs (one endpoint per signal, each off until set), a slow-query log, and JSON-structured log output for log aggregators (on the Logging page)." xml:space="preserve">
     <value>Prometheus-metrikker (/metrics), OpenTelemetry-eksport av sporinger, metrikker og logger (ett endepunkt per signal, hvert av dem av til det settes), en logg over trege spørringer, og JSON-strukturert loggutdata for loggaggregatorer (på siden Logging).</value>
@@ -9771,6 +9780,9 @@ Kjør dette hvis klienter melder om meldinger som dukker opp under feil UID, ell
   </data>
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>Senk loggnivået, eller sett hvor mange dagers logger som beholdes.</value>
+  </data>
+  <data name="Reference" xml:space="preserve">
+    <value>Oppslag</value>
   </data>
   <data name="Refresh a list, or reload a settings page" xml:space="preserve">
     <value>Oppdater en liste, eller last en innstillingsside på nytt</value>
@@ -10479,9 +10491,6 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Rule loop limit" xml:space="preserve">
     <value>Grense for regelsløyfer</value>
   </data>
-  <data name="Rule name" xml:space="preserve">
-    <value>Regelnavn</value>
-  </data>
   <data name="Rule operation failed: {0}" xml:space="preserve">
     <value>Regeloperasjonen mislyktes: {0}</value>
   </data>
@@ -11042,6 +11051,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   </data>
   <data name="Search accounts" xml:space="preserve">
     <value>Søk i kontoer</value>
+  </data>
+  <data name="Search all documentation" xml:space="preserve">
+    <value>Søk i all dokumentasjon</value>
   </data>
   <data name="Search bas_e" xml:space="preserve">
     <value>Søkebas_e</value>
@@ -11940,6 +11952,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Source" xml:space="preserve">
     <value>Kilde</value>
   </data>
+  <data name="Source code" xml:space="preserve">
+    <value>Kildekode</value>
+  </data>
   <data name="Space" xml:space="preserve">
     <value>Mellomrom</value>
   </data>
@@ -12479,6 +12494,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   </data>
   <data name="The Control Panel is connected to another host, so the account its service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>Control Panel er koblet til en annen vert, så kontoen dens tjeneste kjører som, kan ikke leses herfra. Åpne Control Panel på selve serveren for å se den.</value>
+  </data>
+  <data name="The Control Panel's and the server's versions, the build, .NET, Windows and the database, for a report." xml:space="preserve">
+    <value>Versjonene av Control Panel og serveren, bygget, .NET, Windows og databasen, til en rapport.</value>
   </data>
   <data name="The DMARC aggregate and TLS-RPT reports other servers send about your domains, read from each domain's report mailbox - which is set in the domain's dialog." xml:space="preserve">
     <value>De samlede DMARC-rapportene og TLS-RPT-rapportene som andre servere sender om domenene dine, lest fra hvert domenes rapportpostkasse - som stilles inn i domenets dialogboks.</value>
@@ -13158,9 +13176,6 @@ kunne ikke lastes. Meldingen er sannsynligvis levert og ikke lenger i køen.</va
   </data>
   <data name="The guided path: which half, which log lines, and the setting that bounds each stage." xml:space="preserve">
     <value>Den veiledede stien: hvilken halvdel, hvilke logglinjer og innstillingen som begrenser hvert trinn.</value>
-  </data>
-  <data name="The hMailServer 6.x line is one such effort. The original open-source mail server has been rebuilt on a current toolchain (Visual Studio 2026 / MSVC v145 and .NET 10), re-armed with modern cryptography (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) and the transport-security standards expected of a mail server today (DANE + DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT and ACME / Let's Encrypt). It has been hardened against protocol and denial-of-service defects, given Sieve / ManageSieve filtering, health and OpenTelemetry observability, broad MySQL / MariaDB / MS SQL / PostgreSQL support, and this modern Fluent-design Control Panel in place of the legacy administrator." xml:space="preserve">
-    <value>hMailServer 6.x-serien er en slik innsats. Den opprinnelige åpen kildekode-postserveren er bygd om på en moderne verktøykjede (Visual Studio 2026 / MSVC v145 og .NET 10), utstyrt på nytt med moderne kryptografi (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) og transportsikkerhetsstandardene som forventes av en postserver i dag (DANE + DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT og ACME / Let's Encrypt). Den er herdet mot protokoll- og tjenestenektfeil, har fått Sieve / ManageSieve-filtrering, helse- og OpenTelemetry-observerbarhet, bred MySQL / MariaDB / MS SQL / PostgreSQL-støtte, og dette moderne Control Panel i Fluent-design i stedet for den gamle administratoren.</value>
   </data>
   <data name="The highest total reachable cannot be said: a check could not be read." xml:space="preserve">
     <value>Den høyeste totalen som kan nås, kan ikke sies: en kontroll kunne ikke leses.</value>
@@ -13948,6 +13963,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="The verification code is incorrect. Make sure your authenticator app is set up with the new key." xml:space="preserve">
     <value>Bekreftelseskoden er feil. Sørg for at autentiseringsappen din er satt opp med den nye nøkkelen.</value>
   </data>
+  <data name="The version details are on the clipboard." xml:space="preserve">
+    <value>Versjonsopplysningene er på utklippstavlen.</value>
+  </data>
   <data name="The version to go back to" xml:space="preserve">
     <value>Versjonen å gå tilbake til</value>
   </data>
@@ -14076,9 +14094,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="This account has no photo." xml:space="preserve">
     <value>Denne kontoen har ikke noe bilde.</value>
-  </data>
-  <data name="This account has no rules of its own; the server's rules still apply." xml:space="preserve">
-    <value>Denne kontoen har ingen egne regler; serverens regler gjelder fortsatt.</value>
   </data>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>Denne handlingen har ingen ekstra parametere.</value>
@@ -14658,9 +14673,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="Version and updates" xml:space="preserve">
     <value>Versjon og oppdateringer</value>
-  </data>
-  <data name="Version {0}  -  .NET {1}" xml:space="preserve">
-    <value>Versjon {0}  -  .NET {1}</value>
   </data>
   <data name="Version, build and licence information." xml:space="preserve">
     <value>Informasjon om versjon, bygg og lisens.</value>
@@ -15471,6 +15483,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="_Copy results" xml:space="preserve">
     <value>K_opier resultatene</value>
+  </data>
+  <data name="_Copy version details" xml:space="preserve">
+    <value>_Kopier versjonsopplysninger</value>
   </data>
   <data name="_Country policy at sign-in (empty = off)" xml:space="preserve">
     <value>Lands_policy ved pålogging (tomt = av)</value>
@@ -16384,6 +16399,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="hMailServer (tab separated)" xml:space="preserve">
     <value>hMailServer (tabulatorseparert)</value>
   </data>
+  <data name="hMailServer 6.x is built with Visual Studio 2026 (MSVC v145) and .NET 10. To the original it adds PBKDF2 and Argon2id password hashing, SCRAM-SHA-256 and OAuth2 sign-in, DANE with DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT, ACME (Let's Encrypt), Sieve and ManageSieve filtering, health checks and OpenTelemetry. This Control Panel replaces the earlier hMailServer Administrator." xml:space="preserve">
+    <value>hMailServer 6.x bygges med Visual Studio 2026 (MSVC v145) og .NET 10. Til den opprinnelige legger den PBKDF2- og Argon2id-hashing av passord, SCRAM-SHA-256- og OAuth2-pålogging, DANE med DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT, ACME (Let's Encrypt), Sieve- og ManageSieve-filtrering, helsesjekker og OpenTelemetry. Dette Control Panel erstatter den tidligere hMailServer Administrator.</value>
+  </data>
   <data name="hMailServer COM API is not registered on the target machine." xml:space="preserve">
     <value>hMailServer COM API er ikke registrert på målmaskinen.</value>
   </data>
@@ -16789,9 +16807,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="rua=mailto:{0} sends you the aggregate reports; the address is the domain's postmaster address as configured on the domain. Reports arrive from strangers, so the mailbox must exist and accept them." xml:space="preserve">
     <value>rua=mailto:{0} sender deg de aggregerte rapportene; adressen er domenets postmasteradresse slik den er konfigurert på domenet. Rapporter kommer fra fremmede, så postboksen må finnes og godta dem.</value>
-  </data>
-  <data name="rule" xml:space="preserve">
-    <value>regel</value>
   </data>
   <data name="run code when mail arrives" xml:space="preserve">
     <value>kjør kode når post ankommer</value>

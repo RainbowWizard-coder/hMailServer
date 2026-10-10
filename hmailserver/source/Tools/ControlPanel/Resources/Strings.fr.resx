@@ -198,9 +198,6 @@
   <data name="1 remote domain policy" xml:space="preserve">
     <value>1 règle de domaine distant</value>
   </data>
-  <data name="1 rule" xml:space="preserve">
-    <value>1 règle</value>
-  </data>
   <data name="1 security group" xml:space="preserve">
     <value>1 groupe de sécurité</value>
   </data>
@@ -545,9 +542,6 @@
   </data>
   <data name="A migration rather than a collection: every folder, verbatim, with its flags and dates." xml:space="preserve">
     <value>Une migration plutôt qu'une collecte : chaque dossier, à l'identique, avec ses indicateurs et ses dates.</value>
-  </data>
-  <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
-    <value>Une application d'administration moderne pour hMailServer : tableau de bord en direct, domaines et comptes, file de livraison, flux de journaux, tous les réglages du serveur et les fonctions de sécurité de transport de la 6.x (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
   </data>
   <data name="A name cannot begin or end with &quot;{0}&quot; or have two together: &quot;{0}&quot; separates a folder from its sub-folder." xml:space="preserve">
     <value>Un nom ne peut ni commencer ni finir par « {0} », ni en avoir deux à la suite : « {0} » sépare un dossier de son sous-dossier.</value>
@@ -1080,9 +1074,6 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   <data name="Add a row to a list, or go to the form that adds one" xml:space="preserve">
     <value>Ajouter une ligne à une liste, ou aller au formulaire qui en ajoute une</value>
   </data>
-  <data name="Add a rule" xml:space="preserve">
-    <value>Ajouter une règle</value>
-  </data>
   <data name="Add a security group" xml:space="preserve">
     <value>Ajouter un groupe de sécurité</value>
   </data>
@@ -1322,6 +1313,9 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   </data>
   <data name="Administer (manage ACL)" xml:space="preserve">
     <value>Administrer (gérer l'ACL)</value>
+  </data>
+  <data name="Administers an hMailServer: its domains and accounts, the delivery queue, the logs, the server's settings and its transport security." xml:space="preserve">
+    <value>Administre un hMailServer : ses domaines et comptes, la file de remise, les journaux, les paramètres du serveur et sa sécurité de transport.</value>
   </data>
   <data name="Administrative access" xml:space="preserve">
     <value>Accès administratif</value>
@@ -1861,6 +1855,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>Interroger un serveur de clés quand leur domaine n'a pas de clé</value>
   </data>
+  <data name="Ask on the forum, or report a defect on the issue tracker. Copy the version details into either: they are what anyone helping asks for first." xml:space="preserve">
+    <value>Posez votre question sur le forum, ou signalez un défaut dans le suivi des tickets. Copiez-y les détails de version : c'est ce que toute personne qui aide demande en premier.</value>
+  </data>
   <data name="Asking the service to take the backup." xml:space="preserve">
     <value>Le service est invité à faire la sauvegarde.</value>
   </data>
@@ -2337,6 +2334,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   </data>
   <data name="Bucket (S3) or container (Azure)" xml:space="preserve">
     <value>Compartiment (S3) ou conteneur (Azure)</value>
+  </data>
+  <data name="Building and packaging" xml:space="preserve">
+    <value>Compilation et empaquetage</value>
   </data>
   <data name="Builds a search index so IMAP SEARCH and the web client are faster." xml:space="preserve">
     <value>Construit un index de recherche pour accélérer IMAP SEARCH et le client web.</value>
@@ -2917,8 +2917,8 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Connected now" xml:space="preserve">
     <value>Connectés maintenant</value>
   </data>
-  <data name="Connected server: hMailServer {0} @ {1}" xml:space="preserve">
-    <value>Serveur connecté : hMailServer {0} @ {1}</value>
+  <data name="Connected to" xml:space="preserve">
+    <value>Connecté à</value>
   </data>
   <data name="Connected to a remote server: hMailServer.ini cannot be read from here, so mode and max_age shown are the shipped defaults." xml:space="preserve">
     <value>Connecté à un serveur distant : hMailServer.ini ne peut pas être lu d'ici, le mode et max_age affichés sont donc les valeurs livrées par défaut.</value>
@@ -4528,9 +4528,6 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Edit the remote domain policy" xml:space="preserve">
     <value>Modifier la règle de domaine distant</value>
   </data>
-  <data name="Edit the rule" xml:space="preserve">
-    <value>Modifier la règle</value>
-  </data>
   <data name="Edit the security group" xml:space="preserve">
     <value>Modifier le groupe de sécurité</value>
   </data>
@@ -5422,6 +5419,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
     <value>Pour les jetons obtenus en dehors de ce serveur. Laissez vide en usage normal - les jetons fixes expirent et rien ici ne les renouvellera.</value>
   </data>
+  <data name="Forum" xml:space="preserve">
+    <value>Forum</value>
+  </data>
   <data name="Forward _to" xml:space="preserve">
     <value>Transférer _à</value>
   </data>
@@ -5511,6 +5511,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   </data>
   <data name="Generated password copied to clipboard — reveal it with the eye icon." xml:space="preserve">
     <value>Mot de passe généré copié dans le presse-papiers — révélez-le avec l'icône d'œil.</value>
+  </data>
+  <data name="Get help" xml:space="preserve">
+    <value>Obtenir de l'aide</value>
   </data>
   <data name="Give at least one active domain a DKIM selector and key file, and publish that domain's DKIM TXT record - the receiving server verifies the seal against the same record DKIM signing uses." xml:space="preserve">
     <value>Donnez à au moins un domaine actif un sélecteur DKIM et un fichier de clé, et publiez l'enregistrement TXT DKIM de ce domaine - le serveur récepteur vérifie le sceau contre le même enregistrement que la signature DKIM utilise.</value>
@@ -6225,6 +6228,9 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="Issuer (empty = no single sign-on)" xml:space="preserve">
     <value>Émetteur (vide = pas d'authentification unique)</value>
   </data>
+  <data name="Issues" xml:space="preserve">
+    <value>Tickets</value>
+  </data>
   <data name="Issues and renews certificates automatically, but only if the certificate authority can fetch the http-01 challenge from this server." xml:space="preserve">
     <value>Émet et renouvelle les certificats automatiquement, mais seulement si l'autorité de certification peut récupérer le défi http-01 depuis ce serveur.</value>
   </data>
@@ -6518,6 +6524,9 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   </data>
   <data name="Levels" xml:space="preserve">
     <value>Niveaux</value>
+  </data>
+  <data name="Licence" xml:space="preserve">
+    <value>Licence</value>
   </data>
   <data name="Lift ban" xml:space="preserve">
     <value>Lever le bannissement</value>
@@ -7746,6 +7755,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   </data>
   <data name="No distribution lists for this domain." xml:space="preserve">
     <value>Aucune liste de diffusion pour ce domaine.</value>
+  </data>
+  <data name="No document contains &quot;{0}&quot;." xml:space="preserve">
+    <value>Aucun document ne contient « {0} ».</value>
   </data>
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>Aucun domaine n'a la signature DKIM activée : aucun enregistrement DNS n'est donc requis.</value>
@@ -9096,9 +9108,6 @@ Aucune nouvelle connexion ne sera acceptée et aucun courrier ne sera livré jus
   <data name="Per-account overrides of the server-wide spam handling, applied to this account's copy at delivery. They cannot reach back into the SMTP conversation: a message the global settings refuse, quarantine or greylist is stopped for every recipient before any per-account setting can run." xml:space="preserve">
     <value>Surcharges, propres au compte, du traitement du spam à l'échelle du serveur, appliquées à la copie de ce compte au moment de la livraison. Elles ne peuvent pas remonter dans la conversation SMTP : un message que les réglages globaux refusent, mettent en quarantaine ou greylistent est arrêté pour tous les destinataires avant qu'un quelconque réglage propre au compte puisse s'exécuter.</value>
   </data>
-  <data name="Per-account rules. You can add, rename, enable/disable and delete rules here; matching criteria and actions are managed on the server." xml:space="preserve">
-    <value>Règles propres au compte. Vous pouvez ajouter, renommer, activer/désactiver et supprimer des règles ici ; les critères de correspondance et les actions sont gérés sur le serveur.</value>
-  </data>
   <data name="Per-account sending limits" xml:space="preserve">
     <value>Limites d'envoi par compte</value>
   </data>
@@ -9309,8 +9318,8 @@ Aucune nouvelle connexion ne sera acceptée et aucun courrier ne sera livré jus
   <data name="Program to run when an address is banned or unbanned (empty = none)" xml:space="preserve">
     <value>Programme à exécuter quand une adresse est bannie ou débannie (vide = aucun)</value>
   </data>
-  <data name="Progressive Robot Ltd is a software engineering company that builds and modernises production software — taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling." xml:space="preserve">
-    <value>Progressive Robot Ltd est une société d'ingénierie logicielle qui construit et modernise des logiciels de production — elle prend des systèmes matures, éprouvés en conditions réelles, et les amène aux standards actuels de sécurité, de fiabilité et d'outillage.</value>
+  <data name="Progressive Robot Ltd is a software engineering company. It maintains the hMailServer 6.x line, an independent fork of the open-source mail server." xml:space="preserve">
+    <value>Progressive Robot Ltd est une société d'ingénierie logicielle. Elle maintient la lignée hMailServer 6.x, un fork indépendant du serveur de messagerie open source.</value>
   </data>
   <data name="Prometheus metrics (/metrics), OpenTelemetry export of traces, metrics and logs (one endpoint per signal, each off until set), a slow-query log, and JSON-structured log output for log aggregators (on the Logging page)." xml:space="preserve">
     <value>Métriques Prometheus (/metrics), export OpenTelemetry des traces, des métriques et des journaux (un point d'accès par signal, chacun désactivé tant qu'il n'est pas défini), un journal des requêtes lentes, et une sortie de journal structurée en JSON pour les agrégateurs de journaux (sur la page Journalisation).</value>
@@ -9771,6 +9780,9 @@ Exécutez ceci si des clients signalent des messages apparaissant sous le mauvai
   </data>
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>Réduisez le niveau de journalisation, ou définissez combien de jours de journaux sont conservés.</value>
+  </data>
+  <data name="Reference" xml:space="preserve">
+    <value>Référence</value>
   </data>
   <data name="Refresh a list, or reload a settings page" xml:space="preserve">
     <value>Rafraîchir une liste ou recharger une page de réglages</value>
@@ -10479,9 +10491,6 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Rule loop limit" xml:space="preserve">
     <value>Limite de boucle des règles</value>
   </data>
-  <data name="Rule name" xml:space="preserve">
-    <value>Nom de la règle</value>
-  </data>
   <data name="Rule operation failed: {0}" xml:space="preserve">
     <value>Échec de l'opération sur la règle : {0}</value>
   </data>
@@ -11042,6 +11051,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   </data>
   <data name="Search accounts" xml:space="preserve">
     <value>Rechercher des comptes</value>
+  </data>
+  <data name="Search all documentation" xml:space="preserve">
+    <value>Rechercher dans toute la documentation</value>
   </data>
   <data name="Search bas_e" xml:space="preserve">
     <value>_Base de recherche</value>
@@ -11940,6 +11952,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Source" xml:space="preserve">
     <value>Source</value>
   </data>
+  <data name="Source code" xml:space="preserve">
+    <value>Code source</value>
+  </data>
   <data name="Space" xml:space="preserve">
     <value>Espace</value>
   </data>
@@ -12479,6 +12494,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   </data>
   <data name="The Control Panel is connected to another host, so the account its service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>Le Control Panel est connecté à un autre hôte, le compte sous lequel son service s'exécute ne peut donc pas être lu d'ici. Ouvrez le Control Panel sur le serveur lui-même pour le voir.</value>
+  </data>
+  <data name="The Control Panel's and the server's versions, the build, .NET, Windows and the database, for a report." xml:space="preserve">
+    <value>Les versions de Control Panel et du serveur, le build, .NET, Windows et la base de données, pour un signalement.</value>
   </data>
   <data name="The DMARC aggregate and TLS-RPT reports other servers send about your domains, read from each domain's report mailbox - which is set in the domain's dialog." xml:space="preserve">
     <value>Les rapports DMARC agrégés et TLS-RPT que d'autres serveurs envoient au sujet de vos domaines, lus dans la boîte de rapports de chaque domaine - qui se règle dans la fenêtre du domaine.</value>
@@ -13158,9 +13176,6 @@ n'a pas pu être chargé. Le message a probablement été livré et n'est plus d
   </data>
   <data name="The guided path: which half, which log lines, and the setting that bounds each stage." xml:space="preserve">
     <value>Le parcours guidé : quelle moitié, quelles lignes de journal, et le réglage qui borne chaque étape.</value>
-  </data>
-  <data name="The hMailServer 6.x line is one such effort. The original open-source mail server has been rebuilt on a current toolchain (Visual Studio 2026 / MSVC v145 and .NET 10), re-armed with modern cryptography (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) and the transport-security standards expected of a mail server today (DANE + DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT and ACME / Let's Encrypt). It has been hardened against protocol and denial-of-service defects, given Sieve / ManageSieve filtering, health and OpenTelemetry observability, broad MySQL / MariaDB / MS SQL / PostgreSQL support, and this modern Fluent-design Control Panel in place of the legacy administrator." xml:space="preserve">
-    <value>La lignée hMailServer 6.x est l'un de ces efforts. Le serveur de messagerie open source d'origine a été reconstruit sur une chaîne d'outils actuelle (Visual Studio 2026 / MSVC v145 et .NET 10), réarmé avec de la cryptographie moderne (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) et les standards de sécurité de transport attendus aujourd'hui d'un serveur de messagerie (DANE + DNSSEC, MTA-STS, ARC, DKIM Ed25519, TLS-RPT et ACME / Let's Encrypt). Il a été durci contre les défauts de protocole et de déni de service, doté du filtrage Sieve / ManageSieve, d'une observabilité de santé et OpenTelemetry, d'une prise en charge étendue de MySQL / MariaDB / MS SQL / PostgreSQL, et de ce Control Panel moderne en design Fluent à la place de l'administrateur historique.</value>
   </data>
   <data name="The highest total reachable cannot be said: a check could not be read." xml:space="preserve">
     <value>Le total le plus élevé atteignable ne peut pas être indiqué : une vérification n'a pas pu être lue.</value>
@@ -13948,6 +13963,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="The verification code is incorrect. Make sure your authenticator app is set up with the new key." xml:space="preserve">
     <value>Le code de vérification est incorrect. Assurez-vous que votre application d'authentification est configurée avec la nouvelle clé.</value>
   </data>
+  <data name="The version details are on the clipboard." xml:space="preserve">
+    <value>Les détails de version sont dans le presse-papiers.</value>
+  </data>
   <data name="The version to go back to" xml:space="preserve">
     <value>La version vers laquelle revenir</value>
   </data>
@@ -14076,9 +14094,6 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="This account has no photo." xml:space="preserve">
     <value>Ce compte n'a pas de photo.</value>
-  </data>
-  <data name="This account has no rules of its own; the server's rules still apply." xml:space="preserve">
-    <value>Ce compte n'a aucune règle propre ; les règles du serveur s'appliquent toujours.</value>
   </data>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>Cette action n'a pas de paramètres supplémentaires.</value>
@@ -14658,9 +14673,6 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="Version and updates" xml:space="preserve">
     <value>Version et mises à jour</value>
-  </data>
-  <data name="Version {0}  -  .NET {1}" xml:space="preserve">
-    <value>Version {0}  -  .NET {1}</value>
   </data>
   <data name="Version, build and licence information." xml:space="preserve">
     <value>Informations de version, de build et de licence.</value>
@@ -15471,6 +15483,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="_Copy results" xml:space="preserve">
     <value>_Copier les résultats</value>
+  </data>
+  <data name="_Copy version details" xml:space="preserve">
+    <value>_Copier les détails de version</value>
   </data>
   <data name="_Country policy at sign-in (empty = off)" xml:space="preserve">
     <value>Politique de _pays à la connexion (vide = désactivée)</value>
@@ -16384,6 +16399,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="hMailServer (tab separated)" xml:space="preserve">
     <value>hMailServer (séparé par des tabulations)</value>
   </data>
+  <data name="hMailServer 6.x is built with Visual Studio 2026 (MSVC v145) and .NET 10. To the original it adds PBKDF2 and Argon2id password hashing, SCRAM-SHA-256 and OAuth2 sign-in, DANE with DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT, ACME (Let's Encrypt), Sieve and ManageSieve filtering, health checks and OpenTelemetry. This Control Panel replaces the earlier hMailServer Administrator." xml:space="preserve">
+    <value>hMailServer 6.x est compilé avec Visual Studio 2026 (MSVC v145) et .NET 10. À l'original, il ajoute le hachage des mots de passe PBKDF2 et Argon2id, la connexion SCRAM-SHA-256 et OAuth2, DANE avec DNSSEC, MTA-STS, ARC, DKIM Ed25519, TLS-RPT, ACME (Let's Encrypt), le filtrage Sieve et ManageSieve, des contrôles de santé et OpenTelemetry. Ce Control Panel remplace l'ancien hMailServer Administrator.</value>
+  </data>
   <data name="hMailServer COM API is not registered on the target machine." xml:space="preserve">
     <value>L'API COM hMailServer n'est pas enregistrée sur la machine cible.</value>
   </data>
@@ -16789,9 +16807,6 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="rua=mailto:{0} sends you the aggregate reports; the address is the domain's postmaster address as configured on the domain. Reports arrive from strangers, so the mailbox must exist and accept them." xml:space="preserve">
     <value>rua=mailto:{0} vous envoie les rapports agrégés ; l'adresse est l'adresse postmaster du domaine telle qu'elle est configurée sur le domaine. Les rapports arrivent d'inconnus, la boîte doit donc exister et les accepter.</value>
-  </data>
-  <data name="rule" xml:space="preserve">
-    <value>règle</value>
   </data>
   <data name="run code when mail arrives" xml:space="preserve">
     <value>exécuter du code quand du courrier arrive</value>

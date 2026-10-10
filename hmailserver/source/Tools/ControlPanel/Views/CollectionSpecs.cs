@@ -647,36 +647,6 @@ namespace hMailServer.ControlPanel.Views
             new FieldSpec { Prop = "MirrorFolders", Label = L("Mirror every folder (IMAP only)"), Hint = L("A migration rather than a collection: every folder, verbatim, with its flags and dates."), Kind = FieldKind.Bool, ShowInGrid = false, Default = false }
          }
       }, embedded: true, onDialogTab: true);
-
-      /// <summary>Account-level rules (enable/disable and delete; criteria/actions are not edited here).</summary>
-      public static CollectionEditorView AccountRules(string domainName, string address) => new(new CollectionSpec
-      {
-         Title = L("Rules"),
-         Subtitle = L("Per-account rules. You can add, rename, enable/disable and delete rules here; matching criteria and actions are managed on the server."),
-         SavesAsMadeInDialog = true,
-         ItemNoun = L("rule"),
-         AddTitle = N("Add a rule"),
-         EditTitle = N("Edit the rule"),
-         CountOne = N("1 rule"),
-         CountMany = N("{0} rules"),
-         DeletePrompt = N("Delete the rule {0}?"),
-         DeleteNameProps = new[] { "Name" }, // no-loc: the properties that name an entry
-         EmptyText = L("This account has no rules of its own; the server's rules still apply."),
-         GetCollection = () =>
-         {
-            dynamic account = OpenAccount(domainName, address);
-            dynamic rules = account.Rules;
-            ServerSession.Release(account);
-            return rules;
-         },
-         // Add rule opens on the name, the Active box after it.
-         TickBoxesLast = true,
-         Fields =
-         {
-            new FieldSpec { Prop = "Active", Label = L("Active"), Kind = FieldKind.Bool, GridWidth = 70, Default = true },
-            new FieldSpec { Prop = "Name", Label = L("Rule name"), Default = "" }
-         }
-      }, embedded: true, onDialogTab: true);
    }
 
    /// <summary>

@@ -133,7 +133,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          string specs = ReadSource("CollectionSpecs.cs");
          string dialog = ReadSource("FieldDialog.cs");
 
-         foreach (string factory in new[] { "SurblServers()", "DnsBlackLists()", "AccountRules(" })
+         foreach (string factory in new[] { "SurblServers()", "DnsBlackLists()" })
             Assert.Contains("TickBoxesLast = true", Spec(specs, factory), StringComparison.Ordinal);
 
          foreach ((string factory, string box) in new[] { ("FetchAccounts(", "Enabled"), ("RemoteDomains()", "Active") })

@@ -542,7 +542,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal(dark.Hover.ToString("X8"), DeclaredColour(tokensXaml, "AppLinkHoverBrush"));
 
          // The links themselves set no colour that would outrank the style.
-         foreach (string file in new[] { Path.Join("Views", "AboutView.cs"), Path.Join("Views", "HelpPane.cs"), Path.Join("Services", "MarkdownFlow.cs") })
+         foreach (string file in new[] { Path.Join("Views", "AboutView.cs"), Path.Join("Views", "HelpPane.List.cs"), Path.Join("Services", "MarkdownFlow.cs") })
          {
             string source = ReadControlPanelFile(file);
             Assert.True(source != null && source.Contains("Hyperlink", StringComparison.Ordinal), file + " no longer builds a link.");

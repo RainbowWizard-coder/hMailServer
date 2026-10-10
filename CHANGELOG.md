@@ -3331,6 +3331,23 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   name once it is read, "IP range - Internet", as a TCP/IP port's is, where it said "IP range" for every range (F293).
   `FilePickerCopyTests`, `NearDuplicateTextTests` and `DialogHeadingTests` hold it.
 
+- **Fixed: About promised support it did not give, the help pane listed every document in one run, and the design
+  document's frame was out of date.** About opens on Get help - the forum, the issue tracker, the source code and Copy
+  version details, which puts the Control Panel's version and build, the server's version and host, the database, .NET
+  and Windows on the clipboard, in English, for a report - then the versions as a label and a value a line with the
+  licence, then who maintains it, the name in ordinary strong text; it promised "where to get support" with no forum,
+  no issue tracker and nothing to copy, set the developer's name larger than the product's, and read as a brochure ("A
+  modern administration app", "re-armed with modern cryptography"), where its words now say what is so (review finding
+  F314, and the owner's choice of 9 October 2026). The help pane's list of every document is grouped as the sidebar is
+  - under each group the documents its pages and their tabs open - then Reference and Building and packaging, each by
+  title, where some 120 documents stood in one run with ContinuousIntegration, Fuzzing and Nix among the operators'
+  guides; while the list shows, its search box says Search all documentation and narrows the list to the documents
+  whose title or text holds the words, Enter opening the first, where it said Search this document and searched the
+  list's own words; and Back, at the head of the pane, returns to what a link in it left. docs/ControlPanelDesign.md's
+  frame describes the window's four rows, the help pane and the pending bar, and names the two renamed groups by their
+  old names and their new ones, and the account-rules list editor nothing built, whose subtitle said a rule's criteria
+  could not be edited here, is gone with its seven texts (F315). `AboutPageTests` and `HelpDocumentListTests` hold it.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

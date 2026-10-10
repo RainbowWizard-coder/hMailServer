@@ -31,11 +31,12 @@ namespace hMailServer.ControlPanel.Views
    /// by <see cref="MarkdownFlow"/> into a FlowDocumentScrollViewer, scrolled
    /// to the heading, with the document's other headings as a list at the
    /// top, a search box over the open document, and two links at the foot:
-   /// the wiki's copy of the page, and every document by its title. The shell
-   /// (MainWindow) owns the pane's column, its width and whether it is open,
-   /// and tells it the page as the navigation changes.
+   /// the wiki's copy of the page, and every document by its title, grouped as
+   /// the sidebar is, with Back to what a link in the pane left (HelpPane.List.cs).
+   /// The shell (MainWindow) owns the pane's column, its width and whether it is
+   /// open, and tells it the page as the navigation changes.
    /// </summary>
-   public class HelpPane : UserControl
+   public partial class HelpPane : UserControl
    {
       private readonly TextBlock title_ = new TextBlock { FontSize = Typography.Body, FontWeight = FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center };
       private readonly TextBox search_ = new TextBox { FontSize = Typography.Control, ClearButtonEnabled = true, Margin = new Thickness(0, 8, 0, 8) };
@@ -89,14 +90,18 @@ namespace hMailServer.ControlPanel.Views
          root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
          root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
-         // The head: the document's title, and the close button.
+         // The head: Back while a link in the pane has shown something else, the
+         // document's title, and the close button.
          var head = new Grid();
+         head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
          head.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
          head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+         head.Children.Add(BuildBackButton_());
          title_.Text = L("Help");
          title_.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorPrimaryBrush");
          AutomationProperties.SetAutomationId(title_, "help-title");
          AutomationProperties.SetHeadingLevel(title_, AutomationHeadingLevel.Level2);
+         Grid.SetColumn(title_, 1);
          head.Children.Add(title_);
          closeButton_ = new Button
          {
@@ -108,21 +113,22 @@ namespace hMailServer.ControlPanel.Views
          AutomationProperties.SetName(closeButton_, L("Close the help"));
          AutomationProperties.SetAutomationId(closeButton_, "help-close");
          closeButton_.Click += (s, e) => CloseRequested?.Invoke(this, EventArgs.Empty);
-         Grid.SetColumn(closeButton_, 1);
+         Grid.SetColumn(closeButton_, 2);
          head.Children.Add(closeButton_);
          root.Children.Add(head);
 
          // The search over the open document: typing finds the first match,
-         // Enter the next, round again from the top.
-         search_.PlaceholderText = L("Search this document");
-         AutomationProperties.SetName(search_, L("Search this document"));
+         // Enter the next, round again from the top. While the list of every
+         // document shows it searches all of them, Enter opening the first it
+         // lists (HelpPane.List.cs).
+         SearchLabel_();
          AutomationProperties.SetAutomationId(search_, "help-search");
-         search_.TextChanged += (s, e) => Find_(false);
+         search_.TextChanged += (s, e) => SearchChanged_();
          search_.KeyDown += (s, e) =>
          {
             if (e.Key == Key.Enter)
             {
-               Find_(true);
+               SearchEnter_();
                e.Handled = true;
             }
          };
@@ -160,7 +166,7 @@ namespace hMailServer.ControlPanel.Views
          foot.Children.Add(wikiButton_);
          allButton_ = new Button { Content = L("_All documentation"), Appearance = ControlAppearance.Secondary };
          AutomationProperties.SetAutomationId(allButton_, "help-all");
-         allButton_.Click += (s, e) => ShowAll();
+         allButton_.Click += (s, e) => GoTo_(ShowAll);
          foot.Children.Add(allButton_);
          Grid.SetRow(foot, 4);
          root.Children.Add(foot);
@@ -183,6 +189,7 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       public void ShowPage(string navigationKey, string tab)
       {
+         ForgetHistory_();
          HelpTarget target = HelpMap.For(navigationKey, tab);
          if (target == null)
          {
@@ -211,6 +218,7 @@ namespace hMailServer.ControlPanel.Views
 
          NavNode page = NavigationMap.Find(navigationKey);
          shown_ = null;
+         SearchLabel_();
          noGuideFor_ = navigationKey;
          headings_.Children.Clear();
          headingBlocks_ = new Dictionary<string, Block>();
@@ -218,12 +226,7 @@ namespace hMailServer.ControlPanel.Views
          title_.Text = page == null ? L("Help") : L(page.Title);
          UpdateWikiLink_();
 
-         var intro = new List<Block>();
-         if (page != null && !string.IsNullOrEmpty(page.Purpose))
-            intro.Add(new Paragraph(new Run(L(page.Purpose))) { Margin = new Thickness(0, 0, 0, 8) });
-         var none = new Paragraph(new Run(L("No guide covers this page yet. Every document is listed below."))) { Margin = new Thickness(0, 0, 0, 14) };
-         none.SetResourceReference(TextElement.ForegroundProperty, "TextFillColorSecondaryBrush");
-         intro.Add(none);
+         List<Block> intro = NoGuideIntro_(page);
          ShowFromTheTop_(DocumentList_(intro));
       }
 
@@ -240,6 +243,7 @@ namespace hMailServer.ControlPanel.Views
          if (spelled == null)
          {
             shown_ = null;
+            SearchLabel_();
             headings_.Children.Clear();
             headingBlocks_ = new Dictionary<string, Block>();
             title_.Text = name ?? "";
@@ -252,10 +256,11 @@ namespace hMailServer.ControlPanel.Views
          {
             string text = HelpPages.Read(spelled) ?? "";
             IReadOnlyList<MdBlock> blocks = MarkdownBlocks.Parse(text);
-            MarkdownFlow.Built built = MarkdownFlow.Build(blocks, (doc, fragment) => ShowDocument(doc, HeadingForFragment_(doc, fragment)));
+            MarkdownFlow.Built built = MarkdownFlow.Build(blocks, (doc, fragment) => GoTo_(() => ShowDocument(doc, HeadingForFragment_(doc, fragment))));
             headingBlocks_ = built.Headings;
             ShowFromTheTop_(built.Document);
             shown_ = spelled;
+            SearchLabel_();
             search_.Text = "";
 
             IReadOnlyList<MdHeading> list = MarkdownBlocks.Headings(text);
@@ -277,6 +282,7 @@ namespace hMailServer.ControlPanel.Views
       public void ShowAll()
       {
          shown_ = null;
+         SearchLabel_();
          noGuideFor_ = null;
          headings_.Children.Clear();
          headingBlocks_ = new Dictionary<string, Block>();
@@ -288,7 +294,9 @@ namespace hMailServer.ControlPanel.Views
 
       /// <summary>
       /// A document listing every document by its title and file name, each title
-      /// a link that opens it here, after the <paramref name="before"/> blocks.
+      /// a link that opens it here, after the <paramref name="before"/> blocks:
+      /// under the sidebar's groups, then Reference and Building and packaging,
+      /// and only the documents the search holds (AddDocumentSections_).
       /// </summary>
       private FlowDocument DocumentList_(IEnumerable<Block> before)
       {
@@ -298,19 +306,7 @@ namespace hMailServer.ControlPanel.Views
          document.SetResourceReference(FlowDocument.ForegroundProperty, "TextFillColorPrimaryBrush");
          foreach (Block block in before ?? Array.Empty<Block>())
             document.Blocks.Add(block);
-         foreach (string name in HelpPages.Names)
-         {
-            var link = new Hyperlink(new Run(HelpPages.TitleOf(name))) { ToolTip = name + ".md" };
-            string opened = name;
-            link.Click += (s, e) => ShowDocument(opened, null);
-            var paragraph = new Paragraph { Margin = new Thickness(0, 0, 0, 6) };
-            paragraph.Inlines.Add(link);
-            paragraph.Inlines.Add(new LineBreak());
-            var file = new Run(name + ".md") { FontSize = Typography.Caption };
-            file.SetResourceReference(TextElement.ForegroundProperty, "TextFillColorTertiaryBrush");
-            paragraph.Inlines.Add(file);
-            document.Blocks.Add(paragraph);
-         }
+         AddDocumentSections_(document);
          return document;
       }
 

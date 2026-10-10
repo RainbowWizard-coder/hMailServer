@@ -198,9 +198,6 @@
   <data name="1 remote domain policy" xml:space="preserve">
     <value>1 条远程域策略</value>
   </data>
-  <data name="1 rule" xml:space="preserve">
-    <value>1 条规则</value>
-  </data>
   <data name="1 security group" xml:space="preserve">
     <value>1 个安全组</value>
   </data>
@@ -545,9 +542,6 @@
   </data>
   <data name="A migration rather than a collection: every folder, verbatim, with its flags and dates." xml:space="preserve">
     <value>这是迁移而非收取：逐字迁移每个文件夹，包括其标记和日期。</value>
-  </data>
-  <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
-    <value>面向 hMailServer 的现代管理应用：实时仪表板、域与账户、投递队列、日志流、完整的服务器设置，以及 6.x 的传输安全功能（DANE、MTA-STS、ARC、TLS-RPT、ACME）。</value>
   </data>
   <data name="A name cannot begin or end with &quot;{0}&quot; or have two together: &quot;{0}&quot; separates a folder from its sub-folder." xml:space="preserve">
     <value>名称不能以“{0}”开头或结尾，也不能连续出现两个“{0}”：“{0}”用于分隔文件夹与其子文件夹。</value>
@@ -1080,9 +1074,6 @@
   <data name="Add a row to a list, or go to the form that adds one" xml:space="preserve">
     <value>向列表添加一行，或转到添加行的表单</value>
   </data>
-  <data name="Add a rule" xml:space="preserve">
-    <value>添加规则</value>
-  </data>
   <data name="Add a security group" xml:space="preserve">
     <value>添加安全组</value>
   </data>
@@ -1322,6 +1313,9 @@
   </data>
   <data name="Administer (manage ACL)" xml:space="preserve">
     <value>管理（管理 ACL）</value>
+  </data>
+  <data name="Administers an hMailServer: its domains and accounts, the delivery queue, the logs, the server's settings and its transport security." xml:space="preserve">
+    <value>管理 hMailServer：其域和账户、投递队列、日志、服务器设置及其传输安全。</value>
   </data>
   <data name="Administrative access" xml:space="preserve">
     <value>管理访问权限</value>
@@ -1861,6 +1855,9 @@
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>当对方的域没有密钥时询问密钥服务器</value>
   </data>
+  <data name="Ask on the forum, or report a defect on the issue tracker. Copy the version details into either: they are what anyone helping asks for first." xml:space="preserve">
+    <value>可以在论坛提问，或在问题跟踪器中报告缺陷。请把版本详细信息复制进去：这是任何提供帮助的人首先会问的。</value>
+  </data>
   <data name="Asking the service to take the backup." xml:space="preserve">
     <value>正在请求服务进行备份。</value>
   </data>
@@ -2337,6 +2334,9 @@
   </data>
   <data name="Bucket (S3) or container (Azure)" xml:space="preserve">
     <value>存储桶（S3）或容器（Azure）</value>
+  </data>
+  <data name="Building and packaging" xml:space="preserve">
+    <value>构建与打包</value>
   </data>
   <data name="Builds a search index so IMAP SEARCH and the web client are faster." xml:space="preserve">
     <value>建立搜索索引，让 IMAP SEARCH 和 Web 客户端更快。</value>
@@ -2917,8 +2917,8 @@
   <data name="Connected now" xml:space="preserve">
     <value>当前连接</value>
   </data>
-  <data name="Connected server: hMailServer {0} @ {1}" xml:space="preserve">
-    <value>已连接的服务器：hMailServer {0} @ {1}</value>
+  <data name="Connected to" xml:space="preserve">
+    <value>已连接到</value>
   </data>
   <data name="Connected to a remote server: hMailServer.ini cannot be read from here, so mode and max_age shown are the shipped defaults." xml:space="preserve">
     <value>已连接到远程服务器：无法从此处读取 hMailServer.ini，因此显示的 mode 和 max_age 是出厂默认值。</value>
@@ -4528,9 +4528,6 @@
   <data name="Edit the remote domain policy" xml:space="preserve">
     <value>编辑远程域策略</value>
   </data>
-  <data name="Edit the rule" xml:space="preserve">
-    <value>编辑规则</value>
-  </data>
   <data name="Edit the security group" xml:space="preserve">
     <value>编辑安全组</value>
   </data>
@@ -5422,6 +5419,9 @@
   <data name="For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
     <value>用于在本服务器之外获取的令牌。正常使用时请留空 - 固定令牌会过期，而此处不会刷新它们。</value>
   </data>
+  <data name="Forum" xml:space="preserve">
+    <value>论坛</value>
+  </data>
   <data name="Forward _to" xml:space="preserve">
     <value>转发到(_T)</value>
   </data>
@@ -5511,6 +5511,9 @@
   </data>
   <data name="Generated password copied to clipboard — reveal it with the eye icon." xml:space="preserve">
     <value>已生成的密码已复制到剪贴板 — 用眼睛图标可显示它。</value>
+  </data>
+  <data name="Get help" xml:space="preserve">
+    <value>获取帮助</value>
   </data>
   <data name="Give at least one active domain a DKIM selector and key file, and publish that domain's DKIM TXT record - the receiving server verifies the seal against the same record DKIM signing uses." xml:space="preserve">
     <value>至少为一个活动域设置 DKIM 选择器和密钥文件，并发布该域的 DKIM TXT 记录 - 接收服务器会用 DKIM 签名所用的同一条记录来验证签封。</value>
@@ -6225,6 +6228,9 @@
   <data name="Issuer (empty = no single sign-on)" xml:space="preserve">
     <value>颁发者（空 = 不使用单点登录）</value>
   </data>
+  <data name="Issues" xml:space="preserve">
+    <value>问题</value>
+  </data>
   <data name="Issues and renews certificates automatically, but only if the certificate authority can fetch the http-01 challenge from this server." xml:space="preserve">
     <value>自动颁发和续期证书，但前提是证书颁发机构能够从本服务器获取 http-01 质询。</value>
   </data>
@@ -6518,6 +6524,9 @@
   </data>
   <data name="Levels" xml:space="preserve">
     <value>级别</value>
+  </data>
+  <data name="Licence" xml:space="preserve">
+    <value>许可证</value>
   </data>
   <data name="Lift ban" xml:space="preserve">
     <value>解除封禁</value>
@@ -7746,6 +7755,9 @@
   </data>
   <data name="No distribution lists for this domain." xml:space="preserve">
     <value>此域没有分发列表。</value>
+  </data>
+  <data name="No document contains &quot;{0}&quot;." xml:space="preserve">
+    <value>没有文档包含“{0}”。</value>
   </data>
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>没有任何域打开了 DKIM 签名，因此不需要 DNS 记录。</value>
@@ -9096,9 +9108,6 @@
   <data name="Per-account overrides of the server-wide spam handling, applied to this account's copy at delivery. They cannot reach back into the SMTP conversation: a message the global settings refuse, quarantine or greylist is stopped for every recipient before any per-account setting can run." xml:space="preserve">
     <value>对服务器范围垃圾邮件处理的按账户覆盖，在投递时应用于此账户的副本。它们无法回溯到 SMTP 会话：被全局设置拒绝、隔离或灰名单化的邮件，在任何按账户设置能运行之前，就已经对每个收件人都被拦下了。</value>
   </data>
-  <data name="Per-account rules. You can add, rename, enable/disable and delete rules here; matching criteria and actions are managed on the server." xml:space="preserve">
-    <value>按账户的规则。您可以在此处添加、重命名、启用/禁用和删除规则；匹配条件和操作在服务器上管理。</value>
-  </data>
   <data name="Per-account sending limits" xml:space="preserve">
     <value>按账户的发送限制</value>
   </data>
@@ -9309,8 +9318,8 @@
   <data name="Program to run when an address is banned or unbanned (empty = none)" xml:space="preserve">
     <value>封禁或解封地址时运行的程序（留空 = 无）</value>
   </data>
-  <data name="Progressive Robot Ltd is a software engineering company that builds and modernises production software — taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling." xml:space="preserve">
-    <value>Progressive Robot Ltd 是一家构建并现代化生产软件的软件工程公司 — 接手成熟的、真实世界中的系统，并把它们提升到当前的安全、可靠性和工具链标准。</value>
+  <data name="Progressive Robot Ltd is a software engineering company. It maintains the hMailServer 6.x line, an independent fork of the open-source mail server." xml:space="preserve">
+    <value>Progressive Robot Ltd 是一家软件工程公司。它维护 hMailServer 6.x 系列，这是该开源邮件服务器的一个独立分支。</value>
   </data>
   <data name="Prometheus metrics (/metrics), OpenTelemetry export of traces, metrics and logs (one endpoint per signal, each off until set), a slow-query log, and JSON-structured log output for log aggregators (on the Logging page)." xml:space="preserve">
     <value>Prometheus 指标（/metrics）、跟踪、指标和日志的 OpenTelemetry 导出（每种信号一个端点，各自在设置之前都关闭）、慢查询日志，以及供日志聚合器使用的 JSON 结构化日志输出（在“日志记录”页）。</value>
@@ -9771,6 +9780,9 @@
   </data>
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>降低日志级别，或者设置日志保留的天数。</value>
+  </data>
+  <data name="Reference" xml:space="preserve">
+    <value>参考</value>
   </data>
   <data name="Refresh a list, or reload a settings page" xml:space="preserve">
     <value>刷新列表，或重新加载设置页面</value>
@@ -10479,9 +10491,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Rule loop limit" xml:space="preserve">
     <value>规则循环上限</value>
   </data>
-  <data name="Rule name" xml:space="preserve">
-    <value>规则名称</value>
-  </data>
   <data name="Rule operation failed: {0}" xml:space="preserve">
     <value>规则操作失败：{0}</value>
   </data>
@@ -11042,6 +11051,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Search accounts" xml:space="preserve">
     <value>搜索账户</value>
+  </data>
+  <data name="Search all documentation" xml:space="preserve">
+    <value>搜索所有文档</value>
   </data>
   <data name="Search bas_e" xml:space="preserve">
     <value>搜索基准(_E)</value>
@@ -11940,6 +11952,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Source" xml:space="preserve">
     <value>来源</value>
   </data>
+  <data name="Source code" xml:space="preserve">
+    <value>源代码</value>
+  </data>
   <data name="Space" xml:space="preserve">
     <value>空格键</value>
   </data>
@@ -12479,6 +12494,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The Control Panel is connected to another host, so the account its service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>控制面板连接的是另一台主机，因此无法从此处读取该主机的服务所运行的账户。请在服务器本身上打开控制面板查看。</value>
+  </data>
+  <data name="The Control Panel's and the server's versions, the build, .NET, Windows and the database, for a report." xml:space="preserve">
+    <value>用于报告的控制面板和服务器版本、构建、.NET、Windows 以及数据库。</value>
   </data>
   <data name="The DMARC aggregate and TLS-RPT reports other servers send about your domains, read from each domain's report mailbox - which is set in the domain's dialog." xml:space="preserve">
     <value>其他服务器发来的关于你的域的 DMARC 汇总报告和 TLS-RPT 报告，从每个域的报告邮箱读取，该邮箱在域的对话框中设置。</value>
@@ -13158,9 +13176,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The guided path: which half, which log lines, and the setting that bounds each stage." xml:space="preserve">
     <value>引导式路径: 是哪一半、哪些日志行，以及限制每个阶段的设置。</value>
-  </data>
-  <data name="The hMailServer 6.x line is one such effort. The original open-source mail server has been rebuilt on a current toolchain (Visual Studio 2026 / MSVC v145 and .NET 10), re-armed with modern cryptography (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) and the transport-security standards expected of a mail server today (DANE + DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT and ACME / Let's Encrypt). It has been hardened against protocol and denial-of-service defects, given Sieve / ManageSieve filtering, health and OpenTelemetry observability, broad MySQL / MariaDB / MS SQL / PostgreSQL support, and this modern Fluent-design Control Panel in place of the legacy administrator." xml:space="preserve">
-    <value>hMailServer 6.x 系列就是这样一项努力。这个原始的开源邮件服务器已在当前工具链 (Visual Studio 2026 / MSVC v145 和 .NET 10) 上重建，重新配备了现代密码学 (PBKDF2 / Argon2id、SCRAM-SHA-256、OAuth2) 以及当今邮件服务器所应具备的传输安全标准 (DANE + DNSSEC、MTA-STS、ARC、Ed25519 DKIM、TLS-RPT 和 ACME / Let's Encrypt)。它针对协议和拒绝服务缺陷进行了加固，加入了 Sieve / ManageSieve 过滤、健康检查和 OpenTelemetry 可观测性、对 MySQL / MariaDB / MS SQL / PostgreSQL 的广泛支持，以及这个取代旧版管理器的 Fluent 设计的现代控制面板。</value>
   </data>
   <data name="The highest total reachable cannot be said: a check could not be read." xml:space="preserve">
     <value>无法判断可达到的最高总分：有一项检查无法读取。</value>
@@ -13948,6 +13963,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The verification code is incorrect. Make sure your authenticator app is set up with the new key." xml:space="preserve">
     <value>验证码不正确。请确保您的身份验证器应用已用新密钥设置好。</value>
   </data>
+  <data name="The version details are on the clipboard." xml:space="preserve">
+    <value>版本详细信息已复制到剪贴板。</value>
+  </data>
   <data name="The version to go back to" xml:space="preserve">
     <value>要恢复到的版本</value>
   </data>
@@ -14076,9 +14094,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="This account has no photo." xml:space="preserve">
     <value>此帐户没有照片。</value>
-  </data>
-  <data name="This account has no rules of its own; the server's rules still apply." xml:space="preserve">
-    <value>此账户没有自己的规则；服务器的规则仍然适用。</value>
   </data>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>此操作没有额外参数。</value>
@@ -14658,9 +14673,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Version and updates" xml:space="preserve">
     <value>版本和更新</value>
-  </data>
-  <data name="Version {0}  -  .NET {1}" xml:space="preserve">
-    <value>版本 {0}  -  .NET {1}</value>
   </data>
   <data name="Version, build and licence information." xml:space="preserve">
     <value>版本、构建和许可证信息。</value>
@@ -15471,6 +15483,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="_Copy results" xml:space="preserve">
     <value>复制结果(_C)</value>
+  </data>
+  <data name="_Copy version details" xml:space="preserve">
+    <value>复制版本详细信息(_C)</value>
   </data>
   <data name="_Country policy at sign-in (empty = off)" xml:space="preserve">
     <value>登录时的国家策略（空 = 关闭）(_C)</value>
@@ -16384,6 +16399,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="hMailServer (tab separated)" xml:space="preserve">
     <value>hMailServer（制表符分隔）</value>
   </data>
+  <data name="hMailServer 6.x is built with Visual Studio 2026 (MSVC v145) and .NET 10. To the original it adds PBKDF2 and Argon2id password hashing, SCRAM-SHA-256 and OAuth2 sign-in, DANE with DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT, ACME (Let's Encrypt), Sieve and ManageSieve filtering, health checks and OpenTelemetry. This Control Panel replaces the earlier hMailServer Administrator." xml:space="preserve">
+    <value>hMailServer 6.x 使用 Visual Studio 2026 (MSVC v145) 和 .NET 10 构建。在原版基础上，它增加了 PBKDF2 和 Argon2id 密码哈希、SCRAM-SHA-256 和 OAuth2 登录、DANE 与 DNSSEC、MTA-STS、ARC、Ed25519 DKIM、TLS-RPT、ACME (Let's Encrypt)、Sieve 和 ManageSieve 过滤、健康检查和 OpenTelemetry。此控制面板取代了早先的 hMailServer Administrator。</value>
+  </data>
   <data name="hMailServer COM API is not registered on the target machine." xml:space="preserve">
     <value>目标计算机上未注册 hMailServer COM API。</value>
   </data>
@@ -16789,9 +16807,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="rua=mailto:{0} sends you the aggregate reports; the address is the domain's postmaster address as configured on the domain. Reports arrive from strangers, so the mailbox must exist and accept them." xml:space="preserve">
     <value>rua=mailto:{0} 会把汇总报告发给您；该地址就是域上所配置的 postmaster 地址。报告来自陌生人，因此该邮箱必须存在并接受它们。</value>
-  </data>
-  <data name="rule" xml:space="preserve">
-    <value>规则</value>
   </data>
   <data name="run code when mail arrives" xml:space="preserve">
     <value>在邮件到达时运行代码</value>

@@ -198,9 +198,6 @@
   <data name="1 remote domain policy" xml:space="preserve">
     <value>1 etäverkkotunnuksen käytäntö</value>
   </data>
-  <data name="1 rule" xml:space="preserve">
-    <value>1 sääntö</value>
-  </data>
   <data name="1 security group" xml:space="preserve">
     <value>1 suojausryhmä</value>
   </data>
@@ -545,9 +542,6 @@
   </data>
   <data name="A migration rather than a collection: every folder, verbatim, with its flags and dates." xml:space="preserve">
     <value>Siirto eikä nouto: jokainen kansio sellaisenaan, lippuineen ja päivämäärineen.</value>
-  </data>
-  <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
-    <value>Nykyaikainen hallintasovellus hMailServerille: reaaliaikainen koontinäyttö, verkkotunnukset ja tilit, toimitusjono, lokien suoratoisto, kaikki palvelinasetukset ja 6.x-version siirtoturvallisuusominaisuudet (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
   </data>
   <data name="A name cannot begin or end with &quot;{0}&quot; or have two together: &quot;{0}&quot; separates a folder from its sub-folder." xml:space="preserve">
     <value>Nimi ei voi alkaa tai päättyä merkkiin "{0}" eikä sisältää kahta peräkkäin: "{0}" erottaa kansion sen alikansiosta.</value>
@@ -1080,9 +1074,6 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Add a row to a list, or go to the form that adds one" xml:space="preserve">
     <value>Lisää rivi luetteloon tai siirry lomakkeeseen, joka lisää sen</value>
   </data>
-  <data name="Add a rule" xml:space="preserve">
-    <value>Lisää sääntö</value>
-  </data>
   <data name="Add a security group" xml:space="preserve">
     <value>Lisää suojausryhmä</value>
   </data>
@@ -1322,6 +1313,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   </data>
   <data name="Administer (manage ACL)" xml:space="preserve">
     <value>Ylläpito (ACL:n hallinta)</value>
+  </data>
+  <data name="Administers an hMailServer: its domains and accounts, the delivery queue, the logs, the server's settings and its transport security." xml:space="preserve">
+    <value>Hallitsee hMailServeriä: sen toimialueita ja tilejä, toimitusjonoa, lokeja, palvelimen asetuksia ja siirtoturvallisuutta.</value>
   </data>
   <data name="Administrative access" xml:space="preserve">
     <value>Ylläpitokäyttöoikeus</value>
@@ -1861,6 +1855,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>Kysy avainpalvelimelta, kun heidän verkkotunnuksellaan ei ole avainta</value>
   </data>
+  <data name="Ask on the forum, or report a defect on the issue tracker. Copy the version details into either: they are what anyone helping asks for first." xml:space="preserve">
+    <value>Kysy foorumilla tai ilmoita viasta vianseurantaan. Kopioi versiotiedot kumpaan tahansa: niitä jokainen auttaja kysyy ensimmäisenä.</value>
+  </data>
   <data name="Asking the service to take the backup." xml:space="preserve">
     <value>Pyydetään palvelua ottamaan varmuuskopio.</value>
   </data>
@@ -2337,6 +2334,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Bucket (S3) or container (Azure)" xml:space="preserve">
     <value>Bucket (S3) tai säilö (Azure)</value>
+  </data>
+  <data name="Building and packaging" xml:space="preserve">
+    <value>Kääntäminen ja paketointi</value>
   </data>
   <data name="Builds a search index so IMAP SEARCH and the web client are faster." xml:space="preserve">
     <value>Rakentaa hakuindeksin, jotta IMAP SEARCH ja verkkoasiakas ovat nopeampia.</value>
@@ -2917,8 +2917,8 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Connected now" xml:space="preserve">
     <value>Yhteydessä nyt</value>
   </data>
-  <data name="Connected server: hMailServer {0} @ {1}" xml:space="preserve">
-    <value>Yhdistetty palvelin: hMailServer {0} @ {1}</value>
+  <data name="Connected to" xml:space="preserve">
+    <value>Yhdistetty</value>
   </data>
   <data name="Connected to a remote server: hMailServer.ini cannot be read from here, so mode and max_age shown are the shipped defaults." xml:space="preserve">
     <value>Yhteydessä etäpalvelimeen: hMailServer.ini-tiedostoa ei voi lukea täältä, joten näytetyt mode ja max_age ovat toimitetut oletukset.</value>
@@ -4528,9 +4528,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Edit the remote domain policy" xml:space="preserve">
     <value>Muokkaa etäverkkotunnuksen käytäntöä</value>
   </data>
-  <data name="Edit the rule" xml:space="preserve">
-    <value>Muokkaa sääntöä</value>
-  </data>
   <data name="Edit the security group" xml:space="preserve">
     <value>Muokkaa suojausryhmää</value>
   </data>
@@ -5422,6 +5419,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
     <value>Tämän palvelimen ulkopuolella hankittuja tokeneita varten. Jätä tyhjäksi normaalikäytössä - kiinteät tokenit vanhenevat, eikä mikään täällä uusi niitä.</value>
   </data>
+  <data name="Forum" xml:space="preserve">
+    <value>Foorumi</value>
+  </data>
   <data name="Forward _to" xml:space="preserve">
     <value>Edelleenlähetä _osoitteeseen</value>
   </data>
@@ -5511,6 +5511,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Generated password copied to clipboard — reveal it with the eye icon." xml:space="preserve">
     <value>Luotu salasana kopioitiin leikepöydälle — näytä se silmäkuvakkeella.</value>
+  </data>
+  <data name="Get help" xml:space="preserve">
+    <value>Hae apua</value>
   </data>
   <data name="Give at least one active domain a DKIM selector and key file, and publish that domain's DKIM TXT record - the receiving server verifies the seal against the same record DKIM signing uses." xml:space="preserve">
     <value>Anna vähintään yhdelle aktiiviselle verkkotunnukselle DKIM-valitsin ja avaintiedosto ja julkaise tuon verkkotunnuksen DKIM TXT -tietue - vastaanottava palvelin tarkistaa sinetin samaa tietuetta vasten, jota DKIM-allekirjoitus käyttää.</value>
@@ -6225,6 +6228,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Issuer (empty = no single sign-on)" xml:space="preserve">
     <value>Myöntäjä (tyhjä = ei kertakirjautumista)</value>
   </data>
+  <data name="Issues" xml:space="preserve">
+    <value>Vianseuranta</value>
+  </data>
   <data name="Issues and renews certificates automatically, but only if the certificate authority can fetch the http-01 challenge from this server." xml:space="preserve">
     <value>Myöntää ja uusii varmenteet automaattisesti, mutta vain jos varmenneviranomainen voi noutaa http-01-haasteen tältä palvelimelta.</value>
   </data>
@@ -6518,6 +6524,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="Levels" xml:space="preserve">
     <value>Tasot</value>
+  </data>
+  <data name="Licence" xml:space="preserve">
+    <value>Lisenssi</value>
   </data>
   <data name="Lift ban" xml:space="preserve">
     <value>Poista esto</value>
@@ -7746,6 +7755,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="No distribution lists for this domain." xml:space="preserve">
     <value>Tällä verkkotunnuksella ei ole jakelulistoja.</value>
+  </data>
+  <data name="No document contains &quot;{0}&quot;." xml:space="preserve">
+    <value>Mikään asiakirja ei sisällä tekstiä ”{0}”.</value>
   </data>
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>Yhdelläkään verkkotunnuksella ei ole DKIM-allekirjoitusta päällä, joten DNS-tietuetta ei tarvita.</value>
@@ -9096,9 +9108,6 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Per-account overrides of the server-wide spam handling, applied to this account's copy at delivery. They cannot reach back into the SMTP conversation: a message the global settings refuse, quarantine or greylist is stopped for every recipient before any per-account setting can run." xml:space="preserve">
     <value>Tilikohtaiset ohitukset palvelimenlaajuiselle roskapostin käsittelylle, sovellettuna tämän tilin kopioon toimitettaessa. Ne eivät voi ulottua takaisin SMTP-keskusteluun: viesti, jonka yleiset asetukset hylkäävät, karanteenoivat tai harmaalistaavat, pysäytetään jokaiselta vastaanottajalta ennen kuin mikään tilikohtainen asetus voi toimia.</value>
   </data>
-  <data name="Per-account rules. You can add, rename, enable/disable and delete rules here; matching criteria and actions are managed on the server." xml:space="preserve">
-    <value>Tilikohtaiset säännöt. Voit lisätä, nimetä uudelleen, ottaa käyttöön / poistaa käytöstä ja poistaa sääntöjä täällä; täsmäysehtoja ja toimintoja hallitaan palvelimella.</value>
-  </data>
   <data name="Per-account sending limits" xml:space="preserve">
     <value>Tilikohtaiset lähetysrajat</value>
   </data>
@@ -9309,8 +9318,8 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Program to run when an address is banned or unbanned (empty = none)" xml:space="preserve">
     <value>Ohjelma, joka ajetaan, kun osoite estetään tai esto poistetaan (tyhjä = ei mitään)</value>
   </data>
-  <data name="Progressive Robot Ltd is a software engineering company that builds and modernises production software — taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling." xml:space="preserve">
-    <value>Progressive Robot Ltd on ohjelmistokehitysyritys, joka rakentaa ja modernisoi tuotanto-ohjelmistoja — ottaa kypsiä, todellisen maailman järjestelmiä ja nostaa ne nykyisiin turvallisuuden, luotettavuuden ja työkalujen standardeihin.</value>
+  <data name="Progressive Robot Ltd is a software engineering company. It maintains the hMailServer 6.x line, an independent fork of the open-source mail server." xml:space="preserve">
+    <value>Progressive Robot Ltd on ohjelmistokehitysyritys. Se ylläpitää hMailServer 6.x -sarjaa, avoimen lähdekoodin postipalvelimen itsenäistä haaraa.</value>
   </data>
   <data name="Prometheus metrics (/metrics), OpenTelemetry export of traces, metrics and logs (one endpoint per signal, each off until set), a slow-query log, and JSON-structured log output for log aggregators (on the Logging page)." xml:space="preserve">
     <value>Prometheus-mittarit (/metrics), OpenTelemetry-vienti jäljille, mittareille ja lokeille (yksi päätepiste signaalia kohden, kukin pois päältä kunnes asetettu), hitaiden kyselyjen loki ja JSON-rakenteinen lokituloste lokien kokoajille (Lokitus-sivulla).</value>
@@ -9771,6 +9780,9 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   </data>
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>Laske lokitasoa tai aseta, kuinka monen päivän lokit säilytetään.</value>
+  </data>
+  <data name="Reference" xml:space="preserve">
+    <value>Viiteaineisto</value>
   </data>
   <data name="Refresh a list, or reload a settings page" xml:space="preserve">
     <value>Päivitä luettelo tai lataa asetussivu uudelleen</value>
@@ -10479,9 +10491,6 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Rule loop limit" xml:space="preserve">
     <value>Sääntösilmukan raja</value>
   </data>
-  <data name="Rule name" xml:space="preserve">
-    <value>Säännön nimi</value>
-  </data>
   <data name="Rule operation failed: {0}" xml:space="preserve">
     <value>Sääntötoiminto epäonnistui: {0}</value>
   </data>
@@ -11042,6 +11051,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Search accounts" xml:space="preserve">
     <value>Hae tileistä</value>
+  </data>
+  <data name="Search all documentation" xml:space="preserve">
+    <value>Hae kaikesta dokumentaatiosta</value>
   </data>
   <data name="Search bas_e" xml:space="preserve">
     <value>Hakujuu_ri</value>
@@ -11940,6 +11952,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Source" xml:space="preserve">
     <value>Lähde</value>
   </data>
+  <data name="Source code" xml:space="preserve">
+    <value>Lähdekoodi</value>
+  </data>
   <data name="Space" xml:space="preserve">
     <value>Välilyönti</value>
   </data>
@@ -12479,6 +12494,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="The Control Panel is connected to another host, so the account its service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>Control Panel on yhteydessä toiseen koneeseen, joten tiliä, jolla sen palvelu toimii, ei voi lukea täältä. Avaa Control Panel itse palvelimella nähdäksesi sen.</value>
+  </data>
+  <data name="The Control Panel's and the server's versions, the build, .NET, Windows and the database, for a report." xml:space="preserve">
+    <value>Control Panel -sovelluksen ja palvelimen versiot, koontiversio, .NET, Windows ja tietokanta raporttia varten.</value>
   </data>
   <data name="The DMARC aggregate and TLS-RPT reports other servers send about your domains, read from each domain's report mailbox - which is set in the domain's dialog." xml:space="preserve">
     <value>DMARC-koosteraportit ja TLS-RPT-raportit, joita muut palvelimet lähettävät verkkotunnuksistasi, luettuina kunkin verkkotunnuksen raporttipostilaatikosta - joka asetetaan verkkotunnuksen valintaikkunassa.</value>
@@ -13158,9 +13176,6 @@ ei voitu ladata. Viesti on todennäköisesti toimitettu eikä ole enää jonossa
   </data>
   <data name="The guided path: which half, which log lines, and the setting that bounds each stage." xml:space="preserve">
     <value>Opastettu polku: kumpi puolisko, mitkä lokirivit ja mikä asetus rajaa kunkin vaiheen.</value>
-  </data>
-  <data name="The hMailServer 6.x line is one such effort. The original open-source mail server has been rebuilt on a current toolchain (Visual Studio 2026 / MSVC v145 and .NET 10), re-armed with modern cryptography (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) and the transport-security standards expected of a mail server today (DANE + DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT and ACME / Let's Encrypt). It has been hardened against protocol and denial-of-service defects, given Sieve / ManageSieve filtering, health and OpenTelemetry observability, broad MySQL / MariaDB / MS SQL / PostgreSQL support, and this modern Fluent-design Control Panel in place of the legacy administrator." xml:space="preserve">
-    <value>hMailServer 6.x -sarja on yksi tällainen hanke. Alkuperäinen avoimen lähdekoodin postipalvelin on rakennettu uudelleen nykyaikaisella työkaluketjulla (Visual Studio 2026 / MSVC v145 ja .NET 10), varustettu uudelleen nykyaikaisella salauksella (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) ja siirtoturvallisuuden standardeilla, joita postipalvelimelta nykyään odotetaan (DANE + DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT ja ACME / Let's Encrypt). Se on kovennettu protokolla- ja palvelunestovikoja vastaan, siihen on lisätty Sieve / ManageSieve -suodatus, kunto- ja OpenTelemetry-havainnoitavuus, laaja MySQL / MariaDB / MS SQL / PostgreSQL -tuki ja tämä nykyaikainen Fluent-tyylinen Control Panel vanhan hallintaohjelman tilalle.</value>
   </data>
   <data name="The highest total reachable cannot be said: a check could not be read." xml:space="preserve">
     <value>Suurinta saavutettavissa olevaa yhteispistemäärää ei voida sanoa: yhtä tarkistusta ei voitu lukea.</value>
@@ -13948,6 +13963,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="The verification code is incorrect. Make sure your authenticator app is set up with the new key." xml:space="preserve">
     <value>Vahvistuskoodi on väärä. Varmista, että todennussovelluksesi on määritetty uudella avaimella.</value>
   </data>
+  <data name="The version details are on the clipboard." xml:space="preserve">
+    <value>Versiotiedot ovat leikepöydällä.</value>
+  </data>
   <data name="The version to go back to" xml:space="preserve">
     <value>Versio, johon palataan</value>
   </data>
@@ -14076,9 +14094,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="This account has no photo." xml:space="preserve">
     <value>Tällä tilillä ei ole kuvaa.</value>
-  </data>
-  <data name="This account has no rules of its own; the server's rules still apply." xml:space="preserve">
-    <value>Tällä tilillä ei ole omia sääntöjä; palvelimen säännöt ovat yhä voimassa.</value>
   </data>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>Tällä toiminnolla ei ole lisäparametreja.</value>
@@ -14658,9 +14673,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="Version and updates" xml:space="preserve">
     <value>Versio ja päivitykset</value>
-  </data>
-  <data name="Version {0}  -  .NET {1}" xml:space="preserve">
-    <value>Versio {0}  -  .NET {1}</value>
   </data>
   <data name="Version, build and licence information." xml:space="preserve">
     <value>Versio-, koontiversio- ja lisenssitiedot.</value>
@@ -15471,6 +15483,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="_Copy results" xml:space="preserve">
     <value>K_opioi tulokset</value>
+  </data>
+  <data name="_Copy version details" xml:space="preserve">
+    <value>_Kopioi versiotiedot</value>
   </data>
   <data name="_Country policy at sign-in (empty = off)" xml:space="preserve">
     <value>_Maakäytäntö kirjautuessa (tyhjä = pois)</value>
@@ -16384,6 +16399,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="hMailServer (tab separated)" xml:space="preserve">
     <value>hMailServer (sarkaimin eroteltu)</value>
   </data>
+  <data name="hMailServer 6.x is built with Visual Studio 2026 (MSVC v145) and .NET 10. To the original it adds PBKDF2 and Argon2id password hashing, SCRAM-SHA-256 and OAuth2 sign-in, DANE with DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT, ACME (Let's Encrypt), Sieve and ManageSieve filtering, health checks and OpenTelemetry. This Control Panel replaces the earlier hMailServer Administrator." xml:space="preserve">
+    <value>hMailServer 6.x käännetään Visual Studio 2026:lla (MSVC v145) ja .NET 10:llä. Alkuperäiseen se lisää PBKDF2- ja Argon2id-salasanatiivisteet, SCRAM-SHA-256- ja OAuth2-kirjautumisen, DANEn DNSSECin kanssa, MTA-STS:n, ARC:n, Ed25519 DKIM:n, TLS-RPT:n, ACME:n (Let's Encrypt), Sieve- ja ManageSieve-suodatuksen, kuntotarkistukset ja OpenTelemetryn. Tämä Control Panel korvaa aiemman hMailServer Administratorin.</value>
+  </data>
   <data name="hMailServer COM API is not registered on the target machine." xml:space="preserve">
     <value>hMailServerin COM-rajapintaa ei ole rekisteröity kohdekoneella.</value>
   </data>
@@ -16789,9 +16807,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="rua=mailto:{0} sends you the aggregate reports; the address is the domain's postmaster address as configured on the domain. Reports arrive from strangers, so the mailbox must exist and accept them." xml:space="preserve">
     <value>rua=mailto:{0} lähettää sinulle koosteraportit; osoite on verkkotunnuksen postmaster-osoite, kuten verkkotunnuksella on määritetty. Raportit tulevat vierailta, joten postilaatikon on oltava olemassa ja hyväksyttävä ne.</value>
-  </data>
-  <data name="rule" xml:space="preserve">
-    <value>sääntö</value>
   </data>
   <data name="run code when mail arrives" xml:space="preserve">
     <value>aja koodia postin saapuessa</value>

@@ -198,9 +198,6 @@
   <data name="1 remote domain policy" xml:space="preserve">
     <value>Правил для внешних доменов: 1</value>
   </data>
-  <data name="1 rule" xml:space="preserve">
-    <value>Правил: 1</value>
-  </data>
   <data name="1 security group" xml:space="preserve">
     <value>Групп безопасности: 1</value>
   </data>
@@ -548,9 +545,6 @@
   </data>
   <data name="A migration rather than a collection: every folder, verbatim, with its flags and dates." xml:space="preserve">
     <value>Перенос, а не сбор почты: каждая папка дословно, с флагами и датами.</value>
-  </data>
-  <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
-    <value>Современное приложение администрирования для hMailServer: живая панель мониторинга, домены и учётные записи, очередь доставки, потоковый просмотр журналов, полный набор параметров сервера и функции транспортной безопасности версии 6.x (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
   </data>
   <data name="A name cannot begin or end with &quot;{0}&quot; or have two together: &quot;{0}&quot; separates a folder from its sub-folder." xml:space="preserve">
     <value>Имя не может начинаться или заканчиваться символом «{0}» или содержать два таких символа подряд: «{0}» отделяет папку от вложенной в неё.</value>
@@ -1086,9 +1080,6 @@ Control Panel может читать файлы сообщений только
   <data name="Add a row to a list, or go to the form that adds one" xml:space="preserve">
     <value>Добавить строку в список или перейти к форме, которая её добавляет</value>
   </data>
-  <data name="Add a rule" xml:space="preserve">
-    <value>Добавить правило</value>
-  </data>
   <data name="Add a security group" xml:space="preserve">
     <value>Добавить группу безопасности</value>
   </data>
@@ -1334,6 +1325,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Administer (manage ACL)" xml:space="preserve">
     <value>Администрирование (управление ACL)</value>
+  </data>
+  <data name="Administers an hMailServer: its domains and accounts, the delivery queue, the logs, the server's settings and its transport security." xml:space="preserve">
+    <value>Управляет сервером hMailServer: его доменами и учётными записями, очередью доставки, журналами, настройками сервера и транспортной безопасностью.</value>
   </data>
   <data name="Administrative access" xml:space="preserve">
     <value>Административный доступ</value>
@@ -1882,6 +1876,9 @@ Control Panel может читать файлы сообщений только
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>Спрашивать сервер ключей, когда у их домена нет ключа</value>
   </data>
+  <data name="Ask on the forum, or report a defect on the issue tracker. Copy the version details into either: they are what anyone helping asks for first." xml:space="preserve">
+    <value>Задайте вопрос на форуме или сообщите о дефекте в трекере задач. Скопируйте туда сведения о версии: о них любой помогающий спрашивает первым делом.</value>
+  </data>
   <data name="Asking the service to take the backup." xml:space="preserve">
     <value>Служба получает запрос сделать резервную копию.</value>
   </data>
@@ -2367,6 +2364,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Bucket (S3) or container (Azure)" xml:space="preserve">
     <value>Корзина (S3) или контейнер (Azure)</value>
+  </data>
+  <data name="Building and packaging" xml:space="preserve">
+    <value>Сборка и пакеты</value>
   </data>
   <data name="Builds a search index so IMAP SEARCH and the web client are faster." xml:space="preserve">
     <value>Строит поисковый индекс, чтобы IMAP SEARCH и веб-клиент работали быстрее.</value>
@@ -2947,8 +2947,8 @@ Control Panel может читать файлы сообщений только
   <data name="Connected now" xml:space="preserve">
     <value>Подключено сейчас</value>
   </data>
-  <data name="Connected server: hMailServer {0} @ {1}" xml:space="preserve">
-    <value>Подключённый сервер: hMailServer {0} @ {1}</value>
+  <data name="Connected to" xml:space="preserve">
+    <value>Подключено к</value>
   </data>
   <data name="Connected to a remote server: hMailServer.ini cannot be read from here, so mode and max_age shown are the shipped defaults." xml:space="preserve">
     <value>Подключение к удалённому серверу: файл hMailServer.ini отсюда прочитать нельзя, поэтому режим и max_age показаны со значениями по умолчанию в поставке.</value>
@@ -4586,9 +4586,6 @@ Control Panel может читать файлы сообщений только
   <data name="Edit the remote domain policy" xml:space="preserve">
     <value>Изменить правило для внешнего домена</value>
   </data>
-  <data name="Edit the rule" xml:space="preserve">
-    <value>Изменить правило</value>
-  </data>
   <data name="Edit the security group" xml:space="preserve">
     <value>Изменить группу безопасности</value>
   </data>
@@ -5498,6 +5495,9 @@ Control Panel может читать файлы сообщений только
   <data name="For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
     <value>Для токенов, полученных вне этого сервера. В обычной работе оставьте поле пустым — у фиксированных токенов истекает срок действия, и обновить их здесь некому.</value>
   </data>
+  <data name="Forum" xml:space="preserve">
+    <value>Форум</value>
+  </data>
   <data name="Forward _to" xml:space="preserve">
     <value>П_ересылать на</value>
   </data>
@@ -5587,6 +5587,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Generated password copied to clipboard — reveal it with the eye icon." xml:space="preserve">
     <value>Созданный пароль скопирован в буфер обмена — показать его можно значком с глазом.</value>
+  </data>
+  <data name="Get help" xml:space="preserve">
+    <value>Получить помощь</value>
   </data>
   <data name="Give at least one active domain a DKIM selector and key file, and publish that domain's DKIM TXT record - the receiving server verifies the seal against the same record DKIM signing uses." xml:space="preserve">
     <value>Задайте хотя бы одному активному домену селектор и файл ключа DKIM и опубликуйте запись TXT DKIM этого домена — принимающий сервер проверяет печать по той же записи, которую использует подписывание DKIM.</value>
@@ -6301,6 +6304,9 @@ Control Panel может читать файлы сообщений только
   <data name="Issuer (empty = no single sign-on)" xml:space="preserve">
     <value>Издатель (пусто = без единого входа)</value>
   </data>
+  <data name="Issues" xml:space="preserve">
+    <value>Задачи</value>
+  </data>
   <data name="Issues and renews certificates automatically, but only if the certificate authority can fetch the http-01 challenge from this server." xml:space="preserve">
     <value>Автоматически выпускает и обновляет сертификаты, но только если удостоверяющий центр может забрать с этого сервера ответ на проверку http-01.</value>
   </data>
@@ -6594,6 +6600,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Levels" xml:space="preserve">
     <value>Уровни</value>
+  </data>
+  <data name="Licence" xml:space="preserve">
+    <value>Лицензия</value>
   </data>
   <data name="Lift ban" xml:space="preserve">
     <value>Снять блокировку</value>
@@ -7828,6 +7837,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="No distribution lists for this domain." xml:space="preserve">
     <value>Списков рассылки для этого домена нет.</value>
+  </data>
+  <data name="No document contains &quot;{0}&quot;." xml:space="preserve">
+    <value>Ни один документ не содержит «{0}».</value>
   </data>
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>Ни у одного домена не включено подписывание DKIM, поэтому запись DNS не требуется.</value>
@@ -9196,9 +9208,6 @@ Control Panel может читать файлы сообщений только
   <data name="Per-account overrides of the server-wide spam handling, applied to this account's copy at delivery. They cannot reach back into the SMTP conversation: a message the global settings refuse, quarantine or greylist is stopped for every recipient before any per-account setting can run." xml:space="preserve">
     <value>Переопределения общесерверной обработки спама на уровне учётной записи, применяемые при доставке к копии этой учётной записи. Они не могут повлиять на сам диалог SMTP: сообщение, которое глобальные параметры отклоняют, помещают в карантин или задерживают серым списком, останавливается для всех получателей раньше, чем сможет сработать любой параметр учётной записи.</value>
   </data>
-  <data name="Per-account rules. You can add, rename, enable/disable and delete rules here; matching criteria and actions are managed on the server." xml:space="preserve">
-    <value>Правила уровня учётной записи. Здесь можно добавлять, переименовывать, включать и отключать, а также удалять правила; условия отбора и действия управляются на сервере.</value>
-  </data>
   <data name="Per-account sending limits" xml:space="preserve">
     <value>Ограничения отправки для учётной записи</value>
   </data>
@@ -9409,8 +9418,8 @@ Control Panel может читать файлы сообщений только
   <data name="Program to run when an address is banned or unbanned (empty = none)" xml:space="preserve">
     <value>Программа, запускаемая при бане или разбане адреса (пусто = нет)</value>
   </data>
-  <data name="Progressive Robot Ltd is a software engineering company that builds and modernises production software — taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling." xml:space="preserve">
-    <value>Progressive Robot Ltd — компания-разработчик программного обеспечения, которая создаёт и модернизирует промышленное ПО: берёт зрелые, работающие в реальных условиях системы и приводит их в соответствие с современными стандартами безопасности, надёжности и инструментария.</value>
+  <data name="Progressive Robot Ltd is a software engineering company. It maintains the hMailServer 6.x line, an independent fork of the open-source mail server." xml:space="preserve">
+    <value>Progressive Robot Ltd - компания по разработке программного обеспечения. Она сопровождает линейку hMailServer 6.x, независимый форк почтового сервера с открытым исходным кодом.</value>
   </data>
   <data name="Prometheus metrics (/metrics), OpenTelemetry export of traces, metrics and logs (one endpoint per signal, each off until set), a slow-query log, and JSON-structured log output for log aggregators (on the Logging page)." xml:space="preserve">
     <value>Метрики Prometheus (/metrics), экспорт трассировок, метрик и журналов через OpenTelemetry (по одной конечной точке на каждый сигнал, и каждая выключена, пока не задана), журнал медленных запросов и вывод журналов в структурированном формате JSON для систем сбора журналов (на странице «Журналирование»).</value>
@@ -9871,6 +9880,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>Понизьте уровень журналирования или задайте, сколько дней хранятся журналы.</value>
+  </data>
+  <data name="Reference" xml:space="preserve">
+    <value>Справочные материалы</value>
   </data>
   <data name="Refresh a list, or reload a settings page" xml:space="preserve">
     <value>Обновить список или перезагрузить страницу параметров</value>
@@ -10594,9 +10606,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Rule loop limit" xml:space="preserve">
     <value>Ограничение на циклы правил</value>
   </data>
-  <data name="Rule name" xml:space="preserve">
-    <value>Имя правила</value>
-  </data>
   <data name="Rule operation failed: {0}" xml:space="preserve">
     <value>Операция с правилом не удалась: {0}</value>
   </data>
@@ -11184,6 +11193,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Search accounts" xml:space="preserve">
     <value>Поиск по учётным записям</value>
+  </data>
+  <data name="Search all documentation" xml:space="preserve">
+    <value>Искать во всей документации</value>
   </data>
   <data name="Search bas_e" xml:space="preserve">
     <value>База _поиска</value>
@@ -12088,6 +12100,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Source" xml:space="preserve">
     <value>Источник</value>
   </data>
+  <data name="Source code" xml:space="preserve">
+    <value>Исходный код</value>
+  </data>
   <data name="Space" xml:space="preserve">
     <value>Пробел</value>
   </data>
@@ -12630,6 +12645,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The Control Panel is connected to another host, so the account its service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>Control Panel подключён к другому узлу, поэтому учётную запись, от имени которой работает его служба, отсюда прочитать нельзя. Чтобы её увидеть, откройте Control Panel на самом сервере.</value>
+  </data>
+  <data name="The Control Panel's and the server's versions, the build, .NET, Windows and the database, for a report." xml:space="preserve">
+    <value>Версии Control Panel и сервера, сборка, .NET, Windows и база данных - для сообщения.</value>
   </data>
   <data name="The DMARC aggregate and TLS-RPT reports other servers send about your domains, read from each domain's report mailbox - which is set in the domain's dialog." xml:space="preserve">
     <value>Сводные отчёты DMARC и отчёты TLS-RPT, которые другие серверы присылают о ваших доменах, читаемые из ящика отчётов каждого домена — он задаётся в диалоге домена.</value>
@@ -13330,9 +13348,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The guided path: which half, which log lines, and the setting that bounds each stage." xml:space="preserve">
     <value>Путь с подсказками: какая половина, какие строки журнала и параметр, ограничивающий каждый этап.</value>
-  </data>
-  <data name="The hMailServer 6.x line is one such effort. The original open-source mail server has been rebuilt on a current toolchain (Visual Studio 2026 / MSVC v145 and .NET 10), re-armed with modern cryptography (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) and the transport-security standards expected of a mail server today (DANE + DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT and ACME / Let's Encrypt). It has been hardened against protocol and denial-of-service defects, given Sieve / ManageSieve filtering, health and OpenTelemetry observability, broad MySQL / MariaDB / MS SQL / PostgreSQL support, and this modern Fluent-design Control Panel in place of the legacy administrator." xml:space="preserve">
-    <value>Линейка hMailServer 6.x - одно из таких начинаний. Оригинальный почтовый сервер с открытым исходным кодом пересобран на современном инструментарии (Visual Studio 2026 / MSVC v145 и .NET 10), перевооружён современной криптографией (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) и стандартами транспортной безопасности, ожидаемыми от почтового сервера сегодня (DANE + DNSSEC, MTA-STS, ARC, DKIM на Ed25519, TLS-RPT и ACME / Let's Encrypt). Он укреплён против дефектов протоколов и отказа в обслуживании, получил фильтрацию Sieve / ManageSieve, наблюдаемость через health-эндпоинты и OpenTelemetry, широкую поддержку MySQL / MariaDB / MS SQL / PostgreSQL и этот современный Control Panel в дизайне Fluent вместо устаревшего администратора.</value>
   </data>
   <data name="The highest total reachable cannot be said: a check could not be read." xml:space="preserve">
     <value>Нельзя сказать, каков максимально достижимый итог: одну из проверок не удалось прочитать.</value>
@@ -14126,6 +14141,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The verification code is incorrect. Make sure your authenticator app is set up with the new key." xml:space="preserve">
     <value>Код подтверждения неверен. Убедитесь, что приложение-аутентификатор настроено с новым ключом.</value>
   </data>
+  <data name="The version details are on the clipboard." xml:space="preserve">
+    <value>Сведения о версии скопированы в буфер обмена.</value>
+  </data>
   <data name="The version to go back to" xml:space="preserve">
     <value>Версия для возврата</value>
   </data>
@@ -14254,9 +14272,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="This account has no photo." xml:space="preserve">
     <value>У этой учётной записи нет фотографии.</value>
-  </data>
-  <data name="This account has no rules of its own; the server's rules still apply." xml:space="preserve">
-    <value>У этой учётной записи нет собственных правил; правила сервера по-прежнему действуют.</value>
   </data>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>У этого действия нет дополнительных параметров.</value>
@@ -14842,9 +14857,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Version and updates" xml:space="preserve">
     <value>Версия и обновления</value>
-  </data>
-  <data name="Version {0}  -  .NET {1}" xml:space="preserve">
-    <value>Версия {0}  -  .NET {1}</value>
   </data>
   <data name="Version, build and licence information." xml:space="preserve">
     <value>Сведения о версии, сборке и лицензии.</value>
@@ -15658,6 +15670,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Copy results" xml:space="preserve">
     <value>_Копировать результаты</value>
+  </data>
+  <data name="_Copy version details" xml:space="preserve">
+    <value>_Копировать сведения о версии</value>
   </data>
   <data name="_Country policy at sign-in (empty = off)" xml:space="preserve">
     <value>_Политика стран при входе (пусто = выключено)</value>
@@ -16577,6 +16592,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="hMailServer (tab separated)" xml:space="preserve">
     <value>hMailServer (с разделителями-табуляциями)</value>
   </data>
+  <data name="hMailServer 6.x is built with Visual Studio 2026 (MSVC v145) and .NET 10. To the original it adds PBKDF2 and Argon2id password hashing, SCRAM-SHA-256 and OAuth2 sign-in, DANE with DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT, ACME (Let's Encrypt), Sieve and ManageSieve filtering, health checks and OpenTelemetry. This Control Panel replaces the earlier hMailServer Administrator." xml:space="preserve">
+    <value>hMailServer 6.x собирается в Visual Studio 2026 (MSVC v145) и .NET 10. К исходному серверу он добавляет хеширование паролей PBKDF2 и Argon2id, вход по SCRAM-SHA-256 и OAuth2, DANE с DNSSEC, MTA-STS, ARC, DKIM на Ed25519, TLS-RPT, ACME (Let's Encrypt), фильтрацию Sieve и ManageSieve, проверки состояния и OpenTelemetry. Этот Control Panel заменяет прежний hMailServer Administrator.</value>
+  </data>
   <data name="hMailServer COM API is not registered on the target machine." xml:space="preserve">
     <value>COM API hMailServer не зарегистрирован на целевом компьютере.</value>
   </data>
@@ -16991,9 +17009,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="rua=mailto:{0} sends you the aggregate reports; the address is the domain's postmaster address as configured on the domain. Reports arrive from strangers, so the mailbox must exist and accept them." xml:space="preserve">
     <value>rua=mailto:{0} направляет вам сводные отчёты; это адрес постмастера, заданный в настройках самого домена. Отчёты приходят от посторонних, поэтому почтовый ящик должен существовать и принимать их.</value>
-  </data>
-  <data name="rule" xml:space="preserve">
-    <value>правило</value>
   </data>
   <data name="run code when mail arrives" xml:space="preserve">
     <value>выполнять код при поступлении почты</value>

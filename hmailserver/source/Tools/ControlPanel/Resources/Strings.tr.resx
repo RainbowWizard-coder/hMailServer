@@ -198,9 +198,6 @@
   <data name="1 remote domain policy" xml:space="preserve">
     <value>1 uzak alan adı ilkesi</value>
   </data>
-  <data name="1 rule" xml:space="preserve">
-    <value>1 kural</value>
-  </data>
   <data name="1 security group" xml:space="preserve">
     <value>1 güvenlik grubu</value>
   </data>
@@ -545,9 +542,6 @@
   </data>
   <data name="A migration rather than a collection: every folder, verbatim, with its flags and dates." xml:space="preserve">
     <value>Toplama değil taşıma: her klasör, bayrakları ve tarihleriyle birebir.</value>
-  </data>
-  <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
-    <value>hMailServer için modern bir yönetim uygulaması: canlı pano, etki alanları ve hesaplar, teslim kuyruğu, günlük akışı, eksiksiz sunucu ayarları ve 6.x aktarım güvenliği özellikleri (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
   </data>
   <data name="A name cannot begin or end with &quot;{0}&quot; or have two together: &quot;{0}&quot; separates a folder from its sub-folder." xml:space="preserve">
     <value>Bir ad "{0}" ile başlayamaz, bitemez veya art arda iki "{0}" içeremez: "{0}" bir klasörü alt klasöründen ayırır.</value>
@@ -1080,9 +1074,6 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Add a row to a list, or go to the form that adds one" xml:space="preserve">
     <value>Bir listeye satır ekle veya satır ekleyen forma git</value>
   </data>
-  <data name="Add a rule" xml:space="preserve">
-    <value>Kural ekle</value>
-  </data>
   <data name="Add a security group" xml:space="preserve">
     <value>Güvenlik grubu ekle</value>
   </data>
@@ -1322,6 +1313,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   </data>
   <data name="Administer (manage ACL)" xml:space="preserve">
     <value>Yönet (ACL yönetimi)</value>
+  </data>
+  <data name="Administers an hMailServer: its domains and accounts, the delivery queue, the logs, the server's settings and its transport security." xml:space="preserve">
+    <value>Bir hMailServer'ı yönetir: etki alanlarını ve hesaplarını, teslim kuyruğunu, günlükleri, sunucunun ayarlarını ve taşıma güvenliğini.</value>
   </data>
   <data name="Administrative access" xml:space="preserve">
     <value>Yönetimsel erişim</value>
@@ -1861,6 +1855,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>Etki alanlarında anahtar yoksa bir anahtar sunucusuna sor</value>
   </data>
+  <data name="Ask on the forum, or report a defect on the issue tracker. Copy the version details into either: they are what anyone helping asks for first." xml:space="preserve">
+    <value>Forumda sorun ya da sorun izleyicide bir hata bildirin. Sürüm ayrıntılarını ikisine de kopyalayın: yardım eden herkesin ilk sorduğu bunlardır.</value>
+  </data>
   <data name="Asking the service to take the backup." xml:space="preserve">
     <value>Hizmetten yedeği alması isteniyor.</value>
   </data>
@@ -2337,6 +2334,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Bucket (S3) or container (Azure)" xml:space="preserve">
     <value>Kova (S3) veya kapsayıcı (Azure)</value>
+  </data>
+  <data name="Building and packaging" xml:space="preserve">
+    <value>Derleme ve paketleme</value>
   </data>
   <data name="Builds a search index so IMAP SEARCH and the web client are faster." xml:space="preserve">
     <value>IMAP SEARCH ve web istemcisi daha hızlı olsun diye bir arama dizini oluşturur.</value>
@@ -2917,8 +2917,8 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Connected now" xml:space="preserve">
     <value>Şu anda bağlı</value>
   </data>
-  <data name="Connected server: hMailServer {0} @ {1}" xml:space="preserve">
-    <value>Bağlı sunucu: hMailServer {0} @ {1}</value>
+  <data name="Connected to" xml:space="preserve">
+    <value>Bağlı olduğu sunucu</value>
   </data>
   <data name="Connected to a remote server: hMailServer.ini cannot be read from here, so mode and max_age shown are the shipped defaults." xml:space="preserve">
     <value>Uzak bir sunucuya bağlı: hMailServer.ini buradan okunamaz; bu yüzden gösterilen mode ve max_age ürünle gelen varsayılanlardır.</value>
@@ -4528,9 +4528,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Edit the remote domain policy" xml:space="preserve">
     <value>Uzak alan adı ilkesini düzenle</value>
   </data>
-  <data name="Edit the rule" xml:space="preserve">
-    <value>Kuralı düzenle</value>
-  </data>
   <data name="Edit the security group" xml:space="preserve">
     <value>Güvenlik grubunu düzenle</value>
   </data>
@@ -5422,6 +5419,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
     <value>Bu sunucunun dışında alınan belirteçler için. Olağan kullanımda boş bırakın - sabit belirteçlerin süresi dolar ve buradaki hiçbir şey onları yenilemez.</value>
   </data>
+  <data name="Forum" xml:space="preserve">
+    <value>Forum</value>
+  </data>
   <data name="Forward _to" xml:space="preserve">
     <value>_Şuraya ilet</value>
   </data>
@@ -5511,6 +5511,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Generated password copied to clipboard — reveal it with the eye icon." xml:space="preserve">
     <value>Üretilen parola panoya kopyalandı — göz simgesiyle gösterin.</value>
+  </data>
+  <data name="Get help" xml:space="preserve">
+    <value>Yardım alın</value>
   </data>
   <data name="Give at least one active domain a DKIM selector and key file, and publish that domain's DKIM TXT record - the receiving server verifies the seal against the same record DKIM signing uses." xml:space="preserve">
     <value>En az bir etkin etki alanına bir DKIM seçicisi ve anahtar dosyası verin ve o etki alanının DKIM TXT kaydını yayımlayın - alıcı sunucu mührü, DKIM imzalamanın kullandığı aynı kayda karşı doğrular.</value>
@@ -6225,6 +6228,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Issuer (empty = no single sign-on)" xml:space="preserve">
     <value>Veren (boş = çoklu oturum açma yok)</value>
   </data>
+  <data name="Issues" xml:space="preserve">
+    <value>Sorunlar</value>
+  </data>
   <data name="Issues and renews certificates automatically, but only if the certificate authority can fetch the http-01 challenge from this server." xml:space="preserve">
     <value>Sertifikaları otomatik olarak verir ve yeniler, ama yalnızca sertifika otoritesi http-01 doğrulamasını bu sunucudan getirebilirse.</value>
   </data>
@@ -6518,6 +6524,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   </data>
   <data name="Levels" xml:space="preserve">
     <value>Düzeyler</value>
+  </data>
+  <data name="Licence" xml:space="preserve">
+    <value>Lisans</value>
   </data>
   <data name="Lift ban" xml:space="preserve">
     <value>Yasağı kaldır</value>
@@ -7746,6 +7755,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="No distribution lists for this domain." xml:space="preserve">
     <value>Bu etki alanı için dağıtım listesi yok.</value>
+  </data>
+  <data name="No document contains &quot;{0}&quot;." xml:space="preserve">
+    <value>Hiçbir belge "{0}" içermiyor.</value>
   </data>
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>Hiçbir etki alanında DKIM imzalama açık değil; bu yüzden DNS kaydı gerekmiyor.</value>
@@ -9096,9 +9108,6 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   <data name="Per-account overrides of the server-wide spam handling, applied to this account's copy at delivery. They cannot reach back into the SMTP conversation: a message the global settings refuse, quarantine or greylist is stopped for every recipient before any per-account setting can run." xml:space="preserve">
     <value>Sunucu geneli spam işlemesinin hesap başına geçersiz kılmaları; teslimde bu hesabın kopyasına uygulanır. SMTP görüşmesine geri uzanamazlar: genel ayarların reddettiği, karantinaya aldığı ya da greylisting'e tabi tuttuğu bir ileti, herhangi bir hesap başına ayar çalışamadan her alıcı için durdurulur.</value>
   </data>
-  <data name="Per-account rules. You can add, rename, enable/disable and delete rules here; matching criteria and actions are managed on the server." xml:space="preserve">
-    <value>Hesap başına kurallar. Burada kural ekleyebilir, yeniden adlandırabilir, etkinleştirip devre dışı bırakabilir ve silebilirsiniz; eşleştirme ölçütleri ve eylemler sunucuda yönetilir.</value>
-  </data>
   <data name="Per-account sending limits" xml:space="preserve">
     <value>Hesap başına gönderme sınırları</value>
   </data>
@@ -9309,8 +9318,8 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   <data name="Program to run when an address is banned or unbanned (empty = none)" xml:space="preserve">
     <value>Bir adres yasaklandığında veya yasağı kaldırıldığında çalıştırılacak program (boş = yok)</value>
   </data>
-  <data name="Progressive Robot Ltd is a software engineering company that builds and modernises production software — taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling." xml:space="preserve">
-    <value>Progressive Robot Ltd, üretim yazılımı geliştiren ve modernleştiren bir yazılım mühendisliği şirketidir — olgun, gerçek dünya sistemlerini alıp güvenlik, güvenilirlik ve araç desteği açısından günümüz standartlarına taşır.</value>
+  <data name="Progressive Robot Ltd is a software engineering company. It maintains the hMailServer 6.x line, an independent fork of the open-source mail server." xml:space="preserve">
+    <value>Progressive Robot Ltd bir yazılım mühendisliği şirketidir. Açık kaynaklı posta sunucusunun bağımsız bir çatalı olan hMailServer 6.x serisinin bakımını yapar.</value>
   </data>
   <data name="Prometheus metrics (/metrics), OpenTelemetry export of traces, metrics and logs (one endpoint per signal, each off until set), a slow-query log, and JSON-structured log output for log aggregators (on the Logging page)." xml:space="preserve">
     <value>Prometheus ölçümleri (/metrics), izlerin, ölçümlerin ve günlüklerin OpenTelemetry dışa aktarımı (sinyal başına bir uç nokta, her biri ayarlanana kadar kapalı), bir yavaş sorgu günlüğü ve günlük toplayıcıları için JSON yapılı günlük çıktısı (Günlükleme sayfasında).</value>
@@ -9771,6 +9780,9 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   </data>
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>Günlük düzeyini düşürün ya da kaç günlük günlüğün saklanacağını ayarlayın.</value>
+  </data>
+  <data name="Reference" xml:space="preserve">
+    <value>Başvuru</value>
   </data>
   <data name="Refresh a list, or reload a settings page" xml:space="preserve">
     <value>Bir listeyi yenile veya bir ayarlar sayfasını yeniden yükle</value>
@@ -10479,9 +10491,6 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Rule loop limit" xml:space="preserve">
     <value>Kural döngü sınırı</value>
   </data>
-  <data name="Rule name" xml:space="preserve">
-    <value>Kural adı</value>
-  </data>
   <data name="Rule operation failed: {0}" xml:space="preserve">
     <value>Kural işlemi başarısız oldu: {0}</value>
   </data>
@@ -11042,6 +11051,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Search accounts" xml:space="preserve">
     <value>Hesapları ara</value>
+  </data>
+  <data name="Search all documentation" xml:space="preserve">
+    <value>Tüm belgelerde ara</value>
   </data>
   <data name="Search bas_e" xml:space="preserve">
     <value>Arama _tabanı</value>
@@ -11940,6 +11952,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Source" xml:space="preserve">
     <value>Kaynak</value>
   </data>
+  <data name="Source code" xml:space="preserve">
+    <value>Kaynak kodu</value>
+  </data>
   <data name="Space" xml:space="preserve">
     <value>Boşluk</value>
   </data>
@@ -12479,6 +12494,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="The Control Panel is connected to another host, so the account its service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>Denetim Masası başka bir ana bilgisayara bağlı, bu yüzden O sunucunun hizmetinin çalıştığı hesap buradan okunamaz. Görmek için Denetim Masası'nı sunucunun kendisinde açın.</value>
+  </data>
+  <data name="The Control Panel's and the server's versions, the build, .NET, Windows and the database, for a report." xml:space="preserve">
+    <value>Bir bildirim için Denetim Masası ve sunucu sürümleri, derleme, .NET, Windows ve veritabanı.</value>
   </data>
   <data name="The DMARC aggregate and TLS-RPT reports other servers send about your domains, read from each domain's report mailbox - which is set in the domain's dialog." xml:space="preserve">
     <value>Diğer sunucuların etki alanlarınız hakkında gönderdiği DMARC toplu raporları ve TLS-RPT raporları; her etki alanının rapor posta kutusundan okunur, bu posta kutusu etki alanının iletişim kutusunda ayarlanır.</value>
@@ -13158,9 +13176,6 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   </data>
   <data name="The guided path: which half, which log lines, and the setting that bounds each stage." xml:space="preserve">
     <value>Yönlendirilmiş yol: hangi yarı, hangi günlük satırları ve her aşamayı sınırlayan ayar.</value>
-  </data>
-  <data name="The hMailServer 6.x line is one such effort. The original open-source mail server has been rebuilt on a current toolchain (Visual Studio 2026 / MSVC v145 and .NET 10), re-armed with modern cryptography (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) and the transport-security standards expected of a mail server today (DANE + DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT and ACME / Let's Encrypt). It has been hardened against protocol and denial-of-service defects, given Sieve / ManageSieve filtering, health and OpenTelemetry observability, broad MySQL / MariaDB / MS SQL / PostgreSQL support, and this modern Fluent-design Control Panel in place of the legacy administrator." xml:space="preserve">
-    <value>hMailServer 6.x serisi böyle bir çabadır. Özgün açık kaynaklı posta sunucusu güncel bir araç zincirinde (Visual Studio 2026 / MSVC v145 ve .NET 10) yeniden inşa edildi, modern kriptografiyle (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) ve bugün bir posta sunucusundan beklenen taşıma güvenliği standartlarıyla (DANE + DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT ve ACME / Let's Encrypt) yeniden donatıldı. Protokol ve hizmet reddi kusurlarına karşı sağlamlaştırıldı; Sieve / ManageSieve filtreleme, sağlık uç noktaları ve OpenTelemetry gözlemlenebilirliği, geniş MySQL / MariaDB / MS SQL / PostgreSQL desteği ve eski yönetici aracının yerine bu modern Fluent tasarımlı Denetim Masası eklendi.</value>
   </data>
   <data name="The highest total reachable cannot be said: a check could not be read." xml:space="preserve">
     <value>Ulaşılabilecek en yüksek toplam söylenemez: bir denetim okunamadı.</value>
@@ -13948,6 +13963,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="The verification code is incorrect. Make sure your authenticator app is set up with the new key." xml:space="preserve">
     <value>Doğrulama kodu yanlış. Kimlik doğrulayıcı uygulamanızın yeni anahtarla ayarlandığından emin olun.</value>
   </data>
+  <data name="The version details are on the clipboard." xml:space="preserve">
+    <value>Sürüm ayrıntıları panoya kopyalandı.</value>
+  </data>
   <data name="The version to go back to" xml:space="preserve">
     <value>Geri dönülecek sürüm</value>
   </data>
@@ -14076,9 +14094,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="This account has no photo." xml:space="preserve">
     <value>Bu hesabın fotoğrafı yok.</value>
-  </data>
-  <data name="This account has no rules of its own; the server's rules still apply." xml:space="preserve">
-    <value>Bu hesabın kendine ait kuralı yok; sunucunun kuralları yine geçerlidir.</value>
   </data>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>Bu eylemin ek parametresi yok.</value>
@@ -14658,9 +14673,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="Version and updates" xml:space="preserve">
     <value>Sürüm ve güncelleştirmeler</value>
-  </data>
-  <data name="Version {0}  -  .NET {1}" xml:space="preserve">
-    <value>Sürüm {0}  -  .NET {1}</value>
   </data>
   <data name="Version, build and licence information." xml:space="preserve">
     <value>Sürüm, derleme ve lisans bilgileri.</value>
@@ -15471,6 +15483,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="_Copy results" xml:space="preserve">
     <value>Sonuçları _kopyala</value>
+  </data>
+  <data name="_Copy version details" xml:space="preserve">
+    <value>Sürüm ayrıntılarını _kopyala</value>
   </data>
   <data name="_Country policy at sign-in (empty = off)" xml:space="preserve">
     <value>_Oturum açmada ülke ilkesi (boş = kapalı)</value>
@@ -16384,6 +16399,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="hMailServer (tab separated)" xml:space="preserve">
     <value>hMailServer (sekmeyle ayrılmış)</value>
   </data>
+  <data name="hMailServer 6.x is built with Visual Studio 2026 (MSVC v145) and .NET 10. To the original it adds PBKDF2 and Argon2id password hashing, SCRAM-SHA-256 and OAuth2 sign-in, DANE with DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT, ACME (Let's Encrypt), Sieve and ManageSieve filtering, health checks and OpenTelemetry. This Control Panel replaces the earlier hMailServer Administrator." xml:space="preserve">
+    <value>hMailServer 6.x, Visual Studio 2026 (MSVC v145) ve .NET 10 ile derlenir. Özgün sunucuya PBKDF2 ve Argon2id parola karma, SCRAM-SHA-256 ve OAuth2 ile oturum açma, DNSSEC ile DANE, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT, ACME (Let's Encrypt), Sieve ve ManageSieve filtreleme, sağlık denetimleri ve OpenTelemetry'yi ekler. Bu Denetim Masası, önceki hMailServer Administrator'ın yerini alır.</value>
+  </data>
   <data name="hMailServer COM API is not registered on the target machine." xml:space="preserve">
     <value>hMailServer COM API'si hedef makinede kayıtlı değil.</value>
   </data>
@@ -16789,9 +16807,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="rua=mailto:{0} sends you the aggregate reports; the address is the domain's postmaster address as configured on the domain. Reports arrive from strangers, so the mailbox must exist and accept them." xml:space="preserve">
     <value>rua=mailto:{0} size toplu raporları gönderir; adres, etki alanında yapılandırıldığı biçimiyle etki alanının postmaster adresidir. Raporlar yabancılardan gelir; bu yüzden posta kutusu var olmalı ve onları kabul etmelidir.</value>
-  </data>
-  <data name="rule" xml:space="preserve">
-    <value>kural</value>
   </data>
   <data name="run code when mail arrives" xml:space="preserve">
     <value>posta geldiğinde kod çalıştır</value>

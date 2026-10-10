@@ -117,7 +117,8 @@ namespace hMailServer.ControlPanel.Views
          // Named by its caption, which now says what it acts on (label in name).
       }
 
-      private static string DatabaseTypeName(int type) => type switch
+      // The About page names the database by these words too (review finding F314).
+      internal static string DatabaseTypeName(int type) => type switch
       {
          1 => "MySQL / MariaDB",   // no-loc: product names
          2 => "Microsoft SQL Server",   // no-loc

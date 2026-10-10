@@ -208,9 +208,6 @@
   <data name="1 remote domain policy" xml:space="preserve">
     <value>リモートドメインのポリシー 1 件</value>
   </data>
-  <data name="1 rule" xml:space="preserve">
-    <value>ルール 1 件</value>
-  </data>
   <data name="1 security group" xml:space="preserve">
     <value>セキュリティ グループ 1 件</value>
   </data>
@@ -555,9 +552,6 @@
   </data>
   <data name="A migration rather than a collection: every folder, verbatim, with its flags and dates." xml:space="preserve">
     <value>取り込みではなく移行です。すべてのフォルダーを、フラグと日付を含めてそのまま移します。</value>
-  </data>
-  <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
-    <value>hMailServer 向けの最新の管理アプリケーションです。リアルタイムのダッシュボード、ドメインとアカウント、配信キュー、ログのストリーミング、サーバー設定のすべて、そして 6.x の転送セキュリティ機能 (DANE、MTA-STS、ARC、TLS-RPT、ACME) を備えています。</value>
   </data>
   <data name="A name cannot begin or end with &quot;{0}&quot; or have two together: &quot;{0}&quot; separates a folder from its sub-folder." xml:space="preserve">
     <value>名前の先頭や末尾に「{0}」を置いたり、「{0}」を 2 つ続けたりすることはできません。「{0}」はフォルダーとそのサブフォルダーを区切ります。</value>
@@ -1090,9 +1084,6 @@
   <data name="Add a row to a list, or go to the form that adds one" xml:space="preserve">
     <value>一覧に行を追加する、または行を追加するフォームに移動する</value>
   </data>
-  <data name="Add a rule" xml:space="preserve">
-    <value>ルールを追加</value>
-  </data>
   <data name="Add a security group" xml:space="preserve">
     <value>セキュリティ グループを追加</value>
   </data>
@@ -1332,6 +1323,9 @@
   </data>
   <data name="Administer (manage ACL)" xml:space="preserve">
     <value>管理 (ACL の管理)</value>
+  </data>
+  <data name="Administers an hMailServer: its domains and accounts, the delivery queue, the logs, the server's settings and its transport security." xml:space="preserve">
+    <value>hMailServer を管理します。ドメインとアカウント、配信キュー、ログ、サーバーの設定、トランスポート セキュリティです。</value>
   </data>
   <data name="Administrative access" xml:space="preserve">
     <value>管理者アクセス</value>
@@ -1871,6 +1865,9 @@
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>相手のドメインにキーがない場合はキーサーバーに問い合わせる</value>
   </data>
+  <data name="Ask on the forum, or report a defect on the issue tracker. Copy the version details into either: they are what anyone helping asks for first." xml:space="preserve">
+    <value>フォーラムで質問するか、イシュー トラッカーで不具合を報告してください。どちらにもバージョン情報をコピーしてください。サポートする人が最初に尋ねる情報です。</value>
+  </data>
   <data name="Asking the service to take the backup." xml:space="preserve">
     <value>サービスにバックアップの作成を依頼しています。</value>
   </data>
@@ -2347,6 +2344,9 @@
   </data>
   <data name="Bucket (S3) or container (Azure)" xml:space="preserve">
     <value>バケット (S3) またはコンテナー (Azure)</value>
+  </data>
+  <data name="Building and packaging" xml:space="preserve">
+    <value>ビルドとパッケージ</value>
   </data>
   <data name="Builds a search index so IMAP SEARCH and the web client are faster." xml:space="preserve">
     <value>検索インデックスを構築し、IMAP SEARCH と Web クライアントを高速にします。</value>
@@ -2927,8 +2927,8 @@
   <data name="Connected now" xml:space="preserve">
     <value>現在の接続</value>
   </data>
-  <data name="Connected server: hMailServer {0} @ {1}" xml:space="preserve">
-    <value>接続中のサーバー: hMailServer {0} @ {1}</value>
+  <data name="Connected to" xml:space="preserve">
+    <value>接続先</value>
   </data>
   <data name="Connected to a remote server: hMailServer.ini cannot be read from here, so mode and max_age shown are the shipped defaults." xml:space="preserve">
     <value>リモート サーバーに接続しています: hMailServer.ini をここから読み取れないため、表示されている mode と max_age は出荷時の既定値です。</value>
@@ -4538,9 +4538,6 @@
   <data name="Edit the remote domain policy" xml:space="preserve">
     <value>リモート ドメインのポリシーを編集</value>
   </data>
-  <data name="Edit the rule" xml:space="preserve">
-    <value>ルールを編集</value>
-  </data>
   <data name="Edit the security group" xml:space="preserve">
     <value>セキュリティ グループを編集</value>
   </data>
@@ -5432,6 +5429,9 @@
   <data name="For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
     <value>このサーバーの外で取得したトークン用です。通常の使用では空のままにしてください。固定トークンは期限が切れ、ここにあるものは何も更新しません。</value>
   </data>
+  <data name="Forum" xml:space="preserve">
+    <value>フォーラム</value>
+  </data>
   <data name="Forward _to" xml:space="preserve">
     <value>転送先(_T)</value>
   </data>
@@ -5521,6 +5521,9 @@
   </data>
   <data name="Generated password copied to clipboard — reveal it with the eye icon." xml:space="preserve">
     <value>生成されたパスワードをクリップボードにコピーしました。目のアイコンで表示できます。</value>
+  </data>
+  <data name="Get help" xml:space="preserve">
+    <value>サポートを受ける</value>
   </data>
   <data name="Give at least one active domain a DKIM selector and key file, and publish that domain's DKIM TXT record - the receiving server verifies the seal against the same record DKIM signing uses." xml:space="preserve">
     <value>少なくとも 1 つの有効なドメインに DKIM のセレクターとキー ファイルを設定し、そのドメインの DKIM TXT レコードを公開してください。受信側サーバーは、DKIM 署名が使うのと同じレコードでシールを検証します。</value>
@@ -6235,6 +6238,9 @@
   <data name="Issuer (empty = no single sign-on)" xml:space="preserve">
     <value>発行者 (空 = シングル サインオンなし)</value>
   </data>
+  <data name="Issues" xml:space="preserve">
+    <value>イシュー</value>
+  </data>
   <data name="Issues and renews certificates automatically, but only if the certificate authority can fetch the http-01 challenge from this server." xml:space="preserve">
     <value>証明書を自動的に発行・更新しますが、認証局がこのサーバーから http-01 チャレンジを取得できる場合に限られます。</value>
   </data>
@@ -6528,6 +6534,9 @@
   </data>
   <data name="Levels" xml:space="preserve">
     <value>レベル</value>
+  </data>
+  <data name="Licence" xml:space="preserve">
+    <value>ライセンス</value>
   </data>
   <data name="Lift ban" xml:space="preserve">
     <value>ブロックを解除</value>
@@ -7756,6 +7765,9 @@
   </data>
   <data name="No distribution lists for this domain." xml:space="preserve">
     <value>このドメインに配布リストはありません。</value>
+  </data>
+  <data name="No document contains &quot;{0}&quot;." xml:space="preserve">
+    <value>「{0}」を含むドキュメントはありません。</value>
   </data>
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>DKIM 署名がオンになっているドメインがないため、DNS レコードは不要です。</value>
@@ -9106,9 +9118,6 @@
   <data name="Per-account overrides of the server-wide spam handling, applied to this account's copy at delivery. They cannot reach back into the SMTP conversation: a message the global settings refuse, quarantine or greylist is stopped for every recipient before any per-account setting can run." xml:space="preserve">
     <value>サーバー全体のスパム処理に対するアカウント単位の上書きで、配信時にこのアカウントのコピーに適用されます。SMTP の通信までさかのぼって作用することはできません。グローバル設定が拒否・検疫・グレイリスティングするメッセージは、アカウント単位の設定が動く前に、すべての受信者について止められます。</value>
   </data>
-  <data name="Per-account rules. You can add, rename, enable/disable and delete rules here; matching criteria and actions are managed on the server." xml:space="preserve">
-    <value>アカウント単位のルールです。ここではルールの追加、名前の変更、有効化/無効化、削除ができます。一致条件とアクションはサーバー側で管理されます。</value>
-  </data>
   <data name="Per-account sending limits" xml:space="preserve">
     <value>アカウント単位の送信制限</value>
   </data>
@@ -9319,8 +9328,8 @@
   <data name="Program to run when an address is banned or unbanned (empty = none)" xml:space="preserve">
     <value>アドレスの BAN と解除の際に実行するプログラム (空 = なし)</value>
   </data>
-  <data name="Progressive Robot Ltd is a software engineering company that builds and modernises production software — taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling." xml:space="preserve">
-    <value>Progressive Robot Ltd は、実運用ソフトウェアの構築と近代化を手がけるソフトウェア エンジニアリング企業です。成熟した実世界のシステムを引き受け、セキュリティ、信頼性、ツール群を現在の水準へ引き上げます。</value>
+  <data name="Progressive Robot Ltd is a software engineering company. It maintains the hMailServer 6.x line, an independent fork of the open-source mail server." xml:space="preserve">
+    <value>Progressive Robot Ltd はソフトウェア エンジニアリング企業です。オープンソースのメール サーバーの独立したフォークである hMailServer 6.x 系列を保守しています。</value>
   </data>
   <data name="Prometheus metrics (/metrics), OpenTelemetry export of traces, metrics and logs (one endpoint per signal, each off until set), a slow-query log, and JSON-structured log output for log aggregators (on the Logging page)." xml:space="preserve">
     <value>Prometheus メトリクス (/metrics)、トレース・メトリクス・ログの OpenTelemetry エクスポート (シグナルごとに 1 つのエンドポイントで、設定するまではいずれも無効)、スロー クエリ ログ、そしてログ集約ツール向けの JSON 構造化ログ出力 (「ログ設定」ページ)。</value>
@@ -9781,6 +9790,9 @@
   </data>
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>ログ レベルを下げるか、ログを何日分保持するかを設定します。</value>
+  </data>
+  <data name="Reference" xml:space="preserve">
+    <value>リファレンス</value>
   </data>
   <data name="Refresh a list, or reload a settings page" xml:space="preserve">
     <value>一覧を更新する、または設定ページを再読み込みする</value>
@@ -10489,9 +10501,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Rule loop limit" xml:space="preserve">
     <value>ルールのループ上限</value>
   </data>
-  <data name="Rule name" xml:space="preserve">
-    <value>ルール名</value>
-  </data>
   <data name="Rule operation failed: {0}" xml:space="preserve">
     <value>ルールの操作に失敗しました: {0}</value>
   </data>
@@ -11052,6 +11061,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Search accounts" xml:space="preserve">
     <value>アカウントを検索</value>
+  </data>
+  <data name="Search all documentation" xml:space="preserve">
+    <value>すべてのドキュメントを検索</value>
   </data>
   <data name="Search bas_e" xml:space="preserve">
     <value>検索ベース(_E)</value>
@@ -11950,6 +11962,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Source" xml:space="preserve">
     <value>発生元</value>
   </data>
+  <data name="Source code" xml:space="preserve">
+    <value>ソース コード</value>
+  </data>
   <data name="Space" xml:space="preserve">
     <value>スペース キー</value>
   </data>
@@ -12489,6 +12504,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The Control Panel is connected to another host, so the account its service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>コントロールパネルは別のホストに接続しているため、そのホストのサービスが実行されているアカウントをここから読み取ることはできません。サーバー自体でコントロールパネルを開いて確認してください。</value>
+  </data>
+  <data name="The Control Panel's and the server's versions, the build, .NET, Windows and the database, for a report." xml:space="preserve">
+    <value>報告用の、コントロールパネルとサーバーのバージョン、ビルド、.NET、Windows、データベースです。</value>
   </data>
   <data name="The DMARC aggregate and TLS-RPT reports other servers send about your domains, read from each domain's report mailbox - which is set in the domain's dialog." xml:space="preserve">
     <value>ほかのサーバーがあなたのドメインについて送る DMARC 集計レポートと TLS-RPT レポート。各ドメインのレポート用メールボックスから読み取ります。メールボックスはドメインのダイアログで設定します。</value>
@@ -13168,9 +13186,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The guided path: which half, which log lines, and the setting that bounds each stage." xml:space="preserve">
     <value>ガイド付きの手順: どちらの半分か、どのログ行か、各ステージを制限する設定はどれか。</value>
-  </data>
-  <data name="The hMailServer 6.x line is one such effort. The original open-source mail server has been rebuilt on a current toolchain (Visual Studio 2026 / MSVC v145 and .NET 10), re-armed with modern cryptography (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) and the transport-security standards expected of a mail server today (DANE + DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT and ACME / Let's Encrypt). It has been hardened against protocol and denial-of-service defects, given Sieve / ManageSieve filtering, health and OpenTelemetry observability, broad MySQL / MariaDB / MS SQL / PostgreSQL support, and this modern Fluent-design Control Panel in place of the legacy administrator." xml:space="preserve">
-    <value>hMailServer 6.x 系列はそうした取り組みの 1 つです。元のオープンソース メール サーバーは、現行のツールチェーン (Visual Studio 2026 / MSVC v145 と .NET 10) 上で再構築され、最新の暗号技術 (PBKDF2 / Argon2id、SCRAM-SHA-256、OAuth2) と、今日のメール サーバーに期待されるトランスポート セキュリティ標準 (DANE + DNSSEC、MTA-STS、ARC、Ed25519 DKIM、TLS-RPT、ACME / Let's Encrypt) で再武装されました。プロトコルおよびサービス拒否の欠陥に対して強化され、Sieve / ManageSieve フィルタリング、ヘルスと OpenTelemetry による可観測性、幅広い MySQL / MariaDB / MS SQL / PostgreSQL サポート、そして従来の管理ツールに代わるこの Fluent デザインのモダンなコントロールパネルを備えています。</value>
   </data>
   <data name="The highest total reachable cannot be said: a check could not be read." xml:space="preserve">
     <value>到達し得る合計の最大値は判断できません: チェックを読み取れませんでした。</value>
@@ -13958,6 +13973,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The verification code is incorrect. Make sure your authenticator app is set up with the new key." xml:space="preserve">
     <value>確認コードが正しくありません。認証アプリが新しいキーで設定されていることを確認してください。</value>
   </data>
+  <data name="The version details are on the clipboard." xml:space="preserve">
+    <value>バージョン情報をクリップボードにコピーしました。</value>
+  </data>
   <data name="The version to go back to" xml:space="preserve">
     <value>戻す先のバージョン</value>
   </data>
@@ -14086,9 +14104,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="This account has no photo." xml:space="preserve">
     <value>このアカウントには写真がありません。</value>
-  </data>
-  <data name="This account has no rules of its own; the server's rules still apply." xml:space="preserve">
-    <value>このアカウントには独自のルールがありません。サーバーのルールは引き続き適用されます。</value>
   </data>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>このアクションに追加のパラメーターはありません。</value>
@@ -14668,9 +14683,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Version and updates" xml:space="preserve">
     <value>バージョンと更新プログラム</value>
-  </data>
-  <data name="Version {0}  -  .NET {1}" xml:space="preserve">
-    <value>バージョン {0}  -  .NET {1}</value>
   </data>
   <data name="Version, build and licence information." xml:space="preserve">
     <value>バージョン、ビルド、ライセンスの情報。</value>
@@ -15481,6 +15493,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Copy results" xml:space="preserve">
     <value>結果をコピー(_C)</value>
+  </data>
+  <data name="_Copy version details" xml:space="preserve">
+    <value>バージョン情報をコピー(_C)</value>
   </data>
   <data name="_Country policy at sign-in (empty = off)" xml:space="preserve">
     <value>サインイン時の国ポリシー (空 = オフ)(_C)</value>
@@ -16394,6 +16409,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="hMailServer (tab separated)" xml:space="preserve">
     <value>hMailServer (タブ区切り)</value>
   </data>
+  <data name="hMailServer 6.x is built with Visual Studio 2026 (MSVC v145) and .NET 10. To the original it adds PBKDF2 and Argon2id password hashing, SCRAM-SHA-256 and OAuth2 sign-in, DANE with DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT, ACME (Let's Encrypt), Sieve and ManageSieve filtering, health checks and OpenTelemetry. This Control Panel replaces the earlier hMailServer Administrator." xml:space="preserve">
+    <value>hMailServer 6.x は Visual Studio 2026 (MSVC v145) と .NET 10 でビルドされます。元のサーバーに加えて、PBKDF2 と Argon2id によるパスワード ハッシュ、SCRAM-SHA-256 と OAuth2 によるサインイン、DANE と DNSSEC、MTA-STS、ARC、Ed25519 DKIM、TLS-RPT、ACME (Let's Encrypt)、Sieve と ManageSieve によるフィルタリング、ヘルス チェックと OpenTelemetry に対応しています。このコントロールパネルは以前の hMailServer Administrator に代わるものです。</value>
+  </data>
   <data name="hMailServer COM API is not registered on the target machine." xml:space="preserve">
     <value>対象のコンピューターに hMailServer COM API が登録されていません。</value>
   </data>
@@ -16799,9 +16817,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="rua=mailto:{0} sends you the aggregate reports; the address is the domain's postmaster address as configured on the domain. Reports arrive from strangers, so the mailbox must exist and accept them." xml:space="preserve">
     <value>rua=mailto:{0} により集約レポートが届きます。このアドレスは、ドメインで設定されている postmaster アドレスです。レポートは見知らぬ相手から届くため、そのメールボックスは存在し、それらを受け入れる必要があります。</value>
-  </data>
-  <data name="rule" xml:space="preserve">
-    <value>ルール</value>
   </data>
   <data name="run code when mail arrives" xml:space="preserve">
     <value>メール受信時にコードを実行する</value>

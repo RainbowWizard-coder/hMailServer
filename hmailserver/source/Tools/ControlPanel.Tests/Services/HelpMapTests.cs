@@ -191,7 +191,9 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void ThePaneSaysWhenThereIsNoGuide_AndFollowsTheTab()
       {
          string controlPanel = FindControlPanel();
-         string pane = File.ReadAllText(Path.Combine(controlPanel, "Views", "HelpPane.cs"));
+         // The pane is two files, its list and its Back in HelpPane.List.cs.
+         string pane = File.ReadAllText(Path.Combine(controlPanel, "Views", "HelpPane.cs"))
+            + File.ReadAllText(Path.Combine(controlPanel, "Views", "HelpPane.List.cs"));
          Assert.Contains("public void ShowPage(string navigationKey, string tab)", pane, StringComparison.Ordinal);
          Assert.Contains("HelpMap.For(navigationKey, tab)", pane, StringComparison.Ordinal);
          Assert.Contains("if (!target.IsGuide)", pane, StringComparison.Ordinal);

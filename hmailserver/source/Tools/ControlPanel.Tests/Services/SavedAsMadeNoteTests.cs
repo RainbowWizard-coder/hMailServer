@@ -44,7 +44,7 @@ namespace hMailServer.ControlPanel.Tests.Services
             end = specs.IndexOf(DialogTabEnd, end + 1, StringComparison.Ordinal);
          }
 
-         Assert.Equal(4, count);
+         Assert.Equal(3, count);
       }
 
       [Fact]

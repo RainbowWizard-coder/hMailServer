@@ -198,9 +198,6 @@
   <data name="1 remote domain policy" xml:space="preserve">
     <value>Pravidla pro vzdálené domény: 1</value>
   </data>
-  <data name="1 rule" xml:space="preserve">
-    <value>Pravidla: 1</value>
-  </data>
   <data name="1 security group" xml:space="preserve">
     <value>Skupiny zabezpečení: 1</value>
   </data>
@@ -548,9 +545,6 @@
   </data>
   <data name="A migration rather than a collection: every folder, verbatim, with its flags and dates." xml:space="preserve">
     <value>Migrace, nikoli stahování: každá složka doslovně, s příznaky a daty.</value>
-  </data>
-  <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
-    <value>Moderní aplikace pro správu hMailServeru: živý přehled, domény a účty, doručovací fronta, streamování logů, kompletní nastavení serveru a funkce zabezpečení přenosu z řady 6.x (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
   </data>
   <data name="A name cannot begin or end with &quot;{0}&quot; or have two together: &quot;{0}&quot; separates a folder from its sub-folder." xml:space="preserve">
     <value>Název nesmí začínat ani končit znakem „{0}“ ani jej obsahovat dvakrát za sebou: „{0}“ odděluje složku od její podsložky.</value>
@@ -1086,9 +1080,6 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Add a row to a list, or go to the form that adds one" xml:space="preserve">
     <value>Přidat řádek do seznamu nebo přejít do formuláře, který ho přidá</value>
   </data>
-  <data name="Add a rule" xml:space="preserve">
-    <value>Přidat pravidlo</value>
-  </data>
   <data name="Add a security group" xml:space="preserve">
     <value>Přidat skupinu zabezpečení</value>
   </data>
@@ -1334,6 +1325,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   </data>
   <data name="Administer (manage ACL)" xml:space="preserve">
     <value>Spravovat (správa ACL)</value>
+  </data>
+  <data name="Administers an hMailServer: its domains and accounts, the delivery queue, the logs, the server's settings and its transport security." xml:space="preserve">
+    <value>Spravuje hMailServer: jeho domény a účty, frontu doručování, logy, nastavení serveru a jeho transportní zabezpečení.</value>
   </data>
   <data name="Administrative access" xml:space="preserve">
     <value>Přístup pro správu</value>
@@ -1882,6 +1876,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>Zeptat se serveru klíčů, když jejich doména nemá klíč</value>
   </data>
+  <data name="Ask on the forum, or report a defect on the issue tracker. Copy the version details into either: they are what anyone helping asks for first." xml:space="preserve">
+    <value>Zeptejte se na fóru, nebo nahlaste chybu v systému pro hlášení problémů. Do obojího vložte podrobnosti o verzi: na ty se každý, kdo pomáhá, ptá nejdřív.</value>
+  </data>
   <data name="Asking the service to take the backup." xml:space="preserve">
     <value>Žádost pro službu, aby vytvořila zálohu.</value>
   </data>
@@ -2367,6 +2364,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Bucket (S3) or container (Azure)" xml:space="preserve">
     <value>Bucket (S3) nebo kontejner (Azure)</value>
+  </data>
+  <data name="Building and packaging" xml:space="preserve">
+    <value>Sestavení a balíčky</value>
   </data>
   <data name="Builds a search index so IMAP SEARCH and the web client are faster." xml:space="preserve">
     <value>Vytváří vyhledávací index, aby bylo IMAP SEARCH a webový klient rychlejší.</value>
@@ -2947,8 +2947,8 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Connected now" xml:space="preserve">
     <value>Připojeno nyní</value>
   </data>
-  <data name="Connected server: hMailServer {0} @ {1}" xml:space="preserve">
-    <value>Připojený server: hMailServer {0} @ {1}</value>
+  <data name="Connected to" xml:space="preserve">
+    <value>Připojeno k</value>
   </data>
   <data name="Connected to a remote server: hMailServer.ini cannot be read from here, so mode and max_age shown are the shipped defaults." xml:space="preserve">
     <value>Připojeno ke vzdálenému serveru: hMailServer.ini odsud nelze přečíst, takže zobrazený režim a max_age jsou dodávané výchozí hodnoty.</value>
@@ -4586,9 +4586,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Edit the remote domain policy" xml:space="preserve">
     <value>Upravit pravidlo pro vzdálenou doménu</value>
   </data>
-  <data name="Edit the rule" xml:space="preserve">
-    <value>Upravit pravidlo</value>
-  </data>
   <data name="Edit the security group" xml:space="preserve">
     <value>Upravit skupinu zabezpečení</value>
   </data>
@@ -5498,6 +5495,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
     <value>Pro tokeny získané mimo tento server. Při běžném použití nechte prázdné - pevné tokeny vyprší a nic zde je neobnoví.</value>
   </data>
+  <data name="Forum" xml:space="preserve">
+    <value>Fórum</value>
+  </data>
   <data name="Forward _to" xml:space="preserve">
     <value>P_řeposílat na</value>
   </data>
@@ -5587,6 +5587,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Generated password copied to clipboard — reveal it with the eye icon." xml:space="preserve">
     <value>Vygenerované heslo zkopírováno do schránky — zobrazte ho ikonou oka.</value>
+  </data>
+  <data name="Get help" xml:space="preserve">
+    <value>Získat pomoc</value>
   </data>
   <data name="Give at least one active domain a DKIM selector and key file, and publish that domain's DKIM TXT record - the receiving server verifies the seal against the same record DKIM signing uses." xml:space="preserve">
     <value>Dejte alespoň jedné aktivní doméně selektor DKIM a soubor klíče a publikujte záznam TXT DKIM této domény - přijímající server ověřuje pečeť proti témuž záznamu, který používá podepisování DKIM.</value>
@@ -6301,6 +6304,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Issuer (empty = no single sign-on)" xml:space="preserve">
     <value>Vydavatel (prázdné = bez jednotného přihlašování)</value>
   </data>
+  <data name="Issues" xml:space="preserve">
+    <value>Hlášení problémů</value>
+  </data>
   <data name="Issues and renews certificates automatically, but only if the certificate authority can fetch the http-01 challenge from this server." xml:space="preserve">
     <value>Vydává a obnovuje certifikáty automaticky, ale jen pokud certifikační autorita dokáže stáhnout výzvu http-01 z tohoto serveru.</value>
   </data>
@@ -6594,6 +6600,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="Levels" xml:space="preserve">
     <value>Úrovně</value>
+  </data>
+  <data name="Licence" xml:space="preserve">
+    <value>Licence</value>
   </data>
   <data name="Lift ban" xml:space="preserve">
     <value>Zrušit ban</value>
@@ -7828,6 +7837,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="No distribution lists for this domain." xml:space="preserve">
     <value>Pro tuto doménu nejsou žádné distribuční seznamy.</value>
+  </data>
+  <data name="No document contains &quot;{0}&quot;." xml:space="preserve">
+    <value>Žádný dokument neobsahuje „{0}“.</value>
   </data>
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>Žádná doména nemá zapnuté podepisování DKIM, takže není potřeba žádný DNS záznam.</value>
@@ -9196,9 +9208,6 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Per-account overrides of the server-wide spam handling, applied to this account's copy at delivery. They cannot reach back into the SMTP conversation: a message the global settings refuse, quarantine or greylist is stopped for every recipient before any per-account setting can run." xml:space="preserve">
     <value>Výjimky pro jednotlivý účet ze zpracování spamu platného pro celý server, uplatněné na kopii tohoto účtu při doručení. Nemohou zasáhnout zpět do SMTP konverzace: zpráva, kterou globální nastavení odmítne, dá do karantény nebo greylistuje, je zastavena pro všechny příjemce dřív, než může jakékoli nastavení účtu proběhnout.</value>
   </data>
-  <data name="Per-account rules. You can add, rename, enable/disable and delete rules here; matching criteria and actions are managed on the server." xml:space="preserve">
-    <value>Pravidla účtu. Zde můžete pravidla přidávat, přejmenovávat, zapínat/vypínat a mazat; kritéria shody a akce se spravují na serveru.</value>
-  </data>
   <data name="Per-account sending limits" xml:space="preserve">
     <value>Limity odesílání pro jednotlivé účty</value>
   </data>
@@ -9409,8 +9418,8 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Program to run when an address is banned or unbanned (empty = none)" xml:space="preserve">
     <value>Program spuštěný při zákazu nebo zrušení zákazu adresy (prázdné = žádný)</value>
   </data>
-  <data name="Progressive Robot Ltd is a software engineering company that builds and modernises production software — taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling." xml:space="preserve">
-    <value>Progressive Robot Ltd je softwarová firma, která staví a modernizuje produkční software — bere vyzrálé systémy z reálného provozu a přivádí je na současnou úroveň zabezpečení, spolehlivosti a nástrojů.</value>
+  <data name="Progressive Robot Ltd is a software engineering company. It maintains the hMailServer 6.x line, an independent fork of the open-source mail server." xml:space="preserve">
+    <value>Progressive Robot Ltd je společnost zabývající se vývojem softwaru. Udržuje řadu hMailServer 6.x, nezávislý fork open-source poštovního serveru.</value>
   </data>
   <data name="Prometheus metrics (/metrics), OpenTelemetry export of traces, metrics and logs (one endpoint per signal, each off until set), a slow-query log, and JSON-structured log output for log aggregators (on the Logging page)." xml:space="preserve">
     <value>Metriky Prometheus (/metrics), export trasování, metrik a logů přes OpenTelemetry (jeden koncový bod na signál, každý vypnutý, dokud není nastaven), log pomalých dotazů a strukturovaný výstup logů v JSON pro agregátory logů (na stránce Logování).</value>
@@ -9871,6 +9880,9 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
   </data>
   <data name="Reduce the log level, or set how many days of logs are kept." xml:space="preserve">
     <value>Snižte úroveň logování, nebo nastavte, kolik dní logů se uchovává.</value>
+  </data>
+  <data name="Reference" xml:space="preserve">
+    <value>Referenční příručky</value>
   </data>
   <data name="Refresh a list, or reload a settings page" xml:space="preserve">
     <value>Obnovit seznam nebo znovu načíst stránku nastavení</value>
@@ -10594,9 +10606,6 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Rule loop limit" xml:space="preserve">
     <value>Limit smyček pravidel</value>
   </data>
-  <data name="Rule name" xml:space="preserve">
-    <value>Název pravidla</value>
-  </data>
   <data name="Rule operation failed: {0}" xml:space="preserve">
     <value>Operace s pravidlem selhala: {0}</value>
   </data>
@@ -11184,6 +11193,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Search accounts" xml:space="preserve">
     <value>Hledat v účtech</value>
+  </data>
+  <data name="Search all documentation" xml:space="preserve">
+    <value>Hledat ve veškeré dokumentaci</value>
   </data>
   <data name="Search bas_e" xml:space="preserve">
     <value>_Báze hledání</value>
@@ -12088,6 +12100,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Source" xml:space="preserve">
     <value>Zdroj</value>
   </data>
+  <data name="Source code" xml:space="preserve">
+    <value>Zdrojový kód</value>
+  </data>
   <data name="Space" xml:space="preserve">
     <value>Mezerník</value>
   </data>
@@ -12630,6 +12645,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="The Control Panel is connected to another host, so the account its service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>Control Panel je připojen k jinému hostiteli, takže účet, pod kterým běží jeho služba, odsud přečíst nelze. Chcete-li jej zjistit, otevřete Control Panel přímo na serveru.</value>
+  </data>
+  <data name="The Control Panel's and the server's versions, the build, .NET, Windows and the database, for a report." xml:space="preserve">
+    <value>Verze aplikace Control Panel a serveru, sestavení, .NET, Windows a databáze, pro hlášení.</value>
   </data>
   <data name="The DMARC aggregate and TLS-RPT reports other servers send about your domains, read from each domain's report mailbox - which is set in the domain's dialog." xml:space="preserve">
     <value>Souhrnné zprávy DMARC a zprávy TLS-RPT, které jiné servery posílají o vašich doménách, čtené ze schránky pro zprávy každé domény - nastavuje se v dialogu domény.</value>
@@ -13330,9 +13348,6 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   </data>
   <data name="The guided path: which half, which log lines, and the setting that bounds each stage." xml:space="preserve">
     <value>Cesta s průvodcem: která polovina, které řádky logu a nastavení, které omezuje každou fázi.</value>
-  </data>
-  <data name="The hMailServer 6.x line is one such effort. The original open-source mail server has been rebuilt on a current toolchain (Visual Studio 2026 / MSVC v145 and .NET 10), re-armed with modern cryptography (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) and the transport-security standards expected of a mail server today (DANE + DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT and ACME / Let's Encrypt). It has been hardened against protocol and denial-of-service defects, given Sieve / ManageSieve filtering, health and OpenTelemetry observability, broad MySQL / MariaDB / MS SQL / PostgreSQL support, and this modern Fluent-design Control Panel in place of the legacy administrator." xml:space="preserve">
-    <value>Řada hMailServer 6.x je jedním takovým počinem. Původní open-source poštovní server byl znovu postaven na současném toolchainu (Visual Studio 2026 / MSVC v145 a .NET 10), vyzbrojen moderní kryptografií (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) a standardy transportního zabezpečení, které se dnes od poštovního serveru očekávají (DANE + DNSSEC, MTA-STS, ARC, DKIM s Ed25519, TLS-RPT a ACME / Let's Encrypt). Byl zpevněn proti chybám protokolů a odepření služby, dostal filtrování Sieve / ManageSieve, zdravotní endpointy a observabilitu OpenTelemetry, širokou podporu MySQL / MariaDB / MS SQL / PostgreSQL a tento moderní Control Panel v designu Fluent namísto starého administrátora.</value>
   </data>
   <data name="The highest total reachable cannot be said: a check could not be read." xml:space="preserve">
     <value>Nejvyšší dosažitelný součet nelze říci: některou kontrolu se nepodařilo přečíst.</value>
@@ -14126,6 +14141,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="The verification code is incorrect. Make sure your authenticator app is set up with the new key." xml:space="preserve">
     <value>Ověřovací kód je nesprávný. Ujistěte se, že je ověřovací aplikace nastavena s novým klíčem.</value>
   </data>
+  <data name="The version details are on the clipboard." xml:space="preserve">
+    <value>Podrobnosti o verzi jsou ve schránce.</value>
+  </data>
   <data name="The version to go back to" xml:space="preserve">
     <value>Verze pro návrat</value>
   </data>
@@ -14254,9 +14272,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="This account has no photo." xml:space="preserve">
     <value>Tento účet nemá fotografii.</value>
-  </data>
-  <data name="This account has no rules of its own; the server's rules still apply." xml:space="preserve">
-    <value>Tento účet nemá žádná vlastní pravidla; pravidla serveru stále platí.</value>
   </data>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>Tato akce nemá žádné další parametry.</value>
@@ -14842,9 +14857,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="Version and updates" xml:space="preserve">
     <value>Verze a aktualizace</value>
-  </data>
-  <data name="Version {0}  -  .NET {1}" xml:space="preserve">
-    <value>Verze {0}  -  .NET {1}</value>
   </data>
   <data name="Version, build and licence information." xml:space="preserve">
     <value>Informace o verzi, sestavení a licenci.</value>
@@ -15658,6 +15670,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Copy results" xml:space="preserve">
     <value>_Kopírovat výsledky</value>
+  </data>
+  <data name="_Copy version details" xml:space="preserve">
+    <value>_Kopírovat podrobnosti o verzi</value>
   </data>
   <data name="_Country policy at sign-in (empty = off)" xml:space="preserve">
     <value>_Zásada zemí při přihlášení (prázdné = vypnuto)</value>
@@ -16577,6 +16592,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="hMailServer (tab separated)" xml:space="preserve">
     <value>hMailServer (oddělené tabulátory)</value>
   </data>
+  <data name="hMailServer 6.x is built with Visual Studio 2026 (MSVC v145) and .NET 10. To the original it adds PBKDF2 and Argon2id password hashing, SCRAM-SHA-256 and OAuth2 sign-in, DANE with DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT, ACME (Let's Encrypt), Sieve and ManageSieve filtering, health checks and OpenTelemetry. This Control Panel replaces the earlier hMailServer Administrator." xml:space="preserve">
+    <value>hMailServer 6.x se sestavuje ve Visual Studiu 2026 (MSVC v145) a v .NET 10. K původnímu serveru přidává hašování hesel PBKDF2 a Argon2id, přihlašování SCRAM-SHA-256 a OAuth2, DANE s DNSSEC, MTA-STS, ARC, DKIM s Ed25519, TLS-RPT, ACME (Let's Encrypt), filtrování Sieve a ManageSieve, kontroly stavu a OpenTelemetry. Tento Control Panel nahrazuje dřívější hMailServer Administrator.</value>
+  </data>
   <data name="hMailServer COM API is not registered on the target machine." xml:space="preserve">
     <value>hMailServer COM API není na cílovém počítači zaregistrováno.</value>
   </data>
@@ -16991,9 +17009,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="rua=mailto:{0} sends you the aggregate reports; the address is the domain's postmaster address as configured on the domain. Reports arrive from strangers, so the mailbox must exist and accept them." xml:space="preserve">
     <value>rua=mailto:{0} vám posílá souhrnná hlášení; adresa je adresa postmastera domény, jak je nastavena u domény. Hlášení přicházejí od cizích lidí, takže poštovní schránka musí existovat a přijímat je.</value>
-  </data>
-  <data name="rule" xml:space="preserve">
-    <value>pravidlo</value>
   </data>
   <data name="run code when mail arrives" xml:space="preserve">
     <value>spustit kód při příchodu pošty</value>

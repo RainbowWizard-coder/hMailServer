@@ -106,7 +106,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          string specs = ReadSource("CollectionSpecs.cs");
          List<string> blocks = Regex.Split(specs, @"new\s+CollectionSpec\b").Skip(1).ToList();
-         Assert.True(blocks.Count >= 15, "Fewer specs than expected: " + blocks.Count + ".");
+         Assert.True(blocks.Count >= 14, "Fewer specs than expected: " + blocks.Count + ".");
 
          foreach (string block in blocks)
          {

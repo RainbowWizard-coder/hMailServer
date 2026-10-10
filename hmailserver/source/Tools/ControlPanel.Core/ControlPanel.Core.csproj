@@ -78,6 +78,7 @@
          functions - the WPF half is Views/HelpPane.cs and MarkdownFlow.cs - so
          a test can hold the map to the navigation and the parser to a document. -->
     <Compile Include="..\ControlPanel\Services\HelpMap.cs" />
+    <Compile Include="..\ControlPanel\Services\HelpDocumentList.cs" />
     <Compile Include="..\ControlPanel\Services\MarkdownBlocks.cs" />
     <!-- The program's embedded copy of the documentation, read from the assembly
          HelpPages was compiled into; with the resource group below, this assembly

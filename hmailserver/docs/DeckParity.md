@@ -17,7 +17,7 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 | over REST but not reached by any Deck view | 0 |
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 100 |
-| desktop pages read | 99 |
+| desktop pages read | 100 |
 | REST routes (path and method) | 595, 263 of them writes |
 | Deck views | 40 |
 
@@ -533,8 +533,8 @@ Every COM property the desktop program writes, the page that writes it, the REST
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
-| `Active` | CollectionSpecs, RulesView | `POST /api/v1/passkeys` (setter, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/webhooks` (setter, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (setter, scope unknown) | passkeys, rules, webhooks |
-| `Name` | CollectionSpecs, RulesView | `POST /api/v1/passkeys` (setter, scope unknown)<br>`POST /api/v1/settings/profiles/{name}/apply` (path, scope unknown)<br>`POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (name, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/domains/{name}/rules` (path)<br>`PUT /api/v1/domains/{name}/rules/{id}` (path)<br>`POST /api/v1/diagnostics/run` (name, scope unknown)<br>`POST /api/v1/backup/{archive}/mailboxes/{address}/restore` (name, scope unknown)<br>`POST /api/v1/webhooks` (setter, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (setter, scope unknown) | checklist, diagnostics, passkeys, roles, rules, webhooks |
+| `Active` | RulesView | `POST /api/v1/passkeys` (setter, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/webhooks` (setter, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (setter, scope unknown) | passkeys, rules, webhooks |
+| `Name` | RulesView | `POST /api/v1/passkeys` (setter, scope unknown)<br>`POST /api/v1/settings/profiles/{name}/apply` (path, scope unknown)<br>`POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (name, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/domains/{name}/rules` (path)<br>`PUT /api/v1/domains/{name}/rules/{id}` (path)<br>`POST /api/v1/diagnostics/run` (name, scope unknown)<br>`POST /api/v1/backup/{archive}/mailboxes/{address}/restore` (name, scope unknown)<br>`POST /api/v1/webhooks` (setter, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (setter, scope unknown) | checklist, diagnostics, passkeys, roles, rules, webhooks |
 | `UseAND` | RulesView | `POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter) | rules |
 
 ### RuleCriteria
