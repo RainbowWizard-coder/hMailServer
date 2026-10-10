@@ -346,7 +346,11 @@ namespace hMailServer.ControlPanel.Views
          System.Windows.Automation.AutomationProperties.SetLiveSetting(countBadge_, System.Windows.Automation.AutomationLiveSetting.Polite);
          if (spec_.CanAdd)
          {
-            addButton_ = MakeButton(L("_Add"), ControlAppearance.Primary, (_, _) => OpenDialog(null));
+            // On a page, Add is the page's one Primary button. On a dialog's tab it
+            // is a Secondary one: the dialog's Save is the Primary there, and a blue
+            // Add beside it made two buttons that each looked like the way out of
+            // the dialog (review finding F195).
+            addButton_ = MakeButton(L("_Add"), embedded_ ? ControlAppearance.Secondary : ControlAppearance.Primary, (_, _) => OpenDialog(null));
             actions.Children.Add(addButton_);
          }
          // Edit and Delete act on the selected row, so they are enabled only

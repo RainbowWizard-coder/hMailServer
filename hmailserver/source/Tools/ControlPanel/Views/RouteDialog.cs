@@ -126,7 +126,8 @@ namespace hMailServer.ControlPanel.Views
          addRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
          Grid.SetColumn(newAddress_, 0);
          addRow.Children.Add(newAddress_);
-         var addBtn = new Wpf.Ui.Controls.Button { Content = L("_Add address"), Appearance = Wpf.Ui.Controls.ControlAppearance.Primary, Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0) };
+         // Secondary: the dialog's Save is its one Primary button (review finding F195).
+         var addBtn = new Wpf.Ui.Controls.Button { Content = L("_Add address"), Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0) };
          addBtn.Click += (s, e) => AddAddress();
          Grid.SetColumn(addBtn, 1);
          addRow.Children.Add(addBtn);

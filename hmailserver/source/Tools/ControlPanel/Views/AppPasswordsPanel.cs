@@ -259,7 +259,9 @@ namespace hMailServer.ControlPanel.Views
          nameRow_ = DialogFields.Field(L("_Name"), newName_);
          nameRow_.Margin = new Thickness(0, 0, 8, 0);
          create.Children.Add(nameRow_);
-         Wpf.Ui.Controls.Button createButton = MakeButton(L("Cr_eate"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => Create());
+         // Secondary: the panel is a tab of the account dialog, whose Save is the
+         // one Primary button (review finding F195).
+         Wpf.Ui.Controls.Button createButton = MakeButton(L("Cr_eate"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Create());
          createButton.Margin = new Thickness(0);
          createButton.VerticalAlignment = VerticalAlignment.Bottom;
          Grid.SetColumn(createButton, 1);

@@ -59,7 +59,9 @@ namespace hMailServer.ControlPanel.Views
          enrolCard_ = new Border { Padding = new Thickness(12), Margin = new Thickness(0, 12, 0, 0), Visibility = Visibility.Collapsed };
          enrolCard_.SetResourceReference(StyleProperty, "Card");
 
-         enrol_ = MakeButton(L("_Enrol a second factor"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => Enrol());
+         // Secondary whatever it says: the panel is a tab of the account dialog,
+         // whose Save is the one Primary button (review finding F195).
+         enrol_ = MakeButton(L("_Enrol a second factor"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Enrol());
          disable_ = MakeButton(L("Re_move"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Disable());
          ButtonStyles.DangerText(disable_);
 
@@ -131,8 +133,6 @@ namespace hMailServer.ControlPanel.Views
          // between them, so that Alt+E reaches the enrol button whichever it says.
          string caption = enrolled ? L("_Enrol again (replaces the current secret)") : L("_Enrol a second factor");
          enrol_.Content = caption;
-         if (enrol_ is Wpf.Ui.Controls.Button fluent)
-            fluent.Appearance = enrolled ? Wpf.Ui.Controls.ControlAppearance.Secondary : Wpf.Ui.Controls.ControlAppearance.Primary;
       }
 
       private void Enrol()

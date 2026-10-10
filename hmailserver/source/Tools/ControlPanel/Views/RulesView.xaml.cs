@@ -51,6 +51,17 @@ namespace hMailServer.ControlPanel.Views
          {
             HeaderPanel.Visibility = Visibility.Collapsed;
 
+            // On a dialog's tab the dialog's Save is the one Primary button, and
+            // the tab has the dialog's own padding: the page's three Primary adds
+            // stood beside that Save, and the page's 24-pixel padding inside the
+            // tab's put the rules 24 pixels further in than every other tab's
+            // content (review finding F195).
+            AddRuleButton.Appearance = Wpf.Ui.Controls.ControlAppearance.Secondary;
+            AddCriterionButton.Appearance = Wpf.Ui.Controls.ControlAppearance.Secondary;
+            AddActionButton.Appearance = Wpf.Ui.Controls.ControlAppearance.Secondary;
+            if (HeaderPanel.Parent is Grid page)
+               page.Margin = new Thickness(0, DesignTokens.Space.Md, 0, 0);
+
             // On the account dialog's Rules tab, whose Save and Cancel do not reach
             // the rules: each is written as it is made, and the tab says so where the
             // page's header was (review finding F196).

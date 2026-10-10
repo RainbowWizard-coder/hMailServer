@@ -530,7 +530,9 @@ namespace hMailServer.ControlPanel.Tests.Services
          string state = WithheldRowTests.MemberText(panel, "private void ShowEnrolState_(bool enrolled)");
          Assert.True(state != null, "AccountTwoFactorPanel.ShowEnrolState_ is gone.");
          Assert.Contains("L(\"_Enrol again (replaces the current secret)\")", state, StringComparison.Ordinal);
-         Assert.Contains("enrolled ? Wpf.Ui.Controls.ControlAppearance.Secondary : Wpf.Ui.Controls.ControlAppearance.Primary", state, StringComparison.Ordinal);
+         // Secondary in both states: the account dialog's Save is the tab's one
+         // Primary button (F195, EmbeddedButtonWeightTests).
+         Assert.DoesNotContain("ControlAppearance.Primary", panel, StringComparison.Ordinal);
 
          string reload = WithheldRowTests.MemberText(panel, "public void Reload()");
          Assert.Contains("ShowEnrolState_(enabled);", reload, StringComparison.Ordinal);

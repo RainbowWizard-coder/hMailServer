@@ -707,7 +707,9 @@ namespace hMailServer.ControlPanel.Views
          rotCheck_.Click += (s, e) => RotationCall(d => (string)d.DKIMRotationCheck(), L("The records were checked."));
          buttons.Children.Add(rotCheck_);
 
-         rotSwitch_ = new Wpf.Ui.Controls.Button { Content = L("Sw_itch now…"), Appearance = Wpf.Ui.Controls.ControlAppearance.Primary, Margin = new Thickness(0, 0, DesignTokens.Space.Sm, DesignTokens.Space.Sm) };
+         // A plain button as the four beside it are: the dialog's Save is its one
+         // Primary button (review finding F195).
+         rotSwitch_ = new Wpf.Ui.Controls.Button { Content = L("Sw_itch now…"), Margin = new Thickness(0, 0, DesignTokens.Space.Sm, DesignTokens.Space.Sm) };
          AutomationProperties.SetAutomationId(rotSwitch_, "DkimRotationSwitch");
          rotSwitch_.Click += (s, e) => SwitchRotation();
          buttons.Children.Add(rotSwitch_);
