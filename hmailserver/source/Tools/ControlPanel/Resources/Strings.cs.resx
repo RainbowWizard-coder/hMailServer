@@ -2464,6 +2464,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Check SPF" xml:space="preserve">
     <value>Zkontrolovat SPF</value>
   </data>
+  <data name="Check _again" xml:space="preserve">
+    <value>Zkontrolovat _znovu</value>
+  </data>
   <data name="Check _all records" xml:space="preserve">
     <value>Z_kontrolovat všechny záznamy</value>
   </data>
@@ -2535,6 +2538,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Checking for a new release and installing it, and the update policy" xml:space="preserve">
     <value>Kontrola nového vydání a jeho instalace a zásady aktualizací</value>
+  </data>
+  <data name="Checking for updates…" xml:space="preserve">
+    <value>Hledají se aktualizace…</value>
   </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>Kontrola instalátoru</value>
@@ -4250,6 +4256,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Downloaded" xml:space="preserve">
     <value>Staženo</value>
   </data>
+  <data name="Downloading {0}…" xml:space="preserve">
+    <value>Stahuje se {0}…</value>
+  </data>
   <data name="Draining" xml:space="preserve">
     <value>Vyprazdňování</value>
   </data>
@@ -5081,8 +5090,8 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Fetch the MTA-STS policy for {0} over HTTPS and show what is served" xml:space="preserve">
     <value>Stáhnout politiku MTA-STS pro {0} přes HTTPS a ukázat, co se podává</value>
   </data>
-  <data name="Fetches the newer release's installer and verifies it against its Sigstore bundle before keeping it. The Control Panel waits while it does; an installer is tens of megabytes." xml:space="preserve">
-    <value>Stáhne instalátor novější verze a ověří ho proti jeho balíčku Sigstore, než ho ponechá. Control Panel mezitím čeká; instalátor má desítky megabajtů.</value>
+  <data name="Fetches the newer release's installer and verifies it against its Sigstore bundle before keeping it; an installer is tens of megabytes. The page can be used while it does." xml:space="preserve">
+    <value>Stáhne instalátor novější verze a ověří ho proti jeho balíčku Sigstore, než ho ponechá; instalátor má desítky megabajtů. Stránku lze mezitím používat.</value>
   </data>
   <data name="Fetching and checking the hMailServer {0} installer, to put back if {1} does not start." xml:space="preserve">
     <value>Získává se a kontroluje instalátor hMailServer {0}, aby ho bylo možné vrátit, pokud se {1} nespustí.</value>
@@ -5437,6 +5446,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="HTTPS port (443 to enable, 0 = disabled)" xml:space="preserve">
     <value>Port HTTPS (443 pro zapnutí, 0 = vypnuto)</value>
+  </data>
+  <data name="Handing {0} to the update helper…" xml:space="preserve">
+    <value>{0} se předává pomocníkovi aktualizace…</value>
   </data>
   <data name="Hands every accepted message to an engine over HTTP and uses the score it returns. The message is the request body and the envelope, connecting address and HELO travel as request headers, which is what rspamd's own check endpoint already expects - so pointing this at rspamd needs no adapter, and pointing it at something you wrote yourself needs only a program that answers JSON." xml:space="preserve">
     <value>Předá každou přijatou zprávu enginu přes HTTP a použije skóre, které vrátí. Zpráva je tělem požadavku a obálka, připojující se adresa a HELO cestují jako hlavičky požadavku, což je přesně to, co už očekává vlastní kontrolní endpoint rspamd - takže namíření na rspamd nepotřebuje žádný adaptér a namíření na něco vlastního potřebuje jen program, který odpovídá JSONem.</value>
@@ -11495,6 +11507,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Start here: jump straight to a common task, or press Ctrl+K and describe what you want to do." xml:space="preserve">
     <value>Začněte zde: přejděte rovnou k běžné úloze, nebo stiskněte Ctrl+K a popište, co chcete udělat.</value>
   </data>
+  <data name="Start the mail server engine again, as the header's Resume does" xml:space="preserve">
+    <value>Znovu spustí modul poštovního serveru, stejně jako tlačítko Pokračovat v záhlaví</value>
+  </data>
   <data name="Start with a domain: the part after the @ that this server accepts mail for. Add yours here." xml:space="preserve">
     <value>Začněte doménou: částí za @, pro kterou tento server přijímá poštu. Tu svou přidejte zde.</value>
   </data>
@@ -12809,6 +12824,9 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   </data>
   <data name="The mail server is paused - nothing is accepted or delivered." xml:space="preserve">
     <value>Poštovní server je pozastaven - nic se nepřijímá ani nedoručuje.</value>
+  </data>
+  <data name="The mail server is paused: no connections are accepted and no mail is delivered until it is resumed." xml:space="preserve">
+    <value>Poštovní server je pozastaven: dokud nebude znovu spuštěn, nepřijímá žádná připojení a nedoručuje žádnou poštu.</value>
   </data>
   <data name="The mailbox could not be moved: {0}" xml:space="preserve">
     <value>Schránku se nepodařilo přesunout: {0}</value>

@@ -38,6 +38,13 @@
             <scaffold:InlineNotice x:Name="ReadNotice" Visibility="Collapsed"
                                    AutomationProperties.AutomationId="status-read-failure" />
 
+            <!-- A paused engine, under the header with Resume (review finding F246):
+                 the state was a word in the Server card, and nothing else said that
+                 no mail was coming in or going out. -->
+            <scaffold:InlineNotice x:Name="PausedNotice" Level="Warning" Visibility="Collapsed"
+                                   Text="{loc:L 'The mail server is paused: no connections are accepted and no mail is delivered until it is resumed.'}"
+                                   AutomationProperties.AutomationId="status-paused" />
+
             <!-- A newer release waiting, in one line with the page that installs it
                  (Views/UpdateNotice); nothing while there is none. -->
             <StackPanel x:Name="UpdateNoticeHost" Visibility="Collapsed" />
@@ -73,7 +80,10 @@
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="{loc:L 'Version'}" Style="{StaticResource TextCaption}" Margin="0,0,16,8" VerticalAlignment="Center" />
                         <TextBlock Grid.Row="0" Grid.Column="1" x:Name="VersionValue" Style="{StaticResource TextBody}" Margin="0,0,0,8" />
                         <TextBlock Grid.Row="1" Grid.Column="0" Text="{loc:L 'State'}" Style="{StaticResource TextCaption}" Margin="0,0,16,8" VerticalAlignment="Center" />
-                        <TextBlock Grid.Row="1" Grid.Column="1" x:Name="StateValue" Style="{StaticResource TextBody}" Margin="0,0,0,8" />
+                        <!-- The engine's state as a pill at its level, Running Good and Paused
+                             Warning (Services/ServerStateText), where it was body text. -->
+                        <scaffold:StatusPill Grid.Row="1" Grid.Column="1" x:Name="StatePill" Level="Normal" HorizontalAlignment="Left"
+                                             Margin="0,0,0,8" AutomationProperties.AutomationId="status-state" />
                         <TextBlock Grid.Row="2" Grid.Column="0" Text="{loc:L 'Started'}" Style="{StaticResource TextCaption}" Margin="0,0,16,8" VerticalAlignment="Center" />
                         <TextBlock Grid.Row="2" Grid.Column="1" x:Name="StartedValue" Style="{StaticResource TextBody}" Margin="0,0,0,8" />
                         <TextBlock Grid.Row="3" Grid.Column="0" Text="{loc:L 'Uptime'}" Style="{StaticResource TextCaption}" Margin="0,0,16,8" VerticalAlignment="Center" />

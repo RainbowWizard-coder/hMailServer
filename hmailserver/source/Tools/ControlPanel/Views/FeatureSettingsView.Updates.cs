@@ -18,7 +18,8 @@ namespace hMailServer.ControlPanel.Views
    /// <summary>
    /// The Updates page's own card (FeatureSettingsView.xaml's UpdateCard), above
    /// the update policy: the version this server runs, the update check's verdict,
-   /// and the three steps - Check for updates, Download update, Install update.
+   /// and the three steps - Check for updates, Download update, Install update - one at a
+   /// time, the one the state calls for as the Primary, run off the UI thread.
    ///
    /// They were on Server status, under a row of its Server card, and the policy
    /// that drives them - the daily check, the channel, the download, the
@@ -151,15 +152,16 @@ namespace hMailServer.ControlPanel.Views
             // Dashboard said until it was shown here (Views/UpdateNotice).
             UpdateNotice.MarkSeen(applyOutcome);
             // Download once a newer release is known (a failed download can be retried);
-            // install once one is verified and waiting.
-            DownloadUpdateButton.IsEnabled = updateState == 2 || (updateState == 5 && !string.IsNullOrEmpty(availableVersion));
-            InstallUpdateButton.IsEnabled = updateState == 3;
+            // install once one is verified and waiting; one of the three at a time.
+            shownVersion_ = availableVersion;
+            ShowUpdateSteps_(UpdateSteps.Next(updateState, availableVersion));
             SettleAfterInstall_(updateState);
          }
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
          {
             readError ??= ServerSession.DescribeComError(fatalCheck);
             SetUpdateValue_(UpdateValue, L("Update status"), L("Not read"));
+            ShowUpdateSteps_(UpdateStep.Check);
             DownloadUpdateButton.IsEnabled = false;
             InstallUpdateButton.IsEnabled = false;
          }
@@ -178,7 +180,7 @@ namespace hMailServer.ControlPanel.Views
          if (readError == null)
          {
             ReadFailure.Clear(UpdateReadNotice);
-            CheckUpdateButton.IsEnabled = true;
+            CheckUpdateButton.IsEnabled = shownStep_ != UpdateStep.None;
             return;
          }
 
@@ -191,6 +193,52 @@ namespace hMailServer.ControlPanel.Views
 
          ReadFailure.Show(UpdateReadNotice, null, null, L("Could not read the update status: "), readError, ReloadUpdate_,
             CheckUpdateButton, DownloadUpdateButton, InstallUpdateButton);
+      }
+
+      // The release the card read and the step it offers, for the busy line's words and
+      // for Check's being pressable once a read worked.
+      private string shownVersion_;
+      private UpdateStep shownStep_ = UpdateStep.Check;
+
+      /// <summary>
+      /// The one step the state calls for, as the Primary, and Check again as the
+      /// secondary before it while a release is known (review finding F246): the three
+      /// were equal buttons, the two that did not apply greyed with no reason given. A
+      /// step that does not apply is not shown, and while an install is under way none
+      /// is offered and Check waits too.
+      /// </summary>
+      private void ShowUpdateSteps_(UpdateStep step)
+      {
+         shownStep_ = step;
+         bool checkIsTheStep = step == UpdateStep.Check;
+         CheckUpdateButton.Content = checkIsTheStep ? L("Check for _updates") : L("Check _again");
+         CheckUpdateButton.Appearance = checkIsTheStep ? Wpf.Ui.Controls.ControlAppearance.Primary : Wpf.Ui.Controls.ControlAppearance.Secondary;
+         CheckUpdateButton.IsEnabled = step != UpdateStep.None;
+         // The step's appearance is set here, not in the XAML, where two Primaries in one
+         // row - only one of them ever shown - read as a Primary before another button.
+         DownloadUpdateButton.Appearance = Wpf.Ui.Controls.ControlAppearance.Primary;
+         InstallUpdateButton.Appearance = Wpf.Ui.Controls.ControlAppearance.Primary;
+         DownloadUpdateButton.Visibility = step == UpdateStep.Download ? Visibility.Visible : Visibility.Collapsed;
+         DownloadUpdateButton.IsEnabled = step == UpdateStep.Download;
+         InstallUpdateButton.Visibility = step == UpdateStep.Install ? Visibility.Visible : Visibility.Collapsed;
+         InstallUpdateButton.IsEnabled = step == UpdateStep.Install;
+      }
+
+      /// <summary>
+      /// A step under way: the line that says which, and every step held until it is
+      /// done; the rest of the page can be used meanwhile.
+      /// </summary>
+      private void SetUpdateBusy_(string text)
+      {
+         bool busy = text != null;
+         UpdateBusy.Text = text ?? "";
+         UpdateBusy.Visibility = busy ? Visibility.Visible : Visibility.Collapsed;
+         if (busy)
+         {
+            CheckUpdateButton.IsEnabled = false;
+            DownloadUpdateButton.IsEnabled = false;
+            InstallUpdateButton.IsEnabled = false;
+         }
       }
 
       /// <summary>
@@ -373,11 +421,14 @@ namespace hMailServer.ControlPanel.Views
 
       // The three update steps, on the server: a check reads the feed, a download
       // fetches and verifies the installer, an install hands it to the helper. Each
-      // answers when it is done, so the cursor waits with it.
-      private void RunUpdateAction_(string action)
+      // answers when it is done, which for a download of tens of megabytes is a while:
+      // off the UI thread, with the card's busy line saying which step is under way,
+      // where the window waited on a wait cursor and its tool tip said that the Control
+      // Panel waits while it does (review finding F246).
+      private async void RunUpdateAction_(string action)
       {
          dynamic app = ServerSession.Current?.Application;
-         if (app == null)
+         if (app == null || UpdateBusy.Visibility == Visibility.Visible)
             return;
 
          if (action == "install" && !MessageBox.Confirm(
@@ -386,15 +437,16 @@ namespace hMailServer.ControlPanel.Views
                 L("Control Panel"), L("_Install the update"), cancelByDefault: true, decline: L("_Later")))
             return;
 
-         Mouse.OverrideCursor = Cursors.Wait;
+         string version = shownVersion_ ?? "";
+         SetUpdateBusy_(action == "check" ? L("Checking for updates…")
+            : action == "download" ? F("Downloading {0}…", version)
+            : F("Handing {0} to the update helper…", version));
          try
          {
-            dynamic status = app.Status;
-            bool done = action == "check" ? (bool)status.CheckForUpdate()
-               : action == "download" ? (bool)status.DownloadUpdate()
-               : (bool)status.InstallUpdate();
-            string error = (string)status.UpdateLastError;
-            ServerSession.Release(status);
+            // The application as an object, so that the step is a typed call and not a
+            // dynamic one, whose result could not be taken apart.
+            object application = app;
+            (bool done, string error) = await System.Threading.Tasks.Task.Run(() => RunUpdateStep_(application, action));
             if (!done && !string.IsNullOrEmpty(error))
                MessageBox.Show(error, L("Control Panel"), MessageBoxButton.OK, MessageBoxImage.Warning);
             else if (done && action == "install")
@@ -415,9 +467,27 @@ namespace hMailServer.ControlPanel.Views
          }
          finally
          {
-            Mouse.OverrideCursor = null;
+            SetUpdateBusy_(null);
          }
          ReloadUpdate_();
+      }
+
+      /// <summary>One update step on the server, off the UI thread: whether it was done, and the error it left.</summary>
+      private static (bool Done, string Error) RunUpdateStep_(object application, string action)
+      {
+         dynamic app = application;
+         dynamic status = app.Status;
+         try
+         {
+            bool done = action == "check" ? (bool)status.CheckForUpdate()
+               : action == "download" ? (bool)status.DownloadUpdate()
+               : (bool)status.InstallUpdate();
+            return (done, (string)status.UpdateLastError);
+         }
+         finally
+         {
+            ServerSession.Release((object)status);
+         }
       }
    }
 }

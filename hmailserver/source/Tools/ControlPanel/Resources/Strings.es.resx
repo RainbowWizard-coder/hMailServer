@@ -2440,6 +2440,9 @@ Los detalles completos se escribieron en:
   <data name="Check SPF" xml:space="preserve">
     <value>Comprobar SPF</value>
   </data>
+  <data name="Check _again" xml:space="preserve">
+    <value>Buscar de _nuevo</value>
+  </data>
   <data name="Check _all records" xml:space="preserve">
     <value>_Comprobar todos los registros</value>
   </data>
@@ -2511,6 +2514,9 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Checking for a new release and installing it, and the update policy" xml:space="preserve">
     <value>Buscar una nueva versión e instalarla, y la política de actualizaciones</value>
+  </data>
+  <data name="Checking for updates…" xml:space="preserve">
+    <value>Buscando actualizaciones…</value>
   </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>Comprobación del instalador</value>
@@ -4201,6 +4207,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Downloaded" xml:space="preserve">
     <value>Descargado</value>
   </data>
+  <data name="Downloading {0}…" xml:space="preserve">
+    <value>Descargando {0}…</value>
+  </data>
   <data name="Draining" xml:space="preserve">
     <value>Drenando</value>
   </data>
@@ -5014,8 +5023,8 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Fetch the MTA-STS policy for {0} over HTTPS and show what is served" xml:space="preserve">
     <value>Obtener la política MTA-STS de {0} por HTTPS y mostrar lo que se sirve</value>
   </data>
-  <data name="Fetches the newer release's installer and verifies it against its Sigstore bundle before keeping it. The Control Panel waits while it does; an installer is tens of megabytes." xml:space="preserve">
-    <value>Descarga el instalador de la versión más reciente y lo verifica contra su paquete Sigstore antes de conservarlo. El Control Panel espera mientras tanto; un instalador ocupa decenas de megabytes.</value>
+  <data name="Fetches the newer release's installer and verifies it against its Sigstore bundle before keeping it; an installer is tens of megabytes. The page can be used while it does." xml:space="preserve">
+    <value>Descarga el instalador de la versión más reciente y lo verifica contra su paquete Sigstore antes de conservarlo; un instalador ocupa decenas de megabytes. La página se puede usar mientras tanto.</value>
   </data>
   <data name="Fetching and checking the hMailServer {0} installer, to put back if {1} does not start." xml:space="preserve">
     <value>Obteniendo y comprobando el instalador de hMailServer {0}, para restaurarlo si {1} no arranca.</value>
@@ -5370,6 +5379,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   </data>
   <data name="HTTPS port (443 to enable, 0 = disabled)" xml:space="preserve">
     <value>Puerto HTTPS (443 para activar, 0 = desactivado)</value>
+  </data>
+  <data name="Handing {0} to the update helper…" xml:space="preserve">
+    <value>Entregando {0} al ayudante de actualización…</value>
   </data>
   <data name="Hands every accepted message to an engine over HTTP and uses the score it returns. The message is the request body and the envelope, connecting address and HELO travel as request headers, which is what rspamd's own check endpoint already expects - so pointing this at rspamd needs no adapter, and pointing it at something you wrote yourself needs only a program that answers JSON." xml:space="preserve">
     <value>Entrega cada mensaje aceptado a un motor por HTTP y usa la puntuación que devuelve. El mensaje es el cuerpo de la petición, y el sobre, la dirección conectante y el HELO viajan como cabeceras de la petición, que es lo que el propio punto de comprobación de rspamd ya espera - así que apuntar esto a rspamd no necesita adaptador, y apuntarlo a algo escrito por usted solo necesita un programa que responda JSON.</value>
@@ -11365,6 +11377,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Start here: jump straight to a common task, or press Ctrl+K and describe what you want to do." xml:space="preserve">
     <value>Empiece aquí: vaya directamente a una tarea habitual, o pulse Ctrl+K y describa lo que quiere hacer.</value>
   </data>
+  <data name="Start the mail server engine again, as the header's Resume does" xml:space="preserve">
+    <value>Volver a iniciar el motor del servidor de correo, como hace Reanudar en el encabezado</value>
+  </data>
   <data name="Start with a domain: the part after the @ that this server accepts mail for. Add yours here." xml:space="preserve">
     <value>Empiece por un dominio: la parte después de la @ para la que este servidor acepta correo. Añada el suyo aquí.</value>
   </data>
@@ -12643,6 +12658,9 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
   </data>
   <data name="The mail server is paused - nothing is accepted or delivered." xml:space="preserve">
     <value>El servidor de correo está en pausa - no se acepta ni se entrega nada.</value>
+  </data>
+  <data name="The mail server is paused: no connections are accepted and no mail is delivered until it is resumed." xml:space="preserve">
+    <value>El servidor de correo está en pausa: no acepta conexiones ni entrega correo hasta que se reanude.</value>
   </data>
   <data name="The mailbox could not be moved: {0}" xml:space="preserve">
     <value>No se pudo mover el buzón: {0}</value>

@@ -2464,6 +2464,9 @@
   <data name="Check SPF" xml:space="preserve">
     <value>Перевірити SPF</value>
   </data>
+  <data name="Check _again" xml:space="preserve">
+    <value>Перевірити _знову</value>
+  </data>
   <data name="Check _all records" xml:space="preserve">
     <value>Перевірити _всі записи</value>
   </data>
@@ -2535,6 +2538,9 @@
   </data>
   <data name="Checking for a new release and installing it, and the update policy" xml:space="preserve">
     <value>Перевірка й установлення нового випуску, а також політика оновлень</value>
+  </data>
+  <data name="Checking for updates…" xml:space="preserve">
+    <value>Перевірка наявності оновлень…</value>
   </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>Перевірка інсталятора</value>
@@ -4250,6 +4256,9 @@
   <data name="Downloaded" xml:space="preserve">
     <value>Завантажено</value>
   </data>
+  <data name="Downloading {0}…" xml:space="preserve">
+    <value>Завантаження {0}…</value>
+  </data>
   <data name="Draining" xml:space="preserve">
     <value>Дренаж</value>
   </data>
@@ -5081,8 +5090,8 @@
   <data name="Fetch the MTA-STS policy for {0} over HTTPS and show what is served" xml:space="preserve">
     <value>Отримати політику MTA-STS для {0} через HTTPS і показати, що віддається</value>
   </data>
-  <data name="Fetches the newer release's installer and verifies it against its Sigstore bundle before keeping it. The Control Panel waits while it does; an installer is tens of megabytes." xml:space="preserve">
-    <value>Отримує інсталятор новішого випуску і перевіряє його за пакетом Sigstore, перш ніж залишити. Панель керування тим часом чекає; інсталятор важить десятки мегабайт.</value>
+  <data name="Fetches the newer release's installer and verifies it against its Sigstore bundle before keeping it; an installer is tens of megabytes. The page can be used while it does." xml:space="preserve">
+    <value>Отримує інсталятор новішого випуску і перевіряє його за пакетом Sigstore, перш ніж залишити; інсталятор важить десятки мегабайт. Сторінкою можна користуватися тим часом.</value>
   </data>
   <data name="Fetching and checking the hMailServer {0} installer, to put back if {1} does not start." xml:space="preserve">
     <value>Завантажується й перевіряється інсталятор hMailServer {0}, щоб повернути його, якщо {1} не запуститься.</value>
@@ -5437,6 +5446,9 @@
   </data>
   <data name="HTTPS port (443 to enable, 0 = disabled)" xml:space="preserve">
     <value>Порт HTTPS (443, щоб увімкнути; 0 = вимкнено)</value>
+  </data>
+  <data name="Handing {0} to the update helper…" xml:space="preserve">
+    <value>Передавання {0} помічнику оновлення…</value>
   </data>
   <data name="Hands every accepted message to an engine over HTTP and uses the score it returns. The message is the request body and the envelope, connecting address and HELO travel as request headers, which is what rspamd's own check endpoint already expects - so pointing this at rspamd needs no adapter, and pointing it at something you wrote yourself needs only a program that answers JSON." xml:space="preserve">
     <value>Передає кожне прийняте повідомлення рушію через HTTP і використовує оцінку, яку він повертає. Повідомлення є тілом запиту, а конверт, адреса підключення та HELO передаються заголовками запиту - саме цього вже очікує власна кінцева точка перевірки rspamd, тому спрямувати це на rspamd можна без адаптера, а на щось написане вами - потрібна лише програма, що відповідає JSON.</value>
@@ -11495,6 +11507,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Start here: jump straight to a common task, or press Ctrl+K and describe what you want to do." xml:space="preserve">
     <value>Почніть тут: перейдіть одразу до поширеного завдання або натисніть Ctrl+K і опишіть, що хочете зробити.</value>
   </data>
+  <data name="Start the mail server engine again, as the header's Resume does" xml:space="preserve">
+    <value>Знову запустити рушій поштового сервера, як кнопка «Продовжити» в заголовку</value>
+  </data>
   <data name="Start with a domain: the part after the @ that this server accepts mail for. Add yours here." xml:space="preserve">
     <value>Почніть із домену: це частина після @, для якої цей сервер приймає пошту. Додайте свій тут.</value>
   </data>
@@ -12809,6 +12824,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The mail server is paused - nothing is accepted or delivered." xml:space="preserve">
     <value>Поштовий сервер призупинено - нічого не приймається і не доставляється.</value>
+  </data>
+  <data name="The mail server is paused: no connections are accepted and no mail is delivered until it is resumed." xml:space="preserve">
+    <value>Поштовий сервер призупинено: доки його не продовжать, він не приймає з'єднань і не доставляє пошту.</value>
   </data>
   <data name="The mailbox could not be moved: {0}" xml:space="preserve">
     <value>Не вдалося перенести скриньку: {0}</value>

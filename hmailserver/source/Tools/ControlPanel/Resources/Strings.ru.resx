@@ -2464,6 +2464,9 @@ Control Panel может читать файлы сообщений только
   <data name="Check SPF" xml:space="preserve">
     <value>Проверить SPF</value>
   </data>
+  <data name="Check _again" xml:space="preserve">
+    <value>Проверить _снова</value>
+  </data>
   <data name="Check _all records" xml:space="preserve">
     <value>Проверить _все записи</value>
   </data>
@@ -2535,6 +2538,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Checking for a new release and installing it, and the update policy" xml:space="preserve">
     <value>Проверка и установка нового выпуска, а также политика обновлений</value>
+  </data>
+  <data name="Checking for updates…" xml:space="preserve">
+    <value>Проверка обновлений…</value>
   </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>Проверка установщика</value>
@@ -4250,6 +4256,9 @@ Control Panel может читать файлы сообщений только
   <data name="Downloaded" xml:space="preserve">
     <value>Скачано</value>
   </data>
+  <data name="Downloading {0}…" xml:space="preserve">
+    <value>Загрузка {0}…</value>
+  </data>
   <data name="Draining" xml:space="preserve">
     <value>Дренаж</value>
   </data>
@@ -5081,8 +5090,8 @@ Control Panel может читать файлы сообщений только
   <data name="Fetch the MTA-STS policy for {0} over HTTPS and show what is served" xml:space="preserve">
     <value>Получить политику MTA-STS для {0} по HTTPS и показать, что отдаётся</value>
   </data>
-  <data name="Fetches the newer release's installer and verifies it against its Sigstore bundle before keeping it. The Control Panel waits while it does; an installer is tens of megabytes." xml:space="preserve">
-    <value>Загружает установщик более новой версии и проверяет его по прилагаемому комплекту Sigstore, прежде чем сохранить. Control Panel всё это время ждёт; установщик занимает десятки мегабайт.</value>
+  <data name="Fetches the newer release's installer and verifies it against its Sigstore bundle before keeping it; an installer is tens of megabytes. The page can be used while it does." xml:space="preserve">
+    <value>Загружает установщик более новой версии и проверяет его по прилагаемому комплекту Sigstore, прежде чем сохранить; установщик занимает десятки мегабайт. Страницей можно пользоваться всё это время.</value>
   </data>
   <data name="Fetching and checking the hMailServer {0} installer, to put back if {1} does not start." xml:space="preserve">
     <value>Загружается и проверяется установщик hMailServer {0}, чтобы вернуть его, если {1} не запустится.</value>
@@ -5437,6 +5446,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="HTTPS port (443 to enable, 0 = disabled)" xml:space="preserve">
     <value>Порт HTTPS (443 — включить, 0 — отключено)</value>
+  </data>
+  <data name="Handing {0} to the update helper…" xml:space="preserve">
+    <value>Передача {0} вспомогательной программе обновления…</value>
   </data>
   <data name="Hands every accepted message to an engine over HTTP and uses the score it returns. The message is the request body and the envelope, connecting address and HELO travel as request headers, which is what rspamd's own check endpoint already expects - so pointing this at rspamd needs no adapter, and pointing it at something you wrote yourself needs only a program that answers JSON." xml:space="preserve">
     <value>Передаёт каждое принятое сообщение движку по HTTP и использует возвращённую им оценку. Сообщение передаётся телом запроса, а конверт, адрес подключения и HELO — заголовками запроса, чего собственная конечная точка проверки rspamd и ожидает: направить это на rspamd можно без всякого адаптера, а чтобы направить на что-то написанное вами самими, достаточно программы, отвечающей JSON.</value>
@@ -11495,6 +11507,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Start here: jump straight to a common task, or press Ctrl+K and describe what you want to do." xml:space="preserve">
     <value>Начните отсюда: перейдите сразу к обычной задаче или нажмите Ctrl+K и опишите, что вы хотите сделать.</value>
   </data>
+  <data name="Start the mail server engine again, as the header's Resume does" xml:space="preserve">
+    <value>Снова запустить движок почтового сервера, как кнопка «Возобновить» в заголовке</value>
+  </data>
   <data name="Start with a domain: the part after the @ that this server accepts mail for. Add yours here." xml:space="preserve">
     <value>Начните с домена: это часть после @, для которой этот сервер принимает почту. Добавьте свой здесь.</value>
   </data>
@@ -12809,6 +12824,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The mail server is paused - nothing is accepted or delivered." xml:space="preserve">
     <value>Почтовый сервер приостановлен - ничего не принимается и не доставляется.</value>
+  </data>
+  <data name="The mail server is paused: no connections are accepted and no mail is delivered until it is resumed." xml:space="preserve">
+    <value>Почтовый сервер приостановлен: пока его не возобновят, он не принимает подключения и не доставляет почту.</value>
   </data>
   <data name="The mailbox could not be moved: {0}" xml:space="preserve">
     <value>Не удалось перенести ящик: {0}</value>

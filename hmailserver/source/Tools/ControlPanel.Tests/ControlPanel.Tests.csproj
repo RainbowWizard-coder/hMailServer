@@ -302,6 +302,12 @@
     <Compile Include="..\ControlPanel\Services\CertificateRows.cs" />
   </ItemGroup>
 
+  <!-- Server status's state pill and the Updates page's one step at a time (review
+       finding F246). -->
+  <ItemGroup>
+    <Compile Include="..\ControlPanel\Services\ServerStateText.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <!-- WindowsServiceInfo queries Win32_Service; the app gets this through its
          own reference and the test assembly needs its own. -->

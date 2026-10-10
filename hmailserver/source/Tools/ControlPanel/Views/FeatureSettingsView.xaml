@@ -61,18 +61,29 @@
                             <TextBlock Grid.Row="1" Grid.Column="0" Text="{loc:L 'Update status'}" Style="{StaticResource TextCaption}" Margin="0,0,16,0" VerticalAlignment="Top" />
                             <TextBlock Grid.Row="1" Grid.Column="1" x:Name="UpdateValue" Style="{StaticResource TextBody}" TextWrapping="Wrap" />
                         </Grid>
+                        <!-- A step under way, off the UI thread, where the window waited on
+                             a wait cursor (review finding F246). -->
+                        <scaffold:LoadingState x:Name="UpdateBusy" Visibility="Collapsed" Margin="0,12,0,0"
+                                               AutomationProperties.AutomationId="updates-busy" />
                     </StackPanel>
+                    <!-- One step at a time, the one the state calls for as the Primary
+                         (Services/UpdateSteps, ShowUpdateSteps_): Check for updates until a
+                         release is known, then Download update, then Install update, with
+                         Check again the secondary before it; the step that does not apply
+                         is not shown. The three were equal buttons, two of them greyed with
+                         no reason given - a disabled button shows no tool tip - and Install
+                         wrapped to a line of its own (review finding F246). -->
                     <scaffold:Card.Footer>
                         <WrapPanel Orientation="Horizontal">
                             <ui:Button x:Name="CheckUpdateButton" Content="{loc:L 'Check for _updates'}" Click="CheckUpdate_Click" Margin="0,0,8,4"
                                        ToolTip="{loc:L 'Reads the project\'s release feed now and says whether a newer release exists. Nothing is downloaded or installed by this.'}">
                                 <ui:Button.Icon><ui:SymbolIcon Symbol="Globe24" /></ui:Button.Icon>
                             </ui:Button>
-                            <ui:Button x:Name="DownloadUpdateButton" Content="{loc:L '_Download update'}" Click="DownloadUpdate_Click" IsEnabled="False" Margin="0,0,8,4"
-                                       ToolTip="{loc:L 'Fetches the newer release\'s installer and verifies it against its Sigstore bundle before keeping it. The Control Panel waits while it does; an installer is tens of megabytes.'}">
+                            <ui:Button x:Name="DownloadUpdateButton" Content="{loc:L '_Download update'}" Click="DownloadUpdate_Click" Visibility="Collapsed" Margin="0,0,8,4"
+                                       ToolTip="{loc:L 'Fetches the newer release\'s installer and verifies it against its Sigstore bundle before keeping it; an installer is tens of megabytes. The page can be used while it does.'}">
                                 <ui:Button.Icon><ui:SymbolIcon Symbol="DocumentText24" /></ui:Button.Icon>
                             </ui:Button>
-                            <ui:Button x:Name="InstallUpdateButton" Content="{loc:L '_Install update'}" Click="InstallUpdate_Click" IsEnabled="False" Margin="0,0,8,4"
+                            <ui:Button x:Name="InstallUpdateButton" Content="{loc:L '_Install update'}" Click="InstallUpdate_Click" Visibility="Collapsed" Margin="0,0,8,4"
                                        ToolTip="{loc:L 'Hands the verified installer to the update helper. The service stops and starts; if it does not come back, the previous version is reinstalled, unless the new version has already changed the database. The outcome is reported here when the service is back.'}">
                                 <ui:Button.Icon><ui:SymbolIcon Symbol="Server24" /></ui:Button.Icon>
                             </ui:Button>

@@ -2440,6 +2440,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Check SPF" xml:space="preserve">
     <value>SPF controleren</value>
   </data>
+  <data name="Check _again" xml:space="preserve">
+    <value>Opnieuw _controleren</value>
+  </data>
   <data name="Check _all records" xml:space="preserve">
     <value>_Alle records controleren</value>
   </data>
@@ -2511,6 +2514,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Checking for a new release and installing it, and the update policy" xml:space="preserve">
     <value>Zoeken naar een nieuwe release en die installeren, en het updatebeleid</value>
+  </data>
+  <data name="Checking for updates…" xml:space="preserve">
+    <value>Controleren op updates…</value>
   </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>Controle van het installatieprogramma</value>
@@ -4201,6 +4207,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Downloaded" xml:space="preserve">
     <value>Gedownload</value>
   </data>
+  <data name="Downloading {0}…" xml:space="preserve">
+    <value>{0} downloaden…</value>
+  </data>
   <data name="Draining" xml:space="preserve">
     <value>Wordt leeggemaakt</value>
   </data>
@@ -5014,8 +5023,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Fetch the MTA-STS policy for {0} over HTTPS and show what is served" xml:space="preserve">
     <value>Het MTA-STS-beleid voor {0} over HTTPS ophalen en tonen wat er wordt geserveerd</value>
   </data>
-  <data name="Fetches the newer release's installer and verifies it against its Sigstore bundle before keeping it. The Control Panel waits while it does; an installer is tens of megabytes." xml:space="preserve">
-    <value>Haalt het installatieprogramma van de nieuwere release op en verifieert het tegen zijn Sigstore-bundel voordat het wordt bewaard. Het Control Panel wacht daarop; een installatieprogramma is tientallen megabytes groot.</value>
+  <data name="Fetches the newer release's installer and verifies it against its Sigstore bundle before keeping it; an installer is tens of megabytes. The page can be used while it does." xml:space="preserve">
+    <value>Haalt het installatieprogramma van de nieuwere release op en verifieert het tegen zijn Sigstore-bundel voordat het wordt bewaard; een installatieprogramma is tientallen megabytes groot. De pagina blijft intussen bruikbaar.</value>
   </data>
   <data name="Fetching and checking the hMailServer {0} installer, to put back if {1} does not start." xml:space="preserve">
     <value>Het installatieprogramma van hMailServer {0} wordt opgehaald en gecontroleerd, om terug te zetten als {1} niet start.</value>
@@ -5370,6 +5379,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="HTTPS port (443 to enable, 0 = disabled)" xml:space="preserve">
     <value>HTTPS-poort (443 om in te schakelen, 0 = uitgeschakeld)</value>
+  </data>
+  <data name="Handing {0} to the update helper…" xml:space="preserve">
+    <value>{0} wordt aan de updatehelper overgedragen…</value>
   </data>
   <data name="Hands every accepted message to an engine over HTTP and uses the score it returns. The message is the request body and the envelope, connecting address and HELO travel as request headers, which is what rspamd's own check endpoint already expects - so pointing this at rspamd needs no adapter, and pointing it at something you wrote yourself needs only a program that answers JSON." xml:space="preserve">
     <value>Geeft elk geaccepteerd bericht over HTTP door aan een engine en gebruikt de score die die teruggeeft. Het bericht is de body van het verzoek en de envelop, het verbindende adres en HELO reizen mee als verzoekheaders, wat precies is wat het eigen check-eindpunt van rspamd al verwacht - dit op rspamd richten heeft dus geen adapter nodig, en het op iets richten dat u zelf hebt geschreven vereist alleen een programma dat JSON antwoordt.</value>
@@ -11365,6 +11377,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Start here: jump straight to a common task, or press Ctrl+K and describe what you want to do." xml:space="preserve">
     <value>Begin hier: spring meteen naar een veelvoorkomende taak, of druk op Ctrl+K en beschrijf wat u wilt doen.</value>
   </data>
+  <data name="Start the mail server engine again, as the header's Resume does" xml:space="preserve">
+    <value>De engine van de mailserver weer starten, zoals Hervatten in de kop doet</value>
+  </data>
   <data name="Start with a domain: the part after the @ that this server accepts mail for. Add yours here." xml:space="preserve">
     <value>Begin met een domein: het deel na de @ waarvoor deze server post accepteert. Voeg het uwe hier toe.</value>
   </data>
@@ -12643,6 +12658,9 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   </data>
   <data name="The mail server is paused - nothing is accepted or delivered." xml:space="preserve">
     <value>De mailserver is gepauzeerd - er wordt niets aangenomen of bezorgd.</value>
+  </data>
+  <data name="The mail server is paused: no connections are accepted and no mail is delivered until it is resumed." xml:space="preserve">
+    <value>De mailserver is gepauzeerd: er worden geen verbindingen aangenomen en geen mail bezorgd totdat hij wordt hervat.</value>
   </data>
   <data name="The mailbox could not be moved: {0}" xml:space="preserve">
     <value>De postbus kon niet worden verplaatst: {0}</value>

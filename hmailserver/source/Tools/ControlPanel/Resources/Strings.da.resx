@@ -2440,6 +2440,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Check SPF" xml:space="preserve">
     <value>Kontrollér SPF</value>
   </data>
+  <data name="Check _again" xml:space="preserve">
+    <value>Søg _igen</value>
+  </data>
   <data name="Check _all records" xml:space="preserve">
     <value>Kontrollér a_lle poster</value>
   </data>
@@ -2511,6 +2514,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   </data>
   <data name="Checking for a new release and installing it, and the update policy" xml:space="preserve">
     <value>Søgning efter en ny udgivelse og installation af den samt opdateringspolitikken</value>
+  </data>
+  <data name="Checking for updates…" xml:space="preserve">
+    <value>Søger efter opdateringer…</value>
   </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>Kontrol af installationsprogrammet</value>
@@ -4201,6 +4207,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Downloaded" xml:space="preserve">
     <value>Hentet</value>
   </data>
+  <data name="Downloading {0}…" xml:space="preserve">
+    <value>Henter {0}…</value>
+  </data>
   <data name="Draining" xml:space="preserve">
     <value>Dræner</value>
   </data>
@@ -5014,8 +5023,8 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Fetch the MTA-STS policy for {0} over HTTPS and show what is served" xml:space="preserve">
     <value>Hent MTA-STS-politikken for {0} over HTTPS, og vis, hvad der serveres</value>
   </data>
-  <data name="Fetches the newer release's installer and verifies it against its Sigstore bundle before keeping it. The Control Panel waits while it does; an installer is tens of megabytes." xml:space="preserve">
-    <value>Henter den nyere udgivelses installationsprogram og verificerer det mod dets Sigstore-bundt, før det beholdes. Control Panel venter imens; et installationsprogram fylder snesevis af megabyte.</value>
+  <data name="Fetches the newer release's installer and verifies it against its Sigstore bundle before keeping it; an installer is tens of megabytes. The page can be used while it does." xml:space="preserve">
+    <value>Henter den nyere udgivelses installationsprogram og verificerer det mod dets Sigstore-bundt, før det beholdes; et installationsprogram fylder snesevis af megabyte. Siden kan bruges imens.</value>
   </data>
   <data name="Fetching and checking the hMailServer {0} installer, to put back if {1} does not start." xml:space="preserve">
     <value>Henter og kontrollerer installationsprogrammet til hMailServer {0}, så det kan lægges tilbage, hvis {1} ikke starter.</value>
@@ -5370,6 +5379,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="HTTPS port (443 to enable, 0 = disabled)" xml:space="preserve">
     <value>HTTPS-port (443 for at aktivere, 0 = deaktiveret)</value>
+  </data>
+  <data name="Handing {0} to the update helper…" xml:space="preserve">
+    <value>{0} overdrages til opdateringshjælperen…</value>
   </data>
   <data name="Hands every accepted message to an engine over HTTP and uses the score it returns. The message is the request body and the envelope, connecting address and HELO travel as request headers, which is what rspamd's own check endpoint already expects - so pointing this at rspamd needs no adapter, and pointing it at something you wrote yourself needs only a program that answers JSON." xml:space="preserve">
     <value>Overdrager hver accepteret meddelelse til en motor over HTTP og bruger den score, den returnerer. Meddelelsen er forespørgslens brødtekst, og konvolutten, den forbindende adresse og HELO rejser med som forespørgselsheadere, hvilket er nøjagtigt, hvad rspamds eget kontrolendepunkt allerede forventer – så det kræver ingen adapter at pege dette på rspamd, og at pege det på noget, du selv har skrevet, kræver kun et program, der svarer med JSON.</value>
@@ -11365,6 +11377,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="Start here: jump straight to a common task, or press Ctrl+K and describe what you want to do." xml:space="preserve">
     <value>Start her: spring direkte til en almindelig opgave, eller tryk Ctrl+K og beskriv, hvad du vil gøre.</value>
   </data>
+  <data name="Start the mail server engine again, as the header's Resume does" xml:space="preserve">
+    <value>Start mailserverens motor igen, som Genoptag i overskriften gør</value>
+  </data>
   <data name="Start with a domain: the part after the @ that this server accepts mail for. Add yours here." xml:space="preserve">
     <value>Start med et domæne: delen efter @, som denne server tager imod post for. Tilføj dit her.</value>
   </data>
@@ -12643,6 +12658,9 @@ kunne ikke indlæses. Meddelelsen er sandsynligvis leveret og ikke længere i k�
   </data>
   <data name="The mail server is paused - nothing is accepted or delivered." xml:space="preserve">
     <value>Mailserveren er sat på pause - intet modtages eller leveres.</value>
+  </data>
+  <data name="The mail server is paused: no connections are accepted and no mail is delivered until it is resumed." xml:space="preserve">
+    <value>Mailserveren er sat på pause: ingen forbindelser modtages, og ingen post leveres, før den genoptages.</value>
   </data>
   <data name="The mailbox could not be moved: {0}" xml:space="preserve">
     <value>Postkassen kunne ikke flyttes: {0}</value>

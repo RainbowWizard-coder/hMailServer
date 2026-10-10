@@ -53,7 +53,15 @@ namespace hMailServer.ControlPanel.Views
       private sealed class Step
       {
          public string Title;
-         public SymbolIcon Icon;
+         public StepState State;
+
+         /// <summary>
+         /// The step's status mark, in its level's shape and fill-text colour (review
+         /// finding F246): a hollow circle for every state but the four symbols, all in
+         /// the text colour, looked like a radio button and coloured a failed step as a
+         /// finished one.
+         /// </summary>
+         public System.Windows.Shapes.Path Mark;
          public System.Windows.Controls.TextBlock Line;
          public FrameworkElement Row;
       }
@@ -131,30 +139,48 @@ namespace hMailServer.ControlPanel.Views
          var grid = new Grid { Margin = new Thickness(0, 0, 0, DesignTokens.Space.Sm) };
          grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
          grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-         step.Icon = new SymbolIcon { Symbol = SymbolRegular.Circle24, FontSize = 18, Margin = new Thickness(0, 1, DesignTokens.Space.Sm, 0), VerticalAlignment = VerticalAlignment.Top };
+         step.Mark = new System.Windows.Shapes.Path
+         {
+            Width = 12,
+            Height = 12,
+            Stretch = System.Windows.Media.Stretch.Fill,
+            Margin = new Thickness(2, 4, DesignTokens.Space.Sm + 2, 0),
+            VerticalAlignment = VerticalAlignment.Top
+         };
+         ApplyMark_(step.Mark, StepState.Pending);
          var text = new StackPanel();
          text.Children.Add(new System.Windows.Controls.TextBlock { Text = title, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap });
          step.Line = new System.Windows.Controls.TextBlock { TextWrapping = TextWrapping.Wrap, Opacity = 0.85 };
          text.Children.Add(step.Line);
-         Grid.SetColumn(step.Icon, 0);
+         Grid.SetColumn(step.Mark, 0);
          Grid.SetColumn(text, 1);
-         grid.Children.Add(step.Icon);
+         grid.Children.Add(step.Mark);
          grid.Children.Add(text);
          step.Row = grid;
          parent.Children.Add(grid);
          return step;
       }
 
+      /// <summary>A step's level: finished Good, failed Critical, skipped Warning, under way Information, not started Normal.</summary>
+      private static StatusLevel LevelOf_(StepState state) => state switch
+      {
+         StepState.Done => StatusLevel.Good,
+         StepState.Failed => StatusLevel.Critical,
+         StepState.Skipped => StatusLevel.Warning,
+         StepState.Working => StatusLevel.Information,
+         _ => StatusLevel.Normal
+      };
+
+      private static void ApplyMark_(System.Windows.Shapes.Path mark, StepState state)
+      {
+         StatusPresentation presentation = StatusSemantics.For(LevelOf_(state));
+         ShapeMarkVisuals.ApplyMark(mark, presentation.Shape, presentation.FillTextBrushKey);
+      }
+
       private static void Set_(Step step, StepState state, string line)
       {
-         step.Icon.Symbol = state switch
-         {
-            StepState.Working => SymbolRegular.ArrowSync24,
-            StepState.Done => SymbolRegular.CheckmarkCircle24,
-            StepState.Skipped => SymbolRegular.SubtractCircle24,
-            StepState.Failed => SymbolRegular.ErrorCircle24,
-            _ => SymbolRegular.Circle24
-         };
+         step.State = state;
+         ApplyMark_(step.Mark, state);
          if (line != null)
             step.Line.Text = line;
          string word = state switch
@@ -232,7 +258,7 @@ namespace hMailServer.ControlPanel.Views
                Path.GetFileName(Value_("installer-source"))));
          else if (state is "installer-verified" or "rollback-verified" or "rollback-none" or "handed-over")
          {
-            if (check_.Icon.Symbol != SymbolRegular.CheckmarkCircle24)
+            if (check_.State != StepState.Done)
                Set_(check_, StepState.Done, F("Signed by {0} and recorded in the Sigstore log at {1}; version {2}, {3}.",
                   AdministratorUpdate.CommonNameOf(Value_("signer")), Value_("log-time"), version_, Value_("architecture")));
             if (!prepareAsked_)
@@ -264,7 +290,7 @@ namespace hMailServer.ControlPanel.Views
             {
                if (prepareAsked_)
                   CancelOnServer_();
-               Step at = check_.Icon.Symbol == SymbolRegular.CheckmarkCircle24 ? rollback_ : check_;
+               Step at = check_.State == StepState.Done ? rollback_ : check_;
                Finish_(at, AdministratorUpdate.StageStoppedText(exitCode, status_, version_), false);
             }
          }

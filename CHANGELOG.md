@@ -2836,6 +2836,22 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   captioned fields on one line, Active Directory domain and Name or account, the name's box saying "Part of a name
   (empty lists everyone)". `ActiveDirectoryPickerStatusTests` holds the levels, Search, the fields and the reason.
 
+- **Fixed: Server status said a paused server as a plain word, and the update steps were three equal buttons that
+  held up the window.** State was body text - "Stopped" for a server paused from that very page - and a paused engine
+  raised no notice; Check for updates, Download update and Install update were three equal buttons, the two that did
+  not apply greyed with no reason given, since a disabled button shows no tool tip, and Install wrapped to a line of
+  its own; Check and Download ran on the UI thread behind a wait cursor, Download's tool tip saying that the Control
+  Panel waits while it does; and the update-install window drew its steps as hollow circles in the text colour,
+  whether done or failed. Server status's State is now a pill at its level - Running Good, Paused and Draining
+  Warning, Starting and Stopping Information - and a paused engine is said under the header, "The mail server is
+  paused: no connections are accepted and no mail is delivered until it is resumed.", with Resume. The Updates page
+  offers one step at a time as its Primary - Check for updates until a release is known, then Download update, then
+  Install update, with Check again before it - and none while an install is under way; each step runs off the UI
+  thread with a line in the card that says which, "Downloading 6.3.7…", while the rest of the page can be used. The
+  install window's steps are the status marks in their levels' colours: finished Good, failed Critical, skipped
+  Warning, under way Information. `ServerStatusFlowTests` holds the state's words and levels, the step for every
+  update state, the notice, the one step and its thread, and the marks.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

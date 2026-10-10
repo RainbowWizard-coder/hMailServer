@@ -2440,6 +2440,9 @@
   <data name="Check SPF" xml:space="preserve">
     <value>SPF を確認</value>
   </data>
+  <data name="Check _again" xml:space="preserve">
+    <value>もう一度確認(_A)</value>
+  </data>
   <data name="Check _all records" xml:space="preserve">
     <value>すべてのレコードを確認(_A)</value>
   </data>
@@ -2511,6 +2514,9 @@
   </data>
   <data name="Checking for a new release and installing it, and the update policy" xml:space="preserve">
     <value>新しいリリースの確認とインストール、および更新ポリシー</value>
+  </data>
+  <data name="Checking for updates…" xml:space="preserve">
+    <value>更新プログラムを確認しています…</value>
   </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>インストーラーの確認</value>
@@ -4201,6 +4207,9 @@
   <data name="Downloaded" xml:space="preserve">
     <value>ダウンロード済み</value>
   </data>
+  <data name="Downloading {0}…" xml:space="preserve">
+    <value>{0} をダウンロードしています…</value>
+  </data>
   <data name="Draining" xml:space="preserve">
     <value>ドレイン中</value>
   </data>
@@ -5014,8 +5023,8 @@
   <data name="Fetch the MTA-STS policy for {0} over HTTPS and show what is served" xml:space="preserve">
     <value>{0} の MTA-STS ポリシーを HTTPS で取得し、配信されている内容を表示</value>
   </data>
-  <data name="Fetches the newer release's installer and verifies it against its Sigstore bundle before keeping it. The Control Panel waits while it does; an installer is tens of megabytes." xml:space="preserve">
-    <value>新しいリリースのインストーラーを取得し、保持する前に Sigstore バンドルと照合して検証します。その間コントロールパネルは待機します。インストーラーは数十メガバイトあります。</value>
+  <data name="Fetches the newer release's installer and verifies it against its Sigstore bundle before keeping it; an installer is tens of megabytes. The page can be used while it does." xml:space="preserve">
+    <value>新しいリリースのインストーラーを取得し、保持する前に Sigstore バンドルと照合して検証します。インストーラーは数十メガバイトあります。その間もこのページは使えます。</value>
   </data>
   <data name="Fetching and checking the hMailServer {0} installer, to put back if {1} does not start." xml:space="preserve">
     <value>{1} が起動しない場合に戻せるよう、hMailServer {0} のインストーラーを取得して確認しています。</value>
@@ -5370,6 +5379,9 @@
   </data>
   <data name="HTTPS port (443 to enable, 0 = disabled)" xml:space="preserve">
     <value>HTTPS ポート (有効にするには 443、0 = 無効)</value>
+  </data>
+  <data name="Handing {0} to the update helper…" xml:space="preserve">
+    <value>{0} を更新ヘルパーに渡しています…</value>
   </data>
   <data name="Hands every accepted message to an engine over HTTP and uses the score it returns. The message is the request body and the envelope, connecting address and HELO travel as request headers, which is what rspamd's own check endpoint already expects - so pointing this at rspamd needs no adapter, and pointing it at something you wrote yourself needs only a program that answers JSON." xml:space="preserve">
     <value>受け入れたすべてのメッセージを HTTP でエンジンに渡し、返されたスコアを使います。メッセージがリクエスト本文になり、エンベロープ、接続元アドレス、HELO はリクエスト ヘッダーとして送られます。これは rspamd 自身のチェック エンドポイントがすでに期待している形式なので、rspamd に向けるのにアダプターは不要で、自作のものに向ける場合も JSON を返すプログラムがあれば十分です。</value>
@@ -11365,6 +11377,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Start here: jump straight to a common task, or press Ctrl+K and describe what you want to do." xml:space="preserve">
     <value>ここから始めましょう。よくあるタスクに直接ジャンプするか、Ctrl+K を押してやりたいことを入力してください。</value>
   </data>
+  <data name="Start the mail server engine again, as the header's Resume does" xml:space="preserve">
+    <value>ヘッダーの [再開] と同じく、メール サーバーのエンジンを再び開始します</value>
+  </data>
   <data name="Start with a domain: the part after the @ that this server accepts mail for. Add yours here." xml:space="preserve">
     <value>まずドメインから。@ の後ろの部分で、このサーバーがメールを受け付ける範囲です。ご自分のドメインをここに追加します。</value>
   </data>
@@ -12643,6 +12658,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The mail server is paused - nothing is accepted or delivered." xml:space="preserve">
     <value>メール サーバーは一時停止中です - 何も受け付けず、配信もしません。</value>
+  </data>
+  <data name="The mail server is paused: no connections are accepted and no mail is delivered until it is resumed." xml:space="preserve">
+    <value>メール サーバーは一時停止中です。再開されるまで接続を受け付けず、メールも配信しません。</value>
   </data>
   <data name="The mailbox could not be moved: {0}" xml:space="preserve">
     <value>メールボックスを移動できませんでした: {0}</value>

@@ -119,7 +119,7 @@ namespace hMailServer.ControlPanel.Tests.Services
             Assert.DoesNotContain("x:Name=\"" + gone + "\"", status, StringComparison.Ordinal);
 
          string steps = ReadControlPanelFile(Path.Join("Views", "FeatureSettingsView.Updates.cs"));
-         Assert.Contains("private void RunUpdateAction_(string action)", steps, StringComparison.Ordinal);
+         Assert.Contains("private async void RunUpdateAction_(string action)", steps, StringComparison.Ordinal);
          Assert.Contains("private bool TryAdministratorInstall_()", steps, StringComparison.Ordinal);
          Assert.Contains("public void ShowInstallOutcome(AdministratorUpdate.Outcome outcome)", steps, StringComparison.Ordinal);
          Assert.DoesNotContain("RunUpdateAction_", ReadControlPanelFile(Path.Join("Views", "StatusView.xaml.cs")), StringComparison.Ordinal);
@@ -147,7 +147,9 @@ namespace hMailServer.ControlPanel.Tests.Services
          string call = steps.Substring(show, steps.IndexOf(");", show, StringComparison.Ordinal) - show);
          foreach (string button in new[] { "CheckUpdateButton", "DownloadUpdateButton", "InstallUpdateButton" })
             Assert.Contains(button, call, StringComparison.Ordinal);
-         Assert.Contains("CheckUpdateButton.IsEnabled = true;", steps, StringComparison.Ordinal);
+         // Check comes back with a read that worked, unless an install is under way
+         // (ShowUpdateSteps_, review finding F246).
+         Assert.Contains("CheckUpdateButton.IsEnabled = shownStep_ != UpdateStep.None;", steps, StringComparison.Ordinal);
       }
 
       /// <summary>

@@ -92,7 +92,9 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("value.Text = text;", setValue);
 
          var filled = Regex.Matches(code, @"\bSetValue_\(\s*(\w+)\s*,").Select(m => m.Groups[1].Value).Distinct().ToList();
-         var expected = new[] { "VersionValue", "StateValue", "DbTypeValue", "DbHostValue", "DbNameValue", "DbVersionValue",
+         // The state is a pill since review finding F246 (ServerStatusFlowTests holds it),
+         // named "State, word" for a screen reader as these are.
+         var expected = new[] { "VersionValue", "DbTypeValue", "DbHostValue", "DbNameValue", "DbVersionValue",
                                 "ProcessedValue", "SpamValue", "VirusValue", "SmtpValue", "ImapValue", "Pop3Value" };
          foreach (string value in expected)
             Assert.True(filled.Contains(value), "The page no longer fills " + value + ".");
