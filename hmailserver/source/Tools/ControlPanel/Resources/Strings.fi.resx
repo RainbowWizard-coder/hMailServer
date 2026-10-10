@@ -6024,8 +6024,8 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Left Edge" xml:space="preserve">
     <value>Vasen reuna</value>
   </data>
-  <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
-    <value>Tyhjänä palvelin käyttää harmaalla näytettyä mukana toimitettua suodatinta - objectCategory ensin, koska se on indeksoitu Active Directoryssa, ja sAMAccountName, koska sitä tilin Windows-hakemisto-välilehti tallentaa. %u on tilin Active Directory -käyttäjänimi, %d sen AD-toimialue, %m sen koko sähköpostiosoite; kaikki kolme koodataan ennen sijoitusta, joten vihamielinen kirjautumisnimi ei voi kirjoittaa suodatinta uusiksi. Suodatin, joka täsmää useampaan kuin yhteen merkintään, ei todenna ketään, tarkoituksella.</value>
+  <data name="Left empty, the server uses the shipped filter, {0} - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
+    <value>Tyhjänä palvelin käyttää mukana toimitettua suodatinta {0} - objectCategory ensin, koska se on indeksoitu Active Directoryssa, ja sAMAccountName, koska sitä tilin Windows-hakemisto-välilehti tallentaa. %u on tilin Active Directory -käyttäjänimi, %d sen AD-toimialue, %m sen koko sähköpostiosoite; kaikki kolme koodataan ennen sijoitusta, joten vihamielinen kirjautumisnimi ei voi kirjoittaa suodatinta uusiksi. Suodatin, joka täsmää useampaan kuin yhteen merkintään, ei todenna ketään, tarkoituksella.</value>
   </data>
   <data name="Left where they were: {0}. The first reason: {1}" xml:space="preserve">
     <value>Jätetty paikalleen: {0}. Ensimmäinen syy: {1}</value>
@@ -11698,8 +11698,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="The IP ranges could not be read." xml:space="preserve">
     <value>IP-alueita ei voitu lukea.</value>
   </data>
-  <data name="The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
-    <value>LDAP-suodatin, joka valitsee henkilöt, joilla pitäisi olla postilaatikko. Oletus ottaa käytössä olevat person-objektit, joilla on sähköpostiosoite - mikä jättää tarkoituksella pois poistetut lähteneet, palvelutilit ja tietokoneet, joille kaikille laajempi suodatin loisi postilaatikot.</value>
+  <data name="The LDAP filter that selects the people who should have a mailbox. The default, {0}, takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
+    <value>LDAP-suodatin, joka valitsee henkilöt, joilla pitäisi olla postilaatikko. Oletus, {0}, ottaa käytössä olevat person-objektit, joilla on sähköpostiosoite - mikä jättää tarkoituksella pois poistetut lähteneet, palvelutilit ja tietokoneet, joille kaikille laajempi suodatin loisi postilaatikot.</value>
   </data>
   <data name="The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
     <value>Kuuntelee-sarake luetaan tämän koneen avoimista porteista, ei määrityksestä, joten se näyttää, mitä todella tapahtuu, eikä sitä, mitä pyydettiin.</value>
@@ -12134,9 +12134,6 @@ Valitse yllä oleva avain ja kopioi se käsin - sitä ei näytetä uudelleen.</v
   </data>
   <data name="The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it." xml:space="preserve">
     <value>Tietokanta: etsi virheitä, joissa mainitaan yhteysvaranto. Kun varannon määräaika umpeutuu, vastaanottajahaku vastaa 451 4.3.2 eikä 550, joten varmuuskopioinnin lukitsema tietokanta lykkää postia sen sijaan että palauttaisi sen.</value>
-  </data>
-  <data name="The default filter: {0}" xml:space="preserve">
-    <value>Oletussuodatin: {0}</value>
   </data>
   <data name="The delete override never deletes on a guess: the copy is removed only when the recorded score actually reached the value, and it goes to the quarantine store instead when that is enabled." xml:space="preserve">
     <value>Poiston ohitus ei koskaan poista arvauksen perusteella: kopio poistetaan vain, kun tallennettu pistemäärä todella saavutti arvon, ja se menee sen sijaan karanteenivarastoon, kun se on käytössä.</value>

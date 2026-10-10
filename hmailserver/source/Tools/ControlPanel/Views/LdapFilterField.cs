@@ -7,8 +7,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using hMailServer.ControlPanel.Services;
-using hMailServer.ControlPanel.Views.Scaffold;
-using static hMailServer.ControlPanel.Services.Loc;
 
 namespace hMailServer.ControlPanel.Views
 {
@@ -16,8 +14,12 @@ namespace hMailServer.ControlPanel.Views
    /// An LDAP search filter's box on the Directory synchronisation and Directory
    /// authentication (LDAP) pages, shown whole (review finding F131): the width of
    /// its card, wrapping over two lines at least, in the monospaced face filters
-   /// are read in, and the filter the server uses when the box is empty said in
-   /// the hint, where it stays in view once the box holds a filter of its own.
+   /// are read in. The filter the server uses when the box is empty is said by
+   /// each page in its hint, where it stays in view once the box holds a filter of
+   /// its own, inside a sentence the hint already has: a sentence of its own
+   /// appended here made the synchronisation filter's hint three sentences, past
+   /// the two the owner's decision 11 keeps on a page (found re-checking
+   /// 1f68715cf).
    ///
    /// The synchronisation filter was a single line capped at 620 pixels, with
    /// about 200 pixels of its card unused, and its placeholder - the one place
@@ -29,8 +31,8 @@ namespace hMailServer.ControlPanel.Views
    /// </summary>
    internal static class LdapFilterField
    {
-      /// <summary>Gives <paramref name="box"/>, already on its FieldRow, the shape of a filter shown whole, and its row's hint the default.</summary>
-      public static void ShowWhole(Wpf.Ui.Controls.TextBox box, string defaultFilter)
+      /// <summary>Gives <paramref name="box"/> the shape of a filter shown whole.</summary>
+      public static void ShowWhole(Wpf.Ui.Controls.TextBox box)
       {
          if (box == null)
             return;
@@ -45,9 +47,6 @@ namespace hMailServer.ControlPanel.Views
          // TextBlock of its own, on one line, so that the default was cut at the
          // box's edge however wide the box was.
          box.Loaded += (_, _) => WrapPlaceholder_(box);
-
-         if (box.Parent is FieldRow row && !string.IsNullOrEmpty(defaultFilter))
-            row.Hint = Sentences(row.Hint, F("The default filter: {0}", defaultFilter));
       }
 
       private static void WrapPlaceholder_(DependencyObject at)

@@ -6024,8 +6024,8 @@
   <data name="Left Edge" xml:space="preserve">
     <value>左边缘</value>
   </data>
-  <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
-    <value>留空时，服务器使用灰色显示的出厂过滤器 - 先用 objectCategory，因为它在 Active Directory 中有索引；再用 sAMAccountName，因为账户的“Windows 目录”选项卡存储的正是它。%u 是账户的 Active Directory 用户名，%d 是其 AD 域，%m 是其完整邮件地址；三者在替换前都会被转义，因此恶意的登录名无法改写过滤器。匹配到多个条目的过滤器不会验证任何人，这是有意为之。</value>
+  <data name="Left empty, the server uses the shipped filter, {0} - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
+    <value>留空时，服务器使用出厂过滤器 {0} - 先用 objectCategory，因为它在 Active Directory 中有索引；再用 sAMAccountName，因为账户的“Windows 目录”选项卡存储的正是它。%u 是账户的 Active Directory 用户名，%d 是其 AD 域，%m 是其完整邮件地址；三者在替换前都会被转义，因此恶意的登录名无法改写过滤器。匹配到多个条目的过滤器不会验证任何人，这是有意为之。</value>
   </data>
   <data name="Left where they were: {0}. The first reason: {1}" xml:space="preserve">
     <value>已保留原状：{0} 封。首个原因：{1}</value>
@@ -11698,8 +11698,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The IP ranges could not be read." xml:space="preserve">
     <value>IP 范围无法读取。</value>
   </data>
-  <data name="The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
-    <value>选出应当拥有邮箱的人员的 LDAP 过滤器。默认值选取带有邮件地址的已启用 person 对象 - 这有意排除了已禁用的离职人员、服务账户和计算机，而更宽泛的过滤器会为这些全都预配邮箱。</value>
+  <data name="The LDAP filter that selects the people who should have a mailbox. The default, {0}, takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
+    <value>选出应当拥有邮箱的人员的 LDAP 过滤器。默认值 {0} 选取带有邮件地址的已启用 person 对象 - 这有意排除了已禁用的离职人员、服务账户和计算机，而更宽泛的过滤器会为这些全都预配邮箱。</value>
   </data>
   <data name="The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
     <value>“正在监听”列读取自本机已打开的端口，而不是配置，因此它显示的是实际发生的情况，而不是所要求的情况。</value>
@@ -12134,9 +12134,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it." xml:space="preserve">
     <value>数据库: 查找提到连接池的错误。当连接池等待超时时，收件人查询会应答 451 4.3.2 而不是 550，因此被备份锁住的数据库会推迟邮件而不是退回邮件。</value>
-  </data>
-  <data name="The default filter: {0}" xml:space="preserve">
-    <value>默认筛选器：{0}</value>
   </data>
   <data name="The delete override never deletes on a guess: the copy is removed only when the recorded score actually reached the value, and it goes to the quarantine store instead when that is enabled." xml:space="preserve">
     <value>删除覆盖永远不会凭猜测删除: 只有在记录的分数确实达到该值时才会移除副本，而在启用了隔离存储时会改为转入隔离存储。</value>

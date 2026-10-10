@@ -338,7 +338,10 @@ namespace hMailServer.ControlPanel.Views
             out StackPanel content);
 
          content.Children.Add(LabelledBox_(L("Search _filter"), filter_, "dirsync-filter",
-            L("The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for."),
+            // The default named in the second sentence, in view whatever the box
+            // holds, where the placeholder alone was cut at the start of the
+            // userAccountControl clause (F131) - not in a third (decision 11).
+            F("The LDAP filter that selects the people who should have a mailbox. The default, {0}, takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for.", DefaultSyncFilter),
             // The server's kDefaultSyncFilter, character for character, INCLUDING the
             // userAccountControl clause. That clause is the whole of what the caption
             // above promises, and an earlier version of this placeholder omitted it -
@@ -353,7 +356,7 @@ namespace hMailServer.ControlPanel.Views
          // the default in the hint, where it stays in view once the box holds a
          // filter: as a placeholder alone it was cut at the start of the
          // userAccountControl clause (F131).
-         LdapFilterField.ShowWhole(filter_, DefaultSyncFilter);
+         LdapFilterField.ShowWhole(filter_);
 
          content.Children.Add(LabelledBox_(L("Address attri_bute"), mailAttribute_, "dirsync-mail-attribute",
             L("Which attribute holds the mailbox address. proxyAddresses is understood: its scheme prefix is removed and the primary SMTP: value is preferred over the lower-case aliases."),

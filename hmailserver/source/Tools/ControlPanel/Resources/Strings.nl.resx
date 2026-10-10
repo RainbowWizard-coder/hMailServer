@@ -6024,8 +6024,8 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Left Edge" xml:space="preserve">
     <value>Linkerrand</value>
   </data>
-  <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
-    <value>Leeg gelaten gebruikt de server het meegeleverde filter dat in het grijs wordt getoond - objectCategory eerst omdat dat in Active Directory geïndexeerd is, en sAMAccountName omdat dat is wat het tabblad Windows-directory van het account opslaat. %u is de Active Directory-gebruikersnaam van het account, %d zijn AD-domein, %m zijn volledige e-mailadres; alle drie worden vóór de substitutie geëscapet, zodat een vijandige aanmeldnaam het filter niet kan herschrijven. Een filter dat op meer dan één vermelding past, authenticeert niemand - met opzet.</value>
+  <data name="Left empty, the server uses the shipped filter, {0} - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
+    <value>Leeg gelaten gebruikt de server het meegeleverde filter, {0} - objectCategory eerst omdat dat in Active Directory geïndexeerd is, en sAMAccountName omdat dat is wat het tabblad Windows-directory van het account opslaat. %u is de Active Directory-gebruikersnaam van het account, %d zijn AD-domein, %m zijn volledige e-mailadres; alle drie worden vóór de substitutie geëscapet, zodat een vijandige aanmeldnaam het filter niet kan herschrijven. Een filter dat op meer dan één vermelding past, authenticeert niemand - met opzet.</value>
   </data>
   <data name="Left where they were: {0}. The first reason: {1}" xml:space="preserve">
     <value>Gelaten waar ze waren: {0}. De eerste reden: {1}</value>
@@ -11698,8 +11698,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="The IP ranges could not be read." xml:space="preserve">
     <value>De IP-bereiken konden niet worden gelezen.</value>
   </data>
-  <data name="The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
-    <value>Het LDAP-filter dat de mensen selecteert die een postvak horen te hebben. De standaard neemt ingeschakelde person-objecten met een mailadres - wat bewust uitgeschakelde vertrekkers, serviceaccounts en computers uitsluit, waarvoor een ruimer filter allemaal postvakken zou aanmaken.</value>
+  <data name="The LDAP filter that selects the people who should have a mailbox. The default, {0}, takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
+    <value>Het LDAP-filter dat de mensen selecteert die een postvak horen te hebben. De standaard, {0}, neemt ingeschakelde person-objecten met een mailadres - wat bewust uitgeschakelde vertrekkers, serviceaccounts en computers uitsluit, waarvoor een ruimer filter allemaal postvakken zou aanmaken.</value>
   </data>
   <data name="The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
     <value>De kolom Luistert wordt gelezen uit de open poorten van deze machine en niet uit de configuratie, dus die toont wat er werkelijk gebeurt in plaats van wat er is gevraagd.</value>
@@ -12134,9 +12134,6 @@ Selecteer de sleutel hierboven en kopieer die met de hand - hij wordt niet opnie
   </data>
   <data name="The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it." xml:space="preserve">
     <value>De database: kijk naar fouten die de verbindingspool noemen. Wanneer de wachttijd van de pool verstrijkt, antwoordt een ontvangeropzoeking met 451 4.3.2 in plaats van 550, zodat een database die door een back-up vergrendeld is mail uitstelt in plaats van hem te laten bouncen.</value>
-  </data>
-  <data name="The default filter: {0}" xml:space="preserve">
-    <value>Het standaardfilter: {0}</value>
   </data>
   <data name="The delete override never deletes on a guess: the copy is removed only when the recorded score actually reached the value, and it goes to the quarantine store instead when that is enabled." xml:space="preserve">
     <value>De verwijderoverschrijving verwijdert nooit op een vermoeden: de kopie wordt alleen verwijderd wanneer de vastgelegde score de waarde daadwerkelijk heeft bereikt, en gaat in plaats daarvan naar de quarantaineopslag wanneer die is ingeschakeld.</value>

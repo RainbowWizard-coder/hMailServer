@@ -6024,8 +6024,8 @@
   <data name="Left Edge" xml:space="preserve">
     <value>左端</value>
   </data>
-  <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
-    <value>空のままにすると、サーバーは灰色で表示されている出荷時のフィルターを使います。objectCategory が先なのは Active Directory でインデックス化されているためで、sAMAccountName はアカウントの [Windows ディレクトリ] タブが保存しているものだからです。%u はアカウントの Active Directory ユーザー名、%d はその AD ドメイン、%m は完全なメール アドレスです。3 つとも置換前にエスケープされるため、悪意のあるログオン名でフィルターを書き換えることはできません。複数のエントリに一致するフィルターは、意図的に誰も認証しません。</value>
+  <data name="Left empty, the server uses the shipped filter, {0} - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
+    <value>空のままにすると、サーバーは出荷時のフィルター {0} を使います。objectCategory が先なのは Active Directory でインデックス化されているためで、sAMAccountName はアカウントの [Windows ディレクトリ] タブが保存しているものだからです。%u はアカウントの Active Directory ユーザー名、%d はその AD ドメイン、%m は完全なメール アドレスです。3 つとも置換前にエスケープされるため、悪意のあるログオン名でフィルターを書き換えることはできません。複数のエントリに一致するフィルターは、意図的に誰も認証しません。</value>
   </data>
   <data name="Left where they were: {0}. The first reason: {1}" xml:space="preserve">
     <value>そのままにしたメッセージ: {0} 件。最初の理由: {1}</value>
@@ -11698,8 +11698,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The IP ranges could not be read." xml:space="preserve">
     <value>IP 範囲を読み取れませんでした。</value>
   </data>
-  <data name="The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
-    <value>メールボックスを持つべき人を選ぶ LDAP フィルター。既定では、メール アドレスを持つ有効な person オブジェクトを対象にします。無効化された退職者、サービス アカウント、コンピューターは意図的に除外されます。より広いフィルターではこれらすべてにメールボックスが作られてしまいます。</value>
+  <data name="The LDAP filter that selects the people who should have a mailbox. The default, {0}, takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
+    <value>メールボックスを持つべき人を選ぶ LDAP フィルター。既定の {0} は、メール アドレスを持つ有効な person オブジェクトを対象にし、無効化された退職者、サービス アカウント、コンピューターを意図的に除外します。より広いフィルターではこれらすべてにメールボックスが作られてしまいます。</value>
   </data>
   <data name="The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
     <value>「待ち受け中」列は設定ではなくこのコンピューターの開いているポートから読み取られるため、要求された内容ではなく実際に起きていることを示します。</value>
@@ -12134,9 +12134,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it." xml:space="preserve">
     <value>データベース: 接続プールに言及するエラーを確認してください。プールの期限が切れると、受信者の検索は 550 ではなく 451 4.3.2 を返すため、バックアップでロックされたデータベースはメールをバウンスさせるのではなく延期します。</value>
-  </data>
-  <data name="The default filter: {0}" xml:space="preserve">
-    <value>既定のフィルター: {0}</value>
   </data>
   <data name="The delete override never deletes on a guess: the copy is removed only when the recorded score actually reached the value, and it goes to the quarantine store instead when that is enabled." xml:space="preserve">
     <value>削除の上書きが推測で削除することはありません。記録されたスコアが実際にその値に達した場合にのみコピーが削除され、検疫ストアが有効な場合は代わりにそちらに送られます。</value>

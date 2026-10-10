@@ -6024,8 +6024,8 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="Left Edge" xml:space="preserve">
     <value>Margine sinistro</value>
   </data>
-  <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
-    <value>Se lasciato vuoto, il server usa il filtro di fabbrica mostrato in grigio - prima objectCategory perché è indicizzato in Active Directory, e sAMAccountName perché è ciò che la scheda Directory di Windows dell'account memorizza. %u è il nome utente Active Directory dell'account, %d il suo dominio AD, %m il suo indirizzo di posta completo; tutti e tre vengono sottoposti a escape prima della sostituzione, così un nome di accesso ostile non può riscrivere il filtro. Un filtro che corrisponde a più di una voce non autentica nessuno, per scelta progettuale.</value>
+  <data name="Left empty, the server uses the shipped filter, {0} - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
+    <value>Se lasciato vuoto, il server usa il filtro di fabbrica, {0} - prima objectCategory perché è indicizzato in Active Directory, e sAMAccountName perché è ciò che la scheda Directory di Windows dell'account memorizza. %u è il nome utente Active Directory dell'account, %d il suo dominio AD, %m il suo indirizzo di posta completo; tutti e tre vengono sottoposti a escape prima della sostituzione, così un nome di accesso ostile non può riscrivere il filtro. Un filtro che corrisponde a più di una voce non autentica nessuno, per scelta progettuale.</value>
   </data>
   <data name="Left where they were: {0}. The first reason: {1}" xml:space="preserve">
     <value>Lasciati dove erano: {0}. Il primo motivo: {1}</value>
@@ -11698,8 +11698,8 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="The IP ranges could not be read." xml:space="preserve">
     <value>Gli intervalli IP non sono stati letti.</value>
   </data>
-  <data name="The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
-    <value>Il filtro LDAP che seleziona le persone che devono avere una casella. Quello predefinito prende gli oggetti persona abilitati che portano un indirizzo di posta - il che esclude di proposito chi ha lasciato l'azienda ed è stato disabilitato, gli account di servizio e i computer, per tutti i quali un filtro più ampio creerebbe delle caselle.</value>
+  <data name="The LDAP filter that selects the people who should have a mailbox. The default, {0}, takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
+    <value>Il filtro LDAP che seleziona le persone che devono avere una casella. Quello predefinito, {0}, prende gli oggetti persona abilitati che portano un indirizzo di posta - il che esclude di proposito chi ha lasciato l'azienda ed è stato disabilitato, gli account di servizio e i computer, per tutti i quali un filtro più ampio creerebbe delle caselle.</value>
   </data>
   <data name="The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
     <value>La colonna In ascolto è letta dalle porte aperte di questa macchina, non dalla configurazione, quindi mostra ciò che accade davvero anziché ciò che è stato chiesto.</value>
@@ -12134,9 +12134,6 @@ Selezionare la chiave qui sopra e copiarla a mano - non verrà mostrata di nuovo
   </data>
   <data name="The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it." xml:space="preserve">
     <value>Il database: cercare errori che citano il pool di connessioni. Quando scade il termine del pool, una ricerca del destinatario risponde 451 4.3.2 anziché 550, quindi un database bloccato da un backup rinvia la posta invece di respingerla.</value>
-  </data>
-  <data name="The default filter: {0}" xml:space="preserve">
-    <value>Il filtro predefinito: {0}</value>
   </data>
   <data name="The delete override never deletes on a guess: the copy is removed only when the recorded score actually reached the value, and it goes to the quarantine store instead when that is enabled." xml:space="preserve">
     <value>L'override di eliminazione non elimina mai a caso: la copia viene rimossa solo quando il punteggio registrato ha effettivamente raggiunto il valore, e finisce invece nell'archivio di quarantena quando questo è attivo.</value>

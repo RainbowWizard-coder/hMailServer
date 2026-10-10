@@ -2554,12 +2554,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   "...(!(userAccountControl:1.2.840.113556.1.4.80", the start of the clause the caption is about; a placeholder cannot
   be scrolled and is gone once the box has text. The cards were 860 pixels wide against the form width of 760 the
   Directory authentication (LDAP) page and the settings pages keep. The filter box is now the width of its card, wraps
-  over two lines at least - its placeholder with it - and is in the monospaced face, and its hint ends with the
-  default, "The default filter:
-  (&(objectClass=user)(objectCategory=person)(mail=*)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))", in view
-  whatever the box holds; Directory authentication's user search filter is shown the same way; and the cards are at
-  the form width. `LdapFilterFieldTests` holds the boxes, the cards and each default to the server's own constant in
-  LdapSettings.cpp, character for character.
+  over two lines at least - its placeholder with it - and is in the monospaced face, and its hint names the default in
+  the sentence that says what it takes, "The default,
+  (&(objectClass=user)(objectCategory=person)(mail=*)(!(userAccountControl:1.2.840.113556.1.4.803:=2))), takes enabled
+  person objects that carry a mail address", in view whatever the box holds; Directory authentication's user search
+  filter is shown the same way, its hint naming the shipped filter where it said "the shipped filter shown in grey";
+  and the cards are at the form width. `LdapFilterFieldTests` holds the boxes, the cards and each default to the
+  server's own constant in LdapSettings.cpp, character for character.
 
 ### Administration
 

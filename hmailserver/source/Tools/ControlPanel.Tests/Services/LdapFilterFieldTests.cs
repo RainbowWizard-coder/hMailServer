@@ -21,7 +21,7 @@ namespace hMailServer.ControlPanel.Tests.Services
    public class LdapFilterFieldTests
    {
       [Fact]
-      public void AFilterBox_IsShownWhole_WithTheDefaultInItsHint()
+      public void AFilterBox_IsShownWhole()
       {
          string field = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", "LdapFilterField.cs"));
          Assert.Contains("box.HorizontalAlignment = HorizontalAlignment.Stretch;", field, StringComparison.Ordinal);
@@ -31,15 +31,41 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("box.FontFamily = new FontFamily(Typography.MonoFontFamily);", field, StringComparison.Ordinal);
          Assert.Contains("box.Loaded += (_, _) => WrapPlaceholder_(box);", field, StringComparison.Ordinal);
          Assert.Contains("words.TextWrapping = TextWrapping.Wrap;", field, StringComparison.Ordinal);
-         Assert.Contains("row.Hint = Sentences(row.Hint, F(\"The default filter: {0}\", defaultFilter));", field, StringComparison.Ordinal);
+
+         // The hint is the page's: a sentence appended here, "The default filter:
+         // ...", made the synchronisation filter's hint three sentences.
+         Assert.DoesNotContain("row.Hint", field, StringComparison.Ordinal);
+         Assert.DoesNotContain("The default filter", field, StringComparison.Ordinal);
       }
 
       [Theory]
-      [InlineData("DirectorySyncView.cs", "LdapFilterField.ShowWhole(filter_, DefaultSyncFilter);")]
-      [InlineData("LdapSettingsView.cs", "LdapFilterField.ShowWhole(userSearchFilter_, DefaultUserSearchFilter);")]
+      [InlineData("DirectorySyncView.cs", "LdapFilterField.ShowWhole(filter_);")]
+      [InlineData("LdapSettingsView.cs", "LdapFilterField.ShowWhole(userSearchFilter_);")]
       public void BothPages_ShowTheirFilterWhole(string view, string line)
       {
          Assert.Contains(line, View(view), StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// Each hint names the server's default inside a sentence it already had -
+      /// Directory synchronisation's second, the LDAP page's first - so that the
+      /// synchronisation filter's hint stays at the two sentences the owner's
+      /// decision 11 keeps on a page, where a sentence of its own for the default
+      /// made it three, and the LDAP page's hint gains none.
+      /// </summary>
+      [Theory]
+      [InlineData("DirectorySyncView.cs", "dirsync-filter", "DefaultSyncFilter", "The LDAP filter that selects the people who should have a mailbox. The default, {0}, takes enabled person objects", 2)]
+      [InlineData("LdapSettingsView.cs", "ldap-user-search-filter", "DefaultUserSearchFilter", "Left empty, the server uses the shipped filter, {0} - objectCategory first", 3)]
+      public void EachHint_NamesTheDefault_InASentenceItHad(string view, string id, string constant, string start, int sentences)
+      {
+         string page = View(view);
+         int at = page.IndexOf("\"" + id + "\"", StringComparison.Ordinal);
+         Assert.True(at >= 0, view + " has no " + id + " box.");
+         Match hint = new Regex(@"F\(""((?:[^""\\]|\\.)*)"", " + constant + @"\)").Match(page, at);
+         Assert.True(hint.Success && hint.Index - at < 1200, view + "'s " + id + " hint does not name " + constant + " through F().");
+         Assert.StartsWith(start, hint.Groups[1].Value, StringComparison.Ordinal);
+         Assert.Equal(sentences, Regex.Matches(hint.Groups[1].Value, @"[.!?]\s+[A-Z%(]").Count + 1);
+         Assert.DoesNotContain("shown in grey", hint.Groups[1].Value, StringComparison.Ordinal);
       }
 
       /// <summary>
