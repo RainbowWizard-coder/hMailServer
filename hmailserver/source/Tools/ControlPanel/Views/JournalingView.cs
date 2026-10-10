@@ -139,17 +139,18 @@ namespace hMailServer.ControlPanel.Views
          // twice as much as each of the others since it is the one an archive's
          // or a migration's address is told by, each cut short with an ellipsis
          // and whole in its tool tip; the four short words take
-         // their own width. Seven fixed columns came to 1,100 pixels on a card of
-         // about 900, so that the grid scrolled sideways in a 1280 window and the
-         // note was never seen, Where it goes was off the card in the smallest
-         // window, and "Beide Richtungen" was cut to "Beide Richtung" with nothing
-         // to say so (review finding F255).
+         // their own width, never less than the widest word each can show. Seven
+         // fixed columns came to 1,100 pixels on a card of about 900, so that the
+         // grid scrolled sideways in a 1280 window and the note was never seen,
+         // Where it goes was off the card in the smallest window, and "Beide
+         // Richtungen" was cut to "Beide Richtung" with nothing to say so (review
+         // finding F255).
          rules_.Columns.Add(SharedColumn_(L("Whose mail"), nameof(RuleRow.Target), 160, 1));
-         rules_.Columns.Add(FittedColumn_(L("Domain or account"), nameof(RuleRow.Scope)));
-         rules_.Columns.Add(FittedColumn_(L("Which way"), nameof(RuleRow.Direction)));
-         rules_.Columns.Add(FittedColumn_(L("What is sent"), nameof(RuleRow.Mode)));
+         rules_.Columns.Add(FittedColumn_(L("Domain or account"), nameof(RuleRow.Scope), L("Domain"), L("Account")));
+         rules_.Columns.Add(FittedColumn_(L("Which way"), nameof(RuleRow.Direction), L("Both ways"), L("Arriving"), L("Sent")));
+         rules_.Columns.Add(FittedColumn_(L("What is sent"), nameof(RuleRow.Mode), L("Envelope report"), L("The message itself")));
          rules_.Columns.Add(SharedColumn_(L("Where it goes"), nameof(RuleRow.JournalAddress), 160, 2));
-         rules_.Columns.Add(FittedColumn_(L("On"), nameof(RuleRow.Enabled)));
+         rules_.Columns.Add(FittedColumn_(L("On"), nameof(RuleRow.Enabled), JournalRuleText.State(true), JournalRuleText.State(false)));
          rules_.Columns.Add(SharedColumn_(L("Note"), nameof(RuleRow.Note), 80, 1));
 
          // What acts on the rule chosen in the list sits with the list, and can be
@@ -297,15 +298,32 @@ namespace hMailServer.ControlPanel.Views
             MinWidth = Math.Max(floor, GridStyles.HeaderWidth(header))
          });
 
-      /// <summary>A column of short words, as wide as its widest and never narrower than its header.</summary>
-      private static DataGridTextColumn FittedColumn_(string header, string property)
-         => new DataGridTextColumn
+      /// <summary>
+      /// A column of short words from a closed list - <paramref name="values"/>,
+      /// every word the column can show - as wide as its widest, and never
+      /// narrower than its header or the widest of those words. In the smallest
+      /// window the star columns give up all they can and the grid takes the rest
+      /// from these down to their floors: floored at the header alone, "Both ways"
+      /// read "Both way", "The message itself" "The messag" and German's "Beide
+      /// Richtungen" "Beide Richtunge", cut mid-glyph, the defect the page was
+      /// mended for (review finding F255). At its widest word the grid scrolls
+      /// sideways there instead, every word whole; trimmed as well, for a word
+      /// from a server newer than this program, which the list does not know.
+      /// </summary>
+      private static DataGridTextColumn FittedColumn_(string header, string property, params string[] values)
+      {
+         double floor = GridStyles.HeaderWidth(header);
+         foreach (string value in values)
+            floor = Math.Max(floor, GridStyles.CellWidth(value));
+
+         return GridStyles.Trimmed(new DataGridTextColumn
          {
             Header = header,
             Binding = new System.Windows.Data.Binding(property),
             Width = DataGridLength.Auto,
-            MinWidth = GridStyles.HeaderWidth(header)
-         };
+            MinWidth = floor
+         });
+      }
 
       /// <summary>
       /// The selected rule's switch says which way it will go: Turn off for a rule

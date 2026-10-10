@@ -51,19 +51,22 @@ namespace hMailServer.ControlPanel.Tests.Services
 
       /// <summary>
       /// The two addresses and the note share the width, the journal address twice
-      /// as much as each other, trimmed, floored at their headers; the four short words are as wide as they need; no column is a
-      /// fixed number of pixels, which is what added up to 1,100 on a card of 900.
+      /// as much as each other, trimmed, floored at their headers; the four short
+      /// words are as wide as they need, never narrower than the widest word each
+      /// can show; no column is a fixed number of pixels, which is what added up to
+      /// 1,100 on a card of 900.
       /// </summary>
       [Fact]
       public void TheColumns_ShareTheCardsWidth()
       {
          string page = Page();
          Assert.Contains("rules_.Columns.Add(SharedColumn_(L(\"Whose mail\"), nameof(RuleRow.Target), 160, 1));", page, StringComparison.Ordinal);
-         Assert.Contains("rules_.Columns.Add(FittedColumn_(L(\"Domain or account\"), nameof(RuleRow.Scope)));", page, StringComparison.Ordinal);
-         Assert.Contains("rules_.Columns.Add(FittedColumn_(L(\"Which way\"), nameof(RuleRow.Direction)));", page, StringComparison.Ordinal);
-         Assert.Contains("rules_.Columns.Add(FittedColumn_(L(\"What is sent\"), nameof(RuleRow.Mode)));", page, StringComparison.Ordinal);
+         // Each of the four short words' columns is given every word it can show.
+         Assert.Contains("rules_.Columns.Add(FittedColumn_(L(\"Domain or account\"), nameof(RuleRow.Scope), L(\"Domain\"), L(\"Account\")));", page, StringComparison.Ordinal);
+         Assert.Contains("rules_.Columns.Add(FittedColumn_(L(\"Which way\"), nameof(RuleRow.Direction), L(\"Both ways\"), L(\"Arriving\"), L(\"Sent\")));", page, StringComparison.Ordinal);
+         Assert.Contains("rules_.Columns.Add(FittedColumn_(L(\"What is sent\"), nameof(RuleRow.Mode), L(\"Envelope report\"), L(\"The message itself\")));", page, StringComparison.Ordinal);
          Assert.Contains("rules_.Columns.Add(SharedColumn_(L(\"Where it goes\"), nameof(RuleRow.JournalAddress), 160, 2));", page, StringComparison.Ordinal);
-         Assert.Contains("rules_.Columns.Add(FittedColumn_(L(\"On\"), nameof(RuleRow.Enabled)));", page, StringComparison.Ordinal);
+         Assert.Contains("rules_.Columns.Add(FittedColumn_(L(\"On\"), nameof(RuleRow.Enabled), JournalRuleText.State(true), JournalRuleText.State(false)));", page, StringComparison.Ordinal);
          Assert.Contains("rules_.Columns.Add(SharedColumn_(L(\"Note\"), nameof(RuleRow.Note), 80, 1));", page, StringComparison.Ordinal);
 
          string shared = WithheldRowTests.MemberText(page, "private static DataGridTextColumn SharedColumn_(string header, string property, double floor, double weight)");
@@ -72,10 +75,29 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("new DataGridLength(weight, DataGridLengthUnitType.Star)", shared, StringComparison.Ordinal);
          Assert.Contains("Math.Max(floor, GridStyles.HeaderWidth(header))", shared, StringComparison.Ordinal);
 
-         string fitted = WithheldRowTests.MemberText(page, "private static DataGridTextColumn FittedColumn_(string header, string property)");
+         // Floored at the widest word as well as the header, and trimmed: at the
+         // header alone the smallest window cut "Both ways" to "Both way" and
+         // "Beide Richtungen" to "Beide Richtunge", mid-glyph.
+         string fitted = WithheldRowTests.MemberText(page, "private static DataGridTextColumn FittedColumn_(string header, string property, params string[] values)");
          Assert.True(fitted != null, "JournalingView.FittedColumn_ is gone.");
          Assert.Contains("Width = DataGridLength.Auto", fitted, StringComparison.Ordinal);
-         Assert.Contains("MinWidth = GridStyles.HeaderWidth(header)", fitted, StringComparison.Ordinal);
+         Assert.Contains("double floor = GridStyles.HeaderWidth(header);", fitted, StringComparison.Ordinal);
+         Assert.Contains("foreach (string value in values)", fitted, StringComparison.Ordinal);
+         Assert.Contains("floor = Math.Max(floor, GridStyles.CellWidth(value));", fitted, StringComparison.Ordinal);
+         Assert.Contains("MinWidth = floor", fitted, StringComparison.Ordinal);
+         Assert.Contains("GridStyles.Trimmed(", fitted, StringComparison.Ordinal);
+
+         // Every word the grid's three captions give, and On and Off, is among
+         // the words its column is floored at: a word added to a caption and not
+         // to its column would be cut again.
+         foreach ((string caption, string column) in new[] { ("ScopeCaption_", "Scope"), ("DirectionCaption_", "Direction"), ("ModeCaption_", "Mode") })
+         {
+            string words = WithheldRowTests.MemberText(page, "private static string " + caption + "(");
+            Assert.True(words != null, "JournalingView." + caption + " is gone.");
+            string call = Regex.Match(page, @"rules_\.Columns\.Add\(FittedColumn_\([^;]*nameof\(RuleRow\." + column + @"\)[^;]*;").Value;
+            foreach (Match word in Regex.Matches(words, @"L\(""[^""]+""\)"))
+               Assert.Contains(word.Value, call, StringComparison.Ordinal);
+         }
 
          Assert.DoesNotMatch(new Regex(@"Width = new DataGridLength\(\d+\)"), page);
          Assert.DoesNotContain("MaxWidth = 1100", page, StringComparison.Ordinal);

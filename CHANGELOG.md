@@ -2482,7 +2482,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   rule read the list again without a word; and the add form had no title, wrapped Note onto a line of its own and
   repeated each caption in its box. Whose mail, Where it goes and the note now share the card's width, cut short with
   an ellipsis and whole in a tool tip, and the four short words take their own width, each column floored at its
-  header; On says On or Off; the button says Turn off or Turn on, by the selected rule; each act reads the list again,
+  header and at the widest word it can show, so that in the smallest window the grid scrolls sideways with every word
+  whole; On says On or Off; the button says Turn off or Turn on, by the selected rule; each act reads the list again,
   selects the rule it acted on and says so above the list ("Rule for example.com added.", "Rule for user00@example.com
   turned on."), a refusal at Critical there; and the form, titled Add a journaling rule, lays its boxes out in the
   grid's order, three to a line, with examples in place of the captions - example.com or user@example.com, by the
