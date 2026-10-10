@@ -2457,6 +2457,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   security is in the account's dialog only, beside the port it goes with, as the server type already was, the name is
   narrower and the port as wide as its five digits, so that the server has some 280 pixels.
 
+- **Fixed: the Levels tab of the domain and account dialogs showed a setting's name without its first underscore.**
+  Each setting a level may hold its own value of is a tick box captioned with the server's name for it, and a tick box
+  takes the first underscore of its caption as its access key, so that "max_message_size_kb" read "maxmessage_size_kb"
+  with Alt+M on it - and every name has an underscore. The names are shown as the server spells them, with no access
+  key.
+
 - **Fixed: the Administrator roles grid scrolled sideways at 1280 pixels and cut the sentences it is there to show,
   and the assignments grid filled half its card.** The roles grid's four fixed columns took 910 pixels in a card
   capped at 980 with about 900 for them, so a scroll bar ran under the rows and the purposes and permissions read

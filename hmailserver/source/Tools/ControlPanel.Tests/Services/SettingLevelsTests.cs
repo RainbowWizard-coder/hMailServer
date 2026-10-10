@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System;
 using System.Linq;
 using hMailServer.ControlPanel.Services;
 using Xunit;
@@ -17,6 +18,27 @@ namespace hMailServer.ControlPanel.Tests.Services
    /// </summary>
    public class SettingLevelsTests
    {
+      /// <summary>
+      /// A setting's name is its box's caption as the server spells it: a CheckBox reads
+      /// the first underscore of a caption as its access key, and every name has one, so
+      /// that "max_message_size_kb" showed as "maxmessage_size_kb" with Alt+M on it.
+      /// </summary>
+      [Fact]
+      public void ASettingsNameIsItsBoxsCaptionWithEveryUnderscore_AndNoAccessKey()
+      {
+         string panel = SaveStateModelTests.ReadControlPanelFile("Views/SettingLevelsPanel.cs");
+         Assert.Contains("new CheckBox { Content = MnemonicText.Escape(level.Name),", panel, StringComparison.Ordinal);
+         Assert.DoesNotContain("Content = level.Name", panel, StringComparison.Ordinal);
+
+         foreach (SettingLevel level in SettingLevels.All)
+         {
+            Assert.Contains("_", level.Name, StringComparison.Ordinal);
+            Assert.NotEqual(level.Name, MnemonicText.AccessTextShown(level.Name));
+            Assert.Equal(level.Name, MnemonicText.AccessTextShown(MnemonicText.Escape(level.Name)));
+            Assert.Null(MnemonicText.Key(MnemonicText.Escape(level.Name)));
+         }
+      }
+
       [Fact]
       public void WhatIsInEffectIsSaidWithWhereItCameFrom()
       {

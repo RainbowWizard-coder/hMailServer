@@ -192,7 +192,10 @@ namespace hMailServer.ControlPanel.Views
 
          bool has = !string.IsNullOrEmpty(own);
 
-         var check = new CheckBox { Content = level.Name, IsChecked = has };
+         // The name is the box's caption, from data, and a CheckBox reads the first
+         // underscore of a caption as its access key: "max_message_size_kb" showed as
+         // "maxmessage_size_kb", with Alt+M on it, and every setting's name has one.
+         var check = new CheckBox { Content = MnemonicText.Escape(level.Name), IsChecked = has };
          var value = new TextBox
          {
             Text = has ? own : "",
