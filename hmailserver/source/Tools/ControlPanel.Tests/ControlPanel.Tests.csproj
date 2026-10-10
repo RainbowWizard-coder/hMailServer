@@ -256,6 +256,12 @@
     <Compile Include="..\ControlPanel\Services\JournalRuleText.cs" />
   </ItemGroup>
 
+  <!-- The Allowed and blocked domains page's words for an entry and the REST API's
+       request that changes one in place (review finding F266). -->
+  <ItemGroup>
+    <Compile Include="..\ControlPanel\Services\DomainPolicyWords.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <!-- WindowsServiceInfo queries Win32_Service; the app gets this through its
          own reference and the test assembly needs its own. -->

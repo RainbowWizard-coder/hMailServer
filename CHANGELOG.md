@@ -2489,6 +2489,22 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   choice beside it, and journal@archive.example. `JournalingPageTests` holds the words, the columns, the outcomes and
   the form.
 
+- **Fixed: the Allowed and blocked domains page cut its Added and Note columns with nothing to say so, had no way to
+  change an entry, and kept a notice on the page for good.** At 1280 pixels Added read "2026-" and the note "Always
+  accept, whatev", four letters wide in German, while the Action column spent about 250 pixels on "Allowed: not
+  greylisted, not refused on score" in every row; an entry could only be removed and added again, which gave it
+  today's date and a new id; and an Information notice that began with a fragment, "Not the spam exemptions, whose
+  senders and IP ranges skip every test...", stood under the toolbar whatever the page showed. Action now says Allowed
+  or Blocked, with what each does in the cell's tool tip and in the row's words to a screen reader; Added (server
+  time) is the reader's short date and time; every column is trimmed with its whole text in a tool tip and floored at
+  its header. Edit…, before Delete, and Enter, F2 or a double-click on a row open the add dialog on the entry, titled
+  Edit a domain on the list and headed with its name, whose Save changes it in place over the REST API's `PUT
+  /api/v1/domain-policy-list/{id}` - the one interface the server changes an entry through - keeping its id and its
+  date, and says a refusal about the pattern under its box and anything else, such as the REST API being off, above
+  the fields; the page then keeps the entry selected and says it was saved. The subtitle is two sentences, what the
+  list is and which list to use instead, and the notice is gone. `DomainPolicyEditTests` holds the words, the date,
+  the request, the columns, the Edit wiring and the dialog's keys against its fields in every catalogue.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

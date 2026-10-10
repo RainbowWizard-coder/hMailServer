@@ -1146,6 +1146,9 @@
   <data name="Added" xml:space="preserve">
     <value>添加时间</value>
   </data>
+  <data name="Added (server time)" xml:space="preserve">
+    <value>添加时间（服务器时间）</value>
+  </data>
   <data name="Added at {0}." xml:space="preserve">
     <value>添加于 {0}。</value>
   </data>
@@ -1374,6 +1377,9 @@
   <data name="Allow or block a domain" xml:space="preserve">
     <value>允许或拦截域</value>
   </data>
+  <data name="Allow or block {0}" xml:space="preserve">
+    <value>允许或拦截 {0}</value>
+  </data>
   <data name="Allow plain-text authentication (AUTH PLAIN/LOGIN)" xml:space="preserve">
     <value>允许明文身份验证（AUTH PLAIN/LOGIN）</value>
   </data>
@@ -1394,6 +1400,9 @@
   </data>
   <data name="Allow this group's senders, then release" xml:space="preserve">
     <value>允许此组的发件人，然后放行</value>
+  </data>
+  <data name="Allowed" xml:space="preserve">
+    <value>允许</value>
   </data>
   <data name="Allowed and blocked domains" xml:space="preserve">
     <value>允许与拦截的域</value>
@@ -2085,6 +2094,9 @@
   </data>
   <data name="Block this group's senders, then delete" xml:space="preserve">
     <value>拦截此组的发件人，然后删除</value>
+  </data>
+  <data name="Blocked" xml:space="preserve">
+    <value>拦截</value>
   </data>
   <data name="Blocked attachments" xml:space="preserve">
     <value>已拦截的附件</value>
@@ -4182,6 +4194,9 @@
   </data>
   <data name="Edit" xml:space="preserve">
     <value>编辑</value>
+  </data>
+  <data name="Edit a domain on the list" xml:space="preserve">
+    <value>编辑列表中的域</value>
   </data>
   <data name="Edit action" xml:space="preserve">
     <value>编辑操作</value>
@@ -7531,9 +7546,6 @@
   <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
     <value>未测试：此配置会通过未受保护的 LDAP 以简单绑定发送密码，而 AllowUnprotectedPassword 已关闭 - 因此服务器会拒绝在此配置下的每次登录，而此测试出于同样的原因拒绝传输任何内容。请选择 LDAPS 或 StartTLS，或者 Negotiate 绑定方法，或者明确允许未受保护的密码。</value>
   </data>
-  <data name="Not the spam exemptions, whose senders and IP ranges skip every test, and not the allow and block list, which decides per recipient at delivery. example.com matches that domain alone; .example.com matches the domain and everything beneath it." xml:space="preserve">
-    <value>它不是反垃圾邮件豁免（其中的发件人和 IP 范围跳过所有测试），也不是允许与拦截名单（那在投递时按收件人决定）。example.com 只匹配该域；.example.com 匹配该域及其下的一切。</value>
-  </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>在 {0} 之前无效</value>
   </data>
@@ -10579,8 +10591,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Sending domains this server has decided about: an allowed one skips greylisting and the score's refusals, a blocked one is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
     <value>本服务器已做出决定的发件域：允许的域跳过灰名单和按分数的拒绝，拦截的域在 MAIL FROM 时拒绝——按域或 HELO 后缀，而不是按 IP 地址。</value>
   </data>
-  <data name="Sending organisations decided about by their domain rather than by the IP address of the week. Allowed: not greylisted and never refused on the spam score, while every test still runs and logs. Blocked: refused at MAIL FROM before greylisting, scoring or any lookup. Matched on the envelope sender's domain, the HELO name, or either; inbound unauthenticated sessions only." xml:space="preserve">
-    <value>按域而非当周 IP 地址来判断的发件组织。允许：不灰名单，也绝不因垃圾邮件分数被拒绝，但每项测试仍会运行并记录。拦截：在灰名单、计分或任何查询之前，于 MAIL FROM 时拒绝。按信封发件人的域、HELO 名称或两者之一匹配；仅限入站未认证会话。</value>
+  <data name="Sending organisations allowed or blocked by their domain or HELO name, in inbound sessions that have not signed in. To exempt an address or an IP range from every check use the spam exemptions; to decide per recipient use the allow and block list." xml:space="preserve">
+    <value>在未登录的入站会话中，按发件组织的域或 HELO 名称允许或拦截。要让某个地址或 IP 范围跳过所有检查，请使用反垃圾邮件豁免；要按收件人决定，请使用允许与拦截名单。</value>
   </data>
   <data name="Sendout failed: {0}" xml:space="preserve">
     <value>群发失败: {0}</value>

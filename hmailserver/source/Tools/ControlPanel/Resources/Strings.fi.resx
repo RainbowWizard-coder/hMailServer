@@ -1146,6 +1146,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Added" xml:space="preserve">
     <value>Lisätty</value>
   </data>
+  <data name="Added (server time)" xml:space="preserve">
+    <value>Lisätty (palvelimen aikaa)</value>
+  </data>
   <data name="Added at {0}." xml:space="preserve">
     <value>Lisätty {0}.</value>
   </data>
@@ -1374,6 +1377,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Allow or block a domain" xml:space="preserve">
     <value>Salli tai estä verkkotunnus</value>
   </data>
+  <data name="Allow or block {0}" xml:space="preserve">
+    <value>Salli tai estä {0}</value>
+  </data>
   <data name="Allow plain-text authentication (AUTH PLAIN/LOGIN)" xml:space="preserve">
     <value>Salli selväkielinen todennus (AUTH PLAIN/LOGIN)</value>
   </data>
@@ -1394,6 +1400,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   </data>
   <data name="Allow this group's senders, then release" xml:space="preserve">
     <value>Salli tämän ryhmän lähettäjät ja vapauta sitten</value>
+  </data>
+  <data name="Allowed" xml:space="preserve">
+    <value>Sallittu</value>
   </data>
   <data name="Allowed and blocked domains" xml:space="preserve">
     <value>Sallitut ja estetyt verkkotunnukset</value>
@@ -2085,6 +2094,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Block this group's senders, then delete" xml:space="preserve">
     <value>Estä tämän ryhmän lähettäjät ja poista sitten</value>
+  </data>
+  <data name="Blocked" xml:space="preserve">
+    <value>Estetty</value>
   </data>
   <data name="Blocked attachments" xml:space="preserve">
     <value>Estetyt liitteet</value>
@@ -4182,6 +4194,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Edit" xml:space="preserve">
     <value>Muokkaa</value>
+  </data>
+  <data name="Edit a domain on the list" xml:space="preserve">
+    <value>Muokkaa luettelon verkkotunnusta</value>
   </data>
   <data name="Edit action" xml:space="preserve">
     <value>Muokkaa toimintoa</value>
@@ -7531,9 +7546,6 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
     <value>Ei testattu: tämä määritys lähettäisi salasanan suojaamattoman LDAP:n yli yksinkertaisella sidonnalla, ja AllowUnprotectedPassword on pois päältä - joten palvelin hylkää jokaisen kirjautumisen sen alla, ja tämä testi kieltäytyy lähettämästä mitään samasta syystä. Valitse LDAPS tai StartTLS tai Negotiate-sidontatapa, tai salli suojaamaton salasana nimenomaisesti.</value>
   </data>
-  <data name="Not the spam exemptions, whose senders and IP ranges skip every test, and not the allow and block list, which decides per recipient at delivery. example.com matches that domain alone; .example.com matches the domain and everything beneath it." xml:space="preserve">
-    <value>Ei roskapostipoikkeukset, joiden lähettäjät ja IP-alueet ohittavat kaikki testit, eikä salli- ja estolista, joka päättää vastaanottajakohtaisesti toimituksessa. example.com täsmää vain siihen verkkotunnukseen; .example.com täsmää verkkotunnukseen ja kaikkeen sen alla.</value>
-  </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Ei voimassa ennen {0}</value>
   </data>
@@ -10579,8 +10591,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Sending domains this server has decided about: an allowed one skips greylisting and the score's refusals, a blocked one is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
     <value>Lähettäjäverkkotunnukset, joista tämä palvelin on päättänyt: sallittu ohittaa greylistingin ja pisteiden hylkäykset, estetty hylätään MAIL FROM -vaiheessa - verkkotunnuksen tai HELO-päätteen, ei IP-osoitteen perusteella.</value>
   </data>
-  <data name="Sending organisations decided about by their domain rather than by the IP address of the week. Allowed: not greylisted and never refused on the spam score, while every test still runs and logs. Blocked: refused at MAIL FROM before greylisting, scoring or any lookup. Matched on the envelope sender's domain, the HELO name, or either; inbound unauthenticated sessions only." xml:space="preserve">
-    <value>Lähettävät organisaatiot arvioituna verkkotunnuksensa eikä viikon IP-osoitteen perusteella. Sallittu: ei greylistingiä eikä koskaan hylkäystä roskapostipisteiden perusteella, vaikka jokainen testi ajetaan ja kirjataan edelleen. Estetty: hylätään MAIL FROM -vaiheessa ennen greylistingiä, pisteytystä tai mitään hakua. Täsmätään kuoren lähettäjän verkkotunnukseen, HELO-nimeen tai kumpaan tahansa; vain saapuvat tunnistautumattomat istunnot.</value>
+  <data name="Sending organisations allowed or blocked by their domain or HELO name, in inbound sessions that have not signed in. To exempt an address or an IP range from every check use the spam exemptions; to decide per recipient use the allow and block list." xml:space="preserve">
+    <value>Lähettävät organisaatiot, jotka on sallittu tai estetty verkkotunnuksen tai HELO-nimen perusteella, saapuvissa istunnoissa, joissa ei ole kirjauduttu. Jos haluat vapauttaa osoitteen tai IP-alueen kaikista tarkistuksista, käytä roskapostipoikkeuksia; jos haluat päättää vastaanottajakohtaisesti, käytä salli- ja estolistaa.</value>
   </data>
   <data name="Sendout failed: {0}" xml:space="preserve">
     <value>Joukkolähetys epäonnistui: {0}</value>
@@ -14733,7 +14745,7 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
     <value>T_äsmäystyyppi</value>
   </data>
   <data name="_Matched on" xml:space="preserve">
-    <value>_Täsmäys</value>
+    <value>T_äsmäys</value>
   </data>
   <data name="_Maximum entries to read" xml:space="preserve">
     <value>Luettavien _merkintöjen enimmäismäärä</value>

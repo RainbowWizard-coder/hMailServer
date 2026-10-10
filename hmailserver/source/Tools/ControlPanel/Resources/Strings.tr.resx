@@ -1146,6 +1146,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Added" xml:space="preserve">
     <value>Eklendi</value>
   </data>
+  <data name="Added (server time)" xml:space="preserve">
+    <value>Eklendi (sunucu saati)</value>
+  </data>
   <data name="Added at {0}." xml:space="preserve">
     <value>{0} tarihinde eklendi.</value>
   </data>
@@ -1374,6 +1377,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Allow or block a domain" xml:space="preserve">
     <value>Bir alan adına izin ver veya engelle</value>
   </data>
+  <data name="Allow or block {0}" xml:space="preserve">
+    <value>{0} için izin ver veya engelle</value>
+  </data>
   <data name="Allow plain-text authentication (AUTH PLAIN/LOGIN)" xml:space="preserve">
     <value>Düz metin kimlik doğrulamasına izin ver (AUTH PLAIN/LOGIN)</value>
   </data>
@@ -1394,6 +1400,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   </data>
   <data name="Allow this group's senders, then release" xml:space="preserve">
     <value>Bu grubun gönderenlerine izin ver, sonra serbest bırak</value>
+  </data>
+  <data name="Allowed" xml:space="preserve">
+    <value>İzin verilen</value>
   </data>
   <data name="Allowed and blocked domains" xml:space="preserve">
     <value>İzin verilen ve engellenen alan adları</value>
@@ -2085,6 +2094,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Block this group's senders, then delete" xml:space="preserve">
     <value>Bu grubun gönderenlerini engelle, sonra sil</value>
+  </data>
+  <data name="Blocked" xml:space="preserve">
+    <value>Engellenen</value>
   </data>
   <data name="Blocked attachments" xml:space="preserve">
     <value>Engellenen ekler</value>
@@ -4182,6 +4194,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Edit" xml:space="preserve">
     <value>Düzenle</value>
+  </data>
+  <data name="Edit a domain on the list" xml:space="preserve">
+    <value>Listedeki bir alan adını düzenle</value>
   </data>
   <data name="Edit action" xml:space="preserve">
     <value>Eylemi düzenle</value>
@@ -7531,9 +7546,6 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
     <value>Sınanmadı: bu yapılandırma bir parolayı basit bind ile korumasız LDAP üzerinden gönderirdi ve AllowUnprotectedPassword kapalı - bu yüzden sunucu bu yapılandırmadaki her oturum açmayı reddeder ve bu sınama da aynı nedenle hiçbir şey iletmeyi reddeder. LDAPS ya da StartTLS'yi, ya da Negotiate bind yöntemini seçin, ya da korumasız parolaya açıkça izin verin.</value>
   </data>
-  <data name="Not the spam exemptions, whose senders and IP ranges skip every test, and not the allow and block list, which decides per recipient at delivery. example.com matches that domain alone; .example.com matches the domain and everything beneath it." xml:space="preserve">
-    <value>Gönderenleri ve IP aralıkları her testi atlayan spam istisnaları değildir; teslimatta alıcı başına karar veren izin ve engelleme listesi de değildir. example.com yalnızca o alan adıyla eşleşir; .example.com alan adıyla ve altındaki her şeyle eşleşir.</value>
-  </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>{0} tarihine kadar geçerli değil</value>
   </data>
@@ -10579,8 +10591,8 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Sending domains this server has decided about: an allowed one skips greylisting and the score's refusals, a blocked one is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
     <value>Bu sunucunun karar verdiği gönderen alan adları: izin verilen, greylisting’i ve puana bağlı reddi atlar; engellenen, MAIL FROM’da reddedilir - IP adresine göre değil, alan adına veya HELO sonekine göre.</value>
   </data>
-  <data name="Sending organisations decided about by their domain rather than by the IP address of the week. Allowed: not greylisted and never refused on the spam score, while every test still runs and logs. Blocked: refused at MAIL FROM before greylisting, scoring or any lookup. Matched on the envelope sender's domain, the HELO name, or either; inbound unauthenticated sessions only." xml:space="preserve">
-    <value>Haftanın IP adresine göre değil, alan adına göre değerlendirilen gönderen kuruluşlar. İzin verilen: greylisting yok ve spam puanı nedeniyle asla ret yok; her test yine de çalışır ve günlüğe yazar. Engellenen: greylisting, puanlama veya herhangi bir sorgudan önce MAIL FROM’da reddedilir. Zarf gönderenin alan adı, HELO adı veya her ikisiyle eşleştirilir; yalnızca gelen, kimliği doğrulanmamış oturumlar.</value>
+  <data name="Sending organisations allowed or blocked by their domain or HELO name, in inbound sessions that have not signed in. To exempt an address or an IP range from every check use the spam exemptions; to decide per recipient use the allow and block list." xml:space="preserve">
+    <value>Oturum açmamış gelen oturumlarda alan adına veya HELO adına göre izin verilen ya da engellenen gönderen kuruluşlar. Bir adresi veya IP aralığını tüm denetimlerden muaf tutmak için spam istisnalarını, alıcı başına karar vermek için izin ve engelleme listesini kullanın.</value>
   </data>
   <data name="Sendout failed: {0}" xml:space="preserve">
     <value>Toplu gönderim başarısız oldu: {0}</value>

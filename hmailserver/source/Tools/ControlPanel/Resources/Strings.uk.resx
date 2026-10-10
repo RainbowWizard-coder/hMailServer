@@ -1152,6 +1152,9 @@
   <data name="Added" xml:space="preserve">
     <value>Додано</value>
   </data>
+  <data name="Added (server time)" xml:space="preserve">
+    <value>Додано (час сервера)</value>
+  </data>
   <data name="Added at {0}." xml:space="preserve">
     <value>Додано {0}.</value>
   </data>
@@ -1383,6 +1386,9 @@
   <data name="Allow or block a domain" xml:space="preserve">
     <value>Дозволити або заблокувати домен</value>
   </data>
+  <data name="Allow or block {0}" xml:space="preserve">
+    <value>Дозволити або заблокувати {0}</value>
+  </data>
   <data name="Allow plain-text authentication (AUTH PLAIN/LOGIN)" xml:space="preserve">
     <value>Дозволити автентифікацію відкритим текстом (AUTH PLAIN/LOGIN)</value>
   </data>
@@ -1406,6 +1412,9 @@
   </data>
   <data name="Allow this group's senders, then release" xml:space="preserve">
     <value>Дозволити відправників цієї групи, потім випустити</value>
+  </data>
+  <data name="Allowed" xml:space="preserve">
+    <value>Дозволений</value>
   </data>
   <data name="Allowed and blocked domains" xml:space="preserve">
     <value>Дозволені й заблоковані домени</value>
@@ -2109,6 +2118,9 @@
   </data>
   <data name="Block this group's senders, then delete" xml:space="preserve">
     <value>Заблокувати відправників цієї групи, потім видалити</value>
+  </data>
+  <data name="Blocked" xml:space="preserve">
+    <value>Заблокований</value>
   </data>
   <data name="Blocked attachments" xml:space="preserve">
     <value>Заблоковані вкладення</value>
@@ -4228,6 +4240,9 @@
   </data>
   <data name="Edit" xml:space="preserve">
     <value>Редагувати</value>
+  </data>
+  <data name="Edit a domain on the list" xml:space="preserve">
+    <value>Змінити домен у списку</value>
   </data>
   <data name="Edit action" xml:space="preserve">
     <value>Редагувати дію</value>
@@ -7613,9 +7628,6 @@
   <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
     <value>Не перевірено: ця конфігурація надіслала б пароль через незахищений LDAP простою прив’язкою, а AllowUnprotectedPassword вимкнено — тому сервер відхиляє кожен вхід із нею, і ця перевірка з тієї самої причини відмовляється будь-що передавати. Виберіть LDAPS чи StartTLS або метод прив’язки Negotiate, або явно дозвольте незахищений пароль.</value>
   </data>
-  <data name="Not the spam exemptions, whose senders and IP ranges skip every test, and not the allow and block list, which decides per recipient at delivery. example.com matches that domain alone; .example.com matches the domain and everything beneath it." xml:space="preserve">
-    <value>Це не винятки антиспаму, відправники й діапазони IP яких пропускають усі перевірки, і не список дозволених і заблокованих, який вирішує для кожного одержувача під час доставки. example.com відповідає лише цьому домену; .example.com - домену й усьому, що під ним.</value>
-  </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Недійсний до {0}</value>
   </data>
@@ -10703,8 +10715,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Sending domains this server has decided about: an allowed one skips greylisting and the score's refusals, a blocked one is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
     <value>Домени відправників, щодо яких цей сервер ухвалив рішення: дозволений пропускає greylisting і відмови за балом, заблокований відхиляється на MAIL FROM - за доменом або суфіксом HELO, а не за IP-адресою.</value>
   </data>
-  <data name="Sending organisations decided about by their domain rather than by the IP address of the week. Allowed: not greylisted and never refused on the spam score, while every test still runs and logs. Blocked: refused at MAIL FROM before greylisting, scoring or any lookup. Matched on the envelope sender's domain, the HELO name, or either; inbound unauthenticated sessions only." xml:space="preserve">
-    <value>Організації-відправники, оцінювані за доменом, а не за IP-адресою цього тижня. Дозволений: без greylisting і ніколи не відхиляється за антиспам-балом, при цьому кожна перевірка й далі виконується та пише в журнал. Заблокований: відмова на MAIL FROM до greylisting, оцінювання чи будь-яких запитів. Зіставляється з доменом відправника конверта, іменем HELO або будь-яким із них; лише вхідні неавтентифіковані сеанси.</value>
+  <data name="Sending organisations allowed or blocked by their domain or HELO name, in inbound sessions that have not signed in. To exempt an address or an IP range from every check use the spam exemptions; to decide per recipient use the allow and block list." xml:space="preserve">
+    <value>Організації-відправники, дозволені або заблоковані за їхнім доменом чи іменем HELO, у вхідних сеансах без входу. Щоб виключити адресу чи діапазон IP з усіх перевірок, використовуйте винятки антиспаму; щоб вирішувати для кожного одержувача, використовуйте список дозволених і заблокованих.</value>
   </data>
   <data name="Sendout failed: {0}" xml:space="preserve">
     <value>Розсилання не вдалося: {0}</value>
@@ -14905,7 +14917,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>_Тип зіставлення</value>
   </data>
   <data name="_Matched on" xml:space="preserve">
-    <value>_Зіставляти з</value>
+    <value>Зі_ставляти з</value>
   </data>
   <data name="_Maximum entries to read" xml:space="preserve">
     <value>_Максимум записів для читання</value>

@@ -1146,6 +1146,9 @@
   <data name="Added" xml:space="preserve">
     <value>追加日時</value>
   </data>
+  <data name="Added (server time)" xml:space="preserve">
+    <value>追加日時 (サーバー時刻)</value>
+  </data>
   <data name="Added at {0}." xml:space="preserve">
     <value>{0} に追加されました。</value>
   </data>
@@ -1374,6 +1377,9 @@
   <data name="Allow or block a domain" xml:space="preserve">
     <value>ドメインを許可またはブロック</value>
   </data>
+  <data name="Allow or block {0}" xml:space="preserve">
+    <value>{0} を許可またはブロック</value>
+  </data>
   <data name="Allow plain-text authentication (AUTH PLAIN/LOGIN)" xml:space="preserve">
     <value>平文認証 (AUTH PLAIN/LOGIN) を許可する</value>
   </data>
@@ -1394,6 +1400,9 @@
   </data>
   <data name="Allow this group's senders, then release" xml:space="preserve">
     <value>このグループの送信者を許可してから解放</value>
+  </data>
+  <data name="Allowed" xml:space="preserve">
+    <value>許可</value>
   </data>
   <data name="Allowed and blocked domains" xml:space="preserve">
     <value>許可・ブロックするドメイン</value>
@@ -2085,6 +2094,9 @@
   </data>
   <data name="Block this group's senders, then delete" xml:space="preserve">
     <value>このグループの送信者をブロックしてから削除</value>
+  </data>
+  <data name="Blocked" xml:space="preserve">
+    <value>ブロック</value>
   </data>
   <data name="Blocked attachments" xml:space="preserve">
     <value>ブロックされた添付ファイル</value>
@@ -4182,6 +4194,9 @@
   </data>
   <data name="Edit" xml:space="preserve">
     <value>編集</value>
+  </data>
+  <data name="Edit a domain on the list" xml:space="preserve">
+    <value>リストのドメインを編集</value>
   </data>
   <data name="Edit action" xml:space="preserve">
     <value>アクションを編集</value>
@@ -7531,9 +7546,6 @@
   <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
     <value>テストしていません: この構成では、保護されていない LDAP でシンプル バインドによりパスワードを送信することになり、AllowUnprotectedPassword がオフです。そのためサーバーはこの構成下のすべてのログオンを拒否し、このテストも同じ理由で何も送信しません。LDAPS か StartTLS、または Negotiate バインド方式を選ぶか、保護されていないパスワードを明示的に許可してください。</value>
   </data>
-  <data name="Not the spam exemptions, whose senders and IP ranges skip every test, and not the allow and block list, which decides per recipient at delivery. example.com matches that domain alone; .example.com matches the domain and everything beneath it." xml:space="preserve">
-    <value>送信者と IP 範囲がすべてのテストを省略するスパム対策の除外ではなく、配信時に受信者ごとに判定する許可・ブロックリストでもありません。example.com はそのドメインだけに一致し、.example.com はそのドメインとその配下すべてに一致します。</value>
-  </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>{0} まで無効</value>
   </data>
@@ -10579,8 +10591,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Sending domains this server has decided about: an allowed one skips greylisting and the score's refusals, a blocked one is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
     <value>このサーバーが判断を下した送信ドメイン。許可するドメインはグレイリストとスコアによる拒否を省略し、ブロックするドメインは MAIL FROM で拒否されます。IP アドレスではなく、ドメインまたは HELO サフィックスで判定します。</value>
   </data>
-  <data name="Sending organisations decided about by their domain rather than by the IP address of the week. Allowed: not greylisted and never refused on the spam score, while every test still runs and logs. Blocked: refused at MAIL FROM before greylisting, scoring or any lookup. Matched on the envelope sender's domain, the HELO name, or either; inbound unauthenticated sessions only." xml:space="preserve">
-    <value>その週の IP アドレスではなく、ドメインで判断する送信組織。許可: グレイリストされず、スパムスコアで拒否されることもありませんが、各テストは引き続き実行され、記録されます。ブロック: グレイリスト、スコア付け、いかなる照会よりも前に MAIL FROM で拒否されます。エンベロープ送信者のドメイン、HELO 名、またはそのどちらかで照合します。受信方向の未認証セッションのみが対象です。</value>
+  <data name="Sending organisations allowed or blocked by their domain or HELO name, in inbound sessions that have not signed in. To exempt an address or an IP range from every check use the spam exemptions; to decide per recipient use the allow and block list." xml:space="preserve">
+    <value>サインインしていない受信セッションで、ドメインまたは HELO 名によって許可またはブロックする送信元の組織です。アドレスや IP 範囲をすべてのチェックから除外するにはスパム対策の除外を、受信者ごとに判定するには許可・ブロックリストを使用します。</value>
   </data>
   <data name="Sendout failed: {0}" xml:space="preserve">
     <value>一斉送信に失敗しました: {0}</value>

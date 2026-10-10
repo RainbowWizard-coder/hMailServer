@@ -1146,6 +1146,9 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Added" xml:space="preserve">
     <value>Added</value>
   </data>
+  <data name="Added (server time)" xml:space="preserve">
+    <value>Added (server time)</value>
+  </data>
   <data name="Added at {0}." xml:space="preserve">
     <value>Added at {0}.</value>
   </data>
@@ -1374,6 +1377,9 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Allow or block a domain" xml:space="preserve">
     <value>Allow or block a domain</value>
   </data>
+  <data name="Allow or block {0}" xml:space="preserve">
+    <value>Allow or block {0}</value>
+  </data>
   <data name="Allow plain-text authentication (AUTH PLAIN/LOGIN)" xml:space="preserve">
     <value>Allow plain-text authentication (AUTH PLAIN/LOGIN)</value>
   </data>
@@ -1394,6 +1400,9 @@ The Control Panel can only read message files when it runs on the same machine a
   </data>
   <data name="Allow this group's senders, then release" xml:space="preserve">
     <value>Allow this group's senders, then release</value>
+  </data>
+  <data name="Allowed" xml:space="preserve">
+    <value>Allowed</value>
   </data>
   <data name="Allowed and blocked domains" xml:space="preserve">
     <value>Allowed and blocked domains</value>
@@ -2085,6 +2094,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   </data>
   <data name="Block this group's senders, then delete" xml:space="preserve">
     <value>Block this group's senders, then delete</value>
+  </data>
+  <data name="Blocked" xml:space="preserve">
+    <value>Blocked</value>
   </data>
   <data name="Blocked attachments" xml:space="preserve">
     <value>Blocked attachments</value>
@@ -4182,6 +4194,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Edit" xml:space="preserve">
     <value>Edit</value>
+  </data>
+  <data name="Edit a domain on the list" xml:space="preserve">
+    <value>Edit a domain on the list</value>
   </data>
   <data name="Edit action" xml:space="preserve">
     <value>Edit action</value>
@@ -7531,9 +7546,6 @@ Nothing already there is removed.</value>
   <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
     <value>Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password.</value>
   </data>
-  <data name="Not the spam exemptions, whose senders and IP ranges skip every test, and not the allow and block list, which decides per recipient at delivery. example.com matches that domain alone; .example.com matches the domain and everything beneath it." xml:space="preserve">
-    <value>Not the spam exemptions, whose senders and IP ranges skip every test, and not the allow and block list, which decides per recipient at delivery. example.com matches that domain alone; .example.com matches the domain and everything beneath it.</value>
-  </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Not valid until {0}</value>
   </data>
@@ -10579,8 +10591,8 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Sending domains this server has decided about: an allowed one skips greylisting and the score's refusals, a blocked one is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
     <value>Sending domains this server has decided about: an allowed one skips greylisting and the score's refusals, a blocked one is refused at MAIL FROM - by domain or HELO suffix, not by IP address.</value>
   </data>
-  <data name="Sending organisations decided about by their domain rather than by the IP address of the week. Allowed: not greylisted and never refused on the spam score, while every test still runs and logs. Blocked: refused at MAIL FROM before greylisting, scoring or any lookup. Matched on the envelope sender's domain, the HELO name, or either; inbound unauthenticated sessions only." xml:space="preserve">
-    <value>Sending organisations decided about by their domain rather than by the IP address of the week. Allowed: not greylisted and never refused on the spam score, while every test still runs and logs. Blocked: refused at MAIL FROM before greylisting, scoring or any lookup. Matched on the envelope sender's domain, the HELO name, or either; inbound unauthenticated sessions only.</value>
+  <data name="Sending organisations allowed or blocked by their domain or HELO name, in inbound sessions that have not signed in. To exempt an address or an IP range from every check use the spam exemptions; to decide per recipient use the allow and block list." xml:space="preserve">
+    <value>Sending organisations allowed or blocked by their domain or HELO name, in inbound sessions that have not signed in. To exempt an address or an IP range from every check use the spam exemptions; to decide per recipient use the allow and block list.</value>
   </data>
   <data name="Sendout failed: {0}" xml:space="preserve">
     <value>Sendout failed: {0}</value>

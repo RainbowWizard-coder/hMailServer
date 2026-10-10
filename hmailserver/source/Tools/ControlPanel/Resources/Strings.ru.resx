@@ -1152,6 +1152,9 @@ Control Panel может читать файлы сообщений только
   <data name="Added" xml:space="preserve">
     <value>Добавлено</value>
   </data>
+  <data name="Added (server time)" xml:space="preserve">
+    <value>Добавлено (время сервера)</value>
+  </data>
   <data name="Added at {0}." xml:space="preserve">
     <value>Добавлено {0}.</value>
   </data>
@@ -1383,6 +1386,9 @@ Control Panel может читать файлы сообщений только
   <data name="Allow or block a domain" xml:space="preserve">
     <value>Разрешить или заблокировать домен</value>
   </data>
+  <data name="Allow or block {0}" xml:space="preserve">
+    <value>Разрешить или заблокировать {0}</value>
+  </data>
   <data name="Allow plain-text authentication (AUTH PLAIN/LOGIN)" xml:space="preserve">
     <value>Разрешить аутентификацию открытым текстом (AUTH PLAIN/LOGIN)</value>
   </data>
@@ -1406,6 +1412,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Allow this group's senders, then release" xml:space="preserve">
     <value>Разрешить отправителей этой группы, затем выпустить</value>
+  </data>
+  <data name="Allowed" xml:space="preserve">
+    <value>Разрешён</value>
   </data>
   <data name="Allowed and blocked domains" xml:space="preserve">
     <value>Разрешённые и заблокированные домены</value>
@@ -2109,6 +2118,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Block this group's senders, then delete" xml:space="preserve">
     <value>Заблокировать отправителей этой группы, затем удалить</value>
+  </data>
+  <data name="Blocked" xml:space="preserve">
+    <value>Заблокирован</value>
   </data>
   <data name="Blocked attachments" xml:space="preserve">
     <value>Заблокированные вложения</value>
@@ -4228,6 +4240,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Edit" xml:space="preserve">
     <value>Изменить</value>
+  </data>
+  <data name="Edit a domain on the list" xml:space="preserve">
+    <value>Изменить домен в списке</value>
   </data>
   <data name="Edit action" xml:space="preserve">
     <value>Изменить действие</value>
@@ -7613,9 +7628,6 @@ Control Panel может читать файлы сообщений только
   <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
     <value>Не проверено: при такой конфигурации пароль отправлялся бы по незащищённому LDAP простой привязкой, а AllowUnprotectedPassword выключен, поэтому сервер отклоняет любой вход в такой конфигурации, и эта проверка по той же причине отказывается что-либо передавать. Выберите LDAPS или StartTLS, либо метод привязки Negotiate, либо явно разрешите незащищённый пароль.</value>
   </data>
-  <data name="Not the spam exemptions, whose senders and IP ranges skip every test, and not the allow and block list, which decides per recipient at delivery. example.com matches that domain alone; .example.com matches the domain and everything beneath it." xml:space="preserve">
-    <value>Это не исключения антиспама, отправители и диапазоны IP которых пропускают все проверки, и не список разрешённых и заблокированных, который решает для каждого получателя при доставке. example.com соответствует только этому домену; .example.com - домену и всему, что под ним.</value>
-  </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Действителен не ранее {0}</value>
   </data>
@@ -10703,8 +10715,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Sending domains this server has decided about: an allowed one skips greylisting and the score's refusals, a blocked one is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
     <value>Домены отправителей, о которых этот сервер принял решение: разрешённый пропускает greylisting и отказы по баллу, заблокированный отклоняется на MAIL FROM - по домену или суффиксу HELO, а не по IP-адресу.</value>
   </data>
-  <data name="Sending organisations decided about by their domain rather than by the IP address of the week. Allowed: not greylisted and never refused on the spam score, while every test still runs and logs. Blocked: refused at MAIL FROM before greylisting, scoring or any lookup. Matched on the envelope sender's domain, the HELO name, or either; inbound unauthenticated sessions only." xml:space="preserve">
-    <value>Отправляющие организации, оцениваемые по домену, а не по IP-адресу этой недели. Разрешён: без greylisting и никогда не отклоняется по антиспам-баллу, при этом каждая проверка по-прежнему выполняется и пишет в журнал. Заблокирован: отказ на MAIL FROM до greylisting, оценки и любых запросов. Сопоставляется с доменом отправителя конверта, именем HELO или любым из них; только входящие неаутентифицированные сеансы.</value>
+  <data name="Sending organisations allowed or blocked by their domain or HELO name, in inbound sessions that have not signed in. To exempt an address or an IP range from every check use the spam exemptions; to decide per recipient use the allow and block list." xml:space="preserve">
+    <value>Организации-отправители, разрешённые или заблокированные по их домену или имени HELO, во входящих сеансах без входа. Чтобы исключить адрес или диапазон IP из всех проверок, используйте исключения антиспама; чтобы решать для каждого получателя, используйте список разрешённых и заблокированных.</value>
   </data>
   <data name="Sendout failed: {0}" xml:space="preserve">
     <value>Рассылку выполнить не удалось: {0}</value>
@@ -14905,7 +14917,7 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
     <value>_Тип сопоставления</value>
   </data>
   <data name="_Matched on" xml:space="preserve">
-    <value>_Сопоставлять с</value>
+    <value>Сопос_тавлять с</value>
   </data>
   <data name="_Maximum entries to read" xml:space="preserve">
     <value>_Максимум читаемых записей</value>

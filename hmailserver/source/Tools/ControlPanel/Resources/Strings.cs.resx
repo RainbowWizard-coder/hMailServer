@@ -1152,6 +1152,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Added" xml:space="preserve">
     <value>Přidáno</value>
   </data>
+  <data name="Added (server time)" xml:space="preserve">
+    <value>Přidáno (čas serveru)</value>
+  </data>
   <data name="Added at {0}." xml:space="preserve">
     <value>Přidáno {0}.</value>
   </data>
@@ -1383,6 +1386,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Allow or block a domain" xml:space="preserve">
     <value>Povolit nebo zablokovat doménu</value>
   </data>
+  <data name="Allow or block {0}" xml:space="preserve">
+    <value>Povolit nebo zablokovat {0}</value>
+  </data>
   <data name="Allow plain-text authentication (AUTH PLAIN/LOGIN)" xml:space="preserve">
     <value>Povolit ověřování v otevřeném textu (AUTH PLAIN/LOGIN)</value>
   </data>
@@ -1406,6 +1412,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   </data>
   <data name="Allow this group's senders, then release" xml:space="preserve">
     <value>Povolit odesílatele této skupiny a poté uvolnit</value>
+  </data>
+  <data name="Allowed" xml:space="preserve">
+    <value>Povolená</value>
   </data>
   <data name="Allowed and blocked domains" xml:space="preserve">
     <value>Povolené a blokované domény</value>
@@ -2109,6 +2118,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Block this group's senders, then delete" xml:space="preserve">
     <value>Zablokovat odesílatele této skupiny a poté odstranit</value>
+  </data>
+  <data name="Blocked" xml:space="preserve">
+    <value>Blokovaná</value>
   </data>
   <data name="Blocked attachments" xml:space="preserve">
     <value>Blokované přílohy</value>
@@ -4228,6 +4240,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Edit" xml:space="preserve">
     <value>Upravit</value>
+  </data>
+  <data name="Edit a domain on the list" xml:space="preserve">
+    <value>Upravit doménu v seznamu</value>
   </data>
   <data name="Edit action" xml:space="preserve">
     <value>Upravit akci</value>
@@ -7613,9 +7628,6 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
     <value>Netestováno: tato konfigurace by odeslala heslo přes nechráněné LDAP s jednoduchým bindem a AllowUnprotectedPassword je vypnuto – server tedy odmítá každé přihlášení pod ní a tento test ze stejného důvodu odmítá cokoli přenášet. Zvolte LDAPS nebo StartTLS, nebo metodu bindu Negotiate, anebo nechráněné heslo výslovně povolte.</value>
   </data>
-  <data name="Not the spam exemptions, whose senders and IP ranges skip every test, and not the allow and block list, which decides per recipient at delivery. example.com matches that domain alone; .example.com matches the domain and everything beneath it." xml:space="preserve">
-    <value>Nejde o výjimky z antispamu, jejichž odesílatelé a rozsahy IP přeskakují všechny testy, ani seznam povolených a blokovaných, který rozhoduje pro každého příjemce při doručení. example.com odpovídá jen této doméně; .example.com odpovídá doméně a všemu pod ní.</value>
-  </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Platný až od {0}</value>
   </data>
@@ -10703,8 +10715,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Sending domains this server has decided about: an allowed one skips greylisting and the score's refusals, a blocked one is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
     <value>Domény odesílatelů, o kterých tento server rozhodl: povolená přeskakuje greylisting a odmítnutí podle skóre, blokovaná se odmítá při MAIL FROM - podle domény nebo přípony HELO, ne podle IP adresy.</value>
   </data>
-  <data name="Sending organisations decided about by their domain rather than by the IP address of the week. Allowed: not greylisted and never refused on the spam score, while every test still runs and logs. Blocked: refused at MAIL FROM before greylisting, scoring or any lookup. Matched on the envelope sender's domain, the HELO name, or either; inbound unauthenticated sessions only." xml:space="preserve">
-    <value>Odesílající organizace posuzované podle domény, ne podle IP adresy z tohoto týdne. Povolená: bez greylistingu a nikdy neodmítnuta kvůli antispamovému skóre, přičemž každý test dál běží a loguje. Blokovaná: odmítnuta při MAIL FROM před greylistingem, bodováním i jakýmkoli dotazem. Porovnává se s doménou odesílatele obálky, názvem HELO nebo s obojím; jen příchozí neověřené relace.</value>
+  <data name="Sending organisations allowed or blocked by their domain or HELO name, in inbound sessions that have not signed in. To exempt an address or an IP range from every check use the spam exemptions; to decide per recipient use the allow and block list." xml:space="preserve">
+    <value>Odesílající organizace povolené nebo blokované podle své domény nebo názvu HELO, v příchozích relacích, které se nepřihlásily. Chcete-li adresu nebo rozsah IP vyjmout ze všech kontrol, použijte výjimky z antispamu; chcete-li rozhodovat pro každého příjemce, použijte seznam povolených a blokovaných.</value>
   </data>
   <data name="Sendout failed: {0}" xml:space="preserve">
     <value>Hromadné odeslání selhalo: {0}</value>

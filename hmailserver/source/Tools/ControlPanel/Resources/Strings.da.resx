@@ -1146,6 +1146,9 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Added" xml:space="preserve">
     <value>Tilføjet</value>
   </data>
+  <data name="Added (server time)" xml:space="preserve">
+    <value>Tilføjet (servertid)</value>
+  </data>
   <data name="Added at {0}." xml:space="preserve">
     <value>Tilføjet {0}.</value>
   </data>
@@ -1374,6 +1377,9 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Allow or block a domain" xml:space="preserve">
     <value>Tillad eller bloker et domæne</value>
   </data>
+  <data name="Allow or block {0}" xml:space="preserve">
+    <value>Tillad eller bloker {0}</value>
+  </data>
   <data name="Allow plain-text authentication (AUTH PLAIN/LOGIN)" xml:space="preserve">
     <value>Tillad godkendelse i klartekst (AUTH PLAIN/LOGIN)</value>
   </data>
@@ -1394,6 +1400,9 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   </data>
   <data name="Allow this group's senders, then release" xml:space="preserve">
     <value>Tillad denne gruppes afsendere, og frigiv derefter</value>
+  </data>
+  <data name="Allowed" xml:space="preserve">
+    <value>Tilladt</value>
   </data>
   <data name="Allowed and blocked domains" xml:space="preserve">
     <value>Tilladte og blokerede domæner</value>
@@ -2085,6 +2094,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   </data>
   <data name="Block this group's senders, then delete" xml:space="preserve">
     <value>Bloker denne gruppes afsendere, og slet derefter</value>
+  </data>
+  <data name="Blocked" xml:space="preserve">
+    <value>Blokeret</value>
   </data>
   <data name="Blocked attachments" xml:space="preserve">
     <value>Blokerede vedhæftede filer</value>
@@ -4182,6 +4194,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Edit" xml:space="preserve">
     <value>Redigér</value>
+  </data>
+  <data name="Edit a domain on the list" xml:space="preserve">
+    <value>Redigér et domæne på listen</value>
   </data>
   <data name="Edit action" xml:space="preserve">
     <value>Redigér handling</value>
@@ -7531,9 +7546,6 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
     <value>Ikke testet: denne konfiguration ville sende en adgangskode over ubeskyttet LDAP med en simpel binding, og AllowUnprotectedPassword er slået fra - så serveren afviser hver pålogning under den, og denne test nægter at sende noget af samme grund. Vælg LDAPS eller StartTLS, eller bindingsmetoden Negotiate, eller tillad udtrykkeligt den ubeskyttede adgangskode.</value>
   </data>
-  <data name="Not the spam exemptions, whose senders and IP ranges skip every test, and not the allow and block list, which decides per recipient at delivery. example.com matches that domain alone; .example.com matches the domain and everything beneath it." xml:space="preserve">
-    <value>Ikke spamundtagelserne, hvis afsendere og IP-områder springer alle tests over, og ikke tillad- og blokeringslisten, som afgør pr. modtager ved levering. example.com matcher kun det domæne; .example.com matcher domænet og alt under det.</value>
-  </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Ikke gyldigt før {0}</value>
   </data>
@@ -10579,8 +10591,8 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="Sending domains this server has decided about: an allowed one skips greylisting and the score's refusals, a blocked one is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
     <value>Afsenderdomæner, som denne server har taget stilling til: et tilladt springer greylisting og scorens afvisninger over, et blokeret afvises ved MAIL FROM - efter domæne eller HELO-suffiks, ikke efter IP-adresse.</value>
   </data>
-  <data name="Sending organisations decided about by their domain rather than by the IP address of the week. Allowed: not greylisted and never refused on the spam score, while every test still runs and logs. Blocked: refused at MAIL FROM before greylisting, scoring or any lookup. Matched on the envelope sender's domain, the HELO name, or either; inbound unauthenticated sessions only." xml:space="preserve">
-    <value>Afsendende organisationer bedømt efter deres domæne frem for ugens IP-adresse. Tilladt: ingen greylisting og aldrig afvist på spamscoren, mens hver test stadig kører og logger. Blokeret: afvises ved MAIL FROM før greylisting, scoring eller noget opslag. Sammenlignes med kuvertafsenderens domæne, HELO-navnet eller begge; kun indgående uautentificerede sessioner.</value>
+  <data name="Sending organisations allowed or blocked by their domain or HELO name, in inbound sessions that have not signed in. To exempt an address or an IP range from every check use the spam exemptions; to decide per recipient use the allow and block list." xml:space="preserve">
+    <value>Afsendende organisationer, der er tilladt eller blokeret efter deres domæne eller HELO-navn, i indgående sessioner, der ikke er logget på. Brug spamundtagelserne for at undtage en adresse eller et IP-område fra alle kontroller; brug tillad- og blokeringslisten for at afgøre det pr. modtager.</value>
   </data>
   <data name="Sendout failed: {0}" xml:space="preserve">
     <value>Udsendelsen mislykkedes: {0}</value>

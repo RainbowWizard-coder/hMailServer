@@ -1152,6 +1152,9 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   <data name="Added" xml:space="preserve">
     <value>Dodano</value>
   </data>
+  <data name="Added (server time)" xml:space="preserve">
+    <value>Dodano (czas serwera)</value>
+  </data>
   <data name="Added at {0}." xml:space="preserve">
     <value>Dodano {0}.</value>
   </data>
@@ -1383,6 +1386,9 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   <data name="Allow or block a domain" xml:space="preserve">
     <value>Dopuść lub zablokuj domenę</value>
   </data>
+  <data name="Allow or block {0}" xml:space="preserve">
+    <value>Dopuść lub zablokuj {0}</value>
+  </data>
   <data name="Allow plain-text authentication (AUTH PLAIN/LOGIN)" xml:space="preserve">
     <value>Zezwalaj na uwierzytelnianie jawnym tekstem (AUTH PLAIN/LOGIN)</value>
   </data>
@@ -1406,6 +1412,9 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   </data>
   <data name="Allow this group's senders, then release" xml:space="preserve">
     <value>Dopuść nadawców tej grupy, a następnie zwolnij</value>
+  </data>
+  <data name="Allowed" xml:space="preserve">
+    <value>Dozwolona</value>
   </data>
   <data name="Allowed and blocked domains" xml:space="preserve">
     <value>Dozwolone i zablokowane domeny</value>
@@ -2109,6 +2118,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   </data>
   <data name="Block this group's senders, then delete" xml:space="preserve">
     <value>Zablokuj nadawców tej grupy, a następnie usuń</value>
+  </data>
+  <data name="Blocked" xml:space="preserve">
+    <value>Zablokowana</value>
   </data>
   <data name="Blocked attachments" xml:space="preserve">
     <value>Zablokowane załączniki</value>
@@ -4228,6 +4240,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="Edit" xml:space="preserve">
     <value>Edytuj</value>
+  </data>
+  <data name="Edit a domain on the list" xml:space="preserve">
+    <value>Edytuj domenę na liście</value>
   </data>
   <data name="Edit action" xml:space="preserve">
     <value>Edytuj akcję</value>
@@ -7613,9 +7628,6 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
     <value>Nie przetestowano: ta konfiguracja wysłałaby hasło przez niechronione LDAP przy prostym bindzie, a AllowUnprotectedPassword jest wyłączone - serwer odrzuca więc każde logowanie w takim układzie, a ten test z tego samego powodu odmawia przesłania czegokolwiek. Należy wybrać LDAPS albo StartTLS, albo metodę bind Negotiate, albo wyraźnie zezwolić na niechronione hasło.</value>
   </data>
-  <data name="Not the spam exemptions, whose senders and IP ranges skip every test, and not the allow and block list, which decides per recipient at delivery. example.com matches that domain alone; .example.com matches the domain and everything beneath it." xml:space="preserve">
-    <value>To nie wyjątki antyspamowe, których nadawcy i zakresy IP pomijają wszystkie testy, ani lista dozwolonych i blokowanych, która decyduje per odbiorca przy doręczaniu. example.com pasuje tylko do tej domeny; .example.com pasuje do domeny i wszystkiego pod nią.</value>
-  </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Nieważny przed {0}</value>
   </data>
@@ -10703,8 +10715,8 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Sending domains this server has decided about: an allowed one skips greylisting and the score's refusals, a blocked one is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
     <value>Domeny nadawców, co do których ten serwer podjął decyzję: dozwolona pomija greylisting i odrzucenia wynikające z punktacji, zablokowana jest odrzucana przy MAIL FROM - według domeny lub sufiksu HELO, nie adresu IP.</value>
   </data>
-  <data name="Sending organisations decided about by their domain rather than by the IP address of the week. Allowed: not greylisted and never refused on the spam score, while every test still runs and logs. Blocked: refused at MAIL FROM before greylisting, scoring or any lookup. Matched on the envelope sender's domain, the HELO name, or either; inbound unauthenticated sessions only." xml:space="preserve">
-    <value>Organizacje wysyłające oceniane po domenie, a nie po adresie IP z tego tygodnia. Dozwolona: bez greylistingu i nigdy nieodrzucana z powodu punktacji antyspamowej, choć każdy test nadal działa i loguje. Zablokowana: odrzucana przy MAIL FROM przed greylistingiem, punktacją i jakimkolwiek zapytaniem. Porównywane z domeną nadawcy koperty, nazwą HELO lub dowolnym z nich; tylko przychodzące nieuwierzytelnione sesje.</value>
+  <data name="Sending organisations allowed or blocked by their domain or HELO name, in inbound sessions that have not signed in. To exempt an address or an IP range from every check use the spam exemptions; to decide per recipient use the allow and block list." xml:space="preserve">
+    <value>Organizacje nadawców dopuszczone lub zablokowane według ich domeny lub nazwy HELO, w sesjach przychodzących bez zalogowania. Aby wyłączyć adres lub zakres IP ze wszystkich kontroli, użyj wyjątków antyspamowych; aby decydować per odbiorca, użyj listy dozwolonych i blokowanych.</value>
   </data>
   <data name="Sendout failed: {0}" xml:space="preserve">
     <value>Wysyłka nie powiodła się: {0}</value>

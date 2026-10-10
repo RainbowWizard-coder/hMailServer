@@ -1146,6 +1146,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Added" xml:space="preserve">
     <value>Toegevoegd</value>
   </data>
+  <data name="Added (server time)" xml:space="preserve">
+    <value>Toegevoegd (servertijd)</value>
+  </data>
   <data name="Added at {0}." xml:space="preserve">
     <value>Toegevoegd op {0}.</value>
   </data>
@@ -1374,6 +1377,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Allow or block a domain" xml:space="preserve">
     <value>Een domein toestaan of blokkeren</value>
   </data>
+  <data name="Allow or block {0}" xml:space="preserve">
+    <value>{0} toestaan of blokkeren</value>
+  </data>
   <data name="Allow plain-text authentication (AUTH PLAIN/LOGIN)" xml:space="preserve">
     <value>Authenticatie in klare tekst toestaan (AUTH PLAIN/LOGIN)</value>
   </data>
@@ -1394,6 +1400,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   </data>
   <data name="Allow this group's senders, then release" xml:space="preserve">
     <value>De afzenders van deze groep toestaan en dan vrijgeven</value>
+  </data>
+  <data name="Allowed" xml:space="preserve">
+    <value>Toegestaan</value>
   </data>
   <data name="Allowed and blocked domains" xml:space="preserve">
     <value>Toegestane en geblokkeerde domeinen</value>
@@ -2085,6 +2094,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Block this group's senders, then delete" xml:space="preserve">
     <value>De afzenders van deze groep blokkeren en dan verwijderen</value>
+  </data>
+  <data name="Blocked" xml:space="preserve">
+    <value>Geblokkeerd</value>
   </data>
   <data name="Blocked attachments" xml:space="preserve">
     <value>Geblokkeerde bijlagen</value>
@@ -4182,6 +4194,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Edit" xml:space="preserve">
     <value>Bewerken</value>
+  </data>
+  <data name="Edit a domain on the list" xml:space="preserve">
+    <value>Een domein in de lijst bewerken</value>
   </data>
   <data name="Edit action" xml:space="preserve">
     <value>Actie bewerken</value>
@@ -7531,9 +7546,6 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
     <value>Niet getest: deze configuratie zou een wachtwoord over onbeschermd LDAP met een simple bind verzenden, en AllowUnprotectedPassword staat uit - dus de server weigert elke aanmelding onder deze configuratie, en deze test weigert om dezelfde reden iets te verzenden. Kies LDAPS of StartTLS, of de bindmethode Negotiate, of sta het onbeschermde wachtwoord uitdrukkelijk toe.</value>
   </data>
-  <data name="Not the spam exemptions, whose senders and IP ranges skip every test, and not the allow and block list, which decides per recipient at delivery. example.com matches that domain alone; .example.com matches the domain and everything beneath it." xml:space="preserve">
-    <value>Niet de spamuitzonderingen, waarvan de afzenders en IP-bereiken elke test overslaan, en niet de toestaan-en-blokkeerlijst, die per ontvanger bij bezorging beslist. example.com komt alleen met dat domein overeen; .example.com met het domein en alles eronder.</value>
-  </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Pas geldig vanaf {0}</value>
   </data>
@@ -10579,8 +10591,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Sending domains this server has decided about: an allowed one skips greylisting and the score's refusals, a blocked one is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
     <value>Afzenderdomeinen waarover deze server heeft beslist: een toegestaan domein slaat greylisting en de weigeringen van de score over, een geblokkeerd domein wordt geweigerd bij MAIL FROM - per domein of HELO-achtervoegsel, niet per IP-adres.</value>
   </data>
-  <data name="Sending organisations decided about by their domain rather than by the IP address of the week. Allowed: not greylisted and never refused on the spam score, while every test still runs and logs. Blocked: refused at MAIL FROM before greylisting, scoring or any lookup. Matched on the envelope sender's domain, the HELO name, or either; inbound unauthenticated sessions only." xml:space="preserve">
-    <value>Verzendende organisaties beoordeeld op hun domein in plaats van op het IP-adres van de week. Toegestaan: geen greylisting en nooit geweigerd op de spamscore, terwijl elke test blijft draaien en loggen. Geblokkeerd: geweigerd bij MAIL FROM vóór greylisting, scoren of welke opzoeking dan ook. Vergeleken met het domein van de envelopafzender, de HELO-naam of beide; alleen inkomende, niet-geauthenticeerde sessies.</value>
+  <data name="Sending organisations allowed or blocked by their domain or HELO name, in inbound sessions that have not signed in. To exempt an address or an IP range from every check use the spam exemptions; to decide per recipient use the allow and block list." xml:space="preserve">
+    <value>Verzendende organisaties die op hun domein of HELO-naam zijn toegestaan of geblokkeerd, in inkomende sessies die niet zijn aangemeld. Gebruik de spamuitzonderingen om een adres of IP-bereik van elke controle uit te zonderen; gebruik de toestaan-en-blokkeerlijst om per ontvanger te beslissen.</value>
   </data>
   <data name="Sendout failed: {0}" xml:space="preserve">
     <value>Verzending mislukt: {0}</value>
@@ -13392,7 +13404,7 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
     <value>Opnieuw proberen</value>
   </data>
   <data name="Turn _on" xml:space="preserve">
-    <value>_Inschakelen</value>
+    <value>Inscha_kelen</value>
   </data>
   <data name="Turn debug logging off again" xml:space="preserve">
     <value>Debuglogging weer uitzetten</value>
@@ -14784,7 +14796,7 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
     <value>N_ieuwere</value>
   </data>
   <data name="_Note" xml:space="preserve">
-    <value>N_otitie</value>
+    <value>Notit_ie</value>
   </data>
   <data name="_Number of delivery retries" xml:space="preserve">
     <value>Aantal _bezorgpogingen</value>
