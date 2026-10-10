@@ -1554,6 +1554,9 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
     <value>Uma conta sem função aqui tem o que o seu nível de administrador sempre lhe deu.</value>
   </data>
+  <data name="An account's own value overrides it." xml:space="preserve">
+    <value>O valor da própria conta prevalece.</value>
+  </data>
   <data name="An action of the rule “{0}”." xml:space="preserve">
     <value>Uma ação da regra “{0}”.</value>
   </data>
@@ -2481,6 +2484,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   </data>
   <data name="Changing it renames the list; its members and settings stay." xml:space="preserve">
     <value>Alterá-lo renomeia a lista; seus membros e configurações permanecem.</value>
+  </data>
+  <data name="Changing it renames the mailbox; it must stay in this domain." xml:space="preserve">
+    <value>Alterá-lo renomeia a caixa; ele deve permanecer neste domínio.</value>
   </data>
   <data name="Changing the pepper after accounts exist stops every password stored as an Argon2id or scrypt hash from working, and each such account then needs a new password. PBKDF2 hashes, the default, are not peppered." xml:space="preserve">
     <value>Alterar o pepper depois que já existem contas faz parar de funcionar toda senha armazenada como hash Argon2id ou scrypt, e cada uma dessas contas passa a precisar de uma nova senha. Os hashes PBKDF2, o padrão, não usam pepper.</value>
@@ -3861,8 +3867,8 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Delete messages" xml:space="preserve">
     <value>Excluir mensagens</value>
   </data>
-  <data name="Delete messages in this domain's mailboxes _older than (days; 0 = no policy, an account's own value overrides it)" xml:space="preserve">
-    <value>_Excluir mensagens nas caixas deste domínio com mais de (dias; 0 = sem política, o valor da própria conta prevalece)</value>
+  <data name="Delete messages in this domain's mailboxes _older than (days; 0 = no policy)" xml:space="preserve">
+    <value>_Excluir mensagens nas caixas deste domínio com mais de (dias; 0 = sem política)</value>
   </data>
   <data name="Delete messages older than (days)" xml:space="preserve">
     <value>Excluir mensagens com mais de (dias)</value>
@@ -4348,6 +4354,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Domains and HELO suffixes let past greylisting only when the message passes SPF, DKIM or DMARC as the entry requires." xml:space="preserve">
     <value>Domínios e sufixos HELO liberados do greylisting somente quando a mensagem passa no SPF, DKIM ou DMARC conforme a entrada exige.</value>
   </data>
+  <data name="Domains whose look-alikes are judged as this server's own are, separated by commas or spaces - ASCII, xn-- for an internationalised name." xml:space="preserve">
+    <value>Domínios cujos sósias são julgados como os próprios deste servidor, separados por vírgulas ou espaços - ASCII, xn-- para um nome internacionalizado.</value>
+  </data>
   <data name="Domains, accounts, aliases and distribution lists, and each account's passwords, forwarding and folders." xml:space="preserve">
     <value>Domínios, contas, aliases e listas de distribuição, e as senhas, o encaminhamento e as pastas de cada conta.</value>
   </data>
@@ -4378,8 +4387,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="E_rrors" xml:space="preserve">
     <value>_Erros</value>
   </data>
-  <data name="E_xternal ID (the identity provider's ID for this person; empty = none)" xml:space="preserve">
-    <value>ID e_xterno (o ID desta pessoa no provedor de identidade; vazio = nenhum)</value>
+  <data name="E_xternal ID (empty = none)" xml:space="preserve">
+    <value>ID e_xterno (vazio = nenhum)</value>
   </data>
   <data name="E_xternal to local" xml:space="preserve">
     <value>Exte_rno para local</value>
@@ -5338,6 +5347,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="For a MinIO or Ceph gateway behind a CA of your own. The host name is checked either way." xml:space="preserve">
     <value>Para um gateway MinIO ou Ceph atrás de uma CA própria. O nome do host é verificado de qualquer forma.</value>
   </data>
+  <data name="For a domain synchronised with Active Directory." xml:space="preserve">
+    <value>Para um domínio sincronizado com o Active Directory.</value>
+  </data>
   <data name="For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed sign-ins, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the allowed and blocked domains still apply. Empty, the default, changes nothing." xml:space="preserve">
     <value>Para um provedor cujos hosts compartilham um nome reverso e cujos endereços mudam: um endereço que se conecta nunca é banido automaticamente - por logins com falha, uma armadilha de spam ou um remetente nulo - quando um de seus nomes reversos está coberto por um nome daqui e resolve de volta para o endereço. Nada mais é ignorado: a lista cinza, SPF, DKIM, DMARC e os domínios permitidos e bloqueados continuam valendo. Vazia, o padrão, não muda nada.</value>
   </data>
@@ -5581,8 +5593,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="HS256 is among the allowed signing algorithms but the shared HMAC secret is empty, so HS256 tokens can never verify. Set the shared secret, or remove HS256 from the list." xml:space="preserve">
     <value>HS256 está entre os algoritmos de assinatura permitidos mas o segredo HMAC compartilhado está vazio, então tokens HS256 nunca podem ser verificados. Defina o segredo compartilhado, ou remova HS256 da lista.</value>
   </data>
-  <data name="HTM_L disclaimer (empty = the plain text, with its line breaks)" xml:space="preserve">
-    <value>Aviso legal em HTML (vazio = o texto simples, com suas _quebras de linha)</value>
+  <data name="HTM_L disclaimer (empty = the plain text)" xml:space="preserve">
+    <value>Aviso legal em _HTML (vazio = o texto simples)</value>
   </data>
   <data name="HTTP Basic needs both the user name and the password. Only {0} is set, so Basic authentication is NOT enabled - the server logs this and behaves as if neither were set." xml:space="preserve">
     <value>O HTTP Basic precisa tanto do nome de usuário quanto da senha. Só {0} está definido, então a autenticação Basic NÃO está ativada - o servidor registra isso no log e se comporta como se nenhum dos dois estivesse definido.</value>
@@ -5638,8 +5650,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Headers of the message from {0}" xml:space="preserve">
     <value>Cabeçalhos da mensagem de {0}</value>
   </data>
-  <data name="Headers those addresses are read from (needed for the option above; such as To, CC, X-RCPT-TO, X-Envelope-To)" xml:space="preserve">
-    <value>Cabeçalhos de onde esses endereços são lidos (necessário para a opção acima; por exemplo To, CC, X-RCPT-TO, X-Envelope-To)</value>
+  <data name="Headers those addresses are read from" xml:space="preserve">
+    <value>Cabeçalhos de onde esses endereços são lidos</value>
   </data>
   <data name="Headings" xml:space="preserve">
     <value>Títulos</value>
@@ -6186,6 +6198,9 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   <data name="It is safe to enable signing." xml:space="preserve">
     <value>É seguro ativar a assinatura.</value>
   </data>
+  <data name="It may use %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED% and %MACRO_PERCENT%." xml:space="preserve">
+    <value>Pode usar %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED% e %MACRO_PERCENT%.</value>
+  </data>
   <data name="Its discovery document is read from the issuer followed by /.well-known/openid-configuration." xml:space="preserve">
     <value>O documento de descoberta é lido do emissor seguido de /.well-known/openid-configuration.</value>
   </data>
@@ -6371,6 +6386,9 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   </data>
   <data name="Left Edge" xml:space="preserve">
     <value>Borda esquerda</value>
+  </data>
+  <data name="Left empty, HTML messages carry the plain text with its line breaks." xml:space="preserve">
+    <value>Se ficar vazio, as mensagens HTML levam o texto simples com suas quebras de linha.</value>
   </data>
   <data name="Left empty, the server uses the shipped filter, {0} - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile sign-in name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
     <value>Deixado vazio, o servidor usa o filtro de fábrica, {0} - objectCategory primeiro porque é indexado no Active Directory, e sAMAccountName porque é o que a aba Diretório do Windows da conta armazena. %u é o nome de usuário do Active Directory da conta, %d o domínio AD dela, %m o endereço de e-mail completo dela; os três são escapados antes da substituição, então um nome de login hostil não pode reescrever o filtro. Um filtro que corresponde a mais de uma entrada não autentica ninguém, por design.</value>
@@ -7360,8 +7378,8 @@ Nada do que já está lá é removido.</value>
   <data name="Name the archive as the backup destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
     <value>Nomeie o arquivo como o destino do backup o lista (HMBackup YYYY-MM-DD HHMMSS.7z), ou pelo caminho dentro do destino.</value>
   </data>
-  <data name="Named _domains (partner.example, or .example for the domain and everything beneath it; separated by commas or spaces; empty restricts nothing)" xml:space="preserve">
-    <value>_Domínios indicados (partner.example, ou .example para o domínio e tudo abaixo dele; separados por vírgulas ou espaços; vazio não restringe nada)</value>
+  <data name="Named _domains (empty = no restriction)" xml:space="preserve">
+    <value>_Domínios indicados (vazio = sem restrição)</value>
   </data>
   <data name="Names" xml:space="preserve">
     <value>Nomes</value>
@@ -8440,6 +8458,9 @@ Nada do que já está lá é removido.</value>
   <data name="One address" xml:space="preserve">
     <value>Um endereço</value>
   </data>
+  <data name="One address in a domain this server hosts." xml:space="preserve">
+    <value>Um endereço em um domínio hospedado por este servidor.</value>
+  </data>
   <data name="One address of this machine: 127.0.0.1 when the manager runs here, otherwise an address on a management network." xml:space="preserve">
     <value>Um endereço desta máquina: 127.0.0.1 quando o gerente roda aqui; se não, um endereço em uma rede de gerenciamento.</value>
   </data>
@@ -8979,6 +9000,9 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   <data name="People may set a recovery address and one-time recovery codes in the webmail, and reset a forgotten password with them. A reset link can be sent only when the server knows its own public address: the base address for messages that expire, the quarantine digest's or the import sign-in's." xml:space="preserve">
     <value>As pessoas podem definir no webmail um endereço de recuperação e códigos de recuperação de uso único e redefinir com eles uma senha esquecida. Um link de redefinição só pode ser enviado quando o servidor conhece o próprio endereço público: o endereço base das mensagens que expiram, o do resumo da quarentena ou o da importação com login.</value>
   </data>
+  <data name="People outside this domain's accounts whose name must not be borrowed, one per line: Name &lt;address&gt;, Name, or address." xml:space="preserve">
+    <value>Pessoas fora das contas deste domínio cujo nome não pode ser emprestado, uma por linha: Nome &lt;address&gt;, Nome ou endereço.</value>
+  </data>
   <data name="Per remote domain: the TLS this server demands in each direction, the size and connections it will attempt, and recipient verification for a domain it backs up." xml:space="preserve">
     <value>Por domínio remoto: o TLS que este servidor exige em cada sentido, o tamanho e as conexões que tentará, e a verificação de destinatários para um domínio do qual é MX de reserva.</value>
   </data>
@@ -9219,11 +9243,11 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   <data name="Protect the administrator password" xml:space="preserve">
     <value>Proteger a senha de administrador</value>
   </data>
-  <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
-    <value>_Pessoas protegidas (pessoas fora das contas deste domínio cujo nome não pode ser emprestado; uma por linha, cada uma Nome &lt;address&gt;, Nome ou endereço)</value>
+  <data name="Protected _persons" xml:space="preserve">
+    <value>_Pessoas protegidas</value>
   </data>
-  <data name="Protected pa_rtners (domains whose look-alikes are judged as this server's own are; separated by commas or spaces; ASCII, xn-- for an internationalised name)" xml:space="preserve">
-    <value>Pa_rceiros protegidos (domínios cujos sósias são julgados como os próprios deste servidor; separados por vírgulas ou espaços; ASCII, xn-- para um nome internacionalizado)</value>
+  <data name="Protected pa_rtners" xml:space="preserve">
+    <value>Pa_rceiros protegidos</value>
   </data>
   <data name="Protection" xml:space="preserve">
     <value>Proteção</value>
@@ -10041,8 +10065,8 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Reply to colleagues _only" xml:space="preserve">
     <value>Responder s_omente a colegas</value>
   </data>
-  <data name="Report _mailbox (one address in a domain this server hosts; empty reads nothing)" xml:space="preserve">
-    <value>_Caixa de relatórios (um endereço em um domínio hospedado por este servidor; vazia não lê nada)</value>
+  <data name="Report _mailbox (empty = none)" xml:space="preserve">
+    <value>_Caixa de relatórios (vazia = nenhuma)</value>
   </data>
   <data name="Report mailbox:" xml:space="preserve">
     <value>Caixa de relatórios:</value>
@@ -11190,8 +11214,8 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Send it as a bearer token:  Authorization: Bearer hmapi_...  to the REST listener configured on the API &amp; monitoring page. The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
     <value>Envie-a como um token portador:  Authorization: Bearer hmapi_...  para o ouvinte REST configurado na página API e monitoramento. A senha de administrador também funciona e não tem restrição alguma, e é justamente por isso que se prefere uma chave: uma chave pode ser somente leitura, limitada a domínios nomeados, limitada a um endereço de origem, receber uma validade e ser revogada sem alterar mais nada.</value>
   </data>
-  <data name="Send it during this _hour of the local day (0 to 23; the sends are spread across the hour)" xml:space="preserve">
-    <value>Enviar durante esta _hora do dia local (0 a 23; os envios são distribuídos ao longo da hora)</value>
+  <data name="Send it during this _hour of the local day (0 to 23)" xml:space="preserve">
+    <value>Enviar durante esta _hora do dia local (0 a 23)</value>
   </data>
   <data name="Send it unencrypted and log it" xml:space="preserve">
     <value>Enviar sem criptografia e registrar</value>
@@ -12210,8 +12234,8 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Tag outbound envelope senders with BATV and validate returning bounces" xml:space="preserve">
     <value>Marcar com BATV os remetentes de envelope de saída e validar as devoluções que retornam</value>
   </data>
-  <data name="Tag te_xt (empty = [EXTERNAL], at most 100 characters)" xml:space="preserve">
-    <value>Te_xto da marca (vazio = [EXTERNAL], no máximo 100 caracteres)</value>
+  <data name="Tag te_xt (up to 100 characters; empty = [EXTERNAL])" xml:space="preserve">
+    <value>Te_xto da marca (no máximo 100 caracteres; vazio = [EXTERNAL])</value>
   </data>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Marcação e aviso legal</value>
@@ -13054,6 +13078,9 @@ não pôde ser carregado. A mensagem provavelmente já foi entregue e não está
   <data name="The id ({0}, generated just now) is yours to choose - any value is correct. Its only job is to change whenever the policy changes, so caches refetch." xml:space="preserve">
     <value>O id ({0}, gerado agora mesmo) é sua escolha - qualquer valor está correto. Sua única função é mudar sempre que a política mudar, para que os caches busquem de novo.</value>
   </data>
+  <data name="The identity provider's ID for this person." xml:space="preserve">
+    <value>O ID desta pessoa no provedor de identidade.</value>
+  </data>
   <data name="The index has been emptied and the indexer asked to rebuild it. The rebuild runs in the background, in passes bounded by the limits above, so on a large mailstore it will take several passes - IMAP SEARCH finds less than it should until it finishes." xml:space="preserve">
     <value>O índice foi esvaziado e o indexador foi solicitado a reconstruí-lo. A reconstrução roda em segundo plano, em passagens limitadas pelos limites acima, então em um repositório de mensagens grande ela levará várias passagens - o IMAP SEARCH encontra menos do que deveria até que ela termine.</value>
   </data>
@@ -13520,6 +13547,9 @@ Adicionar mesmo assim?</value>
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>O servidor remetente conecta, envia a mensagem e então espera. Do lado dele você vê um tempo limite depois que o corpo da mensagem foi transmitido - o Postfix relata "timed out while sending end of data". A mensagem nunca aparece na sua fila.</value>
+  </data>
+  <data name="The sends are spread across the hour." xml:space="preserve">
+    <value>Os envios são distribuídos ao longo da hora.</value>
   </data>
   <data name="The sensitive-content condition of a rule looks for card numbers, IBANs and, when a pattern is set here, this organisation's own account numbers." xml:space="preserve">
     <value>A condição de conteúdo sensível de uma regra procura números de cartão, IBANs e, quando há um padrão definido aqui, os números de conta próprios desta organização.</value>
@@ -14437,6 +14467,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="Used by" xml:space="preserve">
     <value>Usado por</value>
   </data>
+  <data name="Used by the option above - for example To, CC, X-RCPT-TO or X-Envelope-To." xml:space="preserve">
+    <value>Usados pela opção acima - por exemplo To, CC, X-RCPT-TO ou X-Envelope-To.</value>
+  </data>
   <data name="Used for the %d placeholder and for a Negotiate bind (NTLM needs it on a host that is not domain-joined). The server takes this from the account's Windows directory tab; type the same value here." xml:space="preserve">
     <value>Usado para o marcador %d e para um vínculo Negotiate (o NTLM precisa dele em um host que não está ingressado no domínio). O servidor pega isto da aba Diretório do Windows da conta; digite o mesmo valor aqui.</value>
   </data>
@@ -14593,8 +14626,8 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="Warning s_ubject (empty = the server message)" xml:space="preserve">
     <value>Assun_to do aviso (vazio = mensagem do servidor)</value>
   </data>
-  <data name="Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)" xml:space="preserve">
-    <value>Te_xto do aviso (vazio = mensagem do servidor; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)</value>
+  <data name="Warning te_xt (empty = the server message)" xml:space="preserve">
+    <value>Te_xto do aviso (vazio = mensagem do servidor)</value>
   </data>
   <data name="Watch for alert conditions" xml:space="preserve">
     <value>Vigiar as condições de alerta</value>
@@ -15175,8 +15208,8 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="_Action" xml:space="preserve">
     <value>_Ação</value>
   </data>
-  <data name="_Active Directory domain (for AD-synchronised domains; optional)" xml:space="preserve">
-    <value>_Domínio do Active Directory (para domínios sincronizados com o AD; opcional)</value>
+  <data name="_Active Directory domain (optional)" xml:space="preserve">
+    <value>_Domínio do Active Directory (opcional)</value>
   </data>
   <data name="_Add" xml:space="preserve">
     <value>A_dicionar</value>
@@ -15208,8 +15241,8 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="_Add the rule" xml:space="preserve">
     <value>_Adicionar a regra</value>
   </data>
-  <data name="_Address (changing it renames the mailbox; it must stay in this domain)" xml:space="preserve">
-    <value>_Endereço (alterá-lo renomeia a caixa; ele deve permanecer neste domínio)</value>
+  <data name="_Address" xml:space="preserve">
+    <value>_Endereço</value>
   </data>
   <data name="_Add…" xml:space="preserve">
     <value>_Adicionar…</value>
@@ -15307,8 +15340,8 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="_Copy DNS value" xml:space="preserve">
     <value>_Copiar valor DNS</value>
   </data>
-  <data name="_Country policy at sign-in (empty = off; allow:GB,IE or block:CN,RU)" xml:space="preserve">
-    <value>Política de _país no login (vazio = desligada; allow:GB,IE ou block:CN,RU)</value>
+  <data name="_Country policy at sign-in (empty = off)" xml:space="preserve">
+    <value>Política de _país no login (vazio = desligada)</value>
   </data>
   <data name="_Create a key…" xml:space="preserve">
     <value>_Criar uma chave…</value>
@@ -16006,6 +16039,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="alias" xml:space="preserve">
     <value>alias</value>
   </data>
+  <data name="allow:GB,IE or block:CN,RU." xml:space="preserve">
+    <value>allow:GB,IE ou block:CN,RU.</value>
+  </data>
   <data name="an account Windows did not report" xml:space="preserve">
     <value>uma conta que o Windows não informou</value>
   </data>
@@ -16576,6 +16612,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="p=none is the right starting point, not an oversight: it makes receivers check and report but deliver as normal. A stricter policy (quarantine or reject) tells every receiver to junk or refuse mail that fails alignment - and until reports show your own mail passing SPF or DKIM, the mail that fails will include yours. Tighten only after the reports say it is safe." xml:space="preserve">
     <value>p=none é o ponto de partida certo, não um descuido: ele faz os receptores verificarem e relatarem, mas entregarem normalmente. Uma política mais rígida (quarantine ou reject) diz a todo receptor para jogar na lixeira ou recusar os e-mails que falham no alinhamento - e até que os relatórios mostrem seus próprios e-mails passando em SPF ou DKIM, os e-mails que falham incluirão os seus. Só aperte a política depois que os relatórios disserem que é seguro.</value>
+  </data>
+  <data name="partner.example, or .example for the domain and everything beneath it, separated by commas or spaces." xml:space="preserve">
+    <value>partner.example, ou .example para o domínio e tudo abaixo dele, separados por vírgulas ou espaços.</value>
   </data>
   <data name="pattern" xml:space="preserve">
     <value>padrão</value>

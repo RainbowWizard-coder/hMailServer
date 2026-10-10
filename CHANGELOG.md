@@ -3136,6 +3136,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   their end (the public folder's name, the code the second factor asks for, the DKIM record). `GlossaryTests` holds
   the English to the glossary, the Brazilian catalogue to login, and every caption to no colon.
 
+- **Fixed: the domain and account dialogs' captions carried their whole explanation in brackets, which a screen reader
+  heard as the field's name.** "Address (changing it renames the mailbox; it must stay in this domain)", "Delete
+  messages in this domain's mailboxes older than (days; 0 = no policy, an account's own value overrides it)", "Warning
+  text (empty = the server message; %MACRO_MAILBOX%, ...)", the restricted delivery's named domains and the
+  impersonation tab's protected persons and partners with a sentence each - the caption is the editor's accessible
+  name. A caption now names the field and, in its brackets, the unit, the range and what an edge value means, and the
+  rest is the field's hint under the box, which is its help text too: "Address" with "Changing it renames the mailbox;
+  it must stay in this domain.", "Warning text (empty = the server message)" with "It may use %MACRO_MAILBOX%,
+  %MACRO_QUOTA%, %MACRO_USED% and %MACRO_PERCENT%." - which four catalogues had written without their underscores, the
+  Alt-key mark, and now spell as the server reads them. Fourteen captions of the domain, account and external account
+  dialogs, in every language. `CaptionWordingTests` holds every caption of the dialogs to the rule - a part of a
+  bracket with a ";" or an "=" in it is a unit, a range or what values mean, each meaning five words at most.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

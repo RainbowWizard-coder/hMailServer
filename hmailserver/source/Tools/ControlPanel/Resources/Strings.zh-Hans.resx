@@ -1554,6 +1554,9 @@
   <data name="An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
     <value>在这里没有角色的账户，拥有其管理员级别一直赋予它的权限。</value>
   </data>
+  <data name="An account's own value overrides it." xml:space="preserve">
+    <value>账户自身的值会覆盖它。</value>
+  </data>
   <data name="An action of the rule “{0}”." xml:space="preserve">
     <value>规则“{0}”的操作。</value>
   </data>
@@ -2481,6 +2484,9 @@
   </data>
   <data name="Changing it renames the list; its members and settings stay." xml:space="preserve">
     <value>更改后列表即改名；其成员和设置保持不变。</value>
+  </data>
+  <data name="Changing it renames the mailbox; it must stay in this domain." xml:space="preserve">
+    <value>更改它会重命名邮箱；它必须留在本域内。</value>
   </data>
   <data name="Changing the pepper after accounts exist stops every password stored as an Argon2id or scrypt hash from working, and each such account then needs a new password. PBKDF2 hashes, the default, are not peppered." xml:space="preserve">
     <value>账户创建后更改 pepper，会使每个以 Argon2id 或 scrypt 哈希存储的密码失效，每个这样的账户随后都需要新密码。默认的 PBKDF2 哈希不使用 pepper。</value>
@@ -3861,8 +3867,8 @@
   <data name="Delete messages" xml:space="preserve">
     <value>删除邮件</value>
   </data>
-  <data name="Delete messages in this domain's mailboxes _older than (days; 0 = no policy, an account's own value overrides it)" xml:space="preserve">
-    <value>删除此域各邮箱中早于此天数的邮件(_O)（天；0 = 无策略，账户自身的值会覆盖它）</value>
+  <data name="Delete messages in this domain's mailboxes _older than (days; 0 = no policy)" xml:space="preserve">
+    <value>删除此域各邮箱中早于此天数的邮件(_O)（天；0 = 无策略）</value>
   </data>
   <data name="Delete messages older than (days)" xml:space="preserve">
     <value>删除早于此天数的邮件（天）</value>
@@ -4348,6 +4354,9 @@
   <data name="Domains and HELO suffixes let past greylisting only when the message passes SPF, DKIM or DMARC as the entry requires." xml:space="preserve">
     <value>仅当邮件按条目要求通过 SPF、DKIM 或 DMARC 时才放行灰名单的域名和 HELO 后缀。</value>
   </data>
+  <data name="Domains whose look-alikes are judged as this server's own are, separated by commas or spaces - ASCII, xn-- for an internationalised name." xml:space="preserve">
+    <value>其形似域按本服务器自有域的方式判定的域；用逗号或空格分隔 - ASCII，国际化名称用 xn-- 形式。</value>
+  </data>
   <data name="Domains, accounts, aliases and distribution lists, and each account's passwords, forwarding and folders." xml:space="preserve">
     <value>域、账户、别名和分发列表，以及每个账户的密码、转发和文件夹。</value>
   </data>
@@ -4378,8 +4387,8 @@
   <data name="E_rrors" xml:space="preserve">
     <value>错误(_R)</value>
   </data>
-  <data name="E_xternal ID (the identity provider's ID for this person; empty = none)" xml:space="preserve">
-    <value>外部 ID（身份提供商为此人设置的 ID；空 = 无）(_X)</value>
+  <data name="E_xternal ID (empty = none)" xml:space="preserve">
+    <value>外部 ID（空 = 无）(_X)</value>
   </data>
   <data name="E_xternal to local" xml:space="preserve">
     <value>外部到本地(_X)</value>
@@ -5338,6 +5347,9 @@
   <data name="For a MinIO or Ceph gateway behind a CA of your own. The host name is checked either way." xml:space="preserve">
     <value>适用于位于自有证书颁发机构后面的 MinIO 或 Ceph 网关。无论如何都会验证主机名。</value>
   </data>
+  <data name="For a domain synchronised with Active Directory." xml:space="preserve">
+    <value>用于与 Active Directory 同步的域。</value>
+  </data>
   <data name="For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed sign-ins, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the allowed and blocked domains still apply. Empty, the default, changes nothing." xml:space="preserve">
     <value>适用于主机共用一个反向名称、地址经常变动的提供商：当连接地址的某个反向名称被此处的名称覆盖、并且正向解析回该地址时，该地址永远不会被自动封禁——无论是登录失败、垃圾邮件陷阱还是空发件人。其他检查一概不跳过：灰名单、SPF、DKIM、DMARC 以及允许与拦截的域仍然适用。为空（默认）时不做任何改变。</value>
   </data>
@@ -5581,8 +5593,8 @@
   <data name="HS256 is among the allowed signing algorithms but the shared HMAC secret is empty, so HS256 tokens can never verify. Set the shared secret, or remove HS256 from the list." xml:space="preserve">
     <value>HS256 在允许的签名算法中，但共享 HMAC 机密为空，因此 HS256 令牌永远无法通过验证。请设置共享机密，或者从列表中移除 HS256。</value>
   </data>
-  <data name="HTM_L disclaimer (empty = the plain text, with its line breaks)" xml:space="preserve">
-    <value>免责声明，HTML(_M)（留空 = 纯文本及其换行）</value>
+  <data name="HTM_L disclaimer (empty = the plain text)" xml:space="preserve">
+    <value>免责声明，HTML(_M)（留空 = 纯文本）</value>
   </data>
   <data name="HTTP Basic needs both the user name and the password. Only {0} is set, so Basic authentication is NOT enabled - the server logs this and behaves as if neither were set." xml:space="preserve">
     <value>HTTP Basic 需要同时提供用户名和密码。只设置了 {0}，因此未启用 Basic 身份验证 - 服务器会记录这一点，并当作两者都未设置来处理。</value>
@@ -5638,8 +5650,8 @@
   <data name="Headers of the message from {0}" xml:space="preserve">
     <value>来自 {0} 的邮件的邮件头</value>
   </data>
-  <data name="Headers those addresses are read from (needed for the option above; such as To, CC, X-RCPT-TO, X-Envelope-To)" xml:space="preserve">
-    <value>读取这些地址的标头（上一选项需要；例如 To、CC、X-RCPT-TO、X-Envelope-To）</value>
+  <data name="Headers those addresses are read from" xml:space="preserve">
+    <value>读取这些地址的标头</value>
   </data>
   <data name="Headings" xml:space="preserve">
     <value>标题</value>
@@ -6186,6 +6198,9 @@
   <data name="It is safe to enable signing." xml:space="preserve">
     <value>可以放心启用签名。</value>
   </data>
+  <data name="It may use %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED% and %MACRO_PERCENT%." xml:space="preserve">
+    <value>可以使用 %MACRO_MAILBOX%、%MACRO_QUOTA%、%MACRO_USED% 和 %MACRO_PERCENT%。</value>
+  </data>
   <data name="Its discovery document is read from the issuer followed by /.well-known/openid-configuration." xml:space="preserve">
     <value>其发现文档从颁发者地址加上 /.well-known/openid-configuration 处读取。</value>
   </data>
@@ -6371,6 +6386,9 @@
   </data>
   <data name="Left Edge" xml:space="preserve">
     <value>左边缘</value>
+  </data>
+  <data name="Left empty, HTML messages carry the plain text with its line breaks." xml:space="preserve">
+    <value>留空时，HTML 邮件使用纯文本及其换行。</value>
   </data>
   <data name="Left empty, the server uses the shipped filter, {0} - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile sign-in name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
     <value>留空时，服务器使用出厂过滤器 {0} - 先用 objectCategory，因为它在 Active Directory 中有索引；再用 sAMAccountName，因为账户的“Windows 目录”选项卡存储的正是它。%u 是账户的 Active Directory 用户名，%d 是其 AD 域，%m 是其完整邮件地址；三者在替换前都会被转义，因此恶意的登录名无法改写过滤器。匹配到多个条目的过滤器不会验证任何人，这是有意为之。</value>
@@ -7360,8 +7378,8 @@
   <data name="Name the archive as the backup destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
     <value>请按备份目标中列出的名称 (HMBackup YYYY-MM-DD HHMMSS.7z) 或其在备份目标内的路径指定存档。</value>
   </data>
-  <data name="Named _domains (partner.example, or .example for the domain and everything beneath it; separated by commas or spaces; empty restricts nothing)" xml:space="preserve">
-    <value>指定的域 (partner.example，或 .example 表示该域及其下所有子域；用逗号或空格分隔；留空则不限制) (_D)</value>
+  <data name="Named _domains (empty = no restriction)" xml:space="preserve">
+    <value>指定的域（留空 = 不限制）(_D)</value>
   </data>
   <data name="Names" xml:space="preserve">
     <value>名称</value>
@@ -8440,6 +8458,9 @@
   <data name="One address" xml:space="preserve">
     <value>单个地址</value>
   </data>
+  <data name="One address in a domain this server hosts." xml:space="preserve">
+    <value>此服务器托管的某个域中的一个地址。</value>
+  </data>
   <data name="One address of this machine: 127.0.0.1 when the manager runs here, otherwise an address on a management network." xml:space="preserve">
     <value>本计算机的一个地址：管理站在本机运行时为 127.0.0.1，否则为管理网络上的地址。</value>
   </data>
@@ -8979,6 +9000,9 @@
   <data name="People may set a recovery address and one-time recovery codes in the webmail, and reset a forgotten password with them. A reset link can be sent only when the server knows its own public address: the base address for messages that expire, the quarantine digest's or the import sign-in's." xml:space="preserve">
     <value>用户可以在网页邮箱中设置恢复地址和一次性恢复代码，并用它们重置忘记的密码。只有当服务器知道自己的公共地址（过期邮件、隔离摘要或登录导入的基础地址）时，才能发送重置链接。</value>
   </data>
+  <data name="People outside this domain's accounts whose name must not be borrowed, one per line: Name &lt;address&gt;, Name, or address." xml:space="preserve">
+    <value>不属于此域账户、姓名不得被冒用的人；每行一个：姓名 &lt;address&gt;、姓名或地址。</value>
+  </data>
   <data name="Per remote domain: the TLS this server demands in each direction, the size and connections it will attempt, and recipient verification for a domain it backs up." xml:space="preserve">
     <value>按远程域设置：本服务器在两个方向上要求的 TLS、将尝试的大小与连接数，以及本服务器作为备用 MX 的域的收件人核验。</value>
   </data>
@@ -9219,11 +9243,11 @@
   <data name="Protect the administrator password" xml:space="preserve">
     <value>保护管理员密码</value>
   </data>
-  <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
-    <value>受保护人员(_P)（不属于此域账户、姓名不得被冒用的人；每行一个，每项为 姓名 &lt;address&gt;、姓名或地址）</value>
+  <data name="Protected _persons" xml:space="preserve">
+    <value>受保护人员(_P)</value>
   </data>
-  <data name="Protected pa_rtners (domains whose look-alikes are judged as this server's own are; separated by commas or spaces; ASCII, xn-- for an internationalised name)" xml:space="preserve">
-    <value>受保护合作方(_R)（其形似域按本服务器自有域的方式判定的域；用逗号或空格分隔；ASCII，国际化名称用 xn-- 形式）</value>
+  <data name="Protected pa_rtners" xml:space="preserve">
+    <value>受保护合作方(_R)</value>
   </data>
   <data name="Protection" xml:space="preserve">
     <value>防护</value>
@@ -10041,8 +10065,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Reply to colleagues _only" xml:space="preserve">
     <value>只答复同事(_O)</value>
   </data>
-  <data name="Report _mailbox (one address in a domain this server hosts; empty reads nothing)" xml:space="preserve">
-    <value>报告邮箱 (此服务器托管的某个域中的一个地址；留空则不读取任何内容) (_M)</value>
+  <data name="Report _mailbox (empty = none)" xml:space="preserve">
+    <value>报告邮箱（留空 = 无）(_M)</value>
   </data>
   <data name="Report mailbox:" xml:space="preserve">
     <value>报告邮箱：</value>
@@ -11190,8 +11214,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Send it as a bearer token:  Authorization: Bearer hmapi_...  to the REST listener configured on the API &amp; monitoring page. The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
     <value>将其作为持有者令牌发送:  Authorization: Bearer hmapi_...  发给在“API 与监控”页配置的 REST 监听器。管理员密码也可以用，且不受限制，这正是优先使用密钥的原因: 密钥可以只读、可以限定于指定的域、可以限定于一个来源地址、可以设置到期时间，并且可以在不改动其他任何内容的情况下被吊销。</value>
   </data>
-  <data name="Send it during this _hour of the local day (0 to 23; the sends are spread across the hour)" xml:space="preserve">
-    <value>在本地时间的这一小时发送（0 到 23；发送会分散在这一小时内）(_H)</value>
+  <data name="Send it during this _hour of the local day (0 to 23)" xml:space="preserve">
+    <value>在本地时间的这一小时发送（0 到 23）(_H)</value>
   </data>
   <data name="Send it unencrypted and log it" xml:space="preserve">
     <value>不加密发送并记录日志</value>
@@ -12210,8 +12234,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Tag outbound envelope senders with BATV and validate returning bounces" xml:space="preserve">
     <value>用 BATV 标记出站信封发件人并验证返回的退信</value>
   </data>
-  <data name="Tag te_xt (empty = [EXTERNAL], at most 100 characters)" xml:space="preserve">
-    <value>标记文字(_X)（留空 = [EXTERNAL]，最多 100 个字符）</value>
+  <data name="Tag te_xt (up to 100 characters; empty = [EXTERNAL])" xml:space="preserve">
+    <value>标记文字(_X)（最多 100 个字符；留空 = [EXTERNAL]）</value>
   </data>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>标记与免责声明</value>
@@ -13054,6 +13078,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The id ({0}, generated just now) is yours to choose - any value is correct. Its only job is to change whenever the policy changes, so caches refetch." xml:space="preserve">
     <value>此 id ({0}，刚刚生成) 由您自行选择 - 任何值都是正确的。它唯一的作用是在策略变化时随之变化，好让缓存重新获取。</value>
   </data>
+  <data name="The identity provider's ID for this person." xml:space="preserve">
+    <value>身份提供商为此人设置的 ID。</value>
+  </data>
   <data name="The index has been emptied and the indexer asked to rebuild it. The rebuild runs in the background, in passes bounded by the limits above, so on a large mailstore it will take several passes - IMAP SEARCH finds less than it should until it finishes." xml:space="preserve">
     <value>索引已清空，并已要求索引器重建它。重建在后台进行，按上面的限制分批执行，因此在大型邮件存储上需要多批 - 在完成之前，IMAP SEARCH 找到的结果会少于应有的数量。</value>
   </data>
@@ -13520,6 +13547,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>发送方服务器连接、发送邮件，然后等待。从它那一侧看，在邮件正文传输完毕后出现超时 - Postfix 会报告 "timed out while sending end of data"。该邮件永远不会出现在您的队列中。</value>
+  </data>
+  <data name="The sends are spread across the hour." xml:space="preserve">
+    <value>发送会分散在这一小时内。</value>
   </data>
   <data name="The sensitive-content condition of a rule looks for card numbers, IBANs and, when a pattern is set here, this organisation's own account numbers." xml:space="preserve">
     <value>规则中的敏感内容条件会查找卡号、IBAN，以及在此设置了模式时本组织自己的账号。</value>
@@ -14437,6 +14467,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Used by" xml:space="preserve">
     <value>使用端口</value>
   </data>
+  <data name="Used by the option above - for example To, CC, X-RCPT-TO or X-Envelope-To." xml:space="preserve">
+    <value>供上一选项使用 - 例如 To、CC、X-RCPT-TO 或 X-Envelope-To。</value>
+  </data>
   <data name="Used for the %d placeholder and for a Negotiate bind (NTLM needs it on a host that is not domain-joined). The server takes this from the account's Windows directory tab; type the same value here." xml:space="preserve">
     <value>用于 %d 占位符和 Negotiate 绑定 (在未加入域的主机上 NTLM 需要它)。服务器从账户的“Windows 目录”选项卡获取此值；请在此输入相同的值。</value>
   </data>
@@ -14593,8 +14626,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Warning s_ubject (empty = the server message)" xml:space="preserve">
     <value>警告主题(_U) (空 = 服务器消息)</value>
   </data>
-  <data name="Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)" xml:space="preserve">
-    <value>警告正文(_X) (空 = 服务器消息；%MACRO_MAILBOX%、%MACRO_QUOTA%、%MACRO_USED%、%MACRO_PERCENT%)</value>
+  <data name="Warning te_xt (empty = the server message)" xml:space="preserve">
+    <value>警告正文(_X)（空 = 服务器消息）</value>
   </data>
   <data name="Watch for alert conditions" xml:space="preserve">
     <value>监视警报情况</value>
@@ -15175,8 +15208,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Action" xml:space="preserve">
     <value>操作(_A)</value>
   </data>
-  <data name="_Active Directory domain (for AD-synchronised domains; optional)" xml:space="preserve">
-    <value>Active Directory 域（用于与 AD 同步的域；可选）(_A)</value>
+  <data name="_Active Directory domain (optional)" xml:space="preserve">
+    <value>Active Directory 域（可选）(_A)</value>
   </data>
   <data name="_Add" xml:space="preserve">
     <value>添加(_A)</value>
@@ -15208,8 +15241,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Add the rule" xml:space="preserve">
     <value>添加规则(_A)</value>
   </data>
-  <data name="_Address (changing it renames the mailbox; it must stay in this domain)" xml:space="preserve">
-    <value>地址(_A)（更改它会重命名邮箱；它必须留在本域内）</value>
+  <data name="_Address" xml:space="preserve">
+    <value>地址(_A)</value>
   </data>
   <data name="_Add…" xml:space="preserve">
     <value>添加(_A)…</value>
@@ -15307,8 +15340,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Copy DNS value" xml:space="preserve">
     <value>复制 DNS 值(_C)</value>
   </data>
-  <data name="_Country policy at sign-in (empty = off; allow:GB,IE or block:CN,RU)" xml:space="preserve">
-    <value>登录时的国家策略（空 = 关闭；allow:GB,IE 或 block:CN,RU）(_C)</value>
+  <data name="_Country policy at sign-in (empty = off)" xml:space="preserve">
+    <value>登录时的国家策略（空 = 关闭）(_C)</value>
   </data>
   <data name="_Create a key…" xml:space="preserve">
     <value>创建密钥(_C)…</value>
@@ -16006,6 +16039,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="alias" xml:space="preserve">
     <value>别名</value>
   </data>
+  <data name="allow:GB,IE or block:CN,RU." xml:space="preserve">
+    <value>allow:GB,IE 或 block:CN,RU。</value>
+  </data>
   <data name="an account Windows did not report" xml:space="preserve">
     <value>一个 Windows 未报告的账户</value>
   </data>
@@ -16576,6 +16612,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="p=none is the right starting point, not an oversight: it makes receivers check and report but deliver as normal. A stricter policy (quarantine or reject) tells every receiver to junk or refuse mail that fails alignment - and until reports show your own mail passing SPF or DKIM, the mail that fails will include yours. Tighten only after the reports say it is safe." xml:space="preserve">
     <value>p=none 是正确的起点，而不是疏漏：它让接收方进行检查并发送报告，但照常投递。更严格的策略（quarantine 或 reject）会告诉每一个接收方把对齐失败的邮件丢进垃圾箱或直接拒收 - 而在报告显示您自己的邮件能通过 SPF 或 DKIM 之前，失败的邮件里就会有您自己的。只有在报告说安全之后再收紧。</value>
+  </data>
+  <data name="partner.example, or .example for the domain and everything beneath it, separated by commas or spaces." xml:space="preserve">
+    <value>partner.example，或 .example 表示该域及其下所有子域；用逗号或空格分隔。</value>
   </data>
   <data name="pattern" xml:space="preserve">
     <value>模式</value>

@@ -638,7 +638,7 @@ namespace hMailServer.ControlPanel.Views
             // that are accounts here (or, with the route option, a route's too),
             // and to this account when it names none (ExternalFetchClientBase).
             new FieldSpec { Prop = "ProcessMIMERecipients", Label = L("Deliver each message to the accounts its headers name (a mailbox shared by several people)"), Kind = FieldKind.Bool, ShowInGrid = false, Default = false },
-            new FieldSpec { Prop = "MIMERecipientHeaders", Label = L("Headers those addresses are read from (needed for the option above; such as To, CC, X-RCPT-TO, X-Envelope-To)"), ShowInGrid = false, Default = "" },
+            new FieldSpec { Prop = "MIMERecipientHeaders", Label = L("Headers those addresses are read from"), Hint = L("Used by the option above - for example To, CC, X-RCPT-TO or X-Envelope-To."), ShowInGrid = false, Default = "" },
             new FieldSpec { Prop = "EnableRouteRecipients", Label = L("Deliver to addresses a route covers as well as to this server's accounts"), Kind = FieldKind.Bool, ShowInGrid = false, Default = false },
             new FieldSpec { Prop = "ProcessMIMEDate", Label = L("Date each message by its Received header rather than by when it was downloaded"), Kind = FieldKind.Bool, ShowInGrid = false, Default = false },
             // IMAP accounts only; the server ignores it for POP3. A migration rather than a

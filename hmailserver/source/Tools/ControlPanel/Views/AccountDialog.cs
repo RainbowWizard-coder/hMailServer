@@ -248,7 +248,7 @@ namespace hMailServer.ControlPanel.Views
          var panel = DialogFields.TabPanel();
          panel.Children.Add(DialogFields.Check(active_));
 
-         addressRow_ = Label(L("_Address (changing it renames the mailbox; it must stay in this domain)"), addressBox_);
+         addressRow_ = Label(L("_Address"), addressBox_).WithHint(L("Changing it renames the mailbox; it must stay in this domain."));
          panel.Children.Add(addressRow_);
 
          // The other half of changing an address, and the one that can do
@@ -554,7 +554,7 @@ namespace hMailServer.ControlPanel.Views
          panel.Children.Add(DialogFields.Note(L("A room or a piece of equipment answers the meeting invitations it is sent by itself, and nobody can sign in as it on any protocol, whatever its password. Its booking policy is set in the Control Deck.")));
          panel.Children.Add(ControlDeckLink.DialogRow());
 
-         panel.Children.Add(Label(L("E_xternal ID (the identity provider's ID for this person; empty = none)"), externalId_));
+         panel.Children.Add(Label(L("E_xternal ID (empty = none)"), externalId_).WithHint(L("The identity provider's ID for this person.")));
          panel.Children.Add(DialogFields.Note(L("What SCIM provisioning matches this account by: at most 255 characters on one line, compared exactly.")));
 
          panel.Children.Add(DialogFields.Check(openPgpPublish_));

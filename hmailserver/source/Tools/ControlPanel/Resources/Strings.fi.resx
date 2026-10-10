@@ -1554,6 +1554,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
     <value>Tili, jolla ei ole täällä roolia, saa sen, minkä sen ylläpitotaso on aina antanut.</value>
   </data>
+  <data name="An account's own value overrides it." xml:space="preserve">
+    <value>Tilin oma arvo ohittaa sen.</value>
+  </data>
   <data name="An action of the rule “{0}”." xml:space="preserve">
     <value>Säännön ”{0}” toiminto.</value>
   </data>
@@ -2481,6 +2484,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Changing it renames the list; its members and settings stay." xml:space="preserve">
     <value>Muutos nimeää listan uudelleen; sen jäsenet ja asetukset säilyvät.</value>
+  </data>
+  <data name="Changing it renames the mailbox; it must stay in this domain." xml:space="preserve">
+    <value>Muuttaminen nimeää postilaatikon uudelleen; osoitteen on pysyttävä tässä verkkotunnuksessa.</value>
   </data>
   <data name="Changing the pepper after accounts exist stops every password stored as an Argon2id or scrypt hash from working, and each such account then needs a new password. PBKDF2 hashes, the default, are not peppered." xml:space="preserve">
     <value>Pepperin vaihtaminen tilien luomisen jälkeen lopettaa jokaisen Argon2id- tai scrypt-tiivisteenä tallennetun salasanan toimimisen, ja jokainen tällainen tili tarvitsee sen jälkeen uuden salasanan. PBKDF2-tiivisteisiin, oletukseen, pepperiä ei käytetä.</value>
@@ -3861,8 +3867,8 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Delete messages" xml:space="preserve">
     <value>Poista viestit</value>
   </data>
-  <data name="Delete messages in this domain's mailboxes _older than (days; 0 = no policy, an account's own value overrides it)" xml:space="preserve">
-    <value>_Poista tämän verkkotunnuksen postilaatikoista viestit, jotka ovat vanhempia kuin (päivää; 0 = ei käytäntöä, tilin oma arvo ohittaa sen)</value>
+  <data name="Delete messages in this domain's mailboxes _older than (days; 0 = no policy)" xml:space="preserve">
+    <value>_Poista tämän verkkotunnuksen postilaatikoista viestit, jotka ovat vanhempia kuin (päivää; 0 = ei käytäntöä)</value>
   </data>
   <data name="Delete messages older than (days)" xml:space="preserve">
     <value>Poista viestit, jotka ovat vanhempia kuin (päivää)</value>
@@ -4348,6 +4354,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Domains and HELO suffixes let past greylisting only when the message passes SPF, DKIM or DMARC as the entry requires." xml:space="preserve">
     <value>Verkkotunnukset ja HELO-päätteet, jotka päästetään harmaalistauksen ohi vain, kun viesti läpäisee SPF:n, DKIM:n tai DMARC:n merkinnän vaatimalla tavalla.</value>
   </data>
+  <data name="Domains whose look-alikes are judged as this server's own are, separated by commas or spaces - ASCII, xn-- for an internationalised name." xml:space="preserve">
+    <value>Verkkotunnukset, joiden kaksoisolennot arvioidaan kuten tämän palvelimen omat, erotettuina pilkuin tai välilyönnein - ASCII, xn-- kansainväliselle nimelle.</value>
+  </data>
   <data name="Domains, accounts, aliases and distribution lists, and each account's passwords, forwarding and folders." xml:space="preserve">
     <value>Verkkotunnukset, tilit, aliakset ja jakelulistat sekä jokaisen tilin salasanat, edelleenlähetys ja kansiot.</value>
   </data>
@@ -4378,8 +4387,8 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="E_rrors" xml:space="preserve">
     <value>Virh_eet</value>
   </data>
-  <data name="E_xternal ID (the identity provider's ID for this person; empty = none)" xml:space="preserve">
-    <value>_Ulkoinen tunnus (henkilön tunnus identiteettipalvelussa; tyhjä = ei mitään)</value>
+  <data name="E_xternal ID (empty = none)" xml:space="preserve">
+    <value>_Ulkoinen tunnus (tyhjä = ei mitään)</value>
   </data>
   <data name="E_xternal to local" xml:space="preserve">
     <value>Ulk_oinen paikalliseen</value>
@@ -5338,6 +5347,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="For a MinIO or Ceph gateway behind a CA of your own. The host name is checked either way." xml:space="preserve">
     <value>Omaan varmentajaan nojaavalle MinIO- tai Ceph-yhdyskäytävälle. Isäntänimi tarkistetaan joka tapauksessa.</value>
   </data>
+  <data name="For a domain synchronised with Active Directory." xml:space="preserve">
+    <value>Active Directoryn kanssa synkronoitavalle verkkotunnukselle.</value>
+  </data>
   <data name="For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed sign-ins, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the allowed and blocked domains still apply. Empty, the default, changes nothing." xml:space="preserve">
     <value>Palveluntarjoajalle, jonka palvelimilla on yhteinen käänteinen nimi ja jonka osoitteet vaihtuvat: yhdistävää osoitetta ei koskaan estetä automaattisesti - epäonnistuneista kirjautumisista, roskapostiansasta tai tyhjästä lähettäjästä - kun jokin sen käänteisistä nimistä on tässä olevan nimen kattama ja osoittaa takaisin osoitteeseen. Mitään muuta ei ohiteta: harmaalistaus, SPF, DKIM, DMARC sekä sallitut ja estetyt verkkotunnukset ovat yhä voimassa. Tyhjä, oletus, ei muuta mitään.</value>
   </data>
@@ -5581,8 +5593,8 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="HS256 is among the allowed signing algorithms but the shared HMAC secret is empty, so HS256 tokens can never verify. Set the shared secret, or remove HS256 from the list." xml:space="preserve">
     <value>HS256 on sallittujen allekirjoitusalgoritmien joukossa, mutta jaettu HMAC-salaisuus on tyhjä, joten HS256-tokeneita ei voi koskaan tarkistaa. Aseta jaettu salaisuus tai poista HS256 luettelosta.</value>
   </data>
-  <data name="HTM_L disclaimer (empty = the plain text, with its line breaks)" xml:space="preserve">
-    <value>Vastuuvapauslauseke HTML-muo_dossa (tyhjä = pelkkä teksti rivinvaihtoineen)</value>
+  <data name="HTM_L disclaimer (empty = the plain text)" xml:space="preserve">
+    <value>Vastuuvapauslauseke HTML-muo_dossa (tyhjä = pelkkä teksti)</value>
   </data>
   <data name="HTTP Basic needs both the user name and the password. Only {0} is set, so Basic authentication is NOT enabled - the server logs this and behaves as if neither were set." xml:space="preserve">
     <value>HTTP Basic tarvitsee sekä käyttäjänimen että salasanan. Vain {0} on asetettu, joten Basic-todennus EI ole käytössä - palvelin kirjaa tämän lokiin ja toimii kuin kumpaakaan ei olisi asetettu.</value>
@@ -5638,8 +5650,8 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Headers of the message from {0}" xml:space="preserve">
     <value>Viestin otsakkeet, lähettäjä {0}</value>
   </data>
-  <data name="Headers those addresses are read from (needed for the option above; such as To, CC, X-RCPT-TO, X-Envelope-To)" xml:space="preserve">
-    <value>Otsakkeet, joista osoitteet luetaan (tarvitaan yllä olevaan valintaan; esimerkiksi To, CC, X-RCPT-TO, X-Envelope-To)</value>
+  <data name="Headers those addresses are read from" xml:space="preserve">
+    <value>Otsakkeet, joista osoitteet luetaan</value>
   </data>
   <data name="Headings" xml:space="preserve">
     <value>Otsikot</value>
@@ -6186,6 +6198,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="It is safe to enable signing." xml:space="preserve">
     <value>Allekirjoituksen voi turvallisesti ottaa käyttöön.</value>
   </data>
+  <data name="It may use %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED% and %MACRO_PERCENT%." xml:space="preserve">
+    <value>Siinä voi käyttää merkintöjä %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED% ja %MACRO_PERCENT%.</value>
+  </data>
   <data name="Its discovery document is read from the issuer followed by /.well-known/openid-configuration." xml:space="preserve">
     <value>Sen discovery-asiakirja luetaan osoitteesta, joka on myöntäjä ja perään /.well-known/openid-configuration.</value>
   </data>
@@ -6371,6 +6386,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="Left Edge" xml:space="preserve">
     <value>Vasen reuna</value>
+  </data>
+  <data name="Left empty, HTML messages carry the plain text with its line breaks." xml:space="preserve">
+    <value>Tyhjänä HTML-viesteissä on pelkkä teksti rivinvaihtoineen.</value>
   </data>
   <data name="Left empty, the server uses the shipped filter, {0} - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile sign-in name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
     <value>Tyhjänä palvelin käyttää mukana toimitettua suodatinta {0} - objectCategory ensin, koska se on indeksoitu Active Directoryssa, ja sAMAccountName, koska sitä tilin Windows-hakemisto-välilehti tallentaa. %u on tilin Active Directory -käyttäjänimi, %d sen AD-toimialue, %m sen koko sähköpostiosoite; kaikki kolme koodataan ennen sijoitusta, joten vihamielinen kirjautumisnimi ei voi kirjoittaa suodatinta uusiksi. Suodatin, joka täsmää useampaan kuin yhteen merkintään, ei todenna ketään, tarkoituksella.</value>
@@ -7360,8 +7378,8 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Name the archive as the backup destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
     <value>Nimeä arkisto niin kuin varmuuskopiokohde sen luettelee (HMBackup YYYY-MM-DD HHMMSS.7z), tai sen polulla kohteen sisällä.</value>
   </data>
-  <data name="Named _domains (partner.example, or .example for the domain and everything beneath it; separated by commas or spaces; empty restricts nothing)" xml:space="preserve">
-    <value>Nimetyt _verkkotunnukset (partner.example, tai .example verkkotunnukselle ja kaikelle sen alla; pilkuin tai välilyönnein eroteltuina; tyhjä ei rajoita mitään)</value>
+  <data name="Named _domains (empty = no restriction)" xml:space="preserve">
+    <value>Nimetyt _verkkotunnukset (tyhjä = ei rajoitusta)</value>
   </data>
   <data name="Names" xml:space="preserve">
     <value>Nimet</value>
@@ -8440,6 +8458,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="One address" xml:space="preserve">
     <value>Yksi osoite</value>
   </data>
+  <data name="One address in a domain this server hosts." xml:space="preserve">
+    <value>Yksi osoite toimialueessa, jota tämä palvelin isännöi.</value>
+  </data>
   <data name="One address of this machine: 127.0.0.1 when the manager runs here, otherwise an address on a management network." xml:space="preserve">
     <value>Yksi tämän koneen osoite: 127.0.0.1, kun hallintapiste toimii täällä, muuten hallintaverkon osoite.</value>
   </data>
@@ -8979,6 +9000,9 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="People may set a recovery address and one-time recovery codes in the webmail, and reset a forgotten password with them. A reset link can be sent only when the server knows its own public address: the base address for messages that expire, the quarantine digest's or the import sign-in's." xml:space="preserve">
     <value>Ihmiset voivat asettaa verkkopostissa palautusosoitteen ja kertakäyttöiset palautuskoodit ja palauttaa niillä unohtuneen salasanan. Palautuslinkki voidaan lähettää vain, kun palvelin tuntee oman julkisen osoitteensa: vanhenevien viestien perusosoitteen, karanteeniyhteenvedon tai kirjautumistuonnin osoitteen.</value>
   </data>
+  <data name="People outside this domain's accounts whose name must not be borrowed, one per line: Name &lt;address&gt;, Name, or address." xml:space="preserve">
+    <value>Tämän verkkotunnuksen tilien ulkopuoliset henkilöt, joiden nimeä ei saa lainata, yksi riviä kohden: Nimi &lt;address&gt;, Nimi tai osoite.</value>
+  </data>
   <data name="Per remote domain: the TLS this server demands in each direction, the size and connections it will attempt, and recipient verification for a domain it backs up." xml:space="preserve">
     <value>Etäverkkotunnuksittain: mitä TLS:ää tämä palvelin vaatii kumpaankin suuntaan, minkä kokoisia viestejä ja montako yhteyttä se yrittää, ja vastaanottajan varmistus verkkotunnukselle, jonka vara-MX se on.</value>
   </data>
@@ -9219,11 +9243,11 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Protect the administrator password" xml:space="preserve">
     <value>Suojaa järjestelmänvalvojan salasana</value>
   </data>
-  <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
-    <value>Suojatut _henkilöt (tämän verkkotunnuksen tilien ulkopuoliset henkilöt, joiden nimeä ei saa lainata; yksi riviä kohden, kukin Nimi &lt;address&gt;, Nimi tai osoite)</value>
+  <data name="Protected _persons" xml:space="preserve">
+    <value>Suojatut _henkilöt</value>
   </data>
-  <data name="Protected pa_rtners (domains whose look-alikes are judged as this server's own are; separated by commas or spaces; ASCII, xn-- for an internationalised name)" xml:space="preserve">
-    <value>Suojatut _kumppanit (verkkotunnukset, joiden kaksoisolennot arvioidaan kuten tämän palvelimen omat; erotettuina pilkuin tai välilyönnein; ASCII, xn-- kansainväliselle nimelle)</value>
+  <data name="Protected pa_rtners" xml:space="preserve">
+    <value>Suojatut _kumppanit</value>
   </data>
   <data name="Protection" xml:space="preserve">
     <value>Suojaus</value>
@@ -10041,8 +10065,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Reply to colleagues _only" xml:space="preserve">
     <value>Vastaa vain k_ollegoille</value>
   </data>
-  <data name="Report _mailbox (one address in a domain this server hosts; empty reads nothing)" xml:space="preserve">
-    <value>_Raporttipostilaatikko (yksi osoite toimialueessa, jota tämä palvelin isännöi; tyhjä ei lue mitään)</value>
+  <data name="Report _mailbox (empty = none)" xml:space="preserve">
+    <value>_Raporttipostilaatikko (tyhjä = ei mitään)</value>
   </data>
   <data name="Report mailbox:" xml:space="preserve">
     <value>Raporttipostilaatikko:</value>
@@ -11190,8 +11214,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Send it as a bearer token:  Authorization: Bearer hmapi_...  to the REST listener configured on the API &amp; monitoring page. The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
     <value>Lähetä se bearer-tokenina:  Authorization: Bearer hmapi_...  API ja valvonta -sivulla määritetylle REST-kuuntelijalle. Myös järjestelmänvalvojan salasana toimii, ja se on rajoittamaton, mikä on syy suosia avainta: avain voi olla vain luku -tilassa, rajattu nimettyihin verkkotunnuksiin, rajattu yhteen lähdeosoitteeseen, sille voi antaa vanhenemisajan, ja sen voi kumota muuttamatta mitään muuta.</value>
   </data>
-  <data name="Send it during this _hour of the local day (0 to 23; the sends are spread across the hour)" xml:space="preserve">
-    <value>Lähetä paikallisen vuorokauden tänä tu_ntina (0–23; lähetykset jaetaan tunnin ajalle)</value>
+  <data name="Send it during this _hour of the local day (0 to 23)" xml:space="preserve">
+    <value>Lähetä paikallisen vuorokauden tänä tu_ntina (0–23)</value>
   </data>
   <data name="Send it unencrypted and log it" xml:space="preserve">
     <value>Lähetä salaamattomana ja kirjaa lokiin</value>
@@ -12210,8 +12234,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Tag outbound envelope senders with BATV and validate returning bounces" xml:space="preserve">
     <value>Merkitse lähtevät kuoren lähettäjät BATV:llä ja vahvista palaavat palautukset</value>
   </data>
-  <data name="Tag te_xt (empty = [EXTERNAL], at most 100 characters)" xml:space="preserve">
-    <value>Merkintäte_ksti (tyhjä = [EXTERNAL], enintään 100 merkkiä)</value>
+  <data name="Tag te_xt (up to 100 characters; empty = [EXTERNAL])" xml:space="preserve">
+    <value>Merkintäte_ksti (enintään 100 merkkiä; tyhjä = [EXTERNAL])</value>
   </data>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>Merkintä ja vastuuvapauslauseke</value>
@@ -13054,6 +13078,9 @@ ei voitu ladata. Viesti on todennäköisesti toimitettu eikä ole enää jonossa
   <data name="The id ({0}, generated just now) is yours to choose - any value is correct. Its only job is to change whenever the policy changes, so caches refetch." xml:space="preserve">
     <value>Tunniste ({0}, juuri luotu) on sinun valittavissasi - mikä tahansa arvo on oikein. Sen ainoa tehtävä on muuttua aina, kun käytäntö muuttuu, jotta välimuistit noutavat sen uudelleen.</value>
   </data>
+  <data name="The identity provider's ID for this person." xml:space="preserve">
+    <value>Henkilön tunnus identiteettipalvelussa.</value>
+  </data>
   <data name="The index has been emptied and the indexer asked to rebuild it. The rebuild runs in the background, in passes bounded by the limits above, so on a large mailstore it will take several passes - IMAP SEARCH finds less than it should until it finishes." xml:space="preserve">
     <value>Indeksi on tyhjennetty ja indeksoijaa on pyydetty rakentamaan se uudelleen. Uudelleenrakennus ajetaan taustalla yllä olevien rajojen rajaamina kierroksina, joten suurella postivarastolla siihen menee useita kierroksia - IMAP SEARCH löytää vähemmän kuin pitäisi, kunnes se valmistuu.</value>
   </data>
@@ -13520,6 +13547,9 @@ Lisätäänkö silti?</value>
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>Lähettävä palvelin yhdistää, lähettää viestin ja sitten odottaa. Sen puolelta näet aikakatkaisun sen jälkeen, kun viestin runko on siirretty - Postfix raportoi "timed out while sending end of data". Viesti ei koskaan ilmesty jonoosi.</value>
+  </data>
+  <data name="The sends are spread across the hour." xml:space="preserve">
+    <value>Lähetykset jaetaan tunnin ajalle.</value>
   </data>
   <data name="The sensitive-content condition of a rule looks for card numbers, IBANs and, when a pattern is set here, this organisation's own account numbers." xml:space="preserve">
     <value>Säännön arkaluonteisen sisällön ehto etsii korttinumeroita, IBAN-numeroita ja, kun malli on asetettu tähän, tämän organisaation omia tilinumeroita.</value>
@@ -14437,6 +14467,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="Used by" xml:space="preserve">
     <value>Käyttävät portit</value>
   </data>
+  <data name="Used by the option above - for example To, CC, X-RCPT-TO or X-Envelope-To." xml:space="preserve">
+    <value>Yllä oleva valinta käyttää näitä - esimerkiksi To, CC, X-RCPT-TO tai X-Envelope-To.</value>
+  </data>
   <data name="Used for the %d placeholder and for a Negotiate bind (NTLM needs it on a host that is not domain-joined). The server takes this from the account's Windows directory tab; type the same value here." xml:space="preserve">
     <value>Käytetään %d-paikkamerkkiin ja Negotiate-sidontaan (NTLM tarvitsee sitä koneella, jota ei ole liitetty toimialueeseen). Palvelin ottaa tämän tilin Windows-hakemisto-välilehdeltä; kirjoita tähän sama arvo.</value>
   </data>
@@ -14593,8 +14626,8 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="Warning s_ubject (empty = the server message)" xml:space="preserve">
     <value>Varoit_uksen aihe (tyhjä = palvelinviesti)</value>
   </data>
-  <data name="Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)" xml:space="preserve">
-    <value>V_aroituksen teksti (tyhjä = palvelinviesti; %MACROMAILBOX%, %MACROQUOTA%, %MACROUSED%, %MACROPERCENT%)</value>
+  <data name="Warning te_xt (empty = the server message)" xml:space="preserve">
+    <value>V_aroituksen teksti (tyhjä = palvelinviesti)</value>
   </data>
   <data name="Watch for alert conditions" xml:space="preserve">
     <value>Valvo hälytysehtoja</value>
@@ -15175,8 +15208,8 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="_Action" xml:space="preserve">
     <value>T_oiminto</value>
   </data>
-  <data name="_Active Directory domain (for AD-synchronised domains; optional)" xml:space="preserve">
-    <value>_Active Directory -toimialue (AD-synkronoiduille verkkotunnuksille; valinnainen)</value>
+  <data name="_Active Directory domain (optional)" xml:space="preserve">
+    <value>_Active Directory -toimialue (valinnainen)</value>
   </data>
   <data name="_Add" xml:space="preserve">
     <value>_Lisää</value>
@@ -15208,8 +15241,8 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="_Add the rule" xml:space="preserve">
     <value>_Lisää sääntö</value>
   </data>
-  <data name="_Address (changing it renames the mailbox; it must stay in this domain)" xml:space="preserve">
-    <value>_Osoite (muuttaminen nimeää postilaatikon uudelleen; sen on pysyttävä tässä verkkotunnuksessa)</value>
+  <data name="_Address" xml:space="preserve">
+    <value>_Osoite</value>
   </data>
   <data name="_Add…" xml:space="preserve">
     <value>_Lisää…</value>
@@ -15307,8 +15340,8 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="_Copy DNS value" xml:space="preserve">
     <value>_Kopioi DNS-arvo</value>
   </data>
-  <data name="_Country policy at sign-in (empty = off; allow:GB,IE or block:CN,RU)" xml:space="preserve">
-    <value>_Maakäytäntö kirjautuessa (tyhjä = pois; allow:GB,IE tai block:CN,RU)</value>
+  <data name="_Country policy at sign-in (empty = off)" xml:space="preserve">
+    <value>_Maakäytäntö kirjautuessa (tyhjä = pois)</value>
   </data>
   <data name="_Create a key…" xml:space="preserve">
     <value>_Luo avain…</value>
@@ -16006,6 +16039,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="alias" xml:space="preserve">
     <value>alias</value>
   </data>
+  <data name="allow:GB,IE or block:CN,RU." xml:space="preserve">
+    <value>allow:GB,IE tai block:CN,RU.</value>
+  </data>
   <data name="an account Windows did not report" xml:space="preserve">
     <value>tili, jota Windows ei raportoinut</value>
   </data>
@@ -16576,6 +16612,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="p=none is the right starting point, not an oversight: it makes receivers check and report but deliver as normal. A stricter policy (quarantine or reject) tells every receiver to junk or refuse mail that fails alignment - and until reports show your own mail passing SPF or DKIM, the mail that fails will include yours. Tighten only after the reports say it is safe." xml:space="preserve">
     <value>p=none on oikea lähtökohta, ei unohdus: se saa vastaanottajat tarkistamaan ja raportoimaan, mutta toimittamaan normaalisti. Tiukempi käytäntö (quarantine tai reject) käskee jokaista vastaanottajaa roskaamaan tai hylkäämään postin, joka epäonnistuu kohdistuksessa - ja kunnes raportit näyttävät oman postisi läpäisevän SPF:n tai DKIM:n, epäonnistuva posti sisältää sinun postisi. Tiukenna vasta, kun raportit sanovat sen olevan turvallista.</value>
+  </data>
+  <data name="partner.example, or .example for the domain and everything beneath it, separated by commas or spaces." xml:space="preserve">
+    <value>partner.example, tai .example verkkotunnukselle ja kaikelle sen alla, pilkuin tai välilyönnein eroteltuina.</value>
   </data>
   <data name="pattern" xml:space="preserve">
     <value>kuvio</value>

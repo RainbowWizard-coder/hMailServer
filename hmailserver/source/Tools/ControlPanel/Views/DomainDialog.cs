@@ -270,7 +270,7 @@ namespace hMailServer.ControlPanel.Views
          adBrowse.Click += BrowseAdDomain;
          Grid.SetColumn(adBrowse, 1);
          adRow.Children.Add(adBrowse);
-         panel.Children.Add(DialogFields.Field(L("_Active Directory domain (for AD-synchronised domains; optional)"), adRow));
+         panel.Children.Add(DialogFields.Field(L("_Active Directory domain (optional)"), adRow, L("For a domain synchronised with Active Directory.")));
          return DialogFields.Scroll(panel);
       }
 
@@ -369,7 +369,7 @@ namespace hMailServer.ControlPanel.Views
          var panel = DialogFields.TabPanel();
          panel.Children.Add(DialogFields.Note(L("One message to each account of this domain that has something newly held for it, listing what was held with a link that delivers it. A link works once and stops working after the hours set on the Quarantine page, which is also where the address the links point at is set - without that address nothing is sent. An empty digest is never sent, and each message says how to stop it.")));
          panel.Children.Add(DialogFields.Check(digestOn_));
-         digestHourRow_ = Label(L("Send it during this _hour of the local day (0 to 23; the sends are spread across the hour)"), digestHour_);
+         digestHourRow_ = Label(L("Send it during this _hour of the local day (0 to 23)"), digestHour_).WithHint(L("The sends are spread across the hour."));
          panel.Children.Add(digestHourRow_);
          DialogFields.EnabledBy(digestOn_, digestHourRow_);
          return DialogFields.Scroll(panel);
@@ -380,7 +380,7 @@ namespace hMailServer.ControlPanel.Views
          var panel = DialogFields.TabPanel();
          panel.Children.Add(DialogFields.Note(L("The DMARC aggregate reports and the TLS-RPT reports that the receivers of this domain's mail send back are read from one address of the domain's, and the Control Deck charts who sends as the domain and with what result. Publish the address as rua=mailto: in the domain's _dmarc and _smtp._tls TXT records. Make the account or alias at it yourself; the server does not, and with no address named nothing is read.")));
          panel.Children.Add(ControlDeckLink.DialogRow());
-         panel.Children.Add(Label(L("Report _mailbox (one address in a domain this server hosts; empty reads nothing)"), reportMailbox_));
+         panel.Children.Add(Label(L("Report _mailbox (empty = none)"), reportMailbox_).WithHint(L("One address in a domain this server hosts.")));
          return DialogFields.Scroll(panel);
       }
 
@@ -400,7 +400,8 @@ namespace hMailServer.ControlPanel.Views
       {
          var panel = DialogFields.TabPanel();
          panel.Children.Add(DialogFields.Note(L("Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted. An alias or a distribution list of this domain that reaches outside is yours, and a restricted account may write to it.")));
-         panel.Children.Add(Label(L("Named _domains (partner.example, or .example for the domain and everything beneath it; separated by commas or spaces; empty restricts nothing)"), restrictedDomains_));
+         panel.Children.Add(Label(L("Named _domains (empty = no restriction)"), restrictedDomains_)
+            .WithHint(L("partner.example, or .example for the domain and everything beneath it, separated by commas or spaces.")));
          return DialogFields.Scroll(panel);
       }
 
@@ -408,7 +409,7 @@ namespace hMailServer.ControlPanel.Views
       {
          var panel = DialogFields.TabPanel();
          panel.Children.Add(DialogFields.Note(L("Who may sign in to an account of this domain, by the country a MaxMind database places the address in: on every protocol, after the server's own policies for connecting, which are on the Auto-ban page with the database file. Nothing is judged until that file is set. A refused sign-in gets the ordinary wrong-password answer and is not counted against the account or the address.")));
-         panel.Children.Add(Label(L("_Country policy at sign-in (empty = off; allow:GB,IE or block:CN,RU)"), countryPolicy_));
+         panel.Children.Add(Label(L("_Country policy at sign-in (empty = off)"), countryPolicy_).WithHint(L("allow:GB,IE or block:CN,RU.")));
          return DialogFields.Scroll(panel);
       }
 
@@ -443,8 +444,10 @@ namespace hMailServer.ControlPanel.Views
          impersonationAction_.Items.Add(DialogFields.Combo(L("Flag: add a header the reader sees as a warning"), 1));
          impersonationAction_.Items.Add(DialogFields.Combo(L("Quarantine: hold the copy until it is released"), 2));
          panel.Children.Add(Label(L("_Action"), impersonationAction_));
-         panel.Children.Add(Label(L("Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name <address>, Name, or address)"), protectedPersons_));
-         panel.Children.Add(Label(L("Protected pa_rtners (domains whose look-alikes are judged as this server's own are; separated by commas or spaces; ASCII, xn-- for an internationalised name)"), protectedPartners_));
+         panel.Children.Add(Label(L("Protected _persons"), protectedPersons_)
+            .WithHint(L("People outside this domain's accounts whose name must not be borrowed, one per line: Name <address>, Name, or address.")));
+         panel.Children.Add(Label(L("Protected pa_rtners"), protectedPartners_)
+            .WithHint(L("Domains whose look-alikes are judged as this server's own are, separated by commas or spaces - ASCII, xn-- for an internationalised name.")));
          return DialogFields.Scroll(panel);
       }
 
@@ -457,7 +460,7 @@ namespace hMailServer.ControlPanel.Views
          panel.Children.Add(maxMessageSizeRow_);
          maxAccountSizeRow_ = Label(L("Maximum size for _accounts created in this domain (MB; 0 = no limit)"), maxAccountSize_);
          panel.Children.Add(maxAccountSizeRow_);
-         retentionRow_ = Label(L("Delete messages in this domain's mailboxes _older than (days; 0 = no policy, an account's own value overrides it)"), retentionDays_);
+         retentionRow_ = Label(L("Delete messages in this domain's mailboxes _older than (days; 0 = no policy)"), retentionDays_).WithHint(L("An account's own value overrides it."));
          panel.Children.Add(retentionRow_);
          panel.Children.Add(DialogFields.Separator());
 
@@ -465,7 +468,8 @@ namespace hMailServer.ControlPanel.Views
          quotaWarnAtRow_ = Label(L("_Warn the owner at (% of the limit; -1 = the server's, 0 = never)"), quotaWarnAt_);
          panel.Children.Add(quotaWarnAtRow_);
          panel.Children.Add(Label(L("Warning s_ubject (empty = the server message)"), quotaSubject_));
-         panel.Children.Add(Label(L("Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)"), quotaText_));
+         panel.Children.Add(Label(L("Warning te_xt (empty = the server message)"), quotaText_)
+            .WithHint(L("It may use %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED% and %MACRO_PERCENT%.")));
          quotaGraceRow_ = Label(L("Still accept incoming mail past the limit _by (% of it; -1 = the server's, 0 = not at all)"), quotaGrace_);
          panel.Children.Add(quotaGraceRow_);
          quotaStopAtRow_ = Label(L("Stop sending at (% of the limit; -1 = the server's, 0 = ne_ver)"), quotaStopAt_);
@@ -586,7 +590,7 @@ namespace hMailServer.ControlPanel.Views
          panel.Children.Add(DialogFields.Separator());
          panel.Children.Add(DialogFields.Check(tagSubject_));
          panel.Children.Add(DialogFields.Note(L("The subject tag breaks any DKIM signature the sender made over their subject, exactly as the anti-spam subject prefix does. The header does not, so prefer the header where the reader can show it.")));
-         tagTextRow_ = Label(L("Tag te_xt (empty = [EXTERNAL], at most 100 characters)"), tagText_);
+         tagTextRow_ = Label(L("Tag te_xt (up to 100 characters; empty = [EXTERNAL])"), tagText_);
          panel.Children.Add(tagTextRow_);
          // The text tags the subject; the banner header does not carry it (ExternalSenderTagger).
          DialogFields.EnabledBy(tagSubject_, tagTextRow_);
@@ -599,7 +603,8 @@ namespace hMailServer.ControlPanel.Views
          panel.Children.Add(DialogFields.Note(L("Added once, to mail with at least one recipient outside this server. Never to a signed or encrypted message, an automatic reply, a bounce or a list posting, and never a second time to a reply that already quotes it.")));
          FieldRow disclaimerPlainRow = Label(L("_Plain-text disclaimer"), disclaimerPlain_);
          panel.Children.Add(disclaimerPlainRow);
-         FieldRow disclaimerHtmlRow = Label(L("HTM_L disclaimer (empty = the plain text, with its line breaks)"), disclaimerHtml_);
+         FieldRow disclaimerHtmlRow = Label(L("HTM_L disclaimer (empty = the plain text)"), disclaimerHtml_)
+            .WithHint(L("Left empty, HTML messages carry the plain text with its line breaks."));
          panel.Children.Add(disclaimerHtmlRow);
          DialogFields.EnabledBy(disclaimerOn_, disclaimerPlainRow, disclaimerHtmlRow);
          return DialogFields.Scroll(panel);
