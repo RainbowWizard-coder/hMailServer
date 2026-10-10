@@ -8602,7 +8602,7 @@ Es werden keine neuen Verbindungen angenommen und keine Mail zugestellt, bis er 
     <value>Regel entfe_rnen</value>
   </data>
   <data name="Re_move the sample domain" xml:space="preserve">
-    <value>Beispieldo_mäne entfernen</value>
+    <value>Beispieldo_main entfernen</value>
   </data>
   <data name="Re_voke / restore" xml:space="preserve">
     <value>Wi_derrufen / wiederherstellen</value>
