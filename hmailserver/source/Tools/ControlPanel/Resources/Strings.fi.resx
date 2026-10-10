@@ -1284,9 +1284,6 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Administrator menu" xml:space="preserve">
     <value>Järjestelmänvalvojan valikko</value>
   </data>
-  <data name="Administrator or key contains" xml:space="preserve">
-    <value>Ylläpitäjä tai avain sisältää</value>
-  </data>
   <data name="Administrator password" xml:space="preserve">
     <value>Ylläpitäjän salasana</value>
   </data>
@@ -2746,6 +2743,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Collector port" xml:space="preserve">
     <value>Keräimen portti</value>
   </data>
+  <data name="Command line" xml:space="preserve">
+    <value>Komentorivi</value>
+  </data>
   <data name="Command line (use %FILE% for the scanned file)" xml:space="preserve">
     <value>Komentorivi (käytä %FILE%-merkintää tarkistettavalle tiedostolle)</value>
   </data>
@@ -2884,8 +2884,14 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Contacting {0}…" xml:space="preserve">
     <value>Otetaan yhteyttä kohteeseen {0}…</value>
   </data>
+  <data name="Control Deck" xml:space="preserve">
+    <value>Control Deck</value>
+  </data>
   <data name="Control Panel" xml:space="preserve">
     <value>Control Panel</value>
+  </data>
+  <data name="Control Panel or script" xml:space="preserve">
+    <value>Control Panel tai komentosarja</value>
   </data>
   <data name="Copied" xml:space="preserve">
     <value>Kopioitu</value>
@@ -4153,6 +4159,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Distinct terms per message before it is always scanned instead (64-1000000)" xml:space="preserve">
     <value>Erillisiä termejä viestissä, ennen kuin se aina sen sijaan skannataan (64-1000000)</value>
   </data>
+  <data name="Distribution list" xml:space="preserve">
+    <value>Jakelulista</value>
+  </data>
   <data name="Distribution list - {0}" xml:space="preserve">
     <value>Jakelulista - {0}</value>
   </data>
@@ -4203,6 +4212,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Domain administrator" xml:space="preserve">
     <value>Verkkotunnuksen järjestelmänvalvoja</value>
+  </data>
+  <data name="Domain alias" xml:space="preserve">
+    <value>Verkkotunnuksen alias</value>
   </data>
   <data name="Domain aliases" xml:space="preserve">
     <value>Verkkotunnuksen aliakset</value>
@@ -5872,6 +5884,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Include the client IP in the X-AuthUser header" xml:space="preserve">
     <value>Sisällytä asiakkaan IP X-AuthUser-otsakkeeseen</value>
   </data>
+  <data name="Incoming relay" xml:space="preserve">
+    <value>Saapuva välityspalvelin</value>
+  </data>
   <data name="Incoming relays" xml:space="preserve">
     <value>Saapuvat välityspalvelimet</value>
   </data>
@@ -7366,6 +7381,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="No certificates yet, so no port can offer TLS. Add one from PEM files below, or let ACME issue one." xml:space="preserve">
     <value>Ei vielä varmenteita, joten mikään portti ei voi tarjota TLS:ää. Lisää varmenne alla PEM-tiedostoista tai anna ACME:n myöntää se.</value>
   </data>
+  <data name="No change in the audit trail has &quot;{0}&quot; in who made it, what it was made to, its interface or its detail." xml:space="preserve">
+    <value>Missään tarkastuslokin muutoksessa ei ole "{0}" tekijässä, kohteessa, rajapinnassa eikä yksityiskohdissa.</value>
+  </data>
   <data name="No configuration warnings." xml:space="preserve">
     <value>Ei määritysvaroituksia.</value>
   </data>
@@ -8596,6 +8614,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Page content" xml:space="preserve">
     <value>Sivun sisältö</value>
   </data>
+  <data name="Page {0} of {1}" xml:space="preserve">
+    <value>Sivu {0}/{1}</value>
+  </data>
   <data name="Pages" xml:space="preserve">
     <value>Sivut</value>
   </data>
@@ -8649,6 +8670,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="Password pepper" xml:space="preserve">
     <value>Salasanapepper</value>
+  </data>
+  <data name="Password reset" xml:space="preserve">
+    <value>Salasanan nollaus</value>
   </data>
   <data name="Password storage" xml:space="preserve">
     <value>Salasanojen tallennus</value>
@@ -9051,6 +9075,9 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Put the message dated {0} in {1} back into the mailbox of {2}?" xml:space="preserve">
     <value>Palautetaanko kansion {1} viesti, päivätty {0}, tilin {2} postilaatikkoon?</value>
   </data>
+  <data name="Put {0} back from &quot;{1}&quot; to &quot;{2}&quot;? The put-back is recorded as a change of its own." xml:space="preserve">
+    <value>Palautetaanko {0} arvosta "{1}" arvoon "{2}"? Palautus kirjataan omana muutoksenaan.</value>
+  </data>
   <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
     <value>Palautetaanko {0} arvoon, joka sillä oli ennen tätä muutosta? Palautus kirjataan omana muutoksenaan.</value>
   </data>
@@ -9086,6 +9113,9 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   </data>
   <data name="READ THIS FIRST: IMAP, POP3 and SMTP have no way to change a password, and the self-service portal refuses an expired one at sign-in like every other surface. An expired password is therefore renewed by an administrator - or by the person themselves only if they hold an app password, which still signs them in to the portal, where the expired password is accepted as the current one when setting a new one. Turning this on means someone has to be available for everybody else. Existing app passwords keep working, which is also the one way an affected person can still collect mail; Active Directory accounts are exempt, because their password lives in the directory and expires by its policy, not this one. The clock started when this server was upgraded, so nobody is expired the moment you set this." xml:space="preserve">
     <value>LUE TÄMÄ ENSIN: IMAP, POP3 ja SMTP eivät tarjoa mitään tapaa vaihtaa salasanaa, ja itsepalveluportaali hylkää vanhentuneen salasanan kirjautumisessa kuten kaikki muutkin rajapinnat. Vanhentuneen salasanan uusii siksi järjestelmänvalvoja - tai henkilö itse, mutta vain jos hänellä on sovellussalasana, jolla hän pääsee edelleen kirjautumaan portaaliin, jossa vanhentunut salasana hyväksytään nykyiseksi uutta asetettaessa. Tämän kytkeminen päälle tarkoittaa, että jonkun on oltava tavoitettavissa kaikkia muita varten. Olemassa olevat sovellussalasanat toimivat edelleen, mikä on myös ainoa tapa, jolla asianosainen voi yhä noutaa postia; Active Directory -tilit ovat vapautettuja, koska niiden salasana asuu hakemistossa ja vanhenee sen käytännön mukaan, ei tämän. Kello käynnistyi, kun tämä palvelin päivitettiin, joten kukaan ei ole vanhentunut sillä hetkellä, kun asetat tämän.</value>
+  </data>
+  <data name="REST API" xml:space="preserve">
+    <value>REST API</value>
   </data>
   <data name="REST API keys" xml:space="preserve">
     <value>REST API -avaimet</value>
@@ -9996,6 +10026,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Role" xml:space="preserve">
     <value>Rooli</value>
   </data>
+  <data name="Role assignment" xml:space="preserve">
+    <value>Roolin myöntäminen</value>
+  </data>
   <data name="Roles" xml:space="preserve">
     <value>Roolit</value>
   </data>
@@ -10010,6 +10043,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)" xml:space="preserve">
     <value>Kierrätä istuntolipun avain N sekunnin välein (0 = OpenSSL:n yksi kiertämätön avain)</value>
+  </data>
+  <data name="Route" xml:space="preserve">
+    <value>Reitti</value>
   </data>
   <data name="Route - {0}" xml:space="preserve">
     <value>Reitti - {0}</value>
@@ -10223,6 +10259,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="SSL c_ertificate (required for SSL/TLS and STARTTLS)" xml:space="preserve">
     <value>SSL-_varmenne (pakollinen SSL/TLS:lle ja STARTTLS:lle)</value>
+  </data>
+  <data name="SSL certificate" xml:space="preserve">
+    <value>SSL-varmenne</value>
   </data>
   <data name="SSL certificates" xml:space="preserve">
     <value>SSL-varmenteet</value>
@@ -10452,6 +10491,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Scheduled backups" xml:space="preserve">
     <value>Ajoitetut varmuuskopiot</value>
   </data>
+  <data name="Scheduled task" xml:space="preserve">
+    <value>Ajoitettu tehtävä</value>
+  </data>
   <data name="Schema" xml:space="preserve">
     <value>Skeema</value>
   </data>
@@ -10644,6 +10686,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Search this list" xml:space="preserve">
     <value>Hae tästä luettelosta</value>
   </data>
+  <data name="Search who, what, interface or detail" xml:space="preserve">
+    <value>Hae tekijää, kohdetta, rajapintaa tai yksityiskohtia</value>
+  </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>Hae, tai sano mitä haluat tehdä - "pysäytä roskaposti", "estä IP"</value>
   </data>
@@ -10652,6 +10697,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Searches" xml:space="preserve">
     <value>Haut</value>
+  </data>
+  <data name="Searching the audit trail…" xml:space="preserve">
+    <value>Tarkastuslokia haetaan…</value>
   </data>
   <data name="Searching {0}…" xml:space="preserve">
     <value>Haetaan kohteesta {0}…</value>
@@ -10781,6 +10829,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Selector name for the new DKIM key" xml:space="preserve">
     <value>Uuden DKIM-avaimen valitsimen nimi</value>
+  </data>
+  <data name="Self-service portal" xml:space="preserve">
+    <value>Itsepalveluportaali</value>
   </data>
   <data name="Send Web Push notifications" xml:space="preserve">
     <value>Lähetä Web Push -ilmoituksia</value>
@@ -11027,6 +11078,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Service restarted - settings are live." xml:space="preserve">
     <value>Palvelu käynnistetty uudelleen - asetukset ovat voimassa.</value>
+  </data>
+  <data name="Service start" xml:space="preserve">
+    <value>Palvelun käynnistys</value>
   </data>
   <data name="ServiceDomain {0}, and is shown here rather than offered for editing because the server reads the key and then never uses it: the service credential binds with ServiceUsername and ServicePassword alone. Put the domain in the user name instead (DOMAIN\name or a UPN)." xml:space="preserve">
     <value>ServiceDomain {0}, ja se näytetään täällä muokattavaksi tarjoamisen sijaan, koska palvelin lukee avaimen eikä koskaan käytä sitä: palvelun tunnistetiedot sidotaan pelkästään arvoilla ServiceUsername ja ServicePassword. Laita toimialue sen sijaan käyttäjänimeen (DOMAIN\name tai UPN).</value>
@@ -11384,6 +11438,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>Pehmeät palautukset ikkunan sisällä, ennen kuin jäsen ei enää saa postia (1–100)</value>
+  </data>
+  <data name="Software update" xml:space="preserve">
+    <value>Ohjelmistopäivitys</value>
   </data>
   <data name="Some values could not be read, so the cards below may be incomplete. The first reason: {0}" xml:space="preserve">
     <value>Joitakin arvoja ei voitu lukea, joten alla olevat kortit voivat olla puutteellisia. Ensimmäinen syy: {0}</value>
@@ -13046,6 +13103,9 @@ Lisätäänkö silti?</value>
   </data>
   <data name="The search found exactly one entry: {0}." xml:space="preserve">
     <value>Haku löysi täsmälleen yhden merkinnän: {0}.</value>
+  </data>
+  <data name="The search looks at the {0} most recent changes of the {1} in the trail." xml:space="preserve">
+    <value>Haku käy läpi {0} uusinta muutosta lokin {1} muutoksesta.</value>
   </data>
   <data name="The search matched MORE than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make UserSearchFilter or SearchBase select exactly one entry." xml:space="preserve">
     <value>Haku vastasi USEAMPAA kuin yhtä hakemistomerkintää (suodatin {0}, juuri {1}). Palvelin kieltäytyy todentamasta moniselitteistä osumaa vastaan - muuta UserSearchFilter tai SearchBase valitsemaan täsmälleen yksi merkintä.</value>

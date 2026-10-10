@@ -1284,9 +1284,6 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Administrator menu" xml:space="preserve">
     <value>Administratörsmeny</value>
   </data>
-  <data name="Administrator or key contains" xml:space="preserve">
-    <value>Administratör eller nyckel innehåller</value>
-  </data>
   <data name="Administrator password" xml:space="preserve">
     <value>Administratörslösenord</value>
   </data>
@@ -2746,6 +2743,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Collector port" xml:space="preserve">
     <value>Insamlarport</value>
   </data>
+  <data name="Command line" xml:space="preserve">
+    <value>Kommandorad</value>
+  </data>
   <data name="Command line (use %FILE% for the scanned file)" xml:space="preserve">
     <value>Kommandorad (använd %FILE% för filen som skannas)</value>
   </data>
@@ -2884,8 +2884,14 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Contacting {0}…" xml:space="preserve">
     <value>Kontaktar {0}…</value>
   </data>
+  <data name="Control Deck" xml:space="preserve">
+    <value>Control Deck</value>
+  </data>
   <data name="Control Panel" xml:space="preserve">
     <value>Kontrollpanel</value>
+  </data>
+  <data name="Control Panel or script" xml:space="preserve">
+    <value>Kontrollpanel eller skript</value>
   </data>
   <data name="Copied" xml:space="preserve">
     <value>Kopierat</value>
@@ -4153,6 +4159,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Distinct terms per message before it is always scanned instead (64-1000000)" xml:space="preserve">
     <value>Unika termer per meddelande innan det alltid skannas i stället (64-1000000)</value>
   </data>
+  <data name="Distribution list" xml:space="preserve">
+    <value>Distributionslista</value>
+  </data>
   <data name="Distribution list - {0}" xml:space="preserve">
     <value>Distributionslista - {0}</value>
   </data>
@@ -4203,6 +4212,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Domain administrator" xml:space="preserve">
     <value>Domänadministratör</value>
+  </data>
+  <data name="Domain alias" xml:space="preserve">
+    <value>Domänalias</value>
   </data>
   <data name="Domain aliases" xml:space="preserve">
     <value>Domänalias</value>
@@ -5872,6 +5884,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Include the client IP in the X-AuthUser header" xml:space="preserve">
     <value>Ta med klientens IP i X-AuthUser-rubriken</value>
   </data>
+  <data name="Incoming relay" xml:space="preserve">
+    <value>Inkommande relä</value>
+  </data>
   <data name="Incoming relays" xml:space="preserve">
     <value>Inkommande reläer</value>
   </data>
@@ -7366,6 +7381,9 @@ Inget som redan finns där tas bort.</value>
   <data name="No certificates yet, so no port can offer TLS. Add one from PEM files below, or let ACME issue one." xml:space="preserve">
     <value>Inga certifikat än, så ingen port kan erbjuda TLS. Lägg till ett från PEM-filer nedan, eller låt ACME utfärda ett.</value>
   </data>
+  <data name="No change in the audit trail has &quot;{0}&quot; in who made it, what it was made to, its interface or its detail." xml:space="preserve">
+    <value>Ingen ändring i granskningsloggen har ”{0}” i vem som gjorde den, vad den gjordes på, gränssnittet eller detaljen.</value>
+  </data>
   <data name="No configuration warnings." xml:space="preserve">
     <value>Inga konfigurationsvarningar.</value>
   </data>
@@ -8596,6 +8614,9 @@ Inget som redan finns där tas bort.</value>
   <data name="Page content" xml:space="preserve">
     <value>Sidinnehåll</value>
   </data>
+  <data name="Page {0} of {1}" xml:space="preserve">
+    <value>Sida {0} av {1}</value>
+  </data>
   <data name="Pages" xml:space="preserve">
     <value>Sidor</value>
   </data>
@@ -8649,6 +8670,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="Password pepper" xml:space="preserve">
     <value>Lösenordspeppar</value>
+  </data>
+  <data name="Password reset" xml:space="preserve">
+    <value>Återställning av lösenord</value>
   </data>
   <data name="Password storage" xml:space="preserve">
     <value>Lösenordslagring</value>
@@ -9051,6 +9075,9 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="Put the message dated {0} in {1} back into the mailbox of {2}?" xml:space="preserve">
     <value>Lägga tillbaka meddelandet daterat {0} från mappen {1} i brevlådan för {2}?</value>
   </data>
+  <data name="Put {0} back from &quot;{1}&quot; to &quot;{2}&quot;? The put-back is recorded as a change of its own." xml:space="preserve">
+    <value>Sätta tillbaka {0} från ”{1}” till ”{2}”? Tillbakasättningen registreras som en egen ändring.</value>
+  </data>
   <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
     <value>Sätta tillbaka {0} till värdet den hade före den här ändringen? Tillbakasättningen registreras som en egen ändring.</value>
   </data>
@@ -9086,6 +9113,9 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   </data>
   <data name="READ THIS FIRST: IMAP, POP3 and SMTP have no way to change a password, and the self-service portal refuses an expired one at sign-in like every other surface. An expired password is therefore renewed by an administrator - or by the person themselves only if they hold an app password, which still signs them in to the portal, where the expired password is accepted as the current one when setting a new one. Turning this on means someone has to be available for everybody else. Existing app passwords keep working, which is also the one way an affected person can still collect mail; Active Directory accounts are exempt, because their password lives in the directory and expires by its policy, not this one. The clock started when this server was upgraded, so nobody is expired the moment you set this." xml:space="preserve">
     <value>LÄS DETTA FÖRST: IMAP, POP3 och SMTP har inget sätt att byta ett lösenord, och självbetjäningsportalen avvisar ett utgånget lösenord vid inloggning precis som alla andra ingångar. Ett utgånget lösenord förnyas därför av en administratör - eller av personen själv, men bara om denne har ett applösenord, som fortfarande ger inloggning på portalen, där det utgångna lösenordet godtas som det nuvarande när ett nytt sätts. Att slå på detta betyder att någon måste finnas tillgänglig för alla andra. Befintliga applösenord fortsätter att fungera, vilket också är det enda sättet en drabbad person fortfarande kan hämta post; Active Directory-konton är undantagna, eftersom deras lösenord finns i katalogen och går ut enligt dess policy, inte den här. Klockan började gå när den här servern uppgraderades, så ingen är utgången i samma stund du sätter detta.</value>
+  </data>
+  <data name="REST API" xml:space="preserve">
+    <value>REST API</value>
   </data>
   <data name="REST API keys" xml:space="preserve">
     <value>REST API-nycklar</value>
@@ -9996,6 +10026,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Role" xml:space="preserve">
     <value>Roll</value>
   </data>
+  <data name="Role assignment" xml:space="preserve">
+    <value>Rolltilldelning</value>
+  </data>
   <data name="Roles" xml:space="preserve">
     <value>Roller</value>
   </data>
@@ -10010,6 +10043,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)" xml:space="preserve">
     <value>Rotera sessionsbiljettnyckeln var N:e sekund (0 = OpenSSL:s enda icke-roterande nyckel)</value>
+  </data>
+  <data name="Route" xml:space="preserve">
+    <value>Rutt</value>
   </data>
   <data name="Route - {0}" xml:space="preserve">
     <value>Rutt - {0}</value>
@@ -10223,6 +10259,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="SSL c_ertificate (required for SSL/TLS and STARTTLS)" xml:space="preserve">
     <value>SSL-c_ertifikat (krävs för SSL/TLS och STARTTLS)</value>
+  </data>
+  <data name="SSL certificate" xml:space="preserve">
+    <value>SSL-certifikat</value>
   </data>
   <data name="SSL certificates" xml:space="preserve">
     <value>SSL-certifikat</value>
@@ -10452,6 +10491,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Scheduled backups" xml:space="preserve">
     <value>Schemalagda säkerhetskopieringar</value>
   </data>
+  <data name="Scheduled task" xml:space="preserve">
+    <value>Schemalagd uppgift</value>
+  </data>
   <data name="Schema" xml:space="preserve">
     <value>Schema</value>
   </data>
@@ -10644,6 +10686,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Search this list" xml:space="preserve">
     <value>Sök i den här listan</value>
   </data>
+  <data name="Search who, what, interface or detail" xml:space="preserve">
+    <value>Sök vem, vad, gränssnitt eller detalj</value>
+  </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>Sök, eller säg vad du vill göra - "stoppa skräppost", "blockera en IP"</value>
   </data>
@@ -10652,6 +10697,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Searches" xml:space="preserve">
     <value>Sökningar</value>
+  </data>
+  <data name="Searching the audit trail…" xml:space="preserve">
+    <value>Söker i granskningsloggen…</value>
   </data>
   <data name="Searching {0}…" xml:space="preserve">
     <value>Söker i {0}…</value>
@@ -10781,6 +10829,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Selector name for the new DKIM key" xml:space="preserve">
     <value>Selektornamn för den nya DKIM-nyckeln</value>
+  </data>
+  <data name="Self-service portal" xml:space="preserve">
+    <value>Självbetjäningsportal</value>
   </data>
   <data name="Send Web Push notifications" xml:space="preserve">
     <value>Skicka Web Push-aviseringar</value>
@@ -11027,6 +11078,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Service restarted - settings are live." xml:space="preserve">
     <value>Tjänsten omstartad - inställningarna är i drift.</value>
+  </data>
+  <data name="Service start" xml:space="preserve">
+    <value>Start av tjänsten</value>
   </data>
   <data name="ServiceDomain {0}, and is shown here rather than offered for editing because the server reads the key and then never uses it: the service credential binds with ServiceUsername and ServicePassword alone. Put the domain in the user name instead (DOMAIN\name or a UPN)." xml:space="preserve">
     <value>ServiceDomain {0}, och visas här snarare än erbjuds för redigering eftersom servern läser nyckeln och sedan aldrig använder den: tjänsteuppgiften binder enbart med ServiceUsername och ServicePassword. Sätt domänen i användarnamnet i stället (DOMÄN\namn eller ett UPN).</value>
@@ -11384,6 +11438,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>Mjuka studsar inom fönstret innan en medlem inte längre får post (1 till 100)</value>
+  </data>
+  <data name="Software update" xml:space="preserve">
+    <value>Programuppdatering</value>
   </data>
   <data name="Some values could not be read, so the cards below may be incomplete. The first reason: {0}" xml:space="preserve">
     <value>Vissa värden kunde inte läsas, så korten nedan kan vara ofullständiga. Den första orsaken: {0}</value>
@@ -13046,6 +13103,9 @@ Lägg till det ändå?</value>
   </data>
   <data name="The search found exactly one entry: {0}." xml:space="preserve">
     <value>Sökningen hittade exakt en post: {0}.</value>
+  </data>
+  <data name="The search looks at the {0} most recent changes of the {1} in the trail." xml:space="preserve">
+    <value>Sökningen tittar på de {0} senaste ändringarna av de {1} i loggen.</value>
   </data>
   <data name="The search matched MORE than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make UserSearchFilter or SearchBase select exactly one entry." xml:space="preserve">
     <value>Sökningen matchade MER än en katalogpost (filter {0}, bas {1}). Servern vägrar autentisera mot en tvetydig träff - få UserSearchFilter eller SearchBase att välja exakt en post.</value>

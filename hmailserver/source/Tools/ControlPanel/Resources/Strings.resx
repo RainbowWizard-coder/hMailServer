@@ -1284,9 +1284,6 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Administrator menu" xml:space="preserve">
     <value>Administrator menu</value>
   </data>
-  <data name="Administrator or key contains" xml:space="preserve">
-    <value>Administrator or key contains</value>
-  </data>
   <data name="Administrator password" xml:space="preserve">
     <value>Administrator password</value>
   </data>
@@ -2746,6 +2743,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Collector port" xml:space="preserve">
     <value>Collector port</value>
   </data>
+  <data name="Command line" xml:space="preserve">
+    <value>Command line</value>
+  </data>
   <data name="Command line (use %FILE% for the scanned file)" xml:space="preserve">
     <value>Command line (use %FILE% for the scanned file)</value>
   </data>
@@ -2884,8 +2884,14 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Contacting {0}…" xml:space="preserve">
     <value>Contacting {0}…</value>
   </data>
+  <data name="Control Deck" xml:space="preserve">
+    <value>Control Deck</value>
+  </data>
   <data name="Control Panel" xml:space="preserve">
     <value>Control Panel</value>
+  </data>
+  <data name="Control Panel or script" xml:space="preserve">
+    <value>Control Panel or script</value>
   </data>
   <data name="Copied" xml:space="preserve">
     <value>Copied</value>
@@ -4153,6 +4159,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Distinct terms per message before it is always scanned instead (64-1000000)" xml:space="preserve">
     <value>Distinct terms per message before it is always scanned instead (64-1000000)</value>
   </data>
+  <data name="Distribution list" xml:space="preserve">
+    <value>Distribution list</value>
+  </data>
   <data name="Distribution list - {0}" xml:space="preserve">
     <value>Distribution list - {0}</value>
   </data>
@@ -4203,6 +4212,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Domain administrator" xml:space="preserve">
     <value>Domain administrator</value>
+  </data>
+  <data name="Domain alias" xml:space="preserve">
+    <value>Domain alias</value>
   </data>
   <data name="Domain aliases" xml:space="preserve">
     <value>Domain aliases</value>
@@ -5872,6 +5884,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Include the client IP in the X-AuthUser header" xml:space="preserve">
     <value>Include the client IP in the X-AuthUser header</value>
   </data>
+  <data name="Incoming relay" xml:space="preserve">
+    <value>Incoming relay</value>
+  </data>
   <data name="Incoming relays" xml:space="preserve">
     <value>Incoming relays</value>
   </data>
@@ -7366,6 +7381,9 @@ Nothing already there is removed.</value>
   <data name="No certificates yet, so no port can offer TLS. Add one from PEM files below, or let ACME issue one." xml:space="preserve">
     <value>No certificates yet, so no port can offer TLS. Add one from PEM files below, or let ACME issue one.</value>
   </data>
+  <data name="No change in the audit trail has &quot;{0}&quot; in who made it, what it was made to, its interface or its detail." xml:space="preserve">
+    <value>No change in the audit trail has "{0}" in who made it, what it was made to, its interface or its detail.</value>
+  </data>
   <data name="No configuration warnings." xml:space="preserve">
     <value>No configuration warnings.</value>
   </data>
@@ -8596,6 +8614,9 @@ Nothing already there is removed.</value>
   <data name="Page content" xml:space="preserve">
     <value>Page content</value>
   </data>
+  <data name="Page {0} of {1}" xml:space="preserve">
+    <value>Page {0} of {1}</value>
+  </data>
   <data name="Pages" xml:space="preserve">
     <value>Pages</value>
   </data>
@@ -8649,6 +8670,9 @@ Nothing already there is removed.</value>
   </data>
   <data name="Password pepper" xml:space="preserve">
     <value>Password pepper</value>
+  </data>
+  <data name="Password reset" xml:space="preserve">
+    <value>Password reset</value>
   </data>
   <data name="Password storage" xml:space="preserve">
     <value>Password storage</value>
@@ -9051,6 +9075,9 @@ No new connections will be accepted and no mail will be delivered until it is re
   <data name="Put the message dated {0} in {1} back into the mailbox of {2}?" xml:space="preserve">
     <value>Put the message dated {0} in {1} back into the mailbox of {2}?</value>
   </data>
+  <data name="Put {0} back from &quot;{1}&quot; to &quot;{2}&quot;? The put-back is recorded as a change of its own." xml:space="preserve">
+    <value>Put {0} back from "{1}" to "{2}"? The put-back is recorded as a change of its own.</value>
+  </data>
   <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
     <value>Put {0} back to the value it had before this change? The put-back is recorded as a change of its own.</value>
   </data>
@@ -9086,6 +9113,9 @@ No new connections will be accepted and no mail will be delivered until it is re
   </data>
   <data name="READ THIS FIRST: IMAP, POP3 and SMTP have no way to change a password, and the self-service portal refuses an expired one at sign-in like every other surface. An expired password is therefore renewed by an administrator - or by the person themselves only if they hold an app password, which still signs them in to the portal, where the expired password is accepted as the current one when setting a new one. Turning this on means someone has to be available for everybody else. Existing app passwords keep working, which is also the one way an affected person can still collect mail; Active Directory accounts are exempt, because their password lives in the directory and expires by its policy, not this one. The clock started when this server was upgraded, so nobody is expired the moment you set this." xml:space="preserve">
     <value>READ THIS FIRST: IMAP, POP3 and SMTP have no way to change a password, and the self-service portal refuses an expired one at sign-in like every other surface. An expired password is therefore renewed by an administrator - or by the person themselves only if they hold an app password, which still signs them in to the portal, where the expired password is accepted as the current one when setting a new one. Turning this on means someone has to be available for everybody else. Existing app passwords keep working, which is also the one way an affected person can still collect mail; Active Directory accounts are exempt, because their password lives in the directory and expires by its policy, not this one. The clock started when this server was upgraded, so nobody is expired the moment you set this.</value>
+  </data>
+  <data name="REST API" xml:space="preserve">
+    <value>REST API</value>
   </data>
   <data name="REST API keys" xml:space="preserve">
     <value>REST API keys</value>
@@ -9996,6 +10026,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Role" xml:space="preserve">
     <value>Role</value>
   </data>
+  <data name="Role assignment" xml:space="preserve">
+    <value>Role assignment</value>
+  </data>
   <data name="Roles" xml:space="preserve">
     <value>Roles</value>
   </data>
@@ -10010,6 +10043,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   </data>
   <data name="Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)" xml:space="preserve">
     <value>Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)</value>
+  </data>
+  <data name="Route" xml:space="preserve">
+    <value>Route</value>
   </data>
   <data name="Route - {0}" xml:space="preserve">
     <value>Route - {0}</value>
@@ -10223,6 +10259,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   </data>
   <data name="SSL c_ertificate (required for SSL/TLS and STARTTLS)" xml:space="preserve">
     <value>SSL c_ertificate (required for SSL/TLS and STARTTLS)</value>
+  </data>
+  <data name="SSL certificate" xml:space="preserve">
+    <value>SSL certificate</value>
   </data>
   <data name="SSL certificates" xml:space="preserve">
     <value>SSL certificates</value>
@@ -10452,6 +10491,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Scheduled backups" xml:space="preserve">
     <value>Scheduled backups</value>
   </data>
+  <data name="Scheduled task" xml:space="preserve">
+    <value>Scheduled task</value>
+  </data>
   <data name="Schema" xml:space="preserve">
     <value>Schema</value>
   </data>
@@ -10644,6 +10686,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Search this list" xml:space="preserve">
     <value>Search this list</value>
   </data>
+  <data name="Search who, what, interface or detail" xml:space="preserve">
+    <value>Search who, what, interface or detail</value>
+  </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>Search, or say what you want to do - "stop spam", "block an IP"</value>
   </data>
@@ -10652,6 +10697,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   </data>
   <data name="Searches" xml:space="preserve">
     <value>Searches</value>
+  </data>
+  <data name="Searching the audit trail…" xml:space="preserve">
+    <value>Searching the audit trail…</value>
   </data>
   <data name="Searching {0}…" xml:space="preserve">
     <value>Searching {0}…</value>
@@ -10781,6 +10829,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   </data>
   <data name="Selector name for the new DKIM key" xml:space="preserve">
     <value>Selector name for the new DKIM key</value>
+  </data>
+  <data name="Self-service portal" xml:space="preserve">
+    <value>Self-service portal</value>
   </data>
   <data name="Send Web Push notifications" xml:space="preserve">
     <value>Send Web Push notifications</value>
@@ -11027,6 +11078,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   </data>
   <data name="Service restarted - settings are live." xml:space="preserve">
     <value>Service restarted - settings are live.</value>
+  </data>
+  <data name="Service start" xml:space="preserve">
+    <value>Service start</value>
   </data>
   <data name="ServiceDomain {0}, and is shown here rather than offered for editing because the server reads the key and then never uses it: the service credential binds with ServiceUsername and ServicePassword alone. Put the domain in the user name instead (DOMAIN\name or a UPN)." xml:space="preserve">
     <value>ServiceDomain {0}, and is shown here rather than offered for editing because the server reads the key and then never uses it: the service credential binds with ServiceUsername and ServicePassword alone. Put the domain in the user name instead (DOMAIN\name or a UPN).</value>
@@ -11384,6 +11438,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   </data>
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>Soft bounces within the window before a member is no longer sent mail (1 to 100)</value>
+  </data>
+  <data name="Software update" xml:space="preserve">
+    <value>Software update</value>
   </data>
   <data name="Some values could not be read, so the cards below may be incomplete. The first reason: {0}" xml:space="preserve">
     <value>Some values could not be read, so the cards below may be incomplete. The first reason: {0}</value>
@@ -13046,6 +13103,9 @@ Add it anyway?</value>
   </data>
   <data name="The search found exactly one entry: {0}." xml:space="preserve">
     <value>The search found exactly one entry: {0}.</value>
+  </data>
+  <data name="The search looks at the {0} most recent changes of the {1} in the trail." xml:space="preserve">
+    <value>The search looks at the {0} most recent changes of the {1} in the trail.</value>
   </data>
   <data name="The search matched MORE than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make UserSearchFilter or SearchBase select exactly one entry." xml:space="preserve">
     <value>The search matched MORE than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make UserSearchFilter or SearchBase select exactly one entry.</value>

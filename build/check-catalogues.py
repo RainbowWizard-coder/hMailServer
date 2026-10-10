@@ -226,7 +226,7 @@ OTHER_SCRIPTS = {"ja", "zh-Hans", "ru", "uk"}
 # Japanese, Chinese, Russian and Ukrainian keyboard, and are named so in the
 # shortcut lists of those languages' own software.
 SAME_IN_EVERY_SCRIPT = {
-   "Azure Blob Storage", "NCSA Common Log Format", "Control Panel", "hMailServer Control Panel",
+   "Azure Blob Storage", "NCSA Common Log Format", "Control Panel", "hMailServer Control Panel", "Control Deck",
    "Relaxed", "Simple", "Sieve", "Expunge", "Web  ", "OK",
    "Del", "Enter", "Esc", "Ins",
 }

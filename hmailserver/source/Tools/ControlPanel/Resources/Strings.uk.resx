@@ -1290,9 +1290,6 @@
   <data name="Administrator menu" xml:space="preserve">
     <value>Меню адміністратора</value>
   </data>
-  <data name="Administrator or key contains" xml:space="preserve">
-    <value>Адміністратор або ключ містить</value>
-  </data>
   <data name="Administrator password" xml:space="preserve">
     <value>Пароль адміністратора</value>
   </data>
@@ -2770,6 +2767,9 @@
   <data name="Collector port" xml:space="preserve">
     <value>Порт збирача</value>
   </data>
+  <data name="Command line" xml:space="preserve">
+    <value>Командний рядок</value>
+  </data>
   <data name="Command line (use %FILE% for the scanned file)" xml:space="preserve">
     <value>Командний рядок (використовуйте %FILE% для файлу, що сканується)</value>
   </data>
@@ -2908,8 +2908,14 @@
   <data name="Contacting {0}…" xml:space="preserve">
     <value>Звернення до {0}…</value>
   </data>
+  <data name="Control Deck" xml:space="preserve">
+    <value>Control Deck</value>
+  </data>
   <data name="Control Panel" xml:space="preserve">
     <value>Панель керування</value>
+  </data>
+  <data name="Control Panel or script" xml:space="preserve">
+    <value>Панель керування або сценарій</value>
   </data>
   <data name="Copied" xml:space="preserve">
     <value>Скопійовано</value>
@@ -4205,6 +4211,9 @@
   <data name="Distinct terms per message before it is always scanned instead (64-1000000)" xml:space="preserve">
     <value>Різних термінів у повідомленні, після чого воно завжди скануватиметься (64-1000000)</value>
   </data>
+  <data name="Distribution list" xml:space="preserve">
+    <value>Список розсилки</value>
+  </data>
   <data name="Distribution list - {0}" xml:space="preserve">
     <value>Список розсилки - {0}</value>
   </data>
@@ -4255,6 +4264,9 @@
   </data>
   <data name="Domain administrator" xml:space="preserve">
     <value>Адміністратор домену</value>
+  </data>
+  <data name="Domain alias" xml:space="preserve">
+    <value>Псевдонім домену</value>
   </data>
   <data name="Domain aliases" xml:space="preserve">
     <value>Псевдоніми домену</value>
@@ -5945,6 +5957,9 @@
   <data name="Include the client IP in the X-AuthUser header" xml:space="preserve">
     <value>Включати IP клієнта до заголовка X-AuthUser</value>
   </data>
+  <data name="Incoming relay" xml:space="preserve">
+    <value>Вхідний ретранслятор</value>
+  </data>
   <data name="Incoming relays" xml:space="preserve">
     <value>Вхідні ретранслятори</value>
   </data>
@@ -7448,6 +7463,9 @@
   <data name="No certificates yet, so no port can offer TLS. Add one from PEM files below, or let ACME issue one." xml:space="preserve">
     <value>Сертифікатів ще немає, тому жоден порт не може запропонувати TLS. Додайте сертифікат із файлів PEM нижче або дозвольте ACME його видати.</value>
   </data>
+  <data name="No change in the audit trail has &quot;{0}&quot; in who made it, what it was made to, its interface or its detail." xml:space="preserve">
+    <value>Жодна зміна в журналі аудиту не містить «{0}» у тому, хто її вніс, чого вона стосується, в інтерфейсі чи в подробицях.</value>
+  </data>
   <data name="No configuration warnings." xml:space="preserve">
     <value>Попереджень щодо конфігурації немає.</value>
   </data>
@@ -8696,6 +8714,9 @@
   <data name="Page content" xml:space="preserve">
     <value>Вміст сторінки</value>
   </data>
+  <data name="Page {0} of {1}" xml:space="preserve">
+    <value>Сторінка {0} з {1}</value>
+  </data>
   <data name="Pages" xml:space="preserve">
     <value>Сторінки</value>
   </data>
@@ -8749,6 +8770,9 @@
   </data>
   <data name="Password pepper" xml:space="preserve">
     <value>«Перець» паролів</value>
+  </data>
+  <data name="Password reset" xml:space="preserve">
+    <value>Скидання пароля</value>
   </data>
   <data name="Password storage" xml:space="preserve">
     <value>Зберігання паролів</value>
@@ -9151,6 +9175,9 @@
   <data name="Put the message dated {0} in {1} back into the mailbox of {2}?" xml:space="preserve">
     <value>Повернути повідомлення від {0} з теки {1} до скриньки {2}?</value>
   </data>
+  <data name="Put {0} back from &quot;{1}&quot; to &quot;{2}&quot;? The put-back is recorded as a change of its own." xml:space="preserve">
+    <value>Повернути {0} з «{1}» на «{2}»? Повернення записується як окрема зміна.</value>
+  </data>
   <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
     <value>Повернути {0} до значення до цієї зміни? Повернення записується як окрема зміна.</value>
   </data>
@@ -9186,6 +9213,9 @@
   </data>
   <data name="READ THIS FIRST: IMAP, POP3 and SMTP have no way to change a password, and the self-service portal refuses an expired one at sign-in like every other surface. An expired password is therefore renewed by an administrator - or by the person themselves only if they hold an app password, which still signs them in to the portal, where the expired password is accepted as the current one when setting a new one. Turning this on means someone has to be available for everybody else. Existing app passwords keep working, which is also the one way an affected person can still collect mail; Active Directory accounts are exempt, because their password lives in the directory and expires by its policy, not this one. The clock started when this server was upgraded, so nobody is expired the moment you set this." xml:space="preserve">
     <value>СПЕРШУ ПРОЧИТАЙТЕ ЦЕ: в IMAP, POP3 і SMTP немає способу змінити пароль, а портал самообслуговування відхиляє прострочений пароль під час входу, як і будь-який інший інтерфейс. Тому прострочений пароль оновлює адміністратор — або сама людина, але лише якщо в неї є пароль програми: з ним усе ще можна увійти на портал, де під час встановлення нового пароля прострочений приймається як поточний. Увімкнення означає, що хтось має бути доступний для всіх інших. Наявні паролі програм працюють далі — це до того ж єдиний спосіб, яким постраждала людина ще може забирати пошту; облікові записи Active Directory виняток, бо їхній пароль живе в каталозі та спливає за його політикою, а не за цією. Відлік почався з оновлення цього сервера, тому в момент, коли ви це задаєте, ні в кого термін не минув.</value>
+  </data>
+  <data name="REST API" xml:space="preserve">
+    <value>REST API</value>
   </data>
   <data name="REST API keys" xml:space="preserve">
     <value>Ключі REST API</value>
@@ -10111,6 +10141,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Role" xml:space="preserve">
     <value>Роль</value>
   </data>
+  <data name="Role assignment" xml:space="preserve">
+    <value>Призначення ролі</value>
+  </data>
   <data name="Roles" xml:space="preserve">
     <value>Ролі</value>
   </data>
@@ -10125,6 +10158,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)" xml:space="preserve">
     <value>Змінювати ключ квитків сеансу кожні N секунд (0 = єдиний незмінний ключ OpenSSL)</value>
+  </data>
+  <data name="Route" xml:space="preserve">
+    <value>Маршрут</value>
   </data>
   <data name="Route - {0}" xml:space="preserve">
     <value>Маршрут — {0}</value>
@@ -10338,6 +10374,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="SSL c_ertificate (required for SSL/TLS and STARTTLS)" xml:space="preserve">
     <value>Сертифікат _SSL (потрібен для SSL/TLS і STARTTLS)</value>
+  </data>
+  <data name="SSL certificate" xml:space="preserve">
+    <value>Сертифікат SSL</value>
   </data>
   <data name="SSL certificates" xml:space="preserve">
     <value>Сертифікати SSL</value>
@@ -10588,6 +10627,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Scheduled backups" xml:space="preserve">
     <value>Заплановані резервні копії</value>
   </data>
+  <data name="Scheduled task" xml:space="preserve">
+    <value>Заплановане завдання</value>
+  </data>
   <data name="Schema" xml:space="preserve">
     <value>Схема</value>
   </data>
@@ -10780,6 +10822,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Search this list" xml:space="preserve">
     <value>Пошук у цьому списку</value>
   </data>
+  <data name="Search who, what, interface or detail" xml:space="preserve">
+    <value>Хто, що, інтерфейс або подробиці</value>
+  </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>Шукайте або скажіть, що хочете зробити - «зупинити спам», «заблокувати IP»</value>
   </data>
@@ -10788,6 +10833,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Searches" xml:space="preserve">
     <value>Пошуки</value>
+  </data>
+  <data name="Searching the audit trail…" xml:space="preserve">
+    <value>Пошук у журналі аудиту…</value>
   </data>
   <data name="Searching {0}…" xml:space="preserve">
     <value>Пошук у {0}…</value>
@@ -10917,6 +10965,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Selector name for the new DKIM key" xml:space="preserve">
     <value>Ім'я селектора для нового ключа DKIM</value>
+  </data>
+  <data name="Self-service portal" xml:space="preserve">
+    <value>Портал самообслуговування</value>
   </data>
   <data name="Send Web Push notifications" xml:space="preserve">
     <value>Надсилати сповіщення Web Push</value>
@@ -11166,6 +11217,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Service restarted - settings are live." xml:space="preserve">
     <value>Службу перезапущено - параметри діють.</value>
+  </data>
+  <data name="Service start" xml:space="preserve">
+    <value>Запуск служби</value>
   </data>
   <data name="ServiceDomain {0}, and is shown here rather than offered for editing because the server reads the key and then never uses it: the service credential binds with ServiceUsername and ServicePassword alone. Put the domain in the user name instead (DOMAIN\name or a UPN)." xml:space="preserve">
     <value>ServiceDomain {0}, і показується тут, а не пропонується до редагування, бо сервер читає ключ, а потім ніколи його не використовує: облікові дані служби прив'язуються лише за ServiceUsername і ServicePassword. Натомість вкажіть домен в імені користувача (DOMAIN\name або UPN).</value>
@@ -11526,6 +11580,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>Тимчасові відмови у вікні, після яких учасник перестає отримувати пошту (від 1 до 100)</value>
+  </data>
+  <data name="Software update" xml:space="preserve">
+    <value>Оновлення програми</value>
   </data>
   <data name="Some values could not be read, so the cards below may be incomplete. The first reason: {0}" xml:space="preserve">
     <value>Деякі значення не вдалося прочитати, тому картки нижче можуть бути неповними. Перша причина: {0}</value>
@@ -13224,6 +13281,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The search found exactly one entry: {0}." xml:space="preserve">
     <value>Пошук знайшов рівно один запис: {0}.</value>
+  </data>
+  <data name="The search looks at the {0} most recent changes of the {1} in the trail." xml:space="preserve">
+    <value>Пошук переглядає {0} найновіших змін із {1} у журналі.</value>
   </data>
   <data name="The search matched MORE than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make UserSearchFilter or SearchBase select exactly one entry." xml:space="preserve">
     <value>Пошук знайшов БІЛЬШЕ ніж один запис каталогу (фільтр {0}, база {1}). Сервер відмовляється автентифікувати за неоднозначним збігом - зробіть так, щоб UserSearchFilter або SearchBase вибирали рівно один запис.</value>

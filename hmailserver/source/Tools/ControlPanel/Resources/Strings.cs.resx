@@ -1290,9 +1290,6 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Administrator menu" xml:space="preserve">
     <value>Nabídka správce</value>
   </data>
-  <data name="Administrator or key contains" xml:space="preserve">
-    <value>Správce nebo klíč obsahuje</value>
-  </data>
   <data name="Administrator password" xml:space="preserve">
     <value>Heslo správce</value>
   </data>
@@ -2770,6 +2767,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Collector port" xml:space="preserve">
     <value>Port sběrače</value>
   </data>
+  <data name="Command line" xml:space="preserve">
+    <value>Příkazový řádek</value>
+  </data>
   <data name="Command line (use %FILE% for the scanned file)" xml:space="preserve">
     <value>Příkazový řádek (pro kontrolovaný soubor použijte %FILE%)</value>
   </data>
@@ -2908,8 +2908,14 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Contacting {0}…" xml:space="preserve">
     <value>Navazuje se spojení s {0}…</value>
   </data>
+  <data name="Control Deck" xml:space="preserve">
+    <value>Control Deck</value>
+  </data>
   <data name="Control Panel" xml:space="preserve">
     <value>Control Panel</value>
+  </data>
+  <data name="Control Panel or script" xml:space="preserve">
+    <value>Control Panel nebo skript</value>
   </data>
   <data name="Copied" xml:space="preserve">
     <value>Zkopírováno</value>
@@ -4205,6 +4211,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Distinct terms per message before it is always scanned instead (64-1000000)" xml:space="preserve">
     <value>Odlišných termů na zprávu, než se místo toho vždy skenuje (64-1000000)</value>
   </data>
+  <data name="Distribution list" xml:space="preserve">
+    <value>Distribuční seznam</value>
+  </data>
   <data name="Distribution list - {0}" xml:space="preserve">
     <value>Distribuční seznam - {0}</value>
   </data>
@@ -4255,6 +4264,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Domain administrator" xml:space="preserve">
     <value>Správce domény</value>
+  </data>
+  <data name="Domain alias" xml:space="preserve">
+    <value>Alias domény</value>
   </data>
   <data name="Domain aliases" xml:space="preserve">
     <value>Aliasy domény</value>
@@ -5945,6 +5957,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Include the client IP in the X-AuthUser header" xml:space="preserve">
     <value>Zahrnout IP klienta do hlavičky X-AuthUser</value>
   </data>
+  <data name="Incoming relay" xml:space="preserve">
+    <value>Příchozí relay</value>
+  </data>
   <data name="Incoming relays" xml:space="preserve">
     <value>Příchozí relaye</value>
   </data>
@@ -7448,6 +7463,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No certificates yet, so no port can offer TLS. Add one from PEM files below, or let ACME issue one." xml:space="preserve">
     <value>Zatím žádné certifikáty, takže žádný port nemůže nabídnout TLS. Přidejte certifikát ze souborů PEM níže, nebo jej nechte vystavit přes ACME.</value>
   </data>
+  <data name="No change in the audit trail has &quot;{0}&quot; in who made it, what it was made to, its interface or its detail." xml:space="preserve">
+    <value>Žádná změna v auditním záznamu nemá „{0}“ v tom, kdo ji provedl, čeho se týkala, jejím rozhraní ani podrobnostech.</value>
+  </data>
   <data name="No configuration warnings." xml:space="preserve">
     <value>Žádná varování ke konfiguraci.</value>
   </data>
@@ -8696,6 +8714,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Page content" xml:space="preserve">
     <value>Obsah stránky</value>
   </data>
+  <data name="Page {0} of {1}" xml:space="preserve">
+    <value>Stránka {0} z {1}</value>
+  </data>
   <data name="Pages" xml:space="preserve">
     <value>Stránky</value>
   </data>
@@ -8749,6 +8770,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Password pepper" xml:space="preserve">
     <value>Pepper hesel</value>
+  </data>
+  <data name="Password reset" xml:space="preserve">
+    <value>Obnovení hesla</value>
   </data>
   <data name="Password storage" xml:space="preserve">
     <value>Ukládání hesel</value>
@@ -9151,6 +9175,9 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Put the message dated {0} in {1} back into the mailbox of {2}?" xml:space="preserve">
     <value>Vrátit zprávu z {0} ze složky {1} do schránky {2}?</value>
   </data>
+  <data name="Put {0} back from &quot;{1}&quot; to &quot;{2}&quot;? The put-back is recorded as a change of its own." xml:space="preserve">
+    <value>Vrátit {0} z „{1}“ na „{2}“? Vrácení se zaznamená jako samostatná změna.</value>
+  </data>
   <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
     <value>Vrátit {0} na hodnotu před touto změnou? Vrácení se zaznamená jako samostatná změna.</value>
   </data>
@@ -9186,6 +9213,9 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   </data>
   <data name="READ THIS FIRST: IMAP, POP3 and SMTP have no way to change a password, and the self-service portal refuses an expired one at sign-in like every other surface. An expired password is therefore renewed by an administrator - or by the person themselves only if they hold an app password, which still signs them in to the portal, where the expired password is accepted as the current one when setting a new one. Turning this on means someone has to be available for everybody else. Existing app passwords keep working, which is also the one way an affected person can still collect mail; Active Directory accounts are exempt, because their password lives in the directory and expires by its policy, not this one. The clock started when this server was upgraded, so nobody is expired the moment you set this." xml:space="preserve">
     <value>NEJPRVE SI PŘEČTĚTE: IMAP, POP3 ani SMTP nemají žádný způsob, jak změnit heslo, a samoobslužný portál heslo s vypršelou platností při přihlášení odmítne stejně jako každé jiné rozhraní. Heslo s vypršelou platností proto obnovuje správce – nebo sám dotyčný člověk, ale jen pokud má heslo aplikace, které ho do portálu stále přihlásí, a tam se při nastavování nového hesla heslo s vypršelou platností přijme jako současné. Zapnutí této volby znamená, že někdo musí být k dispozici pro všechny ostatní. Existující hesla aplikací fungují dál, což je zároveň jediný způsob, jak si postižený člověk může stále vyzvednout poštu; účty Active Directory jsou vyňaty, protože jejich heslo žije v adresáři a vyprší podle jeho politiky, ne podle této. Hodiny se rozběhly při upgradu tohoto serveru, takže v okamžiku nastavení nikomu platnost nevypršela.</value>
+  </data>
+  <data name="REST API" xml:space="preserve">
+    <value>REST API</value>
   </data>
   <data name="REST API keys" xml:space="preserve">
     <value>Klíče REST API</value>
@@ -10111,6 +10141,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Role" xml:space="preserve">
     <value>Role</value>
   </data>
+  <data name="Role assignment" xml:space="preserve">
+    <value>Přiřazení role</value>
+  </data>
   <data name="Roles" xml:space="preserve">
     <value>Role</value>
   </data>
@@ -10125,6 +10158,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)" xml:space="preserve">
     <value>Rotovat klíč pro session tickety každých N sekund (0 = jediný nerotující klíč OpenSSL)</value>
+  </data>
+  <data name="Route" xml:space="preserve">
+    <value>Trasa</value>
   </data>
   <data name="Route - {0}" xml:space="preserve">
     <value>Trasa – {0}</value>
@@ -10338,6 +10374,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="SSL c_ertificate (required for SSL/TLS and STARTTLS)" xml:space="preserve">
     <value>SSL c_ertifikát (vyžadován pro SSL/TLS a STARTTLS)</value>
+  </data>
+  <data name="SSL certificate" xml:space="preserve">
+    <value>Certifikát SSL</value>
   </data>
   <data name="SSL certificates" xml:space="preserve">
     <value>Certifikáty SSL</value>
@@ -10588,6 +10627,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Scheduled backups" xml:space="preserve">
     <value>Plánované zálohy</value>
   </data>
+  <data name="Scheduled task" xml:space="preserve">
+    <value>Naplánovaná úloha</value>
+  </data>
   <data name="Schema" xml:space="preserve">
     <value>Schéma</value>
   </data>
@@ -10780,6 +10822,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Search this list" xml:space="preserve">
     <value>Hledat v tomto seznamu</value>
   </data>
+  <data name="Search who, what, interface or detail" xml:space="preserve">
+    <value>Hledat kdo, co, rozhraní nebo podrobnosti</value>
+  </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>Hledejte, nebo napište, co chcete udělat – „zastavit spam“, „zablokovat IP“</value>
   </data>
@@ -10788,6 +10833,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Searches" xml:space="preserve">
     <value>Hledání</value>
+  </data>
+  <data name="Searching the audit trail…" xml:space="preserve">
+    <value>Prohledává se auditní záznam…</value>
   </data>
   <data name="Searching {0}…" xml:space="preserve">
     <value>Hledá se v {0}…</value>
@@ -10917,6 +10965,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Selector name for the new DKIM key" xml:space="preserve">
     <value>Název selektoru pro nový klíč DKIM</value>
+  </data>
+  <data name="Self-service portal" xml:space="preserve">
+    <value>Samoobslužný portál</value>
   </data>
   <data name="Send Web Push notifications" xml:space="preserve">
     <value>Odesílat oznámení Web Push</value>
@@ -11166,6 +11217,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Service restarted - settings are live." xml:space="preserve">
     <value>Služba restartována – nastavení je aktivní.</value>
+  </data>
+  <data name="Service start" xml:space="preserve">
+    <value>Spuštění služby</value>
   </data>
   <data name="ServiceDomain {0}, and is shown here rather than offered for editing because the server reads the key and then never uses it: the service credential binds with ServiceUsername and ServicePassword alone. Put the domain in the user name instead (DOMAIN\name or a UPN)." xml:space="preserve">
     <value>ServiceDomain {0} a zobrazuje se zde místo toho, aby byl nabídnut k úpravám, protože server tento klíč přečte a pak jej nikdy nepoužije: přihlašovací údaje služby se vážou pouze pomocí ServiceUsername a ServicePassword. Doménu uveďte místo toho v uživatelském jménu (DOMAIN\name nebo UPN).</value>
@@ -11526,6 +11580,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>Dočasné nedoručenky v okně, než člen přestane dostávat poštu (1 až 100)</value>
+  </data>
+  <data name="Software update" xml:space="preserve">
+    <value>Aktualizace softwaru</value>
   </data>
   <data name="Some values could not be read, so the cards below may be incomplete. The first reason: {0}" xml:space="preserve">
     <value>Některé hodnoty se nepodařilo přečíst, proto mohou být karty níže neúplné. První důvod: {0}</value>
@@ -13224,6 +13281,9 @@ Přesto přidat?</value>
   </data>
   <data name="The search found exactly one entry: {0}." xml:space="preserve">
     <value>Hledání našlo přesně jednu položku: {0}.</value>
+  </data>
+  <data name="The search looks at the {0} most recent changes of the {1} in the trail." xml:space="preserve">
+    <value>Hledání prochází {0} nejnovějších změn z {1} v záznamu.</value>
   </data>
   <data name="The search matched MORE than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make UserSearchFilter or SearchBase select exactly one entry." xml:space="preserve">
     <value>Hledání odpovídalo VÍCE než jedné položce adresáře (filtr {0}, base {1}). Server odmítá ověřovat proti nejednoznačné shodě - upravte UserSearchFilter nebo SearchBase tak, aby vybíraly přesně jednu položku.</value>

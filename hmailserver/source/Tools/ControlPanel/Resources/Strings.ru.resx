@@ -1290,9 +1290,6 @@ Control Panel может читать файлы сообщений только
   <data name="Administrator menu" xml:space="preserve">
     <value>Меню администратора</value>
   </data>
-  <data name="Administrator or key contains" xml:space="preserve">
-    <value>Администратор или ключ содержит</value>
-  </data>
   <data name="Administrator password" xml:space="preserve">
     <value>Пароль администратора</value>
   </data>
@@ -2770,6 +2767,9 @@ Control Panel может читать файлы сообщений только
   <data name="Collector port" xml:space="preserve">
     <value>Порт сборщика</value>
   </data>
+  <data name="Command line" xml:space="preserve">
+    <value>Командная строка</value>
+  </data>
   <data name="Command line (use %FILE% for the scanned file)" xml:space="preserve">
     <value>Командная строка (для проверяемого файла используйте %FILE%)</value>
   </data>
@@ -2908,8 +2908,14 @@ Control Panel может читать файлы сообщений только
   <data name="Contacting {0}…" xml:space="preserve">
     <value>Обращение к {0}…</value>
   </data>
+  <data name="Control Deck" xml:space="preserve">
+    <value>Control Deck</value>
+  </data>
   <data name="Control Panel" xml:space="preserve">
     <value>Control Panel</value>
+  </data>
+  <data name="Control Panel or script" xml:space="preserve">
+    <value>Control Panel или сценарий</value>
   </data>
   <data name="Copied" xml:space="preserve">
     <value>Скопировано</value>
@@ -4205,6 +4211,9 @@ Control Panel может читать файлы сообщений только
   <data name="Distinct terms per message before it is always scanned instead (64-1000000)" xml:space="preserve">
     <value>Число различных терминов в сообщении, при превышении которого оно всегда сканируется вместо индексирования (64-1000000)</value>
   </data>
+  <data name="Distribution list" xml:space="preserve">
+    <value>Список рассылки</value>
+  </data>
   <data name="Distribution list - {0}" xml:space="preserve">
     <value>Список рассылки — {0}</value>
   </data>
@@ -4255,6 +4264,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Domain administrator" xml:space="preserve">
     <value>Администратор домена</value>
+  </data>
+  <data name="Domain alias" xml:space="preserve">
+    <value>Псевдоним домена</value>
   </data>
   <data name="Domain aliases" xml:space="preserve">
     <value>Псевдонимы доменов</value>
@@ -5945,6 +5957,9 @@ Control Panel может читать файлы сообщений только
   <data name="Include the client IP in the X-AuthUser header" xml:space="preserve">
     <value>Включать IP клиента в заголовок X-AuthUser</value>
   </data>
+  <data name="Incoming relay" xml:space="preserve">
+    <value>Входящая ретрансляция</value>
+  </data>
   <data name="Incoming relays" xml:space="preserve">
     <value>Входящие ретрансляции</value>
   </data>
@@ -7448,6 +7463,9 @@ Control Panel может читать файлы сообщений только
   <data name="No certificates yet, so no port can offer TLS. Add one from PEM files below, or let ACME issue one." xml:space="preserve">
     <value>Сертификатов пока нет, поэтому ни один порт не может предложить TLS. Добавьте сертификат из PEM-файлов ниже или позвольте ACME выпустить его.</value>
   </data>
+  <data name="No change in the audit trail has &quot;{0}&quot; in who made it, what it was made to, its interface or its detail." xml:space="preserve">
+    <value>Ни одно изменение в журнале аудита не содержит «{0}» в том, кто его внёс, к чему оно относится, в интерфейсе или в подробностях.</value>
+  </data>
   <data name="No configuration warnings." xml:space="preserve">
     <value>Предупреждений о конфигурации нет.</value>
   </data>
@@ -8696,6 +8714,9 @@ Control Panel может читать файлы сообщений только
   <data name="Page content" xml:space="preserve">
     <value>Содержимое страницы</value>
   </data>
+  <data name="Page {0} of {1}" xml:space="preserve">
+    <value>Страница {0} из {1}</value>
+  </data>
   <data name="Pages" xml:space="preserve">
     <value>Страницы</value>
   </data>
@@ -8749,6 +8770,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Password pepper" xml:space="preserve">
     <value>Перец для паролей</value>
+  </data>
+  <data name="Password reset" xml:space="preserve">
+    <value>Сброс пароля</value>
   </data>
   <data name="Password storage" xml:space="preserve">
     <value>Хранение паролей</value>
@@ -9151,6 +9175,9 @@ Control Panel может читать файлы сообщений только
   <data name="Put the message dated {0} in {1} back into the mailbox of {2}?" xml:space="preserve">
     <value>Вернуть сообщение от {0} из папки {1} в ящик {2}?</value>
   </data>
+  <data name="Put {0} back from &quot;{1}&quot; to &quot;{2}&quot;? The put-back is recorded as a change of its own." xml:space="preserve">
+    <value>Вернуть {0} с «{1}» на «{2}»? Возврат записывается как отдельное изменение.</value>
+  </data>
   <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
     <value>Вернуть {0} к значению до этого изменения? Возврат записывается как отдельное изменение.</value>
   </data>
@@ -9186,6 +9213,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="READ THIS FIRST: IMAP, POP3 and SMTP have no way to change a password, and the self-service portal refuses an expired one at sign-in like every other surface. An expired password is therefore renewed by an administrator - or by the person themselves only if they hold an app password, which still signs them in to the portal, where the expired password is accepted as the current one when setting a new one. Turning this on means someone has to be available for everybody else. Existing app passwords keep working, which is also the one way an affected person can still collect mail; Active Directory accounts are exempt, because their password lives in the directory and expires by its policy, not this one. The clock started when this server was upgraded, so nobody is expired the moment you set this." xml:space="preserve">
     <value>ПРОЧТИТЕ ЭТО СНАЧАЛА: ни в IMAP, ни в POP3, ни в SMTP нет способа сменить пароль, а портал самообслуживания отклоняет просроченный пароль при входе, как и любой другой интерфейс. Поэтому просроченный пароль обновляет администратор — либо сам человек, но только если у него есть пароль приложения: с ним по-прежнему можно войти на портал, где при установке нового пароля просроченный принимается как текущий. Включение этого параметра означает, что кто-то должен быть готов помочь всем остальным. Существующие пароли приложений продолжают работать, и это к тому же единственный способ, которым затронутый человек всё ещё может забирать почту; на учётные записи Active Directory правило не распространяется, поскольку их пароль живёт в каталоге и истекает по его политике, а не по этой. Отсчёт начался с момента обновления этого сервера, поэтому в момент включения ни у кого срок не истекает.</value>
+  </data>
+  <data name="REST API" xml:space="preserve">
+    <value>REST API</value>
   </data>
   <data name="REST API keys" xml:space="preserve">
     <value>Ключи REST API</value>
@@ -10111,6 +10141,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Role" xml:space="preserve">
     <value>Роль</value>
   </data>
+  <data name="Role assignment" xml:space="preserve">
+    <value>Назначение роли</value>
+  </data>
   <data name="Roles" xml:space="preserve">
     <value>Роли</value>
   </data>
@@ -10125,6 +10158,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)" xml:space="preserve">
     <value>Менять ключ сеансовых билетов каждые N секунд (0 — единственный несменяемый ключ OpenSSL)</value>
+  </data>
+  <data name="Route" xml:space="preserve">
+    <value>Маршрут</value>
   </data>
   <data name="Route - {0}" xml:space="preserve">
     <value>Маршрут — {0}</value>
@@ -10338,6 +10374,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="SSL c_ertificate (required for SSL/TLS and STARTTLS)" xml:space="preserve">
     <value>Сертификат _SSL (требуется для SSL/TLS и STARTTLS)</value>
+  </data>
+  <data name="SSL certificate" xml:space="preserve">
+    <value>Сертификат SSL</value>
   </data>
   <data name="SSL certificates" xml:space="preserve">
     <value>Сертификаты SSL</value>
@@ -10588,6 +10627,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Scheduled backups" xml:space="preserve">
     <value>Резервное копирование по расписанию</value>
   </data>
+  <data name="Scheduled task" xml:space="preserve">
+    <value>Запланированная задача</value>
+  </data>
   <data name="Schema" xml:space="preserve">
     <value>Схема</value>
   </data>
@@ -10780,6 +10822,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Search this list" xml:space="preserve">
     <value>Поиск по этому списку</value>
   </data>
+  <data name="Search who, what, interface or detail" xml:space="preserve">
+    <value>Кто, что, интерфейс или подробности</value>
+  </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>Ищите или скажите, что нужно сделать, — «остановить спам», «заблокировать IP»</value>
   </data>
@@ -10788,6 +10833,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Searches" xml:space="preserve">
     <value>Поиски</value>
+  </data>
+  <data name="Searching the audit trail…" xml:space="preserve">
+    <value>Поиск в журнале аудита…</value>
   </data>
   <data name="Searching {0}…" xml:space="preserve">
     <value>Идёт поиск в {0}…</value>
@@ -10917,6 +10965,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Selector name for the new DKIM key" xml:space="preserve">
     <value>Имя селектора для нового ключа DKIM</value>
+  </data>
+  <data name="Self-service portal" xml:space="preserve">
+    <value>Портал самообслуживания</value>
   </data>
   <data name="Send Web Push notifications" xml:space="preserve">
     <value>Отправлять уведомления Web Push</value>
@@ -11166,6 +11217,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Service restarted - settings are live." xml:space="preserve">
     <value>Служба перезапущена — параметры действуют.</value>
+  </data>
+  <data name="Service start" xml:space="preserve">
+    <value>Запуск службы</value>
   </data>
   <data name="ServiceDomain {0}, and is shown here rather than offered for editing because the server reads the key and then never uses it: the service credential binds with ServiceUsername and ServicePassword alone. Put the domain in the user name instead (DOMAIN\name or a UPN)." xml:space="preserve">
     <value>ServiceDomain {0}, и он показан здесь, а не предложен для правки, потому что сервер читает этот ключ и затем никогда его не использует: учётные данные службы выполняют привязку только через ServiceUsername и ServicePassword. Указывайте домен в составе имени пользователя (DOMAIN\name или UPN).</value>
@@ -11526,6 +11580,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>Временные отказы в окне, после которых участник перестаёт получать почту (от 1 до 100)</value>
+  </data>
+  <data name="Software update" xml:space="preserve">
+    <value>Обновление программы</value>
   </data>
   <data name="Some values could not be read, so the cards below may be incomplete. The first reason: {0}" xml:space="preserve">
     <value>Некоторые значения не удалось прочитать, поэтому карточки ниже могут быть неполными. Первая причина: {0}</value>
@@ -13224,6 +13281,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The search found exactly one entry: {0}." xml:space="preserve">
     <value>Поиск нашёл ровно одну запись: {0}.</value>
+  </data>
+  <data name="The search looks at the {0} most recent changes of the {1} in the trail." xml:space="preserve">
+    <value>Поиск просматривает {0} последних изменений из {1} в журнале.</value>
   </data>
   <data name="The search matched MORE than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make UserSearchFilter or SearchBase select exactly one entry." xml:space="preserve">
     <value>Поиск нашёл БОЛЬШЕ одной записи каталога (фильтр {0}, база {1}). Сервер отказывается аутентифицировать по неоднозначному совпадению - сделайте так, чтобы UserSearchFilter или SearchBase выбирали ровно одну запись.</value>

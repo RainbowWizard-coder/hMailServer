@@ -2919,6 +2919,23 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   "OK 250", "Deferred 451", "Refused 550" - sorted by the code. `MessageTraceStatusTests` holds the words and the
   page's wiring.
 
+- **Fixed: the audit trail offered Put back on rows it could not put back, its pager never disabled, its columns
+  showed the server's tokens, and its search matched the administrator alone.** Put back was the page's Primary and
+  pressable on every row, answering a notice on a domain's or an account's; Newer stayed pressable on the first page
+  and Older on the last, and at 760 they wrapped onto different rows; Interface, Object and Action read control_panel,
+  role_assignment and password_reset in every language; the Detail column got some 60 pixels ("60 -> 1..."); and the
+  search asked the server for the administrator's name (review finding F254). Put back is now a secondary button
+  pressable only on a setting's change that records its values - not on a secret's, whose row says "(changed)" - with
+  a tool tip that says why on any other row, and its question names both values: "Put AutoBanMinutes back from "120"
+  to "60"?". Newer and Older are under the list with the page between them, each pressable only where there is a page
+  that way. The interfaces, the objects and the actions are the reader's words - "Control Panel or script" for COM,
+  "REST API", "Control Deck", "Role assignment", "Password reset" - and a token the page does not know is shown
+  readable ("Mailbox key forfeited"). The time and the address keep their widths, the columns of words share the rest,
+  and Detail takes twice a share and never less than 200 pixels, its arrow drawn as one ("60 → 120"). The search looks
+  in who, what, how and the detail of every change: the trail is read whole off the window's thread the first time, a
+  thousand rows a call, and each word typed in after is looked for in it. `AuditTrailPageTests` holds the words, the
+  search and the page's wiring.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

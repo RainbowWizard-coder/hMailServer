@@ -1284,9 +1284,6 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="Administrator menu" xml:space="preserve">
     <value>Menu do administrador</value>
   </data>
-  <data name="Administrator or key contains" xml:space="preserve">
-    <value>Administrador ou chave contém</value>
-  </data>
   <data name="Administrator password" xml:space="preserve">
     <value>Senha de administrador</value>
   </data>
@@ -2746,6 +2743,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Collector port" xml:space="preserve">
     <value>Porta do coletor</value>
   </data>
+  <data name="Command line" xml:space="preserve">
+    <value>Linha de comando</value>
+  </data>
   <data name="Command line (use %FILE% for the scanned file)" xml:space="preserve">
     <value>Linha de comando (use %FILE% para o arquivo verificado)</value>
   </data>
@@ -2884,8 +2884,14 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Contacting {0}…" xml:space="preserve">
     <value>Contatando {0}…</value>
   </data>
+  <data name="Control Deck" xml:space="preserve">
+    <value>Control Deck</value>
+  </data>
   <data name="Control Panel" xml:space="preserve">
     <value>Control Panel</value>
+  </data>
+  <data name="Control Panel or script" xml:space="preserve">
+    <value>Control Panel ou script</value>
   </data>
   <data name="Copied" xml:space="preserve">
     <value>Copiado</value>
@@ -4153,6 +4159,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Distinct terms per message before it is always scanned instead (64-1000000)" xml:space="preserve">
     <value>Termos distintos por mensagem a partir dos quais ela passa a ser sempre examinada diretamente (64-1000000)</value>
   </data>
+  <data name="Distribution list" xml:space="preserve">
+    <value>Lista de distribuição</value>
+  </data>
   <data name="Distribution list - {0}" xml:space="preserve">
     <value>Lista de distribuição - {0}</value>
   </data>
@@ -4203,6 +4212,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   </data>
   <data name="Domain administrator" xml:space="preserve">
     <value>Administrador de domínio</value>
+  </data>
+  <data name="Domain alias" xml:space="preserve">
+    <value>Alias de domínio</value>
   </data>
   <data name="Domain aliases" xml:space="preserve">
     <value>Aliases de domínio</value>
@@ -5872,6 +5884,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Include the client IP in the X-AuthUser header" xml:space="preserve">
     <value>Incluir o IP do cliente no cabeçalho X-AuthUser</value>
   </data>
+  <data name="Incoming relay" xml:space="preserve">
+    <value>Relay de entrada</value>
+  </data>
   <data name="Incoming relays" xml:space="preserve">
     <value>Relays de entrada</value>
   </data>
@@ -7366,6 +7381,9 @@ Nada do que já está lá é removido.</value>
   <data name="No certificates yet, so no port can offer TLS. Add one from PEM files below, or let ACME issue one." xml:space="preserve">
     <value>Ainda não há certificados, então nenhuma porta pode oferecer TLS. Adicione um a partir de arquivos PEM abaixo ou deixe o ACME emitir um.</value>
   </data>
+  <data name="No change in the audit trail has &quot;{0}&quot; in who made it, what it was made to, its interface or its detail." xml:space="preserve">
+    <value>Nenhuma alteração da trilha de auditoria tem "{0}" em quem a fez, no que foi feita, na interface ou no detalhe.</value>
+  </data>
   <data name="No configuration warnings." xml:space="preserve">
     <value>Nenhum aviso de configuração.</value>
   </data>
@@ -8596,6 +8614,9 @@ Nada do que já está lá é removido.</value>
   <data name="Page content" xml:space="preserve">
     <value>Conteúdo da página</value>
   </data>
+  <data name="Page {0} of {1}" xml:space="preserve">
+    <value>Página {0} de {1}</value>
+  </data>
   <data name="Pages" xml:space="preserve">
     <value>Páginas</value>
   </data>
@@ -8649,6 +8670,9 @@ Nada do que já está lá é removido.</value>
   </data>
   <data name="Password pepper" xml:space="preserve">
     <value>Pepper de senha</value>
+  </data>
+  <data name="Password reset" xml:space="preserve">
+    <value>Redefinição de senha</value>
   </data>
   <data name="Password storage" xml:space="preserve">
     <value>Armazenamento de senhas</value>
@@ -9051,6 +9075,9 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   <data name="Put the message dated {0} in {1} back into the mailbox of {2}?" xml:space="preserve">
     <value>Devolver a mensagem de {0} da pasta {1} à caixa de correio de {2}?</value>
   </data>
+  <data name="Put {0} back from &quot;{1}&quot; to &quot;{2}&quot;? The put-back is recorded as a change of its own." xml:space="preserve">
+    <value>Restaurar {0} de "{1}" para "{2}"? A restauração é registrada como uma alteração própria.</value>
+  </data>
   <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
     <value>Restaurar {0} ao valor que tinha antes desta alteração? A restauração é registrada como uma alteração própria.</value>
   </data>
@@ -9086,6 +9113,9 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   </data>
   <data name="READ THIS FIRST: IMAP, POP3 and SMTP have no way to change a password, and the self-service portal refuses an expired one at sign-in like every other surface. An expired password is therefore renewed by an administrator - or by the person themselves only if they hold an app password, which still signs them in to the portal, where the expired password is accepted as the current one when setting a new one. Turning this on means someone has to be available for everybody else. Existing app passwords keep working, which is also the one way an affected person can still collect mail; Active Directory accounts are exempt, because their password lives in the directory and expires by its policy, not this one. The clock started when this server was upgraded, so nobody is expired the moment you set this." xml:space="preserve">
     <value>LEIA ISTO PRIMEIRO: IMAP, POP3 e SMTP não têm como trocar uma senha, e o portal de autoatendimento recusa uma senha expirada no login, como qualquer outra porta de entrada. Uma senha expirada é, portanto, renovada por um administrador - ou pela própria pessoa, mas só se ela tiver uma senha de aplicativo, que ainda a deixa entrar no portal, onde a senha expirada é aceita como a atual ao definir uma nova. Ativar isto significa que alguém precisa estar disponível para todos os outros. As senhas de aplicativo existentes continuam funcionando, o que é também a única forma de a pessoa afetada ainda coletar e-mails; as contas do Active Directory ficam isentas, porque a senha delas mora no diretório e expira pela política de lá, não por esta. O relógio começou a contar quando este servidor foi atualizado, então ninguém fica expirado no momento em que você define isto.</value>
+  </data>
+  <data name="REST API" xml:space="preserve">
+    <value>API REST</value>
   </data>
   <data name="REST API keys" xml:space="preserve">
     <value>Chaves da API REST</value>
@@ -9996,6 +10026,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Role" xml:space="preserve">
     <value>Função</value>
   </data>
+  <data name="Role assignment" xml:space="preserve">
+    <value>Atribuição de função</value>
+  </data>
   <data name="Roles" xml:space="preserve">
     <value>Funções</value>
   </data>
@@ -10010,6 +10043,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)" xml:space="preserve">
     <value>Rotacionar a chave de tíquete de sessão a cada N segundos (0 = a chave única e não rotativa do OpenSSL)</value>
+  </data>
+  <data name="Route" xml:space="preserve">
+    <value>Rota</value>
   </data>
   <data name="Route - {0}" xml:space="preserve">
     <value>Rota - {0}</value>
@@ -10223,6 +10259,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="SSL c_ertificate (required for SSL/TLS and STARTTLS)" xml:space="preserve">
     <value>Certificado SSL (obrigatório para SSL/_TLS e STARTTLS)</value>
+  </data>
+  <data name="SSL certificate" xml:space="preserve">
+    <value>Certificado SSL</value>
   </data>
   <data name="SSL certificates" xml:space="preserve">
     <value>Certificados SSL</value>
@@ -10452,6 +10491,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Scheduled backups" xml:space="preserve">
     <value>Backups agendados</value>
   </data>
+  <data name="Scheduled task" xml:space="preserve">
+    <value>Tarefa agendada</value>
+  </data>
   <data name="Schema" xml:space="preserve">
     <value>Esquema</value>
   </data>
@@ -10644,6 +10686,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Search this list" xml:space="preserve">
     <value>Buscar nesta lista</value>
   </data>
+  <data name="Search who, what, interface or detail" xml:space="preserve">
+    <value>Buscar quem, o quê, interface ou detalhe</value>
+  </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>Busque, ou diga o que você quer fazer - "parar o spam", "bloquear um IP"</value>
   </data>
@@ -10652,6 +10697,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="Searches" xml:space="preserve">
     <value>Pesquisas</value>
+  </data>
+  <data name="Searching the audit trail…" xml:space="preserve">
+    <value>Pesquisando a trilha de auditoria…</value>
   </data>
   <data name="Searching {0}…" xml:space="preserve">
     <value>Buscando em {0}…</value>
@@ -10781,6 +10829,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="Selector name for the new DKIM key" xml:space="preserve">
     <value>Nome do seletor para a nova chave DKIM</value>
+  </data>
+  <data name="Self-service portal" xml:space="preserve">
+    <value>Portal de autoatendimento</value>
   </data>
   <data name="Send Web Push notifications" xml:space="preserve">
     <value>Enviar notificações Web Push</value>
@@ -11027,6 +11078,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="Service restarted - settings are live." xml:space="preserve">
     <value>Serviço reiniciado - as configurações estão valendo.</value>
+  </data>
+  <data name="Service start" xml:space="preserve">
+    <value>Início do serviço</value>
   </data>
   <data name="ServiceDomain {0}, and is shown here rather than offered for editing because the server reads the key and then never uses it: the service credential binds with ServiceUsername and ServicePassword alone. Put the domain in the user name instead (DOMAIN\name or a UPN)." xml:space="preserve">
     <value>ServiceDomain {0}, e é mostrado aqui em vez de oferecido para edição porque o servidor lê a chave e depois nunca a usa: a credencial de serviço faz o bind apenas com ServiceUsername e ServicePassword. Coloque o domínio no nome de usuário (DOMAIN\name ou um UPN).</value>
@@ -11384,6 +11438,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>Retornos temporários na janela antes de um membro deixar de receber e-mail (1 a 100)</value>
+  </data>
+  <data name="Software update" xml:space="preserve">
+    <value>Atualização de software</value>
   </data>
   <data name="Some values could not be read, so the cards below may be incomplete. The first reason: {0}" xml:space="preserve">
     <value>Alguns valores não puderam ser lidos, por isso os cartões abaixo podem estar incompletos. Primeiro motivo: {0}</value>
@@ -13046,6 +13103,9 @@ Adicionar mesmo assim?</value>
   </data>
   <data name="The search found exactly one entry: {0}." xml:space="preserve">
     <value>A busca encontrou exatamente uma entrada: {0}.</value>
+  </data>
+  <data name="The search looks at the {0} most recent changes of the {1} in the trail." xml:space="preserve">
+    <value>A busca examina as {0} alterações mais recentes das {1} da trilha.</value>
   </data>
   <data name="The search matched MORE than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make UserSearchFilter or SearchBase select exactly one entry." xml:space="preserve">
     <value>A busca correspondeu a MAIS de uma entrada do diretório (filtro {0}, base {1}). O servidor recusa autenticar contra uma correspondência ambígua - faça UserSearchFilter ou SearchBase selecionarem exatamente uma entrada.</value>

@@ -1284,9 +1284,6 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Administrator menu" xml:space="preserve">
     <value>Beheerdersmenu</value>
   </data>
-  <data name="Administrator or key contains" xml:space="preserve">
-    <value>Beheerder of sleutel bevat</value>
-  </data>
   <data name="Administrator password" xml:space="preserve">
     <value>Beheerderswachtwoord</value>
   </data>
@@ -2746,6 +2743,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Collector port" xml:space="preserve">
     <value>Collectorpoort</value>
   </data>
+  <data name="Command line" xml:space="preserve">
+    <value>Opdrachtregel</value>
+  </data>
   <data name="Command line (use %FILE% for the scanned file)" xml:space="preserve">
     <value>Opdrachtregel (gebruik %FILE% voor het gescande bestand)</value>
   </data>
@@ -2884,8 +2884,14 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Contacting {0}…" xml:space="preserve">
     <value>Contact opnemen met {0}…</value>
   </data>
+  <data name="Control Deck" xml:space="preserve">
+    <value>Control Deck</value>
+  </data>
   <data name="Control Panel" xml:space="preserve">
     <value>Control Panel</value>
+  </data>
+  <data name="Control Panel or script" xml:space="preserve">
+    <value>Control Panel of script</value>
   </data>
   <data name="Copied" xml:space="preserve">
     <value>Gekopieerd</value>
@@ -4153,6 +4159,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Distinct terms per message before it is always scanned instead (64-1000000)" xml:space="preserve">
     <value>Aantal verschillende termen per bericht waarboven het bericht in plaats daarvan altijd wordt gescand (64-1000000)</value>
   </data>
+  <data name="Distribution list" xml:space="preserve">
+    <value>Distributielijst</value>
+  </data>
   <data name="Distribution list - {0}" xml:space="preserve">
     <value>Distributielijst - {0}</value>
   </data>
@@ -4203,6 +4212,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Domain administrator" xml:space="preserve">
     <value>Domeinbeheerder</value>
+  </data>
+  <data name="Domain alias" xml:space="preserve">
+    <value>Domeinalias</value>
   </data>
   <data name="Domain aliases" xml:space="preserve">
     <value>Domeinaliassen</value>
@@ -5872,6 +5884,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Include the client IP in the X-AuthUser header" xml:space="preserve">
     <value>Het IP-adres van de client opnemen in de X-AuthUser-header</value>
   </data>
+  <data name="Incoming relay" xml:space="preserve">
+    <value>Inkomende relay</value>
+  </data>
   <data name="Incoming relays" xml:space="preserve">
     <value>Inkomende relays</value>
   </data>
@@ -7366,6 +7381,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No certificates yet, so no port can offer TLS. Add one from PEM files below, or let ACME issue one." xml:space="preserve">
     <value>Nog geen certificaten, dus geen enkele poort kan TLS aanbieden. Voeg er hieronder een toe uit PEM-bestanden, of laat ACME er een uitgeven.</value>
   </data>
+  <data name="No change in the audit trail has &quot;{0}&quot; in who made it, what it was made to, its interface or its detail." xml:space="preserve">
+    <value>Geen wijziging in het auditlogboek heeft "{0}" in wie haar maakte, waaraan, haar interface of haar detail.</value>
+  </data>
   <data name="No configuration warnings." xml:space="preserve">
     <value>Geen configuratiewaarschuwingen.</value>
   </data>
@@ -8596,6 +8614,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Page content" xml:space="preserve">
     <value>Pagina-inhoud</value>
   </data>
+  <data name="Page {0} of {1}" xml:space="preserve">
+    <value>Pagina {0} van {1}</value>
+  </data>
   <data name="Pages" xml:space="preserve">
     <value>Pagina's</value>
   </data>
@@ -8649,6 +8670,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="Password pepper" xml:space="preserve">
     <value>Wachtwoordpeper</value>
+  </data>
+  <data name="Password reset" xml:space="preserve">
+    <value>Wachtwoord opnieuw ingesteld</value>
   </data>
   <data name="Password storage" xml:space="preserve">
     <value>Wachtwoordopslag</value>
@@ -9051,6 +9075,9 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Put the message dated {0} in {1} back into the mailbox of {2}?" xml:space="preserve">
     <value>Bericht van {0} uit de map {1} terugzetten in de mailbox van {2}?</value>
   </data>
+  <data name="Put {0} back from &quot;{1}&quot; to &quot;{2}&quot;? The put-back is recorded as a change of its own." xml:space="preserve">
+    <value>{0} terugzetten van "{1}" naar "{2}"? Het terugzetten wordt als eigen wijziging vastgelegd.</value>
+  </data>
   <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
     <value>{0} terugzetten naar de waarde van vóór deze wijziging? Het terugzetten wordt als eigen wijziging vastgelegd.</value>
   </data>
@@ -9086,6 +9113,9 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   </data>
   <data name="READ THIS FIRST: IMAP, POP3 and SMTP have no way to change a password, and the self-service portal refuses an expired one at sign-in like every other surface. An expired password is therefore renewed by an administrator - or by the person themselves only if they hold an app password, which still signs them in to the portal, where the expired password is accepted as the current one when setting a new one. Turning this on means someone has to be available for everybody else. Existing app passwords keep working, which is also the one way an affected person can still collect mail; Active Directory accounts are exempt, because their password lives in the directory and expires by its policy, not this one. The clock started when this server was upgraded, so nobody is expired the moment you set this." xml:space="preserve">
     <value>LEES DIT EERST: IMAP, POP3 en SMTP hebben geen manier om een wachtwoord te wijzigen, en het zelfbedieningsportaal weigert een verlopen wachtwoord bij het aanmelden, net als elke andere ingang. Een verlopen wachtwoord wordt daarom vernieuwd door een beheerder - of door de persoon zelf, maar alleen als die een app-wachtwoord heeft, waarmee die zich nog steeds bij het portaal kan aanmelden, waar het verlopen wachtwoord bij het instellen van een nieuw wachtwoord als het huidige wordt geaccepteerd. Dit inschakelen betekent dat er voor alle anderen iemand beschikbaar moet zijn. Bestaande app-wachtwoorden blijven werken, en dat is ook de enige manier waarop een getroffen persoon nog mail kan ophalen; Active Directory-accounts zijn uitgezonderd, omdat hun wachtwoord in de directory staat en volgens het beleid daarvan verloopt, niet volgens dit beleid. De klok is gaan lopen toen deze server werd geüpgraded, dus op het moment dat u dit instelt, is er niemand verlopen.</value>
+  </data>
+  <data name="REST API" xml:space="preserve">
+    <value>REST-API</value>
   </data>
   <data name="REST API keys" xml:space="preserve">
     <value>REST-API-sleutels</value>
@@ -9996,6 +10026,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Role" xml:space="preserve">
     <value>Rol</value>
   </data>
+  <data name="Role assignment" xml:space="preserve">
+    <value>Roltoewijzing</value>
+  </data>
   <data name="Roles" xml:space="preserve">
     <value>Rollen</value>
   </data>
@@ -10010,6 +10043,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)" xml:space="preserve">
     <value>De sessieticketsleutel elke N seconden roteren (0 = de enkele, niet-roterende sleutel van OpenSSL)</value>
+  </data>
+  <data name="Route" xml:space="preserve">
+    <value>Route</value>
   </data>
   <data name="Route - {0}" xml:space="preserve">
     <value>Route - {0}</value>
@@ -10223,6 +10259,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="SSL c_ertificate (required for SSL/TLS and STARTTLS)" xml:space="preserve">
     <value>SSL-c_ertificaat (vereist voor SSL/TLS en STARTTLS)</value>
+  </data>
+  <data name="SSL certificate" xml:space="preserve">
+    <value>SSL-certificaat</value>
   </data>
   <data name="SSL certificates" xml:space="preserve">
     <value>SSL-certificaten</value>
@@ -10452,6 +10491,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Scheduled backups" xml:space="preserve">
     <value>Geplande back-ups</value>
   </data>
+  <data name="Scheduled task" xml:space="preserve">
+    <value>Geplande taak</value>
+  </data>
   <data name="Schema" xml:space="preserve">
     <value>Schema</value>
   </data>
@@ -10644,6 +10686,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Search this list" xml:space="preserve">
     <value>Deze lijst doorzoeken</value>
   </data>
+  <data name="Search who, what, interface or detail" xml:space="preserve">
+    <value>Zoek op wie, wat, interface of detail</value>
+  </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>Zoek, of zeg wat u wilt doen - "stop spam", "blokkeer een IP"</value>
   </data>
@@ -10652,6 +10697,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Searches" xml:space="preserve">
     <value>Zoekopdrachten</value>
+  </data>
+  <data name="Searching the audit trail…" xml:space="preserve">
+    <value>Het auditlogboek wordt doorzocht…</value>
   </data>
   <data name="Searching {0}…" xml:space="preserve">
     <value>Bezig met zoeken in {0}…</value>
@@ -10781,6 +10829,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Selector name for the new DKIM key" xml:space="preserve">
     <value>Selectornaam voor de nieuwe DKIM-sleutel</value>
+  </data>
+  <data name="Self-service portal" xml:space="preserve">
+    <value>Selfserviceportaal</value>
   </data>
   <data name="Send Web Push notifications" xml:space="preserve">
     <value>Web Push-meldingen versturen</value>
@@ -11027,6 +11078,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Service restarted - settings are live." xml:space="preserve">
     <value>Service herstart - de instellingen zijn actief.</value>
+  </data>
+  <data name="Service start" xml:space="preserve">
+    <value>Start van de service</value>
   </data>
   <data name="ServiceDomain {0}, and is shown here rather than offered for editing because the server reads the key and then never uses it: the service credential binds with ServiceUsername and ServicePassword alone. Put the domain in the user name instead (DOMAIN\name or a UPN)." xml:space="preserve">
     <value>ServiceDomain {0}, en wordt hier getoond in plaats van aangeboden om te bewerken, omdat de server de sleutel wel leest maar vervolgens nooit gebruikt: de servicereferentie bindt alleen met ServiceUsername en ServicePassword. Zet het domein in plaats daarvan in de gebruikersnaam (DOMAIN\name of een UPN).</value>
@@ -11384,6 +11438,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>Zachte bounces binnen het venster voordat een lid geen mail meer krijgt (1 tot 100)</value>
+  </data>
+  <data name="Software update" xml:space="preserve">
+    <value>Software-update</value>
   </data>
   <data name="Some values could not be read, so the cards below may be incomplete. The first reason: {0}" xml:space="preserve">
     <value>Sommige waarden konden niet worden gelezen, dus de kaarten hieronder kunnen onvolledig zijn. De eerste reden: {0}</value>
@@ -13046,6 +13103,9 @@ Toch toevoegen?</value>
   </data>
   <data name="The search found exactly one entry: {0}." xml:space="preserve">
     <value>Het zoeken vond precies één vermelding: {0}.</value>
+  </data>
+  <data name="The search looks at the {0} most recent changes of the {1} in the trail." xml:space="preserve">
+    <value>De zoekopdracht bekijkt de {0} recentste van de {1} wijzigingen in het logboek.</value>
   </data>
   <data name="The search matched MORE than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make UserSearchFilter or SearchBase select exactly one entry." xml:space="preserve">
     <value>Het zoeken kwam overeen met MEER dan één directoryvermelding (filter {0}, basis {1}). De server weigert te authenticeren tegen een dubbelzinnige overeenkomst - laat UserSearchFilter of SearchBase precies één vermelding selecteren.</value>

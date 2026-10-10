@@ -1,0 +1,171 @@
+// https://www.progressiverobot.com
+// Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+using System;
+using System.IO;
+using hMailServer.ControlPanel.Services;
+using Xunit;
+
+namespace hMailServer.ControlPanel.Tests.Services
+{
+   /// <summary>
+   /// Review finding F254: the audit trail offered Put back, its Primary, on every
+   /// row, where on a domain's or an account's it answered with a notice; Newer stayed
+   /// pressable on the first page and Older on the last, and they wrapped onto
+   /// different rows at 760; the Interface, Object and Action columns showed the
+   /// server's tokens - control_panel, role_assignment, password_reset - in every
+   /// language; the Detail column got some 60 pixels; and the search matched the
+   /// administrator alone. The words and the matching are AuditTrailReport's and are
+   /// held here; the page's wiring is read from its source.
+   /// </summary>
+   public class AuditTrailPageTests
+   {
+      [Theory]
+      [InlineData("COM", "Control Panel or script")]
+      [InlineData("com", "Control Panel or script")]
+      [InlineData("control_panel", "Control Panel")]
+      [InlineData("REST", "REST API")]
+      [InlineData("rest", "REST API")]
+      [InlineData("Deck", "Control Deck")]
+      [InlineData("Portal", "Self-service portal")]
+      [InlineData("server", "Server")]
+      [InlineData("Scheduler", "Scheduled task")]
+      [InlineData("command line", "Command line")]
+      [InlineData("service start", "Service start")]
+      [InlineData("hmctl_batch", "Hmctl batch")]
+      public void TheInterfaces_AreTheReadersWords(string token, string expected)
+         => Assert.Equal(expected, AuditTrailReport.InterfaceWord(token));
+
+      [Theory]
+      [InlineData("setting", "Setting")]
+      [InlineData("role_assignment", "Role assignment")]
+      [InlineData("role assignment", "Role assignment")]
+      [InlineData("ip range", "IP range")]
+      [InlineData("tcp/ip port", "TCP/IP port")]
+      [InlineData("alias", "Alias address")]
+      [InlineData("rule", "Mail rule")]
+      [InlineData("update", "Software update")]
+      [InlineData("webhook subscription", "Webhook subscription")]
+      public void TheObjects_AreTheReadersWords(string token, string expected)
+         => Assert.Equal(expected, AuditTrailReport.ObjectWord(token));
+
+      [Theory]
+      [InlineData("created", "Created")]
+      [InlineData("password_reset", "Password reset")]
+      [InlineData("mailbox-key-forfeited", "Mailbox key forfeited")]
+      [InlineData("restore started", "Restore started")]
+      [InlineData("", "")]
+      public void TheActions_AreTheReadersWords_AndAnUnknownOneIsHumanised(string token, string expected)
+         => Assert.Equal(expected, AuditTrailReport.ActionWord(token));
+
+      [Fact]
+      public void ASettingsChange_IsSplitIntoItsTwoValues_WhereItSaysWhereTheOldOneEnds()
+      {
+         var row = new AuditRow { ObjectType = "setting", ObjectName = "AutoBanMinutes", Action = "updated", Detail = "AutoBanMinutes: 60 -> 120" };
+         Assert.True(AuditTrailReport.TrySplitChange(row, out string from, out string to));
+         Assert.Equal("60", from);
+         Assert.Equal("120", to);
+
+         // An empty side is a value as well.
+         var emptied = new AuditRow { ObjectType = "setting", ObjectName = "SmtpRelayer", Action = "updated", Detail = "SmtpRelayer: relay.example.com -> " };
+         Assert.True(AuditTrailReport.TrySplitChange(emptied, out from, out to));
+         Assert.Equal("relay.example.com", from);
+         Assert.Equal("", to);
+
+         // A value holding the arrow does not say where the old value ends.
+         var twice = new AuditRow { ObjectType = "setting", ObjectName = "Banner", Action = "updated", Detail = "Banner: a -> b -> c" };
+         Assert.False(AuditTrailReport.TrySplitChange(twice, out _, out _));
+
+         // Not a setting's change.
+         var domain = new AuditRow { ObjectType = "domain", ObjectName = "example.net", Action = "created", Detail = "" };
+         Assert.False(AuditTrailReport.TrySplitChange(domain, out _, out _));
+      }
+
+      [Fact]
+      public void PutBack_IsOfferedOnASettingsChangeThatCarriesItsValues_AndOnNoOtherRow()
+      {
+         Assert.True(new AuditRow { ObjectType = "setting", ObjectName = "AutoBanMinutes", Action = "updated", Detail = "AutoBanMinutes: 60 -> 120" }.CanPutBack);
+         Assert.True(new AuditRow { ObjectType = "setting", ObjectName = "AutoBanMinutes", Action = "deleted", Detail = "AutoBanMinutes: 60 -> (default)" }.CanPutBack);
+         Assert.False(new AuditRow { ObjectType = "setting", ObjectName = "SmtpRelayerPassword", Action = "updated", Detail = "SmtpRelayerPassword: (changed)" }.CanPutBack);
+         Assert.False(new AuditRow { ObjectType = "domain", ObjectName = "example.net", Action = "created" }.CanPutBack);
+         Assert.False(new AuditRow { ObjectType = "account", ObjectName = "user01@example.com", Action = "password_reset" }.CanPutBack);
+      }
+
+      [Fact]
+      public void TheDetail_DrawsTheServersArrowAsOne()
+         => Assert.Equal("AutoBanMinutes: 60 → 120", AuditTrailReport.ShownDetail("AutoBanMinutes: 60 -> 120"));
+
+      [Fact]
+      public void TheSearch_LooksInEveryColumn_AsTheServerWroteItAndAsThePageShowsIt()
+      {
+         var row = new AuditRow
+         {
+            Actor = "helpdesk@example.com", Interface = "REST", Address = "10.1.0.42", ObjectType = "role_assignment",
+            ObjectName = "audit@example.com", Action = "created", Detail = "auditor, every domain"
+         };
+
+         Assert.True(AuditTrailReport.Matches(row, ""));
+         Assert.True(AuditTrailReport.Matches(row, "helpdesk"));
+         Assert.True(AuditTrailReport.Matches(row, "audit@example.com"));
+         Assert.True(AuditTrailReport.Matches(row, "Role assignment"));
+         Assert.True(AuditTrailReport.Matches(row, "role_assignment"));
+         Assert.True(AuditTrailReport.Matches(row, "REST API"));
+         Assert.True(AuditTrailReport.Matches(row, "every domain"));
+         Assert.True(AuditTrailReport.Matches(row, "10.1.0"));
+         Assert.True(AuditTrailReport.Matches(row, "CREATED auditor"));
+         Assert.False(AuditTrailReport.Matches(row, "auditor deleted"));
+         Assert.False(AuditTrailReport.Matches(null, "x"));
+      }
+
+      [Fact]
+      public void ThePage_OffersPutBackWhereItWorks_PagesUnderTheList_AndSearchesTheWholeTrail()
+      {
+         string code = ReadControlPanelFile(Path.Join("Views", "AuditTrailView.cs"));
+
+         // Put back: a secondary button, pressable on a row it can put back, saying why not on another.
+         Assert.Contains("putBack_ = MakeButton(L(\"_Put back\"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => PutBackSelected());", code, StringComparison.Ordinal);
+         Assert.DoesNotContain("ControlAppearance.Primary", code, StringComparison.Ordinal);
+         string gate = WithheldRowTests.MemberText(code, "private void GatePutBack_()");
+         Assert.True(gate != null, "AuditTrailView.GatePutBack_ is gone.");
+         Assert.Contains("rows_.SelectedItem is RowView { CanPutBack: true }", gate, StringComparison.Ordinal);
+         Assert.Contains("AuditTrailReport.TrySplitChange(row.Row, out string from, out string to)", code, StringComparison.Ordinal);
+
+         // The pages under the list, each step pressable only where there is a page that way.
+         string pager = WithheldRowTests.MemberText(code, "private void ShowPager_()");
+         Assert.True(pager != null, "AuditTrailView.ShowPager_ is gone.");
+         Assert.Contains("newer_.IsEnabled = offset_ > 0;", pager, StringComparison.Ordinal);
+         Assert.Contains("older_.IsEnabled = offset_ + PageSize < total_;", pager, StringComparison.Ordinal);
+         Assert.Contains("parts.Children.Add(pager_);", code, StringComparison.Ordinal);
+         Assert.True(code.IndexOf("parts.Children.Add(pager_);", StringComparison.Ordinal) > code.IndexOf("parts.Children.Add(FillPanel.Filling(card, FillPanel.ListCardFloor));", StringComparison.Ordinal),
+            "The pager is not under the list.");
+
+         // The server's tokens in the reader's words, and the detail its share of the width.
+         Assert.Contains("Interface = AuditTrailReport.InterfaceWord(row.Interface),", code, StringComparison.Ordinal);
+         Assert.Contains("Object = AuditTrailReport.ObjectWord(row.ObjectType),", code, StringComparison.Ordinal);
+         Assert.Contains("Action = AuditTrailReport.ActionWord(row.Action),", code, StringComparison.Ordinal);
+         Assert.Contains("new DataGridLength(2, DataGridLengthUnitType.Star)", code, StringComparison.Ordinal);
+         Assert.Contains("detail.MinWidth = 200;", code, StringComparison.Ordinal);
+
+         // The search reads the whole trail off the window's thread and looks in every column.
+         Assert.Contains("read = await Task.Run(Walk_);", code, StringComparison.Ordinal);
+         Assert.Contains("AuditTrailReport.Matches(row, query)", code, StringComparison.Ordinal);
+         Assert.DoesNotContain("GetAuditTrail(actor", code, StringComparison.Ordinal);
+      }
+
+      private static string ReadControlPanelFile(string relative)
+      {
+         var directory = new DirectoryInfo(AppContext.BaseDirectory);
+         while (directory != null)
+         {
+            string candidate = Path.Join(directory.FullName, "ControlPanel", relative);
+            if (File.Exists(candidate))
+               return File.ReadAllText(candidate);
+            directory = directory.Parent;
+         }
+
+         Assert.Fail("ControlPanel/" + relative.Replace('\\', '/') + " could not be found from the test binaries.");
+         return null;
+      }
+   }
+}
