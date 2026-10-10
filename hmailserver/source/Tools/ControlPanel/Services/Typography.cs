@@ -47,6 +47,11 @@ namespace hMailServer.ControlPanel.Services
       /// this size with SemiBold, which is how every consumer already uses it.</summary>
       public static double SectionHeading => TextScaleFactor.Scaled(14);
 
+      /// <summary>A help document's level-two heading, between Body and Subtitle (its
+      /// level-one heading is the Subtitle, DialogTitle): at 150 per cent it was 16 over
+      /// a body of 21.</summary>
+      public static double DocumentHeading => TextScaleFactor.Scaled(16);
+
       /// <summary>Modal dialog header. Fluent Subtitle.</summary>
       public static double DialogTitle => TextScaleFactor.Scaled(20);
 

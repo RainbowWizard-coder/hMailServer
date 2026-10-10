@@ -80,9 +80,11 @@ namespace hMailServer.ControlPanel.Services
             switch (block)
             {
                case MdHeading heading:
+                  // On the type ramp, at the Windows text size as the text under it is:
+                  // at 150 per cent the 20 and 16 they were stood smaller than a body of 21.
                   var head = new Paragraph
                   {
-                     FontSize = heading.Level == 1 ? 20 : heading.Level == 2 ? 16 : Typography.Body,
+                     FontSize = heading.Level == 1 ? Typography.DialogTitle : heading.Level == 2 ? Typography.DocumentHeading : Typography.Body,
                      FontWeight = FontWeights.SemiBold,
                      Margin = new Thickness(0, heading.Level == 1 ? 4 : 16, 0, 6),
                      KeepWithNext = true

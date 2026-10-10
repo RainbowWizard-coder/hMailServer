@@ -69,6 +69,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal(18, Typography.Caption);
          Assert.Equal(21, Typography.Body);
          Assert.Equal(30, Typography.DialogTitle);
+         Assert.Equal(24, Typography.DocumentHeading);
          Assert.Equal(42, Typography.Title);
 
          string ramp = Read("Services", "Typography.cs");
@@ -126,6 +127,122 @@ namespace hMailServer.ControlPanel.Tests.Services
             }
          }
       }
+
+      /// <summary>
+      /// No text size set in code is a number of its own: text set in code takes its size
+      /// from Typography, the ramp at the Windows text size. The help pane's headings were
+      /// 20 and 16 while the text under them followed the setting, so that at 150 per cent
+      /// a heading stood smaller than its body of 21. A value is a number of its own where
+      /// a digit is left once the ramp's own TextScaleFactor.Scaled and the comparisons
+      /// that choose a rung are taken out. An icon's size is no text, and the help
+      /// document's rule is an empty line two pixels high under its border.
+      /// </summary>
+      [Fact]
+      public void NoTextSizeSetInCode_IsANumberOfItsOwn()
+      {
+         string root = ContrastTokensTests.FindControlPanelDirectory();
+         Assert.True(root != null, "The ControlPanel folder could not be found from the test binaries.");
+
+         var found = new List<string>();
+         foreach (string path in Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories))
+         {
+            string file = Path.GetRelativePath(root, path).Replace('\\', '/');
+            if (file.StartsWith("bin/", StringComparison.Ordinal) || file.StartsWith("obj/", StringComparison.Ordinal))
+               continue;
+
+            string code = File.ReadAllText(path);
+            foreach (Match m in Regex.Matches(code, @"\bFontSize\s*=(?!=)"))
+            {
+               string value = ValueAfter_(code, m.Index + m.Length);
+               string type = EnclosingType_(code, m.Index);
+               bool icon = type != null && (type == "SymbolIcon" || type.EndsWith(".SymbolIcon", StringComparison.Ordinal));
+               bool rule = file == "Services/MarkdownFlow.cs" && value == "2" && type == "Paragraph";
+               if (IsANumberOfItsOwn_(value) && !icon && !rule)
+                  found.Add(file + " line " + LineOf_(code, m.Index) + ": FontSize = " + value);
+            }
+
+            foreach (Match m in Regex.Matches(code, @"SetValue\(\s*(?:([\w.]+)\.)?FontSizeProperty\s*,"))
+            {
+               string value = ValueAfter_(code, m.Index + m.Length);
+               string owner = m.Groups[1].Value;
+               bool icon = owner == "SymbolIcon" || owner.EndsWith(".SymbolIcon", StringComparison.Ordinal);
+               if (IsANumberOfItsOwn_(value) && !icon)
+                  found.Add(file + " line " + LineOf_(code, m.Index) + ": " + m.Value + " " + value);
+            }
+         }
+
+         Assert.True(found.Count == 0, "Text sizes set in code as numbers of their own, which the Windows text size does not reach: " + string.Join("; ", found));
+
+         // The help pane's headings are on the ramp: Subtitle, the document's heading, Body.
+         string headings = Read("Services", "MarkdownFlow.cs");
+         Assert.Contains("FontSize = heading.Level == 1 ? Typography.DialogTitle : heading.Level == 2 ? Typography.DocumentHeading : Typography.Body,", headings, StringComparison.Ordinal);
+         TextScaleFactor.Use(1.5);
+         Assert.Equal(24, Typography.DocumentHeading);
+         Assert.True(Typography.DocumentHeading > Typography.Body && Typography.DialogTitle > Typography.DocumentHeading);
+      }
+
+      /// <summary>The expression after "=" or a call's comma, to the comma, semicolon or bracket that ends it.</summary>
+      private static string ValueAfter_(string code, int start)
+      {
+         int depth = 0;
+         int i = start;
+         for (; i < code.Length; i++)
+         {
+            char c = code[i];
+            if (c is '(' or '[' or '{')
+               depth++;
+            else if (c is ')' or ']' or '}')
+            {
+               if (depth == 0)
+                  break;
+               depth--;
+            }
+            else if ((c == ',' || c == ';') && depth == 0)
+               break;
+         }
+
+         return code.Substring(start, i - start).Trim();
+      }
+
+      /// <summary>The type an object initialiser around <paramref name="at"/> builds - "SymbolIcon" for new SymbolIcon { ... } - or null.</summary>
+      private static string EnclosingType_(string code, int at)
+      {
+         int depth = 0;
+         for (int i = at - 1; i >= 0; i--)
+         {
+            char c = code[i];
+            if (c is ')' or ']' or '}')
+               depth++;
+            else if (c is '(' or '[')
+            {
+               if (depth == 0)
+                  return null;
+               depth--;
+            }
+            else if (c == '{')
+            {
+               if (depth == 0)
+               {
+                  Match m = Regex.Match(code.Substring(0, i), @"new\s+([\w.]+)\s*(?:\([^()]*\))?\s*$");
+                  return m.Success ? m.Groups[1].Value : null;
+               }
+
+               depth--;
+            }
+         }
+
+         return null;
+      }
+
+      /// <summary>Whether a size is a number of its own: a digit left once the ramp's TextScaleFactor.Scaled and a rung's comparisons are taken out.</summary>
+      private static bool IsANumberOfItsOwn_(string value)
+      {
+         string rest = Regex.Replace(value, @"TextScaleFactor\.Scaled\([^()]*\)", "");
+         rest = Regex.Replace(rest, @"[!=]=\s*\d+", "");
+         return Regex.IsMatch(rest, @"(?<![\w.])\d");
+      }
+
+      private static int LineOf_(string code, int index) => code.Take(index).Count(c => c == '\n') + 1;
 
       /// <summary>
       /// The three WPF-UI styles that hold the size their dictionary had when it was
