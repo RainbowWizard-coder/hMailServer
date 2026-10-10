@@ -3016,6 +3016,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   ClamAV.") and, with a size limit, says "within the size limit" and leaves the limit to the Warning under it.
   `VirusPipelineTests` and `VirusOverviewPageTests` hold the sentences and the wiring.
 
+- **Fixed: the sign-in card named its act with two verbs, and said only the Administrator signs in on it.** It was
+  headed "Connect to server" over "Sign in with the hMailServer administrator credential.", its button said Connect,
+  and while it worked it said "Signing in…"; German and Japanese repeated the split (Verbinden and anmelden, 接続 and
+  サインイン). The heading and the button now both say Sign in, as the page is named (the owner's choice of 9 October 2026),
+  and the card's accessible name is its heading; the pill keeps Connected and Not connected for the link. The subtitle
+  says who signs in here - "Sign in as the server's Administrator, or with your own account if it administers a domain
+  or holds a role." - and the password's hint which password that is, the one chosen at install for Administrator and
+  an account's own for the account, where it named the install's alone. The Welcome page's starting point is "Protect
+  the administrator password", the words the card and Administrative access use, where it said credential. Every
+  language has the new words, the button's Alt key one the card's other captions leave free. `SignInWordsTests` holds
+  the heading, the button, the card's name, the hint and, in every catalogue, the button saying what the heading says.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

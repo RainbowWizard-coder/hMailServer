@@ -83,7 +83,7 @@ namespace hMailServer.ControlPanel.Services
          new WelcomeIntent(N("Back up the configuration and the mail"),
             N("What a backup holds, the schedule, verification of every archive, and restore."),
             "backup"),
-         new WelcomeIntent(N("Protect the administrator credential"),
+         new WelcomeIntent(N("Protect the administrator password"),
             N("The administrator password, and a second factor the server itself enforces on every client."),
             "adminaccess"),
       };

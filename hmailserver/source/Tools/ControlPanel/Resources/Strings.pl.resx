@@ -2872,9 +2872,6 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Connect to another server…" xml:space="preserve">
     <value>Połącz z innym serwerem…</value>
   </data>
-  <data name="Connect to server" xml:space="preserve">
-    <value>Połącz z serwerem</value>
-  </data>
   <data name="Connected" xml:space="preserve">
     <value>Połączono</value>
   </data>
@@ -2907,9 +2904,6 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   </data>
   <data name="Connecting host checks" xml:space="preserve">
     <value>Kontrole łączącego się hosta</value>
-  </data>
-  <data name="Connecting…" xml:space="preserve">
-    <value>Łączenie…</value>
   </data>
   <data name="Connection failed." xml:space="preserve">
     <value>Połączenie nie powiodło się.</value>
@@ -5362,6 +5356,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="Follows the domain" xml:space="preserve">
     <value>Zgodnie z domeną</value>
+  </data>
+  <data name="For Administrator, the password chosen when hMailServer was installed; for your own account, its own password." xml:space="preserve">
+    <value>Dla konta Administrator hasło wybrane podczas instalacji hMailServer; dla własnego konta jego własne hasło.</value>
   </data>
   <data name="For LDAPS or StartTLS: a certificate on the directory server that THIS machine trusts - issued by a CA in the Windows machine certificate store, with the host name above in it. A domain controller does not have one out of the box. The Negotiate bind method needs no certificate at all, because the password never crosses the network." xml:space="preserve">
     <value>Dla LDAPS lub StartTLS: certyfikat na serwerze katalogowym, któremu TEN komputer ufa - wystawiony przez urząd certyfikacji z magazynu certyfikatów komputera w systemie Windows i zawierający powyższą nazwę hosta. Kontroler domeny nie ma takiego certyfikatu od razu po instalacji. Metoda bind Negotiate nie wymaga żadnego certyfikatu, ponieważ hasło nigdy nie przechodzi przez sieć.</value>
@@ -9280,8 +9277,8 @@ Do czasu wznowienia nie będą przyjmowane nowe połączenia ani dostarczana poc
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Chroń przechowywane sekrety mechanizmem DPAPI systemu Windows</value>
   </data>
-  <data name="Protect the administrator credential" xml:space="preserve">
-    <value>Chroń poświadczenie administratora</value>
+  <data name="Protect the administrator password" xml:space="preserve">
+    <value>Chroń hasło administratora</value>
   </data>
   <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
     <value>Chronione _osoby (osoby spoza kont tej domeny, których nazwy nie wolno pożyczać; jedna w wierszu, każda Nazwa &lt;address&gt;, Nazwa lub adres)</value>
@@ -11755,17 +11752,23 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Sieve _filter script" xml:space="preserve">
     <value>_Skrypt filtrujący Sieve</value>
   </data>
+  <data name="Sign _in" xml:space="preserve">
+    <value>_Zaloguj się</value>
+  </data>
   <data name="Sign aliases _too" xml:space="preserve">
     <value>Podpisuj _także aliasy</value>
+  </data>
+  <data name="Sign in" xml:space="preserve">
+    <value>Zaloguj się</value>
   </data>
   <data name="Sign in again" xml:space="preserve">
     <value>Zaloguj się ponownie</value>
   </data>
+  <data name="Sign in as the server's Administrator, or with your own account if it administers a domain or holds a role." xml:space="preserve">
+    <value>Zaloguj się jako Administrator serwera albo własnym kontem, jeśli administruje domeną lub ma rolę.</value>
+  </data>
   <data name="Sign in to a server first." xml:space="preserve">
     <value>Najpierw zaloguj się do serwera.</value>
-  </data>
-  <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
-    <value>Zaloguj się poświadczeniem administratora hMailServer.</value>
   </data>
   <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
     <value>Aby wyświetlić lub zmienić te ustawienia, zaloguj się przy użyciu konta administratora serwera hMailServer. ({0})</value>
@@ -12645,9 +12648,6 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Hasło administratora i uwierzytelnianie dwuskładnikowe znajdują się na stronie Dostęp administracyjny.</value>
-  </data>
-  <data name="The administrator password chosen when hMailServer was installed." xml:space="preserve">
-    <value>Hasło administratora wybrane podczas instalacji hMailServer.</value>
   </data>
   <data name="The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough." xml:space="preserve">
     <value>Hasło administratora otwiera wszystko; kod jednorazowy obok niego sprawia, że ujawnione hasło nie wystarczy.</value>
@@ -15433,9 +15433,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="_Compress destination files (zip)" xml:space="preserve">
     <value>Kompresuj _pliki docelowe (zip)</value>
-  </data>
-  <data name="_Connect" xml:space="preserve">
-    <value>_Połącz</value>
   </data>
   <data name="_Connection security" xml:space="preserve">
     <value>_Bezpieczeństwo połączenia</value>

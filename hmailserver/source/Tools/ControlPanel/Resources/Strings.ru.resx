@@ -2872,9 +2872,6 @@ Control Panel может читать файлы сообщений только
   <data name="Connect to another server…" xml:space="preserve">
     <value>Подключиться к другому серверу…</value>
   </data>
-  <data name="Connect to server" xml:space="preserve">
-    <value>Подключиться к серверу</value>
-  </data>
   <data name="Connected" xml:space="preserve">
     <value>Подключено</value>
   </data>
@@ -2907,9 +2904,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Connecting host checks" xml:space="preserve">
     <value>Проверки подключающегося узла</value>
-  </data>
-  <data name="Connecting…" xml:space="preserve">
-    <value>Подключение…</value>
   </data>
   <data name="Connection failed." xml:space="preserve">
     <value>Подключиться не удалось.</value>
@@ -5362,6 +5356,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Follows the domain" xml:space="preserve">
     <value>Как у домена</value>
+  </data>
+  <data name="For Administrator, the password chosen when hMailServer was installed; for your own account, its own password." xml:space="preserve">
+    <value>Для Administrator — пароль, выбранный при установке hMailServer; для своей учётной записи — её собственный пароль.</value>
   </data>
   <data name="For LDAPS or StartTLS: a certificate on the directory server that THIS machine trusts - issued by a CA in the Windows machine certificate store, with the host name above in it. A domain controller does not have one out of the box. The Negotiate bind method needs no certificate at all, because the password never crosses the network." xml:space="preserve">
     <value>Для LDAPS или StartTLS: на сервере каталога нужен сертификат, которому доверяет ЭТОТ компьютер, — выпущенный ЦС из хранилища сертификатов компьютера Windows и содержащий указанное выше имя узла. У контроллера домена такого сертификата из коробки нет. Методу привязки Negotiate сертификат не нужен вовсе, поскольку пароль по сети не передаётся никогда.</value>
@@ -9280,8 +9277,8 @@ Control Panel может читать файлы сообщений только
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Защищать хранимые секреты с помощью Windows DPAPI</value>
   </data>
-  <data name="Protect the administrator credential" xml:space="preserve">
-    <value>Защитить учётные данные администратора</value>
+  <data name="Protect the administrator password" xml:space="preserve">
+    <value>Защитить пароль администратора</value>
   </data>
   <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
     <value>Защищённые _лица (лица вне учётных записей этого домена, чьё имя нельзя заимствовать; по одному на строку, каждое как Имя &lt;address&gt;, Имя или адрес)</value>
@@ -11755,17 +11752,23 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Sieve _filter script" xml:space="preserve">
     <value>Сценарий _фильтрации Sieve</value>
   </data>
+  <data name="Sign _in" xml:space="preserve">
+    <value>_Войти</value>
+  </data>
   <data name="Sign aliases _too" xml:space="preserve">
     <value>_Подписывать также и псевдонимы</value>
+  </data>
+  <data name="Sign in" xml:space="preserve">
+    <value>Войти</value>
   </data>
   <data name="Sign in again" xml:space="preserve">
     <value>Войти снова</value>
   </data>
+  <data name="Sign in as the server's Administrator, or with your own account if it administers a domain or holds a role." xml:space="preserve">
+    <value>Войдите как Administrator сервера или со своей учётной записью, если она администрирует домен или имеет роль.</value>
+  </data>
   <data name="Sign in to a server first." xml:space="preserve">
     <value>Сначала войдите на сервер.</value>
-  </data>
-  <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
-    <value>Войдите с учётными данными администратора hMailServer.</value>
   </data>
   <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
     <value>Чтобы просматривать или изменять эти параметры, войдите с учётной записью администратора сервера hMailServer. ({0})</value>
@@ -12645,9 +12648,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Пароль администратора и двухфакторная аутентификация находятся на странице «Административный доступ».</value>
-  </data>
-  <data name="The administrator password chosen when hMailServer was installed." xml:space="preserve">
-    <value>Пароль администратора, выбранный при установке hMailServer.</value>
   </data>
   <data name="The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough." xml:space="preserve">
     <value>Пароль администратора открывает всё; одноразовый код рядом с ним не даёт утёкшему паролю быть достаточным.</value>
@@ -15433,9 +15433,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Compress destination files (zip)" xml:space="preserve">
     <value>Сжимать _файлы назначения (zip)</value>
-  </data>
-  <data name="_Connect" xml:space="preserve">
-    <value>_Подключиться</value>
   </data>
   <data name="_Connection security" xml:space="preserve">
     <value>_Безопасность подключения</value>

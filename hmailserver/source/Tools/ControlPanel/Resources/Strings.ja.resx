@@ -2848,9 +2848,6 @@
   <data name="Connect to another server…" xml:space="preserve">
     <value>別のサーバーに接続…</value>
   </data>
-  <data name="Connect to server" xml:space="preserve">
-    <value>サーバーに接続</value>
-  </data>
   <data name="Connected" xml:space="preserve">
     <value>接続済み</value>
   </data>
@@ -2883,9 +2880,6 @@
   </data>
   <data name="Connecting host checks" xml:space="preserve">
     <value>接続元ホストのチェック</value>
-  </data>
-  <data name="Connecting…" xml:space="preserve">
-    <value>接続中…</value>
   </data>
   <data name="Connection failed." xml:space="preserve">
     <value>接続に失敗しました。</value>
@@ -5292,6 +5286,9 @@
   </data>
   <data name="Follows the domain" xml:space="preserve">
     <value>ドメインに従う</value>
+  </data>
+  <data name="For Administrator, the password chosen when hMailServer was installed; for your own account, its own password." xml:space="preserve">
+    <value>Administrator の場合は hMailServer のインストール時に選んだパスワード、ご自身のアカウントの場合はそのアカウントのパスワードです。</value>
   </data>
   <data name="For LDAPS or StartTLS: a certificate on the directory server that THIS machine trusts - issued by a CA in the Windows machine certificate store, with the host name above in it. A domain controller does not have one out of the box. The Negotiate bind method needs no certificate at all, because the password never crosses the network." xml:space="preserve">
     <value>LDAPS または StartTLS の場合: ディレクトリ サーバー上に、「この」コンピューターが信頼する証明書が必要です。Windows のコンピューター証明書ストアにある CA が発行し、上のホスト名を含むものです。ドメイン コントローラーには初期状態ではありません。Negotiate バインド方式は証明書をまったく必要としません。パスワードがネットワークを流れることがないからです。</value>
@@ -9186,8 +9183,8 @@
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>保存されたシークレットを Windows DPAPI で保護する</value>
   </data>
-  <data name="Protect the administrator credential" xml:space="preserve">
-    <value>管理者の資格情報を保護する</value>
+  <data name="Protect the administrator password" xml:space="preserve">
+    <value>管理者パスワードを保護する</value>
   </data>
   <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
     <value>保護対象者(_P) (名前を借用されてはならない、このドメインのアカウント以外の人。一行に一人、各行は 名前 &lt;address&gt;、名前、またはアドレス)</value>
@@ -11613,17 +11610,23 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Sieve _filter script" xml:space="preserve">
     <value>Sieve フィルター スクリプト(_F)</value>
   </data>
+  <data name="Sign _in" xml:space="preserve">
+    <value>サインイン(_I)</value>
+  </data>
   <data name="Sign aliases _too" xml:space="preserve">
     <value>エイリアスにも署名する(_T)</value>
+  </data>
+  <data name="Sign in" xml:space="preserve">
+    <value>サインイン</value>
   </data>
   <data name="Sign in again" xml:space="preserve">
     <value>もう一度サインイン</value>
   </data>
+  <data name="Sign in as the server's Administrator, or with your own account if it administers a domain or holds a role." xml:space="preserve">
+    <value>サーバーの Administrator として、またはドメインを管理するかロールを持つご自身のアカウントでサインインしてください。</value>
+  </data>
   <data name="Sign in to a server first." xml:space="preserve">
     <value>まずサーバーにサインインしてください。</value>
-  </data>
-  <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
-    <value>hMailServer の管理者資格情報でサインインしてください。</value>
   </data>
   <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
     <value>これらの設定を表示または変更するには、hMailServer のサーバー管理者アカウントでサインインしてください。({0})</value>
@@ -12500,9 +12503,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>管理者パスワードと 2 要素認証は管理者アクセス ページにあります。</value>
-  </data>
-  <data name="The administrator password chosen when hMailServer was installed." xml:space="preserve">
-    <value>hMailServer のインストール時に選んだ管理者パスワード。</value>
   </data>
   <data name="The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough." xml:space="preserve">
     <value>管理者パスワードはすべてを開きます。ワンタイムコードを併用すれば、漏えいしたパスワードだけでは足りなくなります。</value>
@@ -15246,9 +15246,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Compress destination files (zip)" xml:space="preserve">
     <value>保存先のファイルを圧縮する (zip)(_C)</value>
-  </data>
-  <data name="_Connect" xml:space="preserve">
-    <value>接続(_C)</value>
   </data>
   <data name="_Connection security" xml:space="preserve">
     <value>接続のセキュリティ(_C)</value>

@@ -2848,9 +2848,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Connect to another server…" xml:space="preserve">
     <value>Verbinden met een andere server…</value>
   </data>
-  <data name="Connect to server" xml:space="preserve">
-    <value>Verbinden met server</value>
-  </data>
   <data name="Connected" xml:space="preserve">
     <value>Verbonden</value>
   </data>
@@ -2883,9 +2880,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Connecting host checks" xml:space="preserve">
     <value>Controles op de verbindende host</value>
-  </data>
-  <data name="Connecting…" xml:space="preserve">
-    <value>Verbinden…</value>
   </data>
   <data name="Connection failed." xml:space="preserve">
     <value>Verbinding mislukt.</value>
@@ -5292,6 +5286,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Follows the domain" xml:space="preserve">
     <value>Volgt het domein</value>
+  </data>
+  <data name="For Administrator, the password chosen when hMailServer was installed; for your own account, its own password." xml:space="preserve">
+    <value>Voor Administrator het wachtwoord dat bij de installatie van hMailServer is gekozen; voor uw eigen account het eigen wachtwoord daarvan.</value>
   </data>
   <data name="For LDAPS or StartTLS: a certificate on the directory server that THIS machine trusts - issued by a CA in the Windows machine certificate store, with the host name above in it. A domain controller does not have one out of the box. The Negotiate bind method needs no certificate at all, because the password never crosses the network." xml:space="preserve">
     <value>Voor LDAPS of StartTLS: een certificaat op de directoryserver dat DEZE machine vertrouwt - uitgegeven door een CA in het Windows-computercertificaatarchief, met de hostnaam hierboven erin. Een domeincontroller heeft er standaard geen. De bindmethode Negotiate heeft helemaal geen certificaat nodig, omdat het wachtwoord nooit over het netwerk gaat.</value>
@@ -9186,8 +9183,8 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Opgeslagen geheimen beschermen met Windows DPAPI</value>
   </data>
-  <data name="Protect the administrator credential" xml:space="preserve">
-    <value>De beheerdersreferentie beschermen</value>
+  <data name="Protect the administrator password" xml:space="preserve">
+    <value>Het beheerderswachtwoord beschermen</value>
   </data>
   <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
     <value>Beschermde _personen (personen buiten de accounts van dit domein wier naam niet mag worden geleend; één per regel, elk Naam &lt;address&gt;, Naam of adres)</value>
@@ -11613,17 +11610,23 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Sieve _filter script" xml:space="preserve">
     <value>_Sieve-filterscript</value>
   </data>
+  <data name="Sign _in" xml:space="preserve">
+    <value>_Aanmelden</value>
+  </data>
   <data name="Sign aliases _too" xml:space="preserve">
     <value>Ook aliassen onder_tekenen</value>
+  </data>
+  <data name="Sign in" xml:space="preserve">
+    <value>Aanmelden</value>
   </data>
   <data name="Sign in again" xml:space="preserve">
     <value>Opnieuw aanmelden</value>
   </data>
+  <data name="Sign in as the server's Administrator, or with your own account if it administers a domain or holds a role." xml:space="preserve">
+    <value>Meld u aan als de Administrator van de server, of met uw eigen account als dat een domein beheert of een rol heeft.</value>
+  </data>
   <data name="Sign in to a server first." xml:space="preserve">
     <value>Meld u eerst aan bij een server.</value>
-  </data>
-  <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
-    <value>Meld u aan met de beheerdersreferentie van hMailServer.</value>
   </data>
   <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
     <value>Meld u aan met het hMailServer-serverbeheerdersaccount om deze instellingen te bekijken of te wijzigen. ({0})</value>
@@ -12500,9 +12503,6 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Het beheerderswachtwoord en tweefactorauthenticatie staan op de pagina Beheerderstoegang.</value>
-  </data>
-  <data name="The administrator password chosen when hMailServer was installed." xml:space="preserve">
-    <value>Het beheerderswachtwoord dat bij de installatie van hMailServer is gekozen.</value>
   </data>
   <data name="The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough." xml:space="preserve">
     <value>Het beheerderswachtwoord opent alles; een eenmalige code ernaast zorgt dat een gelekt wachtwoord niet genoeg is.</value>
@@ -15246,9 +15246,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="_Compress destination files (zip)" xml:space="preserve">
     <value>Doelbestanden _comprimeren (zip)</value>
-  </data>
-  <data name="_Connect" xml:space="preserve">
-    <value>_Verbinden</value>
   </data>
   <data name="_Connection security" xml:space="preserve">
     <value>_Verbindingsbeveiliging</value>

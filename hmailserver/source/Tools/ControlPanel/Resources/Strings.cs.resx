@@ -2872,9 +2872,6 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Connect to another server…" xml:space="preserve">
     <value>Připojit se k jinému serveru…</value>
   </data>
-  <data name="Connect to server" xml:space="preserve">
-    <value>Připojit k serveru</value>
-  </data>
   <data name="Connected" xml:space="preserve">
     <value>Připojeno</value>
   </data>
@@ -2907,9 +2904,6 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Connecting host checks" xml:space="preserve">
     <value>Kontroly připojujícího se hostitele</value>
-  </data>
-  <data name="Connecting…" xml:space="preserve">
-    <value>Připojuje se…</value>
   </data>
   <data name="Connection failed." xml:space="preserve">
     <value>Připojení se nezdařilo.</value>
@@ -5362,6 +5356,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Follows the domain" xml:space="preserve">
     <value>Řídí se doménou</value>
+  </data>
+  <data name="For Administrator, the password chosen when hMailServer was installed; for your own account, its own password." xml:space="preserve">
+    <value>Pro Administrator heslo zvolené při instalaci hMailServeru; pro vlastní účet jeho vlastní heslo.</value>
   </data>
   <data name="For LDAPS or StartTLS: a certificate on the directory server that THIS machine trusts - issued by a CA in the Windows machine certificate store, with the host name above in it. A domain controller does not have one out of the box. The Negotiate bind method needs no certificate at all, because the password never crosses the network." xml:space="preserve">
     <value>Pro LDAPS nebo StartTLS: certifikát na adresářovém serveru, kterému TENTO počítač důvěřuje - vydaný CA v úložišti certifikátů počítače Windows, s názvem hostitele výše. Řadič domény ho z výroby nemá. Metoda bind Negotiate žádný certifikát nepotřebuje, protože heslo nikdy neprojde sítí.</value>
@@ -9280,8 +9277,8 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Chránit uložená tajemství pomocí Windows DPAPI</value>
   </data>
-  <data name="Protect the administrator credential" xml:space="preserve">
-    <value>Chránit přihlašovací údaje správce</value>
+  <data name="Protect the administrator password" xml:space="preserve">
+    <value>Chránit heslo správce</value>
   </data>
   <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
     <value>Chráněné _osoby (osoby mimo účty této domény, jejichž jméno nesmí být vypůjčeno; jedna na řádek, každá Jméno &lt;address&gt;, Jméno nebo adresa)</value>
@@ -11755,17 +11752,23 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Sieve _filter script" xml:space="preserve">
     <value>_Filtrovací skript Sieve</value>
   </data>
+  <data name="Sign _in" xml:space="preserve">
+    <value>_Přihlásit se</value>
+  </data>
   <data name="Sign aliases _too" xml:space="preserve">
     <value>Podepisovat _také aliasy</value>
+  </data>
+  <data name="Sign in" xml:space="preserve">
+    <value>Přihlásit se</value>
   </data>
   <data name="Sign in again" xml:space="preserve">
     <value>Znovu se přihlásit</value>
   </data>
+  <data name="Sign in as the server's Administrator, or with your own account if it administers a domain or holds a role." xml:space="preserve">
+    <value>Přihlaste se jako Administrator serveru, nebo vlastním účtem, pokud spravuje doménu nebo má roli.</value>
+  </data>
   <data name="Sign in to a server first." xml:space="preserve">
     <value>Nejprve se přihlaste k serveru.</value>
-  </data>
-  <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
-    <value>Přihlaste se přihlašovacími údaji správce hMailServeru.</value>
   </data>
   <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
     <value>Pro zobrazení nebo změnu těchto nastavení se přihlaste účtem správce serveru hMailServer. ({0})</value>
@@ -12645,9 +12648,6 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Heslo správce a dvoufaktorové ověření najdete na stránce Přístup pro správu.</value>
-  </data>
-  <data name="The administrator password chosen when hMailServer was installed." xml:space="preserve">
-    <value>Heslo správce zvolené při instalaci hMailServeru.</value>
   </data>
   <data name="The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough." xml:space="preserve">
     <value>Heslo správce otevírá vše; jednorázový kód vedle něj zajistí, že uniklé heslo nestačí.</value>
@@ -15433,9 +15433,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Compress destination files (zip)" xml:space="preserve">
     <value>_Komprimovat cílové soubory (zip)</value>
-  </data>
-  <data name="_Connect" xml:space="preserve">
-    <value>_Připojit</value>
   </data>
   <data name="_Connection security" xml:space="preserve">
     <value>_Zabezpečení připojení</value>

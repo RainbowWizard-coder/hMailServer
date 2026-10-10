@@ -8,7 +8,7 @@ using System.Windows.Markup;
 namespace hMailServer.ControlPanel.Services
 {
    /// <summary>
-   /// <c>{loc:L 'Connect to server'}</c> - the XAML face of <see cref="Loc.L"/>.
+   /// <c>{loc:L 'Sign in'}</c> - the XAML face of <see cref="Loc.L"/>.
    /// The text is looked up once, when the page loads, which is all a language
    /// choice needs: it is fixed for the life of the process (changing it restarts
    /// the Control Panel), so there is nothing for a binding to track. Quote the

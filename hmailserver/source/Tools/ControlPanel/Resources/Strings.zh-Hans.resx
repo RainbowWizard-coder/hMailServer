@@ -2848,9 +2848,6 @@
   <data name="Connect to another server…" xml:space="preserve">
     <value>连接到其他服务器…</value>
   </data>
-  <data name="Connect to server" xml:space="preserve">
-    <value>连接到服务器</value>
-  </data>
   <data name="Connected" xml:space="preserve">
     <value>已连接</value>
   </data>
@@ -2883,9 +2880,6 @@
   </data>
   <data name="Connecting host checks" xml:space="preserve">
     <value>连接主机检查</value>
-  </data>
-  <data name="Connecting…" xml:space="preserve">
-    <value>正在连接…</value>
   </data>
   <data name="Connection failed." xml:space="preserve">
     <value>连接失败。</value>
@@ -5292,6 +5286,9 @@
   </data>
   <data name="Follows the domain" xml:space="preserve">
     <value>沿用域设置</value>
+  </data>
+  <data name="For Administrator, the password chosen when hMailServer was installed; for your own account, its own password." xml:space="preserve">
+    <value>Administrator 使用安装 hMailServer 时选择的密码；你自己的账户使用它自己的密码。</value>
   </data>
   <data name="For LDAPS or StartTLS: a certificate on the directory server that THIS machine trusts - issued by a CA in the Windows machine certificate store, with the host name above in it. A domain controller does not have one out of the box. The Negotiate bind method needs no certificate at all, because the password never crosses the network." xml:space="preserve">
     <value>用于 LDAPS 或 StartTLS：目录服务器上有一个本机信任的证书 - 由 Windows 计算机证书存储中的某个 CA 颁发，并且包含上面的主机名。域控制器出厂时没有这样的证书。Negotiate 绑定方法完全不需要证书，因为密码从不经过网络。</value>
@@ -9186,8 +9183,8 @@
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>用 Windows DPAPI 保护存储的机密</value>
   </data>
-  <data name="Protect the administrator credential" xml:space="preserve">
-    <value>保护管理员凭据</value>
+  <data name="Protect the administrator password" xml:space="preserve">
+    <value>保护管理员密码</value>
   </data>
   <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
     <value>受保护人员(_P)（不属于此域账户、姓名不得被冒用的人；每行一个，每项为 姓名 &lt;address&gt;、姓名或地址）</value>
@@ -11613,17 +11610,23 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Sieve _filter script" xml:space="preserve">
     <value>Sieve 过滤脚本(_F)</value>
   </data>
+  <data name="Sign _in" xml:space="preserve">
+    <value>登录(_I)</value>
+  </data>
   <data name="Sign aliases _too" xml:space="preserve">
     <value>也为别名签名(_T)</value>
+  </data>
+  <data name="Sign in" xml:space="preserve">
+    <value>登录</value>
   </data>
   <data name="Sign in again" xml:space="preserve">
     <value>重新登录</value>
   </data>
+  <data name="Sign in as the server's Administrator, or with your own account if it administers a domain or holds a role." xml:space="preserve">
+    <value>以服务器的 Administrator 登录，或者如果你自己的账户管理某个域或拥有某个角色，则用它登录。</value>
+  </data>
   <data name="Sign in to a server first." xml:space="preserve">
     <value>请先登录到服务器。</value>
-  </data>
-  <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
-    <value>使用 hMailServer 管理员凭据登录。</value>
   </data>
   <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
     <value>要查看或更改这些设置，请使用 hMailServer 服务器管理员账户登录。({0})</value>
@@ -12500,9 +12503,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>管理员密码和双因素身份验证在“管理访问权限”页。</value>
-  </data>
-  <data name="The administrator password chosen when hMailServer was installed." xml:space="preserve">
-    <value>安装 hMailServer 时选择的管理员密码。</value>
   </data>
   <data name="The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough." xml:space="preserve">
     <value>管理员密码可以打开一切；再加一个一次性代码，泄露的密码就不够用了。</value>
@@ -15246,9 +15246,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="_Compress destination files (zip)" xml:space="preserve">
     <value>压缩目标文件(_C)（zip）</value>
-  </data>
-  <data name="_Connect" xml:space="preserve">
-    <value>连接(_C)</value>
   </data>
   <data name="_Connection security" xml:space="preserve">
     <value>连接安全(_C)</value>

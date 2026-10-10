@@ -2848,9 +2848,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Connect to another server…" xml:space="preserve">
     <value>Anslut till en annan server…</value>
   </data>
-  <data name="Connect to server" xml:space="preserve">
-    <value>Anslut till server</value>
-  </data>
   <data name="Connected" xml:space="preserve">
     <value>Ansluten</value>
   </data>
@@ -2883,9 +2880,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Connecting host checks" xml:space="preserve">
     <value>Kontroller av anslutande värd</value>
-  </data>
-  <data name="Connecting…" xml:space="preserve">
-    <value>Ansluter…</value>
   </data>
   <data name="Connection failed." xml:space="preserve">
     <value>Anslutningen misslyckades.</value>
@@ -5292,6 +5286,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Follows the domain" xml:space="preserve">
     <value>Följer domänen</value>
+  </data>
+  <data name="For Administrator, the password chosen when hMailServer was installed; for your own account, its own password." xml:space="preserve">
+    <value>För Administrator lösenordet som valdes när hMailServer installerades; för ditt eget konto dess eget lösenord.</value>
   </data>
   <data name="For LDAPS or StartTLS: a certificate on the directory server that THIS machine trusts - issued by a CA in the Windows machine certificate store, with the host name above in it. A domain controller does not have one out of the box. The Negotiate bind method needs no certificate at all, because the password never crosses the network." xml:space="preserve">
     <value>För LDAPS eller StartTLS: ett certifikat på katalogservern som DEN HÄR datorn litar på - utfärdat av en CA i Windows datorcertifikatlager, med värdnamnet ovan i sig. En domänkontrollant har inget sådant från början. Bindningsmetoden Negotiate behöver inget certifikat alls, eftersom lösenordet aldrig går över nätverket.</value>
@@ -9186,8 +9183,8 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Skydda lagrade hemligheter med Windows DPAPI</value>
   </data>
-  <data name="Protect the administrator credential" xml:space="preserve">
-    <value>Skydda administratörens inloggningsuppgift</value>
+  <data name="Protect the administrator password" xml:space="preserve">
+    <value>Skydda administratörslösenordet</value>
   </data>
   <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
     <value>Skyddade _personer (personer utanför domänens konton vars namn inte får lånas; en per rad, var och en Namn &lt;address&gt;, Namn eller adress)</value>
@@ -11613,17 +11610,23 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Sieve _filter script" xml:space="preserve">
     <value>Sieve-_filterskript</value>
   </data>
+  <data name="Sign _in" xml:space="preserve">
+    <value>Logga _in</value>
+  </data>
   <data name="Sign aliases _too" xml:space="preserve">
     <value>Signera även al_ias</value>
+  </data>
+  <data name="Sign in" xml:space="preserve">
+    <value>Logga in</value>
   </data>
   <data name="Sign in again" xml:space="preserve">
     <value>Logga in igen</value>
   </data>
+  <data name="Sign in as the server's Administrator, or with your own account if it administers a domain or holds a role." xml:space="preserve">
+    <value>Logga in som serverns Administrator, eller med ditt eget konto om det administrerar en domän eller har en roll.</value>
+  </data>
   <data name="Sign in to a server first." xml:space="preserve">
     <value>Logga in på en server först.</value>
-  </data>
-  <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
-    <value>Logga in med hMailServers administratörsuppgifter.</value>
   </data>
   <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
     <value>Logga in med hMailServers serveradministratörskonto för att se eller ändra de här inställningarna. ({0})</value>
@@ -12500,9 +12503,6 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Administratörslösenordet och tvåfaktorsautentiseringen finns på sidan Administrativ åtkomst.</value>
-  </data>
-  <data name="The administrator password chosen when hMailServer was installed." xml:space="preserve">
-    <value>Administratörslösenordet som valdes när hMailServer installerades.</value>
   </data>
   <data name="The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough." xml:space="preserve">
     <value>Administratörslösenordet öppnar allt; en engångskod bredvid det gör att ett läckt lösenord inte räcker.</value>
@@ -15246,9 +15246,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="_Compress destination files (zip)" xml:space="preserve">
     <value>_Komprimera målfilerna (zip)</value>
-  </data>
-  <data name="_Connect" xml:space="preserve">
-    <value>_Anslut</value>
   </data>
   <data name="_Connection security" xml:space="preserve">
     <value>Anslutningssä_kerhet</value>

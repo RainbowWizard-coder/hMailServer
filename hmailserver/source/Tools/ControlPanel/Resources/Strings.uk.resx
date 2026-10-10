@@ -2872,9 +2872,6 @@
   <data name="Connect to another server…" xml:space="preserve">
     <value>Під'єднатися до іншого сервера…</value>
   </data>
-  <data name="Connect to server" xml:space="preserve">
-    <value>Підключитися до сервера</value>
-  </data>
   <data name="Connected" xml:space="preserve">
     <value>Підключено</value>
   </data>
@@ -2907,9 +2904,6 @@
   </data>
   <data name="Connecting host checks" xml:space="preserve">
     <value>Перевірки вузла, що підключається</value>
-  </data>
-  <data name="Connecting…" xml:space="preserve">
-    <value>Підключення…</value>
   </data>
   <data name="Connection failed." xml:space="preserve">
     <value>Не вдалося підключитися.</value>
@@ -5362,6 +5356,9 @@
   </data>
   <data name="Follows the domain" xml:space="preserve">
     <value>Як у домену</value>
+  </data>
+  <data name="For Administrator, the password chosen when hMailServer was installed; for your own account, its own password." xml:space="preserve">
+    <value>Для Administrator — пароль, вибраний під час встановлення hMailServer; для власного облікового запису — його власний пароль.</value>
   </data>
   <data name="For LDAPS or StartTLS: a certificate on the directory server that THIS machine trusts - issued by a CA in the Windows machine certificate store, with the host name above in it. A domain controller does not have one out of the box. The Negotiate bind method needs no certificate at all, because the password never crosses the network." xml:space="preserve">
     <value>Для LDAPS або StartTLS: сертифікат на сервері каталогу, якому довіряє ЦЕЙ комп'ютер - виданий ЦС зі сховища сертифікатів комп'ютера Windows, з іменем вузла вище в ньому. Контролер домену не має такого одразу після встановлення. Метод прив'язки Negotiate взагалі не потребує сертифіката, бо пароль ніколи не перетинає мережу.</value>
@@ -9280,8 +9277,8 @@
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Захищати збережені секрети за допомогою Windows DPAPI</value>
   </data>
-  <data name="Protect the administrator credential" xml:space="preserve">
-    <value>Захистити облікові дані адміністратора</value>
+  <data name="Protect the administrator password" xml:space="preserve">
+    <value>Захистити пароль адміністратора</value>
   </data>
   <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
     <value>Захищені _особи (особи поза обліковими записами цього домену, чиє ім'я не можна запозичувати; по одній на рядок, кожна як Ім'я &lt;address&gt;, Ім'я або адреса)</value>
@@ -11755,17 +11752,23 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Sieve _filter script" xml:space="preserve">
     <value>_Скрипт фільтра Sieve</value>
   </data>
+  <data name="Sign _in" xml:space="preserve">
+    <value>_Увійти</value>
+  </data>
   <data name="Sign aliases _too" xml:space="preserve">
     <value>Підписувати _також псевдоніми</value>
+  </data>
+  <data name="Sign in" xml:space="preserve">
+    <value>Увійти</value>
   </data>
   <data name="Sign in again" xml:space="preserve">
     <value>Увійти знову</value>
   </data>
+  <data name="Sign in as the server's Administrator, or with your own account if it administers a domain or holds a role." xml:space="preserve">
+    <value>Увійдіть як Administrator сервера або зі своїм обліковим записом, якщо він адмініструє домен чи має роль.</value>
+  </data>
   <data name="Sign in to a server first." xml:space="preserve">
     <value>Спершу увійдіть на сервер.</value>
-  </data>
-  <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
-    <value>Увійдіть з обліковими даними адміністратора hMailServer.</value>
   </data>
   <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
     <value>Щоб переглядати або змінювати ці параметри, увійдіть з обліковим записом адміністратора сервера hMailServer. ({0})</value>
@@ -12645,9 +12648,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Пароль адміністратора і двофакторна автентифікація - на сторінці «Адміністративний доступ».</value>
-  </data>
-  <data name="The administrator password chosen when hMailServer was installed." xml:space="preserve">
-    <value>Пароль адміністратора, вибраний під час встановлення hMailServer.</value>
   </data>
   <data name="The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough." xml:space="preserve">
     <value>Пароль адміністратора відкриває все; одноразовий код поруч із ним не дає витеклому паролю бути достатнім.</value>
@@ -15433,9 +15433,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Compress destination files (zip)" xml:space="preserve">
     <value>_Стискати файли призначення (zip)</value>
-  </data>
-  <data name="_Connect" xml:space="preserve">
-    <value>_Підключитися</value>
   </data>
   <data name="_Connection security" xml:space="preserve">
     <value>_Безпека підключення</value>

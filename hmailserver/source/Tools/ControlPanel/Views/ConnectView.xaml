@@ -17,7 +17,7 @@
          accessible names and Alt keys the placeholders never did. -->
     <!-- The page scrolls where the window is shorter than the card: in the
          smallest window the Control Panel allows (760 by 520) the card's bottom
-         edge ran across the password box, and Connect, the failure notice, the
+         edge ran across the password box, and Sign in, the failure notice, the
          two-factor link and the language picker were not drawn and could not be
          scrolled to; only Enter in the password box still signed in. The card
          keeps its VerticalAlignment: the viewer arranges it at the viewport's
@@ -26,7 +26,7 @@
     <Grid>
         <scaffold:Card MaxWidth="420" MinWidth="320" Padding="32,28" Margin="20"
                        HorizontalAlignment="Center" VerticalAlignment="Center"
-                       AutomationProperties.Name="{loc:L 'Connect to server'}">
+                       AutomationProperties.Name="{loc:L 'Sign in'}">
             <StackPanel>
                 <!-- 40 pixels, not 52, and the password row's gap 12, not 18: the
                      card is 24 pixels shorter, which is that much less to scroll
@@ -37,8 +37,16 @@
                                HorizontalAlignment="Center" VerticalAlignment="Center" />
                 </Border>
 
-                <TextBlock Text="{loc:L 'Connect to server'}" Style="{StaticResource TextSubtitle}" />
-                <TextBlock Text="{loc:L 'Sign in with the hMailServer administrator credential.'}"
+                <!-- One verb for the act, as the page is named: the heading and the
+                     button both say Sign in, where they said Connect to server and
+                     Connect over a subtitle that said sign in, and the pill keeps
+                     Connected and Not connected for the link (review findings F028
+                     and F316, the owner's choice of 9 October 2026). The subtitle
+                     and the hint say who signs in here: the server's Administrator,
+                     and an account that administers a domain or holds a role, with
+                     its own password - not the Administrator alone. -->
+                <TextBlock Text="{loc:L 'Sign in'}" Style="{StaticResource TextSubtitle}" />
+                <TextBlock Text="{loc:L 'Sign in as the server\'s Administrator, or with your own account if it administers a domain or holds a role.'}"
                            Style="{StaticResource TextCaption}" Margin="0,4,0,20" />
 
                 <scaffold:FieldRow Label="{loc:L '_Server'}">
@@ -59,7 +67,7 @@
                 <!-- The hint answers the first question a new administrator has
                      on this card: which password? -->
                 <scaffold:FieldRow Label="{loc:L '_Password'}" Margin="0,0,0,12"
-                                   Hint="{loc:L 'The administrator password chosen when hMailServer was installed.'}">
+                                   Hint="{loc:L 'For Administrator, the password chosen when hMailServer was installed; for your own account, its own password.'}">
                     <local:PasswordField x:Name="PasswordBox">
                         <local:PasswordField.Icon><ui:SymbolIcon Symbol="Key24" /></local:PasswordField.Icon>
                     </local:PasswordField>
@@ -70,12 +78,12 @@
                      that jumps as soon as you click it reads as instability, which
                      is the opposite of what a progress indicator is for. -->
                 <Grid Height="38">
-                    <ui:Button x:Name="ConnectButton" Content="{loc:L '_Connect'}" Appearance="Primary"
+                    <ui:Button x:Name="ConnectButton" Content="{loc:L 'Sign _in'}" Appearance="Primary"
                                HorizontalAlignment="Stretch" Height="38" Click="Connect_Click" />
                     <StackPanel x:Name="BusyPanel" Orientation="Horizontal" Visibility="Collapsed"
                                 HorizontalAlignment="Center" VerticalAlignment="Center">
                         <ui:ProgressRing IsIndeterminate="True" Width="20" Height="20" />
-                        <TextBlock x:Name="BusyText" Text="{loc:L 'Connecting…'}" FontSize="13" Margin="10,0,0,0"
+                        <TextBlock x:Name="BusyText" Text="{loc:L 'Signing in…'}" FontSize="13" Margin="10,0,0,0"
                                    VerticalAlignment="Center"
                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                     </StackPanel>

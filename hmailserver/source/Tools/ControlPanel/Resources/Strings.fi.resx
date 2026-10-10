@@ -2848,9 +2848,6 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Connect to another server…" xml:space="preserve">
     <value>Yhdistä toiseen palvelimeen…</value>
   </data>
-  <data name="Connect to server" xml:space="preserve">
-    <value>Yhdistä palvelimeen</value>
-  </data>
   <data name="Connected" xml:space="preserve">
     <value>Yhdistetty</value>
   </data>
@@ -2883,9 +2880,6 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Connecting host checks" xml:space="preserve">
     <value>Yhdistävän koneen tarkistukset</value>
-  </data>
-  <data name="Connecting…" xml:space="preserve">
-    <value>Yhdistetään…</value>
   </data>
   <data name="Connection failed." xml:space="preserve">
     <value>Yhteys epäonnistui.</value>
@@ -5292,6 +5286,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Follows the domain" xml:space="preserve">
     <value>Noudattaa verkkotunnusta</value>
+  </data>
+  <data name="For Administrator, the password chosen when hMailServer was installed; for your own account, its own password." xml:space="preserve">
+    <value>Administrator-tilille salasana, joka valittiin hMailServerin asennuksessa; omalle tilillesi sen oma salasana.</value>
   </data>
   <data name="For LDAPS or StartTLS: a certificate on the directory server that THIS machine trusts - issued by a CA in the Windows machine certificate store, with the host name above in it. A domain controller does not have one out of the box. The Negotiate bind method needs no certificate at all, because the password never crosses the network." xml:space="preserve">
     <value>LDAPS:lle tai StartTLS:lle: varmenne hakemistopalvelimella, johon TÄMÄ kone luottaa - Windowsin konevarmennesäilön CA:n myöntämä, ja siinä yllä oleva konenimi. Toimialueen ohjauskoneella ei ole sellaista valmiiksi. Negotiate-sidontatapa ei tarvitse varmennetta lainkaan, koska salasana ei koskaan kulje verkon yli.</value>
@@ -9186,8 +9183,8 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Suojaa tallennetut salaisuudet Windows DPAPI:lla</value>
   </data>
-  <data name="Protect the administrator credential" xml:space="preserve">
-    <value>Suojaa järjestelmänvalvojan tunnistetieto</value>
+  <data name="Protect the administrator password" xml:space="preserve">
+    <value>Suojaa järjestelmänvalvojan salasana</value>
   </data>
   <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
     <value>Suojatut _henkilöt (tämän verkkotunnuksen tilien ulkopuoliset henkilöt, joiden nimeä ei saa lainata; yksi riviä kohden, kukin Nimi &lt;address&gt;, Nimi tai osoite)</value>
@@ -11613,17 +11610,23 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Sieve _filter script" xml:space="preserve">
     <value>_Sieve-suodatinkomentosarja</value>
   </data>
+  <data name="Sign _in" xml:space="preserve">
+    <value>Ki_rjaudu sisään</value>
+  </data>
   <data name="Sign aliases _too" xml:space="preserve">
     <value>Allekirjoita _myös aliakset</value>
+  </data>
+  <data name="Sign in" xml:space="preserve">
+    <value>Kirjaudu sisään</value>
   </data>
   <data name="Sign in again" xml:space="preserve">
     <value>Kirjaudu uudelleen</value>
   </data>
+  <data name="Sign in as the server's Administrator, or with your own account if it administers a domain or holds a role." xml:space="preserve">
+    <value>Kirjaudu sisään palvelimen Administrator-tilillä tai omalla tililläsi, jos se hallinnoi verkkotunnusta tai sillä on rooli.</value>
+  </data>
   <data name="Sign in to a server first." xml:space="preserve">
     <value>Kirjaudu ensin palvelimeen.</value>
-  </data>
-  <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
-    <value>Kirjaudu sisään hMailServerin järjestelmänvalvojan tunnistetiedoilla.</value>
   </data>
   <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
     <value>Kirjaudu hMailServerin palvelimen järjestelmänvalvojan tilillä nähdäksesi tai muuttaaksesi näitä asetuksia. ({0})</value>
@@ -12500,9 +12503,6 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Järjestelmänvalvojan salasana ja kaksivaiheinen todennus ovat Ylläpitokäyttöoikeus-sivulla.</value>
-  </data>
-  <data name="The administrator password chosen when hMailServer was installed." xml:space="preserve">
-    <value>Järjestelmänvalvojan salasana, joka valittiin hMailServerin asennuksessa.</value>
   </data>
   <data name="The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough." xml:space="preserve">
     <value>Ylläpitäjän salasana avaa kaiken; sen rinnalla oleva kertakäyttökoodi estää vuotanutta salasanaa riittämästä.</value>
@@ -15246,9 +15246,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="_Compress destination files (zip)" xml:space="preserve">
     <value>_Pakkaa kohdetiedostot (zip)</value>
-  </data>
-  <data name="_Connect" xml:space="preserve">
-    <value>_Yhdistä</value>
   </data>
   <data name="_Connection security" xml:space="preserve">
     <value>_Yhteyden suojaus</value>

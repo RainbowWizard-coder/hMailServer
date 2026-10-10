@@ -216,7 +216,7 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
-      /// Swaps the Connect button for a progress ring and locks the fields, so
+      /// Swaps the Sign in button for a progress ring and locks the fields, so
       /// the credentials cannot be edited underneath an attempt that is using
       /// them. The button is hidden rather than merely disabled: a greyed-out
       /// button is how this screen used to say "working", and it is
@@ -228,7 +228,7 @@ namespace hMailServer.ControlPanel.Views
 
          if (busy)
          {
-            BusyText.Text = message ?? L("Connecting…");
+            BusyText.Text = message ?? L("Signing in…");
             ErrorNotice.Visibility = Visibility.Collapsed;
          }
 
