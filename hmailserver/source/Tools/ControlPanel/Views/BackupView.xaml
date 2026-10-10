@@ -33,7 +33,7 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <ui:TextBox x:Name="DestinationBox" Grid.Column="0" />
-                            <ui:Button x:Name="BrowseDestination" Grid.Column="1" Content="…" MinWidth="40" Margin="8,0,0,0"
+                            <ui:Button x:Name="BrowseDestination" Grid.Column="1" Content="{loc:L 'Browse…'}" Margin="8,0,0,0"
                                        VerticalAlignment="Bottom" ToolTip="{loc:L 'Browse for a folder'}" Click="BrowseDestination_Click" />
                         </Grid>
                     </scaffold:FieldRow>
@@ -172,7 +172,7 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <ui:TextBox x:Name="BackupFileBox" Grid.Column="0" />
-                            <ui:Button x:Name="BrowseBackupFile" Grid.Column="1" Content="…" MinWidth="40" Margin="8,0,0,0"
+                            <ui:Button x:Name="BrowseBackupFile" Grid.Column="1" Content="{loc:L 'Browse…'}" Margin="8,0,0,0"
                                        VerticalAlignment="Bottom" ToolTip="{loc:L 'Browse for a file'}" Click="BrowseBackupFile_Click" />
                         </Grid>
                     </scaffold:FieldRow>

@@ -563,7 +563,11 @@ namespace hMailServer.ControlPanel.Services
                   // The suppression list is the other page a domain administrator
                   // may open, so it is this page's link for that role, the server
                   // administrator's pages being left out of it (RelatedOf).
-                  seeAlso: "publicfolders|groups|rules|suppressions|sendout",
+                  // Administrator roles last: a named role given there refines the
+                  // administration level an account's dialog sets, which nothing
+                  // pointed to (review finding F324). It needs view_configuration,
+                  // so RelatedOf leaves it out for a domain administrator.
+                  seeAlso: "publicfolders|groups|rules|suppressions|sendout|roles",
                   needs: "administer_domain"),
 
                Page("groups", N("Groups"),

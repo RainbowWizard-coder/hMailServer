@@ -2332,6 +2332,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Browser sessions" xml:space="preserve">
     <value>Browsersessies</value>
   </data>
+  <data name="Browse…" xml:space="preserve">
+    <value>Bladeren…</value>
+  </data>
   <data name="Browsing works on the server itself; connected to another machine, type the path as the server sees it." xml:space="preserve">
     <value>Bladeren werkt alleen op de server zelf; verbonden met een andere machine typt u het pad zoals de server het ziet.</value>
   </data>
@@ -12482,6 +12485,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>De Active Directory-gebruikersnaam (sAMAccountName) - dezelfde waarde als op het tabblad Windows-directory van het account. Optioneel: leeg gelaten stopt de test na de fasen verbinding en servicereferentie.</value>
+  </data>
+  <data name="The Administrator roles page can give this account a narrower, named role instead." xml:space="preserve">
+    <value>Op de pagina Beheerdersrollen kan dit account in plaats daarvan een beperktere rol met een naam krijgen.</value>
   </data>
   <data name="The Control Deck is served by the REST API, which is off - give it a port below." xml:space="preserve">
     <value>De Control Deck wordt geleverd door de REST-API, die uit staat - geef die hieronder een poort.</value>

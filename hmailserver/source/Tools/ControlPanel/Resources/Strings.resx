@@ -2332,6 +2332,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Browser sessions" xml:space="preserve">
     <value>Browser sessions</value>
   </data>
+  <data name="Browse…" xml:space="preserve">
+    <value>Browse…</value>
+  </data>
   <data name="Browsing works on the server itself; connected to another machine, type the path as the server sees it." xml:space="preserve">
     <value>Browsing works on the server itself; connected to another machine, type the path as the server sees it.</value>
   </data>
@@ -12482,6 +12485,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   </data>
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages.</value>
+  </data>
+  <data name="The Administrator roles page can give this account a narrower, named role instead." xml:space="preserve">
+    <value>The Administrator roles page can give this account a narrower, named role instead.</value>
   </data>
   <data name="The Control Deck is served by the REST API, which is off - give it a port below." xml:space="preserve">
     <value>The Control Deck is served by the REST API, which is off - give it a port below.</value>

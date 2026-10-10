@@ -598,22 +598,21 @@ namespace hMailServer.ControlPanel.Views
             Grid.SetColumn(box_, 0);
             row.Children.Add(box_);
 
+            // Captioned Browse…, as the dialogs' pickers are, where it was a
+            // 40-pixel "…" (review finding F324); no Alt key, as a card holds
+            // several - the REST API card's certificate and private key.
             var browse = new Wpf.Ui.Controls.Button
             {
-               Content = "\u2026",
-               MinWidth = 40,
+               Content = L("Browse…"),
                Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0),
-               VerticalAlignment = VerticalAlignment.Bottom,
-               ToolTip = PickFolder ? L("Browse for a folder") : L("Browse for a file")
+               VerticalAlignment = VerticalAlignment.Bottom
             };
             SetAid(browse, Key + "Browse"); // no-loc
-            // The content is a single ellipsis, so without this the certificate and
-            // private-key browse buttons on the REST API card are announced as two
-            // identical "\u2026" and there is no way to tell which one is which.
-            AutomationProperties.SetName(browse,
-               PickFolder
-                  ? F("Browse for a folder for {0}", AccessibleName ?? Label ?? L("this setting"))
-                  : F("Browse for a file for {0}", AccessibleName ?? Label ?? L("this setting")));
+            // Named by its caption and then the setting it fills, so that the
+            // card's two are told apart; the sentence is its help text and tool tip.
+            string setting = LabelInName.Shown(AccessibleName ?? Label ?? L("this setting"));
+            ControlHelp.Explain(browse, PickFolder ? F("Browse for a folder for {0}", setting) : F("Browse for a file for {0}", setting));
+            ControlHelp.NameLink(browse, L("Browse…"), setting);
             browse.Click += (s, e) =>
             {
                string picked = PickFolder

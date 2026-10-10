@@ -267,7 +267,10 @@ namespace hMailServer.ControlPanel.Views
          moveButton.Click += (s, e) => MoveMailbox();
          panel.Children.Add(moveButton);
 
-         panel.Children.Add(Label(L("Ad_ministration level"), adminLevel_));
+         // The level is the coarse switch; a named role on Administrator roles is
+         // the finer one, which nothing here said (review finding F324).
+         panel.Children.Add(DialogFields.Field(L("Ad_ministration level"), adminLevel_,
+            L("The Administrator roles page can give this account a narrower, named role instead.")));
 
          quotaRow_ = Label(L("_Quota (MB; 0 = no limit)"), quota_);
          panel.Children.Add(quotaRow_);

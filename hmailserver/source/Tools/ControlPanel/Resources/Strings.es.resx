@@ -2332,6 +2332,9 @@ Los detalles completos se escribieron en:
   <data name="Browser sessions" xml:space="preserve">
     <value>Sesiones del navegador</value>
   </data>
+  <data name="Browse…" xml:space="preserve">
+    <value>Examinar…</value>
+  </data>
   <data name="Browsing works on the server itself; connected to another machine, type the path as the server sees it." xml:space="preserve">
     <value>Examinar solo funciona en el propio servidor; conectado a otra máquina, escriba la ruta tal como la ve el servidor.</value>
   </data>
@@ -12482,6 +12485,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>El nombre de usuario de Active Directory (sAMAccountName) - el mismo valor que tiene la pestaña Directorio de Windows de la cuenta. Opcional: si se deja vacío, la prueba se detiene tras las etapas de conexión y de credencial de servicio.</value>
+  </data>
+  <data name="The Administrator roles page can give this account a narrower, named role instead." xml:space="preserve">
+    <value>La página Roles de administrador puede dar a esta cuenta, en su lugar, un rol con nombre más restringido.</value>
   </data>
   <data name="The Control Deck is served by the REST API, which is off - give it a port below." xml:space="preserve">
     <value>El Control Deck lo sirve la API REST, que está desactivada - asígnele un puerto más abajo.</value>

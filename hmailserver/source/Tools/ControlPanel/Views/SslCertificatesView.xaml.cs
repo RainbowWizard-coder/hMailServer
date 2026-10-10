@@ -126,6 +126,14 @@ namespace hMailServer.ControlPanel.Views
          FormSubmit.Bind(AddCertForm, AddCertButton, NewCertName, NewCertFile, NewKeyFile, NewKeyPassphrase);
          FormSubmit.Bind(PassphraseBox, SavePassphraseButton, PassphraseBox);
 
+         // The two pickers, captioned Browse… where they were a bare "…" (review
+         // finding F324): named by the caption and the file each fills, the
+         // sentence that was their name their help text and tool tip.
+         ControlHelp.Explain(BrowseCertButton, L("Browse for the certificate file"));
+         ControlHelp.NameLink(BrowseCertButton, L("Browse…"), LabelInName.Shown(L("_Certificate file (PEM)")));
+         ControlHelp.Explain(BrowseKeyButton, L("Browse for the private key file"));
+         ControlHelp.NameLink(BrowseKeyButton, L("Browse…"), LabelInName.Shown(L("Private key _file (PEM)")));
+
          // The empty state under the grid's column headers, centred where the
          // rows would be, never drawn across the headers' line.
          Scaffold.EmptyStateUnderHeaders.Keep(EmptyStatus, CertGrid);

@@ -2332,6 +2332,9 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Browser sessions" xml:space="preserve">
     <value>Browsersitzungen</value>
   </data>
+  <data name="Browse…" xml:space="preserve">
+    <value>Durchsuchen…</value>
+  </data>
   <data name="Browsing works on the server itself; connected to another machine, type the path as the server sees it." xml:space="preserve">
     <value>Durchsuchen funktioniert nur auf dem Server selbst; mit einem anderen Rechner verbunden, geben Sie den Pfad so ein, wie der Server ihn sieht.</value>
   </data>
@@ -12482,6 +12485,9 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   </data>
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>Der Active-Directory-Benutzername (sAMAccountName) - derselbe Wert, den die Registerkarte Windows-Verzeichnis des Kontos enthält. Optional: Bleibt er leer, endet der Test nach den Stufen Verbindung und Dienstzugangsdaten.</value>
+  </data>
+  <data name="The Administrator roles page can give this account a narrower, named role instead." xml:space="preserve">
+    <value>Die Seite Administratorrollen kann diesem Konto stattdessen eine engere, benannte Rolle geben.</value>
   </data>
   <data name="The Control Deck is served by the REST API, which is off - give it a port below." xml:space="preserve">
     <value>Das Control Deck wird von der REST-API ausgeliefert, die ausgeschaltet ist - geben Sie ihr unten einen Port.</value>

@@ -2362,6 +2362,9 @@ Control Panel может читать файлы сообщений только
   <data name="Browser sessions" xml:space="preserve">
     <value>Сеансы браузера</value>
   </data>
+  <data name="Browse…" xml:space="preserve">
+    <value>Обзор…</value>
+  </data>
   <data name="Browsing works on the server itself; connected to another machine, type the path as the server sees it." xml:space="preserve">
     <value>Обзор работает только на самом сервере; при подключении к другому компьютеру введите путь так, как его видит сервер.</value>
   </data>
@@ -12633,6 +12636,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>Имя пользователя Active Directory (sAMAccountName) — то же значение, что хранится на вкладке «Каталог Windows» учётной записи. Необязательно: если оставить поле пустым, проверка остановится после этапов подключения и учётных данных службы.</value>
+  </data>
+  <data name="The Administrator roles page can give this account a narrower, named role instead." xml:space="preserve">
+    <value>На странице «Роли администраторов» этой учётной записи можно вместо этого назначить более узкую именованную роль.</value>
   </data>
   <data name="The Control Deck is served by the REST API, which is off - give it a port below." xml:space="preserve">
     <value>Control Deck обслуживается REST API, который выключен - задайте ему порт ниже.</value>

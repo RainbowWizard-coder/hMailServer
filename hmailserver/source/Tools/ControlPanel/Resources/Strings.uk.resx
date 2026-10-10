@@ -2362,6 +2362,9 @@
   <data name="Browser sessions" xml:space="preserve">
     <value>Сеанси браузера</value>
   </data>
+  <data name="Browse…" xml:space="preserve">
+    <value>Огляд…</value>
+  </data>
   <data name="Browsing works on the server itself; connected to another machine, type the path as the server sees it." xml:space="preserve">
     <value>Огляд працює лише на самому сервері; під час підключення до іншого комп'ютера введіть шлях так, як його бачить сервер.</value>
   </data>
@@ -12633,6 +12636,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>Ім'я користувача Active Directory (sAMAccountName) - те саме значення, що на вкладці «Каталог Windows» облікового запису. Необов'язково: якщо залишити порожнім, тест зупиниться після етапів з'єднання та облікових даних служби.</value>
+  </data>
+  <data name="The Administrator roles page can give this account a narrower, named role instead." xml:space="preserve">
+    <value>На сторінці «Ролі адміністраторів» цьому обліковому запису можна натомість призначити вужчу іменовану роль.</value>
   </data>
   <data name="The Control Deck is served by the REST API, which is off - give it a port below." xml:space="preserve">
     <value>Control Deck обслуговує REST API, який вимкнено - призначте йому порт нижче.</value>

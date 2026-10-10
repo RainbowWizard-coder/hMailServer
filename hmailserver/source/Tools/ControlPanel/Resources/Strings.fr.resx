@@ -2332,6 +2332,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Browser sessions" xml:space="preserve">
     <value>Sessions de navigateur</value>
   </data>
+  <data name="Browse…" xml:space="preserve">
+    <value>Parcourir…</value>
+  </data>
   <data name="Browsing works on the server itself; connected to another machine, type the path as the server sees it." xml:space="preserve">
     <value>La navigation ne fonctionne que sur le serveur lui-même ; connecté à une autre machine, saisissez le chemin tel que le serveur le voit.</value>
   </data>
@@ -12482,6 +12485,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   </data>
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>Le nom d'utilisateur Active Directory (sAMAccountName) - la même valeur que celle de l'onglet Annuaire Windows du compte. Facultatif : laissé vide, le test s'arrête après les étapes de connexion et d'identifiant de service.</value>
+  </data>
+  <data name="The Administrator roles page can give this account a narrower, named role instead." xml:space="preserve">
+    <value>La page Rôles d'administration peut plutôt donner à ce compte un rôle nommé, plus restreint.</value>
   </data>
   <data name="The Control Deck is served by the REST API, which is off - give it a port below." xml:space="preserve">
     <value>Le Control Deck est servi par l'API REST, qui est désactivée - donnez-lui un port ci-dessous.</value>

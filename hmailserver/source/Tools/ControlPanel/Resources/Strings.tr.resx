@@ -2332,6 +2332,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Browser sessions" xml:space="preserve">
     <value>Tarayıcı oturumları</value>
   </data>
+  <data name="Browse…" xml:space="preserve">
+    <value>Gözat…</value>
+  </data>
   <data name="Browsing works on the server itself; connected to another machine, type the path as the server sees it." xml:space="preserve">
     <value>Gözatma yalnızca sunucunun kendisinde çalışır; başka bir makineye bağlıyken yolu sunucunun gördüğü şekilde yazın.</value>
   </data>
@@ -12482,6 +12485,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>Active Directory kullanıcı adı (sAMAccountName) - hesabın Windows dizini sekmesinin tuttuğu değerin aynısı. İsteğe bağlı: boş bırakılırsa sınama bağlantı ve hizmet kimlik bilgisi aşamalarından sonra durur.</value>
+  </data>
+  <data name="The Administrator roles page can give this account a narrower, named role instead." xml:space="preserve">
+    <value>Yönetici rolleri sayfası bunun yerine bu hesaba daha dar, adlandırılmış bir rol verebilir.</value>
   </data>
   <data name="The Control Deck is served by the REST API, which is off - give it a port below." xml:space="preserve">
     <value>Control Deck'i REST API sunar ve REST API kapalı - aşağıda ona bir bağlantı noktası verin.</value>

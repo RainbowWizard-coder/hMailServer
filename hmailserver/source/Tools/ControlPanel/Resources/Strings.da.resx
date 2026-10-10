@@ -2332,6 +2332,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Browser sessions" xml:space="preserve">
     <value>Browsersessioner</value>
   </data>
+  <data name="Browse…" xml:space="preserve">
+    <value>Gennemse…</value>
+  </data>
   <data name="Browsing works on the server itself; connected to another machine, type the path as the server sees it." xml:space="preserve">
     <value>Gennemsøgning virker på selve serveren; forbundet til en anden maskine skal du skrive stien, som serveren ser den.</value>
   </data>
@@ -12482,6 +12485,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   </data>
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>Active Directory-brugernavnet (sAMAccountName) - den samme værdi, som kontoens fane Windows-katalog holder. Valgfrit: efterlades det tomt, stopper testen efter forbindelses- og tjenestelegitimationstrinnene.</value>
+  </data>
+  <data name="The Administrator roles page can give this account a narrower, named role instead." xml:space="preserve">
+    <value>Siden Administratorroller kan i stedet give denne konto en snævrere, navngivet rolle.</value>
   </data>
   <data name="The Control Deck is served by the REST API, which is off - give it a port below." xml:space="preserve">
     <value>Control Deck leveres af REST-API'et, som er slået fra - giv det en port nedenfor.</value>

@@ -2332,6 +2332,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Browser sessions" xml:space="preserve">
     <value>Nettleserøkter</value>
   </data>
+  <data name="Browse…" xml:space="preserve">
+    <value>Bla gjennom…</value>
+  </data>
   <data name="Browsing works on the server itself; connected to another machine, type the path as the server sees it." xml:space="preserve">
     <value>Bla gjennom virker bare på selve serveren; koblet til en annen maskin skriver du stien slik serveren ser den.</value>
   </data>
@@ -12482,6 +12485,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   </data>
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>Active Directory-brukernavnet (sAMAccountName) - den samme verdien som kontoens fane Windows-katalog inneholder. Valgfritt: står det tomt, stopper testen etter tilkoblings- og tjenestelegitimasjonstrinnene.</value>
+  </data>
+  <data name="The Administrator roles page can give this account a narrower, named role instead." xml:space="preserve">
+    <value>Siden Administratorroller kan i stedet gi denne kontoen en smalere, navngitt rolle.</value>
   </data>
   <data name="The Control Deck is served by the REST API, which is off - give it a port below." xml:space="preserve">
     <value>Control Deck leveres av REST-API-et, som er slått av - gi det en port nedenfor.</value>

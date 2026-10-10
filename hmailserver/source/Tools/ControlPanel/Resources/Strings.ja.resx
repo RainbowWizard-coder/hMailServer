@@ -2342,6 +2342,9 @@
   <data name="Browser sessions" xml:space="preserve">
     <value>ブラウザーのセッション</value>
   </data>
+  <data name="Browse…" xml:space="preserve">
+    <value>参照…</value>
+  </data>
   <data name="Browsing works on the server itself; connected to another machine, type the path as the server sees it." xml:space="preserve">
     <value>参照はサーバー自体でのみ使えます。別のコンピューターに接続している場合は、サーバーから見たパスを入力してください。</value>
   </data>
@@ -12492,6 +12495,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>Active Directory のユーザー名 (sAMAccountName)。アカウントの [Windows ディレクトリ] タブにあるものと同じ値です。省略可: 空のままにすると、テストは接続とサービス資格情報のステージの後で停止します。</value>
+  </data>
+  <data name="The Administrator roles page can give this account a narrower, named role instead." xml:space="preserve">
+    <value>[管理者ロール] ページでは、代わりに、このアカウントに範囲のより狭い名前付きロールを割り当てることができます。</value>
   </data>
   <data name="The Control Deck is served by the REST API, which is off - give it a port below." xml:space="preserve">
     <value>Control Deck は REST API が提供していますが、REST API はオフです - 下でポートを設定してください。</value>

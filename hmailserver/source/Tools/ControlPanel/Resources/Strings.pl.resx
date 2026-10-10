@@ -2362,6 +2362,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Browser sessions" xml:space="preserve">
     <value>Sesje przeglądarki</value>
   </data>
+  <data name="Browse…" xml:space="preserve">
+    <value>Przeglądaj…</value>
+  </data>
   <data name="Browsing works on the server itself; connected to another machine, type the path as the server sees it." xml:space="preserve">
     <value>Przeglądanie działa tylko na samym serwerze; po połączeniu z innym komputerem wpisz ścieżkę tak, jak widzi ją serwer.</value>
   </data>
@@ -12633,6 +12636,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>Nazwa użytkownika Active Directory (sAMAccountName) - ta sama wartość, którą zawiera karta Katalog Windows danego konta. Opcjonalne: pozostawiona pusta sprawia, że test kończy się po etapach połączenia i poświadczenia usługi.</value>
+  </data>
+  <data name="The Administrator roles page can give this account a narrower, named role instead." xml:space="preserve">
+    <value>Na stronie Role administratorów można zamiast tego nadać temu kontu węższą, nazwaną rolę.</value>
   </data>
   <data name="The Control Deck is served by the REST API, which is off - give it a port below." xml:space="preserve">
     <value>Control Deck jest udostępniany przez REST API, które jest wyłączone - nadaj mu port poniżej.</value>

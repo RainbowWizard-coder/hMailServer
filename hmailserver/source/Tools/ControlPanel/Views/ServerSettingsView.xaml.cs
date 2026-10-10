@@ -427,8 +427,8 @@ namespace hMailServer.ControlPanel.Views
          }
 
          /// <summary>
-         /// A text editor with a "…" picker beside it: the box takes what is left
-         /// of the column and the button its own width.
+         /// A text editor with a Browse… picker beside it: the box takes what is
+         /// left of the column and the button its own width.
          /// </summary>
          protected FrameworkElement WithBrowse(TextBox box, bool folder, string filter)
          {
@@ -438,23 +438,24 @@ namespace hMailServer.ControlPanel.Views
             Grid.SetColumn(box, 0);
             row.Children.Add(box);
 
+            // Captioned Browse…, as the dialogs' pickers are, where it was a
+            // 40-pixel "…" (review finding F324). It carries no Alt key: a card
+            // holds several, which one key would only cycle between.
             var browse = new Wpf.Ui.Controls.Button
             {
-               Content = "…",
-               MinWidth = 40,
+               Content = L("Browse…"),
                Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0),
-               VerticalAlignment = VerticalAlignment.Bottom,
-               ToolTip = folder ? L("Browse for a folder") : L("Browse for a file")
+               VerticalAlignment = VerticalAlignment.Bottom
             };
             SetAid(browse, Path + "Browse"); // no-loc
 
-            // The button's content is a single ellipsis character, so its content
-            // names it "…" and a listener is told nothing at all about which of the
-            // several browse buttons on the page they are on.
-            System.Windows.Automation.AutomationProperties.SetName(browse,
-               folder
-                  ? F("Browse for a folder for {0}", AccessibleName ?? Label ?? L("this setting"))
-                  : F("Browse for a file for {0}", AccessibleName ?? Label ?? L("this setting")));
+            // Named by its caption and then the setting it fills, "Browse: Database
+            // folder", so that a listener can tell the page's pickers apart and a
+            // voice-control user can say the word on the button; the sentence is
+            // its help text and tool tip.
+            string setting = LabelInName.Shown(AccessibleName ?? Label ?? L("this setting"));
+            ControlHelp.Explain(browse, folder ? F("Browse for a folder for {0}", setting) : F("Browse for a file for {0}", setting));
+            ControlHelp.NameLink(browse, L("Browse…"), setting);
 
             browse.Click += (s, e) =>
             {

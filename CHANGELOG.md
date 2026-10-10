@@ -3313,6 +3313,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `DnsRecordsCopyTests`, `RulePartTextTests`, `ProtocolsAndDeliveryCopyTests`, `CertificatesAndAccessCopyTests`,
   `SpamAndVirusCopyTests`, `MonitoringCopyTests` and `QuarantineCopyTests` hold it.
 
+- **Fixed: file pickers, the administrators' signposts, repeated wording and the dialogs' headings.** A file picker on
+  the settings pages, Backup and SSL certificates is captioned Browse…, as the dialogs' are, where it was a 40-pixel
+  "…", and is named by its caption and the field it fills, "Browse: Database folder", so that in every language the
+  name starts with the word on the button; an account's Administration level says that the Administrator roles page
+  can give the account a narrower, named role instead, which nothing on the dialog said, and Domains lists
+  Administrator roles among its related pages for an administrator who may open it (review finding F324).
+  `FilePickerCopyTests` holds it.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

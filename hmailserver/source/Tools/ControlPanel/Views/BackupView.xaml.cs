@@ -41,6 +41,12 @@ namespace hMailServer.ControlPanel.Views
          // card is drawn. F5 is not this page's: it has no Reload, and reading the
          // settings again would throw what was typed away without asking.
          PageCommands.SetCommand(SaveScheduleButton, PageCommand.Save);
+
+         // The two pickers, captioned Browse… where they were a 40-pixel "…"
+         // (review finding F324), are named by the caption and the field each
+         // fills, so that the two are told apart.
+         ControlHelp.NameLink(BrowseDestination, L("Browse…"), LabelInName.Shown(L("Destination _folder (on the server)")));
+         ControlHelp.NameLink(BrowseBackupFile, L("Browse…"), LabelInName.Shown(L("Back_up archive (HMBackup*.7z on the server)")));
          Loaded += (_, _) =>
          {
             string saveSettings = L("Save s_ettings");
@@ -64,7 +70,7 @@ namespace hMailServer.ControlPanel.Views
          foreach (InlineNotice outcome in new[] { BackupOutcome, ScheduleOutcome, RestoreOutcome, MailboxOutcome, MessageOutcome })
             outcome.Visibility = Visibility.Collapsed;
 
-         // The "…" buttons open the Windows file pickers of the machine this
+         // The Browse… buttons open the Windows file pickers of the machine this
          // Control Panel runs on, which are the server's own disks only when it
          // runs on the server: connected to another machine they browsed the
          // wrong one (review finding F257). The boxes take a path as the server

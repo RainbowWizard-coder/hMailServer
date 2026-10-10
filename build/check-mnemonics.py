@@ -128,7 +128,14 @@ EXEMPT = {"Cancel", "OK", "Close", "…", "...",
           # whose own R_esume the mail server takes E - and in the window's one
           # access-key scope (WINDOW_BARS), so its one button carries no key either:
           # it is Server status's caption, which does the same, without its key.
-          "Resume the mail server"}
+          "Resume the mail server",
+          # A settings page's file picker beside its box (ServerSettingsView.WithBrowse,
+          # FeatureSettingsView's path rows, Backup, SSL certificates): a card holds
+          # several - the REST API's certificate and key, the backup's folder and the
+          # restore's archive - which one key would only move between, so it carries
+          # none and is reached by Tab after its box; a dialog's single picker is
+          # "_Browse…".
+          "Browse…"}
 
 # Shared helpers, each with the call that places its captions on a page: every
 # caption of the helper joins the scope of every page whose code makes the call.

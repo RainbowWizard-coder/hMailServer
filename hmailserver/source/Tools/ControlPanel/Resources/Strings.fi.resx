@@ -2332,6 +2332,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Browser sessions" xml:space="preserve">
     <value>Selainistunnot</value>
   </data>
+  <data name="Browse…" xml:space="preserve">
+    <value>Selaa…</value>
+  </data>
   <data name="Browsing works on the server itself; connected to another machine, type the path as the server sees it." xml:space="preserve">
     <value>Selaaminen toimii vain itse palvelimella; kun yhteys on toiseen koneeseen, kirjoita polku niin kuin palvelin sen näkee.</value>
   </data>
@@ -12482,6 +12485,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>Active Directory -käyttäjänimi (sAMAccountName) - sama arvo, joka on tilin Windows-hakemisto-välilehdellä. Valinnainen: tyhjäksi jätettynä testi pysähtyy yhteys- ja palvelun tunnistetietovaiheiden jälkeen.</value>
+  </data>
+  <data name="The Administrator roles page can give this account a narrower, named role instead." xml:space="preserve">
+    <value>Sivulla Ylläpitäjäroolit tälle tilille voi sen sijaan antaa suppeamman, nimetyn roolin.</value>
   </data>
   <data name="The Control Deck is served by the REST API, which is off - give it a port below." xml:space="preserve">
     <value>Control Deckin tarjoaa REST-rajapinta, joka on pois päältä - anna sille portti alempana.</value>

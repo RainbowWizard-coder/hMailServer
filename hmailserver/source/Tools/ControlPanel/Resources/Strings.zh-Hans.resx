@@ -2332,6 +2332,9 @@
   <data name="Browser sessions" xml:space="preserve">
     <value>浏览器会话</value>
   </data>
+  <data name="Browse…" xml:space="preserve">
+    <value>浏览…</value>
+  </data>
   <data name="Browsing works on the server itself; connected to another machine, type the path as the server sees it." xml:space="preserve">
     <value>浏览只能在服务器本机上使用；连接到其他计算机时，请按服务器所见的路径输入。</value>
   </data>
@@ -12482,6 +12485,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>Active Directory 用户名 (sAMAccountName) - 与账户“Windows 目录”选项卡中的值相同。可选: 留空时，测试在连接和服务凭据阶段之后停止。</value>
+  </data>
+  <data name="The Administrator roles page can give this account a narrower, named role instead." xml:space="preserve">
+    <value>也可以在“管理员角色”页面为此账户指定一个范围更小的命名角色。</value>
   </data>
   <data name="The Control Deck is served by the REST API, which is off - give it a port below." xml:space="preserve">
     <value>Control Deck 由 REST API 提供，而 REST API 已关闭 - 请在下方为它设置端口。</value>

@@ -264,8 +264,7 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <ui:TextBox x:Name="NewCertFile" />
-                            <ui:Button Grid.Column="1" Content="…" Click="BrowseCert_Click" Margin="4,0,0,0"
-                                       AutomationProperties.Name="{loc:L 'Browse for the certificate file'}" />
+                            <ui:Button x:Name="BrowseCertButton" Grid.Column="1" Content="{loc:L 'Browse…'}" Click="BrowseCert_Click" Margin="4,0,0,0" />
                         </Grid>
                     </scaffold:FieldRow>
                     <scaffold:FieldRow x:Name="NewKeyFileRow" Grid.Row="1" Grid.Column="1" Label="{loc:L 'Private key _file (PEM)'}" Margin="0" LabelGroup="CertFileLine">
@@ -275,8 +274,7 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <ui:TextBox x:Name="NewKeyFile" />
-                            <ui:Button Grid.Column="1" Content="…" Click="BrowseKey_Click" Margin="4,0,0,0"
-                                       AutomationProperties.Name="{loc:L 'Browse for the private key file'}" />
+                            <ui:Button x:Name="BrowseKeyButton" Grid.Column="1" Content="{loc:L 'Browse…'}" Click="BrowseKey_Click" Margin="4,0,0,0" />
                         </Grid>
                     </scaffold:FieldRow>
                 </Grid>

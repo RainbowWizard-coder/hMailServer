@@ -2332,6 +2332,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Browser sessions" xml:space="preserve">
     <value>Sessões do navegador</value>
   </data>
+  <data name="Browse…" xml:space="preserve">
+    <value>Procurar…</value>
+  </data>
   <data name="Browsing works on the server itself; connected to another machine, type the path as the server sees it." xml:space="preserve">
     <value>Procurar só funciona no próprio servidor; conectado a outra máquina, digite o caminho como o servidor o vê.</value>
   </data>
@@ -12482,6 +12485,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>O nome de usuário do Active Directory (sAMAccountName) - o mesmo valor que a aba Diretório do Windows da conta contém. Opcional: deixado vazio, o teste para depois das etapas de conexão e de credencial de serviço.</value>
+  </data>
+  <data name="The Administrator roles page can give this account a narrower, named role instead." xml:space="preserve">
+    <value>A página Funções de administrador pode, em vez disso, dar a esta conta uma função nomeada mais restrita.</value>
   </data>
   <data name="The Control Deck is served by the REST API, which is off - give it a port below." xml:space="preserve">
     <value>O Control Deck é servido pela API REST, que está desligada - dê a ela uma porta abaixo.</value>
