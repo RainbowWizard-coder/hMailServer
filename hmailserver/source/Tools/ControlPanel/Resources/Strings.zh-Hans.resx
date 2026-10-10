@@ -10882,6 +10882,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Set the resumption lifetime and ticket-key rotation, which bound how long a captured resumption secret stays useful." xml:space="preserve">
     <value>设置恢复有效期和票据密钥轮换，它们限制被截获的恢复机密能有效多久。</value>
   </data>
+  <data name="Set up Control-Panel-only two-factor authentication" xml:space="preserve">
+    <value>设置仅控制面板的双因素身份验证</value>
+  </data>
   <data name="Set up Control-Panel-only two-factor authentication…" xml:space="preserve">
     <value>设置仅控制面板的双因素身份验证…</value>
   </data>
@@ -10890,9 +10893,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Set up this server" xml:space="preserve">
     <value>设置此服务器</value>
-  </data>
-  <data name="Set up two-factor authentication…" xml:space="preserve">
-    <value>设置双因素身份验证…</value>
   </data>
   <data name="Setting" xml:space="preserve">
     <value>设置</value>
@@ -12114,6 +12114,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
 
 请选中上面的密钥并手动复制 - 它不会再次显示。</value>
   </data>
+  <data name="The code the server asks for with the administrator password, from the administrator's entry in your authenticator app." xml:space="preserve">
+    <value>服务器在管理员密码之外要求的代码，来自身份验证器应用中管理员的条目。</value>
+  </data>
+  <data name="The code this Control Panel asks for on this computer, from its own entry in your authenticator app - not the server's administrator code." xml:space="preserve">
+    <value>此控制面板在这台计算机上要求的代码，来自身份验证器应用中它自己的条目 - 不是服务器的管理员代码。</value>
+  </data>
   <data name="The common one by default; a tenant's own or a national cloud's otherwise." xml:space="preserve">
     <value>默认是公共端点；否则为租户或国家云自己的端点。</value>
   </data>
@@ -12916,6 +12922,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The server's Host name (Protocols &gt; SMTP) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
     <value>服务器的主机名 (协议 &gt; SMTP) 为空，因此它在 HELO/EHLO 中通告的是其 Windows 计算机名 - 不是公共 DNS 名称 - 也就无法诚实地提供任何 "a:" 机制。建议只授权该域的 MX 主机。请先设置主机名；本页的多条记录都需要它。</value>
   </data>
+  <data name="The server's administrator code" xml:space="preserve">
+    <value>服务器的管理员代码</value>
+  </data>
   <data name="The server's answer about the archive could not be read." xml:space="preserve">
     <value>无法读取服务器关于存档的回复。</value>
   </data>
@@ -13217,6 +13226,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="This computer is not joined to an Active Directory domain." xml:space="preserve">
     <value>此计算机未加入 Active Directory 域。</value>
   </data>
+  <data name="This computer's Control Panel code" xml:space="preserve">
+    <value>此计算机的控制面板代码</value>
+  </data>
   <data name="This could not be read from the server: {0}" xml:space="preserve">
     <value>无法从服务器读取此项: {0}</value>
   </data>
@@ -13493,6 +13505,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Turn it _off again" xml:space="preserve">
     <value>重新关闭(_O)</value>
   </data>
+  <data name="Turn off Control-Panel-only two-factor authentication" xml:space="preserve">
+    <value>关闭仅控制面板的双因素身份验证</value>
+  </data>
   <data name="Turn off Control-Panel-only two-factor authentication…" xml:space="preserve">
     <value>关闭仅控制面板的双因素身份验证…</value>
   </data>
@@ -13538,9 +13553,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Two-factor" xml:space="preserve">
     <value>双因素</value>
   </data>
-  <data name="Two-factor authentication" xml:space="preserve">
-    <value>双因素身份验证</value>
-  </data>
   <data name="Two-factor authentication has been disabled." xml:space="preserve">
     <value>双因素身份验证已禁用。</value>
   </data>
@@ -13552,9 +13564,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Two-factor authentication is currently enabled. Enter a valid code to turn it off." xml:space="preserve">
     <value>双因素身份验证当前已启用。输入有效的验证码即可关闭它。</value>
-  </data>
-  <data name="Two-factor authentication setup" xml:space="preserve">
-    <value>双因素身份验证设置</value>
   </data>
   <data name="Two-factor for this Control Panel only" xml:space="preserve">
     <value>仅此控制面板的双因素</value>

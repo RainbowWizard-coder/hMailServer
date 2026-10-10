@@ -552,7 +552,8 @@ namespace hMailServer.ControlPanel.Tests.Services
 
       /// <summary>
       /// WPF-UI's link button - the sign-in page's "Set up two-factor
-      /// authentication..." - takes the link colours too: its theme draws its words
+      /// authentication..." until that link went in October 2026 (review finding
+      /// F241), and any a page draws later - takes the link colours too: its theme draws its words
       /// in HyperlinkButtonForeground, ...PointerOver and ...Pressed, shades of
       /// the Windows accent, which the implicit Hyperlink style does not reach, so
       /// that until 9 October 2026 the first link an administrator sees followed
@@ -561,7 +562,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// with the link colours, and takes them away under High Contrast; no link
       /// button and no style for one sets a colour that would outrank them. Its
       /// fill under the pointer is the theme's subtle fill, the "hovered row" the
-      /// link colours are measured on.
+      /// link colours are measured on. No view draws one now; the scan below holds
+      /// whichever one is added next to the link colour.
       /// </summary>
       [Fact]
       public void TheLinkButtonTakesTheLinkColourInPlaceOfTheWindowsAccent()
@@ -587,7 +589,6 @@ namespace hMailServer.ControlPanel.Tests.Services
             Assert.Contains("Resources.Remove(\"" + key + "\");", themeTokens, StringComparison.Ordinal);
          }
 
-         int buttons = 0;
          var offenders = new List<string>();
          foreach (string path in Directory.EnumerateFiles(controlPanel, "*.xaml", SearchOption.AllDirectories))
          {
@@ -599,7 +600,6 @@ namespace hMailServer.ControlPanel.Tests.Services
             XDocument document = XDocument.Parse(File.ReadAllText(path));
             foreach (XElement button in document.Descendants().Where(e => e.Name.LocalName == "HyperlinkButton"))
             {
-               buttons++;
                if (button.Attribute("Foreground") != null || button.Elements().Any(e => e.Name.LocalName == "HyperlinkButton.Foreground"))
                   offenders.Add(relative + ": a link button with a Foreground of its own");
             }
@@ -612,7 +612,6 @@ namespace hMailServer.ControlPanel.Tests.Services
             }
          }
 
-         Assert.True(buttons > 0, "No view draws a link button any more; this test has nothing left to hold.");
          Assert.True(offenders.Count == 0, "These link buttons outrank the link colour:\n" + string.Join("\n", offenders));
       }
 

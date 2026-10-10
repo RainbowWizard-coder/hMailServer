@@ -11006,6 +11006,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Set the resumption lifetime and ticket-key rotation, which bound how long a captured resumption secret stays useful." xml:space="preserve">
     <value>Задайте время жизни возобновления и ротацию ключа билетов — они ограничивают срок, в течение которого перехваченный секрет возобновления остаётся полезным.</value>
   </data>
+  <data name="Set up Control-Panel-only two-factor authentication" xml:space="preserve">
+    <value>Настроить двухфакторную аутентификацию только для Control Panel</value>
+  </data>
   <data name="Set up Control-Panel-only two-factor authentication…" xml:space="preserve">
     <value>Настроить двухфакторную аутентификацию только для Control Panel…</value>
   </data>
@@ -11014,9 +11017,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Set up this server" xml:space="preserve">
     <value>Настройка этого сервера</value>
-  </data>
-  <data name="Set up two-factor authentication…" xml:space="preserve">
-    <value>Настроить двухфакторную аутентификацию…</value>
   </data>
   <data name="Setting" xml:space="preserve">
     <value>Настройка</value>
@@ -12265,6 +12265,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
 
 Выделите ключ выше и скопируйте его вручную - он больше не будет показан.</value>
   </data>
+  <data name="The code the server asks for with the administrator password, from the administrator's entry in your authenticator app." xml:space="preserve">
+    <value>Код, который сервер запрашивает вместе с паролем администратора, из записи администратора в приложении-аутентификаторе.</value>
+  </data>
+  <data name="The code this Control Panel asks for on this computer, from its own entry in your authenticator app - not the server's administrator code." xml:space="preserve">
+    <value>Код, который этот Control Panel запрашивает на этом компьютере, из его собственной записи в приложении-аутентификаторе - не код администратора сервера.</value>
+  </data>
   <data name="The common one by default; a tenant's own or a national cloud's otherwise." xml:space="preserve">
     <value>По умолчанию общая; иначе собственная точка клиента или национального облака.</value>
   </data>
@@ -13079,6 +13085,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The server's Host name (Protocols &gt; SMTP) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
     <value>Имя узла сервера (Протоколы &gt; SMTP) ПУСТОЕ, поэтому в HELO/EHLO он объявляет имя своего компьютера Windows - не публичное имя DNS, - и ни один механизм «a:» честно предложить нельзя. Предложение разрешает только MX-узлы домена. Сначала задайте имя узла; оно нужно нескольким записям на этой странице.</value>
   </data>
+  <data name="The server's administrator code" xml:space="preserve">
+    <value>Код администратора сервера</value>
+  </data>
   <data name="The server's answer about the archive could not be read." xml:space="preserve">
     <value>Не удалось прочитать ответ сервера об архиве.</value>
   </data>
@@ -13380,6 +13389,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="This computer is not joined to an Active Directory domain." xml:space="preserve">
     <value>Этот компьютер не присоединён к домену Active Directory.</value>
   </data>
+  <data name="This computer's Control Panel code" xml:space="preserve">
+    <value>Код Control Panel этого компьютера</value>
+  </data>
   <data name="This could not be read from the server: {0}" xml:space="preserve">
     <value>Это не удалось прочитать с сервера: {0}</value>
   </data>
@@ -13659,6 +13671,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Turn it _off again" xml:space="preserve">
     <value>Выключить _обратно</value>
   </data>
+  <data name="Turn off Control-Panel-only two-factor authentication" xml:space="preserve">
+    <value>Отключить двухфакторную аутентификацию только для Control Panel</value>
+  </data>
   <data name="Turn off Control-Panel-only two-factor authentication…" xml:space="preserve">
     <value>Отключить двухфакторную аутентификацию только для Control Panel…</value>
   </data>
@@ -13704,9 +13719,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Two-factor" xml:space="preserve">
     <value>Двухфакторная</value>
   </data>
-  <data name="Two-factor authentication" xml:space="preserve">
-    <value>Двухфакторная аутентификация</value>
-  </data>
   <data name="Two-factor authentication has been disabled." xml:space="preserve">
     <value>Двухфакторная аутентификация отключена.</value>
   </data>
@@ -13718,9 +13730,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Two-factor authentication is currently enabled. Enter a valid code to turn it off." xml:space="preserve">
     <value>Двухфакторная аутентификация сейчас включена. Введите действительный код, чтобы её отключить.</value>
-  </data>
-  <data name="Two-factor authentication setup" xml:space="preserve">
-    <value>Настройка двухфакторной аутентификации</value>
   </data>
   <data name="Two-factor for this Control Panel only" xml:space="preserve">
     <value>Двухфакторная только для этого Control Panel</value>

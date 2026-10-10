@@ -2644,6 +2644,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   and Resume show at once. F6 reaches the bar with the pending bar. `ServerPausedTests` holds the words, the bar, the
   pill and where the state is asked.
 
+- **Fixed: the sign-in card's two-factor link set up the weaker option, and the two code prompts looked the same.**
+  "Set up two-factor authentication…" on the sign-in card opened the Control-Panel-only setup, which Administrative
+  access calls an older, weaker option; the server's code prompt and this computer's were the same dialog, titled
+  "Two-factor authentication", so that with both on the administrator was asked twice by identical dialogs for codes
+  from two entries of the authenticator; and the setup dialog had the same title and paired Enable two-factor
+  authentication with Close. The link is gone - both factors are set up on Administrative access's Two-factor tab,
+  after sign-in; the prompts are headed "The server's administrator code" and "This computer's Control Panel code",
+  each with a sentence that says which entry of the authenticator it wants; and the setup dialog is titled by its act,
+  "Set up Control-Panel-only two-factor authentication" or "Turn off Control-Panel-only two-factor authentication", as
+  the tab's button that opens it is, with Cancel beside its act until it is done and Close after.
+  `TwoFactorPromptsTests` holds the card, the prompts and the dialog.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

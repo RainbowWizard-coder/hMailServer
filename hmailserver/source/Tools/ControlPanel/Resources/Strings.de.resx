@@ -10882,6 +10882,9 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="Set the resumption lifetime and ticket-key rotation, which bound how long a captured resumption secret stays useful." xml:space="preserve">
     <value>Die Lebensdauer der Wiederaufnahme und die Rotation der Ticket-Schlüssel festlegen, die begrenzen, wie lange ein abgefangenes Wiederaufnahmegeheimnis brauchbar bleibt.</value>
   </data>
+  <data name="Set up Control-Panel-only two-factor authentication" xml:space="preserve">
+    <value>Die nur für das Control Panel geltende Zwei-Faktor-Authentifizierung einrichten</value>
+  </data>
   <data name="Set up Control-Panel-only two-factor authentication…" xml:space="preserve">
     <value>Die nur für das Control Panel geltende Zwei-Faktor-Authentifizierung einrichten…</value>
   </data>
@@ -10890,9 +10893,6 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   </data>
   <data name="Set up this server" xml:space="preserve">
     <value>Diesen Server einrichten</value>
-  </data>
-  <data name="Set up two-factor authentication…" xml:space="preserve">
-    <value>Zwei-Faktor-Authentifizierung einrichten…</value>
   </data>
   <data name="Setting" xml:space="preserve">
     <value>Einstellung</value>
@@ -12114,6 +12114,12 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
 
 Markieren Sie den Schlüssel oben und kopieren Sie ihn von Hand - er wird nicht noch einmal angezeigt.</value>
   </data>
+  <data name="The code the server asks for with the administrator password, from the administrator's entry in your authenticator app." xml:space="preserve">
+    <value>Der Code, den der Server mit dem Administratorkennwort verlangt, aus dem Eintrag des Administrators in Ihrer Authenticator-App.</value>
+  </data>
+  <data name="The code this Control Panel asks for on this computer, from its own entry in your authenticator app - not the server's administrator code." xml:space="preserve">
+    <value>Der Code, den dieses Control Panel auf diesem Computer verlangt, aus seinem eigenen Eintrag in Ihrer Authenticator-App - nicht der Administratorcode des Servers.</value>
+  </data>
   <data name="The common one by default; a tenant's own or a national cloud's otherwise." xml:space="preserve">
     <value>Standardmäßig der gemeinsame; sonst der eines Mandanten oder einer nationalen Cloud.</value>
   </data>
@@ -12916,6 +12922,9 @@ Trotzdem hinzufügen?</value>
   <data name="The server's Host name (Protocols &gt; SMTP) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
     <value>Der Hostname des Servers (Protokolle &gt; SMTP) ist LEER, er kündigt also in HELO/EHLO seinen Windows-Computernamen an - keinen öffentlichen DNS-Namen - und es lässt sich ehrlicherweise kein „a:"-Mechanismus anbieten. Der Vorschlag autorisiert nur die MX-Hosts der Domain. Setzen Sie zuerst den Hostnamen; mehrere Einträge auf dieser Seite brauchen ihn.</value>
   </data>
+  <data name="The server's administrator code" xml:space="preserve">
+    <value>Administratorcode des Servers</value>
+  </data>
   <data name="The server's answer about the archive could not be read." xml:space="preserve">
     <value>Die Antwort des Servers zum Archiv konnte nicht gelesen werden.</value>
   </data>
@@ -13217,6 +13226,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="This computer is not joined to an Active Directory domain." xml:space="preserve">
     <value>Dieser Computer ist keiner Active-Directory-Domäne beigetreten.</value>
   </data>
+  <data name="This computer's Control Panel code" xml:space="preserve">
+    <value>Control-Panel-Code dieses Computers</value>
+  </data>
   <data name="This could not be read from the server: {0}" xml:space="preserve">
     <value>Dies konnte nicht vom Server gelesen werden: {0}</value>
   </data>
@@ -13493,6 +13505,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="Turn it _off again" xml:space="preserve">
     <value>Wieder _abschalten</value>
   </data>
+  <data name="Turn off Control-Panel-only two-factor authentication" xml:space="preserve">
+    <value>Die nur für das Control Panel geltende Zwei-Faktor-Authentifizierung abschalten</value>
+  </data>
   <data name="Turn off Control-Panel-only two-factor authentication…" xml:space="preserve">
     <value>Die nur für das Control Panel geltende Zwei-Faktor-Authentifizierung abschalten…</value>
   </data>
@@ -13538,9 +13553,6 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="Two-factor" xml:space="preserve">
     <value>Zwei-Faktor</value>
   </data>
-  <data name="Two-factor authentication" xml:space="preserve">
-    <value>Zwei-Faktor-Authentifizierung</value>
-  </data>
   <data name="Two-factor authentication has been disabled." xml:space="preserve">
     <value>Die Zwei-Faktor-Authentifizierung wurde abgeschaltet.</value>
   </data>
@@ -13552,9 +13564,6 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="Two-factor authentication is currently enabled. Enter a valid code to turn it off." xml:space="preserve">
     <value>Die Zwei-Faktor-Authentifizierung ist derzeit eingeschaltet. Geben Sie einen gültigen Code ein, um sie abzuschalten.</value>
-  </data>
-  <data name="Two-factor authentication setup" xml:space="preserve">
-    <value>Einrichtung der Zwei-Faktor-Authentifizierung</value>
   </data>
   <data name="Two-factor for this Control Panel only" xml:space="preserve">
     <value>Zwei-Faktor nur für dieses Control Panel</value>

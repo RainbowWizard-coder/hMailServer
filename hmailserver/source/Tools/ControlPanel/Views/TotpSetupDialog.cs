@@ -64,12 +64,20 @@ namespace hMailServer.ControlPanel.Views
       private readonly Wpf.Ui.Controls.Button action_ =
          new() { Appearance = Wpf.Ui.Controls.ControlAppearance.Primary, MinWidth = 88 };
 
+      // Cancel until the dialog has done what it is for, then Close: beside Enable
+      // two-factor authentication it said Close before anything was done (review
+      // finding F241).
+      private readonly Wpf.Ui.Controls.Button close_ = new() { Content = L("Cancel"), MinWidth = 88 };
+
+      // The heading follows the act the dialog offers: setting the factor up, or
+      // turning it off.
+      private DialogFrame frame_;
+
       private string pendingSecret_;
 
       public TotpSetupDialog(Window owner)
       {
          Owner = owner;
-         Title = L("Two-factor authentication setup");
 
          status_.SetResourceReference(FrameworkElement.StyleProperty, "TextBody");
 
@@ -83,10 +91,12 @@ namespace hMailServer.ControlPanel.Views
          body.Children.Add(codeRow_);
 
          action_.Click += (s, e) => Apply();
-         var close = new Wpf.Ui.Controls.Button { Content = L("Close"), MinWidth = 88 };
-         close.Click += (s, e) => Close();
+         close_.Click += (s, e) => Close();
 
-         UseFrame(L("Two-factor authentication"), body, action_, close, width: 560);
+         // Titled by what it does, and for which factor, as the Two-factor tab's
+         // button that opens it is (review finding F241): it was "Two-factor
+         // authentication", the code prompts' title too. RefreshState sets it.
+         frame_ = UseFrame(SetUpHeading_, body, action_, close_, width: 560);
 
          // Room for the code's message, which wraps to two lines at this width
          // ("... Make sure your authenticator app is set up with the new key."),
@@ -143,8 +153,17 @@ namespace hMailServer.ControlPanel.Views
          enrolPanel_.Children.Add(DialogFields.Field(L("Setup _key (for manual entry)"), keyRow));
       }
 
+      private static string SetUpHeading_ => L("Set up Control-Panel-only two-factor authentication");
+
+      private static string TurnOffHeading_ => L("Turn off Control-Panel-only two-factor authentication");
+
       private void RefreshState()
       {
+         string heading = TotpManager.IsConfigured() ? TurnOffHeading_ : SetUpHeading_;
+         Title = heading;
+         if (frame_ != null)
+            frame_.Heading = heading;
+
          if (TotpManager.IsConfigured())
          {
             status_.Text = L("Two-factor authentication is currently enabled. Enter a valid code to turn it off.");
@@ -214,6 +233,7 @@ namespace hMailServer.ControlPanel.Views
 
                TotpManager.RemoveSecret();
                RefreshState();
+               close_.Content = L("Close");
                notice_.Show(StatusLevel.Good, L("Two-factor authentication has been disabled."));
             }
             else
@@ -226,6 +246,7 @@ namespace hMailServer.ControlPanel.Views
 
                TotpManager.SaveSecret(pendingSecret_);
                RefreshState();
+               close_.Content = L("Close");
                notice_.Show(StatusLevel.Good, L("Two-factor authentication has been enabled. The next connection will require a verification code."));
             }
          }

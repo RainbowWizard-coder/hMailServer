@@ -1223,14 +1223,16 @@ namespace hMailServer.ControlPanel
 
          for (int attempt = 0; attempt < 3; attempt++)
          {
-            var prompt = new Views.TotpPromptDialog(this);
+            // This computer's own code, which the prompt says, so that it is not
+            // taken for the server's (review finding F241).
+            var prompt = new Views.TotpPromptDialog(this, Views.TotpPromptDialog.Factor.ThisComputer);
             if (prompt.ShowDialog() != true)
                return false;
 
             if (Totp.VerifyCode(TotpManager.ReadSecret(), prompt.Code))
                return true;
 
-            MessageBox.Show(L("The verification code is incorrect."), L("Two-factor authentication"));
+            MessageBox.Show(L("The verification code is incorrect."), L("This computer's Control Panel code"));
          }
 
          return false;

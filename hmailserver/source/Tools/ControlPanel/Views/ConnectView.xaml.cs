@@ -239,10 +239,5 @@ namespace hMailServer.ControlPanel.Views
          UserBox.IsEnabled = !busy;
          PasswordBox.IsEnabled = !busy;
       }
-
-      private void Totp_Click(object sender, RoutedEventArgs e)
-      {
-         new TotpSetupDialog(Window.GetWindow(this)).ShowDialog();
-      }
    }
 }
