@@ -119,30 +119,66 @@
              the boxes are clear and disabled, so that they never show the
              permissions of a range that is no longer the one selected. -->
         <scaffold:Card x:Name="PermCard" Title="{loc:L 'Permissions (select a range)'}" Margin="0,12,0,0">
-            <UniformGrid x:Name="PermGrid" Columns="4" SizeChanged="PermGrid_SizeChanged">
-                <!-- A caption longer than its quarter of the card wraps under
-                     itself: "Deliver remote → remote (relay)" was cut at "(rela".
-                     AccessText, not TextBlock, so the Alt key still works. -->
-                <UniformGrid.Resources>
-                    <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
-                        <Setter Property="ContentTemplate">
-                            <Setter.Value>
-                                <DataTemplate>
-                                    <AccessText Text="{Binding}" TextWrapping="Wrap" />
-                                </DataTemplate>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </UniformGrid.Resources>
-                <CheckBox x:Name="PermSmtp" Content="{loc:L 'Allow _SMTP'}" Margin="0,0,12,8" />
-                <CheckBox x:Name="PermImap" Content="{loc:L 'Allow _IMAP'}" Margin="0,0,12,8" />
-                <CheckBox x:Name="PermPop3" Content="{loc:L 'Allow _POP3'}" Margin="0,0,12,8" />
-                <CheckBox x:Name="PermTlsAuth" Content="{loc:L 'Require _TLS for auth'}" Margin="0,0,12,8" />
-                <CheckBox x:Name="PermLL" Content="{loc:L 'Deliver _local → local'}" Margin="0,0,12,0" />
-                <CheckBox x:Name="PermLR" Content="{loc:L 'Deliver lo_cal → remote'}" Margin="0,0,12,0" />
-                <CheckBox x:Name="PermRL" Content="{loc:L '_Deliver remote → local'}" Margin="0,0,12,0" />
-                <CheckBox x:Name="PermRR" Content="{loc:L 'Deliver remote → remote (rela_y)'}" Margin="0,0,12,0" />
-            </UniformGrid>
+            <!-- In the range dialog's words, and each delivery direction on one row with
+                 what it asks of a sender: Allow, and Only after SMTP authentication,
+                 where the card showed "Deliver remote → remote (relay)" apart from the
+                 requirement, which only the dialog held - so that unticking relay on the
+                 shipped Internet range stopped roaming users sending mail, and ticking
+                 it on a range that asked for no authentication made an open relay,
+                 with no word either way; and four names went for the TLS box (review
+                 finding F229). The second box of a row counts only while the first is
+                 ticked, and follows it. -->
+            <StackPanel x:Name="PermGrid">
+                <UniformGrid x:Name="ConnectionsGrid" Columns="4" SizeChanged="ConnectionsGrid_SizeChanged">
+                    <!-- A caption longer than its quarter of the card wraps under
+                         itself. AccessText, not TextBlock, so the Alt key still works. -->
+                    <UniformGrid.Resources>
+                        <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
+                            <Setter Property="ContentTemplate">
+                                <Setter.Value>
+                                    <DataTemplate>
+                                        <AccessText Text="{Binding}" TextWrapping="Wrap" />
+                                    </DataTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </UniformGrid.Resources>
+                    <CheckBox x:Name="PermSmtp" Content="{loc:L 'Allow SM_TP connections'}" Margin="0,0,12,8" />
+                    <CheckBox x:Name="PermImap" Content="{loc:L 'Allow _IMAP connections'}" Margin="0,0,12,8" />
+                    <CheckBox x:Name="PermPop3" Content="{loc:L 'Allow _POP3 connections'}" Margin="0,0,12,8" />
+                    <CheckBox x:Name="PermTlsAuth" Content="{loc:L 'Require TLS _before authentication'}" Margin="0,0,12,8" />
+                </UniformGrid>
+                <Grid x:Name="DeliveryGrid" Margin="0,8,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" MinWidth="240" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="{loc:L 'Allow delivery'}" Style="{StaticResource TextBodyStrong}" Margin="0,0,16,4" />
+                    <TextBlock Grid.Column="1" Text="{loc:L 'Only after SMTP authentication'}" Style="{StaticResource TextBodyStrong}" Margin="0,0,0,4" TextWrapping="Wrap" />
+
+                    <CheckBox x:Name="PermLL" Grid.Row="1" Content="{loc:L '_Local to local'}" Margin="0,4,16,4" />
+                    <CheckBox x:Name="PermAuthLL" Grid.Row="1" Grid.Column="1" Margin="0,4,0,4" />
+                    <CheckBox x:Name="PermLR" Grid.Row="2" Content="{loc:L 'Lo_cal to external'}" Margin="0,4,16,4" />
+                    <CheckBox x:Name="PermAuthLR" Grid.Row="2" Grid.Column="1" Margin="0,4,0,4" />
+                    <CheckBox x:Name="PermRL" Grid.Row="3" Content="{loc:L 'E_xternal to local'}" Margin="0,4,16,4" />
+                    <CheckBox x:Name="PermAuthRL" Grid.Row="3" Grid.Column="1" Margin="0,4,0,4" />
+                    <CheckBox x:Name="PermRR" Grid.Row="4" Content="{loc:L 'External to external (rela_y)'}" Margin="0,4,16,4" />
+                    <CheckBox x:Name="PermAuthRR" Grid.Row="4" Grid.Column="1" Margin="0,4,0,4" />
+                </Grid>
+
+                <!-- A range that lets whoever is in it relay without signing in: critical
+                     where that is the Internet, a warning inside a network of its own
+                     (Services/RelayExposure); Save asks first for an open relay. -->
+                <scaffold:InlineNotice x:Name="RelayNotice" Margin="0,12,0,0" Visibility="Collapsed"
+                                       AutomationProperties.AutomationId="ip-range-open-relay" />
+            </StackPanel>
             <scaffold:Card.Footer>
                 <StackPanel Orientation="Horizontal">
                     <ui:Button x:Name="SavePermsButton" Content="{loc:L 'Sa_ve permissions'}" Appearance="Primary"

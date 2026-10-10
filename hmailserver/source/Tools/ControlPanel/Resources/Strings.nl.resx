@@ -1365,26 +1365,20 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Allow SM_TP connections" xml:space="preserve">
     <value>SM_TP-verbindingen toestaan</value>
   </data>
-  <data name="Allow _IMAP" xml:space="preserve">
-    <value>_IMAP toestaan</value>
-  </data>
   <data name="Allow _IMAP connections" xml:space="preserve">
     <value>_IMAP-verbindingen toestaan</value>
   </data>
-  <data name="Allow _POP3" xml:space="preserve">
-    <value>_POP3 toestaan</value>
-  </data>
   <data name="Allow _POP3 connections" xml:space="preserve">
     <value>_POP3-verbindingen toestaan</value>
-  </data>
-  <data name="Allow _SMTP" xml:space="preserve">
-    <value>_SMTP toestaan</value>
   </data>
   <data name="Allow and block list" xml:space="preserve">
     <value>Toestaan- en blokkeerlijst</value>
   </data>
   <data name="Allow and release" xml:space="preserve">
     <value>Toestaan en vrijgeven</value>
+  </data>
+  <data name="Allow delivery" xml:space="preserve">
+    <value>Bezorging toestaan</value>
   </data>
   <data name="Allow incorrect line endings" xml:space="preserve">
     <value>Onjuiste regeleinden toestaan</value>
@@ -1638,6 +1632,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Anyone in the domain can send" xml:space="preserve">
     <value>Iedereen in het domein mag verzenden</value>
+  </data>
+  <data name="Anyone in this range can relay mail through this server to any address without signing in: an open relay. Tick Only after SMTP authentication for External to external, unless the range is a few machines you trust." xml:space="preserve">
+    <value>Iedereen in dit bereik kan zonder aan te melden mail via deze server naar elk adres doorsturen: een open relay. Vink Alleen na SMTP-authenticatie aan bij Extern naar extern, tenzij het bereik een paar machines is die u vertrouwt.</value>
   </data>
   <data name="Anyone the owner approves after they confirm" xml:space="preserve">
     <value>Iedereen die de eigenaar goedkeurt nadat ze bevestigen</value>
@@ -3902,9 +3899,6 @@ De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert 
   <data name="Deli_vers to" xml:space="preserve">
     <value>_Bezorgt bij</value>
   </data>
-  <data name="Deliver _local → local" xml:space="preserve">
-    <value>_Lokaal → lokaal bezorgen</value>
-  </data>
   <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
     <value>Elk bericht bezorgen bij de accounts die de headers noemen (een mailbox die meerdere mensen delen)</value>
   </data>
@@ -3917,14 +3911,8 @@ De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert 
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>Afleveren en alleen vastleggen</value>
   </data>
-  <data name="Deliver lo_cal → remote" xml:space="preserve">
-    <value>Lokaal → e_xtern bezorgen</value>
-  </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
     <value>Mail voor genoemde domeinen bezorgen bij een gekozen server in plaats van het MX-record ervan op te zoeken.</value>
-  </data>
-  <data name="Deliver remote → remote (rela_y)" xml:space="preserve">
-    <value>Extern → extern bezorgen (rela_y)</value>
   </data>
   <data name="Deliver to _all addresses (not only known accounts)" xml:space="preserve">
     <value>Aan _alle adressen bezorgen (niet alleen aan bekende accounts)</value>
@@ -4738,6 +4726,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>De kopie van elke lokale ontvanger wordt een extra naam voor hetzelfde bestand in de archiefmap, dus een bericht aan tien postvakken kost één kopie in plaats van tien. Vereist een NTFS-archiefmap; kan de koppeling niet worden gemaakt, dan kopieert de server het bestand en meldt dat in het SMTP-logboek.</value>
   </data>
+  <data name="Every machine in this range can relay mail through this server to any address without signing in. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for External to external." xml:space="preserve">
+    <value>Elke machine in dit bereik kan zonder aan te melden mail via deze server naar elk adres doorsturen. Dat past bij een printer of een toepassing op uw eigen netwerk; vink anders Alleen na SMTP-authenticatie aan bij Extern naar extern.</value>
+  </data>
   <data name="Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
     <value>Elk bericht dat aan dit account wordt bezorgd wordt na de filters versleuteld met de eigen OpenPGP-sleutel van het account, en deze server kan de post niet lezen, doorzoeken, exporteren of herstellen. Alleen de persoon kan het uitschakelen, vanuit de webmail; niets hier kan dat.</value>
   </data>
@@ -4927,8 +4918,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="External recipients (addresses this server does not host)" xml:space="preserve">
     <value>Externe ontvangers (adressen die deze server niet host)</value>
   </data>
-  <data name="External to external (_open relay!)" xml:space="preserve">
-    <value>Extern _naar extern (open relay!)</value>
+  <data name="External to external (rela_y)" xml:space="preserve">
+    <value>Extern naar extern (rela_y)</value>
   </data>
   <data name="External-account hosts to FETCH from with OAuth2 (comma separated; blank this to use none)" xml:space="preserve">
     <value>Hosts van externe accounts waarvan met OAuth2 wordt opgehaald (door komma's gescheiden; laat dit leeg om er geen te gebruiken)</value>
@@ -6189,14 +6180,14 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Live, from the running server. The hit rate is the share of lookups answered from memory since the counters last reset - which they do when the service restarts, when a cache is switched off, and when its TTL is changed, so a rate right after any of those describes a very short sample. A lookup for something that does not exist counts as a miss and caches nothing, so a server being probed for addresses it does not host shows a low rate without anything being wrong with the cache." xml:space="preserve">
     <value>Live, van de draaiende server. De hit rate is het aandeel opzoekingen dat sinds de laatste reset van de tellers uit het geheugen is beantwoord - die reset gebeurt bij een herstart van de service, wanneer een cache wordt uitgeschakeld en wanneer de TTL ervan wordt gewijzigd, dus een rate vlak na een van die gebeurtenissen beschrijft een zeer korte steekproef. Een opzoeking naar iets dat niet bestaat, telt als misser en cachet niets, dus een server die wordt afgetast op adressen die hij niet host, toont een lage rate zonder dat er iets mis is met de cache.</value>
   </data>
+  <data name="Lo_cal to external" xml:space="preserve">
+    <value>Lo_kaal naar extern</value>
+  </data>
   <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
     <value>L_aagste IP (bijv. 10.0.0.0)</value>
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Laden…</value>
-  </data>
-  <data name="Local to _external (relay out)" xml:space="preserve">
-    <value>Lokaal naar _extern (uitgaande relay)</value>
   </data>
   <data name="LocalSystem, which is the most privileged account on this machine" xml:space="preserve">
     <value>LocalSystem, het account met de meeste rechten op deze machine</value>
@@ -8041,6 +8032,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Only a setting's change can be put back: the row has to carry the value the setting had." xml:space="preserve">
     <value>Alleen de wijziging van een instelling kan worden teruggezet: de rij moet de waarde dragen die de instelling had.</value>
   </data>
+  <data name="Only after SMTP authentication" xml:space="preserve">
+    <value>Alleen na SMTP-authenticatie</value>
+  </data>
   <data name="Only archive mail for these domains (comma-separated; empty = every message)" xml:space="preserve">
     <value>Alleen mail voor deze domeinen archiveren (door komma's gescheiden; leeg = elk bericht)</value>
   </data>
@@ -9328,9 +9322,6 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   <data name="Relayer" xml:space="preserve">
     <value>Relayserver</value>
   </data>
-  <data name="Relaying" xml:space="preserve">
-    <value>Relayen</value>
-  </data>
   <data name="Relaying to an upstream server, retry intervals, bounce handling and what happens to local mail." xml:space="preserve">
     <value>Relayen naar een upstreamserver, intervallen voor nieuwe pogingen, de afhandeling van bounces en wat er met lokale mail gebeurt.</value>
   </data>
@@ -9577,11 +9568,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Require SMTP au_thentication to send to the list" xml:space="preserve">
     <value>SMTP-authen_ticatie vereisen om naar de lijst te verzenden</value>
   </data>
-  <data name="Require SMTP authentication for each delivery direction" xml:space="preserve">
-    <value>SMTP-authenticatie vereisen voor elke bezorgrichting</value>
-  </data>
-  <data name="Require SSL/_TLS when authenticating" xml:space="preserve">
-    <value>SSL/_TLS vereisen bij authenticatie</value>
+  <data name="Require TLS _before authentication" xml:space="preserve">
+    <value>TL_S vereisen vóór authenticatie</value>
   </data>
   <data name="Require TLS for delivery" xml:space="preserve">
     <value>TLS vereisen voor bezorging</value>
@@ -9592,29 +9580,11 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Require TLS on mail from this domain" xml:space="preserve">
     <value>TLS eisen voor post uit dit domein</value>
   </data>
-  <data name="Require _TLS for auth" xml:space="preserve">
-    <value>_TLS vereisen voor auth</value>
-  </data>
   <data name="Require at least one character that is not a letter or digit" xml:space="preserve">
     <value>Minstens één teken vereisen dat geen letter of cijfer is</value>
   </data>
   <data name="Require at least one digit" xml:space="preserve">
     <value>Minstens één cijfer vereisen</value>
-  </data>
-  <data name="Require auth" xml:space="preserve">
-    <value>Auth vereisen</value>
-  </data>
-  <data name="Require auth: _local to local" xml:space="preserve">
-    <value>Auth vereisen: _lokaal naar lokaal</value>
-  </data>
-  <data name="Require auth: e_xternal to local" xml:space="preserve">
-    <value>Auth vereisen: e_xtern naar lokaal</value>
-  </data>
-  <data name="Require auth: external to exte_rnal" xml:space="preserve">
-    <value>Auth vereisen: extern naar exte_rn</value>
-  </data>
-  <data name="Require auth: local to _external" xml:space="preserve">
-    <value>Auth vereisen: lokaal naar _extern</value>
   </data>
   <data name="Require both upper and lower case" xml:space="preserve">
     <value>Zowel hoofd- als kleine letters vereisen</value>
@@ -10140,6 +10110,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Save the export as" xml:space="preserve">
     <value>De export opslaan als</value>
+  </data>
+  <data name="Save the permissions of {0}? Anyone in it can then relay mail through this server to any address without signing in: an open relay." xml:space="preserve">
+    <value>De rechten van {0} opslaan? Iedereen erin kan dan zonder aan te melden mail via deze server naar elk adres doorsturen: een open relay.</value>
   </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>De wachtwoordzin van de privésleutel voor het geselecteerde certificaat opslaan</value>
@@ -14135,8 +14108,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="When the wait ends or the sandbox answers error" xml:space="preserve">
     <value>Als het wachten eindigt of de sandbox een fout antwoordt</value>
   </data>
-  <data name="Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS for auth for each range named below. This computer's own clients are not affected." xml:space="preserve">
-    <value>Geef een hieronder genoemde poort zonder TLS eerst een certificaat en STARTTLS op de pagina TCP/IP-poorten; zet daarna op de pagina IP-bereiken TLS vereisen voor auth aan voor elk bereik dat hieronder wordt genoemd. De eigen clients van deze computer merken er niets van.</value>
+  <data name="Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS before authentication for each range named below. This computer's own clients are not affected." xml:space="preserve">
+    <value>Geef een hieronder genoemde poort zonder TLS eerst een certificaat en STARTTLS op de pagina TCP/IP-poorten; zet daarna op de pagina IP-bereiken TLS vereisen vóór authenticatie aan voor elk bereik dat hieronder wordt genoemd. De eigen clients van deze computer merken er niets van.</value>
   </data>
   <data name="Where clients reach the web services listener; each certificate names its revocation list and its root under it. Empty, the default, names neither, so a client that insists on checking revocation cannot. A certificate already issued keeps what it was issued with." xml:space="preserve">
     <value>Waar clients de webservices-listener bereiken; elk certificaat noemt daaronder zijn intrekkingslijst en zijn basis. Leeg, de standaard, noemt geen van beide, zodat een client die de intrekking per se wil controleren dat niet kan. Een al uitgegeven certificaat behoudt waarmee het is uitgegeven.</value>
@@ -14233,9 +14206,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="Which attribute holds the name the person logs in with. This is what is stored against the account and what the directory is asked about at every logon afterwards, so guessing it from the address is not good enough - an entry that does not carry it is reported rather than provisioned." xml:space="preserve">
     <value>Welk attribuut de naam bevat waarmee de persoon zich aanmeldt. Dit is wat bij het account wordt opgeslagen en waarnaar de directory bij elke volgende aanmelding wordt gevraagd, dus het uit het adres afleiden is niet goed genoeg - een vermelding die het niet draagt, wordt gemeld in plaats van ingericht.</value>
-  </data>
-  <data name="Which deliveries are allowed from this range" xml:space="preserve">
-    <value>Welke bezorgingen vanaf dit bereik zijn toegestaan</value>
   </data>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>Welke directoryvermeldingen postvakken worden</value>
@@ -14662,9 +14632,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="_Deliver now" xml:space="preserve">
     <value>N_u bezorgen</value>
-  </data>
-  <data name="_Deliver remote → local" xml:space="preserve">
-    <value>_Extern → lokaal bezorgen</value>
   </data>
   <data name="_Description" xml:space="preserve">
     <value>_Beschrijving</value>
@@ -17057,6 +17024,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0}: nothing published at {1} begins with v=STSv1, so senders will not recognise a policy there. Fix the record's value." xml:space="preserve">
     <value>{0}: niets wat op {1} is gepubliceerd, begint met v=STSv1, dus afzenders herkennen daar geen beleid. Corrigeer de waarde van het record.</value>
+  </data>
+  <data name="{0}: only after SMTP authentication" xml:space="preserve">
+    <value>{0}: alleen na SMTP-authenticatie</value>
   </data>
   <data name="{0}: selector '{1}' and key file are set. {2} Checking DNS for the TXT record {3}…" xml:space="preserve">
     <value>{0}: selector '{1}' en sleutelbestand zijn ingesteld. {2} DNS wordt gecontroleerd op het TXT-record {3}…</value>

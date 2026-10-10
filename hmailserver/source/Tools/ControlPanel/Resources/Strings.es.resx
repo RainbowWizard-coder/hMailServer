@@ -1363,28 +1363,22 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
     <value>Permitir la respuesta inicial de cliente SASL</value>
   </data>
   <data name="Allow SM_TP connections" xml:space="preserve">
-    <value>Permitir conexiones SM_TP</value>
-  </data>
-  <data name="Allow _IMAP" xml:space="preserve">
-    <value>Permitir _IMAP</value>
+    <value>P_ermitir conexiones SMTP</value>
   </data>
   <data name="Allow _IMAP connections" xml:space="preserve">
     <value>Permitir conexiones _IMAP</value>
   </data>
-  <data name="Allow _POP3" xml:space="preserve">
-    <value>Permitir _POP3</value>
-  </data>
   <data name="Allow _POP3 connections" xml:space="preserve">
     <value>Permitir conexiones _POP3</value>
-  </data>
-  <data name="Allow _SMTP" xml:space="preserve">
-    <value>Permitir _SMTP</value>
   </data>
   <data name="Allow and block list" xml:space="preserve">
     <value>Lista de permitidos y bloqueados</value>
   </data>
   <data name="Allow and release" xml:space="preserve">
     <value>Permitir y liberar</value>
+  </data>
+  <data name="Allow delivery" xml:space="preserve">
+    <value>Permitir la entrega</value>
   </data>
   <data name="Allow incorrect line endings" xml:space="preserve">
     <value>Permitir finales de línea incorrectos</value>
@@ -1638,6 +1632,9 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Anyone in the domain can send" xml:space="preserve">
     <value>Cualquiera del dominio puede enviar</value>
+  </data>
+  <data name="Anyone in this range can relay mail through this server to any address without signing in: an open relay. Tick Only after SMTP authentication for External to external, unless the range is a few machines you trust." xml:space="preserve">
+    <value>Cualquiera en este rango puede retransmitir correo a través de este servidor a cualquier dirección sin iniciar sesión: un relé abierto. Marque Solo tras la autenticación SMTP en Externo a externo, salvo que el rango sea de unos pocos equipos de confianza.</value>
   </data>
   <data name="Anyone the owner approves after they confirm" xml:space="preserve">
     <value>Cualquiera a quien el propietario apruebe después de que confirme</value>
@@ -3902,9 +3899,6 @@ Al remitente se le dijo que fue aceptado, así que nada lo reintentará y no hay
   <data name="Deli_vers to" xml:space="preserve">
     <value>_Entrega a</value>
   </data>
-  <data name="Deliver _local → local" xml:space="preserve">
-    <value>Entregar _local → local</value>
-  </data>
   <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
     <value>Entregar cada mensaje a las cuentas que nombran sus cabeceras (un buzón compartido por varias personas)</value>
   </data>
@@ -3917,14 +3911,8 @@ Al remitente se le dijo que fue aceptado, así que nada lo reintentará y no hay
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>Entregarlo y solo registrarlo</value>
   </data>
-  <data name="Deliver lo_cal → remote" xml:space="preserve">
-    <value>Entregar local → _remoto</value>
-  </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
     <value>Entregar el correo de los dominios indicados a un servidor elegido en vez de buscar su registro MX.</value>
-  </data>
-  <data name="Deliver remote → remote (rela_y)" xml:space="preserve">
-    <value>Entregar remoto → remoto (rel_é)</value>
   </data>
   <data name="Deliver to _all addresses (not only known accounts)" xml:space="preserve">
     <value>Entregar a _todas las direcciones (no solo a las cuentas conocidas)</value>
@@ -4738,6 +4726,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>La copia de cada destinatario local se convierte en otro nombre para el mismo archivo dentro de la carpeta de archivo, así que un mensaje a diez buzones cuesta una copia en vez de diez. Necesita una carpeta de archivo NTFS; si el enlace no puede crearse, el servidor copia el archivo y lo dice en el registro SMTP.</value>
   </data>
+  <data name="Every machine in this range can relay mail through this server to any address without signing in. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for External to external." xml:space="preserve">
+    <value>Cada equipo de este rango puede retransmitir correo a través de este servidor a cualquier dirección sin iniciar sesión. Eso sirve para una impresora o una aplicación de su propia red; si no, marque Solo tras la autenticación SMTP en Externo a externo.</value>
+  </data>
   <data name="Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
     <value>Cada mensaje entregado a esta cuenta se cifra, tras los filtros, con la clave OpenPGP de la cuenta, y este servidor no puede leer, buscar, exportar ni recuperar su correo. Solo la persona puede desactivarlo, desde el correo web; nada aquí puede.</value>
   </data>
@@ -4927,8 +4918,8 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="External recipients (addresses this server does not host)" xml:space="preserve">
     <value>Destinatarios externos (direcciones que este servidor no aloja)</value>
   </data>
-  <data name="External to external (_open relay!)" xml:space="preserve">
-    <value>Externo a externo (¡relé _abierto!)</value>
+  <data name="External to external (rela_y)" xml:space="preserve">
+    <value>Externo a externo (_relé)</value>
   </data>
   <data name="External-account hosts to FETCH from with OAuth2 (comma separated; blank this to use none)" xml:space="preserve">
     <value>Hosts de cuentas externas de los que RECOGER con OAuth2 (separados por comas; vacío = ninguno)</value>
@@ -6189,14 +6180,14 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   <data name="Live, from the running server. The hit rate is the share of lookups answered from memory since the counters last reset - which they do when the service restarts, when a cache is switched off, and when its TTL is changed, so a rate right after any of those describes a very short sample. A lookup for something that does not exist counts as a miss and caches nothing, so a server being probed for addresses it does not host shows a low rate without anything being wrong with the cache." xml:space="preserve">
     <value>En vivo, del servidor en ejecución. La tasa de aciertos es la proporción de búsquedas respondidas desde memoria desde el último reinicio de los contadores - que ocurre al reiniciar el servicio, al desactivar una caché y al cambiar su TTL, así que una tasa justo después de cualquiera de esas cosas describe una muestra muy corta. Una búsqueda de algo que no existe cuenta como fallo y no guarda nada en caché, así que un servidor al que se sondea por direcciones que no aloja muestra una tasa baja sin que la caché tenga nada malo.</value>
   </data>
+  <data name="Lo_cal to external" xml:space="preserve">
+    <value>Lo_cal a externo</value>
+  </data>
   <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
     <value>IP inferior (p. e_j. 10.0.0.0)</value>
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Cargando…</value>
-  </data>
-  <data name="Local to _external (relay out)" xml:space="preserve">
-    <value>Local a _externo (relé de salida)</value>
   </data>
   <data name="LocalSystem, which is the most privileged account on this machine" xml:space="preserve">
     <value>LocalSystem, que es la cuenta con más privilegios de esta máquina</value>
@@ -8041,6 +8032,9 @@ No se elimina nada de lo que ya está.</value>
   <data name="Only a setting's change can be put back: the row has to carry the value the setting had." xml:space="preserve">
     <value>Solo el cambio de un ajuste puede restablecerse: la fila debe llevar el valor que tenía el ajuste.</value>
   </data>
+  <data name="Only after SMTP authentication" xml:space="preserve">
+    <value>Solo tras la autenticación SMTP</value>
+  </data>
   <data name="Only archive mail for these domains (comma-separated; empty = every message)" xml:space="preserve">
     <value>Archivar correo solo de estos dominios (separados por comas; vacío = todos los mensajes)</value>
   </data>
@@ -9328,9 +9322,6 @@ Ejecute esto si los clientes informan de mensajes que aparecen con un UID equivo
   <data name="Relayer" xml:space="preserve">
     <value>Relé</value>
   </data>
-  <data name="Relaying" xml:space="preserve">
-    <value>Retransmisión</value>
-  </data>
   <data name="Relaying to an upstream server, retry intervals, bounce handling and what happens to local mail." xml:space="preserve">
     <value>Retransmisión a un servidor superior, intervalos de reintento, tratamiento de rebotes y qué ocurre con el correo local.</value>
   </data>
@@ -9577,11 +9568,8 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Require SMTP au_thentication to send to the list" xml:space="preserve">
     <value>Exigir au_tenticación SMTP para enviar a la lista</value>
   </data>
-  <data name="Require SMTP authentication for each delivery direction" xml:space="preserve">
-    <value>Exigir autenticación SMTP para cada dirección de entrega</value>
-  </data>
-  <data name="Require SSL/_TLS when authenticating" xml:space="preserve">
-    <value>Exigir SSL/_TLS al autenticarse</value>
+  <data name="Require TLS _before authentication" xml:space="preserve">
+    <value>Exigir TL_S antes de autenticarse</value>
   </data>
   <data name="Require TLS for delivery" xml:space="preserve">
     <value>Exigir TLS para la entrega</value>
@@ -9592,29 +9580,11 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Require TLS on mail from this domain" xml:space="preserve">
     <value>Exigir TLS al correo de este dominio</value>
   </data>
-  <data name="Require _TLS for auth" xml:space="preserve">
-    <value>E_xigir TLS para la autenticación</value>
-  </data>
   <data name="Require at least one character that is not a letter or digit" xml:space="preserve">
     <value>Exigir al menos un carácter que no sea letra ni dígito</value>
   </data>
   <data name="Require at least one digit" xml:space="preserve">
     <value>Exigir al menos un dígito</value>
-  </data>
-  <data name="Require auth" xml:space="preserve">
-    <value>Exigir autenticación</value>
-  </data>
-  <data name="Require auth: _local to local" xml:space="preserve">
-    <value>Exigir autenticación: _local a local</value>
-  </data>
-  <data name="Require auth: e_xternal to local" xml:space="preserve">
-    <value>Exigir autenticación: e_xterno a local</value>
-  </data>
-  <data name="Require auth: external to exte_rnal" xml:space="preserve">
-    <value>Exigir autenticación: externo a exte_rno</value>
-  </data>
-  <data name="Require auth: local to _external" xml:space="preserve">
-    <value>Exigir autenticación: local a _externo</value>
   </data>
   <data name="Require both upper and lower case" xml:space="preserve">
     <value>Exigir mayúsculas y minúsculas a la vez</value>
@@ -10140,6 +10110,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="Save the export as" xml:space="preserve">
     <value>Guardar la exportación como</value>
+  </data>
+  <data name="Save the permissions of {0}? Anyone in it can then relay mail through this server to any address without signing in: an open relay." xml:space="preserve">
+    <value>¿Guardar los permisos de {0}? Cualquiera en él podrá retransmitir correo a través de este servidor a cualquier dirección sin iniciar sesión: un relé abierto.</value>
   </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Guardar la frase de contraseña de la clave privada del certificado seleccionado</value>
@@ -14135,8 +14108,8 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="When the wait ends or the sandbox answers error" xml:space="preserve">
     <value>Cuando termina la espera o el sandbox responde error</value>
   </data>
-  <data name="Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS for auth for each range named below. This computer's own clients are not affected." xml:space="preserve">
-    <value>Si un puerto indicado abajo no tiene TLS, dele primero un certificado y STARTTLS en la página Puertos TCP/IP; después, en la página Rangos de IP, active Exigir TLS para la autenticación en cada rango indicado abajo. Los clientes propios de este equipo no se ven afectados.</value>
+  <data name="Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS before authentication for each range named below. This computer's own clients are not affected." xml:space="preserve">
+    <value>Si un puerto indicado abajo no tiene TLS, dele primero un certificado y STARTTLS en la página Puertos TCP/IP; después, en la página Rangos de IP, active Exigir TLS antes de autenticarse en cada rango indicado abajo. Los clientes propios de este equipo no se ven afectados.</value>
   </data>
   <data name="Where clients reach the web services listener; each certificate names its revocation list and its root under it. Empty, the default, names neither, so a client that insists on checking revocation cannot. A certificate already issued keeps what it was issued with." xml:space="preserve">
     <value>Dónde alcanzan los clientes el oyente de servicios web; cada certificado nombra bajo ella su lista de revocación y su raíz. Vacío, el valor predeterminado, no nombra ninguna, así que un cliente que insiste en comprobar la revocación no puede. Un certificado ya emitido conserva aquello con lo que se emitió.</value>
@@ -14233,9 +14206,6 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="Which attribute holds the name the person logs in with. This is what is stored against the account and what the directory is asked about at every logon afterwards, so guessing it from the address is not good enough - an entry that does not carry it is reported rather than provisioned." xml:space="preserve">
     <value>Qué atributo contiene el nombre con el que la persona inicia sesión. Es lo que se guarda en la cuenta y lo que se le pregunta al directorio en cada inicio de sesión posterior, así que deducirlo de la dirección no basta - una entrada que no lo lleva se informa en vez de aprovisionarse.</value>
-  </data>
-  <data name="Which deliveries are allowed from this range" xml:space="preserve">
-    <value>Qué entregas se permiten desde este rango</value>
   </data>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>Qué entradas del directorio se convierten en buzones</value>
@@ -14662,9 +14632,6 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="_Deliver now" xml:space="preserve">
     <value>_Entregar ahora</value>
-  </data>
-  <data name="_Deliver remote → local" xml:space="preserve">
-    <value>_Entregar remoto → local</value>
   </data>
   <data name="_Description" xml:space="preserve">
     <value>_Descripción</value>
@@ -17057,6 +17024,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="{0}: nothing published at {1} begins with v=STSv1, so senders will not recognise a policy there. Fix the record's value." xml:space="preserve">
     <value>{0}: nada de lo publicado en {1} empieza por v=STSv1, así que los remitentes no reconocerán ninguna política ahí. Corrija el valor del registro.</value>
+  </data>
+  <data name="{0}: only after SMTP authentication" xml:space="preserve">
+    <value>{0}: solo tras la autenticación SMTP</value>
   </data>
   <data name="{0}: selector '{1}' and key file are set. {2} Checking DNS for the TXT record {3}…" xml:space="preserve">
     <value>{0}: el selector '{1}' y el archivo de clave están definidos. {2} Comprobando en el DNS el registro TXT {3}…</value>

@@ -1365,26 +1365,20 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Allow SM_TP connections" xml:space="preserve">
     <value>SM_TP bağlantılarına izin ver</value>
   </data>
-  <data name="Allow _IMAP" xml:space="preserve">
-    <value>_IMAP'e izin ver</value>
-  </data>
   <data name="Allow _IMAP connections" xml:space="preserve">
     <value>_IMAP bağlantılarına izin ver</value>
   </data>
-  <data name="Allow _POP3" xml:space="preserve">
-    <value>_POP3'e izin ver</value>
-  </data>
   <data name="Allow _POP3 connections" xml:space="preserve">
     <value>_POP3 bağlantılarına izin ver</value>
-  </data>
-  <data name="Allow _SMTP" xml:space="preserve">
-    <value>_SMTP'ye izin ver</value>
   </data>
   <data name="Allow and block list" xml:space="preserve">
     <value>İzin ve engel listesi</value>
   </data>
   <data name="Allow and release" xml:space="preserve">
     <value>İzin ver ve serbest bırak</value>
+  </data>
+  <data name="Allow delivery" xml:space="preserve">
+    <value>Teslime izin ver</value>
   </data>
   <data name="Allow incorrect line endings" xml:space="preserve">
     <value>Hatalı satır sonlarına izin ver</value>
@@ -1638,6 +1632,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Anyone in the domain can send" xml:space="preserve">
     <value>Etki alanındaki herkes gönderebilir</value>
+  </data>
+  <data name="Anyone in this range can relay mail through this server to any address without signing in: an open relay. Tick Only after SMTP authentication for External to external, unless the range is a few machines you trust." xml:space="preserve">
+    <value>Bu aralıktaki herkes oturum açmadan bu sunucu üzerinden herhangi bir adrese posta aktarabilir: açık bir aktarıcı. Aralık güvendiğiniz birkaç makine değilse, Dıştan dışa için Yalnızca SMTP kimlik doğrulamasından sonra seçeneğini işaretleyin.</value>
   </data>
   <data name="Anyone the owner approves after they confirm" xml:space="preserve">
     <value>Onaylandıktan sonra sahibinin onayladığı herkes</value>
@@ -3902,9 +3899,6 @@ Gönderene kabul edildiği söylendi; bu nedenle hiçbir şey yeniden denemeyece
   <data name="Deli_vers to" xml:space="preserve">
     <value>Tesl_im edilecek adres</value>
   </data>
-  <data name="Deliver _local → local" xml:space="preserve">
-    <value>_Yerel → yerel teslim</value>
-  </data>
   <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
     <value>Her iletiyi başlıklarında adı geçen hesaplara teslim et (birkaç kişinin paylaştığı bir posta kutusu)</value>
   </data>
@@ -3917,14 +3911,8 @@ Gönderene kabul edildiği söylendi; bu nedenle hiçbir şey yeniden denemeyece
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>Teslim et ve yalnızca kaydet</value>
   </data>
-  <data name="Deliver lo_cal → remote" xml:space="preserve">
-    <value>Yerel → _uzak teslim</value>
-  </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
     <value>Adı verilen etki alanlarının postasını MX kaydını aramak yerine seçilen bir sunucuya teslim edin.</value>
-  </data>
-  <data name="Deliver remote → remote (rela_y)" xml:space="preserve">
-    <value>Uzak → uzak teslim (_aktarma)</value>
   </data>
   <data name="Deliver to _all addresses (not only known accounts)" xml:space="preserve">
     <value>_Tüm adreslere teslim et (yalnızca bilinen hesaplara değil)</value>
@@ -4208,7 +4196,7 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
     <value>_Dış kimlik (kimlik sağlayıcısının bu kişi için kimliği; boş = yok)</value>
   </data>
   <data name="E_xternal to local" xml:space="preserve">
-    <value>D_ıştan yerele</value>
+    <value>Dışt_an yerele</value>
   </data>
   <data name="Each IMAP folder keeps a counter for the next message UID it will issue. If that counter falls behind the messages already in the folder - which a restored or hand-edited database can do - the folder issues a UID it has already used, and a client that caches by UID shows one message where another should be. This moves every counter up to the highest UID its folder actually holds. It never moves one down, so it cannot cause the fault it repairs." xml:space="preserve">
     <value>Her IMAP klasörü, vereceği bir sonraki ileti UID'si için bir sayaç tutar. Bu sayaç klasörde zaten bulunan iletilerin gerisine düşerse - geri yüklenen ya da elle düzenlenen bir veritabanı buna yol açabilir - klasör daha önce kullandığı bir UID'yi yeniden verir ve UID'ye göre önbellekleyen bir istemci, bir iletinin yerinde başka birini gösterir. Bu işlem her sayacı, klasörünün gerçekten tuttuğu en yüksek UID'ye yükseltir. Hiçbir sayacı aşağı çekmez; dolayısıyla onardığı hatanın kendisine yol açamaz.</value>
@@ -4738,6 +4726,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>Her yerel alıcının kopyası, arşiv klasörü içindeki aynı dosyanın başka bir adı olur; böylece on posta kutusuna giden bir ileti on değil bir kopyaya mal olur. NTFS bir arşiv klasörü gerektirir; bağlantı oluşturulamazsa sunucu dosyayı kopyalar ve bunu SMTP günlüğünde söyler.</value>
   </data>
+  <data name="Every machine in this range can relay mail through this server to any address without signing in. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for External to external." xml:space="preserve">
+    <value>Bu aralıktaki her makine oturum açmadan bu sunucu üzerinden herhangi bir adrese posta aktarabilir. Bu, kendi ağınızdaki bir yazıcıya ya da uygulamaya uyar; aksi hâlde Dıştan dışa için Yalnızca SMTP kimlik doğrulamasından sonra seçeneğini işaretleyin.</value>
+  </data>
   <data name="Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
     <value>Bu hesaba teslim edilen her ileti, süzgeçlerden sonra hesabın kendi OpenPGP anahtarıyla şifrelenir ve bu sunucu postasını okuyamaz, arayamaz, dışa aktaramaz veya kurtaramaz. Yalnızca kişi web postasından kapatabilir; burada hiçbir şey kapatamaz.</value>
   </data>
@@ -4927,8 +4918,8 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="External recipients (addresses this server does not host)" xml:space="preserve">
     <value>Dış alıcılar (bu sunucunun barındırmadığı adresler)</value>
   </data>
-  <data name="External to external (_open relay!)" xml:space="preserve">
-    <value>Dıştan dışa (_açık aktarma!)</value>
+  <data name="External to external (rela_y)" xml:space="preserve">
+    <value>Dıştan dışa (aktar_ma)</value>
   </data>
   <data name="External-account hosts to FETCH from with OAuth2 (comma separated; blank this to use none)" xml:space="preserve">
     <value>OAuth2 ile FETCH yapılacak dış hesap ana bilgisayarları (virgülle ayrılmış; hiçbirini kullanmamak için boş bırakın)</value>
@@ -6189,14 +6180,14 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Live, from the running server. The hit rate is the share of lookups answered from memory since the counters last reset - which they do when the service restarts, when a cache is switched off, and when its TTL is changed, so a rate right after any of those describes a very short sample. A lookup for something that does not exist counts as a miss and caches nothing, so a server being probed for addresses it does not host shows a low rate without anything being wrong with the cache." xml:space="preserve">
     <value>Canlı, çalışan sunucudan. İsabet oranı, sayaçların son sıfırlanmasından bu yana bellekten yanıtlanan aramaların payıdır - sayaçlar hizmet yeniden başlatıldığında, bir önbellek kapatıldığında ve TTL'si değiştirildiğinde sıfırlanır; bu yüzden bunlardan hemen sonraki bir oran çok kısa bir örneklemi anlatır. Var olmayan bir şey için yapılan arama ıskalama sayılır ve hiçbir şeyi önbelleğe almaz; bu yüzden barındırmadığı adresler için yoklanan bir sunucu, önbellekte hiçbir sorun olmadan düşük bir oran gösterir.</value>
   </data>
+  <data name="Lo_cal to external" xml:space="preserve">
+    <value>Yerelden dı_şa</value>
+  </data>
   <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
     <value>Alt IP (ö_rneğin 10.0.0.0)</value>
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Yükleniyor…</value>
-  </data>
-  <data name="Local to _external (relay out)" xml:space="preserve">
-    <value>Yerelden _dışa (dışarı aktarma)</value>
   </data>
   <data name="LocalSystem, which is the most privileged account on this machine" xml:space="preserve">
     <value>LocalSystem; bu makinedeki en ayrıcalıklı hesap</value>
@@ -8041,6 +8032,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Only a setting's change can be put back: the row has to carry the value the setting had." xml:space="preserve">
     <value>Yalnızca bir ayarın değişikliği geri alınabilir: satır, ayarın sahip olduğu değeri taşımalıdır.</value>
   </data>
+  <data name="Only after SMTP authentication" xml:space="preserve">
+    <value>Yalnızca SMTP kimlik doğrulamasından sonra</value>
+  </data>
   <data name="Only archive mail for these domains (comma-separated; empty = every message)" xml:space="preserve">
     <value>Yalnızca şu etki alanlarının postasını arşivle (virgülle ayrılmış; boş = her ileti)</value>
   </data>
@@ -9328,9 +9322,6 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   <data name="Relayer" xml:space="preserve">
     <value>Aktarıcı</value>
   </data>
-  <data name="Relaying" xml:space="preserve">
-    <value>Aktarma</value>
-  </data>
   <data name="Relaying to an upstream server, retry intervals, bounce handling and what happens to local mail." xml:space="preserve">
     <value>Bir üst sunucuya aktarma, yeniden deneme aralıkları, geri dönme işleme ve yerel postaya ne olacağı.</value>
   </data>
@@ -9577,11 +9568,8 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Require SMTP au_thentication to send to the list" xml:space="preserve">
     <value>Listeye göndermek için SMTP kimlik _doğrulaması gerektir</value>
   </data>
-  <data name="Require SMTP authentication for each delivery direction" xml:space="preserve">
-    <value>Her teslim yönü için SMTP kimlik doğrulaması gerektir</value>
-  </data>
-  <data name="Require SSL/_TLS when authenticating" xml:space="preserve">
-    <value>Kimlik doğrularken SSL/_TLS gerektir</value>
+  <data name="Require TLS _before authentication" xml:space="preserve">
+    <value>Kimlik d_oğrulamadan önce TLS gerektir</value>
   </data>
   <data name="Require TLS for delivery" xml:space="preserve">
     <value>Teslimat için TLS zorunlu olsun</value>
@@ -9592,29 +9580,11 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Require TLS on mail from this domain" xml:space="preserve">
     <value>Bu alan adından gelen posta için TLS iste</value>
   </data>
-  <data name="Require _TLS for auth" xml:space="preserve">
-    <value>Kimlik doğrulaması için _TLS gerektir</value>
-  </data>
   <data name="Require at least one character that is not a letter or digit" xml:space="preserve">
     <value>Harf ya da rakam olmayan en az bir karakter gerektir</value>
   </data>
   <data name="Require at least one digit" xml:space="preserve">
     <value>En az bir rakam gerektir</value>
-  </data>
-  <data name="Require auth" xml:space="preserve">
-    <value>Kimlik doğrulaması gerektir</value>
-  </data>
-  <data name="Require auth: _local to local" xml:space="preserve">
-    <value>Kimlik doğrulaması gerektir: _yerelden yerele</value>
-  </data>
-  <data name="Require auth: e_xternal to local" xml:space="preserve">
-    <value>Kimlik doğrulaması gerektir: _dıştan yerele</value>
-  </data>
-  <data name="Require auth: external to exte_rnal" xml:space="preserve">
-    <value>Kimlik doğrulaması gerektir: dıştan dış_a</value>
-  </data>
-  <data name="Require auth: local to _external" xml:space="preserve">
-    <value>Kimlik doğrulaması gerektir: yerelden dı_şa</value>
   </data>
   <data name="Require both upper and lower case" xml:space="preserve">
     <value>Hem büyük hem küçük harf gerektir</value>
@@ -10140,6 +10110,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Save the export as" xml:space="preserve">
     <value>Dışa aktarmayı farklı kaydet</value>
+  </data>
+  <data name="Save the permissions of {0}? Anyone in it can then relay mail through this server to any address without signing in: an open relay." xml:space="preserve">
+    <value>{0} izinleri kaydedilsin mi? Ardından içindeki herkes oturum açmadan bu sunucu üzerinden herhangi bir adrese posta aktarabilir: açık bir aktarıcı.</value>
   </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Seçili sertifika için özel anahtar parola ifadesini kaydet</value>
@@ -14135,8 +14108,8 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="When the wait ends or the sandbox answers error" xml:space="preserve">
     <value>Bekleme sona erdiğinde ya da korumalı alan hata yanıtı verdiğinde</value>
   </data>
-  <data name="Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS for auth for each range named below. This computer's own clients are not affected." xml:space="preserve">
-    <value>Aşağıda adı geçen bir bağlantı noktasında TLS yoksa, önce TCP/IP portları sayfasında ona bir sertifika ve STARTTLS verin; ardından IP aralıkları sayfasında, aşağıda adı geçen her aralık için Kimlik doğrulaması için TLS gerektir seçeneğini açın. Bu bilgisayarın kendi istemcileri etkilenmez.</value>
+  <data name="Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS before authentication for each range named below. This computer's own clients are not affected." xml:space="preserve">
+    <value>Aşağıda adı geçen bir bağlantı noktasında TLS yoksa, önce TCP/IP portları sayfasında ona bir sertifika ve STARTTLS verin; ardından IP aralıkları sayfasında, aşağıda adı geçen her aralık için Kimlik doğrulamadan önce TLS gerektir seçeneğini açın. Bu bilgisayarın kendi istemcileri etkilenmez.</value>
   </data>
   <data name="Where clients reach the web services listener; each certificate names its revocation list and its root under it. Empty, the default, names neither, so a client that insists on checking revocation cannot. A certificate already issued keeps what it was issued with." xml:space="preserve">
     <value>İstemcilerin web hizmetleri dinleyicisine ulaştığı yer; her sertifika iptal listesini ve kökünü bunun altında adlandırır. Boş, varsayılan, ikisini de adlandırmaz; bu yüzden iptal denetiminde ısrar eden bir istemci bunu yapamaz. Zaten verilmiş bir sertifika, verildiği bilgileri korur.</value>
@@ -14233,9 +14206,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="Which attribute holds the name the person logs in with. This is what is stored against the account and what the directory is asked about at every logon afterwards, so guessing it from the address is not good enough - an entry that does not carry it is reported rather than provisioned." xml:space="preserve">
     <value>Kişinin oturum açtığı adı hangi özniteliğin tuttuğu. Hesaba karşı saklanan ve sonraki her oturum açmada dizine sorulan budur; bu yüzden adresten tahmin etmek yeterince iyi değildir - onu taşımayan bir girdi sağlanmak yerine bildirilir.</value>
-  </data>
-  <data name="Which deliveries are allowed from this range" xml:space="preserve">
-    <value>Bu aralıktan hangi teslimlere izin verildiği</value>
   </data>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>Hangi dizin girdilerinin posta kutusu olacağı</value>
@@ -14662,9 +14632,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="_Deliver now" xml:space="preserve">
     <value>Şimdi _teslim et</value>
-  </data>
-  <data name="_Deliver remote → local" xml:space="preserve">
-    <value>U_zak → yerel teslim</value>
   </data>
   <data name="_Description" xml:space="preserve">
     <value>_Açıklama</value>
@@ -17057,6 +17024,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0}: nothing published at {1} begins with v=STSv1, so senders will not recognise a policy there. Fix the record's value." xml:space="preserve">
     <value>{0}: {1} konumunda TXT kaydı var ama hiçbiri v=STSv1 ile başlamıyor; bu yüzden gönderenler orada bir ilke tanımayacak. Kaydın değerini düzeltin.</value>
+  </data>
+  <data name="{0}: only after SMTP authentication" xml:space="preserve">
+    <value>{0}: yalnızca SMTP kimlik doğrulamasından sonra</value>
   </data>
   <data name="{0}: selector '{1}' and key file are set. {2} Checking DNS for the TXT record {3}…" xml:space="preserve">
     <value>{0}: '{1}' seçicisi ve anahtar dosyası ayarlı. {2} {3} TXT kaydı için DNS denetleniyor…</value>

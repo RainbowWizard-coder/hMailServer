@@ -1365,26 +1365,20 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Allow SM_TP connections" xml:space="preserve">
     <value>Allow SM_TP connections</value>
   </data>
-  <data name="Allow _IMAP" xml:space="preserve">
-    <value>Allow _IMAP</value>
-  </data>
   <data name="Allow _IMAP connections" xml:space="preserve">
     <value>Allow _IMAP connections</value>
   </data>
-  <data name="Allow _POP3" xml:space="preserve">
-    <value>Allow _POP3</value>
-  </data>
   <data name="Allow _POP3 connections" xml:space="preserve">
     <value>Allow _POP3 connections</value>
-  </data>
-  <data name="Allow _SMTP" xml:space="preserve">
-    <value>Allow _SMTP</value>
   </data>
   <data name="Allow and block list" xml:space="preserve">
     <value>Allow and block list</value>
   </data>
   <data name="Allow and release" xml:space="preserve">
     <value>Allow and release</value>
+  </data>
+  <data name="Allow delivery" xml:space="preserve">
+    <value>Allow delivery</value>
   </data>
   <data name="Allow incorrect line endings" xml:space="preserve">
     <value>Allow incorrect line endings</value>
@@ -1638,6 +1632,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   </data>
   <data name="Anyone in the domain can send" xml:space="preserve">
     <value>Anyone in the domain can send</value>
+  </data>
+  <data name="Anyone in this range can relay mail through this server to any address without signing in: an open relay. Tick Only after SMTP authentication for External to external, unless the range is a few machines you trust." xml:space="preserve">
+    <value>Anyone in this range can relay mail through this server to any address without signing in: an open relay. Tick Only after SMTP authentication for External to external, unless the range is a few machines you trust.</value>
   </data>
   <data name="Anyone the owner approves after they confirm" xml:space="preserve">
     <value>Anyone the owner approves after they confirm</value>
@@ -3902,9 +3899,6 @@ The sender was told it was accepted, so nothing will retry and there is no other
   <data name="Deli_vers to" xml:space="preserve">
     <value>Deli_vers to</value>
   </data>
-  <data name="Deliver _local → local" xml:space="preserve">
-    <value>Deliver _local → local</value>
-  </data>
   <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
     <value>Deliver each message to the accounts its headers name (a mailbox shared by several people)</value>
   </data>
@@ -3917,14 +3911,8 @@ The sender was told it was accepted, so nothing will retry and there is no other
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>Deliver it, and only record it</value>
   </data>
-  <data name="Deliver lo_cal → remote" xml:space="preserve">
-    <value>Deliver lo_cal → remote</value>
-  </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
     <value>Deliver mail for named domains to a chosen server instead of looking up its MX record.</value>
-  </data>
-  <data name="Deliver remote → remote (rela_y)" xml:space="preserve">
-    <value>Deliver remote → remote (rela_y)</value>
   </data>
   <data name="Deliver to _all addresses (not only known accounts)" xml:space="preserve">
     <value>Deliver to _all addresses (not only known accounts)</value>
@@ -4738,6 +4726,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log.</value>
   </data>
+  <data name="Every machine in this range can relay mail through this server to any address without signing in. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for External to external." xml:space="preserve">
+    <value>Every machine in this range can relay mail through this server to any address without signing in. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for External to external.</value>
+  </data>
   <data name="Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
     <value>Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can.</value>
   </data>
@@ -4927,8 +4918,8 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="External recipients (addresses this server does not host)" xml:space="preserve">
     <value>External recipients (addresses this server does not host)</value>
   </data>
-  <data name="External to external (_open relay!)" xml:space="preserve">
-    <value>External to external (_open relay!)</value>
+  <data name="External to external (rela_y)" xml:space="preserve">
+    <value>External to external (rela_y)</value>
   </data>
   <data name="External-account hosts to FETCH from with OAuth2 (comma separated; blank this to use none)" xml:space="preserve">
     <value>External-account hosts to FETCH from with OAuth2 (comma separated; blank this to use none)</value>
@@ -6189,14 +6180,14 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="Live, from the running server. The hit rate is the share of lookups answered from memory since the counters last reset - which they do when the service restarts, when a cache is switched off, and when its TTL is changed, so a rate right after any of those describes a very short sample. A lookup for something that does not exist counts as a miss and caches nothing, so a server being probed for addresses it does not host shows a low rate without anything being wrong with the cache." xml:space="preserve">
     <value>Live, from the running server. The hit rate is the share of lookups answered from memory since the counters last reset - which they do when the service restarts, when a cache is switched off, and when its TTL is changed, so a rate right after any of those describes a very short sample. A lookup for something that does not exist counts as a miss and caches nothing, so a server being probed for addresses it does not host shows a low rate without anything being wrong with the cache.</value>
   </data>
+  <data name="Lo_cal to external" xml:space="preserve">
+    <value>Lo_cal to external</value>
+  </data>
   <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
     <value>Lo_wer IP (e.g. 10.0.0.0)</value>
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Loading…</value>
-  </data>
-  <data name="Local to _external (relay out)" xml:space="preserve">
-    <value>Local to _external (relay out)</value>
   </data>
   <data name="LocalSystem, which is the most privileged account on this machine" xml:space="preserve">
     <value>LocalSystem, which is the most privileged account on this machine</value>
@@ -8041,6 +8032,9 @@ Nothing already there is removed.</value>
   <data name="Only a setting's change can be put back: the row has to carry the value the setting had." xml:space="preserve">
     <value>Only a setting's change can be put back: the row has to carry the value the setting had.</value>
   </data>
+  <data name="Only after SMTP authentication" xml:space="preserve">
+    <value>Only after SMTP authentication</value>
+  </data>
   <data name="Only archive mail for these domains (comma-separated; empty = every message)" xml:space="preserve">
     <value>Only archive mail for these domains (comma-separated; empty = every message)</value>
   </data>
@@ -9328,9 +9322,6 @@ Run this if clients report messages appearing under the wrong UID, or after rest
   <data name="Relayer" xml:space="preserve">
     <value>Relayer</value>
   </data>
-  <data name="Relaying" xml:space="preserve">
-    <value>Relaying</value>
-  </data>
   <data name="Relaying to an upstream server, retry intervals, bounce handling and what happens to local mail." xml:space="preserve">
     <value>Relaying to an upstream server, retry intervals, bounce handling and what happens to local mail.</value>
   </data>
@@ -9577,11 +9568,8 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Require SMTP au_thentication to send to the list" xml:space="preserve">
     <value>Require SMTP au_thentication to send to the list</value>
   </data>
-  <data name="Require SMTP authentication for each delivery direction" xml:space="preserve">
-    <value>Require SMTP authentication for each delivery direction</value>
-  </data>
-  <data name="Require SSL/_TLS when authenticating" xml:space="preserve">
-    <value>Require SSL/_TLS when authenticating</value>
+  <data name="Require TLS _before authentication" xml:space="preserve">
+    <value>Require TLS _before authentication</value>
   </data>
   <data name="Require TLS for delivery" xml:space="preserve">
     <value>Require TLS for delivery</value>
@@ -9592,29 +9580,11 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Require TLS on mail from this domain" xml:space="preserve">
     <value>Require TLS on mail from this domain</value>
   </data>
-  <data name="Require _TLS for auth" xml:space="preserve">
-    <value>Require _TLS for auth</value>
-  </data>
   <data name="Require at least one character that is not a letter or digit" xml:space="preserve">
     <value>Require at least one character that is not a letter or digit</value>
   </data>
   <data name="Require at least one digit" xml:space="preserve">
     <value>Require at least one digit</value>
-  </data>
-  <data name="Require auth" xml:space="preserve">
-    <value>Require auth</value>
-  </data>
-  <data name="Require auth: _local to local" xml:space="preserve">
-    <value>Require auth: _local to local</value>
-  </data>
-  <data name="Require auth: e_xternal to local" xml:space="preserve">
-    <value>Require auth: e_xternal to local</value>
-  </data>
-  <data name="Require auth: external to exte_rnal" xml:space="preserve">
-    <value>Require auth: external to exte_rnal</value>
-  </data>
-  <data name="Require auth: local to _external" xml:space="preserve">
-    <value>Require auth: local to _external</value>
   </data>
   <data name="Require both upper and lower case" xml:space="preserve">
     <value>Require both upper and lower case</value>
@@ -10140,6 +10110,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   </data>
   <data name="Save the export as" xml:space="preserve">
     <value>Save the export as</value>
+  </data>
+  <data name="Save the permissions of {0}? Anyone in it can then relay mail through this server to any address without signing in: an open relay." xml:space="preserve">
+    <value>Save the permissions of {0}? Anyone in it can then relay mail through this server to any address without signing in: an open relay.</value>
   </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Save the private key passphrase for the selected certificate</value>
@@ -14135,8 +14108,8 @@ It will keep trying as you use the application.</value>
   <data name="When the wait ends or the sandbox answers error" xml:space="preserve">
     <value>When the wait ends or the sandbox answers error</value>
   </data>
-  <data name="Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS for auth for each range named below. This computer's own clients are not affected." xml:space="preserve">
-    <value>Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS for auth for each range named below. This computer's own clients are not affected.</value>
+  <data name="Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS before authentication for each range named below. This computer's own clients are not affected." xml:space="preserve">
+    <value>Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS before authentication for each range named below. This computer's own clients are not affected.</value>
   </data>
   <data name="Where clients reach the web services listener; each certificate names its revocation list and its root under it. Empty, the default, names neither, so a client that insists on checking revocation cannot. A certificate already issued keeps what it was issued with." xml:space="preserve">
     <value>Where clients reach the web services listener; each certificate names its revocation list and its root under it. Empty, the default, names neither, so a client that insists on checking revocation cannot. A certificate already issued keeps what it was issued with.</value>
@@ -14233,9 +14206,6 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="Which attribute holds the name the person logs in with. This is what is stored against the account and what the directory is asked about at every logon afterwards, so guessing it from the address is not good enough - an entry that does not carry it is reported rather than provisioned." xml:space="preserve">
     <value>Which attribute holds the name the person logs in with. This is what is stored against the account and what the directory is asked about at every logon afterwards, so guessing it from the address is not good enough - an entry that does not carry it is reported rather than provisioned.</value>
-  </data>
-  <data name="Which deliveries are allowed from this range" xml:space="preserve">
-    <value>Which deliveries are allowed from this range</value>
   </data>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>Which directory entries become mailboxes</value>
@@ -14662,9 +14632,6 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="_Deliver now" xml:space="preserve">
     <value>_Deliver now</value>
-  </data>
-  <data name="_Deliver remote → local" xml:space="preserve">
-    <value>_Deliver remote → local</value>
   </data>
   <data name="_Description" xml:space="preserve">
     <value>_Description</value>
@@ -17057,6 +17024,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="{0}: nothing published at {1} begins with v=STSv1, so senders will not recognise a policy there. Fix the record's value." xml:space="preserve">
     <value>{0}: nothing published at {1} begins with v=STSv1, so senders will not recognise a policy there. Fix the record's value.</value>
+  </data>
+  <data name="{0}: only after SMTP authentication" xml:space="preserve">
+    <value>{0}: only after SMTP authentication</value>
   </data>
   <data name="{0}: selector '{1}' and key file are set. {2} Checking DNS for the TXT record {3}…" xml:space="preserve">
     <value>{0}: selector '{1}' and key file are set. {2} Checking DNS for the TXT record {3}…</value>

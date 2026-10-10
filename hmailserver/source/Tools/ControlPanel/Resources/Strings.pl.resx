@@ -1374,26 +1374,20 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   <data name="Allow SM_TP connections" xml:space="preserve">
     <value>Zezwalaj na połączenia SM_TP</value>
   </data>
-  <data name="Allow _IMAP" xml:space="preserve">
-    <value>Zezwalaj na _IMAP</value>
-  </data>
   <data name="Allow _IMAP connections" xml:space="preserve">
     <value>Zezwalaj na połączenia _IMAP</value>
   </data>
-  <data name="Allow _POP3" xml:space="preserve">
-    <value>Zezwalaj na _POP3</value>
-  </data>
   <data name="Allow _POP3 connections" xml:space="preserve">
     <value>Zezwalaj na połączenia _POP3</value>
-  </data>
-  <data name="Allow _SMTP" xml:space="preserve">
-    <value>Zezwalaj na _SMTP</value>
   </data>
   <data name="Allow and block list" xml:space="preserve">
     <value>Lista dozwolonych i zablokowanych</value>
   </data>
   <data name="Allow and release" xml:space="preserve">
     <value>Dopuść i zwolnij</value>
+  </data>
+  <data name="Allow delivery" xml:space="preserve">
+    <value>Zezwalaj na dostarczanie</value>
   </data>
   <data name="Allow incorrect line endings" xml:space="preserve">
     <value>Zezwalaj na nieprawidłowe zakończenia wierszy</value>
@@ -1650,6 +1644,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   </data>
   <data name="Anyone in the domain can send" xml:space="preserve">
     <value>Każdy w domenie może wysyłać</value>
+  </data>
+  <data name="Anyone in this range can relay mail through this server to any address without signing in: an open relay. Tick Only after SMTP authentication for External to external, unless the range is a few machines you trust." xml:space="preserve">
+    <value>Każdy w tym zakresie może bez logowania przekazywać pocztę przez ten serwer na dowolny adres: otwarty przekaźnik. Należy zaznaczyć Tylko po uwierzytelnieniu SMTP przy Zewnętrzne do zewnętrznych, chyba że zakres to kilka zaufanych maszyn.</value>
   </data>
   <data name="Anyone the owner approves after they confirm" xml:space="preserve">
     <value>Każdy, kogo właściciel zatwierdzi po potwierdzeniu</value>
@@ -3951,9 +3948,6 @@ Nadawca otrzymał informację, że została przyjęta, więc nic nie ponowi pró
   <data name="Deli_vers to" xml:space="preserve">
     <value>Dos_tarcza do</value>
   </data>
-  <data name="Deliver _local → local" xml:space="preserve">
-    <value>Dostarczaj _lokalne → lokalne</value>
-  </data>
   <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
     <value>Dostarczaj każdą wiadomość do kont, które wymieniają jej nagłówki (skrzynka dzielona przez kilka osób)</value>
   </data>
@@ -3966,14 +3960,8 @@ Nadawca otrzymał informację, że została przyjęta, więc nic nie ponowi pró
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>Doręcz i tylko zapisz</value>
   </data>
-  <data name="Deliver lo_cal → remote" xml:space="preserve">
-    <value>Dostarczaj lokalne → _zdalne</value>
-  </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
     <value>Dostarczaj pocztę do wymienionych domen na wybrany serwer, zamiast wyszukiwać ich rekord MX.</value>
-  </data>
-  <data name="Deliver remote → remote (rela_y)" xml:space="preserve">
-    <value>Dostarczaj zdalne → zdalne (przekaź_nik)</value>
   </data>
   <data name="Deliver to _all addresses (not only known accounts)" xml:space="preserve">
     <value>Dostarczaj na _wszystkie adresy (nie tylko na znane konta)</value>
@@ -4257,7 +4245,7 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
     <value>Zewnętrzny _identyfikator (identyfikator tej osoby u dostawcy tożsamości; puste = brak)</value>
   </data>
   <data name="E_xternal to local" xml:space="preserve">
-    <value>Zewnętrzne _do lokalnych</value>
+    <value>Z_ewnętrzne do lokalnych</value>
   </data>
   <data name="Each IMAP folder keeps a counter for the next message UID it will issue. If that counter falls behind the messages already in the folder - which a restored or hand-edited database can do - the folder issues a UID it has already used, and a client that caches by UID shows one message where another should be. This moves every counter up to the highest UID its folder actually holds. It never moves one down, so it cannot cause the fault it repairs." xml:space="preserve">
     <value>Każdy folder IMAP przechowuje licznik następnego identyfikatora UID wiadomości, jaki wyda. Jeśli licznik zostanie w tyle za wiadomościami już znajdującymi się w folderze - co potrafi spowodować przywrócona lub ręcznie zmieniona baza danych - folder wydaje UID, którego już użył, a klient buforujący według UID pokazuje jedną wiadomość tam, gdzie powinna być inna. Ta operacja podnosi każdy licznik do najwyższego UID, jaki faktycznie znajduje się w jego folderze. Nigdy żadnego nie obniża, nie może więc wywołać usterki, którą naprawia.</value>
@@ -4790,6 +4778,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>Kopia każdego lokalnego odbiorcy staje się kolejną nazwą tego samego pliku w folderze archiwum, więc wiadomość do dziesięciu skrzynek pocztowych kosztuje jedną kopię, a nie dziesięć. Wymaga folderu archiwum na NTFS; jeśli dowiązania nie da się utworzyć, serwer kopiuje plik i informuje o tym w dzienniku SMTP.</value>
   </data>
+  <data name="Every machine in this range can relay mail through this server to any address without signing in. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for External to external." xml:space="preserve">
+    <value>Każda maszyna w tym zakresie może bez logowania przekazywać pocztę przez ten serwer na dowolny adres. To odpowiada drukarce lub aplikacji we własnej sieci; w przeciwnym razie należy zaznaczyć Tylko po uwierzytelnieniu SMTP przy Zewnętrzne do zewnętrznych.</value>
+  </data>
   <data name="Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
     <value>Każda wiadomość doręczona na to konto jest po filtrach szyfrowana własnym kluczem OpenPGP konta, a ten serwer nie może czytać, przeszukiwać, eksportować ani odzyskać tej poczty. Tylko ta osoba może to wyłączyć, z poczty webowej; tutaj nic tego nie zrobi.</value>
   </data>
@@ -4994,8 +4985,8 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="External recipients (addresses this server does not host)" xml:space="preserve">
     <value>Odbiorcy zewnętrzni (adresy, których ten serwer nie obsługuje)</value>
   </data>
-  <data name="External to external (_open relay!)" xml:space="preserve">
-    <value>Zewnętrzne do zewnętrznych (_otwarty przekaźnik!)</value>
+  <data name="External to external (rela_y)" xml:space="preserve">
+    <value>Zew_nętrzne do zewnętrznych (przekazywanie)</value>
   </data>
   <data name="External-account hosts to FETCH from with OAuth2 (comma separated; blank this to use none)" xml:space="preserve">
     <value>Hosty kont zewnętrznych, z których pobieranie odbywa się z OAuth2 (rozdzielone przecinkami; puste pole = żaden)</value>
@@ -6256,14 +6247,14 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   <data name="Live, from the running server. The hit rate is the share of lookups answered from memory since the counters last reset - which they do when the service restarts, when a cache is switched off, and when its TTL is changed, so a rate right after any of those describes a very short sample. A lookup for something that does not exist counts as a miss and caches nothing, so a server being probed for addresses it does not host shows a low rate without anything being wrong with the cache." xml:space="preserve">
     <value>Na żywo, z działającego serwera. Współczynnik trafień to udział wyszukiwań obsłużonych z pamięci od ostatniego wyzerowania liczników - a zerują się one przy ponownym uruchomieniu usługi, przy wyłączeniu pamięci podręcznej oraz przy zmianie jej TTL, więc współczynnik tuż po którymkolwiek z tych zdarzeń opisuje bardzo krótką próbkę. Wyszukanie czegoś, co nie istnieje, liczy się jako chybienie i niczego nie zapisuje w pamięci podręcznej, więc serwer odpytywany o adresy, których nie obsługuje, pokazuje niski współczynnik, choć z pamięcią podręczną nie dzieje się nic złego.</value>
   </data>
+  <data name="Lo_cal to external" xml:space="preserve">
+    <value>Lokalne _do zewnętrznych</value>
+  </data>
   <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
     <value>Doln_y adres IP (np. 10.0.0.0)</value>
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Ładowanie…</value>
-  </data>
-  <data name="Local to _external (relay out)" xml:space="preserve">
-    <value>Lokalne na ze_wnętrzne (przekazywanie na zewnątrz)</value>
   </data>
   <data name="LocalSystem, which is the most privileged account on this machine" xml:space="preserve">
     <value>LocalSystem, czyli konto o najwyższych uprawnieniach na tym komputerze</value>
@@ -8132,6 +8123,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Only a setting's change can be put back: the row has to carry the value the setting had." xml:space="preserve">
     <value>Przywrócić można tylko zmianę ustawienia: wiersz musi nieść wartość, jaką ustawienie miało.</value>
   </data>
+  <data name="Only after SMTP authentication" xml:space="preserve">
+    <value>Tylko po uwierzytelnieniu SMTP</value>
+  </data>
   <data name="Only archive mail for these domains (comma-separated; empty = every message)" xml:space="preserve">
     <value>Archiwizuj pocztę tylko dla tych domen (rozdzielone przecinkami; puste = każda wiadomość)</value>
   </data>
@@ -9422,9 +9416,6 @@ Warto to uruchomić, gdy klienty zgłaszają wiadomości pojawiające się pod n
   <data name="Relayer" xml:space="preserve">
     <value>Przekaźnik</value>
   </data>
-  <data name="Relaying" xml:space="preserve">
-    <value>Przekazywanie</value>
-  </data>
   <data name="Relaying to an upstream server, retry intervals, bounce handling and what happens to local mail." xml:space="preserve">
     <value>Przekazywanie do serwera nadrzędnego, odstępy między ponownymi próbami, obsługa zwrotek i to, co dzieje się z pocztą lokalną.</value>
   </data>
@@ -9680,11 +9671,8 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Require SMTP au_thentication to send to the list" xml:space="preserve">
     <value>Wymagaj uwierzy_telnienia SMTP do wysyłania na listę</value>
   </data>
-  <data name="Require SMTP authentication for each delivery direction" xml:space="preserve">
-    <value>Wymagaj uwierzytelnienia SMTP dla każdego kierunku dostarczania</value>
-  </data>
-  <data name="Require SSL/_TLS when authenticating" xml:space="preserve">
-    <value>Wymagaj SSL/_TLS przy uwierzytelnianiu</value>
+  <data name="Require TLS _before authentication" xml:space="preserve">
+    <value>Wymagaj TL_S przed uwierzytelnieniem</value>
   </data>
   <data name="Require TLS for delivery" xml:space="preserve">
     <value>Wymagaj TLS przy dostarczaniu</value>
@@ -9695,29 +9683,11 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Require TLS on mail from this domain" xml:space="preserve">
     <value>Wymagaj TLS dla poczty z tej domeny</value>
   </data>
-  <data name="Require _TLS for auth" xml:space="preserve">
-    <value>Wymagaj _TLS do uwierzytelniania</value>
-  </data>
   <data name="Require at least one character that is not a letter or digit" xml:space="preserve">
     <value>Wymagaj co najmniej jednego znaku, który nie jest literą ani cyfrą</value>
   </data>
   <data name="Require at least one digit" xml:space="preserve">
     <value>Wymagaj co najmniej jednej cyfry</value>
-  </data>
-  <data name="Require auth" xml:space="preserve">
-    <value>Wymagaj uwierzytelnienia</value>
-  </data>
-  <data name="Require auth: _local to local" xml:space="preserve">
-    <value>Wymagaj uwierzytelnienia: _lokalna do lokalnej</value>
-  </data>
-  <data name="Require auth: e_xternal to local" xml:space="preserve">
-    <value>Wymagaj uwierzytelnienia: ze_wnętrzna do lokalnej</value>
-  </data>
-  <data name="Require auth: external to exte_rnal" xml:space="preserve">
-    <value>Wymagaj uwierzytelnienia: zewnętrzna do zewnęt_rznej</value>
-  </data>
-  <data name="Require auth: local to _external" xml:space="preserve">
-    <value>Wymagaj uwierzytelnienia: lokalna do z_ewnętrznej</value>
   </data>
   <data name="Require both upper and lower case" xml:space="preserve">
     <value>Wymagaj zarówno wielkich, jak i małych liter</value>
@@ -10243,6 +10213,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="Save the export as" xml:space="preserve">
     <value>Zapisz eksport jako</value>
+  </data>
+  <data name="Save the permissions of {0}? Anyone in it can then relay mail through this server to any address without signing in: an open relay." xml:space="preserve">
+    <value>Zapisać uprawnienia zakresu {0}? Każdy w nim będzie mógł wtedy bez logowania przekazywać pocztę przez ten serwer na dowolny adres: otwarty przekaźnik.</value>
   </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Zapisz hasło klucza prywatnego dla wybranego certyfikatu</value>
@@ -14307,8 +14280,8 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="When the wait ends or the sandbox answers error" xml:space="preserve">
     <value>Gdy oczekiwanie się kończy lub piaskownica odpowiada błędem</value>
   </data>
-  <data name="Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS for auth for each range named below. This computer's own clients are not affected." xml:space="preserve">
-    <value>Jeśli port wymieniony poniżej nie ma TLS, najpierw nadaj mu certyfikat i STARTTLS na stronie Porty TCP/IP; następnie na stronie Zakresy adresów IP włącz Wymagaj TLS do uwierzytelniania dla każdego zakresu wymienionego poniżej. Nie dotyczy to własnych klientów tego komputera.</value>
+  <data name="Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS before authentication for each range named below. This computer's own clients are not affected." xml:space="preserve">
+    <value>Jeśli port wymieniony poniżej nie ma TLS, najpierw nadaj mu certyfikat i STARTTLS na stronie Porty TCP/IP; następnie na stronie Zakresy adresów IP włącz Wymagaj TLS przed uwierzytelnieniem dla każdego zakresu wymienionego poniżej. Nie dotyczy to własnych klientów tego komputera.</value>
   </data>
   <data name="Where clients reach the web services listener; each certificate names its revocation list and its root under it. Empty, the default, names neither, so a client that insists on checking revocation cannot. A certificate already issued keeps what it was issued with." xml:space="preserve">
     <value>Gdzie klienci osiągają nasłuch usług webowych; każdy certyfikat podaje pod nim swoją listę unieważnień i swój certyfikat główny. Puste, domyślne, nie podaje żadnego, więc klient, który upiera się przy sprawdzaniu unieważnienia, nie może tego zrobić. Już wystawiony certyfikat zachowuje to, z czym go wystawiono.</value>
@@ -14405,9 +14378,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="Which attribute holds the name the person logs in with. This is what is stored against the account and what the directory is asked about at every logon afterwards, so guessing it from the address is not good enough - an entry that does not carry it is reported rather than provisioned." xml:space="preserve">
     <value>Który atrybut zawiera nazwę, którą osoba się loguje. To ona jest zapisywana przy koncie i o nią pyta się katalog przy każdym późniejszym logowaniu, więc zgadywanie jej z adresu nie wystarczy - wpis, który jej nie zawiera, jest zgłaszany, a nie zakładany.</value>
-  </data>
-  <data name="Which deliveries are allowed from this range" xml:space="preserve">
-    <value>Które dostarczenia są dozwolone z tego zakresu</value>
   </data>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>Które wpisy katalogu stają się skrzynkami pocztowymi</value>
@@ -14837,9 +14807,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="_Deliver now" xml:space="preserve">
     <value>_Dostarcz teraz</value>
-  </data>
-  <data name="_Deliver remote → local" xml:space="preserve">
-    <value>_Dostarczaj zdalne → lokalne</value>
   </data>
   <data name="_Description" xml:space="preserve">
     <value>_Opis</value>
@@ -17460,6 +17427,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0}: nothing published at {1} begins with v=STSv1, so senders will not recognise a policy there. Fix the record's value." xml:space="preserve">
     <value>{0}: pod adresem {1} istnieją rekordy TXT, ale żaden nie zaczyna się od v=STSv1, więc nadawcy nie rozpoznają tam żadnej polityki. Należy poprawić wartość rekordu.</value>
+  </data>
+  <data name="{0}: only after SMTP authentication" xml:space="preserve">
+    <value>{0}: tylko po uwierzytelnieniu SMTP</value>
   </data>
   <data name="{0}: selector '{1}' and key file are set. {2} Checking DNS for the TXT record {3}…" xml:space="preserve">
     <value>{0}: ustawiono selektor „{1}” i plik klucza. {2} Trwa sprawdzanie w DNS rekordu TXT {3}…</value>

@@ -17,7 +17,7 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 | over REST but not reached by any Deck view | 0 |
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 100 |
-| desktop pages read | 94 |
+| desktop pages read | 95 |
 | REST routes (path and method) | 595, 263 of them writes |
 | Deck views | 40 |
 
@@ -404,10 +404,10 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | `LowerIP` | IPRangeDialog, IPRangesView | `POST /api/v1/roles` (words, loose, scope unknown)<br>`PUT /api/v1/roles/{name}` (words, loose, scope unknown)<br>`POST /api/v1/ipranges` (words, loose)<br>`PUT /api/v1/ipranges/{id}` (words, loose)<br>`POST /api/v1/webhooks` (words, loose, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (words, loose, scope unknown) | checklist, ipranges, webhooks |
 | `Name` | IPRangeDialog, IPRangesView | `POST /api/v1/passkeys` (setter, scope unknown)<br>`POST /api/v1/settings/profiles/{name}/apply` (path, scope unknown)<br>`POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (name, scope unknown)<br>`POST /api/v1/diagnostics/run` (name, scope unknown)<br>`POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter)<br>`POST /api/v1/backup/{archive}/mailboxes/{address}/restore` (name, scope unknown)<br>`POST /api/v1/webhooks` (setter, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (setter, scope unknown) | checklist, diagnostics, ipranges, passkeys, roles, webhooks |
 | `Priority` | IPRangeDialog, IPRangesView | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | checklist, ipranges |
-| `RequireSMTPAuthExternalToExternal` | IPRangeDialog | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | checklist, ipranges |
-| `RequireSMTPAuthExternalToLocal` | IPRangeDialog | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | checklist, ipranges |
-| `RequireSMTPAuthLocalToExternal` | IPRangeDialog | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | checklist, ipranges |
-| `RequireSMTPAuthLocalToLocal` | IPRangeDialog | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | checklist, ipranges |
+| `RequireSMTPAuthExternalToExternal` | IPRangeDialog, IPRangesView | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | checklist, ipranges |
+| `RequireSMTPAuthExternalToLocal` | IPRangeDialog, IPRangesView | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | checklist, ipranges |
+| `RequireSMTPAuthLocalToExternal` | IPRangeDialog, IPRangesView | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | checklist, ipranges |
+| `RequireSMTPAuthLocalToLocal` | IPRangeDialog, IPRangesView | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | checklist, ipranges |
 | `RequireSSLTLSForAuth` | IPRangeDialog, IPRangesView | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | checklist, ipranges |
 | `UpperIP` | IPRangeDialog, IPRangesView | `POST /api/v1/ipranges` (words, loose)<br>`PUT /api/v1/ipranges/{id}` (words, loose) | checklist, ipranges |
 

@@ -1374,26 +1374,20 @@ Control Panel может читать файлы сообщений только
   <data name="Allow SM_TP connections" xml:space="preserve">
     <value>Разрешить подключения SM_TP</value>
   </data>
-  <data name="Allow _IMAP" xml:space="preserve">
-    <value>Разрешить _IMAP</value>
-  </data>
   <data name="Allow _IMAP connections" xml:space="preserve">
     <value>Разрешить подключения _IMAP</value>
   </data>
-  <data name="Allow _POP3" xml:space="preserve">
-    <value>Разрешить _POP3</value>
-  </data>
   <data name="Allow _POP3 connections" xml:space="preserve">
     <value>Разрешить подключения _POP3</value>
-  </data>
-  <data name="Allow _SMTP" xml:space="preserve">
-    <value>Разрешить _SMTP</value>
   </data>
   <data name="Allow and block list" xml:space="preserve">
     <value>Список разрешённых и заблокированных</value>
   </data>
   <data name="Allow and release" xml:space="preserve">
     <value>Разрешить и выпустить</value>
+  </data>
+  <data name="Allow delivery" xml:space="preserve">
+    <value>Разрешить доставку</value>
   </data>
   <data name="Allow incorrect line endings" xml:space="preserve">
     <value>Разрешать неправильные окончания строк</value>
@@ -1650,6 +1644,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Anyone in the domain can send" xml:space="preserve">
     <value>Отправлять может любой в домене</value>
+  </data>
+  <data name="Anyone in this range can relay mail through this server to any address without signing in: an open relay. Tick Only after SMTP authentication for External to external, unless the range is a few machines you trust." xml:space="preserve">
+    <value>Любой в этом диапазоне может без входа пересылать почту через этот сервер на любой адрес: это открытый ретранслятор. Отметьте «Только после аутентификации SMTP» для «Внешний → внешний», если только диапазон — не несколько доверенных машин.</value>
   </data>
   <data name="Anyone the owner approves after they confirm" xml:space="preserve">
     <value>Любой, кого владелец одобрит после подтверждения</value>
@@ -3951,9 +3948,6 @@ Control Panel может читать файлы сообщений только
   <data name="Deli_vers to" xml:space="preserve">
     <value>Доставляет _на</value>
   </data>
-  <data name="Deliver _local → local" xml:space="preserve">
-    <value>_Доставка: локальный → локальный</value>
-  </data>
   <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
     <value>Доставлять каждое сообщение учётным записям, названным в его заголовках (ящик, общий для нескольких человек)</value>
   </data>
@@ -3966,14 +3960,8 @@ Control Panel может читать файлы сообщений только
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>Доставить и только записать</value>
   </data>
-  <data name="Deliver lo_cal → remote" xml:space="preserve">
-    <value>Доставка: локальный → _удалённый</value>
-  </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
     <value>Доставлять почту для указанных доменов на выбранный сервер вместо поиска MX-записи этого домена.</value>
-  </data>
-  <data name="Deliver remote → remote (rela_y)" xml:space="preserve">
-    <value>Доставка: удалённый → удалённый (_ретрансляция)</value>
   </data>
   <data name="Deliver to _all addresses (not only known accounts)" xml:space="preserve">
     <value>Доставлять на _все адреса (не только на известные учётные записи)</value>
@@ -4257,7 +4245,7 @@ Control Panel может читать файлы сообщений только
     <value>_Внешний идентификатор (идентификатор этого человека у поставщика удостоверений; пусто = нет)</value>
   </data>
   <data name="E_xternal to local" xml:space="preserve">
-    <value>В_нешний → локальный</value>
+    <value>Вне_шний → локальный</value>
   </data>
   <data name="Each IMAP folder keeps a counter for the next message UID it will issue. If that counter falls behind the messages already in the folder - which a restored or hand-edited database can do - the folder issues a UID it has already used, and a client that caches by UID shows one message where another should be. This moves every counter up to the highest UID its folder actually holds. It never moves one down, so it cannot cause the fault it repairs." xml:space="preserve">
     <value>Каждая папка IMAP хранит счётчик следующего UID сообщения, который она выдаст. Если этот счётчик отстаёт от сообщений, уже находящихся в папке, — а восстановленная или отредактированная вручную база данных к этому приводит, — папка выдаёт UID, который уже использовала, и клиент, кэширующий по UID, показывает одно сообщение там, где должно быть другое. Эта операция поднимает каждый счётчик до наибольшего UID, который фактически есть в его папке. Она никогда не понижает счётчик, поэтому вызвать ту неисправность, которую исправляет, она не может.</value>
@@ -4790,6 +4778,9 @@ Control Panel может читать файлы сообщений только
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>Копия каждого локального получателя становится ещё одним именем того же файла внутри папки архива, поэтому сообщение для десяти почтовых ящиков стоит одной копии, а не десяти. Требуется папка архива на NTFS; если создать ссылку не удаётся, сервер копирует файл и сообщает об этом в журнале SMTP.</value>
   </data>
+  <data name="Every machine in this range can relay mail through this server to any address without signing in. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for External to external." xml:space="preserve">
+    <value>Любая машина в этом диапазоне может без входа пересылать почту через этот сервер на любой адрес. Это подходит для принтера или приложения в вашей собственной сети; иначе отметьте «Только после аутентификации SMTP» для «Внешний → внешний».</value>
+  </data>
   <data name="Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
     <value>Каждое письмо, доставленное на эту учётную запись, после фильтров шифруется её собственным ключом OpenPGP, и этот сервер не может читать, искать, экспортировать или восстанавливать её почту. Выключить это может только сам человек из веб-почты; здесь это невозможно.</value>
   </data>
@@ -4994,8 +4985,8 @@ Control Panel может читать файлы сообщений только
   <data name="External recipients (addresses this server does not host)" xml:space="preserve">
     <value>Внешние получатели (адреса, которые этот сервер не обслуживает)</value>
   </data>
-  <data name="External to external (_open relay!)" xml:space="preserve">
-    <value>Внешний → внешний (_открытая ретрансляция!)</value>
+  <data name="External to external (rela_y)" xml:space="preserve">
+    <value>Внешний → внешний (ретрансл_яция)</value>
   </data>
   <data name="External-account hosts to FETCH from with OAuth2 (comma separated; blank this to use none)" xml:space="preserve">
     <value>Узлы внешних учётных записей, с которых собирать почту по OAuth2 (через запятую; оставьте пустым, чтобы не использовать ни одного)</value>
@@ -6256,14 +6247,14 @@ Control Panel может читать файлы сообщений только
   <data name="Live, from the running server. The hit rate is the share of lookups answered from memory since the counters last reset - which they do when the service restarts, when a cache is switched off, and when its TTL is changed, so a rate right after any of those describes a very short sample. A lookup for something that does not exist counts as a miss and caches nothing, so a server being probed for addresses it does not host shows a low rate without anything being wrong with the cache." xml:space="preserve">
     <value>В реальном времени, с работающего сервера. Показатель попаданий — это доля обращений, отвеченных из памяти с момента последнего сброса счётчиков, а сбрасываются они при перезапуске службы, при отключении кэша и при изменении его TTL, поэтому показатель сразу после любого из этих событий описывает очень короткую выборку. Обращение к тому, чего не существует, считается промахом и ничего не кэширует, поэтому сервер, который прощупывают на адреса, им не обслуживаемые, показывает низкий показатель, хотя с кэшем всё в порядке.</value>
   </data>
+  <data name="Lo_cal to external" xml:space="preserve">
+    <value>Ло_кальный → внешний</value>
+  </data>
   <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
     <value>_Нижний IP (например, 10.0.0.0)</value>
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Загрузка…</value>
-  </data>
-  <data name="Local to _external (relay out)" xml:space="preserve">
-    <value>Из локального во _внешний (ретрансляция наружу)</value>
   </data>
   <data name="LocalSystem, which is the most privileged account on this machine" xml:space="preserve">
     <value>LocalSystem — самая привилегированная учётная запись на этом компьютере</value>
@@ -8132,6 +8123,9 @@ Control Panel может читать файлы сообщений только
   <data name="Only a setting's change can be put back: the row has to carry the value the setting had." xml:space="preserve">
     <value>Вернуть можно только изменение настройки: строка должна содержать значение, которое настройка имела.</value>
   </data>
+  <data name="Only after SMTP authentication" xml:space="preserve">
+    <value>Только после аутентификации SMTP</value>
+  </data>
   <data name="Only archive mail for these domains (comma-separated; empty = every message)" xml:space="preserve">
     <value>Архивировать почту только для этих доменов (через запятую; пусто — каждое сообщение)</value>
   </data>
@@ -9422,9 +9416,6 @@ Control Panel может читать файлы сообщений только
   <data name="Relayer" xml:space="preserve">
     <value>Ретранслятор</value>
   </data>
-  <data name="Relaying" xml:space="preserve">
-    <value>Ретрансляция</value>
-  </data>
   <data name="Relaying to an upstream server, retry intervals, bounce handling and what happens to local mail." xml:space="preserve">
     <value>Ретрансляция на вышестоящий сервер, интервалы повторных попыток, обработка возвратов и то, что происходит с локальной почтой.</value>
   </data>
@@ -9680,11 +9671,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Require SMTP au_thentication to send to the list" xml:space="preserve">
     <value>Требовать аутентификацию SM_TP для отправки в список</value>
   </data>
-  <data name="Require SMTP authentication for each delivery direction" xml:space="preserve">
-    <value>Требовать аутентификацию SMTP для каждого направления доставки</value>
-  </data>
-  <data name="Require SSL/_TLS when authenticating" xml:space="preserve">
-    <value>Требовать SSL/_TLS при аутентификации</value>
+  <data name="Require TLS _before authentication" xml:space="preserve">
+    <value>Требовать TLS _до аутентификации</value>
   </data>
   <data name="Require TLS for delivery" xml:space="preserve">
     <value>Требовать TLS для доставки</value>
@@ -9695,29 +9683,11 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Require TLS on mail from this domain" xml:space="preserve">
     <value>Требовать TLS для почты из этого домена</value>
   </data>
-  <data name="Require _TLS for auth" xml:space="preserve">
-    <value>Требовать _TLS для аутентификации</value>
-  </data>
   <data name="Require at least one character that is not a letter or digit" xml:space="preserve">
     <value>Требовать хотя бы один символ, не являющийся буквой или цифрой</value>
   </data>
   <data name="Require at least one digit" xml:space="preserve">
     <value>Требовать хотя бы одну цифру</value>
-  </data>
-  <data name="Require auth" xml:space="preserve">
-    <value>Требовать аутентификацию</value>
-  </data>
-  <data name="Require auth: _local to local" xml:space="preserve">
-    <value>Требовать аутентификацию: _локальные — локальным</value>
-  </data>
-  <data name="Require auth: e_xternal to local" xml:space="preserve">
-    <value>Требовать аутентификацию: в_нешние — локальным</value>
-  </data>
-  <data name="Require auth: external to exte_rnal" xml:space="preserve">
-    <value>Требовать аутентификацию: внешние — вне_шним</value>
-  </data>
-  <data name="Require auth: local to _external" xml:space="preserve">
-    <value>Требовать аутентификацию: локальные — _внешним</value>
   </data>
   <data name="Require both upper and lower case" xml:space="preserve">
     <value>Требовать буквы и верхнего, и нижнего регистра</value>
@@ -10243,6 +10213,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Save the export as" xml:space="preserve">
     <value>Сохранить экспорт как</value>
+  </data>
+  <data name="Save the permissions of {0}? Anyone in it can then relay mail through this server to any address without signing in: an open relay." xml:space="preserve">
+    <value>Сохранить разрешения диапазона {0}? Тогда любой в нём сможет без входа пересылать почту через этот сервер на любой адрес: это открытый ретранслятор.</value>
   </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Сохранить парольную фразу закрытого ключа для выбранного сертификата</value>
@@ -14307,8 +14280,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="When the wait ends or the sandbox answers error" xml:space="preserve">
     <value>Когда ожидание заканчивается или песочница отвечает ошибкой</value>
   </data>
-  <data name="Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS for auth for each range named below. This computer's own clients are not affected." xml:space="preserve">
-    <value>Если у порта, указанного ниже, нет TLS, сначала дайте ему сертификат и STARTTLS на странице «Порты TCP/IP»; затем на странице «Диапазоны IP» включите «Требовать TLS для аутентификации» для каждого диапазона, указанного ниже. Собственных клиентов этого компьютера это не затрагивает.</value>
+  <data name="Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS before authentication for each range named below. This computer's own clients are not affected." xml:space="preserve">
+    <value>Если у порта, указанного ниже, нет TLS, сначала дайте ему сертификат и STARTTLS на странице «Порты TCP/IP»; затем на странице «Диапазоны IP» включите «Требовать TLS до аутентификации» для каждого диапазона, указанного ниже. Собственных клиентов этого компьютера это не затрагивает.</value>
   </data>
   <data name="Where clients reach the web services listener; each certificate names its revocation list and its root under it. Empty, the default, names neither, so a client that insists on checking revocation cannot. A certificate already issued keeps what it was issued with." xml:space="preserve">
     <value>Где клиенты обращаются к прослушивателю веб-служб; каждый сертификат указывает под ним свой список отзыва и свой корень. Пусто, по умолчанию, не указывает ни того, ни другого, поэтому клиент, настаивающий на проверке отзыва, не сможет её выполнить. Уже выданный сертификат сохраняет то, с чем был выдан.</value>
@@ -14405,9 +14378,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Which attribute holds the name the person logs in with. This is what is stored against the account and what the directory is asked about at every logon afterwards, so guessing it from the address is not good enough - an entry that does not carry it is reported rather than provisioned." xml:space="preserve">
     <value>Какой атрибут содержит имя, с которым человек входит. Именно оно сохраняется в учётной записи и о нём спрашивают каталог при каждом последующем входе, поэтому угадывать его по адресу недостаточно - запись, в которой его нет, сообщается, а не заводится.</value>
-  </data>
-  <data name="Which deliveries are allowed from this range" xml:space="preserve">
-    <value>Какие доставки разрешены из этого диапазона</value>
   </data>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>Какие записи каталога становятся почтовыми ящиками</value>
@@ -14837,9 +14807,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Deliver now" xml:space="preserve">
     <value>_Доставить сейчас</value>
-  </data>
-  <data name="_Deliver remote → local" xml:space="preserve">
-    <value>Доставлять удалённое → _локальное</value>
   </data>
   <data name="_Description" xml:space="preserve">
     <value>_Описание</value>
@@ -17460,6 +17427,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0}: nothing published at {1} begins with v=STSv1, so senders will not recognise a policy there. Fix the record's value." xml:space="preserve">
     <value>{0}: по адресу {1} записи TXT существуют, но ни одна не начинается с v=STSv1, поэтому отправители не распознают там политику. Исправьте значение записи.</value>
+  </data>
+  <data name="{0}: only after SMTP authentication" xml:space="preserve">
+    <value>{0}: только после аутентификации SMTP</value>
   </data>
   <data name="{0}: selector '{1}' and key file are set. {2} Checking DNS for the TXT record {3}…" xml:space="preserve">
     <value>{0}: селектор «{1}» и файл ключа заданы. {2} В DNS проверяется запись TXT {3}…</value>

@@ -1363,28 +1363,22 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
     <value>Salli SASL:n alustava asiakasvastaus</value>
   </data>
   <data name="Allow SM_TP connections" xml:space="preserve">
-    <value>_Salli SMTP-yhteydet</value>
-  </data>
-  <data name="Allow _IMAP" xml:space="preserve">
-    <value>Salli IMAP-y_hteydet</value>
+    <value>Salli SMTP-y_hteydet</value>
   </data>
   <data name="Allow _IMAP connections" xml:space="preserve">
-    <value>Salli _IMAP-yhteydet</value>
-  </data>
-  <data name="Allow _POP3" xml:space="preserve">
-    <value>Salli _POP3</value>
+    <value>Salli I_MAP-yhteydet</value>
   </data>
   <data name="Allow _POP3 connections" xml:space="preserve">
-    <value>Salli _POP3-yhteydet</value>
-  </data>
-  <data name="Allow _SMTP" xml:space="preserve">
-    <value>Salli _SMTP</value>
+    <value>Salli POP_3-yhteydet</value>
   </data>
   <data name="Allow and block list" xml:space="preserve">
     <value>Sallittujen ja estettyjen luettelo</value>
   </data>
   <data name="Allow and release" xml:space="preserve">
     <value>Salli ja vapauta</value>
+  </data>
+  <data name="Allow delivery" xml:space="preserve">
+    <value>Salli toimitus</value>
   </data>
   <data name="Allow incorrect line endings" xml:space="preserve">
     <value>Salli virheelliset rivinvaihdot</value>
@@ -1638,6 +1632,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Anyone in the domain can send" xml:space="preserve">
     <value>Kuka tahansa verkkotunnuksessa voi lähettää</value>
+  </data>
+  <data name="Anyone in this range can relay mail through this server to any address without signing in: an open relay. Tick Only after SMTP authentication for External to external, unless the range is a few machines you trust." xml:space="preserve">
+    <value>Kuka tahansa tällä alueella voi välittää postia tämän palvelimen kautta mihin tahansa osoitteeseen kirjautumatta: avoin välityspalvelin. Valitse Vain SMTP-todennuksen jälkeen kohdassa Ulkoinen ulkoiseen, ellei alue ole muutama luotettu kone.</value>
   </data>
   <data name="Anyone the owner approves after they confirm" xml:space="preserve">
     <value>Kuka tahansa, jonka omistaja hyväksyy vahvistuksen jälkeen</value>
@@ -3902,9 +3899,6 @@ Lähettäjälle kerrottiin, että se hyväksyttiin, joten mikään ei yritä uud
   <data name="Deli_vers to" xml:space="preserve">
     <value>Toi_mittaa osoitteeseen</value>
   </data>
-  <data name="Deliver _local → local" xml:space="preserve">
-    <value>T_oimita paikallinen → paikallinen</value>
-  </data>
   <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
     <value>Toimita jokainen viesti tileille, jotka sen otsakkeet nimeävät (usean henkilön jakama postilaatikko)</value>
   </data>
@@ -3917,14 +3911,8 @@ Lähettäjälle kerrottiin, että se hyväksyttiin, joten mikään ei yritä uud
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>Toimita ja vain kirjaa</value>
   </data>
-  <data name="Deliver lo_cal → remote" xml:space="preserve">
-    <value>Toimita paikallinen → et_ä</value>
-  </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
     <value>Toimita nimettyjen verkkotunnusten posti valitulle palvelimelle sen MX-tietueen hakemisen sijaan.</value>
-  </data>
-  <data name="Deliver remote → remote (rela_y)" xml:space="preserve">
-    <value>Toimita etä → etä (_välitys)</value>
   </data>
   <data name="Deliver to _all addresses (not only known accounts)" xml:space="preserve">
     <value>Toimita _kaikkiin osoitteisiin (ei vain tunnettuihin tileihin)</value>
@@ -4208,7 +4196,7 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
     <value>_Ulkoinen tunnus (henkilön tunnus identiteettipalvelussa; tyhjä = ei mitään)</value>
   </data>
   <data name="E_xternal to local" xml:space="preserve">
-    <value>U_lkoinen paikalliseen</value>
+    <value>Ulk_oinen paikalliseen</value>
   </data>
   <data name="Each IMAP folder keeps a counter for the next message UID it will issue. If that counter falls behind the messages already in the folder - which a restored or hand-edited database can do - the folder issues a UID it has already used, and a client that caches by UID shows one message where another should be. This moves every counter up to the highest UID its folder actually holds. It never moves one down, so it cannot cause the fault it repairs." xml:space="preserve">
     <value>Jokainen IMAP-kansio pitää laskuria seuraavasta viestin UID:stä, jonka se antaa. Jos laskuri jää jälkeen kansiossa jo olevista viesteistä - minkä palautettu tai käsin muokattu tietokanta voi aiheuttaa - kansio antaa UID:n, jonka se on jo käyttänyt, ja UID:n mukaan välimuistittava asiakas näyttää yhden viestin siinä, missä pitäisi olla toinen. Tämä nostaa jokaisen laskurin korkeimpaan UID:hen, jonka sen kansio todella sisältää. Se ei koskaan laske laskuria, joten se ei voi aiheuttaa vikaa, jonka se korjaa.</value>
@@ -4738,6 +4726,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>Jokaisen paikallisen vastaanottajan kopiosta tulee toinen nimi samalle tiedostolle arkistokansiossa, joten viesti kymmeneen postilaatikkoon maksaa yhden kopion kymmenen sijaan. Vaatii NTFS-arkistokansion; jos linkkiä ei voi luoda, palvelin kopioi tiedoston ja kertoo siitä SMTP-lokissa.</value>
   </data>
+  <data name="Every machine in this range can relay mail through this server to any address without signing in. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for External to external." xml:space="preserve">
+    <value>Jokainen tämän alueen kone voi välittää postia tämän palvelimen kautta mihin tahansa osoitteeseen kirjautumatta. Se sopii omassa verkossa olevalle tulostimelle tai sovellukselle; muuten valitse Vain SMTP-todennuksen jälkeen kohdassa Ulkoinen ulkoiseen.</value>
+  </data>
   <data name="Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
     <value>Jokainen tälle tilille toimitettu viesti salataan suodattimien jälkeen tilin omalla OpenPGP-avaimella, eikä tämä palvelin voi lukea, hakea, viedä tai palauttaa sen postia. Vain henkilö voi poistaa sen käytöstä webmailista; täältä se ei onnistu.</value>
   </data>
@@ -4927,8 +4918,8 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="External recipients (addresses this server does not host)" xml:space="preserve">
     <value>Ulkoiset vastaanottajat (osoitteet, joita tämä palvelin ei isännöi)</value>
   </data>
-  <data name="External to external (_open relay!)" xml:space="preserve">
-    <value>Ulkoinen ulkoiseen (_avoin välitys!)</value>
+  <data name="External to external (rela_y)" xml:space="preserve">
+    <value>Ulkoinen ulkoiseen (v_älitys)</value>
   </data>
   <data name="External-account hosts to FETCH from with OAuth2 (comma separated; blank this to use none)" xml:space="preserve">
     <value>Ulkoisten tilien koneet, joista NOUDETAAN OAuth2:lla (pilkuin eroteltuina; tyhjennä, jos ei mitään)</value>
@@ -6189,14 +6180,14 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Live, from the running server. The hit rate is the share of lookups answered from memory since the counters last reset - which they do when the service restarts, when a cache is switched off, and when its TTL is changed, so a rate right after any of those describes a very short sample. A lookup for something that does not exist counts as a miss and caches nothing, so a server being probed for addresses it does not host shows a low rate without anything being wrong with the cache." xml:space="preserve">
     <value>Reaaliaikaisesti käynnissä olevalta palvelimelta. Osumaprosentti on muistista vastattujen hakujen osuus laskurien viimeisimmästä nollauksesta - mikä tapahtuu, kun palvelu käynnistyy uudelleen, kun välimuisti sammutetaan ja kun sen TTL:ää muutetaan, joten heti jonkin näistä jälkeen luettu prosentti kuvaa hyvin lyhyttä otosta. Haku jollekin, jota ei ole olemassa, lasketaan hudiksi eikä tallenna mitään välimuistiin, joten palvelin, jolta koetellaan osoitteita, joita se ei isännöi, näyttää matalaa prosenttia ilman, että välimuistissa on mitään vikaa.</value>
   </data>
+  <data name="Lo_cal to external" xml:space="preserve">
+    <value>Paikallinen ul_koiseen</value>
+  </data>
   <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
     <value>Al_empi IP (esim. 10.0.0.0)</value>
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Ladataan…</value>
-  </data>
-  <data name="Local to _external (relay out)" xml:space="preserve">
-    <value>Paikallinen _ulkoiseen (välitys ulos)</value>
   </data>
   <data name="LocalSystem, which is the most privileged account on this machine" xml:space="preserve">
     <value>LocalSystem, joka on tämän koneen etuoikeutetuin tili</value>
@@ -8041,6 +8032,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Only a setting's change can be put back: the row has to carry the value the setting had." xml:space="preserve">
     <value>Vain asetuksen muutos voidaan palauttaa: rivin on kannettava arvoa, joka asetuksella oli.</value>
   </data>
+  <data name="Only after SMTP authentication" xml:space="preserve">
+    <value>Vain SMTP-todennuksen jälkeen</value>
+  </data>
   <data name="Only archive mail for these domains (comma-separated; empty = every message)" xml:space="preserve">
     <value>Arkistoi vain näiden verkkotunnusten posti (pilkuin eroteltuina; tyhjä = jokainen viesti)</value>
   </data>
@@ -9328,9 +9322,6 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   <data name="Relayer" xml:space="preserve">
     <value>Välittäjä</value>
   </data>
-  <data name="Relaying" xml:space="preserve">
-    <value>Välitys</value>
-  </data>
   <data name="Relaying to an upstream server, retry intervals, bounce handling and what happens to local mail." xml:space="preserve">
     <value>Välitys ylävirran palvelimelle, uudelleenyritysvälit, palautusten käsittely ja mitä paikalliselle postille tapahtuu.</value>
   </data>
@@ -9577,11 +9568,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Require SMTP au_thentication to send to the list" xml:space="preserve">
     <value>_Vaadi SMTP-todennus listalle lähettämiseen</value>
   </data>
-  <data name="Require SMTP authentication for each delivery direction" xml:space="preserve">
-    <value>Vaadi SMTP-todennus kullekin toimitussuunnalle</value>
-  </data>
-  <data name="Require SSL/_TLS when authenticating" xml:space="preserve">
-    <value>Vaadi _SSL/TLS todennettaessa</value>
+  <data name="Require TLS _before authentication" xml:space="preserve">
+    <value>Vaadi TL_S ennen todennusta</value>
   </data>
   <data name="Require TLS for delivery" xml:space="preserve">
     <value>Vaadi TLS toimitukseen</value>
@@ -9592,29 +9580,11 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Require TLS on mail from this domain" xml:space="preserve">
     <value>Vaadi TLS tästä verkkotunnuksesta tulevalle postille</value>
   </data>
-  <data name="Require _TLS for auth" xml:space="preserve">
-    <value>Vaadi _TLS todennukseen</value>
-  </data>
   <data name="Require at least one character that is not a letter or digit" xml:space="preserve">
     <value>Vaadi vähintään yksi merkki, joka ei ole kirjain eikä numero</value>
   </data>
   <data name="Require at least one digit" xml:space="preserve">
     <value>Vaadi vähintään yksi numero</value>
-  </data>
-  <data name="Require auth" xml:space="preserve">
-    <value>Vaadi todennus</value>
-  </data>
-  <data name="Require auth: _local to local" xml:space="preserve">
-    <value>Vaadi todennus: _paikallinen paikalliseen</value>
-  </data>
-  <data name="Require auth: e_xternal to local" xml:space="preserve">
-    <value>_Vaadi todennus: ulkoinen paikalliseen</value>
-  </data>
-  <data name="Require auth: external to exte_rnal" xml:space="preserve">
-    <value>Vaadi todennus: ulkoinen ul_koiseen</value>
-  </data>
-  <data name="Require auth: local to _external" xml:space="preserve">
-    <value>Vaadi todennus: paikallinen _ulkoiseen</value>
   </data>
   <data name="Require both upper and lower case" xml:space="preserve">
     <value>Vaadi sekä isoja että pieniä kirjaimia</value>
@@ -9725,7 +9695,7 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
     <value>Palauta ol_etusportit</value>
   </data>
   <data name="Restore the default ran_ges" xml:space="preserve">
-    <value>Palauta va_kioalueet</value>
+    <value>Palauta _vakioalueet</value>
   </data>
   <data name="Restore the mailbo_x" xml:space="preserve">
     <value>Palauta postilaatikko (_x)</value>
@@ -10140,6 +10110,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Save the export as" xml:space="preserve">
     <value>Tallenna vienti nimellä</value>
+  </data>
+  <data name="Save the permissions of {0}? Anyone in it can then relay mail through this server to any address without signing in: an open relay." xml:space="preserve">
+    <value>Tallennetaanko alueen {0} käyttöoikeudet? Kuka tahansa sillä voi sitten välittää postia tämän palvelimen kautta mihin tahansa osoitteeseen kirjautumatta: avoin välityspalvelin.</value>
   </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Tallenna valitun varmenteen yksityisen avaimen tunnuslause</value>
@@ -14135,8 +14108,8 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="When the wait ends or the sandbox answers error" xml:space="preserve">
     <value>Kun odotus päättyy tai hiekkalaatikko vastaa virheellä</value>
   </data>
-  <data name="Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS for auth for each range named below. This computer's own clients are not affected." xml:space="preserve">
-    <value>Jos alla mainitulla portilla ei ole TLS:ää, anna sille ensin varmenne ja STARTTLS TCP/IP-portit-sivulla; ota sitten IP-alueet-sivulla käyttöön Vaadi TLS todennukseen jokaiselle alla mainitulle alueelle. Tämän tietokoneen omiin asiakkaisiin tämä ei vaikuta.</value>
+  <data name="Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS before authentication for each range named below. This computer's own clients are not affected." xml:space="preserve">
+    <value>Jos alla mainitulla portilla ei ole TLS:ää, anna sille ensin varmenne ja STARTTLS TCP/IP-portit-sivulla; ota sitten IP-alueet-sivulla käyttöön Vaadi TLS ennen todennusta jokaiselle alla mainitulle alueelle. Tämän tietokoneen omiin asiakkaisiin tämä ei vaikuta.</value>
   </data>
   <data name="Where clients reach the web services listener; each certificate names its revocation list and its root under it. Empty, the default, names neither, so a client that insists on checking revocation cannot. A certificate already issued keeps what it was issued with." xml:space="preserve">
     <value>Mistä asiakkaat tavoittavat verkkopalvelujen kuuntelijan; jokainen varmenne nimeää sen alta kumoamisluettelonsa ja juurensa. Tyhjä, oletus, ei nimeä kumpaakaan, joten asiakas, joka vaatii kumoamistarkistusta, ei voi tehdä sitä. Jo myönnetty varmenne säilyttää sen, millä se myönnettiin.</value>
@@ -14233,9 +14206,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="Which attribute holds the name the person logs in with. This is what is stored against the account and what the directory is asked about at every logon afterwards, so guessing it from the address is not good enough - an entry that does not carry it is reported rather than provisioned." xml:space="preserve">
     <value>Mikä määrite sisältää nimen, jolla henkilö kirjautuu. Se tallennetaan tilille, ja sitä kysytään hakemistolta jokaisessa myöhemmässä kirjautumisessa, joten sen arvaaminen osoitteesta ei riitä - merkintä, jossa sitä ei ole, raportoidaan sen sijaan, että se provisioitaisiin.</value>
-  </data>
-  <data name="Which deliveries are allowed from this range" xml:space="preserve">
-    <value>Mitkä toimitukset ovat sallittuja tältä alueelta</value>
   </data>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>Mistä hakemistomerkinnöistä tulee postilaatikoita</value>
@@ -14662,9 +14632,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="_Deliver now" xml:space="preserve">
     <value>_Toimita nyt</value>
-  </data>
-  <data name="_Deliver remote → local" xml:space="preserve">
-    <value>Toi_mita etä → paikallinen</value>
   </data>
   <data name="_Description" xml:space="preserve">
     <value>K_uvaus</value>
@@ -17057,6 +17024,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0}: nothing published at {1} begins with v=STSv1, so senders will not recognise a policy there. Fix the record's value." xml:space="preserve">
     <value>{0}: TXT-tietueita on olemassa kohteessa {1}, mutta yksikään ei ala v=STSv1, joten lähettäjät eivät tunnista siellä käytäntöä. Korjaa tietueen arvo.</value>
+  </data>
+  <data name="{0}: only after SMTP authentication" xml:space="preserve">
+    <value>{0}: vain SMTP-todennuksen jälkeen</value>
   </data>
   <data name="{0}: selector '{1}' and key file are set. {2} Checking DNS for the TXT record {3}…" xml:space="preserve">
     <value>{0}: valitsin '{1}' ja avaintiedosto on asetettu. {2} Tarkistetaan DNS:stä TXT-tietuetta {3}…</value>

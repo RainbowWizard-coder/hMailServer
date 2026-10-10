@@ -712,7 +712,7 @@ namespace hMailServer.ControlPanel.Services
                {
                   Title = L("Passwords only over TLS - from any address but this computer's"),
                   Purpose = L("A mail client signs in with a password, and from any address but this computer's the password should cross the network only inside TLS."),
-                  Action = L("Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS for auth for each range named below. This computer's own clients are not affected."),
+                  Action = L("Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS before authentication for each range named below. This computer's own clients are not affected."),
                   Page = "ipranges"
                };
             // GitLab work item #54 (docs/SmtpAuthOnDeliveryPorts.md): a new

@@ -1365,26 +1365,20 @@
   <data name="Allow SM_TP connections" xml:space="preserve">
     <value>SMTP 接続を許可する(_T)</value>
   </data>
-  <data name="Allow _IMAP" xml:space="preserve">
-    <value>IMAP を許可する(_I)</value>
-  </data>
   <data name="Allow _IMAP connections" xml:space="preserve">
     <value>IMAP 接続を許可する(_I)</value>
   </data>
-  <data name="Allow _POP3" xml:space="preserve">
-    <value>POP3 を許可する(_P)</value>
-  </data>
   <data name="Allow _POP3 connections" xml:space="preserve">
     <value>POP3 接続を許可する(_P)</value>
-  </data>
-  <data name="Allow _SMTP" xml:space="preserve">
-    <value>SMTP を許可する(_S)</value>
   </data>
   <data name="Allow and block list" xml:space="preserve">
     <value>許可・ブロック一覧</value>
   </data>
   <data name="Allow and release" xml:space="preserve">
     <value>許可して解放</value>
+  </data>
+  <data name="Allow delivery" xml:space="preserve">
+    <value>配信を許可</value>
   </data>
   <data name="Allow incorrect line endings" xml:space="preserve">
     <value>正しくない行末を許可する</value>
@@ -1638,6 +1632,9 @@
   </data>
   <data name="Anyone in the domain can send" xml:space="preserve">
     <value>ドメイン内の全員が送信できる</value>
+  </data>
+  <data name="Anyone in this range can relay mail through this server to any address without signing in: an open relay. Tick Only after SMTP authentication for External to external, unless the range is a few machines you trust." xml:space="preserve">
+    <value>この範囲の誰もが、サインインせずにこのサーバー経由で任意のアドレスへメールを中継できます。これはオープン リレーです。範囲が信頼できる少数のマシンでない限り、[外部から外部へ] の [SMTP 認証後のみ] をオンにしてください。</value>
   </data>
   <data name="Anyone the owner approves after they confirm" xml:space="preserve">
     <value>所有者が確認後に承認した人</value>
@@ -3902,9 +3899,6 @@
   <data name="Deli_vers to" xml:space="preserve">
     <value>配信先(_V)</value>
   </data>
-  <data name="Deliver _local → local" xml:space="preserve">
-    <value>ローカル → ローカルに配信する(_L)</value>
-  </data>
   <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
     <value>各メッセージを、そのヘッダーに記載されたアカウントに配信する (複数の人で共有するメールボックス)</value>
   </data>
@@ -3917,14 +3911,8 @@
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>配信して記録だけする</value>
   </data>
-  <data name="Deliver lo_cal → remote" xml:space="preserve">
-    <value>ローカル → リモートに配信する(_C)</value>
-  </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
     <value>指定したドメイン宛てのメールを、MX レコードを参照する代わりに選択したサーバーに配信します。</value>
-  </data>
-  <data name="Deliver remote → remote (rela_y)" xml:space="preserve">
-    <value>リモート → リモートに配信する (リレー)(_Y)</value>
   </data>
   <data name="Deliver to _all addresses (not only known accounts)" xml:space="preserve">
     <value>すべてのアドレスに配信する (既知のアカウントだけでなく)(_A)</value>
@@ -4738,6 +4726,9 @@
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>ローカルの各受信者のコピーは、アーカイブ フォルダー内の同じファイルの別名になるため、10 個のメールボックス宛てのメッセージのコストは 10 コピーではなく 1 コピーで済みます。NTFS のアーカイブ フォルダーが必要です。リンクを作成できない場合、サーバーはファイルをコピーし、その旨を SMTP ログに記録します。</value>
   </data>
+  <data name="Every machine in this range can relay mail through this server to any address without signing in. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for External to external." xml:space="preserve">
+    <value>この範囲のすべてのマシンが、サインインせずにこのサーバー経由で任意のアドレスへメールを中継できます。自分のネットワーク上のプリンターやアプリケーションには適していますが、そうでなければ [外部から外部へ] の [SMTP 認証後のみ] をオンにしてください。</value>
+  </data>
   <data name="Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
     <value>このアカウントに配信されるすべてのメッセージは、フィルターの後にアカウント自身の OpenPGP 鍵で暗号化され、このサーバーはそのメールを読むことも、検索も、エクスポートも、復旧もできません。オフにできるのは本人だけで、ウェブメールから行います。ここからはできません。</value>
   </data>
@@ -4927,8 +4918,8 @@
   <data name="External recipients (addresses this server does not host)" xml:space="preserve">
     <value>外部の受信者 (このサーバーがホストしていないアドレス)</value>
   </data>
-  <data name="External to external (_open relay!)" xml:space="preserve">
-    <value>外部から外部へ (オープン リレー!)(_O)</value>
+  <data name="External to external (rela_y)" xml:space="preserve">
+    <value>外部から外部へ (リレー)(_Y)</value>
   </data>
   <data name="External-account hosts to FETCH from with OAuth2 (comma separated; blank this to use none)" xml:space="preserve">
     <value>OAuth2 で FETCH する外部アカウントのホスト (コンマ区切り。使わない場合は空にする)</value>
@@ -6189,14 +6180,14 @@
   <data name="Live, from the running server. The hit rate is the share of lookups answered from memory since the counters last reset - which they do when the service restarts, when a cache is switched off, and when its TTL is changed, so a rate right after any of those describes a very short sample. A lookup for something that does not exist counts as a miss and caches nothing, so a server being probed for addresses it does not host shows a low rate without anything being wrong with the cache." xml:space="preserve">
     <value>稼働中のサーバーからのライブ データです。ヒット率は、カウンターが最後にリセットされてからメモリで応答した参照の割合です。リセットはサービスの再起動時、キャッシュをオフにしたとき、TTL を変更したときに起きるため、その直後の率は非常に短いサンプルを表しています。存在しないものの参照はミスとして数えられ、何もキャッシュしないため、ホストしていないアドレスを探られているサーバーは、キャッシュに何の問題もなくても低い率を示します。</value>
   </data>
+  <data name="Lo_cal to external" xml:space="preserve">
+    <value>ローカルから外部へ(_C)</value>
+  </data>
   <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
     <value>下限 IP (例: 10.0.0.0)(_W)</value>
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>読み込み中…</value>
-  </data>
-  <data name="Local to _external (relay out)" xml:space="preserve">
-    <value>ローカルから外部へ (外部へのリレー)(_E)</value>
   </data>
   <data name="LocalSystem, which is the most privileged account on this machine" xml:space="preserve">
     <value>LocalSystem。このコンピューターで最も強い権限を持つアカウントです</value>
@@ -8041,6 +8032,9 @@
   <data name="Only a setting's change can be put back: the row has to carry the value the setting had." xml:space="preserve">
     <value>元に戻せるのは設定の変更だけです。行に設定の以前の値が含まれている必要があります。</value>
   </data>
+  <data name="Only after SMTP authentication" xml:space="preserve">
+    <value>SMTP 認証後のみ</value>
+  </data>
   <data name="Only archive mail for these domains (comma-separated; empty = every message)" xml:space="preserve">
     <value>これらのドメインのメールのみアーカイブする (カンマ区切り、空 = すべてのメッセージ)</value>
   </data>
@@ -9328,9 +9322,6 @@
   <data name="Relayer" xml:space="preserve">
     <value>リレー サーバー</value>
   </data>
-  <data name="Relaying" xml:space="preserve">
-    <value>リレー</value>
-  </data>
   <data name="Relaying to an upstream server, retry intervals, bounce handling and what happens to local mail." xml:space="preserve">
     <value>上流サーバーへのリレー、再試行間隔、バウンスの処理、そしてローカル メールの扱い。</value>
   </data>
@@ -9577,11 +9568,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Require SMTP au_thentication to send to the list" xml:space="preserve">
     <value>リストへの送信に SMTP 認証を要求する(_T)</value>
   </data>
-  <data name="Require SMTP authentication for each delivery direction" xml:space="preserve">
-    <value>配信方向ごとに SMTP 認証を要求する</value>
-  </data>
-  <data name="Require SSL/_TLS when authenticating" xml:space="preserve">
-    <value>認証時に SSL/TLS を要求する(_T)</value>
+  <data name="Require TLS _before authentication" xml:space="preserve">
+    <value>認証の前に TLS を要求する(_B)</value>
   </data>
   <data name="Require TLS for delivery" xml:space="preserve">
     <value>配信に TLS を必須にする</value>
@@ -9592,29 +9580,11 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Require TLS on mail from this domain" xml:space="preserve">
     <value>このドメインからのメールに TLS を要求する</value>
   </data>
-  <data name="Require _TLS for auth" xml:space="preserve">
-    <value>認証に TLS を要求(_T)</value>
-  </data>
   <data name="Require at least one character that is not a letter or digit" xml:space="preserve">
     <value>英字でも数字でもない文字を 1 つ以上必須にする</value>
   </data>
   <data name="Require at least one digit" xml:space="preserve">
     <value>数字を 1 つ以上必須にする</value>
-  </data>
-  <data name="Require auth" xml:space="preserve">
-    <value>認証を要求</value>
-  </data>
-  <data name="Require auth: _local to local" xml:space="preserve">
-    <value>認証を要求: ローカルからローカル(_L)</value>
-  </data>
-  <data name="Require auth: e_xternal to local" xml:space="preserve">
-    <value>認証を要求: 外部からローカル(_X)</value>
-  </data>
-  <data name="Require auth: external to exte_rnal" xml:space="preserve">
-    <value>認証を要求: 外部から外部(_R)</value>
-  </data>
-  <data name="Require auth: local to _external" xml:space="preserve">
-    <value>認証を要求: ローカルから外部(_E)</value>
   </data>
   <data name="Require both upper and lower case" xml:space="preserve">
     <value>大文字と小文字の両方を必須にする</value>
@@ -10140,6 +10110,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Save the export as" xml:space="preserve">
     <value>エクスポートの保存先</value>
+  </data>
+  <data name="Save the permissions of {0}? Anyone in it can then relay mail through this server to any address without signing in: an open relay." xml:space="preserve">
+    <value>{0} の権限を保存しますか? 保存すると、この範囲の誰もがサインインせずにこのサーバー経由で任意のアドレスへメールを中継できるようになります。これはオープン リレーです。</value>
   </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>選択した証明書の秘密鍵パスフレーズを保存</value>
@@ -14135,8 +14108,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="When the wait ends or the sandbox answers error" xml:space="preserve">
     <value>待機が終了したとき、またはサンドボックスがエラーを返したとき</value>
   </data>
-  <data name="Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS for auth for each range named below. This computer's own clients are not affected." xml:space="preserve">
-    <value>以下に挙げたポートに TLS がない場合は、先に [TCP/IP ポート] ページで証明書と STARTTLS を設定してください。そのうえで [IP 範囲] ページで、以下に挙げた各範囲の [認証に TLS を要求] をオンにしてください。このコンピューター自身のクライアントには影響しません。</value>
+  <data name="Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS before authentication for each range named below. This computer's own clients are not affected." xml:space="preserve">
+    <value>以下に挙げたポートに TLS がない場合は、先に [TCP/IP ポート] ページで証明書と STARTTLS を設定してください。そのうえで [IP 範囲] ページで、以下に挙げた各範囲の [認証の前に TLS を要求する] をオンにしてください。このコンピューター自身のクライアントには影響しません。</value>
   </data>
   <data name="Where clients reach the web services listener; each certificate names its revocation list and its root under it. Empty, the default, names neither, so a client that insists on checking revocation cannot. A certificate already issued keeps what it was issued with." xml:space="preserve">
     <value>クライアントが Web サービスのリスナーにアクセスする場所。各証明書は、この下に失効リストとルートを示します。既定の空ではどちらも示さないため、失効確認を必須とするクライアントは確認できません。発行済みの証明書は、発行時の内容を保ちます。</value>
@@ -14233,9 +14206,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Which attribute holds the name the person logs in with. This is what is stored against the account and what the directory is asked about at every logon afterwards, so guessing it from the address is not good enough - an entry that does not carry it is reported rather than provisioned." xml:space="preserve">
     <value>ユーザーがログインする名前を保持する属性。これはアカウントに保存され、以降のすべてのログオンでディレクトリに問い合わせるものなので、アドレスから推測するだけでは不十分です。これを持たないエントリはプロビジョニングされず、報告されます。</value>
-  </data>
-  <data name="Which deliveries are allowed from this range" xml:space="preserve">
-    <value>この範囲から許可される配信</value>
   </data>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>どのディレクトリ エントリがメールボックスになるか</value>
@@ -14662,9 +14632,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Deliver now" xml:space="preserve">
     <value>今すぐ配信(_D)</value>
-  </data>
-  <data name="_Deliver remote → local" xml:space="preserve">
-    <value>リモート → ローカルを配信(_D)</value>
   </data>
   <data name="_Description" xml:space="preserve">
     <value>説明(_D)</value>
@@ -17057,6 +17024,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0}: nothing published at {1} begins with v=STSv1, so senders will not recognise a policy there. Fix the record's value." xml:space="preserve">
     <value>{0}: {1} に TXT レコードはありますが、v=STSv1 で始まるものが 1 つもないため、送信側はそこにポリシーがあると認識しません。レコードの値を修正してください。</value>
+  </data>
+  <data name="{0}: only after SMTP authentication" xml:space="preserve">
+    <value>{0}: SMTP 認証後のみ</value>
   </data>
   <data name="{0}: selector '{1}' and key file are set. {2} Checking DNS for the TXT record {3}…" xml:space="preserve">
     <value>{0}: セレクター '{1}' と鍵ファイルが設定されています。{2} TXT レコード {3} を DNS で確認しています…</value>

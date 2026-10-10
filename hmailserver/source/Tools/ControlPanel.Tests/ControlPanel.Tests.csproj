@@ -291,6 +291,12 @@
     <Compile Include="..\ControlPanel\Services\RuleCards.cs" />
   </ItemGroup>
 
+  <!-- How far an IP range lets mail be relayed without signing in, and the words for it
+       (review finding F229). -->
+  <ItemGroup>
+    <Compile Include="..\ControlPanel\Services\RelayExposure.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <!-- WindowsServiceInfo queries Win32_Service; the app gets this through its
          own reference and the test assembly needs its own. -->

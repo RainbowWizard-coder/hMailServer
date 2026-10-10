@@ -1365,26 +1365,20 @@
   <data name="Allow SM_TP connections" xml:space="preserve">
     <value>允许 SM_TP 连接</value>
   </data>
-  <data name="Allow _IMAP" xml:space="preserve">
-    <value>允许 _IMAP</value>
-  </data>
   <data name="Allow _IMAP connections" xml:space="preserve">
     <value>允许 _IMAP 连接</value>
   </data>
-  <data name="Allow _POP3" xml:space="preserve">
-    <value>允许 _POP3</value>
-  </data>
   <data name="Allow _POP3 connections" xml:space="preserve">
     <value>允许 _POP3 连接</value>
-  </data>
-  <data name="Allow _SMTP" xml:space="preserve">
-    <value>允许 _SMTP</value>
   </data>
   <data name="Allow and block list" xml:space="preserve">
     <value>允许与拦截名单</value>
   </data>
   <data name="Allow and release" xml:space="preserve">
     <value>允许并放行</value>
+  </data>
+  <data name="Allow delivery" xml:space="preserve">
+    <value>允许投递</value>
   </data>
   <data name="Allow incorrect line endings" xml:space="preserve">
     <value>允许不正确的行结束符</value>
@@ -1638,6 +1632,9 @@
   </data>
   <data name="Anyone in the domain can send" xml:space="preserve">
     <value>域内任何人都可以发信</value>
+  </data>
+  <data name="Anyone in this range can relay mail through this server to any address without signing in: an open relay. Tick Only after SMTP authentication for External to external, unless the range is a few machines you trust." xml:space="preserve">
+    <value>此范围内的任何人都无需登录即可通过此服务器把邮件中继到任意地址：这是开放中继。除非该范围只是几台您信任的计算机，否则请为“外部到外部”勾选“仅在 SMTP 身份验证后”。</value>
   </data>
   <data name="Anyone the owner approves after they confirm" xml:space="preserve">
     <value>由所有者在确认后批准的任何人</value>
@@ -3902,9 +3899,6 @@
   <data name="Deli_vers to" xml:space="preserve">
     <value>投递到(_V)</value>
   </data>
-  <data name="Deliver _local → local" xml:space="preserve">
-    <value>投递本地 → 本地(_L)</value>
-  </data>
   <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
     <value>将每封邮件投递到其标头中列出的账户（多人共用的邮箱）</value>
   </data>
@@ -3917,14 +3911,8 @@
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>照常投递，仅作记录</value>
   </data>
-  <data name="Deliver lo_cal → remote" xml:space="preserve">
-    <value>投递本地 → 远程(_C)</value>
-  </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
     <value>把发往指定域的邮件投递到选定的服务器，而不是查询其 MX 记录。</value>
-  </data>
-  <data name="Deliver remote → remote (rela_y)" xml:space="preserve">
-    <value>投递远程 → 远程（中继）(_Y)</value>
   </data>
   <data name="Deliver to _all addresses (not only known accounts)" xml:space="preserve">
     <value>投递到所有地址(_A)（不仅限于已知账户）</value>
@@ -4738,6 +4726,9 @@
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>每个本地收件人的副本都成为存档文件夹中同一个文件的另一个名称，因此发给十个邮箱的邮件只占一份副本而不是十份。需要 NTFS 存档文件夹；如果无法创建链接，服务器会复制文件并在 SMTP 日志中说明。</value>
   </data>
+  <data name="Every machine in this range can relay mail through this server to any address without signing in. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for External to external." xml:space="preserve">
+    <value>此范围内的每台计算机都无需登录即可通过此服务器把邮件中继到任意地址。这适合您自己网络中的打印机或应用程序；否则请为“外部到外部”勾选“仅在 SMTP 身份验证后”。</value>
+  </data>
   <data name="Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
     <value>投递到此账户的每封邮件在过滤器处理后都会用账户自己的 OpenPGP 密钥加密，此服务器无法阅读、搜索、导出或恢复其邮件。只有本人能从网页邮箱关闭它；这里无法关闭。</value>
   </data>
@@ -4927,8 +4918,8 @@
   <data name="External recipients (addresses this server does not host)" xml:space="preserve">
     <value>外部收件人 (此服务器未托管的地址)</value>
   </data>
-  <data name="External to external (_open relay!)" xml:space="preserve">
-    <value>外部到外部（开放中继！）(_O)</value>
+  <data name="External to external (rela_y)" xml:space="preserve">
+    <value>外部到外部（中继）(_Y)</value>
   </data>
   <data name="External-account hosts to FETCH from with OAuth2 (comma separated; blank this to use none)" xml:space="preserve">
     <value>使用 OAuth2 进行 FETCH 的外部账户主机（以逗号分隔；留空则不使用）</value>
@@ -6189,14 +6180,14 @@
   <data name="Live, from the running server. The hit rate is the share of lookups answered from memory since the counters last reset - which they do when the service restarts, when a cache is switched off, and when its TTL is changed, so a rate right after any of those describes a very short sample. A lookup for something that does not exist counts as a miss and caches nothing, so a server being probed for addresses it does not host shows a low rate without anything being wrong with the cache." xml:space="preserve">
     <value>来自正在运行的服务器的实时数据。命中率是自计数器上次重置以来从内存中应答的查询所占的比例 - 计数器会在服务重启、缓存被关闭以及其 TTL 被更改时重置，因此紧接在这些操作之后的比率只反映很短的样本。查询不存在的内容算作未命中且不缓存任何东西，因此被探测其不托管的地址的服务器会显示较低的比率，而缓存本身并没有任何问题。</value>
   </data>
+  <data name="Lo_cal to external" xml:space="preserve">
+    <value>本地到外部(_C)</value>
+  </data>
   <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
     <value>起始 IP（例如 10.0.0.0）(_W)</value>
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>正在加载…</value>
-  </data>
-  <data name="Local to _external (relay out)" xml:space="preserve">
-    <value>本地到外部（向外中继）(_E)</value>
   </data>
   <data name="LocalSystem, which is the most privileged account on this machine" xml:space="preserve">
     <value>LocalSystem，即本机上权限最高的账户</value>
@@ -8041,6 +8032,9 @@
   <data name="Only a setting's change can be put back: the row has to carry the value the setting had." xml:space="preserve">
     <value>只能恢复设置的更改：该行必须带有设置原有的值。</value>
   </data>
+  <data name="Only after SMTP authentication" xml:space="preserve">
+    <value>仅在 SMTP 身份验证后</value>
+  </data>
   <data name="Only archive mail for these domains (comma-separated; empty = every message)" xml:space="preserve">
     <value>只存档这些域的邮件（以逗号分隔；留空 = 每封邮件）</value>
   </data>
@@ -9328,9 +9322,6 @@
   <data name="Relayer" xml:space="preserve">
     <value>中继服务器</value>
   </data>
-  <data name="Relaying" xml:space="preserve">
-    <value>中继</value>
-  </data>
   <data name="Relaying to an upstream server, retry intervals, bounce handling and what happens to local mail." xml:space="preserve">
     <value>中继到上游服务器、重试间隔、退信处理，以及本地邮件的处理方式。</value>
   </data>
@@ -9577,11 +9568,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Require SMTP au_thentication to send to the list" xml:space="preserve">
     <value>要求通过 SMTP 身份验证才能向列表发信(_T)</value>
   </data>
-  <data name="Require SMTP authentication for each delivery direction" xml:space="preserve">
-    <value>为每个投递方向要求 SMTP 身份验证</value>
-  </data>
-  <data name="Require SSL/_TLS when authenticating" xml:space="preserve">
-    <value>身份验证时要求 SSL/TLS(_T)</value>
+  <data name="Require TLS _before authentication" xml:space="preserve">
+    <value>身份验证前要求 TLS(_B)</value>
   </data>
   <data name="Require TLS for delivery" xml:space="preserve">
     <value>投递时要求 TLS</value>
@@ -9592,29 +9580,11 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Require TLS on mail from this domain" xml:space="preserve">
     <value>要求来自该域的邮件使用 TLS</value>
   </data>
-  <data name="Require _TLS for auth" xml:space="preserve">
-    <value>身份验证要求 TLS(_T)</value>
-  </data>
   <data name="Require at least one character that is not a letter or digit" xml:space="preserve">
     <value>要求至少有一个既非字母也非数字的字符</value>
   </data>
   <data name="Require at least one digit" xml:space="preserve">
     <value>要求至少有一个数字</value>
-  </data>
-  <data name="Require auth" xml:space="preserve">
-    <value>要求身份验证</value>
-  </data>
-  <data name="Require auth: _local to local" xml:space="preserve">
-    <value>要求身份验证：本地到本地(_L)</value>
-  </data>
-  <data name="Require auth: e_xternal to local" xml:space="preserve">
-    <value>要求身份验证：外部到本地(_X)</value>
-  </data>
-  <data name="Require auth: external to exte_rnal" xml:space="preserve">
-    <value>要求身份验证：外部到外部(_R)</value>
-  </data>
-  <data name="Require auth: local to _external" xml:space="preserve">
-    <value>要求身份验证：本地到外部(_E)</value>
   </data>
   <data name="Require both upper and lower case" xml:space="preserve">
     <value>要求同时包含大写和小写字母</value>
@@ -10140,6 +10110,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Save the export as" xml:space="preserve">
     <value>导出另存为</value>
+  </data>
+  <data name="Save the permissions of {0}? Anyone in it can then relay mail through this server to any address without signing in: an open relay." xml:space="preserve">
+    <value>要保存 {0} 的权限吗？保存后，其中的任何人都无需登录即可通过此服务器把邮件中继到任意地址：这是开放中继。</value>
   </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>保存所选证书的私钥密码短语</value>
@@ -14135,8 +14108,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="When the wait ends or the sandbox answers error" xml:space="preserve">
     <value>等待结束或沙箱答复错误时</value>
   </data>
-  <data name="Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS for auth for each range named below. This computer's own clients are not affected." xml:space="preserve">
-    <value>如果下面列出的端口没有 TLS，请先在“TCP/IP 端口”页面上为其配置证书和 STARTTLS；然后在“IP 范围”页面上，为下面列出的每个范围打开“身份验证要求 TLS”。本计算机自己的客户端不受影响。</value>
+  <data name="Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS before authentication for each range named below. This computer's own clients are not affected." xml:space="preserve">
+    <value>如果下面列出的端口没有 TLS，请先在“TCP/IP 端口”页面上为其配置证书和 STARTTLS；然后在“IP 范围”页面上，为下面列出的每个范围打开“身份验证前要求 TLS”。本计算机自己的客户端不受影响。</value>
   </data>
   <data name="Where clients reach the web services listener; each certificate names its revocation list and its root under it. Empty, the default, names neither, so a client that insists on checking revocation cannot. A certificate already issued keeps what it was issued with." xml:space="preserve">
     <value>客户端访问 Web 服务监听器的位置；每个证书都在其下指明自己的吊销列表和根证书。默认为空，两者都不指明，因此坚持检查吊销的客户端无法完成检查。已颁发的证书保留颁发时的内容。</value>
@@ -14233,9 +14206,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Which attribute holds the name the person logs in with. This is what is stored against the account and what the directory is asked about at every logon afterwards, so guessing it from the address is not good enough - an entry that does not carry it is reported rather than provisioned." xml:space="preserve">
     <value>哪个属性保存此人用于登录的名称。它会被存到账户上，并在此后每次登录时向目录询问，因此仅凭地址猜测是不够的 - 不带该属性的条目会被报告，而不是被预配。</value>
-  </data>
-  <data name="Which deliveries are allowed from this range" xml:space="preserve">
-    <value>此范围允许哪些投递</value>
   </data>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>哪些目录条目会成为邮箱</value>
@@ -14662,9 +14632,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="_Deliver now" xml:space="preserve">
     <value>立即投递(_D)</value>
-  </data>
-  <data name="_Deliver remote → local" xml:space="preserve">
-    <value>投递远程 → 本地(_D)</value>
   </data>
   <data name="_Description" xml:space="preserve">
     <value>说明(_D)</value>
@@ -17057,6 +17024,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0}: nothing published at {1} begins with v=STSv1, so senders will not recognise a policy there. Fix the record's value." xml:space="preserve">
     <value>{0}：在 {1} 存在 TXT 记录，但没有一条以 v=STSv1 开头，因此发送方不会在那里识别出策略。请修正该记录的值。</value>
+  </data>
+  <data name="{0}: only after SMTP authentication" xml:space="preserve">
+    <value>{0}：仅在 SMTP 身份验证后</value>
   </data>
   <data name="{0}: selector '{1}' and key file are set. {2} Checking DNS for the TXT record {3}…" xml:space="preserve">
     <value>{0}：已设置选择器 '{1}' 和密钥文件。{2} 正在检查 DNS 中的 TXT 记录 {3}…</value>

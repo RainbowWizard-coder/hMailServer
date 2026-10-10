@@ -14,9 +14,9 @@ namespace hMailServer.ControlPanel.Views
 {
    /// <summary>
    /// Full tabbed editor for one IP security range — the complete set of
-   /// IInterfaceSecurityRange options (connections, relaying, per-direction SMTP
-   /// authentication, anti-spam/anti-virus and expiry) that the inline panel does
-   /// not expose. On the standard frame: five tabs sized to the tallest of them
+   /// IInterfaceSecurityRange options (connections, delivery with each direction's
+   /// SMTP authentication, anti-spam/anti-virus and expiry), of which the page's
+   /// card holds the first two. On the standard frame: four tabs sized to the tallest of them
    /// so the window does not jump on every click of the strip, every field a
    /// <see cref="FieldRow"/>, a priority or an expiry that will not parse said on
    /// the field itself - which also brings its tab to the front - and a save the
@@ -25,7 +25,7 @@ namespace hMailServer.ControlPanel.Views
    public class IPRangeDialog : FluentDialogWindow
    {
       /// <summary>
-      /// The width this dialog asks the frame for where its five headers fit in it;
+      /// The width this dialog asks the frame for where its four headers fit in it;
       /// wider where they do not (DialogFields.WidthForTabs). The tabs are measured
       /// against the body inside the width it is given.
       /// </summary>
@@ -40,23 +40,27 @@ namespace hMailServer.ControlPanel.Views
       private readonly TextBox priority_ = new();
       private FieldRow priorityRow_;
 
-      // Connections
+      // Connections, and the TLS a sign-in needs, in the page's words (review finding F229).
       private readonly CheckBox smtp_ = new() { Content = L("Allow SM_TP connections") };
       private readonly CheckBox imap_ = new() { Content = L("Allow _IMAP connections") };
       private readonly CheckBox pop3_ = new() { Content = L("Allow _POP3 connections") };
+      private readonly CheckBox tlsAuth_ = new() { Content = L("Require TLS _before authentication") };
 
-      // Relaying
-      private readonly CheckBox ll_ = new() { Content = L("_Local to local") };
-      private readonly CheckBox lr_ = new() { Content = L("Local to _external (relay out)") };
-      private readonly CheckBox rl_ = new() { Content = L("E_xternal to local") };
-      private readonly CheckBox rr_ = new() { Content = L("External to external (_open relay!)") };
+      // Delivery: each direction allowed, and only after SMTP authentication, on one
+      // row, as the page's permissions card shows them, where they were two tabs
+      // apart - Relaying and Require auth - each in its own words (review finding
+      // F229). The boxes are named by their row and column (DeliveryRow).
+      private readonly CheckBox ll_ = new();
+      private readonly CheckBox lr_ = new();
+      private readonly CheckBox rl_ = new();
+      private readonly CheckBox rr_ = new();
+      private readonly CheckBox authLL_ = new();
+      private readonly CheckBox authLE_ = new();
+      private readonly CheckBox authEL_ = new();
+      private readonly CheckBox authEE_ = new();
 
-      // SMTP authentication required
-      private readonly CheckBox authLL_ = new() { Content = L("Require auth: _local to local") };
-      private readonly CheckBox authLE_ = new() { Content = L("Require auth: local to _external") };
-      private readonly CheckBox authEL_ = new() { Content = L("Require auth: e_xternal to local") };
-      private readonly CheckBox authEE_ = new() { Content = L("Require auth: external to exte_rnal") };
-      private readonly CheckBox tlsAuth_ = new() { Content = L("Require SSL/_TLS when authenticating") };
+      // What relaying without authentication means for this range (Services/RelayExposure).
+      private readonly InlineNotice relayNotice_ = DialogFields.Notice();
 
       // Protection + expiry
       private readonly CheckBox spam_ = new() { Content = L("Enable _anti-spam for this range") };
@@ -81,8 +85,7 @@ namespace hMailServer.ControlPanel.Views
          var tabs = new TabControl { Background = System.Windows.Media.Brushes.Transparent, BorderThickness = new Thickness(0) };
          tabs.Items.Add(new TabItem { Header = L("General"), Content = BuildGeneral() });
          tabs.Items.Add(new TabItem { Header = L("Connections"), Content = BuildConnections() });
-         tabs.Items.Add(new TabItem { Header = L("Relaying"), Content = BuildRelaying() });
-         tabs.Items.Add(new TabItem { Header = L("Require auth"), Content = BuildAuth() });
+         tabs.Items.Add(new TabItem { Header = L("Delivery"), Content = BuildDelivery() });
          tabs.Items.Add(new TabItem { Header = L("Protection"), Content = BuildProtection() });
 
          // One height for every tab, taken from the tallest: a window sized to
@@ -125,31 +128,44 @@ namespace hMailServer.ControlPanel.Views
          p.Children.Add(DialogFields.Check(smtp_));
          p.Children.Add(DialogFields.Check(imap_));
          p.Children.Add(DialogFields.Check(pop3_));
-         return DialogFields.Scroll(p);
-      }
-
-      private ScrollViewer BuildRelaying()
-      {
-         var p = DialogFields.TabPanel();
-         p.Children.Add(DialogFields.Caption(L("Which deliveries are allowed from this range")));
-         p.Children.Add(DialogFields.Check(ll_));
-         p.Children.Add(DialogFields.Check(lr_));
-         p.Children.Add(DialogFields.Check(rl_));
-         p.Children.Add(DialogFields.Check(rr_));
-         return DialogFields.Scroll(p);
-      }
-
-      private ScrollViewer BuildAuth()
-      {
-         var p = DialogFields.TabPanel();
-         p.Children.Add(DialogFields.Caption(L("Require SMTP authentication for each delivery direction")));
-         p.Children.Add(DialogFields.Check(authLL_));
-         p.Children.Add(DialogFields.Check(authLE_));
-         p.Children.Add(DialogFields.Check(authEL_));
-         p.Children.Add(DialogFields.Check(authEE_));
          p.Children.Add(DialogFields.Separator());
          p.Children.Add(DialogFields.Check(tlsAuth_));
          return DialogFields.Scroll(p);
+      }
+
+      private ScrollViewer BuildDelivery()
+      {
+         var p = DialogFields.TabPanel();
+         p.Children.Add(DeliveryRow.BuildGrid(new[]
+         {
+            (L("_Local to local"), ll_, authLL_),
+            (L("Lo_cal to external"), lr_, authLE_),
+            (L("E_xternal to local"), rl_, authEL_),
+            (L("External to external (rela_y)"), rr_, authEE_)
+         }));
+
+         relayNotice_.Margin = new Thickness(0, DesignTokens.Space.Md, 0, 0);
+         p.Children.Add(relayNotice_);
+         foreach (CheckBox box in new[] { rr_, authEE_ })
+         {
+            box.Checked += (s, e) => ShowRelayExposure_();
+            box.Unchecked += (s, e) => ShowRelayExposure_();
+         }
+
+         lower_.TextChanged += (s, e) => ShowRelayExposure_();
+         upper_.TextChanged += (s, e) => ShowRelayExposure_();
+         return DialogFields.Scroll(p);
+      }
+
+      /// <summary>The Delivery tab's word on relaying without authentication, as the page's card says it.</summary>
+      private void ShowRelayExposure_()
+      {
+         RelayExposure.Reach reach = RelayExposure.Of(lower_.Text, upper_.Text, rr_.IsChecked is true, authEE_.IsChecked is true);
+         string notice = RelayExposure.Notice(reach);
+         if (notice == null)
+            relayNotice_.Hide();
+         else
+            relayNotice_.Show(RelayExposure.LevelOf(reach), notice);
       }
 
       private ScrollViewer BuildProtection()
@@ -291,6 +307,11 @@ namespace hMailServer.ControlPanel.Views
 
             expiry = day.Date + time;
          }
+
+         // Permissions that make an open relay are asked about first (review finding F229).
+         if (RelayExposure.Of(lower_.Text, upper_.Text, rr_.IsChecked is true, authEE_.IsChecked is true) == RelayExposure.Reach.Internet
+             && !MessageBox.Confirm(RelayExposure.SaveQuestion(name_.Text.Trim()), L("Control Panel"), L("_Save"), destructive: true))
+            return;
 
          dynamic ranges = ServerSession.Current.Application.Settings.SecurityRanges;
          try

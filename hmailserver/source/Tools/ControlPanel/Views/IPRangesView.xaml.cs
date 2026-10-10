@@ -44,12 +44,20 @@ namespace hMailServer.ControlPanel.Views
          // selected, one answered with a message box and the other with nothing.
          SelectionGate.Bind(RangeGrid, PropertiesButton, DeleteRangeButton);
 
-         // Every box follows the card's pill: Unsaved changes from the first change.
+         // Every box follows the card's pill: Unsaved changes from the first change,
+         // and the relay notice, which follows External to external and its
+         // authentication.
          foreach (CheckBox box in PermissionBoxes())
          {
-            box.Checked += (s, e) => ShowPermsState_();
-            box.Unchecked += (s, e) => ShowPermsState_();
+            box.Checked += (s, e) => { ShowPermsState_(); ShowRelayExposure_(); };
+            box.Unchecked += (s, e) => { ShowPermsState_(); ShowRelayExposure_(); };
          }
+
+         // Each delivery direction's authentication box counts only while the
+         // direction is allowed, and follows it; both are named for their row and
+         // their column, as a screen reader cannot see the grid (review finding F229).
+         foreach ((CheckBox allowed, CheckBox authentication) in DeliveryRows_())
+            DeliveryRow.Wire(allowed, authentication);
 
          ShowNoRange();
 
@@ -237,13 +245,36 @@ namespace hMailServer.ControlPanel.Views
          SavePermsButton.IsEnabled = false;
          permsSettled_ = SettingsPageState.Clean;
          ShowPermsState_();
+         ShowRelayExposure_();
       }
 
       private IEnumerable<CheckBox> PermissionBoxes()
-         => new[] { PermSmtp, PermImap, PermPop3, PermTlsAuth, PermLL, PermLR, PermRL, PermRR };
+         => new[] { PermSmtp, PermImap, PermPop3, PermTlsAuth, PermLL, PermLR, PermRL, PermRR, PermAuthLL, PermAuthLR, PermAuthRL, PermAuthRR };
 
-      private void PermGrid_SizeChanged(object sender, SizeChangedEventArgs e)
-         => PermGrid.Columns = e.NewSize.Width >= 4 * PermColumnMinWidth ? 4 : 2;
+      /// <summary>Each delivery direction's row: the direction's own box, and Only after SMTP authentication.</summary>
+      private IEnumerable<(CheckBox, CheckBox)> DeliveryRows_()
+         => new[] { (PermLL, PermAuthLL), (PermLR, PermAuthLR), (PermRL, PermAuthRL), (PermRR, PermAuthRR) };
+
+      private void ConnectionsGrid_SizeChanged(object sender, SizeChangedEventArgs e)
+         => ConnectionsGrid.Columns = e.NewSize.Width >= 4 * PermColumnMinWidth ? 4 : 2;
+
+      /// <summary>
+      /// The card's word on relaying (Services/RelayExposure): a range that lets the
+      /// addresses in it send mail from outside to outside without signing in is an
+      /// open relay where it reaches the Internet, at Critical, and a warning inside
+      /// a network of its own; none for one address, or while External to external
+      /// asks for authentication or is not allowed.
+      /// </summary>
+      private void ShowRelayExposure_()
+      {
+         RelayExposure.Reach reach = permsRow_ == null || !PermGrid.IsEnabled
+            ? RelayExposure.Reach.None
+            : RelayExposure.Of(permsRow_.LowerIP, permsRow_.UpperIP, PermRR.IsChecked is true, PermAuthRR.IsChecked is true);
+         string notice = RelayExposure.Notice(reach);
+         RelayNotice.Level = RelayExposure.LevelOf(reach);
+         RelayNotice.Text = notice;
+         RelayNotice.Visibility = notice == null ? Visibility.Collapsed : Visibility.Visible;
+      }
 
       private void Search_TextChanged(object sender, EventArgs e) => ShowListState_();
 
@@ -356,6 +387,10 @@ namespace hMailServer.ControlPanel.Views
             PermLR.IsChecked = (bool)range.AllowDeliveryFromLocalToRemote;
             PermRL.IsChecked = (bool)range.AllowDeliveryFromRemoteToLocal;
             PermRR.IsChecked = (bool)range.AllowDeliveryFromRemoteToRemote;
+            PermAuthLL.IsChecked = (bool)range.RequireSMTPAuthLocalToLocal;
+            PermAuthLR.IsChecked = (bool)range.RequireSMTPAuthLocalToExternal;
+            PermAuthRL.IsChecked = (bool)range.RequireSMTPAuthExternalToLocal;
+            PermAuthRR.IsChecked = (bool)range.RequireSMTPAuthExternalToExternal;
             PermGrid.IsEnabled = true;
             SavePermsButton.IsEnabled = true;
             ServerSession.Release(range);
@@ -363,6 +398,7 @@ namespace hMailServer.ControlPanel.Views
             perms_.Take(PermissionValues_());
             permsSettled_ = SettingsPageState.Clean;
             ShowPermsState_();
+            ShowRelayExposure_();
          }
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
          {
@@ -419,6 +455,13 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private bool SavePermissions_(RangeRow row)
       {
+         // Permissions that make an open relay are asked about first, whichever way
+         // they are saved - Save permissions, the question before another range is
+         // shown, the one before the range's dialog opens (review finding F229).
+         if (RelayExposure.Of(row.LowerIP, row.UpperIP, PermRR.IsChecked is true, PermAuthRR.IsChecked is true) == RelayExposure.Reach.Internet
+             && !MessageBox.Confirm(RelayExposure.SaveQuestion(row.Name), L("Control Panel"), L("Sa_ve permissions"), destructive: true))
+            return false;
+
          bool saved = false;
          dynamic ranges = ServerSession.Current.Application.Settings.SecurityRanges;
          try
@@ -440,6 +483,10 @@ namespace hMailServer.ControlPanel.Views
             range.AllowDeliveryFromLocalToRemote = PermLR.IsChecked is true;
             range.AllowDeliveryFromRemoteToLocal = PermRL.IsChecked is true;
             range.AllowDeliveryFromRemoteToRemote = PermRR.IsChecked is true;
+            range.RequireSMTPAuthLocalToLocal = PermAuthLL.IsChecked is true;
+            range.RequireSMTPAuthLocalToExternal = PermAuthLR.IsChecked is true;
+            range.RequireSMTPAuthExternalToLocal = PermAuthRL.IsChecked is true;
+            range.RequireSMTPAuthExternalToExternal = PermAuthRR.IsChecked is true;
             range.Save();
             ServerSession.Release(range);
             saved = true;

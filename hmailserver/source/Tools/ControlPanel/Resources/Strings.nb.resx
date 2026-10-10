@@ -1365,26 +1365,20 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Allow SM_TP connections" xml:space="preserve">
     <value>Tillat SM_TP-tilkoblinger</value>
   </data>
-  <data name="Allow _IMAP" xml:space="preserve">
-    <value>Tillat _IMAP</value>
-  </data>
   <data name="Allow _IMAP connections" xml:space="preserve">
     <value>Tillat _IMAP-tilkoblinger</value>
   </data>
-  <data name="Allow _POP3" xml:space="preserve">
-    <value>Tillat _POP3</value>
-  </data>
   <data name="Allow _POP3 connections" xml:space="preserve">
     <value>Tillat _POP3-tilkoblinger</value>
-  </data>
-  <data name="Allow _SMTP" xml:space="preserve">
-    <value>Tillat _SMTP</value>
   </data>
   <data name="Allow and block list" xml:space="preserve">
     <value>Liste over tillatte og blokkerte</value>
   </data>
   <data name="Allow and release" xml:space="preserve">
     <value>Tillat og frigi</value>
+  </data>
+  <data name="Allow delivery" xml:space="preserve">
+    <value>Tillat levering</value>
   </data>
   <data name="Allow incorrect line endings" xml:space="preserve">
     <value>Tillat feil linjeskift</value>
@@ -1638,6 +1632,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   </data>
   <data name="Anyone in the domain can send" xml:space="preserve">
     <value>Alle i domenet kan sende</value>
+  </data>
+  <data name="Anyone in this range can relay mail through this server to any address without signing in: an open relay. Tick Only after SMTP authentication for External to external, unless the range is a few machines you trust." xml:space="preserve">
+    <value>Hvem som helst i dette området kan videresende e-post gjennom denne serveren til hvilken som helst adresse uten å logge på: et åpent relé. Kryss av for Bare etter SMTP-autentisering for Ekstern til ekstern, med mindre området er noen få maskiner du stoler på.</value>
   </data>
   <data name="Anyone the owner approves after they confirm" xml:space="preserve">
     <value>Hvem som helst som eieren godkjenner etter at de bekrefter</value>
@@ -3902,9 +3899,6 @@ Avsenderen fikk beskjed om at den ble godtatt, så ingenting vil prøve på nytt
   <data name="Deli_vers to" xml:space="preserve">
     <value>L_everer til</value>
   </data>
-  <data name="Deliver _local → local" xml:space="preserve">
-    <value>Lever lo_kal → lokal</value>
-  </data>
   <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
     <value>Lever hver melding til kontoene som overskriftene nevner (en postkasse som flere deler)</value>
   </data>
@@ -3917,14 +3911,8 @@ Avsenderen fikk beskjed om at den ble godtatt, så ingenting vil prøve på nytt
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>Lever den og bare registrer den</value>
   </data>
-  <data name="Deliver lo_cal → remote" xml:space="preserve">
-    <value>Lever lokal → _ekstern</value>
-  </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
     <value>Lever post for navngitte domener til en valgt server i stedet for å slå opp MX-oppføringen.</value>
-  </data>
-  <data name="Deliver remote → remote (rela_y)" xml:space="preserve">
-    <value>Lever ekstern → ekstern (rela_y)</value>
   </data>
   <data name="Deliver to _all addresses (not only known accounts)" xml:space="preserve">
     <value>Lever til _alle adresser (ikke bare kjente kontoer)</value>
@@ -4208,7 +4196,7 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
     <value>_Ekstern ID (personens ID hos identitetsleverandøren; tomt = ingen)</value>
   </data>
   <data name="E_xternal to local" xml:space="preserve">
-    <value>E_kstern til lokal</value>
+    <value>_Ekstern til lokal</value>
   </data>
   <data name="Each IMAP folder keeps a counter for the next message UID it will issue. If that counter falls behind the messages already in the folder - which a restored or hand-edited database can do - the folder issues a UID it has already used, and a client that caches by UID shows one message where another should be. This moves every counter up to the highest UID its folder actually holds. It never moves one down, so it cannot cause the fault it repairs." xml:space="preserve">
     <value>Hver IMAP-mappe holder en teller for neste meldings-UID den vil utstede. Hvis den telleren havner bak meldingene som allerede er i mappen - noe en gjenopprettet eller håndredigert database kan gjøre - utsteder mappen en UID den allerede har brukt, og en klient som hurtigbufrer etter UID, viser én melding der en annen skulle vært. Dette flytter hver teller opp til den høyeste UID-en mappen faktisk inneholder. Den flytter aldri en ned, så den kan ikke forårsake feilen den reparerer.</value>
@@ -4738,6 +4726,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>Hver lokale mottakers kopi blir et nytt navn for den samme filen i arkivmappen, så en melding til ti postbokser koster én kopi i stedet for ti. Trenger en NTFS-arkivmappe; hvis koblingen ikke kan opprettes, kopierer serveren filen og sier fra i SMTP-loggen.</value>
   </data>
+  <data name="Every machine in this range can relay mail through this server to any address without signing in. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for External to external." xml:space="preserve">
+    <value>Hver maskin i dette området kan videresende e-post gjennom denne serveren til hvilken som helst adresse uten å logge på. Det passer for en skriver eller et program på ditt eget nettverk; ellers kryss av for Bare etter SMTP-autentisering for Ekstern til ekstern.</value>
+  </data>
   <data name="Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
     <value>Hver melding som leveres til kontoen krypteres, etter filtrene, med kontoens egen OpenPGP-nøkkel, og denne serveren kan verken lese, søke i, eksportere eller gjenopprette posten. Bare personen kan slå det av, fra webmailen; ingenting her kan.</value>
   </data>
@@ -4927,8 +4918,8 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="External recipients (addresses this server does not host)" xml:space="preserve">
     <value>Eksterne mottakere (adresser denne serveren ikke er vert for)</value>
   </data>
-  <data name="External to external (_open relay!)" xml:space="preserve">
-    <value>Ekstern til ekstern (_åpent relay!)</value>
+  <data name="External to external (rela_y)" xml:space="preserve">
+    <value>Ekstern til ekstern (_videresending)</value>
   </data>
   <data name="External-account hosts to FETCH from with OAuth2 (comma separated; blank this to use none)" xml:space="preserve">
     <value>Eksterne kontoverter å HENTE fra med OAuth2 (kommaseparert; tøm for å bruke ingen)</value>
@@ -6189,14 +6180,14 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Live, from the running server. The hit rate is the share of lookups answered from memory since the counters last reset - which they do when the service restarts, when a cache is switched off, and when its TTL is changed, so a rate right after any of those describes a very short sample. A lookup for something that does not exist counts as a miss and caches nothing, so a server being probed for addresses it does not host shows a low rate without anything being wrong with the cache." xml:space="preserve">
     <value>Direkte, fra den kjørende serveren. Treffraten er andelen oppslag besvart fra minnet siden tellerne sist ble nullstilt - noe de gjør når tjenesten starter på nytt, når en hurtigbuffer slås av, og når TTL-en dens endres, så en rate rett etter noe av dette beskriver et svært kort utvalg. Et oppslag etter noe som ikke finnes, teller som en bom og bufrer ingenting, så en server som sonderes etter adresser den ikke huser, viser en lav rate uten at noe er galt med hurtigbufferen.</value>
   </data>
+  <data name="Lo_cal to external" xml:space="preserve">
+    <value>Lokal til ek_stern</value>
+  </data>
   <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
     <value>Nedre IP (_f.eks. 10.0.0.0)</value>
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Laster…</value>
-  </data>
-  <data name="Local to _external (relay out)" xml:space="preserve">
-    <value>Lokal til _ekstern (videresend ut)</value>
   </data>
   <data name="LocalSystem, which is the most privileged account on this machine" xml:space="preserve">
     <value>LocalSystem, som er den mest privilegerte kontoen på denne maskinen</value>
@@ -8041,6 +8032,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Only a setting's change can be put back: the row has to carry the value the setting had." xml:space="preserve">
     <value>Bare en innstillings endring kan settes tilbake: raden må bære verdien innstillingen hadde.</value>
   </data>
+  <data name="Only after SMTP authentication" xml:space="preserve">
+    <value>Bare etter SMTP-autentisering</value>
+  </data>
   <data name="Only archive mail for these domains (comma-separated; empty = every message)" xml:space="preserve">
     <value>Arkiver bare post for disse domenene (kommaseparert; tom = hver melding)</value>
   </data>
@@ -9328,9 +9322,6 @@ Kjør dette hvis klienter melder om meldinger som dukker opp under feil UID, ell
   <data name="Relayer" xml:space="preserve">
     <value>Videresender</value>
   </data>
-  <data name="Relaying" xml:space="preserve">
-    <value>Relaying</value>
-  </data>
   <data name="Relaying to an upstream server, retry intervals, bounce handling and what happens to local mail." xml:space="preserve">
     <value>Relay til en oppstrøms server, intervaller for nye forsøk, håndtering av returer og hva som skjer med lokal post.</value>
   </data>
@@ -9577,11 +9568,8 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Require SMTP au_thentication to send to the list" xml:space="preserve">
     <value>_Krev SMTP-autentisering for å sende til listen</value>
   </data>
-  <data name="Require SMTP authentication for each delivery direction" xml:space="preserve">
-    <value>Krev SMTP-autentisering for hver leveringsretning</value>
-  </data>
-  <data name="Require SSL/_TLS when authenticating" xml:space="preserve">
-    <value>Krev SSL/_TLS ved autentisering</value>
+  <data name="Require TLS _before authentication" xml:space="preserve">
+    <value>Krev TLS før a_utentisering</value>
   </data>
   <data name="Require TLS for delivery" xml:space="preserve">
     <value>Krev TLS for levering</value>
@@ -9592,29 +9580,11 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Require TLS on mail from this domain" xml:space="preserve">
     <value>Krev TLS for post fra dette domenet</value>
   </data>
-  <data name="Require _TLS for auth" xml:space="preserve">
-    <value>Krev _TLS for autentisering</value>
-  </data>
   <data name="Require at least one character that is not a letter or digit" xml:space="preserve">
     <value>Krev minst ett tegn som ikke er en bokstav eller et siffer</value>
   </data>
   <data name="Require at least one digit" xml:space="preserve">
     <value>Krev minst ett siffer</value>
-  </data>
-  <data name="Require auth" xml:space="preserve">
-    <value>Krev autentisering</value>
-  </data>
-  <data name="Require auth: _local to local" xml:space="preserve">
-    <value>Krev _autentisering: lokal til lokal</value>
-  </data>
-  <data name="Require auth: e_xternal to local" xml:space="preserve">
-    <value>Krev autentisering: e_kstern til lokal</value>
-  </data>
-  <data name="Require auth: external to exte_rnal" xml:space="preserve">
-    <value>Krev autentisering: ekstern til ekste_rn</value>
-  </data>
-  <data name="Require auth: local to _external" xml:space="preserve">
-    <value>Krev autentisering: lokal til _ekstern</value>
   </data>
   <data name="Require both upper and lower case" xml:space="preserve">
     <value>Krev både store og små bokstaver</value>
@@ -10140,6 +10110,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   </data>
   <data name="Save the export as" xml:space="preserve">
     <value>Lagre eksporten som</value>
+  </data>
+  <data name="Save the permissions of {0}? Anyone in it can then relay mail through this server to any address without signing in: an open relay." xml:space="preserve">
+    <value>Lagre tillatelsene for {0}? Hvem som helst i det kan da videresende e-post gjennom denne serveren til hvilken som helst adresse uten å logge på: et åpent relé.</value>
   </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Lagre passfrasen til den private nøkkelen for det valgte sertifikatet</value>
@@ -14135,8 +14108,8 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="When the wait ends or the sandbox answers error" xml:space="preserve">
     <value>Når ventetiden er over eller sandkassen svarer feil</value>
   </data>
-  <data name="Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS for auth for each range named below. This computer's own clients are not affected." xml:space="preserve">
-    <value>Der en port som er nevnt nedenfor ikke har TLS, gir du den først et sertifikat og STARTTLS på siden TCP/IP-porter; slå deretter på Krev TLS for autentisering på siden IP-områder for hvert område som er nevnt nedenfor. Denne datamaskinens egne klienter berøres ikke.</value>
+  <data name="Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS before authentication for each range named below. This computer's own clients are not affected." xml:space="preserve">
+    <value>Der en port som er nevnt nedenfor ikke har TLS, gir du den først et sertifikat og STARTTLS på siden TCP/IP-porter; slå deretter på Krev TLS før autentisering på siden IP-områder for hvert område som er nevnt nedenfor. Denne datamaskinens egne klienter berøres ikke.</value>
   </data>
   <data name="Where clients reach the web services listener; each certificate names its revocation list and its root under it. Empty, the default, names neither, so a client that insists on checking revocation cannot. A certificate already issued keeps what it was issued with." xml:space="preserve">
     <value>Der klienter når webtjenestelytteren; hvert sertifikat oppgir tilbakekallingslisten og roten under den. Tomt, standard, oppgir ingen av dem, så en klient som insisterer på å kontrollere tilbakekalling, ikke kan det. Et allerede utstedt sertifikat beholder det det ble utstedt med.</value>
@@ -14233,9 +14206,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="Which attribute holds the name the person logs in with. This is what is stored against the account and what the directory is asked about at every logon afterwards, so guessing it from the address is not good enough - an entry that does not carry it is reported rather than provisioned." xml:space="preserve">
     <value>Hvilket attributt som inneholder navnet personen logger på med. Dette er det som lagres mot kontoen, og det katalogen spørres om ved hver pålogging etterpå, så å gjette det fra adressen er ikke godt nok - en oppføring som ikke bærer det, rapporteres i stedet for å bli provisjonert.</value>
-  </data>
-  <data name="Which deliveries are allowed from this range" xml:space="preserve">
-    <value>Hvilke leveringer som er tillatt fra dette området</value>
   </data>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>Hvilke katalogoppføringer som blir postbokser</value>
@@ -14663,9 +14633,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="_Deliver now" xml:space="preserve">
     <value>_Lever nå</value>
   </data>
-  <data name="_Deliver remote → local" xml:space="preserve">
-    <value>Le_ver ekstern → lokal</value>
-  </data>
   <data name="_Description" xml:space="preserve">
     <value>_Beskrivelse</value>
   </data>
@@ -14871,7 +14838,7 @@ Det fortsetter å prøve mens du bruker programmet.</value>
     <value>_List den likevel</value>
   </data>
   <data name="_Local to local" xml:space="preserve">
-    <value>Lokal _til lokal</value>
+    <value>Lo_kal til lokal</value>
   </data>
   <data name="_Log" xml:space="preserve">
     <value>_Logg</value>
@@ -17057,6 +17024,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="{0}: nothing published at {1} begins with v=STSv1, so senders will not recognise a policy there. Fix the record's value." xml:space="preserve">
     <value>{0}: ingenting som er publisert på {1}, begynner med v=STSv1, så avsendere vil ikke gjenkjenne noen policy der. Rett verdien i oppføringen.</value>
+  </data>
+  <data name="{0}: only after SMTP authentication" xml:space="preserve">
+    <value>{0}: bare etter SMTP-autentisering</value>
   </data>
   <data name="{0}: selector '{1}' and key file are set. {2} Checking DNS for the TXT record {3}…" xml:space="preserve">
     <value>{0}: selektor '{1}' og nøkkelfil er satt. {2} Sjekker DNS for TXT-oppføringen {3}…</value>
