@@ -199,9 +199,9 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("nameof(EntryView.Added)", columns, StringComparison.Ordinal);
          Assert.Contains("GridStyles.Trimmed(", columns, StringComparison.Ordinal);
 
-         string action = WithheldRowTests.MemberText(page, "private static DataGridTextColumn ActionColumn_()");
+         string action = WithheldRowTests.MemberText(page, "private static DataGridTemplateColumn ActionColumn_()");
          Assert.True(action != null, "DomainPolicyListView.ActionColumn_ is gone.");
-         Assert.Contains("new Setter(ToolTipProperty, new System.Windows.Data.Binding(nameof(EntryView.ActionTip)))", action, StringComparison.Ordinal);
+         Assert.Contains("panel.SetBinding(ToolTipProperty, new System.Windows.Data.Binding(nameof(EntryView.ActionTip)));", action, StringComparison.Ordinal);
          Assert.Contains("TextTrimming.CharacterEllipsis", action, StringComparison.Ordinal);
       }
 

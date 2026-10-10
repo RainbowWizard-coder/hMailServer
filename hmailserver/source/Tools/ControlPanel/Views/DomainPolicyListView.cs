@@ -96,6 +96,10 @@ namespace hMailServer.ControlPanel.Views
          public string Action { get; init; }
          public string ActionTip { get; init; }
          public string ActionWord { get; init; }
+
+         // The status mark that leads the Action cell: the Critical cross for
+         // Blocked, the Normal circle for Allowed (ActionMark_).
+         public FrameworkElement ActionMark { get; init; }
          public string Note { get; init; }
          public string Created { get; init; }
 
@@ -155,6 +159,7 @@ namespace hMailServer.ControlPanel.Views
                Action = DomainPolicyWords.Action(action),
                ActionTip = DomainPolicyWords.ActionTip(action),
                ActionWord = action,
+               ActionMark = ActionMark_(action),
                Note = Text_(item, "note"),
                Created = Text_(item, "created"),
                Added = DomainPolicyWords.Added(Text_(item, "created"))
@@ -488,25 +493,71 @@ namespace hMailServer.ControlPanel.Views
             MinWidth = GridStyles.HeaderWidth(header)
          });
 
+      /// <summary>The Action cell's mark's box, and the gap between it and its word.</summary>
+      private const double ActionMarkWidth = 10;
+      private const double ActionMarkGap = 6;
+
       /// <summary>
-      /// Allowed or Blocked, and in the cell's tool tip what that does to a
-      /// session; the row tells a screen reader the same (EntryView.ToString).
+      /// Allowed or Blocked, led by its status mark, and in the cell's tool tip what
+      /// that does to a session; the row tells a screen reader the same
+      /// (EntryView.ToString). A blocked entry differed from an allowed one only in
+      /// the word at the row's end (review finding F323): the Critical cross leads
+      /// Blocked and the Normal circle Allowed, the shapes the status pills use, so
+      /// that a blocked domain is found at a glance and the difference survives
+      /// greyscale. The column is floored at its header and at either word with its
+      /// mark, and sorts by the word.
       /// </summary>
-      private static DataGridTextColumn ActionColumn_()
+      private static DataGridTemplateColumn ActionColumn_()
       {
          string header = L("Action");
-         var column = new DataGridTextColumn
+         double floor = GridStyles.HeaderWidth(header);
+         foreach (string action in new[] { "white", "black" })
+            floor = Math.Max(floor, GridStyles.CellWidth(DomainPolicyWords.Action(action), ActionMarkWidth + ActionMarkGap));
+
+         var panel = new FrameworkElementFactory(typeof(StackPanel));
+         panel.SetValue(StackPanel.OrientationProperty, Orientation.Horizontal);
+         panel.SetValue(VerticalAlignmentProperty, VerticalAlignment.Center);
+         panel.SetBinding(ToolTipProperty, new System.Windows.Data.Binding(nameof(EntryView.ActionTip)));
+
+         var mark = new FrameworkElementFactory(typeof(ContentPresenter));
+         mark.SetBinding(ContentPresenter.ContentProperty, new System.Windows.Data.Binding(nameof(EntryView.ActionMark)));
+         mark.SetValue(MarginProperty, new Thickness(0, 0, ActionMarkGap, 0));
+         mark.SetValue(VerticalAlignmentProperty, VerticalAlignment.Center);
+         panel.AppendChild(mark);
+
+         var word = new FrameworkElementFactory(typeof(TextBlock));
+         word.SetBinding(TextBlock.TextProperty, new System.Windows.Data.Binding(nameof(EntryView.Action)));
+         word.SetValue(TextBlock.TextTrimmingProperty, TextTrimming.CharacterEllipsis);
+         word.SetValue(VerticalAlignmentProperty, VerticalAlignment.Center);
+         panel.AppendChild(word);
+
+         return new DataGridTemplateColumn
          {
             Header = header,
-            Binding = new System.Windows.Data.Binding(nameof(EntryView.Action)),
+            CellTemplate = new DataTemplate { VisualTree = panel },
+            SortMemberPath = nameof(EntryView.Action),
             Width = DataGridLength.Auto,
-            MinWidth = GridStyles.HeaderWidth(header)
+            MinWidth = floor
          };
-         var cell = new Style(typeof(TextBlock));
-         cell.Setters.Add(new Setter(TextBlock.TextTrimmingProperty, TextTrimming.CharacterEllipsis));
-         cell.Setters.Add(new Setter(ToolTipProperty, new System.Windows.Data.Binding(nameof(EntryView.ActionTip))));
-         column.ElementStyle = cell;
-         return column;
+      }
+
+      /// <summary>
+      /// The mark for the server's action, white or black: its level's shape in its
+      /// level's colour, by resource key so that a change of theme recolours it (as
+      /// the TCP/IP ports page's Listening mark is drawn).
+      /// </summary>
+      private static FrameworkElement ActionMark_(string action)
+      {
+         StatusPresentation presentation = StatusSemantics.For(action == "black" ? StatusLevel.Critical : StatusLevel.Normal);
+         var path = new System.Windows.Shapes.Path
+         {
+            Width = ActionMarkWidth,
+            Height = ActionMarkWidth,
+            Stretch = System.Windows.Media.Stretch.Fill,
+            VerticalAlignment = VerticalAlignment.Center
+         };
+         ShapeMarkVisuals.ApplyMark(path, presentation.Shape, presentation.BrushKey);
+         return path;
       }
 
       private static Button MakeButton(string text, Wpf.Ui.Controls.ControlAppearance appearance, RoutedEventHandler onClick)

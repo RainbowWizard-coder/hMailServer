@@ -117,7 +117,7 @@
                         <DataGrid.CellStyle>
                             <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsActive}" Value="False">
+                                    <DataTrigger Binding="{Binding Active}" Value="False">
                                         <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
                                     </DataTrigger>
                                 </Style.Triggers>
@@ -135,7 +135,19 @@
                                  finding F309: the grid said only the number, the name and
                                  whether the rule was on). -->
                             <DataGridTextColumn Header="{loc:L 'Summary'}" Binding="{Binding Summary}" Width="2*" MinWidth="160" ElementStyle="{StaticResource GridTrimmedText}" />
-                            <DataGridTextColumn Header="{loc:L 'Enabled'}" Binding="{Binding Enabled}" Width="100" MinWidth="80" />
+                            <!-- Whether the rule runs as a pill, On or Off, the Good square for
+                                 a rule that runs and the Normal circle for one that does not, so
+                                 that the state survives greyscale, where it was "No" in the last
+                                 column (review finding F323); the row of a rule switched off is
+                                 in the secondary text (the grid's CellStyle). -->
+                            <DataGridTemplateColumn Header="{loc:L 'Enabled'}" Width="100" MinWidth="80" SortMemberPath="Enabled">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <scaffold:StatusPill Level="{Binding EnabledLevel}" Text="{Binding Enabled}"
+                                                             HorizontalAlignment="Left" VerticalAlignment="Center" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
                         </DataGrid.Columns>
                     </DataGrid>
                 </scaffold:FillPanel>

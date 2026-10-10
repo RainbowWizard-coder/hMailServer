@@ -3744,6 +3744,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   own plural forms, after a read that worked. `AccountDialogStatesTests` holds the empty state, the button and the
   count.
 
+- **Fixed: a blocked domain and a rule switched off showed their state only as a word at the row's end.** On the
+  Allowed and blocked domains page a Blocked entry differed from an Allowed one only in its word; the Action cell is
+  now led by the status mark, the Critical cross for Blocked and the Normal circle for Allowed, in the level's colour by
+  resource key, and the column is floored at either word with its mark and sorts by the word. On the Rules page, and
+  the account dialog's Rules tab, a disabled rule differed only by "No" in the Enabled column; its name is now in the
+  secondary text, as an inactive domain's is, and the column is a pill, On at the Good level or Off at the Normal one.
+  The empty quarantine's glyph was made a neutral inbox by the failed-read work and stays so. `StateMarksTests` holds
+  the mark, the greyed name, the pill and the glyph.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

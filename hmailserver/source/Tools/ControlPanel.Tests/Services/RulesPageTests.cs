@@ -105,8 +105,10 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void EveryRuleColumn_HasAFloor_SoANarrowWindowScrollsTheGridSideways()
       {
          XElement page = Page();
-         List<XElement> columns = Named(page, "RuleGrid").Descendants(Wpf + "DataGridTextColumn").ToList();
-         // The number, the name, the summary (review finding F309) and whether the rule is on.
+         // The number, the name, the summary (review finding F309) and whether the rule
+         // is on - a template column, its On or Off a pill (StateMarksTests).
+         List<XElement> columns = Named(page, "RuleGrid").Descendants()
+            .Where(e => e.Name == Wpf + "DataGridTextColumn" || e.Name == Wpf + "DataGridTemplateColumn").ToList();
          Assert.Equal(4, columns.Count);
          foreach (XElement column in columns)
             Assert.True(column.Attribute("MinWidth") != null, "The column " + (string)column.Attribute("Header") + " has no MinWidth, so a narrow window squeezes it to nothing.");

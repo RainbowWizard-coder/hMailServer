@@ -24,10 +24,12 @@ namespace hMailServer.ControlPanel.Views
          // that the rule that forwards is found without opening each (review
          // finding F309); the page's search reads it as it reads the name.
          public string Summary { get; set; }
-         public string Enabled { get; set; }
-
-         /// <summary>Whether the rule is switched on: a switched-off rule's row takes the secondary text colour.</summary>
-         public bool IsActive { get; set; }
+         // On or Off, in the Enabled column's pill at its level: Good for a rule
+         // that runs, Normal for one switched off (review finding F323), whose row
+         // the grid draws in the secondary text (its CellStyle).
+         public bool Active { get; set; }
+         public string Enabled => Active ? L("On") : L("Off");
+         public StatusLevel EnabledLevel => Active ? StatusLevel.Good : StatusLevel.Normal;
 
          // What a screen reader says for the row: its cells, not the name of
          // this class, which is what a grid row is announced as otherwise.
@@ -276,9 +278,8 @@ namespace hMailServer.ControlPanel.Views
                      Id = (int)rule.ID,
                      Position = i + 1,
                      Name = (string)rule.Name,
-                     IsActive = (bool)rule.Active,
                      Summary = Summarise_(rule),
-                     Enabled = (bool)rule.Active ? L("Yes") : L("No")
+                     Active = (bool)rule.Active
                   });
                   ServerSession.Release(rule);
                }
@@ -344,7 +345,7 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>The switch says what it will do to the selected rule: Enable for one that is off, Disable for one that is on.</summary>
       private void ShowToggle_(RuleRow row)
       {
-         if (row != null && row.IsActive)
+         if (row != null && row.Active)
             ToggleButton.Content = L("Di_sable");
          else
             ToggleButton.Content = L("Ena_ble");
