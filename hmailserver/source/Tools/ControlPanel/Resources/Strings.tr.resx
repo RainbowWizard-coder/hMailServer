@@ -4348,9 +4348,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Enter a whole number." xml:space="preserve">
     <value>Bir tam sayı girin.</value>
   </data>
-  <data name="Enter a whole number; the higher number wins." xml:space="preserve">
-    <value>Bir tam sayı girin; yüksek olan sayı kazanır.</value>
-  </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>Bir adres girin ve arayın. İzleme, Günlükleme sayfasında ileti izleme açılana kadar hiçbir şey kaydetmez – kimin kiminle yazıştığını sakladığı için varsayılan olarak kapalıdır.</value>
   </data>

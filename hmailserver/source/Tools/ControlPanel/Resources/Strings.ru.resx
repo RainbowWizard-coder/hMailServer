@@ -4394,9 +4394,6 @@ Control Panel может читать файлы сообщений только
   <data name="Enter a whole number." xml:space="preserve">
     <value>Введите целое число.</value>
   </data>
-  <data name="Enter a whole number; the higher number wins." xml:space="preserve">
-    <value>Введите целое число; побеждает большее число.</value>
-  </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>Введите адрес и выполните поиск. Трассировка ничего не записывает, пока трассировка сообщений не будет включена на странице «Журналирование», – по умолчанию она выключена, потому что сохраняет, кто с кем переписывается.</value>
   </data>

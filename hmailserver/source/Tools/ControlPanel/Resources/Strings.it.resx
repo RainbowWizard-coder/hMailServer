@@ -4348,9 +4348,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Enter a whole number." xml:space="preserve">
     <value>Indica un numero intero.</value>
   </data>
-  <data name="Enter a whole number; the higher number wins." xml:space="preserve">
-    <value>Indica un numero intero; vince il numero più alto.</value>
-  </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>Inserisci un indirizzo e cerca. La traccia non registra nulla finché il tracciamento dei messaggi non viene attivato nella pagina Registrazione – è disattivato per impostazione predefinita perché memorizza chi corrisponde con chi.</value>
   </data>

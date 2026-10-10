@@ -4348,9 +4348,6 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Enter a whole number." xml:space="preserve">
     <value>Geben Sie eine ganze Zahl ein.</value>
   </data>
-  <data name="Enter a whole number; the higher number wins." xml:space="preserve">
-    <value>Geben Sie eine ganze Zahl ein; die höhere Zahl hat Vorrang.</value>
-  </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>Geben Sie eine Adresse ein und suchen Sie. Der Trace zeichnet nichts auf, bis die Nachrichtenverfolgung auf der Seite Protokollierung eingeschaltet wird – sie ist standardmäßig aus, weil sie speichert, wer mit wem korrespondiert.</value>
   </data>

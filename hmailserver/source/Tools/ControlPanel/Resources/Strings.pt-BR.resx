@@ -4348,9 +4348,6 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Enter a whole number." xml:space="preserve">
     <value>Informe um número inteiro.</value>
   </data>
-  <data name="Enter a whole number; the higher number wins." xml:space="preserve">
-    <value>Informe um número inteiro; o número mais alto prevalece.</value>
-  </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>Digite um endereço e pesquise. O rastreamento não registra nada até que o rastreamento de mensagens seja ativado na página Registro em log – está desativado por padrão porque armazena quem se corresponde com quem.</value>
   </data>

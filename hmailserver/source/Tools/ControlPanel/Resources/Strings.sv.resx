@@ -4348,9 +4348,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Enter a whole number." xml:space="preserve">
     <value>Ange ett heltal.</value>
   </data>
-  <data name="Enter a whole number; the higher number wins." xml:space="preserve">
-    <value>Ange ett heltal; det högre talet vinner.</value>
-  </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>Ange en adress och sök. Spårningen registrerar ingenting förrän meddelandespårning slås på på sidan Loggning – den är av som standard eftersom den lagrar vem som brevväxlar med vem.</value>
   </data>

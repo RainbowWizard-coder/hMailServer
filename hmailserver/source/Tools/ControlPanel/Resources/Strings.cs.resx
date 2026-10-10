@@ -4394,9 +4394,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Enter a whole number." xml:space="preserve">
     <value>Zadejte celé číslo.</value>
   </data>
-  <data name="Enter a whole number; the higher number wins." xml:space="preserve">
-    <value>Zadejte celé číslo; vyšší číslo má přednost.</value>
-  </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>Zadejte adresu a vyhledejte. Trasování nezaznamenává vůbec nic, dokud není trasování zpráv zapnuto na stránce Logování – ve výchozím nastavení je vypnuto, protože ukládá, kdo si s kým dopisuje.</value>
   </data>

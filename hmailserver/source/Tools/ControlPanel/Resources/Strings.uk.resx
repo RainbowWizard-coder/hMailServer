@@ -4394,9 +4394,6 @@
   <data name="Enter a whole number." xml:space="preserve">
     <value>Введіть ціле число.</value>
   </data>
-  <data name="Enter a whole number; the higher number wins." xml:space="preserve">
-    <value>Введіть ціле число; перемагає більше число.</value>
-  </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>Введіть адресу та виконайте пошук. Трасування нічого не записує, доки трасування повідомлень не буде ввімкнено на сторінці «Журналювання», – типово воно вимкнене, бо зберігає, хто з ким листується.</value>
   </data>

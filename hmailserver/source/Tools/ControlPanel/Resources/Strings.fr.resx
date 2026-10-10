@@ -4348,9 +4348,6 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Enter a whole number." xml:space="preserve">
     <value>Saisissez un nombre entier.</value>
   </data>
-  <data name="Enter a whole number; the higher number wins." xml:space="preserve">
-    <value>Saisissez un nombre entier ; le nombre le plus élevé l'emporte.</value>
-  </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>Saisissez une adresse et lancez la recherche. La trace n'enregistre rien tant que le traçage des messages n'est pas activé sur la page Journalisation – il est désactivé par défaut car il conserve qui correspond avec qui.</value>
   </data>

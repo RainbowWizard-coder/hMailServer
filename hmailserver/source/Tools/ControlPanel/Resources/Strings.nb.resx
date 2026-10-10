@@ -4348,9 +4348,6 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Enter a whole number." xml:space="preserve">
     <value>Skriv inn et heltall.</value>
   </data>
-  <data name="Enter a whole number; the higher number wins." xml:space="preserve">
-    <value>Skriv inn et heltall; det høyeste tallet vinner.</value>
-  </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>Skriv inn en adresse og søk. Sporingen registrerer ingenting før meldingssporing slås på på siden Logging – den er av som standard fordi den lagrer hvem som korresponderer med hvem.</value>
   </data>

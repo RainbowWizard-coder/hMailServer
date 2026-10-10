@@ -4394,9 +4394,6 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Enter a whole number." xml:space="preserve">
     <value>Należy podać liczbę całkowitą.</value>
   </data>
-  <data name="Enter a whole number; the higher number wins." xml:space="preserve">
-    <value>Należy podać liczbę całkowitą; wygrywa wyższa liczba.</value>
-  </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>Wpisz adres i wyszukaj. Śledzenie nie rejestruje niczego, dopóki śledzenie wiadomości nie zostanie włączone na stronie Rejestrowanie w dzienniku – domyślnie jest wyłączone, ponieważ zapisuje, kto z kim koresponduje.</value>
   </data>

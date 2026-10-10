@@ -491,8 +491,11 @@ namespace hMailServer.ControlPanel.Views
             NewUpperRow.Error = order == InlineFormChecks.RangeOrder.MixedFamilies
                ? L("The upper address must be of the same kind as the lower: both IPv4, or both IPv6.")
                : L("The upper address must not be below the lower.");
+         // The range dialog's sentence for its priority: that the higher wins is
+         // the page's description, just above, and in the form's narrow column at
+         // 760 pixels "...; the higher number wins." ran to seven lines in German.
          if (!InlineFormChecks.TryWholeNumber(NewPriority.Text, int.MinValue, int.MaxValue, out int priority))
-            NewPriorityRow.Error = L("Enter a whole number; the higher number wins.");
+            NewPriorityRow.Error = L("Enter a whole number.");
          if (DialogFields.ShowFirstError(NewNameRow, NewLowerRow, NewUpperRow, NewPriorityRow))
             return;
 

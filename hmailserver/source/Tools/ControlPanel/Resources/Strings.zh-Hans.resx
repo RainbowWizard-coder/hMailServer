@@ -4348,9 +4348,6 @@
   <data name="Enter a whole number." xml:space="preserve">
     <value>请输入整数。</value>
   </data>
-  <data name="Enter a whole number; the higher number wins." xml:space="preserve">
-    <value>请输入整数；数字越大优先级越高。</value>
-  </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>输入地址并搜索。在“日志记录”页面开启邮件跟踪之前，跟踪不会记录任何内容 - 它默认关闭，因为它会存储谁与谁通信。</value>
   </data>

@@ -4348,9 +4348,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Enter a whole number." xml:space="preserve">
     <value>Voer een geheel getal in.</value>
   </data>
-  <data name="Enter a whole number; the higher number wins." xml:space="preserve">
-    <value>Voer een geheel getal in; het hoogste getal wint.</value>
-  </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>Voer een adres in en zoek. De tracering legt niets vast totdat berichttracering wordt ingeschakeld op de pagina Logboekregistratie – standaard staat deze uit omdat ze opslaat wie met wie correspondeert.</value>
   </data>

@@ -152,7 +152,9 @@
                     <ColumnDefinition Width="2*" />
                     <ColumnDefinition Width="2*" />
                     <ColumnDefinition Width="2*" />
-                    <ColumnDefinition Width="*" MinWidth="80" />
+                    <!-- Room at the narrowest for a priority's message, "Enter a whole
+                         number.", in three short lines, as its neighbours' take. -->
+                    <ColumnDefinition Width="*" MinWidth="96" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <scaffold:FieldRow x:Name="NewNameRow" Label="{loc:L 'Na_me'}" Margin="0,0,8,0" LabelGroup="RangeLine">

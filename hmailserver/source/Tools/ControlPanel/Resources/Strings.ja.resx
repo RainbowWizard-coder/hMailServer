@@ -4348,9 +4348,6 @@
   <data name="Enter a whole number." xml:space="preserve">
     <value>整数を入力してください。</value>
   </data>
-  <data name="Enter a whole number; the higher number wins." xml:space="preserve">
-    <value>整数を入力してください。数が大きいほうが優先されます。</value>
-  </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>アドレスを入力して検索してください。メッセージ トレースはログ ページでオンにするまで何も記録しません。誰と誰がやり取りしたかを保存するため、既定ではオフになっています。</value>
   </data>

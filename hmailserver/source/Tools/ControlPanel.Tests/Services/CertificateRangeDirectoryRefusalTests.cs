@@ -51,7 +51,10 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("L(\"The upper address must not be below the lower.\")", add, StringComparison.Ordinal);
          Assert.Contains("L(\"The upper address must be of the same kind as the lower: both IPv4, or both IPv6.\")", add, StringComparison.Ordinal);
          Assert.Contains("if (!InlineFormChecks.TryWholeNumber(NewPriority.Text, int.MinValue, int.MaxValue, out int priority))", add, StringComparison.Ordinal);
-         Assert.Contains("NewPriorityRow.Error = L(\"Enter a whole number; the higher number wins.\");", add, StringComparison.Ordinal);
+         // The range dialog's sentence, short enough for the form's narrow column; the
+         // page's description says that the higher priority wins.
+         Assert.Contains("NewPriorityRow.Error = L(\"Enter a whole number.\");", add, StringComparison.Ordinal);
+         Assert.Contains("DialogFields.ShowError(priorityRow_, L(\"Enter a whole number.\"));", Member("IPRangeDialog.cs", "private void Save()"), StringComparison.Ordinal);
          Assert.DoesNotContain("priority = 15", add, StringComparison.Ordinal);
          Assert.DoesNotContain("MessageBox.Show(L(\"Name, lower IP and upper IP are required.\")", add, StringComparison.Ordinal);
       }

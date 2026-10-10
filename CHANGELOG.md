@@ -1883,10 +1883,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   box below" for a box beside the others. Each value refused is said under its box now, with the keyboard put in the
   first and every box at fault marked on one press: an empty name or file, the lower and upper address of a range as
   the server reads an address ("Enter the lower address of the range, such as 10.0.0.0."), the upper of the same kind
-  as the lower and not below it, a priority that is a whole number ("Enter a whole number; the higher number wins."),
-  and on the LDAP page the port and the timeout on their boxes as well as in the notice. The certificate's note names
-  the Key passphrase box. On both pages' Add forms the boxes and Add line up whatever a caption wraps to, and a
-  message under one box moves none of the others.
+  as the lower and not below it, a priority that is a whole number ("Enter a whole number."), and on the LDAP page
+  the port and the timeout on their boxes as well as in the notice. The certificate's note names the Key passphrase
+  box. On both pages' Add forms the boxes and Add line up whatever a caption wraps to, and a message under one box
+  moves none of the others.
 
 - **Fixed: the Routes, TCP/IP ports, Rules, Incoming relays and Server sendout forms refused a value in a message
   box, and some put in or sent on what was typed.** "Domain and target host are required.", "Enter a valid port

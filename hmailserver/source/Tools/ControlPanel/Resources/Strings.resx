@@ -4348,9 +4348,6 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Enter a whole number." xml:space="preserve">
     <value>Enter a whole number.</value>
   </data>
-  <data name="Enter a whole number; the higher number wins." xml:space="preserve">
-    <value>Enter a whole number; the higher number wins.</value>
-  </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom.</value>
   </data>
