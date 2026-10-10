@@ -76,6 +76,46 @@ namespace hMailServer.ControlPanel.Services
       public static string EntryPath(int id) => "api/v1/domain-policy-list/" + id.ToString(CultureInfo.InvariantCulture); // no-loc
 
       /// <summary>
+      /// Why an entry cannot be changed in place from here, in this page's words,
+      /// from what the REST client's Open refused with: the REST API off, or bound
+      /// to a loopback address of the server while this Control Panel runs on
+      /// another machine, each with what to do; otherwise the client's own
+      /// sentence and that the entry can be deleted and added again meanwhile.
+      /// The sentences RestSettings.Endpoint gives those two are the settings
+      /// pages' - "these settings are reached over it: the server keeps them, but
+      /// no COM property carries them", "Change these settings in the Control
+      /// Deck" - which said of this list, which COM does carry, what is not so
+      /// (review finding F266, found re-checking a0ceb4014). Checked in Open's
+      /// order: the password first, then the listener, by its rules there.
+      /// </summary>
+      public static string Unchangeable(bool hasPassword, string port, string bindAddress, bool localSession, string refusal)
+      {
+         if (hasPassword)
+         {
+            string portText = (port ?? "").Trim();
+            if (!int.TryParse(portText, NumberStyles.Integer, CultureInfo.InvariantCulture, out int number) || number <= 0 || number > 65535)
+               return F("An entry is changed in place over the REST API, which is off (RestApiPort is {0}). Give it a port on the API & monitoring page and reinitialise the server, or delete the entry and add it again.",
+                  portText.Length == 0 ? "0" : portText);
+
+            string bind = string.IsNullOrWhiteSpace(bindAddress) ? "127.0.0.1" : bindAddress.Trim(); // no-loc
+            bool loopback = bind == "127.0.0.1" || bind == "::1" || bind.Equals("localhost", StringComparison.OrdinalIgnoreCase); // no-loc
+            if (!localSession && loopback)
+               return F("An entry is changed in place over the REST API, which listens on {0} only, out of reach of a Control Panel on another machine. Change the entry in the Control Deck on the server, or delete it and add it again.", bind);
+         }
+
+         return Sentences(refusal, L("An entry is changed in place over the REST API; until it can be used from here, delete the entry and add it again instead."));
+      }
+
+      /// <summary>
+      /// The one-time code asked for and not given, in this page's words: before
+      /// the dialog opens, Edit… asks again; in the dialog, Save does.
+      /// </summary>
+      public static string CodeNotGiven(bool saving)
+         => saving
+            ? L("Nothing was saved: the REST API asks for the administrator's one-time code before it answers, and none was given. Press Save to be asked again.")
+            : L("An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again.");
+
+      /// <summary>
       /// The body of the PUT that changes an entry: all four of its fields, so that
       /// the entry is what the dialog shows. The server refuses the whole body or
       /// takes it, and keeps the entry's id and the date it was added.

@@ -273,11 +273,26 @@ namespace hMailServer.ControlPanel.Views
       /// whose save changes it in place, keeping the date it was added, where an
       /// entry could only be removed and added again (review finding F266). The
       /// entry stays selected, and the notice says it was saved.
+      ///
+      /// The change is the REST API's, which a default install has off
+      /// (RestApiPort 0), so the dialog opens only once the REST client has a
+      /// session - asking for the one-time code again, since the press asks for
+      /// it - and otherwise the notice says why in this page's words, at Warning:
+      /// the dialog opened filled in on any entry, took the administrator's
+      /// changes and refused them only at Save, with the settings pages' sentence
+      /// that no COM property carries "these settings" (found re-checking
+      /// a0ceb4014).
       /// </summary>
       private void EditSelected()
       {
          if (entries_.SelectedItem is not EntryView selected)
             return;
+
+         if (!AddDomainPolicyDialog.CanChange(Window.GetWindow(this), saving: false, out string why))
+         {
+            Status_(StatusLevel.Warning, why);
+            return;
+         }
 
          string saved = AddDomainPolicyDialog.Edit(Window.GetWindow(this), selected.Id, selected.Pattern, selected.MatchOnWord, selected.ActionWord, selected.Note);
          if (saved == null)
@@ -516,8 +531,10 @@ namespace hMailServer.ControlPanel.Views
    /// already listed - is shown under the pattern, in its words.
    ///
    /// A change is the REST API's (DomainPolicyWords), which keeps the entry's id
-   /// and the date it was added; where the REST API cannot be reached from here
-   /// the dialog stays open and says why above its fields, and nothing changes.
+   /// and the date it was added; where the REST API cannot be used from here the
+   /// page says why and the dialog is not opened (CanChange), and where it cannot
+   /// be reached at Save the dialog stays open and says why above its fields,
+   /// and nothing changes.
    /// </summary>
    internal static class AddDomainPolicyDialog
    {
@@ -649,19 +666,20 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private static bool Change_(Window dialog, int id, string pattern, string matchOn, string action, string note, FieldRow patternRow, InlineNotice notice)
       {
-         ServerSession session = ServerSession.Current;
-         RestSettingsClient client = session == null ? null : RestSettingsClient.For(session);
-         if (client == null)
+         // Save is a request of its own: the session made again where it has
+         // gone, and the code asked for again where it was not given before,
+         // where every Save after one cancelled prompt refused without asking
+         // for the rest of the session, "Open the page again to be asked for the
+         // code." - which reopening this page did not do (found re-checking
+         // a0ceb4014).
+         if (!CanChange(dialog, saving: true, out string why))
          {
-            notice.Show(StatusLevel.Critical, L("Sign in to a server first."));
+            notice.Show(StatusLevel.Warning, why);
             return false;
          }
 
-         RestSettingsClient.Reply reply = client.Put(DomainPolicyWords.EntryPath(id), DomainPolicyWords.ChangeBody(pattern, matchOn, action, note), () =>
-         {
-            var prompt = new TotpPromptDialog(dialog);
-            return prompt.ShowDialog() == true ? prompt.Code : null;
-         });
+         RestSettingsClient client = RestSettingsClient.For(ServerSession.Current);
+         RestSettingsClient.Reply reply = client.Put(DomainPolicyWords.EntryPath(id), DomainPolicyWords.ChangeBody(pattern, matchOn, action, note), () => AskForCode_(dialog));
 
          if (reply.Ok)
             return true;
@@ -669,9 +687,52 @@ namespace hMailServer.ControlPanel.Views
          string sentence = reply.Status == 400 ? DiscoveryReport.ErrorOf(reply.Body) : "";
          if (sentence.Length > 0)
             DialogFields.ShowError(patternRow, sentence);
+         else if (client.CodeDeclined)
+            notice.Show(StatusLevel.Warning, DomainPolicyWords.CodeNotGiven(saving: true));
          else
             notice.Show(StatusLevel.Critical, client.RefusalFor(reply));
          return false;
+      }
+
+      /// <summary>
+      /// Whether the REST API, which changes an entry in place, can be used from
+      /// here now: the REST client's session made, or there already, with the
+      /// one-time code asked for again (askAgain), since the press of Edit… or
+      /// Save that asks is a request for it. False and why not, in the page's
+      /// words (DomainPolicyWords.Unchangeable, CodeNotGiven), otherwise.
+      /// </summary>
+      internal static bool CanChange(Window owner, bool saving, out string why)
+      {
+         why = null;
+         ServerSession session = ServerSession.Current;
+         if (session == null)
+         {
+            why = L("Sign in to a server first.");
+            return false;
+         }
+
+         RestSettingsClient client = RestSettingsClient.For(session);
+         if (client.Open(() => AskForCode_(owner), askAgain: true, out string refusal))
+            return true;
+
+         if (client.CodeDeclined)
+         {
+            why = DomainPolicyWords.CodeNotGiven(saving);
+            return false;
+         }
+
+         var ini = new IniFeatureStore();
+         why = DomainPolicyWords.Unchangeable(session.RestAuthorization() != null,
+            ini.Read("RestApiPort", "0"), ini.Read("RestApiBindAddress", "127.0.0.1"), // no-loc
+            ServerSession.IsLocalSession, refusal);
+         return false;
+      }
+
+      /// <summary>The administrator's one-time code, asked for over <paramref name="owner"/>; null when none was given.</summary>
+      private static string AskForCode_(Window owner)
+      {
+         var prompt = new TotpPromptDialog(owner);
+         return prompt.ShowDialog() == true ? prompt.Code : null;
       }
    }
 }

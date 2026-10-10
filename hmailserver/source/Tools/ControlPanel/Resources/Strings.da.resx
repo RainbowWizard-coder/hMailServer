@@ -1533,6 +1533,18 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="An entire outbound delivery session. 0 = no bound." xml:space="preserve">
     <value>En hel udgående leveringssession. 0 = ingen grænse.</value>
   </data>
+  <data name="An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again." xml:space="preserve">
+    <value>En post ændres på stedet gennem REST-API'et, som beder om administratorens engangskode, før det svarer, og der blev ikke givet nogen. Tryk på Redigér… for at blive spurgt igen, eller slet posten, og tilføj den igen.</value>
+  </data>
+  <data name="An entry is changed in place over the REST API, which is off (RestApiPort is {0}). Give it a port on the API &amp; monitoring page and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
+    <value>En post ændres på stedet gennem REST-API'et, som er slået fra (RestApiPort er {0}). Giv det en port på siden API og overvågning, og geninitialisér serveren, eller slet posten, og tilføj den igen.</value>
+  </data>
+  <data name="An entry is changed in place over the REST API, which listens on {0} only, out of reach of a Control Panel on another machine. Change the entry in the Control Deck on the server, or delete it and add it again." xml:space="preserve">
+    <value>En post ændres på stedet gennem REST-API'et, som kun lytter på {0}, uden for rækkevidde af et Control Panel på en anden maskine. Ændr posten i Control Deck på serveren, eller slet den, og tilføj den igen.</value>
+  </data>
+  <data name="An entry is changed in place over the REST API; until it can be used from here, delete the entry and add it again instead." xml:space="preserve">
+    <value>En post ændres på stedet gennem REST-API'et; indtil det kan bruges herfra, så slet i stedet posten, og tilføj den igen.</value>
+  </data>
   <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
     <value>Et hændelsesscript kører inde i serveren med tjenestekontoens rettigheder, så hvad det må instantiere, er en sikkerhedsbeslutning frem for en bekvemmelighed. Som leveret er dette *, som tillader ethvert objekt, så en opgradering aldrig ødelægger et script, en installation allerede kører - det er indstillingen at indsnævre, ikke den sikre tilstand. Navngiv kun det, et af dine egne scripts rent faktisk har brug for - et scripting-filsystemobjekt, en HTTP-klient - og alt andet afvises med objektets navn i fejlloggen; tomt afviser alt ud over hMailServers egne objekter.</value>
   </data>
@@ -7653,6 +7665,9 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="Nothing was saved: correct what is marked below, then save again." xml:space="preserve">
     <value>Intet blev gemt: ret det, der er markeret nedenfor, og gem igen.</value>
+  </data>
+  <data name="Nothing was saved: the REST API asks for the administrator's one-time code before it answers, and none was given. Press Save to be asked again." xml:space="preserve">
+    <value>Intet blev gemt: REST-API'et beder om administratorens engangskode, før det svarer, og der blev ikke givet nogen. Tryk på Gem for at blive spurgt igen.</value>
   </data>
   <data name="Nothing, while staying a member" xml:space="preserve">
     <value>Intet, men forbliver medlem</value>

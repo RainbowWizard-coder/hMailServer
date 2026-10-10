@@ -1533,6 +1533,18 @@
   <data name="An entire outbound delivery session. 0 = no bound." xml:space="preserve">
     <value>整个出站投递会话。0 = 不限制。</value>
   </data>
+  <data name="An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again." xml:space="preserve">
+    <value>条目通过 REST API 就地更改，而 REST API 在应答前要求输入管理员的一次性代码，但未输入任何代码。请按“编辑…”再次输入，或者删除该条目后重新添加。</value>
+  </data>
+  <data name="An entry is changed in place over the REST API, which is off (RestApiPort is {0}). Give it a port on the API &amp; monitoring page and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
+    <value>条目通过 REST API 就地更改，而 REST API 已关闭（RestApiPort 为 {0}）。请在“API 与监控”页面上为它指定端口并重新初始化服务器，或者删除该条目后重新添加。</value>
+  </data>
+  <data name="An entry is changed in place over the REST API, which listens on {0} only, out of reach of a Control Panel on another machine. Change the entry in the Control Deck on the server, or delete it and add it again." xml:space="preserve">
+    <value>条目通过 REST API 就地更改，而 REST API 仅在 {0} 上监听，其他计算机上的控制面板无法访问。请在服务器上的 Control Deck 中更改该条目，或者删除后重新添加。</value>
+  </data>
+  <data name="An entry is changed in place over the REST API; until it can be used from here, delete the entry and add it again instead." xml:space="preserve">
+    <value>条目通过 REST API 就地更改；在能从这里使用 REST API 之前，请改为删除该条目后重新添加。</value>
+  </data>
   <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
     <value>事件脚本在服务器内部以服务账户的权限运行，因此它可以实例化什么是一项安全决定，而不是一件图方便的事。出厂设置为 *，即允许任何对象，这样升级永远不会弄坏某个安装环境已经在运行的脚本 - 这是一个应当收窄的设置，而不是安全状态。只写下您的脚本确实需要的东西 - 一个脚本文件系统对象、一个 HTTP 客户端 - 其余一切都会被拒绝，并把对象的名称记入错误日志；留空则拒绝 hMailServer 自己的对象以外的一切。</value>
   </data>
@@ -7653,6 +7665,9 @@
   </data>
   <data name="Nothing was saved: correct what is marked below, then save again." xml:space="preserve">
     <value>未保存任何内容：请更正下面标出的内容，然后再次保存。</value>
+  </data>
+  <data name="Nothing was saved: the REST API asks for the administrator's one-time code before it answers, and none was given. Press Save to be asked again." xml:space="preserve">
+    <value>未保存任何内容：REST API 在应答前要求输入管理员的一次性代码，但未输入任何代码。请按“保存”再次输入。</value>
   </data>
   <data name="Nothing, while staying a member" xml:space="preserve">
     <value>不接收，但仍是成员</value>

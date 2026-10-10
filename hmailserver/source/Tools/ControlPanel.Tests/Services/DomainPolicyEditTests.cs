@@ -82,6 +82,65 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal("Rotating \"hosts\"", root.GetProperty("note").GetString());
       }
 
+      /// <summary>
+      /// Why an entry cannot be changed from here is said in this page's words:
+      /// the REST API off, or on a loopback address of another machine, with what
+      /// to do; anything else in the client's sentence, with what to do meanwhile.
+      /// The settings pages' sentences said of this list that no COM property
+      /// carries it, and to change "these settings" in the Control Deck.
+      /// </summary>
+      [Theory]
+      [InlineData("0", "0")]
+      [InlineData("", "0")]
+      [InlineData(" ", "0")]
+      [InlineData("off", "off")]
+      [InlineData("-1", "-1")]
+      [InlineData("65536", "65536")]
+      public void AnEntryCannotBeChanged_WhileTheRestApiIsOff(string port, string said)
+      {
+         string why = DomainPolicyWords.Unchangeable(true, port, "127.0.0.1", true, "The settings pages' sentence.");
+         Assert.Equal("An entry is changed in place over the REST API, which is off (RestApiPort is " + said + "). Give it a port on the API & monitoring page and reinitialise the server, or delete the entry and add it again.", why);
+         Assert.DoesNotContain("these settings", why, StringComparison.Ordinal);
+      }
+
+      [Theory]
+      [InlineData("127.0.0.1", "127.0.0.1")]
+      [InlineData("", "127.0.0.1")]
+      [InlineData("::1", "::1")]
+      [InlineData("LocalHost", "LocalHost")]
+      public void AnEntryCannotBeChanged_FromAnotherMachine_OverALoopbackListener(string bind, string said)
+      {
+         Assert.Equal("An entry is changed in place over the REST API, which listens on " + said + " only, out of reach of a Control Panel on another machine. Change the entry in the Control Deck on the server, or delete it and add it again.",
+            DomainPolicyWords.Unchangeable(true, "8443", bind, false, "The settings pages' sentence."));
+      }
+
+      [Fact]
+      public void AnyOtherRefusal_IsTheClientsSentence_AndWhatToDoMeanwhile()
+      {
+         const string tail = "An entry is changed in place over the REST API; until it can be used from here, delete the entry and add it again instead.";
+
+         // On the server a loopback listener is reached; what went wrong is the client's to say.
+         Assert.Equal("The REST API could not be reached: refused. " + tail,
+            DomainPolicyWords.Unchangeable(true, "8443", "127.0.0.1", true, "The REST API could not be reached: refused."));
+         Assert.Equal("The REST API is not running. " + tail,
+            DomainPolicyWords.Unchangeable(true, "8443", "192.0.2.10", false, "The REST API is not running."));
+
+         // No password to sign in with is said whatever the port, as Open checks it first.
+         Assert.Equal("This session holds no password. " + tail,
+            DomainPolicyWords.Unchangeable(false, "0", "127.0.0.1", false, "This session holds no password."));
+      }
+
+      /// <summary>A code not given is asked for again at the next press, and the sentence says which: the page's Edit… or the dialog's Save.</summary>
+      [Fact]
+      public void ACodeNotGiven_SaysWhichPressAsksAgain()
+      {
+         Assert.Equal("An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again.",
+            DomainPolicyWords.CodeNotGiven(saving: false));
+         Assert.Equal("Nothing was saved: the REST API asks for the administrator's one-time code before it answers, and none was given. Press Save to be asked again.",
+            DomainPolicyWords.CodeNotGiven(saving: true));
+         Assert.DoesNotContain("Open the page again", DomainPolicyWords.CodeNotGiven(saving: false), StringComparison.Ordinal);
+      }
+
       [Fact]
       public void ThePage_ChangesAnEntryThroughEdit_EnterAndADoubleClick()
       {
@@ -96,11 +155,34 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("AddDomainPolicyDialog.Edit(Window.GetWindow(this), selected.Id, selected.Pattern, selected.MatchOnWord, selected.ActionWord, selected.Note)", edit, StringComparison.Ordinal);
          Assert.Contains("Status_(StatusLevel.Good, ListOutcome.Saved(saved, DateTime.Now));", edit, StringComparison.Ordinal);
 
+         // The dialog opens only where the REST API can be used: in a default
+         // install, with RestApiPort 0, it opened filled in and refused at Save.
+         int check = edit.IndexOf("if (!AddDomainPolicyDialog.CanChange(Window.GetWindow(this), saving: false, out string why))", StringComparison.Ordinal);
+         int open = edit.IndexOf("AddDomainPolicyDialog.Edit(", StringComparison.Ordinal);
+         Assert.True(check >= 0 && open > check, "EditSelected opens the dialog without asking whether the REST API can be used.");
+         Assert.Contains("Status_(StatusLevel.Warning, why);", edit.Substring(check, open - check), StringComparison.Ordinal);
+
          string change = WithheldRowTests.MemberText(page, "private static bool Change_(Window dialog, int id, string pattern, string matchOn, string action, string note, FieldRow patternRow, InlineNotice notice)");
          Assert.True(change != null, "AddDomainPolicyDialog.Change_ is gone.");
          Assert.Contains("client.Put(DomainPolicyWords.EntryPath(id), DomainPolicyWords.ChangeBody(pattern, matchOn, action, note),", change, StringComparison.Ordinal);
          Assert.Contains("DialogFields.ShowError(patternRow, sentence);", change, StringComparison.Ordinal);
          Assert.Contains("notice.Show(StatusLevel.Critical, client.RefusalFor(reply));", change, StringComparison.Ordinal);
+         Assert.Contains("notice.Show(StatusLevel.Warning, DomainPolicyWords.CodeNotGiven(saving: true));", change, StringComparison.Ordinal);
+
+         // Save asks again too, before the PUT: one cancelled code prompt shut
+         // every Save for the rest of the session.
+         int saveCheck = change.IndexOf("if (!CanChange(dialog, saving: true, out string why))", StringComparison.Ordinal);
+         int put = change.IndexOf("client.Put(", StringComparison.Ordinal);
+         Assert.True(saveCheck >= 0 && put > saveCheck, "Change_ puts the entry without asking the REST client again.");
+
+         // Both ask for the code again (askAgain), and say a code not given in the page's words.
+         string can = WithheldRowTests.MemberText(page, "internal static bool CanChange(Window owner, bool saving, out string why)");
+         Assert.True(can != null, "AddDomainPolicyDialog.CanChange is gone.");
+         Assert.Contains("client.Open(() => AskForCode_(owner), askAgain: true, out string refusal)", can, StringComparison.Ordinal);
+         Assert.Contains("why = DomainPolicyWords.CodeNotGiven(saving);", can, StringComparison.Ordinal);
+         Assert.Contains("why = DomainPolicyWords.Unchangeable(session.RestAuthorization() != null,", can, StringComparison.Ordinal);
+         Assert.Contains("ini.Read(\"RestApiPort\", \"0\"), ini.Read(\"RestApiBindAddress\", \"127.0.0.1\")", can, StringComparison.Ordinal);
+         Assert.DoesNotContain("askAgain: false", page, StringComparison.Ordinal);
       }
 
       [Fact]

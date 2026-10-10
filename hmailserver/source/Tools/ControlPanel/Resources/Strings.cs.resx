@@ -1545,6 +1545,18 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="An entire outbound delivery session. 0 = no bound." xml:space="preserve">
     <value>Celá odchozí doručovací relace. 0 = bez omezení.</value>
   </data>
+  <data name="An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again." xml:space="preserve">
+    <value>Položka se mění na místě přes REST API, které před odpovědí žádá jednorázový kód správce, a žádný nebyl zadán. Stiskněte Upravit… a budete požádáni znovu, nebo položku smažte a přidejte znovu.</value>
+  </data>
+  <data name="An entry is changed in place over the REST API, which is off (RestApiPort is {0}). Give it a port on the API &amp; monitoring page and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
+    <value>Položka se mění na místě přes REST API, které je vypnuté (RestApiPort je {0}). Dejte mu port na stránce API a monitorování a reinicializujte server, nebo položku smažte a přidejte znovu.</value>
+  </data>
+  <data name="An entry is changed in place over the REST API, which listens on {0} only, out of reach of a Control Panel on another machine. Change the entry in the Control Deck on the server, or delete it and add it again." xml:space="preserve">
+    <value>Položka se mění na místě přes REST API, které naslouchá jen na {0}, mimo dosah Control Panel na jiném počítači. Změňte položku v Control Deck na serveru, nebo ji smažte a přidejte znovu.</value>
+  </data>
+  <data name="An entry is changed in place over the REST API; until it can be used from here, delete the entry and add it again instead." xml:space="preserve">
+    <value>Položka se mění na místě přes REST API; dokud ho odsud nelze použít, položku místo toho smažte a přidejte znovu.</value>
+  </data>
   <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
     <value>Skript události běží uvnitř serveru s právy účtu služby, takže to, jaké objekty smí vytvářet, je bezpečnostní rozhodnutí, ne otázka pohodlí. V dodaném stavu je zde *, což povoluje libovolný objekt, aby aktualizace nikdy nerozbila skript, který instalace už spouští – je to nastavení, které je třeba zúžit, ne bezpečný stav. Uveďte jen to, co některý váš skript skutečně potřebuje – skriptovací objekt souborového systému, klienta HTTP – a vše ostatní bude odmítnuto se jménem objektu v protokolu chyb; prázdné odmítá vše kromě vlastních objektů hMailServeru.</value>
   </data>
@@ -7741,6 +7753,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Nothing was saved: correct what is marked below, then save again." xml:space="preserve">
     <value>Nic nebylo uloženo: opravte, co je označeno níže, a uložte znovu.</value>
+  </data>
+  <data name="Nothing was saved: the REST API asks for the administrator's one-time code before it answers, and none was given. Press Save to be asked again." xml:space="preserve">
+    <value>Nic nebylo uloženo: REST API před odpovědí žádá jednorázový kód správce a žádný nebyl zadán. Stiskněte Uložit a budete požádáni znovu.</value>
   </data>
   <data name="Nothing, while staying a member" xml:space="preserve">
     <value>Nic, ale zůstává členem</value>

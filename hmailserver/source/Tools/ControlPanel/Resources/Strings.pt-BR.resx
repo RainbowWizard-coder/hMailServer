@@ -1533,6 +1533,18 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="An entire outbound delivery session. 0 = no bound." xml:space="preserve">
     <value>Uma sessão inteira de entrega de saída. 0 = sem limite.</value>
   </data>
+  <data name="An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again." xml:space="preserve">
+    <value>Uma entrada é alterada no lugar pela API REST, que pede o código de uso único do administrador antes de responder, e nenhum foi informado. Pressione Editar… para que ele seja pedido de novo, ou exclua a entrada e adicione-a de novo.</value>
+  </data>
+  <data name="An entry is changed in place over the REST API, which is off (RestApiPort is {0}). Give it a port on the API &amp; monitoring page and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
+    <value>Uma entrada é alterada no lugar pela API REST, que está desligada (RestApiPort é {0}). Dê a ela uma porta na página API e monitoramento e reinicialize o servidor, ou exclua a entrada e adicione-a de novo.</value>
+  </data>
+  <data name="An entry is changed in place over the REST API, which listens on {0} only, out of reach of a Control Panel on another machine. Change the entry in the Control Deck on the server, or delete it and add it again." xml:space="preserve">
+    <value>Uma entrada é alterada no lugar pela API REST, que escuta só em {0}, fora do alcance de um Control Panel em outra máquina. Altere a entrada no Control Deck no servidor, ou exclua-a e adicione-a de novo.</value>
+  </data>
+  <data name="An entry is changed in place over the REST API; until it can be used from here, delete the entry and add it again instead." xml:space="preserve">
+    <value>Uma entrada é alterada no lugar pela API REST; até que ela possa ser usada daqui, exclua a entrada e adicione-a de novo.</value>
+  </data>
   <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
     <value>Um script de evento roda dentro do servidor com os direitos da conta de serviço, então o que ele pode instanciar é uma decisão de segurança, e não uma conveniência. Como distribuído, isto é *, que permite qualquer objeto, para que uma atualização nunca quebre um script que uma instalação já executa - é a configuração a restringir, não o estado seguro. Nomeie apenas o que algum script seu realmente precisa - um objeto de sistema de arquivos de script, um cliente HTTP - e todo o resto é recusado, com o nome do objeto no log de erros; vazio recusa tudo além dos objetos do próprio hMailServer.</value>
   </data>
@@ -7653,6 +7665,9 @@ Nada do que já está lá é removido.</value>
   </data>
   <data name="Nothing was saved: correct what is marked below, then save again." xml:space="preserve">
     <value>Nada foi salvo: corrija o que está marcado abaixo e salve de novo.</value>
+  </data>
+  <data name="Nothing was saved: the REST API asks for the administrator's one-time code before it answers, and none was given. Press Save to be asked again." xml:space="preserve">
+    <value>Nada foi salvo: a API REST pede o código de uso único do administrador antes de responder, e nenhum foi informado. Pressione Salvar para que ele seja pedido de novo.</value>
   </data>
   <data name="Nothing, while staying a member" xml:space="preserve">
     <value>Nada, continuando membro</value>

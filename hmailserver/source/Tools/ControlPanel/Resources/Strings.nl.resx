@@ -1533,6 +1533,18 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="An entire outbound delivery session. 0 = no bound." xml:space="preserve">
     <value>Een hele uitgaande bezorgsessie. 0 = geen grens.</value>
   </data>
+  <data name="An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again." xml:space="preserve">
+    <value>Een vermelding wordt ter plekke gewijzigd via de REST-API, die de eenmalige code van de beheerder vraagt voordat hij antwoordt, en er is geen gegeven. Druk op Bewerken… om er opnieuw naar te worden gevraagd, of verwijder de vermelding en voeg haar opnieuw toe.</value>
+  </data>
+  <data name="An entry is changed in place over the REST API, which is off (RestApiPort is {0}). Give it a port on the API &amp; monitoring page and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
+    <value>Een vermelding wordt ter plekke gewijzigd via de REST-API, die uit staat (RestApiPort is {0}). Geef die een poort op de pagina API en monitoring en initialiseer de server opnieuw, of verwijder de vermelding en voeg haar opnieuw toe.</value>
+  </data>
+  <data name="An entry is changed in place over the REST API, which listens on {0} only, out of reach of a Control Panel on another machine. Change the entry in the Control Deck on the server, or delete it and add it again." xml:space="preserve">
+    <value>Een vermelding wordt ter plekke gewijzigd via de REST-API, die alleen op {0} luistert, buiten bereik van een Control Panel op een andere machine. Wijzig de vermelding in het Control Deck op de server, of verwijder haar en voeg haar opnieuw toe.</value>
+  </data>
+  <data name="An entry is changed in place over the REST API; until it can be used from here, delete the entry and add it again instead." xml:space="preserve">
+    <value>Een vermelding wordt ter plekke gewijzigd via de REST-API; zolang die van hieruit niet bruikbaar is, verwijdert u de vermelding in plaats daarvan en voegt u haar opnieuw toe.</value>
+  </data>
   <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
     <value>Een gebeurtenisscript draait binnen de server met de rechten van het serviceaccount, dus wat het mag instantiëren is een beveiligingsbeslissing en geen kwestie van gemak. Zoals geleverd is dit *, wat elk object toestaat, zodat een upgrade nooit een script breekt dat een installatie al draait - het is de instelling om in te perken, niet de veilige toestand. Noem alleen wat een script van u werkelijk nodig heeft - een bestandssysteemobject voor scripting, een HTTP-client - en al het andere wordt geweigerd, met de naam van het object in het foutenlogboek; leeg weigert alles behalve de eigen objecten van hMailServer.</value>
   </data>
@@ -7653,6 +7665,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="Nothing was saved: correct what is marked below, then save again." xml:space="preserve">
     <value>Er is niets opgeslagen: corrigeer wat hieronder is gemarkeerd en sla opnieuw op.</value>
+  </data>
+  <data name="Nothing was saved: the REST API asks for the administrator's one-time code before it answers, and none was given. Press Save to be asked again." xml:space="preserve">
+    <value>Er is niets opgeslagen: de REST-API vraagt de eenmalige code van de beheerder voordat hij antwoordt, en er is geen gegeven. Druk op Opslaan om er opnieuw naar te worden gevraagd.</value>
   </data>
   <data name="Nothing, while staying a member" xml:space="preserve">
     <value>Niets, maar blijft lid</value>

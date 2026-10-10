@@ -1533,6 +1533,18 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="An entire outbound delivery session. 0 = no bound." xml:space="preserve">
     <value>En hel utgående leveranssession. 0 = ingen gräns.</value>
   </data>
+  <data name="An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again." xml:space="preserve">
+    <value>En post ändras på plats via REST-API:t, som begär administratörens engångskod innan det svarar, och ingen angavs. Tryck på Redigera… för att bli tillfrågad igen, eller ta bort posten och lägg till den igen.</value>
+  </data>
+  <data name="An entry is changed in place over the REST API, which is off (RestApiPort is {0}). Give it a port on the API &amp; monitoring page and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
+    <value>En post ändras på plats via REST-API:t, som är avstängt (RestApiPort är {0}). Ge det en port på sidan API &amp; övervakning och initiera om servern, eller ta bort posten och lägg till den igen.</value>
+  </data>
+  <data name="An entry is changed in place over the REST API, which listens on {0} only, out of reach of a Control Panel on another machine. Change the entry in the Control Deck on the server, or delete it and add it again." xml:space="preserve">
+    <value>En post ändras på plats via REST-API:t, som bara lyssnar på {0}, utom räckhåll för en Control Panel på en annan dator. Ändra posten i Control Deck på servern, eller ta bort den och lägg till den igen.</value>
+  </data>
+  <data name="An entry is changed in place over the REST API; until it can be used from here, delete the entry and add it again instead." xml:space="preserve">
+    <value>En post ändras på plats via REST-API:t; tills det kan användas härifrån, ta i stället bort posten och lägg till den igen.</value>
+  </data>
   <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
     <value>Ett händelseskript körs inne i servern med tjänstekontots rättigheter, så vad det får instansiera är ett säkerhetsbeslut snarare än en bekvämlighet. Som levererat är detta *, vilket tillåter alla objekt, så att en uppgradering aldrig förstör ett skript som en installation redan kör - det är inställningen att snäva in, inte det säkra tillståndet. Namnge bara det som ett av dina skript faktiskt behöver - ett filsystemsobjekt för skript, en HTTP-klient - så avvisas allt annat med objektets namn i felloggen; tomt avvisar allt utöver hMailServers egna objekt.</value>
   </data>
@@ -7653,6 +7665,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="Nothing was saved: correct what is marked below, then save again." xml:space="preserve">
     <value>Ingenting sparades: rätta det som är markerat nedan och spara igen.</value>
+  </data>
+  <data name="Nothing was saved: the REST API asks for the administrator's one-time code before it answers, and none was given. Press Save to be asked again." xml:space="preserve">
+    <value>Inget sparades: REST-API:t begär administratörens engångskod innan det svarar, och ingen angavs. Tryck på Spara för att bli tillfrågad igen.</value>
   </data>
   <data name="Nothing, while staying a member" xml:space="preserve">
     <value>Ingenting, men förblir medlem</value>

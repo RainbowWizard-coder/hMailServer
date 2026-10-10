@@ -2501,8 +2501,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   its header. Edit…, before Delete, and Enter, F2 or a double-click on a row open the add dialog on the entry, titled
   Edit a domain on the list and headed with its name, whose Save changes it in place over the REST API's `PUT
   /api/v1/domain-policy-list/{id}` - the one interface the server changes an entry through - keeping its id and its
-  date, and says a refusal about the pattern under its box and anything else, such as the REST API being off, above
-  the fields; the page then keeps the entry selected and says it was saved. The subtitle is two sentences, what the
+  date, and says a refusal about the pattern under its box and anything else above the fields; the page then keeps the
+  entry selected and says it was saved. The dialog opens only once the REST API can be used from here, Edit… and Save
+  each asking for the administrator's one-time code again where there is one; where it cannot be used, the page says
+  why and opens nothing - the REST API off, as it is by default, with a port to give it on the API & monitoring page,
+  or bound to the server's loopback address while this Control Panel runs on another machine, with the Control Deck
+  there to use, and either way that the entry can be deleted and added again. The subtitle is two sentences, what the
   list is and which list to use instead, and the notice is gone. `DomainPolicyEditTests` holds the words, the date,
   the request, the columns, the Edit wiring and the dialog's keys against its fields in every catalogue.
 

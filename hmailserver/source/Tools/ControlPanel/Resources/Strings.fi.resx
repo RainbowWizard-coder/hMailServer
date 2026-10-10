@@ -1533,6 +1533,18 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="An entire outbound delivery session. 0 = no bound." xml:space="preserve">
     <value>Koko lähtevä toimitusistunto. 0 = ei rajaa.</value>
   </data>
+  <data name="An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again." xml:space="preserve">
+    <value>Merkintä muutetaan paikallaan REST API:n kautta, joka pyytää ylläpitäjän kertakäyttökoodia ennen vastaamista, eikä koodia annettu. Paina Muokkaa…, niin koodia kysytään uudelleen, tai poista merkintä ja lisää se uudelleen.</value>
+  </data>
+  <data name="An entry is changed in place over the REST API, which is off (RestApiPort is {0}). Give it a port on the API &amp; monitoring page and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
+    <value>Merkintä muutetaan paikallaan REST API:n kautta, joka on pois käytöstä (RestApiPort on {0}). Anna sille portti sivulla API ja valvonta ja alusta palvelin uudelleen, tai poista merkintä ja lisää se uudelleen.</value>
+  </data>
+  <data name="An entry is changed in place over the REST API, which listens on {0} only, out of reach of a Control Panel on another machine. Change the entry in the Control Deck on the server, or delete it and add it again." xml:space="preserve">
+    <value>Merkintä muutetaan paikallaan REST API:n kautta, joka kuuntelee vain osoitteessa {0}, toisella koneella olevan Control Panelin ulottumattomissa. Muuta merkintä palvelimen Control Deckissä tai poista se ja lisää se uudelleen.</value>
+  </data>
+  <data name="An entry is changed in place over the REST API; until it can be used from here, delete the entry and add it again instead." xml:space="preserve">
+    <value>Merkintä muutetaan paikallaan REST API:n kautta; kunnes sitä voi käyttää täältä, poista merkintä ja lisää se sen sijaan uudelleen.</value>
+  </data>
   <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
     <value>Tapahtumakomentosarja ajetaan palvelimen sisällä palvelutilin oikeuksilla, joten se, minkä objektien ilmentymiä se saa luoda, on turvallisuuspäätös eikä mukavuuskysymys. Toimitettuna tässä on *, joka sallii minkä tahansa objektin, jotta päivitys ei koskaan riko komentosarjaa, jota asennus jo ajaa - tämä on asetus, jota kuuluu kaventaa, ei turvallinen tila. Nimeä vain se, mitä oma komentosarjasi todella tarvitsee - komentosarjojen tiedostojärjestelmäobjekti, HTTP-asiakas - niin kaikki muu torjutaan ja objektin nimi kirjataan virhelokiin; tyhjä torjuu kaiken hMailServerin omia objekteja lukuun ottamatta.</value>
   </data>
@@ -7653,6 +7665,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="Nothing was saved: correct what is marked below, then save again." xml:space="preserve">
     <value>Mitään ei tallennettu: korjaa alla merkityt kohdat ja tallenna uudelleen.</value>
+  </data>
+  <data name="Nothing was saved: the REST API asks for the administrator's one-time code before it answers, and none was given. Press Save to be asked again." xml:space="preserve">
+    <value>Mitään ei tallennettu: REST API pyytää ylläpitäjän kertakäyttökoodia ennen vastaamista, eikä koodia annettu. Paina Tallenna, niin koodia kysytään uudelleen.</value>
   </data>
   <data name="Nothing, while staying a member" xml:space="preserve">
     <value>Ei mitään, mutta pysyy jäsenenä</value>

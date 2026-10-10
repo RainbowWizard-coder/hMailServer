@@ -1533,6 +1533,18 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
   <data name="An entire outbound delivery session. 0 = no bound." xml:space="preserve">
     <value>Una sesión de entrega saliente completa. 0 = sin límite.</value>
   </data>
+  <data name="An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again." xml:space="preserve">
+    <value>Una entrada se cambia en su sitio a través de la API REST, que pide el código de un solo uso del administrador antes de responder, y no se dio ninguno. Pulse Editar… para que se le vuelva a pedir, o borre la entrada y vuelva a añadirla.</value>
+  </data>
+  <data name="An entry is changed in place over the REST API, which is off (RestApiPort is {0}). Give it a port on the API &amp; monitoring page and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
+    <value>Una entrada se cambia en su sitio a través de la API REST, que está desactivada (RestApiPort es {0}). Dele un puerto en la página API y supervisión y reinicialice el servidor, o borre la entrada y vuelva a añadirla.</value>
+  </data>
+  <data name="An entry is changed in place over the REST API, which listens on {0} only, out of reach of a Control Panel on another machine. Change the entry in the Control Deck on the server, or delete it and add it again." xml:space="preserve">
+    <value>Una entrada se cambia en su sitio a través de la API REST, que escucha solo en {0}, fuera del alcance de un Control Panel de otro equipo. Cambie la entrada en el Control Deck en el servidor, o bórrela y vuelva a añadirla.</value>
+  </data>
+  <data name="An entry is changed in place over the REST API; until it can be used from here, delete the entry and add it again instead." xml:space="preserve">
+    <value>Una entrada se cambia en su sitio a través de la API REST; hasta que pueda usarse desde aquí, borre la entrada y vuelva a añadirla.</value>
+  </data>
   <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
     <value>Un script de evento se ejecuta dentro del servidor con los derechos de la cuenta de servicio, así que lo que puede instanciar es una decisión de seguridad y no una comodidad. Tal como se distribuye, esto es *, que permite cualquier objeto, para que una actualización nunca rompa un script que una instalación ya ejecuta - es el ajuste que hay que acotar, no el estado seguro. Nombre solo lo que un script suyo necesite de verdad - un objeto de sistema de archivos de scripting, un cliente HTTP - y todo lo demás se rechaza con el nombre del objeto en el registro de errores; vacío rechaza todo salvo los objetos propios de hMailServer.</value>
   </data>
@@ -7653,6 +7665,9 @@ No se elimina nada de lo que ya está.</value>
   </data>
   <data name="Nothing was saved: correct what is marked below, then save again." xml:space="preserve">
     <value>No se guardó nada: corrija lo marcado más abajo y vuelva a guardar.</value>
+  </data>
+  <data name="Nothing was saved: the REST API asks for the administrator's one-time code before it answers, and none was given. Press Save to be asked again." xml:space="preserve">
+    <value>No se guardó nada: la API REST pide el código de un solo uso del administrador antes de responder, y no se dio ninguno. Pulse Guardar para que se le vuelva a pedir.</value>
   </data>
   <data name="Nothing, while staying a member" xml:space="preserve">
     <value>Nada, sin dejar de ser miembro</value>

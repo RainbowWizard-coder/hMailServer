@@ -1545,6 +1545,18 @@ Control Panel может читать файлы сообщений только
   <data name="An entire outbound delivery session. 0 = no bound." xml:space="preserve">
     <value>Весь сеанс исходящей доставки целиком. 0 — без ограничения.</value>
   </data>
+  <data name="An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again." xml:space="preserve">
+    <value>Запись изменяется на месте через REST API, который перед ответом запрашивает одноразовый код администратора, а код не был введён. Нажмите «Изменить…», чтобы вас спросили снова, или удалите запись и добавьте её снова.</value>
+  </data>
+  <data name="An entry is changed in place over the REST API, which is off (RestApiPort is {0}). Give it a port on the API &amp; monitoring page and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
+    <value>Запись изменяется на месте через REST API, который выключен (RestApiPort равен {0}). Задайте ему порт на странице «API и мониторинг» и повторно инициализируйте сервер или удалите запись и добавьте её снова.</value>
+  </data>
+  <data name="An entry is changed in place over the REST API, which listens on {0} only, out of reach of a Control Panel on another machine. Change the entry in the Control Deck on the server, or delete it and add it again." xml:space="preserve">
+    <value>Запись изменяется на месте через REST API, который прослушивает только {0}, вне досягаемости Control Panel на другом компьютере. Измените запись в Control Deck на сервере или удалите её и добавьте снова.</value>
+  </data>
+  <data name="An entry is changed in place over the REST API; until it can be used from here, delete the entry and add it again instead." xml:space="preserve">
+    <value>Запись изменяется на месте через REST API; пока его нельзя использовать отсюда, вместо этого удалите запись и добавьте её снова.</value>
+  </data>
   <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
     <value>Сценарий события выполняется внутри сервера с правами учётной записи службы, поэтому то, экземпляры чего ему позволено создавать, — это решение по безопасности, а не вопрос удобства. В поставляемом виде здесь стоит *, что разрешает любой объект, чтобы обновление никогда не ломало сценарий, который установка уже запускает, — это настройка, которую следует сужать, а не безопасное состояние. Указывайте только то, что вашему сценарию действительно нужно, — объект файловой системы для сценариев, клиент HTTP, — а всё остальное отклоняется с записью имени объекта в журнал ошибок; пустое значение отклоняет всё, кроме собственных объектов hMailServer.</value>
   </data>
@@ -7741,6 +7753,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Nothing was saved: correct what is marked below, then save again." xml:space="preserve">
     <value>Ничего не сохранено: исправьте отмеченное ниже и сохраните снова.</value>
+  </data>
+  <data name="Nothing was saved: the REST API asks for the administrator's one-time code before it answers, and none was given. Press Save to be asked again." xml:space="preserve">
+    <value>Ничего не сохранено: REST API перед ответом запрашивает одноразовый код администратора, а код не был введён. Нажмите «Сохранить», чтобы вас спросили снова.</value>
   </data>
   <data name="Nothing, while staying a member" xml:space="preserve">
     <value>Ничего, оставаясь участником</value>

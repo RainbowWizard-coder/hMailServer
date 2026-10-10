@@ -1545,6 +1545,18 @@
   <data name="An entire outbound delivery session. 0 = no bound." xml:space="preserve">
     <value>Увесь сеанс вихідної доставки. 0 = без обмеження.</value>
   </data>
+  <data name="An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again." xml:space="preserve">
+    <value>Запис змінюється на місці через REST API, який перед відповіддю запитує одноразовий код адміністратора, а код не було введено. Натисніть «Змінити…», щоб вас запитали знову, або видаліть запис і додайте його знову.</value>
+  </data>
+  <data name="An entry is changed in place over the REST API, which is off (RestApiPort is {0}). Give it a port on the API &amp; monitoring page and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
+    <value>Запис змінюється на місці через REST API, який вимкнено (RestApiPort дорівнює {0}). Задайте йому порт на сторінці «API та моніторинг» і повторно ініціалізуйте сервер або видаліть запис і додайте його знову.</value>
+  </data>
+  <data name="An entry is changed in place over the REST API, which listens on {0} only, out of reach of a Control Panel on another machine. Change the entry in the Control Deck on the server, or delete it and add it again." xml:space="preserve">
+    <value>Запис змінюється на місці через REST API, який прослуховує лише {0}, поза досяжністю Control Panel на іншому комп'ютері. Змініть запис у Control Deck на сервері або видаліть його і додайте знову.</value>
+  </data>
+  <data name="An entry is changed in place over the REST API; until it can be used from here, delete the entry and add it again instead." xml:space="preserve">
+    <value>Запис змінюється на місці через REST API; доки його не можна використати звідси, натомість видаліть запис і додайте його знову.</value>
+  </data>
   <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
     <value>Скрипт подій виконується всередині сервера з правами облікового запису служби, тому те, які об'єкти йому дозволено створювати, — це рішення щодо безпеки, а не питання зручності. У постаченому вигляді тут стоїть *, що дозволяє будь-який об'єкт, щоб оновлення ніколи не зламало скрипт, який інсталяція вже виконує, — це параметр, який слід звужувати, а не безпечний стан. Називайте лише те, що справді потрібне якомусь із ваших скриптів, — об'єкт файлової системи для скриптів, HTTP-клієнт, — а все інше відхиляється із записом імені об'єкта в журнал помилок; порожньо відхиляє все, крім власних об'єктів hMailServer.</value>
   </data>
@@ -7741,6 +7753,9 @@
   </data>
   <data name="Nothing was saved: correct what is marked below, then save again." xml:space="preserve">
     <value>Нічого не збережено: виправте позначене нижче й збережіть знову.</value>
+  </data>
+  <data name="Nothing was saved: the REST API asks for the administrator's one-time code before it answers, and none was given. Press Save to be asked again." xml:space="preserve">
+    <value>Нічого не збережено: REST API перед відповіддю запитує одноразовий код адміністратора, а код не було введено. Натисніть «Зберегти», щоб вас запитали знову.</value>
   </data>
   <data name="Nothing, while staying a member" xml:space="preserve">
     <value>Нічого, лишаючись учасником</value>

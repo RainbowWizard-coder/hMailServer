@@ -123,6 +123,14 @@ namespace hMailServer.ControlPanel.Services
       public Uri Endpoint => endpoint_;
 
       /// <summary>
+      /// Whether the administrator was asked for the one-time code and gave none,
+      /// since Open last asked again: a page whose act asks again (askAgain) can
+      /// then say that in its own words, where the sentence Open gives - "Open the
+      /// page again to be asked for the code." - is the settings pages'.
+      /// </summary>
+      public bool CodeDeclined => declined_;
+
+      /// <summary>
       /// Signs in when there is no session yet. False and the reason when the REST API
       /// cannot be used from here. askForCode is asked for the one-time code when the
       /// administrator has a second factor, and answers null when none was given.

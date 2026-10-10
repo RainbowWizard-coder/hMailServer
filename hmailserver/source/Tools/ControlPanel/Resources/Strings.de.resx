@@ -1533,6 +1533,18 @@ Das Control Panel kann Nachrichtendateien nur lesen, wenn es auf demselben Rechn
   <data name="An entire outbound delivery session. 0 = no bound." xml:space="preserve">
     <value>Eine ganze ausgehende Zustellsitzung. 0 = keine Grenze.</value>
   </data>
+  <data name="An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again." xml:space="preserve">
+    <value>Ein Eintrag wird über die REST-API direkt geändert, die vor ihrer Antwort den Einmalcode des Administrators verlangt, und es wurde keiner eingegeben. Klicken Sie auf Bearbeiten…, um erneut gefragt zu werden, oder löschen Sie den Eintrag und fügen Sie ihn neu hinzu.</value>
+  </data>
+  <data name="An entry is changed in place over the REST API, which is off (RestApiPort is {0}). Give it a port on the API &amp; monitoring page and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
+    <value>Ein Eintrag wird über die REST-API direkt geändert, die ausgeschaltet ist (RestApiPort ist {0}). Geben Sie ihr auf der Seite API und Überwachung einen Port und initialisieren Sie den Server neu, oder löschen Sie den Eintrag und fügen Sie ihn neu hinzu.</value>
+  </data>
+  <data name="An entry is changed in place over the REST API, which listens on {0} only, out of reach of a Control Panel on another machine. Change the entry in the Control Deck on the server, or delete it and add it again." xml:space="preserve">
+    <value>Ein Eintrag wird über die REST-API direkt geändert, die nur auf {0} lauscht, außer Reichweite eines Control Panels auf einem anderen Rechner. Ändern Sie den Eintrag im Control Deck auf dem Server, oder löschen Sie ihn und fügen Sie ihn neu hinzu.</value>
+  </data>
+  <data name="An entry is changed in place over the REST API; until it can be used from here, delete the entry and add it again instead." xml:space="preserve">
+    <value>Ein Eintrag wird über die REST-API direkt geändert; solange sie von hier aus nicht nutzbar ist, löschen Sie den Eintrag stattdessen und fügen Sie ihn neu hinzu.</value>
+  </data>
   <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
     <value>Ein Ereignisskript läuft im Server mit den Rechten des Dienstkontos, was es instanziieren darf, ist also eine Sicherheitsentscheidung und keine Bequemlichkeit. Werkseitig steht hier *, was jedes Objekt erlaubt, damit ein Upgrade nie ein Skript zerstört, das eine Installation bereits ausführt - es ist die Einstellung, die einzuschränken ist, nicht der sichere Zustand. Nennen Sie nur, was ein Skript von Ihnen tatsächlich braucht - ein Skripting-Dateisystemobjekt, einen HTTP-Client - und alles andere wird mit dem Namen des Objekts im Fehlerprotokoll abgewiesen; leer weist alles außer den eigenen Objekten von hMailServer ab.</value>
   </data>
@@ -7653,6 +7665,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   </data>
   <data name="Nothing was saved: correct what is marked below, then save again." xml:space="preserve">
     <value>Es wurde nichts gespeichert: Korrigieren Sie, was unten markiert ist, und speichern Sie erneut.</value>
+  </data>
+  <data name="Nothing was saved: the REST API asks for the administrator's one-time code before it answers, and none was given. Press Save to be asked again." xml:space="preserve">
+    <value>Nichts wurde gespeichert: Die REST-API verlangt vor ihrer Antwort den Einmalcode des Administrators, und es wurde keiner eingegeben. Klicken Sie auf Speichern, um erneut gefragt zu werden.</value>
   </data>
   <data name="Nothing, while staying a member" xml:space="preserve">
     <value>Nichts, bleibt aber Mitglied</value>
