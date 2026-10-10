@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using hMailServer.ControlPanel.Services;
 using Xunit;
 
 namespace hMailServer.ControlPanel.Tests.Services
@@ -27,33 +28,75 @@ namespace hMailServer.ControlPanel.Tests.Services
    public class SettingNamesInTextTests
    {
       // The settings views give every setting with an editor its key: Key = "..." on
-      // the hMailServer.ini pages, Path = "..." on the COM and REST ones.
+      // the hMailServer.ini pages, Path = "..." on the COM and REST ones. The settings
+      // search index gives the rest - every setting on every settings page with its
+      // caption, the Backup & restore page's own included, whose editors read their
+      // keys by hand and declare none.
       private static readonly string[] SettingsViews =
       {
          "FeatureSettingsView.xaml.cs", "ServerSettingsView.xaml.cs", "ServerSettingsView.NeverBanNames.cs",
       };
 
       private static readonly Regex KeyOrPath = new Regex(@"\b(?:Key|Path)\s*=\s*""([A-Za-z][A-Za-z0-9.]*)""");
-      private static readonly Regex Identifier = new Regex(@"^(?:[A-Z][a-z0-9]+){2,}$|^[A-Z]{2,}[A-Za-z0-9]*$");
+
+      // A key's shape: a capital first, two capitals or more and a lower-case letter, so
+      // that a key with an acronym after its first word (DisableAUTHList,
+      // ProtectStoredSecretsWithDPAPI, BackupMessagesDBOnly) is one, and a word (Port),
+      // an acronym (AUTH, DPAPI) or a protocol name in capitals is not.
+      private static readonly Regex Identifier = new Regex(@"^(?=.*[a-z])(?=(?:.*[A-Z]){2})[A-Z][A-Za-z0-9]*$");
+
+      [Theory]
+      [InlineData("TlsRptFromAddress")]
+      [InlineData("DisableAUTHList")]
+      [InlineData("ProtectStoredSecretsWithDPAPI")]
+      [InlineData("BackupMessagesDBOnly")]
+      [InlineData("UseSPFScore")]
+      [InlineData("FilterHookMaxMessageSizeKB")]
+      public void AKeysShape_IsAnIdentifier(string key)
+      {
+         Assert.Matches(Identifier, key);
+      }
+
+      [Theory]
+      [InlineData("Port")]
+      [InlineData("AUTH")]
+      [InlineData("DPAPI")]
+      [InlineData("SMTP")]
+      [InlineData("Settings")]
+      public void AWordOrAnAcronym_IsNotAnIdentifier(string word)
+      {
+         Assert.DoesNotMatch(Identifier, word);
+      }
 
       [Fact]
       public void NoText_NamesASettingThatHasACaption_ByItsKey()
       {
          var names = new HashSet<string>(StringComparer.Ordinal);
+         void Take(string key)
+         {
+            string name = key.Split('.').Last();
+            if (Identifier.IsMatch(name))
+               names.Add(name);
+         }
+
          foreach (string view in SettingsViews)
          {
             string source = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", view));
             foreach (Match match in KeyOrPath.Matches(source))
-            {
-               string name = match.Groups[1].Value.Split('.').Last();
-               if (Identifier.IsMatch(name))
-                  names.Add(name);
-            }
+               Take(match.Groups[1].Value);
          }
 
-         Assert.True(names.Count > 300, "The settings views gave only " + names.Count + " keys; the pattern no longer reads them.");
+         int fromViews = names.Count;
+         foreach (SettingEntry entry in SettingsSearchIndex.Entries)
+            Take(entry.Key);
+
+         Assert.True(fromViews > 300, "The settings views gave only " + fromViews + " keys; the pattern no longer reads them.");
+         Assert.True(names.Count > 500, "The settings views and the search index gave only " + names.Count + " keys.");
          Assert.Contains("TlsRptFromAddress", names);
          Assert.Contains("AutoBanNeverBan", names);
+         Assert.Contains("DisableAUTHList", names);
+         Assert.Contains("ProtectStoredSecretsWithDPAPI", names);
+         Assert.Contains("BackupMessagesDBOnly", names);
 
          var offenders = new List<string>();
          foreach (string text in EnglishTexts())

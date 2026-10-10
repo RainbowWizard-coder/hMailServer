@@ -30,6 +30,9 @@
   <data name="'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have signed in." xml:space="preserve">
     <value>„Odesílat může kdokoli v doméně“ znamená, že adresa odesílatele je v doméně hostované tímto serverem, což si může nárokovat i cizí osoba, pokud seznam zároveň nevyžaduje ověření. Pokud má být seznam omezen na přihlášené osoby, zaškrtněte to níže.</value>
   </data>
+  <data name="'Protect stored secrets with Windows DPAPI' on the Server limits &amp; expert settings page is off, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed." xml:space="preserve">
+    <value>Volba „Chránit uložená tajemství pomocí Windows DPAPI“ je na stránce Limity serveru a expertní nastavení vypnutá, takže druhý faktor účtu a tajemství v [Settings] se ukládají tak, jak byly zapsány, a klíč uložených tajemství není potřeba.</value>
+  </data>
   <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
     <value>„Odmítnout, s uvedením důvodu“ odpoví na odeslání u RCPT s důvodem a vše ostatní - alias, přeposlání, naplánované odeslání - vrátí odesílateli ve zprávě o stavu doručení. Pošta, která už na adresu čeká ve frontě, narazí na seznam při dalším pokusu o doručení. „Doručit a jen zaznamenat“ je bezpečný způsob, jak zjistit, co by seznam udělal, dřív než to udělá.</value>
   </data>
@@ -8431,8 +8434,8 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>Port pro výzvy http-01</value>
   </data>
-  <data name="Port {0} does not offer AUTH: DisableAUTHList names it, and an AUTH sent there is refused without a ban." xml:space="preserve">
-    <value>Port {0} nenabízí AUTH: uvádí jej DisableAUTHList a AUTH, které tam přijde, je odmítnuto bez zablokování.</value>
+  <data name="Port {0} does not offer AUTH: it is listed in 'Do not offer AUTH on these local TCP ports' on the Authentication page, and an AUTH sent there is refused without a ban." xml:space="preserve">
+    <value>Port {0} nenabízí AUTH: je uveden v „Nenabízet AUTH na těchto místních portech TCP“ na stránce Ověřování a AUTH, které tam přijde, je odmítnuto bez zablokování.</value>
   </data>
   <data name="Port {0} is set to TLS but has no certificate, so TLS cannot start." xml:space="preserve">
     <value>Port {0} je nastaven na TLS, ale nemá certifikát, takže TLS nelze zahájit.</value>
@@ -8580,9 +8583,6 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   </data>
   <data name="Protect the administrator credential" xml:space="preserve">
     <value>Chránit přihlašovací údaje správce</value>
-  </data>
-  <data name="ProtectStoredSecretsWithDPAPI is 0, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed." xml:space="preserve">
-    <value>ProtectStoredSecretsWithDPAPI je 0, takže druhý faktor účtu a tajemství v [Settings] se ukládají tak, jak byly zapsány, a klíč uložených tajemství není potřeba.</value>
   </data>
   <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
     <value>Chráněné _osoby (osoby mimo účty této domény, jejichž jméno nesmí být vypůjčeno; jedna na řádek, každá Jméno &lt;address&gt;, Jméno nebo adresa)</value>
@@ -15252,9 +15252,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>Soubor hMailServer.ini se nepodařilo přečíst: {0} Od verze 6.3.6 soubor patří správcům. Zavřete Ovládací panel a spusťte jej pomocí Spustit jako správce, abyste tato nastavení viděli a mohli měnit.</value>
-  </data>
-  <data name="hMailServer.ini was not found on this machine, so BackupMessagesDBOnly can only be changed on the server itself." xml:space="preserve">
-    <value>hMailServer.ini nebyl na tomto počítači nalezen, takže BackupMessagesDBOnly lze změnit pouze přímo na serveru.</value>
   </data>
   <data name="hMailServer.ini was not found on this machine, so this can only be changed on the server itself." xml:space="preserve">
     <value>hMailServer.ini nebyl na tomto počítači nalezen, takže toto nastavení lze změnit pouze přímo na serveru.</value>

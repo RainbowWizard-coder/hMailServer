@@ -30,6 +30,9 @@
   <data name="'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have signed in." xml:space="preserve">
     <value>'Chiunque nel dominio può inviare' significa che l'indirizzo del mittente appartiene a un dominio ospitato da questo server, cosa che un estraneo può dichiarare a meno che la lista non richieda anche l'autenticazione. Spunta qui sotto se la lista deve essere limitata a chi ha effettuato l'accesso.</value>
   </data>
+  <data name="'Protect stored secrets with Windows DPAPI' on the Server limits &amp; expert settings page is off, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed." xml:space="preserve">
+    <value>'Proteggi i segreti memorizzati con Windows DPAPI' è disattivato nella pagina Limiti del server e impostazioni avanzate, quindi il secondo fattore di un account e i segreti di [Settings] sono memorizzati così come scritti, e non serve alcuna chiave dei segreti memorizzati.</value>
+  </data>
   <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
     <value>'Rifiutarlo, con il motivo' risponde a un invio al RCPT con il motivo, e restituisce tutto il resto - un alias, un inoltro, un invio pianificato - al mittente in una notifica di stato della consegna. La posta già in coda verso un indirizzo incontra la lista al tentativo di consegna successivo. 'Consegnarlo e registrarlo soltanto' è il modo sicuro per vedere cosa farebbe la lista prima che lo faccia.</value>
   </data>
@@ -8343,8 +8346,8 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>Porta per le challenge http-01</value>
   </data>
-  <data name="Port {0} does not offer AUTH: DisableAUTHList names it, and an AUTH sent there is refused without a ban." xml:space="preserve">
-    <value>La porta {0} non offre AUTH: la nomina DisableAUTHList, e un AUTH inviato lì viene rifiutato senza blocco.</value>
+  <data name="Port {0} does not offer AUTH: it is listed in 'Do not offer AUTH on these local TCP ports' on the Authentication page, and an AUTH sent there is refused without a ban." xml:space="preserve">
+    <value>La porta {0} non offre AUTH: è elencata in 'Non offrire AUTH su queste porte TCP locali' nella pagina Autenticazione, e un AUTH inviato lì viene rifiutato senza blocco.</value>
   </data>
   <data name="Port {0} is set to TLS but has no certificate, so TLS cannot start." xml:space="preserve">
     <value>La porta {0} è impostata su TLS ma non ha un certificato, quindi TLS non può avviarsi.</value>
@@ -8492,9 +8495,6 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   </data>
   <data name="Protect the administrator credential" xml:space="preserve">
     <value>Proteggi la credenziale di amministratore</value>
-  </data>
-  <data name="ProtectStoredSecretsWithDPAPI is 0, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed." xml:space="preserve">
-    <value>ProtectStoredSecretsWithDPAPI è 0, quindi il secondo fattore di un account e i segreti di [Settings] sono memorizzati così come scritti, e non serve alcuna chiave dei segreti memorizzati.</value>
   </data>
   <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
     <value>_Persone protette (persone fuori dagli account di questo dominio il cui nome non deve essere preso in prestito; una per riga, ciascuna Nome &lt;address&gt;, Nome o indirizzo)</value>
@@ -15074,9 +15074,6 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>Impossibile leggere hMailServer.ini: {0} Dalla 6.3.6 il file appartiene agli amministratori. Chiudere il Pannello di controllo e avviarlo con Esegui come amministratore per vedere e modificare queste impostazioni.</value>
-  </data>
-  <data name="hMailServer.ini was not found on this machine, so BackupMessagesDBOnly can only be changed on the server itself." xml:space="preserve">
-    <value>hMailServer.ini non è stato trovato su questa macchina, quindi BackupMessagesDBOnly può essere modificata soltanto sul server stesso.</value>
   </data>
   <data name="hMailServer.ini was not found on this machine, so this can only be changed on the server itself." xml:space="preserve">
     <value>hMailServer.ini non è stato trovato su questa macchina, quindi questa impostazione può essere modificata soltanto sul server stesso.</value>

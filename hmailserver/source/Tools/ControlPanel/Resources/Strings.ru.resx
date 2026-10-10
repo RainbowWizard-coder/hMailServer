@@ -30,6 +30,9 @@
   <data name="'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have signed in." xml:space="preserve">
     <value>«Отправлять может любой в домене» означает, что адрес отправителя принадлежит домену, размещённому на этом сервере, а такой адрес может назвать и посторонний, если список дополнительно не требует аутентификации. Установите соответствующий флажок ниже, если список должен быть доступен только тем, кто вошёл в систему.</value>
   </data>
+  <data name="'Protect stored secrets with Windows DPAPI' on the Server limits &amp; expert settings page is off, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed." xml:space="preserve">
+    <value>Параметр «Защищать хранимые секреты с помощью Windows DPAPI» на странице «Ограничения сервера и экспертные параметры» выключен, поэтому второй фактор учётной записи и секреты [Settings] хранятся в исходном виде, и ключ хранимых секретов не нужен.</value>
+  </data>
   <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
     <value>«Отклонить с указанием причины» отвечает на отправку при RCPT с указанием причины, а всё остальное - псевдоним, пересылку, запланированную отправку - возвращает отправителю в уведомлении о состоянии доставки. Почта, уже стоящая в очереди на адрес, встретит список при следующей попытке доставки. «Доставить и только записать» - безопасный способ увидеть, что сделает список, прежде чем он это сделает.</value>
   </data>
@@ -8431,8 +8434,8 @@ Control Panel может читать файлы сообщений только
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>Порт для проверок http-01</value>
   </data>
-  <data name="Port {0} does not offer AUTH: DisableAUTHList names it, and an AUTH sent there is refused without a ban." xml:space="preserve">
-    <value>Порт {0} не предлагает AUTH: он указан в DisableAUTHList, и отправленный туда AUTH отклоняется без блокировки.</value>
+  <data name="Port {0} does not offer AUTH: it is listed in 'Do not offer AUTH on these local TCP ports' on the Authentication page, and an AUTH sent there is refused without a ban." xml:space="preserve">
+    <value>Порт {0} не предлагает AUTH: он указан в параметре «Не предлагать AUTH на этих локальных портах TCP» на странице «Аутентификация», и отправленный туда AUTH отклоняется без блокировки.</value>
   </data>
   <data name="Port {0} is set to TLS but has no certificate, so TLS cannot start." xml:space="preserve">
     <value>Порт {0} настроен на TLS, но без сертификата, поэтому TLS не может начаться.</value>
@@ -8580,9 +8583,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Protect the administrator credential" xml:space="preserve">
     <value>Защитить учётные данные администратора</value>
-  </data>
-  <data name="ProtectStoredSecretsWithDPAPI is 0, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed." xml:space="preserve">
-    <value>ProtectStoredSecretsWithDPAPI равен 0, поэтому второй фактор учётной записи и секреты [Settings] хранятся в исходном виде, и ключ хранимых секретов не нужен.</value>
   </data>
   <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
     <value>Защищённые _лица (лица вне учётных записей этого домена, чьё имя нельзя заимствовать; по одному на строку, каждое как Имя &lt;address&gt;, Имя или адрес)</value>
@@ -15252,9 +15252,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>Не удалось прочитать hMailServer.ini: {0} Начиная с 6.3.6 файл принадлежит администраторам. Закройте панель управления и запустите её через «Запуск от имени администратора», чтобы увидеть и изменить эти параметры.</value>
-  </data>
-  <data name="hMailServer.ini was not found on this machine, so BackupMessagesDBOnly can only be changed on the server itself." xml:space="preserve">
-    <value>Файл hMailServer.ini на этом компьютере не найден, поэтому изменить BackupMessagesDBOnly можно только на самом сервере.</value>
   </data>
   <data name="hMailServer.ini was not found on this machine, so this can only be changed on the server itself." xml:space="preserve">
     <value>Файл hMailServer.ini на этом компьютере не найден, поэтому изменить этот параметр можно только на самом сервере.</value>

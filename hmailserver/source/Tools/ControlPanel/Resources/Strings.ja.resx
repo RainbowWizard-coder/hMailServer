@@ -30,6 +30,9 @@
   <data name="'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have signed in." xml:space="preserve">
     <value>「ドメイン内の全員が送信できる」とは、送信者アドレスがこのサーバーでホストしているドメインのものであることを意味します。リストが認証も必須にしていない限り、外部の人間でもこれを詐称できます。ログインした人だけにリストを限定する必要がある場合は、下のチェックボックスをオンにしてください。</value>
   </data>
+  <data name="'Protect stored secrets with Windows DPAPI' on the Server limits &amp; expert settings page is off, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed." xml:space="preserve">
+    <value>[サーバーの制限と上級者向け設定] ページの「保存されたシークレットを Windows DPAPI で保護する」がオフのため、アカウントの第二要素と [Settings] のシークレットは書かれたまま保存され、保存シークレットの鍵は必要ありません。</value>
+  </data>
   <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
     <value>「理由を付けて拒否する」の場合、RCPT での送信には理由を付けて応答し、それ以外 (エイリアス、転送、予約送信) は配信状態通知で送信者に返します。すでにキューにあるアドレス宛てのメールは、次の配信試行時にリストと照合されます。「配信して記録だけする」は、リストが実際に動く前に何をするかを確かめる安全な方法です。</value>
   </data>
@@ -8343,8 +8346,8 @@
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>http-01 チャレンジ用のポート</value>
   </data>
-  <data name="Port {0} does not offer AUTH: DisableAUTHList names it, and an AUTH sent there is refused without a ban." xml:space="preserve">
-    <value>ポート {0} は AUTH を提示しません。DisableAUTHList に含まれており、そこに送られた AUTH は禁止なしで拒否されます。</value>
+  <data name="Port {0} does not offer AUTH: it is listed in 'Do not offer AUTH on these local TCP ports' on the Authentication page, and an AUTH sent there is refused without a ban." xml:space="preserve">
+    <value>ポート {0} は AUTH を提示しません。[認証] ページの「これらのローカル TCP ポートでは AUTH を提供しない」に含まれており、そこに送られた AUTH は禁止なしで拒否されます。</value>
   </data>
   <data name="Port {0} is set to TLS but has no certificate, so TLS cannot start." xml:space="preserve">
     <value>ポート {0} は TLS に設定されていますが証明書がないため、TLS を開始できません。</value>
@@ -8492,9 +8495,6 @@
   </data>
   <data name="Protect the administrator credential" xml:space="preserve">
     <value>管理者の資格情報を保護する</value>
-  </data>
-  <data name="ProtectStoredSecretsWithDPAPI is 0, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed." xml:space="preserve">
-    <value>ProtectStoredSecretsWithDPAPI が 0 のため、アカウントの第二要素と [Settings] のシークレットは書かれたまま保存され、保存シークレットの鍵は必要ありません。</value>
   </data>
   <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
     <value>保護対象者(_P) (名前を借用されてはならない、このドメインのアカウント以外の人。一行に一人、各行は 名前 &lt;address&gt;、名前、またはアドレス)</value>
@@ -15074,9 +15074,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>hMailServer.ini を読み取れませんでした: {0} 6.3.6 以降、このファイルは管理者のものです。これらの設定を表示・変更するには、コントロール パネルを閉じて「管理者として実行」で起動してください。</value>
-  </data>
-  <data name="hMailServer.ini was not found on this machine, so BackupMessagesDBOnly can only be changed on the server itself." xml:space="preserve">
-    <value>このコンピューターに hMailServer.ini が見つからなかったため、BackupMessagesDBOnly はサーバー自身でしか変更できません。</value>
   </data>
   <data name="hMailServer.ini was not found on this machine, so this can only be changed on the server itself." xml:space="preserve">
     <value>このコンピューターに hMailServer.ini が見つからなかったため、この設定はサーバー自身でしか変更できません。</value>

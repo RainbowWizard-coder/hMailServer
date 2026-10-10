@@ -2024,19 +2024,23 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 
 - **Fixed: the Control Panel named settings by their hMailServer.ini keys, and twice by the server's source code,
   where the reader sees a caption on a page.** The setup checklist said "Set TlsRptFromAddress in the [Settings]
-  section of hMailServer.ini", "ACME is enabled but AcmeDomains is empty" and "Neither OAuth2Issuer nor OAuth2Audience
-  is set", the never-ban list "list the address in AutoBanNeverBan", DNS records "NOTE: MtaStsHostingEnabled=0, so the
-  server will NOT serve this policy at all", the Dashboard "MetricsHistoryDays is 0 in hMailServer.ini", Diagnosing
-  stalled mail named its nine timeouts by key, the Backup & restore hints began "hMailServer.ini setting
-  BackupVerifyRestore", and two notes ended "(Utilities::ComputerName)" and "(the table lives in WindowsEventLog.h)".
-  Each now names the setting by its caption and its page - "Set 'TLS report sender address' on the Transport security
-  page", "add the address to 'Never auto-ban these addresses' on the Auto-ban page", "Note: 'Serve MTA-STS policies
-  for local domains' is off on the Web services & autoconfiguration page", "Message finalization deadline (240)" - in
-  all seventeen languages, each with the caption and the page title its own catalogue gives them; a key stays only
-  where hMailServer.ini is the one place to set it ([Directories] DataFolder, LogFolder). The update check's caption
-  lost its "(UpdateCheckEnabled)", the event log's last level is "Every error the server reports" where it was
-  "Everything ErrorManager reports", and the directory authentication page's port is captioned Port, where it read
-  "Port (Port)".
+  section of hMailServer.ini", "ACME is enabled but AcmeDomains is empty", "Neither OAuth2Issuer nor OAuth2Audience is
+  set", "DisableAUTHList names it" and "ProtectStoredSecretsWithDPAPI is 0", the never-ban list "list the address in
+  AutoBanNeverBan", DNS records "NOTE: MtaStsHostingEnabled=0, so the server will NOT serve this policy at all", the
+  Dashboard "MetricsHistoryDays is 0 in hMailServer.ini", Diagnosing stalled mail named its nine timeouts by key, the
+  Backup & restore hints began "hMailServer.ini setting BackupVerifyRestore" and said "so BackupMessagesDBOnly can
+  only be changed on the server itself", and two notes ended "(Utilities::ComputerName)" and "(the table lives in
+  WindowsEventLog.h)". Each now names the setting by its caption and its page - "Set 'TLS report sender address' on
+  the Transport security page", "add the address to 'Never auto-ban these addresses' on the Auto-ban page", "Note:
+  'Serve MTA-STS policies for local domains' is off on the Web services & autoconfiguration page", "it is listed in
+  'Do not offer AUTH on these local TCP ports' on the Authentication page", "Message finalization deadline (240)" - in
+  all seventeen languages, each with the caption and the page title its own catalogue gives them. A key stays only
+  where nothing on screen captions the setting - where hMailServer.ini is the one place to set it ([Directories]
+  DataFolder and LogFolder, and AdministratorTotpSecret, deleted by hand when the authenticator is lost) - and on the
+  Directory authentication (LDAP) page, whose captions carry their keys; a test holds every text to it against the
+  keys of the settings pages and of the settings search, acronyms in them included. The update check's caption lost
+  its "(UpdateCheckEnabled)", the event log's last level is "Every error the server reports" where it was "Everything
+  ErrorManager reports", and the directory authentication page's port is captioned Port, where it read "Port (Port)".
 
 - **Fixed: the SSL certificates page said a failed read with the reason alone and no way to read the list again.** It
   now leads with "Could not read the certificates:", as the other list pages do, with Try again beside it, the list

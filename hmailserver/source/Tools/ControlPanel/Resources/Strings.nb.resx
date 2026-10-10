@@ -30,6 +30,9 @@
   <data name="'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have signed in." xml:space="preserve">
     <value>«Alle i domenet kan sende» betyr at avsenderadressen ligger på et domene denne serveren er vert for, og det kan en utenforstående utgi seg for med mindre listen også krever autentisering. Kryss av for det nedenfor hvis listen skal være begrenset til folk som har logget inn.</value>
   </data>
+  <data name="'Protect stored secrets with Windows DPAPI' on the Server limits &amp; expert settings page is off, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed." xml:space="preserve">
+    <value>«Beskytt lagrede hemmeligheter med Windows DPAPI» er av på siden Servergrenser og ekspertinnstillinger, så en kontos andre faktor og hemmelighetene i [Settings] lagres slik de er skrevet, og det trengs ingen nøkkel for lagrede hemmeligheter.</value>
+  </data>
   <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
     <value>«Avvis den, med begrunnelsen» besvarer en innsending ved RCPT med begrunnelsen, og returnerer alt annet - et alias, en videresending, en planlagt sending - til avsenderen i en leveringsstatusmelding. E-post som allerede står i kø til en adresse, møter listen ved neste leveringsforsøk. «Lever den og bare registrer den» er den trygge måten å se hva listen ville gjort før den gjør det.</value>
   </data>
@@ -8343,8 +8346,8 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>Port for http-01-utfordringer</value>
   </data>
-  <data name="Port {0} does not offer AUTH: DisableAUTHList names it, and an AUTH sent there is refused without a ban." xml:space="preserve">
-    <value>Port {0} tilbyr ikke AUTH: DisableAUTHList nevner den, og en AUTH sendt dit avvises uten utestengelse.</value>
+  <data name="Port {0} does not offer AUTH: it is listed in 'Do not offer AUTH on these local TCP ports' on the Authentication page, and an AUTH sent there is refused without a ban." xml:space="preserve">
+    <value>Port {0} tilbyr ikke AUTH: den står i «Ikke tilby AUTH på disse lokale TCP-portene» på siden Autentisering, og en AUTH sendt dit avvises uten utestengelse.</value>
   </data>
   <data name="Port {0} is set to TLS but has no certificate, so TLS cannot start." xml:space="preserve">
     <value>Port {0} er satt til TLS, men har ikke noe sertifikat, så TLS kan ikke starte.</value>
@@ -8492,9 +8495,6 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   </data>
   <data name="Protect the administrator credential" xml:space="preserve">
     <value>Beskytt administratorlegitimasjonen</value>
-  </data>
-  <data name="ProtectStoredSecretsWithDPAPI is 0, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed." xml:space="preserve">
-    <value>ProtectStoredSecretsWithDPAPI er 0, så en kontos andre faktor og hemmelighetene i [Settings] lagres slik de er skrevet, og det trengs ingen nøkkel for lagrede hemmeligheter.</value>
   </data>
   <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
     <value>Beskyttede _personer (personer utenfor dette domenets kontoer hvis navn ikke må lånes; én per linje, hver Navn &lt;address&gt;, Navn eller adresse)</value>
@@ -15074,9 +15074,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>hMailServer.ini kunne ikke leses: {0} Fra 6.3.6 tilhører filen administratorene. Lukk kontrollpanelet og start det med Kjør som administrator for å se og endre disse innstillingene.</value>
-  </data>
-  <data name="hMailServer.ini was not found on this machine, so BackupMessagesDBOnly can only be changed on the server itself." xml:space="preserve">
-    <value>hMailServer.ini ble ikke funnet på denne maskinen, så BackupMessagesDBOnly kan bare endres på selve serveren.</value>
   </data>
   <data name="hMailServer.ini was not found on this machine, so this can only be changed on the server itself." xml:space="preserve">
     <value>hMailServer.ini ble ikke funnet på denne maskinen, så denne innstillingen kan bare endres på selve serveren.</value>

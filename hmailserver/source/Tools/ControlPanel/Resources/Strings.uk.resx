@@ -30,6 +30,9 @@
   <data name="'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have signed in." xml:space="preserve">
     <value>«Надсилати може будь-хто в домені» означає, що адреса відправника належить до домену, який обслуговує цей сервер, а це може заявити про себе й стороння особа, якщо список додатково не вимагає автентифікації. Установіть відповідний прапорець нижче, якщо список має бути обмежений тими, хто ввійшов у систему.</value>
   </data>
+  <data name="'Protect stored secrets with Windows DPAPI' on the Server limits &amp; expert settings page is off, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed." xml:space="preserve">
+    <value>Параметр «Захищати збережені секрети за допомогою Windows DPAPI» на сторінці «Обмеження сервера та експертні параметри» вимкнено, тому другий фактор облікового запису та секрети [Settings] зберігаються у вихідному вигляді, і ключ збережених секретів не потрібен.</value>
+  </data>
   <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
     <value>«Відхилити із зазначенням причини» відповідає на надсилання під час RCPT із зазначенням причини, а все інше - псевдонім, пересилання, заплановане надсилання - повертає відправникові в повідомленні про стан доставки. Пошта, що вже стоїть у черзі на адресу, зустріне список під час наступної спроби доставки. «Доставити й лише записати» - безпечний спосіб побачити, що зробить список, перш ніж він це зробить.</value>
   </data>
@@ -8431,8 +8434,8 @@
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>Порт для викликів http-01</value>
   </data>
-  <data name="Port {0} does not offer AUTH: DisableAUTHList names it, and an AUTH sent there is refused without a ban." xml:space="preserve">
-    <value>Порт {0} не пропонує AUTH: його вказано в DisableAUTHList, і надісланий туди AUTH відхиляється без блокування.</value>
+  <data name="Port {0} does not offer AUTH: it is listed in 'Do not offer AUTH on these local TCP ports' on the Authentication page, and an AUTH sent there is refused without a ban." xml:space="preserve">
+    <value>Порт {0} не пропонує AUTH: його вказано в параметрі «Не пропонувати AUTH на цих локальних портах TCP» на сторінці «Автентифікація», і надісланий туди AUTH відхиляється без блокування.</value>
   </data>
   <data name="Port {0} is set to TLS but has no certificate, so TLS cannot start." xml:space="preserve">
     <value>Порт {0} налаштовано на TLS, але без сертифіката, тому TLS не може розпочатися.</value>
@@ -8580,9 +8583,6 @@
   </data>
   <data name="Protect the administrator credential" xml:space="preserve">
     <value>Захистити облікові дані адміністратора</value>
-  </data>
-  <data name="ProtectStoredSecretsWithDPAPI is 0, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed." xml:space="preserve">
-    <value>ProtectStoredSecretsWithDPAPI дорівнює 0, тому другий фактор облікового запису та секрети [Settings] зберігаються у вихідному вигляді, і ключ збережених секретів не потрібен.</value>
   </data>
   <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
     <value>Захищені _особи (особи поза обліковими записами цього домену, чиє ім'я не можна запозичувати; по одній на рядок, кожна як Ім'я &lt;address&gt;, Ім'я або адреса)</value>
@@ -15252,9 +15252,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>Не вдалося прочитати hMailServer.ini: {0} Починаючи з 6.3.6 файл належить адміністраторам. Закрийте панель керування та запустіть її через «Запуск від імені адміністратора», щоб побачити й змінити ці параметри.</value>
-  </data>
-  <data name="hMailServer.ini was not found on this machine, so BackupMessagesDBOnly can only be changed on the server itself." xml:space="preserve">
-    <value>hMailServer.ini не знайдено на цьому комп’ютері, тому BackupMessagesDBOnly можна змінити лише на самому сервері.</value>
   </data>
   <data name="hMailServer.ini was not found on this machine, so this can only be changed on the server itself." xml:space="preserve">
     <value>hMailServer.ini не знайдено на цьому комп’ютері, тому цей параметр можна змінити лише на самому сервері.</value>

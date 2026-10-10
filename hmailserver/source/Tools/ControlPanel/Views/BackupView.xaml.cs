@@ -109,7 +109,7 @@ namespace hMailServer.ControlPanel.Views
          else
          {
             CheckMessagesDbOnly.IsEnabled = false;
-            MessagesDbOnlyRow.Hint = L("hMailServer.ini was not found on this machine, so BackupMessagesDBOnly can only be changed on the server itself.");
+            MessagesDbOnlyRow.Hint = L("hMailServer.ini was not found on this machine, so this can only be changed on the server itself.");
             CheckVerifyRestore.IsEnabled = false;
             VerifyRestoreRow.Hint = L("hMailServer.ini was not found on this machine, so this can only be changed on the server itself.");
 
