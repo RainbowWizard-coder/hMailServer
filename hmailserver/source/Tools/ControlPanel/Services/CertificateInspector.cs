@@ -238,13 +238,13 @@ namespace hMailServer.ControlPanel.Services
                daysAgo == 0
                   ? F("Expired on {0} (less than a day ago)", date)
                   : PluralF(daysAgo, "Expired on {0} ({1} day ago)", "Expired on {0} ({1} days ago)", date, daysAgo),
-               F("The certificate expired on {0}. The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate.", date));
+               L("The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate."));
          }
          else if (certificate.NotBefore > now)
          {
             health.CertificateFile = new CertificateFinding(StatusLevel.Warning,
                F("Not valid until {0}", certificate.NotBefore.ToString("yyyy-MM-dd")),
-               F("The certificate is not valid until {0}. The server serves it (server error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock.", certificate.NotBefore.ToString("yyyy-MM-dd")));
+               L("The server serves it (server error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock."));
          }
          else if (daysRemaining <= ExpiryWarningDays)
          {
@@ -253,20 +253,14 @@ namespace hMailServer.ControlPanel.Services
                   ? F("Expires on {0} (in less than a day)", date)
                   : PluralF(daysRemaining, "Expires on {0} (in {1} day)", "Expires on {0} (in {1} days)", date, daysRemaining),
                daysRemaining == 0
-                  ? F("The certificate expires on {0}, in less than a day. Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect.", date)
-                  : PluralF(daysRemaining,
-                     "The certificate expires on {0}, in {1} day. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect.",
-                     "The certificate expires on {0}, in {1} days. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect.",
-                     date, daysRemaining));
+                  ? L("Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect.")
+                  : L("Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect."));
          }
          else
          {
             health.CertificateFile = new CertificateFinding(StatusLevel.Good,
                PluralF(daysRemaining, "Valid until {0} ({1} day left)", "Valid until {0} ({1} days left)", date, daysRemaining),
-               PluralF(daysRemaining,
-                  "The certificate file parses correctly and is valid until {0}, {1} day from now.",
-                  "The certificate file parses correctly and is valid until {0}, {1} days from now.",
-                  date, daysRemaining));
+               L("The file parses as a PEM certificate, the format the server loads."));
          }
 
          return certificate;
@@ -322,7 +316,7 @@ namespace hMailServer.ControlPanel.Services
          }
 
          health.PrivateKeyFile = new CertificateFinding(StatusLevel.Good, L("Key file present"),
-            L("The key file exists and is a plain (unencrypted) PEM, so no passphrase is needed."));
+            L("A plain (unencrypted) PEM, so no passphrase is needed."));
 
          try
          {
@@ -380,7 +374,7 @@ namespace hMailServer.ControlPanel.Services
 
          health.Pair = keyPublic.AsSpan().SequenceEqual(certificatePublic)
             ? new CertificateFinding(StatusLevel.Good, L("Matches the certificate"),
-               L("The private key's public half is identical to the certificate's public key - the pair belongs together."))
+               L("The private key's public half is the certificate's public key."))
             : new CertificateFinding(StatusLevel.Critical, L("Does not match the certificate"),
                L("The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate."));
       }

@@ -603,6 +603,9 @@
   <data name="A piece of equipment" xml:space="preserve">
     <value>Обладнання</value>
   </data>
+  <data name="A plain (unencrypted) PEM, so no passphrase is needed." xml:space="preserve">
+    <value>Звичайний (незашифрований) PEM, тому парольна фраза не потрібна.</value>
+  </data>
   <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the SSL certificates page first." xml:space="preserve">
     <value>Порт із SSL/TLS або STARTTLS пред'являє сертифікат, а на сервері ще немає жодного: спочатку додайте його на сторінці «Сертифікати SSL».</value>
   </data>
@@ -1341,12 +1344,6 @@
   <data name="Advanced: it is sent as it is, in place of a token the server fetches." xml:space="preserve">
     <value>Для досвідчених: надсилається як є замість токена, який отримує сервер.</value>
   </data>
-  <data name="After a restart" xml:space="preserve">
-    <value>Після перезапуску</value>
-  </data>
-  <data name="After reinitialise" xml:space="preserve">
-    <value>Після повторної ініціалізації</value>
-  </data>
   <data name="After sign-in" xml:space="preserve">
     <value>Після входу</value>
   </data>
@@ -1776,6 +1773,12 @@
   </data>
   <data name="Applies _to" xml:space="preserve">
     <value>Застосовується _до</value>
+  </data>
+  <data name="Applies after a reinitialise" xml:space="preserve">
+    <value>Застосовується після повторної ініціалізації</value>
+  </data>
+  <data name="Applies after a restart" xml:space="preserve">
+    <value>Застосовується після перезапуску</value>
   </data>
   <data name="Applies at the next service restart or Reinitialise. Log files are unaffected: this sends a copy, it does not move anything. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration." xml:space="preserve">
     <value>Набуває чинності під час наступного запуску служби або повторної ініціалізації. Файли журналу не змінюються: надсилається копія, нічого не переміщується. Якщо вузол збирача нижче не вказано, сервер під systemd у Linux пише до journal - тобто в Linux цей один перемикач і є всім налаштуванням.</value>
@@ -2494,6 +2497,9 @@
   <data name="Certificate output folder (empty = Data\ACME)" xml:space="preserve">
     <value>Папка для збереження сертифікатів (порожньо = Data\ACME)</value>
   </data>
+  <data name="Certificate status" xml:space="preserve">
+    <value>Стан сертифіката</value>
+  </data>
   <data name="Certificate validation was off for this test, as 'Verify the directory server's certificate' is off." xml:space="preserve">
     <value>Перевірку сертифіката для цього тесту було вимкнено, оскільки параметр «Перевіряти сертифікат сервера каталогу» вимкнено.</value>
   </data>
@@ -2659,6 +2665,9 @@
   <data name="Checking for updates…" xml:space="preserve">
     <value>Перевірка наявності оновлень…</value>
   </data>
+  <data name="Checking the certificate files…" xml:space="preserve">
+    <value>Перевірка файлів сертифікатів…</value>
+  </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>Перевірка інсталятора</value>
   </data>
@@ -2736,9 +2745,6 @@
   </data>
   <data name="Cipher list: the AEAD-ONLY preset — forward-secret AEAD suites only, with every CBC-mode suite and static-RSA key exchange excluded. This governs TLS 1.2 and below; TLS 1.3 has its own list and is AEAD by construction." xml:space="preserve">
     <value>Список шифрів: готовий набір AEAD-ONLY — лише набори AEAD із прямою секретністю, без жодного набору в режимі CBC і без обміну ключами зі статичним RSA. Це стосується TLS 1.2 і нижче; TLS 1.3 має власний список і є AEAD за самою побудовою.</value>
-  </data>
-  <data name="Ciphers" xml:space="preserve">
-    <value>Шифри</value>
   </data>
   <data name="Ciphers &amp; verification" xml:space="preserve">
     <value>Шифри та перевірка</value>
@@ -4496,6 +4502,9 @@
   <data name="Each check can be enabled separately and given its own score." xml:space="preserve">
     <value>Кожну перевірку можна увімкнути окремо і дати їй власну оцінку.</value>
   </data>
+  <data name="Each is a root DS record - key tag, algorithm, digest type and the digest in hex - such as 20326 8 2 E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D. Set, they replace the built-in root anchors; empty uses those." xml:space="preserve">
+    <value>Кожен - запис DS кореня: тег ключа, алгоритм, тип дайджесту й дайджест у шістнадцятковому вигляді, наприклад 20326 8 2 E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D. Задані, вони замінюють вбудовані кореневі якорі; порожнє поле використовує їх.</value>
+  </data>
   <data name="Each message" xml:space="preserve">
     <value>Кожне повідомлення</value>
   </data>
@@ -5275,6 +5284,9 @@
   </data>
   <data name="External recipients (addresses this server does not host)" xml:space="preserve">
     <value>Зовнішні одержувачі (адреси, які цей сервер не обслуговує)</value>
+  </data>
+  <data name="External to exte_rnal" xml:space="preserve">
+    <value>Зовнішні _до зовнішніх</value>
   </data>
   <data name="External to external (rela_y)" xml:space="preserve">
     <value>Зовнішні до зовнішніх (_ретрансляція)</value>
@@ -6409,6 +6421,9 @@
   <data name="Key si_ze" xml:space="preserve">
     <value>_Розмір ключа</value>
   </data>
+  <data name="Key status" xml:space="preserve">
+    <value>Стан ключа</value>
+  </data>
   <data name="Key store" xml:space="preserve">
     <value>Сховище ключів</value>
   </data>
@@ -6495,9 +6510,6 @@
   </data>
   <data name="Leave empty for any address" xml:space="preserve">
     <value>Залиште порожнім для будь-якої адреси</value>
-  </data>
-  <data name="Leave empty for the built-in root anchors" xml:space="preserve">
-    <value>Залиште порожнім для вбудованих кореневих якорів</value>
   </data>
   <data name="Leave empty to keep the current password." xml:space="preserve">
     <value>Залиште порожнім, щоб зберегти поточний пароль.</value>
@@ -6660,6 +6672,9 @@
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Завантаження…</value>
+  </data>
+  <data name="Local to _external" xml:space="preserve">
+    <value>Ло_кальні до зовнішніх</value>
   </data>
   <data name="LocalSystem, which is the most privileged account on this machine" xml:space="preserve">
     <value>LocalSystem — найпривілейованіший обліковий запис на цьому комп’ютері</value>
@@ -9376,9 +9391,6 @@
   <data name="Private _key passphrase" xml:space="preserve">
     <value>Па_рольна фраза закритого ключа</value>
   </data>
-  <data name="Private key" xml:space="preserve">
-    <value>Закритий ключ</value>
-  </data>
   <data name="Private key _file (PEM)" xml:space="preserve">
     <value>Фа_йл закритого ключа (PEM)</value>
   </data>
@@ -10182,6 +10194,12 @@
     <value>Перейменувати {0} на {1}?
 
 Поштова скринька та її повідомлення переходять на нову адресу. Пошта, надіслана на стару адресу, більше не досягне цього облікового запису, якщо для неї не створити псевдонім.</value>
+  </data>
+  <data name="Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
+    <value>Поновіть його до того: після закінчення терміну порти продовжують слухати, але клієнти, що перевіряють дату, відмовляються підключатися.</value>
+  </data>
+  <data name="Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
+    <value>Поновіть його зараз: після закінчення терміну порти продовжують слухати, але клієнти, що перевіряють дату, відмовляються підключатися.</value>
   </data>
   <data name="Renew or install a certificate" xml:space="preserve">
     <value>Поновити або встановити сертифікат</value>
@@ -12991,41 +13009,14 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>Щоб надавати HTTPS, потрібно задати обидва — і сертифікат, і ключ; лише з одним із них TLS не вмикається, і сервер записує це до журналу. На відміну від слухача REST API, тут немає запасного варіанта з сертифікатом ACME. Якщо TLS налаштовано, але підготувати його не вдається (файл не читається, ключ не відповідає сертифікату), проби працездатності залишаються на звичайному HTTP, а /metrics відповідає 503 замість того, щоб віддавати експозицію у відкритому вигляді.</value>
   </data>
-  <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
-    <value>Сертифікат сплив {0}. Сервер усе ще завантажує його, і його порти запускаються (він повідомляє помилку сервера 5991 у журналі застосунку), але кожен клієнт і поштовий сервер, що перевіряє дату, відмовляється підключатися - а сьогодні це майже всі. Замініть сертифікат.</value>
-  </data>
-  <data name="The certificate expires on {0}, in less than a day. Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
-    <value>Сертифікат спливає {0}, менш ніж за добу. Поновіть його зараз: після закінчення терміну порти продовжують слухати, але клієнти, що перевіряють дату, відмовляються підключатися.</value>
-  </data>
-  <data name="The certificate expires on {0}, in {1} day. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
-    <value>Сертифікат спливає {0}, через {1} дн. Поновіть його до того: після закінчення терміну порти продовжують слухати, але клієнти, що перевіряють дату, відмовляються підключатися.</value>
-  </data>
-  <data name="The certificate expires on {0}, in {1} days. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
-    <value>Сертифікат спливає {0}, через {1} дн. Поновіть його до того: після закінчення терміну порти продовжують слухати, але клієнти, що перевіряють дату, відмовляються підключатися.</value>
-  </data>
-  <data name="The certificate expires on {0}, in {1} days. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect.|few" xml:space="preserve">
-    <value>Сертифікат спливає {0}, через {1} дн. Поновіть його до того: після закінчення терміну порти продовжують слухати, але клієнти, що перевіряють дату, відмовляються підключатися.</value>
-  </data>
   <data name="The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (server error 5113) - mail on those ports stops." xml:space="preserve">
     <value>Файл сертифіката не існує на цьому комп'ютері ({0}). Кожен порт TLS, налаштований на цей сертифікат, не запуститься (помилка сервера 5113) - пошта на цих портах зупиниться.</value>
   </data>
   <data name="The certificate file exists but could not be read from this panel ({0}), so nothing about it is verified." xml:space="preserve">
     <value>Файл сертифіката існує, але з цієї панелі його не вдалося прочитати ({0}), тому нічого про нього не перевірено.</value>
   </data>
-  <data name="The certificate file parses correctly and is valid until {0}, {1} day from now." xml:space="preserve">
-    <value>Файл сертифіката розбирається коректно і дійсний до {0}, тобто ще {1} дн.</value>
-  </data>
-  <data name="The certificate file parses correctly and is valid until {0}, {1} days from now." xml:space="preserve">
-    <value>Файл сертифіката розбирається коректно і дійсний до {0}, тобто ще {1} дн.</value>
-  </data>
-  <data name="The certificate file parses correctly and is valid until {0}, {1} days from now.|few" xml:space="preserve">
-    <value>Файл сертифіката розбирається коректно і дійсний до {0}, тобто ще {1} дн.</value>
-  </data>
   <data name="The certificate files are on the server and this Control Panel is connected to it remotely, so expiry dates and file contents cannot be checked from here. Everything else on this page is read over COM and is accurate." xml:space="preserve">
     <value>Файли сертифікатів розташовані на сервері, а ця Панель керування під'єднана до нього віддалено, тому терміни дії та вміст файлів звідси перевірити неможливо. Усе інше на цій сторінці читається через COM і є точним.</value>
-  </data>
-  <data name="The certificate is not valid until {0}. The server serves it (server error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
-    <value>Сертифікат дійсний лише з {0}. Сервер його віддає (помилка сервера 5991 у журналі застосунку), а клієнти відхиляють його до цієї дати - перевірте сертифікат і годинник цього сервера.</value>
   </data>
   <data name="The certificate keeps its place on every TCP/IP port that presents it. Those ports read the files again when the server is next reinitialised." xml:space="preserve">
     <value>Сертифікат залишається на кожному порту TCP/IP, який його надає. Ці порти прочитають файли знову під час наступної повторної ініціалізації сервера.</value>
@@ -13310,6 +13301,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The file could not be parsed as a PEM certificate. The server loads certificates in PEM format only, so this file will not load and every TLS port using it will fail to start (server error 5113)." xml:space="preserve">
     <value>Файл не вдалося розібрати як сертифікат PEM. Сервер завантажує сертифікати лише у форматі PEM, тому цей файл не завантажиться, і кожен порт TLS, що його використовує, не запуститься (помилка сервера 5113).</value>
   </data>
+  <data name="The file parses as a PEM certificate, the format the server loads." xml:space="preserve">
+    <value>Файл читається як сертифікат PEM, а саме в цьому форматі сервер завантажує сертифікати.</value>
+  </data>
   <data name="The first address of the gateway's range." xml:space="preserve">
     <value>Перша адреса діапазону шлюзу.</value>
   </data>
@@ -13418,9 +13412,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The key file could not be read from this machine, so the record value cannot be shown here; the domain's DKIM tab showed it when the key was made." xml:space="preserve">
     <value>Файл ключа не вдалося прочитати з цього комп’ютера, тому значення запису тут показати неможливо; його було показано на вкладці DKIM домену під час створення ключа.</value>
   </data>
-  <data name="The key file exists and is a plain (unencrypted) PEM, so no passphrase is needed." xml:space="preserve">
-    <value>Файл ключа існує і є звичайним (незашифрованим) PEM, тому парольна фраза не потрібна.</value>
-  </data>
   <data name="The key file exists but could not be read from this panel ({0}), so whether it is encrypted is unknown." xml:space="preserve">
     <value>Файл ключа існує, але з цієї панелі його не вдалося прочитати ({0}), тому невідомо, чи він зашифрований.</value>
   </data>
@@ -13430,8 +13421,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The key file is encrypted and no passphrase is stored, so the key will not load (server error 6170) and every TLS port using this certificate will not start - inbound mail on those ports stops. Enter the passphrase below, or replace the file with an unencrypted key." xml:space="preserve">
     <value>Файл ключа зашифровано, а парольну фразу не збережено, тому ключ не завантажиться (помилка сервера 6170), і жоден порт TLS, що використовує цей сертифікат, не запуститься - вхідна пошта на цих портах зупиниться. Введіть парольну фразу нижче або замініть файл незашифрованим ключем.</value>
   </data>
-  <data name="The key file is not encrypted, so no passphrase is needed and none is stored." xml:space="preserve">
-    <value>Файл ключа не зашифрований, тому парольна фраза не потрібна і не зберігається.</value>
+  <data name="The key file is not encrypted, and none is stored." xml:space="preserve">
+    <value>Файл ключа не зашифрований, і фраза не зберігається.</value>
   </data>
   <data name="The key file is passphrase-protected (an encrypted PEM). It only loads if the matching passphrase is stored on this certificate." xml:space="preserve">
     <value>Файл ключа захищено парольною фразою (зашифрований PEM). Він завантажується лише тоді, коли для цього сертифіката збережено відповідну парольну фразу.</value>
@@ -13675,8 +13666,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
 
 Усе одно додати?</value>
   </data>
-  <data name="The private key's public half is identical to the certificate's public key - the pair belongs together." xml:space="preserve">
-    <value>Відкрита половина закритого ключа ідентична відкритому ключу сертифіката - пара належить одна одній.</value>
+  <data name="The private key's public half is the certificate's public key." xml:space="preserve">
+    <value>Відкрита половина закритого ключа - це відкритий ключ сертифіката.</value>
   </data>
   <data name="The profile" xml:space="preserve">
     <value>Профіль</value>
@@ -13942,11 +13933,17 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The server remembers who has written to each account and who each account has written to, and says so in the reader the first time an outside sender appears. It costs one database lookup for each message delivered to this domain, and nothing at all while this is off." xml:space="preserve">
     <value>Сервер пам'ятає, хто писав кожному обліковому запису і кому писав він, і каже про це у програмі читання, коли зовнішній відправник з'являється вперше. Це коштує одного звернення до бази даних на кожне доставлене в цей домен повідомлення і зовсім нічого, доки це вимкнено.</value>
   </data>
+  <data name="The server serves it (server error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
+    <value>Сервер його віддає (помилка сервера 5991 у журналі застосунку), а клієнти відхиляють його до цієї дати - перевірте сертифікат і годинник цього сервера.</value>
+  </data>
   <data name="The server side is in place: hosting is enabled, the HTTPS port is set, and a certificate source exists." xml:space="preserve">
     <value>Серверна сторона на місці: розміщення увімкнено, порт HTTPS задано, джерело сертифіката існує.</value>
   </data>
   <data name="The server state could not be changed: {0}" xml:space="preserve">
     <value>Не вдалося змінити стан сервера: {0}</value>
+  </data>
+  <data name="The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
+    <value>Сервер усе ще завантажує його, і його порти запускаються (він повідомляє помилку сервера 5991 у журналі застосунку), але кожен клієнт і поштовий сервер, що перевіряє дату, відмовляється підключатися - а сьогодні це майже всі. Замініть сертифікат.</value>
   </data>
   <data name="The server stores this value and never reads it - nothing sets a thread priority from it, so changing it has no effect. It is shown rather than removed so that an administrator who set it years ago can see it is still there and why nothing happened, and it is not editable because a box that accepts a value nothing acts on is worse than no box at all. The thread counts above are honoured." xml:space="preserve">
     <value>Сервер зберігає це значення і ніколи його не читає - ніщо не задає за ним пріоритет потоків, тому його зміна ні на що не впливає. Його показано, а не прибрано, щоб адміністратор, який задав його роки тому, бачив, що воно все ще тут і чому нічого не сталося; і воно не редагується, бо поле, яке приймає значення, на яке ніщо не реагує, гірше за відсутність поля. Кількості потоків вище дотримуються.</value>
@@ -14555,8 +14552,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Tries" xml:space="preserve">
     <value>Спроб</value>
   </data>
-  <data name="Trust anchor override (tag alg digesttype hex; ...)" xml:space="preserve">
-    <value>Перевизначення якорів довіри (tag alg digesttype hex; ...)</value>
+  <data name="Trust anchors (DS records, separated by semicolons)" xml:space="preserve">
+    <value>Якорі довіри (записи DS через крапку з комою)</value>
   </data>
   <data name="Trusted ARC sealer domains" xml:space="preserve">
     <value>Довірені домени запечатувачів ARC</value>

@@ -600,6 +600,9 @@
   <data name="A piece of equipment" xml:space="preserve">
     <value>Utrustning</value>
   </data>
+  <data name="A plain (unencrypted) PEM, so no passphrase is needed." xml:space="preserve">
+    <value>En vanlig (okrypterad) PEM, så ingen lösenfras behövs.</value>
+  </data>
   <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the SSL certificates page first." xml:space="preserve">
     <value>En port med SSL/TLS eller STARTTLS visar ett certifikat, och servern har inget ännu: lägg först till ett på sidan SSL-certifikat.</value>
   </data>
@@ -1335,12 +1338,6 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Advanced: it is sent as it is, in place of a token the server fetches." xml:space="preserve">
     <value>Avancerat: den skickas som den är, i stället för en token som servern hämtar.</value>
   </data>
-  <data name="After a restart" xml:space="preserve">
-    <value>Efter en omstart</value>
-  </data>
-  <data name="After reinitialise" xml:space="preserve">
-    <value>Efter ominitiering</value>
-  </data>
   <data name="After sign-in" xml:space="preserve">
     <value>Efter inloggning</value>
   </data>
@@ -1764,6 +1761,12 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Applies _to" xml:space="preserve">
     <value>Gäller _för</value>
+  </data>
+  <data name="Applies after a reinitialise" xml:space="preserve">
+    <value>Gäller efter ominitiering</value>
+  </data>
+  <data name="Applies after a restart" xml:space="preserve">
+    <value>Gäller efter en omstart</value>
   </data>
   <data name="Applies at the next service restart or Reinitialise. Log files are unaffected: this sends a copy, it does not move anything. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration." xml:space="preserve">
     <value>Träder i kraft vid nästa omstart av tjänsten eller vid ominitiering. Loggfilerna påverkas inte: detta skickar en kopia, det flyttar ingenting. Utan insamlarvärd nedan skriver en server under systemd på Linux till journalen i stället - på Linux är alltså denna enda brytare hela konfigurationen.</value>
@@ -2470,6 +2473,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Certificate output folder (empty = Data\ACME)" xml:space="preserve">
     <value>Utdatamapp för certifikat (tomt = Data\ACME)</value>
   </data>
+  <data name="Certificate status" xml:space="preserve">
+    <value>Certifikatstatus</value>
+  </data>
   <data name="Certificate validation was off for this test, as 'Verify the directory server's certificate' is off." xml:space="preserve">
     <value>Certifikatvalidering var avstängd för det här testet, eftersom 'Verifiera katalogserverns certifikat' är av.</value>
   </data>
@@ -2635,6 +2641,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Checking for updates…" xml:space="preserve">
     <value>Söker efter uppdateringar…</value>
   </data>
+  <data name="Checking the certificate files…" xml:space="preserve">
+    <value>Kontrollerar certifikatfilerna…</value>
+  </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>Kontroll av installationsprogrammet</value>
   </data>
@@ -2712,9 +2721,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Cipher list: the AEAD-ONLY preset — forward-secret AEAD suites only, with every CBC-mode suite and static-RSA key exchange excluded. This governs TLS 1.2 and below; TLS 1.3 has its own list and is AEAD by construction." xml:space="preserve">
     <value>Chifferlista: förinställningen AEAD-ONLY — enbart AEAD-sviter med forward secrecy, med varje CBC-lägessvit och statiskt RSA-nyckelutbyte uteslutet. Detta styr TLS 1.2 och lägre; TLS 1.3 har sin egen lista och är AEAD till sin konstruktion.</value>
-  </data>
-  <data name="Ciphers" xml:space="preserve">
-    <value>Chiffer</value>
   </data>
   <data name="Ciphers &amp; verification" xml:space="preserve">
     <value>Chiffer &amp; verifiering</value>
@@ -4444,6 +4450,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Each check can be enabled separately and given its own score." xml:space="preserve">
     <value>Varje kontroll kan aktiveras separat och ges sin egen poäng.</value>
   </data>
+  <data name="Each is a root DS record - key tag, algorithm, digest type and the digest in hex - such as 20326 8 2 E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D. Set, they replace the built-in root anchors; empty uses those." xml:space="preserve">
+    <value>Var och en är en DS-post för roten - nyckeltagg, algoritm, sammandragstyp och sammandraget i hex - till exempel 20326 8 2 E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D. Angivna ersätter de de inbyggda rotankarna; tomt använder dem.</value>
+  </data>
   <data name="Each message" xml:space="preserve">
     <value>Varje meddelande</value>
   </data>
@@ -5205,6 +5214,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="External recipients (addresses this server does not host)" xml:space="preserve">
     <value>Externa mottagare (adresser som den här servern inte hanterar)</value>
+  </data>
+  <data name="External to exte_rnal" xml:space="preserve">
+    <value>Externt till exte_rnt</value>
   </data>
   <data name="External to external (rela_y)" xml:space="preserve">
     <value>Externt t_ill externt (relä)</value>
@@ -6339,6 +6351,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Key si_ze" xml:space="preserve">
     <value>N_yckelstorlek</value>
   </data>
+  <data name="Key status" xml:space="preserve">
+    <value>Nyckelstatus</value>
+  </data>
   <data name="Key store" xml:space="preserve">
     <value>Nyckellager</value>
   </data>
@@ -6425,9 +6440,6 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="Leave empty for any address" xml:space="preserve">
     <value>Lämna tomt för valfri adress</value>
-  </data>
-  <data name="Leave empty for the built-in root anchors" xml:space="preserve">
-    <value>Lämna tomt för de inbyggda rotankarna</value>
   </data>
   <data name="Leave empty to keep the current password." xml:space="preserve">
     <value>Lämna tomt för att behålla det nuvarande lösenordet.</value>
@@ -6590,6 +6602,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Läser in…</value>
+  </data>
+  <data name="Local to _external" xml:space="preserve">
+    <value>Lokalt till _externt</value>
   </data>
   <data name="LocalSystem, which is the most privileged account on this machine" xml:space="preserve">
     <value>LocalSystem, som är det mest privilegierade kontot på den här datorn</value>
@@ -9282,9 +9297,6 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="Private _key passphrase" xml:space="preserve">
     <value>L_ösenfras för privat nyckel</value>
   </data>
-  <data name="Private key" xml:space="preserve">
-    <value>Privat nyckel</value>
-  </data>
   <data name="Private key _file (PEM)" xml:space="preserve">
     <value>_Privat nyckelfil (PEM)</value>
   </data>
@@ -10073,6 +10085,12 @@ Varje konto, alias och distributionslista flyttas till det nya namnet, och vidar
     <value>Byt namn på {0} till {1}?
 
 Brevlådan och dess meddelanden flyttas till den nya adressen. Post skickad till den gamla adressen når inte längre det här kontot om inte ett alias skapas för den.</value>
+  </data>
+  <data name="Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
+    <value>Förnya det dessförinnan: när det gått ut fortsätter portarna lyssna, men klienter som kontrollerar datumet vägrar ansluta.</value>
+  </data>
+  <data name="Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
+    <value>Förnya det nu: när det gått ut fortsätter portarna lyssna, men klienter som kontrollerar datumet vägrar ansluta.</value>
   </data>
   <data name="Renew or install a certificate" xml:space="preserve">
     <value>Förnya eller installera ett certifikat</value>
@@ -12834,35 +12852,14 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>Certifikat och nyckel måste båda vara satta för att servera HTTPS; med bara ett av dem är TLS inte aktiverat och servern loggar det. Till skillnad från REST API-lyssnaren finns här ingen reserv i ACME-certifikatet. Om TLS är konfigurerat men inte kan förberedas (en oläsbar fil, en nyckel som inte matchar) stannar hälsokontrollerna på vanlig HTTP och /metrics svarar 503 i stället för att servera utdata i klartext.</value>
   </data>
-  <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
-    <value>Certifikatet gick ut {0}. Servern läser fortfarande in det och dess portar startar fortfarande (den rapporterar serverfel 5991 i programloggen), men varje klient och e-postserver som kontrollerar datumet vägrar ansluta - vilket i dag är nästan alla. Byt ut certifikatet.</value>
-  </data>
-  <data name="The certificate expires on {0}, in less than a day. Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
-    <value>Certifikatet går ut {0}, om mindre än en dag. Förnya det nu: när det gått ut fortsätter portarna lyssna, men klienter som kontrollerar datumet vägrar ansluta.</value>
-  </data>
-  <data name="The certificate expires on {0}, in {1} day. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
-    <value>Certifikatet går ut {0}, om {1} dag. Förnya det dessförinnan: när det gått ut fortsätter portarna lyssna, men klienter som kontrollerar datumet vägrar ansluta.</value>
-  </data>
-  <data name="The certificate expires on {0}, in {1} days. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
-    <value>Certifikatet går ut {0}, om {1} dagar. Förnya det dessförinnan: när det gått ut fortsätter portarna lyssna, men klienter som kontrollerar datumet vägrar ansluta.</value>
-  </data>
   <data name="The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (server error 5113) - mail on those ports stops." xml:space="preserve">
     <value>Certifikatfilen finns inte på den här datorn ({0}). Varje TLS-port konfigurerad att använda det här certifikatet kommer att misslyckas att starta (serverfel 5113) - post på de portarna stannar.</value>
   </data>
   <data name="The certificate file exists but could not be read from this panel ({0}), so nothing about it is verified." xml:space="preserve">
     <value>Certifikatfilen finns men kunde inte läsas från den här panelen ({0}), så inget om den är verifierat.</value>
   </data>
-  <data name="The certificate file parses correctly and is valid until {0}, {1} day from now." xml:space="preserve">
-    <value>Certifikatfilen tolkas korrekt och är giltig till {0}, om {1} dag.</value>
-  </data>
-  <data name="The certificate file parses correctly and is valid until {0}, {1} days from now." xml:space="preserve">
-    <value>Certifikatfilen tolkas korrekt och är giltig till {0}, om {1} dagar.</value>
-  </data>
   <data name="The certificate files are on the server and this Control Panel is connected to it remotely, so expiry dates and file contents cannot be checked from here. Everything else on this page is read over COM and is accurate." xml:space="preserve">
     <value>Certifikatfilerna finns på servern och den här Kontrollpanelen är ansluten till den på distans, så utgångsdatum och filinnehåll kan inte kontrolleras härifrån. Allt annat på den här sidan läses över COM och är korrekt.</value>
-  </data>
-  <data name="The certificate is not valid until {0}. The server serves it (server error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
-    <value>Certifikatet är inte giltigt förrän {0}. Servern serverar det (serverfel 5991 i programloggen) och klienter vägrar det fram till det datumet - kontrollera certifikatet och den här serverns klocka.</value>
   </data>
   <data name="The certificate keeps its place on every TCP/IP port that presents it. Those ports read the files again when the server is next reinitialised." xml:space="preserve">
     <value>Certifikatet behåller sin plats på varje TCP/IP-port som presenterar det. De portarna läser filerna igen nästa gång servern ominitieras.</value>
@@ -13138,6 +13135,9 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   <data name="The file could not be parsed as a PEM certificate. The server loads certificates in PEM format only, so this file will not load and every TLS port using it will fail to start (server error 5113)." xml:space="preserve">
     <value>Filen kunde inte tolkas som ett PEM-certifikat. Servern läser bara in certifikat i PEM-format, så den här filen läses inte in och varje TLS-port som använder den kommer att misslyckas att starta (serverfel 5113).</value>
   </data>
+  <data name="The file parses as a PEM certificate, the format the server loads." xml:space="preserve">
+    <value>Filen kan läsas som ett PEM-certifikat, det format som servern läser in.</value>
+  </data>
   <data name="The first address of the gateway's range." xml:space="preserve">
     <value>Den första adressen i gatewayens intervall.</value>
   </data>
@@ -13240,9 +13240,6 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   <data name="The key file could not be read from this machine, so the record value cannot be shown here; the domain's DKIM tab showed it when the key was made." xml:space="preserve">
     <value>Nyckelfilen kunde inte läsas från den här datorn, så postens värde kan inte visas här; domänens DKIM-flik visade det när nyckeln skapades.</value>
   </data>
-  <data name="The key file exists and is a plain (unencrypted) PEM, so no passphrase is needed." xml:space="preserve">
-    <value>Nyckelfilen finns och är en vanlig (okrypterad) PEM, så ingen lösenfras behövs.</value>
-  </data>
   <data name="The key file exists but could not be read from this panel ({0}), so whether it is encrypted is unknown." xml:space="preserve">
     <value>Nyckelfilen finns men kunde inte läsas från den här panelen ({0}), så om den är krypterad är okänt.</value>
   </data>
@@ -13252,8 +13249,8 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   <data name="The key file is encrypted and no passphrase is stored, so the key will not load (server error 6170) and every TLS port using this certificate will not start - inbound mail on those ports stops. Enter the passphrase below, or replace the file with an unencrypted key." xml:space="preserve">
     <value>Nyckelfilen är krypterad och ingen lösenfras är sparad, så nyckeln läses inte in (serverfel 6170) och ingen TLS-port som använder det här certifikatet startar - inkommande post på de portarna stannar. Ange lösenfrasen nedan, eller ersätt filen med en okrypterad nyckel.</value>
   </data>
-  <data name="The key file is not encrypted, so no passphrase is needed and none is stored." xml:space="preserve">
-    <value>Nyckelfilen är inte krypterad, så ingen lösenfras behövs och ingen är sparad.</value>
+  <data name="The key file is not encrypted, and none is stored." xml:space="preserve">
+    <value>Nyckelfilen är inte krypterad, och ingen är sparad.</value>
   </data>
   <data name="The key file is passphrase-protected (an encrypted PEM). It only loads if the matching passphrase is stored on this certificate." xml:space="preserve">
     <value>Nyckelfilen är lösenfrasskyddad (en krypterad PEM). Den läses bara in om den matchande lösenfrasen är sparad på det här certifikatet.</value>
@@ -13497,8 +13494,8 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
 
 Lägg till det ändå?</value>
   </data>
-  <data name="The private key's public half is identical to the certificate's public key - the pair belongs together." xml:space="preserve">
-    <value>Den privata nyckelns publika halva är identisk med certifikatets publika nyckel - paret hör ihop.</value>
+  <data name="The private key's public half is the certificate's public key." xml:space="preserve">
+    <value>Den privata nyckelns publika halva är certifikatets publika nyckel.</value>
   </data>
   <data name="The profile" xml:space="preserve">
     <value>Profilen</value>
@@ -13764,11 +13761,17 @@ Lägg till det ändå?</value>
   <data name="The server remembers who has written to each account and who each account has written to, and says so in the reader the first time an outside sender appears. It costs one database lookup for each message delivered to this domain, and nothing at all while this is off." xml:space="preserve">
     <value>Servern minns vem som har skrivit till varje konto och vem varje konto har skrivit till, och säger det i läsaren första gången en avsändare utifrån dyker upp. Det kostar en databasuppslagning för varje meddelande som levereras till den här domänen, och ingenting alls medan det är avstängt.</value>
   </data>
+  <data name="The server serves it (server error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
+    <value>Servern serverar det (serverfel 5991 i programloggen) och klienter vägrar det fram till det datumet - kontrollera certifikatet och den här serverns klocka.</value>
+  </data>
   <data name="The server side is in place: hosting is enabled, the HTTPS port is set, and a certificate source exists." xml:space="preserve">
     <value>Serversidan är på plats: hosting är aktiverad, HTTPS-porten är satt, och en certifikatkälla finns.</value>
   </data>
   <data name="The server state could not be changed: {0}" xml:space="preserve">
     <value>Serverns läge kunde inte ändras: {0}</value>
+  </data>
+  <data name="The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
+    <value>Servern läser fortfarande in det och dess portar startar fortfarande (den rapporterar serverfel 5991 i programloggen), men varje klient och e-postserver som kontrollerar datumet vägrar ansluta - vilket i dag är nästan alla. Byt ut certifikatet.</value>
   </data>
   <data name="The server stores this value and never reads it - nothing sets a thread priority from it, so changing it has no effect. It is shown rather than removed so that an administrator who set it years ago can see it is still there and why nothing happened, and it is not editable because a box that accepts a value nothing acts on is worse than no box at all. The thread counts above are honoured." xml:space="preserve">
     <value>Servern lagrar det här värdet och läser det aldrig - inget sätter en trådprioritet från det, så att ändra det har ingen effekt. Det visas i stället för att tas bort så att en administratör som satte det för år sedan kan se att det fortfarande finns och varför inget hände, och det går inte att redigera eftersom en ruta som godtar ett värde inget agerar på är värre än ingen ruta alls. Trådantalen ovan respekteras.</value>
@@ -14374,8 +14377,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Tries" xml:space="preserve">
     <value>Försök</value>
   </data>
-  <data name="Trust anchor override (tag alg digesttype hex; ...)" xml:space="preserve">
-    <value>Åsidosättning av förtroendeankare (tag alg digesttype hex; ...)</value>
+  <data name="Trust anchors (DS records, separated by semicolons)" xml:space="preserve">
+    <value>Förtroendeankare (DS-poster åtskilda av semikolon)</value>
   </data>
   <data name="Trusted ARC sealer domains" xml:space="preserve">
     <value>Betrodda ARC-förseglardomäner</value>

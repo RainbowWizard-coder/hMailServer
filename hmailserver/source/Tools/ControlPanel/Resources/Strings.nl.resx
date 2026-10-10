@@ -600,6 +600,9 @@
   <data name="A piece of equipment" xml:space="preserve">
     <value>Een apparaat</value>
   </data>
+  <data name="A plain (unencrypted) PEM, so no passphrase is needed." xml:space="preserve">
+    <value>Een gewone (onversleutelde) PEM, dus er is geen wachtwoordzin nodig.</value>
+  </data>
   <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the SSL certificates page first." xml:space="preserve">
     <value>Een poort met SSL/TLS of STARTTLS toont een certificaat, en de server heeft er nog geen: voeg er eerst een toe op de pagina SSL-certificaten.</value>
   </data>
@@ -1335,12 +1338,6 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Advanced: it is sent as it is, in place of a token the server fetches." xml:space="preserve">
     <value>Geavanceerd: het wordt ongewijzigd verzonden, in plaats van een token dat de server ophaalt.</value>
   </data>
-  <data name="After a restart" xml:space="preserve">
-    <value>Na een herstart</value>
-  </data>
-  <data name="After reinitialise" xml:space="preserve">
-    <value>Na herinitialiseren</value>
-  </data>
   <data name="After sign-in" xml:space="preserve">
     <value>Na aanmelding</value>
   </data>
@@ -1764,6 +1761,12 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Applies _to" xml:space="preserve">
     <value>Geldt _voor</value>
+  </data>
+  <data name="Applies after a reinitialise" xml:space="preserve">
+    <value>Geldt na herinitialiseren</value>
+  </data>
+  <data name="Applies after a restart" xml:space="preserve">
+    <value>Geldt na een herstart</value>
   </data>
   <data name="Applies at the next service restart or Reinitialise. Log files are unaffected: this sends a copy, it does not move anything. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration." xml:space="preserve">
     <value>Wordt van kracht bij de volgende herstart van de service of bij herinitialiseren. De logbestanden veranderen niet: dit verstuurt een kopie, het verplaatst niets. Zonder collectorhost hieronder schrijft een server onder systemd op Linux naar de journal - op Linux is deze ene schakelaar dus de hele configuratie.</value>
@@ -2470,6 +2473,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Certificate output folder (empty = Data\ACME)" xml:space="preserve">
     <value>Uitvoermap voor certificaten (leeg = Data\ACME)</value>
   </data>
+  <data name="Certificate status" xml:space="preserve">
+    <value>Certificaatstatus</value>
+  </data>
   <data name="Certificate validation was off for this test, as 'Verify the directory server's certificate' is off." xml:space="preserve">
     <value>Certificaatvalidatie stond voor deze test uit, omdat 'Het certificaat van de directoryserver verifiëren' uit staat.</value>
   </data>
@@ -2635,6 +2641,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Checking for updates…" xml:space="preserve">
     <value>Controleren op updates…</value>
   </data>
+  <data name="Checking the certificate files…" xml:space="preserve">
+    <value>De certificaatbestanden worden gecontroleerd…</value>
+  </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>Controle van het installatieprogramma</value>
   </data>
@@ -2712,9 +2721,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Cipher list: the AEAD-ONLY preset — forward-secret AEAD suites only, with every CBC-mode suite and static-RSA key exchange excluded. This governs TLS 1.2 and below; TLS 1.3 has its own list and is AEAD by construction." xml:space="preserve">
     <value>Cipherlijst: de voorinstelling AEAD-ONLY — uitsluitend forward-secret AEAD-suites, met elke CBC-suite en statische RSA-sleuteluitwisseling uitgesloten. Dit geldt voor TLS 1.2 en lager; TLS 1.3 heeft zijn eigen lijst en is per constructie AEAD.</value>
-  </data>
-  <data name="Ciphers" xml:space="preserve">
-    <value>Ciphers</value>
   </data>
   <data name="Ciphers &amp; verification" xml:space="preserve">
     <value>Ciphers en verificatie</value>
@@ -4444,6 +4450,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Each check can be enabled separately and given its own score." xml:space="preserve">
     <value>Elke controle kan afzonderlijk worden ingeschakeld en een eigen score krijgen.</value>
   </data>
+  <data name="Each is a root DS record - key tag, algorithm, digest type and the digest in hex - such as 20326 8 2 E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D. Set, they replace the built-in root anchors; empty uses those." xml:space="preserve">
+    <value>Elk is een DS-record van de root - sleuteltag, algoritme, digesttype en de digest in hex - bijvoorbeeld 20326 8 2 E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D. Ingevuld vervangen ze de ingebouwde rootankers; leeg gebruikt die.</value>
+  </data>
   <data name="Each message" xml:space="preserve">
     <value>Elk bericht</value>
   </data>
@@ -5205,6 +5214,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="External recipients (addresses this server does not host)" xml:space="preserve">
     <value>Externe ontvangers (adressen die deze server niet host)</value>
+  </data>
+  <data name="External to exte_rnal" xml:space="preserve">
+    <value>Extern naar exte_rn</value>
   </data>
   <data name="External to external (rela_y)" xml:space="preserve">
     <value>Extern naar extern (rela_y)</value>
@@ -6339,6 +6351,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Key si_ze" xml:space="preserve">
     <value>Sle_utelgrootte</value>
   </data>
+  <data name="Key status" xml:space="preserve">
+    <value>Sleutelstatus</value>
+  </data>
   <data name="Key store" xml:space="preserve">
     <value>Sleutelopslag</value>
   </data>
@@ -6425,9 +6440,6 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="Leave empty for any address" xml:space="preserve">
     <value>Leeg laten voor elk adres</value>
-  </data>
-  <data name="Leave empty for the built-in root anchors" xml:space="preserve">
-    <value>Laat leeg voor de ingebouwde rootankers</value>
   </data>
   <data name="Leave empty to keep the current password." xml:space="preserve">
     <value>Laat leeg om het huidige wachtwoord te behouden.</value>
@@ -6590,6 +6602,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Laden…</value>
+  </data>
+  <data name="Local to _external" xml:space="preserve">
+    <value>Lokaal naar _extern</value>
   </data>
   <data name="LocalSystem, which is the most privileged account on this machine" xml:space="preserve">
     <value>LocalSystem, het account met de meeste rechten op deze machine</value>
@@ -9282,9 +9297,6 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Private _key passphrase" xml:space="preserve">
     <value>Wachtwoordzin van _de privésleutel</value>
   </data>
-  <data name="Private key" xml:space="preserve">
-    <value>Privésleutel</value>
-  </data>
   <data name="Private key _file (PEM)" xml:space="preserve">
     <value>P_rivésleutelbestand (PEM)</value>
   </data>
@@ -10073,6 +10085,12 @@ Elk account, elke alias en elke distributielijst verhuist mee naar de nieuwe naa
     <value>{0} hernoemen naar {1}?
 
 Het postvak en zijn berichten verhuizen naar het nieuwe adres. Mail naar het oude adres bereikt dit account niet meer, tenzij daarvoor een alias wordt aangemaakt.</value>
+  </data>
+  <data name="Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
+    <value>Vernieuw het vóór die tijd: zodra het verloopt blijven de poorten luisteren, maar clients die de datum controleren weigeren te verbinden.</value>
+  </data>
+  <data name="Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
+    <value>Vernieuw het nu: zodra het verloopt blijven de poorten luisteren, maar clients die de datum controleren weigeren te verbinden.</value>
   </data>
   <data name="Renew or install a certificate" xml:space="preserve">
     <value>Een certificaat verlengen of installeren</value>
@@ -12834,35 +12852,14 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>Certificaat en sleutel moeten beide zijn ingesteld om HTTPS te kunnen serveren; met slechts één van beide wordt TLS niet ingeschakeld en legt de server dat vast. Anders dan bij de listener van de REST-API is er hier geen terugval op het ACME-certificaat. Is TLS geconfigureerd maar kan het niet worden voorbereid (een onleesbaar bestand, een sleutel die niet past), dan blijven de gezondheidscontroles op gewone HTTP en antwoordt /metrics met 503 in plaats van de expositie in klare tekst te serveren.</value>
   </data>
-  <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
-    <value>Het certificaat is verlopen op {0}. De server laadt het nog steeds en zijn poorten starten nog steeds (hij meldt serverfout 5991 in het toepassingslogboek), maar elke client en mailserver die de datum controleert weigert te verbinden - en dat zijn er tegenwoordig bijna allemaal. Vervang het certificaat.</value>
-  </data>
-  <data name="The certificate expires on {0}, in less than a day. Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
-    <value>Het certificaat verloopt op {0}, binnen een dag. Vernieuw het nu: zodra het verloopt blijven de poorten luisteren, maar clients die de datum controleren weigeren te verbinden.</value>
-  </data>
-  <data name="The certificate expires on {0}, in {1} day. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
-    <value>Het certificaat verloopt op {0}, over {1} dag. Vernieuw het vóór die tijd: zodra het verloopt blijven de poorten luisteren, maar clients die de datum controleren weigeren te verbinden.</value>
-  </data>
-  <data name="The certificate expires on {0}, in {1} days. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
-    <value>Het certificaat verloopt op {0}, over {1} dagen. Vernieuw het vóór die tijd: zodra het verloopt blijven de poorten luisteren, maar clients die de datum controleren weigeren te verbinden.</value>
-  </data>
   <data name="The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (server error 5113) - mail on those ports stops." xml:space="preserve">
     <value>Het certificaatbestand bestaat niet op deze machine ({0}). Elke TLS-poort die is geconfigureerd om dit certificaat te gebruiken zal niet starten (serverfout 5113) - mail op die poorten stopt.</value>
   </data>
   <data name="The certificate file exists but could not be read from this panel ({0}), so nothing about it is verified." xml:space="preserve">
     <value>Het certificaatbestand bestaat, maar kon niet vanuit dit paneel worden gelezen ({0}), dus er is niets aan geverifieerd.</value>
   </data>
-  <data name="The certificate file parses correctly and is valid until {0}, {1} day from now." xml:space="preserve">
-    <value>Het certificaatbestand wordt correct ingelezen en is geldig tot {0}, over {1} dag.</value>
-  </data>
-  <data name="The certificate file parses correctly and is valid until {0}, {1} days from now." xml:space="preserve">
-    <value>Het certificaatbestand wordt correct ingelezen en is geldig tot {0}, over {1} dagen.</value>
-  </data>
   <data name="The certificate files are on the server and this Control Panel is connected to it remotely, so expiry dates and file contents cannot be checked from here. Everything else on this page is read over COM and is accurate." xml:space="preserve">
     <value>De certificaatbestanden staan op de server en dit Control Panel is er op afstand mee verbonden, dus vervaldatums en bestandsinhoud kunnen hier niet worden gecontroleerd. Al het overige op deze pagina wordt via COM gelezen en klopt.</value>
-  </data>
-  <data name="The certificate is not valid until {0}. The server serves it (server error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
-    <value>Het certificaat is pas geldig vanaf {0}. De server biedt het aan (serverfout 5991 in het toepassingslogboek) en clients weigeren het tot die datum - controleer het certificaat en de klok van deze server.</value>
   </data>
   <data name="The certificate keeps its place on every TCP/IP port that presents it. Those ports read the files again when the server is next reinitialised." xml:space="preserve">
     <value>Het certificaat houdt zijn plaats op elke TCP/IP-poort die het presenteert. Die poorten lezen de bestanden opnieuw wanneer de server de volgende keer wordt geherinitialiseerd.</value>
@@ -13138,6 +13135,9 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   <data name="The file could not be parsed as a PEM certificate. The server loads certificates in PEM format only, so this file will not load and every TLS port using it will fail to start (server error 5113)." xml:space="preserve">
     <value>Het bestand kon niet als PEM-certificaat worden ingelezen. De server laadt certificaten alleen in PEM-formaat, dus dit bestand laadt niet en elke TLS-poort die het gebruikt, start niet (serverfout 5113).</value>
   </data>
+  <data name="The file parses as a PEM certificate, the format the server loads." xml:space="preserve">
+    <value>Het bestand is te lezen als PEM-certificaat, de indeling die de server laadt.</value>
+  </data>
   <data name="The first address of the gateway's range." xml:space="preserve">
     <value>Het eerste adres van het bereik van de gateway.</value>
   </data>
@@ -13240,9 +13240,6 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   <data name="The key file could not be read from this machine, so the record value cannot be shown here; the domain's DKIM tab showed it when the key was made." xml:space="preserve">
     <value>Het sleutelbestand kon niet vanaf deze machine worden gelezen, dus de recordwaarde kan hier niet worden getoond; het DKIM-tabblad van het domein toonde die toen de sleutel werd gemaakt.</value>
   </data>
-  <data name="The key file exists and is a plain (unencrypted) PEM, so no passphrase is needed." xml:space="preserve">
-    <value>Het sleutelbestand bestaat en is een gewone (onversleutelde) PEM, dus er is geen wachtwoordzin nodig.</value>
-  </data>
   <data name="The key file exists but could not be read from this panel ({0}), so whether it is encrypted is unknown." xml:space="preserve">
     <value>Het sleutelbestand bestaat, maar kon niet vanuit dit paneel worden gelezen ({0}), dus of het versleuteld is, is onbekend.</value>
   </data>
@@ -13252,8 +13249,8 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   <data name="The key file is encrypted and no passphrase is stored, so the key will not load (server error 6170) and every TLS port using this certificate will not start - inbound mail on those ports stops. Enter the passphrase below, or replace the file with an unencrypted key." xml:space="preserve">
     <value>Het sleutelbestand is versleuteld en er is geen wachtwoordzin opgeslagen, dus de sleutel laadt niet (serverfout 6170) en elke TLS-poort die dit certificaat gebruikt, start niet - inkomende mail op die poorten stopt. Voer hieronder de wachtwoordzin in, of vervang het bestand door een onversleutelde sleutel.</value>
   </data>
-  <data name="The key file is not encrypted, so no passphrase is needed and none is stored." xml:space="preserve">
-    <value>Het sleutelbestand is niet versleuteld, dus er is geen wachtwoordzin nodig en er wordt er geen opgeslagen.</value>
+  <data name="The key file is not encrypted, and none is stored." xml:space="preserve">
+    <value>Het sleutelbestand is niet versleuteld en er is er geen opgeslagen.</value>
   </data>
   <data name="The key file is passphrase-protected (an encrypted PEM). It only loads if the matching passphrase is stored on this certificate." xml:space="preserve">
     <value>Het sleutelbestand is beveiligd met een wachtwoordzin (een versleutelde PEM). Het laadt alleen als de bijbehorende wachtwoordzin bij dit certificaat is opgeslagen.</value>
@@ -13497,8 +13494,8 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
 
 Toch toevoegen?</value>
   </data>
-  <data name="The private key's public half is identical to the certificate's public key - the pair belongs together." xml:space="preserve">
-    <value>De openbare helft van de privésleutel is identiek aan de openbare sleutel van het certificaat - het paar hoort bij elkaar.</value>
+  <data name="The private key's public half is the certificate's public key." xml:space="preserve">
+    <value>De openbare helft van de privésleutel is de openbare sleutel van het certificaat.</value>
   </data>
   <data name="The profile" xml:space="preserve">
     <value>Het profiel</value>
@@ -13764,11 +13761,17 @@ Toch toevoegen?</value>
   <data name="The server remembers who has written to each account and who each account has written to, and says so in the reader the first time an outside sender appears. It costs one database lookup for each message delivered to this domain, and nothing at all while this is off." xml:space="preserve">
     <value>De server onthoudt wie naar elk account heeft geschreven en naar wie elk account heeft geschreven, en zegt het in het leesprogramma de eerste keer dat een afzender van buiten verschijnt. Dat kost één databaseopvraging per bericht dat aan dit domein wordt afgeleverd, en helemaal niets zolang dit uit staat.</value>
   </data>
+  <data name="The server serves it (server error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
+    <value>De server biedt het aan (serverfout 5991 in het toepassingslogboek) en clients weigeren het tot die datum - controleer het certificaat en de klok van deze server.</value>
+  </data>
   <data name="The server side is in place: hosting is enabled, the HTTPS port is set, and a certificate source exists." xml:space="preserve">
     <value>De serverkant is in orde: hosting is ingeschakeld, de HTTPS-poort is ingesteld en er is een certificaatbron.</value>
   </data>
   <data name="The server state could not be changed: {0}" xml:space="preserve">
     <value>De serverstatus kon niet worden gewijzigd: {0}</value>
+  </data>
+  <data name="The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
+    <value>De server laadt het nog steeds en zijn poorten starten nog steeds (hij meldt serverfout 5991 in het toepassingslogboek), maar elke client en mailserver die de datum controleert weigert te verbinden - en dat zijn er tegenwoordig bijna allemaal. Vervang het certificaat.</value>
   </data>
   <data name="The server stores this value and never reads it - nothing sets a thread priority from it, so changing it has no effect. It is shown rather than removed so that an administrator who set it years ago can see it is still there and why nothing happened, and it is not editable because a box that accepts a value nothing acts on is worse than no box at all. The thread counts above are honoured." xml:space="preserve">
     <value>De server slaat deze waarde op en leest hem nooit - er wordt geen threadprioriteit uit afgeleid, dus hem wijzigen heeft geen effect. Hij wordt getoond in plaats van verwijderd, zodat een beheerder die hem jaren geleden heeft ingesteld kan zien dat hij er nog staat en waarom er niets is gebeurd, en hij is niet bewerkbaar omdat een vak dat een waarde accepteert waar niets mee wordt gedaan erger is dan helemaal geen vak. De threadaantallen hierboven worden wél gehonoreerd.</value>
@@ -14374,8 +14377,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="Tries" xml:space="preserve">
     <value>Pogingen</value>
   </data>
-  <data name="Trust anchor override (tag alg digesttype hex; ...)" xml:space="preserve">
-    <value>Overschrijving van vertrouwensanker (tag alg digesttype hex; ...)</value>
+  <data name="Trust anchors (DS records, separated by semicolons)" xml:space="preserve">
+    <value>Vertrouwensankers (DS-records, gescheiden door puntkomma's)</value>
   </data>
   <data name="Trusted ARC sealer domains" xml:space="preserve">
     <value>Vertrouwde ARC-verzegelaardomeinen</value>

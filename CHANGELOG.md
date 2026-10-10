@@ -3273,8 +3273,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   'reputation.listed'"; the eight idle timeouts stand two to a line, each minimum beside its maximum, where the eighth
   was below the fold; four SMTP settings' blurbs of six and seven lines say what the setting does in two sentences,
   and their reasons are the Protocols page's new help document, docs/Protocols.md, where the page had none; and
-  "Changes apply after pressing Save" names the button as it is captioned, Save changes (F310). `DnsRecordsCopyTests`,
-  `RulePartTextTests` and `ProtocolsAndDeliveryCopyTests` hold it.
+  "Changes apply after pressing Save" names the button as it is captioned, Save changes (F310). SSL certificates,
+  SSL/TLS, Transport security and the IP range dialog: the apply marks say "Applies on save", "Applies after a
+  reinitialise" and "Applies after a restart", where the last two said "After reinitialise" and "After a restart";
+  SSL/TLS's tab is named Ciphers & verification, as its card is (German Cipher-Suiten und Prüfung, where it left
+  "Ciphers" untranslated); the IP range's four directions say Local to local and so on under the caption that says
+  they require authentication, which is each box's help text, where each said "Require auth:" again; Transport
+  security's trust anchors are captioned "Trust anchors (DS records, separated by semicolons)" with the format and the
+  IANA root's KSK-2017 as an example under the box, where the caption was the format string; a certificate's details
+  say only what the word beside each does not - the date in the word, what follows in the sentence - where "Valid
+  until 2027-01-09 (90 days left)" stood beside "... is valid until 2027-01-09, 90 days from now"; the status columns
+  are Certificate status and Key status, where Certificate and Private key read as repeats of the file columns; and
+  the page loads under "Checking the certificate files…" (F311). The auto-ban captions the finding names are left to
+  T3.1 item 9 (F143), which puts them in the sign-in vocabulary. `DnsRecordsCopyTests`, `RulePartTextTests`,
+  `ProtocolsAndDeliveryCopyTests` and `CertificatesAndAccessCopyTests` hold it.
 
 ### Administration
 

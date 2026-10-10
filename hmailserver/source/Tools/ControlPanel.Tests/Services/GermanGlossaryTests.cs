@@ -76,7 +76,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void TheUpdateRowAndTheTrustAnchorsAreNamedAsWhatTheyAre()
       {
          Assert.Equal("Aktualisierung", German["Update status"]);
-         Assert.StartsWith("Eigene Vertrauensanker", German["Trust anchor override (tag alg digesttype hex; ...)"], StringComparison.Ordinal);
+         Assert.StartsWith("Eigene Vertrauensanker", German["Trust anchors (DS records, separated by semicolons)"], StringComparison.Ordinal);
       }
 
       [Fact]

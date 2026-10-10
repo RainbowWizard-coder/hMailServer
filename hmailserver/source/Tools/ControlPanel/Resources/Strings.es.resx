@@ -600,6 +600,9 @@
   <data name="A piece of equipment" xml:space="preserve">
     <value>Un equipo</value>
   </data>
+  <data name="A plain (unencrypted) PEM, so no passphrase is needed." xml:space="preserve">
+    <value>Un PEM plano (sin cifrar), así que no hace falta ninguna frase de contraseña.</value>
+  </data>
   <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the SSL certificates page first." xml:space="preserve">
     <value>Un puerto con SSL/TLS o STARTTLS presenta un certificado, y el servidor aún no tiene ninguno: añada primero uno en la página Certificados SSL.</value>
   </data>
@@ -1335,12 +1338,6 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
   <data name="Advanced: it is sent as it is, in place of a token the server fetches." xml:space="preserve">
     <value>Avanzado: se envía tal cual, en lugar de un token que obtiene el servidor.</value>
   </data>
-  <data name="After a restart" xml:space="preserve">
-    <value>Tras un reinicio</value>
-  </data>
-  <data name="After reinitialise" xml:space="preserve">
-    <value>Tras reinicializar</value>
-  </data>
   <data name="After sign-in" xml:space="preserve">
     <value>Tras iniciar sesión</value>
   </data>
@@ -1764,6 +1761,12 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Applies _to" xml:space="preserve">
     <value>Se aplica _a</value>
+  </data>
+  <data name="Applies after a reinitialise" xml:space="preserve">
+    <value>Se aplica tras reinicializar</value>
+  </data>
+  <data name="Applies after a restart" xml:space="preserve">
+    <value>Se aplica tras un reinicio</value>
   </data>
   <data name="Applies at the next service restart or Reinitialise. Log files are unaffected: this sends a copy, it does not move anything. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration." xml:space="preserve">
     <value>Se aplica en el siguiente reinicio del servicio o al Reinicializar. Los archivos de registro no se ven afectados: esto envía una copia, no mueve nada. Sin host recopilador abajo, un servidor bajo systemd en Linux escribe en el journal - así que en Linux este único interruptor es toda la configuración.</value>
@@ -2470,6 +2473,9 @@ Los detalles completos se escribieron en:
   <data name="Certificate output folder (empty = Data\ACME)" xml:space="preserve">
     <value>Carpeta de salida de certificados (vacío = Data\ACME)</value>
   </data>
+  <data name="Certificate status" xml:space="preserve">
+    <value>Estado del certificado</value>
+  </data>
   <data name="Certificate validation was off for this test, as 'Verify the directory server's certificate' is off." xml:space="preserve">
     <value>La validación de certificados estaba desactivada para esta prueba, porque 'Verificar el certificado del servidor de directorio' está desactivado.</value>
   </data>
@@ -2635,6 +2641,9 @@ Los detalles completos se escribieron en:
   <data name="Checking for updates…" xml:space="preserve">
     <value>Buscando actualizaciones…</value>
   </data>
+  <data name="Checking the certificate files…" xml:space="preserve">
+    <value>Comprobando los archivos de certificado…</value>
+  </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>Comprobación del instalador</value>
   </data>
@@ -2712,9 +2721,6 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Cipher list: the AEAD-ONLY preset — forward-secret AEAD suites only, with every CBC-mode suite and static-RSA key exchange excluded. This governs TLS 1.2 and below; TLS 1.3 has its own list and is AEAD by construction." xml:space="preserve">
     <value>Lista de cifrados: el preajuste AEAD-ONLY — solo conjuntos AEAD con secreto perfecto hacia adelante, con todos los conjuntos en modo CBC y el intercambio de claves RSA estático excluidos. Esto rige TLS 1.2 y anteriores; TLS 1.3 tiene su propia lista y es AEAD por construcción.</value>
-  </data>
-  <data name="Ciphers" xml:space="preserve">
-    <value>Cifrados</value>
   </data>
   <data name="Ciphers &amp; verification" xml:space="preserve">
     <value>Cifrados y verificación</value>
@@ -4444,6 +4450,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Each check can be enabled separately and given its own score." xml:space="preserve">
     <value>Cada comprobación puede activarse por separado y recibir su propia puntuación.</value>
   </data>
+  <data name="Each is a root DS record - key tag, algorithm, digest type and the digest in hex - such as 20326 8 2 E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D. Set, they replace the built-in root anchors; empty uses those." xml:space="preserve">
+    <value>Cada uno es un registro DS de la raíz - etiqueta de clave, algoritmo, tipo de resumen y el resumen en hexadecimal -, por ejemplo 20326 8 2 E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D. Si se indican, sustituyen a los anclajes raíz integrados; vacío usa esos.</value>
+  </data>
   <data name="Each message" xml:space="preserve">
     <value>Cada mensaje</value>
   </data>
@@ -5205,6 +5214,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   </data>
   <data name="External recipients (addresses this server does not host)" xml:space="preserve">
     <value>Destinatarios externos (direcciones que este servidor no aloja)</value>
+  </data>
+  <data name="External to exte_rnal" xml:space="preserve">
+    <value>Externo a exte_rno</value>
   </data>
   <data name="External to external (rela_y)" xml:space="preserve">
     <value>Externo a externo (_relé)</value>
@@ -6339,6 +6351,9 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   <data name="Key si_ze" xml:space="preserve">
     <value>Ta_maño de la clave</value>
   </data>
+  <data name="Key status" xml:space="preserve">
+    <value>Estado de la clave</value>
+  </data>
   <data name="Key store" xml:space="preserve">
     <value>Almacén de claves</value>
   </data>
@@ -6425,9 +6440,6 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   </data>
   <data name="Leave empty for any address" xml:space="preserve">
     <value>Déjelo vacío para cualquier dirección</value>
-  </data>
-  <data name="Leave empty for the built-in root anchors" xml:space="preserve">
-    <value>Deje vacío para los anclajes raíz integrados</value>
   </data>
   <data name="Leave empty to keep the current password." xml:space="preserve">
     <value>Déjelo vacío para conservar la contraseña actual.</value>
@@ -6590,6 +6602,9 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Cargando…</value>
+  </data>
+  <data name="Local to _external" xml:space="preserve">
+    <value>Local a _externo</value>
   </data>
   <data name="LocalSystem, which is the most privileged account on this machine" xml:space="preserve">
     <value>LocalSystem, que es la cuenta con más privilegios de esta máquina</value>
@@ -9282,9 +9297,6 @@ No se aceptarán conexiones nuevas ni se entregará correo hasta que se reanude.
   <data name="Private _key passphrase" xml:space="preserve">
     <value>Frase de contraseña de la _clave privada</value>
   </data>
-  <data name="Private key" xml:space="preserve">
-    <value>Clave privada</value>
-  </data>
   <data name="Private key _file (PEM)" xml:space="preserve">
     <value>Archivo de clave _privada (PEM)</value>
   </data>
@@ -10073,6 +10085,12 @@ Todas las cuentas, alias y listas de distribución pasan al nombre nuevo, y los 
     <value>¿Renombrar {0} como {1}?
 
 El buzón y sus mensajes pasan a la dirección nueva. El correo enviado a la dirección antigua ya no llegará a esta cuenta salvo que se cree un alias para ella.</value>
+  </data>
+  <data name="Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
+    <value>Renuévelo antes de esa fecha: una vez caducado los puertos siguen escuchando, pero los clientes que comprueban la fecha se niegan a conectarse.</value>
+  </data>
+  <data name="Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
+    <value>Renuévelo ya: una vez caducado los puertos siguen escuchando, pero los clientes que comprueban la fecha se niegan a conectarse.</value>
   </data>
   <data name="Renew or install a certificate" xml:space="preserve">
     <value>Renovar o instalar un certificado</value>
@@ -12834,35 +12852,14 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>El certificado y la clave deben estar ambos definidos para servir HTTPS; con solo uno de ellos TLS no se activa y el servidor lo registra. A diferencia del oyente de la API REST, aquí no hay respaldo en el certificado ACME. Si TLS está configurado pero no puede prepararse (un archivo ilegible, una clave que no coincide), las sondas de salud siguen en HTTP plano y /metrics responde 503 en vez de servir la exposición en claro.</value>
   </data>
-  <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
-    <value>El certificado caducó el {0}. El servidor lo sigue cargando y sus puertos siguen arrancando (informa del error del servidor 5991 en el registro de aplicaciones), pero todos los clientes y servidores de correo que comprueban la fecha se niegan a conectarse - que hoy son casi todos. Sustituya el certificado.</value>
-  </data>
-  <data name="The certificate expires on {0}, in less than a day. Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
-    <value>El certificado caduca el {0}, en menos de un día. Renuévelo ya: una vez caducado los puertos siguen escuchando, pero los clientes que comprueban la fecha se niegan a conectarse.</value>
-  </data>
-  <data name="The certificate expires on {0}, in {1} day. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
-    <value>El certificado caduca el {0}, dentro de {1} día. Renuévelo antes de esa fecha: una vez caducado los puertos siguen escuchando, pero los clientes que comprueban la fecha se niegan a conectarse.</value>
-  </data>
-  <data name="The certificate expires on {0}, in {1} days. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
-    <value>El certificado caduca el {0}, dentro de {1} días. Renuévelo antes de esa fecha: una vez caducado los puertos siguen escuchando, pero los clientes que comprueban la fecha se niegan a conectarse.</value>
-  </data>
   <data name="The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (server error 5113) - mail on those ports stops." xml:space="preserve">
     <value>El archivo del certificado no existe en esta máquina ({0}). Todos los puertos TLS configurados para usar este certificado no podrán arrancar (error del servidor 5113) - el correo en esos puertos se detiene.</value>
   </data>
   <data name="The certificate file exists but could not be read from this panel ({0}), so nothing about it is verified." xml:space="preserve">
     <value>El archivo de certificado existe pero no se pudo leer desde este panel ({0}), así que no se ha verificado nada sobre él.</value>
   </data>
-  <data name="The certificate file parses correctly and is valid until {0}, {1} day from now." xml:space="preserve">
-    <value>El archivo de certificado se interpreta correctamente y es válido hasta el {0}, dentro de {1} día.</value>
-  </data>
-  <data name="The certificate file parses correctly and is valid until {0}, {1} days from now." xml:space="preserve">
-    <value>El archivo de certificado se interpreta correctamente y es válido hasta el {0}, dentro de {1} días.</value>
-  </data>
   <data name="The certificate files are on the server and this Control Panel is connected to it remotely, so expiry dates and file contents cannot be checked from here. Everything else on this page is read over COM and is accurate." xml:space="preserve">
     <value>Los archivos de certificado están en el servidor y este Control Panel está conectado a él de forma remota, así que las fechas de caducidad y el contenido de los archivos no pueden comprobarse desde aquí. Todo lo demás de esta página se lee por COM y es exacto.</value>
-  </data>
-  <data name="The certificate is not valid until {0}. The server serves it (server error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
-    <value>El certificado no es válido hasta el {0}. El servidor lo sirve (error del servidor 5991 en el registro de la aplicación) y los clientes lo rechazan hasta esa fecha - revise el certificado y el reloj de este servidor.</value>
   </data>
   <data name="The certificate keeps its place on every TCP/IP port that presents it. Those ports read the files again when the server is next reinitialised." xml:space="preserve">
     <value>El certificado conserva su lugar en cada puerto TCP/IP que lo presenta. Esos puertos vuelven a leer los archivos la próxima vez que se reinicialice el servidor.</value>
@@ -13138,6 +13135,9 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
   <data name="The file could not be parsed as a PEM certificate. The server loads certificates in PEM format only, so this file will not load and every TLS port using it will fail to start (server error 5113)." xml:space="preserve">
     <value>El archivo no pudo interpretarse como un certificado PEM. El servidor solo carga certificados en formato PEM, así que este archivo no se cargará y todos los puertos TLS que lo usen fallarán al arrancar (error del servidor 5113).</value>
   </data>
+  <data name="The file parses as a PEM certificate, the format the server loads." xml:space="preserve">
+    <value>El archivo se interpreta como un certificado PEM, el formato que carga el servidor.</value>
+  </data>
   <data name="The first address of the gateway's range." xml:space="preserve">
     <value>La primera dirección del rango de la pasarela.</value>
   </data>
@@ -13240,9 +13240,6 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
   <data name="The key file could not be read from this machine, so the record value cannot be shown here; the domain's DKIM tab showed it when the key was made." xml:space="preserve">
     <value>El archivo de clave no pudo leerse desde esta máquina, así que el valor del registro no puede mostrarse aquí; la pestaña DKIM del dominio lo mostró al crear la clave.</value>
   </data>
-  <data name="The key file exists and is a plain (unencrypted) PEM, so no passphrase is needed." xml:space="preserve">
-    <value>El archivo de clave existe y es un PEM plano (sin cifrar), así que no hace falta ninguna frase de contraseña.</value>
-  </data>
   <data name="The key file exists but could not be read from this panel ({0}), so whether it is encrypted is unknown." xml:space="preserve">
     <value>El archivo de clave existe pero no se pudo leer desde este panel ({0}), así que se desconoce si está cifrado.</value>
   </data>
@@ -13252,8 +13249,8 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
   <data name="The key file is encrypted and no passphrase is stored, so the key will not load (server error 6170) and every TLS port using this certificate will not start - inbound mail on those ports stops. Enter the passphrase below, or replace the file with an unencrypted key." xml:space="preserve">
     <value>El archivo de clave está cifrado y no hay ninguna frase de contraseña guardada, así que la clave no se cargará (error del servidor 6170) y ningún puerto TLS que use este certificado arrancará - el correo entrante por esos puertos se detiene. Escriba la frase de contraseña abajo, o sustituya el archivo por una clave sin cifrar.</value>
   </data>
-  <data name="The key file is not encrypted, so no passphrase is needed and none is stored." xml:space="preserve">
-    <value>El archivo de clave no está cifrado, así que no hace falta ninguna frase de contraseña ni se guarda ninguna.</value>
+  <data name="The key file is not encrypted, and none is stored." xml:space="preserve">
+    <value>El archivo de clave no está cifrado y no se guarda ninguna.</value>
   </data>
   <data name="The key file is passphrase-protected (an encrypted PEM). It only loads if the matching passphrase is stored on this certificate." xml:space="preserve">
     <value>El archivo de clave está protegido por frase de contraseña (un PEM cifrado). Solo se carga si la frase de contraseña correspondiente está guardada en este certificado.</value>
@@ -13497,8 +13494,8 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
 
 ¿Añadirlo de todos modos?</value>
   </data>
-  <data name="The private key's public half is identical to the certificate's public key - the pair belongs together." xml:space="preserve">
-    <value>La mitad pública de la clave privada es idéntica a la clave pública del certificado - el par va junto.</value>
+  <data name="The private key's public half is the certificate's public key." xml:space="preserve">
+    <value>La mitad pública de la clave privada es la clave pública del certificado.</value>
   </data>
   <data name="The profile" xml:space="preserve">
     <value>El perfil</value>
@@ -13764,11 +13761,17 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
   <data name="The server remembers who has written to each account and who each account has written to, and says so in the reader the first time an outside sender appears. It costs one database lookup for each message delivered to this domain, and nothing at all while this is off." xml:space="preserve">
     <value>El servidor recuerda quién ha escrito a cada cuenta y a quién ha escrito cada cuenta, y lo dice en el lector la primera vez que aparece un remitente de fuera. Cuesta una consulta a la base de datos por cada mensaje entregado a este dominio, y nada en absoluto mientras esté desactivado.</value>
   </data>
+  <data name="The server serves it (server error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
+    <value>El servidor lo sirve (error del servidor 5991 en el registro de la aplicación) y los clientes lo rechazan hasta esa fecha - revise el certificado y el reloj de este servidor.</value>
+  </data>
   <data name="The server side is in place: hosting is enabled, the HTTPS port is set, and a certificate source exists." xml:space="preserve">
     <value>El lado del servidor está listo: el alojamiento está activado, el puerto HTTPS está definido y existe una fuente de certificado.</value>
   </data>
   <data name="The server state could not be changed: {0}" xml:space="preserve">
     <value>No se pudo cambiar el estado del servidor: {0}</value>
+  </data>
+  <data name="The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
+    <value>El servidor lo sigue cargando y sus puertos siguen arrancando (informa del error del servidor 5991 en el registro de aplicaciones), pero todos los clientes y servidores de correo que comprueban la fecha se niegan a conectarse - que hoy son casi todos. Sustituya el certificado.</value>
   </data>
   <data name="The server stores this value and never reads it - nothing sets a thread priority from it, so changing it has no effect. It is shown rather than removed so that an administrator who set it years ago can see it is still there and why nothing happened, and it is not editable because a box that accepts a value nothing acts on is worse than no box at all. The thread counts above are honoured." xml:space="preserve">
     <value>El servidor guarda este valor y nunca lo lee - nada establece una prioridad de hilo a partir de él, así que cambiarlo no tiene efecto. Se muestra en vez de quitarse para que un administrador que lo configuró hace años pueda ver que sigue ahí y por qué no ocurrió nada, y no es editable porque una casilla que acepta un valor sobre el que nada actúa es peor que no tener casilla. Los recuentos de hilos de arriba sí se respetan.</value>
@@ -14374,8 +14377,8 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="Tries" xml:space="preserve">
     <value>Intentos</value>
   </data>
-  <data name="Trust anchor override (tag alg digesttype hex; ...)" xml:space="preserve">
-    <value>Ancla de confianza personalizada (tag alg digesttype hex; ...)</value>
+  <data name="Trust anchors (DS records, separated by semicolons)" xml:space="preserve">
+    <value>Anclas de confianza (registros DS separados por punto y coma)</value>
   </data>
   <data name="Trusted ARC sealer domains" xml:space="preserve">
     <value>Dominios de selladores ARC de confianza</value>

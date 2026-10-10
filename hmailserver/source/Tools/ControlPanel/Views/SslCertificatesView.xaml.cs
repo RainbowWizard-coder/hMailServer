@@ -331,7 +331,7 @@ namespace hMailServer.ControlPanel.Views
                if (keyIsEncrypted == false)
                {
                   return new CertificateFinding(StatusLevel.Normal, L("No passphrase needed"),
-                     L("The key file is not encrypted, so no passphrase is needed and none is stored."));
+                     L("The key file is not encrypted, and none is stored."));
                }
                return new CertificateFinding(StatusLevel.Information, L("No passphrase stored"),
                   L("Whether the key file needs one cannot be checked from here. If it is encrypted, it will not load without a passphrase (server error 6170) and the TLS ports using this certificate will not start."));

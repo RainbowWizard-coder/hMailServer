@@ -610,6 +610,9 @@
   <data name="A piece of equipment" xml:space="preserve">
     <value>設備</value>
   </data>
+  <data name="A plain (unencrypted) PEM, so no passphrase is needed." xml:space="preserve">
+    <value>暗号化されていない通常の PEM なので、パスフレーズは不要です。</value>
+  </data>
   <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the SSL certificates page first." xml:space="preserve">
     <value>SSL/TLS または STARTTLS のポートは証明書を提示しますが、サーバーにはまだ証明書がありません。先に SSL 証明書ページで追加してください。</value>
   </data>
@@ -1345,12 +1348,6 @@
   <data name="Advanced: it is sent as it is, in place of a token the server fetches." xml:space="preserve">
     <value>上級者向け: サーバーが取得するトークンの代わりに、そのまま送信されます。</value>
   </data>
-  <data name="After a restart" xml:space="preserve">
-    <value>再起動後</value>
-  </data>
-  <data name="After reinitialise" xml:space="preserve">
-    <value>再初期化後</value>
-  </data>
   <data name="After sign-in" xml:space="preserve">
     <value>サインイン後</value>
   </data>
@@ -1774,6 +1771,12 @@
   </data>
   <data name="Applies _to" xml:space="preserve">
     <value>適用対象(_T)</value>
+  </data>
+  <data name="Applies after a reinitialise" xml:space="preserve">
+    <value>再初期化後に適用</value>
+  </data>
+  <data name="Applies after a restart" xml:space="preserve">
+    <value>再起動後に適用</value>
   </data>
   <data name="Applies at the next service restart or Reinitialise. Log files are unaffected: this sends a copy, it does not move anything. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration." xml:space="preserve">
     <value>次回のサービス再起動または再初期化で有効になります。ログファイルには影響しません。コピーを送るだけで、何も移動しません。下にコレクターのホストを指定しない場合、Linux 上で systemd 配下のサーバーは代わりに journal に書き込みます。つまり Linux ではこのスイッチだけで設定は完了です。</value>
@@ -2480,6 +2483,9 @@
   <data name="Certificate output folder (empty = Data\ACME)" xml:space="preserve">
     <value>証明書の出力フォルダー (空 = Data\ACME)</value>
   </data>
+  <data name="Certificate status" xml:space="preserve">
+    <value>証明書の状態</value>
+  </data>
   <data name="Certificate validation was off for this test, as 'Verify the directory server's certificate' is off." xml:space="preserve">
     <value>「ディレクトリ サーバーの証明書を検証する」がオフのため、このテストでは証明書の検証はオフでした。</value>
   </data>
@@ -2645,6 +2651,9 @@
   <data name="Checking for updates…" xml:space="preserve">
     <value>更新プログラムを確認しています…</value>
   </data>
+  <data name="Checking the certificate files…" xml:space="preserve">
+    <value>証明書ファイルを確認しています…</value>
+  </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>インストーラーの確認</value>
   </data>
@@ -2722,9 +2731,6 @@
   </data>
   <data name="Cipher list: the AEAD-ONLY preset — forward-secret AEAD suites only, with every CBC-mode suite and static-RSA key exchange excluded. This governs TLS 1.2 and below; TLS 1.3 has its own list and is AEAD by construction." xml:space="preserve">
     <value>暗号リスト: AEAD-ONLY プリセット — 前方秘匿性のある AEAD スイートのみで、CBC モードのスイートと静的 RSA キー交換はすべて除外されます。これは TLS 1.2 以前を対象とします。TLS 1.3 には独自のリストがあり、構造上 AEAD です。</value>
-  </data>
-  <data name="Ciphers" xml:space="preserve">
-    <value>暗号</value>
   </data>
   <data name="Ciphers &amp; verification" xml:space="preserve">
     <value>暗号と検証</value>
@@ -4454,6 +4460,9 @@
   <data name="Each check can be enabled separately and given its own score." xml:space="preserve">
     <value>各チェックは個別に有効にでき、独自のスコアを与えられます。</value>
   </data>
+  <data name="Each is a root DS record - key tag, algorithm, digest type and the digest in hex - such as 20326 8 2 E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D. Set, they replace the built-in root anchors; empty uses those." xml:space="preserve">
+    <value>それぞれルートの DS レコードです (キー タグ、アルゴリズム、ダイジェストの種類、16 進数のダイジェスト)。例: 20326 8 2 E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D。設定すると組み込みのルート アンカーの代わりに使われ、空なら組み込みのものを使います。</value>
+  </data>
   <data name="Each message" xml:space="preserve">
     <value>すべてのメッセージ</value>
   </data>
@@ -5215,6 +5224,9 @@
   </data>
   <data name="External recipients (addresses this server does not host)" xml:space="preserve">
     <value>外部の受信者 (このサーバーがホストしていないアドレス)</value>
+  </data>
+  <data name="External to exte_rnal" xml:space="preserve">
+    <value>外部から外部(_R)</value>
   </data>
   <data name="External to external (rela_y)" xml:space="preserve">
     <value>外部から外部へ (リレー)(_Y)</value>
@@ -6349,6 +6361,9 @@
   <data name="Key si_ze" xml:space="preserve">
     <value>キーのサイズ(_Z)</value>
   </data>
+  <data name="Key status" xml:space="preserve">
+    <value>キーの状態</value>
+  </data>
   <data name="Key store" xml:space="preserve">
     <value>キー ストア</value>
   </data>
@@ -6435,9 +6450,6 @@
   </data>
   <data name="Leave empty for any address" xml:space="preserve">
     <value>どのアドレスからも使えるようにするには空のままにします</value>
-  </data>
-  <data name="Leave empty for the built-in root anchors" xml:space="preserve">
-    <value>組み込みのルート アンカーを使うには空のままにしてください</value>
   </data>
   <data name="Leave empty to keep the current password." xml:space="preserve">
     <value>現在のパスワードを維持するには空のままにします。</value>
@@ -6600,6 +6612,9 @@
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>読み込み中…</value>
+  </data>
+  <data name="Local to _external" xml:space="preserve">
+    <value>ローカルから外部(_E)</value>
   </data>
   <data name="LocalSystem, which is the most privileged account on this machine" xml:space="preserve">
     <value>LocalSystem。このコンピューターで最も強い権限を持つアカウントです</value>
@@ -9292,9 +9307,6 @@
   <data name="Private _key passphrase" xml:space="preserve">
     <value>秘密キーのパスフレーズ(_K)</value>
   </data>
-  <data name="Private key" xml:space="preserve">
-    <value>秘密キー</value>
-  </data>
   <data name="Private key _file (PEM)" xml:space="preserve">
     <value>秘密キー ファイル (PEM)(_F)</value>
   </data>
@@ -10083,6 +10095,12 @@
     <value>{0} の名前を {1} に変更しますか?
 
 メールボックスとそのメッセージは新しいアドレスに移ります。エイリアスを作成しない限り、古いアドレス宛てのメールはこのアカウントに届かなくなります。</value>
+  </data>
+  <data name="Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
+    <value>それまでに更新してください。期限切れになってもポートは待ち受けを続けますが、日付を確認するクライアントは接続を拒否します。</value>
+  </data>
+  <data name="Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
+    <value>今すぐ更新してください。期限切れになってもポートは待ち受けを続けますが、日付を確認するクライアントは接続を拒否します。</value>
   </data>
   <data name="Renew or install a certificate" xml:space="preserve">
     <value>証明書を更新またはインストールする</value>
@@ -12844,35 +12862,14 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>HTTPS を提供するには証明書と鍵の両方を設定する必要があります。片方だけでは TLS は有効にならず、サーバーはその旨をログに記録します。REST API リスナーとは異なり、ここでは ACME 証明書へのフォールバックはありません。TLS が設定されていても準備できない場合 (読み取れないファイル、一致しない鍵)、ヘルス プローブは平文の HTTP のままとなり、/metrics は平文でエクスポジションを返す代わりに 503 を返します。</value>
   </data>
-  <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
-    <value>証明書は {0} に期限切れになりました。サーバーはまだそれを読み込み、ポートも起動します (アプリケーション ログにサーバー エラー 5991 を報告します) が、日付を確認するすべてのクライアントとメール サーバーは接続を拒否します。今日ではほぼすべてがそうです。証明書を交換してください。</value>
-  </data>
-  <data name="The certificate expires on {0}, in less than a day. Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
-    <value>証明書は {0} に期限切れになります (1 日以内)。今すぐ更新してください。期限切れになってもポートは待ち受けを続けますが、日付を確認するクライアントは接続を拒否します。</value>
-  </data>
-  <data name="The certificate expires on {0}, in {1} day. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
-    <value>証明書は {0} に期限切れになります (あと {1} 日)。それまでに更新してください。期限切れになってもポートは待ち受けを続けますが、日付を確認するクライアントは接続を拒否します。</value>
-  </data>
-  <data name="The certificate expires on {0}, in {1} days. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
-    <value>証明書は {0} に期限切れになります (あと {1} 日)。それまでに更新してください。期限切れになってもポートは待ち受けを続けますが、日付を確認するクライアントは接続を拒否します。</value>
-  </data>
   <data name="The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (server error 5113) - mail on those ports stops." xml:space="preserve">
     <value>証明書ファイルがこのコンピューターに存在しません ({0})。この証明書を使うよう設定されたすべての TLS ポートが起動に失敗し (サーバー エラー 5113)、それらのポートでのメールは止まります。</value>
   </data>
   <data name="The certificate file exists but could not be read from this panel ({0}), so nothing about it is verified." xml:space="preserve">
     <value>証明書ファイルは存在しますが、このパネルから読み取れなかったため ({0})、その内容は何も検証されていません。</value>
   </data>
-  <data name="The certificate file parses correctly and is valid until {0}, {1} day from now." xml:space="preserve">
-    <value>証明書ファイルは正しく解析でき、{0} まで有効です (あと {1} 日)。</value>
-  </data>
-  <data name="The certificate file parses correctly and is valid until {0}, {1} days from now." xml:space="preserve">
-    <value>証明書ファイルは正しく解析でき、{0} まで有効です (あと {1} 日)。</value>
-  </data>
   <data name="The certificate files are on the server and this Control Panel is connected to it remotely, so expiry dates and file contents cannot be checked from here. Everything else on this page is read over COM and is accurate." xml:space="preserve">
     <value>証明書ファイルはサーバー上にあり、このコントロールパネルはサーバーにリモート接続しているため、有効期限とファイルの内容をここから確認することはできません。このページのそれ以外の項目は COM 経由で読み取られており、正確です。</value>
-  </data>
-  <data name="The certificate is not valid until {0}. The server serves it (server error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
-    <value>証明書は {0} まで有効になりません。サーバーはそれを提示し (アプリケーション ログのサーバー エラー 5991)、クライアントはその日付までそれを拒否します。証明書とこのサーバーの時計を確認してください。</value>
   </data>
   <data name="The certificate keeps its place on every TCP/IP port that presents it. Those ports read the files again when the server is next reinitialised." xml:space="preserve">
     <value>証明書は、それを提示しているすべての TCP/IP ポートでそのまま使われます。それらのポートは、次にサーバーが再初期化されたときにファイルを読み直します。</value>
@@ -13148,6 +13145,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The file could not be parsed as a PEM certificate. The server loads certificates in PEM format only, so this file will not load and every TLS port using it will fail to start (server error 5113)." xml:space="preserve">
     <value>ファイルを PEM 証明書として解析できませんでした。サーバーは PEM 形式の証明書のみを読み込むため、このファイルは読み込まれず、これを使うすべての TLS ポートが起動に失敗します (サーバー エラー 5113)。</value>
   </data>
+  <data name="The file parses as a PEM certificate, the format the server loads." xml:space="preserve">
+    <value>このファイルは、サーバーが読み込む形式である PEM 証明書として解析できます。</value>
+  </data>
   <data name="The first address of the gateway's range." xml:space="preserve">
     <value>ゲートウェイの範囲の最初のアドレス。</value>
   </data>
@@ -13250,9 +13250,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The key file could not be read from this machine, so the record value cannot be shown here; the domain's DKIM tab showed it when the key was made." xml:space="preserve">
     <value>キー ファイルをこのコンピューターから読み取れなかったため、レコードの値をここに表示できません。この値は、キーを作成したときにドメインの DKIM タブに表示されています。</value>
   </data>
-  <data name="The key file exists and is a plain (unencrypted) PEM, so no passphrase is needed." xml:space="preserve">
-    <value>キー ファイルは存在し、暗号化されていない通常の PEM なので、パスフレーズは不要です。</value>
-  </data>
   <data name="The key file exists but could not be read from this panel ({0}), so whether it is encrypted is unknown." xml:space="preserve">
     <value>キー ファイルは存在しますが、このパネルから読み取れなかったため ({0})、暗号化されているかどうかは不明です。</value>
   </data>
@@ -13262,8 +13259,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The key file is encrypted and no passphrase is stored, so the key will not load (server error 6170) and every TLS port using this certificate will not start - inbound mail on those ports stops. Enter the passphrase below, or replace the file with an unencrypted key." xml:space="preserve">
     <value>キー ファイルは暗号化されていますが、パスフレーズが保存されていないため、キーは読み込まれず (サーバー エラー 6170)、この証明書を使うすべての TLS ポートが起動しません。それらのポートでの受信メールは止まります。下にパスフレーズを入力するか、ファイルを暗号化されていないキーに置き換えてください。</value>
   </data>
-  <data name="The key file is not encrypted, so no passphrase is needed and none is stored." xml:space="preserve">
-    <value>キー ファイルは暗号化されていないため、パスフレーズは不要で、何も保存されていません。</value>
+  <data name="The key file is not encrypted, and none is stored." xml:space="preserve">
+    <value>キー ファイルは暗号化されておらず、何も保存されていません。</value>
   </data>
   <data name="The key file is passphrase-protected (an encrypted PEM). It only loads if the matching passphrase is stored on this certificate." xml:space="preserve">
     <value>キー ファイルはパスフレーズで保護されています (暗号化された PEM)。一致するパスフレーズがこの証明書に保存されている場合にのみ読み込まれます。</value>
@@ -13507,8 +13504,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
 
 それでも追加しますか?</value>
   </data>
-  <data name="The private key's public half is identical to the certificate's public key - the pair belongs together." xml:space="preserve">
-    <value>秘密キーの公開部分は証明書の公開キーと同一です。このペアは対応しています。</value>
+  <data name="The private key's public half is the certificate's public key." xml:space="preserve">
+    <value>秘密キーの公開部分は、証明書の公開キーそのものです。</value>
   </data>
   <data name="The profile" xml:space="preserve">
     <value>プロファイル</value>
@@ -13774,11 +13771,17 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The server remembers who has written to each account and who each account has written to, and says so in the reader the first time an outside sender appears. It costs one database lookup for each message delivered to this domain, and nothing at all while this is off." xml:space="preserve">
     <value>サーバーは、各アカウントに誰が書いたか、各アカウントが誰に書いたかを覚えていて、外部の送信者が初めて現れたときに読み手に知らせます。このドメインに配信されるメッセージごとにデータベース参照が一回かかり、オフの間は何もかかりません。</value>
   </data>
+  <data name="The server serves it (server error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
+    <value>サーバーはそれを提示し (アプリケーション ログのサーバー エラー 5991)、クライアントはその日付までそれを拒否します。証明書とこのサーバーの時計を確認してください。</value>
+  </data>
   <data name="The server side is in place: hosting is enabled, the HTTPS port is set, and a certificate source exists." xml:space="preserve">
     <value>サーバー側は整っています。ホスティングが有効で、HTTPS ポートが設定され、証明書のソースが存在します。</value>
   </data>
   <data name="The server state could not be changed: {0}" xml:space="preserve">
     <value>サーバーの状態を変更できませんでした: {0}</value>
+  </data>
+  <data name="The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
+    <value>サーバーはまだそれを読み込み、ポートも起動します (アプリケーション ログにサーバー エラー 5991 を報告します) が、日付を確認するすべてのクライアントとメール サーバーは接続を拒否します。今日ではほぼすべてがそうです。証明書を交換してください。</value>
   </data>
   <data name="The server stores this value and never reads it - nothing sets a thread priority from it, so changing it has no effect. It is shown rather than removed so that an administrator who set it years ago can see it is still there and why nothing happened, and it is not editable because a box that accepts a value nothing acts on is worse than no box at all. The thread counts above are honoured." xml:space="preserve">
     <value>サーバーはこの値を保存しますが、決して読み取りません。これからスレッド優先度を設定するものは何もないため、変更しても効果はありません。削除ではなく表示しているのは、何年も前にこれを設定した管理者が、まだ存在していること、そしてなぜ何も起きなかったのかを分かるようにするためです。編集できないのは、何も反応しない値を受け付けるボックスは、ボックスがまったくないよりも悪いからです。上のスレッド数は尊重されます。</value>
@@ -14384,8 +14387,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Tries" xml:space="preserve">
     <value>試行回数</value>
   </data>
-  <data name="Trust anchor override (tag alg digesttype hex; ...)" xml:space="preserve">
-    <value>トラスト アンカーの上書き (tag alg digesttype hex; ...)</value>
+  <data name="Trust anchors (DS records, separated by semicolons)" xml:space="preserve">
+    <value>トラスト アンカー (DS レコード、セミコロン区切り)</value>
   </data>
   <data name="Trusted ARC sealer domains" xml:space="preserve">
     <value>信頼された ARC シーラー ドメイン</value>

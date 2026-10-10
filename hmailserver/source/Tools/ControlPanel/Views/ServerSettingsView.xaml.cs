@@ -3335,7 +3335,9 @@ namespace hMailServer.ControlPanel.Views
          ciph.Settings.Add(preferServer);
          ciph.Settings.Add(chacha);
          ciph.Settings.Add(new ComBool { Path = "VerifyRemoteSslCertificate", Label = L("Verify remote certificates when delivering") });
-         Tab(L("Ciphers")).Cards.Add(ciph);
+         // The tab is named as its one card is, where "Ciphers" headed "Ciphers &
+         // verification" and German left the word untranslated (review finding F311).
+         Tab(L("Ciphers & verification")).Cards.Add(ciph);
 
          // Resumption governs every SSL/TLS and STARTTLS listener this server runs,
          // so it belongs on the TLS page and nowhere else; it sat on the catch-all

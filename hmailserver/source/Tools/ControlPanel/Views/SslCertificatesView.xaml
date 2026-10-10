@@ -163,14 +163,14 @@
                         </DataGridTemplateColumn>
                         <!-- Sorted by how much the certificate asks for attention, then by how
                              soon it expires (CertGrid_Sorting), not by its status word. -->
-                        <DataGridTemplateColumn x:Name="CertificateColumn" Header="{loc:L 'Certificate'}" Width="*" MinWidth="160" SortMemberPath="CertificateState">
+                        <DataGridTemplateColumn x:Name="CertificateColumn" Header="{loc:L 'Certificate status'}" Width="*" MinWidth="160" SortMemberPath="CertificateState">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <ContentControl Loaded="CertificateBadge_Loaded" IsTabStop="False" Focusable="False" />
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="{loc:L 'Private key'}" Width="*" MinWidth="160" SortMemberPath="PrivateKeyState">
+                        <DataGridTemplateColumn Header="{loc:L 'Key status'}" Width="*" MinWidth="160" SortMemberPath="PrivateKeyState">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <ContentControl Loaded="KeyBadge_Loaded" IsTabStop="False" Focusable="False" />
@@ -194,7 +194,7 @@
                     </scaffold:EmptyState.Action>
                 </scaffold:EmptyState>
                 <!-- Shown while the first inspection runs off the UI thread. -->
-                <scaffold:LoadingState x:Name="Loading" Visibility="Collapsed" />
+                <scaffold:LoadingState x:Name="Loading" Text="{loc:L 'Checking the certificate files…'}" Visibility="Collapsed" />
             </Grid>
         </scaffold:Card>
 

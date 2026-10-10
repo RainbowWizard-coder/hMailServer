@@ -19,15 +19,15 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void EachMarkHasItsCaption()
       {
          Assert.Equal("Applies on save", SettingApplies.Caption("now"));
-         Assert.Equal("After reinitialise", SettingApplies.Caption("reinitialize"));
-         Assert.Equal("After a restart", SettingApplies.Caption("restart"));
+         Assert.Equal("Applies after a reinitialise", SettingApplies.Caption("reinitialize"));
+         Assert.Equal("Applies after a restart", SettingApplies.Caption("restart"));
       }
 
       [Fact]
       public void TheCaptionIsReadAsTheServerMightSpellIt()
       {
          Assert.Equal("Applies on save", SettingApplies.Caption(" NOW "));
-         Assert.Equal("After reinitialise", SettingApplies.Caption("Reinitialize"));
+         Assert.Equal("Applies after a reinitialise", SettingApplies.Caption("Reinitialize"));
       }
 
       [Fact]

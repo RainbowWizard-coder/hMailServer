@@ -600,6 +600,9 @@
   <data name="A piece of equipment" xml:space="preserve">
     <value>Laite</value>
   </data>
+  <data name="A plain (unencrypted) PEM, so no passphrase is needed." xml:space="preserve">
+    <value>Tavallinen (salaamaton) PEM, joten tunnuslausetta ei tarvita.</value>
+  </data>
   <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the SSL certificates page first." xml:space="preserve">
     <value>SSL/TLS- tai STARTTLS-portti esittää varmenteen, eikä palvelimella ole vielä yhtään: lisää ensin varmenne SSL-varmenteet-sivulla.</value>
   </data>
@@ -1335,12 +1338,6 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Advanced: it is sent as it is, in place of a token the server fetches." xml:space="preserve">
     <value>Edistynyt: se lähetetään sellaisenaan palvelimen noutaman tokenin sijaan.</value>
   </data>
-  <data name="After a restart" xml:space="preserve">
-    <value>Uudelleenkäynnistyksen jälkeen</value>
-  </data>
-  <data name="After reinitialise" xml:space="preserve">
-    <value>Uudelleenalustuksen jälkeen</value>
-  </data>
   <data name="After sign-in" xml:space="preserve">
     <value>Kirjautumisen jälkeen</value>
   </data>
@@ -1764,6 +1761,12 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Applies _to" xml:space="preserve">
     <value>Koskee _kohdetta</value>
+  </data>
+  <data name="Applies after a reinitialise" xml:space="preserve">
+    <value>Tulee voimaan uudelleenalustuksen jälkeen</value>
+  </data>
+  <data name="Applies after a restart" xml:space="preserve">
+    <value>Tulee voimaan uudelleenkäynnistyksen jälkeen</value>
   </data>
   <data name="Applies at the next service restart or Reinitialise. Log files are unaffected: this sends a copy, it does not move anything. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration." xml:space="preserve">
     <value>Tulee voimaan palvelun seuraavassa käynnistyksessä tai alustettaessa uudelleen. Lokitiedostoihin tämä ei vaikuta: tämä lähettää kopion eikä siirrä mitään. Jos alla ei ole keräimen osoitetta, systemd:n alla toimiva palvelin Linuxissa kirjoittaa sen sijaan journaliin - Linuxissa tämä yksi kytkin on siis koko asetus.</value>
@@ -2470,6 +2473,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Certificate output folder (empty = Data\ACME)" xml:space="preserve">
     <value>Varmenteiden tuloskansio (tyhjä = Data\ACME)</value>
   </data>
+  <data name="Certificate status" xml:space="preserve">
+    <value>Varmenteen tila</value>
+  </data>
   <data name="Certificate validation was off for this test, as 'Verify the directory server's certificate' is off." xml:space="preserve">
     <value>Varmenteen tarkistus oli tässä testissä pois päältä, koska 'Tarkista hakemistopalvelimen varmenne' on pois päältä.</value>
   </data>
@@ -2635,6 +2641,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Checking for updates…" xml:space="preserve">
     <value>Tarkistetaan päivityksiä…</value>
   </data>
+  <data name="Checking the certificate files…" xml:space="preserve">
+    <value>Tarkistetaan varmennetiedostoja…</value>
+  </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>Asennusohjelman tarkistus</value>
   </data>
@@ -2712,9 +2721,6 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Cipher list: the AEAD-ONLY preset — forward-secret AEAD suites only, with every CBC-mode suite and static-RSA key exchange excluded. This governs TLS 1.2 and below; TLS 1.3 has its own list and is AEAD by construction." xml:space="preserve">
     <value>Salauslista: esiasetus AEAD-ONLY — vain eteenpäin salaiset AEAD-salausryhmät, kaikki CBC-tilan salausryhmät ja staattinen RSA-avaintenvaihto poissuljettuina. Tämä koskee TLS 1.2:ta ja vanhempia; TLS 1.3:lla on oma luettelonsa ja se on rakenteeltaan AEAD.</value>
-  </data>
-  <data name="Ciphers" xml:space="preserve">
-    <value>Salaukset</value>
   </data>
   <data name="Ciphers &amp; verification" xml:space="preserve">
     <value>Salaukset ja tarkistus</value>
@@ -4444,6 +4450,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Each check can be enabled separately and given its own score." xml:space="preserve">
     <value>Jokaisen tarkistuksen voi ottaa käyttöön erikseen ja antaa sille oman pistemäärän.</value>
   </data>
+  <data name="Each is a root DS record - key tag, algorithm, digest type and the digest in hex - such as 20326 8 2 E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D. Set, they replace the built-in root anchors; empty uses those." xml:space="preserve">
+    <value>Kukin on juuren DS-tietue - avaintunniste, algoritmi, tiivisteen tyyppi ja tiiviste heksana - esimerkiksi 20326 8 2 E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D. Asetettuina ne korvaavat sisäänrakennetut juuriankkurit; tyhjä käyttää niitä.</value>
+  </data>
   <data name="Each message" xml:space="preserve">
     <value>Jokainen viesti</value>
   </data>
@@ -5205,6 +5214,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="External recipients (addresses this server does not host)" xml:space="preserve">
     <value>Ulkoiset vastaanottajat (osoitteet, joita tämä palvelin ei isännöi)</value>
+  </data>
+  <data name="External to exte_rnal" xml:space="preserve">
+    <value>Ulkoinen ul_koiseen</value>
   </data>
   <data name="External to external (rela_y)" xml:space="preserve">
     <value>Ulkoinen ulkoiseen (v_älitys)</value>
@@ -6339,6 +6351,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Key si_ze" xml:space="preserve">
     <value>Ava_imen koko</value>
   </data>
+  <data name="Key status" xml:space="preserve">
+    <value>Avaimen tila</value>
+  </data>
   <data name="Key store" xml:space="preserve">
     <value>Avainsäilö</value>
   </data>
@@ -6425,9 +6440,6 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="Leave empty for any address" xml:space="preserve">
     <value>Jätä tyhjäksi, jos mikä tahansa osoite kelpaa</value>
-  </data>
-  <data name="Leave empty for the built-in root anchors" xml:space="preserve">
-    <value>Jätä tyhjäksi sisäänrakennettuja juuriankkureita varten</value>
   </data>
   <data name="Leave empty to keep the current password." xml:space="preserve">
     <value>Jätä tyhjäksi, jos haluat säilyttää nykyisen salasanan.</value>
@@ -6590,6 +6602,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Ladataan…</value>
+  </data>
+  <data name="Local to _external" xml:space="preserve">
+    <value>P_aikallinen ulkoiseen</value>
   </data>
   <data name="LocalSystem, which is the most privileged account on this machine" xml:space="preserve">
     <value>LocalSystem, joka on tämän koneen etuoikeutetuin tili</value>
@@ -9282,9 +9297,6 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Private _key passphrase" xml:space="preserve">
     <value>Yksityisen _avaimen tunnuslause</value>
   </data>
-  <data name="Private key" xml:space="preserve">
-    <value>Yksityinen avain</value>
-  </data>
   <data name="Private key _file (PEM)" xml:space="preserve">
     <value>_Yksityisen avaimen tiedosto (PEM)</value>
   </data>
@@ -10073,6 +10085,12 @@ Jokainen tili, alias ja jakelulista siirtyy uudelle nimelle, ja muiden verkkotun
     <value>Nimetäänkö {0} uudelleen nimelle {1}?
 
 Postilaatikko ja sen viestit siirtyvät uuteen osoitteeseen. Vanhaan osoitteeseen lähetetty posti ei enää tavoita tätä tiliä, ellei sille luoda aliasta.</value>
+  </data>
+  <data name="Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
+    <value>Uusi se ennen sitä: vanhettuaan portit kuuntelevat yhä, mutta päivämäärän tarkistavat asiakkaat kieltäytyvät yhdistämästä.</value>
+  </data>
+  <data name="Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
+    <value>Uusi se nyt: vanhettuaan portit kuuntelevat yhä, mutta päivämäärän tarkistavat asiakkaat kieltäytyvät yhdistämästä.</value>
   </data>
   <data name="Renew or install a certificate" xml:space="preserve">
     <value>Uusi tai asenna varmenne</value>
@@ -12834,35 +12852,14 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>Sekä varmenteen että avaimen on oltava asetettuina HTTPS:n tarjoamiseksi; vain toisella niistä TLS ei ole käytössä, ja palvelin kirjaa sen lokiin. Toisin kuin REST-rajapinnan kuuntelijalla, täällä ei ole varamenettelyä ACME-varmenteeseen. Jos TLS on määritetty, mutta sitä ei voi valmistella (lukukelvoton tiedosto, avain, joka ei täsmää), kuntotarkistukset pysyvät tavallisessa HTTP:ssä ja /metrics vastaa 503 sen sijaan, että tarjoaisi tiedot selväkielisinä.</value>
   </data>
-  <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
-    <value>Varmenne vanheni {0}. Palvelin lataa sen yhä ja sen portit käynnistyvät yhä (se raportoi palvelinvirheen 5991 sovelluslokissa), mutta jokainen päivämäärän tarkistava asiakas ja postipalvelin kieltäytyy yhdistämästä - ja nykyään se on lähes kaikki. Vaihda varmenne.</value>
-  </data>
-  <data name="The certificate expires on {0}, in less than a day. Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
-    <value>Varmenne vanhenee {0}, alle vuorokauden kuluttua. Uusi se nyt: vanhettuaan portit kuuntelevat yhä, mutta päivämäärän tarkistavat asiakkaat kieltäytyvät yhdistämästä.</value>
-  </data>
-  <data name="The certificate expires on {0}, in {1} day. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
-    <value>Varmenne vanhenee {0}, {1} päivän kuluttua. Uusi se ennen sitä: vanhettuaan portit kuuntelevat yhä, mutta päivämäärän tarkistavat asiakkaat kieltäytyvät yhdistämästä.</value>
-  </data>
-  <data name="The certificate expires on {0}, in {1} days. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
-    <value>Varmenne vanhenee {0}, {1} päivän kuluttua. Uusi se ennen sitä: vanhettuaan portit kuuntelevat yhä, mutta päivämäärän tarkistavat asiakkaat kieltäytyvät yhdistämästä.</value>
-  </data>
   <data name="The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (server error 5113) - mail on those ports stops." xml:space="preserve">
     <value>Varmennetiedostoa ei ole tällä koneella ({0}). Yksikään tätä varmennetta käyttämään määritetty TLS-portti ei käynnisty (palvelinvirhe 5113) - posti näissä porteissa pysähtyy.</value>
   </data>
   <data name="The certificate file exists but could not be read from this panel ({0}), so nothing about it is verified." xml:space="preserve">
     <value>Varmennetiedosto on olemassa, mutta sitä ei voitu lukea tästä paneelista ({0}), joten siitä ei ole varmistettu mitään.</value>
   </data>
-  <data name="The certificate file parses correctly and is valid until {0}, {1} day from now." xml:space="preserve">
-    <value>Varmennetiedosto jäsentyy oikein ja on voimassa {0} asti, {1} päivän päähän.</value>
-  </data>
-  <data name="The certificate file parses correctly and is valid until {0}, {1} days from now." xml:space="preserve">
-    <value>Varmennetiedosto jäsentyy oikein ja on voimassa {0} asti, {1} päivän päähän.</value>
-  </data>
   <data name="The certificate files are on the server and this Control Panel is connected to it remotely, so expiry dates and file contents cannot be checked from here. Everything else on this page is read over COM and is accurate." xml:space="preserve">
     <value>Varmennetiedostot ovat palvelimella, ja tämä Control Panel on yhteydessä siihen etänä, joten vanhenemispäiviä ja tiedostojen sisältöä ei voi tarkistaa täältä. Kaikki muu tällä sivulla luetaan COM-rajapinnan kautta ja pitää paikkansa.</value>
-  </data>
-  <data name="The certificate is not valid until {0}. The server serves it (server error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
-    <value>Varmenne ei ole voimassa ennen {0}. Palvelin tarjoaa sen (palvelinvirhe 5991 sovelluslokissa), ja asiakkaat hylkäävät sen siihen päivään asti - tarkista varmenne ja tämän palvelimen kello.</value>
   </data>
   <data name="The certificate keeps its place on every TCP/IP port that presents it. Those ports read the files again when the server is next reinitialised." xml:space="preserve">
     <value>Varmenne säilyttää paikkansa jokaisessa sitä esittävässä TCP/IP-portissa. Nämä portit lukevat tiedostot uudelleen, kun palvelin seuraavan kerran alustetaan uudelleen.</value>
@@ -13138,6 +13135,9 @@ ei voitu ladata. Viesti on todennäköisesti toimitettu eikä ole enää jonossa
   <data name="The file could not be parsed as a PEM certificate. The server loads certificates in PEM format only, so this file will not load and every TLS port using it will fail to start (server error 5113)." xml:space="preserve">
     <value>Tiedostoa ei voitu jäsentää PEM-varmenteeksi. Palvelin lataa varmenteita vain PEM-muodossa, joten tämä tiedosto ei lataudu, eikä yksikään sitä käyttävä TLS-portti käynnisty (palvelinvirhe 5113).</value>
   </data>
+  <data name="The file parses as a PEM certificate, the format the server loads." xml:space="preserve">
+    <value>Tiedosto jäsentyy PEM-varmenteeksi, siis muotoon, jonka palvelin lataa.</value>
+  </data>
   <data name="The first address of the gateway's range." xml:space="preserve">
     <value>Yhdyskäytävän alueen ensimmäinen osoite.</value>
   </data>
@@ -13240,9 +13240,6 @@ ei voitu ladata. Viesti on todennäköisesti toimitettu eikä ole enää jonossa
   <data name="The key file could not be read from this machine, so the record value cannot be shown here; the domain's DKIM tab showed it when the key was made." xml:space="preserve">
     <value>Avaintiedostoa ei voitu lukea tältä koneelta, joten tietueen arvoa ei voi näyttää tässä; verkkotunnuksen DKIM-välilehti näytti sen, kun avain luotiin.</value>
   </data>
-  <data name="The key file exists and is a plain (unencrypted) PEM, so no passphrase is needed." xml:space="preserve">
-    <value>Avaintiedosto on olemassa ja on tavallinen (salaamaton) PEM, joten tunnuslausetta ei tarvita.</value>
-  </data>
   <data name="The key file exists but could not be read from this panel ({0}), so whether it is encrypted is unknown." xml:space="preserve">
     <value>Avaintiedosto on olemassa, mutta sitä ei voitu lukea tästä paneelista ({0}), joten ei tiedetä, onko se salattu.</value>
   </data>
@@ -13252,8 +13249,8 @@ ei voitu ladata. Viesti on todennäköisesti toimitettu eikä ole enää jonossa
   <data name="The key file is encrypted and no passphrase is stored, so the key will not load (server error 6170) and every TLS port using this certificate will not start - inbound mail on those ports stops. Enter the passphrase below, or replace the file with an unencrypted key." xml:space="preserve">
     <value>Avaintiedosto on salattu, eikä tunnuslausetta ole tallennettu, joten avain ei lataudu (palvelinvirhe 6170) eikä yksikään tätä varmennetta käyttävä TLS-portti käynnisty - saapuva posti näissä porteissa pysähtyy. Anna tunnuslause alla tai korvaa tiedosto salaamattomalla avaimella.</value>
   </data>
-  <data name="The key file is not encrypted, so no passphrase is needed and none is stored." xml:space="preserve">
-    <value>Avaintiedosto ei ole salattu, joten tunnuslausetta ei tarvita eikä sitä ole tallennettu.</value>
+  <data name="The key file is not encrypted, and none is stored." xml:space="preserve">
+    <value>Avaintiedosto ei ole salattu, eikä tunnuslausetta ole tallennettu.</value>
   </data>
   <data name="The key file is passphrase-protected (an encrypted PEM). It only loads if the matching passphrase is stored on this certificate." xml:space="preserve">
     <value>Avaintiedosto on tunnuslauseella suojattu (salattu PEM). Se latautuu vain, jos vastaava tunnuslause on tallennettu tälle varmenteelle.</value>
@@ -13497,8 +13494,8 @@ ei voitu ladata. Viesti on todennäköisesti toimitettu eikä ole enää jonossa
 
 Lisätäänkö silti?</value>
   </data>
-  <data name="The private key's public half is identical to the certificate's public key - the pair belongs together." xml:space="preserve">
-    <value>Yksityisen avaimen julkinen puolisko on identtinen varmenteen julkisen avaimen kanssa - pari kuuluu yhteen.</value>
+  <data name="The private key's public half is the certificate's public key." xml:space="preserve">
+    <value>Yksityisen avaimen julkinen puolisko on varmenteen julkinen avain.</value>
   </data>
   <data name="The profile" xml:space="preserve">
     <value>Profiili</value>
@@ -13764,11 +13761,17 @@ Lisätäänkö silti?</value>
   <data name="The server remembers who has written to each account and who each account has written to, and says so in the reader the first time an outside sender appears. It costs one database lookup for each message delivered to this domain, and nothing at all while this is off." xml:space="preserve">
     <value>Palvelin muistaa, kuka on kirjoittanut kullekin tilille ja kenelle kukin tili on kirjoittanut, ja kertoo siitä lukijassa, kun ulkopuolinen lähettäjä ilmestyy ensimmäisen kerran. Se maksaa yhden tietokantahaun jokaista tälle toimialueelle toimitettua viestiä kohden, eikä yhtään mitään silloin kun tämä on pois päältä.</value>
   </data>
+  <data name="The server serves it (server error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
+    <value>Palvelin tarjoaa sen (palvelinvirhe 5991 sovelluslokissa), ja asiakkaat hylkäävät sen siihen päivään asti - tarkista varmenne ja tämän palvelimen kello.</value>
+  </data>
   <data name="The server side is in place: hosting is enabled, the HTTPS port is set, and a certificate source exists." xml:space="preserve">
     <value>Palvelinpuoli on kunnossa: isännöinti on käytössä, HTTPS-portti on asetettu ja varmennelähde on olemassa.</value>
   </data>
   <data name="The server state could not be changed: {0}" xml:space="preserve">
     <value>Palvelimen tilaa ei voitu muuttaa: {0}</value>
+  </data>
+  <data name="The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
+    <value>Palvelin lataa sen yhä ja sen portit käynnistyvät yhä (se raportoi palvelinvirheen 5991 sovelluslokissa), mutta jokainen päivämäärän tarkistava asiakas ja postipalvelin kieltäytyy yhdistämästä - ja nykyään se on lähes kaikki. Vaihda varmenne.</value>
   </data>
   <data name="The server stores this value and never reads it - nothing sets a thread priority from it, so changing it has no effect. It is shown rather than removed so that an administrator who set it years ago can see it is still there and why nothing happened, and it is not editable because a box that accepts a value nothing acts on is worse than no box at all. The thread counts above are honoured." xml:space="preserve">
     <value>Palvelin tallentaa tämän arvon eikä koskaan lue sitä - mikään ei aseta säikeen prioriteettia sen perusteella, joten sen muuttamisella ei ole vaikutusta. Se näytetään poistamisen sijaan, jotta vuosia sitten sen asettanut järjestelmänvalvoja näkee, että se on yhä olemassa ja miksi mitään ei tapahtunut, eikä sitä voi muokata, koska kenttä, joka hyväksyy arvon, johon mikään ei reagoi, on pahempi kuin ei kenttää lainkaan. Yllä olevia säiemääriä noudatetaan.</value>
@@ -14374,8 +14377,8 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="Tries" xml:space="preserve">
     <value>Yritykset</value>
   </data>
-  <data name="Trust anchor override (tag alg digesttype hex; ...)" xml:space="preserve">
-    <value>Luottamusankkurien ohitus (tag alg digesttype hex; ...)</value>
+  <data name="Trust anchors (DS records, separated by semicolons)" xml:space="preserve">
+    <value>Luottamusankkurit (DS-tietueet puolipisteillä erotettuina)</value>
   </data>
   <data name="Trusted ARC sealer domains" xml:space="preserve">
     <value>Luotetut ARC-sinetöijäverkkotunnukset</value>

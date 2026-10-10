@@ -603,6 +603,9 @@
   <data name="A piece of equipment" xml:space="preserve">
     <value>Vybavení</value>
   </data>
+  <data name="A plain (unencrypted) PEM, so no passphrase is needed." xml:space="preserve">
+    <value>Obyčejný (nešifrovaný) PEM, takže přístupové heslo není potřeba.</value>
+  </data>
   <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the SSL certificates page first." xml:space="preserve">
     <value>Port s SSL/TLS nebo STARTTLS předkládá certifikát a server zatím žádný nemá: nejprve jej přidejte na stránce Certifikáty SSL.</value>
   </data>
@@ -1341,12 +1344,6 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Advanced: it is sent as it is, in place of a token the server fetches." xml:space="preserve">
     <value>Pro pokročilé: odešle se tak, jak je, místo tokenu, který by si server získal.</value>
   </data>
-  <data name="After a restart" xml:space="preserve">
-    <value>Po restartu</value>
-  </data>
-  <data name="After reinitialise" xml:space="preserve">
-    <value>Po reinicializaci</value>
-  </data>
   <data name="After sign-in" xml:space="preserve">
     <value>Po přihlášení</value>
   </data>
@@ -1776,6 +1773,12 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Applies _to" xml:space="preserve">
     <value>Platí _pro</value>
+  </data>
+  <data name="Applies after a reinitialise" xml:space="preserve">
+    <value>Projeví se po reinicializaci</value>
+  </data>
+  <data name="Applies after a restart" xml:space="preserve">
+    <value>Projeví se po restartu</value>
   </data>
   <data name="Applies at the next service restart or Reinitialise. Log files are unaffected: this sends a copy, it does not move anything. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration." xml:space="preserve">
     <value>Projeví se při příštím restartu služby nebo po Reinicializaci. Souborů protokolu se to nedotkne: odesílá se kopie, nic se nepřesouvá. Pokud níže není uveden hostitel sběrače, server běžící pod systemd na Linuxu zapisuje místo toho do journalu - na Linuxu tedy tento jediný přepínač představuje celé nastavení.</value>
@@ -2494,6 +2497,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Certificate output folder (empty = Data\ACME)" xml:space="preserve">
     <value>Výstupní složka certifikátů (prázdné = Data\ACME)</value>
   </data>
+  <data name="Certificate status" xml:space="preserve">
+    <value>Stav certifikátu</value>
+  </data>
   <data name="Certificate validation was off for this test, as 'Verify the directory server's certificate' is off." xml:space="preserve">
     <value>Ověřování certifikátu bylo pro tento test vypnuté, protože volba „Ověřovat certifikát adresářového serveru“ je vypnutá.</value>
   </data>
@@ -2659,6 +2665,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Checking for updates…" xml:space="preserve">
     <value>Hledají se aktualizace…</value>
   </data>
+  <data name="Checking the certificate files…" xml:space="preserve">
+    <value>Kontrolují se soubory certifikátů…</value>
+  </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>Kontrola instalátoru</value>
   </data>
@@ -2736,9 +2745,6 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Cipher list: the AEAD-ONLY preset — forward-secret AEAD suites only, with every CBC-mode suite and static-RSA key exchange excluded. This governs TLS 1.2 and below; TLS 1.3 has its own list and is AEAD by construction." xml:space="preserve">
     <value>Seznam šifer: předvolba AEAD-ONLY — pouze AEAD sady s dopřednou bezpečností, s vyloučením všech sad v režimu CBC a statické výměny klíčů RSA. Řídí TLS 1.2 a nižší; TLS 1.3 má vlastní seznam a je AEAD ze své podstaty.</value>
-  </data>
-  <data name="Ciphers" xml:space="preserve">
-    <value>Šifry</value>
   </data>
   <data name="Ciphers &amp; verification" xml:space="preserve">
     <value>Šifry a ověřování</value>
@@ -4496,6 +4502,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Each check can be enabled separately and given its own score." xml:space="preserve">
     <value>Každou kontrolu lze povolit samostatně a dát jí vlastní skóre.</value>
   </data>
+  <data name="Each is a root DS record - key tag, algorithm, digest type and the digest in hex - such as 20326 8 2 E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D. Set, they replace the built-in root anchors; empty uses those." xml:space="preserve">
+    <value>Každá je záznam DS kořene - tag klíče, algoritmus, typ otisku a otisk v šestnáctkové soustavě - například 20326 8 2 E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D. Nastavené nahradí vestavěné kořenové kotvy; prázdné pole použije ty.</value>
+  </data>
   <data name="Each message" xml:space="preserve">
     <value>Každou zprávu</value>
   </data>
@@ -5275,6 +5284,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="External recipients (addresses this server does not host)" xml:space="preserve">
     <value>Externí příjemci (adresy, které tento server nehostuje)</value>
+  </data>
+  <data name="External to exte_rnal" xml:space="preserve">
+    <value>Externí do exte_rní</value>
   </data>
   <data name="External to external (rela_y)" xml:space="preserve">
     <value>_Externí do externí (relay)</value>
@@ -6409,6 +6421,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Key si_ze" xml:space="preserve">
     <value>_Velikost klíče</value>
   </data>
+  <data name="Key status" xml:space="preserve">
+    <value>Stav klíče</value>
+  </data>
   <data name="Key store" xml:space="preserve">
     <value>Úložiště klíčů</value>
   </data>
@@ -6495,9 +6510,6 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="Leave empty for any address" xml:space="preserve">
     <value>Ponechte prázdné pro libovolnou adresu</value>
-  </data>
-  <data name="Leave empty for the built-in root anchors" xml:space="preserve">
-    <value>Pro vestavěné kořenové kotvy nechte prázdné</value>
   </data>
   <data name="Leave empty to keep the current password." xml:space="preserve">
     <value>Ponechte prázdné pro zachování stávajícího hesla.</value>
@@ -6660,6 +6672,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Načítání…</value>
+  </data>
+  <data name="Local to _external" xml:space="preserve">
+    <value>Místní do _externí</value>
   </data>
   <data name="LocalSystem, which is the most privileged account on this machine" xml:space="preserve">
     <value>LocalSystem, což je nejprivilegovanější účet na tomto počítači</value>
@@ -9376,9 +9391,6 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Private _key passphrase" xml:space="preserve">
     <value>Přístupové heslo soukromého _klíče</value>
   </data>
-  <data name="Private key" xml:space="preserve">
-    <value>Soukromý klíč</value>
-  </data>
   <data name="Private key _file (PEM)" xml:space="preserve">
     <value>Soubor soukro_mého klíče (PEM)</value>
   </data>
@@ -10182,6 +10194,12 @@ Každý účet, alias a distribuční seznam se přesune na nový název a přep
     <value>Přejmenovat {0} na {1}?
 
 Poštovní schránka a její zprávy se přesunou na novou adresu. Pošta odeslaná na starou adresu se k tomuto účtu už nedostane, pokud pro ni nebude vytvořen alias.</value>
+  </data>
+  <data name="Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
+    <value>Obnovte jej dříve: po vypršení platnosti porty naslouchají dál, ale klienti, kteří kontrolují datum, se odmítnou připojit.</value>
+  </data>
+  <data name="Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
+    <value>Obnovte jej hned: po vypršení platnosti porty naslouchají dál, ale klienti, kteří kontrolují datum, se odmítnou připojit.</value>
   </data>
   <data name="Renew or install a certificate" xml:space="preserve">
     <value>Obnovit nebo nainstalovat certifikát</value>
@@ -12991,41 +13009,14 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>Aby se poskytovalo HTTPS, musí být nastaven certifikát I klíč; jen s jedním z nich se TLS nezapne a server to zapíše do logu. Na rozdíl od listeneru REST API se zde nepoužije jako záloha certifikát z ACME. Pokud je TLS nakonfigurováno, ale nelze je připravit (nečitelný soubor, klíč, který neodpovídá), zůstanou zdravotní sondy na nešifrovaném HTTP a /metrics odpovídá 503, místo aby výstup poskytoval v otevřeném textu.</value>
   </data>
-  <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
-    <value>Platnost certifikátu vypršela {0}. Server jej stále načítá a jeho porty se stále spouštějí (zapíše do logu aplikace chybu serveru 5991), ale každý klient a poštovní server, který kontroluje datum, se odmítne připojit – a to dnes dělají téměř všichni. Certifikát vyměňte.</value>
-  </data>
-  <data name="The certificate expires on {0}, in less than a day. Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
-    <value>Platnost certifikátu vyprší {0}, za méně než den. Obnovte jej hned: po vypršení platnosti porty naslouchají dál, ale klienti, kteří kontrolují datum, se odmítnou připojit.</value>
-  </data>
-  <data name="The certificate expires on {0}, in {1} day. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
-    <value>Platnost certifikátu vyprší {0}, za {1} den. Obnovte jej dříve: po vypršení platnosti porty naslouchají dál, ale klienti, kteří kontrolují datum, se odmítnou připojit.</value>
-  </data>
-  <data name="The certificate expires on {0}, in {1} days. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
-    <value>Platnost certifikátu vyprší {0}, za {1} dní. Obnovte jej dříve: po vypršení platnosti porty naslouchají dál, ale klienti, kteří kontrolují datum, se odmítnou připojit.</value>
-  </data>
-  <data name="The certificate expires on {0}, in {1} days. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect.|few" xml:space="preserve">
-    <value>Platnost certifikátu vyprší {0}, za {1} dny. Obnovte jej dříve: po vypršení platnosti porty naslouchají dál, ale klienti, kteří kontrolují datum, se odmítnou připojit.</value>
-  </data>
   <data name="The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (server error 5113) - mail on those ports stops." xml:space="preserve">
     <value>Soubor certifikátu na tomto počítači neexistuje ({0}). Každý TLS port nastavený k použití tohoto certifikátu se nespustí (chyba serveru 5113) – pošta na těchto portech se zastaví.</value>
   </data>
   <data name="The certificate file exists but could not be read from this panel ({0}), so nothing about it is verified." xml:space="preserve">
     <value>Soubor certifikátu existuje, ale z tohoto panelu ho nešlo přečíst ({0}), takže o něm není nic ověřeno.</value>
   </data>
-  <data name="The certificate file parses correctly and is valid until {0}, {1} day from now." xml:space="preserve">
-    <value>Soubor certifikátu se správně načte a platí do {0}, tedy ještě {1} den.</value>
-  </data>
-  <data name="The certificate file parses correctly and is valid until {0}, {1} days from now." xml:space="preserve">
-    <value>Soubor certifikátu se správně načte a platí do {0}, tedy ještě {1} dní.</value>
-  </data>
-  <data name="The certificate file parses correctly and is valid until {0}, {1} days from now.|few" xml:space="preserve">
-    <value>Soubor certifikátu se správně načte a platí do {0}, tedy ještě {1} dny.</value>
-  </data>
   <data name="The certificate files are on the server and this Control Panel is connected to it remotely, so expiry dates and file contents cannot be checked from here. Everything else on this page is read over COM and is accurate." xml:space="preserve">
     <value>Soubory certifikátů jsou na serveru a tento Control Panel je k němu připojen vzdáleně, takže data vypršení a obsah souborů odsud nelze zkontrolovat. Vše ostatní na této stránce se čte přes COM a je přesné.</value>
-  </data>
-  <data name="The certificate is not valid until {0}. The server serves it (server error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
-    <value>Certifikát platí až od {0}. Server ho podává (chyba serveru 5991 v logu aplikace) a klienti ho do toho data odmítají - zkontrolujte certifikát a hodiny tohoto serveru.</value>
   </data>
   <data name="The certificate keeps its place on every TCP/IP port that presents it. Those ports read the files again when the server is next reinitialised." xml:space="preserve">
     <value>Certifikát zůstane na každém portu TCP/IP, který ho předkládá. Tyto porty načtou soubory znovu při příští reinicializaci serveru.</value>
@@ -13310,6 +13301,9 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   <data name="The file could not be parsed as a PEM certificate. The server loads certificates in PEM format only, so this file will not load and every TLS port using it will fail to start (server error 5113)." xml:space="preserve">
     <value>Soubor nešlo načíst jako certifikát PEM. Server načítá certifikáty pouze ve formátu PEM, takže tento soubor se nenačte a každý port TLS, který ho používá, se nespustí (chyba serveru 5113).</value>
   </data>
+  <data name="The file parses as a PEM certificate, the format the server loads." xml:space="preserve">
+    <value>Soubor se načte jako certifikát PEM, tedy ve formátu, který server načítá.</value>
+  </data>
   <data name="The first address of the gateway's range." xml:space="preserve">
     <value>První adresa rozsahu brány.</value>
   </data>
@@ -13418,9 +13412,6 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   <data name="The key file could not be read from this machine, so the record value cannot be shown here; the domain's DKIM tab showed it when the key was made." xml:space="preserve">
     <value>Soubor klíče nelze z tohoto počítače přečíst, takže zde nelze zobrazit hodnotu záznamu; karta DKIM u domény ji zobrazila při vytvoření klíče.</value>
   </data>
-  <data name="The key file exists and is a plain (unencrypted) PEM, so no passphrase is needed." xml:space="preserve">
-    <value>Soubor klíče existuje a je to obyčejný (nešifrovaný) PEM, takže přístupové heslo není potřeba.</value>
-  </data>
   <data name="The key file exists but could not be read from this panel ({0}), so whether it is encrypted is unknown." xml:space="preserve">
     <value>Soubor klíče existuje, ale z tohoto panelu ho nešlo přečíst ({0}), takže není známo, zda je šifrovaný.</value>
   </data>
@@ -13430,8 +13421,8 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   <data name="The key file is encrypted and no passphrase is stored, so the key will not load (server error 6170) and every TLS port using this certificate will not start - inbound mail on those ports stops. Enter the passphrase below, or replace the file with an unencrypted key." xml:space="preserve">
     <value>Soubor klíče je šifrovaný a není uloženo žádné přístupové heslo, takže se klíč nenačte (chyba serveru 6170) a žádný port TLS používající tento certifikát se nespustí - příchozí pošta na těchto portech se zastaví. Zadejte přístupové heslo níže, nebo soubor nahraďte nešifrovaným klíčem.</value>
   </data>
-  <data name="The key file is not encrypted, so no passphrase is needed and none is stored." xml:space="preserve">
-    <value>Soubor klíče není šifrovaný, takže přístupové heslo není potřeba a žádné se neukládá.</value>
+  <data name="The key file is not encrypted, and none is stored." xml:space="preserve">
+    <value>Soubor klíče není šifrovaný a žádné heslo se neukládá.</value>
   </data>
   <data name="The key file is passphrase-protected (an encrypted PEM). It only loads if the matching passphrase is stored on this certificate." xml:space="preserve">
     <value>Soubor klíče je chráněn přístupovým heslem (šifrovaný PEM). Načte se jen tehdy, když je u tohoto certifikátu uloženo odpovídající přístupové heslo.</value>
@@ -13675,8 +13666,8 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
 
 Přesto přidat?</value>
   </data>
-  <data name="The private key's public half is identical to the certificate's public key - the pair belongs together." xml:space="preserve">
-    <value>Veřejná polovina soukromého klíče je totožná s veřejným klíčem certifikátu - dvojice patří k sobě.</value>
+  <data name="The private key's public half is the certificate's public key." xml:space="preserve">
+    <value>Veřejná polovina soukromého klíče je veřejným klíčem certifikátu.</value>
   </data>
   <data name="The profile" xml:space="preserve">
     <value>Profil</value>
@@ -13942,11 +13933,17 @@ Přesto přidat?</value>
   <data name="The server remembers who has written to each account and who each account has written to, and says so in the reader the first time an outside sender appears. It costs one database lookup for each message delivered to this domain, and nothing at all while this is off." xml:space="preserve">
     <value>Server si pamatuje, kdo psal jednotlivým účtům a komu psaly ony, a řekne to ve čtečce, když se vnější odesílatel objeví poprvé. Stojí to jedno vyhledání v databázi na každou zprávu doručenou do této domény a zcela nic, dokud je to vypnuté.</value>
   </data>
+  <data name="The server serves it (server error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
+    <value>Server ho podává (chyba serveru 5991 v logu aplikace) a klienti ho do toho data odmítají - zkontrolujte certifikát a hodiny tohoto serveru.</value>
+  </data>
   <data name="The server side is in place: hosting is enabled, the HTTPS port is set, and a certificate source exists." xml:space="preserve">
     <value>Serverová strana je na místě: hostování je zapnuté, port HTTPS je nastaven a zdroj certifikátu existuje.</value>
   </data>
   <data name="The server state could not be changed: {0}" xml:space="preserve">
     <value>Stav serveru nešlo změnit: {0}</value>
+  </data>
+  <data name="The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
+    <value>Server jej stále načítá a jeho porty se stále spouštějí (zapíše do logu aplikace chybu serveru 5991), ale každý klient a poštovní server, který kontroluje datum, se odmítne připojit – a to dnes dělají téměř všichni. Certifikát vyměňte.</value>
   </data>
   <data name="The server stores this value and never reads it - nothing sets a thread priority from it, so changing it has no effect. It is shown rather than removed so that an administrator who set it years ago can see it is still there and why nothing happened, and it is not editable because a box that accepts a value nothing acts on is worse than no box at all. The thread counts above are honoured." xml:space="preserve">
     <value>Server tuto hodnotu ukládá a nikdy ji nečte - nic z ní nenastavuje prioritu vláken, takže její změna nemá žádný účinek. Zobrazuje se místo odstranění proto, aby správce, který ji před lety nastavil, viděl, že tam pořád je a proč se nic nestalo, a není editovatelná, protože pole, které přijme hodnotu, na niž nic nereaguje, je horší než žádné pole. Počty vláken výše se respektují.</value>
@@ -14555,8 +14552,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Tries" xml:space="preserve">
     <value>Pokusy</value>
   </data>
-  <data name="Trust anchor override (tag alg digesttype hex; ...)" xml:space="preserve">
-    <value>Přepsání kotev důvěry (tag alg digesttype hex; ...)</value>
+  <data name="Trust anchors (DS records, separated by semicolons)" xml:space="preserve">
+    <value>Kotvy důvěry (záznamy DS oddělené středníky)</value>
   </data>
   <data name="Trusted ARC sealer domains" xml:space="preserve">
     <value>Důvěryhodné domény pečetitelů ARC</value>

@@ -136,7 +136,7 @@ namespace hMailServer.ControlPanel.Views.Scaffold
 
       /// <summary>
       /// When a saved value of this field reaches the running server - "Applies on
-      /// save", "After reinitialise" or "After a restart" (Services/SettingApplies) -
+      /// save", "Applies after a reinitialise" or "Applies after a restart" (Services/SettingApplies) -
       /// for a field kept in the settings store that was hMailServer.ini's [Settings]
       /// section, or null for every other field. Shown small under the editor and
       /// read with its help text, so a screen reader hears it with the field.

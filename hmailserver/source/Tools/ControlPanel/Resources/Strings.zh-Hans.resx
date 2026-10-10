@@ -600,6 +600,9 @@
   <data name="A piece of equipment" xml:space="preserve">
     <value>设备</value>
   </data>
+  <data name="A plain (unencrypted) PEM, so no passphrase is needed." xml:space="preserve">
+    <value>普通 (未加密) 的 PEM，因此不需要密码短语。</value>
+  </data>
   <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the SSL certificates page first." xml:space="preserve">
     <value>使用 SSL/TLS 或 STARTTLS 的端口要出示证书，而服务器上还没有证书：请先在“SSL 证书”页添加一个。</value>
   </data>
@@ -1335,12 +1338,6 @@
   <data name="Advanced: it is sent as it is, in place of a token the server fetches." xml:space="preserve">
     <value>高级：按原样发送，取代服务器获取的令牌。</value>
   </data>
-  <data name="After a restart" xml:space="preserve">
-    <value>重启后生效</value>
-  </data>
-  <data name="After reinitialise" xml:space="preserve">
-    <value>重新初始化后生效</value>
-  </data>
   <data name="After sign-in" xml:space="preserve">
     <value>登录后</value>
   </data>
@@ -1764,6 +1761,12 @@
   </data>
   <data name="Applies _to" xml:space="preserve">
     <value>应用于(_T)</value>
+  </data>
+  <data name="Applies after a reinitialise" xml:space="preserve">
+    <value>重新初始化后生效</value>
+  </data>
+  <data name="Applies after a restart" xml:space="preserve">
+    <value>重启后生效</value>
   </data>
   <data name="Applies at the next service restart or Reinitialise. Log files are unaffected: this sends a copy, it does not move anything. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration." xml:space="preserve">
     <value>在下次服务重启或重新初始化时生效。日志文件不受影响：这里发送的是副本，不会移动任何内容。若下方未填写收集器主机，Linux 上运行于 systemd 的服务器会改为写入 journal，因此在 Linux 上这一个开关就是全部配置。</value>
@@ -2470,6 +2473,9 @@
   <data name="Certificate output folder (empty = Data\ACME)" xml:space="preserve">
     <value>证书输出文件夹（留空 = Data\ACME）</value>
   </data>
+  <data name="Certificate status" xml:space="preserve">
+    <value>证书状态</value>
+  </data>
   <data name="Certificate validation was off for this test, as 'Verify the directory server's certificate' is off." xml:space="preserve">
     <value>由于“验证目录服务器的证书”已关闭，此次测试未验证证书。</value>
   </data>
@@ -2635,6 +2641,9 @@
   <data name="Checking for updates…" xml:space="preserve">
     <value>正在检查更新…</value>
   </data>
+  <data name="Checking the certificate files…" xml:space="preserve">
+    <value>正在检查证书文件…</value>
+  </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>检查安装程序</value>
   </data>
@@ -2712,9 +2721,6 @@
   </data>
   <data name="Cipher list: the AEAD-ONLY preset — forward-secret AEAD suites only, with every CBC-mode suite and static-RSA key exchange excluded. This governs TLS 1.2 and below; TLS 1.3 has its own list and is AEAD by construction." xml:space="preserve">
     <value>密码套件列表：AEAD-ONLY 预设 — 仅限具备前向保密的 AEAD 套件，排除所有 CBC 模式套件和静态 RSA 密钥交换。此项管辖 TLS 1.2 及更低版本；TLS 1.3 有自己的列表，并且在设计上就是 AEAD。</value>
-  </data>
-  <data name="Ciphers" xml:space="preserve">
-    <value>密码套件</value>
   </data>
   <data name="Ciphers &amp; verification" xml:space="preserve">
     <value>密码套件与验证</value>
@@ -4444,6 +4450,9 @@
   <data name="Each check can be enabled separately and given its own score." xml:space="preserve">
     <value>每项检查都可以单独启用，并赋予各自的分数。</value>
   </data>
+  <data name="Each is a root DS record - key tag, algorithm, digest type and the digest in hex - such as 20326 8 2 E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D. Set, they replace the built-in root anchors; empty uses those." xml:space="preserve">
+    <value>每一项都是根的 DS 记录 - 密钥标签、算法、摘要类型和十六进制摘要 - 例如 20326 8 2 E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D。设置后将取代内置的根锚点；留空则使用内置锚点。</value>
+  </data>
   <data name="Each message" xml:space="preserve">
     <value>每封邮件</value>
   </data>
@@ -5205,6 +5214,9 @@
   </data>
   <data name="External recipients (addresses this server does not host)" xml:space="preserve">
     <value>外部收件人 (此服务器未托管的地址)</value>
+  </data>
+  <data name="External to exte_rnal" xml:space="preserve">
+    <value>外部到外部(_R)</value>
   </data>
   <data name="External to external (rela_y)" xml:space="preserve">
     <value>外部到外部（中继）(_Y)</value>
@@ -6339,6 +6351,9 @@
   <data name="Key si_ze" xml:space="preserve">
     <value>密钥大小(_Z)</value>
   </data>
+  <data name="Key status" xml:space="preserve">
+    <value>密钥状态</value>
+  </data>
   <data name="Key store" xml:space="preserve">
     <value>密钥存储</value>
   </data>
@@ -6425,9 +6440,6 @@
   </data>
   <data name="Leave empty for any address" xml:space="preserve">
     <value>留空表示任意地址均可</value>
-  </data>
-  <data name="Leave empty for the built-in root anchors" xml:space="preserve">
-    <value>留空则使用内置的根锚点</value>
   </data>
   <data name="Leave empty to keep the current password." xml:space="preserve">
     <value>留空以保留当前密码。</value>
@@ -6590,6 +6602,9 @@
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>正在加载…</value>
+  </data>
+  <data name="Local to _external" xml:space="preserve">
+    <value>本地到外部(_E)</value>
   </data>
   <data name="LocalSystem, which is the most privileged account on this machine" xml:space="preserve">
     <value>LocalSystem，即本机上权限最高的账户</value>
@@ -9282,9 +9297,6 @@
   <data name="Private _key passphrase" xml:space="preserve">
     <value>私钥密码短语(_K)</value>
   </data>
-  <data name="Private key" xml:space="preserve">
-    <value>私钥</value>
-  </data>
   <data name="Private key _file (PEM)" xml:space="preserve">
     <value>私钥文件（PEM）(_F)</value>
   </data>
@@ -10073,6 +10085,12 @@
     <value>是否将 {0} 重命名为 {1}？
 
 邮箱及其邮件会迁移到新地址。除非为旧地址创建别名，否则发往旧地址的邮件将不再到达此账户。</value>
+  </data>
+  <data name="Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
+    <value>请在此之前续期: 一旦到期，端口仍会继续监听，但检查日期的客户端会拒绝连接。</value>
+  </data>
+  <data name="Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
+    <value>请立即续期: 一旦到期，端口仍会继续监听，但检查日期的客户端会拒绝连接。</value>
   </data>
   <data name="Renew or install a certificate" xml:space="preserve">
     <value>续订或安装证书</value>
@@ -12834,35 +12852,14 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>要提供 HTTPS，证书和密钥必须同时设置；只设置其中之一时不会启用 TLS，服务器会记录这一点。与 REST API 监听器不同，此处不会回退到 ACME 证书。如果配置了 TLS 但无法准备就绪（文件不可读、密钥不匹配），健康探测将保持在纯 HTTP 上，而 /metrics 会应答 503，而不是以明文提供指标输出。</value>
   </data>
-  <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
-    <value>证书已于 {0} 到期。服务器仍会加载它，其端口也仍会启动 (它在应用程序日志中报告服务器错误 5991)，但每个检查日期的客户端和邮件服务器都会拒绝连接 - 如今这几乎是所有客户端。请更换证书。</value>
-  </data>
-  <data name="The certificate expires on {0}, in less than a day. Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
-    <value>证书将于 {0} 到期，距今不到一天。请立即续期: 一旦到期，端口仍会继续监听，但检查日期的客户端会拒绝连接。</value>
-  </data>
-  <data name="The certificate expires on {0}, in {1} day. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
-    <value>证书将于 {0} 到期，距今 {1} 天。请在此之前续期: 一旦到期，端口仍会继续监听，但检查日期的客户端会拒绝连接。</value>
-  </data>
-  <data name="The certificate expires on {0}, in {1} days. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
-    <value>证书将于 {0} 到期，距今 {1} 天。请在此之前续期: 一旦到期，端口仍会继续监听，但检查日期的客户端会拒绝连接。</value>
-  </data>
   <data name="The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (server error 5113) - mail on those ports stops." xml:space="preserve">
     <value>证书文件在本机上不存在 ({0})。配置为使用此证书的每个 TLS 端口都将无法启动 (服务器错误 5113) - 这些端口上的邮件会停止。</value>
   </data>
   <data name="The certificate file exists but could not be read from this panel ({0}), so nothing about it is verified." xml:space="preserve">
     <value>证书文件存在，但无法从此面板读取 ({0})，因此未对其做任何验证。</value>
   </data>
-  <data name="The certificate file parses correctly and is valid until {0}, {1} day from now." xml:space="preserve">
-    <value>证书文件解析正确，有效期至 {0}，距今 {1} 天。</value>
-  </data>
-  <data name="The certificate file parses correctly and is valid until {0}, {1} days from now." xml:space="preserve">
-    <value>证书文件解析正确，有效期至 {0}，距今 {1} 天。</value>
-  </data>
   <data name="The certificate files are on the server and this Control Panel is connected to it remotely, so expiry dates and file contents cannot be checked from here. Everything else on this page is read over COM and is accurate." xml:space="preserve">
     <value>证书文件在服务器上，而此控制面板是远程连接到服务器的，因此无法从此处检查到期日期和文件内容。本页的其他所有内容都通过 COM 读取，是准确的。</value>
-  </data>
-  <data name="The certificate is not valid until {0}. The server serves it (server error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
-    <value>证书在 {0} 之前尚未生效。服务器仍会提供它 (应用程序日志中的服务器错误 5991)，而客户端在该日期之前都会拒绝它 - 请检查证书和本服务器的时钟。</value>
   </data>
   <data name="The certificate keeps its place on every TCP/IP port that presents it. Those ports read the files again when the server is next reinitialised." xml:space="preserve">
     <value>该证书在出示它的每个 TCP/IP 端口上保持不变。这些端口会在服务器下次重新初始化时重新读取文件。</value>
@@ -13138,6 +13135,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The file could not be parsed as a PEM certificate. The server loads certificates in PEM format only, so this file will not load and every TLS port using it will fail to start (server error 5113)." xml:space="preserve">
     <value>无法将该文件解析为 PEM 证书。服务器只加载 PEM 格式的证书，因此此文件不会被加载，使用它的每个 TLS 端口都将无法启动 (服务器错误 5113)。</value>
   </data>
+  <data name="The file parses as a PEM certificate, the format the server loads." xml:space="preserve">
+    <value>该文件可解析为 PEM 证书，即服务器加载的格式。</value>
+  </data>
   <data name="The first address of the gateway's range." xml:space="preserve">
     <value>网关范围的第一个地址。</value>
   </data>
@@ -13240,9 +13240,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The key file could not be read from this machine, so the record value cannot be shown here; the domain's DKIM tab showed it when the key was made." xml:space="preserve">
     <value>无法从本机读取密钥文件，因此此处无法显示记录值；创建密钥时，该域的 DKIM 选项卡曾显示过它。</value>
   </data>
-  <data name="The key file exists and is a plain (unencrypted) PEM, so no passphrase is needed." xml:space="preserve">
-    <value>密钥文件存在，并且是普通 (未加密) 的 PEM，因此不需要密码短语。</value>
-  </data>
   <data name="The key file exists but could not be read from this panel ({0}), so whether it is encrypted is unknown." xml:space="preserve">
     <value>密钥文件存在，但无法从此面板读取 ({0})，因此不知道它是否已加密。</value>
   </data>
@@ -13252,8 +13249,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The key file is encrypted and no passphrase is stored, so the key will not load (server error 6170) and every TLS port using this certificate will not start - inbound mail on those ports stops. Enter the passphrase below, or replace the file with an unencrypted key." xml:space="preserve">
     <value>密钥文件已加密，且未存储密码短语，因此密钥不会加载 (服务器错误 6170)，使用此证书的每个 TLS 端口都不会启动 - 这些端口上的入站邮件会停止。请在下面输入密码短语，或用未加密的密钥替换该文件。</value>
   </data>
-  <data name="The key file is not encrypted, so no passphrase is needed and none is stored." xml:space="preserve">
-    <value>密钥文件未加密，因此不需要密码短语，也没有存储密码短语。</value>
+  <data name="The key file is not encrypted, and none is stored." xml:space="preserve">
+    <value>密钥文件未加密，也没有存储密码短语。</value>
   </data>
   <data name="The key file is passphrase-protected (an encrypted PEM). It only loads if the matching passphrase is stored on this certificate." xml:space="preserve">
     <value>密钥文件受密码短语保护 (加密的 PEM)。只有在此证书上存储了匹配的密码短语时它才会加载。</value>
@@ -13497,8 +13494,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
 
 仍要添加吗?</value>
   </data>
-  <data name="The private key's public half is identical to the certificate's public key - the pair belongs together." xml:space="preserve">
-    <value>私钥的公开部分与证书的公钥完全相同 - 这一对是配套的。</value>
+  <data name="The private key's public half is the certificate's public key." xml:space="preserve">
+    <value>私钥的公开部分就是证书的公钥。</value>
   </data>
   <data name="The profile" xml:space="preserve">
     <value>配置方案</value>
@@ -13764,11 +13761,17 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The server remembers who has written to each account and who each account has written to, and says so in the reader the first time an outside sender appears. It costs one database lookup for each message delivered to this domain, and nothing at all while this is off." xml:space="preserve">
     <value>服务器会记住谁写信给每个账户、每个账户又写信给谁，并在外部发件人首次出现时在阅读界面中说明。这会为投递到本域的每封邮件带来一次数据库查询；关闭时则毫无开销。</value>
   </data>
+  <data name="The server serves it (server error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
+    <value>服务器仍会提供它 (应用程序日志中的服务器错误 5991)，而客户端在该日期之前都会拒绝它 - 请检查证书和本服务器的时钟。</value>
+  </data>
   <data name="The server side is in place: hosting is enabled, the HTTPS port is set, and a certificate source exists." xml:space="preserve">
     <value>服务器端已就绪: 托管已启用，HTTPS 端口已设置，证书来源存在。</value>
   </data>
   <data name="The server state could not be changed: {0}" xml:space="preserve">
     <value>无法更改服务器状态: {0}</value>
+  </data>
+  <data name="The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
+    <value>服务器仍会加载它，其端口也仍会启动 (它在应用程序日志中报告服务器错误 5991)，但每个检查日期的客户端和邮件服务器都会拒绝连接 - 如今这几乎是所有客户端。请更换证书。</value>
   </data>
   <data name="The server stores this value and never reads it - nothing sets a thread priority from it, so changing it has no effect. It is shown rather than removed so that an administrator who set it years ago can see it is still there and why nothing happened, and it is not editable because a box that accepts a value nothing acts on is worse than no box at all. The thread counts above are honoured." xml:space="preserve">
     <value>服务器存储此值但从不读取它 - 没有任何东西据此设置线程优先级，因此更改它没有任何效果。显示而不是移除它，是为了让多年前设置过它的管理员看到它仍然存在，以及为什么什么都没发生；它不可编辑，因为一个接受无人响应的值的输入框比没有输入框更糟。上面的线程数会被遵守。</value>
@@ -14374,8 +14377,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Tries" xml:space="preserve">
     <value>尝试次数</value>
   </data>
-  <data name="Trust anchor override (tag alg digesttype hex; ...)" xml:space="preserve">
-    <value>信任锚覆盖 (tag alg digesttype hex; ...)</value>
+  <data name="Trust anchors (DS records, separated by semicolons)" xml:space="preserve">
+    <value>信任锚 (DS 记录，以分号分隔)</value>
   </data>
   <data name="Trusted ARC sealer domains" xml:space="preserve">
     <value>受信任的 ARC 密封者域</value>

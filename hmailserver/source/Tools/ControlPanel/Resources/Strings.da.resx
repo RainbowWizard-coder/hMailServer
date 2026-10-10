@@ -600,6 +600,9 @@
   <data name="A piece of equipment" xml:space="preserve">
     <value>Et stykke udstyr</value>
   </data>
+  <data name="A plain (unencrypted) PEM, so no passphrase is needed." xml:space="preserve">
+    <value>En almindelig (ukrypteret) PEM, så ingen adgangssætning er nødvendig.</value>
+  </data>
   <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the SSL certificates page first." xml:space="preserve">
     <value>En port med SSL/TLS eller STARTTLS præsenterer et certifikat, og serveren har endnu ingen: tilføj først et på siden SSL-certifikater.</value>
   </data>
@@ -1335,12 +1338,6 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Advanced: it is sent as it is, in place of a token the server fetches." xml:space="preserve">
     <value>Avanceret: det sendes, som det er, i stedet for et token, serveren henter.</value>
   </data>
-  <data name="After a restart" xml:space="preserve">
-    <value>Efter en genstart</value>
-  </data>
-  <data name="After reinitialise" xml:space="preserve">
-    <value>Efter reinitialisering</value>
-  </data>
   <data name="After sign-in" xml:space="preserve">
     <value>Efter pålogning</value>
   </data>
@@ -1764,6 +1761,12 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   </data>
   <data name="Applies _to" xml:space="preserve">
     <value>Gælder _for</value>
+  </data>
+  <data name="Applies after a reinitialise" xml:space="preserve">
+    <value>Træder i kraft efter reinitialisering</value>
+  </data>
+  <data name="Applies after a restart" xml:space="preserve">
+    <value>Træder i kraft efter en genstart</value>
   </data>
   <data name="Applies at the next service restart or Reinitialise. Log files are unaffected: this sends a copy, it does not move anything. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration." xml:space="preserve">
     <value>Træder i kraft ved næste genstart af tjenesten eller ved Reinitialiser. Logfilerne påvirkes ikke: dette sender en kopi, det flytter ikke noget. Uden en samlervært nedenfor skriver en server under systemd på Linux i stedet til journalen - på Linux er denne ene kontakt altså hele opsætningen.</value>
@@ -2470,6 +2473,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Certificate output folder (empty = Data\ACME)" xml:space="preserve">
     <value>Outputmappe til certifikater (tom = Data\ACME)</value>
   </data>
+  <data name="Certificate status" xml:space="preserve">
+    <value>Certifikatstatus</value>
+  </data>
   <data name="Certificate validation was off for this test, as 'Verify the directory server's certificate' is off." xml:space="preserve">
     <value>Certifikatvalidering var slået fra for denne test, da 'Verificér katalogserverens certifikat' er slået fra.</value>
   </data>
@@ -2635,6 +2641,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Checking for updates…" xml:space="preserve">
     <value>Søger efter opdateringer…</value>
   </data>
+  <data name="Checking the certificate files…" xml:space="preserve">
+    <value>Kontrollerer certifikatfilerne…</value>
+  </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>Kontrol af installationsprogrammet</value>
   </data>
@@ -2712,9 +2721,6 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   </data>
   <data name="Cipher list: the AEAD-ONLY preset — forward-secret AEAD suites only, with every CBC-mode suite and static-RSA key exchange excluded. This governs TLS 1.2 and below; TLS 1.3 has its own list and is AEAD by construction." xml:space="preserve">
     <value>Cipher-liste: forudindstillingen AEAD-ONLY — kun forward-secret AEAD-suiter, med hver CBC-tilstandssuite og statisk RSA-nøgleudveksling udelukket. Dette gælder for TLS 1.2 og derunder; TLS 1.3 har sin egen liste og er AEAD af konstruktion.</value>
-  </data>
-  <data name="Ciphers" xml:space="preserve">
-    <value>Ciphers</value>
   </data>
   <data name="Ciphers &amp; verification" xml:space="preserve">
     <value>Ciphers og verifikation</value>
@@ -4444,6 +4450,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Each check can be enabled separately and given its own score." xml:space="preserve">
     <value>Hver kontrol kan aktiveres separat og få sin egen score.</value>
   </data>
+  <data name="Each is a root DS record - key tag, algorithm, digest type and the digest in hex - such as 20326 8 2 E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D. Set, they replace the built-in root anchors; empty uses those." xml:space="preserve">
+    <value>Hver er en DS-post for roden - nøgletag, algoritme, digesttype og digesten i hex - for eksempel 20326 8 2 E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D. Når de er angivet, erstatter de de indbyggede rodankre; tomt bruger dem.</value>
+  </data>
   <data name="Each message" xml:space="preserve">
     <value>Hver meddelelse</value>
   </data>
@@ -5205,6 +5214,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="External recipients (addresses this server does not host)" xml:space="preserve">
     <value>Eksterne modtagere (adresser denne server ikke hoster)</value>
+  </data>
+  <data name="External to exte_rnal" xml:space="preserve">
+    <value>Ekstern til ekste_rn</value>
   </data>
   <data name="External to external (rela_y)" xml:space="preserve">
     <value>Ekstern til ekstern (rela_y)</value>
@@ -6339,6 +6351,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="Key si_ze" xml:space="preserve">
     <value>N_øglestørrelse</value>
   </data>
+  <data name="Key status" xml:space="preserve">
+    <value>Nøglestatus</value>
+  </data>
   <data name="Key store" xml:space="preserve">
     <value>Nøglelager</value>
   </data>
@@ -6425,9 +6440,6 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   </data>
   <data name="Leave empty for any address" xml:space="preserve">
     <value>Lad stå tomt for enhver adresse</value>
-  </data>
-  <data name="Leave empty for the built-in root anchors" xml:space="preserve">
-    <value>Lad feltet stå tomt for de indbyggede rodankre</value>
   </data>
   <data name="Leave empty to keep the current password." xml:space="preserve">
     <value>Lad feltet stå tomt for at beholde den nuværende adgangskode.</value>
@@ -6590,6 +6602,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Indlæser…</value>
+  </data>
+  <data name="Local to _external" xml:space="preserve">
+    <value>Lokal til _ekstern</value>
   </data>
   <data name="LocalSystem, which is the most privileged account on this machine" xml:space="preserve">
     <value>LocalSystem, som er den mest privilegerede konto på denne maskine</value>
@@ -9282,9 +9297,6 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   <data name="Private _key passphrase" xml:space="preserve">
     <value>Adgangssætning _til privat nøgle</value>
   </data>
-  <data name="Private key" xml:space="preserve">
-    <value>Privat nøgle</value>
-  </data>
   <data name="Private key _file (PEM)" xml:space="preserve">
     <value>_Privat nøglefil (PEM)</value>
   </data>
@@ -10073,6 +10085,12 @@ Hver konto, hvert alias og hver distributionsliste flytter til det nye navn, og 
     <value>Omdøb {0} til {1}?
 
 Postkassen og dens meddelelser flytter til den nye adresse. Post sendt til den gamle adresse når ikke længere denne konto, medmindre der oprettes et alias for den.</value>
+  </data>
+  <data name="Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
+    <value>Forny det inden da: når det udløber, bliver portene ved med at lytte, men klienter, der kontrollerer datoen, nægter at forbinde.</value>
+  </data>
+  <data name="Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
+    <value>Forny det nu: når det udløber, bliver portene ved med at lytte, men klienter, der kontrollerer datoen, nægter at forbinde.</value>
   </data>
   <data name="Renew or install a certificate" xml:space="preserve">
     <value>Forny eller installér et certifikat</value>
@@ -12834,35 +12852,14 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>Certifikat og nøgle skal begge være sat for at servere HTTPS; med kun én af dem er TLS ikke aktiveret, og serveren logger det. I modsætning til REST API-lytteren er der intet fallback til ACME-certifikatet her. Hvis TLS er konfigureret, men ikke kan forberedes (en ulæselig fil, en nøgle, der ikke matcher), bliver sundhedsproberne på almindelig HTTP, og /metrics svarer 503 i stedet for at servere udstillingen i klartekst.</value>
   </data>
-  <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
-    <value>Certifikatet udløb den {0}. Serveren indlæser det stadig, og dens porte starter stadig (den rapporterer serverfejl 5991 i applikationsloggen), men hver klient og postserver, der kontrollerer datoen, nægter at forbinde - hvilket i dag er næsten dem alle. Udskift certifikatet.</value>
-  </data>
-  <data name="The certificate expires on {0}, in less than a day. Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
-    <value>Certifikatet udløber den {0}, om mindre end en dag. Forny det nu: når det udløber, bliver portene ved med at lytte, men klienter, der kontrollerer datoen, nægter at forbinde.</value>
-  </data>
-  <data name="The certificate expires on {0}, in {1} day. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
-    <value>Certifikatet udløber den {0}, om {1} dag. Forny det inden da: når det udløber, bliver portene ved med at lytte, men klienter, der kontrollerer datoen, nægter at forbinde.</value>
-  </data>
-  <data name="The certificate expires on {0}, in {1} days. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
-    <value>Certifikatet udløber den {0}, om {1} dage. Forny det inden da: når det udløber, bliver portene ved med at lytte, men klienter, der kontrollerer datoen, nægter at forbinde.</value>
-  </data>
   <data name="The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (server error 5113) - mail on those ports stops." xml:space="preserve">
     <value>Certifikatfilen findes ikke på denne maskine ({0}). Hver TLS-port, der er konfigureret til at bruge dette certifikat, vil ikke kunne starte (serverfejl 5113) - post på de porte stopper.</value>
   </data>
   <data name="The certificate file exists but could not be read from this panel ({0}), so nothing about it is verified." xml:space="preserve">
     <value>Certifikatfilen findes, men kunne ikke læses fra dette panel ({0}), så intet om den er verificeret.</value>
   </data>
-  <data name="The certificate file parses correctly and is valid until {0}, {1} day from now." xml:space="preserve">
-    <value>Certifikatfilen parses korrekt og er gyldig indtil {0}, {1} dag fra nu.</value>
-  </data>
-  <data name="The certificate file parses correctly and is valid until {0}, {1} days from now." xml:space="preserve">
-    <value>Certifikatfilen parses korrekt og er gyldig indtil {0}, {1} dage fra nu.</value>
-  </data>
   <data name="The certificate files are on the server and this Control Panel is connected to it remotely, so expiry dates and file contents cannot be checked from here. Everything else on this page is read over COM and is accurate." xml:space="preserve">
     <value>Certifikatfilerne ligger på serveren, og dette Control Panel er forbundet til den eksternt, så udløbsdatoer og filindhold kan ikke kontrolleres herfra. Alt andet på denne side læses over COM og er korrekt.</value>
-  </data>
-  <data name="The certificate is not valid until {0}. The server serves it (server error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
-    <value>Certifikatet er ikke gyldigt før {0}. Serveren serverer det (serverfejl 5991 i applikationsloggen), og klienter afviser det indtil den dato - kontrollér certifikatet og denne servers ur.</value>
   </data>
   <data name="The certificate keeps its place on every TCP/IP port that presents it. Those ports read the files again when the server is next reinitialised." xml:space="preserve">
     <value>Certifikatet bevarer sin plads på hver TCP/IP-port, der præsenterer det. Disse porte læser filerne igen, næste gang serveren reinitialiseres.</value>
@@ -13138,6 +13135,9 @@ kunne ikke indlæses. Meddelelsen er sandsynligvis leveret og ikke længere i k�
   <data name="The file could not be parsed as a PEM certificate. The server loads certificates in PEM format only, so this file will not load and every TLS port using it will fail to start (server error 5113)." xml:space="preserve">
     <value>Filen kunne ikke parses som et PEM-certifikat. Serveren indlæser kun certifikater i PEM-format, så denne fil indlæses ikke, og enhver TLS-port, der bruger den, vil ikke kunne starte (serverfejl 5113).</value>
   </data>
+  <data name="The file parses as a PEM certificate, the format the server loads." xml:space="preserve">
+    <value>Filen kan læses som et PEM-certifikat, det format serveren indlæser.</value>
+  </data>
   <data name="The first address of the gateway's range." xml:space="preserve">
     <value>Den første adresse i gatewayens område.</value>
   </data>
@@ -13240,9 +13240,6 @@ kunne ikke indlæses. Meddelelsen er sandsynligvis leveret og ikke længere i k�
   <data name="The key file could not be read from this machine, so the record value cannot be shown here; the domain's DKIM tab showed it when the key was made." xml:space="preserve">
     <value>Nøglefilen kunne ikke læses fra denne maskine, så postens værdi kan ikke vises her; domænets DKIM-fane viste den, da nøglen blev oprettet.</value>
   </data>
-  <data name="The key file exists and is a plain (unencrypted) PEM, so no passphrase is needed." xml:space="preserve">
-    <value>Nøglefilen findes og er en almindelig (ukrypteret) PEM, så ingen adgangssætning er nødvendig.</value>
-  </data>
   <data name="The key file exists but could not be read from this panel ({0}), so whether it is encrypted is unknown." xml:space="preserve">
     <value>Nøglefilen findes, men kunne ikke læses fra dette panel ({0}), så om den er krypteret, er ukendt.</value>
   </data>
@@ -13252,8 +13249,8 @@ kunne ikke indlæses. Meddelelsen er sandsynligvis leveret og ikke længere i k�
   <data name="The key file is encrypted and no passphrase is stored, so the key will not load (server error 6170) and every TLS port using this certificate will not start - inbound mail on those ports stops. Enter the passphrase below, or replace the file with an unencrypted key." xml:space="preserve">
     <value>Nøglefilen er krypteret, og ingen adgangssætning er gemt, så nøglen indlæses ikke (serverfejl 6170), og enhver TLS-port, der bruger dette certifikat, starter ikke - indgående post på de porte stopper. Indtast adgangssætningen nedenfor, eller erstat filen med en ukrypteret nøgle.</value>
   </data>
-  <data name="The key file is not encrypted, so no passphrase is needed and none is stored." xml:space="preserve">
-    <value>Nøglefilen er ikke krypteret, så ingen adgangssætning er nødvendig, og ingen er gemt.</value>
+  <data name="The key file is not encrypted, and none is stored." xml:space="preserve">
+    <value>Nøglefilen er ikke krypteret, og ingen er gemt.</value>
   </data>
   <data name="The key file is passphrase-protected (an encrypted PEM). It only loads if the matching passphrase is stored on this certificate." xml:space="preserve">
     <value>Nøglefilen er beskyttet med adgangssætning (en krypteret PEM). Den indlæses kun, hvis den matchende adgangssætning er gemt på dette certifikat.</value>
@@ -13497,8 +13494,8 @@ kunne ikke indlæses. Meddelelsen er sandsynligvis leveret og ikke længere i k�
 
 Tilføj alligevel?</value>
   </data>
-  <data name="The private key's public half is identical to the certificate's public key - the pair belongs together." xml:space="preserve">
-    <value>Den private nøgles offentlige halvdel er identisk med certifikatets offentlige nøgle - parret hører sammen.</value>
+  <data name="The private key's public half is the certificate's public key." xml:space="preserve">
+    <value>Den private nøgles offentlige halvdel er certifikatets offentlige nøgle.</value>
   </data>
   <data name="The profile" xml:space="preserve">
     <value>Profilen</value>
@@ -13764,11 +13761,17 @@ Tilføj alligevel?</value>
   <data name="The server remembers who has written to each account and who each account has written to, and says so in the reader the first time an outside sender appears. It costs one database lookup for each message delivered to this domain, and nothing at all while this is off." xml:space="preserve">
     <value>Serveren husker, hvem der har skrevet til hver konto, og hvem hver konto har skrevet til, og siger det i læseren første gang en afsender udefra dukker op. Det koster ét databaseopslag for hver meddelelse, der leveres til dette domæne, og slet ingenting, mens det er slået fra.</value>
   </data>
+  <data name="The server serves it (server error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
+    <value>Serveren serverer det (serverfejl 5991 i applikationsloggen), og klienter afviser det indtil den dato - kontrollér certifikatet og denne servers ur.</value>
+  </data>
   <data name="The server side is in place: hosting is enabled, the HTTPS port is set, and a certificate source exists." xml:space="preserve">
     <value>Serversiden er på plads: hosting er aktiveret, HTTPS-porten er sat, og en certifikatkilde findes.</value>
   </data>
   <data name="The server state could not be changed: {0}" xml:space="preserve">
     <value>Serverens tilstand kunne ikke ændres: {0}</value>
+  </data>
+  <data name="The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
+    <value>Serveren indlæser det stadig, og dens porte starter stadig (den rapporterer serverfejl 5991 i applikationsloggen), men hver klient og postserver, der kontrollerer datoen, nægter at forbinde - hvilket i dag er næsten dem alle. Udskift certifikatet.</value>
   </data>
   <data name="The server stores this value and never reads it - nothing sets a thread priority from it, so changing it has no effect. It is shown rather than removed so that an administrator who set it years ago can see it is still there and why nothing happened, and it is not editable because a box that accepts a value nothing acts on is worse than no box at all. The thread counts above are honoured." xml:space="preserve">
     <value>Serveren gemmer denne værdi og læser den aldrig - intet sætter en trådprioritet ud fra den, så at ændre den har ingen effekt. Den vises i stedet for at blive fjernet, så en administrator, der satte den for år siden, kan se, at den stadig er der, og hvorfor intet skete, og den kan ikke redigeres, fordi et felt, der accepterer en værdi, intet handler på, er værre end intet felt overhovedet. Trådantallene ovenfor respekteres.</value>
@@ -14374,8 +14377,8 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="Tries" xml:space="preserve">
     <value>Forsøg</value>
   </data>
-  <data name="Trust anchor override (tag alg digesttype hex; ...)" xml:space="preserve">
-    <value>Tilsidesættelse af trust anchor (tag alg digesttype hex; ...)</value>
+  <data name="Trust anchors (DS records, separated by semicolons)" xml:space="preserve">
+    <value>Trust anchors (DS-poster adskilt af semikolon)</value>
   </data>
   <data name="Trusted ARC sealer domains" xml:space="preserve">
     <value>Betroede ARC-forseglerdomæner</value>

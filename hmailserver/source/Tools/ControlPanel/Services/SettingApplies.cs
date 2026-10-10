@@ -40,8 +40,10 @@ namespace hMailServer.ControlPanel.Services
       public const string Restart = "restart";            // no-loc
 
       /// <summary>
-      /// The small mark beside a field: "Applies on save", "After reinitialise" or
-      /// "After a restart". Null for a mark this program does not know - an older
+      /// The small mark beside a field: "Applies on save", "Applies after a
+      /// reinitialise" or "Applies after a restart", the three in one form (review
+      /// finding F311: "Applies on save" stood beside "After reinitialise" and "After
+      /// a restart"). Null for a mark this program does not know - an older
       /// server that answers nothing, or a word a newer one adds - so that a page
       /// shows no mark rather than a wrong one.
       /// </summary>
@@ -52,9 +54,9 @@ namespace hMailServer.ControlPanel.Services
             case Now:
                return L("Applies on save");
             case Reinitialize:
-               return L("After reinitialise");
+               return L("Applies after a reinitialise");
             case Restart:
-               return L("After a restart");
+               return L("Applies after a restart");
             default:
                return null;
          }

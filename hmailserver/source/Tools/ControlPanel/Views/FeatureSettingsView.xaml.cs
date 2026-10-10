@@ -2084,7 +2084,14 @@ namespace hMailServer.ControlPanel.Views
                   {
                      new BoolSetting { Key = "DaneEnforcementEnabled", Default = true, Label = L("Honour recipient DANE/TLSA records when sending") },
                      new BoolSetting { Key = "DnssecValidationEnabled", Default = true, Label = L("Validate DNSSEC for DANE and SPF/DKIM/DMARC lookups") },
-                     new TextSetting { Key = "DnssecTrustAnchors", Label = L("Trust anchor override (tag alg digesttype hex; ...)"), Placeholder = L("Leave empty for the built-in root anchors") }
+                     new TextSetting
+                     {
+                        // A caption, with the format and an example under it, where the
+                        // caption was the format string (review finding F311).
+                        Key = "DnssecTrustAnchors",
+                        Label = L("Trust anchors (DS records, separated by semicolons)"),
+                        Blurb = L("Each is a root DS record - key tag, algorithm, digest type and the digest in hex - such as 20326 8 2 E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D. Set, they replace the built-in root anchors; empty uses those.")
+                     }
                   }
                });
                cards_.Add(new CardDef
