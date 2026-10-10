@@ -43,6 +43,11 @@
 //     sweep waits for the keys' lock stays open. Until 10 October 2026 a sweep read
 //     the clock before it took the lock, and such a use read as a clock gone back,
 //     which closes the key.
+//   - An exception on one of the server's own threads is answered as a failure and
+//     ends no more than that thread (ExceptionHandler::Run, Common/Application/
+//     ExceptionHandler.cpp): until 10 October 2026 it was passed on, on POSIX, to
+//     std::terminate. Run late, since it stops the log's writes for the rest of the
+//     program (the handler reports the exception, HM4208).
 //   - A message's X-hMailServer-LoopCount, which comes with mail from anyone, is a
 //     count only when it is digits, and never above the limit (LoopCountTester,
 //     Common/Rules/RuleGuard.cpp): MessageData and the Sieve evaluator read it with
@@ -111,6 +116,8 @@
 #include "../Common/Threading/WorkQueue.h"
 #include "../Common/Scripting/ScriptObjectContainer.h"
 #include "../Common/Util/MailboxKeys.h"
+#include "../Common/Application/ExceptionHandler.h"
+#include "../Common/Application/Logger.h"
 #include "../Common/Util/OidcSignIn.h"
 #include "../Common/Util/RestApiServer.h"
 
@@ -391,6 +398,28 @@ namespace
    }
 
    void
+   TestWorkerException()
+   {
+      // The handler reports what the work throws, and this program writes no
+      // log: a report counted, not written.
+      HM::Logger::ForbidWritesForThisProcess();
+      const long before = HM::Logger::SuppressedWrites();
+
+      // On a thread of its own, as the server's workers run it: an exception
+      // that left the handler would leave the thread, which is std::terminate.
+      bool answered = true;
+      boost::thread worker([&answered]()
+      {
+         boost::function<void()> fails = []() { throw std::runtime_error("a worker's unexpected error"); };
+         answered = HM::ExceptionHandler::Run("business-object-tests", fails);
+      });
+      worker.join();
+
+      Expect(!answered, "ExceptionHandler::Run answered that work which threw had run");
+      Expect(HM::Logger::SuppressedWrites() > before, "ExceptionHandler::Run did not report the exception");
+   }
+
+   void
    TestLoopCount()
    {
       HM::LoopCountTester tester;
@@ -462,6 +491,7 @@ main(int /*argc*/, char * /*argv*/[])
    failed += Run(&TestArcAuthenticationResults, "an ARC seal's spf= is the server's own SPF result, carried by copies, the queue row and a quarantined copy's name, never a Received-SPF field the message carries, and the seal names header.d and smtp.mailfrom");
    failed += Run(&TestSieveFromAddress, "a Sieve vacation reply or notification is from its :from only when that reaches the account, and no Sieve edit changes who a message is from");
    failed += Run(&TestManageSieveQuoting, "a ManageSieve quoted string holds no line break: a refusal quoting a script's line with one in it is one line");
+   failed += Run(&TestWorkerException, "an exception on a worker's thread is reported and answered as a failure, and ends nothing more than the work");
 
    return failed == 0 ? 0 : 1;
 }

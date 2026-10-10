@@ -431,6 +431,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `MailboxKeyIdleTester` (`business-object-tests` on Linux) starts a sweep while a use holds the lock, the use writing
   its time in the clock's next second before it lets the lock go, and finds the key open: with the clock read before
   the lock, as it was, the key was closed in 10 runs of 10. Found by the re-check of the batch's fixes.
+- **Fixed: on Linux, an unexpected exception on one of the server's own threads ended the server.** The handler
+  that runs a worker's body reports what it throws (HM4208) and passes it on, and on Windows the structured
+  exception guard around it takes it there, writes the minidump and answers that the work failed: the work queue
+  keeps its thread, the network's worker runs its context again, a singleton worker's thread ends and the server
+  goes on. Linux has no such guard, and the exception left the handler - on the message indexer's thread, the SQL
+  log device's or a migration job's, `std::terminate` and the end of the process; on a network worker, a pool one
+  thread short (from 6.3.0, the first Linux release). The handler now takes what it passed on and answers as it
+  does on Windows; a hardware fault still ends the process on Linux, as before. `business-object-tests` throws
+  through the handler on a thread of its own and finds the handler answering false and itself still running; with
+  the handler as it was it ended in `terminate called after throwing an instance of 'std::runtime_error'`, exit
+  134. Found by the batch's Alpine suite, where the message indexer's thread ended the server two thirds of the
+  way through (below).
 
 ### Downloads and the release
 

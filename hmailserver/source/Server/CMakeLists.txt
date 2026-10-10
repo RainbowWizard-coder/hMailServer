@@ -898,7 +898,9 @@ set_target_properties(trust-anchor-tests PROPERTIES OUTPUT_NAME trust-anchor-tes
 # Sieve edit, rule or line break in a header value resets it (LoopCountEditTester);
 # and a Sieve vacation reply or notification is from its :from only when that
 # address reaches the account, and no Sieve edit changes who a message a redirect
-# sends on is from (SieveFromAddressTester, Common/Sieve/SieveVacationResponder.h).
+# sends on is from (SieveFromAddressTester, Common/Sieve/SieveVacationResponder.h);
+# and an exception on a worker's thread is answered as a failure rather than passed
+# on to std::terminate (ExceptionHandler::Run, Common/Application/ExceptionHandler.h).
 # No database, configuration or network. Not installed; a bench tool.
 add_executable(business-object-tests ${SERVER_DIR}/platform/business_object_tests_main.cpp)
 target_link_libraries(business-object-tests PRIVATE hmailserver_core)
