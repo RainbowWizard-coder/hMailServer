@@ -3481,6 +3481,22 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>Each tab's column of cards, by its header, for this build of the page.</summary>
       private readonly Dictionary<string, StackPanel> tabPanels_ = new(StringComparer.Ordinal);
 
+      // The markup's panel of the notice and the line that names the store (round
+      // the CardsPanel a tabbed section leaves empty), the place under the header it
+      // starts in and goes back to while no tab is built, and a place above the
+      // first card of each tab, in the strip's order (PlaceTabHead_).
+      private Panel tabHead_;
+      private ContentControl tabHeadHome_;
+      private readonly List<ContentControl> tabHeadSlots_ = new();
+
+      /// <summary>
+      /// Below this height of the page, a tabbed section shows its subtitle as the
+      /// title's tool tip (<see cref="FitTabbedHeader_"/>): the height at which
+      /// ServerSettingsView's pages do (review finding F290) - a 760 by 520 window
+      /// gives a page some 395 pixels, 1280 by 800 some 675.
+      /// </summary>
+      internal const double TabbedSubtitleToolTipBelow = 600;
+
       /// <summary>
       /// Draws a section whose cards name tabs as ServerSettingsView draws its pages:
       /// the header with Reload and Save changes, the notice and the line that names
@@ -3490,6 +3506,15 @@ namespace hMailServer.ControlPanel.Views
       /// The markup is the untabbed pages' frame, a scroll viewer round the header and
       /// the cards; this takes the header and the panel under it out of it, into a
       /// grid with the strip below, and puts the grid in its place.
+      ///
+      /// Only the header and the strip stay pinned, as on ServerSettingsView's pages
+      /// (review finding F290): the notice and the line that names the store go into
+      /// the tab on screen, above its first card, and scroll away with the settings
+      /// (<see cref="PlaceTabHead_"/>), and in a window under 600 pixels of page the
+      /// subtitle is the title's tool tip (<see cref="FitTabbedHeader_"/>). Pinned, the
+      /// title, a three-line German subtitle, the notice, the line and the strip left
+      /// Transport security's cards some 140 pixels at 760 by 520, and with the notice
+      /// of a page read from the file some 40 - one card's heading.
       /// </summary>
       private void FrameTabs_()
       {
@@ -3507,8 +3532,10 @@ namespace hMailServer.ControlPanel.Views
 
          Grid.SetRow(Header, 0);
          frame.Children.Add(Header);
-         Grid.SetRow(inner, 1);
-         frame.Children.Add(inner);
+         tabHead_ = inner;
+         tabHeadHome_ = new ContentControl { Focusable = false, IsTabStop = false, Content = inner };
+         Grid.SetRow(tabHeadHome_, 1);
+         frame.Children.Add(tabHeadHome_);
 
          cardTabs_ = new TabControl
          {
@@ -3520,7 +3547,67 @@ namespace hMailServer.ControlPanel.Views
          Grid.SetRow(cardTabs_, 2);
          frame.Children.Add(cardTabs_);
 
+         // The strip's own changes only: a list on a tab raises SelectionChanged too,
+         // and it bubbles here.
+         cardTabs_.SelectionChanged += (s, e) =>
+         {
+            if (ReferenceEquals(e.OriginalSource, cardTabs_))
+               PlaceTabHead_();
+         };
+         SizeChanged += (s, e) => FitTabbedHeader_(e.NewSize.Height);
+
          Content = frame;
+      }
+
+      /// <summary>
+      /// Puts the notice and the line that names the store above the first card of
+      /// the tab on screen, where they scroll with its settings, or under the header
+      /// while no tab is built - as on a page that cannot read hMailServer.ini, whose
+      /// notice is all it shows (review finding F290).
+      /// </summary>
+      private void PlaceTabHead_()
+      {
+         if (tabHead_ == null || tabHeadHome_ == null)
+            return;
+
+         int at = cardTabs_?.SelectedIndex ?? -1;
+         ContentControl target = at >= 0 && at < tabHeadSlots_.Count ? tabHeadSlots_[at] : tabHeadHome_;
+         if (ReferenceEquals(tabHead_.Parent, target))
+            return;
+
+         if (tabHead_.Parent is ContentControl from)
+            from.Content = null;
+         target.Content = tabHead_;
+      }
+
+      /// <summary>
+      /// Below <see cref="TabbedSubtitleToolTipBelow"/> of page, the subtitle is the
+      /// tool tip of the title's row rather than a line under it, and above it a line
+      /// again; it stays the header's help text either way, so a screen reader hears
+      /// it as before (review finding F290). A page of tabs pins its header above the
+      /// strip, and in a short window the lines it pins are the settings' room.
+      /// </summary>
+      private void FitTabbedHeader_(double pageHeight)
+      {
+         if (cardTabs_ == null || string.IsNullOrEmpty(Header.Subtitle))
+            return;
+
+         Header.ApplyTemplate();
+         if (Header.Template?.FindName("PART_Subtitle", Header) is not FrameworkElement subtitle
+             || Header.Template.FindName("PART_Title", Header) is not FrameworkElement title
+             || VisualTreeHelper.GetParent(title) is not FrameworkElement titleRow)
+            return;
+
+         if (pageHeight > 0 && pageHeight < TabbedSubtitleToolTipBelow)
+         {
+            subtitle.Visibility = Visibility.Collapsed;
+            titleRow.ToolTip = Header.Subtitle;
+         }
+         else
+         {
+            subtitle.ClearValue(VisibilityProperty);
+            titleRow.ClearValue(ToolTipProperty);
+         }
       }
 
       /// <summary>Empties the tab strip for a build of the page; the tab that was showing, or -1.</summary>
@@ -3531,6 +3618,10 @@ namespace hMailServer.ControlPanel.Views
             return -1;
 
          int shown = cardTabs_.SelectedIndex;
+
+         // The notice back under the header while the tabs that held it go.
+         tabHeadSlots_.Clear();
+         PlaceTabHead_();
          cardTabs_.Items.Clear();
          return shown;
       }
@@ -3555,6 +3646,12 @@ namespace hMailServer.ControlPanel.Views
             Margin = new Thickness(0, DesignTokens.Space.Xs, DesignTokens.Space.Md, DesignTokens.Space.Xs)
          };
          tabPanels_[card.Tab] = panel;
+
+         // The notice's place in this tab, above everything (PlaceTabHead_).
+         var headSlot = new ContentControl { Focusable = false, IsTabStop = false };
+         panel.Children.Add(headSlot);
+         tabHeadSlots_.Add(headSlot);
+
          cardTabs_.Items.Add(new TabItem
          {
             Header = card.Tab,
@@ -3573,6 +3670,7 @@ namespace hMailServer.ControlPanel.Views
             return;
 
          cardTabs_.SelectedIndex = shown >= 0 && shown < cardTabs_.Items.Count ? shown : 0;
+         PlaceTabHead_();
       }
 
       /// <summary>An editor changed: the warnings that read it, and the pill.</summary>

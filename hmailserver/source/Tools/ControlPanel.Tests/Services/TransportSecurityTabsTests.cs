@@ -86,6 +86,51 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("ShowTab_(shownTab);", build, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// Only the header and the strip are pinned (review finding F290, which the tabs
+      /// brought to this page): the notice and the line that names the store go into
+      /// the tab on screen, above its first card - on the strip's own SelectionChanged,
+      /// not a list's, and back under the header before the tabs are cleared - and
+      /// under 600 pixels of page the subtitle is the title's tool tip. At 760 by 520
+      /// the pinned lines left the cards some 140 pixels, and 40 with the notice of a
+      /// page read from the file.
+      /// </summary>
+      [Fact]
+      public void ATabbedSection_PinsOnlyItsHeaderAndStrip()
+      {
+         string code = Source_();
+
+         string frame = WithheldRowTests.MemberText(code, "private void FrameTabs_()");
+         Assert.True(frame != null, "FeatureSettingsView.FrameTabs_ is gone.");
+         Assert.Contains("tabHeadHome_ = new ContentControl { Focusable = false, IsTabStop = false, Content = inner };", frame, StringComparison.Ordinal);
+         Assert.Contains("Grid.SetRow(tabHeadHome_, 1);", frame, StringComparison.Ordinal);
+         Assert.Contains("if (ReferenceEquals(e.OriginalSource, cardTabs_))\n               PlaceTabHead_();", frame.Replace("\r\n", "\n"), StringComparison.Ordinal);
+         Assert.Contains("SizeChanged += (s, e) => FitTabbedHeader_(e.NewSize.Height);", frame, StringComparison.Ordinal);
+
+         string panel = WithheldRowTests.MemberText(code, "private Panel PanelFor_(CardDef card)");
+         Assert.True(panel != null, "FeatureSettingsView.PanelFor_ is gone.");
+         int slot = panel.IndexOf("panel.Children.Add(headSlot);", StringComparison.Ordinal);
+         Assert.True(slot >= 0 && panel.IndexOf("tabHeadSlots_.Add(headSlot);", StringComparison.Ordinal) > slot, "A tab has no place for the notice above its first card.");
+
+         string place = WithheldRowTests.MemberText(code, "private void PlaceTabHead_()");
+         Assert.True(place != null, "FeatureSettingsView.PlaceTabHead_ is gone.");
+         Assert.Contains("ContentControl target = at >= 0 && at < tabHeadSlots_.Count ? tabHeadSlots_[at] : tabHeadHome_;", place, StringComparison.Ordinal);
+
+         string clear = WithheldRowTests.MemberText(code, "private int ClearTabs_()");
+         Assert.True(clear != null, "FeatureSettingsView.ClearTabs_ is gone.");
+         int back = clear.IndexOf("PlaceTabHead_();", StringComparison.Ordinal);
+         Assert.True(back >= 0 && clear.IndexOf("cardTabs_.Items.Clear();", StringComparison.Ordinal) > back, "The notice is not taken out of the tabs before they are cleared.");
+         Assert.Contains("PlaceTabHead_();", WithheldRowTests.MemberText(code, "private void ShowTab_(int shown)"), StringComparison.Ordinal);
+
+         string fit = WithheldRowTests.MemberText(code, "private void FitTabbedHeader_(double pageHeight)");
+         Assert.True(fit != null, "FeatureSettingsView.FitTabbedHeader_ is gone.");
+         Assert.Contains("if (pageHeight > 0 && pageHeight < TabbedSubtitleToolTipBelow)", fit, StringComparison.Ordinal);
+         Assert.Contains("subtitle.Visibility = Visibility.Collapsed;", fit, StringComparison.Ordinal);
+         Assert.Contains("titleRow.ToolTip = Header.Subtitle;", fit, StringComparison.Ordinal);
+         Assert.Contains("subtitle.ClearValue(VisibilityProperty);", fit, StringComparison.Ordinal);
+         Assert.Contains("internal const double TabbedSubtitleToolTipBelow = 600;", code, StringComparison.Ordinal);
+      }
+
       /// <summary>The subtitle and the page's description say what all four tabs hold.</summary>
       [Fact]
       public void TheSubtitle_DescribesTheWholePage()

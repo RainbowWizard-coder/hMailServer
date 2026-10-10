@@ -2286,7 +2286,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Authentication-Results on Signing, DMARC reports and TLS-RPT on Reports - while its title, or a word such as "TLS"
   that two tabs' aliases begin with, opens it as it is. The checklist's items for the host name, the administrator's
   second factor, ARC inbound filtering and the attachment sandbox open the tabs their texts name too: Protocols'
-  SMTP, Administrative access' Two-factor, Anti-spam settings' Sender auth and Anti-virus settings' Sandbox.
+  SMTP, Administrative access' Two-factor, Anti-spam settings' Sender auth and Anti-virus settings' Sandbox. Only the
+  header and the strip are pinned, as on the other tabbed settings pages: the notice and the line that names where
+  the settings are kept are above the first card of the tab on screen and scroll with it, and in a window under 600
+  pixels of page the subtitle is the title's tool tip - at 760 by 520 the pinned lines left the cards some 140
+  pixels, and 40 with the notice of a page read from hMailServer.ini.
 
 - **Fixed: the Welcome page's "Or browse by area" tiles were not the sidebar's areas.** Six tiles were written into the
   page: "Domains & accounts" beside the group Accounts & domains, opening a page the tree calls Domains; "Server
