@@ -11740,8 +11740,8 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="The administrator signs in with a password alone." xml:space="preserve">
     <value>Administratoren logger inn med bare et passord.</value>
   </data>
-  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry." xml:space="preserve">
-    <value>Administratorens passord og andre faktor, og reglene hvert postbokspassord må følge: lengde, sjekk mot datalekkasjer, gjenbruk og utløp.</value>
+  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length and characters, common and breached passwords, reuse and expiry." xml:space="preserve">
+    <value>Administratorens passord og andre faktor, og reglene hvert postbokspassord må følge: lengde og tegn, vanlige og lekkede passord, gjenbruk og utløp.</value>
   </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>Administratorens passord er sikret med en engangskode.</value>

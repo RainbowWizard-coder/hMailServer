@@ -11740,8 +11740,8 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="The administrator signs in with a password alone." xml:space="preserve">
     <value>O administrador entra apenas com uma senha.</value>
   </data>
-  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry." xml:space="preserve">
-    <value>A senha e o segundo fator do administrador, e as regras que toda senha de caixa deve seguir: comprimento, verificação de vazamentos, reutilização e validade.</value>
+  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length and characters, common and breached passwords, reuse and expiry." xml:space="preserve">
+    <value>A senha e o segundo fator do administrador, e as regras que toda senha de caixa deve seguir: comprimento e caracteres, senhas comuns e vazadas, reutilização e validade.</value>
   </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>A senha do administrador é respaldada por um código de uso único.</value>

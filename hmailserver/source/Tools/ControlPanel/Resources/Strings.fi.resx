@@ -11740,8 +11740,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="The administrator signs in with a password alone." xml:space="preserve">
     <value>Ylläpitäjä kirjautuu pelkällä salasanalla.</value>
   </data>
-  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry." xml:space="preserve">
-    <value>Järjestelmänvalvojan salasana ja toinen tunnistustekijä sekä säännöt, joita jokaisen postilaatikon salasanan on noudatettava: pituus, tietovuototarkistus, uudelleenkäyttö ja vanheneminen.</value>
+  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length and characters, common and breached passwords, reuse and expiry." xml:space="preserve">
+    <value>Järjestelmänvalvojan salasana ja toinen tunnistustekijä sekä säännöt, joita jokaisen postilaatikon salasanan on noudatettava: pituus ja merkit, yleiset ja vuotaneet salasanat, uudelleenkäyttö ja vanheneminen.</value>
   </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>Ylläpitäjän salasanan tukena on kertakäyttökoodi.</value>

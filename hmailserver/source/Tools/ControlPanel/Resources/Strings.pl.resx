@@ -11870,8 +11870,8 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="The administrator signs in with a password alone." xml:space="preserve">
     <value>Administrator loguje się samym hasłem.</value>
   </data>
-  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry." xml:space="preserve">
-    <value>Hasło i drugi składnik administratora oraz zasady, którym podlega każde hasło skrzynki pocztowej: długość, sprawdzanie wycieków, ponowne użycie i wygasanie.</value>
+  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length and characters, common and breached passwords, reuse and expiry." xml:space="preserve">
+    <value>Hasło i drugi składnik administratora oraz zasady, którym podlega każde hasło skrzynki pocztowej: długość i znaki, hasła popularne i ujawnione w wyciekach, ponowne użycie i wygasanie.</value>
   </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>Hasło administratora jest wsparte kodem jednorazowym.</value>

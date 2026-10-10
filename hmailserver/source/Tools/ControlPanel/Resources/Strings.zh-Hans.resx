@@ -11740,8 +11740,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The administrator signs in with a password alone." xml:space="preserve">
     <value>管理员仅凭密码登录。</value>
   </data>
-  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry." xml:space="preserve">
-    <value>管理员的密码和第二因素，以及每个邮箱密码必须遵守的规则：长度、泄露检查、重用与过期。</value>
+  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length and characters, common and breached passwords, reuse and expiry." xml:space="preserve">
+    <value>管理员的密码和第二因素，以及每个邮箱密码必须遵守的规则：长度与字符、常见密码与泄露密码、重用与过期。</value>
   </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>管理员密码有一次性代码保护。</value>

@@ -11740,8 +11740,8 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="The administrator signs in with a password alone." xml:space="preserve">
     <value>L'administrateur se connecte avec un mot de passe seul.</value>
   </data>
-  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry." xml:space="preserve">
-    <value>Le mot de passe et le second facteur de l'administrateur, et les règles que doit respecter tout mot de passe de boîte : longueur, contrôle des fuites, réutilisation et expiration.</value>
+  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length and characters, common and breached passwords, reuse and expiry." xml:space="preserve">
+    <value>Le mot de passe et le second facteur de l'administrateur, et les règles que doit respecter tout mot de passe de boîte : longueur et caractères, mots de passe courants et divulgués, réutilisation et expiration.</value>
   </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>Le mot de passe de l'administrateur est appuyé par un code à usage unique.</value>

@@ -11870,8 +11870,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The administrator signs in with a password alone." xml:space="preserve">
     <value>Адміністратор входить лише за паролем.</value>
   </data>
-  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry." xml:space="preserve">
-    <value>Пароль і другий фактор адміністратора, а також правила для кожного пароля поштової скриньки: довжина, перевірка на витоки, повторне використання та термін дії.</value>
+  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length and characters, common and breached passwords, reuse and expiry." xml:space="preserve">
+    <value>Пароль і другий фактор адміністратора, а також правила для кожного пароля поштової скриньки: довжина й символи, поширені паролі та паролі з витоків, повторне використання та термін дії.</value>
   </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>Пароль адміністратора підкріплено одноразовим кодом.</value>

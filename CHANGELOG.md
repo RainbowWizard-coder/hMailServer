@@ -2263,7 +2263,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   ticked. The second factor's names - Two-factor, 2FA, TOTP, One-time code - and the mailbox password rules' -
   Password policy, Password expiry, Password history, Breached passwords - open Administrative access, whose subtitle
   and description now say that it holds the administrator's password and second factor and the rules every mailbox
-  password is held to; SASL, AUTH PLAIN, AUTH LOGIN, CRAM-MD5 and APOP open Protocols, where the mechanisms this
+  password is held to, every one of its policy cards': length and characters, common and breached passwords, reuse
+  and expiry; SASL, AUTH PLAIN, AUTH LOGIN, CRAM-MD5 and APOP open Protocols, where the mechanisms this
   server offers are switched; and Authentication's Related links begin with Protocols, Directory authentication (LDAP)
   and Administrative access.
 

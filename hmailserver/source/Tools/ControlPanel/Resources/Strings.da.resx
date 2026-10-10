@@ -11740,8 +11740,8 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="The administrator signs in with a password alone." xml:space="preserve">
     <value>Administratoren logger ind med en adgangskode alene.</value>
   </data>
-  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry." xml:space="preserve">
-    <value>Administratorens adgangskode og anden faktor samt de regler, som enhver postkasseadgangskode skal overholde: længde, kontrol mod datalæk, genbrug og udløb.</value>
+  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length and characters, common and breached passwords, reuse and expiry." xml:space="preserve">
+    <value>Administratorens adgangskode og anden faktor samt de regler, som enhver postkasseadgangskode skal overholde: længde og tegn, almindelige og lækkede adgangskoder, genbrug og udløb.</value>
   </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>Administratorens adgangskode er dækket af en engangskode.</value>

@@ -11740,8 +11740,8 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="The administrator signs in with a password alone." xml:space="preserve">
     <value>L'amministratore accede con la sola password.</value>
   </data>
-  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry." xml:space="preserve">
-    <value>La password e il secondo fattore dell'amministratore, e le regole che ogni password di casella deve rispettare: lunghezza, controllo delle violazioni, riuso e scadenza.</value>
+  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length and characters, common and breached passwords, reuse and expiry." xml:space="preserve">
+    <value>La password e il secondo fattore dell'amministratore, e le regole che ogni password di casella deve rispettare: lunghezza e caratteri, password comuni e trapelate, riuso e scadenza.</value>
   </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>La password dell'amministratore è protetta da un codice monouso.</value>

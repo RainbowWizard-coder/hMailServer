@@ -856,7 +856,7 @@ namespace hMailServer.ControlPanel.Services
                // "Password" is where somebody looks for it - the policy for mailbox
                // passwords, which nothing in the title says: its aliases find it.
                Page("adminaccess", N("Administrative access"),
-                  N("The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry."),
+                  N("The administrator's password and second factor, and the rules every mailbox password is held to: length and characters, common and breached passwords, reuse and expiry."),
                   aliases: "Admin password|Administrator password|Change the admin password|Remote administration|COM API access|" +
                            "Two-factor|Second factor|2FA|TOTP|One-time code|Authenticator app|" +
                            "Password policy|Password rules|Password length|Password complexity|Password expiry|Password history|Breached passwords|Pwned passwords",

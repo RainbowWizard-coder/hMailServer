@@ -11740,8 +11740,8 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="The administrator signs in with a password alone." xml:space="preserve">
     <value>Der Administrator meldet sich nur mit einem Passwort an.</value>
   </data>
-  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry." xml:space="preserve">
-    <value>Das Passwort und der zweite Faktor des Administrators und die Regeln, denen jedes Postfachpasswort folgen muss: Länge, Prüfung auf Datenlecks, Wiederverwendung und Ablauf.</value>
+  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length and characters, common and breached passwords, reuse and expiry." xml:space="preserve">
+    <value>Das Passwort und der zweite Faktor des Administrators und die Regeln, denen jedes Postfachpasswort folgen muss: Länge und Zeichen, häufige und aus Datenlecks bekannte Passwörter, Wiederverwendung und Ablauf.</value>
   </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>Das Administratorpasswort ist durch einen Einmalcode abgesichert.</value>

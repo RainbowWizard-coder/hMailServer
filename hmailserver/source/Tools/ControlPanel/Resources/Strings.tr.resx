@@ -11740,8 +11740,8 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="The administrator signs in with a password alone." xml:space="preserve">
     <value>Yönetici yalnızca parolayla oturum açıyor.</value>
   </data>
-  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry." xml:space="preserve">
-    <value>Yöneticinin parolası ve ikinci etkeni ile her posta kutusu parolasının uyması gereken kurallar: uzunluk, sızıntı denetimi, yeniden kullanım ve süre sonu.</value>
+  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length and characters, common and breached passwords, reuse and expiry." xml:space="preserve">
+    <value>Yöneticinin parolası ve ikinci etkeni ile her posta kutusu parolasının uyması gereken kurallar: uzunluk ve karakterler, yaygın ve sızdırılmış parolalar, yeniden kullanım ve süre sonu.</value>
   </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>Yönetici parolası tek kullanımlık kodla destekleniyor.</value>

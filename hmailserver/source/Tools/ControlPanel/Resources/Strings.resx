@@ -11740,8 +11740,8 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="The administrator signs in with a password alone." xml:space="preserve">
     <value>The administrator signs in with a password alone.</value>
   </data>
-  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry." xml:space="preserve">
-    <value>The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry.</value>
+  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length and characters, common and breached passwords, reuse and expiry." xml:space="preserve">
+    <value>The administrator's password and second factor, and the rules every mailbox password is held to: length and characters, common and breached passwords, reuse and expiry.</value>
   </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>The administrator's password is backed by a one-time code.</value>

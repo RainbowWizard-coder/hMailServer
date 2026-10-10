@@ -11740,8 +11740,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The administrator signs in with a password alone." xml:space="preserve">
     <value>管理者はパスワードだけでサインインしています。</value>
   </data>
-  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry." xml:space="preserve">
-    <value>管理者のパスワードと第 2 要素、およびすべてのメールボックス パスワードが従う規則: 長さ、漏えいチェック、再利用、有効期限。</value>
+  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length and characters, common and breached passwords, reuse and expiry." xml:space="preserve">
+    <value>管理者のパスワードと第 2 要素、およびすべてのメールボックス パスワードが従う規則: 長さと文字種、よく使われるパスワードと漏えいしたパスワード、再利用、有効期限。</value>
   </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>管理者のパスワードはワンタイムコードで保護されています。</value>

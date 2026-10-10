@@ -11740,8 +11740,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="The administrator signs in with a password alone." xml:space="preserve">
     <value>Administratören loggar in med enbart ett lösenord.</value>
   </data>
-  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry." xml:space="preserve">
-    <value>Administratörens lösenord och andra faktor, och reglerna som varje brevlådelösenord måste följa: längd, kontroll mot dataläckor, återanvändning och utgång.</value>
+  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length and characters, common and breached passwords, reuse and expiry." xml:space="preserve">
+    <value>Administratörens lösenord och andra faktor, och reglerna som varje brevlådelösenord måste följa: längd och tecken, vanliga och läckta lösenord, återanvändning och utgång.</value>
   </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>Administratörens lösenord backas upp av en engångskod.</value>

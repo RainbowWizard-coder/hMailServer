@@ -11740,8 +11740,8 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="The administrator signs in with a password alone." xml:space="preserve">
     <value>El administrador inicia sesión solo con una contraseña.</value>
   </data>
-  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry." xml:space="preserve">
-    <value>La contraseña y el segundo factor del administrador, y las reglas que debe cumplir toda contraseña de buzón: longitud, comprobación de filtraciones, reutilización y caducidad.</value>
+  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length and characters, common and breached passwords, reuse and expiry." xml:space="preserve">
+    <value>La contraseña y el segundo factor del administrador, y las reglas que debe cumplir toda contraseña de buzón: longitud y caracteres, contraseñas comunes y filtradas, reutilización y caducidad.</value>
   </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>La contraseña del administrador está respaldada por un código de un solo uso.</value>

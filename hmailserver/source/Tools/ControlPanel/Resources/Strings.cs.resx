@@ -11870,8 +11870,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="The administrator signs in with a password alone." xml:space="preserve">
     <value>Správce se přihlašuje pouze heslem.</value>
   </data>
-  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry." xml:space="preserve">
-    <value>Heslo a druhý faktor správce a pravidla, kterým podléhá každé heslo schránky: délka, kontrola úniků, opakované použití a vypršení platnosti.</value>
+  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length and characters, common and breached passwords, reuse and expiry." xml:space="preserve">
+    <value>Heslo a druhý faktor správce a pravidla, kterým podléhá každé heslo schránky: délka a znaky, běžná a uniklá hesla, opakované použití a vypršení platnosti.</value>
   </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>Heslo správce je kryto jednorázovým kódem.</value>

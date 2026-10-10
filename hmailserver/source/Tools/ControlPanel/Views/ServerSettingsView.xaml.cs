@@ -5089,8 +5089,10 @@ namespace hMailServer.ControlPanel.Views
          Header.PageKey = "adminaccess";
          // Says what the page holds - the rules for mailbox passwords as well, which
          // the old subtitle, naming the administrator's credentials alone, left out
-         // (review finding F238) - as the navigation map's description does.
-         Header.Subtitle = L("The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry.");
+         // (review finding F238) - as the navigation map's description does. The
+         // rules are the four cards' subjects, the policy's characters and common
+         // passwords with them: a list after a colon reads as all of them.
+         Header.Subtitle = L("The administrator's password and second factor, and the rules every mailbox password is held to: length and characters, common and breached passwords, reuse and expiry.");
 
          // Changed in a dialog of its own - the password in use now, the new one and
          // the new one again - and never by this page's Save: one unconfirmed box,

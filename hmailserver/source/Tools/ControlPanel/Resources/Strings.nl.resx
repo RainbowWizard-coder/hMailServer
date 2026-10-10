@@ -11740,8 +11740,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="The administrator signs in with a password alone." xml:space="preserve">
     <value>De beheerder meldt zich alleen met een wachtwoord aan.</value>
   </data>
-  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry." xml:space="preserve">
-    <value>Het wachtwoord en de tweede factor van de beheerder, en de regels waaraan elk postvakwachtwoord moet voldoen: lengte, de controle op datalekken, hergebruik en verval.</value>
+  <data name="The administrator's password and second factor, and the rules every mailbox password is held to: length and characters, common and breached passwords, reuse and expiry." xml:space="preserve">
+    <value>Het wachtwoord en de tweede factor van de beheerder, en de regels waaraan elk postvakwachtwoord moet voldoen: lengte en tekens, veelgebruikte en uitgelekte wachtwoorden, hergebruik en verval.</value>
   </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>Het wachtwoord van de beheerder wordt gedekt door een eenmalige code.</value>

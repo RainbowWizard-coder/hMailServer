@@ -125,12 +125,25 @@ namespace hMailServer.ControlPanel.Tests.Services
       [Fact]
       public void AdministrativeAccess_SaysItHoldsTheMailboxPasswordRules()
       {
-         const string sentence = "The administrator's password and second factor, and the rules every mailbox password is held to: length, the breach check, reuse and expiry.";
+         const string sentence = "The administrator's password and second factor, and the rules every mailbox password is held to: length and characters, common and breached passwords, reuse and expiry.";
          Assert.Equal(sentence, NavigationMap.Find("adminaccess").Purpose);
 
          string build = WithheldRowTests.MemberText(ReadControlPanelFile(Path.Join("Views", "ServerSettingsView.xaml.cs")), "private void BuildAdminAccess()");
          Assert.True(build != null, "ServerSettingsView.BuildAdminAccess is gone.");
          Assert.Contains("Header.Subtitle = L(\"" + sentence + "\");", build, StringComparison.Ordinal);
+
+         // Each rule its cards hold, so that the list after the colon is all of them.
+         foreach ((string path, string word) in new[]
+         {
+            ("PasswordPolicyMinimumLength", "length"), ("PasswordPolicyRequireMixedCase", "characters"),
+            ("PasswordPolicyRequireDigit", "characters"), ("PasswordPolicyRequireNonAlphanumeric", "characters"),
+            ("PasswordPolicyRejectCommon", "common"), ("BreachCheckEnabled", "breached"),
+            ("PasswordPolicyHistoryCount", "reuse"), ("PasswordPolicyMaximumAgeDays", "expiry")
+         })
+         {
+            Assert.Contains("Path = \"" + path + "\"", build, StringComparison.Ordinal);
+            Assert.Contains(word, sentence, StringComparison.Ordinal);
+         }
       }
 
       private static string AuthenticationSection_()
