@@ -3604,23 +3604,23 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   card and the domains' globe.** The suppression list's list card was the page's one untitled card, its two grids
   were not linked, and the list's Why column said "Temporary failure" and "Policy refusal" where the bounce counts
   said "Soft" and "Policy": the card is Suppressed addresses, each grid is named as its card is titled, selecting an
-  address selects its row of the counts, the counts' columns are named by the list's categories - their address
-  staying in view as they scroll sideways under the longer names - the list's two headers are Reason and Status code
-  and the counts' Last status code, the Add dialog says that addresses on the server's own domains cannot be added
-  where it read as if the address would be refused mail, and its expiry box is 160 pixels where it spanned the
-  dialog. The domain dialog's DKIM rotation buttons were the tab's last row, directly above Save and Cancel, and read as one
-  footer with them; they and the rotation's state are on a surface of their own. The TCP/IP ports grid's fixed
-  columns totalled 880 pixels and left the certificate's name some 150 - "mail.example.com (Let..." - while Address
-  took 170 for "0.0.0.0"; they are no wider than their words now, SMTP authentication is the column AUTH with its
-  words as the header's tool tip, and the certificate has the rest. The routes grid cut German's Retries at 80
-  pixels and named one column Auth, the group's one abbreviation: every column is floored at its header,
-  Authentication is in words, and a route's row says its retries and its sign-in to a screen reader; and a header's
-  width is measured as the window draws it, where at 150 % a header of Latin letters came out a pixel or two
-  narrower and a column floored at it was cut, as the suppression list's "Last status code" was. The Welcome
-  page's intent rows looked like text: each ends in a chevron, says its blurb as its help text, and the two grids'
-  right columns end where the notices above them do; the walk's and the sample domain's offers are Normal notices
-  where they carried the Information word. The setting profiles card took eight pixels of inset where every
-  content card takes the card's own, was an empty rectangle of column headers when the server could not be read,
+  address selects its row of the counts, which their grid scrolls to while the page stays where it is, the counts'
+  columns are named by the list's categories - their address staying in view as they scroll sideways under the longer
+  names - the list's two headers are Reason and Status code and the counts' Last status code, the Add dialog says that
+  addresses on the server's own domains cannot be added where it read as if the address would be refused mail, and its
+  expiry box is 160 pixels where it spanned the dialog. The domain dialog's DKIM rotation buttons were the tab's last
+  row, directly above Save and Cancel, and read as one footer with them; they and the rotation's state are on a
+  surface of their own. The TCP/IP ports grid's fixed columns totalled 880 pixels and left the certificate's name some
+  150 - "mail.example.com (Let..." - while Address took 170 for "0.0.0.0"; they are no wider than their words now,
+  SMTP authentication is the column AUTH with its words as the header's tool tip, and the certificate has the rest.
+  The routes grid cut German's Retries at 80 pixels and named one column Auth, the group's one abbreviation: every
+  column is floored at its header, Authentication is in words, and a route's row says its retries and its sign-in to a
+  screen reader; and a header's width is measured as the window draws it, where at 150 % a header of Latin letters
+  came out a pixel or two narrower and a column floored at it was cut, as the suppression list's "Last status code"
+  was. The Welcome page's intent rows looked like text: each ends in a chevron, says its blurb as its help text, and
+  the two grids' right columns end where the notices above them do; the walk's and the sample domain's offers are
+  Normal notices where they carried the Information word. The setting profiles card took eight pixels of inset where
+  every content card takes the card's own, was an empty rectangle of column headers when the server could not be read,
   and in another language put its translated heading over the server's English: it takes the card's inset, says
   "Nothing to compare until the server can be read." or "Choose a profile to compare it with this server." in the
   table's place, and says that the profiles' own words come from the server in English. And the domain rows' globe

@@ -48,6 +48,14 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(select != null, "SuppressionListView.SelectCountsOf_ is gone.");
          Assert.Contains("string.Equals(candidate.Address, entry.Address, StringComparison.OrdinalIgnoreCase)", select, StringComparison.Ordinal);
          Assert.Contains("counts_.ScrollIntoView(row);", select, StringComparison.Ordinal);
+         // The counts' row is brought into view in the counts' grid and not the page,
+         // which a short window scrolled down to the counts, the list's row just
+         // clicked going off screen - unless the keyboard is in the counts.
+         int bring = build.IndexOf("counts_.RequestBringIntoView += (_, e) =>", StringComparison.Ordinal);
+         Assert.True(bring >= 0, "The counts' bring-into-view is passed on to the page again.");
+         string handler = build.Substring(bring, build.IndexOf("};", bring, StringComparison.Ordinal) - bring);
+         Assert.Contains("if (!counts_.IsKeyboardFocusWithin)", handler, StringComparison.Ordinal);
+         Assert.Contains("e.Handled = true;", handler, StringComparison.Ordinal);
 
          // The counts' headers are the list's Reason words, and the two grids say
          // Reason and Status code where they said Why, Status, Soft and Policy.

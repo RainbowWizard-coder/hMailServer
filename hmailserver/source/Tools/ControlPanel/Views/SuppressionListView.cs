@@ -513,6 +513,16 @@ namespace hMailServer.ControlPanel.Views
          // An address selected in the list selects its row of the bounce counts,
          // where the two grids were not linked.
          entries_.SelectionChanged += (_, _) => SelectCountsOf_(entries_.SelectedItem as EntryView);
+         // The row brought into view inside the counts' own grid and no further: by
+         // the time the request reaches the grid its viewer has scrolled the row in,
+         // and passed on it scrolled the page down to the counts in a short window,
+         // taking the row just clicked, the search and Remove off screen. While the
+         // keyboard is in the counts the page follows it there, as it does any row.
+         counts_.RequestBringIntoView += (_, e) =>
+         {
+            if (!counts_.IsKeyboardFocusWithin)
+               e.Handled = true;
+         };
 
          // What the receiving server answered for the selected address - "550 5.1.1
          // user unknown" - or the note of one put here by hand, which was the row's
