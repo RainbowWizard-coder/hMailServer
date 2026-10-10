@@ -1871,8 +1871,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   said under the box at fault now, with the keyboard put in it and every empty box marked on one press: "Enter a
   domain name such as example.com.", "Enter the account's address.", "Enter a password, or press Generate.", "Enter
   the alias address.", "Enter where the alias delivers." and "Enter the list's address."; the messages go with the
-  next press, an edit of the box, the domain changed or the page opened again, and a message box is left for the
-  server's own refusal. Each form's button stays beside its box when a message appears under it.
+  next press, an edit of the box, a password put in by Generate, the domain changed or the page opened again, and a
+  message box is left for the server's own refusal. Each form's button stays beside its box when a message appears
+  under it.
 
 - **Fixed: SSL certificates, IP ranges and Directory authentication (LDAP) refused a value in a message box or a
   notice that pointed at no box, and IP ranges put 15 in place of a priority that was no number.** "Name, certificate

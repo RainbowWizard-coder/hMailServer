@@ -81,6 +81,31 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("Error = null;", row, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// A password put in by code takes the message away as a typed one does. Every
+      /// password box of the Control Panel is a PasswordField, which is WPF-UI's
+      /// PasswordBox, and WPF-UI raises its own routed PasswordChanged - not WPF's,
+      /// which only WPF's own password box raises - for a password typed and for one
+      /// set in code, with no TextChanged for the latter: the row listened for WPF's
+      /// alone, so that Generate on the Domains page filled the password and left
+      /// "Enter a password, or press Generate." under it, the box still marked refused.
+      /// </summary>
+      [Fact]
+      public void APasswordPutInByCode_TakesTheMessageAway()
+      {
+         string row = ReadControlPanelFile(Path.Join("Views", "Scaffold", "FieldRow.cs"));
+         Assert.Contains("AddHandler(Wpf.Ui.Controls.PasswordBox.PasswordChangedEvent, new RoutedEventHandler(OnEdited_));", row, StringComparison.Ordinal);
+
+         string field = ReadControlPanelFile(Path.Join("Views", "PasswordField.cs"));
+         Assert.Contains("public class PasswordField : Wpf.Ui.Controls.PasswordBox", field, StringComparison.Ordinal);
+
+         // Generate puts its password in by code, in the box of a FieldRow.
+         string domains = ReadControlPanelFile(Path.Join("Views", "DomainsView.xaml"));
+         Assert.Matches(new Regex(@"<scaffold:FieldRow x:Name=""PasswordRow""[^>]*>\s*<local:PasswordField x:Name=""NewAccountPassword"" />"), domains);
+         string code = ReadControlPanelFile(Path.Join("Views", "DomainsView.xaml.cs"));
+         Assert.Contains("NewAccountPassword.Password = pw;", code, StringComparison.Ordinal);
+      }
+
       [Fact]
       public void FocusGlow_RingsARefusedFieldInTheDangerColour()
       {

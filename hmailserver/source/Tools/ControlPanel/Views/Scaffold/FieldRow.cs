@@ -41,8 +41,9 @@ namespace hMailServer.ControlPanel.Views.Scaffold
    /// that colour, where the box kept its neutral border and the violet ring
    /// because FocusGlow read only Validation.HasError, which a message set here
    /// never sets (review finding F213). An edit of the value takes the message
-   /// away - it said what was wrong with the value it was given - as does
-   /// setting <see cref="Error"/> to null.
+   /// away - it said what was wrong with the value it was given - typed or put
+   /// in by code, as a generated password is, as does setting
+   /// <see cref="Error"/> to null.
    ///
    /// <code>
    /// &lt;scaffold:FieldRow Label="{loc:L '_Host'}" Hint="{loc:L 'The name or address of the server.'}"&gt;
@@ -62,7 +63,15 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          // An edit of the editor's value takes the message away. Routed events
          // from the content bubble through the row: a text box's or a number
          // box's text, a password box's password and a combo box's choice.
+         // Every password box here is a PasswordField, WPF-UI's, whose
+         // PasswordChanged is its own routed event and not WPF's: it is raised
+         // for a password typed and for one put in by code - Generate's on the
+         // Domains page - where a password put in by code raises no
+         // TextChanged, so that "Enter a password, or press Generate." stayed
+         // under a box Generate had filled. WPF's own password box keeps its
+         // handler, for a row that holds one.
          AddHandler(TextBoxBase.TextChangedEvent, new TextChangedEventHandler(OnEdited_));
+         AddHandler(Wpf.Ui.Controls.PasswordBox.PasswordChangedEvent, new RoutedEventHandler(OnEdited_));
          AddHandler(PasswordBox.PasswordChangedEvent, new RoutedEventHandler(OnEdited_));
          AddHandler(Selector.SelectionChangedEvent, new SelectionChangedEventHandler(OnEdited_));
       }
