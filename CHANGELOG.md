@@ -530,8 +530,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   server at once, the database closed under the waiting reinitialise, and one sent just after the lock was let go
   of, as the reinitialise opened the database again, ended it in a segmentation fault in two runs of seven; with the
   fix the first waits the indexer's minute and ends with nothing closed under it, and the second waits for the
-  reinitialise and stops the servers it started, in ten runs of ten. Found by the re-check of the batch's
-  message indexer fix.
+  reinitialise, which then starts nothing, in four runs of four, as after a SIGHUP. A reinitialise looks for that
+  stop after its own stop and again before it starts the servers, so that only one whose start had already begun
+  starts them, which the stop then stops. Found by the re-check of the batch's message indexer fix.
 - **Fixed: on Linux, a SIGTERM during a SIGHUP's reinitialise was not acted on until the reinitialise had
   finished.** The server ran the reinitialise on the thread that watches for signals (from 6.3.0, the first Linux
   release), so a SIGTERM waited for it; and since the reinitialise's stop waits for the message indexer until it
@@ -539,7 +540,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   91.8 seconds in the re-check's run with the indexer held by another session's lock - and with a statement that
   never ends until the service manager's `SIGKILL` (`TimeoutStopSec=300` under systemd, `TERM/300/KILL/5` under
   OpenRC). The reinitialise now runs on a thread of its own, and a SIGTERM during it is acted on at once: the stop
-  waits for the reinitialise, the indexer a minute at most, and nothing is started again. A SIGHUP while one runs is
+  waits for the reinitialise, the indexer a minute at most, and nothing is started again unless the reinitialise had
+  already begun to start the servers, which the stop then stops. A SIGHUP while one runs is
   answered by another once it has ended, as before. In the same run the server now ends 60.2 seconds after the
   SIGTERM, starting nothing; with the lock let go of during the wait, the reinitialise stops short and the server
   ends at once. Found by the re-check of the batch's message indexer fix.

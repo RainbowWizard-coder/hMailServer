@@ -2191,6 +2191,15 @@ namespace HM
       if (!InitInstance(sErrorMessage))
          return sErrorMessage;
 
+      // And one that came while this closed the database and opened it again:
+      // nothing is started, and that stop closes the database just opened. One
+      // that comes after this waits for the start and stops what it started.
+      // Not looked at between the two: the stop's ExitInstance would then run
+      // straight after this one's, with no InitInstance between them, and let
+      // go of what InitInstance makes a second time (OutOfMemoryHandler).
+      if (shutting_down_)
+         return "The server was not started again: it is stopping.";
+
       if (!StartServers_())
          return "Failed to start servers";
 
