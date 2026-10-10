@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using hMailServer.ControlPanel.Services;
 using Xunit;
@@ -147,6 +148,49 @@ namespace hMailServer.ControlPanel.Tests.Services
          XElement xaml = XDocument.Parse(ReadControlPanelFile("MainWindow.xaml")).Root;
          XElement bar = xaml.Descendants(Ui + "TitleBar").Single();
          Assert.Equal("{Binding Title, RelativeSource={RelativeSource AncestorType={x:Type Window}}}", (string)bar.Attribute("Title"));
+      }
+
+      /// <summary>
+      /// Setup asks for an open Control Panel to be closed before it installs, and
+      /// found one by its window's title alone, "hMailServer Control Panel" - which a
+      /// signed-in window's title no longer is, and a Japanese, Swedish, Turkish or
+      /// Chinese one never was. The Control Panel holds a named mutex from its start,
+      /// and setup looks for that mutex, by the same name, as well as for the title.
+      /// </summary>
+      [Fact]
+      public void Setup_FindsAnOpenControlPanel_ByTheMutexItHolds_AsWellAsByItsTitle()
+      {
+         string mark = ReadControlPanelFile(Path.Join("Services", "ControlPanelRunningMark.cs"));
+         Match name = Regex.Match(mark, "public const string MutexName = \"([^\"\\\\]+)\";");
+         Assert.True(name.Success, "ControlPanelRunningMark.MutexName is gone.");
+         Assert.Contains("held_ = new Mutex(false, MutexName);", mark, StringComparison.Ordinal);
+
+         // Held from the start, before the first window, until the process ends.
+         string startup = WithheldRowTests.MemberText(ReadControlPanelFile("App.xaml.cs"), "protected override void OnStartup(StartupEventArgs e)");
+         Assert.True(startup != null, "App.OnStartup is gone.");
+         Assert.Contains("ControlPanelRunningMark.Hold();", startup, StringComparison.Ordinal);
+         Assert.DoesNotContain("held_.Dispose", mark, StringComparison.Ordinal);
+         Assert.DoesNotContain("ReleaseMutex", mark, StringComparison.Ordinal);
+
+         // Setup's check is one condition: the mutex, by the same name, or the title.
+         string setup = ReadSetupScript_();
+         string check = setup.Split('\n').SingleOrDefault(line => line.Contains("FindWindowByWindowName('hMailServer Control Panel')", StringComparison.Ordinal));
+         Assert.True(check != null, "Setup no longer looks for the Control Panel's window.");
+         Assert.Contains("CheckForMutexes('" + name.Groups[1].Value + "')", check, StringComparison.Ordinal);
+         Assert.Contains("(not g_bAdministratorUpdate) and (CheckForMutexes(", check, StringComparison.Ordinal);
+      }
+
+      private static string ReadSetupScript_()
+      {
+         for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory != null; directory = directory.Parent)
+         {
+            string candidate = Path.Join(directory.FullName, "installation", "hMailServerInnoExtension.iss");
+            if (File.Exists(candidate))
+               return File.ReadAllText(candidate).Replace("\r\n", "\n");
+         }
+
+         Assert.Fail("installation/hMailServerInnoExtension.iss could not be found from the test binaries.");
+         return null;
       }
 
       private static int CountOf(string text, string part)

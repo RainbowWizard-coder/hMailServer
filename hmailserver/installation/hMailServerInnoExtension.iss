@@ -2662,13 +2662,21 @@ begin
 	if NormalizedDatabaseType(g_szDatabaseType) <> '' then
 		g_szDatabaseType := NormalizedDatabaseType(g_szDatabaseType);
 
-	// The two checks by window title are for an installation somebody started by
-	// hand. An administrator's install (g_bAdministratorUpdate) comes from
-	// hMailServer.Updater, which has ended every program running from the
+	// The two checks for a program that is open are for an installation somebody
+	// started by hand. An administrator's install (g_bAdministratorUpdate) comes
+	// from hMailServer.Updater, which has ended every program running from the
 	// installation before it ran this, the Control Panel that asked included; a
-	// window of the same title anywhere else - a stray copy, or any program that
-	// names a window so - would otherwise stop the install it asked for.
-	if (not g_bAdministratorUpdate) and (FindWindowByWindowName('hMailServer Control Panel') > 0) then
+	// Control Panel anywhere else - a stray copy, or any program that names a
+	// window so - would otherwise stop the install it asked for.
+	//
+	// The Control Panel is found by the mutex it holds while it runs
+	// (Services\ControlPanelRunningMark.cs, the same name) as well as by its
+	// window's title: signed in, the title names the server it manages first,
+	// "mail.example.com - hMailServer Control Panel", and in Japanese, Swedish,
+	// Turkish and Chinese the product's name in it is translated, so the title
+	// alone missed a Control Panel that was open. The title still finds one from
+	// before the mutex.
+	if (not g_bAdministratorUpdate) and (CheckForMutexes('hMailServerControlPanel') or (FindWindowByWindowName('hMailServer Control Panel') > 0)) then
 	begin
 		SuppressibleMsgBox('hMailServer Control Panel is started. You must close down this application before starting the installation.',mbInformation, MB_OK, IDOK);	
 		Result := false;

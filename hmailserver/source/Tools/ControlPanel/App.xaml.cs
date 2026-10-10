@@ -19,6 +19,11 @@ namespace hMailServer.ControlPanel
       {
          base.OnStartup(e);
 
+         // Setup's sign that a Control Panel is open and has to be closed before an
+         // installation, held until the process ends: the window's title no longer
+         // tells it alone, since signed in it names the server first (F033).
+         ControlPanelRunningMark.Hold();
+
          // The language first: every caption from here on is looked up in the
          // culture this puts in force, and the first window is created when this
          // method returns.

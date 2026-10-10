@@ -3651,8 +3651,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `HKCU\Software\hMailServer\ControlPanel` - never the password - and the page opens on them, localhost and
   Administrator where nothing is kept. Once signed in, the window's title, in its title bar, the taskbar and Alt+Tab,
   is "mail.example.com - hMailServer Control Panel", so that two Control Panels on two servers can be told apart, and
-  the product alone again on the sign-in page. `SignInMemoryTests` holds the levels, the prefill, the title and the
-  page and the window to using them.
+  the product alone again on the sign-in page. Setup, which asks for an open Control Panel to be closed before it
+  installs, looked for that window by the title "hMailServer Control Panel" alone, which a signed-in window's title
+  no longer is and a Japanese, Swedish, Turkish or Chinese one never was; it now looks for the named mutex the
+  Control Panel holds while it runs as well, and still for the title, which finds one from before the mutex.
+  `SignInMemoryTests` holds the levels, the prefill, the title, setup's check and the page and the window to using
+  them.
 
 - **Fixed: with values it could not read, the setup checklist drew a tally and a next step counted from them above the
   notice that said so, and that notice spoke of "the items above"; and nothing on the tour's card said that F6
