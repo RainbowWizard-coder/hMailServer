@@ -3587,8 +3587,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   own and under a page that no guide covers - and enabled again with a document, the keyboard going to the search when
   it was pressed from the keyboard; each heading link is 24 pixels tall at least; and a line under the search box
   says "Match 2 of 5 - press Enter for the next." or "No match for "qqzz" in this document.", which a screen reader
-  hears as it changes (review finding F027; T3.3 work item 9). `HelpPaneControlsTests` holds the three. Two new
-  strings in all seventeen languages.
+  hears as it changes and which goes with the search whatever the pane shows next, a link to a document this copy does
+  not have included (review finding F027; T3.3 work item 9). `HelpPaneControlsTests` holds the three. Two new strings
+  in all seventeen languages.
 
 - **Fixed: three small misalignments - the sign-in card's two-factor link, the Domains page's untitled domains card,
   and its domain list scrolling inside a page that scrolls.** The link's words started ten pixels right of the

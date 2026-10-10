@@ -271,6 +271,11 @@ namespace hMailServer.ControlPanel.Views
             SearchLabel_();
             headings_.Children.Clear();
             headingBlocks_ = new Dictionary<string, Block>();
+            // The search goes with the document it was made in, and the line under
+            // it with it, as every other change of what the pane shows clears them:
+            // left, "Match 2 of 5 - press Enter for the next." stood over a
+            // document that is not there.
+            search_.Text = "";
             title_.Text = name ?? "";
             FlowDocument missing = MarkdownFlow.NewDocument();
             missing.Blocks.Add(new Paragraph(new Run(L("This document is not in this copy of the program."))));

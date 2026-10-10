@@ -65,5 +65,35 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("searchBlock.Children.Add(search_);", pane, StringComparison.Ordinal);
          Assert.Contains("searchBlock.Children.Add(findStatus_);", pane, StringComparison.Ordinal);
       }
+
+      /// <summary>
+      /// Every change of what the pane shows clears the search, and with it the line
+      /// under it: a link to a document this copy does not have kept both, so that
+      /// "Match 2 of 5 - press Enter for the next." stood over "This document is not
+      /// in this copy of the program." and invited an Enter.
+      /// </summary>
+      [Fact]
+      public void EveryChangeOfWhatThePaneShows_ClearsTheSearchAndItsLine()
+      {
+         string pane = Pane_();
+         string document = WithheldRowTests.MemberText(pane, "public void ShowDocument(string name, string heading)");
+         Assert.True(document != null, "HelpPane.ShowDocument is gone.");
+         int missing = document.IndexOf("if (spelled == null)", StringComparison.Ordinal);
+         Assert.True(missing >= 0, "HelpPane.ShowDocument no longer has a branch for a document this copy does not have.");
+         string branch = document.Substring(missing, document.IndexOf("return;", missing, StringComparison.Ordinal) - missing);
+         Assert.Contains("search_.Text = \"\";", branch, StringComparison.Ordinal);
+         Assert.Contains("search_.Text = \"\";", document.Substring(document.IndexOf("if (!string.Equals(shown_, spelled, StringComparison.Ordinal))", StringComparison.Ordinal)), StringComparison.Ordinal);
+
+         foreach (string member in new[] { "public void ShowAll()", "private void ShowNoGuide_(string navigationKey)" })
+         {
+            string text = WithheldRowTests.MemberText(pane, member);
+            Assert.True(text != null, "HelpPane." + member + " is gone.");
+            Assert.Contains("search_.Text = \"\";", text, StringComparison.Ordinal);
+         }
+
+         // An empty box clears the line: the search's TextChanged runs Find_, which
+         // says nothing for a term too short to search.
+         Assert.Contains("search_.TextChanged += (s, e) => Find_(false);", pane, StringComparison.Ordinal);
+      }
    }
 }
