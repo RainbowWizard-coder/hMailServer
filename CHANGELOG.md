@@ -2455,6 +2455,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   security is in the account's dialog only, beside the port it goes with, as the server type already was, the name is
   narrower and the port as wide as its five digits, so that the server has some 280 pixels.
 
+- **Fixed: the Administrator roles grid scrolled sideways at 1280 pixels and cut the sentences it is there to show,
+  and the assignments grid filled half its card.** The roles grid's four fixed columns took 910 pixels in a card
+  capped at 980 with about 900 for them, so a scroll bar ran under the rows and the purposes and permissions read
+  "Reset passwords and unlock accounts in one d..." and "administer_server, administer_domain, view_configuration,
+  vi..."; the assignments grid ended some 230 pixels short of its card, and the cards ended short of the header's
+  button. The cards are as wide as the page, less the scroll bar's room; Role and Built in are as wide as their words
+  in the reader's language and the purpose and the permissions share the rest two to three, the account and its
+  domains sharing theirs around the role, each sentence column down to 160 pixels; neither grid scrolls sideways, in
+  the narrowest window either; and the purposes and permissions wrap onto as many lines as they need, where they ended
+  in an ellipsis.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

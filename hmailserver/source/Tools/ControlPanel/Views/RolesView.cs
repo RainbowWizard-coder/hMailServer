@@ -124,22 +124,38 @@ namespace hMailServer.ControlPanel.Views
             Actions = actions
          });
 
-         var cards = new StackPanel { Margin = new Thickness(0, 0, 12, 0), MaxWidth = 980, HorizontalAlignment = HorizontalAlignment.Left };
+         // The cards are as wide as the page, as the header is, less the room the
+         // page's scroll bar takes on the right: capped at 980 pixels they ended
+         // short of the header's button, and the assignments grid filled half its
+         // card (review finding F068).
+         var cards = new StackPanel { Margin = new Thickness(0, 0, DesignTokens.Space.Md, 0) };
          cards.Children.Add(readNotice_);
 
-         roleGrid_.Columns.Add(TextColumn_(L("Role"), nameof(RoleRow.Name), 150));
-         roleGrid_.Columns.Add(TextColumn_(L("What it is for"), nameof(RoleRow.Purpose), 300));
-         roleGrid_.Columns.Add(TextColumn_(L("Built in"), nameof(RoleRow.BuiltIn), 80));
-         roleGrid_.Columns.Add(TextColumn_(L("Permissions"), nameof(RoleRow.Permissions), 380));
+         // The role and Built in as wide as their words, the two sentences sharing
+         // the rest two to three, each down to a floor, and no sideways scrolling:
+         // four fixed columns of 910 pixels in a card of about 900 put a scroll bar
+         // under the rows and cut the very sentences the grid is for at 1280
+         // (F068; ControlPanelDesign.md, Grids). The sentences wrap rather than
+         // end in an ellipsis: they are what the grid is for, and it holds a
+         // handful of roles.
+         roleGrid_.Columns.Add(TextColumn_(L("Role"), nameof(RoleRow.Name), FixedWidth_(L("Role"), 140)));
+         roleGrid_.Columns.Add(TextColumn_(L("What it is for"), nameof(RoleRow.Purpose), StarWidth_(2), wrap: true));
+         roleGrid_.Columns.Add(TextColumn_(L("Built in"), nameof(RoleRow.BuiltIn), FixedWidth_(L("Built in"), 80, L("Yes"))));
+         roleGrid_.Columns.Add(TextColumn_(L("Permissions"), nameof(RoleRow.Permissions), StarWidth_(3), wrap: true));
+         ScrollViewer.SetHorizontalScrollBarVisibility(roleGrid_, ScrollBarVisibility.Disabled);
          // Each card and its grid say what they hold: only the column headers told
          // the roles from who holds one, and neither grid had a name.
          System.Windows.Automation.AutomationProperties.SetName(roleGrid_, L("Roles"));
          System.Windows.Automation.AutomationProperties.SetName(assignmentGrid_, L("Who holds a role"));
          cards.Children.Add(new Card { Title = L("Roles"), Content = roleGrid_ });
 
-         assignmentGrid_.Columns.Add(TextColumn_(L("Account"), nameof(AssignmentRow.Address), 260));
-         assignmentGrid_.Columns.Add(TextColumn_(L("Role"), nameof(AssignmentRow.Role), 150));
-         assignmentGrid_.Columns.Add(TextColumn_(L("Domains"), nameof(AssignmentRow.Domains), 260));
+         // The account and its domains share the card's width, the role between
+         // them as wide as its words: at 260, 150 and 260 pixels the grid ended
+         // some 230 pixels short of its card at 1280 (F068).
+         assignmentGrid_.Columns.Add(TextColumn_(L("Account"), nameof(AssignmentRow.Address), StarWidth_(2)));
+         assignmentGrid_.Columns.Add(TextColumn_(L("Role"), nameof(AssignmentRow.Role), FixedWidth_(L("Role"), 140)));
+         assignmentGrid_.Columns.Add(TextColumn_(L("Domains"), nameof(AssignmentRow.Domains), StarWidth_(2)));
+         ScrollViewer.SetHorizontalScrollBarVisibility(assignmentGrid_, ScrollBarVisibility.Disabled);
 
          // Each box has its caption above it, as the Domains page's forms do: a
          // placeholder was the only name these had, and it is gone the moment
@@ -214,15 +230,43 @@ namespace hMailServer.ControlPanel.Views
       private static Scaffold.FieldRow FormField_(string caption, FrameworkElement editor)
          => new() { Label = caption, Content = editor, Margin = new Thickness(0, 0, 8, 12) };
 
-      // Trimmed: a role's purpose and permissions are sentences in fixed
-      // columns, and ended mid-word; the cell's tool tip holds the whole.
-      private static DataGridTextColumn TextColumn_(string header, string property, double width)
-         => GridStyles.Trimmed(new DataGridTextColumn
+      // Trimmed, with the whole in the cell's tool tip, or wrapped: a role's
+      // purpose and permissions are sentences, and ended mid-word in fixed
+      // columns.
+      private static DataGridTextColumn TextColumn_(string header, string property, (DataGridLength Width, double Floor) size, bool wrap = false)
+      {
+         var column = new DataGridTextColumn
          {
             Header = header,
             Binding = new System.Windows.Data.Binding(property),
-            Width = new DataGridLength(width)
-         });
+            Width = size.Width,
+            MinWidth = size.Floor
+         };
+         if (!wrap)
+            return GridStyles.Trimmed(column);
+
+         var lines = new Style(typeof(TextBlock), column.ElementStyle);
+         lines.Setters.Add(new Setter(TextBlock.TextWrappingProperty, TextWrapping.Wrap));
+         lines.Setters.Add(new Setter(FrameworkElement.MarginProperty, new Thickness(2, 6, 2, 6)));
+         column.ElementStyle = lines;
+         return column;
+      }
+
+      /// <summary>The floor of a column that shares the grid's width (a sentence's).</summary>
+      private const double SentenceColumnFloor = 160;
+
+      /// <summary>A column of words that fit: as wide as asked, its header and its widest word in the current language.</summary>
+      private static (DataGridLength, double) FixedWidth_(string header, double width, params string[] words)
+      {
+         double floor = System.Math.Max(width, GridStyles.HeaderWidth(header));
+         foreach (string word in words)
+            floor = System.Math.Max(floor, GridStyles.CellWidth(word));
+         return (new DataGridLength(floor), floor);
+      }
+
+      /// <summary>A column of sentences: a share of what the fixed columns leave, down to a floor.</summary>
+      private static (DataGridLength, double) StarWidth_(double weight)
+         => (new DataGridLength(weight, DataGridLengthUnitType.Star), SentenceColumnFloor);
 
       public void OnEnter() => Reload_();
 
