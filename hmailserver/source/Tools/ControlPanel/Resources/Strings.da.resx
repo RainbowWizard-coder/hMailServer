@@ -723,11 +723,11 @@
   <data name="ACME is off (the default), so nothing external is required." xml:space="preserve">
     <value>ACME er slået fra (standarden), så der kræves intet eksternt.</value>
   </data>
-  <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
-    <value>ACME er aktiveret, og 'Genbrug den private nøgle på tværs af fornyelser' er slået fra, så hver fornyelse af certifikatet genererer en ny privat nøgle. Hvis du offentliggør '3 1 1'-TLSA-poster, går de i stykker ved næste fornyelse – slå den til igen på siden Certifikater (ACME) (standarden), eller opdatér TLSA-posten efter hver fornyelse.</value>
+  <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Automatic certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
+    <value>ACME er aktiveret, og 'Genbrug den private nøgle på tværs af fornyelser' er slået fra, så hver fornyelse af certifikatet genererer en ny privat nøgle. Hvis du offentliggør '3 1 1'-TLSA-poster, går de i stykker ved næste fornyelse – slå den til igen på siden Automatiske certifikater (ACME) (standarden), eller opdatér TLSA-posten efter hver fornyelse.</value>
   </data>
-  <data name="ACME is on, but 'Host names for the certificate' on the Certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
-    <value>ACME er aktiveret, men 'Værtsnavne til certifikatet' på siden Certifikater (ACME) er tom, så der anmodes aldrig om et certifikat – klienten logger 'No domains configured' og stopper. Angiv dér de værtsnavne, certifikatet skal dække (for eksempel mail.yourdomain.com, mta-sts.yourdomain.com).</value>
+  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
+    <value>ACME er aktiveret, men 'Værtsnavne til certifikatet' på siden Automatiske certifikater (ACME) er tom, så der anmodes aldrig om et certifikat – klienten logger 'No domains configured' og stopper. Angiv dér de værtsnavne, certifikatet skal dække (for eksempel mail.yourdomain.com, mta-sts.yourdomain.com).</value>
   </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME er slået til, men der er endnu ikke udstedt noget certifikat – fullchain.pem og privkey.pem ligger ikke begge i {0}. Udstedelsen sker efter serverens egen tidsplan, så dette er normalt i nogle minutter efter aktiveringen; hvis det fortsætter, kunne CA'en ikke nå denne server, og siden Tjekliste til opsætning kontrollerer netop det.</value>
@@ -1536,8 +1536,8 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again." xml:space="preserve">
     <value>En post ændres på stedet gennem REST-API'et, som beder om administratorens engangskode, før det svarer, og der blev ikke givet nogen. Tryk på Redigér… for at blive spurgt igen, eller slet posten, og tilføj den igen.</value>
   </data>
-  <data name="An entry is changed in place over the REST API, which is off (RestApiPort is {0}). Give it a port on the API &amp; monitoring page and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
-    <value>En post ændres på stedet gennem REST-API'et, som er slået fra (RestApiPort er {0}). Giv det en port på siden API og overvågning, og geninitialisér serveren, eller slet posten, og tilføj den igen.</value>
+  <data name="An entry is changed in place over the REST API, which is off (its port on the API &amp; monitoring page is {0}). Give it a port there and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
+    <value>En post ændres på stedet gennem REST-API'et, som er slået fra (dets port på siden API og overvågning er {0}). Giv det en port der, og geninitialisér serveren, eller slet posten, og tilføj den igen.</value>
   </data>
   <data name="An entry is changed in place over the REST API, which listens on {0} only, out of reach of a Control Panel on another machine. Change the entry in the Control Deck on the server, or delete it and add it again." xml:space="preserve">
     <value>En post ændres på stedet gennem REST-API'et, som kun lytter på {0}, uden for rækkevidde af et Control Panel på en anden maskine. Ændr posten i Control Deck på serveren, eller slet den, og tilføj den igen.</value>
@@ -4126,9 +4126,6 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Domains" xml:space="preserve">
     <value>Domæner</value>
   </data>
-  <data name="Domains &amp; accounts" xml:space="preserve">
-    <value>Domæner og konti</value>
-  </data>
   <data name="Domains and HELO suffixes let past greylisting only when the message passes SPF, DKIM or DMARC as the entry requires." xml:space="preserve">
     <value>Domæner og HELO-suffikser, der slipper forbi greylisting, kun når beskeden består SPF, DKIM eller DMARC, som posten kræver.</value>
   </data>
@@ -5745,9 +5742,6 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Insert template…" xml:space="preserve">
     <value>Indsæt skabelon…</value>
-  </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Server status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
-    <value>Inden for vinduet installerer den planlagte opgave et verificeret installationsprogram uden et klik: tjenesten stopper, filer og skema opgraderes, tjenesten starter, og udfaldet går til loggen, Windows-hændelsesloggen og siden Serverstatus. En tjeneste, der ikke kommer tilbage, rulles tilbage til det forrige installationsprogram, medmindre den nye version allerede har ændret databasen.</value>
   </data>
   <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
     <value>Inden for vinduet installerer den planlagte opgave et verificeret installationsprogram uden et klik: tjenesten stopper, filer og skema opgraderes, tjenesten starter, og udfaldet går til loggen, Windows-hændelsesloggen og kortet ovenfor. En tjeneste, der ikke kommer tilbage, rulles tilbage til det forrige installationsprogram, medmindre den nye version allerede har ændret databasen.</value>
@@ -8736,8 +8730,8 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   <data name="Publish" xml:space="preserve">
     <value>Udgiv</value>
   </data>
-  <data name="Publish a public A/AAAA record for every name in 'Host names for the certificate' on the Certificates (ACME) page, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker." xml:space="preserve">
-    <value>Offentliggør en offentlig A/AAAA-post for hvert navn i 'Værtsnavne til certifikatet' på siden Certifikater (ACME), og tillad indgående TCP på udfordringsporten fra internettet (port-forward gennem enhver NAT). Om den kan nås udefra, kan ikke afprøves indefra, så test det fra et eksternt netværk eller en online portkontrol.</value>
+  <data name="Publish a public A/AAAA record for every name in 'Host names for the certificate' on the Automatic certificates (ACME) page, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker." xml:space="preserve">
+    <value>Offentliggør en offentlig A/AAAA-post for hvert navn i 'Værtsnavne til certifikatet' på siden Automatiske certifikater (ACME), og tillad indgående TCP på udfordringsporten fra internettet (port-forward gennem enhver NAT). Om den kan nås udefra, kan ikke afprøves indefra, så test det fra et eksternt netværk eller en online portkontrol.</value>
   </data>
   <data name="Publish it at your DNS provider - or, if you just did, wait for propagation (usually minutes, sometimes hours) and check again." xml:space="preserve">
     <value>Offentliggør den hos din DNS-udbyder - eller, hvis du lige har gjort det, så vent på udbredelsen (normalt minutter, nogle gange timer), og kontrollér igen.</value>
@@ -11737,9 +11731,6 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>REST-API'et er slået fra (dets port på siden API og overvågning er {0}), og disse indstillinger nås gennem det: serveren gemmer dem, men ingen COM-egenskab bærer dem. Giv REST-API'et en port på siden API og overvågning, geninitialisér serveren, og åbn denne side igen.</value>
   </data>
-  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and this page reads the cases over it. Give it a port there, or read the cases in the Control Deck." xml:space="preserve">
-    <value>REST-API'et er slået fra (dets port på siden API og overvågning er {0}), og denne side læser sagerne gennem det. Giv det en port dér, eller læs sagerne i Control Deck.</value>
-  </data>
   <data name="The REST API listens on {0} only, so the Control Deck opens only in a browser on the server itself." xml:space="preserve">
     <value>REST-API'et lytter kun på {0}, så Control Deck kan kun åbnes i en browser på selve serveren.</value>
   </data>
@@ -12793,9 +12784,6 @@ Tilføj alligevel?</value>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on Install update above, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>Serveren kan opdage en ny udgivelse, verificere den mod udgivelsens egen Sigstore-signatur og installere den - med et klik på Installér opdatering ovenfor eller på egen hånd inden for et vindue, du angiver. Slået fra, indtil du slår kontrollen til; kontrollen sender intet andet end forespørgslen.</value>
   </data>
-  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Server status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
-    <value>Serveren kan opdage en ny udgivelse, verificere den mod udgivelsens egen Sigstore-signatur og installere den – med et klik på siden Serverstatus eller på egen hånd inden for et vindue, du angiver. Slået fra, indtil du slår kontrollen til; kontrollen sender intet andet end forespørgslen.</value>
-  </data>
   <data name="The server cannot reach its database. Check the database connection and the hMailServer error log, then try again. ({0})" xml:space="preserve">
     <value>Serveren kan ikke nå sin database. Kontrollér databaseforbindelsen og hMailServers fejllog, og prøv derefter igen. ({0})</value>
   </data>
@@ -13055,8 +13043,8 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="The version to go back to" xml:space="preserve">
     <value>Versionen at gå tilbage til</value>
   </data>
-  <data name="The web services listener has an HTTPS port but no certificate ('TLS certificate file' is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set 'TLS certificate file' and 'TLS private key file' on the Web services &amp; autoconfiguration page, or turn on ACME on the Certificates (ACME) page." xml:space="preserve">
-    <value>Webtjenestelytteren har en HTTPS-port, men intet certifikat ('TLS-certifikatfil' er tom, og ACME er slået fra), så HTTPS-lytteren starter ikke, og politikken kan stadig ikke hentes. Sæt 'TLS-certifikatfil' og 'TLS-privatnøglefil' på siden Webtjenester og autokonfiguration, eller aktivér ACME på siden Certifikater (ACME).</value>
+  <data name="The web services listener has an HTTPS port but no certificate ('TLS certificate file' is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set 'TLS certificate file' and 'TLS private key file' on the Web services &amp; autoconfiguration page, or turn on ACME on the Automatic certificates (ACME) page." xml:space="preserve">
+    <value>Webtjenestelytteren har en HTTPS-port, men intet certifikat ('TLS-certifikatfil' er tom, og ACME er slået fra), så HTTPS-lytteren starter ikke, og politikken kan stadig ikke hentes. Sæt 'TLS-certifikatfil' og 'TLS-privatnøglefil' på siden Webtjenester og autokonfiguration, eller aktivér ACME på siden Automatiske certifikater (ACME).</value>
   </data>
   <data name="The web services settings could not be read: {0}" xml:space="preserve">
     <value>Indstillingerne for webtjenester kunne ikke læses: {0}</value>

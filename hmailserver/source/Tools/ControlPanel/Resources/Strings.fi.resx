@@ -723,11 +723,11 @@
   <data name="ACME is off (the default), so nothing external is required." xml:space="preserve">
     <value>ACME on pois käytöstä (oletus), joten mitään ulkoista ei vaadita.</value>
   </data>
-  <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
-    <value>ACME on käytössä ja 'Käytä yksityistä avainta uudelleen uusintojen yli' on pois käytöstä, joten jokainen varmenteen uusiminen luo uuden yksityisen avaimen. Jos julkaiset '3 1 1' -TLSA-tietueita, ne rikkoutuvat seuraavassa uusimisessa – ota se uudelleen käyttöön sivulla Varmenteet (ACME) (oletus) tai päivitä TLSA-tietue jokaisen uusimisen jälkeen.</value>
+  <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Automatic certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
+    <value>ACME on käytössä ja 'Käytä yksityistä avainta uudelleen uusintojen yli' on pois käytöstä, joten jokainen varmenteen uusiminen luo uuden yksityisen avaimen. Jos julkaiset '3 1 1' -TLSA-tietueita, ne rikkoutuvat seuraavassa uusimisessa – ota se uudelleen käyttöön sivulla Automaattiset varmenteet (ACME) (oletus) tai päivitä TLSA-tietue jokaisen uusimisen jälkeen.</value>
   </data>
-  <data name="ACME is on, but 'Host names for the certificate' on the Certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
-    <value>ACME on käytössä, mutta 'Varmenteen konenimet' sivulla Varmenteet (ACME) on tyhjä, joten varmennetta ei koskaan pyydetä – asiakas kirjaa lokiin 'No domains configured' ja pysähtyy. Luettele siihen konenimet, jotka varmenteen tulisi kattaa (esimerkiksi mail.yourdomain.com, mta-sts.yourdomain.com).</value>
+  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
+    <value>ACME on käytössä, mutta 'Varmenteen konenimet' sivulla Automaattiset varmenteet (ACME) on tyhjä, joten varmennetta ei koskaan pyydetä – asiakas kirjaa lokiin 'No domains configured' ja pysähtyy. Luettele siihen konenimet, jotka varmenteen tulisi kattaa (esimerkiksi mail.yourdomain.com, mta-sts.yourdomain.com).</value>
   </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME on kytketty päälle, mutta varmennetta ei ole vielä myönnetty – fullchain.pem ja privkey.pem eivät molemmat ole kansiossa {0}. Myöntäminen tapahtuu palvelimen omassa aikataulussa, joten tämä on normaalia muutaman minuutin ajan käyttöönoton jälkeen; jos tila jatkuu, CA ei tavoittanut tätä palvelinta, ja Käyttöönoton tarkistuslista -sivu tarkistaa juuri sen.</value>
@@ -1536,8 +1536,8 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again." xml:space="preserve">
     <value>Merkintä muutetaan paikallaan REST API:n kautta, joka pyytää ylläpitäjän kertakäyttökoodia ennen vastaamista, eikä koodia annettu. Paina Muokkaa…, niin koodia kysytään uudelleen, tai poista merkintä ja lisää se uudelleen.</value>
   </data>
-  <data name="An entry is changed in place over the REST API, which is off (RestApiPort is {0}). Give it a port on the API &amp; monitoring page and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
-    <value>Merkintä muutetaan paikallaan REST API:n kautta, joka on pois käytöstä (RestApiPort on {0}). Anna sille portti sivulla API ja valvonta ja alusta palvelin uudelleen, tai poista merkintä ja lisää se uudelleen.</value>
+  <data name="An entry is changed in place over the REST API, which is off (its port on the API &amp; monitoring page is {0}). Give it a port there and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
+    <value>Merkintä muutetaan paikallaan REST API:n kautta, joka on pois käytöstä (sen portti sivulla API ja valvonta on {0}). Anna sille portti siellä ja alusta palvelin uudelleen, tai poista merkintä ja lisää se uudelleen.</value>
   </data>
   <data name="An entry is changed in place over the REST API, which listens on {0} only, out of reach of a Control Panel on another machine. Change the entry in the Control Deck on the server, or delete it and add it again." xml:space="preserve">
     <value>Merkintä muutetaan paikallaan REST API:n kautta, joka kuuntelee vain osoitteessa {0}, toisella koneella olevan Control Panelin ulottumattomissa. Muuta merkintä palvelimen Control Deckissä tai poista se ja lisää se uudelleen.</value>
@@ -4126,9 +4126,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Domains" xml:space="preserve">
     <value>Verkkotunnukset</value>
   </data>
-  <data name="Domains &amp; accounts" xml:space="preserve">
-    <value>Verkkotunnukset ja tilit</value>
-  </data>
   <data name="Domains and HELO suffixes let past greylisting only when the message passes SPF, DKIM or DMARC as the entry requires." xml:space="preserve">
     <value>Verkkotunnukset ja HELO-päätteet, jotka päästetään harmaalistauksen ohi vain, kun viesti läpäisee SPF:n, DKIM:n tai DMARC:n merkinnän vaatimalla tavalla.</value>
   </data>
@@ -5745,9 +5742,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Insert template…" xml:space="preserve">
     <value>Lisää malli…</value>
-  </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Server status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
-    <value>Aikaikkunan sisällä ajastettu tehtävä asentaa varmennetun asennusohjelman ilman napsautusta: palvelu pysäytetään, tiedostot ja skeema päivitetään, palvelu käynnistetään, ja lopputulos päätyy lokiin, Windowsin tapahtumalokiin ja sivulle Palvelimen tila. Palvelu, joka ei palaa käyntiin, palautetaan edelliseen asennusohjelmaan, ellei uusi versio ole jo muuttanut tietokantaa.</value>
   </data>
   <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
     <value>Aikaikkunan sisällä ajastettu tehtävä asentaa varmennetun asennusohjelman ilman napsautusta: palvelu pysäytetään, tiedostot ja skeema päivitetään, palvelu käynnistetään, ja lopputulos päätyy lokiin, Windowsin tapahtumalokiin ja yllä olevaan korttiin. Palvelu, joka ei palaa käyntiin, palautetaan edelliseen asennusohjelmaan, ellei uusi versio ole jo muuttanut tietokantaa.</value>
@@ -8736,8 +8730,8 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Publish" xml:space="preserve">
     <value>Julkaise</value>
   </data>
-  <data name="Publish a public A/AAAA record for every name in 'Host names for the certificate' on the Certificates (ACME) page, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker." xml:space="preserve">
-    <value>Julkaise julkinen A/AAAA-tietue jokaiselle nimelle, joka on kentässä 'Varmenteen konenimet' sivulla Varmenteet (ACME), ja salli saapuva TCP haasteporttiin internetistä (porttiohjaus minkä tahansa NAT:n läpi). Tavoitettavuutta ulkoa ei voi koetella sisältä, joten testaa se ulkoisesta verkosta tai verkossa toimivalla porttitarkistimella.</value>
+  <data name="Publish a public A/AAAA record for every name in 'Host names for the certificate' on the Automatic certificates (ACME) page, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker." xml:space="preserve">
+    <value>Julkaise julkinen A/AAAA-tietue jokaiselle nimelle, joka on kentässä 'Varmenteen konenimet' sivulla Automaattiset varmenteet (ACME), ja salli saapuva TCP haasteporttiin internetistä (porttiohjaus minkä tahansa NAT:n läpi). Tavoitettavuutta ulkoa ei voi koetella sisältä, joten testaa se ulkoisesta verkosta tai verkossa toimivalla porttitarkistimella.</value>
   </data>
   <data name="Publish it at your DNS provider - or, if you just did, wait for propagation (usually minutes, sometimes hours) and check again." xml:space="preserve">
     <value>Julkaise se DNS-palveluntarjoajallasi - tai jos teit juuri niin, odota leviämistä (yleensä minuutteja, joskus tunteja) ja tarkista uudelleen.</value>
@@ -11737,9 +11731,6 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>REST API on pois käytöstä (sen portti sivulla API ja valvonta on {0}), ja nämä asetukset tavoitetaan sen kautta: palvelin säilyttää ne, mutta mikään COM-ominaisuus ei kanna niitä. Anna REST API:lle portti sivulla API ja valvonta, alusta palvelin uudelleen ja avaa tämä sivu uudelleen.</value>
   </data>
-  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and this page reads the cases over it. Give it a port there, or read the cases in the Control Deck." xml:space="preserve">
-    <value>REST-rajapinta on pois käytöstä (sen portti sivulla API ja valvonta on {0}), ja tämä sivu lukee tapaukset sen kautta. Anna sille siellä portti tai lue tapaukset Control Deckissä.</value>
-  </data>
   <data name="The REST API listens on {0} only, so the Control Deck opens only in a browser on the server itself." xml:space="preserve">
     <value>REST-rajapinta kuuntelee vain osoitteessa {0}, joten Control Deck aukeaa vain selaimessa itse palvelimella.</value>
   </data>
@@ -12793,9 +12784,6 @@ Lisätäänkö silti?</value>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on Install update above, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>Palvelin osaa huomata uuden julkaisun, varmentaa sen julkaisun omaa Sigstore-allekirjoitusta vasten ja asentaa sen - napsauttamalla yllä Asenna päivitys tai omin päin määrittämäsi aikaikkunan sisällä. Pois käytöstä, kunnes otat tarkistuksen käyttöön; tarkistus ei lähetä muuta kuin pyynnön.</value>
   </data>
-  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Server status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
-    <value>Palvelin osaa huomata uuden julkaisun, varmentaa sen julkaisun omaa Sigstore-allekirjoitusta vasten ja asentaa sen – yhdellä napsautuksella sivulla Palvelimen tila tai omin päin määrittämäsi aikaikkunan sisällä. Pois käytöstä, kunnes otat tarkistuksen käyttöön; tarkistus ei lähetä muuta kuin pyynnön.</value>
-  </data>
   <data name="The server cannot reach its database. Check the database connection and the hMailServer error log, then try again. ({0})" xml:space="preserve">
     <value>Palvelin ei tavoita tietokantaansa. Tarkista tietokantayhteys ja hMailServerin virheloki ja yritä sitten uudelleen. ({0})</value>
   </data>
@@ -13055,8 +13043,8 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="The version to go back to" xml:space="preserve">
     <value>Versio, johon palataan</value>
   </data>
-  <data name="The web services listener has an HTTPS port but no certificate ('TLS certificate file' is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set 'TLS certificate file' and 'TLS private key file' on the Web services &amp; autoconfiguration page, or turn on ACME on the Certificates (ACME) page." xml:space="preserve">
-    <value>Verkkopalvelujen kuuntelijalla on HTTPS-portti mutta ei varmennetta ('TLS-varmennetiedosto' on tyhjä ja ACME on pois käytöstä), joten HTTPS-kuuntelija ei käynnisty, eikä käytäntöä voi vieläkään noutaa. Aseta 'TLS-varmennetiedosto' ja 'TLS:n yksityisen avaimen tiedosto' sivulla Verkkopalvelut ja automaattinen määritys tai ota ACME käyttöön sivulla Varmenteet (ACME).</value>
+  <data name="The web services listener has an HTTPS port but no certificate ('TLS certificate file' is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set 'TLS certificate file' and 'TLS private key file' on the Web services &amp; autoconfiguration page, or turn on ACME on the Automatic certificates (ACME) page." xml:space="preserve">
+    <value>Verkkopalvelujen kuuntelijalla on HTTPS-portti mutta ei varmennetta ('TLS-varmennetiedosto' on tyhjä ja ACME on pois käytöstä), joten HTTPS-kuuntelija ei käynnisty, eikä käytäntöä voi vieläkään noutaa. Aseta 'TLS-varmennetiedosto' ja 'TLS:n yksityisen avaimen tiedosto' sivulla Verkkopalvelut ja automaattinen määritys tai ota ACME käyttöön sivulla Automaattiset varmenteet (ACME).</value>
   </data>
   <data name="The web services settings could not be read: {0}" xml:space="preserve">
     <value>Verkkopalveluiden asetuksia ei voitu lukea: {0}</value>

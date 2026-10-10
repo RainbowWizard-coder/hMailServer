@@ -723,11 +723,11 @@
   <data name="ACME is off (the default), so nothing external is required." xml:space="preserve">
     <value>ACME kapalı (varsayılan); bu nedenle dışarıdan hiçbir şey gerekmez.</value>
   </data>
-  <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
-    <value>ACME etkin ve 'Özel anahtarı yenilemeler boyunca yeniden kullan' kapalı; bu nedenle her sertifika yenilemesi yeni bir özel anahtar üretir. '3 1 1' TLSA kayıtları yayımlarsanız bir sonraki yenilemede bozulurlar - Sertifikalar (ACME) sayfasında bunu yeniden açın (varsayılan) ya da her yenilemeden sonra TLSA kaydını güncelleyin.</value>
+  <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Automatic certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
+    <value>ACME etkin ve 'Özel anahtarı yenilemeler boyunca yeniden kullan' kapalı; bu nedenle her sertifika yenilemesi yeni bir özel anahtar üretir. '3 1 1' TLSA kayıtları yayımlarsanız bir sonraki yenilemede bozulurlar - Otomatik sertifikalar (ACME) sayfasında bunu yeniden açın (varsayılan) ya da her yenilemeden sonra TLSA kaydını güncelleyin.</value>
   </data>
-  <data name="ACME is on, but 'Host names for the certificate' on the Certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
-    <value>ACME etkin ama Sertifikalar (ACME) sayfasındaki 'Sertifika için ana bilgisayar adları' boş; bu nedenle hiçbir zaman sertifika istenmez - istemci 'No domains configured' satırını günlüğe yazıp durur. Sertifikanın kapsaması gereken ana bilgisayar adlarını orada listeleyin (örneğin mail.yourdomain.com, mta-sts.yourdomain.com).</value>
+  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
+    <value>ACME etkin ama Otomatik sertifikalar (ACME) sayfasındaki 'Sertifika için ana bilgisayar adları' boş; bu nedenle hiçbir zaman sertifika istenmez - istemci 'No domains configured' satırını günlüğe yazıp durur. Sertifikanın kapsaması gereken ana bilgisayar adlarını orada listeleyin (örneğin mail.yourdomain.com, mta-sts.yourdomain.com).</value>
   </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME açık ama henüz sertifika verilmemiş - fullchain.pem ve privkey.pem dosyalarının ikisi birden {0} içinde değil. Sertifika verme işlemi sunucunun kendi zamanlamasına göre olur; bu yüzden özelliği açtıktan sonraki birkaç dakika boyunca bu normaldir. Sürerse, CA bu sunucuya ulaşamamış demektir ve Kurulum kontrol listesi sayfası tam olarak bunu denetler.</value>
@@ -1536,8 +1536,8 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again." xml:space="preserve">
     <value>Bir girdi REST API üzerinden yerinde değiştirilir; REST API yanıt vermeden önce yöneticinin tek kullanımlık kodunu ister ve hiçbir kod verilmedi. Yeniden sorulması için Düzenle… düğmesine basın ya da girdiyi silip yeniden ekleyin.</value>
   </data>
-  <data name="An entry is changed in place over the REST API, which is off (RestApiPort is {0}). Give it a port on the API &amp; monitoring page and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
-    <value>Bir girdi REST API üzerinden yerinde değiştirilir ve REST API kapalı (RestApiPort {0}). API ve izleme sayfasında ona bir bağlantı noktası verip sunucuyu yeniden başlatın (Reinitialize) ya da girdiyi silip yeniden ekleyin.</value>
+  <data name="An entry is changed in place over the REST API, which is off (its port on the API &amp; monitoring page is {0}). Give it a port there and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
+    <value>Bir girdi REST API üzerinden yerinde değiştirilir ve REST API kapalı (API ve izleme sayfasındaki bağlantı noktası {0}). Ona orada bir bağlantı noktası verip sunucuyu yeniden başlatın (Reinitialize) ya da girdiyi silip yeniden ekleyin.</value>
   </data>
   <data name="An entry is changed in place over the REST API, which listens on {0} only, out of reach of a Control Panel on another machine. Change the entry in the Control Deck on the server, or delete it and add it again." xml:space="preserve">
     <value>Bir girdi REST API üzerinden yerinde değiştirilir ve REST API yalnızca {0} üzerinde dinliyor; başka bir bilgisayardaki Control Panel oraya ulaşamaz. Girdiyi sunucudaki Control Deck'te değiştirin ya da silip yeniden ekleyin.</value>
@@ -4126,9 +4126,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Domains" xml:space="preserve">
     <value>Etki alanları</value>
   </data>
-  <data name="Domains &amp; accounts" xml:space="preserve">
-    <value>Etki alanları ve hesaplar</value>
-  </data>
   <data name="Domains and HELO suffixes let past greylisting only when the message passes SPF, DKIM or DMARC as the entry requires." xml:space="preserve">
     <value>Yalnızca ileti, kaydın gerektirdiği gibi SPF, DKIM veya DMARC'ı geçtiğinde gri listelemeyi atlayan alan adları ve HELO sonekleri.</value>
   </data>
@@ -5745,9 +5742,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Insert template…" xml:space="preserve">
     <value>Şablon ekle…</value>
-  </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Server status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
-    <value>Pencerenin içinde, zamanlanmış görev doğrulanmış bir kurulum programını tıklamaya gerek kalmadan uygular: hizmet durur, dosyalar ve şema yükseltilir, hizmet başlar ve sonuç günlüğe, Windows olay günlüğüne ve Sunucu durumu sayfasına gider. Geri gelmeyen bir hizmet, önceki kurulum programına geri alınır; yeni sürüm veritabanını zaten değiştirdiyse alınmaz.</value>
   </data>
   <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
     <value>Pencerenin içinde, zamanlanmış görev doğrulanmış bir kurulum programını tıklamaya gerek kalmadan uygular: hizmet durur, dosyalar ve şema yükseltilir, hizmet başlar ve sonuç günlüğe, Windows olay günlüğüne ve yukarıdaki karta gider. Geri gelmeyen bir hizmet, önceki kurulum programına geri alınır; yeni sürüm veritabanını zaten değiştirdiyse alınmaz.</value>
@@ -8736,8 +8730,8 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   <data name="Publish" xml:space="preserve">
     <value>Yayımla</value>
   </data>
-  <data name="Publish a public A/AAAA record for every name in 'Host names for the certificate' on the Certificates (ACME) page, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker." xml:space="preserve">
-    <value>Sertifikalar (ACME) sayfasındaki 'Sertifika için ana bilgisayar adları' içindeki her ad için genel bir A/AAAA kaydı yayımlayın ve doğrulama portuna internetten gelen TCP'ye izin verin (varsa NAT üzerinden port yönlendirin). Dışarıdan erişilebilirlik içeriden yoklanamaz; bu yüzden dış bir ağdan ya da çevrimiçi bir port denetleyicisiyle sınayın.</value>
+  <data name="Publish a public A/AAAA record for every name in 'Host names for the certificate' on the Automatic certificates (ACME) page, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker." xml:space="preserve">
+    <value>Otomatik sertifikalar (ACME) sayfasındaki 'Sertifika için ana bilgisayar adları' içindeki her ad için genel bir A/AAAA kaydı yayımlayın ve doğrulama portuna internetten gelen TCP'ye izin verin (varsa NAT üzerinden port yönlendirin). Dışarıdan erişilebilirlik içeriden yoklanamaz; bu yüzden dış bir ağdan ya da çevrimiçi bir port denetleyicisiyle sınayın.</value>
   </data>
   <data name="Publish it at your DNS provider - or, if you just did, wait for propagation (usually minutes, sometimes hours) and check again." xml:space="preserve">
     <value>DNS sağlayıcınızda yayımlayın - ya da az önce yayımladıysanız yayılmasını bekleyin (genellikle dakikalar, bazen saatler) ve yeniden denetleyin.</value>
@@ -11737,9 +11731,6 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>REST API kapalı (API ve izleme sayfasındaki portu {0}) ve bu ayarlara onun üzerinden ulaşılır: sunucu bunları tutar, ancak hiçbir COM özelliği bunları taşımaz. API ve izleme sayfasında REST API'ye bir bağlantı noktası verin, sunucuyu yeniden başlatın (Reinitialize) ve bu sayfayı yeniden açın.</value>
   </data>
-  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and this page reads the cases over it. Give it a port there, or read the cases in the Control Deck." xml:space="preserve">
-    <value>REST API kapalı (API ve izleme sayfasındaki portu {0}) ve bu sayfa davaları onun üzerinden okur. Orada ona bir port verin ya da davaları Control Deck'te okuyun.</value>
-  </data>
   <data name="The REST API listens on {0} only, so the Control Deck opens only in a browser on the server itself." xml:space="preserve">
     <value>REST API yalnızca {0} üzerinde dinliyor; bu yüzden Control Deck yalnızca sunucunun kendisindeki bir tarayıcıda açılır.</value>
   </data>
@@ -12793,9 +12784,6 @@ Yine de eklensin mi?</value>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on Install update above, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>Sunucu yeni bir sürümü fark edebilir, onu sürümün kendi Sigstore imzasına karşı doğrulayabilir ve uygulayabilir - yukarıdaki Güncelleştirmeyi yükle düğmesine bir tıklamayla ya da belirlediğiniz bir pencerenin içinde kendi başına. Denetimi açana kadar kapalıdır; denetim, istekten başka hiçbir şey göndermez.</value>
   </data>
-  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Server status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
-    <value>Sunucu yeni bir sürümü fark edebilir, onu sürümün kendi Sigstore imzasına karşı doğrulayabilir ve uygulayabilir - Sunucu durumu sayfasındaki bir tıklamayla ya da belirlediğiniz bir pencerenin içinde kendi başına. Denetimi açana kadar kapalıdır; denetim, istekten başka hiçbir şey göndermez.</value>
-  </data>
   <data name="The server cannot reach its database. Check the database connection and the hMailServer error log, then try again. ({0})" xml:space="preserve">
     <value>Sunucu veritabanına ulaşamıyor. Veritabanı bağlantısını ve hMailServer hata günlüğünü denetleyin, sonra yeniden deneyin. ({0})</value>
   </data>
@@ -13055,8 +13043,8 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="The version to go back to" xml:space="preserve">
     <value>Geri dönülecek sürüm</value>
   </data>
-  <data name="The web services listener has an HTTPS port but no certificate ('TLS certificate file' is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set 'TLS certificate file' and 'TLS private key file' on the Web services &amp; autoconfiguration page, or turn on ACME on the Certificates (ACME) page." xml:space="preserve">
-    <value>Web hizmetleri dinleyicisinin bir HTTPS portu var ama sertifikası yok ('TLS sertifika dosyası' boş ve ACME kapalı); bu yüzden HTTPS dinleyicisi başlamıyor ve ilke hâlâ getirilemiyor. Web hizmetleri ve otomatik yapılandırma sayfasında 'TLS sertifika dosyası' ile 'TLS özel anahtar dosyası'nı ayarlayın veya Sertifikalar (ACME) sayfasında ACME'yi etkinleştirin.</value>
+  <data name="The web services listener has an HTTPS port but no certificate ('TLS certificate file' is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set 'TLS certificate file' and 'TLS private key file' on the Web services &amp; autoconfiguration page, or turn on ACME on the Automatic certificates (ACME) page." xml:space="preserve">
+    <value>Web hizmetleri dinleyicisinin bir HTTPS portu var ama sertifikası yok ('TLS sertifika dosyası' boş ve ACME kapalı); bu yüzden HTTPS dinleyicisi başlamıyor ve ilke hâlâ getirilemiyor. Web hizmetleri ve otomatik yapılandırma sayfasında 'TLS sertifika dosyası' ile 'TLS özel anahtar dosyası'nı ayarlayın veya Otomatik sertifikalar (ACME) sayfasında ACME'yi etkinleştirin.</value>
   </data>
   <data name="The web services settings could not be read: {0}" xml:space="preserve">
     <value>Web hizmetleri ayarları okunamadı: {0}</value>

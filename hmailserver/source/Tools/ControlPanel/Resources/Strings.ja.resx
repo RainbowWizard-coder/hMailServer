@@ -723,11 +723,11 @@
   <data name="ACME is off (the default), so nothing external is required." xml:space="preserve">
     <value>ACME は無効です (既定値)。そのため外部に必要なものはありません。</value>
   </data>
-  <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
-    <value>ACME は有効ですが「更新をまたいで秘密鍵を再利用する」がオフになっているため、証明書を更新するたびに新しい秘密鍵が生成されます。'3 1 1' の TLSA レコードを公開している場合、それらは次回の更新で機能しなくなります。[証明書 (ACME)] ページでこれをもう一度オンにする (既定値) か、更新のたびに TLSA レコードを更新してください。</value>
+  <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Automatic certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
+    <value>ACME は有効ですが「更新をまたいで秘密鍵を再利用する」がオフになっているため、証明書を更新するたびに新しい秘密鍵が生成されます。'3 1 1' の TLSA レコードを公開している場合、それらは次回の更新で機能しなくなります。[自動証明書 (ACME)] ページでこれをもう一度オンにする (既定値) か、更新のたびに TLSA レコードを更新してください。</value>
   </data>
-  <data name="ACME is on, but 'Host names for the certificate' on the Certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
-    <value>ACME は有効ですが [証明書 (ACME)] ページの「証明書のホスト名」が空のため、証明書は一度も要求されません。クライアントは 'No domains configured' をログに記録して停止します。そこに証明書に含めるホスト名を列挙してください (例: mail.yourdomain.com、mta-sts.yourdomain.com)。</value>
+  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
+    <value>ACME は有効ですが [自動証明書 (ACME)] ページの「証明書のホスト名」が空のため、証明書は一度も要求されません。クライアントは 'No domains configured' をログに記録して停止します。そこに証明書に含めるホスト名を列挙してください (例: mail.yourdomain.com、mta-sts.yourdomain.com)。</value>
   </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME は有効になっていますが、まだ証明書が発行されていません。fullchain.pem と privkey.pem の両方が {0} にそろっていません。発行はサーバー自身のスケジュールで行われるため、有効にしてから数分間はこの状態が普通です。それが続く場合は、CA がこのサーバーに到達できていません。「セットアップ チェックリスト」ページがまさにそれを確認します。</value>
@@ -1536,8 +1536,8 @@
   <data name="An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again." xml:space="preserve">
     <value>エントリはその場で REST API を通じて変更されますが、REST API は応答する前に管理者のワンタイム コードを求め、コードは入力されませんでした。もう一度求められるように「編集…」を押すか、エントリを削除して追加し直してください。</value>
   </data>
-  <data name="An entry is changed in place over the REST API, which is off (RestApiPort is {0}). Give it a port on the API &amp; monitoring page and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
-    <value>エントリはその場で REST API を通じて変更されますが、REST API はオフです (RestApiPort は {0})。「API と監視」ページで REST API にポートを割り当ててサーバーを再初期化するか、エントリを削除して追加し直してください。</value>
+  <data name="An entry is changed in place over the REST API, which is off (its port on the API &amp; monitoring page is {0}). Give it a port there and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
+    <value>エントリはその場で REST API を通じて変更されますが、REST API はオフです (「API と監視」ページのポートは {0})。そのページで REST API にポートを割り当ててサーバーを再初期化するか、エントリを削除して追加し直してください。</value>
   </data>
   <data name="An entry is changed in place over the REST API, which listens on {0} only, out of reach of a Control Panel on another machine. Change the entry in the Control Deck on the server, or delete it and add it again." xml:space="preserve">
     <value>エントリはその場で REST API を通じて変更されますが、REST API は {0} でのみ待ち受けており、別のマシン上のコントロール パネルからは到達できません。サーバー上の Control Deck でエントリを変更するか、エントリを削除して追加し直してください。</value>
@@ -4126,9 +4126,6 @@
   <data name="Domains" xml:space="preserve">
     <value>ドメイン</value>
   </data>
-  <data name="Domains &amp; accounts" xml:space="preserve">
-    <value>ドメインとアカウント</value>
-  </data>
   <data name="Domains and HELO suffixes let past greylisting only when the message passes SPF, DKIM or DMARC as the entry requires." xml:space="preserve">
     <value>エントリが要求するとおりにメッセージが SPF、DKIM、DMARC に合格したときだけグレイリスティングを通過させるドメインと HELO 接尾辞。</value>
   </data>
@@ -5745,9 +5742,6 @@
   </data>
   <data name="Insert template…" xml:space="preserve">
     <value>テンプレートを挿入…</value>
-  </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Server status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
-    <value>この時間帯の中では、スケジュールされたタスクが、検証済みのインストーラーをクリックなしで適用します。サービスが停止し、ファイルとスキーマがアップグレードされ、サービスが開始され、その結果はログ、Windows イベント ログ、および [サーバーの状態] ページに報告されます。サービスが戻ってこない場合は、以前のインストーラーへロールバックされます (新しいバージョンがすでにデータベースを変更している場合を除きます)。</value>
   </data>
   <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
     <value>この時間帯の中では、スケジュールされたタスクが、検証済みのインストーラーをクリックなしで適用します。サービスが停止し、ファイルとスキーマがアップグレードされ、サービスが開始され、その結果はログ、Windows イベント ログ、および上のカードに報告されます。サービスが戻ってこない場合は、以前のインストーラーへロールバックされます (新しいバージョンがすでにデータベースを変更している場合を除きます)。</value>
@@ -8736,8 +8730,8 @@
   <data name="Publish" xml:space="preserve">
     <value>公開</value>
   </data>
-  <data name="Publish a public A/AAAA record for every name in 'Host names for the certificate' on the Certificates (ACME) page, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker." xml:space="preserve">
-    <value>[証明書 (ACME)] ページの「証明書のホスト名」にあるすべての名前について、公開の A/AAAA レコードを公開し、インターネットからチャレンジ ポートへの受信 TCP を許可してください (NAT がある場合はポート転送を設定します)。外部からの到達性は内部からは調べられないため、外部ネットワークかオンラインのポート チェッカーで確認してください。</value>
+  <data name="Publish a public A/AAAA record for every name in 'Host names for the certificate' on the Automatic certificates (ACME) page, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker." xml:space="preserve">
+    <value>[自動証明書 (ACME)] ページの「証明書のホスト名」にあるすべての名前について、公開の A/AAAA レコードを公開し、インターネットからチャレンジ ポートへの受信 TCP を許可してください (NAT がある場合はポート転送を設定します)。外部からの到達性は内部からは調べられないため、外部ネットワークかオンラインのポート チェッカーで確認してください。</value>
   </data>
   <data name="Publish it at your DNS provider - or, if you just did, wait for propagation (usually minutes, sometimes hours) and check again." xml:space="preserve">
     <value>DNS プロバイダーで公開してください。今公開したばかりなら、伝播を待って (通常は数分、ときには数時間) もう一度確認してください。</value>
@@ -11737,9 +11731,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>REST API はオフ (「API と監視」ページでのポートは {0}) ですが、これらの設定は REST API 経由でしか扱えません。サーバーは値を保持していますが、COM プロパティはありません。「API と監視」ページで REST API にポートを割り当て、サーバーを再初期化してから、このページを開き直してください。</value>
   </data>
-  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and this page reads the cases over it. Give it a port there, or read the cases in the Control Deck." xml:space="preserve">
-    <value>REST API はオフです (「API と監視」ページでのポートは {0})。このページはケースを REST API 経由で読み取ります。そのページでポートを割り当てるか、Control Deck でケースを確認してください。</value>
-  </data>
   <data name="The REST API listens on {0} only, so the Control Deck opens only in a browser on the server itself." xml:space="preserve">
     <value>REST API は {0} でのみ待ち受けているため、Control Deck はサーバー上のブラウザーでのみ開けます。</value>
   </data>
@@ -12793,9 +12784,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on Install update above, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>サーバーは、新しいリリースを検知し、そのリリース自身の Sigstore 署名と照合して検証し、適用できます。適用は、上の「更新をインストール」をクリックして行うか、指定した時間帯の中でサーバー自身が行います。チェックを有効にするまでは無効です。チェックは要求以外に何も送信しません。</value>
   </data>
-  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Server status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
-    <value>サーバーは、新しいリリースを検知し、そのリリース自身の Sigstore 署名と照合して検証し、適用できます。適用は、[サーバーの状態] ページでクリックして行うか、指定した時間帯の中でサーバー自身が行います。チェックを有効にするまでは無効です。チェックは要求以外に何も送信しません。</value>
-  </data>
   <data name="The server cannot reach its database. Check the database connection and the hMailServer error log, then try again. ({0})" xml:space="preserve">
     <value>サーバーがデータベースに到達できません。データベース接続と hMailServer のエラー ログを確認してから、もう一度お試しください。({0})</value>
   </data>
@@ -13055,8 +13043,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The version to go back to" xml:space="preserve">
     <value>戻す先のバージョン</value>
   </data>
-  <data name="The web services listener has an HTTPS port but no certificate ('TLS certificate file' is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set 'TLS certificate file' and 'TLS private key file' on the Web services &amp; autoconfiguration page, or turn on ACME on the Certificates (ACME) page." xml:space="preserve">
-    <value>Web サービスのリスナーには HTTPS ポートがありますが証明書がないため (「TLS 証明書ファイル」が空で ACME がオフ)、HTTPS リスナーは起動せず、ポリシーは依然として取得できません。[Web サービスと自動設定] ページで「TLS 証明書ファイル」と「TLS 秘密鍵ファイル」を設定するか、[証明書 (ACME)] ページで ACME を有効にしてください。</value>
+  <data name="The web services listener has an HTTPS port but no certificate ('TLS certificate file' is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set 'TLS certificate file' and 'TLS private key file' on the Web services &amp; autoconfiguration page, or turn on ACME on the Automatic certificates (ACME) page." xml:space="preserve">
+    <value>Web サービスのリスナーには HTTPS ポートがありますが証明書がないため (「TLS 証明書ファイル」が空で ACME がオフ)、HTTPS リスナーは起動せず、ポリシーは依然として取得できません。[Web サービスと自動設定] ページで「TLS 証明書ファイル」と「TLS 秘密鍵ファイル」を設定するか、[自動証明書 (ACME)] ページで ACME を有効にしてください。</value>
   </data>
   <data name="The web services settings could not be read: {0}" xml:space="preserve">
     <value>Web サービスの設定を読み取れませんでした: {0}</value>

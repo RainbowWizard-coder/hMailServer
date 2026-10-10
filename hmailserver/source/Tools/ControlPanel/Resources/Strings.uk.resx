@@ -729,11 +729,11 @@
   <data name="ACME is off (the default), so nothing external is required." xml:space="preserve">
     <value>ACME вимкнено (типове значення), тому нічого зовнішнього не потрібно.</value>
   </data>
-  <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
-    <value>ACME увімкнено, а параметр «Повторно використовувати закритий ключ під час поновлень» вимкнено, тому кожне поновлення сертифіката створює новий закритий ключ. Якщо ви публікуєте TLSA-записи «3 1 1», вони зламаються під час наступного поновлення — знову ввімкніть його на сторінці «Сертифікати (ACME)» (типове значення) або оновлюйте TLSA-запис після кожного поновлення.</value>
+  <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Automatic certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
+    <value>ACME увімкнено, а параметр «Повторно використовувати закритий ключ під час поновлень» вимкнено, тому кожне поновлення сертифіката створює новий закритий ключ. Якщо ви публікуєте TLSA-записи «3 1 1», вони зламаються під час наступного поновлення — знову ввімкніть його на сторінці «Автоматичні сертифікати (ACME)» (типове значення) або оновлюйте TLSA-запис після кожного поновлення.</value>
   </data>
-  <data name="ACME is on, but 'Host names for the certificate' on the Certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
-    <value>ACME увімкнено, але поле «Імена вузлів для сертифіката» на сторінці «Сертифікати (ACME)» порожнє, тому сертифікат ніколи не запитується — клієнт записує в журнал «No domains configured» і зупиняється. Перелічіть там імена вузлів, які має охоплювати сертифікат (наприклад, mail.yourdomain.com, mta-sts.yourdomain.com).</value>
+  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
+    <value>ACME увімкнено, але поле «Імена вузлів для сертифіката» на сторінці «Автоматичні сертифікати (ACME)» порожнє, тому сертифікат ніколи не запитується — клієнт записує в журнал «No domains configured» і зупиняється. Перелічіть там імена вузлів, які має охоплювати сертифікат (наприклад, mail.yourdomain.com, mta-sts.yourdomain.com).</value>
   </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME увімкнено, але сертифікат ще не видано — у {0} немає обох файлів fullchain.pem і privkey.pem. Видача відбувається за власним розкладом сервера, тож протягом кількох хвилин після ввімкнення це нормально; якщо стан не змінюється, ЦС не зміг дістатися цього сервера, і сторінка «Контрольний список налаштування» перевіряє саме це.</value>
@@ -1548,8 +1548,8 @@
   <data name="An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again." xml:space="preserve">
     <value>Запис змінюється на місці через REST API, який перед відповіддю запитує одноразовий код адміністратора, а код не було введено. Натисніть «Змінити…», щоб вас запитали знову, або видаліть запис і додайте його знову.</value>
   </data>
-  <data name="An entry is changed in place over the REST API, which is off (RestApiPort is {0}). Give it a port on the API &amp; monitoring page and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
-    <value>Запис змінюється на місці через REST API, який вимкнено (RestApiPort дорівнює {0}). Задайте йому порт на сторінці «API та моніторинг» і повторно ініціалізуйте сервер або видаліть запис і додайте його знову.</value>
+  <data name="An entry is changed in place over the REST API, which is off (its port on the API &amp; monitoring page is {0}). Give it a port there and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
+    <value>Запис змінюється на місці через REST API, який вимкнено (його порт на сторінці «API та моніторинг» дорівнює {0}). Задайте йому порт на тій сторінці й повторно ініціалізуйте сервер або видаліть запис і додайте його знову.</value>
   </data>
   <data name="An entry is changed in place over the REST API, which listens on {0} only, out of reach of a Control Panel on another machine. Change the entry in the Control Deck on the server, or delete it and add it again." xml:space="preserve">
     <value>Запис змінюється на місці через REST API, який прослуховує лише {0}, поза досяжністю Control Panel на іншому комп'ютері. Змініть запис у Control Deck на сервері або видаліть його і додайте знову.</value>
@@ -4172,9 +4172,6 @@
   <data name="Domains" xml:space="preserve">
     <value>Домени</value>
   </data>
-  <data name="Domains &amp; accounts" xml:space="preserve">
-    <value>Домени та облікові записи</value>
-  </data>
   <data name="Domains and HELO suffixes let past greylisting only when the message passes SPF, DKIM or DMARC as the entry requires." xml:space="preserve">
     <value>Домени та суфікси HELO, які пропускають повз сірий список лише тоді, коли повідомлення проходить SPF, DKIM або DMARC, як вимагає запис.</value>
   </data>
@@ -5809,9 +5806,6 @@
   </data>
   <data name="Insert template…" xml:space="preserve">
     <value>Вставити шаблон…</value>
-  </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Server status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
-    <value>У межах цього вікна заплановане завдання застосовує перевірений інсталятор без жодного клацання: служба зупиняється, оновлюються файли та схема, служба запускається, а результат потрапляє до журналу, журналу подій Windows і на сторінку «Стан сервера». Службу, яка не повертається, відкочують до попереднього інсталятора, хіба що нова версія вже змінила базу даних.</value>
   </data>
   <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
     <value>У межах цього вікна заплановане завдання застосовує перевірений інсталятор без жодного клацання: служба зупиняється, оновлюються файли та схема, служба запускається, а результат потрапляє до журналу, журналу подій Windows і на картку вище. Службу, яка не повертається, відкочують до попереднього інсталятора, хіба що нова версія вже змінила базу даних.</value>
@@ -8824,8 +8818,8 @@
   <data name="Publish" xml:space="preserve">
     <value>Опублікувати</value>
   </data>
-  <data name="Publish a public A/AAAA record for every name in 'Host names for the certificate' on the Certificates (ACME) page, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker." xml:space="preserve">
-    <value>Опублікуйте публічний запис A/AAAA для кожного імені з поля «Імена вузлів для сертифіката» на сторінці «Сертифікати (ACME)», і дозвольте вхідний TCP на порту викликів з інтернету (пробросьте порт через будь-який NAT). Досяжність ззовні неможливо перевірити зсередини, тому перевірте її із зовнішньої мережі або онлайновим засобом перевірки портів.</value>
+  <data name="Publish a public A/AAAA record for every name in 'Host names for the certificate' on the Automatic certificates (ACME) page, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker." xml:space="preserve">
+    <value>Опублікуйте публічний запис A/AAAA для кожного імені з поля «Імена вузлів для сертифіката» на сторінці «Автоматичні сертифікати (ACME)», і дозвольте вхідний TCP на порту викликів з інтернету (пробросьте порт через будь-який NAT). Досяжність ззовні неможливо перевірити зсередини, тому перевірте її із зовнішньої мережі або онлайновим засобом перевірки портів.</value>
   </data>
   <data name="Publish it at your DNS provider - or, if you just did, wait for propagation (usually minutes, sometimes hours) and check again." xml:space="preserve">
     <value>Опублікуйте його у свого DNS-провайдера — або, якщо ви щойно це зробили, дочекайтеся поширення (зазвичай хвилини, іноді години) і перевірте ще раз.</value>
@@ -11867,9 +11861,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>REST API вимкнено (його порт на сторінці «API та моніторинг» дорівнює {0}), а ці параметри доступні через нього: сервер їх зберігає, але жодна властивість COM їх не передає. Задайте REST API порт на сторінці «API та моніторинг», повторно ініціалізуйте сервер і знову відкрийте цю сторінку.</value>
   </data>
-  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and this page reads the cases over it. Give it a port there, or read the cases in the Control Deck." xml:space="preserve">
-    <value>REST API вимкнено (його порт на сторінці «API та моніторинг» дорівнює {0}), а ця сторінка читає справи через нього. Задайте йому там порт або читайте справи в Control Deck.</value>
-  </data>
   <data name="The REST API listens on {0} only, so the Control Deck opens only in a browser on the server itself." xml:space="preserve">
     <value>REST API прослуховує лише {0}, тож Control Deck відкривається лише в браузері на самому сервері.</value>
   </data>
@@ -12956,9 +12947,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on Install update above, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>Сервер може помітити новий випуск, перевірити його за власним підписом Sigstore цього випуску та застосувати його - клацанням кнопки «Установити оновлення» вище або самостійно в межах вікна, яке ви задаєте. Вимкнено, доки ви не ввімкнете перевірку; перевірка не надсилає нічого, крім самого запиту.</value>
   </data>
-  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Server status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
-    <value>Сервер може помітити новий випуск, перевірити його за власним підписом Sigstore цього випуску та застосувати його — клацанням на сторінці «Стан сервера» або самостійно в межах вікна, яке ви задаєте. Вимкнено, доки ви не ввімкнете перевірку; перевірка не надсилає нічого, крім самого запиту.</value>
-  </data>
   <data name="The server cannot reach its database. Check the database connection and the hMailServer error log, then try again. ({0})" xml:space="preserve">
     <value>Сервер не може дістатися своєї бази даних. Перевірте підключення до бази даних і журнал помилок hMailServer, а потім спробуйте ще раз. ({0})</value>
   </data>
@@ -13218,8 +13206,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The version to go back to" xml:space="preserve">
     <value>Версія для повернення</value>
   </data>
-  <data name="The web services listener has an HTTPS port but no certificate ('TLS certificate file' is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set 'TLS certificate file' and 'TLS private key file' on the Web services &amp; autoconfiguration page, or turn on ACME on the Certificates (ACME) page." xml:space="preserve">
-    <value>Слухач вебслужб має порт HTTPS, але не має сертифіката («Файл сертифіката TLS» порожній, а ACME вимкнено), тому слухач HTTPS не запускається, і політику й далі неможливо отримати. Задайте «Файл сертифіката TLS» і «Файл закритого ключа TLS» на сторінці «Вебслужби та автоконфігурація» або увімкніть ACME на сторінці «Сертифікати (ACME)».</value>
+  <data name="The web services listener has an HTTPS port but no certificate ('TLS certificate file' is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set 'TLS certificate file' and 'TLS private key file' on the Web services &amp; autoconfiguration page, or turn on ACME on the Automatic certificates (ACME) page." xml:space="preserve">
+    <value>Слухач вебслужб має порт HTTPS, але не має сертифіката («Файл сертифіката TLS» порожній, а ACME вимкнено), тому слухач HTTPS не запускається, і політику й далі неможливо отримати. Задайте «Файл сертифіката TLS» і «Файл закритого ключа TLS» на сторінці «Вебслужби та автоконфігурація» або увімкніть ACME на сторінці «Автоматичні сертифікати (ACME)».</value>
   </data>
   <data name="The web services settings could not be read: {0}" xml:space="preserve">
     <value>Не вдалося прочитати параметри вебслужб: {0}</value>

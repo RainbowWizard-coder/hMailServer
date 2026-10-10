@@ -723,11 +723,11 @@
   <data name="ACME is off (the default), so nothing external is required." xml:space="preserve">
     <value>ACME 已关闭（默认值），因此不需要任何外部条件。</value>
   </data>
-  <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
-    <value>已启用 ACME，但“在续订之间重用同一把私钥”处于关闭状态，因此每次续期证书都会生成新的私钥。如果您发布 '3 1 1' 的 TLSA 记录，它们会在下一次续期时失效 - 请在“证书（ACME）”页上重新打开它（默认值），或者在每次续期之后更新 TLSA 记录。</value>
+  <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Automatic certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
+    <value>已启用 ACME，但“在续订之间重用同一把私钥”处于关闭状态，因此每次续期证书都会生成新的私钥。如果您发布 '3 1 1' 的 TLSA 记录，它们会在下一次续期时失效 - 请在“自动证书（ACME）”页上重新打开它（默认值），或者在每次续期之后更新 TLSA 记录。</value>
   </data>
-  <data name="ACME is on, but 'Host names for the certificate' on the Certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
-    <value>已启用 ACME，但“证书（ACME）”页上的“证书的主机名”为空，因此永远不会请求证书 - 客户端会记录“No domains configured”并停止。请在那里列出证书应涵盖的主机名（例如 mail.yourdomain.com、mta-sts.yourdomain.com）。</value>
+  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
+    <value>已启用 ACME，但“自动证书（ACME）”页上的“证书的主机名”为空，因此永远不会请求证书 - 客户端会记录“No domains configured”并停止。请在那里列出证书应涵盖的主机名（例如 mail.yourdomain.com、mta-sts.yourdomain.com）。</value>
   </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME 已打开，但尚未颁发任何证书 - fullchain.pem 和 privkey.pem 并未同时位于 {0} 中。颁发按服务器自己的计划进行，因此启用后的几分钟内出现这种情况是正常的；如果一直如此，说明 CA 无法访问到本服务器，而“设置清单”页检查的正是这一点。</value>
@@ -1536,8 +1536,8 @@
   <data name="An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again." xml:space="preserve">
     <value>条目通过 REST API 就地更改，而 REST API 在应答前要求输入管理员的一次性代码，但未输入任何代码。请按“编辑…”再次输入，或者删除该条目后重新添加。</value>
   </data>
-  <data name="An entry is changed in place over the REST API, which is off (RestApiPort is {0}). Give it a port on the API &amp; monitoring page and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
-    <value>条目通过 REST API 就地更改，而 REST API 已关闭（RestApiPort 为 {0}）。请在“API 与监控”页面上为它指定端口并重新初始化服务器，或者删除该条目后重新添加。</value>
+  <data name="An entry is changed in place over the REST API, which is off (its port on the API &amp; monitoring page is {0}). Give it a port there and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
+    <value>条目通过 REST API 就地更改，而 REST API 已关闭（“API 与监控”页面上的端口为 {0}）。请在该页面为它指定端口并重新初始化服务器，或者删除该条目后重新添加。</value>
   </data>
   <data name="An entry is changed in place over the REST API, which listens on {0} only, out of reach of a Control Panel on another machine. Change the entry in the Control Deck on the server, or delete it and add it again." xml:space="preserve">
     <value>条目通过 REST API 就地更改，而 REST API 仅在 {0} 上监听，其他计算机上的控制面板无法访问。请在服务器上的 Control Deck 中更改该条目，或者删除后重新添加。</value>
@@ -4126,9 +4126,6 @@
   <data name="Domains" xml:space="preserve">
     <value>域</value>
   </data>
-  <data name="Domains &amp; accounts" xml:space="preserve">
-    <value>域与账户</value>
-  </data>
   <data name="Domains and HELO suffixes let past greylisting only when the message passes SPF, DKIM or DMARC as the entry requires." xml:space="preserve">
     <value>仅当邮件按条目要求通过 SPF、DKIM 或 DMARC 时才放行灰名单的域名和 HELO 后缀。</value>
   </data>
@@ -5745,9 +5742,6 @@
   </data>
   <data name="Insert template…" xml:space="preserve">
     <value>插入模板…</value>
-  </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Server status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
-    <value>在该窗口内，计划任务无需点击即可安装经过验证的安装程序：服务停止，文件和数据库架构升级，服务启动，结果写入日志、Windows 事件日志和“服务器状态”页。未能恢复运行的服务会回滚到上一个安装程序（除非新版本已更改了数据库）。</value>
   </data>
   <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
     <value>在该窗口内，计划任务无需点击即可安装经过验证的安装程序：服务停止，文件和数据库架构升级，服务启动，结果写入日志、Windows 事件日志和上方的卡片。未能恢复运行的服务会回滚到上一个安装程序（除非新版本已更改了数据库）。</value>
@@ -8736,8 +8730,8 @@
   <data name="Publish" xml:space="preserve">
     <value>发布</value>
   </data>
-  <data name="Publish a public A/AAAA record for every name in 'Host names for the certificate' on the Certificates (ACME) page, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker." xml:space="preserve">
-    <value>为“证书（ACME）”页上“证书的主机名”中的每个名称发布公共 A/AAAA 记录，并允许来自互联网的入站 TCP 到达质询端口（通过任何 NAT 做端口转发）。从内部无法探测从外部是否可达，因此请从外部网络或在线端口检查器进行测试。</value>
+  <data name="Publish a public A/AAAA record for every name in 'Host names for the certificate' on the Automatic certificates (ACME) page, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker." xml:space="preserve">
+    <value>为“自动证书（ACME）”页上“证书的主机名”中的每个名称发布公共 A/AAAA 记录，并允许来自互联网的入站 TCP 到达质询端口（通过任何 NAT 做端口转发）。从内部无法探测从外部是否可达，因此请从外部网络或在线端口检查器进行测试。</value>
   </data>
   <data name="Publish it at your DNS provider - or, if you just did, wait for propagation (usually minutes, sometimes hours) and check again." xml:space="preserve">
     <value>在您的 DNS 提供商处发布它 - 或者，如果您刚刚发布，请等待传播（通常几分钟，有时几小时）后再次检查。</value>
@@ -11737,9 +11731,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>REST API 已关闭（其在“API 与监控”页上的端口为 {0}），而这些设置要通过它访问：服务器保存着它们，但没有任何 COM 属性携带它们。请在“API 与监控”页面上为 REST API 指定端口，重新初始化服务器，然后再次打开此页面。</value>
   </data>
-  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and this page reads the cases over it. Give it a port there, or read the cases in the Control Deck." xml:space="preserve">
-    <value>REST API 已关闭（其在“API 与监控”页上的端口为 {0}），而此页面通过它读取案件。请在那里为它指定端口，或在 Control Deck 中查看案件。</value>
-  </data>
   <data name="The REST API listens on {0} only, so the Control Deck opens only in a browser on the server itself." xml:space="preserve">
     <value>REST API 只在 {0} 上监听，因此 Control Deck 只能在服务器本机的浏览器中打开。</value>
   </data>
@@ -12793,9 +12784,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on Install update above, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>服务器可以发现新的发行版，用该发行版自带的 Sigstore 签名对其进行验证，然后安装它 - 可以点击上方的“安装更新”，也可以由服务器在您设定的窗口内自行安装。在您打开该检查之前，它一直处于关闭状态；该检查除请求本身之外不发送任何内容。</value>
   </data>
-  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Server status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
-    <value>服务器可以发现新的发行版，用该发行版自带的 Sigstore 签名对其进行验证，然后安装它 - 可以在“服务器状态”页上点击安装，也可以由服务器在您设定的窗口内自行安装。在您打开该检查之前，它一直处于关闭状态；该检查除请求本身之外不发送任何内容。</value>
-  </data>
   <data name="The server cannot reach its database. Check the database connection and the hMailServer error log, then try again. ({0})" xml:space="preserve">
     <value>服务器无法连接到它的数据库。请检查数据库连接和 hMailServer 错误日志，然后再试一次。({0})</value>
   </data>
@@ -13055,8 +13043,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The version to go back to" xml:space="preserve">
     <value>要恢复到的版本</value>
   </data>
-  <data name="The web services listener has an HTTPS port but no certificate ('TLS certificate file' is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set 'TLS certificate file' and 'TLS private key file' on the Web services &amp; autoconfiguration page, or turn on ACME on the Certificates (ACME) page." xml:space="preserve">
-    <value>Web 服务监听器有 HTTPS 端口，但没有证书（“TLS 证书文件”为空且 ACME 已关闭），因此 HTTPS 监听器不会启动，策略仍然无法获取。请在“Web 服务和自动配置”页上设置“TLS 证书文件”和“TLS 私钥文件”，或在“证书（ACME）”页上启用 ACME。</value>
+  <data name="The web services listener has an HTTPS port but no certificate ('TLS certificate file' is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set 'TLS certificate file' and 'TLS private key file' on the Web services &amp; autoconfiguration page, or turn on ACME on the Automatic certificates (ACME) page." xml:space="preserve">
+    <value>Web 服务监听器有 HTTPS 端口，但没有证书（“TLS 证书文件”为空且 ACME 已关闭），因此 HTTPS 监听器不会启动，策略仍然无法获取。请在“Web 服务和自动配置”页上设置“TLS 证书文件”和“TLS 私钥文件”，或在“自动证书（ACME）”页上启用 ACME。</value>
   </data>
   <data name="The web services settings could not be read: {0}" xml:space="preserve">
     <value>无法读取 Web 服务设置: {0}</value>

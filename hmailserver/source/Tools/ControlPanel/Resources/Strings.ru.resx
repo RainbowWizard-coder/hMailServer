@@ -729,11 +729,11 @@
   <data name="ACME is off (the default), so nothing external is required." xml:space="preserve">
     <value>ACME выключен (значение по умолчанию), поэтому ничего внешнего не требуется.</value>
   </data>
-  <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
-    <value>ACME включён, а параметр «Повторно использовать закрытый ключ при обновлениях» выключен, поэтому при каждом обновлении сертификата создаётся новый закрытый ключ. Если вы публикуете записи TLSA вида «3 1 1», они сломаются при следующем обновлении — снова включите его на странице «Сертификаты (ACME)» (значение по умолчанию) или обновляйте запись TLSA после каждого обновления сертификата.</value>
+  <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Automatic certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
+    <value>ACME включён, а параметр «Повторно использовать закрытый ключ при обновлениях» выключен, поэтому при каждом обновлении сертификата создаётся новый закрытый ключ. Если вы публикуете записи TLSA вида «3 1 1», они сломаются при следующем обновлении — снова включите его на странице «Автоматические сертификаты (ACME)» (значение по умолчанию) или обновляйте запись TLSA после каждого обновления сертификата.</value>
   </data>
-  <data name="ACME is on, but 'Host names for the certificate' on the Certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
-    <value>ACME включён, но поле «Имена узлов для сертификата» на странице «Сертификаты (ACME)» пусто, поэтому сертификат никогда не запрашивается — клиент записывает в журнал «No domains configured» и останавливается. Перечислите там имена узлов, которые должен охватывать сертификат (например, mail.yourdomain.com, mta-sts.yourdomain.com).</value>
+  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
+    <value>ACME включён, но поле «Имена узлов для сертификата» на странице «Автоматические сертификаты (ACME)» пусто, поэтому сертификат никогда не запрашивается — клиент записывает в журнал «No domains configured» и останавливается. Перечислите там имена узлов, которые должен охватывать сертификат (например, mail.yourdomain.com, mta-sts.yourdomain.com).</value>
   </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME включён, но сертификат ещё не выпущен — в {0} нет одновременно fullchain.pem и privkey.pem. Выпуск происходит по собственному расписанию сервера, поэтому в течение нескольких минут после включения это нормально; если состояние сохраняется, значит ЦС не смог достучаться до этого сервера, и страница «Контрольный список настройки» проверяет именно это.</value>
@@ -1548,8 +1548,8 @@ Control Panel может читать файлы сообщений только
   <data name="An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again." xml:space="preserve">
     <value>Запись изменяется на месте через REST API, который перед ответом запрашивает одноразовый код администратора, а код не был введён. Нажмите «Изменить…», чтобы вас спросили снова, или удалите запись и добавьте её снова.</value>
   </data>
-  <data name="An entry is changed in place over the REST API, which is off (RestApiPort is {0}). Give it a port on the API &amp; monitoring page and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
-    <value>Запись изменяется на месте через REST API, который выключен (RestApiPort равен {0}). Задайте ему порт на странице «API и мониторинг» и повторно инициализируйте сервер или удалите запись и добавьте её снова.</value>
+  <data name="An entry is changed in place over the REST API, which is off (its port on the API &amp; monitoring page is {0}). Give it a port there and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
+    <value>Запись изменяется на месте через REST API, который выключен (его порт на странице «API и мониторинг» равен {0}). Задайте ему порт на той странице и повторно инициализируйте сервер или удалите запись и добавьте её снова.</value>
   </data>
   <data name="An entry is changed in place over the REST API, which listens on {0} only, out of reach of a Control Panel on another machine. Change the entry in the Control Deck on the server, or delete it and add it again." xml:space="preserve">
     <value>Запись изменяется на месте через REST API, который прослушивает только {0}, вне досягаемости Control Panel на другом компьютере. Измените запись в Control Deck на сервере или удалите её и добавьте снова.</value>
@@ -4172,9 +4172,6 @@ Control Panel может читать файлы сообщений только
   <data name="Domains" xml:space="preserve">
     <value>Домены</value>
   </data>
-  <data name="Domains &amp; accounts" xml:space="preserve">
-    <value>Домены и учётные записи</value>
-  </data>
   <data name="Domains and HELO suffixes let past greylisting only when the message passes SPF, DKIM or DMARC as the entry requires." xml:space="preserve">
     <value>Домены и суффиксы HELO, пропускаемые мимо серых списков только тогда, когда сообщение проходит SPF, DKIM или DMARC, как требует запись.</value>
   </data>
@@ -5809,9 +5806,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Insert template…" xml:space="preserve">
     <value>Вставить шаблон…</value>
-  </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Server status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
-    <value>Внутри окна запланированная задача устанавливает проверенный установщик без единого нажатия: служба останавливается, файлы и схема обновляются, служба запускается, а результат попадает в журнал, в журнал событий Windows и на страницу «Состояние сервера». Служба, которая не вернулась, откатывается к предыдущему установщику, кроме случая, когда новая версия уже изменила базу данных.</value>
   </data>
   <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
     <value>Внутри окна запланированная задача устанавливает проверенный установщик без единого нажатия: служба останавливается, файлы и схема обновляются, служба запускается, а результат попадает в журнал, в журнал событий Windows и на карточку выше. Служба, которая не вернулась, откатывается к предыдущему установщику, кроме случая, когда новая версия уже изменила базу данных.</value>
@@ -8824,8 +8818,8 @@ Control Panel может читать файлы сообщений только
   <data name="Publish" xml:space="preserve">
     <value>Опубликовать</value>
   </data>
-  <data name="Publish a public A/AAAA record for every name in 'Host names for the certificate' on the Certificates (ACME) page, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker." xml:space="preserve">
-    <value>Опубликуйте общедоступную запись A/AAAA для каждого имени из поля «Имена узлов для сертификата» на странице «Сертификаты (ACME)», и разрешите входящие TCP-подключения из интернета на порт проверки (пробросьте порт через любой NAT). Доступность снаружи невозможно проверить изнутри, поэтому проверяйте её из внешней сети или онлайн-сервисом проверки портов.</value>
+  <data name="Publish a public A/AAAA record for every name in 'Host names for the certificate' on the Automatic certificates (ACME) page, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker." xml:space="preserve">
+    <value>Опубликуйте общедоступную запись A/AAAA для каждого имени из поля «Имена узлов для сертификата» на странице «Автоматические сертификаты (ACME)», и разрешите входящие TCP-подключения из интернета на порт проверки (пробросьте порт через любой NAT). Доступность снаружи невозможно проверить изнутри, поэтому проверяйте её из внешней сети или онлайн-сервисом проверки портов.</value>
   </data>
   <data name="Publish it at your DNS provider - or, if you just did, wait for propagation (usually minutes, sometimes hours) and check again." xml:space="preserve">
     <value>Опубликуйте её у своего поставщика DNS — или, если вы только что это сделали, дождитесь распространения (обычно минуты, иногда часы) и проверьте ещё раз.</value>
@@ -11867,9 +11861,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>REST API выключен (его порт на странице «API и мониторинг» равен {0}), а эти параметры доступны через него: сервер их хранит, но ни одно свойство COM их не передаёт. Задайте REST API порт на странице «API и мониторинг», повторно инициализируйте сервер и снова откройте эту страницу.</value>
   </data>
-  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and this page reads the cases over it. Give it a port there, or read the cases in the Control Deck." xml:space="preserve">
-    <value>REST API выключен (его порт на странице «API и мониторинг» равен {0}), а эта страница читает дела через него. Задайте ему там порт или читайте дела в Control Deck.</value>
-  </data>
   <data name="The REST API listens on {0} only, so the Control Deck opens only in a browser on the server itself." xml:space="preserve">
     <value>REST API прослушивает только {0}, поэтому Control Deck открывается только в браузере на самом сервере.</value>
   </data>
@@ -12956,9 +12947,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on Install update above, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>Сервер может заметить новый выпуск, проверить его по собственной подписи Sigstore этого выпуска и установить его - щелчком по кнопке «Установить обновление» выше или самостоятельно внутри заданного вами окна. Выключено, пока вы не включите проверку; проверка не отправляет ничего, кроме самого запроса.</value>
   </data>
-  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Server status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
-    <value>Сервер может заметить новый выпуск, проверить его по собственной подписи Sigstore этого выпуска и установить его — по щелчку на странице «Состояние сервера» или самостоятельно внутри заданного вами окна. Выключено, пока вы не включите проверку; проверка не отправляет ничего, кроме самого запроса.</value>
-  </data>
   <data name="The server cannot reach its database. Check the database connection and the hMailServer error log, then try again. ({0})" xml:space="preserve">
     <value>Сервер не может обратиться к своей базе данных. Проверьте подключение к базе данных и журнал ошибок hMailServer, затем повторите попытку. ({0})</value>
   </data>
@@ -13218,8 +13206,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The version to go back to" xml:space="preserve">
     <value>Версия для возврата</value>
   </data>
-  <data name="The web services listener has an HTTPS port but no certificate ('TLS certificate file' is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set 'TLS certificate file' and 'TLS private key file' on the Web services &amp; autoconfiguration page, or turn on ACME on the Certificates (ACME) page." xml:space="preserve">
-    <value>У прослушивателя веб-служб есть порт HTTPS, но нет сертификата («Файл сертификата TLS» пуст, а ACME выключен), поэтому прослушиватель HTTPS не запускается, и политику по-прежнему нельзя получить. Задайте «Файл сертификата TLS» и «Файл закрытого ключа TLS» на странице «Веб-службы и автоконфигурация» или включите ACME на странице «Сертификаты (ACME)».</value>
+  <data name="The web services listener has an HTTPS port but no certificate ('TLS certificate file' is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set 'TLS certificate file' and 'TLS private key file' on the Web services &amp; autoconfiguration page, or turn on ACME on the Automatic certificates (ACME) page." xml:space="preserve">
+    <value>У прослушивателя веб-служб есть порт HTTPS, но нет сертификата («Файл сертификата TLS» пуст, а ACME выключен), поэтому прослушиватель HTTPS не запускается, и политику по-прежнему нельзя получить. Задайте «Файл сертификата TLS» и «Файл закрытого ключа TLS» на странице «Веб-службы и автоконфигурация» или включите ACME на странице «Автоматические сертификаты (ACME)».</value>
   </data>
   <data name="The web services settings could not be read: {0}" xml:space="preserve">
     <value>Не удалось прочитать параметры веб-служб: {0}</value>

@@ -1284,7 +1284,7 @@ namespace hMailServer.ControlPanel.Services
             // Verified: with no certificate configured and ACME off, the HTTPS
             // listener logs "No TLS certificate available yet" and stays down.
             item.Add(SetupItemState.ActionNeeded,
-               L("The web services listener has an HTTPS port but no certificate ('TLS certificate file' is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set 'TLS certificate file' and 'TLS private key file' on the Web services & autoconfiguration page, or turn on ACME on the Certificates (ACME) page."));
+               L("The web services listener has an HTTPS port but no certificate ('TLS certificate file' is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set 'TLS certificate file' and 'TLS private key file' on the Web services & autoconfiguration page, or turn on ACME on the Automatic certificates (ACME) page."));
          }
          else
          {
@@ -1386,7 +1386,7 @@ namespace hMailServer.ControlPanel.Services
             // records survive renewals; with it off, every renewal generates a
             // new key and silently invalidates any published record.
             item.Add(SetupItemState.ActionNeeded,
-               L("ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Certificates (ACME) page (the default), or update the TLSA record after every renewal."));
+               L("ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Automatic certificates (ACME) page (the default), or update the TLSA record after every renewal."));
          }
 
          item.AggregateFromFindings();
@@ -1532,7 +1532,7 @@ namespace hMailServer.ControlPanel.Services
          {
             Title = L("ACME certificates - the CA must reach this server from the internet"),
             Purpose = L("Issues and renews certificates automatically, but only if the certificate authority can fetch the http-01 challenge from this server."),
-            Action = L("Publish a public A/AAAA record for every name in 'Host names for the certificate' on the Certificates (ACME) page, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker."),
+            Action = L("Publish a public A/AAAA record for every name in 'Host names for the certificate' on the Automatic certificates (ACME) page, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker."),
             Page = "acme"
          };
 
@@ -1559,7 +1559,7 @@ namespace hMailServer.ControlPanel.Services
          {
             // Verified: RequestCertificate logs and returns before contacting the CA.
             item.Add(SetupItemState.ActionNeeded,
-               L("ACME is on, but 'Host names for the certificate' on the Certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)."));
+               L("ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)."));
          }
          else
          {

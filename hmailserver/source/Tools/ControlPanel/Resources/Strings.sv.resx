@@ -723,11 +723,11 @@
   <data name="ACME is off (the default), so nothing external is required." xml:space="preserve">
     <value>ACME är av (standard), så inget externt krävs.</value>
   </data>
-  <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
-    <value>ACME är aktiverat och 'Återanvänd den privata nyckeln över förnyelser' är av, så varje certifikatförnyelse genererar en ny privat nyckel. Om du publicerar TLSA-poster av typen '3 1 1' går de sönder vid nästa förnyelse - slå på det igen på sidan Certifikat (ACME) (standard), eller uppdatera TLSA-posten efter varje förnyelse.</value>
+  <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Automatic certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
+    <value>ACME är aktiverat och 'Återanvänd den privata nyckeln över förnyelser' är av, så varje certifikatförnyelse genererar en ny privat nyckel. Om du publicerar TLSA-poster av typen '3 1 1' går de sönder vid nästa förnyelse - slå på det igen på sidan Automatiska certifikat (ACME) (standard), eller uppdatera TLSA-posten efter varje förnyelse.</value>
   </data>
-  <data name="ACME is on, but 'Host names for the certificate' on the Certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
-    <value>ACME är aktiverat men 'Värdnamn för certifikatet' på sidan Certifikat (ACME) är tomt, så inget certifikat begärs någonsin - klienten loggar 'No domains configured' och stannar. Lista där värdnamnen certifikatet ska täcka (till exempel mail.dindomän.se, mta-sts.dindomän.se).</value>
+  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
+    <value>ACME är aktiverat men 'Värdnamn för certifikatet' på sidan Automatiska certifikat (ACME) är tomt, så inget certifikat begärs någonsin - klienten loggar 'No domains configured' och stannar. Lista där värdnamnen certifikatet ska täcka (till exempel mail.dindomän.se, mta-sts.dindomän.se).</value>
   </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME är på men inget certifikat har utfärdats ännu - fullchain.pem och privkey.pem finns inte båda i {0}. Utfärdandet sker enligt serverns eget schema, så det här är normalt några minuter efter aktiveringen; om det består kunde CA:n inte nå den här servern, och sidan Konfigurationschecklista kontrollerar exakt det.</value>
@@ -1536,8 +1536,8 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again." xml:space="preserve">
     <value>En post ändras på plats via REST-API:t, som begär administratörens engångskod innan det svarar, och ingen angavs. Tryck på Redigera… för att bli tillfrågad igen, eller ta bort posten och lägg till den igen.</value>
   </data>
-  <data name="An entry is changed in place over the REST API, which is off (RestApiPort is {0}). Give it a port on the API &amp; monitoring page and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
-    <value>En post ändras på plats via REST-API:t, som är avstängt (RestApiPort är {0}). Ge det en port på sidan API &amp; övervakning och initiera om servern, eller ta bort posten och lägg till den igen.</value>
+  <data name="An entry is changed in place over the REST API, which is off (its port on the API &amp; monitoring page is {0}). Give it a port there and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
+    <value>En post ändras på plats via REST-API:t, som är avstängt (dess port på sidan API &amp; övervakning är {0}). Ge det en port där och initiera om servern, eller ta bort posten och lägg till den igen.</value>
   </data>
   <data name="An entry is changed in place over the REST API, which listens on {0} only, out of reach of a Control Panel on another machine. Change the entry in the Control Deck on the server, or delete it and add it again." xml:space="preserve">
     <value>En post ändras på plats via REST-API:t, som bara lyssnar på {0}, utom räckhåll för en Control Panel på en annan dator. Ändra posten i Control Deck på servern, eller ta bort den och lägg till den igen.</value>
@@ -4126,9 +4126,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Domains" xml:space="preserve">
     <value>Domäner</value>
   </data>
-  <data name="Domains &amp; accounts" xml:space="preserve">
-    <value>Domäner &amp; konton</value>
-  </data>
   <data name="Domains and HELO suffixes let past greylisting only when the message passes SPF, DKIM or DMARC as the entry requires." xml:space="preserve">
     <value>Domäner och HELO-suffix som släpps förbi gråstlistningen bara när meddelandet klarar SPF, DKIM eller DMARC så som posten kräver.</value>
   </data>
@@ -5745,9 +5742,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Insert template…" xml:space="preserve">
     <value>Infoga mall…</value>
-  </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Server status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
-    <value>Inom fönstret installerar den schemalagda uppgiften ett verifierat installationsprogram utan ett klick: tjänsten stoppas, filer och schema uppgraderas, tjänsten startas, och utfallet går till loggen, Windows händelselogg och sidan Serverstatus. En tjänst som inte kommer tillbaka återställs till det föregående installationsprogrammet, såvida inte den nya versionen redan har ändrat databasen.</value>
   </data>
   <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
     <value>Inom fönstret installerar den schemalagda uppgiften ett verifierat installationsprogram utan ett klick: tjänsten stoppas, filer och schema uppgraderas, tjänsten startas, och utfallet går till loggen, Windows händelselogg och kortet ovan. En tjänst som inte kommer tillbaka återställs till det föregående installationsprogrammet, såvida inte den nya versionen redan har ändrat databasen.</value>
@@ -8736,8 +8730,8 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="Publish" xml:space="preserve">
     <value>Publicera</value>
   </data>
-  <data name="Publish a public A/AAAA record for every name in 'Host names for the certificate' on the Certificates (ACME) page, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker." xml:space="preserve">
-    <value>Publicera en publik A-/AAAA-post för varje namn i 'Värdnamn för certifikatet' på sidan Certifikat (ACME), och tillåt inkommande TCP på utmaningsporten från internet (vidarebefordra porten genom eventuell NAT). Nåbarhet utifrån kan inte provas inifrån, så testa den från ett externt nätverk eller en portkontroll på nätet.</value>
+  <data name="Publish a public A/AAAA record for every name in 'Host names for the certificate' on the Automatic certificates (ACME) page, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker." xml:space="preserve">
+    <value>Publicera en publik A-/AAAA-post för varje namn i 'Värdnamn för certifikatet' på sidan Automatiska certifikat (ACME), och tillåt inkommande TCP på utmaningsporten från internet (vidarebefordra porten genom eventuell NAT). Nåbarhet utifrån kan inte provas inifrån, så testa den från ett externt nätverk eller en portkontroll på nätet.</value>
   </data>
   <data name="Publish it at your DNS provider - or, if you just did, wait for propagation (usually minutes, sometimes hours) and check again." xml:space="preserve">
     <value>Publicera den hos din DNS-leverantör - eller, om du nyss gjorde det, vänta på spridning (oftast minuter, ibland timmar) och kontrollera igen.</value>
@@ -11737,9 +11731,6 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>REST-API:t är avstängt (dess port på sidan API &amp; övervakning är {0}), och de här inställningarna nås via det: servern sparar dem, men ingen COM-egenskap bär dem. Ge REST-API:t en port på sidan API &amp; övervakning, initiera om servern och öppna den här sidan igen.</value>
   </data>
-  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and this page reads the cases over it. Give it a port there, or read the cases in the Control Deck." xml:space="preserve">
-    <value>REST-API:t är avstängt (dess port på sidan API &amp; övervakning är {0}), och den här sidan läser ärendena genom det. Ge det en port där, eller läs ärendena i Control Deck.</value>
-  </data>
   <data name="The REST API listens on {0} only, so the Control Deck opens only in a browser on the server itself." xml:space="preserve">
     <value>REST-API:et lyssnar bara på {0}, så Control Deck öppnas bara i en webbläsare på själva servern.</value>
   </data>
@@ -12793,9 +12784,6 @@ Lägg till det ändå?</value>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on Install update above, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>Servern kan upptäcka en ny utgåva, verifiera den mot utgåvans egen Sigstore-signatur och installera den - med ett klick på Installera uppdatering ovan, eller på egen hand inom ett fönster du anger. Av tills du slår på kontrollen; kontrollen skickar inget annat än förfrågan.</value>
   </data>
-  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Server status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
-    <value>Servern kan upptäcka en ny utgåva, verifiera den mot utgåvans egen Sigstore-signatur och installera den - med ett klick på sidan Serverstatus, eller på egen hand inom ett fönster du anger. Av tills du slår på kontrollen; kontrollen skickar inget annat än förfrågan.</value>
-  </data>
   <data name="The server cannot reach its database. Check the database connection and the hMailServer error log, then try again. ({0})" xml:space="preserve">
     <value>Servern kan inte nå sin databas. Kontrollera databasanslutningen och hMailServers fellogg, och försök sedan igen. ({0})</value>
   </data>
@@ -13055,8 +13043,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="The version to go back to" xml:space="preserve">
     <value>Versionen att gå tillbaka till</value>
   </data>
-  <data name="The web services listener has an HTTPS port but no certificate ('TLS certificate file' is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set 'TLS certificate file' and 'TLS private key file' on the Web services &amp; autoconfiguration page, or turn on ACME on the Certificates (ACME) page." xml:space="preserve">
-    <value>Webbtjänsternas lyssnare har en HTTPS-port men inget certifikat ('TLS-certifikatfil' är tom och ACME är av), så HTTPS-lyssnaren startar inte och policyn kan fortfarande inte hämtas. Sätt 'TLS-certifikatfil' och 'Privat TLS-nyckelfil' på sidan Webbtjänster &amp; automatisk konfiguration, eller aktivera ACME på sidan Certifikat (ACME).</value>
+  <data name="The web services listener has an HTTPS port but no certificate ('TLS certificate file' is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set 'TLS certificate file' and 'TLS private key file' on the Web services &amp; autoconfiguration page, or turn on ACME on the Automatic certificates (ACME) page." xml:space="preserve">
+    <value>Webbtjänsternas lyssnare har en HTTPS-port men inget certifikat ('TLS-certifikatfil' är tom och ACME är av), så HTTPS-lyssnaren startar inte och policyn kan fortfarande inte hämtas. Sätt 'TLS-certifikatfil' och 'Privat TLS-nyckelfil' på sidan Webbtjänster &amp; automatisk konfiguration, eller aktivera ACME på sidan Automatiska certifikat (ACME).</value>
   </data>
   <data name="The web services settings could not be read: {0}" xml:space="preserve">
     <value>Webbtjänstinställningarna kunde inte läsas: {0}</value>

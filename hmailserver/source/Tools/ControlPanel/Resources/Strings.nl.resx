@@ -723,11 +723,11 @@
   <data name="ACME is off (the default), so nothing external is required." xml:space="preserve">
     <value>ACME staat uit (de standaard), dus er is niets externs vereist.</value>
   </data>
-  <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
-    <value>ACME is ingeschakeld en 'De privésleutel hergebruiken bij verlengingen' staat uit, dus elke certificaatverlenging genereert een nieuwe privésleutel. Als u '3 1 1' TLSA-records publiceert, breken die bij de volgende verlenging - schakel het weer in op de pagina Certificaten (ACME) (de standaard), of werk het TLSA-record na elke verlenging bij.</value>
+  <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Automatic certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
+    <value>ACME is ingeschakeld en 'De privésleutel hergebruiken bij verlengingen' staat uit, dus elke certificaatverlenging genereert een nieuwe privésleutel. Als u '3 1 1' TLSA-records publiceert, breken die bij de volgende verlenging - schakel het weer in op de pagina Automatische certificaten (ACME) (de standaard), of werk het TLSA-record na elke verlenging bij.</value>
   </data>
-  <data name="ACME is on, but 'Host names for the certificate' on the Certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
-    <value>ACME is ingeschakeld maar 'Hostnamen voor het certificaat' op de pagina Certificaten (ACME) is leeg, dus er wordt nooit een certificaat aangevraagd - de client logt 'No domains configured' en stopt. Som daar de hostnamen op die het certificaat moet dekken (bijvoorbeeld mail.uwdomein.nl, mta-sts.uwdomein.nl).</value>
+  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
+    <value>ACME is ingeschakeld maar 'Hostnamen voor het certificaat' op de pagina Automatische certificaten (ACME) is leeg, dus er wordt nooit een certificaat aangevraagd - de client logt 'No domains configured' en stopt. Som daar de hostnamen op die het certificaat moet dekken (bijvoorbeeld mail.uwdomein.nl, mta-sts.uwdomein.nl).</value>
   </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME is ingeschakeld maar er is nog geen certificaat uitgegeven - fullchain.pem en privkey.pem staan niet allebei in {0}. Uitgifte gebeurt volgens het eigen schema van de server, dus dit is normaal gedurende enkele minuten na het inschakelen; houdt het aan, dan kon de CA deze server niet bereiken, en de pagina Configuratiechecklist controleert precies dat.</value>
@@ -1536,8 +1536,8 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again." xml:space="preserve">
     <value>Een vermelding wordt ter plekke gewijzigd via de REST-API, die de eenmalige code van de beheerder vraagt voordat hij antwoordt, en er is geen gegeven. Druk op Bewerken… om er opnieuw naar te worden gevraagd, of verwijder de vermelding en voeg haar opnieuw toe.</value>
   </data>
-  <data name="An entry is changed in place over the REST API, which is off (RestApiPort is {0}). Give it a port on the API &amp; monitoring page and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
-    <value>Een vermelding wordt ter plekke gewijzigd via de REST-API, die uit staat (RestApiPort is {0}). Geef die een poort op de pagina API en monitoring en initialiseer de server opnieuw, of verwijder de vermelding en voeg haar opnieuw toe.</value>
+  <data name="An entry is changed in place over the REST API, which is off (its port on the API &amp; monitoring page is {0}). Give it a port there and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
+    <value>Een vermelding wordt ter plekke gewijzigd via de REST-API, die uit staat (de poort op de pagina API en monitoring is {0}). Geef die daar een poort en initialiseer de server opnieuw, of verwijder de vermelding en voeg haar opnieuw toe.</value>
   </data>
   <data name="An entry is changed in place over the REST API, which listens on {0} only, out of reach of a Control Panel on another machine. Change the entry in the Control Deck on the server, or delete it and add it again." xml:space="preserve">
     <value>Een vermelding wordt ter plekke gewijzigd via de REST-API, die alleen op {0} luistert, buiten bereik van een Control Panel op een andere machine. Wijzig de vermelding in het Control Deck op de server, of verwijder haar en voeg haar opnieuw toe.</value>
@@ -4126,9 +4126,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Domains" xml:space="preserve">
     <value>Domeinen</value>
   </data>
-  <data name="Domains &amp; accounts" xml:space="preserve">
-    <value>Domeinen en accounts</value>
-  </data>
   <data name="Domains and HELO suffixes let past greylisting only when the message passes SPF, DKIM or DMARC as the entry requires." xml:space="preserve">
     <value>Domeinen en HELO-achtervoegsels die greylisting alleen passeren wanneer het bericht SPF, DKIM of DMARC doorstaat zoals de vermelding vereist.</value>
   </data>
@@ -5745,9 +5742,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Insert template…" xml:space="preserve">
     <value>Sjabloon invoegen…</value>
-  </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Server status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
-    <value>Binnen het venster installeert de geplande taak een geverifieerd installatieprogramma zonder een klik: de service stopt, de bestanden en het databaseschema worden bijgewerkt, de service start, en de uitkomst gaat naar het logboek, het Windows-gebeurtenislogboek en de pagina Serverstatus. Een service die niet terugkomt, wordt teruggedraaid naar het vorige installatieprogramma, tenzij de nieuwe versie de database al heeft gewijzigd.</value>
   </data>
   <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
     <value>Binnen het venster installeert de geplande taak een geverifieerd installatieprogramma zonder een klik: de service stopt, de bestanden en het databaseschema worden bijgewerkt, de service start, en de uitkomst gaat naar het logboek, het Windows-gebeurtenislogboek en de kaart hierboven. Een service die niet terugkomt, wordt teruggedraaid naar het vorige installatieprogramma, tenzij de nieuwe versie de database al heeft gewijzigd.</value>
@@ -8736,8 +8730,8 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Publish" xml:space="preserve">
     <value>Publiceren</value>
   </data>
-  <data name="Publish a public A/AAAA record for every name in 'Host names for the certificate' on the Certificates (ACME) page, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker." xml:space="preserve">
-    <value>Publiceer een openbaar A/AAAA-record voor elke naam in 'Hostnamen voor het certificaat' op de pagina Certificaten (ACME), en sta inkomend TCP op de challengepoort vanaf internet toe (stuur de poort door achter elke NAT). Bereikbaarheid van buitenaf kan niet van binnenuit worden gepeild, dus test die vanaf een extern netwerk of met een online poortcontrole.</value>
+  <data name="Publish a public A/AAAA record for every name in 'Host names for the certificate' on the Automatic certificates (ACME) page, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker." xml:space="preserve">
+    <value>Publiceer een openbaar A/AAAA-record voor elke naam in 'Hostnamen voor het certificaat' op de pagina Automatische certificaten (ACME), en sta inkomend TCP op de challengepoort vanaf internet toe (stuur de poort door achter elke NAT). Bereikbaarheid van buitenaf kan niet van binnenuit worden gepeild, dus test die vanaf een extern netwerk of met een online poortcontrole.</value>
   </data>
   <data name="Publish it at your DNS provider - or, if you just did, wait for propagation (usually minutes, sometimes hours) and check again." xml:space="preserve">
     <value>Publiceer het bij uw DNS-provider - of wacht, als u dat net hebt gedaan, op de propagatie (meestal minuten, soms uren) en controleer opnieuw.</value>
@@ -11737,9 +11731,6 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>De REST-API staat uit (de poort op de pagina API en monitoring is {0}), en deze instellingen worden erover bereikt: de server bewaart ze, maar geen COM-eigenschap draagt ze. Geef de REST-API een poort op de pagina API en monitoring, initialiseer de server opnieuw en open deze pagina opnieuw.</value>
   </data>
-  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and this page reads the cases over it. Give it a port there, or read the cases in the Control Deck." xml:space="preserve">
-    <value>De REST-API staat uit (de poort op de pagina API en monitoring is {0}) en deze pagina leest de zaken erover. Geef hem daar een poort, of lees de zaken in het Control Deck.</value>
-  </data>
   <data name="The REST API listens on {0} only, so the Control Deck opens only in a browser on the server itself." xml:space="preserve">
     <value>De REST-API luistert alleen op {0}, dus de Control Deck opent alleen in een browser op de server zelf.</value>
   </data>
@@ -12793,9 +12784,6 @@ Toch toevoegen?</value>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on Install update above, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>De server kan een nieuwe release opmerken, die verifiëren tegen de eigen Sigstore-handtekening van de release, en die installeren - met een klik op Update installeren hierboven, of uit zichzelf binnen een venster dat u instelt. Uit totdat u de controle aanzet; de controle verstuurt niets anders dan het verzoek.</value>
   </data>
-  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Server status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
-    <value>De server kan een nieuwe release opmerken, die verifiëren tegen de eigen Sigstore-handtekening van de release, en die installeren - met een klik op de pagina Serverstatus, of uit zichzelf binnen een venster dat u instelt. Uit totdat u de controle aanzet; de controle verstuurt niets anders dan het verzoek.</value>
-  </data>
   <data name="The server cannot reach its database. Check the database connection and the hMailServer error log, then try again. ({0})" xml:space="preserve">
     <value>De server kan zijn database niet bereiken. Controleer de databaseverbinding en het hMailServer-foutenlogboek en probeer het daarna opnieuw. ({0})</value>
   </data>
@@ -13055,8 +13043,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="The version to go back to" xml:space="preserve">
     <value>De versie om naar terug te gaan</value>
   </data>
-  <data name="The web services listener has an HTTPS port but no certificate ('TLS certificate file' is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set 'TLS certificate file' and 'TLS private key file' on the Web services &amp; autoconfiguration page, or turn on ACME on the Certificates (ACME) page." xml:space="preserve">
-    <value>De listener van de webservices heeft een HTTPS-poort maar geen certificaat ('TLS-certificaatbestand' is leeg en ACME staat uit), dus de HTTPS-listener start niet en het beleid kan nog steeds niet worden opgehaald. Stel 'TLS-certificaatbestand' en 'TLS-privésleutelbestand' in op de pagina Webservices en autoconfiguratie, of schakel ACME in op de pagina Certificaten (ACME).</value>
+  <data name="The web services listener has an HTTPS port but no certificate ('TLS certificate file' is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set 'TLS certificate file' and 'TLS private key file' on the Web services &amp; autoconfiguration page, or turn on ACME on the Automatic certificates (ACME) page." xml:space="preserve">
+    <value>De listener van de webservices heeft een HTTPS-poort maar geen certificaat ('TLS-certificaatbestand' is leeg en ACME staat uit), dus de HTTPS-listener start niet en het beleid kan nog steeds niet worden opgehaald. Stel 'TLS-certificaatbestand' en 'TLS-privésleutelbestand' in op de pagina Webservices en autoconfiguratie, of schakel ACME in op de pagina Automatische certificaten (ACME).</value>
   </data>
   <data name="The web services settings could not be read: {0}" xml:space="preserve">
     <value>De instellingen voor de webservices konden niet worden gelezen: {0}</value>

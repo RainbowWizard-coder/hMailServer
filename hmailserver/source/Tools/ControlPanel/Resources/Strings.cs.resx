@@ -729,11 +729,11 @@
   <data name="ACME is off (the default), so nothing external is required." xml:space="preserve">
     <value>ACME je vypnuto (výchozí), takže není potřeba nic vnějšího.</value>
   </data>
-  <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
-    <value>ACME je zapnuto a volba „Znovu použít soukromý klíč při obnovách“ je vypnuta, takže každá obnova certifikátu vygeneruje nový soukromý klíč. Pokud publikujete TLSA záznamy '3 1 1', při příští obnově přestanou platit – znovu ji zapněte na stránce Certifikáty (ACME) (výchozí), nebo TLSA záznam po každé obnově aktualizujte.</value>
+  <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Automatic certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
+    <value>ACME je zapnuto a volba „Znovu použít soukromý klíč při obnovách“ je vypnuta, takže každá obnova certifikátu vygeneruje nový soukromý klíč. Pokud publikujete TLSA záznamy '3 1 1', při příští obnově přestanou platit – znovu ji zapněte na stránce Automatické certifikáty (ACME) (výchozí), nebo TLSA záznam po každé obnově aktualizujte.</value>
   </data>
-  <data name="ACME is on, but 'Host names for the certificate' on the Certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
-    <value>ACME je zapnuto, ale pole „Názvy hostitelů pro certifikát“ na stránce Certifikáty (ACME) je prázdné, takže se nikdy nevyžádá žádný certifikát – klient zapíše do logu 'No domains configured' a skončí. Uveďte tam názvy hostitelů, které má certifikát pokrývat (například mail.yourdomain.com, mta-sts.yourdomain.com).</value>
+  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
+    <value>ACME je zapnuto, ale pole „Názvy hostitelů pro certifikát“ na stránce Automatické certifikáty (ACME) je prázdné, takže se nikdy nevyžádá žádný certifikát – klient zapíše do logu 'No domains configured' a skončí. Uveďte tam názvy hostitelů, které má certifikát pokrývat (například mail.yourdomain.com, mta-sts.yourdomain.com).</value>
   </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME je zapnuto, ale zatím nebyl vydán žádný certifikát – v {0} nejsou oba soubory fullchain.pem a privkey.pem. Vydání probíhá podle vlastního plánu serveru, takže je to pár minut po zapnutí normální; pokud to přetrvává, certifikační autorita na tento server nedosáhla a stránka Kontrolní seznam nastavení kontroluje přesně to.</value>
@@ -1548,8 +1548,8 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again." xml:space="preserve">
     <value>Položka se mění na místě přes REST API, které před odpovědí žádá jednorázový kód správce, a žádný nebyl zadán. Stiskněte Upravit… a budete požádáni znovu, nebo položku smažte a přidejte znovu.</value>
   </data>
-  <data name="An entry is changed in place over the REST API, which is off (RestApiPort is {0}). Give it a port on the API &amp; monitoring page and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
-    <value>Položka se mění na místě přes REST API, které je vypnuté (RestApiPort je {0}). Dejte mu port na stránce API a monitorování a reinicializujte server, nebo položku smažte a přidejte znovu.</value>
+  <data name="An entry is changed in place over the REST API, which is off (its port on the API &amp; monitoring page is {0}). Give it a port there and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
+    <value>Položka se mění na místě přes REST API, které je vypnuté (jeho port na stránce API a monitorování je {0}). Dejte mu tam port a reinicializujte server, nebo položku smažte a přidejte znovu.</value>
   </data>
   <data name="An entry is changed in place over the REST API, which listens on {0} only, out of reach of a Control Panel on another machine. Change the entry in the Control Deck on the server, or delete it and add it again." xml:space="preserve">
     <value>Položka se mění na místě přes REST API, které naslouchá jen na {0}, mimo dosah Control Panel na jiném počítači. Změňte položku v Control Deck na serveru, nebo ji smažte a přidejte znovu.</value>
@@ -4172,9 +4172,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Domains" xml:space="preserve">
     <value>Domény</value>
   </data>
-  <data name="Domains &amp; accounts" xml:space="preserve">
-    <value>Domény a účty</value>
-  </data>
   <data name="Domains and HELO suffixes let past greylisting only when the message passes SPF, DKIM or DMARC as the entry requires." xml:space="preserve">
     <value>Domény a přípony HELO propuštěné přes greylisting jen tehdy, když zpráva projde SPF, DKIM nebo DMARC podle požadavku položky.</value>
   </data>
@@ -5809,9 +5806,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Insert template…" xml:space="preserve">
     <value>Vložit šablonu…</value>
-  </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Server status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
-    <value>Uvnitř okna naplánovaná úloha bez jediného kliknutí použije ověřený instalační program: služba se zastaví, soubory a schéma se aktualizují, služba se spustí a výsledek jde do logu, do protokolu událostí systému Windows a na stránku Stav serveru. Pokud se služba nevrátí, provede se návrat k předchozímu instalačnímu programu, ledaže nová verze už změnila databázi.</value>
   </data>
   <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
     <value>Uvnitř okna naplánovaná úloha bez jediného kliknutí použije ověřený instalační program: služba se zastaví, soubory a schéma se aktualizují, služba se spustí a výsledek jde do logu, do protokolu událostí systému Windows a na kartu výše. Pokud se služba nevrátí, provede se návrat k předchozímu instalačnímu programu, ledaže nová verze už změnila databázi.</value>
@@ -8824,8 +8818,8 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Publish" xml:space="preserve">
     <value>Zveřejnit</value>
   </data>
-  <data name="Publish a public A/AAAA record for every name in 'Host names for the certificate' on the Certificates (ACME) page, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker." xml:space="preserve">
-    <value>Publikujte veřejný záznam A/AAAA pro každý název v poli „Názvy hostitelů pro certifikát“ na stránce Certifikáty (ACME) a povolte příchozí TCP na portu pro výzvy z internetu (za NAT nastavte přesměrování portu). Dosažitelnost zvenčí nelze ověřit zevnitř, takže ji otestujte z externí sítě nebo online kontrolou portů.</value>
+  <data name="Publish a public A/AAAA record for every name in 'Host names for the certificate' on the Automatic certificates (ACME) page, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker." xml:space="preserve">
+    <value>Publikujte veřejný záznam A/AAAA pro každý název v poli „Názvy hostitelů pro certifikát“ na stránce Automatické certifikáty (ACME) a povolte příchozí TCP na portu pro výzvy z internetu (za NAT nastavte přesměrování portu). Dosažitelnost zvenčí nelze ověřit zevnitř, takže ji otestujte z externí sítě nebo online kontrolou portů.</value>
   </data>
   <data name="Publish it at your DNS provider - or, if you just did, wait for propagation (usually minutes, sometimes hours) and check again." xml:space="preserve">
     <value>Publikujte jej u svého poskytovatele DNS – nebo, pokud jste to právě udělali, počkejte na propagaci (obvykle minuty, někdy hodiny) a zkontrolujte to znovu.</value>
@@ -11867,9 +11861,6 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>REST API je vypnuté (jeho port na stránce API a monitorování je {0}) a tato nastavení se dosahují přes něj: server je uchovává, ale žádná vlastnost COM je nenese. Dejte REST API port na stránce API a monitorování, reinicializujte server a otevřete tuto stránku znovu.</value>
   </data>
-  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and this page reads the cases over it. Give it a port there, or read the cases in the Control Deck." xml:space="preserve">
-    <value>REST API je vypnuté (jeho port na stránce API a monitorování je {0}) a tato stránka přes něj čte případy. Dejte mu tam port, nebo si případy přečtěte v Control Deck.</value>
-  </data>
   <data name="The REST API listens on {0} only, so the Control Deck opens only in a browser on the server itself." xml:space="preserve">
     <value>REST API naslouchá jen na {0}, takže Control Deck se otevře jen v prohlížeči přímo na serveru.</value>
   </data>
@@ -12956,9 +12947,6 @@ Přesto přidat?</value>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on Install update above, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>Server umí zaznamenat nové vydání, ověřit je proti vlastnímu podpisu Sigstore daného vydání a nainstalovat je - kliknutím na Nainstalovat aktualizaci výše, nebo sám od sebe uvnitř okna, které nastavíte. Vypnuto, dokud kontrolu nezapnete; kontrola neposílá nic než samotný požadavek.</value>
   </data>
-  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Server status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
-    <value>Server umí zaznamenat nové vydání, ověřit je proti vlastnímu podpisu Sigstore daného vydání a nainstalovat je – kliknutím na stránce Stav serveru, nebo sám od sebe uvnitř okna, které nastavíte. Vypnuto, dokud kontrolu nezapnete; kontrola neposílá nic než samotný požadavek.</value>
-  </data>
   <data name="The server cannot reach its database. Check the database connection and the hMailServer error log, then try again. ({0})" xml:space="preserve">
     <value>Server nedosáhne na svou databázi. Zkontrolujte připojení k databázi a chybový log hMailServeru a poté to zkuste znovu. ({0})</value>
   </data>
@@ -13218,8 +13206,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="The version to go back to" xml:space="preserve">
     <value>Verze pro návrat</value>
   </data>
-  <data name="The web services listener has an HTTPS port but no certificate ('TLS certificate file' is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set 'TLS certificate file' and 'TLS private key file' on the Web services &amp; autoconfiguration page, or turn on ACME on the Certificates (ACME) page." xml:space="preserve">
-    <value>Listener webových služeb má port HTTPS, ale žádný certifikát („Soubor certifikátu TLS“ je prázdný a ACME je vypnuté), takže listener HTTPS se nespustí a politiku stále nelze stáhnout. Nastavte „Soubor certifikátu TLS“ a „Soubor soukromého klíče TLS“ na stránce Webové služby a autokonfigurace, nebo zapněte ACME na stránce Certifikáty (ACME).</value>
+  <data name="The web services listener has an HTTPS port but no certificate ('TLS certificate file' is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set 'TLS certificate file' and 'TLS private key file' on the Web services &amp; autoconfiguration page, or turn on ACME on the Automatic certificates (ACME) page." xml:space="preserve">
+    <value>Listener webových služeb má port HTTPS, ale žádný certifikát („Soubor certifikátu TLS“ je prázdný a ACME je vypnuté), takže listener HTTPS se nespustí a politiku stále nelze stáhnout. Nastavte „Soubor certifikátu TLS“ a „Soubor soukromého klíče TLS“ na stránce Webové služby a autokonfigurace, nebo zapněte ACME na stránce Automatické certifikáty (ACME).</value>
   </data>
   <data name="The web services settings could not be read: {0}" xml:space="preserve">
     <value>Nastavení webových služeb nešlo přečíst: {0}</value>

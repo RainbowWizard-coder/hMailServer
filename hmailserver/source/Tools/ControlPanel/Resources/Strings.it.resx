@@ -723,11 +723,11 @@
   <data name="ACME is off (the default), so nothing external is required." xml:space="preserve">
     <value>ACME è disattivato (l'impostazione predefinita), quindi non serve nulla di esterno.</value>
   </data>
-  <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
-    <value>ACME è attivo e 'Riutilizza la chiave privata tra un rinnovo e l'altro' è disattivato, quindi ogni rinnovo del certificato genera una nuova chiave privata. Se pubblichi record TLSA '3 1 1' si romperanno al prossimo rinnovo - riattivalo nella pagina Certificati (ACME) (l'impostazione predefinita), o aggiorna il record TLSA dopo ogni rinnovo.</value>
+  <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Automatic certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
+    <value>ACME è attivo e 'Riutilizza la chiave privata tra un rinnovo e l'altro' è disattivato, quindi ogni rinnovo del certificato genera una nuova chiave privata. Se pubblichi record TLSA '3 1 1' si romperanno al prossimo rinnovo - riattivalo nella pagina Certificati automatici (ACME) (l'impostazione predefinita), o aggiorna il record TLSA dopo ogni rinnovo.</value>
   </data>
-  <data name="ACME is on, but 'Host names for the certificate' on the Certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
-    <value>ACME è attivo ma 'Nomi host per il certificato' nella pagina Certificati (ACME) è vuoto, quindi nessun certificato viene mai richiesto - il client registra 'No domains configured' e si ferma. Elenca lì i nomi host che il certificato deve coprire (per esempio mail.tuodominio.it, mta-sts.tuodominio.it).</value>
+  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
+    <value>ACME è attivo ma 'Nomi host per il certificato' nella pagina Certificati automatici (ACME) è vuoto, quindi nessun certificato viene mai richiesto - il client registra 'No domains configured' e si ferma. Elenca lì i nomi host che il certificato deve coprire (per esempio mail.tuodominio.it, mta-sts.tuodominio.it).</value>
   </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME è attivo ma nessun certificato è ancora stato emesso - fullchain.pem e privkey.pem non sono entrambi in {0}. L'emissione avviene secondo la pianificazione del server, quindi è normale per qualche minuto dopo l'attivazione; se persiste, la CA non è riuscita a raggiungere questo server, e la pagina Checklist di configurazione verifica esattamente questo.</value>
@@ -1536,8 +1536,8 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   <data name="An entry is changed in place over the REST API, which asks for the administrator's one-time code before it answers, and none was given. Press Edit… to be asked again, or delete the entry and add it again." xml:space="preserve">
     <value>Una voce si modifica sul posto tramite l'API REST, che chiede il codice monouso dell'amministratore prima di rispondere, e non ne è stato dato nessuno. Premi Modifica… per ricevere di nuovo la richiesta, oppure elimina la voce e aggiungila di nuovo.</value>
   </data>
-  <data name="An entry is changed in place over the REST API, which is off (RestApiPort is {0}). Give it a port on the API &amp; monitoring page and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
-    <value>Una voce si modifica sul posto tramite l'API REST, che è disattivata (RestApiPort è {0}). Dalle una porta nella pagina API e monitoraggio e reinizializza il server, oppure elimina la voce e aggiungila di nuovo.</value>
+  <data name="An entry is changed in place over the REST API, which is off (its port on the API &amp; monitoring page is {0}). Give it a port there and reinitialise the server, or delete the entry and add it again." xml:space="preserve">
+    <value>Una voce si modifica sul posto tramite l'API REST, che è disattivata (la sua porta nella pagina API e monitoraggio è {0}). Assegnale lì una porta e reinizializza il server, oppure elimina la voce e aggiungila di nuovo.</value>
   </data>
   <data name="An entry is changed in place over the REST API, which listens on {0} only, out of reach of a Control Panel on another machine. Change the entry in the Control Deck on the server, or delete it and add it again." xml:space="preserve">
     <value>Una voce si modifica sul posto tramite l'API REST, che ascolta solo su {0}, fuori portata per un Control Panel su un'altra macchina. Modifica la voce nel Control Deck sul server, oppure eliminala e aggiungila di nuovo.</value>
@@ -4126,9 +4126,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Domains" xml:space="preserve">
     <value>Domini</value>
   </data>
-  <data name="Domains &amp; accounts" xml:space="preserve">
-    <value>Domini e account</value>
-  </data>
   <data name="Domains and HELO suffixes let past greylisting only when the message passes SPF, DKIM or DMARC as the entry requires." xml:space="preserve">
     <value>Domini e suffissi HELO che superano il greylisting solo quando il messaggio supera SPF, DKIM o DMARC come richiede la voce.</value>
   </data>
@@ -5745,9 +5742,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Insert template…" xml:space="preserve">
     <value>Inserisci modello…</value>
-  </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Server status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
-    <value>All'interno della finestra l'attività pianificata applica senza un clic un programma di installazione verificato: il servizio si arresta, i file e lo schema vengono aggiornati, il servizio si avvia e l'esito va nel registro, nel registro eventi di Windows e nella pagina Stato del server. Un servizio che non torna disponibile viene riportato al programma di installazione precedente, a meno che la nuova versione non abbia già modificato il database.</value>
   </data>
   <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
     <value>All'interno della finestra l'attività pianificata applica senza un clic un programma di installazione verificato: il servizio si arresta, i file e lo schema vengono aggiornati, il servizio si avvia e l'esito va nel registro, nel registro eventi di Windows e nella scheda qui sopra. Un servizio che non torna disponibile viene riportato al programma di installazione precedente, a meno che la nuova versione non abbia già modificato il database.</value>
@@ -8736,8 +8730,8 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   <data name="Publish" xml:space="preserve">
     <value>Pubblica</value>
   </data>
-  <data name="Publish a public A/AAAA record for every name in 'Host names for the certificate' on the Certificates (ACME) page, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker." xml:space="preserve">
-    <value>Pubblica un record A/AAAA pubblico per ogni nome di 'Nomi host per il certificato' nella pagina Certificati (ACME), e consenti il TCP in ingresso da Internet sulla porta delle challenge (con port forwarding attraverso eventuali NAT). La raggiungibilità dall'esterno non può essere sondata dall'interno, quindi provala da una rete esterna o con un servizio online di verifica delle porte.</value>
+  <data name="Publish a public A/AAAA record for every name in 'Host names for the certificate' on the Automatic certificates (ACME) page, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker." xml:space="preserve">
+    <value>Pubblica un record A/AAAA pubblico per ogni nome di 'Nomi host per il certificato' nella pagina Certificati automatici (ACME), e consenti il TCP in ingresso da Internet sulla porta delle challenge (con port forwarding attraverso eventuali NAT). La raggiungibilità dall'esterno non può essere sondata dall'interno, quindi provala da una rete esterna o con un servizio online di verifica delle porte.</value>
   </data>
   <data name="Publish it at your DNS provider - or, if you just did, wait for propagation (usually minutes, sometimes hours) and check again." xml:space="preserve">
     <value>Pubblicalo presso il tuo provider DNS - o, se l'hai appena fatto, attendi la propagazione (di solito minuti, a volte ore) e verifica di nuovo.</value>
@@ -11737,9 +11731,6 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>L'API REST è disattivata (la sua porta nella pagina API e monitoraggio è {0}), e queste impostazioni si raggiungono tramite essa: il server le conserva, ma nessuna proprietà COM le porta. Dai una porta all'API REST nella pagina API e monitoraggio, reinizializza il server e riapri questa pagina.</value>
   </data>
-  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and this page reads the cases over it. Give it a port there, or read the cases in the Control Deck." xml:space="preserve">
-    <value>L'API REST è disattivata (la sua porta nella pagina API e monitoraggio è {0}) e questa pagina legge i casi attraverso di essa. Assegnale lì una porta, oppure leggi i casi nel Control Deck.</value>
-  </data>
   <data name="The REST API listens on {0} only, so the Control Deck opens only in a browser on the server itself." xml:space="preserve">
     <value>L'API REST è in ascolto solo su {0}, quindi il Control Deck si apre solo in un browser sul server stesso.</value>
   </data>
@@ -12793,9 +12784,6 @@ Aggiungerlo comunque?</value>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on Install update above, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>Il server può accorgersi di una nuova versione, verificarla con la firma Sigstore della versione stessa e installarla - con un clic su Installa l'aggiornamento qui sopra, oppure da solo all'interno di una finestra che imposti tu. È disattivato finché non attivi il controllo; il controllo non invia nulla oltre alla richiesta.</value>
   </data>
-  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Server status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
-    <value>Il server può accorgersi di una nuova versione, verificarla con la firma Sigstore della versione stessa e installarla - con un clic nella pagina Stato del server, oppure da solo all'interno di una finestra che imposti tu. È disattivato finché non attivi il controllo; il controllo non invia nulla oltre alla richiesta.</value>
-  </data>
   <data name="The server cannot reach its database. Check the database connection and the hMailServer error log, then try again. ({0})" xml:space="preserve">
     <value>Il server non riesce a raggiungere il proprio database. Controllare la connessione al database e il registro errori di hMailServer, poi riprovare. ({0})</value>
   </data>
@@ -13055,8 +13043,8 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="The version to go back to" xml:space="preserve">
     <value>La versione a cui tornare</value>
   </data>
-  <data name="The web services listener has an HTTPS port but no certificate ('TLS certificate file' is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set 'TLS certificate file' and 'TLS private key file' on the Web services &amp; autoconfiguration page, or turn on ACME on the Certificates (ACME) page." xml:space="preserve">
-    <value>Il listener dei servizi web ha una porta HTTPS ma nessun certificato ('File del certificato TLS' è vuoto e ACME è disattivato), quindi il listener HTTPS non si avvia e il criterio continua a non poter essere recuperato. Impostare 'File del certificato TLS' e 'File della chiave privata TLS' nella pagina Servizi web e configurazione automatica, oppure attivare ACME nella pagina Certificati (ACME).</value>
+  <data name="The web services listener has an HTTPS port but no certificate ('TLS certificate file' is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set 'TLS certificate file' and 'TLS private key file' on the Web services &amp; autoconfiguration page, or turn on ACME on the Automatic certificates (ACME) page." xml:space="preserve">
+    <value>Il listener dei servizi web ha una porta HTTPS ma nessun certificato ('File del certificato TLS' è vuoto e ACME è disattivato), quindi il listener HTTPS non si avvia e il criterio continua a non poter essere recuperato. Impostare 'File del certificato TLS' e 'File della chiave privata TLS' nella pagina Servizi web e configurazione automatica, oppure attivare ACME nella pagina Certificati automatici (ACME).</value>
   </data>
   <data name="The web services settings could not be read: {0}" xml:space="preserve">
     <value>Non è stato possibile leggere le impostazioni dei servizi web: {0}</value>
