@@ -3234,6 +3234,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Could not reinitialise: {0}" xml:space="preserve">
     <value>Reinicializace se nezdařila: {0}</value>
   </data>
+  <data name="Could not remove message {0}: {1}" xml:space="preserve">
+    <value>Nepodařilo se odebrat zprávu {0}: {1}</value>
+  </data>
   <data name="Could not remove the action: {0}" xml:space="preserve">
     <value>Nepodařilo se odebrat akci: {0}</value>
   </data>
@@ -3242,9 +3245,6 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Could not remove the criterion: {0}" xml:space="preserve">
     <value>Nepodařilo se odebrat kritérium: {0}</value>
-  </data>
-  <data name="Could not remove the message: {0}" xml:space="preserve">
-    <value>Nepodařilo se odebrat zprávu: {0}</value>
   </data>
   <data name="Could not remove the passphrase: {0}" xml:space="preserve">
     <value>Nepodařilo se odebrat přístupové heslo: {0}</value>
@@ -3984,6 +3984,9 @@ Odesílateli bylo řečeno, že byla přijata, takže nic ji nezopakuje a jiná 
   <data name="Deli_vers to" xml:space="preserve">
     <value>Doručuje _na</value>
   </data>
+  <data name="Deliver _all now" xml:space="preserve">
+    <value>Doručit _vše nyní</value>
+  </data>
   <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
     <value>Doručit každou zprávu na účty, které uvádějí její hlavičky (schránka sdílená více lidmi)</value>
   </data>
@@ -4011,6 +4014,9 @@ Odesílateli bylo řečeno, že byla přijata, takže nic ji nezopakuje a jiná 
   <data name="Delivering" xml:space="preserve">
     <value>Doručuje se</value>
   </data>
+  <data name="Delivering now" xml:space="preserve">
+    <value>Právě se doručuje</value>
+  </data>
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>Doručování: zpráva je přijata, ale nikdy neodejde</value>
   </data>
@@ -4028,6 +4034,15 @@ Odesílateli bylo řečeno, že byla přijata, takže nic ji nezopakuje a jiná 
   </data>
   <data name="Delivery retriggered for message {0}." xml:space="preserve">
     <value>Doručení zprávy {0} znovu spuštěno.</value>
+  </data>
+  <data name="Delivery retriggered for {0} message." xml:space="preserve">
+    <value>Doručení znovu spuštěno pro {0} zprávu.</value>
+  </data>
+  <data name="Delivery retriggered for {0} messages." xml:space="preserve">
+    <value>Doručení znovu spuštěno pro {0} zpráv.</value>
+  </data>
+  <data name="Delivery retriggered for {0} messages.|few" xml:space="preserve">
+    <value>Doručení znovu spuštěno pro {0} zprávy.</value>
   </data>
   <data name="Delivery runs on a separate, smaller pool. The usual causes, in the order they occur:" xml:space="preserve">
     <value>Doručování běží na samostatném, menším poolu. Obvyklé příčiny, v pořadí, v jakém nastávají:</value>
@@ -4267,6 +4282,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Drop oversized inbound messages above N KB mid-transfer (0 = off)" xml:space="preserve">
     <value>Ukončit uprostřed přenosu příchozí zprávy nad N KB (0 = vypnuto)</value>
+  </data>
+  <data name="Due for delivery" xml:space="preserve">
+    <value>Čeká na doručení</value>
   </data>
   <data name="E-mail" xml:space="preserve">
     <value>E-mail</value>
@@ -4816,6 +4834,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Every event for queue id {0}, oldest first." xml:space="preserve">
     <value>Každá událost pro id fronty {0}, nejstarší první.</value>
+  </data>
+  <data name="Every event of the selected message, on the Message trace page" xml:space="preserve">
+    <value>Všechny události vybrané zprávy na stránce Trasování zpráv</value>
   </data>
   <data name="Every listener that a mail client connects to requires encryption before it will accept a password." xml:space="preserve">
     <value>Každý listener, ke kterému se připojuje poštovní klient, vyžaduje šifrování, než přijme heslo.</value>
@@ -7196,8 +7217,11 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Next step: {0}." xml:space="preserve">
     <value>Další krok: {0}.</value>
   </data>
-  <data name="Next try" xml:space="preserve">
-    <value>Další pokus</value>
+  <data name="Next try at {0}" xml:space="preserve">
+    <value>Další pokus: {0}</value>
+  </data>
+  <data name="Next try in {0}" xml:space="preserve">
+    <value>Další pokus za {0}</value>
   </data>
   <data name="Next year" xml:space="preserve">
     <value>Další rok</value>
@@ -9661,6 +9685,15 @@ Příští zpráva na tuto adresu bude odeslána a na seznam se adresa vrátí a
 
 Veškerý přístup udělený této skupině přestane pro tento účet platit.</value>
   </data>
+  <data name="Remove {0} message from the queue? It is deleted without a bounce, so its sender is not told." xml:space="preserve">
+    <value>Odebrat z fronty {0} zprávu? Smaže se bez nedoručenky, takže se to odesílatel nedozví.</value>
+  </data>
+  <data name="Remove {0} messages from the queue? They are deleted without a bounce, so their senders are not told." xml:space="preserve">
+    <value>Odebrat z fronty {0} zpráv? Smažou se bez nedoručenek, takže se to jejich odesílatelé nedozví.</value>
+  </data>
+  <data name="Remove {0} messages from the queue? They are deleted without a bounce, so their senders are not told.|few" xml:space="preserve">
+    <value>Odebrat z fronty {0} zprávy? Smažou se bez nedoručenek, takže se to jejich odesílatelé nedozví.</value>
+  </data>
   <data name="Rename {0} to {1}?&#10;&#10;Every account, alias and distribution list moves to the new name, and forwards or memberships in other domains that point at {0} addresses are updated to match. Mail sent to the old name will no longer be accepted." xml:space="preserve">
     <value>Přejmenovat {0} na {1}?
 
@@ -10750,9 +10783,6 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Select a folder first." xml:space="preserve">
     <value>Nejprve vyberte složku.</value>
-  </data>
-  <data name="Select a message first." xml:space="preserve">
-    <value>Nejprve vyberte zprávu.</value>
   </data>
   <data name="Select a port first." xml:space="preserve">
     <value>Nejprve vyberte port.</value>
@@ -13773,6 +13803,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Tours" xml:space="preserve">
     <value>Prohlídky</value>
   </data>
+  <data name="Trace message {0}" xml:space="preserve">
+    <value>Trasovat zprávu {0}</value>
+  </data>
   <data name="Trace one message" xml:space="preserve">
     <value>Sledovat jednu zprávu</value>
   </data>
@@ -15363,6 +15396,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Remove message" xml:space="preserve">
     <value>_Odebrat zprávu</value>
   </data>
+  <data name="_Remove messages" xml:space="preserve">
+    <value>_Odebrat zprávy</value>
+  </data>
   <data name="_Rename the account" xml:space="preserve">
     <value>_Přejmenovat účet</value>
   </data>
@@ -15467,6 +15503,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_To" xml:space="preserve">
     <value>_Komu</value>
+  </data>
+  <data name="_Trace message" xml:space="preserve">
+    <value>_Trasovat zprávu</value>
   </data>
   <data name="_Turn off" xml:space="preserve">
     <value>_Vypnout</value>
@@ -17053,6 +17092,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} zpráva odkazuje na soubor, který na disku chybí.</value>
   </data>
+  <data name="{0} message removed." xml:space="preserve">
+    <value>Odebrána {0} zpráva.</value>
+  </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} zpráv</value>
   </data>
@@ -17073,6 +17115,12 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} messages reference a file that is missing on disk.|few" xml:space="preserve">
     <value>{0} zprávy odkazují na soubor, který na disku chybí.</value>
+  </data>
+  <data name="{0} messages removed." xml:space="preserve">
+    <value>Odebráno {0} zpráv.</value>
+  </data>
+  <data name="{0} messages removed.|few" xml:space="preserve">
+    <value>Odebrány {0} zprávy.</value>
   </data>
   <data name="{0} messages|few" xml:space="preserve">
     <value>{0} zprávy</value>

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using hMailServer.ControlPanel.Services;
 using System.Linq;
@@ -21,20 +22,31 @@ namespace hMailServer.ControlPanel.Views
          public string Created { get; set; }
          public string From { get; set; }
          public string Recipients { get; set; }
-         public string NextTry { get; set; }
          public string Tries { get; set; }
          public string File { get; set; }
 
+         /// <summary>
+         /// Where the message stands - Delivering now, Next try in 12 min - its next try's
+         /// time as the State cell's tool tip, and the order the column sorts in
+         /// (Services/QueueWords).
+         /// </summary>
+         public string State { get; set; }
+         public string StateTip { get; set; }
+         public DateTime StateOrder { get; set; }
+
          // What a screen reader says for the row: its cells, not the name of
          // this class, which is what a grid row is announced as otherwise.
-         public override string ToString() => Id + ", " + From + ", " + Recipients;
+         public override string ToString() => Id + ", " + From + ", " + Recipients + ", " + State;
       }
 
       public QueueView()
       {
          InitializeComponent();
-         // The three act on the selected message; enabled only while one is selected.
-         hMailServer.ControlPanel.Services.SelectionGate.Bind(QueueGrid, ViewButton, RetryButton, RemoveButton);
+         // Deliver now and Remove act on every row chosen; enabled while one is. View
+         // source and Trace message are one message's, enabled while exactly one is
+         // (QueueGrid_SelectionChanged).
+         hMailServer.ControlPanel.Services.SelectionGate.Bind(QueueGrid, RetryButton, RemoveButton);
+         QueueGrid_SelectionChanged(null, null);
 
          // Enter and F2 show the selected message's source and Delete removes it
          // after asking; a double-click on a message shows its source (Views/GridKeys).
@@ -49,64 +61,165 @@ namespace hMailServer.ControlPanel.Views
 
       private void Refresh_Click(object sender, RoutedEventArgs e) => Reload();
 
+      /// <summary>
+      /// View source and Trace message while exactly one row is chosen, which each
+      /// opens one message for; Deliver all now while the queue holds any.
+      /// </summary>
+      private void QueueGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+      {
+         bool one = QueueGrid.SelectedItems.Count == 1;
+         ViewButton.IsEnabled = one;
+         TraceButton.IsEnabled = one;
+      }
+
+      /// <summary>The rows chosen, in the grid's order.</summary>
+      private List<QueueRow> Chosen_() => QueueGrid.SelectedItems.OfType<QueueRow>().ToList();
+
       private void View_Click(object sender, RoutedEventArgs e)
       {
-         if (QueueGrid.SelectedItem is not QueueRow row)
-         {
-            ShowNotice_(StatusLevel.Information, L("Select a message first."));
+         if (QueueGrid.SelectedItems.Count != 1 || QueueGrid.SelectedItem is not QueueRow row)
             return;
-         }
 
          new MessageViewerDialog(Window.GetWindow(this), row.File).ShowDialog();
       }
 
-      private void Retry_Click(object sender, RoutedEventArgs e)
+      /// <summary>
+      /// Trace message: every event of the chosen message, oldest first, on the Message
+      /// trace page, which follows it by its queue id as its own Follow this message
+      /// does (review finding F248): nothing led from a queued message to its trace.
+      /// </summary>
+      private void Trace_Click(object sender, RoutedEventArgs e)
       {
-         if (QueueGrid.SelectedItem is not QueueRow row)
-         {
-            ShowNotice_(StatusLevel.Information, L("Select a message first."));
+         if (QueueGrid.SelectedItems.Count == 1 && QueueGrid.SelectedItem is QueueRow row)
+            Trace_(row);
+      }
+
+      /// <summary>The row's own Trace message icon, for the row it is on whatever is chosen.</summary>
+      private void TraceRow_Click(object sender, RoutedEventArgs e)
+      {
+         if ((sender as FrameworkElement)?.DataContext is QueueRow row)
+            Trace_(row);
+      }
+
+      /// <summary>
+      /// The row icon's name and tool tip, "Trace message 1042", for the row it is on
+      /// (the owner's decision 15) - set here, as the icon is loaded and whenever the
+      /// grid gives it another row, rather than bound to a property of the row, which
+      /// the page's search would read: "trace" and "message" matched every row.
+      /// </summary>
+      private void TraceRow_Named(object sender, RoutedEventArgs e) => NameTraceRow_(sender as FrameworkElement);
+
+      private void TraceRow_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e) => NameTraceRow_(sender as FrameworkElement);
+
+      private static void NameTraceRow_(FrameworkElement button)
+      {
+         if (button?.DataContext is not QueueRow row)
             return;
-         }
+
+         string name = TraceName(row.Id);
+         button.ToolTip = name;
+         AutomationProperties.SetName(button, name);
+      }
+
+      /// <summary>The name of a row's Trace message icon.</summary>
+      internal static string TraceName(string id) => F("Trace message {0}", id);
+
+      private static void Trace_(QueueRow row)
+      {
+         if (!long.TryParse(row.Id, out long id) || Application.Current?.MainWindow is not MainWindow main)
+            return;
+
+         main.NavigateTo("messagetrace"); // no-loc: a page key
+         if (main.ContentHost.Content is MessageTraceView trace)
+            trace.FollowQueuedMessage(id);
+      }
+
+      private void Retry_Click(object sender, RoutedEventArgs e) => Retry_(Chosen_());
+
+      /// <summary>Deliver all now: every message in the queue, as Deliver now does for the rows chosen.</summary>
+      private void RetryAll_Click(object sender, RoutedEventArgs e)
+         => Retry_((QueueGrid.ItemsSource as IEnumerable<QueueRow>)?.ToList() ?? new List<QueueRow>());
+
+      /// <summary>
+      /// Deliver now for each message given, then one start of the delivery, and the
+      /// list read again: it acted on the first of the rows chosen alone.
+      /// </summary>
+      private void Retry_(List<QueueRow> rows)
+      {
+         if (rows.Count == 0)
+            return;
 
          try
          {
             dynamic queue = ServerSession.Current.Application.GlobalObjects.DeliveryQueue;
-            // Message ids are 64-bit on the server; narrowing to Int32 threw
-            // OverflowException on long-lived installations (Remove already used Int64).
-            queue.ResetDeliveryTime(Convert.ToInt64(row.Id));
-            queue.StartDelivery();
-            ServerSession.Release(queue);
+            try
+            {
+               // Message ids are 64-bit on the server; narrowing to Int32 threw
+               // OverflowException on long-lived installations (Remove already used Int64).
+               foreach (QueueRow row in rows)
+                  queue.ResetDeliveryTime(Convert.ToInt64(row.Id));
+               queue.StartDelivery();
+            }
+            finally
+            {
+               ServerSession.Release(queue);
+            }
             Reload();
-            ShowNotice_(StatusLevel.Good, F("Delivery retriggered for message {0}.", row.Id));
+            ShowNotice_(StatusLevel.Good, QueueWords.Retried(rows.Select(row => row.Id).ToList()));
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
+            Reload();
             ShowNotice_(StatusLevel.Critical, F("Could not retrigger delivery: {0}", ServerSession.DescribeComError(ex)));
          }
       }
 
+      /// <summary>
+      /// Remove for every row chosen, after one question that counts them - or names the
+      /// one - and says that none bounces: it asked about the first of five chosen rows
+      /// and removed it alone.
+      /// </summary>
       private void Remove_Click(object sender, RoutedEventArgs e)
       {
-         if (QueueGrid.SelectedItem is not QueueRow row)
-         {
-            ShowNotice_(StatusLevel.Information, L("Select a message first."));
-            return;
-         }
-
-         if (!MessageBox.Confirm(Confirmations.RemoveQueuedMessage(row.Id, row.From, row.Recipients), L("Control Panel"), L("_Remove message"), destructive: true))
+         List<QueueRow> rows = Chosen_();
+         if (rows.Count == 0)
             return;
 
+         // Each question with its own act, so that ConfirmationPatternTests reads both.
+         bool confirmed = rows.Count == 1
+            ? MessageBox.Confirm(Confirmations.RemoveQueuedMessage(rows[0].Id, rows[0].From, rows[0].Recipients), L("Control Panel"), L("_Remove message"), destructive: true)
+            : MessageBox.Confirm(Confirmations.RemoveQueuedMessages(rows.Count), L("Control Panel"), L("_Remove messages"), destructive: true);
+         if (!confirmed)
+            return;
+
+         var removed = new List<string>();
+         string trying = rows[0].Id;
          try
          {
             dynamic queue = ServerSession.Current.Application.GlobalObjects.DeliveryQueue;
-            queue.Remove(Convert.ToInt64(row.Id));
-            ServerSession.Release(queue);
+            try
+            {
+               foreach (QueueRow row in rows)
+               {
+                  trying = row.Id;
+                  queue.Remove(Convert.ToInt64(row.Id));
+                  removed.Add(row.Id);
+               }
+            }
+            finally
+            {
+               ServerSession.Release(queue);
+            }
             Reload();
-            ShowNotice_(StatusLevel.Good, F("Message {0} removed.", row.Id));
+            ShowNotice_(StatusLevel.Good, QueueWords.Removed(removed));
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            ShowNotice_(StatusLevel.Critical, F("Could not remove the message: {0}", ServerSession.DescribeComError(ex)));
+            // What was removed before the refusal is said and is gone from the list
+            // read again; the one refused is named with the server's reason, and it
+            // and the rest are still in the list.
+            Reload();
+            ShowNotice_(StatusLevel.Critical, QueueWords.RemoveRefused(removed, trying, ServerSession.DescribeComError(ex)));
          }
       }
 
@@ -115,6 +228,8 @@ namespace hMailServer.ControlPanel.Views
          try
          {
             var snap = ServerSession.Current.ReadStatus(includeQueueRows: true);
+            bool sameClock = ServerSession.IsLocalSession;
+            DateTime now = DateTime.Now;
 
             var rows = new List<QueueRow>();
             // Tab-separated: id, created, from, recipients, next try, file, locked, tries
@@ -122,16 +237,20 @@ namespace hMailServer.ControlPanel.Views
                                             .Select(line => line.Split('\t'))
                                             .Where(c => c.Length >= 8))
             {
-
+               // The server's locked flag, a message being delivered now, which the
+               // page read and dropped (review finding F248).
+               bool locked = columns[6] == "1";
                rows.Add(new QueueRow
                {
                   Id = columns[0],
                   Created = columns[1],
                   From = string.IsNullOrWhiteSpace(columns[2]) ? "<>" : columns[2],
                   Recipients = columns[3],
-                  NextTry = columns[4],
                   File = columns[5],
-                  Tries = columns[7]
+                  Tries = columns[7],
+                  State = QueueWords.State(locked, columns[4], now, sameClock),
+                  StateTip = QueueWords.StateTip(locked, columns[4]),
+                  StateOrder = QueueWords.Order(locked, columns[4])
                });
             }
 
@@ -140,13 +259,14 @@ namespace hMailServer.ControlPanel.Views
             StatusText.Show(EmptyStatus, Notice, rows.Count, null, EmptyText_);
             CountPill.Visibility = Visibility.Visible;
             ShowListState_();
+            RetryAllButton.IsEnabled = rows.Count > 0;
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
             // Neither the rows of the last read nor "The delivery queue is empty."
             // is a fact this page has now: both go, and the notice says what
             // happened, with Try again (Services/ReadFailure).
-            ReadFailure.Show(Notice, EmptyStatus, QueueGrid, L("Could not read the queue: "), ex, Reload);
+            ReadFailure.Show(Notice, EmptyStatus, QueueGrid, L("Could not read the queue: "), ex, Reload, RetryAllButton);
             CountPill.Visibility = Visibility.Collapsed;
          }
       }

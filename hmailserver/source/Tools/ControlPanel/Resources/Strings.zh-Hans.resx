@@ -3210,6 +3210,9 @@
   <data name="Could not reinitialise: {0}" xml:space="preserve">
     <value>无法重新初始化：{0}</value>
   </data>
+  <data name="Could not remove message {0}: {1}" xml:space="preserve">
+    <value>无法移除邮件 {0}：{1}</value>
+  </data>
   <data name="Could not remove the action: {0}" xml:space="preserve">
     <value>无法移除该操作：{0}</value>
   </data>
@@ -3218,9 +3221,6 @@
   </data>
   <data name="Could not remove the criterion: {0}" xml:space="preserve">
     <value>无法移除该条件：{0}</value>
-  </data>
-  <data name="Could not remove the message: {0}" xml:space="preserve">
-    <value>无法移除该邮件：{0}</value>
   </data>
   <data name="Could not remove the passphrase: {0}" xml:space="preserve">
     <value>无法移除该密码短语：{0}</value>
@@ -3935,6 +3935,9 @@
   <data name="Deli_vers to" xml:space="preserve">
     <value>投递到(_V)</value>
   </data>
+  <data name="Deliver _all now" xml:space="preserve">
+    <value>立即全部投递(_A)</value>
+  </data>
   <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
     <value>将每封邮件投递到其标头中列出的账户（多人共用的邮箱）</value>
   </data>
@@ -3962,6 +3965,9 @@
   <data name="Delivering" xml:space="preserve">
     <value>投递中</value>
   </data>
+  <data name="Delivering now" xml:space="preserve">
+    <value>正在投递</value>
+  </data>
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>投递中：邮件已被接受，但始终没有发出</value>
   </data>
@@ -3979,6 +3985,12 @@
   </data>
   <data name="Delivery retriggered for message {0}." xml:space="preserve">
     <value>已重新触发邮件 {0} 的投递。</value>
+  </data>
+  <data name="Delivery retriggered for {0} message." xml:space="preserve">
+    <value>已重新触发 {0} 封邮件的投递。</value>
+  </data>
+  <data name="Delivery retriggered for {0} messages." xml:space="preserve">
+    <value>已重新触发 {0} 封邮件的投递。</value>
   </data>
   <data name="Delivery runs on a separate, smaller pool. The usual causes, in the order they occur:" xml:space="preserve">
     <value>投递在一个独立的、较小的线程池上运行。常见原因，按发生顺序：</value>
@@ -4218,6 +4230,9 @@
   </data>
   <data name="Drop oversized inbound messages above N KB mid-transfer (0 = off)" xml:space="preserve">
     <value>在传输中途丢弃超过 N KB 的过大入站邮件（0 = 关闭）</value>
+  </data>
+  <data name="Due for delivery" xml:space="preserve">
+    <value>等待投递</value>
   </data>
   <data name="E-mail" xml:space="preserve">
     <value>电子邮件</value>
@@ -4764,6 +4779,9 @@
   </data>
   <data name="Every event for queue id {0}, oldest first." xml:space="preserve">
     <value>队列 id {0} 的每一个事件，最早的在前。</value>
+  </data>
+  <data name="Every event of the selected message, on the Message trace page" xml:space="preserve">
+    <value>所选邮件的所有事件，在“邮件跟踪”页上</value>
   </data>
   <data name="Every listener that a mail client connects to requires encryption before it will accept a password." xml:space="preserve">
     <value>邮件客户端连接的每一个监听器都要求先加密，然后才接受密码。</value>
@@ -7120,8 +7138,11 @@
   <data name="Next step: {0}." xml:space="preserve">
     <value>下一步: {0}。</value>
   </data>
-  <data name="Next try" xml:space="preserve">
-    <value>下次尝试</value>
+  <data name="Next try at {0}" xml:space="preserve">
+    <value>下次尝试：{0}</value>
+  </data>
+  <data name="Next try in {0}" xml:space="preserve">
+    <value>下次尝试在 {0}后</value>
   </data>
   <data name="Next year" xml:space="preserve">
     <value>下一年</value>
@@ -9558,6 +9579,12 @@
 
 授予此组的任何访问权限都将不再适用于该账户。</value>
   </data>
+  <data name="Remove {0} message from the queue? It is deleted without a bounce, so its sender is not told." xml:space="preserve">
+    <value>是否从队列中移除 {0} 封邮件？它将被删除且不发送退信，因此发件人不会收到通知。</value>
+  </data>
+  <data name="Remove {0} messages from the queue? They are deleted without a bounce, so their senders are not told." xml:space="preserve">
+    <value>是否从队列中移除 {0} 封邮件？它们将被删除且不发送退信，因此发件人不会收到通知。</value>
+  </data>
   <data name="Rename {0} to {1}?&#10;&#10;Every account, alias and distribution list moves to the new name, and forwards or memberships in other domains that point at {0} addresses are updated to match. Mail sent to the old name will no longer be accepted." xml:space="preserve">
     <value>是否将 {0} 重命名为 {1}？
 
@@ -10626,9 +10653,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Select a folder first." xml:space="preserve">
     <value>请先选择一个文件夹。</value>
-  </data>
-  <data name="Select a message first." xml:space="preserve">
-    <value>请先选择一封邮件。</value>
   </data>
   <data name="Select a port first." xml:space="preserve">
     <value>请先选择一个端口。</value>
@@ -13604,6 +13628,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Tours" xml:space="preserve">
     <value>导览</value>
   </data>
+  <data name="Trace message {0}" xml:space="preserve">
+    <value>跟踪邮件 {0}</value>
+  </data>
   <data name="Trace one message" xml:space="preserve">
     <value>跟踪一封邮件</value>
   </data>
@@ -15188,6 +15215,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Remove message" xml:space="preserve">
     <value>移除邮件(_R)</value>
   </data>
+  <data name="_Remove messages" xml:space="preserve">
+    <value>移除邮件(_R)</value>
+  </data>
   <data name="_Rename the account" xml:space="preserve">
     <value>重命名账户(_R)</value>
   </data>
@@ -15292,6 +15322,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="_To" xml:space="preserve">
     <value>收件人(_T)</value>
+  </data>
+  <data name="_Trace message" xml:space="preserve">
+    <value>跟踪邮件(_T)</value>
   </data>
   <data name="_Turn off" xml:space="preserve">
     <value>停用(_T)</value>
@@ -16767,6 +16800,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>有 {0} 封邮件引用了磁盘上已缺失的文件。</value>
   </data>
+  <data name="{0} message removed." xml:space="preserve">
+    <value>已移除 {0} 封邮件。</value>
+  </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} 封邮件</value>
   </data>
@@ -16778,6 +16814,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} messages reference a file that is missing on disk." xml:space="preserve">
     <value>有 {0} 封邮件引用了磁盘上已缺失的文件。</value>
+  </data>
+  <data name="{0} messages removed." xml:space="preserve">
+    <value>已移除 {0} 封邮件。</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} 分钟</value>

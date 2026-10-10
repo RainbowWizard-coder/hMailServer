@@ -3210,6 +3210,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Could not reinitialise: {0}" xml:space="preserve">
     <value>Uudelleenalustus epäonnistui: {0}</value>
   </data>
+  <data name="Could not remove message {0}: {1}" xml:space="preserve">
+    <value>Viestiä {0} ei voitu poistaa: {1}</value>
+  </data>
   <data name="Could not remove the action: {0}" xml:space="preserve">
     <value>Toimintoa ei voitu poistaa: {0}</value>
   </data>
@@ -3218,9 +3221,6 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Could not remove the criterion: {0}" xml:space="preserve">
     <value>Ehtoa ei voitu poistaa: {0}</value>
-  </data>
-  <data name="Could not remove the message: {0}" xml:space="preserve">
-    <value>Viestiä ei voitu poistaa: {0}</value>
   </data>
   <data name="Could not remove the passphrase: {0}" xml:space="preserve">
     <value>Tunnuslausetta ei voitu poistaa: {0}</value>
@@ -3935,6 +3935,9 @@ Lähettäjälle kerrottiin, että se hyväksyttiin, joten mikään ei yritä uud
   <data name="Deli_vers to" xml:space="preserve">
     <value>Toi_mittaa osoitteeseen</value>
   </data>
+  <data name="Deliver _all now" xml:space="preserve">
+    <value>Toimita _kaikki nyt</value>
+  </data>
   <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
     <value>Toimita jokainen viesti tileille, jotka sen otsakkeet nimeävät (usean henkilön jakama postilaatikko)</value>
   </data>
@@ -3962,6 +3965,9 @@ Lähettäjälle kerrottiin, että se hyväksyttiin, joten mikään ei yritä uud
   <data name="Delivering" xml:space="preserve">
     <value>Toimitetaan</value>
   </data>
+  <data name="Delivering now" xml:space="preserve">
+    <value>Toimitetaan nyt</value>
+  </data>
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>Toimitus: viesti hyväksytään, mutta se ei koskaan lähde</value>
   </data>
@@ -3979,6 +3985,12 @@ Lähettäjälle kerrottiin, että se hyväksyttiin, joten mikään ei yritä uud
   </data>
   <data name="Delivery retriggered for message {0}." xml:space="preserve">
     <value>Viestin {0} toimitus käynnistetty uudelleen.</value>
+  </data>
+  <data name="Delivery retriggered for {0} message." xml:space="preserve">
+    <value>Toimitus käynnistetty uudelleen {0} viestille.</value>
+  </data>
+  <data name="Delivery retriggered for {0} messages." xml:space="preserve">
+    <value>Toimitus käynnistetty uudelleen {0} viestille.</value>
   </data>
   <data name="Delivery runs on a separate, smaller pool. The usual causes, in the order they occur:" xml:space="preserve">
     <value>Toimitus toimii erillisessä, pienemmässä varannossa. Tavalliset syyt siinä järjestyksessä, jossa ne esiintyvät:</value>
@@ -4218,6 +4230,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Drop oversized inbound messages above N KB mid-transfer (0 = off)" xml:space="preserve">
     <value>Katkaise ylisuuret saapuvat viestit yli N kt kesken siirron (0 = pois)</value>
+  </data>
+  <data name="Due for delivery" xml:space="preserve">
+    <value>Toimitettavana</value>
   </data>
   <data name="E-mail" xml:space="preserve">
     <value>Sähköposti</value>
@@ -4764,6 +4779,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Every event for queue id {0}, oldest first." xml:space="preserve">
     <value>Jokainen jonotunnuksen {0} tapahtuma, vanhin ensin.</value>
+  </data>
+  <data name="Every event of the selected message, on the Message trace page" xml:space="preserve">
+    <value>Valitun viestin kaikki tapahtumat Viestin jäljitys -sivulla</value>
   </data>
   <data name="Every listener that a mail client connects to requires encryption before it will accept a password." xml:space="preserve">
     <value>Jokainen kuuntelija, johon postiasiakas yhdistää, vaatii salauksen ennen kuin hyväksyy salasanan.</value>
@@ -7120,8 +7138,11 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Next step: {0}." xml:space="preserve">
     <value>Seuraava vaihe: {0}.</value>
   </data>
-  <data name="Next try" xml:space="preserve">
-    <value>Seuraava yritys</value>
+  <data name="Next try at {0}" xml:space="preserve">
+    <value>Seuraava yritys: {0}</value>
+  </data>
+  <data name="Next try in {0}" xml:space="preserve">
+    <value>Seuraava yritys {0} kuluttua</value>
   </data>
   <data name="Next year" xml:space="preserve">
     <value>Seuraava vuosi</value>
@@ -9558,6 +9579,12 @@ Seuraava viesti tähän osoitteeseen lähetetään, ja osoite palaa listalle vas
 
 Kaikki tälle ryhmälle myönnetyt käyttöoikeudet lakkaavat koskemasta tuota tiliä.</value>
   </data>
+  <data name="Remove {0} message from the queue? It is deleted without a bounce, so its sender is not told." xml:space="preserve">
+    <value>Poistetaanko {0} viesti jonosta? Se poistetaan ilman palautusviestiä, joten lähettäjälle ei kerrota.</value>
+  </data>
+  <data name="Remove {0} messages from the queue? They are deleted without a bounce, so their senders are not told." xml:space="preserve">
+    <value>Poistetaanko {0} viestiä jonosta? Ne poistetaan ilman palautusviestejä, joten lähettäjille ei kerrota.</value>
+  </data>
   <data name="Rename {0} to {1}?&#10;&#10;Every account, alias and distribution list moves to the new name, and forwards or memberships in other domains that point at {0} addresses are updated to match. Mail sent to the old name will no longer be accepted." xml:space="preserve">
     <value>Nimetäänkö {0} uudelleen nimelle {1}?
 
@@ -10626,9 +10653,6 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Select a folder first." xml:space="preserve">
     <value>Valitse ensin kansio.</value>
-  </data>
-  <data name="Select a message first." xml:space="preserve">
-    <value>Valitse ensin viesti.</value>
   </data>
   <data name="Select a port first." xml:space="preserve">
     <value>Valitse ensin portti.</value>
@@ -13604,6 +13628,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="Tours" xml:space="preserve">
     <value>Esittelykierrokset</value>
   </data>
+  <data name="Trace message {0}" xml:space="preserve">
+    <value>Jäljitä viesti {0}</value>
+  </data>
   <data name="Trace one message" xml:space="preserve">
     <value>Jäljitä yksi viesti</value>
   </data>
@@ -15188,6 +15215,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="_Remove message" xml:space="preserve">
     <value>_Poista viesti</value>
   </data>
+  <data name="_Remove messages" xml:space="preserve">
+    <value>_Poista viestit</value>
+  </data>
   <data name="_Rename the account" xml:space="preserve">
     <value>_Nimeä tili uudelleen</value>
   </data>
@@ -15292,6 +15322,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="_To" xml:space="preserve">
     <value>_Vastaanottaja</value>
+  </data>
+  <data name="_Trace message" xml:space="preserve">
+    <value>_Jäljitä viesti</value>
   </data>
   <data name="_Turn off" xml:space="preserve">
     <value>P_oista käytöstä</value>
@@ -16767,6 +16800,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} viesti viittaa tiedostoon, joka puuttuu levyltä.</value>
   </data>
+  <data name="{0} message removed." xml:space="preserve">
+    <value>{0} viesti poistettu.</value>
+  </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} viestiä</value>
   </data>
@@ -16778,6 +16814,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} messages reference a file that is missing on disk." xml:space="preserve">
     <value>{0} viestiä viittaa tiedostoon, joka puuttuu levyltä.</value>
+  </data>
+  <data name="{0} messages removed." xml:space="preserve">
+    <value>{0} viestiä poistettu.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} min</value>

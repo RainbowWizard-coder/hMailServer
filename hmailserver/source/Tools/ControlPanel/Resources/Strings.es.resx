@@ -3210,6 +3210,9 @@ Los detalles completos se escribieron en:
   <data name="Could not reinitialise: {0}" xml:space="preserve">
     <value>No se pudo reinicializar: {0}</value>
   </data>
+  <data name="Could not remove message {0}: {1}" xml:space="preserve">
+    <value>No se pudo quitar el mensaje {0}: {1}</value>
+  </data>
   <data name="Could not remove the action: {0}" xml:space="preserve">
     <value>No se pudo quitar la acción: {0}</value>
   </data>
@@ -3218,9 +3221,6 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Could not remove the criterion: {0}" xml:space="preserve">
     <value>No se pudo quitar el criterio: {0}</value>
-  </data>
-  <data name="Could not remove the message: {0}" xml:space="preserve">
-    <value>No se pudo quitar el mensaje: {0}</value>
   </data>
   <data name="Could not remove the passphrase: {0}" xml:space="preserve">
     <value>No se pudo quitar la frase de contraseña: {0}</value>
@@ -3935,6 +3935,9 @@ Al remitente se le dijo que fue aceptado, así que nada lo reintentará y no hay
   <data name="Deli_vers to" xml:space="preserve">
     <value>_Entrega a</value>
   </data>
+  <data name="Deliver _all now" xml:space="preserve">
+    <value>Entregar t_odo ahora</value>
+  </data>
   <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
     <value>Entregar cada mensaje a las cuentas que nombran sus cabeceras (un buzón compartido por varias personas)</value>
   </data>
@@ -3962,6 +3965,9 @@ Al remitente se le dijo que fue aceptado, así que nada lo reintentará y no hay
   <data name="Delivering" xml:space="preserve">
     <value>Entregando</value>
   </data>
+  <data name="Delivering now" xml:space="preserve">
+    <value>Entregándose ahora</value>
+  </data>
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>Entregando: el mensaje se acepta pero nunca sale</value>
   </data>
@@ -3979,6 +3985,12 @@ Al remitente se le dijo que fue aceptado, así que nada lo reintentará y no hay
   </data>
   <data name="Delivery retriggered for message {0}." xml:space="preserve">
     <value>Entrega relanzada para el mensaje {0}.</value>
+  </data>
+  <data name="Delivery retriggered for {0} message." xml:space="preserve">
+    <value>Entrega relanzada para {0} mensaje.</value>
+  </data>
+  <data name="Delivery retriggered for {0} messages." xml:space="preserve">
+    <value>Entrega relanzada para {0} mensajes.</value>
   </data>
   <data name="Delivery runs on a separate, smaller pool. The usual causes, in the order they occur:" xml:space="preserve">
     <value>La entrega se ejecuta en un grupo aparte, más pequeño. Las causas habituales, en el orden en que ocurren:</value>
@@ -4218,6 +4230,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   </data>
   <data name="Drop oversized inbound messages above N KB mid-transfer (0 = off)" xml:space="preserve">
     <value>Cortar a mitad de transferencia los mensajes entrantes de más de N KB (0 = desactivado)</value>
+  </data>
+  <data name="Due for delivery" xml:space="preserve">
+    <value>Pendiente de entrega</value>
   </data>
   <data name="E-mail" xml:space="preserve">
     <value>Correo</value>
@@ -4764,6 +4779,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   </data>
   <data name="Every event for queue id {0}, oldest first." xml:space="preserve">
     <value>Cada evento del id. de cola {0}, el más antiguo primero.</value>
+  </data>
+  <data name="Every event of the selected message, on the Message trace page" xml:space="preserve">
+    <value>Todos los sucesos del mensaje seleccionado, en la página Traza de mensajes</value>
   </data>
   <data name="Every listener that a mail client connects to requires encryption before it will accept a password." xml:space="preserve">
     <value>Cada oyente al que se conecta un cliente de correo exige cifrado antes de aceptar una contraseña.</value>
@@ -7120,8 +7138,11 @@ No se elimina nada de lo que ya está.</value>
   <data name="Next step: {0}." xml:space="preserve">
     <value>Paso siguiente: {0}.</value>
   </data>
-  <data name="Next try" xml:space="preserve">
-    <value>Siguiente intento</value>
+  <data name="Next try at {0}" xml:space="preserve">
+    <value>Siguiente intento el {0}</value>
+  </data>
+  <data name="Next try in {0}" xml:space="preserve">
+    <value>Siguiente intento dentro de {0}</value>
   </data>
   <data name="Next year" xml:space="preserve">
     <value>Año siguiente</value>
@@ -9558,6 +9579,12 @@ El próximo mensaje a esa dirección se enviará, y solo volverá a la lista tra
 
 Cualquier acceso concedido a este grupo deja de aplicarse a esa cuenta.</value>
   </data>
+  <data name="Remove {0} message from the queue? It is deleted without a bounce, so its sender is not told." xml:space="preserve">
+    <value>¿Quitar {0} mensaje de la cola? Se borra sin rebote, así que no se avisa al remitente.</value>
+  </data>
+  <data name="Remove {0} messages from the queue? They are deleted without a bounce, so their senders are not told." xml:space="preserve">
+    <value>¿Quitar {0} mensajes de la cola? Se borran sin rebote, así que no se avisa a sus remitentes.</value>
+  </data>
   <data name="Rename {0} to {1}?&#10;&#10;Every account, alias and distribution list moves to the new name, and forwards or memberships in other domains that point at {0} addresses are updated to match. Mail sent to the old name will no longer be accepted." xml:space="preserve">
     <value>¿Renombrar {0} como {1}?
 
@@ -10626,9 +10653,6 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="Select a folder first." xml:space="preserve">
     <value>Seleccione primero una carpeta.</value>
-  </data>
-  <data name="Select a message first." xml:space="preserve">
-    <value>Seleccione primero un mensaje.</value>
   </data>
   <data name="Select a port first." xml:space="preserve">
     <value>Seleccione primero un puerto.</value>
@@ -13604,6 +13628,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="Tours" xml:space="preserve">
     <value>Recorridos</value>
   </data>
+  <data name="Trace message {0}" xml:space="preserve">
+    <value>Trazar el mensaje {0}</value>
+  </data>
   <data name="Trace one message" xml:space="preserve">
     <value>Trazar un mensaje</value>
   </data>
@@ -15188,6 +15215,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="_Remove message" xml:space="preserve">
     <value>_Quitar el mensaje</value>
   </data>
+  <data name="_Remove messages" xml:space="preserve">
+    <value>_Quitar los mensajes</value>
+  </data>
   <data name="_Rename the account" xml:space="preserve">
     <value>_Cambiar el nombre de la cuenta</value>
   </data>
@@ -15292,6 +15322,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="_To" xml:space="preserve">
     <value>_Para</value>
+  </data>
+  <data name="_Trace message" xml:space="preserve">
+    <value>T_razar el mensaje</value>
   </data>
   <data name="_Turn off" xml:space="preserve">
     <value>De_sactivar</value>
@@ -16767,6 +16800,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} mensaje hace referencia a un archivo que falta en el disco.</value>
   </data>
+  <data name="{0} message removed." xml:space="preserve">
+    <value>Se quitó {0} mensaje.</value>
+  </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} mensajes</value>
   </data>
@@ -16778,6 +16814,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="{0} messages reference a file that is missing on disk." xml:space="preserve">
     <value>{0} mensajes hacen referencia a un archivo que falta en el disco.</value>
+  </data>
+  <data name="{0} messages removed." xml:space="preserve">
+    <value>Se quitaron {0} mensajes.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} min</value>

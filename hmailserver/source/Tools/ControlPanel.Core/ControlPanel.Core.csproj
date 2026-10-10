@@ -169,6 +169,9 @@
     <Compile Include="..\ControlPanel\Services\IpRangeCells.cs" />
     <!-- Whether AcmeDomains names a host, as the server reads it (review finding F237). -->
     <Compile Include="..\ControlPanel\Services\AcmeHostNames.cs" />
+    <!-- Where a queued message stands, and what the queue's buttons did to the rows
+         chosen (review finding F248). -->
+    <Compile Include="..\ControlPanel\Services\QueueWords.cs" />
   </ItemGroup>
 
   <!-- The operator documentation, embedded straight from the repository as

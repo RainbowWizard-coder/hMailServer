@@ -217,6 +217,16 @@ namespace hMailServer.ControlPanel.Services
       public static string RemoveQueuedMessage(string id, string from, string recipients)
          => F("Remove message {0} ({1} to {2}) from the queue? It is deleted without a bounce, so its sender is not told.", id, from, recipients);
 
+      /// <summary>
+      /// The delivery queue's Remove for several messages chosen at once (review finding
+      /// F248), which removed the first of them alone after asking about it alone.
+      /// </summary>
+      public static string RemoveQueuedMessages(int count)
+         => PluralF(count,
+            "Remove {0} message from the queue? It is deleted without a bounce, so its sender is not told.",
+            "Remove {0} messages from the queue? They are deleted without a bounce, so their senders are not told.",
+            count);
+
       public static string RevokeApiKey(string name, bool expired)
          => expired
             ? F("Revoke the API key {0}? It is already expired, so nothing is using it successfully; revoking removes it from this list.", name)

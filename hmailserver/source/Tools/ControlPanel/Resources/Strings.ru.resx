@@ -3234,6 +3234,9 @@ Control Panel может читать файлы сообщений только
   <data name="Could not reinitialise: {0}" xml:space="preserve">
     <value>Не удалось выполнить повторную инициализацию: {0}</value>
   </data>
+  <data name="Could not remove message {0}: {1}" xml:space="preserve">
+    <value>Не удалось удалить сообщение {0}: {1}</value>
+  </data>
   <data name="Could not remove the action: {0}" xml:space="preserve">
     <value>Не удалось удалить действие: {0}</value>
   </data>
@@ -3242,9 +3245,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Could not remove the criterion: {0}" xml:space="preserve">
     <value>Не удалось удалить критерий: {0}</value>
-  </data>
-  <data name="Could not remove the message: {0}" xml:space="preserve">
-    <value>Не удалось удалить сообщение: {0}</value>
   </data>
   <data name="Could not remove the passphrase: {0}" xml:space="preserve">
     <value>Не удалось удалить парольную фразу: {0}</value>
@@ -3984,6 +3984,9 @@ Control Panel может читать файлы сообщений только
   <data name="Deli_vers to" xml:space="preserve">
     <value>Доставляет _на</value>
   </data>
+  <data name="Deliver _all now" xml:space="preserve">
+    <value>Доставить _все сейчас</value>
+  </data>
   <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
     <value>Доставлять каждое сообщение учётным записям, названным в его заголовках (ящик, общий для нескольких человек)</value>
   </data>
@@ -4011,6 +4014,9 @@ Control Panel может читать файлы сообщений только
   <data name="Delivering" xml:space="preserve">
     <value>Доставляется</value>
   </data>
+  <data name="Delivering now" xml:space="preserve">
+    <value>Доставляется сейчас</value>
+  </data>
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>Доставка: сообщение принимается, но так и не уходит</value>
   </data>
@@ -4028,6 +4034,15 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Delivery retriggered for message {0}." xml:space="preserve">
     <value>Доставка сообщения {0} запущена повторно.</value>
+  </data>
+  <data name="Delivery retriggered for {0} message." xml:space="preserve">
+    <value>Доставка запущена повторно для {0} сообщения.</value>
+  </data>
+  <data name="Delivery retriggered for {0} messages." xml:space="preserve">
+    <value>Доставка запущена повторно для {0} сообщений.</value>
+  </data>
+  <data name="Delivery retriggered for {0} messages.|few" xml:space="preserve">
+    <value>Доставка запущена повторно для {0} сообщений.</value>
   </data>
   <data name="Delivery runs on a separate, smaller pool. The usual causes, in the order they occur:" xml:space="preserve">
     <value>Доставка выполняется в отдельном, меньшем пуле. Обычные причины, в порядке их появления:</value>
@@ -4267,6 +4282,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Drop oversized inbound messages above N KB mid-transfer (0 = off)" xml:space="preserve">
     <value>Обрывать приём входящих сообщений, превысивших N КБ, прямо во время передачи (0 — выключено)</value>
+  </data>
+  <data name="Due for delivery" xml:space="preserve">
+    <value>Ожидает доставки</value>
   </data>
   <data name="E-mail" xml:space="preserve">
     <value>Электронная почта</value>
@@ -4816,6 +4834,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Every event for queue id {0}, oldest first." xml:space="preserve">
     <value>Все события для идентификатора очереди {0}, начиная с самых старых.</value>
+  </data>
+  <data name="Every event of the selected message, on the Message trace page" xml:space="preserve">
+    <value>Все события выбранного сообщения, на странице «Трассировка сообщений»</value>
   </data>
   <data name="Every listener that a mail client connects to requires encryption before it will accept a password." xml:space="preserve">
     <value>Каждый прослушиватель, к которому подключается почтовый клиент, требует шифрования, прежде чем примет пароль.</value>
@@ -7196,8 +7217,11 @@ Control Panel может читать файлы сообщений только
   <data name="Next step: {0}." xml:space="preserve">
     <value>Следующий шаг: {0}.</value>
   </data>
-  <data name="Next try" xml:space="preserve">
-    <value>Следующая попытка</value>
+  <data name="Next try at {0}" xml:space="preserve">
+    <value>Следующая попытка: {0}</value>
+  </data>
+  <data name="Next try in {0}" xml:space="preserve">
+    <value>Следующая попытка через {0}</value>
   </data>
   <data name="Next year" xml:space="preserve">
     <value>Следующий год</value>
@@ -9661,6 +9685,15 @@ Control Panel может читать файлы сообщений только
 
 Любой доступ, предоставленный этой группе, перестанет распространяться на эту учётную запись.</value>
   </data>
+  <data name="Remove {0} message from the queue? It is deleted without a bounce, so its sender is not told." xml:space="preserve">
+    <value>Удалить из очереди {0} сообщение? Оно удаляется без уведомления о недоставке, так что отправитель об этом не узнает.</value>
+  </data>
+  <data name="Remove {0} messages from the queue? They are deleted without a bounce, so their senders are not told." xml:space="preserve">
+    <value>Удалить из очереди {0} сообщений? Они удаляются без уведомлений о недоставке, так что их отправители об этом не узнают.</value>
+  </data>
+  <data name="Remove {0} messages from the queue? They are deleted without a bounce, so their senders are not told.|few" xml:space="preserve">
+    <value>Удалить из очереди {0} сообщения? Они удаляются без уведомлений о недоставке, так что их отправители об этом не узнают.</value>
+  </data>
   <data name="Rename {0} to {1}?&#10;&#10;Every account, alias and distribution list moves to the new name, and forwards or memberships in other domains that point at {0} addresses are updated to match. Mail sent to the old name will no longer be accepted." xml:space="preserve">
     <value>Переименовать {0} в {1}?
 
@@ -10750,9 +10783,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Select a folder first." xml:space="preserve">
     <value>Сначала выберите папку.</value>
-  </data>
-  <data name="Select a message first." xml:space="preserve">
-    <value>Сначала выберите сообщение.</value>
   </data>
   <data name="Select a port first." xml:space="preserve">
     <value>Сначала выберите порт.</value>
@@ -13773,6 +13803,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Tours" xml:space="preserve">
     <value>Экскурсии</value>
   </data>
+  <data name="Trace message {0}" xml:space="preserve">
+    <value>Трассировать сообщение {0}</value>
+  </data>
   <data name="Trace one message" xml:space="preserve">
     <value>Отследить одно сообщение</value>
   </data>
@@ -15363,6 +15396,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Remove message" xml:space="preserve">
     <value>_Удалить сообщение</value>
   </data>
+  <data name="_Remove messages" xml:space="preserve">
+    <value>_Удалить сообщения</value>
+  </data>
   <data name="_Rename the account" xml:space="preserve">
     <value>_Переименовать учётную запись</value>
   </data>
@@ -15467,6 +15503,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_To" xml:space="preserve">
     <value>_Кому</value>
+  </data>
+  <data name="_Trace message" xml:space="preserve">
+    <value>_Трассировать сообщение</value>
   </data>
   <data name="_Turn off" xml:space="preserve">
     <value>Вык_лючить</value>
@@ -17053,6 +17092,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} сообщение ссылается на файл, отсутствующий на диске.</value>
   </data>
+  <data name="{0} message removed." xml:space="preserve">
+    <value>Удалено {0} сообщение.</value>
+  </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} сообщений</value>
   </data>
@@ -17073,6 +17115,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} messages reference a file that is missing on disk.|few" xml:space="preserve">
     <value>Сообщений, ссылающихся на отсутствующий на диске файл: {0}.</value>
+  </data>
+  <data name="{0} messages removed." xml:space="preserve">
+    <value>Удалено {0} сообщений.</value>
+  </data>
+  <data name="{0} messages removed.|few" xml:space="preserve">
+    <value>Удалено {0} сообщения.</value>
   </data>
   <data name="{0} messages|few" xml:space="preserve">
     <value>{0} сообщения</value>

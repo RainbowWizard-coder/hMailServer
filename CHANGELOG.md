@@ -2852,6 +2852,23 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Warning, under way Information. `ServerStatusFlowTests` holds the state's words and levels, the step for every
   update state, the notice, the one step and its thread, and the marks.
 
+- **Fixed: the delivery queue acted on one message of the several chosen, did not say why a message waits, and led
+  nowhere from a message to its trace.** Several rows could be chosen, but Deliver now and Remove acted on the first
+  alone - Remove asked about one message and removed one; the page's subtitle promised why each message is waiting
+  and no column said it - the server's flag for a message being delivered now was read and dropped; nothing led from
+  a queued message to the Message trace page that follows it; and the ID was a wide right-aligned number while From
+  and Recipients shrank to a word in a narrow window. Deliver now and Remove now act on every row chosen - Remove
+  after one question that names the one message, or counts them and says that none of them bounces - and their
+  outcomes count them, "Delivery retriggered for 3 messages."; a message the server refuses to remove is named with
+  its reason after those removed before it. Deliver all now delivers the whole queue. A State column, in the place of
+  Next try, says where each message stands - Delivering now, Due for delivery, Next try in 12 min with the time in
+  its tool tip, or, connected to another computer, whose clock may not be this one's, the next try in the reader's
+  date and time marked "(server time)" - and sorts the messages being delivered first and then by their next try.
+  Trace message, in the toolbar and as each row's own icon, opens the Message trace page with every event of that
+  message, oldest first, as its Follow this message does. The ID column is narrow and left-aligned, and From,
+  Recipients and State keep a width the grid scrolls sideways for. `DeliveryQueueTests` holds the state words and
+  their order, the outcomes, the question and the page's lines.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

@@ -3234,6 +3234,9 @@
   <data name="Could not reinitialise: {0}" xml:space="preserve">
     <value>Не вдалося виконати повторну ініціалізацію: {0}</value>
   </data>
+  <data name="Could not remove message {0}: {1}" xml:space="preserve">
+    <value>Не вдалося вилучити повідомлення {0}: {1}</value>
+  </data>
   <data name="Could not remove the action: {0}" xml:space="preserve">
     <value>Не вдалося вилучити дію: {0}</value>
   </data>
@@ -3242,9 +3245,6 @@
   </data>
   <data name="Could not remove the criterion: {0}" xml:space="preserve">
     <value>Не вдалося вилучити критерій: {0}</value>
-  </data>
-  <data name="Could not remove the message: {0}" xml:space="preserve">
-    <value>Не вдалося вилучити повідомлення: {0}</value>
   </data>
   <data name="Could not remove the passphrase: {0}" xml:space="preserve">
     <value>Не вдалося вилучити парольну фразу: {0}</value>
@@ -3984,6 +3984,9 @@
   <data name="Deli_vers to" xml:space="preserve">
     <value>Доставляє _на</value>
   </data>
+  <data name="Deliver _all now" xml:space="preserve">
+    <value>Доставити всі _зараз</value>
+  </data>
   <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
     <value>Доставляти кожне повідомлення обліковим записам, названим у його заголовках (скринька, спільна для кількох людей)</value>
   </data>
@@ -4011,6 +4014,9 @@
   <data name="Delivering" xml:space="preserve">
     <value>Доставляється</value>
   </data>
+  <data name="Delivering now" xml:space="preserve">
+    <value>Доставляється зараз</value>
+  </data>
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>Доставка: повідомлення прийнято, але воно ніколи не виходить</value>
   </data>
@@ -4028,6 +4034,15 @@
   </data>
   <data name="Delivery retriggered for message {0}." xml:space="preserve">
     <value>Доставку повідомлення {0} перезапущено.</value>
+  </data>
+  <data name="Delivery retriggered for {0} message." xml:space="preserve">
+    <value>Доставку перезапущено для {0} повідомлення.</value>
+  </data>
+  <data name="Delivery retriggered for {0} messages." xml:space="preserve">
+    <value>Доставку перезапущено для {0} повідомлень.</value>
+  </data>
+  <data name="Delivery retriggered for {0} messages.|few" xml:space="preserve">
+    <value>Доставку перезапущено для {0} повідомлень.</value>
   </data>
   <data name="Delivery runs on a separate, smaller pool. The usual causes, in the order they occur:" xml:space="preserve">
     <value>Доставка виконується в окремому, меншому пулі. Звичайні причини, у порядку виникнення:</value>
@@ -4267,6 +4282,9 @@
   </data>
   <data name="Drop oversized inbound messages above N KB mid-transfer (0 = off)" xml:space="preserve">
     <value>Обривати завеликі вхідні повідомлення понад N КБ посеред передавання (0 = вимкнено)</value>
+  </data>
+  <data name="Due for delivery" xml:space="preserve">
+    <value>Очікує доставки</value>
   </data>
   <data name="E-mail" xml:space="preserve">
     <value>Електронна пошта</value>
@@ -4816,6 +4834,9 @@
   </data>
   <data name="Every event for queue id {0}, oldest first." xml:space="preserve">
     <value>Кожна подія для ідентифікатора черги {0}, найстаріші спочатку.</value>
+  </data>
+  <data name="Every event of the selected message, on the Message trace page" xml:space="preserve">
+    <value>Усі події вибраного повідомлення, на сторінці «Трасування повідомлень»</value>
   </data>
   <data name="Every listener that a mail client connects to requires encryption before it will accept a password." xml:space="preserve">
     <value>Кожен слухач, до якого підключається поштовий клієнт, вимагає шифрування, перш ніж прийме пароль.</value>
@@ -7196,8 +7217,11 @@
   <data name="Next step: {0}." xml:space="preserve">
     <value>Наступний крок: {0}.</value>
   </data>
-  <data name="Next try" xml:space="preserve">
-    <value>Наступна спроба</value>
+  <data name="Next try at {0}" xml:space="preserve">
+    <value>Наступна спроба: {0}</value>
+  </data>
+  <data name="Next try in {0}" xml:space="preserve">
+    <value>Наступна спроба через {0}</value>
   </data>
   <data name="Next year" xml:space="preserve">
     <value>Наступний рік</value>
@@ -9661,6 +9685,15 @@
 
 Будь-який доступ, наданий цій групі, перестає застосовуватися до цього облікового запису.</value>
   </data>
+  <data name="Remove {0} message from the queue? It is deleted without a bounce, so its sender is not told." xml:space="preserve">
+    <value>Вилучити з черги {0} повідомлення? Його буде видалено без повідомлення про недоставку, тож відправник про це не дізнається.</value>
+  </data>
+  <data name="Remove {0} messages from the queue? They are deleted without a bounce, so their senders are not told." xml:space="preserve">
+    <value>Вилучити з черги {0} повідомлень? Їх буде видалено без повідомлень про недоставку, тож їхні відправники про це не дізнаються.</value>
+  </data>
+  <data name="Remove {0} messages from the queue? They are deleted without a bounce, so their senders are not told.|few" xml:space="preserve">
+    <value>Вилучити з черги {0} повідомлення? Їх буде видалено без повідомлень про недоставку, тож їхні відправники про це не дізнаються.</value>
+  </data>
   <data name="Rename {0} to {1}?&#10;&#10;Every account, alias and distribution list moves to the new name, and forwards or memberships in other domains that point at {0} addresses are updated to match. Mail sent to the old name will no longer be accepted." xml:space="preserve">
     <value>Перейменувати {0} на {1}?
 
@@ -10750,9 +10783,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Select a folder first." xml:space="preserve">
     <value>Спершу виберіть папку.</value>
-  </data>
-  <data name="Select a message first." xml:space="preserve">
-    <value>Спершу виберіть повідомлення.</value>
   </data>
   <data name="Select a port first." xml:space="preserve">
     <value>Спершу виберіть порт.</value>
@@ -13773,6 +13803,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Tours" xml:space="preserve">
     <value>Екскурсії</value>
   </data>
+  <data name="Trace message {0}" xml:space="preserve">
+    <value>Трасувати повідомлення {0}</value>
+  </data>
   <data name="Trace one message" xml:space="preserve">
     <value>Відстежити одне повідомлення</value>
   </data>
@@ -15363,6 +15396,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_Remove message" xml:space="preserve">
     <value>_Вилучити повідомлення</value>
   </data>
+  <data name="_Remove messages" xml:space="preserve">
+    <value>_Вилучити повідомлення</value>
+  </data>
   <data name="_Rename the account" xml:space="preserve">
     <value>_Перейменувати обліковий запис</value>
   </data>
@@ -15467,6 +15503,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_To" xml:space="preserve">
     <value>_Кому</value>
+  </data>
+  <data name="_Trace message" xml:space="preserve">
+    <value>_Трасувати повідомлення</value>
   </data>
   <data name="_Turn off" xml:space="preserve">
     <value>Ви_мкнути</value>
@@ -17053,6 +17092,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} повідомлення посилається на файл, якого немає на диску.</value>
   </data>
+  <data name="{0} message removed." xml:space="preserve">
+    <value>Вилучено {0} повідомлення.</value>
+  </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} повідомлень</value>
   </data>
@@ -17073,6 +17115,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} messages reference a file that is missing on disk.|few" xml:space="preserve">
     <value>{0} повідомлення посилаються на файл, якого немає на диску.</value>
+  </data>
+  <data name="{0} messages removed." xml:space="preserve">
+    <value>Вилучено {0} повідомлень.</value>
+  </data>
+  <data name="{0} messages removed.|few" xml:space="preserve">
+    <value>Вилучено {0} повідомлення.</value>
   </data>
   <data name="{0} messages|few" xml:space="preserve">
     <value>{0} повідомлення</value>

@@ -3210,6 +3210,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Could not reinitialise: {0}" xml:space="preserve">
     <value>Kon niet herinitialiseren: {0}</value>
   </data>
+  <data name="Could not remove message {0}: {1}" xml:space="preserve">
+    <value>Kon bericht {0} niet verwijderen: {1}</value>
+  </data>
   <data name="Could not remove the action: {0}" xml:space="preserve">
     <value>Kon de actie niet verwijderen: {0}</value>
   </data>
@@ -3218,9 +3221,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Could not remove the criterion: {0}" xml:space="preserve">
     <value>Kon het criterium niet verwijderen: {0}</value>
-  </data>
-  <data name="Could not remove the message: {0}" xml:space="preserve">
-    <value>Kon het bericht niet verwijderen: {0}</value>
   </data>
   <data name="Could not remove the passphrase: {0}" xml:space="preserve">
     <value>Kon de wachtwoordzin niet verwijderen: {0}</value>
@@ -3935,6 +3935,9 @@ De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert 
   <data name="Deli_vers to" xml:space="preserve">
     <value>_Bezorgt bij</value>
   </data>
+  <data name="Deliver _all now" xml:space="preserve">
+    <value>_Alles nu bezorgen</value>
+  </data>
   <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
     <value>Elk bericht bezorgen bij de accounts die de headers noemen (een mailbox die meerdere mensen delen)</value>
   </data>
@@ -3962,6 +3965,9 @@ De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert 
   <data name="Delivering" xml:space="preserve">
     <value>Bezorgen</value>
   </data>
+  <data name="Delivering now" xml:space="preserve">
+    <value>Wordt nu bezorgd</value>
+  </data>
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>Bezorgen: het bericht wordt geaccepteerd maar vertrekt nooit</value>
   </data>
@@ -3979,6 +3985,12 @@ De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert 
   </data>
   <data name="Delivery retriggered for message {0}." xml:space="preserve">
     <value>Bezorging opnieuw gestart voor bericht {0}.</value>
+  </data>
+  <data name="Delivery retriggered for {0} message." xml:space="preserve">
+    <value>Bezorging opnieuw gestart voor {0} bericht.</value>
+  </data>
+  <data name="Delivery retriggered for {0} messages." xml:space="preserve">
+    <value>Bezorging opnieuw gestart voor {0} berichten.</value>
   </data>
   <data name="Delivery runs on a separate, smaller pool. The usual causes, in the order they occur:" xml:space="preserve">
     <value>Bezorging draait op een aparte, kleinere pool. De gebruikelijke oorzaken, in de volgorde waarin ze voorkomen:</value>
@@ -4218,6 +4230,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Drop oversized inbound messages above N KB mid-transfer (0 = off)" xml:space="preserve">
     <value>Te grote inkomende berichten boven N KB tijdens de overdracht afbreken (0 = uit)</value>
+  </data>
+  <data name="Due for delivery" xml:space="preserve">
+    <value>Klaar voor bezorging</value>
   </data>
   <data name="E-mail" xml:space="preserve">
     <value>E-mail</value>
@@ -4764,6 +4779,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Every event for queue id {0}, oldest first." xml:space="preserve">
     <value>Elke gebeurtenis voor wachtrij-id {0}, oudste eerst.</value>
+  </data>
+  <data name="Every event of the selected message, on the Message trace page" xml:space="preserve">
+    <value>Alle gebeurtenissen van het geselecteerde bericht, op de pagina Berichttracering</value>
   </data>
   <data name="Every listener that a mail client connects to requires encryption before it will accept a password." xml:space="preserve">
     <value>Elke listener waarmee een e-mailclient verbinding maakt vereist versleuteling voordat hij een wachtwoord accepteert.</value>
@@ -7120,8 +7138,11 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Next step: {0}." xml:space="preserve">
     <value>Volgende stap: {0}.</value>
   </data>
-  <data name="Next try" xml:space="preserve">
-    <value>Volgende poging</value>
+  <data name="Next try at {0}" xml:space="preserve">
+    <value>Volgende poging op {0}</value>
+  </data>
+  <data name="Next try in {0}" xml:space="preserve">
+    <value>Volgende poging over {0}</value>
   </data>
   <data name="Next year" xml:space="preserve">
     <value>Volgend jaar</value>
@@ -9558,6 +9579,12 @@ Het volgende bericht aan dit adres wordt verzonden, en het komt pas weer op de l
 
 Elke toegang die deze groep heeft gekregen, geldt dan niet meer voor dat account.</value>
   </data>
+  <data name="Remove {0} message from the queue? It is deleted without a bounce, so its sender is not told." xml:space="preserve">
+    <value>{0} bericht uit de wachtrij verwijderen? Het wordt zonder bounce gewist, dus de afzender krijgt geen bericht.</value>
+  </data>
+  <data name="Remove {0} messages from the queue? They are deleted without a bounce, so their senders are not told." xml:space="preserve">
+    <value>{0} berichten uit de wachtrij verwijderen? Ze worden zonder bounce gewist, dus de afzenders krijgen geen bericht.</value>
+  </data>
   <data name="Rename {0} to {1}?&#10;&#10;Every account, alias and distribution list moves to the new name, and forwards or memberships in other domains that point at {0} addresses are updated to match. Mail sent to the old name will no longer be accepted." xml:space="preserve">
     <value>{0} hernoemen naar {1}?
 
@@ -10626,9 +10653,6 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Select a folder first." xml:space="preserve">
     <value>Selecteer eerst een map.</value>
-  </data>
-  <data name="Select a message first." xml:space="preserve">
-    <value>Selecteer eerst een bericht.</value>
   </data>
   <data name="Select a port first." xml:space="preserve">
     <value>Selecteer eerst een poort.</value>
@@ -13604,6 +13628,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="Tours" xml:space="preserve">
     <value>Rondleidingen</value>
   </data>
+  <data name="Trace message {0}" xml:space="preserve">
+    <value>Bericht {0} traceren</value>
+  </data>
   <data name="Trace one message" xml:space="preserve">
     <value>Eén bericht traceren</value>
   </data>
@@ -15188,6 +15215,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_Remove message" xml:space="preserve">
     <value>Bericht _verwijderen</value>
   </data>
+  <data name="_Remove messages" xml:space="preserve">
+    <value>Berichten _verwijderen</value>
+  </data>
   <data name="_Rename the account" xml:space="preserve">
     <value>Account _hernoemen</value>
   </data>
@@ -15292,6 +15322,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="_To" xml:space="preserve">
     <value>Aa_n</value>
+  </data>
+  <data name="_Trace message" xml:space="preserve">
+    <value>Bericht _traceren</value>
   </data>
   <data name="_Turn off" xml:space="preserve">
     <value>Uit_schakelen</value>
@@ -16767,6 +16800,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} bericht verwijst naar een bestand dat ontbreekt op schijf.</value>
   </data>
+  <data name="{0} message removed." xml:space="preserve">
+    <value>{0} bericht verwijderd.</value>
+  </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} berichten</value>
   </data>
@@ -16778,6 +16814,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} messages reference a file that is missing on disk." xml:space="preserve">
     <value>{0} berichten verwijzen naar een bestand dat ontbreekt op schijf.</value>
+  </data>
+  <data name="{0} messages removed." xml:space="preserve">
+    <value>{0} berichten verwijderd.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} min</value>

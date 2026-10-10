@@ -3210,6 +3210,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Could not reinitialise: {0}" xml:space="preserve">
     <value>Kunne ikke reinitialisere: {0}</value>
   </data>
+  <data name="Could not remove message {0}: {1}" xml:space="preserve">
+    <value>Kunne ikke fjerne meddelelse {0}: {1}</value>
+  </data>
   <data name="Could not remove the action: {0}" xml:space="preserve">
     <value>Kunne ikke fjerne handlingen: {0}</value>
   </data>
@@ -3218,9 +3221,6 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   </data>
   <data name="Could not remove the criterion: {0}" xml:space="preserve">
     <value>Kunne ikke fjerne kriteriet: {0}</value>
-  </data>
-  <data name="Could not remove the message: {0}" xml:space="preserve">
-    <value>Kunne ikke fjerne meddelelsen: {0}</value>
   </data>
   <data name="Could not remove the passphrase: {0}" xml:space="preserve">
     <value>Kunne ikke fjerne adgangssætningen: {0}</value>
@@ -3935,6 +3935,9 @@ Afsenderen fik at vide, at den var accepteret, så intet forsøger igen, og der 
   <data name="Deli_vers to" xml:space="preserve">
     <value>L_everer til</value>
   </data>
+  <data name="Deliver _all now" xml:space="preserve">
+    <value>Levér alle _nu</value>
+  </data>
   <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
     <value>Lever hver meddelelse til de konti, dens headere nævner (en postkasse, som flere personer deler)</value>
   </data>
@@ -3962,6 +3965,9 @@ Afsenderen fik at vide, at den var accepteret, så intet forsøger igen, og der 
   <data name="Delivering" xml:space="preserve">
     <value>Leverer</value>
   </data>
+  <data name="Delivering now" xml:space="preserve">
+    <value>Leveres nu</value>
+  </data>
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>Leverer: meddelelsen er accepteret, men kommer aldrig af sted</value>
   </data>
@@ -3979,6 +3985,12 @@ Afsenderen fik at vide, at den var accepteret, så intet forsøger igen, og der 
   </data>
   <data name="Delivery retriggered for message {0}." xml:space="preserve">
     <value>Levering sat i gang igen for meddelelse {0}.</value>
+  </data>
+  <data name="Delivery retriggered for {0} message." xml:space="preserve">
+    <value>Levering sat i gang igen for {0} meddelelse.</value>
+  </data>
+  <data name="Delivery retriggered for {0} messages." xml:space="preserve">
+    <value>Levering sat i gang igen for {0} meddelelser.</value>
   </data>
   <data name="Delivery runs on a separate, smaller pool. The usual causes, in the order they occur:" xml:space="preserve">
     <value>Levering kører på en separat, mindre pulje. De sædvanlige årsager, i den rækkefølge de optræder:</value>
@@ -4218,6 +4230,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Drop oversized inbound messages above N KB mid-transfer (0 = off)" xml:space="preserve">
     <value>Afbryd for store indgående meddelelser over N KB midt i overførslen (0 = fra)</value>
+  </data>
+  <data name="Due for delivery" xml:space="preserve">
+    <value>Klar til levering</value>
   </data>
   <data name="E-mail" xml:space="preserve">
     <value>E-mail</value>
@@ -4764,6 +4779,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Every event for queue id {0}, oldest first." xml:space="preserve">
     <value>Hver hændelse for kø-id {0}, ældste først.</value>
+  </data>
+  <data name="Every event of the selected message, on the Message trace page" xml:space="preserve">
+    <value>Alle hændelser for den valgte meddelelse, på siden Meddelelsessporing</value>
   </data>
   <data name="Every listener that a mail client connects to requires encryption before it will accept a password." xml:space="preserve">
     <value>Hver lytter, som en mailklient forbinder til, kræver kryptering, før den accepterer en adgangskode.</value>
@@ -7120,8 +7138,11 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Next step: {0}." xml:space="preserve">
     <value>Næste trin: {0}.</value>
   </data>
-  <data name="Next try" xml:space="preserve">
-    <value>Næste forsøg</value>
+  <data name="Next try at {0}" xml:space="preserve">
+    <value>Næste forsøg: {0}</value>
+  </data>
+  <data name="Next try in {0}" xml:space="preserve">
+    <value>Næste forsøg om {0}</value>
   </data>
   <data name="Next year" xml:space="preserve">
     <value>Næste år</value>
@@ -9558,6 +9579,12 @@ Den næste besked til adressen bliver sendt, og den kommer først på listen ige
 
 Enhver adgang, denne gruppe har fået tildelt, holder op med at gælde for den konto.</value>
   </data>
+  <data name="Remove {0} message from the queue? It is deleted without a bounce, so its sender is not told." xml:space="preserve">
+    <value>Fjern {0} meddelelse fra køen? Den slettes uden en returmail, så afsenderen får ikke besked.</value>
+  </data>
+  <data name="Remove {0} messages from the queue? They are deleted without a bounce, so their senders are not told." xml:space="preserve">
+    <value>Fjern {0} meddelelser fra køen? De slettes uden returmails, så afsenderne får ikke besked.</value>
+  </data>
   <data name="Rename {0} to {1}?&#10;&#10;Every account, alias and distribution list moves to the new name, and forwards or memberships in other domains that point at {0} addresses are updated to match. Mail sent to the old name will no longer be accepted." xml:space="preserve">
     <value>Omdøb {0} til {1}?
 
@@ -10626,9 +10653,6 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   </data>
   <data name="Select a folder first." xml:space="preserve">
     <value>Vælg en mappe først.</value>
-  </data>
-  <data name="Select a message first." xml:space="preserve">
-    <value>Vælg en meddelelse først.</value>
   </data>
   <data name="Select a port first." xml:space="preserve">
     <value>Vælg en port først.</value>
@@ -13604,6 +13628,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="Tours" xml:space="preserve">
     <value>Rundvisninger</value>
   </data>
+  <data name="Trace message {0}" xml:space="preserve">
+    <value>Spor meddelelse {0}</value>
+  </data>
   <data name="Trace one message" xml:space="preserve">
     <value>Spor én meddelelse</value>
   </data>
@@ -15188,6 +15215,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="_Remove message" xml:space="preserve">
     <value>_Fjern meddelelse</value>
   </data>
+  <data name="_Remove messages" xml:space="preserve">
+    <value>_Fjern meddelelser</value>
+  </data>
   <data name="_Rename the account" xml:space="preserve">
     <value>_Omdøb kontoen</value>
   </data>
@@ -15292,6 +15322,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="_To" xml:space="preserve">
     <value>_Til</value>
+  </data>
+  <data name="_Trace message" xml:space="preserve">
+    <value>_Spor meddelelse</value>
   </data>
   <data name="_Turn off" xml:space="preserve">
     <value>S_lå fra</value>
@@ -16767,6 +16800,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} meddelelse henviser til en fil, der mangler på disken.</value>
   </data>
+  <data name="{0} message removed." xml:space="preserve">
+    <value>{0} meddelelse fjernet.</value>
+  </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} meddelelser</value>
   </data>
@@ -16778,6 +16814,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="{0} messages reference a file that is missing on disk." xml:space="preserve">
     <value>{0} meddelelser henviser til en fil, der mangler på disken.</value>
+  </data>
+  <data name="{0} messages removed." xml:space="preserve">
+    <value>{0} meddelelser fjernet.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} min.</value>

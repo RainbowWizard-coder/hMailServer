@@ -46,14 +46,26 @@ namespace hMailServer.ControlPanel.Services
       /// null when it is not one, or is the server's "never" of 1901 and before.
       /// </summary>
       public static DateTime? Parse(string serverTime)
+         => TryRead_(serverTime, out DateTime when) && when.Year >= 1970 ? when : null;
+
+      /// <summary>
+      /// Whether the text is the server's "never" - empty, or a time of 1901 and before,
+      /// which a new message's next try is set to - as against a time that is not one of
+      /// the server's formats at all, which says nothing of when.
+      /// </summary>
+      public static bool IsNever(string serverTime)
+         => string.IsNullOrWhiteSpace(serverTime) || (TryRead_(serverTime, out DateTime when) && when.Year < 1970);
+
+      private static bool TryRead_(string serverTime, out DateTime when)
       {
          string text = (serverTime ?? "").Trim();
          foreach (string format in new[] { "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm:ss.fff", "yyyy-MM-dd" }) // no-loc: the server's formats
          {
-            if (DateTime.TryParseExact(text, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime when))
-               return when.Year < 1970 ? null : when;
+            if (DateTime.TryParseExact(text, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out when))
+               return true;
          }
-         return null;
+         when = default;
+         return false;
       }
    }
 }

@@ -3210,6 +3210,9 @@
   <data name="Could not reinitialise: {0}" xml:space="preserve">
     <value>再初期化できませんでした: {0}</value>
   </data>
+  <data name="Could not remove message {0}: {1}" xml:space="preserve">
+    <value>メッセージ {0} を削除できませんでした: {1}</value>
+  </data>
   <data name="Could not remove the action: {0}" xml:space="preserve">
     <value>アクションを削除できませんでした: {0}</value>
   </data>
@@ -3218,9 +3221,6 @@
   </data>
   <data name="Could not remove the criterion: {0}" xml:space="preserve">
     <value>条件を削除できませんでした: {0}</value>
-  </data>
-  <data name="Could not remove the message: {0}" xml:space="preserve">
-    <value>メッセージを削除できませんでした: {0}</value>
   </data>
   <data name="Could not remove the passphrase: {0}" xml:space="preserve">
     <value>パスフレーズを削除できませんでした: {0}</value>
@@ -3935,6 +3935,9 @@
   <data name="Deli_vers to" xml:space="preserve">
     <value>配信先(_V)</value>
   </data>
+  <data name="Deliver _all now" xml:space="preserve">
+    <value>今すぐすべて配信(_A)</value>
+  </data>
   <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
     <value>各メッセージを、そのヘッダーに記載されたアカウントに配信する (複数の人で共有するメールボックス)</value>
   </data>
@@ -3962,6 +3965,9 @@
   <data name="Delivering" xml:space="preserve">
     <value>配信中</value>
   </data>
+  <data name="Delivering now" xml:space="preserve">
+    <value>現在配信中</value>
+  </data>
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>配信中: メッセージは受け入れられたが、決して出ていかない</value>
   </data>
@@ -3979,6 +3985,12 @@
   </data>
   <data name="Delivery retriggered for message {0}." xml:space="preserve">
     <value>メッセージ {0} の配信を再トリガーしました。</value>
+  </data>
+  <data name="Delivery retriggered for {0} message." xml:space="preserve">
+    <value>{0} 件のメッセージの配信を再トリガーしました。</value>
+  </data>
+  <data name="Delivery retriggered for {0} messages." xml:space="preserve">
+    <value>{0} 件のメッセージの配信を再トリガーしました。</value>
   </data>
   <data name="Delivery runs on a separate, smaller pool. The usual causes, in the order they occur:" xml:space="preserve">
     <value>配信は別の、より小さなプールで実行されます。よくある原因を、発生する順に挙げます:</value>
@@ -4218,6 +4230,9 @@
   </data>
   <data name="Drop oversized inbound messages above N KB mid-transfer (0 = off)" xml:space="preserve">
     <value>N KB を超える大きすぎる受信メッセージを転送の途中で破棄する (0 = 無効)</value>
+  </data>
+  <data name="Due for delivery" xml:space="preserve">
+    <value>配信待ち</value>
   </data>
   <data name="E-mail" xml:space="preserve">
     <value>メール</value>
@@ -4764,6 +4779,9 @@
   </data>
   <data name="Every event for queue id {0}, oldest first." xml:space="preserve">
     <value>キュー ID {0} のすべてのイベント (古い順)。</value>
+  </data>
+  <data name="Every event of the selected message, on the Message trace page" xml:space="preserve">
+    <value>選択したメッセージのすべてのイベントを、メッセージ トレース ページで表示します</value>
   </data>
   <data name="Every listener that a mail client connects to requires encryption before it will accept a password." xml:space="preserve">
     <value>メール クライアントが接続するすべてのリスナーは、パスワードを受け付ける前に暗号化を必須にします。</value>
@@ -7120,8 +7138,11 @@
   <data name="Next step: {0}." xml:space="preserve">
     <value>次の手順: {0}。</value>
   </data>
-  <data name="Next try" xml:space="preserve">
-    <value>次の試行</value>
+  <data name="Next try at {0}" xml:space="preserve">
+    <value>次の試行: {0}</value>
+  </data>
+  <data name="Next try in {0}" xml:space="preserve">
+    <value>次の試行まで {0}</value>
   </data>
   <data name="Next year" xml:space="preserve">
     <value>次の年</value>
@@ -9558,6 +9579,12 @@
 
 このグループに付与されているアクセス権は、そのアカウントには適用されなくなります。</value>
   </data>
+  <data name="Remove {0} message from the queue? It is deleted without a bounce, so its sender is not told." xml:space="preserve">
+    <value>{0} 件のメッセージをキューから削除しますか? バウンスなしで削除されるため、送信者には通知されません。</value>
+  </data>
+  <data name="Remove {0} messages from the queue? They are deleted without a bounce, so their senders are not told." xml:space="preserve">
+    <value>{0} 件のメッセージをキューから削除しますか? バウンスなしで削除されるため、送信者には通知されません。</value>
+  </data>
   <data name="Rename {0} to {1}?&#10;&#10;Every account, alias and distribution list moves to the new name, and forwards or memberships in other domains that point at {0} addresses are updated to match. Mail sent to the old name will no longer be accepted." xml:space="preserve">
     <value>{0} の名前を {1} に変更しますか?
 
@@ -10626,9 +10653,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Select a folder first." xml:space="preserve">
     <value>先にフォルダーを選択してください。</value>
-  </data>
-  <data name="Select a message first." xml:space="preserve">
-    <value>先にメッセージを選択してください。</value>
   </data>
   <data name="Select a port first." xml:space="preserve">
     <value>先にポートを選択してください。</value>
@@ -13604,6 +13628,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Tours" xml:space="preserve">
     <value>案内</value>
   </data>
+  <data name="Trace message {0}" xml:space="preserve">
+    <value>メッセージ {0} をトレース</value>
+  </data>
   <data name="Trace one message" xml:space="preserve">
     <value>1 通のメッセージを追跡</value>
   </data>
@@ -15188,6 +15215,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Remove message" xml:space="preserve">
     <value>メッセージを削除(_R)</value>
   </data>
+  <data name="_Remove messages" xml:space="preserve">
+    <value>メッセージを削除(_R)</value>
+  </data>
   <data name="_Rename the account" xml:space="preserve">
     <value>アカウント名を変更(_R)</value>
   </data>
@@ -15292,6 +15322,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_To" xml:space="preserve">
     <value>宛先(_T)</value>
+  </data>
+  <data name="_Trace message" xml:space="preserve">
+    <value>メッセージをトレース(_T)</value>
   </data>
   <data name="_Turn off" xml:space="preserve">
     <value>オフにする(_T)</value>
@@ -16767,6 +16800,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} 件のメッセージが、ディスク上に存在しないファイルを参照しています。</value>
   </data>
+  <data name="{0} message removed." xml:space="preserve">
+    <value>{0} 件のメッセージを削除しました。</value>
+  </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} 件のメッセージ</value>
   </data>
@@ -16778,6 +16814,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} messages reference a file that is missing on disk." xml:space="preserve">
     <value>{0} 件のメッセージが、ディスク上に存在しないファイルを参照しています。</value>
+  </data>
+  <data name="{0} messages removed." xml:space="preserve">
+    <value>{0} 件のメッセージを削除しました。</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} 分</value>

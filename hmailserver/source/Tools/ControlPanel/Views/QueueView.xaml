@@ -13,7 +13,7 @@
 
     <!-- A list page on the scaffold (docs/ControlPanelDesign.md, List pages):
          the header with the count and Refresh, the toolbar with the search and
-         the selected message's verbs, Deliver now the Primary at the right edge,
+         the chosen messages' verbs, Deliver now the Primary at the right edge,
          a notice for what the last action said, and the grid filling the rest -
          the grid scrolls itself, so the page has no ScrollViewer of its own and
          takes the page padding as a margin. The verbs were in the header with a
@@ -42,9 +42,19 @@
         <scaffold:Toolbar x:Name="SearchBar" Grid.Row="1" SearchPlaceholder="{loc:L 'Search the delivery queue'}"
                           SearchTextChanged="Search_TextChanged">
             <scaffold:Toolbar.Actions>
+                <!-- View source and Trace message are one message's; Remove and Deliver
+                     now act on every row chosen, which the grid lets several be, and
+                     Deliver all now on the whole queue (review finding F248): Remove
+                     asked about the first of five chosen rows and removed it alone. -->
                 <WrapPanel HorizontalAlignment="Right">
                     <ui:Button x:Name="ViewButton" Content="{loc:L '_View source'}" Click="View_Click" Margin="0,2,8,2" />
+                    <ui:Button x:Name="TraceButton" Content="{loc:L '_Trace message'}" Click="Trace_Click" Margin="0,2,8,2"
+                               AutomationProperties.AutomationId="queue-trace"
+                               AutomationProperties.HelpText="{loc:L 'Every event of the selected message, on the Message trace page'}"
+                               ToolTip="{loc:L 'Every event of the selected message, on the Message trace page'}" />
                     <ui:Button x:Name="RemoveButton" Content="{loc:L 'Re_move'}" Style="{StaticResource DangerTextButton}" Click="Remove_Click" Margin="0,2,8,2" />
+                    <ui:Button x:Name="RetryAllButton" Content="{loc:L 'Deliver _all now'}" Click="RetryAll_Click" Margin="0,2,8,2"
+                               AutomationProperties.AutomationId="queue-retry-all" />
                     <ui:Button x:Name="RetryButton" Content="{loc:L '_Deliver now'}" Appearance="Primary" Click="Retry_Click" Margin="0,2,0,2" />
                 </WrapPanel>
             </scaffold:Toolbar.Actions>
@@ -56,17 +66,49 @@
 
         <scaffold:Card Grid.Row="3" Padding="8">
             <Grid>
-                <DataGrid x:Name="QueueGrid" AutoGenerateColumns="False" IsReadOnly="True"
+                <!-- Several rows can be chosen, and Remove and Deliver now act on them all.
+                     The ID is a name more than a number, so it is left-aligned and narrow;
+                     From, Recipients and State take the width with a floor, so that a
+                     narrow window scrolls the grid sideways rather than cutting them to a
+                     word; and State says why each message waits (review finding F248).
+                     State holds what the Next try column did - the wait to it, or, from
+                     another computer, the time itself, the time in its tool tip - since
+                     with both, eight columns cut the state and Tries to a word at 1280
+                     pixels in German. Tries is as wide as its header in each language. -->
+                <DataGrid x:Name="QueueGrid" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Extended"
+                          SelectionChanged="QueueGrid_SelectionChanged"
                           AutomationProperties.Name="{loc:L 'Delivery queue'}">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="90"
+                        <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="64" MinWidth="56" />
+                        <DataGridTextColumn Header="{loc:L 'Created'}" Binding="{Binding Created}" Width="150" MinWidth="136" />
+                        <DataGridTextColumn Header="{loc:L 'From'}" Binding="{Binding From}" Width="*" MinWidth="160" ElementStyle="{StaticResource GridTrimmedText}" />
+                        <DataGridTextColumn Header="{loc:L 'Recipients'}" Binding="{Binding Recipients}" Width="*" MinWidth="160" ElementStyle="{StaticResource GridTrimmedText}" />
+                        <DataGridTemplateColumn Header="{loc:L 'State'}" Width="1.2*" MinWidth="150" SortMemberPath="StateOrder">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding State}" ToolTip="{Binding StateTip}" TextTrimming="CharacterEllipsis"
+                                               VerticalAlignment="Center" Margin="2,0,0,0" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="{loc:L 'Tries'}" Binding="{Binding Tries}" Width="Auto" MinWidth="56"
                                             ElementStyle="{StaticResource GridNumberText}" HeaderStyle="{StaticResource GridNumberHeader}" />
-                        <DataGridTextColumn Header="{loc:L 'Created'}" Binding="{Binding Created}" Width="150" />
-                        <DataGridTextColumn Header="{loc:L 'From'}" Binding="{Binding From}" Width="*" ElementStyle="{StaticResource GridTrimmedText}" />
-                        <DataGridTextColumn Header="{loc:L 'Recipients'}" Binding="{Binding Recipients}" Width="*" ElementStyle="{StaticResource GridTrimmedText}" />
-                        <DataGridTextColumn Header="{loc:L 'Next try'}" Binding="{Binding NextTry}" Width="150" />
-                        <DataGridTextColumn Header="{loc:L 'Tries'}" Binding="{Binding Tries}" Width="70"
-                                            ElementStyle="{StaticResource GridNumberText}" HeaderStyle="{StaticResource GridNumberHeader}" />
+                        <!-- The row's Trace message, a 24-pixel icon named for its row (the
+                             owner's decision 15) as it is loaded, with Message trace's own
+                             glyph; not a tab stop, as the row icons elsewhere are not - the
+                             keyboard has Trace message in the toolbar. Its name is set by the
+                             page, not bound to a property of the row, which the search would
+                             read: "trace" matched every message. -->
+                        <DataGridTemplateColumn Header="" Width="40" CanUserSort="False" CanUserResize="False">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <ui:Button Icon="{ui:SymbolIcon DocumentSearch24}" Appearance="Transparent" Padding="4" Width="24" Height="24"
+                                               BorderThickness="0" IsTabStop="False" VerticalAlignment="Center"
+                                               Loaded="TraceRow_Named" DataContextChanged="TraceRow_DataContextChanged"
+                                               Click="TraceRow_Click" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                     </DataGrid.Columns>
                 </DataGrid>
                 <scaffold:EmptyState x:Name="EmptyStatus" Icon="Send24" Visibility="Collapsed"

@@ -3210,6 +3210,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Could not reinitialise: {0}" xml:space="preserve">
     <value>Yeniden başlatma (Reinitialize) yapılamadı: {0}</value>
   </data>
+  <data name="Could not remove message {0}: {1}" xml:space="preserve">
+    <value>{0} iletisi kaldırılamadı: {1}</value>
+  </data>
   <data name="Could not remove the action: {0}" xml:space="preserve">
     <value>Eylem kaldırılamadı: {0}</value>
   </data>
@@ -3218,9 +3221,6 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Could not remove the criterion: {0}" xml:space="preserve">
     <value>Ölçüt kaldırılamadı: {0}</value>
-  </data>
-  <data name="Could not remove the message: {0}" xml:space="preserve">
-    <value>İleti kaldırılamadı: {0}</value>
   </data>
   <data name="Could not remove the passphrase: {0}" xml:space="preserve">
     <value>Parola ifadesi kaldırılamadı: {0}</value>
@@ -3935,6 +3935,9 @@ Gönderene kabul edildiği söylendi; bu nedenle hiçbir şey yeniden denemeyece
   <data name="Deli_vers to" xml:space="preserve">
     <value>Tesl_im edilecek adres</value>
   </data>
+  <data name="Deliver _all now" xml:space="preserve">
+    <value>Tü_münü şimdi teslim et</value>
+  </data>
   <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
     <value>Her iletiyi başlıklarında adı geçen hesaplara teslim et (birkaç kişinin paylaştığı bir posta kutusu)</value>
   </data>
@@ -3962,6 +3965,9 @@ Gönderene kabul edildiği söylendi; bu nedenle hiçbir şey yeniden denemeyece
   <data name="Delivering" xml:space="preserve">
     <value>Teslim ediliyor</value>
   </data>
+  <data name="Delivering now" xml:space="preserve">
+    <value>Şu anda teslim ediliyor</value>
+  </data>
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>Teslim ediliyor: ileti kabul ediliyor ama hiç çıkmıyor</value>
   </data>
@@ -3979,6 +3985,12 @@ Gönderene kabul edildiği söylendi; bu nedenle hiçbir şey yeniden denemeyece
   </data>
   <data name="Delivery retriggered for message {0}." xml:space="preserve">
     <value>{0} iletisi için teslim yeniden tetiklendi.</value>
+  </data>
+  <data name="Delivery retriggered for {0} message." xml:space="preserve">
+    <value>{0} ileti için teslim yeniden tetiklendi.</value>
+  </data>
+  <data name="Delivery retriggered for {0} messages." xml:space="preserve">
+    <value>{0} ileti için teslim yeniden tetiklendi.</value>
   </data>
   <data name="Delivery runs on a separate, smaller pool. The usual causes, in the order they occur:" xml:space="preserve">
     <value>Teslim, ayrı ve daha küçük bir havuzda çalışır. Olağan nedenler, ortaya çıkış sırasıyla:</value>
@@ -4218,6 +4230,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Drop oversized inbound messages above N KB mid-transfer (0 = off)" xml:space="preserve">
     <value>N KB'tan büyük gelen iletileri aktarımın ortasında at (0 = kapalı)</value>
+  </data>
+  <data name="Due for delivery" xml:space="preserve">
+    <value>Teslim sırasında</value>
   </data>
   <data name="E-mail" xml:space="preserve">
     <value>E-posta</value>
@@ -4764,6 +4779,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Every event for queue id {0}, oldest first." xml:space="preserve">
     <value>{0} kuyruk kimliği için her olay, en eskisi önce.</value>
+  </data>
+  <data name="Every event of the selected message, on the Message trace page" xml:space="preserve">
+    <value>Seçili iletinin tüm olayları, İleti izleme sayfasında</value>
   </data>
   <data name="Every listener that a mail client connects to requires encryption before it will accept a password." xml:space="preserve">
     <value>Bir posta istemcisinin bağlandığı her dinleyici, parola kabul etmeden önce şifreleme gerektiriyor.</value>
@@ -7120,8 +7138,11 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Next step: {0}." xml:space="preserve">
     <value>Sonraki adım: {0}.</value>
   </data>
-  <data name="Next try" xml:space="preserve">
-    <value>Sonraki deneme</value>
+  <data name="Next try at {0}" xml:space="preserve">
+    <value>Sonraki deneme: {0}</value>
+  </data>
+  <data name="Next try in {0}" xml:space="preserve">
+    <value>Sonraki deneme {0} sonra</value>
   </data>
   <data name="Next year" xml:space="preserve">
     <value>Sonraki yıl</value>
@@ -9558,6 +9579,12 @@ Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerekt
 
 Bu gruba verilmiş her erişim o hesap için uygulanmaz olur.</value>
   </data>
+  <data name="Remove {0} message from the queue? It is deleted without a bounce, so its sender is not told." xml:space="preserve">
+    <value>{0} ileti kuyruktan kaldırılsın mı? Geri dönüş iletisi olmadan silinir, bu yüzden gönderene bildirilmez.</value>
+  </data>
+  <data name="Remove {0} messages from the queue? They are deleted without a bounce, so their senders are not told." xml:space="preserve">
+    <value>{0} ileti kuyruktan kaldırılsın mı? Geri dönüş iletisi olmadan silinirler, bu yüzden gönderenlerine bildirilmez.</value>
+  </data>
   <data name="Rename {0} to {1}?&#10;&#10;Every account, alias and distribution list moves to the new name, and forwards or memberships in other domains that point at {0} addresses are updated to match. Mail sent to the old name will no longer be accepted." xml:space="preserve">
     <value>{0}, {1} olarak yeniden adlandırılsın mı?
 
@@ -10626,9 +10653,6 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Select a folder first." xml:space="preserve">
     <value>Önce bir klasör seçin.</value>
-  </data>
-  <data name="Select a message first." xml:space="preserve">
-    <value>Önce bir ileti seçin.</value>
   </data>
   <data name="Select a port first." xml:space="preserve">
     <value>Önce bir port seçin.</value>
@@ -13604,6 +13628,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="Tours" xml:space="preserve">
     <value>Turlar</value>
   </data>
+  <data name="Trace message {0}" xml:space="preserve">
+    <value>{0} iletisini izle</value>
+  </data>
   <data name="Trace one message" xml:space="preserve">
     <value>Tek bir iletiyi izle</value>
   </data>
@@ -15188,6 +15215,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="_Remove message" xml:space="preserve">
     <value>İletiyi _kaldır</value>
   </data>
+  <data name="_Remove messages" xml:space="preserve">
+    <value>İletileri _kaldır</value>
+  </data>
   <data name="_Rename the account" xml:space="preserve">
     <value>Hesabı _yeniden adlandır</value>
   </data>
@@ -15292,6 +15322,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="_To" xml:space="preserve">
     <value>Ki_me</value>
+  </data>
+  <data name="_Trace message" xml:space="preserve">
+    <value>İletiyi _izle</value>
   </data>
   <data name="_Turn off" xml:space="preserve">
     <value>Devre _dışı bırak</value>
@@ -16767,6 +16800,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} ileti diskte eksik olan bir dosyaya başvuruyor.</value>
   </data>
+  <data name="{0} message removed." xml:space="preserve">
+    <value>{0} ileti kaldırıldı.</value>
+  </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} ileti</value>
   </data>
@@ -16778,6 +16814,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0} messages reference a file that is missing on disk." xml:space="preserve">
     <value>{0} ileti diskte eksik olan bir dosyaya başvuruyor.</value>
+  </data>
+  <data name="{0} messages removed." xml:space="preserve">
+    <value>{0} ileti kaldırıldı.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} dk</value>

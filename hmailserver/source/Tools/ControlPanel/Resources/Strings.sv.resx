@@ -3210,6 +3210,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Could not reinitialise: {0}" xml:space="preserve">
     <value>Kunde inte ominitiera: {0}</value>
   </data>
+  <data name="Could not remove message {0}: {1}" xml:space="preserve">
+    <value>Kunde inte ta bort meddelande {0}: {1}</value>
+  </data>
   <data name="Could not remove the action: {0}" xml:space="preserve">
     <value>Kunde inte ta bort åtgärden: {0}</value>
   </data>
@@ -3218,9 +3221,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Could not remove the criterion: {0}" xml:space="preserve">
     <value>Kunde inte ta bort kriteriet: {0}</value>
-  </data>
-  <data name="Could not remove the message: {0}" xml:space="preserve">
-    <value>Kunde inte ta bort meddelandet: {0}</value>
   </data>
   <data name="Could not remove the passphrase: {0}" xml:space="preserve">
     <value>Kunde inte ta bort lösenfrasen: {0}</value>
@@ -3935,6 +3935,9 @@ Avsändaren fick veta att det accepterades, så inget kommer att försöka igen 
   <data name="Deli_vers to" xml:space="preserve">
     <value>L_evererar till</value>
   </data>
+  <data name="Deliver _all now" xml:space="preserve">
+    <value>Leverera _alla nu</value>
+  </data>
   <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
     <value>Leverera varje meddelande till de konton som dess rubriker nämner (en brevlåda som flera personer delar)</value>
   </data>
@@ -3962,6 +3965,9 @@ Avsändaren fick veta att det accepterades, så inget kommer att försöka igen 
   <data name="Delivering" xml:space="preserve">
     <value>Leverans</value>
   </data>
+  <data name="Delivering now" xml:space="preserve">
+    <value>Levereras nu</value>
+  </data>
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>Leverans: meddelandet accepteras men lämnar aldrig</value>
   </data>
@@ -3979,6 +3985,12 @@ Avsändaren fick veta att det accepterades, så inget kommer att försöka igen 
   </data>
   <data name="Delivery retriggered for message {0}." xml:space="preserve">
     <value>Leveransen startades om för meddelande {0}.</value>
+  </data>
+  <data name="Delivery retriggered for {0} message." xml:space="preserve">
+    <value>Leveransen startades om för {0} meddelande.</value>
+  </data>
+  <data name="Delivery retriggered for {0} messages." xml:space="preserve">
+    <value>Leveransen startades om för {0} meddelanden.</value>
   </data>
   <data name="Delivery runs on a separate, smaller pool. The usual causes, in the order they occur:" xml:space="preserve">
     <value>Leveransen körs på en separat, mindre pool. De vanliga orsakerna, i den ordning de inträffar:</value>
@@ -4218,6 +4230,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Drop oversized inbound messages above N KB mid-transfer (0 = off)" xml:space="preserve">
     <value>Släpp för stora inkommande meddelanden över N KB mitt i överföringen (0 = av)</value>
+  </data>
+  <data name="Due for delivery" xml:space="preserve">
+    <value>Väntar på leverans</value>
   </data>
   <data name="E-mail" xml:space="preserve">
     <value>E-post</value>
@@ -4764,6 +4779,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Every event for queue id {0}, oldest first." xml:space="preserve">
     <value>Varje händelse för kö-id {0}, äldsta först.</value>
+  </data>
+  <data name="Every event of the selected message, on the Message trace page" xml:space="preserve">
+    <value>Alla händelser för det valda meddelandet, på sidan Meddelandespårning</value>
   </data>
   <data name="Every listener that a mail client connects to requires encryption before it will accept a password." xml:space="preserve">
     <value>Varje lyssnare en e-postklient ansluter till kräver kryptering innan den godtar ett lösenord.</value>
@@ -7120,8 +7138,11 @@ Inget som redan finns där tas bort.</value>
   <data name="Next step: {0}." xml:space="preserve">
     <value>Nästa steg: {0}.</value>
   </data>
-  <data name="Next try" xml:space="preserve">
-    <value>Nästa försök</value>
+  <data name="Next try at {0}" xml:space="preserve">
+    <value>Nästa försök: {0}</value>
+  </data>
+  <data name="Next try in {0}" xml:space="preserve">
+    <value>Nästa försök om {0}</value>
   </data>
   <data name="Next year" xml:space="preserve">
     <value>Nästa år</value>
@@ -9558,6 +9579,12 @@ Nästa meddelande till adressen skickas, och den hamnar på listan igen först e
 
 All åtkomst den här gruppen har fått slutar gälla för det kontot.</value>
   </data>
+  <data name="Remove {0} message from the queue? It is deleted without a bounce, so its sender is not told." xml:space="preserve">
+    <value>Ta bort {0} meddelande från kön? Det raderas utan studs, så avsändaren får inget besked.</value>
+  </data>
+  <data name="Remove {0} messages from the queue? They are deleted without a bounce, so their senders are not told." xml:space="preserve">
+    <value>Ta bort {0} meddelanden från kön? De raderas utan studs, så avsändarna får inget besked.</value>
+  </data>
   <data name="Rename {0} to {1}?&#10;&#10;Every account, alias and distribution list moves to the new name, and forwards or memberships in other domains that point at {0} addresses are updated to match. Mail sent to the old name will no longer be accepted." xml:space="preserve">
     <value>Byt namn på {0} till {1}?
 
@@ -10626,9 +10653,6 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Select a folder first." xml:space="preserve">
     <value>Välj en mapp först.</value>
-  </data>
-  <data name="Select a message first." xml:space="preserve">
-    <value>Välj ett meddelande först.</value>
   </data>
   <data name="Select a port first." xml:space="preserve">
     <value>Välj en port först.</value>
@@ -13604,6 +13628,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Tours" xml:space="preserve">
     <value>Rundturer</value>
   </data>
+  <data name="Trace message {0}" xml:space="preserve">
+    <value>Spåra meddelandet {0}</value>
+  </data>
   <data name="Trace one message" xml:space="preserve">
     <value>Spåra ett meddelande</value>
   </data>
@@ -15188,6 +15215,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="_Remove message" xml:space="preserve">
     <value>_Ta bort meddelandet</value>
   </data>
+  <data name="_Remove messages" xml:space="preserve">
+    <value>_Ta bort meddelandena</value>
+  </data>
   <data name="_Rename the account" xml:space="preserve">
     <value>_Byt namn på kontot</value>
   </data>
@@ -15292,6 +15322,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="_To" xml:space="preserve">
     <value>_Till</value>
+  </data>
+  <data name="_Trace message" xml:space="preserve">
+    <value>_Spåra meddelandet</value>
   </data>
   <data name="_Turn off" xml:space="preserve">
     <value>Inakti_vera</value>
@@ -16767,6 +16800,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} meddelande hänvisar till en fil som saknas på disk.</value>
   </data>
+  <data name="{0} message removed." xml:space="preserve">
+    <value>{0} meddelande borttaget.</value>
+  </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} meddelanden</value>
   </data>
@@ -16778,6 +16814,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} messages reference a file that is missing on disk." xml:space="preserve">
     <value>{0} meddelanden hänvisar till en fil som saknas på disk.</value>
+  </data>
+  <data name="{0} messages removed." xml:space="preserve">
+    <value>{0} meddelanden borttagna.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} min</value>

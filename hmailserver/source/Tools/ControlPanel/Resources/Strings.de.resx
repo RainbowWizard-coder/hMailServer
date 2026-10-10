@@ -3210,6 +3210,9 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Could not reinitialise: {0}" xml:space="preserve">
     <value>Reinitialisieren fehlgeschlagen: {0}</value>
   </data>
+  <data name="Could not remove message {0}: {1}" xml:space="preserve">
+    <value>Nachricht {0} konnte nicht entfernt werden: {1}</value>
+  </data>
   <data name="Could not remove the action: {0}" xml:space="preserve">
     <value>Die Aktion konnte nicht entfernt werden: {0}</value>
   </data>
@@ -3218,9 +3221,6 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   </data>
   <data name="Could not remove the criterion: {0}" xml:space="preserve">
     <value>Das Kriterium konnte nicht entfernt werden: {0}</value>
-  </data>
-  <data name="Could not remove the message: {0}" xml:space="preserve">
-    <value>Die Nachricht konnte nicht entfernt werden: {0}</value>
   </data>
   <data name="Could not remove the passphrase: {0}" xml:space="preserve">
     <value>Die Passphrase konnte nicht entfernt werden: {0}</value>
@@ -3935,6 +3935,9 @@ Dem Absender wurde gesagt, sie sei angenommen, es wird also nichts wiederholt un
   <data name="Deli_vers to" xml:space="preserve">
     <value>_Zustellen an</value>
   </data>
+  <data name="Deliver _all now" xml:space="preserve">
+    <value>_Alle jetzt zustellen</value>
+  </data>
   <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
     <value>Jede Nachricht an die Konten zustellen, die ihre Header nennen (ein Postfach, das sich mehrere Leute teilen)</value>
   </data>
@@ -3962,6 +3965,9 @@ Dem Absender wurde gesagt, sie sei angenommen, es wird also nichts wiederholt un
   <data name="Delivering" xml:space="preserve">
     <value>Wird zugestellt</value>
   </data>
+  <data name="Delivering now" xml:space="preserve">
+    <value>Wird gerade zugestellt</value>
+  </data>
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>Zustellung: die Nachricht wird angenommen, verlässt den Server aber nie</value>
   </data>
@@ -3979,6 +3985,12 @@ Dem Absender wurde gesagt, sie sei angenommen, es wird also nichts wiederholt un
   </data>
   <data name="Delivery retriggered for message {0}." xml:space="preserve">
     <value>Zustellung für Nachricht {0} erneut angestoßen.</value>
+  </data>
+  <data name="Delivery retriggered for {0} message." xml:space="preserve">
+    <value>Zustellung für {0} Nachricht erneut angestoßen.</value>
+  </data>
+  <data name="Delivery retriggered for {0} messages." xml:space="preserve">
+    <value>Zustellung für {0} Nachrichten erneut angestoßen.</value>
   </data>
   <data name="Delivery runs on a separate, smaller pool. The usual causes, in the order they occur:" xml:space="preserve">
     <value>Die Zustellung läuft auf einem eigenen, kleineren Pool. Die üblichen Ursachen, in der Reihenfolge ihres Auftretens:</value>
@@ -4218,6 +4230,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   </data>
   <data name="Drop oversized inbound messages above N KB mid-transfer (0 = off)" xml:space="preserve">
     <value>Zu große eingehende Nachrichten über N KB mitten in der Übertragung abbrechen (0 = aus)</value>
+  </data>
+  <data name="Due for delivery" xml:space="preserve">
+    <value>Zur Zustellung fällig</value>
   </data>
   <data name="E-mail" xml:space="preserve">
     <value>E-Mail</value>
@@ -4764,6 +4779,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   </data>
   <data name="Every event for queue id {0}, oldest first." xml:space="preserve">
     <value>Jedes Ereignis für Warteschlangen-ID {0}, ältestes zuerst.</value>
+  </data>
+  <data name="Every event of the selected message, on the Message trace page" xml:space="preserve">
+    <value>Alle Ereignisse der ausgewählten Nachricht, auf der Seite Nachrichten-Trace</value>
   </data>
   <data name="Every listener that a mail client connects to requires encryption before it will accept a password." xml:space="preserve">
     <value>Jeder Listener, mit dem sich ein Mail-Client verbindet, verlangt Verschlüsselung, bevor er ein Passwort annimmt.</value>
@@ -7120,8 +7138,11 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="Next step: {0}." xml:space="preserve">
     <value>Nächster Schritt: {0}.</value>
   </data>
-  <data name="Next try" xml:space="preserve">
-    <value>Nächster Versuch</value>
+  <data name="Next try at {0}" xml:space="preserve">
+    <value>Nächster Versuch am {0}</value>
+  </data>
+  <data name="Next try in {0}" xml:space="preserve">
+    <value>Nächster Versuch in {0}</value>
   </data>
   <data name="Next year" xml:space="preserve">
     <value>Nächstes Jahr</value>
@@ -9558,6 +9579,12 @@ Die nächste Nachricht an diese Adresse wird gesendet, und sie kommt erst wieder
 
 Jeder Zugriff, der dieser Gruppe gewährt wurde, gilt für dieses Konto dann nicht mehr.</value>
   </data>
+  <data name="Remove {0} message from the queue? It is deleted without a bounce, so its sender is not told." xml:space="preserve">
+    <value>{0} Nachricht aus der Warteschlange entfernen? Sie wird ohne Unzustellbarkeitsbericht gelöscht, der Absender erfährt also nichts davon.</value>
+  </data>
+  <data name="Remove {0} messages from the queue? They are deleted without a bounce, so their senders are not told." xml:space="preserve">
+    <value>{0} Nachrichten aus der Warteschlange entfernen? Sie werden ohne Unzustellbarkeitsbericht gelöscht, ihre Absender erfahren also nichts davon.</value>
+  </data>
   <data name="Rename {0} to {1}?&#10;&#10;Every account, alias and distribution list moves to the new name, and forwards or memberships in other domains that point at {0} addresses are updated to match. Mail sent to the old name will no longer be accepted." xml:space="preserve">
     <value>{0} in {1} umbenennen?
 
@@ -10626,9 +10653,6 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   </data>
   <data name="Select a folder first." xml:space="preserve">
     <value>Wählen Sie zuerst einen Ordner aus.</value>
-  </data>
-  <data name="Select a message first." xml:space="preserve">
-    <value>Wählen Sie zuerst eine Nachricht aus.</value>
   </data>
   <data name="Select a port first." xml:space="preserve">
     <value>Wählen Sie zuerst einen Port aus.</value>
@@ -13604,6 +13628,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="Tours" xml:space="preserve">
     <value>Rundgänge</value>
   </data>
+  <data name="Trace message {0}" xml:space="preserve">
+    <value>Nachricht {0} verfolgen</value>
+  </data>
   <data name="Trace one message" xml:space="preserve">
     <value>Eine Nachricht verfolgen</value>
   </data>
@@ -15188,6 +15215,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="_Remove message" xml:space="preserve">
     <value>Nachricht _entfernen</value>
   </data>
+  <data name="_Remove messages" xml:space="preserve">
+    <value>Nachrichten _entfernen</value>
+  </data>
   <data name="_Rename the account" xml:space="preserve">
     <value>Konto _umbenennen</value>
   </data>
@@ -15292,6 +15322,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="_To" xml:space="preserve">
     <value>A_n</value>
+  </data>
+  <data name="_Trace message" xml:space="preserve">
+    <value>Nachricht _verfolgen</value>
   </data>
   <data name="_Turn off" xml:space="preserve">
     <value>Aus_schalten</value>
@@ -16767,6 +16800,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} Nachricht verweist auf eine Datei, die auf der Festplatte fehlt.</value>
   </data>
+  <data name="{0} message removed." xml:space="preserve">
+    <value>{0} Nachricht entfernt.</value>
+  </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} Nachrichten</value>
   </data>
@@ -16778,6 +16814,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="{0} messages reference a file that is missing on disk." xml:space="preserve">
     <value>{0} Nachrichten verweisen auf eine Datei, die auf der Festplatte fehlt.</value>
+  </data>
+  <data name="{0} messages removed." xml:space="preserve">
+    <value>{0} Nachrichten entfernt.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} Min.</value>

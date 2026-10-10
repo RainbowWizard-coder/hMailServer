@@ -230,6 +230,18 @@ namespace hMailServer.ControlPanel.Views
          Follow_(queueId);
       }
 
+      /// <summary>
+      /// Every event of one queued message, oldest first, as Follow this message shows
+      /// them: the delivery queue's Trace message (review finding F248). The trace keeps
+      /// queue ids the server's COM interface takes as 32-bit; a larger one is not
+      /// followed.
+      /// </summary>
+      public void FollowQueuedMessage(long queueId)
+      {
+         if (queueId > 0 && queueId <= int.MaxValue)
+            Follow_((int)queueId);
+      }
+
       private void Follow_(int queueId)
       {
          Remember_(() => Follow_(queueId));
