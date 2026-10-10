@@ -93,7 +93,8 @@ whole. The dashboard's card lists the next step and the two after it, then one
 line that says how many more the checklist holds and opens it, under the
 configuration warnings of the *Server status* page - an IP range that relays for
 anybody, no host name, refused bounces, localhost banned - each with the page
-that puts it right.
+that puts it right. No host name is also the checklist's host-name step: while
+that step is open, the card lists the step alone and counts it once.
 
 The Control Panel adds one item of its own to the first hour, after the account:
 **the host name**, `Settings.HostName`, the name the server announces in

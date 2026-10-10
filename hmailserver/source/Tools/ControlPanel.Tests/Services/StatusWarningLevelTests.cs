@@ -84,8 +84,9 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void EachWarning_CarriesTheLevelItAlwaysMeant_AndThePageThatFixesIt(string fragment, string level, string page)
       {
          string source = ReadChecks();
-         // A count's warning is a Plural call, its one form first.
-         Match call = Regex.Matches(source, @"AddWarning\((StatusLevel\.\w+),\s*(?:[LF]\(|Plural\([^,]+,\s*)""([^""]*)""[^;]*?,\s*""(\w+)""\);")
+         // A count's warning is a Plural call, its one form first; a warning the
+         // setup checklist holds as a step names the subject they share after the page.
+         Match call = Regex.Matches(source, @"AddWarning\((StatusLevel\.\w+),\s*(?:[LF]\(|Plural\([^,]+,\s*)""([^""]*)""[^;]*?,\s*""(\w+)""(?:,\s*[\w.]+)?\);")
             .Cast<Match>()
             .FirstOrDefault(m => m.Groups[2].Value.Contains(fragment, StringComparison.Ordinal));
          Assert.True(call != null, "The Server status page no longer warns about \"" + fragment + "\" with the page that fixes it.");

@@ -36,7 +36,9 @@ namespace hMailServer.ControlPanel.Services
          try
          {
             if (((string)settings.HostName).Length == 0)
-               found.AddWarning(StatusLevel.Warning, L("No host name is set: 'Host name (HELO/EHLO greeting)' on the Protocols page's SMTP tab is empty."), "protocols");
+               // The setup checklist's host-name item holds it too, as a step: the
+               // Dashboard lists the step alone while it is open (DashboardAttention).
+               found.AddWarning(StatusLevel.Warning, L("No host name is set: 'Host name (HELO/EHLO greeting)' on the Protocols page's SMTP tab is empty."), "protocols", DashboardAttention.HostNameKey);
 
             if ((bool)settings.DenyMailFromNull)
                found.AddWarning(StatusLevel.Warning, L("Mail from an empty sender address is denied. Many servers send bounces from <>, which will be rejected."), "protocols");
@@ -73,11 +75,14 @@ namespace hMailServer.ControlPanel.Services
          return found;
       }
 
-      /// <summary>The warnings as they are found, each with its level and the page that puts it right.</summary>
+      /// <summary>
+      /// The warnings as they are found, each with its level, the page that puts it
+      /// right and the subject it shares with an item of the setup checklist, if any.
+      /// </summary>
       private sealed class Found : List<ConfigurationWarning>
       {
-         public void AddWarning(StatusLevel level, string text, string page)
-            => Add(new ConfigurationWarning { Level = level, Text = text, Page = page });
+         public void AddWarning(StatusLevel level, string text, string page, string key = null)
+            => Add(new ConfigurationWarning { Level = level, Text = text, Page = page, Key = key });
       }
    }
 }

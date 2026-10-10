@@ -685,8 +685,10 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private void RenderAttention_(ExternalSetupChecks checks, int pendingDnsLookups)
       {
-         IReadOnlyList<ConfigurationWarning> warnings = configurationWarnings_;
          var steps = checks.Items.Where(i => i.State == SetupItemState.ActionNeeded).ToList();
+         // A warning the checklist holds as an open step - no host name - is that
+         // step alone, listed once in the checklist's words and counted once.
+         IReadOnlyList<ConfigurationWarning> warnings = DashboardAttention.WithoutOpenSteps(configurationWarnings_, steps.Select(step => step.Key));
          int action = steps.Count;
          int unknown = checks.Items.Count(i => i.State == SetupItemState.CannotTell);
 

@@ -66,6 +66,14 @@ namespace hMailServer.ControlPanel.Services
       /// </summary>
       public string Tab;
 
+      /// <summary>
+      /// The subject this item shares with a configuration check of the Server
+      /// status page (ConfigurationWarning.Key), or null: the Dashboard lists the
+      /// item's open step alone and counts it once, where it listed the warning as
+      /// well (DashboardAttention.WithoutOpenSteps).
+      /// </summary>
+      public string Key;
+
       public readonly List<SetupFinding> Findings = new();
 
       public void Add(SetupItemState state, string text) => Findings.Add(new SetupFinding { State = state, Text = text });
@@ -549,7 +557,9 @@ namespace hMailServer.ControlPanel.Services
             Tab = N("SMTP"),
             Purpose = L("Every server this one delivers to is told its host name and compares it with DNS: the name's address, and the PTR record of the address the mail came from. A name that does not match counts against the mail."),
             Action = L("On the Protocols page's SMTP tab, set Host name to this server's full DNS name, such as mail.example.com. Then ask whoever owns the server's public address for a PTR record naming it; the DNS records page shows what to ask for."),
-            Page = "protocols"
+            Page = "protocols",
+            // ConfigurationChecks warns of an empty host name as well.
+            Key = DashboardAttention.HostNameKey
          };
 
          int failuresBefore = failedReads_;

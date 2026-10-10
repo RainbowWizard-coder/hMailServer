@@ -2605,15 +2605,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   fourteen rows, 330 to 400 pixels on a new server - so that the figures began 577 to 650 pixels down and both charts
   were below the fold at 1280 by 800, for a list that is the Setup checklist one click away; an open relay, a missing
   host name, refused bounces and localhost banned were said on Server status alone; and the five figures were cards
-  that could not be pressed. The card now lists the configuration warnings first, the most severe first, each with
-  its mark and a button to the page that puts it right, and is Critical while an IP range relays for anybody; then the
-  checklist's next step and two more; then "8 more steps on the Setup checklist", which opens it. The checks are read
-  by one piece of code for both pages (Services/ConfigurationChecks), so that they cannot disagree. Each figure is a
-  button to the page it is read on - Uptime and Messages processed to Server status, In queue to the Delivery queue,
-  Spam detected to the spam overview and Viruses removed to the virus overview - drawn as the card was, with the hover
-  of a card that can be pointed at and a focus ring that moves nothing, and named as its figure is, the label first.
-  `DashboardAttentionTests` holds the arithmetic, the order, the card's level and the buttons, and
-  `StatusWarningLevelTests` holds each check's level and page where the checks now are.
+  that could not be pressed. The card now lists the configuration warnings first, the most severe first, each with its
+  mark and a button to the page that puts it right, and is Critical while an IP range relays for anybody; then the
+  checklist's next step and two more; then "8 more steps on the Setup checklist", which opens it. No host name, which
+  is a warning and the checklist's host-name step at once, is the step alone while the step is open, so that the card
+  lists and counts it once. The checks are read by one piece of code for both pages (Services/ConfigurationChecks), so
+  that they cannot disagree. Each figure is a button to the page it is read on - Uptime and Messages processed to
+  Server status, In queue to the Delivery queue, Spam detected to the spam overview and Viruses removed to the virus
+  overview - drawn as the card was, with the hover of a card that can be pointed at and a focus ring that moves
+  nothing, and named as its figure is, the label first. `DashboardAttentionTests` holds the arithmetic, the order, the
+  card's level, the host name counted once and the buttons, and `StatusWarningLevelTests` holds each check's level and
+  page where the checks now are.
 
 - **Fixed: nothing signed out of the Control Panel, connected it to another server or led back from Connection lost
   short of closing the program.** The administrator's menu held who was signed in, the version, the language, the

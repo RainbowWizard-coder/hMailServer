@@ -62,6 +62,61 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal(StatusLevel.Warning, DashboardAttention.CardLevel(StatusLevel.Warning, null));
       }
 
+      /// <summary>
+      /// No host name is a configuration warning and an open step of the setup
+      /// checklist at once, on every new server: the card listed "No host name is
+      /// set..." above step 1, "The host name - the name this server gives other
+      /// servers", and counted both, 15 things where the checklist said 14. While the
+      /// step is open the card lists the step alone and counts it once; once the step
+      /// is done, or cannot be told, a warning of the same subject is listed.
+      /// </summary>
+      [Fact]
+      public void AnEmptyHostName_AndItsOpenStep_AreOneLine_CountedOnce()
+      {
+         var hostName = new ConfigurationWarning { Level = StatusLevel.Warning, Text = "host", Page = "protocols", Key = DashboardAttention.HostNameKey };
+         var bounces = new ConfigurationWarning { Level = StatusLevel.Warning, Text = "bounces", Page = "protocols" };
+
+         // The host name's step alone: one line, counted once.
+         string[] open = { DashboardAttention.HostNameKey };
+         var listed = DashboardAttention.WithoutOpenSteps(new[] { hostName }, open);
+         Assert.Empty(listed);
+         Assert.Equal(1, listed.Count + DashboardAttention.StepsToShow(open.Length));
+         Assert.Equal(1, listed.Count + open.Length);
+
+         // Among other steps and warnings, the rest are kept in their order.
+         string[] steps = { null, DashboardAttention.HostNameKey, null, null };
+         Assert.Equal(new[] { "bounces" }, DashboardAttention.WithoutOpenSteps(new[] { hostName, bounces }, steps).Select(w => w.Text));
+         Assert.Equal(new[] { "bounces", "host" }, DashboardAttention.WithoutOpenSteps(new[] { bounces, hostName }, new string[] { null }).Select(w => w.Text));
+
+         // A step that is not open takes nothing away.
+         Assert.Single(DashboardAttention.WithoutOpenSteps(new[] { hostName }, Array.Empty<string>()));
+         Assert.Single(DashboardAttention.WithoutOpenSteps(new[] { hostName }, null));
+         Assert.Empty(DashboardAttention.WithoutOpenSteps(null, open));
+      }
+
+      [Fact]
+      public void TheHostNameWarning_AndTheHostNameStep_ShareTheirKey_AndTheCardListsAndCountsThemOnce()
+      {
+         string checks = Read("Services", "ConfigurationChecks.cs");
+         int warning = checks.IndexOf("L(\"No host name is set:", StringComparison.Ordinal);
+         Assert.True(warning > 0, "ConfigurationChecks no longer warns of an empty host name.");
+         string line = checks.Substring(warning, checks.IndexOf('\n', warning) - warning);
+         Assert.Contains("\"protocols\", DashboardAttention.HostNameKey);", line, StringComparison.Ordinal);
+
+         string item = WithheldRowTests.MemberText(Read("Services", "ExternalSetupChecks.cs"), "private SetupItem HostNameItem()");
+         Assert.True(item != null, "ExternalSetupChecks.HostNameItem is gone.");
+         Assert.Contains("Key = DashboardAttention.HostNameKey", item, StringComparison.Ordinal);
+
+         string render = WithheldRowTests.MemberText(Read("Views", "DashboardView.xaml.cs"), "private void RenderAttention_(ExternalSetupChecks checks, int pendingDnsLookups)");
+         Assert.True(render != null, "DashboardView.RenderAttention_ is gone.");
+         Assert.DoesNotContain("warnings = configurationWarnings_;", render, StringComparison.Ordinal);
+         int filtered = render.IndexOf("IReadOnlyList<ConfigurationWarning> warnings = DashboardAttention.WithoutOpenSteps(configurationWarnings_, steps.Select(step => step.Key));", StringComparison.Ordinal);
+         int counted = render.IndexOf("SummaryText_(action + warnings.Count,", StringComparison.Ordinal);
+         int listed = render.IndexOf("foreach (ConfigurationWarning warning in warnings)", StringComparison.Ordinal);
+         Assert.True(filtered > 0 && counted > filtered && listed > filtered,
+            "The card does not list and count the warnings less those the checklist holds as an open step.");
+      }
+
       [Fact]
       public void TheCard_ReadsTheStatusPagesChecks_ByTheCodeThatPageReadsThemWith()
       {
