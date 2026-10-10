@@ -3233,9 +3233,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   follows it: キー for every key (公開キー, 秘密キー, キー ファイル); 自動 BAN for the feature and its page and BAN for a ban; 送信者 for
   the sender, with 差出人 kept for the From header, and スパム; ログ設定, 開始日時, 日和見暗号化 and 送信先 SMTP ホスト; half-width parentheses
   throughout; and a caption's key suffix written against it, サンプルドメインを作成(_D), as the 531 others are - in the Chinese
-  catalogue too, which had the same sixteen. Every text that names the two renamed pages names them by their new
-  titles. `JapaneseStyleTests` holds the note, and `build/check-mnemonics.py` refuses a space before a Japanese or
-  Chinese key's suffix, its self-test with a catalogue made to break it.
+  catalogue too, which had the same sixteen - and at its end, after a parenthesis the caption ends with, 宛先フォルダー
+  (サーバー上)(_F), as 95 are, where ten stood before the parenthesis. Two texts no access key reaches, the SSL/TLS page's
+  TLS 1.3 suites and Diagnostics' message store scan, wrote TLSAES_256_GCM_SHA384 and
+  hmailservermessagestore_missing_files and ended in a stray "(_A)" and "(_M)", the loss of an underscore read as an
+  Alt key; they write the names as the English does. Every text that names the two renamed pages names them by their
+  new titles. `JapaneseStyleTests` holds the note, `CatalogueIdentifierTests` every name with underscores in every
+  language, and `build/check-mnemonics.py` refuses a space before a Japanese or Chinese key's suffix, its self-test
+  with a catalogue made to break it.
 
 - **Fixed: the Control Panel's examples were in some captions and in other boxes, said yourdomain.com, could read as
   values already set, and were faint in the dark theme.** Routes said "Domain (e.g. partner.com)", IP ranges "Lower IP

@@ -8,7 +8,7 @@
   <!-- 日本語: the 日本語 catalogue. Keys are the English text; values are the translation. Each caption's Alt key (the letter after _) is chosen for 日本語 and checked by build/check-mnemonics.py.
 
   Style note (review finding F302; ControlPanel.Tests' JapaneseStyleTests holds it):
-  - The key's suffix is written against the caption, 作成(_D), never 作成 (_D); before a trailing … or :, and before a parenthesis that follows the caption: 保護対象者(_P) (...).
+  - The key's suffix is written against the caption, 作成(_D), never 作成 (_D), and ends it: before a trailing … or :, and after a parenthesis the caption ends with, 宛先フォルダー (サーバー上)(_F) - but before a parenthesis that holds an underscore, which WPF would take for the key: 警告の本文(_X) (空 = ...、%MACRO_MAILBOX%、...).
   - Parentheses are half-width, ( ), with a space outside them where the text goes on; the corner brackets 「 」 quote a caption or a page, [ ] name a page or a button.
   - Katakana words are spaced as Windows' Japanese spaces them: キー ファイル, ベアラー トークン, ログ ファイル.
   - A key, cryptographic, API or keyboard, is キー (公開キー, 秘密キー, キー ペア), never 鍵.
@@ -4674,7 +4674,7 @@
     <value>各メンバーをバウンスアドレスに符号化する (_VERP)</value>
   </data>
   <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
-    <value>パスフレーズでアーカイブを暗号化する(_Y) (AES-256、ファイル名も含む)</value>
+    <value>パスフレーズでアーカイブを暗号化する (AES-256、ファイル名も含む)(_Y)</value>
   </data>
   <data name="Encrypt mail to this domain at this server" xml:space="preserve">
     <value>このドメイン宛てのメールをこのサーバーで暗号化する</value>
@@ -5646,7 +5646,7 @@
     <value>HS256 は許可する署名アルゴリズムに含まれていますが共有 HMAC シークレットが空のため、HS256 トークンは決して検証できません。共有シークレットを設定するか、リストから HS256 を削除してください。</value>
   </data>
   <data name="HTM_L disclaimer (empty = the plain text)" xml:space="preserve">
-    <value>免責事項（HTML）(_M)（空欄 = プレーンテキスト）</value>
+    <value>HTML の免責事項 (空欄 = プレーンテキスト)(_M)</value>
   </data>
   <data name="HTTP Basic needs both the user name and the password. Only {0} is set, so Basic authentication is not enabled - the server logs this and behaves as if neither were set." xml:space="preserve">
     <value>HTTP Basic にはユーザー名とパスワードの両方が必要です。{0} しか設定されていないため、Basic 認証は有効になっていません。サーバーはこれをログに記録し、どちらも設定されていないかのように動作します。</value>
@@ -12086,7 +12086,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>メールボックスの上限を超えても受信メールを受け付ける範囲 (上限の %、0 = 受け付けない)</value>
   </data>
   <data name="Still accept incoming mail past the limit _by (% of it; -1 = the server's, 0 = not at all)" xml:space="preserve">
-    <value>上限を超えても受信メールを受け付ける範囲(_B) (上限の %、-1 = サーバーの値、0 = 受け付けない)</value>
+    <value>上限を超えても受信メールを受け付ける範囲 (上限の %、-1 = サーバーの値、0 = 受け付けない)(_B)</value>
   </data>
   <data name="Still accept incoming mail past the limit by (%)" xml:space="preserve">
     <value>上限を超えて受信メールを受け付ける範囲 (%)</value>
@@ -12098,7 +12098,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>ルール処理を停止</value>
   </data>
   <data name="Stop sending at (% of the limit; -1 = the server's, 0 = ne_ver)" xml:space="preserve">
-    <value>送信を停止する時点(_V) (上限の %、-1 = サーバーの値、0 = 停止しない)</value>
+    <value>送信を停止する時点 (上限の %、-1 = サーバーの値、0 = 停止しない)(_V)</value>
   </data>
   <data name="Stop sending at (%)" xml:space="preserve">
     <value>送信を停止する時点 (%)</value>
@@ -12305,7 +12305,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>TLS 1.3 暗号スイート (空 = OpenSSL の既定)</value>
   </data>
   <data name="TLS 1.3 has its own suite list, its own names and its own setter, so the cipher list above does not restrict it. Colon separated, most preferred first, using the RFC 8446 names (TLS_AES_256_GCM_SHA384, TLS_CHACHA20_POLY1305_SHA256, TLS_AES_128_GCM_SHA256, TLS_AES_128_CCM_SHA256, TLS_AES_128_CCM_8_SHA256) - not the OpenSSL cipher-list names. Leave empty to keep OpenSSL's defaults; a name this build does not recognise is skipped and reported rather than failing the whole list." xml:space="preserve">
-    <value>TLS 1.3 には独自のスイート リスト、独自の名前、独自の設定方法があるため、上の暗号スイート リストはこれを制限しません。コロン区切りで、優先度の高い順に、RFC 8446 の名前 (TLSAES_256_GCM_SHA384、TLS_CHACHA20_POLY1305_SHA256、TLS_AES_128_GCM_SHA256、TLS_AES_128_CCM_SHA256、TLS_AES_128_CCM_8_SHA256) を使います。OpenSSL の暗号スイート リスト名ではありません。OpenSSL の既定を保つには空のままにしてください。このビルドが認識しない名前はリスト全体を失敗させるのではなく、スキップして報告されます。(_A)</value>
+    <value>TLS 1.3 には独自のスイート リスト、独自の名前、独自の設定方法があるため、上の暗号スイート リストはこれを制限しません。コロン区切りで、優先度の高い順に、RFC 8446 の名前 (TLS_AES_256_GCM_SHA384、TLS_CHACHA20_POLY1305_SHA256、TLS_AES_128_GCM_SHA256、TLS_AES_128_CCM_SHA256、TLS_AES_128_CCM_8_SHA256) を使います。OpenSSL の暗号スイート リスト名ではありません。OpenSSL の既定を保つには空のままにしてください。このビルドが認識しない名前はリスト全体を失敗させるのではなく、スキップして報告されます。</value>
   </data>
   <data name="TLS 1.3 is off. It is faster to negotiate than 1.2 and removes the older key exchanges outright; there is rarely a reason to leave it off." xml:space="preserve">
     <value>TLS 1.3 がオフです。1.2 よりネゴシエーションが速く、古いキー交換を完全に排除します。オフのままにする理由はほとんどありません。</value>
@@ -12368,7 +12368,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>送信エンベロープ送信者に BATV のタグを付け、戻ってきたバウンスを検証する</value>
   </data>
   <data name="Tag te_xt (up to 100 characters; empty = [EXTERNAL])" xml:space="preserve">
-    <value>タグの文字列(_X)（最大 100 文字、空欄 = [EXTERNAL]）</value>
+    <value>タグの文字列 (最大 100 文字、空欄 = [EXTERNAL])(_X)</value>
   </data>
   <data name="Tagging and disclaimer" xml:space="preserve">
     <value>タグ付けと免責事項</value>
@@ -13631,7 +13631,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>保存したスケジュールは、サービスを再起動すると有効になります。サーバーはまだ起動時のスケジュールで動作しています。</value>
   </data>
   <data name="The scan result is only readable on the server machine - hMailServer.ini was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
-    <value>スキャン結果はサーバー マシンでのみ読み取れます。hMailServer.ini がここには見つかりませんでした。サーバーは同じ数値を hmailservermessagestore_missing_files メトリクスとして公開しています。(_M)</value>
+    <value>スキャン結果はサーバー マシンでのみ読み取れます。hMailServer.ini がここには見つかりませんでした。サーバーは同じ数値を hmailserver_messagestore_missing_files メトリクスとして公開しています。</value>
   </data>
   <data name="The schedule and the retention are stored in hMailServer.ini on the server." xml:space="preserve">
     <value>スケジュールと保持期間はサーバー上の hMailServer.ini に保存されます。</value>
@@ -14766,7 +14766,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>コピー前の警告。{0}</value>
   </data>
   <data name="Warning s_ubject (empty = the server message)" xml:space="preserve">
-    <value>警告の件名(_U) (空 = サーバーメッセージ)</value>
+    <value>警告の件名 (空 = サーバーメッセージ)(_U)</value>
   </data>
   <data name="Warning te_xt (empty = the server message)" xml:space="preserve">
     <value>警告の本文(_X) (空 = サーバーメッセージ)</value>
@@ -16140,7 +16140,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>ソースを表示(_V)</value>
   </data>
   <data name="_Warn the owner at (% of the limit; -1 = the server's, 0 = never)" xml:space="preserve">
-    <value>所有者に警告する時点(_W) (上限の %、-1 = サーバーの値、0 = 警告しない)</value>
+    <value>所有者に警告する時点 (上限の %、-1 = サーバーの値、0 = 警告しない)(_W)</value>
   </data>
   <data name="_Who may send to this list" xml:space="preserve">
     <value>このリストに送信できる相手(_W)</value>

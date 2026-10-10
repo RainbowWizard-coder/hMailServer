@@ -80,6 +80,23 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("F302", head[..head.IndexOf("<resheader", StringComparison.Ordinal)], StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// A key's suffix ends its caption, after a parenthesis the caption ends with -
+      /// 宛先フォルダー (サーバー上)(_F), as 95 captions wrote it - where ten wrote it before
+      /// the parenthesis, as the note's first wording had it. A parenthesis that holds an
+      /// underscore of its own (%MACRO_MAILBOX%) keeps the key before it, since WPF takes
+      /// the first underscore for the key.
+      /// </summary>
+      [Fact]
+      public void AKeysSuffixEndsTheCaption()
+      {
+         var before = new Regex(@"\(_[A-Z0-9]\) \([^)_]*\)$");
+         List<string> found = Japanese.Where(pair => before.IsMatch(pair.Value)).Select(Show).ToList();
+         Assert.True(found.Count == 0, "A key's suffix before the caption's closing parenthesis:" + Environment.NewLine + string.Join(Environment.NewLine, found));
+         Assert.Equal("宛先フォルダー (サーバー上)(_F)", Japanese["Destination _folder (on the server)"]);
+         Assert.StartsWith("警告の本文(_X) (", Japanese.Single(pair => pair.Key.StartsWith("Warning te_xt (", StringComparison.Ordinal)).Value, StringComparison.Ordinal);
+      }
+
       private static string Show(KeyValuePair<string, string> pair) => pair.Key + " = " + pair.Value;
 
       private static Dictionary<string, string> ReadResx(string file)
