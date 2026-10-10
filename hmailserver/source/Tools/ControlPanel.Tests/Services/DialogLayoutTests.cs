@@ -52,10 +52,9 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
-      /// The two big editors do not measure their twelve tabs - every one holds a
-      /// whole embedded view and the tallest exceeds the cap anyway - so they ask
-      /// for the ceiling by naming a height nothing can reach. That has to come
-      /// back as a real number, not an infinity the layout would choke on.
+      /// A tab whose height cannot be measured, asked for as infinity, still gets
+      /// the ceiling, and as a finite number: an infinite height given to a tab
+      /// control is one the layout would choke on.
       /// </summary>
       [Fact]
       public void AskingForMoreThanAnyScreenGivesTheCeiling()
