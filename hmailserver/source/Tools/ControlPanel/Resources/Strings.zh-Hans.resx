@@ -13178,6 +13178,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>此操作没有额外参数。</value>
   </data>
+  <data name="This case's lines could not be read; the notice above says why." xml:space="preserve">
+    <value>无法读取此案件的行；原因见上方的通知。</value>
+  </data>
   <data name="This computer is not joined to an Active Directory domain." xml:space="preserve">
     <value>此计算机未加入 Active Directory 域。</value>
   </data>

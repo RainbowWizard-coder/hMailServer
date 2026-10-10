@@ -69,6 +69,13 @@ namespace hMailServer.ControlPanel.Views
       private List<AuditRow> audit_ = new();
       private bool loading_;
 
+      // Whether every object type's audit lines were read. Where a read was
+      // refused or could not be read (Reload_'s auditNote), a case with no line
+      // in audit_ may have lines the page could not read, and the lines' card
+      // says so rather than that the trail holds none (found re-checking
+      // 5a3a76267).
+      private bool auditComplete_;
+
       // While the REST API is asked, which can take up to eight seconds, over the
       // cases' place: the page showed nothing at all meanwhile (review finding F291).
       private readonly LoadingState reading_ = new() { Text = L("Reading the cases…"), Visibility = Visibility.Collapsed };
@@ -107,6 +114,7 @@ namespace hMailServer.ControlPanel.Views
       {
          loaded_ = Array.Empty<DiscoveryCase>();
          audit_ = new List<AuditRow>();
+         auditComplete_ = false;
          cases_.ItemsSource = null;
          lines_.ItemsSource = null;
          empty_.Visibility = Visibility.Collapsed;
@@ -262,6 +270,7 @@ namespace hMailServer.ControlPanel.Views
       {
          loaded_ = cases ?? Array.Empty<DiscoveryCase>();
          audit_ = audit ?? new List<AuditRow>();
+         auditComplete_ = auditNote == null;
          cases_.ItemsSource = loaded_.Select(CaseRow_).ToList();
 
          StatusText.Show(empty_, null, loaded_.Count, null,
@@ -313,7 +322,12 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>
       /// The selected case's lines, or in their place what is missing: a case to
       /// select, or any line naming the one selected. The card showed its bare
-      /// column headers in both (review finding F291).
+      /// column headers in both (review finding F291). Where the audit trail was
+      /// not read whole - a 403 for want of view_audit, another refusal, an
+      /// answer that could not be read, which the notice above says - no line
+      /// for the case is not a fact the page has, and the card says the lines
+      /// could not be read, where it said the trail held none under the notice
+      /// that says it was not read.
       /// </summary>
       private void ShowLines_()
       {
@@ -328,7 +342,9 @@ namespace hMailServer.ControlPanel.Views
          DiscoveryCase theCase = loaded_.FirstOrDefault(c => c.Id == row.Id);
          List<LineRow> lines = DiscoveryReport.LinesOf(theCase, audit_).Select(LineRow_).ToList();
          lines_.ItemsSource = lines;
-         noLines_.Text = L("The audit trail holds no line for this case.");
+         noLines_.Text = auditComplete_
+            ? L("The audit trail holds no line for this case.")
+            : L("This case's lines could not be read; the notice above says why.");
          noLines_.Visibility = lines.Count > 0 ? Visibility.Collapsed : Visibility.Visible;
       }
 

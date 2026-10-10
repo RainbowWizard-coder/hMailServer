@@ -13341,6 +13341,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>Tato akce nemá žádné další parametry.</value>
   </data>
+  <data name="This case's lines could not be read; the notice above says why." xml:space="preserve">
+    <value>Řádky tohoto případu nebylo možné přečíst; proč, říká oznámení výše.</value>
+  </data>
   <data name="This computer is not joined to an Active Directory domain." xml:space="preserve">
     <value>Tento počítač není připojen k doméně Active Directory.</value>
   </data>

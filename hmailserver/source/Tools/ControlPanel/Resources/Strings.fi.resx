@@ -13178,6 +13178,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>Tällä toiminnolla ei ole lisäparametreja.</value>
   </data>
+  <data name="This case's lines could not be read; the notice above says why." xml:space="preserve">
+    <value>Tämän tapauksen rivejä ei voitu lukea; yllä oleva ilmoitus kertoo miksi.</value>
+  </data>
   <data name="This computer is not joined to an Active Directory domain." xml:space="preserve">
     <value>Tätä tietokonetta ei ole liitetty Active Directory -toimialueeseen.</value>
   </data>

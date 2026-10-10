@@ -13178,6 +13178,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>Diese Aktion hat keine zusätzlichen Parameter.</value>
   </data>
+  <data name="This case's lines could not be read; the notice above says why." xml:space="preserve">
+    <value>Die Zeilen dieses Falls konnten nicht gelesen werden; der Hinweis oben sagt, warum.</value>
+  </data>
   <data name="This computer is not joined to an Active Directory domain." xml:space="preserve">
     <value>Dieser Computer ist keiner Active-Directory-Domäne beigetreten.</value>
   </data>

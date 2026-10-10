@@ -13178,6 +13178,9 @@ It will keep trying as you use the application.</value>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>This action has no additional parameters.</value>
   </data>
+  <data name="This case's lines could not be read; the notice above says why." xml:space="preserve">
+    <value>This case's lines could not be read; the notice above says why.</value>
+  </data>
   <data name="This computer is not joined to an Active Directory domain." xml:space="preserve">
     <value>This computer is not joined to an Active Directory domain.</value>
   </data>

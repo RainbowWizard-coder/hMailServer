@@ -13341,6 +13341,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>Ця дія не має додаткових параметрів.</value>
   </data>
+  <data name="This case's lines could not be read; the notice above says why." xml:space="preserve">
+    <value>Рядки цієї справи не вдалося прочитати; причину вказано в повідомленні вище.</value>
+  </data>
   <data name="This computer is not joined to an Active Directory domain." xml:space="preserve">
     <value>Цей комп'ютер не приєднано до домену Active Directory.</value>
   </data>

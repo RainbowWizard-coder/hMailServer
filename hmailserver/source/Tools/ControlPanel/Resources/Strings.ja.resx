@@ -13178,6 +13178,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>このアクションに追加のパラメーターはありません。</value>
   </data>
+  <data name="This case's lines could not be read; the notice above says why." xml:space="preserve">
+    <value>このケースの行を読み取れませんでした。理由は上の通知のとおりです。</value>
+  </data>
   <data name="This computer is not joined to an Active Directory domain." xml:space="preserve">
     <value>このコンピューターは Active Directory ドメインに参加していません。</value>
   </data>

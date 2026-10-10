@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using System.Text.RegularExpressions;
 using Xunit;
 
 namespace hMailServer.ControlPanel.Tests.Services
@@ -77,12 +78,32 @@ namespace hMailServer.ControlPanel.Tests.Services
          string show = WithheldRowTests.MemberText(Page(), "private void ShowLines_()");
          Assert.True(show != null, "DiscoveryView.ShowLines_ is gone.");
          Assert.Contains("noLines_.Text = L(\"Select a case above to see its lines on the audit trail.\");", show, StringComparison.Ordinal);
-         Assert.Contains("noLines_.Text = L(\"The audit trail holds no line for this case.\");", show, StringComparison.Ordinal);
          Assert.Contains("noLines_.Visibility = lines.Count > 0 ? Visibility.Collapsed : Visibility.Visible;", show, StringComparison.Ordinal);
+
+         // That the trail holds no line is said only where the whole trail was
+         // read; where a read of it was refused or could not be read, the card
+         // says the lines could not be read, under the notice that says why.
+         Assert.Contains("noLines_.Text = auditComplete_", show, StringComparison.Ordinal);
+         Assert.Contains("? L(\"The audit trail holds no line for this case.\")", show, StringComparison.Ordinal);
+         Assert.Contains(": L(\"This case's lines could not be read; the notice above says why.\");", show, StringComparison.Ordinal);
 
          string present = WithheldRowTests.MemberText(Page(), "private void Present_(IReadOnlyList<DiscoveryCase> cases, List<AuditRow> audit, string auditNote)");
          Assert.True(present != null, "DiscoveryView.Present_ is gone.");
          Assert.Contains("linesCard_.Visibility = loaded_.Count > 0 ? Visibility.Visible : Visibility.Collapsed;", present, StringComparison.Ordinal);
+         Assert.Contains("auditComplete_ = auditNote == null;", present, StringComparison.Ordinal);
+         Assert.True(present.IndexOf("auditComplete_ = auditNote == null;", StringComparison.Ordinal) < present.IndexOf("ShowLines_();", StringComparison.Ordinal),
+            "Present_ shows the lines before it knows whether the audit trail was read whole.");
+
+         // A cleared page knows of no read at all, whole or not.
+         string clear = WithheldRowTests.MemberText(Page(), "private void Clear_()");
+         Assert.True(clear != null, "DiscoveryView.Clear_ is gone.");
+         Assert.Contains("auditComplete_ = false;", clear, StringComparison.Ordinal);
+
+         // Every way Reload_ stops reading the trail early sets the note that makes it incomplete.
+         string reload = WithheldRowTests.MemberText(Page(), "private async void Reload_()");
+         Assert.True(reload != null, "DiscoveryView.Reload_ is gone.");
+         Assert.Equal(3, Regex.Matches(reload, @"auditNote = [^;]+;\s*break;").Count);
+         Assert.Contains("Present_(report.Cases, audit, auditNote);", reload, StringComparison.Ordinal);
       }
 
       /// <summary>The ring is shown from the first request and taken away whatever the read came to.</summary>

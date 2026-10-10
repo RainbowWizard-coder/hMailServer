@@ -13178,6 +13178,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>Esta acción no tiene parámetros adicionales.</value>
   </data>
+  <data name="This case's lines could not be read; the notice above says why." xml:space="preserve">
+    <value>No se pudieron leer las líneas de este caso; el aviso de arriba dice por qué.</value>
+  </data>
   <data name="This computer is not joined to an Active Directory domain." xml:space="preserve">
     <value>Este equipo no está unido a ningún dominio de Active Directory.</value>
   </data>

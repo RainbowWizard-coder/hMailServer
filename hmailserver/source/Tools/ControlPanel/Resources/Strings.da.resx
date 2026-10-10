@@ -13178,6 +13178,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>Denne handling har ingen yderligere parametre.</value>
   </data>
+  <data name="This case's lines could not be read; the notice above says why." xml:space="preserve">
+    <value>Sagens linjer kunne ikke læses; meddelelsen ovenfor fortæller hvorfor.</value>
+  </data>
   <data name="This computer is not joined to an Active Directory domain." xml:space="preserve">
     <value>Denne computer er ikke tilsluttet et Active Directory-domæne.</value>
   </data>

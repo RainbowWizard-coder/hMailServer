@@ -13178,6 +13178,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>Deze actie heeft geen aanvullende parameters.</value>
   </data>
+  <data name="This case's lines could not be read; the notice above says why." xml:space="preserve">
+    <value>De regels van deze zaak konden niet worden gelezen; de melding hierboven zegt waarom.</value>
+  </data>
   <data name="This computer is not joined to an Active Directory domain." xml:space="preserve">
     <value>Deze computer is geen lid van een Active Directory-domein.</value>
   </data>

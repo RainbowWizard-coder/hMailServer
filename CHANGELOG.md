@@ -2517,12 +2517,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   of padding; the Searches, Live holds and Exports counts were left-aligned text; and the two cards, floored at the
   list cards' height and sharing the room, left the lines' grid no row at all in a 760 by 520 window. A ring now says
   "Reading the cases…" in the cases' place from the first request to the last; the lines' card says "Select a case
-  above to see its lines on the audit trail." or "The audit trail holds no line for this case." under its headers, and
-  is hidden while there are no cases to choose from; it takes the Card's own padding; the counts are right-aligned;
-  and each grid keeps three rows on a FillPanel of its own inside a card floored at what it holds, below which the
-  page scrolls, with the case's name and a line's detail floored too and cut short with an ellipsis, where the
-  smallest window gave the name nothing ("Co" under a header cut to "N..."). `DiscoveryPageTests` holds the counts,
-  the padding, the floors, the empty states and the ring.
+  above to see its lines on the audit trail." or "The audit trail holds no line for this case." under its headers -
+  or, where the audit trail could not be read whole, for want of view_audit or any other refusal the notice above
+  says, "This case's lines could not be read; the notice above says why." - and is hidden while there are no cases to
+  choose from; it takes the Card's own padding; the counts are right-aligned; and each grid keeps three rows on a
+  FillPanel of its own inside a card floored at what it holds, below which the page scrolls, with the case's name and
+  a line's detail floored too and cut short with an ellipsis, where the smallest window gave the name nothing ("Co"
+  under a header cut to "N..."). `DiscoveryPageTests` holds the counts, the padding, the floors, the empty states and
+  the ring.
 
 - **Fixed: the Incoming relays page was a list of strings with no columns, no way to change a relay, and a delete that
   went by the name.** Each row read "Front-end spam filter (203.0.113.40 - 203.0.113.41)", 23 pixels tall, with no
