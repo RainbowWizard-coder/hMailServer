@@ -5101,11 +5101,26 @@ Ingen post røres - indekset er udledt af den - men indtil genopbygningen har in
   <data name="Expired on {0} ({1} days ago)" xml:space="preserve">
     <value>Udløb {0} (for {1} dage siden)</value>
   </data>
+  <data name="Expired today." xml:space="preserve">
+    <value>Udløb i dag.</value>
+  </data>
+  <data name="Expired {0} day ago." xml:space="preserve">
+    <value>Udløb for {0} dag siden.</value>
+  </data>
+  <data name="Expired {0} days ago." xml:space="preserve">
+    <value>Udløb for {0} dage siden.</value>
+  </data>
   <data name="Expires" xml:space="preserve">
     <value>Udløber</value>
   </data>
   <data name="Expires _on (server time)" xml:space="preserve">
     <value>Udløber _den (servertid)</value>
+  </data>
+  <data name="Expires in {0} day." xml:space="preserve">
+    <value>Udløber om {0} dag.</value>
+  </data>
+  <data name="Expires in {0} days." xml:space="preserve">
+    <value>Udløber om {0} dage.</value>
   </data>
   <data name="Expires on (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
     <value>Udløber den (YYYY-MM-DD HH:MM:SS)</value>
@@ -5122,11 +5137,20 @@ Ingen post røres - indekset er udledt af den - men indtil genopbygningen har in
   <data name="Expires on {0} (in {1} days)" xml:space="preserve">
     <value>Udløber {0} (om {1} dage)</value>
   </data>
+  <data name="Expires soon" xml:space="preserve">
+    <value>Udløber snart</value>
+  </data>
+  <data name="Expires today." xml:space="preserve">
+    <value>Udløber i dag.</value>
+  </data>
   <data name="Expires {0}." xml:space="preserve">
     <value>Udløber {0}.</value>
   </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>Udløbet kan ikke læses herfra: certifikatfilerne ligger på serveren, og dette Control Panel er forbundet til den eksternt. Alt andet på denne side kommer over COM og er korrekt.</value>
+  </data>
+  <data name="Expiry not checked from here." xml:space="preserve">
+    <value>Udløb ikke kontrolleret herfra.</value>
   </data>
   <data name="Expiry time (HH:MM; empty = 00:00)" xml:space="preserve">
     <value>Udløbstidspunkt (HH:MM; tomt = 00:00)</value>
@@ -5677,6 +5701,9 @@ Ingen post røres - indekset er udledt af den - men indtil genopbygningen har in
   <data name="Hard-link each recipient's copy instead of copying it" xml:space="preserve">
     <value>Opret et hardlink til hver modtagers kopi i stedet for at kopiere den</value>
   </data>
+  <data name="Has expired" xml:space="preserve">
+    <value>Er udløbet</value>
+  </data>
   <data name="Header fields to oversign in outbound DKIM signatures (comma separated; empty = off)" xml:space="preserve">
     <value>Headerfelter, der oversigneres i udgående DKIM-signaturer (kommasepareret; tomt = fra)</value>
   </data>
@@ -6066,6 +6093,9 @@ Ingen post røres - indekset er udledt af den - men indtil genopbygningen har in
   </data>
   <data name="In the object store" xml:space="preserve">
     <value>I objektlageret</value>
+  </data>
+  <data name="In use by a listener" xml:space="preserve">
+    <value>I brug af en lytter</value>
   </data>
   <data name="Inactive" xml:space="preserve">
     <value>Inaktiv</value>
@@ -8163,6 +8193,9 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="Not used" xml:space="preserve">
     <value>Bruges ikke</value>
+  </data>
+  <data name="Not used by any listener" xml:space="preserve">
+    <value>Ikke brugt af nogen lytter</value>
   </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Ikke gyldigt før {0}</value>
@@ -14599,6 +14632,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="VAPID private key, to bring the pair from another server (leave empty to keep current)" xml:space="preserve">
     <value>Privat VAPID-nøgle, til at tage parret med fra en anden server (lad feltet stå tomt for at beholde den nuværende)</value>
   </data>
+  <data name="Valid" xml:space="preserve">
+    <value>Gyldigt</value>
+  </data>
   <data name="Valid until {0} ({1} day left)" xml:space="preserve">
     <value>Gyldig til {0} ({1} dag tilbage)</value>
   </data>
@@ -16315,27 +16351,6 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="example.com, example.net - empty means every domain" xml:space="preserve">
     <value>example.com, example.net - tomt betyder hvert domæne</value>
   </data>
-  <data name="expired today" xml:space="preserve">
-    <value>udløb i dag</value>
-  </data>
-  <data name="expired {0} day ago" xml:space="preserve">
-    <value>udløb for {0} dag siden</value>
-  </data>
-  <data name="expired {0} days ago" xml:space="preserve">
-    <value>udløb for {0} dage siden</value>
-  </data>
-  <data name="expires in {0} day" xml:space="preserve">
-    <value>udløber om {0} dag</value>
-  </data>
-  <data name="expires in {0} days" xml:space="preserve">
-    <value>udløber om {0} dage</value>
-  </data>
-  <data name="expires today" xml:space="preserve">
-    <value>udløber i dag</value>
-  </data>
-  <data name="expiry not checked from here" xml:space="preserve">
-    <value>udløb ikke kontrolleret herfra</value>
-  </data>
   <data name="external account" xml:space="preserve">
     <value>ekstern konto</value>
   </data>
@@ -16483,9 +16498,6 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="in progress" xml:space="preserve">
     <value>i gang</value>
-  </data>
-  <data name="in use by a listener" xml:space="preserve">
-    <value>i brug af en lytter</value>
   </data>
   <data name="in {0}" xml:space="preserve">
     <value>i {0}</value>
@@ -16693,9 +16705,6 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="not started" xml:space="preserve">
     <value>ikke startet</value>
-  </data>
-  <data name="not used by any listener" xml:space="preserve">
-    <value>ikke brugt af nogen lytter</value>
   </data>
   <data name="nothing is cached - either nothing has been looked up since the counters were reset, or the lookups that happened found nothing to cache." xml:space="preserve">
     <value>intet er cachet - enten er intet slået op, siden tællerne blev nulstillet, eller også fandt de opslag, der skete, intet at cache.</value>
@@ -17953,6 +17962,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, score {2}. {3}</value>
+  </data>
+  <data name="{0}, {1}. {2} {3}." xml:space="preserve">
+    <value>{0}, {1}. {2} {3}.</value>
   </data>
   <data name="{0}. Active: {1} of {2}." xml:space="preserve">
     <value>{0}. Aktive: {1} af {2}.</value>

@@ -5101,11 +5101,26 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Expired on {0} ({1} days ago)" xml:space="preserve">
     <value>Vanheni {0} ({1} päivää sitten)</value>
   </data>
+  <data name="Expired today." xml:space="preserve">
+    <value>Vanheni tänään.</value>
+  </data>
+  <data name="Expired {0} day ago." xml:space="preserve">
+    <value>Vanheni {0} päivä sitten.</value>
+  </data>
+  <data name="Expired {0} days ago." xml:space="preserve">
+    <value>Vanheni {0} päivää sitten.</value>
+  </data>
   <data name="Expires" xml:space="preserve">
     <value>Vanhenee</value>
   </data>
   <data name="Expires _on (server time)" xml:space="preserve">
     <value>Vanhenemis_hetki (palvelimen aika)</value>
+  </data>
+  <data name="Expires in {0} day." xml:space="preserve">
+    <value>Vanhenee {0} päivän kuluttua.</value>
+  </data>
+  <data name="Expires in {0} days." xml:space="preserve">
+    <value>Vanhenee {0} päivän kuluttua.</value>
   </data>
   <data name="Expires on (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
     <value>Vanhenee (YYYY-MM-DD HH:MM:SS)</value>
@@ -5122,11 +5137,20 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Expires on {0} (in {1} days)" xml:space="preserve">
     <value>Vanhenee {0} ({1} päivän kuluttua)</value>
   </data>
+  <data name="Expires soon" xml:space="preserve">
+    <value>Vanhenee pian</value>
+  </data>
+  <data name="Expires today." xml:space="preserve">
+    <value>Vanhenee tänään.</value>
+  </data>
   <data name="Expires {0}." xml:space="preserve">
     <value>Vanhenee {0}.</value>
   </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>Vanhenemista ei voi lukea täältä: varmennetiedostot ovat palvelimella ja tämä Control Panel on yhteydessä siihen etänä. Kaikki muu tällä sivulla tulee COM-rajapinnan kautta ja pitää paikkansa.</value>
+  </data>
+  <data name="Expiry not checked from here." xml:space="preserve">
+    <value>Vanhenemista ei tarkistettu täältä.</value>
   </data>
   <data name="Expiry time (HH:MM; empty = 00:00)" xml:space="preserve">
     <value>Vanhenemisaika (HH:MM; tyhjä = 00:00)</value>
@@ -5677,6 +5701,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Hard-link each recipient's copy instead of copying it" xml:space="preserve">
     <value>Luo kovalinkki jokaisen vastaanottajan kopiolle kopioimisen sijaan</value>
   </data>
+  <data name="Has expired" xml:space="preserve">
+    <value>On vanhentunut</value>
+  </data>
   <data name="Header fields to oversign in outbound DKIM signatures (comma separated; empty = off)" xml:space="preserve">
     <value>Lähtevissä DKIM-allekirjoituksissa yliallekirjoitettavat otsakekentät (pilkuin eroteltuina; tyhjä = pois)</value>
   </data>
@@ -6066,6 +6093,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="In the object store" xml:space="preserve">
     <value>Objektivarastossa</value>
+  </data>
+  <data name="In use by a listener" xml:space="preserve">
+    <value>Kuuntelijan käytössä</value>
   </data>
   <data name="Inactive" xml:space="preserve">
     <value>Ei aktiivinen</value>
@@ -8163,6 +8193,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="Not used" xml:space="preserve">
     <value>Ei käytössä</value>
+  </data>
+  <data name="Not used by any listener" xml:space="preserve">
+    <value>Ei minkään kuuntelijan käytössä</value>
   </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Ei voimassa ennen {0}</value>
@@ -14599,6 +14632,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="VAPID private key, to bring the pair from another server (leave empty to keep current)" xml:space="preserve">
     <value>Yksityinen VAPID-avain avainparin tuomiseksi toiselta palvelimelta (jätä tyhjäksi säilyttääksesi nykyisen)</value>
   </data>
+  <data name="Valid" xml:space="preserve">
+    <value>Voimassa</value>
+  </data>
   <data name="Valid until {0} ({1} day left)" xml:space="preserve">
     <value>Voimassa {0} asti ({1} päivä jäljellä)</value>
   </data>
@@ -16315,27 +16351,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="example.com, example.net - empty means every domain" xml:space="preserve">
     <value>example.com, example.net - tyhjä tarkoittaa jokaista verkkotunnusta</value>
   </data>
-  <data name="expired today" xml:space="preserve">
-    <value>vanheni tänään</value>
-  </data>
-  <data name="expired {0} day ago" xml:space="preserve">
-    <value>vanheni {0} päivä sitten</value>
-  </data>
-  <data name="expired {0} days ago" xml:space="preserve">
-    <value>vanheni {0} päivää sitten</value>
-  </data>
-  <data name="expires in {0} day" xml:space="preserve">
-    <value>vanhenee {0} päivän kuluttua</value>
-  </data>
-  <data name="expires in {0} days" xml:space="preserve">
-    <value>vanhenee {0} päivän kuluttua</value>
-  </data>
-  <data name="expires today" xml:space="preserve">
-    <value>vanhenee tänään</value>
-  </data>
-  <data name="expiry not checked from here" xml:space="preserve">
-    <value>vanhenemista ei tarkistettu täältä</value>
-  </data>
   <data name="external account" xml:space="preserve">
     <value>ulkoinen tili</value>
   </data>
@@ -16483,9 +16498,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="in progress" xml:space="preserve">
     <value>käynnissä</value>
-  </data>
-  <data name="in use by a listener" xml:space="preserve">
-    <value>kuuntelijan käytössä</value>
   </data>
   <data name="in {0}" xml:space="preserve">
     <value>kohdassa {0}</value>
@@ -16693,9 +16705,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="not started" xml:space="preserve">
     <value>ei aloitettu</value>
-  </data>
-  <data name="not used by any listener" xml:space="preserve">
-    <value>ei minkään kuuntelijan käytössä</value>
   </data>
   <data name="nothing is cached - either nothing has been looked up since the counters were reset, or the lookups that happened found nothing to cache." xml:space="preserve">
     <value>mitään ei ole välimuistissa - joko mitään ei ole haettu laskurien nollauksen jälkeen, tai tehdyt haut eivät löytäneet mitään välimuistiin tallennettavaa.</value>
@@ -17953,6 +17962,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, pistemäärä {2}. {3}</value>
+  </data>
+  <data name="{0}, {1}. {2} {3}." xml:space="preserve">
+    <value>{0}, {1}. {2} {3}.</value>
   </data>
   <data name="{0}. Active: {1} of {2}." xml:space="preserve">
     <value>{0}. Käytössä: {1}/{2}.</value>

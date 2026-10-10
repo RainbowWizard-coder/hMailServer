@@ -68,8 +68,21 @@ namespace hMailServer.ControlPanel.Services
       /// Application resource key of the brush, e.g. "AppWarningBrush". A key
       /// rather than a brush because ThemeTokens republishes these on every theme
       /// change, so anything holding a resolved brush would keep the old colour.
+      /// Normal's is the neutral grey, AppNeutralBrush: it was the primary text,
+      /// so that a Normal mark - the certificate details' "No passphrase needed",
+      /// a setup finding that says nothing - was a black dot in the light theme
+      /// and a white one in the dark (review finding F326).
       /// </summary>
       public string BrushKey { get; }
+
+      /// <summary>
+      /// Application resource key of a mark drawn beside its status word on a
+      /// surface - a notice's, a certificate finding's: the level's fill-text
+      /// shade, which the word takes too, for every level with a colour, and the
+      /// neutral grey for Normal, whose fill-text shade (AppNeutralFillTextBrush,
+      /// made for the pill's grey box) is all but the primary text on a card.
+      /// </summary>
+      public string MarkBrushKey => Level == StatusLevel.Normal ? BrushKey : FillTextBrushKey;
 
       /// <summary>
       /// Application resource key of the fill a status pill draws its box with,
@@ -130,7 +143,7 @@ namespace hMailServer.ControlPanel.Services
       private static readonly Dictionary<StatusLevel, StatusPresentation> Map = new()
       {
          [StatusLevel.Normal] =
-            new StatusPresentation(StatusLevel.Normal, N("Normal"), ShapeMark.Circle, "TextFillColorPrimaryBrush",
+            new StatusPresentation(StatusLevel.Normal, N("Normal"), ShapeMark.Circle, "AppNeutralBrush",
                "AppNeutralFillBrush", "AppNeutralFillTextBrush"),
          [StatusLevel.Good] =
             new StatusPresentation(StatusLevel.Good, N("OK"), ShapeMark.Square, "AppSuccessBrush",

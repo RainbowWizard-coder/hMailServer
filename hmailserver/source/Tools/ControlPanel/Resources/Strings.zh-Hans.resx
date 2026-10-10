@@ -5101,11 +5101,26 @@
   <data name="Expired on {0} ({1} days ago)" xml:space="preserve">
     <value>已于 {0} 过期（{1} 天前）</value>
   </data>
+  <data name="Expired today." xml:space="preserve">
+    <value>已于今天过期。</value>
+  </data>
+  <data name="Expired {0} day ago." xml:space="preserve">
+    <value>已于 {0} 天前过期。</value>
+  </data>
+  <data name="Expired {0} days ago." xml:space="preserve">
+    <value>已于 {0} 天前过期。</value>
+  </data>
   <data name="Expires" xml:space="preserve">
     <value>到期</value>
   </data>
   <data name="Expires _on (server time)" xml:space="preserve">
     <value>到期于(_O)（服务器时间）</value>
+  </data>
+  <data name="Expires in {0} day." xml:space="preserve">
+    <value>将在 {0} 天后过期。</value>
+  </data>
+  <data name="Expires in {0} days." xml:space="preserve">
+    <value>将在 {0} 天后过期。</value>
   </data>
   <data name="Expires on (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
     <value>失效时间（YYYY-MM-DD HH:MM:SS）</value>
@@ -5122,11 +5137,20 @@
   <data name="Expires on {0} (in {1} days)" xml:space="preserve">
     <value>{0} 到期（{1} 天后）</value>
   </data>
+  <data name="Expires soon" xml:space="preserve">
+    <value>即将过期</value>
+  </data>
+  <data name="Expires today." xml:space="preserve">
+    <value>将于今天过期。</value>
+  </data>
   <data name="Expires {0}." xml:space="preserve">
     <value>{0} 到期。</value>
   </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>无法从此处读取到期时间：证书文件在服务器上，而此控制面板是远程连接到服务器的。本页的其他所有内容都通过 COM 获取，是准确的。</value>
+  </data>
+  <data name="Expiry not checked from here." xml:space="preserve">
+    <value>未从此处检查到期时间。</value>
   </data>
   <data name="Expiry time (HH:MM; empty = 00:00)" xml:space="preserve">
     <value>到期时间（HH:MM；留空 = 00:00）</value>
@@ -5677,6 +5701,9 @@
   <data name="Hard-link each recipient's copy instead of copying it" xml:space="preserve">
     <value>为每个收件人的副本创建硬链接，而不是复制</value>
   </data>
+  <data name="Has expired" xml:space="preserve">
+    <value>已过期</value>
+  </data>
   <data name="Header fields to oversign in outbound DKIM signatures (comma separated; empty = off)" xml:space="preserve">
     <value>出站 DKIM 签名中要过度签名的标头字段（以逗号分隔；留空 = 关闭）</value>
   </data>
@@ -6066,6 +6093,9 @@
   </data>
   <data name="In the object store" xml:space="preserve">
     <value>在对象存储中</value>
+  </data>
+  <data name="In use by a listener" xml:space="preserve">
+    <value>正被某个监听器使用</value>
   </data>
   <data name="Inactive" xml:space="preserve">
     <value>非活动</value>
@@ -8163,6 +8193,9 @@
   </data>
   <data name="Not used" xml:space="preserve">
     <value>未使用</value>
+  </data>
+  <data name="Not used by any listener" xml:space="preserve">
+    <value>未被任何监听器使用</value>
   </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>在 {0} 之前无效</value>
@@ -14599,6 +14632,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="VAPID private key, to bring the pair from another server (leave empty to keep current)" xml:space="preserve">
     <value>VAPID 私钥，用于从其他服务器迁移密钥对（留空则保持当前值）</value>
   </data>
+  <data name="Valid" xml:space="preserve">
+    <value>有效</value>
+  </data>
   <data name="Valid until {0} ({1} day left)" xml:space="preserve">
     <value>有效期至 {0}（还剩 {1} 天）</value>
   </data>
@@ -16315,27 +16351,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="example.com, example.net - empty means every domain" xml:space="preserve">
     <value>example.com, example.net - 留空表示每个域</value>
   </data>
-  <data name="expired today" xml:space="preserve">
-    <value>已于今天过期</value>
-  </data>
-  <data name="expired {0} day ago" xml:space="preserve">
-    <value>已于 {0} 天前过期</value>
-  </data>
-  <data name="expired {0} days ago" xml:space="preserve">
-    <value>已于 {0} 天前过期</value>
-  </data>
-  <data name="expires in {0} day" xml:space="preserve">
-    <value>将在 {0} 天后过期</value>
-  </data>
-  <data name="expires in {0} days" xml:space="preserve">
-    <value>将在 {0} 天后过期</value>
-  </data>
-  <data name="expires today" xml:space="preserve">
-    <value>将于今天过期</value>
-  </data>
-  <data name="expiry not checked from here" xml:space="preserve">
-    <value>未从此处检查到期时间</value>
-  </data>
   <data name="external account" xml:space="preserve">
     <value>外部账户</value>
   </data>
@@ -16483,9 +16498,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="in progress" xml:space="preserve">
     <value>进行中</value>
-  </data>
-  <data name="in use by a listener" xml:space="preserve">
-    <value>正被某个监听器使用</value>
   </data>
   <data name="in {0}" xml:space="preserve">
     <value>位于 {0}</value>
@@ -16693,9 +16705,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="not started" xml:space="preserve">
     <value>未开始</value>
-  </data>
-  <data name="not used by any listener" xml:space="preserve">
-    <value>未被任何监听器使用</value>
   </data>
   <data name="nothing is cached - either nothing has been looked up since the counters were reset, or the lookups that happened found nothing to cache." xml:space="preserve">
     <value>没有任何缓存内容 - 要么自计数器重置以来没有查找过任何东西，要么发生过的查找没有找到可缓存的内容。</value>
@@ -17953,6 +17962,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}，{1}，分数 {2}。{3}</value>
+  </data>
+  <data name="{0}, {1}. {2} {3}." xml:space="preserve">
+    <value>{0}，{1}。{2}{3}。</value>
   </data>
   <data name="{0}. Active: {1} of {2}." xml:space="preserve">
     <value>{0}。已启用：{1}/{2}。</value>

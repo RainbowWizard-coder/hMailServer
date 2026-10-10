@@ -82,9 +82,23 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>A problem with the files themselves - missing, unreadable, mismatched pair. Null when there is none.</summary>
       public string Problem { get; set; }
 
+      /// <summary>
+      /// The problem's short word, the one the SSL certificates page shows in its grid -
+      /// "File missing" - for the state pill of the certificate's row; null when there
+      /// is no problem.
+      /// </summary>
+      public string ProblemWord { get; set; }
+
       /// <summary>Whether any listener actually uses it.</summary>
       public bool InUse { get; set; }
    }
+
+   /// <summary>
+   /// A certificate's row on the transport encryption overview (TlsPosture.CertificateRow):
+   /// the level and the word of its state pill, the sentence beside it and whether a
+   /// listener uses it.
+   /// </summary>
+   public readonly record struct TlsCertificateRow(StatusLevel Level, string State, string Detail, string Usage);
 
    /// <summary>
    /// What a listener's arrangement amounts to, apart from the words that say it,
@@ -621,6 +635,46 @@ namespace hMailServer.ControlPanel.Services
          certificate.ExpiresOn != null
             ? (certificate.ExpiresOn.Value.Date - today.Date).Days
             : certificate.DaysRemaining;
+
+      /// <summary>
+      /// What a certificate's row on the overview says, as a listener's row does (review
+      /// finding F326): the state's level and word for the pill on the right, the
+      /// sentence about the certificate's files or its expiry, and whether a listener
+      /// uses it. A problem with the files is the SSL certificates page's own word and
+      /// sentence for it, Critical while a listener uses the certificate; past its date
+      /// it Has expired, Critical while in use; inside the warning window it Expires soon,
+      /// a Warning while in use and Information otherwise; beyond it, it is Valid; and
+      /// unread from here, Not checked. The levels are the notes' for the same
+      /// certificate, and the day counted is the calendar's, as theirs is.
+      /// </summary>
+      public static TlsCertificateRow CertificateRow(TlsPostureConfig config, TlsCertificate certificate, DateTime today)
+      {
+         string usage = certificate.InUse ? L("In use by a listener") : L("Not used by any listener");
+
+         if (certificate.Problem != null)
+         {
+            return new TlsCertificateRow(certificate.InUse ? StatusLevel.Critical : StatusLevel.Warning,
+               certificate.ProblemWord ?? L("Not checked"), certificate.Problem, usage);
+         }
+
+         if (!config.CertificateFilesReadable || certificate.DaysRemaining == null)
+            return new TlsCertificateRow(StatusLevel.Normal, L("Not checked"), L("Expiry not checked from here."), usage);
+
+         if (certificate.DaysRemaining < 0)
+         {
+            int daysAgo = Math.Max(0, -CalendarDays(certificate, today).Value);
+            return new TlsCertificateRow(certificate.InUse ? StatusLevel.Critical : StatusLevel.Warning, L("Has expired"),
+               daysAgo == 0 ? L("Expired today.") : Plural(daysAgo, "Expired {0} day ago.", "Expired {0} days ago."), usage);
+         }
+
+         int days = Math.Max(0, CalendarDays(certificate, today).Value);
+         string expires = days == 0 ? L("Expires today.") : Plural(days, "Expires in {0} day.", "Expires in {0} days.");
+
+         if (certificate.DaysRemaining > ExpiryWarningDays)
+            return new TlsCertificateRow(StatusLevel.Good, L("Valid"), expires, usage);
+
+         return new TlsCertificateRow(certificate.InUse ? StatusLevel.Warning : StatusLevel.Information, L("Expires soon"), expires, usage);
+      }
 
       /// <summary>
       /// The note on a certificate that expired <paramref name="daysAgo"/> calendar

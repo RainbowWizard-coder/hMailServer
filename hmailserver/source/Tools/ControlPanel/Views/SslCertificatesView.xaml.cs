@@ -377,7 +377,7 @@ namespace hMailServer.ControlPanel.Views
          row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
          var mark = new Path { Width = 11, Height = 11, Stretch = Stretch.Fill, Margin = new Thickness(0, 3, 6, 0), VerticalAlignment = VerticalAlignment.Top };
-         ShapeMarkVisuals.ApplyMark(mark, presentation.Shape, presentation.FillTextBrushKey);
+         ShapeMarkVisuals.ApplyMark(mark, presentation.Shape, presentation.MarkBrushKey);
          row.Children.Add(mark);
 
          var text = new TextBlock { FontSize = Typography.Label, TextWrapping = TextWrapping.Wrap };
@@ -406,8 +406,11 @@ namespace hMailServer.ControlPanel.Views
          row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
          row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
+         // The mark beside its word (MarkBrushKey): Normal's - "No passphrase
+         // needed" - the neutral grey, where its fill-text shade drew a black dot
+         // in the light theme and a white one in the dark (review finding F326).
          var mark = new Path { Width = 11, Height = 11, Stretch = Stretch.Fill, Margin = new Thickness(0, 4, 8, 0), VerticalAlignment = VerticalAlignment.Top };
-         ShapeMarkVisuals.ApplyMark(mark, presentation.Shape, presentation.FillTextBrushKey);
+         ShapeMarkVisuals.ApplyMark(mark, presentation.Shape, presentation.MarkBrushKey);
          row.Children.Add(mark);
 
          var text = new TextBlock { FontSize = Typography.Label, TextWrapping = TextWrapping.Wrap };

@@ -5171,11 +5171,32 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Expired on {0} ({1} days ago)|few" xml:space="preserve">
     <value>Vypršel {0} (před {1} dny)</value>
   </data>
+  <data name="Expired today." xml:space="preserve">
+    <value>Platnost vypršela dnes.</value>
+  </data>
+  <data name="Expired {0} day ago." xml:space="preserve">
+    <value>Platnost vypršela před {0} dnem.</value>
+  </data>
+  <data name="Expired {0} days ago." xml:space="preserve">
+    <value>Platnost vypršela před {0} dny.</value>
+  </data>
+  <data name="Expired {0} days ago.|few" xml:space="preserve">
+    <value>Platnost vypršela před {0} dny.</value>
+  </data>
   <data name="Expires" xml:space="preserve">
     <value>Vyprší</value>
   </data>
   <data name="Expires _on (server time)" xml:space="preserve">
     <value>Vyprší dn_e (čas serveru)</value>
+  </data>
+  <data name="Expires in {0} day." xml:space="preserve">
+    <value>Platnost vyprší za {0} den.</value>
+  </data>
+  <data name="Expires in {0} days." xml:space="preserve">
+    <value>Platnost vyprší za {0} dní.</value>
+  </data>
+  <data name="Expires in {0} days.|few" xml:space="preserve">
+    <value>Platnost vyprší za {0} dny.</value>
   </data>
   <data name="Expires on (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
     <value>Vyprší (YYYY-MM-DD HH:MM:SS)</value>
@@ -5195,11 +5216,20 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Expires on {0} (in {1} days)|few" xml:space="preserve">
     <value>Vyprší {0} (za {1} dny)</value>
   </data>
+  <data name="Expires soon" xml:space="preserve">
+    <value>Brzy vyprší</value>
+  </data>
+  <data name="Expires today." xml:space="preserve">
+    <value>Platnost vyprší dnes.</value>
+  </data>
   <data name="Expires {0}." xml:space="preserve">
     <value>Platnost vyprší {0}.</value>
   </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>Vypršení odsud nelze přečíst: soubory certifikátů jsou na serveru a tento Control Panel je k němu připojen vzdáleně. Vše ostatní na této stránce přichází přes COM a je přesné.</value>
+  </data>
+  <data name="Expiry not checked from here." xml:space="preserve">
+    <value>Vypršení platnosti odsud nekontrolováno.</value>
   </data>
   <data name="Expiry time (HH:MM; empty = 00:00)" xml:space="preserve">
     <value>Čas vypršení (HH:MM; prázdné = 00:00)</value>
@@ -5753,6 +5783,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Hard-link each recipient's copy instead of copying it" xml:space="preserve">
     <value>Kopii každého příjemce vytvořit pevným odkazem místo kopírování</value>
   </data>
+  <data name="Has expired" xml:space="preserve">
+    <value>Platnost vypršela</value>
+  </data>
   <data name="Header fields to oversign in outbound DKIM signatures (comma separated; empty = off)" xml:space="preserve">
     <value>Pole hlaviček k nadpodepsání v odchozích podpisech DKIM (oddělená čárkou; prázdné = vypnuto)</value>
   </data>
@@ -6142,6 +6175,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="In the object store" xml:space="preserve">
     <value>V úložišti objektů</value>
+  </data>
+  <data name="In use by a listener" xml:space="preserve">
+    <value>Používá jej listener</value>
   </data>
   <data name="Inactive" xml:space="preserve">
     <value>Neaktivní</value>
@@ -8257,6 +8293,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Not used" xml:space="preserve">
     <value>Nepoužívá se</value>
+  </data>
+  <data name="Not used by any listener" xml:space="preserve">
+    <value>Nepoužívá jej žádný listener</value>
   </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Platný až od {0}</value>
@@ -14780,6 +14819,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="VAPID private key, to bring the pair from another server (leave empty to keep current)" xml:space="preserve">
     <value>Soukromý klíč VAPID pro přenesení páru z jiného serveru (nechte prázdné, aby zůstal současný)</value>
   </data>
+  <data name="Valid" xml:space="preserve">
+    <value>Platný</value>
+  </data>
   <data name="Valid until {0} ({1} day left)" xml:space="preserve">
     <value>Platí do {0} (zbývá {1} den)</value>
   </data>
@@ -16502,33 +16544,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="example.com, example.net - empty means every domain" xml:space="preserve">
     <value>example.com, example.net – prázdné znamená každou doménu</value>
   </data>
-  <data name="expired today" xml:space="preserve">
-    <value>platnost vypršela dnes</value>
-  </data>
-  <data name="expired {0} day ago" xml:space="preserve">
-    <value>platnost vypršela před {0} dnem</value>
-  </data>
-  <data name="expired {0} days ago" xml:space="preserve">
-    <value>platnost vypršela před {0} dny</value>
-  </data>
-  <data name="expired {0} days ago|few" xml:space="preserve">
-    <value>platnost vypršela před {0} dny</value>
-  </data>
-  <data name="expires in {0} day" xml:space="preserve">
-    <value>platnost vyprší za {0} den</value>
-  </data>
-  <data name="expires in {0} days" xml:space="preserve">
-    <value>platnost vyprší za {0} dní</value>
-  </data>
-  <data name="expires in {0} days|few" xml:space="preserve">
-    <value>platnost vyprší za {0} dny</value>
-  </data>
-  <data name="expires today" xml:space="preserve">
-    <value>platnost vyprší dnes</value>
-  </data>
-  <data name="expiry not checked from here" xml:space="preserve">
-    <value>vypršení platnosti odsud nekontrolováno</value>
-  </data>
   <data name="external account" xml:space="preserve">
     <value>externí účet</value>
   </data>
@@ -16676,9 +16691,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="in progress" xml:space="preserve">
     <value>probíhá</value>
-  </data>
-  <data name="in use by a listener" xml:space="preserve">
-    <value>používá jej listener</value>
   </data>
   <data name="in {0}" xml:space="preserve">
     <value>v sekci {0}</value>
@@ -16895,9 +16907,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="not started" xml:space="preserve">
     <value>nezahájeno</value>
-  </data>
-  <data name="not used by any listener" xml:space="preserve">
-    <value>nepoužívá jej žádný listener</value>
   </data>
   <data name="nothing is cached - either nothing has been looked up since the counters were reset, or the lookups that happened found nothing to cache." xml:space="preserve">
     <value>v cache nic není – buď se od vynulování čítačů nic nevyhledávalo, nebo proběhlá vyhledání nenašla nic, co by šlo uložit do cache.</value>
@@ -18386,6 +18395,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, skóre {2}. {3}</value>
+  </data>
+  <data name="{0}, {1}. {2} {3}." xml:space="preserve">
+    <value>{0}, {1}. {2} {3}.</value>
   </data>
   <data name="{0}. Active: {1} of {2}." xml:space="preserve">
     <value>{0}. Aktivní: {1} z {2}.</value>

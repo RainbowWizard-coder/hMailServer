@@ -103,10 +103,10 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          StatusPresentation status = StatusSemantics.For(Level);
          string text = Text ?? "";
 
-         // Normal is the level that says nothing, drawn in the neutral grey
-         // rather than in StatusSemantics' primary text - the same choice the
+         // Normal is the level that says nothing, drawn in the neutral grey,
+         // which is its status colour (StatusSemantics) - the same choice the
          // pill makes.
-         string brushKey = Level == StatusLevel.Normal ? "AppNeutralBrush" : status.BrushKey;
+         string brushKey = status.BrushKey;
 
          string current = AutomationProperties.GetName(this);
          if (string.IsNullOrEmpty(current) || string.Equals(current, ownName_, System.StringComparison.Ordinal))
@@ -121,11 +121,13 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          // (light warning), 4.2:1 (light danger, dark danger) and 3.6:1 (dark
          // information on a card), under the 4.5:1 a 14-pixel word needs. The
          // fill-text shades clear 5.5:1 on every tint, page and card. The tint
-         // and the outline stay in the status colour.
+         // and the outline stay in the status colour. Normal's mark is the
+         // neutral grey (MarkBrushKey): its fill-text shade is all but the
+         // primary text, and it carries no word for the shade to match.
          string textKey = status.FillTextBrushKey;
 
          if (Part<Path>("PART_Mark") is { } mark)
-            ShapeMarkVisuals.ApplyMark(mark, status.Shape, textKey);
+            ShapeMarkVisuals.ApplyMark(mark, status.Shape, status.MarkBrushKey);
 
          if (Part<TextBlock>("PART_Word") is { } word)
          {

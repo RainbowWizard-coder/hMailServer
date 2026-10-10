@@ -5101,11 +5101,26 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Expired on {0} ({1} days ago)" xml:space="preserve">
     <value>Abgelaufen am {0} (vor {1} Tagen)</value>
   </data>
+  <data name="Expired today." xml:space="preserve">
+    <value>Heute abgelaufen.</value>
+  </data>
+  <data name="Expired {0} day ago." xml:space="preserve">
+    <value>Vor {0} Tag abgelaufen.</value>
+  </data>
+  <data name="Expired {0} days ago." xml:space="preserve">
+    <value>Vor {0} Tagen abgelaufen.</value>
+  </data>
   <data name="Expires" xml:space="preserve">
     <value>Ablauf</value>
   </data>
   <data name="Expires _on (server time)" xml:space="preserve">
     <value>Läuft ab a_m (Serverzeit)</value>
+  </data>
+  <data name="Expires in {0} day." xml:space="preserve">
+    <value>Läuft in {0} Tag ab.</value>
+  </data>
+  <data name="Expires in {0} days." xml:space="preserve">
+    <value>Läuft in {0} Tagen ab.</value>
   </data>
   <data name="Expires on (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
     <value>Ablaufdatum (YYYY-MM-DD HH:MM:SS)</value>
@@ -5122,11 +5137,20 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Expires on {0} (in {1} days)" xml:space="preserve">
     <value>Läuft am {0} ab (in {1} Tagen)</value>
   </data>
+  <data name="Expires soon" xml:space="preserve">
+    <value>Läuft bald ab</value>
+  </data>
+  <data name="Expires today." xml:space="preserve">
+    <value>Läuft heute ab.</value>
+  </data>
   <data name="Expires {0}." xml:space="preserve">
     <value>Läuft am {0} ab.</value>
   </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>Der Ablauf kann von hier aus nicht gelesen werden: die Zertifikatdateien liegen auf dem Server und dieses Control Panel ist entfernt damit verbunden. Alles andere auf dieser Seite kommt über COM und ist korrekt.</value>
+  </data>
+  <data name="Expiry not checked from here." xml:space="preserve">
+    <value>Ablauf wird von hier aus nicht geprüft.</value>
   </data>
   <data name="Expiry time (HH:MM; empty = 00:00)" xml:space="preserve">
     <value>Ablaufzeit (HH:MM; leer = 00:00)</value>
@@ -5677,6 +5701,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Hard-link each recipient's copy instead of copying it" xml:space="preserve">
     <value>Die Kopie jedes Empfängers per Hardlink anlegen statt kopieren</value>
   </data>
+  <data name="Has expired" xml:space="preserve">
+    <value>Abgelaufen</value>
+  </data>
   <data name="Header fields to oversign in outbound DKIM signatures (comma separated; empty = off)" xml:space="preserve">
     <value>Header-Felder, die in ausgehenden DKIM-Signaturen übersigniert werden (kommagetrennt; leer = aus)</value>
   </data>
@@ -6066,6 +6093,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   </data>
   <data name="In the object store" xml:space="preserve">
     <value>Im Objektspeicher</value>
+  </data>
+  <data name="In use by a listener" xml:space="preserve">
+    <value>Wird von einem Listener verwendet</value>
   </data>
   <data name="Inactive" xml:space="preserve">
     <value>Inaktiv</value>
@@ -8163,6 +8193,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   </data>
   <data name="Not used" xml:space="preserve">
     <value>Nicht verwendet</value>
+  </data>
+  <data name="Not used by any listener" xml:space="preserve">
+    <value>Wird von keinem Listener verwendet</value>
   </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Erst gültig ab {0}</value>
@@ -14599,6 +14632,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="VAPID private key, to bring the pair from another server (leave empty to keep current)" xml:space="preserve">
     <value>Privater VAPID-Schlüssel, um das Paar von einem anderen Server mitzunehmen (leer lassen, um den aktuellen zu behalten)</value>
   </data>
+  <data name="Valid" xml:space="preserve">
+    <value>Gültig</value>
+  </data>
   <data name="Valid until {0} ({1} day left)" xml:space="preserve">
     <value>Gültig bis {0} (noch {1} Tag)</value>
   </data>
@@ -16315,27 +16351,6 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="example.com, example.net - empty means every domain" xml:space="preserve">
     <value>example.com, example.net - leer bedeutet jede Domain</value>
   </data>
-  <data name="expired today" xml:space="preserve">
-    <value>heute abgelaufen</value>
-  </data>
-  <data name="expired {0} day ago" xml:space="preserve">
-    <value>vor {0} Tag abgelaufen</value>
-  </data>
-  <data name="expired {0} days ago" xml:space="preserve">
-    <value>vor {0} Tagen abgelaufen</value>
-  </data>
-  <data name="expires in {0} day" xml:space="preserve">
-    <value>läuft in {0} Tag ab</value>
-  </data>
-  <data name="expires in {0} days" xml:space="preserve">
-    <value>läuft in {0} Tagen ab</value>
-  </data>
-  <data name="expires today" xml:space="preserve">
-    <value>läuft heute ab</value>
-  </data>
-  <data name="expiry not checked from here" xml:space="preserve">
-    <value>Ablauf wird von hier aus nicht geprüft</value>
-  </data>
   <data name="external account" xml:space="preserve">
     <value>externes Konto</value>
   </data>
@@ -16483,9 +16498,6 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="in progress" xml:space="preserve">
     <value>in Arbeit</value>
-  </data>
-  <data name="in use by a listener" xml:space="preserve">
-    <value>wird von einem Listener verwendet</value>
   </data>
   <data name="in {0}" xml:space="preserve">
     <value>unter {0}</value>
@@ -16693,9 +16705,6 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="not started" xml:space="preserve">
     <value>nicht begonnen</value>
-  </data>
-  <data name="not used by any listener" xml:space="preserve">
-    <value>wird von keinem Listener verwendet</value>
   </data>
   <data name="nothing is cached - either nothing has been looked up since the counters were reset, or the lookups that happened found nothing to cache." xml:space="preserve">
     <value>nichts ist zwischengespeichert - entweder wurde seit dem Zurücksetzen der Zähler nichts nachgeschlagen, oder die erfolgten Nachschlagevorgänge fanden nichts, was sich zwischenspeichern ließe.</value>
@@ -17953,6 +17962,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, Bewertung {2}. {3}</value>
+  </data>
+  <data name="{0}, {1}. {2} {3}." xml:space="preserve">
+    <value>{0}, {1}. {2} {3}.</value>
   </data>
   <data name="{0}. Active: {1} of {2}." xml:space="preserve">
     <value>{0}. Aktiv: {1} von {2}.</value>

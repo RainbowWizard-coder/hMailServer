@@ -5101,11 +5101,26 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Expired on {0} ({1} days ago)" xml:space="preserve">
     <value>Caducó el {0} (hace {1} días)</value>
   </data>
+  <data name="Expired today." xml:space="preserve">
+    <value>Caducó hoy.</value>
+  </data>
+  <data name="Expired {0} day ago." xml:space="preserve">
+    <value>Caducó hace {0} día.</value>
+  </data>
+  <data name="Expired {0} days ago." xml:space="preserve">
+    <value>Caducó hace {0} días.</value>
+  </data>
   <data name="Expires" xml:space="preserve">
     <value>Caduca</value>
   </data>
   <data name="Expires _on (server time)" xml:space="preserve">
     <value>Caduca _el (hora del servidor)</value>
+  </data>
+  <data name="Expires in {0} day." xml:space="preserve">
+    <value>Caduca en {0} día.</value>
+  </data>
+  <data name="Expires in {0} days." xml:space="preserve">
+    <value>Caduca en {0} días.</value>
   </data>
   <data name="Expires on (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
     <value>Caduca el (YYYY-MM-DD HH:MM:SS)</value>
@@ -5122,11 +5137,20 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Expires on {0} (in {1} days)" xml:space="preserve">
     <value>Caduca el {0} (dentro de {1} días)</value>
   </data>
+  <data name="Expires soon" xml:space="preserve">
+    <value>Caduca pronto</value>
+  </data>
+  <data name="Expires today." xml:space="preserve">
+    <value>Caduca hoy.</value>
+  </data>
   <data name="Expires {0}." xml:space="preserve">
     <value>Caduca el {0}.</value>
   </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>La caducidad no puede leerse desde aquí: los archivos del certificado están en el servidor y este Control Panel está conectado a él de forma remota. Todo lo demás de esta página llega por COM y es exacto.</value>
+  </data>
+  <data name="Expiry not checked from here." xml:space="preserve">
+    <value>La caducidad no se comprueba desde aquí.</value>
   </data>
   <data name="Expiry time (HH:MM; empty = 00:00)" xml:space="preserve">
     <value>Hora de caducidad (HH:MM; vacío = 00:00)</value>
@@ -5677,6 +5701,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Hard-link each recipient's copy instead of copying it" xml:space="preserve">
     <value>Crear un enlace duro para la copia de cada destinatario en vez de copiarla</value>
   </data>
+  <data name="Has expired" xml:space="preserve">
+    <value>Ha caducado</value>
+  </data>
   <data name="Header fields to oversign in outbound DKIM signatures (comma separated; empty = off)" xml:space="preserve">
     <value>Campos de cabecera que sobrefirmar en las firmas DKIM salientes (separados por comas; vacío = desactivado)</value>
   </data>
@@ -6066,6 +6093,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   </data>
   <data name="In the object store" xml:space="preserve">
     <value>En el almacén de objetos</value>
+  </data>
+  <data name="In use by a listener" xml:space="preserve">
+    <value>En uso por un oyente</value>
   </data>
   <data name="Inactive" xml:space="preserve">
     <value>Inactivo</value>
@@ -8163,6 +8193,9 @@ No se elimina nada de lo que ya está.</value>
   </data>
   <data name="Not used" xml:space="preserve">
     <value>Sin usar</value>
+  </data>
+  <data name="Not used by any listener" xml:space="preserve">
+    <value>Ningún oyente lo usa</value>
   </data>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>No válido hasta {0}</value>
@@ -14599,6 +14632,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="VAPID private key, to bring the pair from another server (leave empty to keep current)" xml:space="preserve">
     <value>Clave privada VAPID, para traer el par de otro servidor (déjelo vacío para conservar la actual)</value>
   </data>
+  <data name="Valid" xml:space="preserve">
+    <value>Válido</value>
+  </data>
   <data name="Valid until {0} ({1} day left)" xml:space="preserve">
     <value>Válido hasta el {0} (queda {1} día)</value>
   </data>
@@ -16315,27 +16351,6 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="example.com, example.net - empty means every domain" xml:space="preserve">
     <value>example.com, example.net - vacío significa todos los dominios</value>
   </data>
-  <data name="expired today" xml:space="preserve">
-    <value>caducó hoy</value>
-  </data>
-  <data name="expired {0} day ago" xml:space="preserve">
-    <value>caducó hace {0} día</value>
-  </data>
-  <data name="expired {0} days ago" xml:space="preserve">
-    <value>caducó hace {0} días</value>
-  </data>
-  <data name="expires in {0} day" xml:space="preserve">
-    <value>caduca en {0} día</value>
-  </data>
-  <data name="expires in {0} days" xml:space="preserve">
-    <value>caduca en {0} días</value>
-  </data>
-  <data name="expires today" xml:space="preserve">
-    <value>caduca hoy</value>
-  </data>
-  <data name="expiry not checked from here" xml:space="preserve">
-    <value>la caducidad no se comprueba desde aquí</value>
-  </data>
   <data name="external account" xml:space="preserve">
     <value>cuenta externa</value>
   </data>
@@ -16483,9 +16498,6 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="in progress" xml:space="preserve">
     <value>en curso</value>
-  </data>
-  <data name="in use by a listener" xml:space="preserve">
-    <value>en uso por un oyente</value>
   </data>
   <data name="in {0}" xml:space="preserve">
     <value>en {0}</value>
@@ -16693,9 +16705,6 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="not started" xml:space="preserve">
     <value>sin empezar</value>
-  </data>
-  <data name="not used by any listener" xml:space="preserve">
-    <value>sin usar por ningún oyente</value>
   </data>
   <data name="nothing is cached - either nothing has been looked up since the counters were reset, or the lookups that happened found nothing to cache." xml:space="preserve">
     <value>no hay nada en caché - o no se ha buscado nada desde que se reiniciaron los contadores, o las búsquedas que hubo no encontraron nada que almacenar.</value>
@@ -17953,6 +17962,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, puntuación {2}. {3}</value>
+  </data>
+  <data name="{0}, {1}. {2} {3}." xml:space="preserve">
+    <value>{0}, {1}. {2} {3}.</value>
   </data>
   <data name="{0}. Active: {1} of {2}." xml:space="preserve">
     <value>{0}. Activos: {1} de {2}.</value>

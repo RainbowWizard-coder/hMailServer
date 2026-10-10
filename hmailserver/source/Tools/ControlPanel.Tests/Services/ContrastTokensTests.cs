@@ -300,8 +300,12 @@ namespace hMailServer.ControlPanel.Tests.Services
          if (certificates == null || virus == null || scaffold == null || fieldRow == null)
             return;
 
-         // The certificate's badge and its detail line: the word and its mark.
-         Assert.Equal(4, Regex.Matches(certificates, @"presentation\.FillTextBrushKey\)").Count);
+         // The certificate's badge and its detail line: the word in the fill-text
+         // shade, and its mark in the mark's (StatusPresentation.MarkBrushKey), which
+         // is that shade at every level with a colour and the neutral grey at Normal
+         // (review finding F326).
+         Assert.Equal(2, Regex.Matches(certificates, @"presentation\.FillTextBrushKey\)").Count);
+         Assert.Equal(2, Regex.Matches(certificates, @"presentation\.MarkBrushKey\)").Count);
          Assert.DoesNotContain("presentation.BrushKey", certificates, StringComparison.Ordinal);
 
          // A scanner's problem.

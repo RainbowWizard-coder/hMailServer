@@ -218,7 +218,9 @@ namespace hMailServer.ControlPanel.Views
                      // Only the findings that stop the certificate working. An
                      // encrypted key with a passphrase configured, for instance, is
                      // fine and must not be reported here as a problem.
-                     entry.Problem = FirstProblem(health);
+                     CertificateFinding problem = FirstProblem(health);
+                     entry.Problem = problem?.Detail;
+                     entry.ProblemWord = problem?.Word;
                   }
 
                   config.Certificates.Add(entry);
@@ -241,13 +243,9 @@ namespace hMailServer.ControlPanel.Views
          }
       }
 
-      private static string FirstProblem(CertificateHealth health)
-      {
-         CertificateFinding critical = new[] { health.CertificateFile, health.PrivateKeyFile, health.Pair }
+      private static CertificateFinding FirstProblem(CertificateHealth health)
+         => new[] { health.CertificateFile, health.PrivateKeyFile, health.Pair }
             .FirstOrDefault(finding => finding != null && finding.Level == StatusLevel.Critical);
-
-         return critical?.Detail;
-      }
 
       private void ReadListeners(TlsPostureConfig config, dynamic settings)
       {
@@ -591,10 +589,25 @@ namespace hMailServer.ControlPanel.Views
          }
          else
          {
+            // The listeners' layout, row for row (review finding F326): the name on
+            // the left with its use under it, what was found in the middle, and the
+            // state on the right in a pill of its own words. The rows put the pill
+            // on the left with the level's word - "OK", "Warning" - before a run-on
+            // of the name, the finding and the use joined by a dash and commas.
+            var grid = new Grid();
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });                       // name + use
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });   // detail
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });                       // state
+
+            int row = 0;
             foreach (TlsCertificate certificate in config.Certificates)
             {
-               content.Children.Add(CertificateRow(config, certificate));
+               grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+               AddCertificateRow(grid, row, config, certificate);
+               row++;
             }
+
+            content.Children.Add(grid);
          }
 
          if (!config.CertificateFilesReadable)
@@ -608,66 +621,55 @@ namespace hMailServer.ControlPanel.Views
          return card;
       }
 
-      private static FrameworkElement CertificateRow(TlsPostureConfig config, TlsCertificate certificate)
+      // The widest a certificate's name and its use run in the row's first column.
+      private const double CertificateNameWidth = 280;
+
+      private static void AddCertificateRow(Grid grid, int row, TlsPostureConfig config, TlsCertificate certificate)
       {
-         var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 4, 0, 4) };
+         (StatusLevel level, string state, string detail, string usage) = TlsPosture.CertificateRow(config, certificate, DateTime.Today);
 
-         string detail;
-         StatusLevel level;
+         var identity = new StackPanel { Margin = new Thickness(0, 6, 16, 6), VerticalAlignment = VerticalAlignment.Top };
 
-         if (certificate.Problem != null)
-         {
-            detail = certificate.Problem;
-            level = certificate.InUse ? StatusLevel.Critical : StatusLevel.Warning;
-         }
-         else if (!config.CertificateFilesReadable || certificate.DaysRemaining == null)
-         {
-            detail = L("expiry not checked from here");
-            level = StatusLevel.Normal;
-         }
-         else if (certificate.DaysRemaining < 0)
-         {
-            // The level comes from DaysRemaining, the floor of the time left; the
-            // day count is the calendar's, the same one the note on this
-            // certificate names, so that the row and the note agree.
-            int daysAgo = Math.Max(0, -TlsPosture.CalendarDays(certificate, DateTime.Today).Value);
-            detail = daysAgo == 0 ? L("expired today") : Plural(daysAgo, "expired {0} day ago", "expired {0} days ago");
-            level = certificate.InUse ? StatusLevel.Critical : StatusLevel.Warning;
-         }
-         else
-         {
-            int days = Math.Max(0, TlsPosture.CalendarDays(certificate, DateTime.Today).Value);
-            detail = days == 0 ? L("expires today") : Plural(days, "expires in {0} day", "expires in {0} days");
-            level = certificate.DaysRemaining > TlsPosture.ExpiryWarningDays ? StatusLevel.Good
-               : certificate.InUse ? StatusLevel.Warning
-               : StatusLevel.Information;
-         }
+         // A certificate's name can be long - "wildcard-2025 (moved to the old
+         // disk)" - and wraps at a width of its own, so that it never takes the
+         // sentence beside it to a few words a line in a narrow window.
+         var name = new TextBlock { Text = certificate.Name, TextWrapping = TextWrapping.Wrap, MaxWidth = CertificateNameWidth };
+         name.SetResourceReference(StyleProperty, "TextBodyStrong");
 
-         StatusPresentation presentation = StatusSemantics.For(level);
+         // The whole row as the accessible name of the one element in it with an
+         // automation peer, as a listener's row is: one statement, the state first
+         // after the name.
+         System.Windows.Automation.AutomationProperties.SetName(name,
+            F("{0}, {1}. {2} {3}.", certificate.Name, state, detail, usage));
+         identity.Children.Add(name);
 
-         row.Children.Add(new StatusPill
+         var use = new TextBlock { Text = usage, TextWrapping = TextWrapping.Wrap, MaxWidth = CertificateNameWidth };
+         use.SetResourceReference(StyleProperty, "TextCaptionTertiary");
+         identity.Children.Add(use);
+
+         Grid.SetRow(identity, row);
+         Grid.SetColumn(identity, 0);
+         grid.Children.Add(identity);
+
+         var text = new TextBlock { Text = detail, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 6, 12, 6) };
+         text.SetResourceReference(StyleProperty, "TextCaption");
+
+         Grid.SetRow(text, row);
+         Grid.SetColumn(text, 1);
+         grid.Children.Add(text);
+
+         var pill = new StatusPill
          {
             Level = level,
-            Text = presentation.SeverityWord,
-            Margin = new Thickness(0, 2, 10, 0),
+            Text = state,
+            MaxWidth = 240,
+            Margin = new Thickness(0, 6, 0, 6),
             VerticalAlignment = VerticalAlignment.Top
-         });
-
-         string usage = certificate.InUse ? L("in use by a listener") : L("not used by any listener");
-
-         var text = new TextBlock
-         {
-            Text = certificate.Name + " - " + detail + ", " + usage,
-            TextWrapping = TextWrapping.Wrap,
-            MaxWidth = 820,
-            VerticalAlignment = VerticalAlignment.Center
          };
-         text.SetResourceReference(StyleProperty, "TextBody");
-         System.Windows.Automation.AutomationProperties.SetName(text,
-            certificate.Name + ", " + presentation.SeverityWord + ", " + detail + ", " + usage);
-         row.Children.Add(text);
 
-         return row;
+         Grid.SetRow(pill, row);
+         Grid.SetColumn(pill, 2);
+         grid.Children.Add(pill);
       }
 
       private Card NegotiationCard(TlsPostureConfig config)

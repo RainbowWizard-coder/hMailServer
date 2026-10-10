@@ -57,18 +57,52 @@ namespace hMailServer.ControlPanel.Tests.Services
             Assert.Contains(level, StatusSemantics.AllLevels);
       }
 
+      /// <summary>
+      /// Normal is the level that says nothing, and its colour is the neutral grey,
+      /// which no other level takes: a mark at Normal - the certificate details' "No
+      /// passphrase needed" - was the primary text, a black dot in the light theme and
+      /// a white one in the dark (review finding F326). A mark beside its word takes the
+      /// level's fill-text shade at every other level, as the word does, and the grey at
+      /// Normal, whose fill-text shade is made for the pill's grey box.
+      /// </summary>
       [Fact]
-      public void NormalIsInvisible()
+      public void NormalIsTheNeutralGrey_AndItsMarkIsToo()
       {
-         // A default install must look exactly as it did: ordinary text colour, no
-         // badge. Only Normal is allowed to use the plain text brush.
          StatusPresentation normal = StatusSemantics.For(StatusLevel.Normal);
 
-         Assert.Equal("TextFillColorPrimaryBrush", normal.BrushKey);
-         Assert.DoesNotContain("TextFillColorPrimaryBrush",
+         Assert.Equal("AppNeutralBrush", normal.BrushKey);
+         Assert.Equal("AppNeutralBrush", normal.MarkBrushKey);
+         Assert.DoesNotContain("TextFillColorPrimaryBrush", StatusSemantics.AllLevels.Select(l => StatusSemantics.For(l).BrushKey));
+         Assert.DoesNotContain("AppNeutralBrush",
             StatusSemantics.AllLevels
                .Where(l => l != StatusLevel.Normal)
                .Select(l => StatusSemantics.For(l).BrushKey));
+
+         foreach (StatusLevel level in StatusSemantics.AllLevels.Where(l => l != StatusLevel.Normal))
+            Assert.Equal(StatusSemantics.For(level).FillTextBrushKey, StatusSemantics.For(level).MarkBrushKey);
+      }
+
+      /// <summary>
+      /// The dashboard's queue length keeps the ordinary text colour while the queue
+      /// is normal, as every other figure there does: the neutral grey is a mark's.
+      /// </summary>
+      [Fact]
+      public void TheDashboardsQueueLength_IsTheOrdinaryTextWhileTheQueueIsNormal()
+      {
+         string code = SaveStateModelTests.ReadControlPanelFile("Views/DashboardView.xaml.cs");
+         Assert.Contains("KpiQueue.SetResourceReference(TextBlock.ForegroundProperty, level == StatusLevel.Normal ? \"TextFillColorPrimaryBrush\" : status.BrushKey);", code, StringComparison.Ordinal);
+      }
+
+      /// <summary>The certificate details' and the notice's marks take the mark's key, not the fill-text one.</summary>
+      [Fact]
+      public void TheCertificateDetailsAndTheNoticeDrawTheirMarksInTheMarksColour()
+      {
+         string certificates = SaveStateModelTests.ReadControlPanelFile("Views/SslCertificatesView.xaml.cs");
+         Assert.Equal(2, certificates.Split("ShapeMarkVisuals.ApplyMark(mark, presentation.Shape, presentation.MarkBrushKey);").Length - 1);
+         Assert.DoesNotContain("ApplyMark(mark, presentation.Shape, presentation.FillTextBrushKey)", certificates, StringComparison.Ordinal);
+
+         string notice = SaveStateModelTests.ReadControlPanelFile("Views/Scaffold/InlineNotice.cs");
+         Assert.Contains("ShapeMarkVisuals.ApplyMark(mark, status.Shape, status.MarkBrushKey);", notice, StringComparison.Ordinal);
       }
 
       [Fact]

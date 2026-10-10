@@ -539,7 +539,10 @@ namespace hMailServer.ControlPanel.Views
          StatusPresentation status = StatusSemantics.For(level);
 
          KpiQueue.Text = text;
-         KpiQueue.SetResourceReference(TextBlock.ForegroundProperty, status.BrushKey);
+         // The number in the ordinary text colour while the queue is normal, as
+         // every other figure on the dashboard is; Normal's status colour is the
+         // neutral grey, which is a mark's colour and not a figure's.
+         KpiQueue.SetResourceReference(TextBlock.ForegroundProperty, level == StatusLevel.Normal ? "TextFillColorPrimaryBrush" : status.BrushKey);
 
          if (level == StatusLevel.Normal)
          {

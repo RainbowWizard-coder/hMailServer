@@ -3466,6 +3466,24 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   add form's Add and the header's Save changes are each page's one Primary, and the passphrase box is 360 pixels wide
   whatever it holds. `OnePrimaryPerScreenTests` holds both pages to one Primary and the box to its width.
 
+- **Fixed: the transport encryption overview's certificate rows were laid out unlike its listener rows, and a status
+  mark at the level that says nothing was drawn in the primary text colour.** Each certificate row put a pill with the
+  level's word, "OK" or "Warning", on the left before a run-on of the name, the finding and the use - "wildcard-2025
+  (moved to the old disk) — The certificate file does not exist on this machine ... mail on those ports stops., not
+  used by any listener" - where the listener rows above it have the name on the left, the sentence in the middle and
+  the state in a pill of its own words on the right (review finding F326). The certificate rows are laid out the same
+  way now: the name, with "In use by a listener" or "Not used by any listener" under it; the sentence, "Expires in 60
+  days." or the SSL certificates page's own sentence for a problem with the files; and a pill that says Valid, Expires
+  soon, Has expired, the problem's word ("File missing") or Not checked, at the level the page's notes give the same
+  certificate. The Normal level's colour is the neutral grey (`StatusSemantics`), where it was the primary text, so
+  that the certificate details' "No passphrase needed" mark was a black dot in the light theme and a white one in the
+  dark; a mark beside its word takes the level's fill-text shade at every other level, as the word does
+  (`StatusPresentation.MarkBrushKey`), and the dashboard's queue length keeps the ordinary text colour while the queue
+  is normal. The never-ban list's empty state and the IP ranges page's empty state at its floor, which the review saw
+  as column headers with no sentence and a glyph against the header rule, were put right with the empty states' work
+  (F207) and are as they should be. `TlsCertificateRowTests` and `StatusSemanticsTests` hold the rows, their levels
+  against the notes, and the neutral mark.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
