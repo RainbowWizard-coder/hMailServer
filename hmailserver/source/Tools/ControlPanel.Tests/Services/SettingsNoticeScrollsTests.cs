@@ -63,6 +63,15 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       [Fact]
+      public void ANoticeToActOn_IsScrolledIntoView()
+      {
+         // Above the tab's first card, a save made far down a long tab said which
+         // row it could not write out of sight.
+         string show = Member(Read(Path.Join("Views", "ServerSettingsView.xaml.cs")), "private void ShowNotice_(string sentence, StatusLevel level)");
+         Assert.Matches(new Regex(@"if \(level >= StatusLevel\.Warning\)\s*Dispatcher\.BeginInvoke\(DispatcherPriority\.Loaded, new Action\(\(\) => StatusNotice\.BringIntoView\(\)\)\);"), show);
+      }
+
+      [Fact]
       public void InAShortWindow_TheSubtitleIsTheTitlesToolTip()
       {
          string source = Read(Path.Join("Views", "ServerSettingsView.xaml.cs"));

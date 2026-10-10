@@ -5712,6 +5712,14 @@ namespace hMailServer.ControlPanel.Views
          StatusNotice.Level = level;
          StatusNotice.Text = sentence;
          StatusNotice.Visibility = Visibility.Visible;
+
+         // A notice the reader has to act on is scrolled into view: it sits above
+         // the first card of the tab (PlaceNotice_), so a save made far down a long
+         // tab said which row it could not write above the fold, with only the
+         // pill and the toast in sight. Once laid out, so that the tab knows where
+         // the notice is.
+         if (level >= StatusLevel.Warning)
+            Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() => StatusNotice.BringIntoView()));
       }
 
       // ---- live test / dependency helpers ------------------------------------

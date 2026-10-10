@@ -17,8 +17,9 @@
 
          The header carries the page's two actions and the pill that says whether
          what is on screen has reached the server - unsaved, saving, saved, partly
-         saved - and the notice under it carries the sentence that goes with a
-         read or a save. Both replace the status line that used to sit at the
+         saved - and the notice above the first card of the tab on screen carries
+         the sentence that goes with a read or a save, scrolled into view when it
+         is a warning. Both replace the status line that used to sit at the
          bottom of the page, under the fold of a long tab, where the confirmation
          that a save had worked was the one thing most easily missed.
 

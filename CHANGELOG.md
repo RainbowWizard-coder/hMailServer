@@ -2446,8 +2446,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Administrative access, Logging, Performance and the other pages built the same way, the title, a two-line subtitle,
   a two-line notice and the tab strip all stayed pinned while only the tab's content scrolled, so that at 760 by 520 a
   tab showed one card heading and two lines of text. The page's notice now sits above the first card of the tab on
-  screen and scrolls away with it, moving with the tab chosen; below 600 pixels of page the subtitle is the title's
-  tool tip (and still the header's help text for a screen reader); the header and the tab strip stay pinned.
+  screen and scrolls away with it, moving with the tab chosen, and is scrolled back into view when it has a warning to
+  give, as a save that could not write a row does; below 600 pixels of page the subtitle is the title's tool tip (and
+  still the header's help text for a screen reader); the header and the tab strip stay pinned.
 
 - **Fixed: the account dialog's External tab left the server, the column that says which mailbox an external account
   collects from, about 110 pixels.** Beside fixed columns for Enabled, the name, the port and the connection security,
