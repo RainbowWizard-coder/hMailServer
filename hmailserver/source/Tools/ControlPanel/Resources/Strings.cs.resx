@@ -7523,6 +7523,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply." xml:space="preserve">
     <value>Žádné položky, takže tento seznam nikoho nepovoluje ani neblokuje; vlastní seznam účtu a seznam jeho domény stále platí.</value>
   </data>
+  <data name="No entry can be written for these messages." xml:space="preserve">
+    <value>Pro tyto zprávy nelze zapsat žádný záznam.</value>
+  </data>
   <data name="No entry covers this sender's domain; entries matched against the HELO name are not checked here." xml:space="preserve">
     <value>Na doménu tohoto odesílatele se nevztahuje žádný záznam; záznamy porovnávané se jménem HELO se zde nekontrolují.</value>
   </data>
@@ -13859,6 +13862,12 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="This validates against the domain &quot;{0}&quot;. The server's own computer must be joined to it." xml:space="preserve">
     <value>Toto ověřuje proti doméně „{0}“. Vlastní počítač serveru k ní musí být připojen.</value>
   </data>
+  <data name="This will not stop the next message from this sender being held by the server-wide spam score." xml:space="preserve">
+    <value>Tím se nezabrání tomu, aby další zprávu od tohoto odesílatele zadrželo celoserverové skóre spamu.</value>
+  </data>
+  <data name="This will not stop the next message from this sender being held if it scores {0} or more." xml:space="preserve">
+    <value>Tím se nezabrání tomu, aby byla další zpráva od tohoto odesílatele zadržena, pokud získá skóre {0} nebo vyšší.</value>
+  </data>
   <data name="This window closes now so that the installer can replace the Control Panel, and opens again when hMailServer is running, in about two minutes. Do not sign out of Windows until it has." xml:space="preserve">
     <value>Toto okno se teď zavře, aby instalátor mohl nahradit Control Panel, a znovu se otevře, až hMailServer poběží, asi za dvě minuty. Do té doby se neodhlašujte z Windows.</value>
   </data>
@@ -14381,9 +14390,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)" xml:space="preserve">
     <value>Te_xt upozornění (prázdný = zpráva serveru; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)</value>
   </data>
-  <data name="Warning: {0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
-    <value>Upozornění: {0} je veřejná přípona. Záznam pro ni pokrývá každou doménu registrovanou pod ní, což téměř nikdy není záměr.</value>
-  </data>
   <data name="Watch for alert conditions" xml:space="preserve">
     <value>Sledovat podmínky upozornění</value>
   </data>
@@ -14566,6 +14572,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="What will be written:" xml:space="preserve">
     <value>Co se zapíše:</value>
+  </data>
+  <data name="What would be written could not be read from the server: {0}" xml:space="preserve">
+    <value>Co by se zapsalo, se nepodařilo zjistit ze serveru: {0}</value>
   </data>
   <data name="Whatever the server would do anyway - including MTA-STS and DANE" xml:space="preserve">
     <value>Cokoli by server udělal i tak - včetně MTA-STS a DANE</value>
@@ -17180,6 +17189,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} is a public folder already." xml:space="preserve">
     <value>{0} už je veřejná složka.</value>
+  </data>
+  <data name="{0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
+    <value>{0} je veřejná přípona. Záznam pro ni pokrývá každou doménu registrovanou pod ní, což téměř nikdy není zamýšleno.</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} je již členem této skupiny.</value>

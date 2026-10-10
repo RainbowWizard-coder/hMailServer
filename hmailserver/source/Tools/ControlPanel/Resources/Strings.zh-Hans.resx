@@ -7441,6 +7441,9 @@
   <data name="No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply." xml:space="preserve">
     <value>没有条目，因此此名单不允许也不拦截任何人；账户自己的名单和其所在域的名单仍然适用。</value>
   </data>
+  <data name="No entry can be written for these messages." xml:space="preserve">
+    <value>无法为这些邮件写入任何条目。</value>
+  </data>
   <data name="No entry covers this sender's domain; entries matched against the HELO name are not checked here." xml:space="preserve">
     <value>没有条目涵盖此发件人的域；与 HELO 名称比对的条目不在此处检查。</value>
   </data>
@@ -13678,6 +13681,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="This validates against the domain &quot;{0}&quot;. The server's own computer must be joined to it." xml:space="preserve">
     <value>这会对域 "{0}" 进行验证。服务器自身的计算机必须已加入该域。</value>
   </data>
+  <data name="This will not stop the next message from this sender being held by the server-wide spam score." xml:space="preserve">
+    <value>这无法阻止服务器整体垃圾邮件分数暂挂该发件人的下一封邮件。</value>
+  </data>
+  <data name="This will not stop the next message from this sender being held if it scores {0} or more." xml:space="preserve">
+    <value>如果该发件人的下一封邮件得分达到 {0} 或更高，它仍会被暂挂。</value>
+  </data>
   <data name="This window closes now so that the installer can replace the Control Panel, and opens again when hMailServer is running, in about two minutes. Do not sign out of Windows until it has." xml:space="preserve">
     <value>此窗口现在关闭，以便安装程序替换控制面板，并会在 hMailServer 运行后（大约两分钟后）重新打开。在此之前请不要注销 Windows。</value>
   </data>
@@ -14197,9 +14206,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)" xml:space="preserve">
     <value>警告正文(_X) (空 = 服务器消息；%MACRO_MAILBOX%、%MACRO_QUOTA%、%MACRO_USED%、%MACRO_PERCENT%)</value>
   </data>
-  <data name="Warning: {0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
-    <value>警告：{0} 是一个公共后缀。为它写入的条目会覆盖在它之下注册的每一个域，这几乎从来都不是本意。</value>
-  </data>
   <data name="Watch for alert conditions" xml:space="preserve">
     <value>监视警报情况</value>
   </data>
@@ -14382,6 +14388,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="What will be written:" xml:space="preserve">
     <value>将写入的内容：</value>
+  </data>
+  <data name="What would be written could not be read from the server: {0}" xml:space="preserve">
+    <value>无法从服务器读取将要写入的内容：{0}</value>
   </data>
   <data name="Whatever the server would do anyway - including MTA-STS and DANE" xml:space="preserve">
     <value>服务器本来就会做的事，包括 MTA-STS 和 DANE</value>
@@ -16888,6 +16897,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} is a public folder already." xml:space="preserve">
     <value>{0} 已是公用文件夹。</value>
+  </data>
+  <data name="{0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
+    <value>{0} 是公共后缀。为它添加的条目会涵盖其下注册的每个域，这几乎从来都不是本意。</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} 已经是此组的成员。</value>

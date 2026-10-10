@@ -7441,6 +7441,9 @@
   <data name="No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply." xml:space="preserve">
     <value>エントリがないため、この一覧は誰も許可もブロックもしません。アカウント自身の一覧とそのドメインの一覧は引き続き適用されます。</value>
   </data>
+  <data name="No entry can be written for these messages." xml:space="preserve">
+    <value>これらのメッセージに対して書き込めるエントリはありません。</value>
+  </data>
   <data name="No entry covers this sender's domain; entries matched against the HELO name are not checked here." xml:space="preserve">
     <value>この送信者のドメインに該当するエントリはありません。HELO 名と照合するエントリは、ここでは確認しません。</value>
   </data>
@@ -13678,6 +13681,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="This validates against the domain &quot;{0}&quot;. The server's own computer must be joined to it." xml:space="preserve">
     <value>これはドメイン "{0}" に対して検証します。サーバー自身のコンピューターがそのドメインに参加している必要があります。</value>
   </data>
+  <data name="This will not stop the next message from this sender being held by the server-wide spam score." xml:space="preserve">
+    <value>サーバー全体のスパムスコアがこの送信者からの次のメッセージを保留することは防げません。</value>
+  </data>
+  <data name="This will not stop the next message from this sender being held if it scores {0} or more." xml:space="preserve">
+    <value>スコアが {0} 以上になれば、この送信者からの次のメッセージは引き続き保留されます。</value>
+  </data>
   <data name="This window closes now so that the installer can replace the Control Panel, and opens again when hMailServer is running, in about two minutes. Do not sign out of Windows until it has." xml:space="preserve">
     <value>インストーラーがコントロールパネルを置き換えられるよう、このウィンドウは今閉じ、hMailServer が動作し始めたら、約 2 分後に再び開きます。それまで Windows からサインアウトしないでください。</value>
   </data>
@@ -14197,9 +14206,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)" xml:space="preserve">
     <value>警告の本文(_X) (空 = サーバーメッセージ、%MACRO_MAILBOX%、%MACRO_QUOTA%、%MACRO_USED%、%MACRO_PERCENT%)</value>
   </data>
-  <data name="Warning: {0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
-    <value>警告: {0} はパブリック接尾辞です。これに対するエントリは、その配下に登録されたすべてのドメインに適用されますが、意図した動作であることはまずありません。</value>
-  </data>
   <data name="Watch for alert conditions" xml:space="preserve">
     <value>アラートの状態を監視する</value>
   </data>
@@ -14382,6 +14388,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="What will be written:" xml:space="preserve">
     <value>書き込まれる内容:</value>
+  </data>
+  <data name="What would be written could not be read from the server: {0}" xml:space="preserve">
+    <value>書き込まれる内容をサーバーから読み取れませんでした: {0}</value>
   </data>
   <data name="Whatever the server would do anyway - including MTA-STS and DANE" xml:space="preserve">
     <value>サーバーが本来行う動作のまま（MTA-STS と DANE を含む）</value>
@@ -16888,6 +16897,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} is a public folder already." xml:space="preserve">
     <value>{0} は既に公開フォルダーです。</value>
+  </data>
+  <data name="{0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
+    <value>{0} はパブリック サフィックスです。そのエントリはその下に登録されたすべてのドメインに及び、意図したものであることはまずありません。</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} は既にこのグループのメンバーです。</value>

@@ -7441,6 +7441,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply." xml:space="preserve">
     <value>Girdi yok; bu nedenle bu liste kimseye izin vermez ve kimseyi engellemez; bir hesabın kendi listesi ve etki alanınınki yine geçerlidir.</value>
   </data>
+  <data name="No entry can be written for these messages." xml:space="preserve">
+    <value>Bu iletiler için hiçbir giriş yazılamaz.</value>
+  </data>
   <data name="No entry covers this sender's domain; entries matched against the HELO name are not checked here." xml:space="preserve">
     <value>Bu göndereninin etki alanını kapsayan girdi yok; HELO adıyla karşılaştırılan girdiler burada denetlenmez.</value>
   </data>
@@ -13678,6 +13681,12 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="This validates against the domain &quot;{0}&quot;. The server's own computer must be joined to it." xml:space="preserve">
     <value>Bu, "{0}" etki alanına karşı doğrular. Sunucunun kendi bilgisayarı ona katılmış olmalı.</value>
   </data>
+  <data name="This will not stop the next message from this sender being held by the server-wide spam score." xml:space="preserve">
+    <value>Bu, sunucu genelindeki istenmeyen puanının bu gönderenin bir sonraki iletisini bekletmesini önlemez.</value>
+  </data>
+  <data name="This will not stop the next message from this sender being held if it scores {0} or more." xml:space="preserve">
+    <value>Bu, bu gönderenin bir sonraki iletisi {0} veya daha fazla puan alırsa bekletilmesini önlemez.</value>
+  </data>
   <data name="This window closes now so that the installer can replace the Control Panel, and opens again when hMailServer is running, in about two minutes. Do not sign out of Windows until it has." xml:space="preserve">
     <value>Yükleyicinin Denetim Masası'nı değiştirebilmesi için bu pencere şimdi kapanıyor ve hMailServer çalışır duruma geldiğinde, yaklaşık iki dakika içinde yeniden açılıyor. O zamana kadar Windows oturumunu kapatmayın.</value>
   </data>
@@ -14197,9 +14206,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)" xml:space="preserve">
     <value>Uyarı _metni (boş = sunucu iletisi; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)</value>
   </data>
-  <data name="Warning: {0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
-    <value>Uyarı: {0} genel bir sonek. Onun için bir kayıt, altında kayıtlı her alan adını kapsar; bu ise neredeyse hiçbir zaman kastedilen şey değildir.</value>
-  </data>
   <data name="Watch for alert conditions" xml:space="preserve">
     <value>Uyarı koşullarını izle</value>
   </data>
@@ -14382,6 +14388,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="What will be written:" xml:space="preserve">
     <value>Yazılacak olan:</value>
+  </data>
+  <data name="What would be written could not be read from the server: {0}" xml:space="preserve">
+    <value>Nelerin yazılacağı sunucudan okunamadı: {0}</value>
   </data>
   <data name="Whatever the server would do anyway - including MTA-STS and DANE" xml:space="preserve">
     <value>Sunucunun zaten yapacağı şey - MTA-STS ve DANE dâhil</value>
@@ -16888,6 +16897,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0} is a public folder already." xml:space="preserve">
     <value>{0} zaten bir genel klasör.</value>
+  </data>
+  <data name="{0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
+    <value>{0} genel bir sonektir. Onun için bir giriş, altında kayıtlı her alan adını kapsar; bu neredeyse hiçbir zaman amaçlanan değildir.</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} zaten bu grubun üyesi.</value>

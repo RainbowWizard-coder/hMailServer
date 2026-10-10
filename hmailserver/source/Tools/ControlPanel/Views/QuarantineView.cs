@@ -946,6 +946,28 @@ namespace hMailServer.ControlPanel.Views
          }
       }
 
+      /// <summary>The server-wide delete threshold, which an allowed address does not lift; null when it cannot be read.</summary>
+      private static int? DeleteThreshold_()
+      {
+         dynamic settings = null;
+         dynamic antiSpam = null;
+         try
+         {
+            settings = ServerSession.Current.Application.Settings;
+            antiSpam = settings.AntiSpam;
+            return (int)antiSpam.SpamDeleteThreshold;
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            return null;
+         }
+         finally
+         {
+            ServerSession.Release((object)antiSpam);
+            ServerSession.Release((object)settings);
+         }
+      }
+
       /// <summary>The server before Quarantine.Bulk: one message at a time, as the page did then.</summary>
       private BulkAnswer OneAtATime_(IReadOnlyList<int> ids, bool release)
       {
@@ -1031,7 +1053,13 @@ namespace hMailServer.ControlPanel.Views
                case "block":
                   {
                      bool heloGrouping = review_.Grouping == QuarantineGrouping.HeloDomain;
-                     var dialog = new QuarantineListDialog(Window.GetWindow(this), action == "block", ids, heloGrouping, Bulk_);
+
+                     // Whether the server-wide score held any of them, which the
+                     // address list does not stop: the dialog then chooses the domain
+                     // list for an allow, and says what the address leaves (F262).
+                     int? threshold = DeleteThreshold_();
+                     bool heldByScore = review_.MessagesWith(ids).Any(m => QuarantineReview.HeldByServerScore(m, threshold));
+                     var dialog = new QuarantineListDialog(Window.GetWindow(this), action == "block", ids, heloGrouping, Bulk_, heldByScore, threshold);
 
                      if (dialog.ShowDialog() != true)
                      {

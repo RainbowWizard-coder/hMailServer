@@ -7441,6 +7441,9 @@ Inget som redan finns där tas bort.</value>
   <data name="No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply." xml:space="preserve">
     <value>Inga poster, så den här listan tillåter och blockerar ingen; ett kontos egen lista och dess domäns gäller fortfarande.</value>
   </data>
+  <data name="No entry can be written for these messages." xml:space="preserve">
+    <value>Ingen post kan skrivas för de här meddelandena.</value>
+  </data>
   <data name="No entry covers this sender's domain; entries matched against the HELO name are not checked here." xml:space="preserve">
     <value>Ingen post täcker den här avsändarens domän; poster som jämförs med HELO-namnet kontrolleras inte här.</value>
   </data>
@@ -13678,6 +13681,12 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="This validates against the domain &quot;{0}&quot;. The server's own computer must be joined to it." xml:space="preserve">
     <value>Detta validerar mot domänen "{0}". Serverns egen dator måste vara ansluten till den.</value>
   </data>
+  <data name="This will not stop the next message from this sender being held by the server-wide spam score." xml:space="preserve">
+    <value>Det hindrar inte att serverns övergripande skräppostpoäng håller kvar nästa meddelande från den här avsändaren.</value>
+  </data>
+  <data name="This will not stop the next message from this sender being held if it scores {0} or more." xml:space="preserve">
+    <value>Det hindrar inte att nästa meddelande från den här avsändaren hålls kvar om det får {0} poäng eller mer.</value>
+  </data>
   <data name="This window closes now so that the installer can replace the Control Panel, and opens again when hMailServer is running, in about two minutes. Do not sign out of Windows until it has." xml:space="preserve">
     <value>Det här fönstret stängs nu så att installationsprogrammet kan ersätta Kontrollpanelen, och öppnas igen när hMailServer körs, om ungefär två minuter. Logga inte ut från Windows innan dess.</value>
   </data>
@@ -14197,9 +14206,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)" xml:space="preserve">
     <value>Varningens te_xt (tom = servermeddelande; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)</value>
   </data>
-  <data name="Warning: {0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
-    <value>Varning: {0} är ett publikt suffix. En post för det omfattar varje domän som registrerats därunder, vilket nästan aldrig är avsikten.</value>
-  </data>
   <data name="Watch for alert conditions" xml:space="preserve">
     <value>Bevaka larmvillkor</value>
   </data>
@@ -14382,6 +14388,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="What will be written:" xml:space="preserve">
     <value>Vad som kommer att skrivas:</value>
+  </data>
+  <data name="What would be written could not be read from the server: {0}" xml:space="preserve">
+    <value>Det som skulle skrivas kunde inte läsas från servern: {0}</value>
   </data>
   <data name="Whatever the server would do anyway - including MTA-STS and DANE" xml:space="preserve">
     <value>Det servern ändå skulle göra - inklusive MTA-STS och DANE</value>
@@ -16888,6 +16897,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} is a public folder already." xml:space="preserve">
     <value>{0} är redan en publik mapp.</value>
+  </data>
+  <data name="{0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
+    <value>{0} är ett offentligt suffix. En post för det omfattar varje domän som registrerats under det, vilket nästan aldrig är meningen.</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} är redan medlem i den här gruppen.</value>

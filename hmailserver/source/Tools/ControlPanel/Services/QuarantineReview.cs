@@ -459,6 +459,30 @@ namespace hMailServer.ControlPanel.Services
          return messages_.Where(m => wanted.Contains(m.Id)).ToList();
       }
 
+      /// <summary>
+      /// Whether a message was held by the server-wide spam score: during the SMTP
+      /// conversation, which is the one hold that records the HELO name
+      /// (QuarantineStore::QuarantineFromSession), and never a rule's or the
+      /// sandbox's, whose reasons say so; on a server from before the HELO name was
+      /// kept (schema 6105), a score at or over the delete threshold. An allowed
+      /// address does not stop such a hold - the server-wide score runs before the
+      /// address is read - and an allowed domain does (Views/QuarantineListDialog).
+      /// </summary>
+      public static bool HeldByServerScore(HeldMessage message, int? deleteThreshold)
+      {
+         if (message == null)
+            return false;
+
+         string reason = message.Reason ?? "";
+         if (reason.StartsWith("Rule: ", StringComparison.Ordinal) || reason.StartsWith("Sandbox: ", StringComparison.Ordinal)) // no-loc: the server's own reason prefixes
+            return false;
+
+         if ((message.Helo ?? "").Length > 0)
+            return true;
+
+         return deleteThreshold > 0 && message.Score >= deleteThreshold.Value;
+      }
+
       /// <summary>The key a message is grouped under: the organization's domain the server gave, lower-cased; empty when it has none.</summary>
       public static string GroupKeyOf(HeldMessage message, QuarantineGrouping grouping)
       {

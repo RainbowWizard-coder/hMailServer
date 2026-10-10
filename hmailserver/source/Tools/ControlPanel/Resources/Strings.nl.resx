@@ -7441,6 +7441,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply." xml:space="preserve">
     <value>Geen vermeldingen, dus deze lijst staat niemand toe en blokkeert niemand; de eigen lijst van een account en die van zijn domein gelden nog steeds.</value>
   </data>
+  <data name="No entry can be written for these messages." xml:space="preserve">
+    <value>Voor deze berichten kan geen vermelding worden geschreven.</value>
+  </data>
   <data name="No entry covers this sender's domain; entries matched against the HELO name are not checked here." xml:space="preserve">
     <value>Geen vermelding dekt het domein van deze afzender; vermeldingen die met de HELO-naam worden vergeleken, worden hier niet gecontroleerd.</value>
   </data>
@@ -13678,6 +13681,12 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="This validates against the domain &quot;{0}&quot;. The server's own computer must be joined to it." xml:space="preserve">
     <value>Dit valideert tegen het domein "{0}". De computer van de server zelf moet er lid van zijn.</value>
   </data>
+  <data name="This will not stop the next message from this sender being held by the server-wide spam score." xml:space="preserve">
+    <value>Dit voorkomt niet dat de serverbrede spamscore het volgende bericht van deze afzender vasthoudt.</value>
+  </data>
+  <data name="This will not stop the next message from this sender being held if it scores {0} or more." xml:space="preserve">
+    <value>Dit voorkomt niet dat het volgende bericht van deze afzender wordt vastgehouden als het {0} of meer scoort.</value>
+  </data>
   <data name="This window closes now so that the installer can replace the Control Panel, and opens again when hMailServer is running, in about two minutes. Do not sign out of Windows until it has." xml:space="preserve">
     <value>Dit venster sluit nu zodat het installatieprogramma het Control Panel kan vervangen, en gaat weer open wanneer hMailServer draait, over ongeveer twee minuten. Meld u tot die tijd niet af bij Windows.</value>
   </data>
@@ -14197,9 +14206,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)" xml:space="preserve">
     <value>Te_kst van de waarschuwing (leeg = serverbericht; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)</value>
   </data>
-  <data name="Warning: {0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
-    <value>Waarschuwing: {0} is een publieke suffix. Een vermelding ervoor dekt elk domein dat eronder is geregistreerd, wat bijna nooit is bedoeld.</value>
-  </data>
   <data name="Watch for alert conditions" xml:space="preserve">
     <value>Letten op waarschuwingsomstandigheden</value>
   </data>
@@ -14382,6 +14388,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="What will be written:" xml:space="preserve">
     <value>Wat wordt geschreven:</value>
+  </data>
+  <data name="What would be written could not be read from the server: {0}" xml:space="preserve">
+    <value>Wat er geschreven zou worden, kon niet van de server worden gelezen: {0}</value>
   </data>
   <data name="Whatever the server would do anyway - including MTA-STS and DANE" xml:space="preserve">
     <value>Wat de server toch al zou doen - inclusief MTA-STS en DANE</value>
@@ -16888,6 +16897,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} is a public folder already." xml:space="preserve">
     <value>{0} is al een openbare map.</value>
+  </data>
+  <data name="{0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
+    <value>{0} is een openbaar achtervoegsel. Een vermelding ervoor geldt voor elk domein dat eronder is geregistreerd, wat bijna nooit de bedoeling is.</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} is al lid van deze groep.</value>

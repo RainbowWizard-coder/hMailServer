@@ -7441,6 +7441,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply." xml:space="preserve">
     <value>Aucune entrée : cette liste n'autorise et ne bloque donc personne ; la liste propre à un compte et celle de son domaine s'appliquent toujours.</value>
   </data>
+  <data name="No entry can be written for these messages." xml:space="preserve">
+    <value>Aucune entrée ne peut être écrite pour ces messages.</value>
+  </data>
   <data name="No entry covers this sender's domain; entries matched against the HELO name are not checked here." xml:space="preserve">
     <value>Aucune entrée ne couvre le domaine de cet expéditeur ; les entrées comparées au nom HELO ne sont pas vérifiées ici.</value>
   </data>
@@ -13678,6 +13681,12 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="This validates against the domain &quot;{0}&quot;. The server's own computer must be joined to it." xml:space="preserve">
     <value>Ceci valide contre le domaine « {0} ». L'ordinateur du serveur lui-même doit y être joint.</value>
   </data>
+  <data name="This will not stop the next message from this sender being held by the server-wide spam score." xml:space="preserve">
+    <value>Cela n'empêchera pas le score de spam à l'échelle du serveur de retenir le prochain message de cet expéditeur.</value>
+  </data>
+  <data name="This will not stop the next message from this sender being held if it scores {0} or more." xml:space="preserve">
+    <value>Cela n'empêchera pas le prochain message de cet expéditeur d'être retenu s'il obtient un score de {0} ou plus.</value>
+  </data>
   <data name="This window closes now so that the installer can replace the Control Panel, and opens again when hMailServer is running, in about two minutes. Do not sign out of Windows until it has." xml:space="preserve">
     <value>Cette fenêtre se ferme maintenant pour que l'installateur puisse remplacer le Control Panel, et se rouvre quand hMailServer tourne, dans environ deux minutes. Ne vous déconnectez pas de Windows d'ici là.</value>
   </data>
@@ -14197,9 +14206,6 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)" xml:space="preserve">
     <value>Te_xte de l'avertissement (vide = message serveur ; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)</value>
   </data>
-  <data name="Warning: {0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
-    <value>Avertissement : {0} est un suffixe public. Une entrée pour celui-ci couvre chaque domaine enregistré en dessous, ce qui n'est presque jamais ce qui est voulu.</value>
-  </data>
   <data name="Watch for alert conditions" xml:space="preserve">
     <value>Surveiller les conditions d'alerte</value>
   </data>
@@ -14382,6 +14388,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="What will be written:" xml:space="preserve">
     <value>Ce qui sera écrit :</value>
+  </data>
+  <data name="What would be written could not be read from the server: {0}" xml:space="preserve">
+    <value>Ce qui serait écrit n'a pas pu être lu sur le serveur : {0}</value>
   </data>
   <data name="Whatever the server would do anyway - including MTA-STS and DANE" xml:space="preserve">
     <value>Ce que le serveur ferait de toute façon - MTA-STS et DANE compris</value>
@@ -16888,6 +16897,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="{0} is a public folder already." xml:space="preserve">
     <value>{0} est déjà un dossier public.</value>
+  </data>
+  <data name="{0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
+    <value>{0} est un suffixe public. Une entrée pour lui couvre tous les domaines enregistrés en dessous, ce qui n'est presque jamais voulu.</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} est déjà membre de ce groupe.</value>

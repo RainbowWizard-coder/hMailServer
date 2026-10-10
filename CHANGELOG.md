@@ -2950,6 +2950,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Release's question answers with Re_lease, Alt+L, as the bar's Release does, where Refresh has R on the page.
   `QuarantinePageTests` holds the shapes, the bar and the group's states.
 
+- **Fixed: the quarantine's allow chose the list that does not stop the next hold, and the list dialog's failures were
+  plain text.** Allow sender preselected the sender's address on the server's allow and block list whatever had held
+  the messages, though its own note said that a message the server-wide spam score holds during the SMTP conversation
+  is still held - which is how most quarantined messages got there; and the plan, a preview that could not be made,
+  the messages that cannot be listed and the public-suffix warning were one block of plain text, the Primary disabled
+  with no reason (review finding F262). The page now tells the dialog whether the server-wide score held any of the
+  messages - a hold during the SMTP conversation, which records the HELO name, never a rule's or the sandbox's, or on
+  an older server a score at or over the delete threshold - and an allow of such messages preselects the domain on the
+  list of allowed and blocked domains, the list that stops it; with the address chosen, a Warning under it says "This
+  will not stop the next message from this sender being held if it scores 20 or more.", with the server's threshold. A
+  preview that could not be made is a Critical notice with Try again, the messages that cannot be listed a Warning,
+  and a public suffix a Warning holding the List it anyway box; a request that would write nothing says so.
+  `QuarantineListDialogTests` holds which holds the score made and the dialog's wiring.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

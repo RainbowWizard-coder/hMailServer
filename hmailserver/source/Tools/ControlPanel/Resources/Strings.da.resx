@@ -7441,6 +7441,9 @@ Intet, der allerede er der, fjernes.</value>
   <data name="No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply." xml:space="preserve">
     <value>Ingen poster, så denne liste tillader og blokerer ingen; en kontos egen liste og dens domænes gælder stadig.</value>
   </data>
+  <data name="No entry can be written for these messages." xml:space="preserve">
+    <value>Der kan ikke skrives nogen post for disse meddelelser.</value>
+  </data>
   <data name="No entry covers this sender's domain; entries matched against the HELO name are not checked here." xml:space="preserve">
     <value>Ingen post dækker denne afsenders domæne; poster, der sammenlignes med HELO-navnet, kontrolleres ikke her.</value>
   </data>
@@ -13678,6 +13681,12 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="This validates against the domain &quot;{0}&quot;. The server's own computer must be joined to it." xml:space="preserve">
     <value>Dette validerer mod domænet "{0}". Serverens egen computer skal være tilsluttet det.</value>
   </data>
+  <data name="This will not stop the next message from this sender being held by the server-wide spam score." xml:space="preserve">
+    <value>Det forhindrer ikke, at serverens samlede spamscore tilbageholder den næste meddelelse fra denne afsender.</value>
+  </data>
+  <data name="This will not stop the next message from this sender being held if it scores {0} or more." xml:space="preserve">
+    <value>Det forhindrer ikke, at den næste meddelelse fra denne afsender tilbageholdes, hvis den scorer {0} eller mere.</value>
+  </data>
   <data name="This window closes now so that the installer can replace the Control Panel, and opens again when hMailServer is running, in about two minutes. Do not sign out of Windows until it has." xml:space="preserve">
     <value>Dette vindue lukker nu, så installationsprogrammet kan erstatte Control Panel, og åbner igen, når hMailServer kører, om cirka to minutter. Log ikke af Windows, før det er sket.</value>
   </data>
@@ -14197,9 +14206,6 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)" xml:space="preserve">
     <value>Ad_varslens tekst (tom = serverbesked; %MACROMAILBOX%, %MACROQUOTA%, %MACROUSED%, %MACROPERCENT%)</value>
   </data>
-  <data name="Warning: {0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
-    <value>Advarsel: {0} er et offentligt suffiks. En post for det dækker hvert domæne, der er registreret derunder, hvilket næsten aldrig er meningen.</value>
-  </data>
   <data name="Watch for alert conditions" xml:space="preserve">
     <value>Hold øje med advarselsforhold</value>
   </data>
@@ -14382,6 +14388,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="What will be written:" xml:space="preserve">
     <value>Hvad der bliver skrevet:</value>
+  </data>
+  <data name="What would be written could not be read from the server: {0}" xml:space="preserve">
+    <value>Hvad der ville blive skrevet, kunne ikke læses fra serveren: {0}</value>
   </data>
   <data name="Whatever the server would do anyway - including MTA-STS and DANE" xml:space="preserve">
     <value>Hvad serveren alligevel ville gøre - inklusive MTA-STS og DANE</value>
@@ -16888,6 +16897,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="{0} is a public folder already." xml:space="preserve">
     <value>{0} er allerede en offentlig mappe.</value>
+  </data>
+  <data name="{0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
+    <value>{0} er et offentligt suffiks. En post for det dækker hvert domæne, der er registreret under det, hvilket næsten aldrig er meningen.</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} er allerede medlem af denne gruppe.</value>

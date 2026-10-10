@@ -7523,6 +7523,9 @@
   <data name="No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply." xml:space="preserve">
     <value>Немає записів, тому цей список нікого не дозволяє й не блокує; власний список облікового запису та список його домену й далі діють.</value>
   </data>
+  <data name="No entry can be written for these messages." xml:space="preserve">
+    <value>Для цих повідомлень не можна записати жодного запису.</value>
+  </data>
   <data name="No entry covers this sender's domain; entries matched against the HELO name are not checked here." xml:space="preserve">
     <value>Жоден запис не охоплює домен цього відправника; записи, що порівнюються з ім'ям HELO, тут не перевіряються.</value>
   </data>
@@ -13859,6 +13862,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="This validates against the domain &quot;{0}&quot;. The server's own computer must be joined to it." xml:space="preserve">
     <value>Це перевіряє за доменом «{0}». Власний комп'ютер сервера має бути до нього приєднаний.</value>
   </data>
+  <data name="This will not stop the next message from this sender being held by the server-wide spam score." xml:space="preserve">
+    <value>Це не завадить загальносерверному балу спаму затримати наступне повідомлення від цього відправника.</value>
+  </data>
+  <data name="This will not stop the next message from this sender being held if it scores {0} or more." xml:space="preserve">
+    <value>Це не завадить затримати наступне повідомлення від цього відправника, якщо воно набере {0} балів або більше.</value>
+  </data>
   <data name="This window closes now so that the installer can replace the Control Panel, and opens again when hMailServer is running, in about two minutes. Do not sign out of Windows until it has." xml:space="preserve">
     <value>Це вікно зараз закриється, щоб інсталятор міг замінити Панель керування, і відкриється знову, коли hMailServer запрацює, приблизно за дві хвилини. Доти не виходьте з Windows.</value>
   </data>
@@ -14381,9 +14390,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)" xml:space="preserve">
     <value>Т_екст попередження (порожній = повідомлення сервера; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)</value>
   </data>
-  <data name="Warning: {0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
-    <value>Попередження: {0} — публічний суфікс. Запис для нього охоплює кожен домен, зареєстрований під ним, що майже ніколи не є задуманим.</value>
-  </data>
   <data name="Watch for alert conditions" xml:space="preserve">
     <value>Відстежувати умови оповіщень</value>
   </data>
@@ -14566,6 +14572,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="What will be written:" xml:space="preserve">
     <value>Що буде записано:</value>
+  </data>
+  <data name="What would be written could not be read from the server: {0}" xml:space="preserve">
+    <value>Не вдалося отримати із сервера, що буде записано: {0}</value>
   </data>
   <data name="Whatever the server would do anyway - including MTA-STS and DANE" xml:space="preserve">
     <value>Те, що сервер зробив би й так, разом із MTA-STS і DANE</value>
@@ -17180,6 +17189,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} is a public folder already." xml:space="preserve">
     <value>{0} уже є публічною папкою.</value>
+  </data>
+  <data name="{0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
+    <value>{0} - публічний суфікс. Запис для нього охоплює кожен домен, зареєстрований під ним, чого майже ніколи не хочуть.</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} уже є учасником цієї групи.</value>

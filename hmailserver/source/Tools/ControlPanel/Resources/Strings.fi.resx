@@ -7441,6 +7441,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply." xml:space="preserve">
     <value>Ei merkintöjä, joten tämä luettelo ei salli eikä estä ketään; tilin oma luettelo ja sen verkkotunnuksen luettelo ovat yhä voimassa.</value>
   </data>
+  <data name="No entry can be written for these messages." xml:space="preserve">
+    <value>Näille viesteille ei voi kirjoittaa merkintää.</value>
+  </data>
   <data name="No entry covers this sender's domain; entries matched against the HELO name are not checked here." xml:space="preserve">
     <value>Mikään merkintä ei kata tämän lähettäjän verkkotunnusta; HELO-nimeen verrattavia merkintöjä ei tarkisteta tässä.</value>
   </data>
@@ -13678,6 +13681,12 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="This validates against the domain &quot;{0}&quot;. The server's own computer must be joined to it." xml:space="preserve">
     <value>Tämä tarkistaa toimialuetta "{0}" vastaan. Palvelimen oman tietokoneen on oltava liitetty siihen.</value>
   </data>
+  <data name="This will not stop the next message from this sender being held by the server-wide spam score." xml:space="preserve">
+    <value>Tämä ei estä koko palvelimen roskapostipisteitä pidättämästä tämän lähettäjän seuraavaa viestiä.</value>
+  </data>
+  <data name="This will not stop the next message from this sender being held if it scores {0} or more." xml:space="preserve">
+    <value>Tämä ei estä tämän lähettäjän seuraavan viestin pidättämistä, jos sen pisteet ovat {0} tai enemmän.</value>
+  </data>
   <data name="This window closes now so that the installer can replace the Control Panel, and opens again when hMailServer is running, in about two minutes. Do not sign out of Windows until it has." xml:space="preserve">
     <value>Tämä ikkuna sulkeutuu nyt, jotta asennusohjelma voi korvata Control Panelin, ja avautuu uudelleen, kun hMailServer on käynnissä, noin kahden minuutin kuluttua. Älä kirjaudu ulos Windowsista ennen sitä.</value>
   </data>
@@ -14197,9 +14206,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)" xml:space="preserve">
     <value>V_aroituksen teksti (tyhjä = palvelinviesti; %MACROMAILBOX%, %MACROQUOTA%, %MACROUSED%, %MACROPERCENT%)</value>
   </data>
-  <data name="Warning: {0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
-    <value>Varoitus: {0} on julkinen pääte. Sitä koskeva merkintä kattaa jokaisen sen alle rekisteröidyn verkkotunnuksen, mikä ei lähes koskaan ole tarkoitus.</value>
-  </data>
   <data name="Watch for alert conditions" xml:space="preserve">
     <value>Valvo hälytysehtoja</value>
   </data>
@@ -14382,6 +14388,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="What will be written:" xml:space="preserve">
     <value>Mitä kirjoitetaan:</value>
+  </data>
+  <data name="What would be written could not be read from the server: {0}" xml:space="preserve">
+    <value>Kirjoitettavia tietoja ei voitu lukea palvelimelta: {0}</value>
   </data>
   <data name="Whatever the server would do anyway - including MTA-STS and DANE" xml:space="preserve">
     <value>Mitä palvelin tekisi muutenkin - mukaan lukien MTA-STS ja DANE</value>
@@ -16888,6 +16897,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} is a public folder already." xml:space="preserve">
     <value>{0} on jo julkinen kansio.</value>
+  </data>
+  <data name="{0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
+    <value>{0} on julkinen pääte. Sen merkintä kattaa jokaisen sen alle rekisteröidyn verkkotunnuksen, mitä tuskin koskaan tarkoitetaan.</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} on jo tämän ryhmän jäsen.</value>
