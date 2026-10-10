@@ -126,9 +126,12 @@ namespace hMailServer.ControlPanel.Views
          _ => L("Unknown")
       };
 
+      // State 1 is the engine stopped with the service up - this page's Pause - and
+      // is named as the pill, the paused bar and the buttons name it (review finding
+      // F019), where it read "Stopped" under a "Paused" pill.
       private static string ServerStateName(int state) => state switch
       {
-         1 => L("Stopped"),
+         1 => L("Paused"),
          2 => L("Starting"),
          3 => L("Running"),
          4 => L("Stopping"),

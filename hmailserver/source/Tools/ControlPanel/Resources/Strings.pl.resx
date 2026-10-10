@@ -11444,9 +11444,6 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Stop the update? Nothing has been installed yet." xml:space="preserve">
     <value>Zatrzymać aktualizację? Jeszcze nic nie zainstalowano.</value>
   </data>
-  <data name="Stopped" xml:space="preserve">
-    <value>Zatrzymany</value>
-  </data>
   <data name="Stopping" xml:space="preserve">
     <value>Zatrzymywanie</value>
   </data>

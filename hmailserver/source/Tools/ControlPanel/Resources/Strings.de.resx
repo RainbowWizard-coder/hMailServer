@@ -11317,9 +11317,6 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="Stop the update? Nothing has been installed yet." xml:space="preserve">
     <value>Das Update abbrechen? Es wurde noch nichts installiert.</value>
   </data>
-  <data name="Stopped" xml:space="preserve">
-    <value>Angehalten</value>
-  </data>
   <data name="Stopping" xml:space="preserve">
     <value>Wird angehalten</value>
   </data>

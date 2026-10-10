@@ -11317,9 +11317,6 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="Stop the update? Nothing has been installed yet." xml:space="preserve">
     <value>Interrompere l'aggiornamento? Non è stato ancora installato nulla.</value>
   </data>
-  <data name="Stopped" xml:space="preserve">
-    <value>Arrestato</value>
-  </data>
   <data name="Stopping" xml:space="preserve">
     <value>Arresto in corso</value>
   </data>

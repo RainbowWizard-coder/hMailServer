@@ -11317,9 +11317,6 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Stop the update? Nothing has been installed yet." xml:space="preserve">
     <value>Parar a atualização? Nada foi instalado ainda.</value>
   </data>
-  <data name="Stopped" xml:space="preserve">
-    <value>Parado</value>
-  </data>
   <data name="Stopping" xml:space="preserve">
     <value>Parando</value>
   </data>

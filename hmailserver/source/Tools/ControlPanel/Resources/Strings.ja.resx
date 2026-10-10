@@ -11317,9 +11317,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Stop the update? Nothing has been installed yet." xml:space="preserve">
     <value>更新を中止しますか? まだ何もインストールされていません。</value>
   </data>
-  <data name="Stopped" xml:space="preserve">
-    <value>停止済み</value>
-  </data>
   <data name="Stopping" xml:space="preserve">
     <value>停止中</value>
   </data>

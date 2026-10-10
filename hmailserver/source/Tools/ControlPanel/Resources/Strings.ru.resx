@@ -11444,9 +11444,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Stop the update? Nothing has been installed yet." xml:space="preserve">
     <value>Остановить обновление? Ещё ничего не установлено.</value>
   </data>
-  <data name="Stopped" xml:space="preserve">
-    <value>Остановлен</value>
-  </data>
   <data name="Stopping" xml:space="preserve">
     <value>Останавливается</value>
   </data>

@@ -11317,9 +11317,6 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="Stop the update? Nothing has been installed yet." xml:space="preserve">
     <value>Stop opdateringen? Der er ikke installeret noget endnu.</value>
   </data>
-  <data name="Stopped" xml:space="preserve">
-    <value>Stoppet</value>
-  </data>
   <data name="Stopping" xml:space="preserve">
     <value>Stopper</value>
   </data>

@@ -11317,9 +11317,6 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Stop the update? Nothing has been installed yet." xml:space="preserve">
     <value>Pysäytetäänkö päivitys? Mitään ei ole vielä asennettu.</value>
   </data>
-  <data name="Stopped" xml:space="preserve">
-    <value>Pysäytetty</value>
-  </data>
   <data name="Stopping" xml:space="preserve">
     <value>Pysähtyy</value>
   </data>

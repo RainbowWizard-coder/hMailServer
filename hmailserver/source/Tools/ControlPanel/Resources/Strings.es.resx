@@ -11317,9 +11317,6 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Stop the update? Nothing has been installed yet." xml:space="preserve">
     <value>¿Detener la actualización? Todavía no se ha instalado nada.</value>
   </data>
-  <data name="Stopped" xml:space="preserve">
-    <value>Detenido</value>
-  </data>
   <data name="Stopping" xml:space="preserve">
     <value>Deteniendo</value>
   </data>

@@ -44,6 +44,22 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("Symbol=\"PauseCircle24\"", logsXaml, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// Server status's State names the paused engine as the pill, the bar and the
+      /// buttons on the same screen do: it read "State: Stopped" under a "Paused" pill
+      /// and beside "The mail server is paused", in German "Angehalten" under
+      /// "Pausiert".
+      /// </summary>
+      [Fact]
+      public void ServerStatusesState_IsPaused_AsThePillSaysIt()
+      {
+         string state = WithheldRowTests.MemberText(Read("Views", "StatusView.xaml.cs"), "private static string ServerStateName(int state)");
+         Assert.True(state != null, "StatusView.ServerStateName is gone.");
+         Assert.Contains("1 => L(\"Paused\"),", state, StringComparison.Ordinal);
+         Assert.DoesNotContain("L(\"Stopped\")", state, StringComparison.Ordinal);
+         Assert.Equal("Paused", ConnectionStatus.PausedWord);
+      }
+
       [Fact]
       public void APausedServer_IsABarAtTheFootOfTheWindow_WithResume()
       {

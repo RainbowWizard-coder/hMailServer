@@ -11317,9 +11317,6 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Stop the update? Nothing has been installed yet." xml:space="preserve">
     <value>Avbryte oppdateringen? Ingenting er installert ennå.</value>
   </data>
-  <data name="Stopped" xml:space="preserve">
-    <value>Stoppet</value>
-  </data>
   <data name="Stopping" xml:space="preserve">
     <value>Stopper</value>
   </data>

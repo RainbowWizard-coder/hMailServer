@@ -11317,9 +11317,6 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Stop the update? Nothing has been installed yet." xml:space="preserve">
     <value>Avbryta uppdateringen? Inget har installerats än.</value>
   </data>
-  <data name="Stopped" xml:space="preserve">
-    <value>Stoppad</value>
-  </data>
   <data name="Stopping" xml:space="preserve">
     <value>Stoppar</value>
   </data>

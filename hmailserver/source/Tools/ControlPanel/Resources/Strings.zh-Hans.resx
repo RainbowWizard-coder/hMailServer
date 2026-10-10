@@ -11317,9 +11317,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Stop the update? Nothing has been installed yet." xml:space="preserve">
     <value>停止更新？尚未安装任何内容。</value>
   </data>
-  <data name="Stopped" xml:space="preserve">
-    <value>已停止</value>
-  </data>
   <data name="Stopping" xml:space="preserve">
     <value>正在停止</value>
   </data>

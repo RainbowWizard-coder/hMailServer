@@ -11317,9 +11317,6 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Stop the update? Nothing has been installed yet." xml:space="preserve">
     <value>De update stoppen? Er is nog niets geïnstalleerd.</value>
   </data>
-  <data name="Stopped" xml:space="preserve">
-    <value>Gestopt</value>
-  </data>
   <data name="Stopping" xml:space="preserve">
     <value>Wordt gestopt</value>
   </data>

@@ -11317,9 +11317,6 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Stop the update? Nothing has been installed yet." xml:space="preserve">
     <value>Güncelleştirme durdurulsun mu? Henüz hiçbir şey yüklenmedi.</value>
   </data>
-  <data name="Stopped" xml:space="preserve">
-    <value>Durduruldu</value>
-  </data>
   <data name="Stopping" xml:space="preserve">
     <value>Durduruluyor</value>
   </data>

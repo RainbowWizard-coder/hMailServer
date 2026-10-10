@@ -11317,9 +11317,6 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Stop the update? Nothing has been installed yet." xml:space="preserve">
     <value>Stop the update? Nothing has been installed yet.</value>
   </data>
-  <data name="Stopped" xml:space="preserve">
-    <value>Stopped</value>
-  </data>
   <data name="Stopping" xml:space="preserve">
     <value>Stopping</value>
   </data>

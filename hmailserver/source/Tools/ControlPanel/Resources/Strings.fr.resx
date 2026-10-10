@@ -11317,9 +11317,6 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Stop the update? Nothing has been installed yet." xml:space="preserve">
     <value>Arrêter la mise à jour ? Rien n'a encore été installé.</value>
   </data>
-  <data name="Stopped" xml:space="preserve">
-    <value>Arrêté</value>
-  </data>
   <data name="Stopping" xml:space="preserve">
     <value>Arrêt en cours</value>
   </data>

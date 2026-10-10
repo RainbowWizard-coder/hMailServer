@@ -11444,9 +11444,6 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Stop the update? Nothing has been installed yet." xml:space="preserve">
     <value>Zastavit aktualizaci? Zatím nebylo nic nainstalováno.</value>
   </data>
-  <data name="Stopped" xml:space="preserve">
-    <value>Zastaveno</value>
-  </data>
   <data name="Stopping" xml:space="preserve">
     <value>Zastavuje se</value>
   </data>
