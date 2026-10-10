@@ -129,14 +129,16 @@ namespace hMailServer.ControlPanel.Views
          };
 
          // Ctrl+S and F5 press these two, whose captions say more than the
-         // pages' Save changes and Reload (Views/PageCommands).
-         var save = MakeButton(L("_Save & reload"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => SaveScript());
-         PageCommands.SetCommand(save, PageCommand.Save);
-         actions.Children.Add(save);
+         // pages' Save changes and Reload (Views/PageCommands). Check syntax, then
+         // Reload from disk, then Save & reload, the Primary, at the right edge,
+         // where it came first (review finding F289).
          actions.Children.Add(MakeButton(L("_Check syntax"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => CheckSyntax()));
          var reload = MakeButton(L("_Reload from disk"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => ReloadFromDisk_());
          PageCommands.SetCommand(reload, PageCommand.Refresh);
          actions.Children.Add(reload);
+         var save = MakeButton(L("_Save & reload"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => SaveScript());
+         PageCommands.SetCommand(save, PageCommand.Save);
+         actions.Children.Add(save);
 
          root.Children.Add(new PageHeader
          {

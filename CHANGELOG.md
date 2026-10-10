@@ -2396,6 +2396,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   their Alt key to leave R to Refresh - Deliver lo_cal → remote, Add a ro_ute, Rem_ove criterion, Re_move stored
   passphrase and Proto_col - and thirty-five translated captions moved theirs in their own language.
 
+- **Fixed: the Primary button came first on some pages, in the middle on others and last on the rest.** The REST API
+  keys page put Create a key… before Refresh, the event scripts Save & reload before Check syntax and Reload from
+  disk, the rules page Add criterion… and Add action… before their Edit and Remove, the SSL certificates page Save
+  passphrase before Remove stored passphrase, and Backup & restore's cards changed their order from one to the next,
+  Restore the mailbox before Re-read the outcome. One order now holds in every header, toolbar and card footer
+  (docs/ControlPanelDesign.md, Rules): the secondary and destructive buttons first, then Refresh or Reload, then the
+  Primary - or the act drawn in the filled Danger appearance - at the right edge, as the settings pages' Reload and
+  Save changes already were; the delivery queue's Deliver now, the suppression list's Add…, the audit trail's Put back
+  and the public folders' Add folder come last with the list page pattern. A dialog keeps the Windows order, its
+  primary button before Cancel.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

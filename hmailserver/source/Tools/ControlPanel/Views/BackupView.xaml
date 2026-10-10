@@ -214,8 +214,10 @@
                 <scaffold:Card.Footer>
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
-                            <ui:Button Content="{loc:L 'Restore the mailbo_x'}" Appearance="Danger" Click="RestoreMailbox_Click" Margin="0,0,8,0" />
-                            <ui:Button x:Name="MailboxRestoreStatusButton" Content="{loc:L 'Re-read the o_utcome'}" Click="RefreshMailboxRestore_Click" IsEnabled="False" />
+                            <!-- Re-read before the act, which is last, as on every
+                                 card of the page (review finding F289). -->
+                            <ui:Button x:Name="MailboxRestoreStatusButton" Content="{loc:L 'Re-read the o_utcome'}" Click="RefreshMailboxRestore_Click" IsEnabled="False" Margin="0,0,8,0" />
+                            <ui:Button Content="{loc:L 'Restore the mailbo_x'}" Appearance="Danger" Click="RestoreMailbox_Click" />
                         </StackPanel>
                         <!-- What became of the job, at its level and in words: the
                              server's state token and its JSON were printed here. -->

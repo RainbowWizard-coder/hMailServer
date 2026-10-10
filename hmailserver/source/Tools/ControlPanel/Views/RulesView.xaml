@@ -182,9 +182,11 @@
                 </scaffold:FillPanel>
                 <scaffold:Card.Footer>
                     <WrapPanel Orientation="Horizontal">
-                        <ui:Button x:Name="AddCriterionButton" Content="{loc:L 'Add _criterion…'}" Appearance="Primary" Click="AddCriterion_Click" Margin="0,0,8,4" />
+                        <!-- The selected criterion's Edit and Remove, then Add, the
+                             Primary, last (review finding F289). -->
                         <ui:Button x:Name="EditCriterionButton" Content="{loc:L '_Edit criterion…'}" Click="EditCriterion_Click" Margin="0,0,8,4" />
-                        <ui:Button x:Name="RemoveCriterionButton" Content="{loc:L 'Rem_ove criterion'}" Style="{StaticResource DangerTextButton}" Click="RemoveCriterion_Click" Margin="0,0,0,4" />
+                        <ui:Button x:Name="RemoveCriterionButton" Content="{loc:L 'Rem_ove criterion'}" Style="{StaticResource DangerTextButton}" Click="RemoveCriterion_Click" Margin="0,0,8,4" />
+                        <ui:Button x:Name="AddCriterionButton" Content="{loc:L 'Add _criterion…'}" Appearance="Primary" Click="AddCriterion_Click" Margin="0,0,0,4" />
                     </WrapPanel>
                 </scaffold:Card.Footer>
             </scaffold:Card>
@@ -221,9 +223,10 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                     <WrapPanel Orientation="Horizontal">
-                        <ui:Button x:Name="AddActionButton" Content="{loc:L 'Add ac_tion…'}" Appearance="Primary" Click="AddAction_Click" Margin="0,0,8,4" />
+                        <!-- As the criteria's: Edit and Remove, then Add last. -->
                         <ui:Button x:Name="EditActionButton" Content="{loc:L 'Ed_it action…'}" Click="EditAction_Click" Margin="0,0,8,4" />
                         <ui:Button x:Name="RemoveActionButton" Content="{loc:L 'Re_move action'}" Style="{StaticResource DangerTextButton}" Click="RemoveAction_Click" Margin="0,0,8,4" />
+                        <ui:Button x:Name="AddActionButton" Content="{loc:L 'Add ac_tion…'}" Appearance="Primary" Click="AddAction_Click" Margin="0,0,8,4" />
                     </WrapPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top" Margin="4,0,0,0">
                             <ui:Button x:Name="ActionUpButton" Icon="{ui:SymbolIcon ChevronUp24}" Padding="8,7" MinWidth="34" Click="ActionUp_Click" Margin="0,0,4,4"

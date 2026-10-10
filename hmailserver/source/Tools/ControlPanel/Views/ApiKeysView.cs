@@ -72,24 +72,25 @@ namespace hMailServer.ControlPanel.Views
          root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
          root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
 
+         // Refresh, then Create a key…, the Primary, at the right edge, where it
+         // came first (review finding F289).
          var actions = new StackPanel { Orientation = Orientation.Horizontal };
+
+         var reload = new Wpf.Ui.Controls.Button { Content = L("_Refresh"), Margin = new Thickness(0, 0, 8, 0) };
+         ControlHelp.Explain(reload, L("Re-read the key store from disk"));
+         System.Windows.Automation.AutomationProperties.SetAutomationId(reload, "apikeys-reload");
+         reload.Click += (s, e) => Reload_();
+         actions.Children.Add(reload);
 
          var create = new Wpf.Ui.Controls.Button
          {
             Content = L("_Create a key…"),
-            Appearance = Wpf.Ui.Controls.ControlAppearance.Primary,
-            Margin = new Thickness(0, 0, 8, 0)
+            Appearance = Wpf.Ui.Controls.ControlAppearance.Primary
          };
          ControlHelp.Explain(create, L("Create a new REST API key"));
          System.Windows.Automation.AutomationProperties.SetAutomationId(create, "apikeys-create");
          create.Click += (s, e) => CreateKey_();
          actions.Children.Add(create);
-
-         var reload = new Wpf.Ui.Controls.Button { Content = L("_Refresh") };
-         ControlHelp.Explain(reload, L("Re-read the key store from disk"));
-         System.Windows.Automation.AutomationProperties.SetAutomationId(reload, "apikeys-reload");
-         reload.Click += (s, e) => Reload_();
-         actions.Children.Add(reload);
 
          root.Children.Add(new PageHeader
          {
