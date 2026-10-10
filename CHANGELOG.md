@@ -4688,8 +4688,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `snap/local/bin/` - and a made-up token committed under `build/` passed both on 9 October 2026. Both now run
   GitLab's rules but for those two entries of their allowlist (`node_modules` and `bower_components`, which shared
   one with `packages`, stay out), derived in the analyzer's image from GitLab's own file by the new
-  `build/ci/secret-detection-rules.sh`, which takes nothing from the tree, so that no committed file can widen what
-  the scans leave out: the job puts the rules where the analyzer reads them, since a custom ruleset is GitLab
+  `build/ci/secret-detection-rules.sh`, which reads no list of paths from the tree, so that no committed data file
+  can widen what the scans leave out - the script itself is the one file of the tree that decides it, and a gate
+  file: the job puts the rules where the analyzer reads them, since a custom ruleset is GitLab
   Ultimate's and gitleaks' `[extend]` takes no allowlist away, and `scan-secrets.py` runs its own tree's copy of the
   script before gitleaks, in the analyzer image its own tree's `secret_detection` names - never the scanned range's
   script or image, which are written for each other. So the landing, run from a checkout of `master`, scans a batch

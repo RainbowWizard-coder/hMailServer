@@ -209,8 +209,8 @@ def changed_rules_lines(repo, log_opts):
 
 def rules_script():
     """The rules script as this script's own tree has it - never the scanned range's -
-    since the container runs it. It takes nothing from the tree: the rules are derived
-    from GitLab's file in the image. ScanError when there is none."""
+    since the container runs it. It reads no list of paths from a tree: the rules are
+    derived from GitLab's file in the image. ScanError when there is none."""
     text = text_of(ROOT, None, RULES_SCRIPT)
     if not text.strip():
         raise ScanError("there is no %s, which makes the scan's rules" % RULES_SCRIPT)

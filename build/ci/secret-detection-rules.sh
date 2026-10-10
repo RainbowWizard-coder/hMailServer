@@ -10,10 +10,11 @@
 # scan read until 10 October 2026. The (?:target|build|bin|obj) entry is taken out,
 # and packages out of the (?:node_modules|bower_components|packages) one, so that
 # node_modules and bower_components stay out as GitLab has them. Nothing else of
-# GitLab's file changes, and nothing is taken from the tree: the table is GitLab's,
-# derived here, so that no committed file can widen what the scans leave out. The
-# secret_detection job (.gitlab/ci/gitlab-security.yml) runs this before the analyzer
-# and puts what it writes in place of /gitleaks.toml, which the analyzer reads;
+# GitLab's file changes, and no list of paths is read from the tree: the table is
+# GitLab's, derived here, so that no committed data file can widen what the scans leave
+# out. This script is the one file of the tree that decides it, and a gate file (below).
+# The secret_detection job (.gitlab/ci/gitlab-security.yml) runs this before the
+# analyzer and puts what it writes in place of /gitleaks.toml, which the analyzer reads;
 # build/scan-secrets.py runs its own tree's copy in the same image before gitleaks.
 # GitLab's custom ruleset, which could name another file, is Ultimate's (the analyzer
 # reads .gitlab/secret-detection-ruleset.toml only when GITLAB_FEATURES has

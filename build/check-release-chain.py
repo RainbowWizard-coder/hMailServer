@@ -592,8 +592,8 @@ OWNED = ["/.gitlab/security-exceptions.yml", "/.gitleaksignore"]
 # their global allowlist that leave out every path under a directory named build, bin,
 # obj, target or packages, derived from the image's own file and put where the analyzer
 # reads them (build/ci/secret-detection-rules.sh, which build/scan-secrets.py runs the same
-# way). It takes nothing from the tree: no committed file can widen what the scans leave
-# out.
+# way). It reads no list of paths from the tree: no committed data file can widen what the
+# scans leave out, and the script itself is one of land-via-mr.py's GATE_FILES.
 SECRET_RULES_STEP = ("    - sh build/ci/secret-detection-rules.sh /gitleaks.toml /tmp/hm-gitleaks.toml\n"
                      "    - cp /tmp/hm-gitleaks.toml /gitleaks.toml\n    - /analyzer run\n")
 # The change gates (.gitlab/ci/mr-checks.yml), which every change passes before it

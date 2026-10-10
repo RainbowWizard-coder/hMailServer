@@ -4093,9 +4093,11 @@ Both now run GitLab's rules but for those two entries: the
 `(?:node_modules|bower_components|packages)` one, so that `node_modules` and
 `bower_components` stay out as GitLab has them. `build/ci/secret-detection-rules.sh`
 derives the rules in the analyzer's image from GitLab's own file, and changes
-nothing else of it; it takes nothing from the tree, so that no committed file can
-widen what the scans leave out. `secret_detection` runs it before the analyzer
-and puts what it writes in place of `/gitleaks.toml`, which the analyzer reads;
+nothing else of it; it reads no list of paths from the tree, so that no committed
+data file can widen what the scans leave out - the script itself is the one file of
+the tree that decides it, and a gate file (below). `secret_detection` runs it
+before the analyzer and puts what it writes in place of `/gitleaks.toml`, which
+the analyzer reads;
 it runs as root in its image, and the file is replaced in the job's own
 container. GitLab's custom ruleset, which could name another file, is not read
 on the Free tier (the analyzer loads `.gitlab/secret-detection-ruleset.toml` only

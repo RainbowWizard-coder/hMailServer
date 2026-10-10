@@ -22,7 +22,6 @@
 #         HM_IMAGE_AMD64  <registry image>@<the linux/amd64 image's digest>
 #         HM_IMAGE_ARM64  <registry image>@<the linux/arm64 image's digest>
 #         HM_IMAGE_TAGS   the tags written, comma-separated
-#         CS_IMAGE        HM_IMAGE_AMD64, the image GitLab's container scanning reads
 #       container-image/index.json and manifest-<arch>.json, what was pushed, and
 #       container-image/tags.txt, each tag and whether it was written or left, and why.
 #
@@ -279,15 +278,13 @@ for arch in $platforms; do
 done
 regctl registry logout "$CI_REGISTRY" > /dev/null 2>&1 || true
 
-# What the jobs after this one read (artifacts:reports:dotenv), one KEY=value a line.
-# CS_IMAGE is the name GitLab's container scanning reads the image to scan from; the
-# arm64 scan names HM_IMAGE_ARM64 itself.
+# What the jobs after this one read (artifacts:reports:dotenv), one KEY=value a line:
+# container_scanning and container_scanning_arm64 each take their platform's image.
 {
   echo "HM_IMAGE=$repository@$index"
   echo "HM_IMAGE_AMD64=$repository@$digest_amd64"
   echo "HM_IMAGE_ARM64=$repository@$digest_arm64"
   echo "HM_IMAGE_TAGS=$(printf '%s' "$written" | tr ' ' ',')"
-  echo "CS_IMAGE=$repository@$digest_amd64"
 } > "$out/image.env"
 cat "$out/image.env"
 cat "$out/tags.txt"

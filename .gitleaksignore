@@ -142,7 +142,7 @@ c19f5481847677b677d566cb17aea5ee5a6ef3a8:hmailserver/source/Server/Common/Util/H
 #
 # b53-ci, 10 October 2026: what both scans find now that they read every path under a
 # directory named build, bin, obj, target or packages, which GitLab's rules left out
-# (.gitlab/secret-detection-allowlist.toml). gitleaks in the image secret_detection pins,
+# (their global allowlist). gitleaks in the image secret_detection pins,
 # with the rules both scans now make (build/ci/secret-detection-rules.sh), over every
 # branch and tag of the project on GitLab (2,873 commits, master at 74aed9ab8) and over
 # master's tree, found five, each read in its commit and none a secret - the five

@@ -258,9 +258,10 @@ secret_detection:
     # derived from the image's own file and put where the analyzer reads them: it takes
     # /gitleaks.toml whatever the tree says on the Free tier, where a custom ruleset is
     # not read, and it runs as root in its image, so the file is replaced in the job's own
-    # container. Nothing is taken from the tree. The script refuses when GitLab's
-    # allowlist is not the one it was written for, and the job fails before anything is
-    # scanned (build/ci/secret-detection-rules.sh).
+    # container. No list of paths is read from the tree: the script, one of the gates'
+    # own files, is all of it that decides what is left out. The script refuses when
+    # GitLab's allowlist is not the one it was written for, and the job fails before
+    # anything is scanned (build/ci/secret-detection-rules.sh).
     - sh build/ci/secret-detection-rules.sh /gitleaks.toml /tmp/hm-gitleaks.toml
     - cp /tmp/hm-gitleaks.toml /gitleaks.toml
     - /analyzer run
