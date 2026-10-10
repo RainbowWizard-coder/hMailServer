@@ -190,14 +190,16 @@ namespace hMailServer.ControlPanel.Views
       private void Reload() => Reload_(null, -1);
 
       /// <summary>
-      /// Reads the folders' tree, then selects the folder of <paramref name="selectName"/>
+      /// Reads the folders' tree, then selects the folder of <paramref name="selectPath"/>
       /// (the one just added) or, where it is gone, the row at <paramref name="selectIndex"/>
       /// (the one that took a deleted folder's place), and brings it into view; with
-      /// neither, the folder that was selected stays selected.
+      /// neither, the folder that was selected stays selected. A folder is found by its
+      /// path, not its full name, which a folder at the top whose own name holds the
+      /// delimiter shares with a sub-folder (PublicFolderTree.SamePath).
       /// </summary>
-      private void Reload_(string selectName, int selectIndex)
+      private void Reload_(IReadOnlyList<string> selectPath, int selectIndex)
       {
-         string kept = selectName ?? (list_.SelectedItem as PublicFolderTree.Folder)?.FullName;
+         IReadOnlyList<string> kept = selectPath ?? (list_.SelectedItem as PublicFolderTree.Folder)?.Path;
          var paths = new List<IReadOnlyList<string>>();
          try
          {
@@ -254,7 +256,7 @@ namespace hMailServer.ControlPanel.Views
          StatusText.Show(empty_, notice_, folderList.Count, null, EmptySentence_);
          ShowSearch_();
 
-         PublicFolderTree.Folder again = kept == null ? null : Folders_.FirstOrDefault(f => string.Equals(f.FullName, kept, StringComparison.OrdinalIgnoreCase));
+         PublicFolderTree.Folder again = PublicFolderTree.Find(Folders_, kept);
          if (again == null && selectIndex >= 0)
          {
             int at = ListOutcome.IndexAfterDelete(Folders_.Count, selectIndex);
@@ -265,10 +267,10 @@ namespace hMailServer.ControlPanel.Views
          {
             // A folder just made, or kept after a delete that failed, is not left
             // out of the list by a search typed in before.
-            if (selectName != null)
+            if (selectPath != null)
                ListSearchState.Reveal(search_, list_, again);
             list_.SelectedItem = again;
-            if (selectName != null || selectIndex >= 0)
+            if (selectPath != null || selectIndex >= 0)
                list_.ScrollIntoView(again);
          }
       }
@@ -365,8 +367,9 @@ namespace hMailServer.ControlPanel.Views
          if (dialog.ShowDialog() != true)
             return;
 
-         string full = string.Join(delimiter_, PublicFolderTree.Split(dialog.CreatedName, delimiter_));
-         Reload_(full, -1);
+         IReadOnlyList<string> path = PublicFolderTree.Split(dialog.CreatedName, delimiter_);
+         string full = string.Join(delimiter_, path);
+         Reload_(path, -1);
          if (!ReadFailure.IsShown(notice_))
             Notice_(StatusLevel.Good, ListOutcome.Added(full, DateTime.Now));
       }
@@ -462,7 +465,7 @@ namespace hMailServer.ControlPanel.Views
 
          // The list first, then the outcome: the row that took the folder's place
          // is selected; a delete that failed keeps the folder selected.
-         Reload_(failure == null ? null : folder.FullName, failure == null ? index : -1);
+         Reload_(failure == null ? null : folder.Path, failure == null ? index : -1);
          if (ReadFailure.IsShown(notice_))
             return;
          if (failure != null)

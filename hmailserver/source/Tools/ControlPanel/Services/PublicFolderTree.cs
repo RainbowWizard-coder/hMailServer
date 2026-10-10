@@ -169,12 +169,37 @@ namespace hMailServer.ControlPanel.Services
          if (path.Count > MaxDepth)
             return F("A folder can be at most {0} levels down.", MaxDepth);
 
-         string full = string.Join(d, path);
-         if ((existing ?? Enumerable.Empty<Folder>()).Any(f => string.Equals(f.FullName, full, StringComparison.OrdinalIgnoreCase)))
-            return F("{0} is a public folder already.", full);
+         if (Find(existing, path) != null)
+            return F("{0} is a public folder already.", string.Join(d, path));
 
          return null;
       }
+
+      /// <summary>
+      /// Whether two paths are one folder's: as many names, each the same without regard
+      /// to case, as the server finds a folder. Not their names joined: a folder at the top
+      /// named Projects.2025, which the page's old advice made, and the sub-folder 2025 of
+      /// Projects join to one name and are two folders, so that comparing joined names
+      /// refused to make the sub-folder the warning above the list says to make, and
+      /// selected the wrong one of the two after an add.
+      /// </summary>
+      public static bool SamePath(IReadOnlyList<string> a, IReadOnlyList<string> b)
+      {
+         if (a == null || b == null || a.Count != b.Count)
+            return false;
+
+         for (int i = 0; i < a.Count; i++)
+         {
+            if (!string.Equals(a[i], b[i], StringComparison.OrdinalIgnoreCase))
+               return false;
+         }
+
+         return true;
+      }
+
+      /// <summary>The folder of this path among <paramref name="folders"/>, or null.</summary>
+      public static Folder Find(IEnumerable<Folder> folders, IReadOnlyList<string> path)
+         => path == null ? null : (folders ?? Enumerable.Empty<Folder>()).FirstOrDefault(f => SamePath(f.Path, path));
 
       /// <summary>What the name's box opens with: the selected folder's name and the delimiter, so that what is typed goes under it; empty with none selected.</summary>
       public static string Prefill(Folder selected, string delimiter)

@@ -101,6 +101,44 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Null(PublicFolderTree.NameProblem("Projects.2026", ".", existing));
       }
 
+      /// <summary>
+      /// A folder at the top whose own name holds the delimiter does not stand in the way
+      /// of the sub-folder its name spells, which the warning above the list says Add
+      /// folder makes: the two join to one full name, Projects.2025, and are two folders
+      /// of two paths, which the server makes and finds apart. The check compared full
+      /// names and refused the sub-folder as "a public folder already".
+      /// </summary>
+      [Fact]
+      public void AFolderNamedWithTheDelimiter_DoesNotStopTheSubFolderItsNameSpells()
+      {
+         IReadOnlyList<Folder> misnamed = PublicFolderTree.Build(new[] { P("Projects.2025") }, ".");
+         Assert.Null(PublicFolderTree.NameProblem("Projects.2025", ".", misnamed));
+         Assert.Contains("Add folder now makes such a name a sub-folder.", PublicFolderTree.MisnamedNotice(misnamed, "."), StringComparison.Ordinal);
+
+         // Once made, the two are two folders of one full name, each found by its own path.
+         IReadOnlyList<Folder> both = PublicFolderTree.Build(new[] { P("Projects.2025"), P("Projects"), P("Projects", "2025") }, ".");
+         Assert.Equal(new[] { "Projects", "Projects.2025", "Projects.2025" }, both.Select(f => f.FullName));
+         Assert.Equal(2, both.Count(f => f.FullName == "Projects.2025"));
+         Assert.Equal(new[] { "Projects", "2025" }, PublicFolderTree.Find(both, P("projects", "2025")).Path);
+         Assert.Equal(new[] { "Projects.2025" }, PublicFolderTree.Find(both, P("Projects.2025")).Path);
+         Assert.Null(PublicFolderTree.Find(both, P("Projects", "2026")));
+         Assert.Null(PublicFolderTree.Find(both, null));
+
+         // The sub-folder is refused once it is there, and the misnamed folder is not.
+         Assert.Equal("Projects.2025 is a public folder already.", PublicFolderTree.NameProblem("Projects.2025", ".", both));
+
+         Assert.True(PublicFolderTree.SamePath(P("Sales", "Leads"), P("sales", "LEADS")));
+         Assert.False(PublicFolderTree.SamePath(P("Sales.Leads"), P("Sales", "Leads")));
+         Assert.False(PublicFolderTree.SamePath(P("Sales"), null));
+
+         // The page selects a folder by its path after a read, an add and a failed delete.
+         string page = Read(Path.Join("Views", "PublicFoldersView.cs"));
+         string reload = WithheldRowTests.MemberText(page, "private void Reload_(IReadOnlyList<string> selectPath, int selectIndex)");
+         Assert.Contains("PublicFolderTree.Find(Folders_, kept)", reload, StringComparison.Ordinal);
+         Assert.DoesNotContain("f.FullName, kept", reload, StringComparison.Ordinal);
+         Assert.Contains("Reload_(failure == null ? null : folder.Path,", page, StringComparison.Ordinal);
+      }
+
       [Fact]
       public void TheBox_OpensUnderTheSelectedFolder()
       {
@@ -162,11 +200,11 @@ namespace hMailServer.ControlPanel.Tests.Services
          string add = WithheldRowTests.MemberText(page, "private void AddFolder()");
          Assert.True(add != null, "PublicFoldersView.AddFolder is gone.");
          Assert.Contains("PublicFolderTree.Prefill(list_.SelectedItem as PublicFolderTree.Folder, delimiter_)", add, StringComparison.Ordinal);
-         Assert.Contains("Reload_(full, -1);", add, StringComparison.Ordinal);
+         Assert.Contains("Reload_(path, -1);", add, StringComparison.Ordinal);
          Assert.Contains("ListOutcome.Added(full, DateTime.Now)", add, StringComparison.Ordinal);
 
          // A search typed in before is cleared where it would leave the new folder out.
-         string reload = WithheldRowTests.MemberText(page, "private void Reload_(string selectName, int selectIndex)");
+         string reload = WithheldRowTests.MemberText(page, "private void Reload_(IReadOnlyList<string> selectPath, int selectIndex)");
          int reveals = reload.IndexOf("ListSearchState.Reveal(search_, list_, again);", StringComparison.Ordinal);
          Assert.True(reveals >= 0 && reveals < reload.IndexOf("list_.SelectedItem = again;", StringComparison.Ordinal),
             "A folder added under a search that hides it is not selected.");
