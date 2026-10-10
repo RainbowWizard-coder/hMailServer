@@ -222,11 +222,18 @@ namespace hMailServer.ControlPanel.Views
          /// </summary>
          public bool Validate()
          {
-            string error = IsChanged && !SwitchedOff ? Check() : null;
+            string error = Refusal;
             if (Field != null)
                Field.Error = error;
             return error == null;
          }
+
+         /// <summary>
+         /// Why a save would refuse the row as it stands, or null: <see cref="Check"/>'s
+         /// answer for an edited value whose switch is on. What <see cref="Validate"/> puts
+         /// on the row, and what the page's refusal stands on until it is put right.
+         /// </summary>
+         public string Refusal => IsChanged && !SwitchedOff ? Check() : null;
 
          /// <summary>
          /// Whether a save writes nothing of this row and puts its editor back to what

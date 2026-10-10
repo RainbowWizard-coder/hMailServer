@@ -101,7 +101,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          string feature = View_("FeatureSettingsView.xaml.cs");
          string validate = WithheldRowTests.MemberText(feature, "public bool Validate()");
          Assert.True(validate != null, "FeatureSettingsView's Setting.Validate is gone.");
-         Assert.Contains("string error = IsChanged && !SwitchedOff ? Check() : null;", validate, StringComparison.Ordinal);
+         Assert.Contains("string error = Refusal;", validate, StringComparison.Ordinal);
+         Assert.Contains("public string Refusal => IsChanged && !SwitchedOff ? Check() : null;", feature, StringComparison.Ordinal);
          Assert.Contains("public bool SwitchedOff => Master?.Box != null && Master.Box.IsChecked != true;", feature, StringComparison.Ordinal);
          Assert.Contains("protected bool KeptAsStored => SwitchedOff && IsChanged && Check() != null;", feature, StringComparison.Ordinal);
 
