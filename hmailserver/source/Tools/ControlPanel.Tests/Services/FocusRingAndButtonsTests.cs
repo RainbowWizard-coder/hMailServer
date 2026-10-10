@@ -71,6 +71,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(style.Success, "App.xaml has no SubtleButton style.");
          Assert.Contains("<Setter Property=\"Appearance\" Value=\"Transparent\" />", style.Groups[1].Value, StringComparison.Ordinal);
          Assert.Contains("<Setter Property=\"BorderThickness\" Value=\"0\" />", style.Groups[1].Value, StringComparison.Ordinal);
+         // Disabled, no fill either - the dark theme's page showed WPF-UI's: a disabled Forward was a grey box.
+         Assert.Contains("<SolidColorBrush x:Key=\"ButtonBackgroundDisabled\" Color=\"Transparent\" />", style.Groups[1].Value, StringComparison.Ordinal);
 
          string window = SaveStateModelTests.ReadControlPanelFile("MainWindow.xaml");
          foreach (string button in new[] { "SidebarToggle", "ThemeButton", "HelpButton", "AdminButton", "BackButton", "ForwardButton" })

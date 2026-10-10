@@ -3519,10 +3519,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   F296 and F041). Every control now draws one ring, the focus colour two pixels wide, outside a button, a check box or
   a grid's cell and inside a tab and a navigation or list row, with the black and white ring under High Contrast
   alone; the trail's Back, Forward and groups, the Related links and the command bar's buttons have nothing round them
-  at rest (`SubtleButton`); a message box is as tall as its message, its notice at the top, a question marked as a
-  notice at the level that says nothing; a dialog whose footer holds Close alone draws it as its one primary button;
-  and icons take four sizes, 16, 20, 24 and 40 (`AppIconSizeSm` to `AppIconSizeXl`). `FocusRingAndButtonsTests` holds
-  each.
+  at rest, nor while they are disabled (`SubtleButton`); a message box is as tall as its message, its notice at the
+  top, a question marked as a notice at the level that says nothing; a dialog whose footer holds Close alone draws it
+  as its one primary button; and icons take four sizes, 16, 20, 24 and 40 (`AppIconSizeSm` to `AppIconSizeXl`).
+  `FocusRingAndButtonsTests` holds each.
 
 - **Fixed: the Control Panel's spacing was off its own scale, its list cards, dialogs and page columns each named a
   size of their own, and a settings page's cards ended at a different edge on every tab.** A page's padding

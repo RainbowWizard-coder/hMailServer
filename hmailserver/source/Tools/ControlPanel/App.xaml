@@ -626,8 +626,15 @@
                  appearance keeps the control's one-pixel outline, so that the trail
                  and the Related links read as a row of chips (review finding F296).
                  No border at all, in every state, rather than a transparent one: the
-                 disabled state draws its own border colour. -->
+                 disabled state draws its own border colour. And no fill while it is
+                 disabled, as at rest, its glyph or words dimmed alone: WPF-UI fills a
+                 disabled button, which the light theme's page hides and the dark
+                 theme's does not, so that the breadcrumb's Forward, with no page to go
+                 forward to, was a grey box beside a Back with nothing round it. -->
             <Style x:Key="SubtleButton" TargetType="{x:Type ui:Button}" BasedOn="{StaticResource {x:Type ui:Button}}">
+                <Style.Resources>
+                    <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="Transparent" />
+                </Style.Resources>
                 <Setter Property="Appearance" Value="Transparent" />
                 <Setter Property="BorderThickness" Value="0" />
             </Style>
