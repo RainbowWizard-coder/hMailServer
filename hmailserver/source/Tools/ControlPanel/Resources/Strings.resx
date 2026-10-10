@@ -4342,6 +4342,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Enter a valid port number." xml:space="preserve">
     <value>Enter a valid port number.</value>
   </data>
+  <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
+    <value>Enter a whole number of hours from 1 to 720.</value>
+  </data>
   <data name="Enter a whole number of seconds from 1 to 90." xml:space="preserve">
     <value>Enter a whole number of seconds from 1 to 90.</value>
   </data>

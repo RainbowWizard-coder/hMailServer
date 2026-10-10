@@ -4342,6 +4342,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Enter a valid port number." xml:space="preserve">
     <value>Indica un numero di porta valido.</value>
   </data>
+  <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
+    <value>Indica un numero intero di ore da 1 a 720.</value>
+  </data>
   <data name="Enter a whole number of seconds from 1 to 90." xml:space="preserve">
     <value>Indica un numero intero di secondi da 1 a 90.</value>
   </data>

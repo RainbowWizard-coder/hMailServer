@@ -4342,6 +4342,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Enter a valid port number." xml:space="preserve">
     <value>Anna kelvollinen portin numero.</value>
   </data>
+  <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
+    <value>Anna kokonainen tuntimäärä väliltä 1–720.</value>
+  </data>
   <data name="Enter a whole number of seconds from 1 to 90." xml:space="preserve">
     <value>Anna kokonainen sekuntimäärä väliltä 1–90.</value>
   </data>

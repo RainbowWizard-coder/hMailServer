@@ -4342,6 +4342,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Enter a valid port number." xml:space="preserve">
     <value>Introduzca un número de puerto válido.</value>
   </data>
+  <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
+    <value>Introduzca un número entero de horas de 1 a 720.</value>
+  </data>
   <data name="Enter a whole number of seconds from 1 to 90." xml:space="preserve">
     <value>Introduzca un número entero de segundos de 1 a 90.</value>
   </data>

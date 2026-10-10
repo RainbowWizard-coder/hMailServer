@@ -4388,6 +4388,9 @@
   <data name="Enter a valid port number." xml:space="preserve">
     <value>Введіть дійсний номер порту.</value>
   </data>
+  <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
+    <value>Введіть ціле число годин від 1 до 720.</value>
+  </data>
   <data name="Enter a whole number of seconds from 1 to 90." xml:space="preserve">
     <value>Введіть ціле число секунд від 1 до 90.</value>
   </data>

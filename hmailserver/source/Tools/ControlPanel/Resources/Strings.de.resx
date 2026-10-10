@@ -4342,6 +4342,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Enter a valid port number." xml:space="preserve">
     <value>Geben Sie eine gültige Portnummer ein.</value>
   </data>
+  <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
+    <value>Geben Sie eine ganze Zahl von Stunden zwischen 1 und 720 ein.</value>
+  </data>
   <data name="Enter a whole number of seconds from 1 to 90." xml:space="preserve">
     <value>Geben Sie eine ganze Zahl von Sekunden zwischen 1 und 90 ein.</value>
   </data>

@@ -1279,25 +1279,34 @@ namespace hMailServer.ControlPanel.Views
                }
             };
 
-            // Written while the dialog is open, in this order so that a refused
-            // address - the server insists on an absolute http or https URL - stops
-            // before the hours are touched, and each refusal is said on its own
-            // field with what was typed kept, where the dialog closed first and the
-            // refusal went under the list (review finding F209).
+            // Written while the dialog is open, each refusal said on its own field
+            // with what was typed kept, where the dialog closed first and the
+            // refusal went under the list (review finding F209). A refusal leaves
+            // the server as it was (Services/QuarantineDigestSettingsWrite): the
+            // hours are held to the server's 1 to 720 before anything is written,
+            // and the address - which the server refuses unless it is an absolute
+            // http or https URL, and so goes first - is put back where the hours
+            // are refused after it was taken. The address was stored and the hours
+            // refused after it, so that Cancel closed the dialog over an address
+            // that had changed.
+            string addressBefore = (string)current.Values["QuarantineDigestBaseUrl"];
             var dialog = new FieldDialog(spec, current, Window.GetWindow(this), values =>
             {
-               string prop = "QuarantineDigestBaseUrl"; // no-loc: the property the refusal is about
-               try
+               QuarantineDigestSettingsWrite.Outcome outcome = QuarantineDigestSettingsWrite.Write(
+                  ((string)values["QuarantineDigestBaseUrl"] ?? "").Trim(), (int)values["QuarantineDigestLinkHours"], addressBefore,
+                  address => { settings.QuarantineDigestBaseUrl = address; },
+                  hours => { settings.QuarantineDigestLinkHours = hours; },
+                  out Exception error);
+
+               return outcome switch
                {
-                  settings.QuarantineDigestBaseUrl = ((string)values["QuarantineDigestBaseUrl"] ?? "").Trim();
-                  prop = "QuarantineDigestLinkHours"; // no-loc: the property the refusal is about
-                  settings.QuarantineDigestLinkHours = (int)values["QuarantineDigestLinkHours"];
-                  return null;
-               }
-               catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
-               {
-                  return new FieldDialog.Refusal(ServerSession.DescribeComError(ex), prop);
-               }
+                  QuarantineDigestSettingsWrite.Outcome.Saved => null,
+                  QuarantineDigestSettingsWrite.Outcome.LinkHoursOutOfRange =>
+                     new FieldDialog.Refusal(L("Enter a whole number of hours from 1 to 720."), "QuarantineDigestLinkHours"),
+                  QuarantineDigestSettingsWrite.Outcome.AddressRefused =>
+                     new FieldDialog.Refusal(F("Could not save: {0}", ServerSession.DescribeComError(error)), "QuarantineDigestBaseUrl"),
+                  _ => new FieldDialog.Refusal(F("Could not save: {0}", ServerSession.DescribeComError(error)), "QuarantineDigestLinkHours")
+               };
             });
             if (dialog.ShowDialog() != true)
                return;

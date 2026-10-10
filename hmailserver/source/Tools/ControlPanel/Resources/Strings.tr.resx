@@ -4342,6 +4342,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Enter a valid port number." xml:space="preserve">
     <value>Geçerli bir port numarası girin.</value>
   </data>
+  <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
+    <value>1 ile 720 arasında tam sayı olarak saat girin.</value>
+  </data>
   <data name="Enter a whole number of seconds from 1 to 90." xml:space="preserve">
     <value>1 ile 90 arasında tam sayı olarak saniye girin.</value>
   </data>

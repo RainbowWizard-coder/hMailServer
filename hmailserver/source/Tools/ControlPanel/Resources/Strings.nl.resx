@@ -4342,6 +4342,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Enter a valid port number." xml:space="preserve">
     <value>Voer een geldig poortnummer in.</value>
   </data>
+  <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
+    <value>Voer een geheel aantal uren van 1 tot 720 in.</value>
+  </data>
   <data name="Enter a whole number of seconds from 1 to 90." xml:space="preserve">
     <value>Voer een geheel aantal seconden van 1 tot 90 in.</value>
   </data>

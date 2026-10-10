@@ -4388,6 +4388,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Enter a valid port number." xml:space="preserve">
     <value>Należy podać prawidłowy numer portu.</value>
   </data>
+  <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
+    <value>Należy podać całkowitą liczbę godzin od 1 do 720.</value>
+  </data>
   <data name="Enter a whole number of seconds from 1 to 90." xml:space="preserve">
     <value>Należy podać całkowitą liczbę sekund od 1 do 90.</value>
   </data>

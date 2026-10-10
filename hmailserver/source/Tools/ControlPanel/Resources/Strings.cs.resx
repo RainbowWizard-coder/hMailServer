@@ -4388,6 +4388,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Enter a valid port number." xml:space="preserve">
     <value>Zadejte platné číslo portu.</value>
   </data>
+  <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
+    <value>Zadejte celý počet hodin od 1 do 720.</value>
+  </data>
   <data name="Enter a whole number of seconds from 1 to 90." xml:space="preserve">
     <value>Zadejte celý počet sekund od 1 do 90.</value>
   </data>

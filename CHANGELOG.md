@@ -1905,11 +1905,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   attachments, remote domains and the rest closed on Add or Save, and the page then wrote the entry and reported a
   refusal in a message box, "Could not save: ...", with what was typed gone; the quarantine's digest settings did the
   same. The dialog writes with itself open now, and a refusal is said under the field it names - or under the first
-  field - with every value kept, so that the entry can be put right and saved again. Every field's caption has an Alt
-  key, assigned so that none is another's or a button's, in Japanese and Chinese as "(_D)" after the caption; a
-  number box is as wide as a number, where it stretched to 412 pixels for a score; Blocked senders' Score is a number
-  box holding 100, where it was a text box, and its address is required, each with a sentence under it saying what it
-  does. The dialog keeps room for its messages, so that Add and Cancel stay where they are.
+  field - with every value kept, so that the entry can be put right and saved again; the digest settings hold the
+  link's hours to the server's 1 to 720 before they write anything, and put the address back where the server refuses
+  the hours after taking it, so that a refusal followed by Cancel leaves both as they were. Every field's caption has
+  an Alt key, assigned so that none is another's or a button's, in Japanese and Chinese as "(_D)" after the caption;
+  a number box is as wide as a number, where it stretched to 412 pixels for a score; Blocked senders' Score is a
+  number box holding 100, where it was a text box, and its address is required, each with a sentence under it saying
+  what it does. The dialog keeps room for its messages, so that Add and Cancel stay where they are.
 
 - **Fixed: the distribution list dialog sent a number that was no number as -1, and said a refused save where it
   could not be seen.** "Keep archived messages for" and "Digest hour (0-23)" were text boxes whose text, when it was

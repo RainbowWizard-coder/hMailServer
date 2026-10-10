@@ -4342,6 +4342,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Enter a valid port number." xml:space="preserve">
     <value>Skriv inn et gyldig portnummer.</value>
   </data>
+  <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
+    <value>Skriv inn et helt antall timer fra 1 til 720.</value>
+  </data>
   <data name="Enter a whole number of seconds from 1 to 90." xml:space="preserve">
     <value>Skriv inn et helt antall sekunder fra 1 til 90.</value>
   </data>

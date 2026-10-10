@@ -119,6 +119,8 @@
     <Compile Include="..\ControlPanel\Services\InlineFormChecks.cs" />
     <!-- The three sets of rights the access-control entry ticks in one press (F205). -->
     <Compile Include="..\ControlPanel\Services\FolderRightPresets.cs" />
+    <!-- The quarantine digest settings written as one: the hours checked first, the address put back (F209). -->
+    <Compile Include="..\ControlPanel\Services\QuarantineDigestSettingsWrite.cs" />
     <!-- The words for when a saved setting reaches the running server, which
          IniFeatureStore's pending list is read through (docs/SettingsApply.md). -->
     <Compile Include="..\ControlPanel\Services\SettingApplies.cs" />

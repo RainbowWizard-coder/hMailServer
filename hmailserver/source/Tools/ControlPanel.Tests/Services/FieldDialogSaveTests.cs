@@ -151,7 +151,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          string digest = WithheldRowTests.MemberText(quarantine, "private void EditDigestSettings()");
          Assert.True(digest != null, "QuarantineView.EditDigestSettings is gone.");
          Assert.Contains("new FieldDialog(spec, current, Window.GetWindow(this), values =>", digest, StringComparison.Ordinal);
-         Assert.Contains("return new FieldDialog.Refusal(ServerSession.DescribeComError(ex), prop);", digest, StringComparison.Ordinal);
+         Assert.Contains("_ => new FieldDialog.Refusal(F(\"Could not save: {0}\", ServerSession.DescribeComError(error)), \"QuarantineDigestLinkHours\")", digest, StringComparison.Ordinal);
       }
 
       [Fact]
