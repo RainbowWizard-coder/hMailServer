@@ -117,6 +117,19 @@ namespace hMailServer.ControlPanel.Services
          };
       }
 
+      /// <summary>
+      /// Every notice the card and the dialog can show, with its level: what the range
+      /// dialog measures its tabs with, so that the Delivery tab has room for the longest.
+      /// </summary>
+      public static System.Collections.Generic.IEnumerable<(StatusLevel Level, string Text)> EveryNotice()
+      {
+         foreach (Reach reach in new[] { Reach.Internet, Reach.Network })
+         {
+            foreach (Open open in new[] { Open.LocalToExternal, Open.ExternalToExternal, Open.LocalToExternal | Open.ExternalToExternal })
+               yield return (LevelOf(reach), Notice(reach, open));
+         }
+      }
+
       /// <summary>The question before permissions that make an open relay are saved: by any sender, or, where only Local to external is open, by one that gives one of this server's domains.</summary>
       public static string SaveQuestion(string range, Open open)
          => (open & Open.ExternalToExternal) != 0

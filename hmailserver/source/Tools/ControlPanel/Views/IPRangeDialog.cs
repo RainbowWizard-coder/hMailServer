@@ -98,7 +98,7 @@ namespace hMailServer.ControlPanel.Views
          // cut behind a chevron: in German "Authentifizierung" and "Schutz" were
          // (review finding F193).
          double width = DialogFields.WidthForTabs(tabs, DialogWidth);
-         DialogFields.FitTabs(tabs, DialogFields.BodyWidth(width));
+         FitTabsWithRelayNotice_(tabs, width);
 
          var body = new StackPanel();
          body.Children.Add(notice_);
@@ -112,6 +112,34 @@ namespace hMailServer.ControlPanel.Views
 
          UseFrame(L("IP range"), body, save, cancel, width: width);
          Loaded += (s, e) => Load();
+      }
+
+      /// <summary>
+      /// Sizes the tabs with the Delivery tab's relay notice showing each thing it can
+      /// say, and keeps the tallest, so that the one height of the tabs has room for
+      /// the longest. Measured with the notice collapsed, as it is until a box makes a
+      /// relay, the Delivery tab came out as tall as its rows, and the notice, once
+      /// shown, scrolled inside it: the end of the Critical warning was cut at every
+      /// window size, in German after "es sei denn, der Bereich umfasst nur". Each text
+      /// is measured afresh - the notice and the elements above it are told their size
+      /// is out of date, and the tabs' height from the measure before is cleared, which
+      /// the strip's measure would otherwise read back.
+      /// </summary>
+      private void FitTabsWithRelayNotice_(TabControl tabs, double width)
+      {
+         double tallest = 0;
+         foreach ((StatusLevel level, string text) in RelayExposure.EveryNotice())
+         {
+            relayNotice_.Show(level, text);
+            for (DependencyObject at = relayNotice_; at != null; at = (at is System.Windows.Media.Visual ? System.Windows.Media.VisualTreeHelper.GetParent(at) : null) ?? LogicalTreeHelper.GetParent(at))
+               (at as UIElement)?.InvalidateMeasure();
+            tabs.ClearValue(FrameworkElement.HeightProperty);
+            DialogFields.FitTabs(tabs, DialogFields.BodyWidth(width));
+            tallest = Math.Max(tallest, tabs.Height);
+         }
+
+         relayNotice_.Hide();
+         tabs.Height = tallest;
       }
 
       private ScrollViewer BuildGeneral()

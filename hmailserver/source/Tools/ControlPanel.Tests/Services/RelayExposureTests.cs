@@ -204,6 +204,39 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("Require TLS before authentication", checks, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// The dialog's tabs are sized with the Delivery tab's notice at each thing it can
+      /// say and keep the tallest: sized with the notice collapsed, the tab scrolled once
+      /// it showed, and the end of the Critical warning was cut at every window size.
+      /// </summary>
+      [Fact]
+      public void TheDialogsTabs_HaveRoomForTheLongestNotice()
+      {
+         var every = RelayExposure.EveryNotice().ToList();
+         Assert.Equal(6, every.Count);
+         Assert.Equal(6, every.Select(n => n.Text).Distinct(StringComparer.Ordinal).Count());
+         Assert.All(every, n => Assert.False(string.IsNullOrEmpty(n.Text)));
+         foreach (RelayExposure.Reach reach in new[] { RelayExposure.Reach.Internet, RelayExposure.Reach.Network })
+         {
+            foreach (RelayExposure.Open open in new[] { RelayExposure.Open.LocalToExternal, RelayExposure.Open.ExternalToExternal, RelayExposure.Open.LocalToExternal | RelayExposure.Open.ExternalToExternal })
+               Assert.Contains((RelayExposure.LevelOf(reach), RelayExposure.Notice(reach, open)), every);
+         }
+
+         string dialog = Read(Path.Join("Views", "IPRangeDialog.cs"));
+         string ctor = WithheldRowTests.MemberText(dialog, "public IPRangeDialog(Window owner, int rangeId)");
+         Assert.Contains("FitTabsWithRelayNotice_(tabs, width);", ctor, StringComparison.Ordinal);
+         string fit = WithheldRowTests.MemberText(dialog, "private void FitTabsWithRelayNotice_(TabControl tabs, double width)");
+         Assert.True(fit != null, "IPRangeDialog.FitTabsWithRelayNotice_ is gone.");
+         int each = fit.IndexOf("foreach ((StatusLevel level, string text) in RelayExposure.EveryNotice())", StringComparison.Ordinal);
+         int shows = fit.IndexOf("relayNotice_.Show(level, text);", StringComparison.Ordinal);
+         int measures = fit.IndexOf("DialogFields.FitTabs(tabs, DialogFields.BodyWidth(width));", StringComparison.Ordinal);
+         int hides = fit.IndexOf("relayNotice_.Hide();", StringComparison.Ordinal);
+         Assert.True(each >= 0 && shows > each && measures > shows && hides > measures, "The tabs are not measured with the notice showing each of its texts.");
+         Assert.Contains("(at as UIElement)?.InvalidateMeasure();", fit, StringComparison.Ordinal);
+         Assert.Contains("tabs.ClearValue(FrameworkElement.HeightProperty);", fit, StringComparison.Ordinal);
+         Assert.Contains("tabs.Height = tallest;", fit, StringComparison.Ordinal);
+      }
+
       private static string Read(string relative)
       {
          var directory = new DirectoryInfo(AppContext.BaseDirectory);
