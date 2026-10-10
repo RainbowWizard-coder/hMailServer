@@ -234,6 +234,14 @@ namespace hMailServer.ControlPanel.Views
       public class AliasRow
       {
          public string Name { get; set; }
+
+         // Where the alias delivers: the row's second line, under the alias, each
+         // line trimmed with its own tool tip. On one trimmed line, "name  →  target",
+         // the target was the part the ellipsis took, and it is the half an
+         // administrator looks up (review finding F067).
+         public string Value { get; set; }
+         public string Target => "→ " + Value; // no-loc: an arrow, not a word
+
          public string Display { get; set; }
 
          // The alias list is a ListView with an ItemTemplate, so the visible text
@@ -265,10 +273,13 @@ namespace hMailServer.ControlPanel.Views
                for (int i = 0; i < count; i++)
                {
                   dynamic alias = aliases.Item[i];
+                  string name = (string)alias.Name;
+                  string value = (string)alias.Value;
                   rows.Add(new AliasRow
                   {
-                     Name = (string)alias.Name,
-                     Display = (string)alias.Name + "  →  " + (string)alias.Value
+                     Name = name,
+                     Value = value,
+                     Display = name + "  →  " + value
                   });
                   ServerSession.Release(alias);
                }

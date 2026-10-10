@@ -2436,6 +2436,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   sentence wraps to a few lines; and the failure a page reports when it cannot be entered carries Try again, which
   enters the page once more while it is still the page on screen and closes the toast.
 
+- **Fixed: an alias's target was the part of its row the ellipsis took.** The Domains & accounts page drew an alias as
+  one trimmed line, "name → target", in a column of about 200 pixels at 1280, so that "info@example.com → user00@ex…"
+  lost the delivery address an administrator looks for and a long alias lost the arrow too. Each alias row is now two
+  lines, each trimmed with its own tool tip: the alias, and under it in the secondary text "→" and the address it
+  delivers to; a screen reader still hears both as one, and the list's floor holds three of the taller rows.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

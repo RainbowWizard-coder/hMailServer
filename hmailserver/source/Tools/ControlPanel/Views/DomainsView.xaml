@@ -360,25 +360,35 @@
                                            VerticalAlignment="Top" Margin="0" />
                             </Grid>
                         </Grid>
-                        <!-- The floor: three rows of 34 pixels (a row is its 24-pixel
-                             button and the margins around it), the list's own pixel
+                        <!-- The floor: three rows of two lines, 36 pixels each (the
+                             alias and its target at 16 pixels a line and the
+                             template's margins round them), the list's own pixel
                              above and below them, and one for layout rounding. -->
                         <Grid scaffold:FillPanel.Fill="True">
                             <scaffold:FillPanel>
-                                <ListView x:Name="AliasList" scaffold:FillPanel.Fill="True" MinHeight="105" BorderThickness="0" Background="Transparent" HorizontalContentAlignment="Stretch"
+                                <ListView x:Name="AliasList" scaffold:FillPanel.Fill="True" MinHeight="111" BorderThickness="0" Background="Transparent" HorizontalContentAlignment="Stretch"
                                           ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                           AutomationProperties.Name="{loc:L 'Aliases'}">
                                     <ListView.ItemTemplate>
                                         <DataTemplate>
+                                            <!-- Two lines, each trimmed with its own tool tip: the
+                                                 alias, and under it in the secondary text the
+                                                 address it delivers to (review finding F067). On
+                                                 one line, "info@example.com  →  user00@ex…", the
+                                                 target was the part the ellipsis took. -->
                                             <Grid Margin="4,2">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*" />
                                                     <ColumnDefinition Width="Auto" />
                                                 </Grid.ColumnDefinitions>
-                                                <TextBlock Text="{Binding Display}" Style="{StaticResource GridTrimmedText}" FontSize="12" VerticalAlignment="Center"
-                                                           Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                                <StackPanel VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Name}" Style="{StaticResource GridTrimmedText}" FontSize="12"
+                                                               Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                                    <TextBlock Text="{Binding Target}" Style="{StaticResource GridTrimmedText}" FontSize="12"
+                                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                                </StackPanel>
                                                 <!-- A 24-pixel box at least, as the domain and account rows' buttons are. -->
-                                                <ui:Button Grid.Column="1" Icon="{ui:SymbolIcon Delete24}" Padding="4" MinWidth="24" MinHeight="24" Margin="6,0,0,0"
+                                                <ui:Button Grid.Column="1" Icon="{ui:SymbolIcon Delete24}" Padding="4" MinWidth="24" MinHeight="24" Margin="6,0,0,0" VerticalAlignment="Center"
                                                            Style="{StaticResource DangerTextButton}"
                                                            ToolTip="{loc:L 'Delete alias'}" AutomationProperties.Name="{loc:L 'Delete alias'}"
                                                            Tag="{Binding Name}" Click="DeleteAlias_Click" />

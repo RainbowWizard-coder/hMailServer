@@ -49,7 +49,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          { "DomainList", 40 },
          { "AccountList", 38 },
-         { "AliasList", 31 },
+         // Two lines: the alias, and under it the address it delivers to (F067).
+         { "AliasList", 36 },
          { "DistList", 31 },
       };
 
@@ -147,19 +148,25 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal("Disabled", (string)view.Attribute("ScrollViewer.HorizontalScrollBarVisibility"));
 
          XElement template = view.Descendants(Wpf + "DataTemplate").Single();
-         XElement name = template.Descendants(Wpf + "TextBlock")
-            .Single(t => ((string)t.Attribute("Text") ?? "").StartsWith("{Binding", StringComparison.Ordinal));
-         string style = (string)name.Attribute("Style");
-         if (style != "{StaticResource GridTrimmedText}")
+         // Every line of words the row binds: the alias row has two, the alias and
+         // the address it delivers to (F067), each cut short on its own.
+         var names = template.Descendants(Wpf + "TextBlock")
+            .Where(t => ((string)t.Attribute("Text") ?? "").StartsWith("{Binding", StringComparison.Ordinal)).ToList();
+         Assert.NotEmpty(names);
+         foreach (XElement name in names)
          {
-            Match key = Regex.Match(style ?? "", @"^\{StaticResource (\w+)\}$");
-            Assert.True(key.Success, list + "'s name has no trimming style.");
-            XElement own = page.Element(Wpf + "UserControl.Resources")?.Elements(Wpf + "Style")
-               .SingleOrDefault(s => (string)s.Attribute(X + "Key") == key.Groups[1].Value);
-            Assert.True(own != null, list + "'s name style " + key.Groups[1].Value + " is not a resource of the page.");
-            Assert.Equal("{StaticResource GridTrimmedText}", (string)own.Attribute("BasedOn"));
+            string style = (string)name.Attribute("Style");
+            if (style != "{StaticResource GridTrimmedText}")
+            {
+               Match key = Regex.Match(style ?? "", @"^\{StaticResource (\w+)\}$");
+               Assert.True(key.Success, list + "'s name has no trimming style.");
+               XElement own = page.Element(Wpf + "UserControl.Resources")?.Elements(Wpf + "Style")
+                  .SingleOrDefault(s => (string)s.Attribute(X + "Key") == key.Groups[1].Value);
+               Assert.True(own != null, list + "'s name style " + key.Groups[1].Value + " is not a resource of the page.");
+               Assert.Equal("{StaticResource GridTrimmedText}", (string)own.Attribute("BasedOn"));
+            }
+            Assert.DoesNotContain(name.Ancestors(), a => a.Name == Wpf + "StackPanel" && (string)a.Attribute("Orientation") == "Horizontal");
          }
-         Assert.DoesNotContain(name.Ancestors(), a => a.Name == Wpf + "StackPanel" && (string)a.Attribute("Orientation") == "Horizontal");
       }
 
       /// <summary>
