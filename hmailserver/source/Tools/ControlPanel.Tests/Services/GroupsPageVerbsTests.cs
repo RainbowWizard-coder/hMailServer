@@ -3,7 +3,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Xml.Linq;
+using hMailServer.ControlPanel.Services;
 using Xunit;
 
 namespace hMailServer.ControlPanel.Tests.Services
@@ -58,6 +62,60 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(keys > rename, "Enter and the double-click do not press the row's verb, or are wired before F2's rename, whose key they would take.");
       }
 
+      /// <summary>
+      /// Members… shares its toolbar with Edit, Delete and Add, and the header with
+      /// Refresh, in one access-key scope, so no two of them may have one key in any
+      /// language: WPF moves the keyboard between two captions of one key rather than
+      /// pressing either, and in French and Italian Alt+M reached Members… and Edit,
+      /// in Russian Alt+У Members… and Delete, and opened neither. build/check-mnemonics.py
+      /// reads a file at a time, and Members… is GroupsPageView's caption while the
+      /// others are CollectionEditorView's.
+      /// </summary>
+      [Fact]
+      public void TheToolbarsAccessKeys_AreDistinct_InEveryLanguage()
+      {
+         string[] captions = { "_Members…", "_Edit", "_Delete", "_Add", "_Refresh" };
+         string specs = ReadControlPanelFile(Path.Join("Views", "CollectionSpecs.cs"));
+         string editor = ReadControlPanelFile(Path.Join("Views", "CollectionEditorView.cs"));
+         Assert.Contains("L(\"_Members…\")", specs, StringComparison.Ordinal);
+         foreach (string caption in captions.Skip(1))
+            Assert.True(editor.Contains("MakeButton(L(\"" + caption + "\")", StringComparison.Ordinal),
+               "CollectionEditorView no longer makes the " + caption + " button; update this test with the toolbar.");
+
+         AssertDistinct("en", captions);
+         string resources = Path.GetDirectoryName(ControlPanelFile(Path.Join("Resources", "Strings.resx")));
+         int catalogues = 0;
+         foreach (string path in Directory.EnumerateFiles(resources, "Strings.*.resx"))
+         {
+            string tag = Path.GetFileName(path)["Strings.".Length..^".resx".Length];
+            Dictionary<string, string> catalogue = XDocument.Load(path).Root.Elements("data")
+               .ToDictionary(d => (string)d.Attribute("name"), d => (string)d.Element("value") ?? "", StringComparer.Ordinal);
+            var translated = new List<string>();
+            foreach (string caption in captions)
+            {
+               Assert.True(catalogue.TryGetValue(caption, out string value) && value.Length > 0, tag + " does not translate " + caption + ".");
+               translated.Add(value);
+            }
+
+            AssertDistinct(tag, translated);
+            catalogues++;
+         }
+
+         Assert.Equal(17, catalogues);
+      }
+
+      private static void AssertDistinct(string tag, IEnumerable<string> captions)
+      {
+         var seen = new Dictionary<string, string>(StringComparer.Ordinal);
+         foreach (string caption in captions)
+         {
+            string key = MnemonicText.Key(caption);
+            Assert.True(key != null, tag + ": \"" + caption + "\" has no Alt key.");
+            Assert.True(!seen.ContainsKey(key), tag + ": Alt+" + key + " in \"" + caption + "\" collides with \"" + seen.GetValueOrDefault(key) + "\" in the Groups page's toolbar.");
+            seen[key] = caption;
+         }
+      }
+
       [Fact]
       public void F2_IsHandledBeforeTheGridsOtherKeys_AndOnlyFromTheRows()
       {
@@ -69,14 +127,16 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("e.Handled = true;", rename, StringComparison.Ordinal);
       }
 
-      private static string ReadControlPanelFile(string relative)
+      private static string ReadControlPanelFile(string relative) => File.ReadAllText(ControlPanelFile(relative));
+
+      private static string ControlPanelFile(string relative)
       {
          var directory = new DirectoryInfo(AppContext.BaseDirectory);
          while (directory != null)
          {
             string candidate = Path.Join(directory.FullName, "ControlPanel", relative);
             if (File.Exists(candidate))
-               return File.ReadAllText(candidate);
+               return candidate;
             directory = directory.Parent;
          }
 

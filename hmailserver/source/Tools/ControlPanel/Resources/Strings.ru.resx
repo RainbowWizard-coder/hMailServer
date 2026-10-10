@@ -15043,7 +15043,7 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
     <value>_Максимум читаемых записей</value>
   </data>
   <data name="_Members…" xml:space="preserve">
-    <value>_Участники…</value>
+    <value>У_частники…</value>
   </data>
   <data name="_Merge" xml:space="preserve">
     <value>_Объединить</value>

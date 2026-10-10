@@ -2669,7 +2669,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   before Edit, Delete and Add, enabled while a group is selected; Enter and a double-click on a group open its
   members, and F2 is Edit, the rename. What the hint said is the subtitle's and the empty state's, and the list
   editor takes such a verb of a row from any page built on it (`CollectionEditorView.AddRowVerb`,
-  `GridKeys.WireRename`). `GroupsPageVerbsTests` holds the verb, its place and the keys.
+  `GridKeys.WireRename`). Members… has an Alt key of its own beside Edit, Delete, Add and Refresh in every language,
+  where the French and Italian Members… had Edit's and the Russian Delete's, so that the key moved between the two
+  rather than opening either. `GroupsPageVerbsTests` holds the verb, its place, the keys and the five Alt keys.
 
 - **Fixed: a group's Add account… was a drop-down of every account on the server, the members among them, that could
   not be typed in.** With hundreds of mailboxes there was no way to find one but to scroll, an account picked that was
