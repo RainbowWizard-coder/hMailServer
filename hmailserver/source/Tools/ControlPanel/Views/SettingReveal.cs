@@ -30,8 +30,13 @@ namespace hMailServer.ControlPanel.Views
       /// <paramref name="key"/>: its tab chosen, its row scrolled into view, the
       /// keyboard in its editor and a ring round the row once. False when the page
       /// has no such setting, which leaves the page as it opened.
+      /// <paramref name="label"/> is the setting's English label, the catalogue key the
+      /// settings index has: where more than one row of the page shares the key - Auto-ban's
+      /// four CountryPolicy rows, one for each kind of connection - it says which, where
+      /// IMAP, POP3 and the web all opened at the SMTP row. Null or unknown, the key's
+      /// first row is shown.
       /// </summary>
-      bool RevealSetting(string key);
+      bool RevealSetting(string key, string label);
    }
 
    /// <summary>
@@ -81,6 +86,15 @@ namespace hMailServer.ControlPanel.Views
 
          return byCaption;
       }
+
+      /// <summary>
+      /// Whether a row's label is <paramref name="label"/>, its Alt key aside: the row's
+      /// label is the translated caption, and <paramref name="label"/> the index's
+      /// English label translated. False for a null label.
+      /// </summary>
+      public static bool SameLabel(string rowLabel, string label)
+         => label != null && rowLabel != null &&
+            string.Equals(Services.MnemonicText.Strip(rowLabel), Services.MnemonicText.Strip(label), StringComparison.Ordinal);
 
       /// <summary>
       /// Shows <paramref name="editor"/>: its row scrolled into view, the keyboard in

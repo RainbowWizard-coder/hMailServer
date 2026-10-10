@@ -3,7 +3,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using static hMailServer.ControlPanel.Services.Loc;
 
 namespace hMailServer.ControlPanel.Views
 {
@@ -15,17 +17,23 @@ namespace hMailServer.ControlPanel.Views
    /// </summary>
    public partial class FeatureSettingsView : IRevealSetting
    {
-      public bool RevealSetting(string key)
+      public bool RevealSetting(string key, string label)
       {
          if (string.IsNullOrEmpty(key) || cards_ == null)
             return false;
 
-         Setting setting = cards_.SelectMany(card => card.Settings)
-            .FirstOrDefault(candidate => string.Equals(candidate.Key, key, StringComparison.OrdinalIgnoreCase));
-         if (setting == null)
+         // Every row of the key; where more than one shares it, the label says which,
+         // and the row is found by its caption, since the automation id names the first.
+         List<Setting> rows = cards_.SelectMany(card => card.Settings)
+            .Where(candidate => string.Equals(candidate.Key, key, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+         if (rows.Count == 0)
             return false;
 
-         SettingReveal.Show(SettingReveal.Find(CardsPanel, setting.Key, setting.Label));
+         Setting setting = rows.FirstOrDefault(candidate => SettingReveal.SameLabel(candidate.Label, label == null ? null : L(label))) ?? rows[0];
+         SettingReveal.Show(rows.Count > 1
+            ? SettingReveal.Find(CardsPanel, null, setting.Label) ?? SettingReveal.Find(CardsPanel, setting.Key, setting.Label)
+            : SettingReveal.Find(CardsPanel, setting.Key, setting.Label));
          return true;
       }
    }

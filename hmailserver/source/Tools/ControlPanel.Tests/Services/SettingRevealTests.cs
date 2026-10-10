@@ -122,7 +122,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("SelectedSetting = SelectedPage != null && row.Kind == PaletteRowKind.Setting ? row.Setting : null;", palette, StringComparison.Ordinal);
 
          string shell = ReadControlPanelFile("MainWindow.xaml.cs");
-         Assert.Contains("RevealSetting_(palette.SelectedPage, palette.SelectedSetting);", shell, StringComparison.Ordinal);
+         Assert.Contains("RevealSetting_(palette.SelectedPage, palette.SelectedSetting, palette.SelectedSettingLabel);", shell, StringComparison.Ordinal);
+         Assert.Contains("reveal.RevealSetting(setting, label);", shell, StringComparison.Ordinal);
          Assert.Contains("ContentHost?.Content is not IRevealSetting reveal", shell, StringComparison.Ordinal);
          Assert.Contains("!string.Equals(currentPage_, page, StringComparison.OrdinalIgnoreCase)", shell, StringComparison.Ordinal);
 
@@ -136,6 +137,54 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("AdornerLayer.GetAdornerLayer(target)", reveal, StringComparison.Ordinal);
          Assert.Contains("SystemParameters.ClientAreaAnimation", reveal, StringComparison.Ordinal);
          Assert.Contains("SystemParameters.HighContrast", reveal, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// Auto-ban's four CountryPolicy rows - SMTP, IMAP, POP3 and the web - share one key
+      /// and so one automation id, and the page took the first row of a key: choosing
+      /// IMAP, POP3 or the web in the palette rang and focused the SMTP row. Each palette
+      /// row hands the page its own label as well, and the page shows the row of that
+      /// label, found by its caption where the key is shared.
+      /// </summary>
+      [Fact]
+      public void ARowThatSharesItsKeyIsShownByItsLabel()
+      {
+         List<PaletteRow> rows = PaletteSearch.Query("CountryPolicy", null, null)
+            .Where(row => row.Kind == PaletteRowKind.Setting && row.Setting == "CountryPolicy").ToList();
+         Assert.Equal(new[] { "IMAP connections", "POP3 connections", "SMTP connections", "Webmail, REST API and web services connections" },
+            rows.Select(row => row.SettingLabel).OrderBy(label => label, StringComparer.Ordinal).ToArray());
+         Assert.All(rows, row => Assert.Equal("autoban", row.Page));
+         Assert.All(PaletteSearch.Query("logging", null, null).Where(r => r.Kind != PaletteRowKind.Setting), r => Assert.Null(r.SettingLabel));
+
+         string palette = ReadControlPanelFile(Path.Join("Views", "NavigationPalette.cs"));
+         Assert.Contains("SelectedSettingLabel = SelectedSetting != null ? row.SettingLabel : null;", palette, StringComparison.Ordinal);
+
+         string server = ReadControlPanelFile(Path.Join("Views", "ServerSettingsView.Reveal.cs"));
+         Assert.Contains("public bool RevealSetting(string key, string label)", server, StringComparison.Ordinal);
+         Assert.Contains("SettingReveal.SameLabel(row.Setting.Label, label == null ? null : L(label))", server, StringComparison.Ordinal);
+         Assert.Contains("SettingReveal.Find(SettingsTabs, null, setting.Label)", server, StringComparison.Ordinal);
+
+         string feature = ReadControlPanelFile(Path.Join("Views", "FeatureSettingsView.Reveal.cs"));
+         Assert.Contains("public bool RevealSetting(string key, string label)", feature, StringComparison.Ordinal);
+         Assert.Contains("SettingReveal.SameLabel(candidate.Label, label == null ? null : L(label))", feature, StringComparison.Ordinal);
+         Assert.Contains("SettingReveal.Find(CardsPanel, null, setting.Label)", feature, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// A key that more than one row of a page shares tells its rows apart by their
+      /// labels alone, so every such row's label is its own on that page.
+      /// </summary>
+      [Fact]
+      public void RowsThatShareAKeyHaveLabelsOfTheirOwn()
+      {
+         foreach (IGrouping<string, SettingEntry> shared in SettingsSearchIndex.Entries.GroupBy(e => e.Page + " " + e.Key).Where(g => g.Count() > 1))
+         {
+            List<string> labels = shared.Select(e => e.Label).ToList();
+            Assert.True(labels.Distinct(StringComparer.Ordinal).Count() == labels.Count,
+               shared.Key + " has rows of one label: " + string.Join(", ", labels));
+         }
+
+         Assert.Equal(4, SettingsSearchIndex.Entries.Count(e => e.Page == "autoban" && e.Key == "CountryPolicy"));
       }
 
       private static string Unescape_(string literal) => literal.Replace("\\\"", "\"").Replace("\\\\", "\\");

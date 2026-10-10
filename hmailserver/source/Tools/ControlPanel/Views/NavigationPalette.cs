@@ -75,6 +75,12 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       public string SelectedSetting { get; private set; }
 
+      /// <summary>
+      /// The English label of that setting (<see cref="PaletteRow.SettingLabel"/>), which
+      /// tells the page which of the rows sharing the key to show; null for any other row.
+      /// </summary>
+      public string SelectedSettingLabel { get; private set; }
+
       /// <summary>True when the keyboard shortcuts row was chosen; neither a page nor a tour is then.</summary>
       public bool ShowShortcuts { get; private set; }
 
@@ -439,6 +445,7 @@ namespace hMailServer.ControlPanel.Views
             SelectedTour = ShowShortcuts ? null : row.Tour;
             SelectedPage = ShowShortcuts || row.Tour != null ? null : row.Page;
             SelectedSetting = SelectedPage != null && row.Kind == PaletteRowKind.Setting ? row.Setting : null;
+            SelectedSettingLabel = SelectedSetting != null ? row.SettingLabel : null;
          }
 
          Close();

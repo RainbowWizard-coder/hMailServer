@@ -42,7 +42,7 @@ namespace hMailServer.ControlPanel.Services
    public sealed class PaletteRow
    {
       internal PaletteRow(PaletteRowKind kind, string section, string title, string location,
-         string detail, string page, int score, string tour = null, string setting = null)
+         string detail, string page, int score, string tour = null, string setting = null, string settingLabel = null)
       {
          Kind = kind;
          Section = section;
@@ -53,6 +53,7 @@ namespace hMailServer.ControlPanel.Services
          Score = score;
          Tour = tour;
          Setting = setting;
+         SettingLabel = settingLabel;
       }
 
       public PaletteRowKind Kind { get; }
@@ -87,6 +88,15 @@ namespace hMailServer.ControlPanel.Services
       /// nothing marked (review finding F274). Null on every other row.
       /// </summary>
       public string Setting { get; }
+
+      /// <summary>
+      /// The English label of the setting a setting row found - the catalogue key, as
+      /// the index has it - which tells the page which row to show where more than one
+      /// shares <see cref="Setting"/>: Auto-ban's four CountryPolicy rows, one for each
+      /// kind of connection, whose IMAP, POP3 and web rows all opened at the SMTP row.
+      /// Null on every other row.
+      /// </summary>
+      public string SettingLabel { get; }
 
       /// <summary>Match score, lower being better. Zero for the rows of an unfiltered overview.</summary>
       public int Score { get; }
@@ -541,7 +551,7 @@ namespace hMailServer.ControlPanel.Services
          {
             rows.Add(new PaletteRow(PaletteRowKind.Setting, SettingSection, L(match.Label),
                match.Location, F("Setting  -  {0}", match.Key),
-               match.Page, Add(match.Rank, SettingBase), setting: match.Key));
+               match.Page, Add(match.Rank, SettingBase), setting: match.Key, settingLabel: match.Label));
          }
 
          return rows;

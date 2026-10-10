@@ -793,7 +793,7 @@ namespace hMailServer.ControlPanel
          if (palette.SelectedPage != null)
          {
             NavigateTo(palette.SelectedPage, true);
-            RevealSetting_(palette.SelectedPage, palette.SelectedSetting);
+            RevealSetting_(palette.SelectedPage, palette.SelectedSetting, palette.SelectedSettingLabel);
          }
       }
 
@@ -803,9 +803,10 @@ namespace hMailServer.ControlPanel
       /// keyboard in its editor and a ring round it once (Views/IRevealSetting) -
       /// where the page opened on its first tab with nothing marked (review finding
       /// F274). Not when the page did not open: a Stay at the question about unsaved
-      /// changes keeps the reader where they were.
+      /// changes keeps the reader where they were. The setting's label goes with its
+      /// key, which more than one row of a page can share.
       /// </summary>
-      private void RevealSetting_(string page, string setting)
+      private void RevealSetting_(string page, string setting, string label)
       {
          if (string.IsNullOrEmpty(setting))
             return;
@@ -817,7 +818,7 @@ namespace hMailServer.ControlPanel
 
             try
             {
-               reveal.RevealSetting(setting);
+               reveal.RevealSetting(setting, label);
             }
             catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
             {
