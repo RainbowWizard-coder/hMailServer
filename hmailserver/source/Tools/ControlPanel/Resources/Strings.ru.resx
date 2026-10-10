@@ -4035,6 +4035,9 @@ Control Panel может читать файлы сообщений только
   <data name="Di_gest settings" xml:space="preserve">
     <value>Настройки _сводки</value>
   </data>
+  <data name="Di_sable" xml:space="preserve">
+    <value>_Отключить</value>
+  </data>
   <data name="Diagnosing stalled mail" xml:space="preserve">
     <value>Диагностика застрявшей почты</value>
   </data>
@@ -4412,8 +4415,8 @@ Control Panel может читать файлы сообщений только
   <data name="Empty, the default: single sign-on reaches the webmail only, and the Control Deck still asks for the administrator password." xml:space="preserve">
     <value>Пусто, по умолчанию: единый вход действует только для веб-почты, а Control Deck по-прежнему запрашивает пароль администратора.</value>
   </data>
-  <data name="Ena_ble / disable" xml:space="preserve">
-    <value>Включить / _отключить</value>
+  <data name="Ena_ble" xml:space="preserve">
+    <value>Вклю_чить</value>
   </data>
   <data name="Enable ClamAV or an external scanner, and choose what happens to an infected message." xml:space="preserve">
     <value>Включите ClamAV или внешний сканер и выберите, что происходит с заражённым сообщением.</value>
@@ -7202,6 +7205,9 @@ Control Panel может читать файлы сообщений только
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>В этом домене пока нет учётных записей.</value>
   </data>
+  <data name="No actions yet, so this rule does nothing to the messages it matches." xml:space="preserve">
+    <value>Действий пока нет, поэтому это правило ничего не делает с подходящими ему сообщениями.</value>
+  </data>
   <data name="No active account in an active domain matches “{0}”, so nobody would receive the message." xml:space="preserve">
     <value>Ни одна активная учётная запись в активном домене не соответствует «{0}», поэтому сообщение никто не получил бы.</value>
   </data>
@@ -7279,6 +7285,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="No configuration warnings." xml:space="preserve">
     <value>Предупреждений о конфигурации нет.</value>
+  </data>
+  <data name="No criteria yet, so this rule matches no message and does nothing." xml:space="preserve">
+    <value>Критериев пока нет, поэтому это правило не подходит ни к одному сообщению и ничего не делает.</value>
   </data>
   <data name="No data yet" xml:space="preserve">
     <value>Данных пока нет</value>
@@ -10688,8 +10697,11 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Select a row first." xml:space="preserve">
     <value>Сначала выберите строку.</value>
   </data>
-  <data name="Select a rule first." xml:space="preserve">
-    <value>Сначала выберите правило.</value>
+  <data name="Select a rule above to see what it does." xml:space="preserve">
+    <value>Выберите правило выше, чтобы увидеть, что оно делает.</value>
+  </data>
+  <data name="Select a rule above to see which messages it matches." xml:space="preserve">
+    <value>Выберите правило выше, чтобы увидеть, каким сообщениям оно соответствует.</value>
   </data>
   <data name="Select a setting's change first." xml:space="preserve">
     <value>Сначала выберите изменение настройки.</value>
@@ -16554,6 +16566,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} added to the group." xml:space="preserve">
     <value>Добавлено в группу: {0}.</value>
+  </data>
+  <data name="{0} added, switched off: give it its criteria and actions, then Enable switches it on." xml:space="preserve">
+    <value>Правило {0} добавлено выключенным: задайте ему критерии и действия, затем включите его кнопкой «Включить».</value>
   </data>
   <data name="{0} added." xml:space="preserve">
     <value>Добавлено: {0}.</value>

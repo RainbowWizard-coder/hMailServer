@@ -4035,6 +4035,9 @@
   <data name="Di_gest settings" xml:space="preserve">
     <value>Налаштування _зведення</value>
   </data>
+  <data name="Di_sable" xml:space="preserve">
+    <value>Вимкну_ти</value>
+  </data>
   <data name="Diagnosing stalled mail" xml:space="preserve">
     <value>Діагностика пошти, що зависла</value>
   </data>
@@ -4412,8 +4415,8 @@
   <data name="Empty, the default: single sign-on reaches the webmail only, and the Control Deck still asks for the administrator password." xml:space="preserve">
     <value>Порожньо, типово: єдиний вхід діє лише для вебпошти, а Control Deck і далі запитує пароль адміністратора.</value>
   </data>
-  <data name="Ena_ble / disable" xml:space="preserve">
-    <value>_Увімкнути / вимкнути</value>
+  <data name="Ena_ble" xml:space="preserve">
+    <value>Уві_мкнути</value>
   </data>
   <data name="Enable ClamAV or an external scanner, and choose what happens to an infected message." xml:space="preserve">
     <value>Увімкнути ClamAV або зовнішній сканер і вибрати, що відбувається із зараженим повідомленням.</value>
@@ -7202,6 +7205,9 @@
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>У цьому домені ще немає облікових записів.</value>
   </data>
+  <data name="No actions yet, so this rule does nothing to the messages it matches." xml:space="preserve">
+    <value>Дій ще немає, тож це правило нічого не робить із повідомленнями, яким відповідає.</value>
+  </data>
   <data name="No active account in an active domain matches “{0}”, so nobody would receive the message." xml:space="preserve">
     <value>Жоден активний обліковий запис в активному домені не відповідає «{0}», тож повідомлення ніхто не отримав би.</value>
   </data>
@@ -7279,6 +7285,9 @@
   </data>
   <data name="No configuration warnings." xml:space="preserve">
     <value>Попереджень щодо конфігурації немає.</value>
+  </data>
+  <data name="No criteria yet, so this rule matches no message and does nothing." xml:space="preserve">
+    <value>Критеріїв ще немає, тож це правило не відповідає жодному повідомленню й нічого не робить.</value>
   </data>
   <data name="No data yet" xml:space="preserve">
     <value>Даних ще немає</value>
@@ -10688,8 +10697,11 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Select a row first." xml:space="preserve">
     <value>Спершу виберіть рядок.</value>
   </data>
-  <data name="Select a rule first." xml:space="preserve">
-    <value>Спершу виберіть правило.</value>
+  <data name="Select a rule above to see what it does." xml:space="preserve">
+    <value>Виберіть правило вище, щоб побачити, що воно робить.</value>
+  </data>
+  <data name="Select a rule above to see which messages it matches." xml:space="preserve">
+    <value>Виберіть правило вище, щоб побачити, яким повідомленням воно відповідає.</value>
   </data>
   <data name="Select a setting's change first." xml:space="preserve">
     <value>Спочатку виберіть зміну налаштування.</value>
@@ -16554,6 +16566,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} added to the group." xml:space="preserve">
     <value>Додано до групи: {0}.</value>
+  </data>
+  <data name="{0} added, switched off: give it its criteria and actions, then Enable switches it on." xml:space="preserve">
+    <value>Правило {0} додано вимкненим: задайте йому критерії та дії, а потім увімкніть кнопкою «Увімкнути».</value>
   </data>
   <data name="{0} added." xml:space="preserve">
     <value>Додано: {0}.</value>

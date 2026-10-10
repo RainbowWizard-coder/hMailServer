@@ -21,6 +21,9 @@ namespace hMailServer.ControlPanel.Views
          public string Name { get; set; }
          public string Enabled { get; set; }
 
+         /// <summary>Whether the rule is switched on: a switched-off rule's row takes the secondary text colour.</summary>
+         public bool IsActive { get; set; }
+
          // What a screen reader says for the row: its cells, not the name of
          // this class, which is what a grid row is announced as otherwise.
          public override string ToString() => Name + ", " + Enabled;
@@ -80,8 +83,12 @@ namespace hMailServer.ControlPanel.Views
       public RulesView()
       {
          InitializeComponent();
-         // Every button here acts on a selected rule, criterion or action.
-         hMailServer.ControlPanel.Services.SelectionGate.Bind(RuleGrid, MoveUpButton, MoveDownButton, ToggleButton, DeleteRuleButton);
+         // Every button here acts on a selected rule, criterion or action: Add
+         // criterion… and Add action… as well, and the match list, which were live
+         // with no rule and answered "Select a rule first." in a message box (review
+         // finding F225).
+         hMailServer.ControlPanel.Services.SelectionGate.Bind(RuleGrid, MoveUpButton, MoveDownButton, ToggleButton, DeleteRuleButton,
+            AddCriterionButton, AddActionButton, MatchMode);
          hMailServer.ControlPanel.Services.SelectionGate.Bind(CriteriaGrid, EditCriterionButton, RemoveCriterionButton);
          hMailServer.ControlPanel.Services.SelectionGate.Bind(ActionsGrid, EditActionButton, RemoveActionButton, ActionUpButton, ActionDownButton);
 
@@ -99,6 +106,8 @@ namespace hMailServer.ControlPanel.Views
          MatchMode.Items.Add(L("Match ANY criterion (OR)"));
          MatchMode.SelectedIndex = 0;
          suppressMatchMode_ = false;
+
+         ShowRuleParts_();
 
          // Alt+Up and Alt+Down move the selected action, as the glyph buttons
          // under the list do, whose captions no longer carry an access key.
@@ -258,6 +267,7 @@ namespace hMailServer.ControlPanel.Views
                      Id = (int)rule.ID,
                      Position = i + 1,
                      Name = (string)rule.Name,
+                     IsActive = (bool)rule.Active,
                      Enabled = (bool)rule.Active ? L("Yes") : L("No")
                   });
                   ServerSession.Release(rule);
@@ -280,6 +290,8 @@ namespace hMailServer.ControlPanel.Views
             CriteriaGrid.ItemsSource = null;
             ActionsGrid.ItemsSource = null;
             HeaderPanel.Subtitle = Subtitle_();
+            HideOutcome_();
+            ShowRuleParts_();
             return;
          }
 
@@ -291,7 +303,57 @@ namespace hMailServer.ControlPanel.Views
 
          CriteriaGrid.ItemsSource = null;
          ActionsGrid.ItemsSource = null;
+         ShowRuleParts_();
       }
+
+      /// <summary>
+      /// The criteria and actions cards' empty states (review finding F225): with no
+      /// rule selected, that a rule above is to be chosen; for a rule with no
+      /// criteria, that it matches no message - with none to meet, the server never
+      /// runs its actions (RuleApplier) - and with no actions, that it does nothing.
+      /// The cards were blank whichever it was. None over a read that failed, whose
+      /// notice says so.
+      /// </summary>
+      private void ShowRuleParts_()
+      {
+         bool failed = ReadFailure.IsShown(Notice);
+         ShowPart_(CriteriaEmpty, CriteriaGrid, failed, RuleCards.CriteriaEmpty(selectedRuleId_ != 0));
+         ShowPart_(ActionsEmpty, ActionsGrid, failed, RuleCards.ActionsEmpty(selectedRuleId_ != 0));
+      }
+
+      private static void ShowPart_(Scaffold.EmptyState empty, DataGrid grid, bool failed, string sentence)
+      {
+         bool none = !failed && (grid.ItemsSource == null || !grid.HasItems);
+         empty.Text = none ? sentence : null;
+         empty.Visibility = none ? Visibility.Visible : Visibility.Collapsed;
+      }
+
+      /// <summary>The switch says what it will do to the selected rule: Enable for one that is off, Disable for one that is on.</summary>
+      private void ShowToggle_(RuleRow row)
+      {
+         if (row != null && row.IsActive)
+            ToggleButton.Content = L("Di_sable");
+         else
+            ToggleButton.Content = L("Ena_ble");
+      }
+
+      /// <summary>What Add rule did, above the list, at its level, for the rule just added.</summary>
+      private void SayOutcome_(StatusLevel level, string text)
+      {
+         OutcomeNotice.Level = level;
+         OutcomeNotice.Text = text;
+         OutcomeNotice.Visibility = Visibility.Visible;
+         Announce.Request(OutcomeNotice);
+      }
+
+      private void HideOutcome_()
+      {
+         addedRuleId_ = 0;
+         OutcomeNotice.Visibility = Visibility.Collapsed;
+      }
+
+      // The rule Add rule just made, which the notice above the list is about.
+      private int addedRuleId_;
 
       /// <summary>
       /// The subtitle: whose rules the list shows - the server's or the domain's
@@ -335,13 +397,19 @@ namespace hMailServer.ControlPanel.Views
 
       private void RuleGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
       {
+         ShowToggle_(RuleGrid.SelectedItem as RuleRow);
          if (RuleGrid.SelectedItem is not RuleRow row)
          {
             selectedRuleId_ = 0;
             CriteriaGrid.ItemsSource = null;
             ActionsGrid.ItemsSource = null;
+            ShowRuleParts_();
             return;
          }
+
+         // The notice is about the rule just added: another rule chosen, it goes.
+         if (addedRuleId_ != 0 && row.Id != addedRuleId_)
+            HideOutcome_();
 
          selectedRuleId_ = row.Id;
          RefreshDetails();
@@ -405,6 +473,7 @@ namespace hMailServer.ControlPanel.Views
 
          CriteriaGrid.ItemsSource = criteria;
          ActionsGrid.ItemsSource = actions;
+         ShowRuleParts_();
 
          suppressMatchMode_ = true;
          MatchMode.SelectedIndex = useAnd ? 0 : 1;
@@ -470,11 +539,16 @@ namespace hMailServer.ControlPanel.Views
 
       private void MoveDown_Click(object sender, RoutedEventArgs e) => WithSelectedRule(rule => rule.MoveDown());
 
-      private void Toggle_Click(object sender, RoutedEventArgs e) => WithSelectedRule(rule =>
+      private void Toggle_Click(object sender, RoutedEventArgs e)
       {
-         rule.Active = !(bool)rule.Active;
-         rule.Save();
-      });
+         // The new rule's notice says to switch it on: once it is, the notice is done.
+         HideOutcome_();
+         WithSelectedRule(rule =>
+         {
+            rule.Active = !(bool)rule.Active;
+            rule.Save();
+         });
+      }
 
       private void Delete_Click(object sender, RoutedEventArgs e)
       {
@@ -500,13 +574,19 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
+         // A new rule starts switched off: it is saved before it has criteria and
+         // actions, and with its first of each it would act on live mail while the
+         // rest is still being added - under AND, more mail than it is meant to
+         // (review finding F225). The notice says to switch it on once it is whole.
+         int addedId;
          dynamic rules = OpenRules();
          try
          {
             dynamic rule = rules.Add();
             rule.Name = name;
-            rule.Active = true;
+            rule.Active = false;
             rule.Save();
+            addedId = (int)rule.ID;
             ServerSession.Release(rule);
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
@@ -520,7 +600,56 @@ namespace hMailServer.ControlPanel.Views
          }
 
          NewRuleName.Text = "";
+         HideOutcome_();
          Reload();
+         if (ReadFailure.IsShown(Notice))
+            return;
+
+         // The new rule selected and in view, the keyboard on Add criterion…, its
+         // next step, where it was the list's last row, often out of view, with
+         // nothing selected. A search typed in before that would leave it out of
+         // the list is cleared.
+         if (RuleGrid.ItemsSource is List<RuleRow> rows && rows.Find(r => r.Id == addedId) is RuleRow added)
+         {
+            ListSearchState.Reveal(SearchBar, RuleGrid, added);
+            RuleGrid.SelectedItem = added;
+            ShowRowInList_(added);
+            addedRuleId_ = addedId;
+            SayOutcome_(StatusLevel.Information, RuleCards.Added(name));
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input, new Action(() => AddCriterionButton.Focus()));
+         }
+      }
+
+      /// <summary>
+      /// Brings a row into the list's own view: a new rule is the list's last row, so
+      /// the list scrolls to its end without moving the page, whose ScrollIntoView
+      /// would scroll the toolbar away to show the row - the page keeps its place
+      /// at the add form just pressed. A row anywhere else is brought into view as
+      /// the grid brings it.
+      /// </summary>
+      private void ShowRowInList_(RuleRow row)
+      {
+         RuleGrid.UpdateLayout();
+         ScrollViewer list = FirstScroller_(RuleGrid);
+         if (list != null && RuleGrid.Items.Count > 0 && ReferenceEquals(RuleGrid.Items[RuleGrid.Items.Count - 1], row))
+            list.ScrollToEnd();
+         else
+            RuleGrid.ScrollIntoView(row);
+      }
+
+      private static ScrollViewer FirstScroller_(DependencyObject root)
+      {
+         for (int i = 0; i < System.Windows.Media.VisualTreeHelper.GetChildrenCount(root); i++)
+         {
+            DependencyObject child = System.Windows.Media.VisualTreeHelper.GetChild(root, i);
+            if (child is ScrollViewer scroller)
+               return scroller;
+            ScrollViewer inner = FirstScroller_(child);
+            if (inner != null)
+               return inner;
+         }
+
+         return null;
       }
 
       private void MatchMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -554,7 +683,8 @@ namespace hMailServer.ControlPanel.Views
 
       private void AddCriterion_Click(object sender, RoutedEventArgs e)
       {
-         if (selectedRuleId_ == 0) { MessageBox.Show(L("Select a rule first."), L("Control Panel")); return; }
+         if (selectedRuleId_ == 0)
+            return;
          new RuleCriteriaDialog(Window.GetWindow(this), selectedRuleId_, 0, rulesProvider_).ShowDialog();
          RefreshDetails();
       }
@@ -598,7 +728,8 @@ namespace hMailServer.ControlPanel.Views
 
       private void AddAction_Click(object sender, RoutedEventArgs e)
       {
-         if (selectedRuleId_ == 0) { MessageBox.Show(L("Select a rule first."), L("Control Panel")); return; }
+         if (selectedRuleId_ == 0)
+            return;
          new RuleActionDialog(Window.GetWindow(this), selectedRuleId_, 0, rulesProvider_, serverLevel_).ShowDialog();
          RefreshDetails();
       }

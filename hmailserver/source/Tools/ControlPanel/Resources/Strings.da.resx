@@ -3986,6 +3986,9 @@ Afsenderen fik at vide, at den var accepteret, så intet forsøger igen, og der 
   <data name="Di_gest settings" xml:space="preserve">
     <value>Indstillinger for _oversigt</value>
   </data>
+  <data name="Di_sable" xml:space="preserve">
+    <value>D_eaktivér</value>
+  </data>
   <data name="Diagnosing stalled mail" xml:space="preserve">
     <value>Fejlfinding af post, der sidder fast</value>
   </data>
@@ -4363,8 +4366,8 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Empty, the default: single sign-on reaches the webmail only, and the Control Deck still asks for the administrator password." xml:space="preserve">
     <value>Tom, standarden: single sign-on når kun webmailen, og Control Deck beder stadig om administratoradgangskoden.</value>
   </data>
-  <data name="Ena_ble / disable" xml:space="preserve">
-    <value>Akti_vér / deaktivér</value>
+  <data name="Ena_ble" xml:space="preserve">
+    <value>Akti_vér</value>
   </data>
   <data name="Enable ClamAV or an external scanner, and choose what happens to an infected message." xml:space="preserve">
     <value>Aktivér ClamAV eller en ekstern scanner, og vælg, hvad der sker med en inficeret meddelelse.</value>
@@ -7126,6 +7129,9 @@ Intet, der allerede er der, fjernes.</value>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>Der er endnu ingen konti i dette domæne.</value>
   </data>
+  <data name="No actions yet, so this rule does nothing to the messages it matches." xml:space="preserve">
+    <value>Endnu ingen handlinger, så denne regel gør intet ved de meddelelser, den matcher.</value>
+  </data>
   <data name="No active account in an active domain matches “{0}”, so nobody would receive the message." xml:space="preserve">
     <value>Ingen aktiv konto i et aktivt domæne matcher »{0}«, så ingen ville modtage meddelelsen.</value>
   </data>
@@ -7203,6 +7209,9 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="No configuration warnings." xml:space="preserve">
     <value>Ingen konfigurationsadvarsler.</value>
+  </data>
+  <data name="No criteria yet, so this rule matches no message and does nothing." xml:space="preserve">
+    <value>Endnu ingen kriterier, så denne regel matcher ingen meddelelse og gør intet.</value>
   </data>
   <data name="No data yet" xml:space="preserve">
     <value>Ingen data endnu</value>
@@ -10564,8 +10573,11 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="Select a row first." xml:space="preserve">
     <value>Vælg en række først.</value>
   </data>
-  <data name="Select a rule first." xml:space="preserve">
-    <value>Vælg en regel først.</value>
+  <data name="Select a rule above to see what it does." xml:space="preserve">
+    <value>Vælg en regel ovenfor for at se, hvad den gør.</value>
+  </data>
+  <data name="Select a rule above to see which messages it matches." xml:space="preserve">
+    <value>Vælg en regel ovenfor for at se, hvilke meddelelser den matcher.</value>
   </data>
   <data name="Select a setting's change first." xml:space="preserve">
     <value>Vælg først en indstillings ændring.</value>
@@ -16331,6 +16343,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="{0} added to the group." xml:space="preserve">
     <value>{0} er føjet til gruppen.</value>
+  </data>
+  <data name="{0} added, switched off: give it its criteria and actions, then Enable switches it on." xml:space="preserve">
+    <value>{0} er tilføjet, slået fra: giv den kriterier og handlinger, og slå den så til med Aktivér.</value>
   </data>
   <data name="{0} added." xml:space="preserve">
     <value>{0} er tilføjet.</value>

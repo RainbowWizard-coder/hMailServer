@@ -3986,6 +3986,9 @@ Al remitente se le dijo que fue aceptado, así que nada lo reintentará y no hay
   <data name="Di_gest settings" xml:space="preserve">
     <value>Ajustes del _resumen</value>
   </data>
+  <data name="Di_sable" xml:space="preserve">
+    <value>De_sactivar</value>
+  </data>
   <data name="Diagnosing stalled mail" xml:space="preserve">
     <value>Diagnosticar correo atascado</value>
   </data>
@@ -4363,8 +4366,8 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Empty, the default: single sign-on reaches the webmail only, and the Control Deck still asks for the administrator password." xml:space="preserve">
     <value>Vacío, el valor predeterminado: el inicio de sesión único solo llega al webmail, y el Control Deck sigue pidiendo la contraseña de administrador.</value>
   </data>
-  <data name="Ena_ble / disable" xml:space="preserve">
-    <value>Acti_var / desactivar</value>
+  <data name="Ena_ble" xml:space="preserve">
+    <value>Acti_var</value>
   </data>
   <data name="Enable ClamAV or an external scanner, and choose what happens to an infected message." xml:space="preserve">
     <value>Activar ClamAV o un analizador externo, y elegir qué ocurre con un mensaje infectado.</value>
@@ -7126,6 +7129,9 @@ No se elimina nada de lo que ya está.</value>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>Todavía no hay cuentas en este dominio.</value>
   </data>
+  <data name="No actions yet, so this rule does nothing to the messages it matches." xml:space="preserve">
+    <value>Aún no hay acciones, así que esta regla no hace nada con los mensajes con los que coincide.</value>
+  </data>
   <data name="No active account in an active domain matches “{0}”, so nobody would receive the message." xml:space="preserve">
     <value>Ninguna cuenta activa de un dominio activo coincide con «{0}», así que nadie recibiría el mensaje.</value>
   </data>
@@ -7203,6 +7209,9 @@ No se elimina nada de lo que ya está.</value>
   </data>
   <data name="No configuration warnings." xml:space="preserve">
     <value>No hay advertencias de configuración.</value>
+  </data>
+  <data name="No criteria yet, so this rule matches no message and does nothing." xml:space="preserve">
+    <value>Aún no hay criterios, así que esta regla no coincide con ningún mensaje y no hace nada.</value>
   </data>
   <data name="No data yet" xml:space="preserve">
     <value>Todavía no hay datos</value>
@@ -10564,8 +10573,11 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Select a row first." xml:space="preserve">
     <value>Seleccione primero una fila.</value>
   </data>
-  <data name="Select a rule first." xml:space="preserve">
-    <value>Seleccione primero una regla.</value>
+  <data name="Select a rule above to see what it does." xml:space="preserve">
+    <value>Seleccione una regla arriba para ver qué hace.</value>
+  </data>
+  <data name="Select a rule above to see which messages it matches." xml:space="preserve">
+    <value>Seleccione una regla arriba para ver con qué mensajes coincide.</value>
   </data>
   <data name="Select a setting's change first." xml:space="preserve">
     <value>Seleccione primero el cambio de un ajuste.</value>
@@ -16331,6 +16343,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="{0} added to the group." xml:space="preserve">
     <value>Se añadió {0} al grupo.</value>
+  </data>
+  <data name="{0} added, switched off: give it its criteria and actions, then Enable switches it on." xml:space="preserve">
+    <value>Se añadió {0}, desactivada: dele sus criterios y acciones y después actívela con Activar.</value>
   </data>
   <data name="{0} added." xml:space="preserve">
     <value>Se añadió {0}.</value>

@@ -75,7 +75,9 @@
                     </StackPanel>
                     <ui:Button x:Name="MoveUpButton" Content="{loc:L 'Move _up'}" Click="MoveUp_Click" Margin="0,2,8,2" />
                     <ui:Button x:Name="MoveDownButton" Content="{loc:L 'Move _down'}" Click="MoveDown_Click" Margin="0,2,8,2" />
-                    <ui:Button x:Name="ToggleButton" Content="{loc:L 'Ena_ble / disable'}" Click="Toggle_Click" Margin="0,2,8,2" />
+                    <!-- Named for what it will do to the selected rule, Enable or Disable
+                         (RulesView.ShowToggle_), where "Enable / disable" never said which. -->
+                    <ui:Button x:Name="ToggleButton" Content="{loc:L 'Ena_ble'}" Click="Toggle_Click" Margin="0,2,8,2" />
                     <ui:Button x:Name="DeleteRuleButton" Content="{loc:L 'De_lete rule'}" Style="{StaticResource DangerTextButton}" Click="Delete_Click" Margin="0,2,0,2" />
                 </WrapPanel>
             </scaffold:Toolbar.Actions>
@@ -84,6 +86,11 @@
         <!-- A read that failed: Critical, with Try again, in place of the empty
              state, which would say there are no rules (Services/ReadFailure). -->
         <scaffold:InlineNotice x:Name="Notice" Visibility="Collapsed" />
+
+        <!-- What Add rule did: the new rule, switched off until it has its criteria
+             and actions (review finding F225). -->
+        <scaffold:InlineNotice x:Name="OutcomeNotice" Visibility="Collapsed"
+                               AutomationProperties.AutomationId="rules-outcome" />
 
         <!-- The floor: the column headers, three rows and a pixel for layout
              rounding, 136 (at 135 the grid rounded a device pixel short and
@@ -107,6 +114,20 @@
                               AutoGenerateColumns="False" IsReadOnly="True"
                               SelectionMode="Single" SelectionChanged="RuleGrid_SelectionChanged"
                               AutomationProperties.Name="{loc:L 'Rules'}">
+                        <!-- A switched-off rule's row in the secondary text colour, so that
+                             it reads apart from the rest at a glance, where "No" in the last
+                             column was all that told it; the colour, not a faded row, which
+                             made the words the page's least legible (review findings F225
+                             and F051). On the cells, which set their own foreground. -->
+                        <DataGrid.CellStyle>
+                            <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsActive}" Value="False">
+                                        <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.CellStyle>
                         <DataGrid.Columns>
                             <!-- A floor under every column, so that a narrow window scrolls
                                  the grid sideways rather than squeezing the name, the one
@@ -170,16 +191,26 @@
                          that came and went with the vertical one, as a fraction of
                          a pixel decided, kept the page's layout from ever settling
                          at 175 % in the narrowest window. -->
-                    <DataGrid x:Name="CriteriaGrid" scaffold:FillPanel.Fill="True" MinHeight="103"
-                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                              AutoGenerateColumns="False" IsReadOnly="True"
-                              HeadersVisibility="None"
-                              SelectionMode="Single"
-                              AutomationProperties.Name="{loc:L 'IF'}">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Binding="{Binding Description}" Width="*" MinWidth="160" ElementStyle="{StaticResource GridTrimmedText}" />
-                        </DataGrid.Columns>
-                    </DataGrid>
+                    <!-- What an empty list means laid over it: no rule selected, or a rule
+                         with no criteria, which matches no message (RuleApplier: with none
+                         to meet, a rule's actions never run) - the card was blank either
+                         way (review finding F225). -->
+                    <Grid scaffold:FillPanel.Fill="True">
+                        <scaffold:FillPanel>
+                            <DataGrid x:Name="CriteriaGrid" scaffold:FillPanel.Fill="True" MinHeight="103"
+                                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                      AutoGenerateColumns="False" IsReadOnly="True"
+                                      HeadersVisibility="None"
+                                      SelectionMode="Single"
+                                      AutomationProperties.Name="{loc:L 'IF'}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Binding="{Binding Description}" Width="*" MinWidth="160" ElementStyle="{StaticResource GridTrimmedText}" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </scaffold:FillPanel>
+                        <scaffold:EmptyState x:Name="CriteriaEmpty" Padding="12" Visibility="Collapsed"
+                                             AutomationProperties.AutomationId="rules-criteria-empty" />
+                    </Grid>
                 </scaffold:FillPanel>
                 <scaffold:Card.Footer>
                     <WrapPanel Orientation="Horizontal">
@@ -198,16 +229,22 @@
                     <!-- The floor: three rows of 34 pixels and a pixel for layout
                          rounding. One column, as the
                          criteria's, so no sideways scrolling either. -->
-                    <DataGrid x:Name="ActionsGrid" scaffold:FillPanel.Fill="True" MinHeight="103"
-                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                              AutoGenerateColumns="False" IsReadOnly="True"
-                              HeadersVisibility="None"
-                              SelectionMode="Single"
-                              AutomationProperties.Name="{loc:L 'THEN'}">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Binding="{Binding Description}" Width="*" MinWidth="160" ElementStyle="{StaticResource GridTrimmedText}" />
-                        </DataGrid.Columns>
-                    </DataGrid>
+                    <Grid scaffold:FillPanel.Fill="True">
+                        <scaffold:FillPanel>
+                            <DataGrid x:Name="ActionsGrid" scaffold:FillPanel.Fill="True" MinHeight="103"
+                                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                      AutoGenerateColumns="False" IsReadOnly="True"
+                                      HeadersVisibility="None"
+                                      SelectionMode="Single"
+                                      AutomationProperties.Name="{loc:L 'THEN'}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Binding="{Binding Description}" Width="*" MinWidth="160" ElementStyle="{StaticResource GridTrimmedText}" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </scaffold:FillPanel>
+                        <scaffold:EmptyState x:Name="ActionsEmpty" Padding="12" Visibility="Collapsed"
+                                             AutomationProperties.AutomationId="rules-actions-empty" />
+                    </Grid>
                 </scaffold:FillPanel>
                 <scaffold:Card.Footer>
                     <!-- The captioned buttons in a WrapPanel, not a StackPanel, which clips

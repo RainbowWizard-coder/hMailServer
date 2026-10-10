@@ -3986,6 +3986,9 @@ Lähettäjälle kerrottiin, että se hyväksyttiin, joten mikään ei yritä uud
   <data name="Di_gest settings" xml:space="preserve">
     <value>_Koosteen asetukset</value>
   </data>
+  <data name="Di_sable" xml:space="preserve">
+    <value>Poista k_äytöstä</value>
+  </data>
   <data name="Diagnosing stalled mail" xml:space="preserve">
     <value>Jumiin jääneen postin diagnosointi</value>
   </data>
@@ -4363,8 +4366,8 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Empty, the default: single sign-on reaches the webmail only, and the Control Deck still asks for the administrator password." xml:space="preserve">
     <value>Tyhjä, oletus: kertakirjautuminen ulottuu vain verkkopostiin, ja Control Deck kysyy yhä ylläpitäjän salasanaa.</value>
   </data>
-  <data name="Ena_ble / disable" xml:space="preserve">
-    <value>_Ota käyttöön / poista käytöstä</value>
+  <data name="Ena_ble" xml:space="preserve">
+    <value>_Ota käyttöön</value>
   </data>
   <data name="Enable ClamAV or an external scanner, and choose what happens to an infected message." xml:space="preserve">
     <value>Ota ClamAV tai ulkoinen tarkistin käyttöön ja valitse, mitä tartunnan saaneelle viestille tapahtuu.</value>
@@ -7126,6 +7129,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>Tässä verkkotunnuksessa ei ole vielä tilejä.</value>
   </data>
+  <data name="No actions yet, so this rule does nothing to the messages it matches." xml:space="preserve">
+    <value>Ei vielä toimintoja, joten tämä sääntö ei tee mitään viesteille, joita se vastaa.</value>
+  </data>
   <data name="No active account in an active domain matches “{0}”, so nobody would receive the message." xml:space="preserve">
     <value>Mikään aktiivisen verkkotunnuksen aktiivinen tili ei vastaa lauseketta ”{0}”, joten kukaan ei saisi viestiä.</value>
   </data>
@@ -7203,6 +7209,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="No configuration warnings." xml:space="preserve">
     <value>Ei määritysvaroituksia.</value>
+  </data>
+  <data name="No criteria yet, so this rule matches no message and does nothing." xml:space="preserve">
+    <value>Ei vielä ehtoja, joten tämä sääntö ei vastaa mitään viestiä eikä tee mitään.</value>
   </data>
   <data name="No data yet" xml:space="preserve">
     <value>Ei vielä tietoja</value>
@@ -10564,8 +10573,11 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Select a row first." xml:space="preserve">
     <value>Valitse ensin rivi.</value>
   </data>
-  <data name="Select a rule first." xml:space="preserve">
-    <value>Valitse ensin sääntö.</value>
+  <data name="Select a rule above to see what it does." xml:space="preserve">
+    <value>Valitse sääntö yltä nähdäksesi, mitä se tekee.</value>
+  </data>
+  <data name="Select a rule above to see which messages it matches." xml:space="preserve">
+    <value>Valitse sääntö yltä nähdäksesi, mitä viestejä se vastaa.</value>
   </data>
   <data name="Select a setting's change first." xml:space="preserve">
     <value>Valitse ensin asetuksen muutos.</value>
@@ -16331,6 +16343,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} added to the group." xml:space="preserve">
     <value>{0} lisätty ryhmään.</value>
+  </data>
+  <data name="{0} added, switched off: give it its criteria and actions, then Enable switches it on." xml:space="preserve">
+    <value>{0} lisätty pois käytöstä: anna sille ehdot ja toiminnot ja ota se sitten käyttöön painikkeella Ota käyttöön.</value>
   </data>
   <data name="{0} added." xml:space="preserve">
     <value>{0} lisätty.</value>

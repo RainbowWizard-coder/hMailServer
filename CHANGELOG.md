@@ -2709,6 +2709,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   or the service restarted; Restore defaults, which replaces every port, still asks. The form is on two lines where
   one line would leave its boxes too narrow. `PortChangesTests` holds the rules, the words and the page's wiring.
 
+- **Fixed: a rule added on the Rules page was not selected and started switched on, Add criterion… and Add action…
+  answered a press with no rule in a message box, and the IF and THEN cards were blank.** The reload after Add rule
+  cleared the selection, so the new rule - the list's last row, often out of view - had to be found and clicked; the
+  two Add buttons were live with no rule selected and said "Select a rule first."; with no rule, and with a rule that
+  had no criteria or actions, both cards were empty and said nothing; a new rule was live before it had its criteria
+  and actions; "Enable / disable" never said which it would do; and a switched-off rule differed only by "No" in its
+  last column. A new rule is now selected and in view with the keyboard on Add criterion…, starts switched off, and
+  the page says so ("Spam to junk added, switched off: give it its criteria and actions, then Enable switches it
+  on."); the two Add buttons and the match list wait for a rule; each card says what its emptiness means - choose a
+  rule above, or that a rule with no criteria matches no message (the server runs a rule's actions only once a
+  criterion is met) and one with no actions does nothing; the switch reads Enable or Disable for the selected rule;
+  and a switched-off rule's row is in the secondary text colour. `RuleCardsTests` holds the words, the add, the gate,
+  the switch, the cards and the row's colour.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

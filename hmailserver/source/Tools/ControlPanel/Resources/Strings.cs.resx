@@ -4035,6 +4035,9 @@ Odesílateli bylo řečeno, že byla přijata, takže nic ji nezopakuje a jiná 
   <data name="Di_gest settings" xml:space="preserve">
     <value>Nastavení souh_rnu</value>
   </data>
+  <data name="Di_sable" xml:space="preserve">
+    <value>_Zakázat</value>
+  </data>
   <data name="Diagnosing stalled mail" xml:space="preserve">
     <value>Diagnostika uvázlé pošty</value>
   </data>
@@ -4412,8 +4415,8 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Empty, the default: single sign-on reaches the webmail only, and the Control Deck still asks for the administrator password." xml:space="preserve">
     <value>Prázdné, výchozí: jednotné přihlašování dosáhne jen do webové pošty a Control Deck se dál ptá na heslo správce.</value>
   </data>
-  <data name="Ena_ble / disable" xml:space="preserve">
-    <value>Povolit / zakázat (_E)</value>
+  <data name="Ena_ble" xml:space="preserve">
+    <value>Povoli_t</value>
   </data>
   <data name="Enable ClamAV or an external scanner, and choose what happens to an infected message." xml:space="preserve">
     <value>Povolte ClamAV nebo externí skener a zvolte, co se stane s infikovanou zprávou.</value>
@@ -7202,6 +7205,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>V této doméně zatím nejsou žádné účty.</value>
   </data>
+  <data name="No actions yet, so this rule does nothing to the messages it matches." xml:space="preserve">
+    <value>Zatím žádné akce, takže toto pravidlo se zprávami, kterým odpovídá, nic nedělá.</value>
+  </data>
   <data name="No active account in an active domain matches “{0}”, so nobody would receive the message." xml:space="preserve">
     <value>Výrazu „{0}“ neodpovídá žádný aktivní účet v aktivní doméně, takže by zprávu nikdo nedostal.</value>
   </data>
@@ -7279,6 +7285,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="No configuration warnings." xml:space="preserve">
     <value>Žádná varování ke konfiguraci.</value>
+  </data>
+  <data name="No criteria yet, so this rule matches no message and does nothing." xml:space="preserve">
+    <value>Zatím žádná kritéria, takže toto pravidlo neodpovídá žádné zprávě a nic nedělá.</value>
   </data>
   <data name="No data yet" xml:space="preserve">
     <value>Zatím žádná data</value>
@@ -10688,8 +10697,11 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Select a row first." xml:space="preserve">
     <value>Nejprve vyberte řádek.</value>
   </data>
-  <data name="Select a rule first." xml:space="preserve">
-    <value>Nejprve vyberte pravidlo.</value>
+  <data name="Select a rule above to see what it does." xml:space="preserve">
+    <value>Vyberte výše pravidlo a uvidíte, co dělá.</value>
+  </data>
+  <data name="Select a rule above to see which messages it matches." xml:space="preserve">
+    <value>Vyberte výše pravidlo a uvidíte, kterým zprávám odpovídá.</value>
   </data>
   <data name="Select a setting's change first." xml:space="preserve">
     <value>Nejprve vyberte změnu nastavení.</value>
@@ -16554,6 +16566,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} added to the group." xml:space="preserve">
     <value>Přidáno do skupiny: {0}.</value>
+  </data>
+  <data name="{0} added, switched off: give it its criteria and actions, then Enable switches it on." xml:space="preserve">
+    <value>Pravidlo {0} bylo přidáno vypnuté: přidejte mu kritéria a akce a pak je tlačítkem Povolit zapněte.</value>
   </data>
   <data name="{0} added." xml:space="preserve">
     <value>Přidáno: {0}.</value>

@@ -3986,6 +3986,9 @@ Avsändaren fick veta att det accepterades, så inget kommer att försöka igen 
   <data name="Di_gest settings" xml:space="preserve">
     <value>Inställningar för sa_mmanfattning</value>
   </data>
+  <data name="Di_sable" xml:space="preserve">
+    <value>Inakti_vera</value>
+  </data>
   <data name="Diagnosing stalled mail" xml:space="preserve">
     <value>Diagnos av post som fastnat</value>
   </data>
@@ -4363,8 +4366,8 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Empty, the default: single sign-on reaches the webmail only, and the Control Deck still asks for the administrator password." xml:space="preserve">
     <value>Tomt, standard: enkel inloggning når bara webbmejlen, och Control Deck frågar fortfarande efter administratörslösenordet.</value>
   </data>
-  <data name="Ena_ble / disable" xml:space="preserve">
-    <value>_Aktivera / inaktivera</value>
+  <data name="Ena_ble" xml:space="preserve">
+    <value>_Aktivera</value>
   </data>
   <data name="Enable ClamAV or an external scanner, and choose what happens to an infected message." xml:space="preserve">
     <value>Aktivera ClamAV eller en extern skanner, och välj vad som händer med ett infekterat meddelande.</value>
@@ -7126,6 +7129,9 @@ Inget som redan finns där tas bort.</value>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>Inga konton i den här domänen än.</value>
   </data>
+  <data name="No actions yet, so this rule does nothing to the messages it matches." xml:space="preserve">
+    <value>Inga åtgärder ännu, så den här regeln gör ingenting med meddelandena den matchar.</value>
+  </data>
   <data name="No active account in an active domain matches “{0}”, so nobody would receive the message." xml:space="preserve">
     <value>Inget aktivt konto i en aktiv domän matchar ”{0}”, så ingen skulle få meddelandet.</value>
   </data>
@@ -7203,6 +7209,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="No configuration warnings." xml:space="preserve">
     <value>Inga konfigurationsvarningar.</value>
+  </data>
+  <data name="No criteria yet, so this rule matches no message and does nothing." xml:space="preserve">
+    <value>Inga kriterier ännu, så den här regeln matchar inget meddelande och gör ingenting.</value>
   </data>
   <data name="No data yet" xml:space="preserve">
     <value>Inga data ännu</value>
@@ -10564,8 +10573,11 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Select a row first." xml:space="preserve">
     <value>Välj en rad först.</value>
   </data>
-  <data name="Select a rule first." xml:space="preserve">
-    <value>Välj en regel först.</value>
+  <data name="Select a rule above to see what it does." xml:space="preserve">
+    <value>Markera en regel ovan för att se vad den gör.</value>
+  </data>
+  <data name="Select a rule above to see which messages it matches." xml:space="preserve">
+    <value>Markera en regel ovan för att se vilka meddelanden den matchar.</value>
   </data>
   <data name="Select a setting's change first." xml:space="preserve">
     <value>Välj en inställnings ändring först.</value>
@@ -16331,6 +16343,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} added to the group." xml:space="preserve">
     <value>{0} har lagts till i gruppen.</value>
+  </data>
+  <data name="{0} added, switched off: give it its criteria and actions, then Enable switches it on." xml:space="preserve">
+    <value>{0} har lagts till, avstängd: ge den kriterier och åtgärder, och slå sedan på den med Aktivera.</value>
   </data>
   <data name="{0} added." xml:space="preserve">
     <value>{0} har lagts till.</value>

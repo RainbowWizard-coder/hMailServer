@@ -3986,6 +3986,9 @@ De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert 
   <data name="Di_gest settings" xml:space="preserve">
     <value>_Overzichtsinstellingen</value>
   </data>
+  <data name="Di_sable" xml:space="preserve">
+    <value>_Uitschakelen</value>
+  </data>
   <data name="Diagnosing stalled mail" xml:space="preserve">
     <value>Vastgelopen mail diagnosticeren</value>
   </data>
@@ -4363,8 +4366,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Empty, the default: single sign-on reaches the webmail only, and the Control Deck still asks for the administrator password." xml:space="preserve">
     <value>Leeg, de standaard: single sign-on bereikt alleen de webmail, en het Control Deck vraagt nog steeds om het beheerderswachtwoord.</value>
   </data>
-  <data name="Ena_ble / disable" xml:space="preserve">
-    <value>_In-/uitschakelen</value>
+  <data name="Ena_ble" xml:space="preserve">
+    <value>In_schakelen</value>
   </data>
   <data name="Enable ClamAV or an external scanner, and choose what happens to an infected message." xml:space="preserve">
     <value>Schakel ClamAV of een externe scanner in en kies wat er met een geïnfecteerd bericht gebeurt.</value>
@@ -7126,6 +7129,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>Nog geen accounts in dit domein.</value>
   </data>
+  <data name="No actions yet, so this rule does nothing to the messages it matches." xml:space="preserve">
+    <value>Nog geen acties, dus deze regel doet niets met de berichten waarmee hij overeenkomt.</value>
+  </data>
   <data name="No active account in an active domain matches “{0}”, so nobody would receive the message." xml:space="preserve">
     <value>Geen actief account in een actief domein komt overeen met ‘{0}’, dus niemand zou het bericht ontvangen.</value>
   </data>
@@ -7203,6 +7209,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="No configuration warnings." xml:space="preserve">
     <value>Geen configuratiewaarschuwingen.</value>
+  </data>
+  <data name="No criteria yet, so this rule matches no message and does nothing." xml:space="preserve">
+    <value>Nog geen criteria, dus deze regel komt met geen enkel bericht overeen en doet niets.</value>
   </data>
   <data name="No data yet" xml:space="preserve">
     <value>Nog geen gegevens</value>
@@ -10564,8 +10573,11 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Select a row first." xml:space="preserve">
     <value>Selecteer eerst een rij.</value>
   </data>
-  <data name="Select a rule first." xml:space="preserve">
-    <value>Selecteer eerst een regel.</value>
+  <data name="Select a rule above to see what it does." xml:space="preserve">
+    <value>Selecteer hierboven een regel om te zien wat hij doet.</value>
+  </data>
+  <data name="Select a rule above to see which messages it matches." xml:space="preserve">
+    <value>Selecteer hierboven een regel om te zien met welke berichten hij overeenkomt.</value>
   </data>
   <data name="Select a setting's change first." xml:space="preserve">
     <value>Selecteer eerst de wijziging van een instelling.</value>
@@ -16331,6 +16343,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} added to the group." xml:space="preserve">
     <value>{0} aan de groep toegevoegd.</value>
+  </data>
+  <data name="{0} added, switched off: give it its criteria and actions, then Enable switches it on." xml:space="preserve">
+    <value>{0} toegevoegd, uitgeschakeld: geef de regel zijn criteria en acties en schakel hem daarna in met Inschakelen.</value>
   </data>
   <data name="{0} added." xml:space="preserve">
     <value>{0} toegevoegd.</value>

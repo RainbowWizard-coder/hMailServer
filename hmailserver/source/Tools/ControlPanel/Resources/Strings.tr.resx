@@ -3986,6 +3986,9 @@ Gönderene kabul edildiği söylendi; bu nedenle hiçbir şey yeniden denemeyece
   <data name="Di_gest settings" xml:space="preserve">
     <value>_Özet ayarları</value>
   </data>
+  <data name="Di_sable" xml:space="preserve">
+    <value>De_vre dışı bırak</value>
+  </data>
   <data name="Diagnosing stalled mail" xml:space="preserve">
     <value>Takılan postayı tanılama</value>
   </data>
@@ -4363,8 +4366,8 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Empty, the default: single sign-on reaches the webmail only, and the Control Deck still asks for the administrator password." xml:space="preserve">
     <value>Boş, varsayılan: çoklu oturum açma yalnızca web postası içindir ve Control Deck yönetici parolasını istemeyi sürdürür.</value>
   </data>
-  <data name="Ena_ble / disable" xml:space="preserve">
-    <value>_Etkinleştir / devre dışı bırak</value>
+  <data name="Ena_ble" xml:space="preserve">
+    <value>_Etkinleştir</value>
   </data>
   <data name="Enable ClamAV or an external scanner, and choose what happens to an infected message." xml:space="preserve">
     <value>ClamAV'yi veya dış bir tarayıcıyı etkinleştirin ve virüslü bir iletiye ne olacağını seçin.</value>
@@ -7126,6 +7129,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>Bu etki alanında henüz hesap yok.</value>
   </data>
+  <data name="No actions yet, so this rule does nothing to the messages it matches." xml:space="preserve">
+    <value>Henüz eylem yok, bu yüzden bu kural eşleştiği iletilere hiçbir şey yapmaz.</value>
+  </data>
   <data name="No active account in an active domain matches “{0}”, so nobody would receive the message." xml:space="preserve">
     <value>Etkin bir etki alanında “{0}” ile eşleşen etkin bir hesap yok; bu yüzden iletiyi kimse almaz.</value>
   </data>
@@ -7203,6 +7209,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="No configuration warnings." xml:space="preserve">
     <value>Yapılandırma uyarısı yok.</value>
+  </data>
+  <data name="No criteria yet, so this rule matches no message and does nothing." xml:space="preserve">
+    <value>Henüz ölçüt yok, bu yüzden bu kural hiçbir iletiyle eşleşmez ve hiçbir şey yapmaz.</value>
   </data>
   <data name="No data yet" xml:space="preserve">
     <value>Henüz veri yok</value>
@@ -10564,8 +10573,11 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Select a row first." xml:space="preserve">
     <value>Önce bir satır seçin.</value>
   </data>
-  <data name="Select a rule first." xml:space="preserve">
-    <value>Önce bir kural seçin.</value>
+  <data name="Select a rule above to see what it does." xml:space="preserve">
+    <value>Ne yaptığını görmek için yukarıdan bir kural seçin.</value>
+  </data>
+  <data name="Select a rule above to see which messages it matches." xml:space="preserve">
+    <value>Hangi iletilerle eşleştiğini görmek için yukarıdan bir kural seçin.</value>
   </data>
   <data name="Select a setting's change first." xml:space="preserve">
     <value>Önce bir ayarın değişikliğini seçin.</value>
@@ -16331,6 +16343,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0} added to the group." xml:space="preserve">
     <value>{0} gruba eklendi.</value>
+  </data>
+  <data name="{0} added, switched off: give it its criteria and actions, then Enable switches it on." xml:space="preserve">
+    <value>{0} kapalı olarak eklendi: ona ölçütlerini ve eylemlerini verin, ardından Etkinleştir ile açın.</value>
   </data>
   <data name="{0} added." xml:space="preserve">
     <value>{0} eklendi.</value>
