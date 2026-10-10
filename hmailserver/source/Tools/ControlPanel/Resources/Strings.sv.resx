@@ -7228,6 +7228,9 @@ Inget som redan finns där tas bort.</value>
   <data name="No SURBL servers, so the links in a message body are not looked up in any list." xml:space="preserve">
     <value>Inga SURBL-servrar, så länkarna i ett meddelandes brödtext slås inte upp i någon lista.</value>
   </data>
+  <data name="No TCP/IP port presents this certificate." xml:space="preserve">
+    <value>Ingen TCP/IP-port presenterar det här certifikatet.</value>
+  </data>
   <data name="No TLS version is enabled anywhere on this server, so no handshake on this port can succeed." xml:space="preserve">
     <value>Ingen TLS-version är aktiverad någonstans på den här servern, så ingen handskakning på den här porten kan lyckas.</value>
   </data>
@@ -12003,6 +12006,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="The TCP/IP port list could not be read: {0}" xml:space="preserve">
     <value>Listan över TCP/IP-portar kunde inte läsas: {0}</value>
   </data>
+  <data name="The TCP/IP ports could not be read, so which of them present this certificate is not known." xml:space="preserve">
+    <value>TCP/IP-portarna kunde inte läsas, så det är inte känt vilka av dem som presenterar det här certifikatet.</value>
+  </data>
   <data name="The TCP/IP ports that present it read its files again when the server is next reinitialised." xml:space="preserve">
     <value>TCP/IP-portarna som presenterar det läser dess filer igen nästa gång servern ominitieras.</value>
   </data>
@@ -13380,6 +13386,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="There is only one step, at 2. From 3 upwards (the default is 9) every enabled category is logged in full. At 2 or lower the server drops IMAP FETCH and STATUS responses from the log and shortens lines longer than the limit below to their first and last characters. Turning on Debug messages above restores full detail whatever the level." xml:space="preserve">
     <value>Det finns bara ett steg, vid 2. Från 3 och uppåt (standard är 9) loggas varje aktiverad kategori i sin helhet. Vid 2 eller lägre utelämnar servern IMAP FETCH- och STATUS-svar från loggen och förkortar rader längre än gränsen nedan till deras första och sista tecken. Att slå på Felsökningsmeddelanden ovan återställer full detalj oavsett nivå.</value>
+  </data>
+  <data name="These TCP/IP ports present this certificate to the clients that connect to them." xml:space="preserve">
+    <value>De här TCP/IP-portarna presenterar det här certifikatet för klienterna som ansluter till dem.</value>
   </data>
   <data name="These are counts of the first {0} accounts only; this page stops there rather than making you wait for the rest." xml:space="preserve">
     <value>Detta är antal för bara de första {0} kontona; den här sidan stannar där i stället för att låta dig vänta på resten.</value>

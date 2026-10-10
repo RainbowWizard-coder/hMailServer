@@ -181,6 +181,65 @@ namespace hMailServer.ControlPanel.Tests.Services
             Assert.True(Share(column) < name, "The name's share is not the largest.");
       }
 
+      /// <summary>
+      /// Six columns in 921 pixels at 1280 by 800 left the two file columns 113 pixels,
+      /// and their headers were cut in twelve languages - "Private Schlüss...", whole in
+      /// German before the columns were narrowed (the skeptic's review of F235 and F236).
+      /// The grid's headers wrap at their spaces, whole in their tool tips, and the file
+      /// columns' floors hold the widest word of their headers in any language: Dutch
+      /// Privésleutelbestand, 106 pixels in the headers' 12-pixel semibold, inside the
+      /// header's padding of 10 a side and the room of its sort mark.
+      /// </summary>
+      [Fact]
+      public void TheGridsHeaders_WrapAtTheirSpaces_AndTheFileColumnsHoldTheirWidestWord()
+      {
+         XElement page = XElement.Parse(Read("SslCertificatesView.xaml"));
+         XElement grid = Named(page, "CertGrid");
+         Assert.Equal("{StaticResource CertificateGridHeader}", (string)grid.Attribute("ColumnHeaderStyle"));
+
+         XElement style = page.Descendants().FirstOrDefault(e => e.Name.LocalName == "Style" && (string)e.Attribute(X + "Key") == "CertificateGridHeader");
+         Assert.True(style != null, "SslCertificatesView.xaml has no style CertificateGridHeader.");
+         Assert.Equal("{StaticResource {x:Type DataGridColumnHeader}}", (string)style.Attribute("BasedOn"));
+         XElement text = style.Descendants().Single(e => e.Name.LocalName == "TextBlock");
+         Assert.Equal("WrapWithOverflow", (string)text.Attribute("TextWrapping"));
+         Assert.Equal("CharacterEllipsis", (string)text.Attribute("TextTrimming"));
+         Assert.Equal("{Binding}", (string)text.Attribute("ToolTip"));
+
+         foreach (string header in new[] { "Certificate file", "Private key file" })
+         {
+            XElement column = grid.Descendants().Single(e => (string)e.Attribute("Header") == "{loc:L '" + header + "'}");
+            double floor = double.Parse((string)column.Attribute("MinWidth"), System.Globalization.CultureInfo.InvariantCulture);
+            Assert.True(floor >= 128, "The " + header + " column's floor, " + floor + ", is narrower than the widest word of its header in some language.");
+         }
+
+         // Used by's floor holds Ukrainian використовується, 102 pixels, whole on one line
+         // before its share was cut; and a header of two lines takes no row from the
+         // grid's floor of four, where three certificates scrolled in the grid.
+         XElement usedBy = grid.Descendants().Single(e => (string)e.Attribute("Header") == "{loc:L 'Used by'}");
+         Assert.True(double.Parse((string)usedBy.Attribute("MinWidth"), System.Globalization.CultureInfo.InvariantCulture) >= 124,
+            "The Used by column's floor is narrower than the widest word of its header in some language.");
+         Assert.Equal("186", (string)grid.Attribute("MinHeight"));
+
+         // Every column but the name reaches its floor at one width - its floor is 160
+         // times its share - and the name's at a narrower one: the grid gives star columns
+         // their floors in one pass and shares out the rest without looking again, and
+         // takes the width of its scroll bar from its star columns in proportion without
+         // passing on what a column at its floor cannot give, so that a column left just
+         // above its floor made the columns overrun the grid by 3 or 4 pixels at 1280 by
+         // 800, and it scrolled sideways.
+         var columns = grid.Descendants().Where(e => e.Name.LocalName is "DataGridTextColumn" or "DataGridTemplateColumn").ToList();
+         double Number(string text) => double.Parse(text, System.Globalization.CultureInfo.InvariantCulture);
+         double Ratio(XElement column)
+         {
+            string width = (string)column.Attribute("Width");
+            return Number((string)column.Attribute("MinWidth")) / (width == "*" ? 1 : Number(width.TrimEnd('*')));
+         }
+
+         foreach (XElement column in columns.Skip(1))
+            Assert.True(Math.Abs(Ratio(column) - 160) < 0.5, (string)column.Attribute("Header") + "'s floor is " + Ratio(column) + " times its share, not 160.");
+         Assert.True(Ratio(columns[0]) < 160, "The name reaches its floor no narrower than the other columns.");
+      }
+
       private static XElement Named(XElement root, string name)
       {
          XElement found = root.DescendantsAndSelf().FirstOrDefault(e => (string)e.Attribute(X + "Name") == name);

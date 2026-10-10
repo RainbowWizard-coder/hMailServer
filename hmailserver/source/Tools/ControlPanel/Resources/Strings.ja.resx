@@ -7228,6 +7228,9 @@
   <data name="No SURBL servers, so the links in a message body are not looked up in any list." xml:space="preserve">
     <value>SURBL サーバーがないため、メッセージ本文のリンクはどのリストでも照会されません。</value>
   </data>
+  <data name="No TCP/IP port presents this certificate." xml:space="preserve">
+    <value>この証明書を提示している TCP/IP ポートはありません。</value>
+  </data>
   <data name="No TLS version is enabled anywhere on this server, so no handshake on this port can succeed." xml:space="preserve">
     <value>このサーバーのどこにも TLS バージョンが有効になっていないため、このポートでのハンドシェイクは成功しません。</value>
   </data>
@@ -12003,6 +12006,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The TCP/IP port list could not be read: {0}" xml:space="preserve">
     <value>TCP/IP ポート一覧を読み取れませんでした: {0}</value>
   </data>
+  <data name="The TCP/IP ports could not be read, so which of them present this certificate is not known." xml:space="preserve">
+    <value>TCP/IP ポートを読み取れなかったため、どのポートがこの証明書を提示しているかは不明です。</value>
+  </data>
   <data name="The TCP/IP ports that present it read its files again when the server is next reinitialised." xml:space="preserve">
     <value>これを提示している TCP/IP ポートは、次にサーバーが再初期化されたときにそのファイルを読み直します。</value>
   </data>
@@ -13380,6 +13386,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="There is only one step, at 2. From 3 upwards (the default is 9) every enabled category is logged in full. At 2 or lower the server drops IMAP FETCH and STATUS responses from the log and shortens lines longer than the limit below to their first and last characters. Turning on Debug messages above restores full detail whatever the level." xml:space="preserve">
     <value>段階は 2 の位置に 1 つだけあります。3 以上 (既定は 9) では、有効なカテゴリすべてが完全に記録されます。2 以下では、サーバーは IMAP FETCH と STATUS の応答をログから省き、下の制限より長い行を先頭と末尾の文字に短縮します。上の「デバッグ メッセージ」をオンにすると、レベルに関係なく完全な詳細が復元されます。</value>
+  </data>
+  <data name="These TCP/IP ports present this certificate to the clients that connect to them." xml:space="preserve">
+    <value>これらの TCP/IP ポートが、接続してくるクライアントにこの証明書を提示します。</value>
   </data>
   <data name="These are counts of the first {0} accounts only; this page stops there rather than making you wait for the rest." xml:space="preserve">
     <value>これは先頭 {0} 件のアカウントのみを数えた結果です。このページは残りを待たせるのではなく、そこで打ち切ります。</value>

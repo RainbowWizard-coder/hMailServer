@@ -33,6 +33,43 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal("Not known", CertificateRows.UsedBy(null));
       }
 
+      /// <summary>
+      /// The Used by column cut a certificate's three ports to "SMTP 587, SMTP 4..." at
+      /// 1280 by 800, the whole list in a tool tip the keyboard never reaches, and the
+      /// details card did not name them (the skeptic's review of F235). The card says
+      /// them whole, at Normal, with what they do - or that none does and how one does,
+      /// or, at Information, that the ports could not be read - between the key's match
+      /// and the passphrase, whose editor follows its line.
+      /// </summary>
+      [Fact]
+      public void TheDetailsCard_SaysThePortsWhole()
+      {
+         (StatusLevel level, string word, string detail) = CertificateRows.UsedByLine(new List<string> { "SMTP 587", "SMTP 465", "IMAP 993" });
+         Assert.Equal(StatusLevel.Normal, level);
+         Assert.Equal("SMTP 587, SMTP 465, IMAP 993", word);
+         Assert.Equal("These TCP/IP ports present this certificate to the clients that connect to them.", detail);
+
+         (level, word, detail) = CertificateRows.UsedByLine(new List<string>());
+         Assert.Equal(StatusLevel.Normal, level);
+         Assert.Equal("Not used", word);
+         Assert.Equal("No TCP/IP port presents this certificate. Choose it for a port on the TCP/IP ports page to use it.", detail);
+
+         (level, word, detail) = CertificateRows.UsedByLine(null);
+         Assert.Equal(StatusLevel.Information, level);
+         Assert.Equal("Not known", word);
+         Assert.Equal("The TCP/IP ports could not be read, so which of them present this certificate is not known.", detail);
+
+         string page = Read("SslCertificatesView.xaml.cs");
+         if (page == null)
+            return;
+
+         Assert.Contains("row.UsedByLine = new CertificateFinding(usedLevel, usedWord, usedDetail);", page, StringComparison.Ordinal);
+         int pair = page.IndexOf("DetailLine(L(\"Key matches certificate\"), health.Pair)", StringComparison.Ordinal);
+         int used = page.IndexOf("DetailLine(L(\"Used by\"), row.UsedByLine)", StringComparison.Ordinal);
+         int passphrase = page.IndexOf("DetailLine(L(\"Passphrase\"), row.PassphraseLine)", StringComparison.Ordinal);
+         Assert.True(pair > 0 && used > pair && passphrase > used, "The details card does not say Used by between the key's match and the passphrase.");
+      }
+
       [Fact]
       public void TheCertificateColumn_SortsTheMostUrgentFirst_ThenTheSoonestToExpire()
       {

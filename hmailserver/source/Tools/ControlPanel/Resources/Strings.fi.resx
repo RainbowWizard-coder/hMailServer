@@ -7228,6 +7228,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="No SURBL servers, so the links in a message body are not looked up in any list." xml:space="preserve">
     <value>Ei SURBL-palvelimia, joten viestin rungon linkkejä ei haeta mistään listasta.</value>
   </data>
+  <data name="No TCP/IP port presents this certificate." xml:space="preserve">
+    <value>Mikään TCP/IP-portti ei esitä tätä varmennetta.</value>
+  </data>
   <data name="No TLS version is enabled anywhere on this server, so no handshake on this port can succeed." xml:space="preserve">
     <value>Yhtään TLS-versiota ei ole otettu käyttöön missään tällä palvelimella, joten yksikään kättely tässä portissa ei voi onnistua.</value>
   </data>
@@ -12003,6 +12006,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="The TCP/IP port list could not be read: {0}" xml:space="preserve">
     <value>TCP/IP-porttiluetteloa ei voitu lukea: {0}</value>
   </data>
+  <data name="The TCP/IP ports could not be read, so which of them present this certificate is not known." xml:space="preserve">
+    <value>TCP/IP-portteja ei voitu lukea, joten ei tiedetä, mitkä niistä esittävät tämän varmenteen.</value>
+  </data>
   <data name="The TCP/IP ports that present it read its files again when the server is next reinitialised." xml:space="preserve">
     <value>TCP/IP-portit, jotka esittävät sitä, lukevat sen tiedostot uudelleen, kun palvelin seuraavan kerran alustetaan uudelleen.</value>
   </data>
@@ -13380,6 +13386,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="There is only one step, at 2. From 3 upwards (the default is 9) every enabled category is logged in full. At 2 or lower the server drops IMAP FETCH and STATUS responses from the log and shortens lines longer than the limit below to their first and last characters. Turning on Debug messages above restores full detail whatever the level." xml:space="preserve">
     <value>Porrasta on vain yksi, arvossa 2. Arvosta 3 ylöspäin (oletus on 9) jokainen käytössä oleva luokka kirjataan kokonaan. Arvossa 2 tai sen alla palvelin jättää IMAP FETCH- ja STATUS-vastaukset pois lokista ja lyhentää alla olevaa rajaa pidemmät rivit niiden ensimmäisiin ja viimeisiin merkkeihin. Vianjäljitysviestien kytkeminen päälle yllä palauttaa täydet yksityiskohdat tasosta riippumatta.</value>
+  </data>
+  <data name="These TCP/IP ports present this certificate to the clients that connect to them." xml:space="preserve">
+    <value>Nämä TCP/IP-portit esittävät tämän varmenteen asiakkaille, jotka muodostavat yhteyden niihin.</value>
   </data>
   <data name="These are counts of the first {0} accounts only; this page stops there rather than making you wait for the rest." xml:space="preserve">
     <value>Nämä ovat vain {0} ensimmäisen tilin lukumääriä; sivu pysähtyy siihen sen sijaan että pakottaisi odottamaan loppuja.</value>

@@ -7307,6 +7307,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No SURBL servers, so the links in a message body are not looked up in any list." xml:space="preserve">
     <value>Žádné servery SURBL, takže odkazy v těle zprávy se v žádném seznamu nevyhledávají.</value>
   </data>
+  <data name="No TCP/IP port presents this certificate." xml:space="preserve">
+    <value>Žádný port TCP/IP tento certifikát nepředkládá.</value>
+  </data>
   <data name="No TLS version is enabled anywhere on this server, so no handshake on this port can succeed." xml:space="preserve">
     <value>Na tomto serveru není nikde zapnuta žádná verze TLS, takže na tomto portu nemůže uspět žádný handshake.</value>
   </data>
@@ -12142,6 +12145,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="The TCP/IP port list could not be read: {0}" xml:space="preserve">
     <value>Seznam portů TCP/IP nelze načíst: {0}</value>
   </data>
+  <data name="The TCP/IP ports could not be read, so which of them present this certificate is not known." xml:space="preserve">
+    <value>Porty TCP/IP se nepodařilo načíst, takže není známo, které z nich tento certifikát předkládají.</value>
+  </data>
   <data name="The TCP/IP ports that present it read its files again when the server is next reinitialised." xml:space="preserve">
     <value>Porty TCP/IP, které ho předkládají, načtou jeho soubory znovu při příští reinicializaci serveru.</value>
   </data>
@@ -13552,6 +13558,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="There is only one step, at 2. From 3 upwards (the default is 9) every enabled category is logged in full. At 2 or lower the server drops IMAP FETCH and STATUS responses from the log and shortens lines longer than the limit below to their first and last characters. Turning on Debug messages above restores full detail whatever the level." xml:space="preserve">
     <value>Je jen jeden schod, na 2. Od 3 výše (výchozí je 9) se každá zapnutá kategorie loguje celá. Na 2 a níže server vynechává z logu odpovědi IMAP FETCH a STATUS a zkracuje řádky delší než limit níže na jejich první a poslední znaky. Zapnutí Ladicích zpráv výše obnoví plné detaily bez ohledu na úroveň.</value>
+  </data>
+  <data name="These TCP/IP ports present this certificate to the clients that connect to them." xml:space="preserve">
+    <value>Tyto porty TCP/IP předkládají tento certifikát klientům, kteří se k nim připojují.</value>
   </data>
   <data name="These are counts of the first {0} accounts only; this page stops there rather than making you wait for the rest." xml:space="preserve">
     <value>Jde o počty pouze z prvních {0} účtů; stránka zde končí, místo aby vás nechala čekat na zbytek.</value>

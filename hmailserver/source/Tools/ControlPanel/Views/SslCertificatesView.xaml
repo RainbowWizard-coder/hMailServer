@@ -12,6 +12,28 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:local="clr-namespace:hMailServer.ControlPanel.Views">
 
+    <UserControl.Resources>
+        <!-- The certificates grid's headers wrap at their spaces onto a second line,
+             each still whole in its tool tip: six columns in 921 pixels at 1280 by 800
+             give the two file columns 113 pixels or so, and their headers were cut in
+             twelve languages - "Private Schlüss...", "Archivo de clave pr...", whole in
+             German before the file columns were narrowed (the skeptic's review of
+             F235 and F236). A header row is one line where every header fits on one,
+             and the file columns' floors hold the widest word of their headers in any
+             language, Dutch Privésleutelbestand at 106 pixels; a word wider than its
+             column still ends in an ellipsis. -->
+        <Style x:Key="CertificateGridHeader" TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+            <Setter Property="VerticalContentAlignment" Value="Bottom" />
+            <Setter Property="ContentTemplate">
+                <Setter.Value>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}" TextWrapping="WrapWithOverflow" TextTrimming="CharacterEllipsis" ToolTip="{Binding}" />
+                    </DataTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
     <Grid Margin="{StaticResource AppPagePadding}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -85,12 +107,17 @@
                      Loaded time (the badge needs theme-following brushes a XAML
                      binding cannot express), and container recycling would re-fire
                      Loaded against a different row's data. Certificate lists are a
-                     handful of rows, so nothing is lost. -->
+                     handful of rows, so nothing is lost. Its floor holds four rows
+                     under a header of two lines, which the headers wrap to in a
+                     language whose file columns' headers are wider than one line
+                     (CertificateGridHeader): at 170, the floor of a one-line header,
+                     three certificates scrolled in the grid in such a language. -->
                 <scaffold:FillPanel>
-                <DataGrid x:Name="CertGrid" scaffold:FillPanel.Fill="True" MinHeight="170" AutoGenerateColumns="False" IsReadOnly="True"
+                <DataGrid x:Name="CertGrid" scaffold:FillPanel.Fill="True" MinHeight="186" AutoGenerateColumns="False" IsReadOnly="True"
                           AutomationProperties.AutomationId="certs-grid"
                           EnableRowVirtualization="False"
                           SelectionMode="Single" SelectionChanged="CertGrid_SelectionChanged" Sorting="CertGrid_Sorting"
+                          ColumnHeaderStyle="{StaticResource CertificateGridHeader}"
                           AutomationProperties.Name="{loc:L 'SSL certificates'}">
                     <DataGrid.Columns>
                         <!-- The name takes a share and a floor, and the two path columns the
@@ -103,9 +130,22 @@
                              was held at its floor at 1280 by 800 and cut there. A narrow window
                              scrolls the grid sideways rather than squeezing the status columns
                              to a word a line and the paths to nothing, as the IP ranges
-                             page's floors have it. -->
+                             page's floors have it. The file columns' floors hold the widest
+                             word of their headers, which wrap, and Used by's the widest word
+                             of its header, Ukrainian використовується; Used by takes the least
+                             share, the details card saying the selected certificate's ports
+                             whole, where a certificate on three ports was "SMTP 587, SMTP 4...".
+                             Every column but the name has its floor at 160 times its share, so
+                             that all of them reach their floors at one width, and at 1280 by 800
+                             they are at their floors and the name takes the rest: the grid gives
+                             star columns their floors in one pass and shares out the rest without
+                             looking at the floors again, and it takes the 14 pixels its scroll
+                             bar needs, when it has more rows than it shows, from its star columns
+                             in proportion without passing on what a column at its floor cannot
+                             give - with shares that left a column just above its floor, the
+                             columns overran the grid by 3 or 4 pixels and it scrolled sideways. -->
                         <DataGridTextColumn Header="{loc:L 'Name'}" Binding="{Binding Name}" Width="1.5*" MinWidth="160" ElementStyle="{StaticResource GridTrimmedText}" />
-                        <DataGridTemplateColumn Header="{loc:L 'Certificate file'}" Width="0.8*" MinWidth="110" SortMemberPath="CertificateFile">
+                        <DataGridTemplateColumn Header="{loc:L 'Certificate file'}" Width="0.8*" MinWidth="128" SortMemberPath="CertificateFile">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding CertificateFileName}" ToolTip="{Binding CertificateFile}" TextTrimming="CharacterEllipsis"
@@ -113,7 +153,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="{loc:L 'Private key file'}" Width="0.8*" MinWidth="110" SortMemberPath="PrivateKeyFile">
+                        <DataGridTemplateColumn Header="{loc:L 'Private key file'}" Width="0.8*" MinWidth="128" SortMemberPath="PrivateKeyFile">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding PrivateKeyFileName}" ToolTip="{Binding PrivateKeyFile}" TextTrimming="CharacterEllipsis"
@@ -123,14 +163,14 @@
                         </DataGridTemplateColumn>
                         <!-- Sorted by how much the certificate asks for attention, then by how
                              soon it expires (CertGrid_Sorting), not by its status word. -->
-                        <DataGridTemplateColumn x:Name="CertificateColumn" Header="{loc:L 'Certificate'}" Width="1.3*" MinWidth="170" SortMemberPath="CertificateState">
+                        <DataGridTemplateColumn x:Name="CertificateColumn" Header="{loc:L 'Certificate'}" Width="*" MinWidth="160" SortMemberPath="CertificateState">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <ContentControl Loaded="CertificateBadge_Loaded" IsTabStop="False" Focusable="False" />
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="{loc:L 'Private key'}" Width="1.1*" MinWidth="160" SortMemberPath="PrivateKeyState">
+                        <DataGridTemplateColumn Header="{loc:L 'Private key'}" Width="*" MinWidth="160" SortMemberPath="PrivateKeyState">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <ContentControl Loaded="KeyBadge_Loaded" IsTabStop="False" Focusable="False" />
@@ -140,7 +180,7 @@
                         <!-- The TCP/IP ports that present it, "SMTP 465, IMAP 993" or Not
                              used: the page's purpose is which port uses which, and no
                              column said it (review finding F235). -->
-                        <DataGridTextColumn Header="{loc:L 'Used by'}" Binding="{Binding UsedBy}" Width="*" MinWidth="110" ElementStyle="{StaticResource GridTrimmedText}" />
+                        <DataGridTextColumn Header="{loc:L 'Used by'}" Binding="{Binding UsedBy}" Width="0.775*" MinWidth="124" ElementStyle="{StaticResource GridTrimmedText}" />
                     </DataGrid.Columns>
                 </DataGrid>
                 </scaffold:FillPanel>

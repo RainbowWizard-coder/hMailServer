@@ -35,6 +35,24 @@ namespace hMailServer.ControlPanel.Services
       }
 
       /// <summary>
+      /// The selected certificate's Used by line in the details card - its level, the
+      /// words the column shows and the sentence after them - so that the whole list of
+      /// ports is read at any width and from the keyboard: at 1280 by 800 the column
+      /// cut a certificate's three ports to "SMTP 587, SMTP 4...", and its tool tip is the
+      /// mouse's alone (the skeptic's review of F235).
+      /// </summary>
+      public static (StatusLevel Level, string Word, string Detail) UsedByLine(IReadOnlyList<string> ports)
+      {
+         if (ports == null)
+            return (StatusLevel.Information, UsedBy(null), L("The TCP/IP ports could not be read, so which of them present this certificate is not known."));
+
+         if (ports.Count == 0)
+            return (StatusLevel.Normal, UsedBy(ports), Sentences(L("No TCP/IP port presents this certificate."), L("Choose it for a port on the TCP/IP ports page to use it.")));
+
+         return (StatusLevel.Normal, UsedBy(ports), L("These TCP/IP ports present this certificate to the clients that connect to them."));
+      }
+
+      /// <summary>
       /// The order the Certificate column sorts in, ascending: the one asking for the
       /// most attention first - Critical, then Warning, and so on down to the good -
       /// and, of two at one level, the one that expires sooner; one whose expiry is

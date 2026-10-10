@@ -99,6 +99,7 @@ namespace hMailServer.ControlPanel.Views
          internal CertificateFinding CertBadge;        // the "Certificate" grid cell
          internal CertificateFinding KeyBadge;         // the "Private key" grid cell
          internal CertificateFinding PassphraseLine;   // details pane
+         internal CertificateFinding UsedByLine;       // details pane: the ports, whole
       }
 
       /// <summary>
@@ -246,7 +247,10 @@ namespace hMailServer.ControlPanel.Views
                      CertificateFile = (string)cert.CertificateFile,
                      PrivateKeyFile = (string)cert.PrivateKeyFile
                   };
-                  row.UsedBy = CertificateRows.UsedBy(ports == null ? null : ports.TryGetValue(row.Id, out List<string> presenting) ? presenting : new List<string>());
+                  List<string> presenting = ports == null ? null : ports.TryGetValue(row.Id, out List<string> listed) ? listed : new List<string>();
+                  row.UsedBy = CertificateRows.UsedBy(presenting);
+                  (StatusLevel usedLevel, string usedWord, string usedDetail) = CertificateRows.UsedByLine(presenting);
+                  row.UsedByLine = new CertificateFinding(usedLevel, usedWord, usedDetail);
 
                   // Only the EMPTINESS of the stored passphrase is tested; the
                   // value itself is never rendered anywhere on this page. The
@@ -483,6 +487,11 @@ namespace hMailServer.ControlPanel.Views
             DetailsLines.Children.Add(DetailLine(L("Private key file"), health.PrivateKeyFile));
          if (health.Pair != null)
             DetailsLines.Children.Add(DetailLine(L("Key matches certificate"), health.Pair));
+         // The ports whole, which the Used by column cuts at 1280 by 800 and says in a
+         // tool tip the keyboard never reaches; before the passphrase, whose editor
+         // follows its line.
+         if (row.UsedByLine != null)
+            DetailsLines.Children.Add(DetailLine(L("Used by"), row.UsedByLine));
          if (row.PassphraseLine != null)
             DetailsLines.Children.Add(DetailLine(L("Passphrase"), row.PassphraseLine));
 

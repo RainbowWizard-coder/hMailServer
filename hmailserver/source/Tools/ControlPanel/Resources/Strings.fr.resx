@@ -7228,6 +7228,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="No SURBL servers, so the links in a message body are not looked up in any list." xml:space="preserve">
     <value>Aucun serveur SURBL : les liens du corps d'un message ne sont donc recherchés dans aucune liste.</value>
   </data>
+  <data name="No TCP/IP port presents this certificate." xml:space="preserve">
+    <value>Aucun port TCP/IP ne présente ce certificat.</value>
+  </data>
   <data name="No TLS version is enabled anywhere on this server, so no handshake on this port can succeed." xml:space="preserve">
     <value>Aucune version de TLS n'est activée nulle part sur ce serveur : aucune poignée de main sur ce port ne peut donc réussir.</value>
   </data>
@@ -12003,6 +12006,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="The TCP/IP port list could not be read: {0}" xml:space="preserve">
     <value>La liste des ports TCP/IP n'a pas pu être lue : {0}</value>
   </data>
+  <data name="The TCP/IP ports could not be read, so which of them present this certificate is not known." xml:space="preserve">
+    <value>Les ports TCP/IP n'ont pas pu être lus : on ne sait donc pas lesquels présentent ce certificat.</value>
+  </data>
   <data name="The TCP/IP ports that present it read its files again when the server is next reinitialised." xml:space="preserve">
     <value>Les ports TCP/IP qui le présentent relisent ses fichiers à la prochaine réinitialisation du serveur.</value>
   </data>
@@ -13380,6 +13386,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="There is only one step, at 2. From 3 upwards (the default is 9) every enabled category is logged in full. At 2 or lower the server drops IMAP FETCH and STATUS responses from the log and shortens lines longer than the limit below to their first and last characters. Turning on Debug messages above restores full detail whatever the level." xml:space="preserve">
     <value>Il n'y a qu'un seul palier, à 2. À partir de 3 (la valeur par défaut est 9), chaque catégorie activée est journalisée intégralement. À 2 ou moins, le serveur retire du journal les réponses IMAP FETCH et STATUS et raccourcit les lignes plus longues que la limite ci-dessous à leurs premiers et derniers caractères. Activer les messages de débogage ci-dessus rétablit le détail complet quel que soit le niveau.</value>
+  </data>
+  <data name="These TCP/IP ports present this certificate to the clients that connect to them." xml:space="preserve">
+    <value>Ces ports TCP/IP présentent ce certificat aux clients qui s'y connectent.</value>
   </data>
   <data name="These are counts of the first {0} accounts only; this page stops there rather than making you wait for the rest." xml:space="preserve">
     <value>Ce sont les comptages des {0} premiers comptes seulement ; cette page s'arrête là plutôt que de vous faire attendre le reste.</value>

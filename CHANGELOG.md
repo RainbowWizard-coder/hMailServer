@@ -2790,11 +2790,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   its id kept, says an empty box under it and the server's refusal above the fields, and the page then says
   "mail.example.com saved. The TCP/IP ports that present it read its files again when the server is next
   reinitialised."; a Used by column names the ports ("SMTP 465, IMAP 993", Not used, or Not known when the ports could
-  not be read); the form and the dialog say that the server reads PEM and give the two openssl commands that make a
-  .pfx or .p12 into it; the Certificate column sorts by how much a certificate asks for attention and then by how
-  soon it expires; and Delete selected says what it deleted and selects the row that took its place, after the
-  question that already named the ports. `CertificatesEditTests` holds the order, the column, the dialog's save by
-  id and the wiring.
+  not be read), and the details card of the selected certificate names them whole, which the column cuts for a
+  certificate on three ports at 1280 by 800; the form and the dialog say that the server reads PEM and give the two
+  openssl commands that make a .pfx or .p12 into it; the Certificate column sorts by how much a certificate asks for
+  attention and then by how soon it expires; and Delete selected says what it deleted and selects the row that took
+  its place, after the question that already named the ports. `CertificatesEditTests` holds the order, the column,
+  the details card's ports, the dialog's save by id and the wiring.
 
 - **Fixed: the SSL certificates page's add and passphrase flows said nothing, and their controls stayed live whatever
   the state.** A certificate added was neither selected nor said, and its name had to be typed although the subject
@@ -2812,8 +2813,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   outcome is said in a notice above the list that is scrolled into view, since at 1280 by 800 the page scrolls to
   reach Add and the passphrase; and every column of the grid is a share of its width over a floor, the Name column's
   the largest, so that a name is whole at 1280 by 800, while the path columns show the file's name, the whole path
-  in the tool tip. `CertificatesAddFlowTests` holds the form, the name, the outcome and where it is said, the
-  buttons and the columns.
+  in the tool tip, and the headers wrap at their spaces, so that each is whole in every language - "Private
+  Schlüsseldatei" was cut to "Private Schlüss…" in German. `CertificatesAddFlowTests` holds the form, the name, the
+  outcome and where it is said, the buttons, the columns and their headers.
 
 - **Fixed: the Automatic certificates (ACME) page put its issued certificate below the fold, and blamed the network
   for a host-name list that was empty.** The card's one live fact - a certificate issued and valid until a date, near

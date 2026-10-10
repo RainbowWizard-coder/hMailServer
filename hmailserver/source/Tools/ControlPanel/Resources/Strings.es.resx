@@ -7228,6 +7228,9 @@ No se elimina nada de lo que ya está.</value>
   <data name="No SURBL servers, so the links in a message body are not looked up in any list." xml:space="preserve">
     <value>No hay servidores SURBL, así que los enlaces del cuerpo de un mensaje no se buscan en ninguna lista.</value>
   </data>
+  <data name="No TCP/IP port presents this certificate." xml:space="preserve">
+    <value>Ningún puerto TCP/IP presenta este certificado.</value>
+  </data>
   <data name="No TLS version is enabled anywhere on this server, so no handshake on this port can succeed." xml:space="preserve">
     <value>No hay ninguna versión de TLS activada en ninguna parte de este servidor, así que ninguna negociación en este puerto puede tener éxito.</value>
   </data>
@@ -12003,6 +12006,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="The TCP/IP port list could not be read: {0}" xml:space="preserve">
     <value>No se pudo leer la lista de puertos TCP/IP: {0}</value>
   </data>
+  <data name="The TCP/IP ports could not be read, so which of them present this certificate is not known." xml:space="preserve">
+    <value>No se pudieron leer los puertos TCP/IP, así que no se sabe cuáles presentan este certificado.</value>
+  </data>
   <data name="The TCP/IP ports that present it read its files again when the server is next reinitialised." xml:space="preserve">
     <value>Los puertos TCP/IP que lo presentan vuelven a leer sus archivos la próxima vez que se reinicialice el servidor.</value>
   </data>
@@ -13380,6 +13386,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="There is only one step, at 2. From 3 upwards (the default is 9) every enabled category is logged in full. At 2 or lower the server drops IMAP FETCH and STATUS responses from the log and shortens lines longer than the limit below to their first and last characters. Turning on Debug messages above restores full detail whatever the level." xml:space="preserve">
     <value>Solo hay un escalón, en 2. De 3 en adelante (el valor por defecto es 9) cada categoría activada se registra por completo. En 2 o menos, el servidor descarta del registro las respuestas IMAP FETCH y STATUS y acorta las líneas más largas que el límite de abajo a sus primeros y últimos caracteres. Activar arriba los mensajes de depuración restaura todo el detalle sea cual sea el nivel.</value>
+  </data>
+  <data name="These TCP/IP ports present this certificate to the clients that connect to them." xml:space="preserve">
+    <value>Estos puertos TCP/IP presentan este certificado a los clientes que se conectan a ellos.</value>
   </data>
   <data name="These are counts of the first {0} accounts only; this page stops there rather than making you wait for the rest." xml:space="preserve">
     <value>Son recuentos solo de las primeras {0} cuentas; esta página se detiene ahí en vez de hacerle esperar el resto.</value>
