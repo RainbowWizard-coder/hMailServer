@@ -2,19 +2,23 @@
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System;
 using System.Collections.Generic;
 using static hMailServer.ControlPanel.Services.Loc;
 
 namespace hMailServer.ControlPanel.Services
 {
    /// <summary>
-   /// What the SSL certificates page's rows say beyond the two files (review finding
-   /// F235), with no WPF so that CertificateRowsTests holds it: which TCP/IP
-   /// ports present each certificate, and the order the Certificate column sorts in.
+   /// What the SSL certificates page's rows say beyond the two files (review findings
+   /// F235 and F236), with no WPF so that CertificatesEditTests holds it: which TCP/IP
+   /// ports present each certificate, the order the Certificate column sorts in, the
+   /// file name a path column shows, and whether the passphrase editor is offered.
    ///
    /// The page's purpose was "which port uses which", and no column said it; the
    /// Certificate column sorted by its status word, so that "Expired" came before
-   /// "Expires soon" and both among the good.
+   /// "Expires soon" and both among the good; the path columns took the width the
+   /// name needed for a folder that is the same on every row; and the passphrase
+   /// editor was offered for a key that needs none.
    /// </summary>
    public static class CertificateRows
    {
@@ -50,5 +54,23 @@ namespace hMailServer.ControlPanel.Services
             return -1;
          return daysA.Value.CompareTo(daysB.Value);
       }
+
+      /// <summary>The file's name alone, which the path columns show; the whole path is the cell's tool tip.</summary>
+      public static string FileName(string path)
+      {
+         string trimmed = (path ?? "").Trim();
+         int slash = Math.Max(trimmed.LastIndexOf('\\'), trimmed.LastIndexOf('/'));
+         return slash >= 0 && slash < trimmed.Length - 1 ? trimmed.Substring(slash + 1) : trimmed;
+      }
+
+      /// <summary>
+      /// Whether the details card offers the passphrase editor as it opens: not for a
+      /// key this computer read as unencrypted with no passphrase stored, which needs
+      /// none - there it waits behind Set a passphrase anyway... - and for every other
+      /// key, one that is encrypted, one that cannot be read from here, or one that has
+      /// a passphrase stored, which the editor removes.
+      /// </summary>
+      public static bool OffersPassphrase(bool passphraseStored, bool passphraseUnknown, bool? keyIsEncrypted)
+         => passphraseStored || passphraseUnknown || keyIsEncrypted != false;
    }
 }

@@ -2554,6 +2554,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Välj ett utgångsdatum minst en dag bort. En nyckel som går ut i dag skulle sluta fungera mitt under dagen den skapades.</value>
   </data>
+  <data name="Choose it for a port on the TCP/IP ports page to use it." xml:space="preserve">
+    <value>Välj det för en port på sidan TCP/IP-portar för att använda det.</value>
+  </data>
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Välj NCSA Common Log Format så att ett analysverktyg kan läsa raderna, eller JSON för en loggförmedlare.</value>
   </data>
@@ -5046,6 +5049,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Fill in a strong random secret" xml:space="preserve">
     <value>Fyll i en stark slumpmässig hemlighet</value>
+  </data>
+  <data name="Filled in from the certificate when you choose its file, while this box is empty." xml:space="preserve">
+    <value>Fylls i från certifikatet när du väljer dess fil, så länge rutan är tom.</value>
   </data>
   <data name="Find organizational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
     <value>Hitta organisationsdomäner genom DNS-trädvandring (RFC 9989)</value>
@@ -10918,6 +10924,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Set a new server administration password." xml:space="preserve">
     <value>Sätt ett nytt administrationslösenord för servern.</value>
   </data>
+  <data name="Set a passphrase any_way…" xml:space="preserve">
+    <value>_Ange en lösenfras ändå…</value>
+  </data>
   <data name="Set but not confirmed: {0}. Until the account holder follows the link sent to it, it is used for nothing." xml:space="preserve">
     <value>Satt men inte bekräftad: {0}. Tills kontoinnehavaren följer länken som skickades dit används den till ingenting.</value>
   </data>
@@ -12719,6 +12728,9 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
     <value>Lösenfrasen en gång till, för att vara säker på att den skrevs rä_tt</value>
   </data>
+  <data name="The passphrase of {0} is saved." xml:space="preserve">
+    <value>Lösenfrasen för {0} är sparad.</value>
+  </data>
   <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
     <value>Lösenordet kunde inte kontrolleras mot publicerade dataläckor just nu, och den här servern är inställd på att avvisa en ändring den inte kan kontrollera. Försök igen senare.</value>
   </data>
@@ -13126,6 +13138,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Den sparade digesten är inte ett användbart SHA-256-värde, så den här sektionen autentiserar ingenting. Återkalla den och skapa en ersättning.</value>
+  </data>
+  <data name="The stored passphrase of {0} is removed." xml:space="preserve">
+    <value>Den sparade lösenfrasen för {0} är borttagen.</value>
   </data>
   <data name="The stored-secrets key - what the database's secrets are sealed under" xml:space="preserve">
     <value>Nyckeln för lagrade hemligheter - det som databasens hemligheter är förseglade under</value>
@@ -13699,9 +13714,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="Type the directory server host name first." xml:space="preserve">
     <value>Skriv in katalogserverns värdnamn först.</value>
-  </data>
-  <data name="Type the new passphrase first. To remove the stored one, use &quot;Remove stored passphrase&quot;." xml:space="preserve">
-    <value>Skriv den nya lösenfrasen först. Använd "Ta bort sparad lösenfras" för att ta bort den sparade.</value>
   </data>
   <data name="Type the new password." xml:space="preserve">
     <value>Skriv det nya lösenordet.</value>

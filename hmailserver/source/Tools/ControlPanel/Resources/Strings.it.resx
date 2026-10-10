@@ -2554,6 +2554,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Scegli una data di scadenza almeno a un giorno di distanza. Una chiave che scade oggi smetterebbe di funzionare a metà del giorno in cui è stata creata.</value>
   </data>
+  <data name="Choose it for a port on the TCP/IP ports page to use it." xml:space="preserve">
+    <value>Sceglilo per una porta nella pagina Porte TCP/IP per usarlo.</value>
+  </data>
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Scegli il formato NCSA Common Log Format perché un analizzatore possa leggere le righe, oppure JSON per un log shipper.</value>
   </data>
@@ -5046,6 +5049,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Fill in a strong random secret" xml:space="preserve">
     <value>Inserisci un segreto casuale robusto</value>
+  </data>
+  <data name="Filled in from the certificate when you choose its file, while this box is empty." xml:space="preserve">
+    <value>Compilato dal certificato quando ne scegli il file, finché questa casella è vuota.</value>
   </data>
   <data name="Find organizational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
     <value>Trova i domini organizzativi percorrendo l'albero DNS (RFC 9989)</value>
@@ -10918,6 +10924,9 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="Set a new server administration password." xml:space="preserve">
     <value>Imposta una nuova password di amministrazione del server.</value>
   </data>
+  <data name="Set a passphrase any_way…" xml:space="preserve">
+    <value>Imposta com_unque una passphrase…</value>
+  </data>
   <data name="Set but not confirmed: {0}. Until the account holder follows the link sent to it, it is used for nothing." xml:space="preserve">
     <value>Impostato ma non confermato: {0}. Finché il titolare non segue il collegamento inviato lì, non serve a nulla.</value>
   </data>
@@ -12719,6 +12728,9 @@ non ha potuto essere caricato. Il messaggio è probabilmente già stato consegna
   <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
     <value>La passphrase di nuovo, per essere sicuri che sia stata digitata _bene</value>
   </data>
+  <data name="The passphrase of {0} is saved." xml:space="preserve">
+    <value>La passphrase di {0} è salvata.</value>
+  </data>
   <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
     <value>Al momento non è stato possibile verificare la password nelle violazioni di dati pubblicate, e questo server è impostato per rifiutare una modifica che non può verificare. Riprova più tardi.</value>
   </data>
@@ -13126,6 +13138,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Il digest memorizzato non è un valore SHA-256 utilizzabile, quindi questa sezione non autentica nulla. Revocala e creane una sostitutiva.</value>
+  </data>
+  <data name="The stored passphrase of {0} is removed." xml:space="preserve">
+    <value>La passphrase memorizzata di {0} è rimossa.</value>
   </data>
   <data name="The stored-secrets key - what the database's secrets are sealed under" xml:space="preserve">
     <value>La chiave dei segreti memorizzati - quella con cui sono sigillati i segreti del database</value>
@@ -13699,9 +13714,6 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="Type the directory server host name first." xml:space="preserve">
     <value>Digitare prima il nome host del server di directory.</value>
-  </data>
-  <data name="Type the new passphrase first. To remove the stored one, use &quot;Remove stored passphrase&quot;." xml:space="preserve">
-    <value>Digitare prima la nuova passphrase. Per rimuovere quella memorizzata, usare "Rimuovi passphrase memorizzata".</value>
   </data>
   <data name="Type the new password." xml:space="preserve">
     <value>Digita la nuova password.</value>

@@ -2554,6 +2554,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Vælg en udløbsdato mindst en dag ude i fremtiden. En nøgle, der udløber i dag, ville holde op med at virke midt på den dag, den blev lavet.</value>
   </data>
+  <data name="Choose it for a port on the TCP/IP ports page to use it." xml:space="preserve">
+    <value>Vælg det til en port på siden TCP/IP-porte for at bruge det.</value>
+  </data>
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Vælg NCSA Common Log Format, så et analyseværktøj kan læse linjerne, eller JSON til en logafsender.</value>
   </data>
@@ -5046,6 +5049,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Fill in a strong random secret" xml:space="preserve">
     <value>Udfyld med en stærk tilfældig hemmelighed</value>
+  </data>
+  <data name="Filled in from the certificate when you choose its file, while this box is empty." xml:space="preserve">
+    <value>Udfyldes fra certifikatet, når du vælger dets fil, mens dette felt er tomt.</value>
   </data>
   <data name="Find organizational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
     <value>Find organisatoriske domæner ved gennemgang af DNS-træet (RFC 9989)</value>
@@ -10918,6 +10924,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="Set a new server administration password." xml:space="preserve">
     <value>Sæt en ny serveradministrationsadgangskode.</value>
   </data>
+  <data name="Set a passphrase any_way…" xml:space="preserve">
+    <value>Angiv en adgangssætning a_lligevel…</value>
+  </data>
   <data name="Set but not confirmed: {0}. Until the account holder follows the link sent to it, it is used for nothing." xml:space="preserve">
     <value>Sat, men ikke bekræftet: {0}. Indtil kontohaveren følger linket, der blev sendt dertil, bruges den til ingenting.</value>
   </data>
@@ -12719,6 +12728,9 @@ kunne ikke indlæses. Meddelelsen er sandsynligvis leveret og ikke længere i k�
   <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
     <value>Adgangssætningen igen, så du er sikker på, at den blev skrevet ri_gtigt</value>
   </data>
+  <data name="The passphrase of {0} is saved." xml:space="preserve">
+    <value>Adgangssætningen til {0} er gemt.</value>
+  </data>
   <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
     <value>Adgangskoden kunne ikke kontrolleres mod offentliggjorte datalæk lige nu, og denne server er sat til at afvise en ændring, den ikke kan kontrollere. Prøv igen senere.</value>
   </data>
@@ -13126,6 +13138,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Den gemte digest er ikke en brugbar SHA-256-værdi, så denne sektion godkender ingenting. Tilbagekald den, og opret en erstatning.</value>
+  </data>
+  <data name="The stored passphrase of {0} is removed." xml:space="preserve">
+    <value>Den gemte adgangssætning til {0} er fjernet.</value>
   </data>
   <data name="The stored-secrets key - what the database's secrets are sealed under" xml:space="preserve">
     <value>Nøglen til gemte hemmeligheder - det, databasens hemmeligheder er forseglet under</value>
@@ -13699,9 +13714,6 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="Type the directory server host name first." xml:space="preserve">
     <value>Skriv katalogserverens værtsnavn først.</value>
-  </data>
-  <data name="Type the new passphrase first. To remove the stored one, use &quot;Remove stored passphrase&quot;." xml:space="preserve">
-    <value>Skriv den nye adgangssætning først. Brug "Fjern gemt adgangssætning" for at fjerne den gemte.</value>
   </data>
   <data name="Type the new password." xml:space="preserve">
     <value>Skriv den nye adgangskode.</value>

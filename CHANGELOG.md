@@ -2795,6 +2795,22 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   question that already named the ports. `CertificatesEditTests` holds the order, the column, the dialog's save by
   id and the wiring.
 
+- **Fixed: the SSL certificates page's add and passphrase flows said nothing, and their controls stayed live whatever
+  the state.** A certificate added was neither selected nor said, and its name had to be typed although the subject
+  is in the file; the form's five fields shared one line, so that the passphrase's caption wrapped to two lines in
+  English and three in German and the path boxes were 100 pixels wide at 760; Remove stored passphrase could be
+  pressed with nothing stored and Save passphrase with an empty box, which answered with a message box; the passphrase
+  editor was offered for a key that needs none; and the Name column was cut at 170 pixels while the paths, the same
+  folder on every row, took the rest. The form is now two lines of two fields - the name and the passphrase, then the
+  two files - with Add in its card's footer; choosing the certificate file fills in the name from the certificate's
+  subject while the box is empty; an added certificate is selected and the page says "mail.example.com added. Choose
+  it for a port on the TCP/IP ports page to use it." with Open TCP/IP ports; Remove stored passphrase can be pressed
+  while one is stored or the page cannot tell, and Save passphrase while its box holds one; for a key the page read as
+  unencrypted with none stored, the editor waits behind Set a passphrase anyway…; a saved or removed passphrase, and a
+  refusal, is said on the page where it was a message box; and the Name column takes a share with a floor of 160
+  pixels while the path columns show the file's name, the whole path in the tool tip. `CertificatesAddFlowTests` holds
+  the form, the name, the outcome, the buttons and the columns.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

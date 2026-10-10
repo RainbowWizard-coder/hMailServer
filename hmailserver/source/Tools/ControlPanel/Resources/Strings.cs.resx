@@ -2578,6 +2578,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Zvolte datum vypršení platnosti alespoň o den vzdálené. Klíč, kterému platnost vyprší dnes, by přestal fungovat uprostřed dne, kdy vznikl.</value>
   </data>
+  <data name="Choose it for a port on the TCP/IP ports page to use it." xml:space="preserve">
+    <value>Chcete-li ho použít, vyberte ho pro port na stránce Porty TCP/IP.</value>
+  </data>
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Zvolte NCSA Common Log Format, aby řádky dokázal přečíst analyzátor, nebo JSON pro nástroj odesílající logy.</value>
   </data>
@@ -5113,6 +5116,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Fill in a strong random secret" xml:space="preserve">
     <value>Vyplnit silným náhodným tajným klíčem</value>
+  </data>
+  <data name="Filled in from the certificate when you choose its file, while this box is empty." xml:space="preserve">
+    <value>Když vyberete soubor certifikátu a toto pole je prázdné, vyplní se z certifikátu.</value>
   </data>
   <data name="Find organizational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
     <value>Hledat organizační domény procházením stromu DNS (RFC 9989)</value>
@@ -11045,6 +11051,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Set a new server administration password." xml:space="preserve">
     <value>Nastavte nové heslo pro správu serveru.</value>
   </data>
+  <data name="Set a passphrase any_way…" xml:space="preserve">
+    <value>Př_esto nastavit přístupové heslo…</value>
+  </data>
   <data name="Set but not confirmed: {0}. Until the account holder follows the link sent to it, it is used for nothing." xml:space="preserve">
     <value>Nastaveno, ale nepotvrzeno: {0}. Dokud držitel účtu nepoužije odkaz, který tam byl poslán, adresa neslouží k ničemu.</value>
   </data>
@@ -12885,6 +12894,9 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
     <value>_Heslo ještě jednou, pro jistotu, že bylo napsáno správně</value>
   </data>
+  <data name="The passphrase of {0} is saved." xml:space="preserve">
+    <value>Přístupové heslo certifikátu {0} je uloženo.</value>
+  </data>
   <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
     <value>Heslo se teď nepodařilo ověřit proti zveřejněným únikům dat a tento server je nastaven tak, aby odmítl změnu, kterou nemůže ověřit. Zkuste to později.</value>
   </data>
@@ -13292,6 +13304,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Uložený digest není použitelná hodnota SHA-256, takže tato sekce nic neověřuje. Odvolejte ji a vytvořte náhradu.</value>
+  </data>
+  <data name="The stored passphrase of {0} is removed." xml:space="preserve">
+    <value>Uložené přístupové heslo certifikátu {0} je odebráno.</value>
   </data>
   <data name="The stored-secrets key - what the database's secrets are sealed under" xml:space="preserve">
     <value>Klíč uložených tajemství - čím jsou zapečetěna tajemství databáze</value>
@@ -13868,9 +13883,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="Type the directory server host name first." xml:space="preserve">
     <value>Nejdřív zadejte název hostitele adresářového serveru.</value>
-  </data>
-  <data name="Type the new passphrase first. To remove the stored one, use &quot;Remove stored passphrase&quot;." xml:space="preserve">
-    <value>Nejdřív zadejte nové přístupové heslo. K odstranění uloženého použijte „Odstranit uložené přístupové heslo“.</value>
   </data>
   <data name="Type the new password." xml:space="preserve">
     <value>Zadejte nové heslo.</value>

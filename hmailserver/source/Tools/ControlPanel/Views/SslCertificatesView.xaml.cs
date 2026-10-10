@@ -84,6 +84,10 @@ namespace hMailServer.ControlPanel.Views
 
          // Internal on purpose: ListSearch reflects over public properties, and
          // a finding's ToString would only add noise to the search.
+         /// <summary>The two files' names alone, which the columns show; the paths are their tool tips (review finding F236).</summary>
+         public string CertificateFileName => CertificateRows.FileName(CertificateFile);
+         public string PrivateKeyFileName => CertificateRows.FileName(PrivateKeyFile);
+
          internal int Id;
          internal StoredPassphrase Passphrase;
          internal CertificateHealth Health;
@@ -110,6 +114,10 @@ namespace hMailServer.ControlPanel.Views
          // (Views/GridKeys, FormSubmit).
          GridKeys.Wire(CertGrid, GridKeys.Pressing(EditButton), GridKeys.Pressing(DeleteButton), GridKeys.Focusing(NewCertName));
          PemHint.Text = CertificateDialog.PfxHint;
+
+         // Save passphrase can be pressed while its box holds one, where an empty box
+         // answered with a message box (review finding F236).
+         PassphraseBox.PasswordChanged += (s, e) => SavePassphraseButton.IsEnabled = !string.IsNullOrEmpty(PassphraseBox.Password);
          FormSubmit.Bind(AddCertForm, AddCertButton, NewCertName, NewCertFile, NewKeyFile, NewKeyPassphrase);
          FormSubmit.Bind(PassphraseBox, SavePassphraseButton, PassphraseBox);
 
@@ -409,7 +417,41 @@ namespace hMailServer.ControlPanel.Views
       }
 
       private void CertGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
-         => UpdateDetailsPane();
+      {
+         passphraseAnyway_ = false;
+         UpdateDetailsPane();
+      }
+
+      // Set while the selected certificate's passphrase editor was asked for with
+      // Set a passphrase anyway..., until another certificate is selected.
+      private bool passphraseAnyway_;
+
+      private void SetPassphraseAnyway_Click(object sender, RoutedEventArgs e)
+      {
+         passphraseAnyway_ = true;
+         UpdateDetailsPane();
+         PassphraseBox.Focus();
+      }
+
+      /// <summary>
+      /// The passphrase editor as the selected certificate needs it (review finding
+      /// F236): offered for a key that is or may be encrypted, or that has a passphrase
+      /// stored, and behind Set a passphrase anyway... for one this computer read as
+      /// unencrypted with none stored; Remove stored passphrase while one is stored or
+      /// the page cannot tell, and Save passphrase while its box holds one - where both
+      /// could be pressed whatever the state, and Save with an empty box opened a
+      /// message box.
+      /// </summary>
+      private void ShowPassphraseEditor_(CertRow row)
+      {
+         bool offered = passphraseAnyway_ || CertificateRows.OffersPassphrase(
+            row.Passphrase == StoredPassphrase.Set, row.Passphrase == StoredPassphrase.Unknown, row.Health?.KeyIsEncrypted);
+         SetPassphraseAnywayButton.Visibility = offered ? Visibility.Collapsed : Visibility.Visible;
+         PassphraseRow.Visibility = offered ? Visibility.Visible : Visibility.Collapsed;
+         DetailsCard.Footer = offered ? PassphraseActions : null;
+         ClearPassphraseButton.IsEnabled = row.Passphrase != StoredPassphrase.NotSet;
+         SavePassphraseButton.IsEnabled = !string.IsNullOrEmpty(PassphraseBox.Password);
+      }
 
       private void UpdateDetailsPane()
       {
@@ -434,6 +476,8 @@ namespace hMailServer.ControlPanel.Views
             DetailsLines.Children.Add(DetailLine(L("Key matches certificate"), health.Pair));
          if (row.PassphraseLine != null)
             DetailsLines.Children.Add(DetailLine(L("Passphrase"), row.PassphraseLine));
+
+         ShowPassphraseEditor_(row);
       }
 
       // ---- the passphrase editor -------------------------------------------------
@@ -443,13 +487,10 @@ namespace hMailServer.ControlPanel.Views
          if (CertGrid.SelectedItem is not CertRow row)
             return;
 
+         // The button waits for a passphrase in its box; Enter in an empty box does nothing.
          string passphrase = PassphraseBox.Password;
          if (string.IsNullOrEmpty(passphrase))
-         {
-            MessageBox.Show(L("Type the new passphrase first. To remove the stored one, use \"Remove stored passphrase\"."),
-               L("Control Panel"));
             return;
-         }
 
          if (row.Passphrase == StoredPassphrase.Set &&
              !MessageBox.Confirm(F("A passphrase is already stored for '{0}'. Saving replaces it - the old one cannot be recovered from here. Replace it?", row.Name), L("Control Panel"),
@@ -458,14 +499,16 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
+         OutcomeNotice.Visibility = Visibility.Collapsed;
          if (WritePassphrase(row, passphrase, out string error))
          {
             PassphraseBox.Password = "";
-            Reload(row.Id);
+            Reload(row.Id, () => ShowOutcome_(StatusLevel.Good, Sentences(F("The passphrase of {0} is saved.", row.Name),
+               L("The TCP/IP ports that present it read its files again when the server is next reinitialised."))));
          }
          else
          {
-            MessageBox.Show(F("Could not save the passphrase: {0}", error), L("Control Panel"));
+            ShowOutcome_(StatusLevel.Critical, F("Could not save the passphrase: {0}", error));
          }
       }
 
@@ -480,10 +523,11 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
+         OutcomeNotice.Visibility = Visibility.Collapsed;
          if (WritePassphrase(row, "", out string error))
-            Reload(row.Id);
+            Reload(row.Id, () => ShowOutcome_(StatusLevel.Good, F("The stored passphrase of {0} is removed.", row.Name)));
          else
-            MessageBox.Show(F("Could not remove the passphrase: {0}", error), L("Control Panel"));
+            ShowOutcome_(StatusLevel.Critical, F("Could not remove the passphrase: {0}", error));
       }
 
       /// <summary>
@@ -632,8 +676,15 @@ namespace hMailServer.ControlPanel.Views
       private void BrowseCert_Click(object sender, RoutedEventArgs e)
       {
          string file = BrowsePem();
-         if (file != null)
-            NewCertFile.Text = file;
+         if (file == null)
+            return;
+
+         NewCertFile.Text = file;
+
+         // The name is the certificate's own, while the box is empty: it had to be
+         // typed although the subject is in the file (review finding F236).
+         if (string.IsNullOrWhiteSpace(NewCertName.Text) && CertificateInspector.NameOf(file) is string name)
+            NewCertName.Text = name;
       }
 
       private async void BrowseKey_Click(object sender, RoutedEventArgs e)
@@ -735,6 +786,8 @@ namespace hMailServer.ControlPanel.Views
          if (session == null)
             return;
 
+         OutcomeNotice.Visibility = Visibility.Collapsed;
+         int added;
          dynamic certs = session.Application.Settings.SSLCertificates;
          try
          {
@@ -745,11 +798,12 @@ namespace hMailServer.ControlPanel.Views
             if (passphrase.Length > 0)
                cert.PrivateKeyPassword = passphrase;
             cert.Save();
+            added = (int)cert.ID;
             ServerSession.Release((object)cert);
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not add the certificate: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
+            ShowOutcome_(StatusLevel.Critical, F("Could not add the certificate: {0}", ServerSession.DescribeComError(ex)));
             return;
          }
          finally
@@ -760,8 +814,20 @@ namespace hMailServer.ControlPanel.Views
          NewCertName.Text = NewCertFile.Text = NewKeyFile.Text = "";
          NewKeyPassphrase.Password = "";
          AddHint.Visibility = Visibility.Collapsed;
-         Reload();
+
+         // The new certificate selected, and what it needs next: a port that presents
+         // it, on the page that has them (review finding F236). It was neither
+         // selected nor said.
+         Reload(added, () => ShowOutcome_(StatusLevel.Good,
+            Sentences(ListOutcome.Added(name, DateTime.Now), L("Choose it for a port on the TCP/IP ports page to use it.")),
+            OpenPortsButton_()));
       }
+
+      // The outcome's way to the ports, made once and kept, as the TCP/IP ports page
+      // keeps its notice's buttons.
+      private Wpf.Ui.Controls.Button openPortsButton_;
+
+      private Wpf.Ui.Controls.Button OpenPortsButton_() => openPortsButton_ ??= NoticeActions.OpenPage("ports", "certs-open-ports");
 
       private void Delete_Click(object sender, RoutedEventArgs e)
       {

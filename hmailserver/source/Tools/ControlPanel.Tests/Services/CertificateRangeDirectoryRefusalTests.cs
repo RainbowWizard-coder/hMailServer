@@ -59,8 +59,9 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain("MessageBox.Show(L(\"Name, lower IP and upper IP are required.\")", add, StringComparison.Ordinal);
       }
 
+      // The certificates' form is two lines of two fields with Add in its card's footer
+      // since review finding F236 (CertificatesAddFlowTests holds it).
       [Theory]
-      [InlineData("SslCertificatesView.xaml", "AddCertForm", "NewCertNameRow", "AddCertButton")]
       [InlineData("IPRangesView.xaml", "AddRangeForm", "NewPriorityRow", "AddRangeButton")]
       public void TheAddButton_LinesUpWithTheBoxes(string file, string form, string row, string button)
       {

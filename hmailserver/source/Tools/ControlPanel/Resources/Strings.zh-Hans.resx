@@ -2554,6 +2554,9 @@
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>请选择至少一天之后的到期日期。今天就到期的密钥会在制作当天进行到一半时停止工作。</value>
   </data>
+  <data name="Choose it for a port on the TCP/IP ports page to use it." xml:space="preserve">
+    <value>要使用它，请在“TCP/IP 端口”页上为某个端口选择它。</value>
+  </data>
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>选择 NCSA 通用日志格式以便分析器读取这些行，或者选择 JSON 供日志传送器使用。</value>
   </data>
@@ -5046,6 +5049,9 @@
   </data>
   <data name="Fill in a strong random secret" xml:space="preserve">
     <value>填入一个强随机机密</value>
+  </data>
+  <data name="Filled in from the certificate when you choose its file, while this box is empty." xml:space="preserve">
+    <value>此框为空时，选择证书文件后会根据证书自动填写。</value>
   </data>
   <data name="Find organizational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
     <value>通过 DNS 树遍历查找组织域（RFC 9989）</value>
@@ -10918,6 +10924,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Set a new server administration password." xml:space="preserve">
     <value>设置新的服务器管理密码。</value>
   </data>
+  <data name="Set a passphrase any_way…" xml:space="preserve">
+    <value>仍然设置密码短语(_W)…</value>
+  </data>
   <data name="Set but not confirmed: {0}. Until the account holder follows the link sent to it, it is used for nothing." xml:space="preserve">
     <value>已设置但未确认：{0}。在所有者打开发送到该地址的链接之前，它不会被用于任何用途。</value>
   </data>
@@ -12719,6 +12728,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
     <value>再输入一次口令，确认没有输错(_W)</value>
   </data>
+  <data name="The passphrase of {0} is saved." xml:space="preserve">
+    <value>已保存 {0} 的密码短语。</value>
+  </data>
   <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
     <value>目前无法将该密码与公开的数据泄露进行比对，而本服务器被设置为拒绝无法检查的更改。请稍后再试。</value>
   </data>
@@ -13126,6 +13138,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>存储的摘要不是可用的 SHA-256 值，因此此节无法验证任何内容。请吊销它并创建一个替代品。</value>
+  </data>
+  <data name="The stored passphrase of {0} is removed." xml:space="preserve">
+    <value>已移除 {0} 已存储的密码短语。</value>
   </data>
   <data name="The stored-secrets key - what the database's secrets are sealed under" xml:space="preserve">
     <value>存储机密密钥 - 数据库机密的封存所用</value>
@@ -13699,9 +13714,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Type the directory server host name first." xml:space="preserve">
     <value>请先输入目录服务器主机名。</value>
-  </data>
-  <data name="Type the new passphrase first. To remove the stored one, use &quot;Remove stored passphrase&quot;." xml:space="preserve">
-    <value>请先输入新密码短语。要移除已存储的密码短语，请使用“移除已存储的密码短语”。</value>
   </data>
   <data name="Type the new password." xml:space="preserve">
     <value>请输入新密码。</value>

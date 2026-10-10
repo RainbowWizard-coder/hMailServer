@@ -2554,6 +2554,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made.</value>
   </data>
+  <data name="Choose it for a port on the TCP/IP ports page to use it." xml:space="preserve">
+    <value>Choose it for a port on the TCP/IP ports page to use it.</value>
+  </data>
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper.</value>
   </data>
@@ -5046,6 +5049,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Fill in a strong random secret" xml:space="preserve">
     <value>Fill in a strong random secret</value>
+  </data>
+  <data name="Filled in from the certificate when you choose its file, while this box is empty." xml:space="preserve">
+    <value>Filled in from the certificate when you choose its file, while this box is empty.</value>
   </data>
   <data name="Find organizational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
     <value>Find organizational domains by DNS tree walk (RFC 9989)</value>
@@ -10918,6 +10924,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Set a new server administration password." xml:space="preserve">
     <value>Set a new server administration password.</value>
   </data>
+  <data name="Set a passphrase any_way…" xml:space="preserve">
+    <value>Set a passphrase any_way…</value>
+  </data>
   <data name="Set but not confirmed: {0}. Until the account holder follows the link sent to it, it is used for nothing." xml:space="preserve">
     <value>Set but not confirmed: {0}. Until the account holder follows the link sent to it, it is used for nothing.</value>
   </data>
@@ -12719,6 +12728,9 @@ could not be loaded. The message has probably been delivered and is no longer in
   <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
     <value>The passphrase again, to be sure it _was typed right</value>
   </data>
+  <data name="The passphrase of {0} is saved." xml:space="preserve">
+    <value>The passphrase of {0} is saved.</value>
+  </data>
   <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
     <value>The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later.</value>
   </data>
@@ -13126,6 +13138,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement.</value>
+  </data>
+  <data name="The stored passphrase of {0} is removed." xml:space="preserve">
+    <value>The stored passphrase of {0} is removed.</value>
   </data>
   <data name="The stored-secrets key - what the database's secrets are sealed under" xml:space="preserve">
     <value>The stored-secrets key - what the database's secrets are sealed under</value>
@@ -13699,9 +13714,6 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="Type the directory server host name first." xml:space="preserve">
     <value>Type the directory server host name first.</value>
-  </data>
-  <data name="Type the new passphrase first. To remove the stored one, use &quot;Remove stored passphrase&quot;." xml:space="preserve">
-    <value>Type the new passphrase first. To remove the stored one, use "Remove stored passphrase".</value>
   </data>
   <data name="Type the new password." xml:space="preserve">
     <value>Type the new password.</value>

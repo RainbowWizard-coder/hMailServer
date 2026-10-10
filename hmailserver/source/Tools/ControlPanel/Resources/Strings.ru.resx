@@ -2578,6 +2578,9 @@ Control Panel может читать файлы сообщений только
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Выберите дату окончания срока действия не раньше чем через день. Ключ, срок действия которого истекает сегодня, перестал бы работать в тот же день, когда был создан.</value>
   </data>
+  <data name="Choose it for a port on the TCP/IP ports page to use it." xml:space="preserve">
+    <value>Чтобы использовать его, выберите его для порта на странице «Порты TCP/IP».</value>
+  </data>
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Выберите NCSA Common Log Format, чтобы строки читал анализатор, или JSON — для системы сбора журналов.</value>
   </data>
@@ -5113,6 +5116,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Fill in a strong random secret" xml:space="preserve">
     <value>Впишите стойкий случайный секрет</value>
+  </data>
+  <data name="Filled in from the certificate when you choose its file, while this box is empty." xml:space="preserve">
+    <value>Заполняется из сертификата, когда вы выбираете его файл, пока это поле пусто.</value>
   </data>
   <data name="Find organizational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
     <value>Определять организационные домены обходом дерева DNS (RFC 9989)</value>
@@ -11045,6 +11051,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Set a new server administration password." xml:space="preserve">
     <value>Задайте новый пароль администрирования сервера.</value>
   </data>
+  <data name="Set a passphrase any_way…" xml:space="preserve">
+    <value>Всё _равно задать парольную фразу…</value>
+  </data>
   <data name="Set but not confirmed: {0}. Until the account holder follows the link sent to it, it is used for nothing." xml:space="preserve">
     <value>Задан, но не подтверждён: {0}. Пока владелец не перейдёт по отправленной туда ссылке, адрес ни для чего не используется.</value>
   </data>
@@ -12885,6 +12894,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
     <value>Парольная фраза ещё раз, чтобы убедиться, что она набрана _верно</value>
   </data>
+  <data name="The passphrase of {0} is saved." xml:space="preserve">
+    <value>Парольная фраза {0} сохранена.</value>
+  </data>
   <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
     <value>Сейчас не удалось проверить пароль по опубликованным утечкам данных, а этот сервер настроен отклонять изменение, которое он не может проверить. Повторите попытку позже.</value>
   </data>
@@ -13292,6 +13304,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Сохранённая контрольная сумма не является пригодным значением SHA-256, поэтому этот раздел никого не аутентифицирует. Отзовите его и создайте замену.</value>
+  </data>
+  <data name="The stored passphrase of {0} is removed." xml:space="preserve">
+    <value>Сохранённая парольная фраза {0} удалена.</value>
   </data>
   <data name="The stored-secrets key - what the database's secrets are sealed under" xml:space="preserve">
     <value>Ключ хранимых секретов - то, чем запечатаны секреты базы данных</value>
@@ -13868,9 +13883,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Type the directory server host name first." xml:space="preserve">
     <value>Сначала введите имя хоста сервера каталога.</value>
-  </data>
-  <data name="Type the new passphrase first. To remove the stored one, use &quot;Remove stored passphrase&quot;." xml:space="preserve">
-    <value>Сначала введите новую парольную фразу. Чтобы удалить сохранённую, используйте «Удалить сохранённую парольную фразу».</value>
   </data>
   <data name="Type the new password." xml:space="preserve">
     <value>Введите новый пароль.</value>

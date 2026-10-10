@@ -2554,6 +2554,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Valitse vanhenemispäivä, joka on vähintään päivän päässä. Tänään vanheneva avain lakkaisi toimimasta kesken sen päivän, jona se luotiin.</value>
   </data>
+  <data name="Choose it for a port on the TCP/IP ports page to use it." xml:space="preserve">
+    <value>Valitse se portille TCP/IP-portit-sivulla, niin se otetaan käyttöön.</value>
+  </data>
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Valitse NCSA Common Log Format, jotta analysointityökalu voi lukea rivit, tai JSON lokien lähettäjälle.</value>
   </data>
@@ -5046,6 +5049,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Fill in a strong random secret" xml:space="preserve">
     <value>Täytä vahvalla satunnaisella salaisuudella</value>
+  </data>
+  <data name="Filled in from the certificate when you choose its file, while this box is empty." xml:space="preserve">
+    <value>Täytetään varmenteesta, kun valitset sen tiedoston, jos tämä kenttä on tyhjä.</value>
   </data>
   <data name="Find organizational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
     <value>Etsi organisaatioverkkotunnukset DNS-puuta kävelemällä (RFC 9989)</value>
@@ -10918,6 +10924,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Set a new server administration password." xml:space="preserve">
     <value>Aseta uusi palvelimen hallintasalasana.</value>
   </data>
+  <data name="Set a passphrase any_way…" xml:space="preserve">
+    <value>Aseta tunnuslause _silti…</value>
+  </data>
   <data name="Set but not confirmed: {0}. Until the account holder follows the link sent to it, it is used for nothing." xml:space="preserve">
     <value>Asetettu mutta vahvistamatta: {0}. Ennen kuin tilinhaltija seuraa sinne lähetettyä linkkiä, sitä ei käytetä mihinkään.</value>
   </data>
@@ -12719,6 +12728,9 @@ ei voitu ladata. Viesti on todennäköisesti toimitettu eikä ole enää jonossa
   <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
     <value>Salasanalause vielä kerran, jotta se on varmasti kirjoitettu _oikein</value>
   </data>
+  <data name="The passphrase of {0} is saved." xml:space="preserve">
+    <value>Varmenteen {0} tunnuslause on tallennettu.</value>
+  </data>
   <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
     <value>Salasanaa ei juuri nyt voitu tarkistaa julkaistuja tietovuotoja vasten, ja tämä palvelin on asetettu hylkäämään muutoksen, jota se ei voi tarkistaa. Yritä myöhemmin uudelleen.</value>
   </data>
@@ -13126,6 +13138,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Tallennettu tiiviste ei ole käyttökelpoinen SHA-256-arvo, joten tämä osio ei todenna mitään. Kumoa se ja luo korvaava.</value>
+  </data>
+  <data name="The stored passphrase of {0} is removed." xml:space="preserve">
+    <value>Varmenteen {0} tallennettu tunnuslause on poistettu.</value>
   </data>
   <data name="The stored-secrets key - what the database's secrets are sealed under" xml:space="preserve">
     <value>Tallennettujen salaisuuksien avain - jolla tietokannan salaisuudet on sinetöity</value>
@@ -13699,9 +13714,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="Type the directory server host name first." xml:space="preserve">
     <value>Anna ensin hakemistopalvelimen konenimi.</value>
-  </data>
-  <data name="Type the new passphrase first. To remove the stored one, use &quot;Remove stored passphrase&quot;." xml:space="preserve">
-    <value>Anna ensin uusi tunnuslause. Poista tallennettu käyttämällä toimintoa "Poista tallennettu tunnuslause".</value>
   </data>
   <data name="Type the new password." xml:space="preserve">
     <value>Kirjoita uusi salasana.</value>

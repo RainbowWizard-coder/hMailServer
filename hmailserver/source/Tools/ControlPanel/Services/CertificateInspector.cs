@@ -131,6 +131,31 @@ namespace hMailServer.ControlPanel.Services
       }
 
       /// <summary>
+      /// The name a certificate file goes by - its subject's common name, or its first
+      /// DNS name where it has none - for the add form's Name, which had to be typed
+      /// although the subject is in the file (review finding F236); null when the file
+      /// cannot be read or is not a PEM certificate. Never throws.
+      /// </summary>
+      public static string NameOf(string path)
+      {
+         try
+         {
+            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+               return null;
+
+            using X509Certificate2 certificate = X509Certificate2.CreateFromPem(File.ReadAllText(path));
+            string name = certificate.GetNameInfo(X509NameType.SimpleName, false);
+            if (string.IsNullOrWhiteSpace(name))
+               name = certificate.GetNameInfo(X509NameType.DnsName, false);
+            return string.IsNullOrWhiteSpace(name) ? null : name.Trim();
+         }
+         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+         {
+            return null;
+         }
+      }
+
+      /// <summary>
       /// True when a PEM private key file is passphrase-protected. These are the
       /// two markers OpenSSL's own loader keys off: the PKCS#8 "ENCRYPTED
       /// PRIVATE KEY" block, and the PKCS#1 "Proc-Type: 4,ENCRYPTED" header.

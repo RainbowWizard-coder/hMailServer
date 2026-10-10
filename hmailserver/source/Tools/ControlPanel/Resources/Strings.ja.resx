@@ -2554,6 +2554,9 @@
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>少なくとも 1 日先の有効期限を選択してください。今日期限が切れる鍵は、作成した当日の途中で動作しなくなります。</value>
   </data>
+  <data name="Choose it for a port on the TCP/IP ports page to use it." xml:space="preserve">
+    <value>使うには、TCP/IP ポートページでポートにこの証明書を選んでください。</value>
+  </data>
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>解析ツールが行を読めるように NCSA Common Log Format を、ログ シッパー向けには JSON を選択してください。</value>
   </data>
@@ -5046,6 +5049,9 @@
   </data>
   <data name="Fill in a strong random secret" xml:space="preserve">
     <value>強力なランダム シークレットを入力</value>
+  </data>
+  <data name="Filled in from the certificate when you choose its file, while this box is empty." xml:space="preserve">
+    <value>このボックスが空のときは、証明書のファイルを選ぶと証明書から入力されます。</value>
   </data>
   <data name="Find organizational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
     <value>DNS ツリー ウォークで組織ドメインを検出する (RFC 9989)</value>
@@ -10918,6 +10924,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Set a new server administration password." xml:space="preserve">
     <value>新しいサーバー管理パスワードを設定します。</value>
   </data>
+  <data name="Set a passphrase any_way…" xml:space="preserve">
+    <value>それでもパスフレーズを設定(_W)…</value>
+  </data>
   <data name="Set but not confirmed: {0}. Until the account holder follows the link sent to it, it is used for nothing." xml:space="preserve">
     <value>設定済みですが未確認: {0}。所有者がそこへ送られたリンクを開くまで、このアドレスは何にも使われません。</value>
   </data>
@@ -12719,6 +12728,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
     <value>入力の誤りがないことを確かめるため、もう一度パスフレーズを(_W)</value>
   </data>
+  <data name="The passphrase of {0} is saved." xml:space="preserve">
+    <value>{0} のパスフレーズを保存しました。</value>
+  </data>
   <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
     <value>現在、公開されたデータ漏えいとパスワードを照合できませんでした。このサーバーは照合できない変更を拒否するように設定されています。しばらくしてからもう一度お試しください。</value>
   </data>
@@ -13126,6 +13138,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>保存されているダイジェストが使用可能な SHA-256 値ではないため、このセクションは何も認証しません。失効させて代わりを作成してください。</value>
+  </data>
+  <data name="The stored passphrase of {0} is removed." xml:space="preserve">
+    <value>{0} の保存されていたパスフレーズを削除しました。</value>
   </data>
   <data name="The stored-secrets key - what the database's secrets are sealed under" xml:space="preserve">
     <value>保存シークレットの鍵 - データベースのシークレットを封印するもの</value>
@@ -13699,9 +13714,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Type the directory server host name first." xml:space="preserve">
     <value>まずディレクトリ サーバーのホスト名を入力してください。</value>
-  </data>
-  <data name="Type the new passphrase first. To remove the stored one, use &quot;Remove stored passphrase&quot;." xml:space="preserve">
-    <value>まず新しいパスフレーズを入力してください。保存されたものを削除するには、「保存されたパスフレーズを削除」を使います。</value>
   </data>
   <data name="Type the new password." xml:space="preserve">
     <value>新しいパスワードを入力してください。</value>

@@ -93,19 +93,40 @@
                           SelectionMode="Single" SelectionChanged="CertGrid_SelectionChanged" Sorting="CertGrid_Sorting"
                           AutomationProperties.Name="{loc:L 'SSL certificates'}">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="{loc:L 'Name'}" Binding="{Binding Name}" Width="170" ElementStyle="{StaticResource GridTrimmedText}" />
-                        <DataGridTextColumn Header="{loc:L 'Certificate file'}" Binding="{Binding CertificateFile}" Width="*" ElementStyle="{StaticResource GridTrimmedText}" />
-                        <DataGridTextColumn Header="{loc:L 'Private key file'}" Binding="{Binding PrivateKeyFile}" Width="*" ElementStyle="{StaticResource GridTrimmedText}" />
+                        <!-- The name takes a share and a floor, and the two path columns the
+                             file's name alone, the whole path in its tool tip: the name was
+                             cut at 170 pixels while the paths, the same folder on every row,
+                             took the rest (review finding F236). Every column has a floor,
+                             as the IP ranges page's have, so that a narrow window scrolls the
+                             grid sideways rather than squeezing the status columns to a word
+                             a line and the paths to nothing. -->
+                        <DataGridTextColumn Header="{loc:L 'Name'}" Binding="{Binding Name}" Width="1.2*" MinWidth="160" ElementStyle="{StaticResource GridTrimmedText}" />
+                        <DataGridTemplateColumn Header="{loc:L 'Certificate file'}" Width="*" MinWidth="110" SortMemberPath="CertificateFile">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding CertificateFileName}" ToolTip="{Binding CertificateFile}" TextTrimming="CharacterEllipsis"
+                                               VerticalAlignment="Center" Margin="2,0,0,0" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="{loc:L 'Private key file'}" Width="*" MinWidth="110" SortMemberPath="PrivateKeyFile">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding PrivateKeyFileName}" ToolTip="{Binding PrivateKeyFile}" TextTrimming="CharacterEllipsis"
+                                               VerticalAlignment="Center" Margin="2,0,0,0" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                         <!-- Sorted by how much the certificate asks for attention, then by how
                              soon it expires (CertGrid_Sorting), not by its status word. -->
-                        <DataGridTemplateColumn x:Name="CertificateColumn" Header="{loc:L 'Certificate'}" Width="210" SortMemberPath="CertificateState">
+                        <DataGridTemplateColumn x:Name="CertificateColumn" Header="{loc:L 'Certificate'}" Width="210" MinWidth="180" SortMemberPath="CertificateState">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <ContentControl Loaded="CertificateBadge_Loaded" IsTabStop="False" Focusable="False" />
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="{loc:L 'Private key'}" Width="210" SortMemberPath="PrivateKeyState">
+                        <DataGridTemplateColumn Header="{loc:L 'Private key'}" Width="210" MinWidth="180" SortMemberPath="PrivateKeyState">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <ContentControl Loaded="KeyBadge_Loaded" IsTabStop="False" Focusable="False" />
@@ -115,7 +136,7 @@
                         <!-- The TCP/IP ports that present it, "SMTP 465, IMAP 993" or Not
                              used: the page's purpose is which port uses which, and no
                              column said it (review finding F235). -->
-                        <DataGridTextColumn Header="{loc:L 'Used by'}" Binding="{Binding UsedBy}" Width="150" ElementStyle="{StaticResource GridTrimmedText}" />
+                        <DataGridTextColumn Header="{loc:L 'Used by'}" Binding="{Binding UsedBy}" Width="150" MinWidth="110" ElementStyle="{StaticResource GridTrimmedText}" />
                     </DataGrid.Columns>
                 </DataGrid>
                 </scaffold:FillPanel>
@@ -141,16 +162,24 @@
             <StackPanel>
                 <StackPanel x:Name="DetailsLines" Margin="0,0,0,8" />
 
-                <scaffold:FieldRow Label="{loc:L 'Private _key passphrase'}"
+                <!-- The editor shows for a key that is or may be encrypted, or has a
+                     passphrase stored; for a key the page read as unencrypted with none
+                     stored it waits behind Set a passphrase anyway... (review finding
+                     F236), where it was offered for a key that needs none. -->
+                <ui:Button x:Name="SetPassphraseAnywayButton" Content="{loc:L 'Set a passphrase any_way…'}" Click="SetPassphraseAnyway_Click"
+                           Visibility="Collapsed" Margin="0" AutomationProperties.AutomationId="certs-set-passphrase-anyway" />
+                <scaffold:FieldRow x:Name="PassphraseRow" Label="{loc:L 'Private _key passphrase'}"
                                    Hint="{loc:L 'Only needed when the key file is encrypted: with an encrypted key and no passphrase, the key does not load (server error 6170) and every TLS port using this certificate does not start - inbound mail on those ports stops. The passphrase is a secret: it is stored protected on the server and never displayed here again, and saving a new one replaces whatever was stored before.'}"
                                    Margin="0">
                     <local:PasswordField x:Name="PassphraseBox" MaxWidth="360" HorizontalAlignment="Left" PlaceholderText="{loc:L 'New passphrase'}" />
                 </scaffold:FieldRow>
             </StackPanel>
             <scaffold:Card.Footer>
-                <StackPanel Orientation="Horizontal">
-                    <!-- Remove before Save, the Primary, last (review finding F289). -->
-                    <ui:Button Content="{loc:L 'Re_move stored passphrase'}" Click="ClearPassphrase_Click" Margin="0,0,8,0"
+                <StackPanel x:Name="PassphraseActions" Orientation="Horizontal">
+                    <!-- Remove before Save, the Primary, last (review finding F289).
+                         Remove can be pressed while a passphrase is stored, or while the
+                         page cannot tell, and Save while its box holds one (F236). -->
+                    <ui:Button x:Name="ClearPassphraseButton" Content="{loc:L 'Re_move stored passphrase'}" Click="ClearPassphrase_Click" Margin="0,0,8,0"
                                AutomationProperties.HelpText="{loc:L 'Remove the stored private key passphrase from the selected certificate'}" ToolTip="{loc:L 'Remove the stored private key passphrase from the selected certificate'}" />
                     <ui:Button x:Name="SavePassphraseButton" Content="{loc:L 'Save _passphrase'}" Appearance="Primary" Click="SavePassphrase_Click"
                                AutomationProperties.HelpText="{loc:L 'Save the private key passphrase for the selected certificate'}" ToolTip="{loc:L 'Save the private key passphrase for the selected certificate'}" />
@@ -160,25 +189,31 @@
 
         <scaffold:Card Title="{loc:L 'Add certificate'}" Margin="0,12,0,0">
             <StackPanel>
+                <!-- Two lines of two fields (review finding F236): the name and the
+                     passphrase, then the two files, each line's captions as tall as
+                     its tallest (FieldRow.LabelGroup), so that the boxes of a line
+                     line up whatever a caption wraps to and a message under one box
+                     moves none of the others. Five fields shared one line: the
+                     passphrase's caption wrapped to two lines in English and three in
+                     German, and at 760 pixels the path boxes were 100 pixels wide.
+                     Add is the card's own action, in its footer. -->
                 <Grid x:Name="AddCertForm" Grid.IsSharedSizeScope="True">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" MinWidth="120" />
-                        <ColumnDefinition Width="2*" />
-                        <ColumnDefinition Width="2*" />
-                        <ColumnDefinition Width="*" MinWidth="160" />
-                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <!-- Every caption of the line is as tall as the tallest
-                         (FieldRow.LabelGroup), and the Add button sits under a row
-                         of that height: the passphrase's caption wraps to two lines
-                         in a narrow window, and the boxes lined up only while they
-                         sat on the line's bottom edge, where a message under one box
-                         would lift it above the others and put Add beside the
-                         message. -->
-                    <scaffold:FieldRow x:Name="NewCertNameRow" Label="{loc:L '_Name'}" Margin="0,0,8,0" LabelGroup="CertLine">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <scaffold:FieldRow x:Name="NewCertNameRow" Label="{loc:L '_Name'}" Margin="0,0,8,12" LabelGroup="CertNameLine"
+                                       Hint="{loc:L 'Filled in from the certificate when you choose its file, while this box is empty.'}">
                         <ui:TextBox x:Name="NewCertName" />
                     </scaffold:FieldRow>
-                    <scaffold:FieldRow x:Name="NewCertFileRow" Grid.Column="1" Label="{loc:L '_Certificate file (PEM)'}" Margin="0,0,8,0" LabelGroup="CertLine">
+                    <scaffold:FieldRow Grid.Column="1" Label="{loc:L 'Ke_y passphrase (only for an encrypted key)'}" Margin="0,0,0,12" LabelGroup="CertNameLine">
+                        <local:PasswordField x:Name="NewKeyPassphrase" />
+                    </scaffold:FieldRow>
+                    <scaffold:FieldRow x:Name="NewCertFileRow" Grid.Row="1" Label="{loc:L '_Certificate file (PEM)'}" Margin="0,0,8,0" LabelGroup="CertFileLine">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -189,7 +224,7 @@
                                        AutomationProperties.Name="{loc:L 'Browse for the certificate file'}" />
                         </Grid>
                     </scaffold:FieldRow>
-                    <scaffold:FieldRow x:Name="NewKeyFileRow" Grid.Column="2" Label="{loc:L 'Private key _file (PEM)'}" Margin="0,0,8,0" LabelGroup="CertLine">
+                    <scaffold:FieldRow x:Name="NewKeyFileRow" Grid.Row="1" Grid.Column="1" Label="{loc:L 'Private key _file (PEM)'}" Margin="0" LabelGroup="CertFileLine">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -200,17 +235,6 @@
                                        AutomationProperties.Name="{loc:L 'Browse for the private key file'}" />
                         </Grid>
                     </scaffold:FieldRow>
-                    <scaffold:FieldRow Grid.Column="3" Label="{loc:L 'Ke_y passphrase (only for an encrypted key)'}" Margin="0,0,8,0" LabelGroup="CertLine">
-                        <local:PasswordField x:Name="NewKeyPassphrase" />
-                    </scaffold:FieldRow>
-                    <Grid Grid.Column="4">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" SharedSizeGroup="CertLine" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-                        <ui:Button x:Name="AddCertButton" Grid.Row="1" Content="{loc:L '_Add'}" Appearance="Primary" Click="Add_Click"
-                                   VerticalAlignment="Top" Margin="0" />
-                    </Grid>
                 </Grid>
                 <!-- What the server reads, and how a .pfx or .p12 is made into it: the
                      search finds this page for "PFX", and the form said nothing of one
@@ -222,6 +246,9 @@
                      it now is cheaper than error 6170 after the next restart. -->
                 <scaffold:InlineNotice x:Name="AddHint" Margin="0" Visibility="Collapsed" />
             </StackPanel>
+            <scaffold:Card.Footer>
+                <ui:Button x:Name="AddCertButton" Content="{loc:L '_Add'}" Appearance="Primary" Click="Add_Click" HorizontalAlignment="Left" />
+            </scaffold:Card.Footer>
         </scaffold:Card>
         </scaffold:FillPanel>
         </ScrollViewer>
