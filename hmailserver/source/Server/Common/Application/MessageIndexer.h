@@ -36,7 +36,9 @@ namespace HM
       // away - a pass reads what it is to index with several before its first
       // message - and a statement takes as long as the database takes to answer
       // it, or DatabaseStatementTimeout where the database applies that: not to
-      // a write on MySQL, not at all when it is 0.
+      // a write on MySQL, not at all when it is 0. The request is asked again at
+      // every second of the wait, since one that an interruption point threw
+      // inside a catch (...) is forgotten there.
       //
       // maxWaitSeconds 0 waits until the thread has ended, as a Reinitialize
       // must, the database closed straight after. Above 0 it gives up after so
@@ -163,7 +165,9 @@ namespace HM
    // and a Start the indexer's own thread makes while a Stop on another waits
    // for it return at once, the Start taking back no stop, where the wait held
    // the lock they need and the stop and the indexer waited for each other for
-   // ever. ClassTester runs
+   // ever. And a Stop ends a pass that swallowed its request to stop in a
+   // catch (...), where until 10 October 2026 the request was asked once and a
+   // Reinitialize's stop waited for ever. ClassTester runs
    // Test on Windows, business-object-tests on Linux; TestAnExceptionOnItsThread
    // only business-object-tests, since on Windows the exception handler writes a
    // minidump of the server it runs in.
@@ -184,5 +188,6 @@ namespace HM
       void TestAStartOnItsOwnThread_();
       void TestAStopBeforeExitGivesUp_();
       void TestItsOwnStartAndStopWhileAStopWaits_();
+      void TestASwallowedStopIsAskedAgain_();
    };
 }

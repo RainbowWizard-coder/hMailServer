@@ -883,8 +883,9 @@ namespace HM
       // database a Reinitialize had closed, and the Start after it started none.
       // And a Start on the indexer's own thread, as an OnError script makes one,
       // neither asks the thread to join itself nor ends it after a Stop there; a
-      // Stop with a limit gives up at it; and the indexer's own Stop and Start
-      // while a Stop waits for it are not made to wait for that stop.
+      // Stop with a limit gives up at it; the indexer's own Stop and Start while
+      // a Stop waits for it are not made to wait for that stop; and a Stop ends a
+      // pass that swallowed its request to stop.
       OutputDebugString(_T("hMailServer: Testing the message indexer's stop and start\n"));
       MessageIndexerTester messageIndexerTester;
       messageIndexerTester.Test();

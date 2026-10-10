@@ -378,6 +378,16 @@ namespace HM
             if (!workerThread_.joinable())
                return true;
 
+            // Asked again at every turn, since a request is forgotten when it is
+            // thrown: one thrown at an interruption point inside a catch (...) - a
+            // database call's wait for a pooled connection is one, made by the
+            // batches' second look among others - was never asked again until 10
+            // October 2026, the thread ran on, and a stop with no limit, a
+            // Reinitialize's, waited for it for ever. A request still pending is
+            // not doubled by this, and a Start on the thread takes none back
+            // meanwhile, since this caller is counted in waiters_.
+            workerThread_.interrupt();
+
             joining_ = true;
             bool ended = false;
 
@@ -565,6 +575,15 @@ namespace HM
          std::set<__int64> &accounts;
          ~SecondLook()
          {
+            // A stop of the indexer, asked before this or while it runs, waits
+            // for the next interruption point after it: a database call here that
+            // waits for a pooled connection is one, and the request it threw would
+            // end the look part way - the words of an account switched on left
+            // standing - and be forgotten in the catch below, the thread running
+            // on after the stop that asked (WaitForEnd_ asks again, from 10
+            // October 2026).
+            boost::this_thread::disable_interruption keepTheStop;
+
             try
             {
                for (__int64 accountId : accounts)
@@ -733,6 +752,10 @@ namespace HM
             std::set<__int64> &accounts;
             ~SecondLook()
             {
+               // As the words' second look: a stop waits for the next
+               // interruption point after it.
+               boost::this_thread::disable_interruption keepTheStop;
+
                try
                {
                   for (__int64 accountId : accounts)
@@ -826,7 +849,10 @@ namespace HM
             ask_(AskNothing),
             ask_threw_(false),
             stop_returned_(false),
-            statement_after_stop_(false)
+            statement_after_stop_(false),
+            swallows_(false),
+            swallowed_(0),
+            ends_(false)
          {
          }
 
@@ -840,7 +866,10 @@ namespace HM
             ask_(AskNothing),
             ask_threw_(false),
             stop_returned_(false),
-            statement_after_stop_(false)
+            statement_after_stop_(false),
+            swallows_(false),
+            swallowed_(0),
+            ends_(false)
          {
          }
 
@@ -868,14 +897,40 @@ namespace HM
             {
                std::this_thread::sleep_for(std::chrono::milliseconds(stretch_ms_.load()));
 
+               // Ended by the test itself, which has seen what it needed and
+               // has a pass that no Stop ends to be rid of.
+               if (ends_.load())
+                  return;
+
                // The next statement. A Stop that has returned has let the
                // database go (Application::ExitInstance).
                if (stop_returned_.load())
                   statement_after_stop_.store(true);
 
+               // A stop's request, once it has come, thrown at an interruption
+               // point inside a catch (...) and forgotten there, as a database
+               // call's wait for a pooled connection in the batches' second look
+               // threw it until 10 October 2026. Until then the pass makes no
+               // interruption point of its own, so that the request is the one
+               // this catches.
+               const bool swallows = swallows_.load();
+               if (swallows && boost::this_thread::interruption_requested())
+               {
+                  swallows_.store(false);
+                  try
+                  {
+                     boost::this_thread::interruption_point();
+                  }
+                  catch (...)
+                  {
+                     swallowed_++;
+                  }
+               }
+
                AskIndexer_();
 
-               boost::this_thread::interruption_point();
+               if (!swallows)
+                  boost::this_thread::interruption_point();
 
                {
                   std::lock_guard<std::mutex> guard(lock_);
@@ -920,6 +975,13 @@ namespace HM
 
          void StopReturned() { stop_returned_.store(true); }
          bool StatementAfterStop() const { return statement_after_stop_.load(); }
+
+         // Swallows the next stop's request (Run), and how many it has.
+         void SwallowsAStop() { swallows_.store(true); }
+         int Swallowed() const { return swallowed_.load(); }
+
+         // Ends at the end of its stretch, by itself.
+         void Ends() { ends_.store(true); }
 
       private:
          void AskIndexer_()
@@ -969,6 +1031,9 @@ namespace HM
          std::atomic<bool> ask_threw_;
          std::atomic<bool> stop_returned_;
          std::atomic<bool> statement_after_stop_;
+         std::atomic<bool> swallows_;
+         std::atomic<int> swallowed_;
+         std::atomic<bool> ends_;
       };
 
       // Long enough for a thread to be made and begin, however slowly the tester
@@ -985,6 +1050,7 @@ namespace HM
       TestAStartOnItsOwnThread_();
       TestAStopBeforeExitGivesUp_();
       TestItsOwnStartAndStopWhileAStopWaits_();
+      TestASwallowedStopIsAskedAgain_();
    }
 
    void
@@ -1139,6 +1205,35 @@ namespace HM
 
       if (pass.Runs() != 1)
          throw std::logic_error("MessageIndexerTester: a Start on the indexer's own thread while a Stop waited for it began another indexer.");
+   }
+
+   void
+   MessageIndexerTester::TestASwallowedStopIsAskedAgain_()
+   {
+      StandInPass pass;
+      MessageIndexer indexer(boost::bind(&StandInPass::Run, &pass));
+
+      // The pass forgets the stop's request in a catch (...), as a database
+      // call's wait for a pooled connection in the batches' second look did.
+      pass.SwallowsAStop();
+      indexer.Start();
+      if (!pass.WaitForRuns(1, StandInWait))
+         throw std::logic_error("MessageIndexerTester: the indexer's thread began no pass within a minute of Start.");
+
+      // A Reinitialize's stop has no limit; this one has, so that a request
+      // asked once and never again ends the test rather than hangs it.
+      const bool ended = indexer.Stop(std::function<void()>(), 20);
+      const int swallowed = pass.Swallowed();
+
+      if (!ended)
+      {
+         pass.Ends();
+         indexer.Stop();
+         throw std::logic_error("MessageIndexerTester: a Stop waited twenty seconds for a pass that had swallowed its request to stop, and the pass ran on: the request was asked once and never again, and a Reinitialize's stop, which has no limit, waited for ever.");
+      }
+
+      if (swallowed != 1)
+         throw std::logic_error("MessageIndexerTester: the stand-in pass swallowed no request to stop, so the test showed nothing.");
    }
 
    void

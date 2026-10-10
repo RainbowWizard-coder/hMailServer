@@ -470,19 +470,26 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   error, asked the thread to join itself, which Boost refuses with an exception (in every version): the script met
   an error and the setting was not saved. Such a start now leaves the indexer as it is, and after a stop made on
   that thread too takes the stop back. And a stop no longer waits for the thread holding the lock that such a
-  script's start or stop takes, which made the stop and the indexer wait for each other for ever.
+  script's start or stop takes, which made the stop and the indexer wait for each other for ever. The stop asks the
+  thread to stop again at every second of its wait: a request thrown at an interruption point inside a catch-all is
+  forgotten there - a database call's wait for a pooled connection is one, and the second look a batch takes at the
+  accounts switched to encryption at rest while it ran makes such calls inside one - and the thread ran on with it
+  asked once, so that a reinitialise waited for ever. That second look now runs with the thread's interruptions off,
+  so that a stop no longer cuts it short and leaves such an account's words in the index.
   `MessageIndexerTester` (`TestInternals` on Windows, `business-object-tests` on Linux) runs the indexer's thread
   over a stand-in pass that holds no interruption point for a while: with the stop and the start as they were, the
   pass made a statement after the stop had returned, a start straight after a stop began no indexer, and a start on
   the indexer's own thread threw; with the lock held across the wait, the indexer's own stop and start while a stop
-  waited for it waited for that stop, and it for them, until its limit; and a stop with a limit gives up on a pass
-  that outlasts it, the start after it beginning a new indexer once the pass has ended. Found by the batch's Alpine
+  waited for it waited for that stop, and it for them, until its limit; a stop with a limit gives up on a pass that
+  outlasts it, the start after it beginning a new indexer once the pass has ended; and a stop ends a pass that
+  swallowed its request in a catch-all, where with the request asked once it gave up at its limit of twenty seconds,
+  the pass still running. Found by the batch's Alpine
   suite: the teardown of `FullTextSearch.AMailboxLargerThanOneLookupIsSearchedAWindowAtATime` reinitialised while
   the indexer was in the second batch of the test's 450 messages, and every fixture after it was refused a
   connection. With the test's backfill made one batch, so that its teardown always comes in the middle of it, the
   server died there in three Alpine runs of three (twice a segmentation fault, once the exception) and lives through
   it with the fix. The limit, the lock, the order of the save and the start on the indexer's own thread were found
-  by the re-check of the fix.
+  by the re-check of the fix, and the request asked once by the re-check of that.
 
 ### Downloads and the release
 
