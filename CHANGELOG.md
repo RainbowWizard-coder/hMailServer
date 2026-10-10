@@ -2429,6 +2429,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the Listening column's header, which says that the column is read from this machine's open ports. Every page's
   subtitle is held to two sentences, six still longer listed with why.
 
+- **Fixed: the failure toast was one 1,160-pixel line across the sidebar and the page, with nothing to do but close
+  it.** "Server unavailable - Could not load this page: ..." ran from the window's left edge nearly to its right over
+  the sidebar's rows and the version footer, centred across the whole window with no width limit, and offered only its
+  close button. Toasts now sit over the page, inside the content column, at most 560 pixels wide, so that a long
+  sentence wraps to a few lines; and the failure a page reports when it cannot be entered carries Try again, which
+  enters the page once more while it is still the page on screen and closes the toast.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

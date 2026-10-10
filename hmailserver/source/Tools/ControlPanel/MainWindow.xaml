@@ -350,6 +350,14 @@
                     <!-- The pages own their padding (AppPagePadding) and their
                          scrolling; the host only holds them. -->
                     <ContentControl x:Name="ContentHost" Grid.Row="1" AutomationProperties.Name="{loc:L 'Page content'}" />
+
+                    <!-- The toasts, over the page and never over the sidebar or the help
+                         pane, at most 560 pixels wide so that a long sentence wraps to a
+                         few lines: across the outer grid a failure was one 1,160-pixel
+                         line over the sidebar and the page (review finding F008). -->
+                    <ui:SnackbarPresenter x:Name="RootSnackbar" Grid.Row="0" Grid.RowSpan="2"
+                                          VerticalAlignment="Bottom" HorizontalAlignment="Center"
+                                          MaxWidth="560" Margin="24,0,24,24" />
                 </Grid>
             </Border>
 
@@ -402,9 +410,5 @@
                                        AutomationProperties.AutomationId="pending-settings-notice" />
             </DockPanel>
         </Border>
-
-        <ui:SnackbarPresenter Grid.Row="2" x:Name="RootSnackbar"
-                              VerticalAlignment="Bottom" HorizontalAlignment="Center"
-                              Margin="0,0,0,24" />
     </Grid>
 </ui:FluentWindow>

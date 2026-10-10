@@ -1465,8 +1465,11 @@ namespace hMailServer.ControlPanel
             // unavailable" sent an administrator to restart a service that was
             // fine (the Auto-ban page did exactly that on every second visit).
             bool server = ex is System.Runtime.InteropServices.COMException || ServerSession.IsTransportFailure(ex);
+            // With Try again, which enters the page once more while it is still the
+            // page on screen (review finding F008).
             Services.Toast.Failure(F("Could not load this page: {0}", ServerSession.DescribeComError(ex)),
-               server ? L("Server unavailable") : L("Could not build this page"));
+               server ? L("Server unavailable") : L("Could not build this page"),
+               () => TryEnterPageAgain_(page));
          }
          finally
          {
@@ -1475,6 +1478,17 @@ namespace hMailServer.ControlPanel
             // save is the kind of thing a page visit is for noticing.
             RefreshPendingBar_(fresh: true);
          }
+      }
+
+      /// <summary>
+      /// The failure toast's Try again: the page is entered again only while it is
+      /// still the one on screen, so that a toast pressed after the reader moved on
+      /// does not run a page that is no longer shown.
+      /// </summary>
+      private void TryEnterPageAgain_(object page)
+      {
+         if (page != null && ReferenceEquals(ContentHost.Content, page))
+            EnterPage(page);
       }
 
       // ServerStatus.StateRunning and StateDraining, as the COM enum numbers them.
