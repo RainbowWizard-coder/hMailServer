@@ -1765,9 +1765,6 @@
   <data name="Asking the service to take the backup." xml:space="preserve">
     <value>Служба отримує запит створити резервну копію.</value>
   </data>
-  <data name="Asks for a confirmation" xml:space="preserve">
-    <value>Потребує підтвердження</value>
-  </data>
   <data name="At MAIL FROM, after the spam exemptions" xml:space="preserve">
     <value>На етапі MAIL FROM, після винятків антиспаму</value>
   </data>
@@ -7675,6 +7672,9 @@
   </data>
   <data name="Note: the web services listener has no HTTPS port on the Web services &amp; autoconfiguration page, so the policy cannot be served (RFC 8461 allows HTTPS only). The TXT record would advertise a policy nothing serves." xml:space="preserve">
     <value>Примітка: слухач вебслужб не має порту HTTPS на сторінці «Вебслужби та автоконфігурація», тому політику неможливо надати (RFC 8461 дозволяє лише HTTPS). TXT-запис оголошував би політику, якої ніхто не надає.</value>
+  </data>
+  <data name="Notes" xml:space="preserve">
+    <value>Примітки</value>
   </data>
   <data name="Nothing at all happens on score: both thresholds are 0, and the server only marks or refuses when the threshold is above 0." xml:space="preserve">
     <value>За оцінкою взагалі нічого не відбувається: обидва пороги дорівнюють 0, а сервер позначає або відхиляє лише тоді, коли поріг більший за 0.</value>
@@ -14484,6 +14484,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Worth knowing about this configuration" xml:space="preserve">
     <value>Що варто знати про цю конфігурацію</value>
   </data>
+  <data name="Would change here: {0} of {1}" xml:space="preserve">
+    <value>Зміниться тут: {0} з {1}</value>
+  </data>
   <data name="Write a Received-SPF header on inbound mail" xml:space="preserve">
     <value>Записувати заголовок Received-SPF у вхідну пошту</value>
   </data>
@@ -14757,6 +14760,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_Discard and rebuild" xml:space="preserve">
     <value>_Відкинути й перебудувати</value>
   </data>
+  <data name="_Discard the previous settings" xml:space="preserve">
+    <value>_Відкинути попередні параметри</value>
+  </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>Атрибут _відображуваного імені</value>
   </data>
@@ -14903,9 +14909,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Job title" xml:space="preserve">
     <value>Посада (_A)</value>
-  </data>
-  <data name="_Keep its settings, forget the way back" xml:space="preserve">
-    <value>З_берегти параметри, забути шлях назад</value>
   </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>Зберігати _оригінальне повідомлення</value>
@@ -16338,9 +16341,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} - set: {1}, unchanged: {2}, skipped: {3}; waiting for a reinitialise: {4}, for a restart: {5}." xml:space="preserve">
     <value>{0} — задано: {1}, без змін: {2}, пропущено: {3}; чекають на повторну ініціалізацію: {4}, на перезапуск: {5}.</value>
-  </data>
-  <data name="{0} - settings that would change on this server: {1} of {2}." xml:space="preserve">
-    <value>{0} — параметри, які змінилися б на цьому сервері: {1} з {2}.</value>
   </data>
   <data name="{0} - {1}" xml:space="preserve">
     <value>{0} - {1}</value>

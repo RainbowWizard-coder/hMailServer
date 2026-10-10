@@ -1750,9 +1750,6 @@
   <data name="Asking the service to take the backup." xml:space="preserve">
     <value>サービスにバックアップの作成を依頼しています。</value>
   </data>
-  <data name="Asks for a confirmation" xml:space="preserve">
-    <value>確認が必要</value>
-  </data>
   <data name="At MAIL FROM, after the spam exemptions" xml:space="preserve">
     <value>MAIL FROM の時点、スパムの除外の後</value>
   </data>
@@ -7593,6 +7590,9 @@
   </data>
   <data name="Note: the web services listener has no HTTPS port on the Web services &amp; autoconfiguration page, so the policy cannot be served (RFC 8461 allows HTTPS only). The TXT record would advertise a policy nothing serves." xml:space="preserve">
     <value>注意: [Web サービスと自動設定] ページで Web サービスのリスナーに HTTPS ポートがないため、ポリシーを配信できません (RFC 8461 は HTTPS のみを認めています)。TXT レコードは、どこにも存在しないポリシーを広告することになります。</value>
+  </data>
+  <data name="Notes" xml:space="preserve">
+    <value>メモ</value>
   </data>
   <data name="Nothing at all happens on score: both thresholds are 0, and the server only marks or refuses when the threshold is above 0." xml:space="preserve">
     <value>スコアによっては何も起きません: どちらのしきい値も 0 で、サーバーはしきい値が 0 より大きい場合にのみマークまたは拒否します。</value>
@@ -14315,6 +14315,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Worth knowing about this configuration" xml:space="preserve">
     <value>この構成について知っておくべきこと</value>
   </data>
+  <data name="Would change here: {0} of {1}" xml:space="preserve">
+    <value>このサーバーで変わる設定: {1} 件中 {0} 件</value>
+  </data>
   <data name="Write a Received-SPF header on inbound mail" xml:space="preserve">
     <value>受信メールに Received-SPF ヘッダーを書き込む</value>
   </data>
@@ -14585,6 +14588,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Discard and rebuild" xml:space="preserve">
     <value>破棄して再構築(_D)</value>
   </data>
+  <data name="_Discard the previous settings" xml:space="preserve">
+    <value>以前の設定を破棄(_D)</value>
+  </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>表示名の属性(_D)</value>
   </data>
@@ -14731,9 +14737,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Job title" xml:space="preserve">
     <value>役職 (_A)</value>
-  </data>
-  <data name="_Keep its settings, forget the way back" xml:space="preserve">
-    <value>設定を保持し、元に戻す手段を破棄(_K)</value>
   </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>元のメッセージを残す(_K)</value>
@@ -16151,9 +16154,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} - set: {1}, unchanged: {2}, skipped: {3}; waiting for a reinitialise: {4}, for a restart: {5}." xml:space="preserve">
     <value>{0} - 設定: {1} 件、変更なし: {2} 件、スキップ: {3} 件。再初期化待ち: {4} 件、再起動待ち: {5} 件。</value>
-  </data>
-  <data name="{0} - settings that would change on this server: {1} of {2}." xml:space="preserve">
-    <value>{0} - このサーバーで変わる設定: {2} 件中 {1} 件。</value>
   </data>
   <data name="{0} - {1}" xml:space="preserve">
     <value>{0} - {1}</value>

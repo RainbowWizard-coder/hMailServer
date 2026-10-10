@@ -1750,9 +1750,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Asking the service to take the backup." xml:space="preserve">
     <value>De service wordt gevraagd de back-up te maken.</value>
   </data>
-  <data name="Asks for a confirmation" xml:space="preserve">
-    <value>Vraagt om een bevestiging</value>
-  </data>
   <data name="At MAIL FROM, after the spam exemptions" xml:space="preserve">
     <value>Bij MAIL FROM, na de spamuitzonderingen</value>
   </data>
@@ -7593,6 +7590,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="Note: the web services listener has no HTTPS port on the Web services &amp; autoconfiguration page, so the policy cannot be served (RFC 8461 allows HTTPS only). The TXT record would advertise a policy nothing serves." xml:space="preserve">
     <value>Let op: de listener van de webservices heeft geen HTTPS-poort op de pagina Webservices en autoconfiguratie, dus het beleid kan niet worden geserveerd (RFC 8461 staat alleen HTTPS toe). Het TXT-record zou een beleid aankondigen dat niemand serveert.</value>
+  </data>
+  <data name="Notes" xml:space="preserve">
+    <value>Opmerkingen</value>
   </data>
   <data name="Nothing at all happens on score: both thresholds are 0, and the server only marks or refuses when the threshold is above 0." xml:space="preserve">
     <value>Er gebeurt helemaal niets op basis van score: beide drempels staan op 0, en de server markeert of weigert alleen wanneer de drempel boven 0 ligt.</value>
@@ -14315,6 +14315,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="Worth knowing about this configuration" xml:space="preserve">
     <value>Goed om te weten over deze configuratie</value>
   </data>
+  <data name="Would change here: {0} of {1}" xml:space="preserve">
+    <value>Zou hier veranderen: {0} van {1}</value>
+  </data>
   <data name="Write a Received-SPF header on inbound mail" xml:space="preserve">
     <value>Een Received-SPF-header op inkomende mail schrijven</value>
   </data>
@@ -14585,6 +14588,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_Discard and rebuild" xml:space="preserve">
     <value>_Weggooien en opnieuw opbouwen</value>
   </data>
+  <data name="_Discard the previous settings" xml:space="preserve">
+    <value>Vorige instellingen _verwerpen</value>
+  </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>W_eergavenaamattribuut</value>
   </data>
@@ -14731,9 +14737,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="_Job title" xml:space="preserve">
     <value>_Functie</value>
-  </data>
-  <data name="_Keep its settings, forget the way back" xml:space="preserve">
-    <value>Instellingen _houden, de weg terug vergeten</value>
   </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>Oorspronkelijk _bericht behouden</value>
@@ -16151,9 +16154,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} - set: {1}, unchanged: {2}, skipped: {3}; waiting for a reinitialise: {4}, for a restart: {5}." xml:space="preserve">
     <value>{0} - ingesteld: {1}, ongewijzigd: {2}, overgeslagen: {3}; wachtend op een herinitialisatie: {4}, op een herstart: {5}.</value>
-  </data>
-  <data name="{0} - settings that would change on this server: {1} of {2}." xml:space="preserve">
-    <value>{0} - instellingen die op deze server zouden veranderen: {1} van {2}.</value>
   </data>
   <data name="{0} - {1}" xml:space="preserve">
     <value>{0} - {1}</value>

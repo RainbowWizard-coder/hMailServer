@@ -1750,9 +1750,6 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Asking the service to take the backup." xml:space="preserve">
     <value>Der Dienst wird gebeten, die Sicherung anzulegen.</value>
   </data>
-  <data name="Asks for a confirmation" xml:space="preserve">
-    <value>Verlangt eine Bestätigung</value>
-  </data>
   <data name="At MAIL FROM, after the spam exemptions" xml:space="preserve">
     <value>Bei MAIL FROM, nach den Spam-Ausnahmen</value>
   </data>
@@ -7593,6 +7590,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   </data>
   <data name="Note: the web services listener has no HTTPS port on the Web services &amp; autoconfiguration page, so the policy cannot be served (RFC 8461 allows HTTPS only). The TXT record would advertise a policy nothing serves." xml:space="preserve">
     <value>Hinweis: Der Listener der Webdienste hat auf der Seite Webdienste und Autokonfiguration keinen HTTPS-Port, die Richtlinie kann also nicht ausgeliefert werden (RFC 8461 erlaubt nur HTTPS). Der TXT-Eintrag würde eine Richtlinie ankündigen, die niemand ausliefert.</value>
+  </data>
+  <data name="Notes" xml:space="preserve">
+    <value>Hinweise</value>
   </data>
   <data name="Nothing at all happens on score: both thresholds are 0, and the server only marks or refuses when the threshold is above 0." xml:space="preserve">
     <value>Auf die Bewertung hin geschieht überhaupt nichts: beide Schwellen sind 0, und der Server markiert oder lehnt nur ab, wenn die Schwelle über 0 liegt.</value>
@@ -14315,6 +14315,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="Worth knowing about this configuration" xml:space="preserve">
     <value>Wissenswertes zu dieser Konfiguration</value>
   </data>
+  <data name="Would change here: {0} of {1}" xml:space="preserve">
+    <value>Änderungen hier: {0} von {1}</value>
+  </data>
   <data name="Write a Received-SPF header on inbound mail" xml:space="preserve">
     <value>Einen Received-SPF-Header bei eingehender Mail schreiben</value>
   </data>
@@ -14585,6 +14588,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="_Discard and rebuild" xml:space="preserve">
     <value>_Verwerfen und neu aufbauen</value>
   </data>
+  <data name="_Discard the previous settings" xml:space="preserve">
+    <value>Vorherige Einstellungen _verwerfen</value>
+  </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>A_ttribut für den Anzeigenamen</value>
   </data>
@@ -14731,9 +14737,6 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="_Job title" xml:space="preserve">
     <value>_Position</value>
-  </data>
-  <data name="_Keep its settings, forget the way back" xml:space="preserve">
-    <value>Einstellungen _behalten, Weg zurück verwerfen</value>
   </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>Ursprüngliche Nachricht _behalten</value>
@@ -16151,9 +16154,6 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="{0} - set: {1}, unchanged: {2}, skipped: {3}; waiting for a reinitialise: {4}, for a restart: {5}." xml:space="preserve">
     <value>{0} - gesetzt: {1}, unverändert: {2}, übersprungen: {3}; warten auf ein Reinitialisieren: {4}, auf einen Neustart: {5}.</value>
-  </data>
-  <data name="{0} - settings that would change on this server: {1} of {2}." xml:space="preserve">
-    <value>{0} - Einstellungen, die sich auf diesem Server ändern würden: {1} von {2}.</value>
   </data>
   <data name="{0} - {1}" xml:space="preserve">
     <value>{0} - {1}</value>

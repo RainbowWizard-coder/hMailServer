@@ -110,8 +110,30 @@ namespace hMailServer.ControlPanel.Views
          public int Entries { get; init; }
          public int Changes { get; init; }
 
-         // The server's title, and how many of its settings would change here.
-         public override string ToString() => F("{0} - settings that would change on this server: {1} of {2}.", Title, Changes, Entries);
+         // How many of its settings would change here, the caption beside the
+         // title in the list (review finding F278): the item was a whole sentence,
+         // "Small office - settings that would change on this server: 3 of 31.".
+         // A label, which no language has to decline for either count.
+         public string ChangeCaption => F("Would change here: {0} of {1}", Changes, Entries);
+
+         // The title and the caption, as a screen reader hears the item and the
+         // list's type-ahead finds it by its title.
+         public override string ToString() => Title + ", " + ChangeCaption; // no-loc: a name and its caption
+      }
+
+      /// <summary>
+      /// A profile's title, as the server writes it ("Small office"), for the key
+      /// its record and its way back name it by ("small-office"): the notice, the
+      /// questions and the outcome lines said the key (review finding F278), where
+      /// the list and the setup checklist said the title. The key where the list
+      /// has no such profile.
+      /// </summary>
+      private string TitleOf_(string name)
+      {
+         if (string.IsNullOrEmpty(name))
+            return name;
+         ProfileChoice choice = (profiles_.ItemsSource as List<ProfileChoice>)?.Find(c => c.Name == name);
+         return string.IsNullOrEmpty(choice?.Title) ? name : choice.Title;
       }
 
       /// <summary>A row as the grid shows it: the entry beside the value this server holds.</summary>
@@ -204,6 +226,10 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
+            // Nothing to act on that this read did not say: the notice of the last
+            // read goes, with its acts.
+            applied_.Visibility = Visibility.Collapsed;
+            HideAppliedActs_();
             Status_(StatusLevel.Critical, ServerSession.DescribeComError(ex));
          }
          finally
@@ -226,9 +252,9 @@ namespace hMailServer.ControlPanel.Views
             text = L("No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made.");
          else
          {
-            string name = Text_(applied, "profile");
+            string name = TitleOf_(Text_(applied, "profile"));
             if (snapshotReadable_ && state != "failed")
-               text = F("The {0} profile is applied. What it replaced is kept, and can be put back.", snapshotProfile_);
+               text = F("The {0} profile is applied. What it replaced is kept, and can be put back.", TitleOf_(snapshotProfile_));
             else if (state == "declined")
                text = F("The settings this version ships with were chosen on {0}, and no profile applied; any of the four can still be compared with this server.", Date_(applied, "changed"));
             else if (state == "failed")
@@ -244,11 +270,24 @@ namespace hMailServer.ControlPanel.Views
          applied_.Text = text;
          applied_.Visibility = Visibility.Visible;
 
-         revert_.IsEnabled = snapshotHeld_ && snapshotReadable_;
-         discard_.IsEnabled = snapshotHeld_;
-         // Keeping the shipped settings: while no profile is in effect and no way back
-         // is held.
-         decline_.IsEnabled = !snapshotHeld_ && (!hasRecord || state == "reverted" || state == "failed");
+         // The acts on what is applied are the notice's own, each shown while it
+         // can be taken (review finding F278): beside the profile list they were
+         // five buttons that wrapped onto two rows, two of them "Keep" and
+         // meaning different things, and greyed out more often than not. Putting
+         // back and discarding go with a way back that is held; keeping the
+         // shipped settings with none, while no profile is in effect - so the two
+         // never show together.
+         revert_.Visibility = snapshotHeld_ && snapshotReadable_ ? Visibility.Visible : Visibility.Collapsed;
+         discard_.Visibility = snapshotHeld_ ? Visibility.Visible : Visibility.Collapsed;
+         decline_.Visibility = !snapshotHeld_ && (!hasRecord || state == "reverted" || state == "failed") ? Visibility.Visible : Visibility.Collapsed;
+      }
+
+      /// <summary>The applied notice without its acts: a read that failed, before it says anything.</summary>
+      private void HideAppliedActs_()
+      {
+         revert_.Visibility = Visibility.Collapsed;
+         discard_.Visibility = Visibility.Collapsed;
+         decline_.Visibility = Visibility.Collapsed;
       }
 
       private void ShowDiff_()
@@ -362,7 +401,7 @@ namespace hMailServer.ControlPanel.Views
                PluralF(changes_,
                   "Apply the {0} profile? {1} setting changes, and what it held is kept so that it can be put back.",
                   "Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back.",
-                  choice.Name, changes_),
+                  choice.Title, changes_),
                L("Apply a profile"), L("_Apply this profile"), cancelByDefault: true))
          {
             return;
@@ -392,7 +431,7 @@ namespace hMailServer.ControlPanel.Views
                reinitialize = Number_(waiting, "reinitialize");
                restart = Number_(waiting, "restart");
             }
-            Status_(StatusLevel.Good, F("{0} - set: {1}, unchanged: {2}, skipped: {3}; waiting for a reinitialise: {4}, for a restart: {5}.", choice.Name, Number_(root, "set"), Number_(root, "unchanged"), Number_(root, "skipped"), reinitialize, restart));
+            Status_(StatusLevel.Good, F("{0} - set: {1}, unchanged: {2}, skipped: {3}; waiting for a reinitialise: {4}, for a restart: {5}.", choice.Title, Number_(root, "set"), Number_(root, "unchanged"), Number_(root, "skipped"), reinitialize, restart));
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -409,14 +448,14 @@ namespace hMailServer.ControlPanel.Views
          if (string.IsNullOrEmpty(snapshotProfile_))
             return;
 
+         string name = TitleOf_(snapshotProfile_);
          if (!MessageBox.Confirm(
-               F("Put back the values the {0} profile replaced? A setting changed since is left as it is, and a filter the profile turned on may be turned off again.", snapshotProfile_),
+               F("Put back the values the {0} profile replaced? A setting changed since is left as it is, and a filter the profile turned on may be turned off again.", name),
                L("Put back a profile's changes"), L("_Put back what it changed"), cancelByDefault: true))
          {
             return;
          }
 
-         string name = snapshotProfile_;
          try
          {
             dynamic settings = ServerSession.Current.Application.Settings;
@@ -506,10 +545,13 @@ namespace hMailServer.ControlPanel.Views
          root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
          root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
 
+         // Refresh in the header, as on the sibling pages (review finding F278),
+         // where it was the last of six controls beside the profile list.
          root.Children.Add(new PageHeader
          {
             PageKey = "profiles",
-            Subtitle = L("Each profile sets the settings one kind of server needs. Showing one lists every setting beside the value this server holds now; nothing changes until it is applied.")
+            Subtitle = L("Each profile sets the settings one kind of server needs. Showing one lists every setting beside the value this server holds now; nothing changes until it is applied."),
+            Actions = MakeButton(L("_Refresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload(null), last: true)
          });
 
          // The IP ranges shape: the card takes the height the parts above it
@@ -522,21 +564,34 @@ namespace hMailServer.ControlPanel.Views
          Grid.SetRow(scroll, 1);
          root.Children.Add(scroll);
 
+         // The acts on what is applied, in the applied notice's action slot: each
+         // is shown while it can be taken (ShowApplied_).
+         var appliedActs = new WrapPanel { Orientation = Orientation.Horizontal };
+         revert_ = MakeButton(L("_Put back what it changed"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => RevertApplied());
+         appliedActs.Children.Add(revert_);
+         discard_ = MakeButton(L("_Discard the previous settings"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => DiscardWayBack(), last: true);
+         appliedActs.Children.Add(discard_);
+         decline_ = MakeButton(L("Keep the _shipped settings"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => DeclineProfiles(), last: true);
+         appliedActs.Children.Add(decline_);
+         foreach (FrameworkElement act in appliedActs.Children)
+            act.Margin = new Thickness(0, 2, act.Margin.Right, 2);
+         applied_.Content = appliedActs;
+
+         // The notice's action slot takes the width its content asks for, and the
+         // text the rest: the acts wrap under each other where the notice is narrow,
+         // so that its sentence keeps at least half of it - at 760 pixels the two
+         // buttons side by side left the German sentence a word to a line.
+         applied_.SizeChanged += (_, _) => appliedActs.MaxWidth = Math.Max(160, applied_.ActualWidth * 0.45);
          parts.Children.Add(applied_);
 
+         // The list of profiles and the act on the one chosen.
          var actions = new WrapPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 8) };
          AutomationProperties.SetName(profiles_, L("Setting profiles"));
          profiles_.SelectionChanged += (_, _) => ShowDiff_();
+         profiles_.ItemTemplate = ChoiceTemplate_();
          actions.Children.Add(profiles_);
-         apply_ = MakeButton(L("_Apply this profile"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => ApplySelected());
+         apply_ = MakeButton(L("_Apply this profile"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => ApplySelected(), last: true);
          actions.Children.Add(apply_);
-         revert_ = MakeButton(L("_Put back what it changed"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => RevertApplied());
-         actions.Children.Add(revert_);
-         discard_ = MakeButton(L("_Keep its settings, forget the way back"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => DiscardWayBack());
-         actions.Children.Add(discard_);
-         decline_ = MakeButton(L("Keep the _shipped settings"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => DeclineProfiles());
-         actions.Children.Add(decline_);
-         actions.Children.Add(MakeButton(L("_Refresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload(null)));
          parts.Children.Add(actions);
 
          parts.Children.Add(status_);
@@ -545,7 +600,9 @@ namespace hMailServer.ControlPanel.Views
          rows_.Columns.Add(Column_(L("This server now"), nameof(RowView.Now), DataGridLength.Auto));
          rows_.Columns.Add(Column_(L("The profile"), nameof(RowView.Profile), DataGridLength.Auto));
          rows_.Columns.Add(Column_(L("Why"), nameof(RowView.Why), new DataGridLength(2, DataGridLengthUnitType.Star)));
-         rows_.Columns.Add(Column_(L("Asks for a confirmation"), nameof(RowView.Note), new DataGridLength(1, DataGridLengthUnitType.Star)));
+         // Notes: the confirmation a change asks for, and what the environment
+         // sets, a refusal or the profile's own note (review finding F278).
+         rows_.Columns.Add(Column_(L("Notes"), nameof(RowView.Note), new DataGridLength(1, DataGridLengthUnitType.Star)));
          AutomationProperties.SetName(rows_, L("Setting profiles"));
 
          // The card's own FillPanel: the table is its filling part, the summary
@@ -575,17 +632,44 @@ namespace hMailServer.ControlPanel.Views
       private static DataGridTextColumn Column_(string header, string path, DataGridLength width)
          => GridStyles.Trimmed(new DataGridTextColumn { Header = header, Binding = new System.Windows.Data.Binding(path), Width = width });
 
-      private static Wpf.Ui.Controls.Button MakeButton(string text, Wpf.Ui.Controls.ControlAppearance appearance, RoutedEventHandler onClick)
+      /// <summary>A button of the page; the last of a row has no gap after it.</summary>
+      private static Wpf.Ui.Controls.Button MakeButton(string text, Wpf.Ui.Controls.ControlAppearance appearance, RoutedEventHandler onClick, bool last = false)
       {
          var button = new Wpf.Ui.Controls.Button
          {
             Content = text,
             Appearance = appearance,
-            Margin = new Thickness(0, 0, 8, 0),
+            Margin = new Thickness(0, 0, last ? 0 : 8, 0),
             MinWidth = 110
          };
          button.Click += onClick;
          return button;
+      }
+
+      /// <summary>
+      /// A profile in the list: its title, then how many of its settings would
+      /// change here in the caption colour (review finding F278), on one line, in
+      /// the open list and in the closed box alike.
+      /// </summary>
+      private static DataTemplate ChoiceTemplate_()
+      {
+         var line = new FrameworkElementFactory(typeof(StackPanel));
+         line.SetValue(StackPanel.OrientationProperty, Orientation.Horizontal);
+
+         var title = new FrameworkElementFactory(typeof(TextBlock));
+         title.SetBinding(TextBlock.TextProperty, new System.Windows.Data.Binding(nameof(ProfileChoice.Title)));
+         title.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
+         line.AppendChild(title);
+
+         var caption = new FrameworkElementFactory(typeof(TextBlock));
+         caption.SetBinding(TextBlock.TextProperty, new System.Windows.Data.Binding(nameof(ProfileChoice.ChangeCaption)));
+         caption.SetValue(FrameworkElement.MarginProperty, new Thickness(DesignTokens.Space.Sm, 0, 0, 0));
+         caption.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
+         caption.SetValue(TextBlock.FontSizeProperty, Typography.Caption);
+         caption.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorSecondaryBrush");
+         line.AppendChild(caption);
+
+         return new DataTemplate(typeof(ProfileChoice)) { VisualTree = line };
       }
    }
 }

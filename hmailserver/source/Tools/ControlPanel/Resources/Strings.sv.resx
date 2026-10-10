@@ -1750,9 +1750,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Asking the service to take the backup." xml:space="preserve">
     <value>Tjänsten ombeds ta säkerhetskopian.</value>
   </data>
-  <data name="Asks for a confirmation" xml:space="preserve">
-    <value>Kräver en bekräftelse</value>
-  </data>
   <data name="At MAIL FROM, after the spam exemptions" xml:space="preserve">
     <value>Vid MAIL FROM, efter skräppostundantagen</value>
   </data>
@@ -7593,6 +7590,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="Note: the web services listener has no HTTPS port on the Web services &amp; autoconfiguration page, so the policy cannot be served (RFC 8461 allows HTTPS only). The TXT record would advertise a policy nothing serves." xml:space="preserve">
     <value>Obs: webbtjänsternas lyssnare har ingen HTTPS-port på sidan Webbtjänster &amp; automatisk konfiguration, så policyn kan inte serveras (RFC 8461 tillåter bara HTTPS). TXT-posten skulle annonsera en policy som inget serverar.</value>
+  </data>
+  <data name="Notes" xml:space="preserve">
+    <value>Anteckningar</value>
   </data>
   <data name="Nothing at all happens on score: both thresholds are 0, and the server only marks or refuses when the threshold is above 0." xml:space="preserve">
     <value>Inget alls händer på poäng: båda trösklarna är 0, och servern markerar eller avvisar bara när tröskeln är över 0.</value>
@@ -14315,6 +14315,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Worth knowing about this configuration" xml:space="preserve">
     <value>Värt att veta om den här konfigurationen</value>
   </data>
+  <data name="Would change here: {0} of {1}" xml:space="preserve">
+    <value>Skulle ändras här: {0} av {1}</value>
+  </data>
   <data name="Write a Received-SPF header on inbound mail" xml:space="preserve">
     <value>Skriv en Received-SPF-rubrik på inkommande post</value>
   </data>
@@ -14585,6 +14588,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="_Discard and rebuild" xml:space="preserve">
     <value>_Kasta och bygg om</value>
   </data>
+  <data name="_Discard the previous settings" xml:space="preserve">
+    <value>_Kasta de tidigare inställningarna</value>
+  </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>Attribut för _visningsnamn</value>
   </data>
@@ -14731,9 +14737,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="_Job title" xml:space="preserve">
     <value>_Befattning</value>
-  </data>
-  <data name="_Keep its settings, forget the way back" xml:space="preserve">
-    <value>_Behåll inställningarna, glöm vägen tillbaka</value>
   </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>_Behåll originalmeddelandet</value>
@@ -16151,9 +16154,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} - set: {1}, unchanged: {2}, skipped: {3}; waiting for a reinitialise: {4}, for a restart: {5}." xml:space="preserve">
     <value>{0} - satta: {1}, oförändrade: {2}, överhoppade: {3}; väntar på en ominitiering: {4}, på en omstart: {5}.</value>
-  </data>
-  <data name="{0} - settings that would change on this server: {1} of {2}." xml:space="preserve">
-    <value>{0} - inställningar som skulle ändras på den här servern: {1} av {2}.</value>
   </data>
   <data name="{0} - {1}" xml:space="preserve">
     <value>{0} - {1}</value>

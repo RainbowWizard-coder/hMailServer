@@ -1750,9 +1750,6 @@
   <data name="Asking the service to take the backup." xml:space="preserve">
     <value>正在请求服务进行备份。</value>
   </data>
-  <data name="Asks for a confirmation" xml:space="preserve">
-    <value>需要确认</value>
-  </data>
   <data name="At MAIL FROM, after the spam exemptions" xml:space="preserve">
     <value>在 MAIL FROM 时，垃圾邮件豁免之后</value>
   </data>
@@ -7593,6 +7590,9 @@
   </data>
   <data name="Note: the web services listener has no HTTPS port on the Web services &amp; autoconfiguration page, so the policy cannot be served (RFC 8461 allows HTTPS only). The TXT record would advertise a policy nothing serves." xml:space="preserve">
     <value>注意：“Web 服务和自动配置”页上的 Web 服务监听器没有 HTTPS 端口，因此策略无法提供（RFC 8461 只允许 HTTPS）。这样 TXT 记录公布的将是一份无人提供的策略。</value>
+  </data>
+  <data name="Notes" xml:space="preserve">
+    <value>备注</value>
   </data>
   <data name="Nothing at all happens on score: both thresholds are 0, and the server only marks or refuses when the threshold is above 0." xml:space="preserve">
     <value>分数完全不会引发任何事情：两个阈值都是 0，而服务器只在阈值大于 0 时才标记或拒绝。</value>
@@ -14315,6 +14315,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Worth knowing about this configuration" xml:space="preserve">
     <value>关于此配置值得了解的事</value>
   </data>
+  <data name="Would change here: {0} of {1}" xml:space="preserve">
+    <value>此处将更改：{1} 项中的 {0} 项</value>
+  </data>
   <data name="Write a Received-SPF header on inbound mail" xml:space="preserve">
     <value>在入站邮件上写入 Received-SPF 标头</value>
   </data>
@@ -14585,6 +14588,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Discard and rebuild" xml:space="preserve">
     <value>丢弃并重建(_D)</value>
   </data>
+  <data name="_Discard the previous settings" xml:space="preserve">
+    <value>放弃先前的设置(_D)</value>
+  </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>显示名称属性(_D)</value>
   </data>
@@ -14731,9 +14737,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="_Job title" xml:space="preserve">
     <value>职务 (_A)</value>
-  </data>
-  <data name="_Keep its settings, forget the way back" xml:space="preserve">
-    <value>保留其设置，放弃恢复记录(_K)</value>
   </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>保留原始邮件(_K)</value>
@@ -16151,9 +16154,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} - set: {1}, unchanged: {2}, skipped: {3}; waiting for a reinitialise: {4}, for a restart: {5}." xml:space="preserve">
     <value>{0} - 已设置：{1}，未更改：{2}，已跳过：{3}；等待重新初始化：{4}，等待重启：{5}。</value>
-  </data>
-  <data name="{0} - settings that would change on this server: {1} of {2}." xml:space="preserve">
-    <value>{0} - 此服务器上将会更改的设置：{2} 项中的 {1} 项。</value>
   </data>
   <data name="{0} - {1}" xml:space="preserve">
     <value>{0} - {1}</value>

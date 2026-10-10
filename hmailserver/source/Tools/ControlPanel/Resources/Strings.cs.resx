@@ -1765,9 +1765,6 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Asking the service to take the backup." xml:space="preserve">
     <value>Žádost pro službu, aby vytvořila zálohu.</value>
   </data>
-  <data name="Asks for a confirmation" xml:space="preserve">
-    <value>Vyžaduje potvrzení</value>
-  </data>
   <data name="At MAIL FROM, after the spam exemptions" xml:space="preserve">
     <value>Při MAIL FROM, po výjimkách ze spamu</value>
   </data>
@@ -7675,6 +7672,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Note: the web services listener has no HTTPS port on the Web services &amp; autoconfiguration page, so the policy cannot be served (RFC 8461 allows HTTPS only). The TXT record would advertise a policy nothing serves." xml:space="preserve">
     <value>Poznámka: listener webových služeb nemá na stránce Webové služby a autokonfigurace žádný port HTTPS, takže politiku nelze poskytovat (RFC 8461 povoluje pouze HTTPS). Záznam TXT by inzeroval politiku, kterou nikdo neposkytuje.</value>
+  </data>
+  <data name="Notes" xml:space="preserve">
+    <value>Poznámky</value>
   </data>
   <data name="Nothing at all happens on score: both thresholds are 0, and the server only marks or refuses when the threshold is above 0." xml:space="preserve">
     <value>Podle skóre se nestane vůbec nic: oba prahy jsou 0 a server označuje či odmítá teprve tehdy, když je práh vyšší než 0.</value>
@@ -14484,6 +14484,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Worth knowing about this configuration" xml:space="preserve">
     <value>Co stojí za to o této konfiguraci vědět</value>
   </data>
+  <data name="Would change here: {0} of {1}" xml:space="preserve">
+    <value>Změnilo by se zde: {0} z {1}</value>
+  </data>
   <data name="Write a Received-SPF header on inbound mail" xml:space="preserve">
     <value>Zapisovat do příchozí pošty hlavičku Received-SPF</value>
   </data>
@@ -14757,6 +14760,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Discard and rebuild" xml:space="preserve">
     <value>_Zahodit a znovu sestavit</value>
   </data>
+  <data name="_Discard the previous settings" xml:space="preserve">
+    <value>_Zahodit předchozí nastavení</value>
+  </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>Atribut zobrazovaného _jména</value>
   </data>
@@ -14903,9 +14909,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Job title" xml:space="preserve">
     <value>_Pracovní pozice</value>
-  </data>
-  <data name="_Keep its settings, forget the way back" xml:space="preserve">
-    <value>Po_nechat nastavení, zapomenout cestu zpět</value>
   </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>Ponechat původní _zprávu</value>
@@ -16338,9 +16341,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} - set: {1}, unchanged: {2}, skipped: {3}; waiting for a reinitialise: {4}, for a restart: {5}." xml:space="preserve">
     <value>{0} - nastaveno: {1}, beze změny: {2}, přeskočeno: {3}; čeká na reinicializaci: {4}, na restart: {5}.</value>
-  </data>
-  <data name="{0} - settings that would change on this server: {1} of {2}." xml:space="preserve">
-    <value>{0} - nastavení, která by se na tomto serveru změnila: {1} z {2}.</value>
   </data>
   <data name="{0} - {1}" xml:space="preserve">
     <value>{0} - {1}</value>

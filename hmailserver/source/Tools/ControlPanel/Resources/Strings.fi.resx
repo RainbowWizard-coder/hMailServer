@@ -1750,9 +1750,6 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Asking the service to take the backup." xml:space="preserve">
     <value>Pyydetään palvelua ottamaan varmuuskopio.</value>
   </data>
-  <data name="Asks for a confirmation" xml:space="preserve">
-    <value>Vaatii vahvistuksen</value>
-  </data>
   <data name="At MAIL FROM, after the spam exemptions" xml:space="preserve">
     <value>MAIL FROM -vaiheessa, roskapostipoikkeusten jälkeen</value>
   </data>
@@ -7593,6 +7590,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="Note: the web services listener has no HTTPS port on the Web services &amp; autoconfiguration page, so the policy cannot be served (RFC 8461 allows HTTPS only). The TXT record would advertise a policy nothing serves." xml:space="preserve">
     <value>Huomaa: verkkopalvelujen kuuntelijalla ei ole HTTPS-porttia sivulla Verkkopalvelut ja automaattinen määritys, joten käytäntöä ei voi jakaa (RFC 8461 sallii vain HTTPS:n). TXT-tietue mainostaisi käytäntöä, jota mikään ei jaa.</value>
+  </data>
+  <data name="Notes" xml:space="preserve">
+    <value>Huomautukset</value>
   </data>
   <data name="Nothing at all happens on score: both thresholds are 0, and the server only marks or refuses when the threshold is above 0." xml:space="preserve">
     <value>Pistemäärän perusteella ei tapahdu yhtään mitään: molemmat kynnykset ovat 0, ja palvelin merkitsee tai hylkää vain, kun kynnys on yli 0.</value>
@@ -14315,6 +14315,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="Worth knowing about this configuration" xml:space="preserve">
     <value>Hyvä tietää tästä määrityksestä</value>
   </data>
+  <data name="Would change here: {0} of {1}" xml:space="preserve">
+    <value>Muuttuisi täällä: {0}/{1}</value>
+  </data>
   <data name="Write a Received-SPF header on inbound mail" xml:space="preserve">
     <value>Kirjoita Received-SPF-otsake saapuvaan postiin</value>
   </data>
@@ -14585,6 +14588,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="_Discard and rebuild" xml:space="preserve">
     <value>_Hylkää ja rakenna uudelleen</value>
   </data>
+  <data name="_Discard the previous settings" xml:space="preserve">
+    <value>_Hylkää aiemmat asetukset</value>
+  </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>_Näyttönimen attribuutti</value>
   </data>
@@ -14731,9 +14737,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="_Job title" xml:space="preserve">
     <value>T_ehtävänimike</value>
-  </data>
-  <data name="_Keep its settings, forget the way back" xml:space="preserve">
-    <value>_Säilytä asetukset, unohda paluutie</value>
   </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>_Säilytä alkuperäinen viesti</value>
@@ -16151,9 +16154,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} - set: {1}, unchanged: {2}, skipped: {3}; waiting for a reinitialise: {4}, for a restart: {5}." xml:space="preserve">
     <value>{0} - asetettu: {1}, ennallaan: {2}, ohitettu: {3}; odottaa uudelleenalustusta: {4}, uudelleenkäynnistystä: {5}.</value>
-  </data>
-  <data name="{0} - settings that would change on this server: {1} of {2}." xml:space="preserve">
-    <value>{0} - asetukset, jotka muuttuisivat tällä palvelimella: {1}/{2}.</value>
   </data>
   <data name="{0} - {1}" xml:space="preserve">
     <value>{0} - {1}</value>

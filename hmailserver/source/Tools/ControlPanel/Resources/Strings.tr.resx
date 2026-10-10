@@ -1750,9 +1750,6 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Asking the service to take the backup." xml:space="preserve">
     <value>Hizmetten yedeği alması isteniyor.</value>
   </data>
-  <data name="Asks for a confirmation" xml:space="preserve">
-    <value>Onay ister</value>
-  </data>
   <data name="At MAIL FROM, after the spam exemptions" xml:space="preserve">
     <value>MAIL FROM'da, spam istisnalarından sonra</value>
   </data>
@@ -7593,6 +7590,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Note: the web services listener has no HTTPS port on the Web services &amp; autoconfiguration page, so the policy cannot be served (RFC 8461 allows HTTPS only). The TXT record would advertise a policy nothing serves." xml:space="preserve">
     <value>Not: Web hizmetleri ve otomatik yapılandırma sayfasında web hizmetleri dinleyicisinin HTTPS portu yok; dolayısıyla ilke sunulamaz (RFC 8461 yalnızca HTTPS'e izin verir). TXT kaydı, hiçbir şeyin sunmadığı bir ilkeyi duyurmuş olur.</value>
+  </data>
+  <data name="Notes" xml:space="preserve">
+    <value>Notlar</value>
   </data>
   <data name="Nothing at all happens on score: both thresholds are 0, and the server only marks or refuses when the threshold is above 0." xml:space="preserve">
     <value>Puan üzerine hiçbir şey olmuyor: iki eşik de 0 ve sunucu yalnızca eşik 0'ın üzerindeyken işaretler ya da reddeder.</value>
@@ -14315,6 +14315,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="Worth knowing about this configuration" xml:space="preserve">
     <value>Bu yapılandırma hakkında bilinmesi gerekenler</value>
   </data>
+  <data name="Would change here: {0} of {1}" xml:space="preserve">
+    <value>Burada değişecek: {0} / {1}</value>
+  </data>
   <data name="Write a Received-SPF header on inbound mail" xml:space="preserve">
     <value>Gelen postaya bir Received-SPF başlığı yaz</value>
   </data>
@@ -14585,6 +14588,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="_Discard and rebuild" xml:space="preserve">
     <value>_At ve yeniden oluştur</value>
   </data>
+  <data name="_Discard the previous settings" xml:space="preserve">
+    <value>Önceki ayarları _at</value>
+  </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>_Görünen ad özniteliği</value>
   </data>
@@ -14731,9 +14737,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="_Job title" xml:space="preserve">
     <value>_Unvan</value>
-  </data>
-  <data name="_Keep its settings, forget the way back" xml:space="preserve">
-    <value>Ayarları _koru, geri dönüş yolunu unut</value>
   </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>_Özgün iletiyi koru</value>
@@ -16151,9 +16154,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0} - set: {1}, unchanged: {2}, skipped: {3}; waiting for a reinitialise: {4}, for a restart: {5}." xml:space="preserve">
     <value>{0} - ayarlanan: {1}, değişmeyen: {2}, atlanan: {3}; yeniden başlatma (Reinitialize) bekleyen: {4}, hizmetin yeniden başlatılmasını bekleyen: {5}.</value>
-  </data>
-  <data name="{0} - settings that would change on this server: {1} of {2}." xml:space="preserve">
-    <value>{0} - bu sunucuda değişecek ayarlar: {1} / {2}.</value>
   </data>
   <data name="{0} - {1}" xml:space="preserve">
     <value>{0} - {1}</value>

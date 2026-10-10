@@ -1750,9 +1750,6 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Asking the service to take the backup." xml:space="preserve">
     <value>Le service est invité à faire la sauvegarde.</value>
   </data>
-  <data name="Asks for a confirmation" xml:space="preserve">
-    <value>Demande une confirmation</value>
-  </data>
   <data name="At MAIL FROM, after the spam exemptions" xml:space="preserve">
     <value>À MAIL FROM, après les exemptions anti-spam</value>
   </data>
@@ -7593,6 +7590,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   </data>
   <data name="Note: the web services listener has no HTTPS port on the Web services &amp; autoconfiguration page, so the policy cannot be served (RFC 8461 allows HTTPS only). The TXT record would advertise a policy nothing serves." xml:space="preserve">
     <value>Remarque : l'écouteur des services web n'a pas de port HTTPS sur la page Services web et autoconfiguration, la politique ne peut donc pas être servie (la RFC 8461 n'autorise que HTTPS). L'enregistrement TXT annoncerait une politique que rien ne sert.</value>
+  </data>
+  <data name="Notes" xml:space="preserve">
+    <value>Remarques</value>
   </data>
   <data name="Nothing at all happens on score: both thresholds are 0, and the server only marks or refuses when the threshold is above 0." xml:space="preserve">
     <value>Rien du tout ne se produit sur le score : les deux seuils sont à 0, et le serveur ne marque ni ne refuse que lorsque le seuil est supérieur à 0.</value>
@@ -14315,6 +14315,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="Worth knowing about this configuration" xml:space="preserve">
     <value>Bon à savoir sur cette configuration</value>
   </data>
+  <data name="Would change here: {0} of {1}" xml:space="preserve">
+    <value>Changeraient ici : {0} sur {1}</value>
+  </data>
   <data name="Write a Received-SPF header on inbound mail" xml:space="preserve">
     <value>Écrire un en-tête Received-SPF sur le courrier entrant</value>
   </data>
@@ -14585,6 +14588,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="_Discard and rebuild" xml:space="preserve">
     <value>_Jeter et reconstruire</value>
   </data>
+  <data name="_Discard the previous settings" xml:space="preserve">
+    <value>_Abandonner les paramètres précédents</value>
+  </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>Attribut _du nom affiché</value>
   </data>
@@ -14731,9 +14737,6 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="_Job title" xml:space="preserve">
     <value>_Fonction</value>
-  </data>
-  <data name="_Keep its settings, forget the way back" xml:space="preserve">
-    <value>_Garder ses paramètres, oublier le retour arrière</value>
   </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>_Conserver le message d'origine</value>
@@ -16151,9 +16154,6 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="{0} - set: {1}, unchanged: {2}, skipped: {3}; waiting for a reinitialise: {4}, for a restart: {5}." xml:space="preserve">
     <value>{0} - définis : {1}, inchangés : {2}, ignorés : {3} ; en attente d'une réinitialisation : {4}, d'un redémarrage : {5}.</value>
-  </data>
-  <data name="{0} - settings that would change on this server: {1} of {2}." xml:space="preserve">
-    <value>{0} - réglages qui changeraient sur ce serveur : {1} sur {2}.</value>
   </data>
   <data name="{0} - {1}" xml:space="preserve">
     <value>{0} - {1}</value>

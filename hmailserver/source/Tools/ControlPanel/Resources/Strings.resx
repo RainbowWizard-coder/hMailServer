@@ -1750,9 +1750,6 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Asking the service to take the backup." xml:space="preserve">
     <value>Asking the service to take the backup.</value>
   </data>
-  <data name="Asks for a confirmation" xml:space="preserve">
-    <value>Asks for a confirmation</value>
-  </data>
   <data name="At MAIL FROM, after the spam exemptions" xml:space="preserve">
     <value>At MAIL FROM, after the spam exemptions</value>
   </data>
@@ -7593,6 +7590,9 @@ Nothing already there is removed.</value>
   </data>
   <data name="Note: the web services listener has no HTTPS port on the Web services &amp; autoconfiguration page, so the policy cannot be served (RFC 8461 allows HTTPS only). The TXT record would advertise a policy nothing serves." xml:space="preserve">
     <value>Note: the web services listener has no HTTPS port on the Web services &amp; autoconfiguration page, so the policy cannot be served (RFC 8461 allows HTTPS only). The TXT record would advertise a policy nothing serves.</value>
+  </data>
+  <data name="Notes" xml:space="preserve">
+    <value>Notes</value>
   </data>
   <data name="Nothing at all happens on score: both thresholds are 0, and the server only marks or refuses when the threshold is above 0." xml:space="preserve">
     <value>Nothing at all happens on score: both thresholds are 0, and the server only marks or refuses when the threshold is above 0.</value>
@@ -14315,6 +14315,9 @@ It will keep trying as you use the application.</value>
   <data name="Worth knowing about this configuration" xml:space="preserve">
     <value>Worth knowing about this configuration</value>
   </data>
+  <data name="Would change here: {0} of {1}" xml:space="preserve">
+    <value>Would change here: {0} of {1}</value>
+  </data>
   <data name="Write a Received-SPF header on inbound mail" xml:space="preserve">
     <value>Write a Received-SPF header on inbound mail</value>
   </data>
@@ -14585,6 +14588,9 @@ It will keep trying as you use the application.</value>
   <data name="_Discard and rebuild" xml:space="preserve">
     <value>_Discard and rebuild</value>
   </data>
+  <data name="_Discard the previous settings" xml:space="preserve">
+    <value>_Discard the previous settings</value>
+  </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>_Display name attribute</value>
   </data>
@@ -14731,9 +14737,6 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="_Job title" xml:space="preserve">
     <value>_Job title</value>
-  </data>
-  <data name="_Keep its settings, forget the way back" xml:space="preserve">
-    <value>_Keep its settings, forget the way back</value>
   </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>_Keep original message</value>
@@ -16151,9 +16154,6 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="{0} - set: {1}, unchanged: {2}, skipped: {3}; waiting for a reinitialise: {4}, for a restart: {5}." xml:space="preserve">
     <value>{0} - set: {1}, unchanged: {2}, skipped: {3}; waiting for a reinitialise: {4}, for a restart: {5}.</value>
-  </data>
-  <data name="{0} - settings that would change on this server: {1} of {2}." xml:space="preserve">
-    <value>{0} - settings that would change on this server: {1} of {2}.</value>
   </data>
   <data name="{0} - {1}" xml:space="preserve">
     <value>{0} - {1}</value>

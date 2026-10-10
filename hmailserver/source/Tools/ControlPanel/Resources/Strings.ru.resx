@@ -1765,9 +1765,6 @@ Control Panel может читать файлы сообщений только
   <data name="Asking the service to take the backup." xml:space="preserve">
     <value>Служба получает запрос сделать резервную копию.</value>
   </data>
-  <data name="Asks for a confirmation" xml:space="preserve">
-    <value>Требует подтверждения</value>
-  </data>
   <data name="At MAIL FROM, after the spam exemptions" xml:space="preserve">
     <value>На этапе MAIL FROM, после исключений антиспама</value>
   </data>
@@ -7675,6 +7672,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Note: the web services listener has no HTTPS port on the Web services &amp; autoconfiguration page, so the policy cannot be served (RFC 8461 allows HTTPS only). The TXT record would advertise a policy nothing serves." xml:space="preserve">
     <value>Примечание: у прослушивателя веб-служб нет порта HTTPS на странице «Веб-службы и автоконфигурация», поэтому политику отдать невозможно (RFC 8461 допускает только HTTPS). Запись TXT объявляла бы политику, которую никто не отдаёт.</value>
+  </data>
+  <data name="Notes" xml:space="preserve">
+    <value>Примечания</value>
   </data>
   <data name="Nothing at all happens on score: both thresholds are 0, and the server only marks or refuses when the threshold is above 0." xml:space="preserve">
     <value>По оценке не происходит вообще ничего: оба порога равны 0, а сервер помечает или отклоняет, только когда порог больше 0.</value>
@@ -14484,6 +14484,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Worth knowing about this configuration" xml:space="preserve">
     <value>Что стоит знать об этой конфигурации</value>
   </data>
+  <data name="Would change here: {0} of {1}" xml:space="preserve">
+    <value>Изменится здесь: {0} из {1}</value>
+  </data>
   <data name="Write a Received-SPF header on inbound mail" xml:space="preserve">
     <value>Записывать заголовок Received-SPF во входящую почту</value>
   </data>
@@ -14757,6 +14760,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Discard and rebuild" xml:space="preserve">
     <value>_Сбросить и перестроить</value>
   </data>
+  <data name="_Discard the previous settings" xml:space="preserve">
+    <value>Отбро_сить прежние параметры</value>
+  </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>Атрибут _отображаемого имени</value>
   </data>
@@ -14903,9 +14909,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Job title" xml:space="preserve">
     <value>Должность (_A)</value>
-  </data>
-  <data name="_Keep its settings, forget the way back" xml:space="preserve">
-    <value>_Сохранить параметры, забыть путь назад</value>
   </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>Сохранять _исходное сообщение</value>
@@ -16338,9 +16341,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} - set: {1}, unchanged: {2}, skipped: {3}; waiting for a reinitialise: {4}, for a restart: {5}." xml:space="preserve">
     <value>{0} — задано: {1}, без изменений: {2}, пропущено: {3}; ждут повторной инициализации: {4}, перезапуска: {5}.</value>
-  </data>
-  <data name="{0} - settings that would change on this server: {1} of {2}." xml:space="preserve">
-    <value>{0} — параметры, которые изменились бы на этом сервере: {1} из {2}.</value>
   </data>
   <data name="{0} - {1}" xml:space="preserve">
     <value>{0} - {1}</value>

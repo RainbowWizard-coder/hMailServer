@@ -2586,6 +2586,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the sample - with Open Domains - and for a domain table the server could not read. `WelcomeSampleCardTests` holds
   the card, its place and its states.
 
+- **Fixed: the Setting profiles page named the applied profile by its key, and its six controls wrapped with two
+  confusable Keep buttons.** "The small-office profile is applied." said the key, in German and Japanese as well,
+  where the list, the setup checklist and the other confirmations said "Small office", and the Apply and Put back
+  questions and the lines that say what they did used the key too; the 430-pixel list of profiles and five buttons
+  wrapped onto two rows at 1280 pixels and three at 760, with "Keep its settings, forget the way back" beside "Keep the
+  shipped settings", which mean different things; Refresh was in that row where the sibling pages have it in the
+  header; the list's items were sentences ("Small office - settings that would change on this server: 3 of 31."); and
+  the table's last column, "Asks for a confirmation", held notes that are not confirmations. The profile is named by
+  its title everywhere; Refresh is in the header; Put back what it changed and Discard the previous settings, as the
+  way back's two acts, and Keep the shipped settings, while no profile is in effect, are the applied notice's own,
+  each shown while it can be taken, so that the two never show together and the row beside the list holds the list
+  and Apply this profile; each profile in the list is its title with "Would change here: 3 of 31" beside it in the
+  caption colour; and the column is Notes. `ProfilesPageFlowTests` holds the titles, the acts and the list.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

@@ -1750,9 +1750,6 @@ Los detalles completos se escribieron en:
   <data name="Asking the service to take the backup." xml:space="preserve">
     <value>Pidiendo al servicio que haga la copia de seguridad.</value>
   </data>
-  <data name="Asks for a confirmation" xml:space="preserve">
-    <value>Pide una confirmación</value>
-  </data>
   <data name="At MAIL FROM, after the spam exemptions" xml:space="preserve">
     <value>En MAIL FROM, después de las exenciones antispam</value>
   </data>
@@ -7593,6 +7590,9 @@ No se elimina nada de lo que ya está.</value>
   </data>
   <data name="Note: the web services listener has no HTTPS port on the Web services &amp; autoconfiguration page, so the policy cannot be served (RFC 8461 allows HTTPS only). The TXT record would advertise a policy nothing serves." xml:space="preserve">
     <value>Nota: el oyente de los servicios web no tiene puerto HTTPS en la página Servicios web y autoconfiguración, así que la política no puede servirse (RFC 8461 solo permite HTTPS). El registro TXT anunciaría una política que nadie sirve.</value>
+  </data>
+  <data name="Notes" xml:space="preserve">
+    <value>Notas</value>
   </data>
   <data name="Nothing at all happens on score: both thresholds are 0, and the server only marks or refuses when the threshold is above 0." xml:space="preserve">
     <value>No ocurre absolutamente nada por puntuación: ambos umbrales son 0, y el servidor solo marca o rechaza cuando el umbral es mayor que 0.</value>
@@ -14315,6 +14315,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="Worth knowing about this configuration" xml:space="preserve">
     <value>Conviene saber sobre esta configuración</value>
   </data>
+  <data name="Would change here: {0} of {1}" xml:space="preserve">
+    <value>Cambiarían aquí: {0} de {1}</value>
+  </data>
   <data name="Write a Received-SPF header on inbound mail" xml:space="preserve">
     <value>Escribir una cabecera Received-SPF en el correo entrante</value>
   </data>
@@ -14585,6 +14588,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="_Discard and rebuild" xml:space="preserve">
     <value>_Descartar y reconstruir</value>
   </data>
+  <data name="_Discard the previous settings" xml:space="preserve">
+    <value>_Descartar los ajustes anteriores</value>
+  </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>Atributo del nombre para _mostrar</value>
   </data>
@@ -14731,9 +14737,6 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="_Job title" xml:space="preserve">
     <value>_Puesto</value>
-  </data>
-  <data name="_Keep its settings, forget the way back" xml:space="preserve">
-    <value>_Conservar sus ajustes, olvidar la vuelta atrás</value>
   </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>_Conservar el mensaje original</value>
@@ -16151,9 +16154,6 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="{0} - set: {1}, unchanged: {2}, skipped: {3}; waiting for a reinitialise: {4}, for a restart: {5}." xml:space="preserve">
     <value>{0} - establecidos: {1}, sin cambios: {2}, omitidos: {3}; a la espera de una reinicialización: {4}, de un reinicio: {5}.</value>
-  </data>
-  <data name="{0} - settings that would change on this server: {1} of {2}." xml:space="preserve">
-    <value>{0} - ajustes que cambiarían en este servidor: {1} de {2}.</value>
   </data>
   <data name="{0} - {1}" xml:space="preserve">
     <value>{0} - {1}</value>
