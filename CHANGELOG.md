@@ -3603,11 +3603,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   list, the DKIM key rotation, the TCP/IP ports and routes grids, the Welcome page's intents, the setting profiles
   card and the domains' globe.** The suppression list's list card was the page's one untitled card, its two grids
   were not linked, and the list's Why column said "Temporary failure" and "Policy refusal" where the bounce counts
-  said "Soft" and "Policy": the card is Suppressed addresses, selecting an address selects its row of the counts,
-  the counts' columns are named by the list's categories, the list's two headers are Reason and Status code and the
-  counts' Last status code, the Add dialog says that addresses on the server's own domains cannot be added where it
-  read as if the address would be refused mail, and its expiry box is 160 pixels where it spanned the dialog. The
-  domain dialog's DKIM rotation buttons were the tab's last row, directly above Save and Cancel, and read as one
+  said "Soft" and "Policy": the card is Suppressed addresses, each grid is named as its card is titled, selecting an
+  address selects its row of the counts, the counts' columns are named by the list's categories - their address
+  staying in view as they scroll sideways under the longer names - the list's two headers are Reason and Status code
+  and the counts' Last status code, the Add dialog says that addresses on the server's own domains cannot be added
+  where it read as if the address would be refused mail, and its expiry box is 160 pixels where it spanned the
+  dialog. The domain dialog's DKIM rotation buttons were the tab's last row, directly above Save and Cancel, and read as one
   footer with them; they and the rotation's state are on a surface of their own. The TCP/IP ports grid's fixed
   columns totalled 880 pixels and left the certificate's name some 150 - "mail.example.com (Let..." - while Address
   took 170 for "0.0.0.0"; they are no wider than their words now, SMTP authentication is the column AUTH with its

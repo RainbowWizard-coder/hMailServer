@@ -39,6 +39,9 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("var listCard = new Card { Title = L(\"Suppressed addresses\"), Padding = new Thickness(8), Content = host };", build, StringComparison.Ordinal);
          Assert.Contains("FillPanel.Filling(listCard, FillPanel.TitledListCardFloor, 2)", build, StringComparison.Ordinal);
          Assert.Contains("Title = L(\"Bounce counts\"),", build, StringComparison.Ordinal);
+         // Each grid is named as its card is titled.
+         Assert.Contains("AutomationProperties.SetName(entries_, L(\"Suppressed addresses\"));", build, StringComparison.Ordinal);
+         Assert.Contains("AutomationProperties.SetName(counts_, L(\"Bounce counts\"));", build, StringComparison.Ordinal);
          Assert.Contains("entries_.SelectionChanged += (_, _) => SelectCountsOf_(entries_.SelectedItem as EntryView);", build, StringComparison.Ordinal);
 
          string select = WithheldRowTests.MemberText(code, "private void SelectCountsOf_(EntryView entry)");
@@ -56,6 +59,14 @@ namespace hMailServer.ControlPanel.Tests.Services
             Assert.Contains(header, columns, StringComparison.Ordinal);
          foreach (string old in new[] { "L(\"Why\")", "L(\"Status\")", "L(\"Hard\")", "L(\"Soft\")", "L(\"Policy\")", "L(\"Last status\")" })
             Assert.DoesNotContain(old, code, StringComparison.Ordinal);
+
+         // Under those names the counts need more than a window of 1280 gives them, so
+         // the grid scrolls sideways, and its address stays in view as it does.
+         int counts = code.IndexOf("private readonly DataGrid counts_ = new()", StringComparison.Ordinal);
+         Assert.True(counts >= 0, "SuppressionListView.counts_ is gone.");
+         string countsInit = code.Substring(counts, code.IndexOf("};", counts, StringComparison.Ordinal) - counts);
+         Assert.Contains("FrozenColumnCount = 1", countsInit, StringComparison.Ordinal);
+         Assert.StartsWith("counts_.Columns.Add(Trimmed_(L(\"Address\")", columns.Substring(columns.IndexOf("counts_.Columns.Add(", StringComparison.Ordinal)), StringComparison.Ordinal);
 
          // The Add dialog's hint says what cannot be added, and its expiry is a short box.
          Assert.Contains("L(\"Addresses on this server's own domains cannot be added - the list applies only to mail leaving the server.\")", code, StringComparison.Ordinal);

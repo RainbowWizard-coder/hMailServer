@@ -49,13 +49,18 @@ namespace hMailServer.ControlPanel.Views
          SelectionMode = DataGridSelectionMode.Single
       };
 
+      // The address stays in view as the counts scroll sideways: under the list's
+      // own category names (review finding F318) the grid's eleven columns need
+      // about 1,200 pixels, more than a window of 1280 gives it, and scrolled to its
+      // dates the row no longer said whose counts they were.
       private readonly DataGrid counts_ = new()
       {
          AutoGenerateColumns = false,
          IsReadOnly = true,
          CanUserAddRows = false,
          CanUserDeleteRows = false,
-         SelectionMode = DataGridSelectionMode.Single
+         SelectionMode = DataGridSelectionMode.Single,
+         FrozenColumnCount = 1
       };
 
       private readonly InlineNotice status_ = new() { Visibility = Visibility.Collapsed };
@@ -492,7 +497,9 @@ namespace hMailServer.ControlPanel.Views
          parts.Children.Add(status_);
 
          BuildColumns_();
-         AutomationProperties.SetName(entries_, L("Suppression list"));
+         // Each grid named as its card is titled, where the list's was the page's name
+         // under a card titled otherwise (review finding F318).
+         AutomationProperties.SetName(entries_, L("Suppressed addresses"));
          AutomationProperties.SetName(counts_, L("Bounce counts"));
 
          var host = new Grid();
