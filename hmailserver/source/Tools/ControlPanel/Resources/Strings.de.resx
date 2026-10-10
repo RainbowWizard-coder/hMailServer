@@ -8089,17 +8089,20 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.INI key." xml:space="preserve">
     <value>Nichts passte auf „{0}". Versuchen Sie es mit dem, was Sie erreichen wollen („Spam stoppen", „ein Gerät Mail senden lassen"), einem Seitennamen oder einem Schlüssel aus hMailServer.INI.</value>
   </data>
+  <data name="Nothing needs action - all {0} external setup checks are done or not needed." xml:space="preserve">
+    <value>Nichts erfordert eine Maßnahme - alle {0} Prüfungen der externen Einrichtung sind erledigt oder nicht nötig.</value>
+  </data>
+  <data name="Nothing needs action - the {0} external setup check is done or not needed." xml:space="preserve">
+    <value>Nichts erfordert eine Maßnahme - {0} Prüfung der externen Einrichtung ist erledigt oder nicht nötig.</value>
+  </data>
   <data name="Nothing needs action, but {0} item cannot be checked from here." xml:space="preserve">
     <value>Nichts erfordert eine Maßnahme, aber {0} Punkt kann von hier aus nicht geprüft werden.</value>
   </data>
   <data name="Nothing needs action, but {0} items cannot be checked from here." xml:space="preserve">
     <value>Nichts erfordert eine Maßnahme, aber {0} Punkte können von hier aus nicht geprüft werden.</value>
   </data>
-  <data name="Nothing needs attention - all {0} external setup checks are done or not needed." xml:space="preserve">
-    <value>Nichts braucht Aufmerksamkeit - alle {0} Prüfungen der externen Einrichtung sind erledigt oder nicht nötig.</value>
-  </data>
-  <data name="Nothing needs attention - the {0} external setup check is done or not needed." xml:space="preserve">
-    <value>Nichts braucht Aufmerksamkeit - die {0} Prüfung der externen Einrichtung ist erledigt oder nicht nötig.</value>
+  <data name="Nothing needs action." xml:space="preserve">
+    <value>Nichts erfordert eine Maßnahme.</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Es wurde nichts angewendet: die Optionen haben sich geändert, während die Bestätigung offen war, die Vorschau beschreibt also nicht mehr, was dies tun würde. Führen Sie die Vorschau erneut aus.</value>
@@ -17324,8 +17327,32 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} ist wieder {1}.</value>
   </data>
+  <data name="{0} item cannot be checked from here." xml:space="preserve">
+    <value>{0} Punkt kann von hier aus nicht geprüft werden.</value>
+  </data>
+  <data name="{0} item is done." xml:space="preserve">
+    <value>{0} Punkt ist erledigt.</value>
+  </data>
+  <data name="{0} item is not needed." xml:space="preserve">
+    <value>{0} Punkt ist nicht nötig.</value>
+  </data>
+  <data name="{0} item needs action." xml:space="preserve">
+    <value>{0} Punkt erfordert eine Maßnahme.</value>
+  </data>
   <data name="{0} items" xml:space="preserve">
     <value>{0} Elemente</value>
+  </data>
+  <data name="{0} items are done." xml:space="preserve">
+    <value>{0} Punkte sind erledigt.</value>
+  </data>
+  <data name="{0} items are not needed." xml:space="preserve">
+    <value>{0} Punkte sind nicht nötig.</value>
+  </data>
+  <data name="{0} items cannot be checked from here." xml:space="preserve">
+    <value>{0} Punkte können von hier aus nicht geprüft werden.</value>
+  </data>
+  <data name="{0} items need action." xml:space="preserve">
+    <value>{0} Punkte erfordern eine Maßnahme.</value>
   </data>
   <data name="{0} key" xml:space="preserve">
     <value>{0} Schlüssel</value>
@@ -17419,9 +17446,6 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="{0} must be between {1} and {2}." xml:space="preserve">
     <value>{0} muss zwischen {1} und {2} liegen.</value>
-  </data>
-  <data name="{0} need action, {1} cannot be told from here, {2} done, {3} not needed." xml:space="preserve">
-    <value>{0} brauchen eine Maßnahme, {1} von hier aus nicht feststellbar, {2} erledigt, {3} nicht nötig.</value>
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>{0} der Einmal-Wiederherstellungscodes des Kontos sind unbenutzt.</value>
@@ -17603,12 +17627,6 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="{0} switched on." xml:space="preserve">
     <value>{0} eingeschaltet.</value>
   </data>
-  <data name="{0} thing needs attention." xml:space="preserve">
-    <value>{0} Punkt braucht Aufmerksamkeit.</value>
-  </data>
-  <data name="{0} things need attention." xml:space="preserve">
-    <value>{0} Punkte brauchen Aufmerksamkeit.</value>
-  </data>
   <data name="{0} to {1} of {2}" xml:space="preserve">
     <value>{0} bis {1} von {2}</value>
   </data>
@@ -17668,12 +17686,6 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="{0} {1} accounts had no e-mail address and were skipped." xml:space="preserve">
     <value>{0} {1} Konten hatten keine E-Mail-Adresse und wurden übersprungen.</value>
-  </data>
-  <data name="{0} {1} item cannot be checked from here." xml:space="preserve">
-    <value>{0} {1} Punkt kann von hier aus nicht geprüft werden.</value>
-  </data>
-  <data name="{0} {1} items cannot be checked from here." xml:space="preserve">
-    <value>{0} {1} Punkte können von hier aus nicht geprüft werden.</value>
   </data>
   <data name="{0} {1} message is on its way into them and arrives in a few seconds. All of the mailboxes sign in with the password {2}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
     <value>{0} {1} Nachricht ist auf dem Weg hinein und trifft in wenigen Sekunden ein. Alle Postfächer melden sich mit dem Kennwort {2} an. Es wird hier einmal gezeigt - schreiben Sie es auf, denn dieser Server hat es nicht gespeichert.</value>

@@ -3028,6 +3028,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   language has the new words, the button's Alt key one the card's other captions leave free. `SignInWordsTests` holds
   the heading, the button, the card's name, the hint and, in every catalogue, the button saying what the heading says.
 
+- **Fixed: the Dashboard and the Setup checklist counted the same states in different words.** The Dashboard's setup
+  card said "11 things need attention." and the checklist "11 need action, 1 cannot be told from here, 9 done, 4 not
+  needed." - a first clause with no noun - while the pills on both pages said Action needed and Cannot tell. Both now
+  read their sentences from one place, `Services/SetupTally`, each state a sentence of its own in the forms its
+  language has for the count and in its pill's words: the card "11 items need action. 1 item cannot be checked from
+  here." or "Nothing needs action - all 25 external setup checks are done or not needed.", and the checklist "4 items
+  need action. 7 items cannot be checked from here. 4 items are not needed. Next step: ...", leaving out a state no
+  item is in. `SetupTallyTests` holds the sentences, a Russian count's few and many forms, and both pages reading them.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

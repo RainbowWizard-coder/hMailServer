@@ -56,7 +56,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
       /// <summary>
       /// A link lost while the Dashboard's setup summary ran is not counted into
-      /// "things need attention": the card says it cannot tell. Values a server that
+      /// "items need action": the card says it cannot tell. Values a server that
       /// answered could not give are a Warning notice, as the setup checklist says
       /// them, where they were a grey caption with no mark or word.
       /// </summary>

@@ -256,8 +256,12 @@ namespace hMailServer.ControlPanel.Views
          summary_.Level = action > 0 ? StatusLevel.Warning
             : unknown > 0 ? StatusLevel.Information
             : StatusLevel.Good;
-         summary_.Text = Sentences(F("{0} need action, {1} cannot be told from here, {2} done, {3} not needed.", action, unknown, done, unused),
-            next != null ? F("Next step: {0}.", next.Title) : null);
+         // Each state in a sentence of its own, in the words of its pill and of the
+         // Dashboard's setup card (Services/SetupTally): "4 items need action. 7 items
+         // cannot be checked from here. 4 items are not needed.", where one sentence
+         // said "4 need action, 7 cannot be told from here, 0 done, 4 not needed"
+         // (review finding F034).
+         summary_.Text = SetupTally.Tally(action, unknown, done, unused, next?.Title);
          summary_.Visibility = Visibility.Visible;
 
          // Two sentences; each is whole in the catalogue.

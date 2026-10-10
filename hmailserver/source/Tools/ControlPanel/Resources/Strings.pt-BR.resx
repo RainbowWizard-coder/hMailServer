@@ -8089,17 +8089,20 @@ Nada do que já está lá é removido.</value>
   <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.INI key." xml:space="preserve">
     <value>Nada correspondeu a "{0}". Tente aquilo que você está tentando alcançar ("parar spam", "permitir que um dispositivo envie e-mails"), o nome de uma página, ou uma chave do hMailServer.INI.</value>
   </data>
+  <data name="Nothing needs action - all {0} external setup checks are done or not needed." xml:space="preserve">
+    <value>Nada exige ação - todas as {0} verificações de configuração externa estão concluídas ou não são necessárias.</value>
+  </data>
+  <data name="Nothing needs action - the {0} external setup check is done or not needed." xml:space="preserve">
+    <value>Nada exige ação - {0} verificação de configuração externa está concluída ou não é necessária.</value>
+  </data>
   <data name="Nothing needs action, but {0} item cannot be checked from here." xml:space="preserve">
     <value>Nada exige ação, mas {0} item não pode ser verificado daqui.</value>
   </data>
   <data name="Nothing needs action, but {0} items cannot be checked from here." xml:space="preserve">
     <value>Nada exige ação, mas {0} itens não podem ser verificados daqui.</value>
   </data>
-  <data name="Nothing needs attention - all {0} external setup checks are done or not needed." xml:space="preserve">
-    <value>Nada exige atenção - todas as {0} verificações de configuração externa estão concluídas ou não são necessárias.</value>
-  </data>
-  <data name="Nothing needs attention - the {0} external setup check is done or not needed." xml:space="preserve">
-    <value>Nada exige atenção - a {0} verificação de configuração externa está concluída ou não é necessária.</value>
+  <data name="Nothing needs action." xml:space="preserve">
+    <value>Nada exige ação.</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Nada foi aplicado: as opções mudaram enquanto a confirmação estava aberta, então a prévia já não descreve o que isto faria. Execute a prévia de novo.</value>
@@ -17324,8 +17327,32 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} é {1} de novo.</value>
   </data>
+  <data name="{0} item cannot be checked from here." xml:space="preserve">
+    <value>{0} item não pode ser verificado daqui.</value>
+  </data>
+  <data name="{0} item is done." xml:space="preserve">
+    <value>{0} item está concluído.</value>
+  </data>
+  <data name="{0} item is not needed." xml:space="preserve">
+    <value>{0} item não é necessário.</value>
+  </data>
+  <data name="{0} item needs action." xml:space="preserve">
+    <value>{0} item exige ação.</value>
+  </data>
   <data name="{0} items" xml:space="preserve">
     <value>{0} itens</value>
+  </data>
+  <data name="{0} items are done." xml:space="preserve">
+    <value>{0} itens estão concluídos.</value>
+  </data>
+  <data name="{0} items are not needed." xml:space="preserve">
+    <value>{0} itens não são necessários.</value>
+  </data>
+  <data name="{0} items cannot be checked from here." xml:space="preserve">
+    <value>{0} itens não podem ser verificados daqui.</value>
+  </data>
+  <data name="{0} items need action." xml:space="preserve">
+    <value>{0} itens exigem ação.</value>
   </data>
   <data name="{0} key" xml:space="preserve">
     <value>{0} chave</value>
@@ -17419,9 +17446,6 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="{0} must be between {1} and {2}." xml:space="preserve">
     <value>{0} deve estar entre {1} e {2}.</value>
-  </data>
-  <data name="{0} need action, {1} cannot be told from here, {2} done, {3} not needed." xml:space="preserve">
-    <value>{0} precisam de ação, {1} não podem ser determinados daqui, {2} prontos, {3} não são necessários.</value>
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>{0} dos códigos de recuperação de uso único da conta estão sem uso.</value>
@@ -17603,12 +17627,6 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="{0} switched on." xml:space="preserve">
     <value>{0} ativada.</value>
   </data>
-  <data name="{0} thing needs attention." xml:space="preserve">
-    <value>{0} item precisa de atenção.</value>
-  </data>
-  <data name="{0} things need attention." xml:space="preserve">
-    <value>{0} itens precisam de atenção.</value>
-  </data>
   <data name="{0} to {1} of {2}" xml:space="preserve">
     <value>{0} a {1} de {2}</value>
   </data>
@@ -17668,12 +17686,6 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="{0} {1} accounts had no e-mail address and were skipped." xml:space="preserve">
     <value>{0} {1} contas não tinham endereço de e-mail e foram ignoradas.</value>
-  </data>
-  <data name="{0} {1} item cannot be checked from here." xml:space="preserve">
-    <value>{0} {1} item não pode ser verificado daqui.</value>
-  </data>
-  <data name="{0} {1} items cannot be checked from here." xml:space="preserve">
-    <value>{0} {1} itens não podem ser verificados daqui.</value>
   </data>
   <data name="{0} {1} message is on its way into them and arrives in a few seconds. All of the mailboxes sign in with the password {2}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
     <value>{0} {1} mensagem está a caminho delas e chega em alguns segundos. Todas as caixas entram com a senha {2}. Ela é mostrada aqui uma única vez - anote-a, porque este servidor não a guardou.</value>

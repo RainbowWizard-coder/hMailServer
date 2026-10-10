@@ -8089,17 +8089,20 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.INI key." xml:space="preserve">
     <value>Ingenting traff «{0}». Prøv det du forsøker å oppnå («stoppe spam», «la en enhet sende post»), et sidenavn, eller en hMailServer.INI-nøkkel.</value>
   </data>
+  <data name="Nothing needs action - all {0} external setup checks are done or not needed." xml:space="preserve">
+    <value>Ingenting krever handling - alle {0} eksterne oppsettkontroller er utført eller ikke nødvendige.</value>
+  </data>
+  <data name="Nothing needs action - the {0} external setup check is done or not needed." xml:space="preserve">
+    <value>Ingenting krever handling - {0} ekstern oppsettkontroll er utført eller ikke nødvendig.</value>
+  </data>
   <data name="Nothing needs action, but {0} item cannot be checked from here." xml:space="preserve">
     <value>Ingenting krever handling, men {0} element kan ikke kontrolleres herfra.</value>
   </data>
   <data name="Nothing needs action, but {0} items cannot be checked from here." xml:space="preserve">
     <value>Ingenting krever handling, men {0} elementer kan ikke kontrolleres herfra.</value>
   </data>
-  <data name="Nothing needs attention - all {0} external setup checks are done or not needed." xml:space="preserve">
-    <value>Ingenting krever oppmerksomhet - alle {0} eksterne oppsettkontroller er utført eller ikke nødvendige.</value>
-  </data>
-  <data name="Nothing needs attention - the {0} external setup check is done or not needed." xml:space="preserve">
-    <value>Ingenting krever oppmerksomhet - den {0} eksterne oppsettkontrollen er utført eller ikke nødvendig.</value>
+  <data name="Nothing needs action." xml:space="preserve">
+    <value>Ingenting krever handling.</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Ingenting ble tatt i bruk: alternativene endret seg mens bekreftelsen var åpen, så forhåndsvisningen beskriver ikke lenger hva dette ville gjøre. Kjør forhåndsvisningen på nytt.</value>
@@ -17324,8 +17327,32 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} er {1} igjen.</value>
   </data>
+  <data name="{0} item cannot be checked from here." xml:space="preserve">
+    <value>{0} element kan ikke kontrolleres herfra.</value>
+  </data>
+  <data name="{0} item is done." xml:space="preserve">
+    <value>{0} element er ferdig.</value>
+  </data>
+  <data name="{0} item is not needed." xml:space="preserve">
+    <value>{0} element er ikke nødvendig.</value>
+  </data>
+  <data name="{0} item needs action." xml:space="preserve">
+    <value>{0} element krever handling.</value>
+  </data>
   <data name="{0} items" xml:space="preserve">
     <value>{0} elementer</value>
+  </data>
+  <data name="{0} items are done." xml:space="preserve">
+    <value>{0} elementer er ferdige.</value>
+  </data>
+  <data name="{0} items are not needed." xml:space="preserve">
+    <value>{0} elementer er ikke nødvendige.</value>
+  </data>
+  <data name="{0} items cannot be checked from here." xml:space="preserve">
+    <value>{0} elementer kan ikke kontrolleres herfra.</value>
+  </data>
+  <data name="{0} items need action." xml:space="preserve">
+    <value>{0} elementer krever handling.</value>
   </data>
   <data name="{0} key" xml:space="preserve">
     <value>{0} nøkkel</value>
@@ -17419,9 +17446,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="{0} must be between {1} and {2}." xml:space="preserve">
     <value>{0} må være mellom {1} og {2}.</value>
-  </data>
-  <data name="{0} need action, {1} cannot be told from here, {2} done, {3} not needed." xml:space="preserve">
-    <value>{0} trenger handling, {1} kan ikke avgjøres herfra, {2} gjort, {3} ikke nødvendig.</value>
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>{0} av kontoens engangskoder for gjenoppretting er ubrukte.</value>
@@ -17603,12 +17627,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="{0} switched on." xml:space="preserve">
     <value>{0} er slått på.</value>
   </data>
-  <data name="{0} thing needs attention." xml:space="preserve">
-    <value>{0} ting trenger oppmerksomhet.</value>
-  </data>
-  <data name="{0} things need attention." xml:space="preserve">
-    <value>{0} ting trenger oppmerksomhet.</value>
-  </data>
   <data name="{0} to {1} of {2}" xml:space="preserve">
     <value>{0} til {1} av {2}</value>
   </data>
@@ -17668,12 +17686,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="{0} {1} accounts had no e-mail address and were skipped." xml:space="preserve">
     <value>{0} {1} kontoer hadde ingen e-postadresse og ble hoppet over.</value>
-  </data>
-  <data name="{0} {1} item cannot be checked from here." xml:space="preserve">
-    <value>{0} {1} element kan ikke kontrolleres herfra.</value>
-  </data>
-  <data name="{0} {1} items cannot be checked from here." xml:space="preserve">
-    <value>{0} {1} elementer kan ikke kontrolleres herfra.</value>
   </data>
   <data name="{0} {1} message is on its way into them and arrives in a few seconds. All of the mailboxes sign in with the password {2}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
     <value>{0} {1} melding er på vei inn i dem og kommer om få sekunder. Alle postkasser logger inn med passordet {2}. Det vises her én gang - skriv det ned, for denne serveren tok ikke vare på det.</value>

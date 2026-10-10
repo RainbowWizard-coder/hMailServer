@@ -8177,6 +8177,15 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.INI key." xml:space="preserve">
     <value>Dotazu „{0}“ nic neodpovídalo. Zkuste popsat, čeho chcete dosáhnout („zastavit spam“, „nechat zařízení odesílat poštu“), název stránky, nebo klíč z hMailServer.INI.</value>
   </data>
+  <data name="Nothing needs action - all {0} external setup checks are done or not needed." xml:space="preserve">
+    <value>Nic nevyžaduje zásah - všech {0} kontrol externího nastavení je hotových nebo není potřeba.</value>
+  </data>
+  <data name="Nothing needs action - all {0} external setup checks are done or not needed.|few" xml:space="preserve">
+    <value>Nic nevyžaduje zásah - všechny {0} kontroly externího nastavení jsou hotové nebo nejsou potřeba.</value>
+  </data>
+  <data name="Nothing needs action - the {0} external setup check is done or not needed." xml:space="preserve">
+    <value>Nic nevyžaduje zásah - {0} kontrola externího nastavení je hotová nebo není potřeba.</value>
+  </data>
   <data name="Nothing needs action, but {0} item cannot be checked from here." xml:space="preserve">
     <value>Nic nevyžaduje zásah, ale {0} položku odsud nelze zkontrolovat.</value>
   </data>
@@ -8186,14 +8195,8 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Nothing needs action, but {0} items cannot be checked from here.|few" xml:space="preserve">
     <value>Nic nevyžaduje zásah, ale {0} položky odsud nelze zkontrolovat.</value>
   </data>
-  <data name="Nothing needs attention - all {0} external setup checks are done or not needed." xml:space="preserve">
-    <value>Nic nevyžaduje pozornost – všech {0} kontrol externího nastavení je hotových nebo není potřeba.</value>
-  </data>
-  <data name="Nothing needs attention - all {0} external setup checks are done or not needed.|few" xml:space="preserve">
-    <value>Nic nevyžaduje pozornost – všechny {0} kontroly externího nastavení jsou hotové nebo nejsou potřeba.</value>
-  </data>
-  <data name="Nothing needs attention - the {0} external setup check is done or not needed." xml:space="preserve">
-    <value>Nic nevyžaduje pozornost – {0} kontrola externího nastavení je hotová nebo není potřeba.</value>
+  <data name="Nothing needs action." xml:space="preserve">
+    <value>Nic nevyžaduje zásah.</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Neuplatnilo se nic: volby se změnily, zatímco bylo otevřené potvrzení, takže náhled už nepopisuje, co by se provedlo. Spusťte náhled znovu.</value>
@@ -17619,8 +17622,44 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} je opět {1}.</value>
   </data>
+  <data name="{0} item cannot be checked from here." xml:space="preserve">
+    <value>{0} položku odsud nelze zkontrolovat.</value>
+  </data>
+  <data name="{0} item is done." xml:space="preserve">
+    <value>{0} položka je hotová.</value>
+  </data>
+  <data name="{0} item is not needed." xml:space="preserve">
+    <value>{0} položka není potřeba.</value>
+  </data>
+  <data name="{0} item needs action." xml:space="preserve">
+    <value>{0} položka vyžaduje zásah.</value>
+  </data>
   <data name="{0} items" xml:space="preserve">
     <value>Položky: {0}</value>
+  </data>
+  <data name="{0} items are done." xml:space="preserve">
+    <value>{0} položek je hotových.</value>
+  </data>
+  <data name="{0} items are done.|few" xml:space="preserve">
+    <value>{0} položky jsou hotové.</value>
+  </data>
+  <data name="{0} items are not needed." xml:space="preserve">
+    <value>{0} položek není potřeba.</value>
+  </data>
+  <data name="{0} items are not needed.|few" xml:space="preserve">
+    <value>{0} položky nejsou potřeba.</value>
+  </data>
+  <data name="{0} items cannot be checked from here." xml:space="preserve">
+    <value>{0} položek odsud nelze zkontrolovat.</value>
+  </data>
+  <data name="{0} items cannot be checked from here.|few" xml:space="preserve">
+    <value>{0} položky odsud nelze zkontrolovat.</value>
+  </data>
+  <data name="{0} items need action." xml:space="preserve">
+    <value>{0} položek vyžaduje zásah.</value>
+  </data>
+  <data name="{0} items need action.|few" xml:space="preserve">
+    <value>{0} položky vyžadují zásah.</value>
   </data>
   <data name="{0} key" xml:space="preserve">
     <value>Klíče: {0}</value>
@@ -17750,9 +17789,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} must be between {1} and {2}." xml:space="preserve">
     <value>{0} musí být mezi {1} a {2}.</value>
-  </data>
-  <data name="{0} need action, {1} cannot be told from here, {2} done, {3} not needed." xml:space="preserve">
-    <value>{0} vyžaduje zásah, {1} odsud nelze určit, {2} hotovo, {3} není potřeba.</value>
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>{0} z jednorázových kódů pro obnovu u tohoto účtu je nepoužitých.</value>
@@ -17994,15 +18030,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} switched on." xml:space="preserve">
     <value>Pravidlo {0} je zapnuté.</value>
   </data>
-  <data name="{0} thing needs attention." xml:space="preserve">
-    <value>{0} věc vyžaduje pozornost.</value>
-  </data>
-  <data name="{0} things need attention." xml:space="preserve">
-    <value>{0} věcí vyžaduje pozornost.</value>
-  </data>
-  <data name="{0} things need attention.|few" xml:space="preserve">
-    <value>{0} věci vyžadují pozornost.</value>
-  </data>
   <data name="{0} to {1} of {2}" xml:space="preserve">
     <value>{0} až {1} z {2}</value>
   </data>
@@ -18077,15 +18104,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} {1} accounts had no e-mail address and were skipped.|few" xml:space="preserve">
     <value>{0} {1} účty neměly e-mailovou adresu a byly přeskočeny.</value>
-  </data>
-  <data name="{0} {1} item cannot be checked from here." xml:space="preserve">
-    <value>{0} {1} položku odsud nelze zkontrolovat.</value>
-  </data>
-  <data name="{0} {1} items cannot be checked from here." xml:space="preserve">
-    <value>{0} {1} položek odsud nelze zkontrolovat.</value>
-  </data>
-  <data name="{0} {1} items cannot be checked from here.|few" xml:space="preserve">
-    <value>{0} {1} položky odsud nelze zkontrolovat.</value>
   </data>
   <data name="{0} {1} message is on its way into them and arrives in a few seconds. All of the mailboxes sign in with the password {2}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
     <value>{0} {1} zpráva je na cestě do nich a dorazí za několik sekund. Všechny schránky se přihlašují heslem {2}. Zobrazuje se zde jen jednou - zapište si je, tento server si je neuložil.</value>

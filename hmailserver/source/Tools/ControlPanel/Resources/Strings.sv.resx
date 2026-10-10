@@ -8089,17 +8089,20 @@ Inget som redan finns där tas bort.</value>
   <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.INI key." xml:space="preserve">
     <value>Inget matchade "{0}". Prova det du försöker uppnå ("stoppa skräppost", "låt en enhet skicka post"), ett sidnamn, eller en hMailServer.INI-nyckel.</value>
   </data>
+  <data name="Nothing needs action - all {0} external setup checks are done or not needed." xml:space="preserve">
+    <value>Inget behöver åtgärdas - alla {0} kontroller av extern konfiguration är klara eller behövs inte.</value>
+  </data>
+  <data name="Nothing needs action - the {0} external setup check is done or not needed." xml:space="preserve">
+    <value>Inget behöver åtgärdas - {0} kontroll av extern konfiguration är klar eller behövs inte.</value>
+  </data>
   <data name="Nothing needs action, but {0} item cannot be checked from here." xml:space="preserve">
     <value>Inget behöver åtgärdas, men {0} punkt kan inte kontrolleras härifrån.</value>
   </data>
   <data name="Nothing needs action, but {0} items cannot be checked from here." xml:space="preserve">
     <value>Inget behöver åtgärdas, men {0} punkter kan inte kontrolleras härifrån.</value>
   </data>
-  <data name="Nothing needs attention - all {0} external setup checks are done or not needed." xml:space="preserve">
-    <value>Inget behöver åtgärdas - alla {0} kontroller av extern konfiguration är klara eller behövs inte.</value>
-  </data>
-  <data name="Nothing needs attention - the {0} external setup check is done or not needed." xml:space="preserve">
-    <value>Inget behöver åtgärdas - den {0} kontrollen av extern konfiguration är klar eller behövs inte.</value>
+  <data name="Nothing needs action." xml:space="preserve">
+    <value>Inget behöver åtgärdas.</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Inget tillämpades: alternativen ändrades medan bekräftelsen var öppen, så förhandsgranskningen beskriver inte längre vad detta skulle göra. Kör förhandsgranskningen igen.</value>
@@ -17324,8 +17327,32 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} är {1} igen.</value>
   </data>
+  <data name="{0} item cannot be checked from here." xml:space="preserve">
+    <value>{0} punkt kan inte kontrolleras härifrån.</value>
+  </data>
+  <data name="{0} item is done." xml:space="preserve">
+    <value>{0} punkt är klar.</value>
+  </data>
+  <data name="{0} item is not needed." xml:space="preserve">
+    <value>{0} punkt behövs inte.</value>
+  </data>
+  <data name="{0} item needs action." xml:space="preserve">
+    <value>{0} punkt behöver åtgärdas.</value>
+  </data>
   <data name="{0} items" xml:space="preserve">
     <value>{0} poster</value>
+  </data>
+  <data name="{0} items are done." xml:space="preserve">
+    <value>{0} punkter är klara.</value>
+  </data>
+  <data name="{0} items are not needed." xml:space="preserve">
+    <value>{0} punkter behövs inte.</value>
+  </data>
+  <data name="{0} items cannot be checked from here." xml:space="preserve">
+    <value>{0} punkter kan inte kontrolleras härifrån.</value>
+  </data>
+  <data name="{0} items need action." xml:space="preserve">
+    <value>{0} punkter behöver åtgärdas.</value>
   </data>
   <data name="{0} key" xml:space="preserve">
     <value>{0} nyckel</value>
@@ -17419,9 +17446,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} must be between {1} and {2}." xml:space="preserve">
     <value>{0} måste vara mellan {1} och {2}.</value>
-  </data>
-  <data name="{0} need action, {1} cannot be told from here, {2} done, {3} not needed." xml:space="preserve">
-    <value>{0} behöver åtgärd, {1} kan inte avgöras härifrån, {2} klara, {3} behövs inte.</value>
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>{0} av kontots engångskoder för återställning är oanvända.</value>
@@ -17603,12 +17627,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} switched on." xml:space="preserve">
     <value>{0} är påslagen.</value>
   </data>
-  <data name="{0} thing needs attention." xml:space="preserve">
-    <value>{0} sak behöver åtgärdas.</value>
-  </data>
-  <data name="{0} things need attention." xml:space="preserve">
-    <value>{0} saker behöver åtgärdas.</value>
-  </data>
   <data name="{0} to {1} of {2}" xml:space="preserve">
     <value>{0} till {1} av {2}</value>
   </data>
@@ -17668,12 +17686,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} {1} accounts had no e-mail address and were skipped." xml:space="preserve">
     <value>{0} {1} konton saknade e-postadress och hoppades över.</value>
-  </data>
-  <data name="{0} {1} item cannot be checked from here." xml:space="preserve">
-    <value>{0} {1} punkt kan inte kontrolleras härifrån.</value>
-  </data>
-  <data name="{0} {1} items cannot be checked from here." xml:space="preserve">
-    <value>{0} {1} punkter kan inte kontrolleras härifrån.</value>
   </data>
   <data name="{0} {1} message is on its way into them and arrives in a few seconds. All of the mailboxes sign in with the password {2}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
     <value>{0} {1} meddelande är på väg in i dem och kommer fram om några sekunder. Alla brevlådor loggar in med lösenordet {2}. Det visas här en enda gång - skriv ned det, för den här servern sparade det inte.</value>

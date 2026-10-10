@@ -76,6 +76,10 @@
     <!-- The pill of a list whose entries can be switched off: how many are on, of how
          many, at Warning when none is (review finding F268). -->
     <Compile Include="..\ControlPanel\Services\ActiveEntries.cs" />
+    <!-- The setup checklist's tally in words: the one set of sentences the Dashboard's
+         setup card and the Setup checklist page count the same states with (review
+         finding F034). -->
+    <Compile Include="..\ControlPanel\Services\SetupTally.cs" />
     <!-- The design tokens and the server status pill's vocabulary. The numbers,
          the High Contrast derivation and the colour-vision separation of the
          information colour are decided in DesignTokens; the pill's word and

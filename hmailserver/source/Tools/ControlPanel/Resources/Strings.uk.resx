@@ -8177,6 +8177,15 @@
   <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.INI key." xml:space="preserve">
     <value>За запитом «{0}» нічого не знайдено. Спробуйте описати, чого ви хочете досягти («зупинити спам», «дозволити пристрою надсилати пошту»), назву сторінки або ключ hMailServer.INI.</value>
   </data>
+  <data name="Nothing needs action - all {0} external setup checks are done or not needed." xml:space="preserve">
+    <value>Ніщо не потребує дій - усі {0} перевірок зовнішнього налаштування виконано або вони не потрібні.</value>
+  </data>
+  <data name="Nothing needs action - all {0} external setup checks are done or not needed.|few" xml:space="preserve">
+    <value>Ніщо не потребує дій - усі {0} перевірки зовнішнього налаштування виконано або вони не потрібні.</value>
+  </data>
+  <data name="Nothing needs action - the {0} external setup check is done or not needed." xml:space="preserve">
+    <value>Ніщо не потребує дій - {0} перевірку зовнішнього налаштування виконано або вона не потрібна.</value>
+  </data>
   <data name="Nothing needs action, but {0} item cannot be checked from here." xml:space="preserve">
     <value>Нічого не потребує дій, але {0} пункт неможливо перевірити звідси.</value>
   </data>
@@ -8186,14 +8195,8 @@
   <data name="Nothing needs action, but {0} items cannot be checked from here.|few" xml:space="preserve">
     <value>Нічого не потребує дій, але {0} пункти неможливо перевірити звідси.</value>
   </data>
-  <data name="Nothing needs attention - all {0} external setup checks are done or not needed." xml:space="preserve">
-    <value>Ніщо не потребує уваги — усі {0} перевірок зовнішнього налаштування виконано або вони не потрібні.</value>
-  </data>
-  <data name="Nothing needs attention - all {0} external setup checks are done or not needed.|few" xml:space="preserve">
-    <value>Ніщо не потребує уваги — усі {0} перевірки зовнішнього налаштування виконано або вони не потрібні.</value>
-  </data>
-  <data name="Nothing needs attention - the {0} external setup check is done or not needed." xml:space="preserve">
-    <value>Ніщо не потребує уваги — усі {0} перевірка зовнішнього налаштування виконано або вони не потрібні.</value>
+  <data name="Nothing needs action." xml:space="preserve">
+    <value>Ніщо не потребує дій.</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Нічого не застосовано: параметри змінилися, поки підтвердження було відкрите, тому попередній перегляд більше не описує, що це зробило б. Виконайте попередній перегляд ще раз.</value>
@@ -17619,8 +17622,44 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} знову {1}.</value>
   </data>
+  <data name="{0} item cannot be checked from here." xml:space="preserve">
+    <value>{0} пункт неможливо перевірити звідси.</value>
+  </data>
+  <data name="{0} item is done." xml:space="preserve">
+    <value>{0} пункт виконано.</value>
+  </data>
+  <data name="{0} item is not needed." xml:space="preserve">
+    <value>{0} пункт не потрібен.</value>
+  </data>
+  <data name="{0} item needs action." xml:space="preserve">
+    <value>{0} пункт потребує дій.</value>
+  </data>
   <data name="{0} items" xml:space="preserve">
     <value>Пунктів: {0}</value>
+  </data>
+  <data name="{0} items are done." xml:space="preserve">
+    <value>{0} пунктів виконано.</value>
+  </data>
+  <data name="{0} items are done.|few" xml:space="preserve">
+    <value>{0} пункти виконано.</value>
+  </data>
+  <data name="{0} items are not needed." xml:space="preserve">
+    <value>{0} пунктів не потрібні.</value>
+  </data>
+  <data name="{0} items are not needed.|few" xml:space="preserve">
+    <value>{0} пункти не потрібні.</value>
+  </data>
+  <data name="{0} items cannot be checked from here." xml:space="preserve">
+    <value>{0} пунктів неможливо перевірити звідси.</value>
+  </data>
+  <data name="{0} items cannot be checked from here.|few" xml:space="preserve">
+    <value>{0} пункти неможливо перевірити звідси.</value>
+  </data>
+  <data name="{0} items need action." xml:space="preserve">
+    <value>{0} пунктів потребують дій.</value>
+  </data>
+  <data name="{0} items need action.|few" xml:space="preserve">
+    <value>{0} пункти потребують дій.</value>
   </data>
   <data name="{0} key" xml:space="preserve">
     <value>Ключів: {0}</value>
@@ -17750,9 +17789,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} must be between {1} and {2}." xml:space="preserve">
     <value>{0} має бути від {1} до {2}.</value>
-  </data>
-  <data name="{0} need action, {1} cannot be told from here, {2} done, {3} not needed." xml:space="preserve">
-    <value>{0} потребують дій, {1} неможливо визначити звідси, {2} виконано, {3} не потрібні.</value>
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>Не використано одноразових кодів відновлення: {0}.</value>
@@ -17994,15 +18030,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} switched on." xml:space="preserve">
     <value>Правило {0} увімкнено.</value>
   </data>
-  <data name="{0} thing needs attention." xml:space="preserve">
-    <value>{0} пункт потребує уваги.</value>
-  </data>
-  <data name="{0} things need attention." xml:space="preserve">
-    <value>{0} пунктів потребують уваги.</value>
-  </data>
-  <data name="{0} things need attention.|few" xml:space="preserve">
-    <value>{0} пункти потребують уваги.</value>
-  </data>
   <data name="{0} to {1} of {2}" xml:space="preserve">
     <value>{0}–{1} з {2}</value>
   </data>
@@ -18077,15 +18104,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} {1} accounts had no e-mail address and were skipped.|few" xml:space="preserve">
     <value>{0} {1} облікові записи не мали поштової адреси, і їх пропущено.</value>
-  </data>
-  <data name="{0} {1} item cannot be checked from here." xml:space="preserve">
-    <value>{0} {1} пункт неможливо перевірити звідси.</value>
-  </data>
-  <data name="{0} {1} items cannot be checked from here." xml:space="preserve">
-    <value>{0} {1} пунктів неможливо перевірити звідси.</value>
-  </data>
-  <data name="{0} {1} items cannot be checked from here.|few" xml:space="preserve">
-    <value>{0} {1} пункти неможливо перевірити звідси.</value>
   </data>
   <data name="{0} {1} message is on its way into them and arrives in a few seconds. All of the mailboxes sign in with the password {2}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
     <value>{0} {1} повідомлення вже в дорозі до них і надійде за кілька секунд. Усі скриньки входять з паролем {2}. Він показаний тут лише раз - запишіть його, бо цей сервер його не зберіг.</value>

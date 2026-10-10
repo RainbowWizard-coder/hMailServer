@@ -8177,6 +8177,15 @@ Control Panel может читать файлы сообщений только
   <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.INI key." xml:space="preserve">
     <value>Ничто не совпало с «{0}». Попробуйте описать то, чего вы хотите добиться («остановить спам», «разрешить устройству отправлять почту»), либо имя страницы, либо ключ из hMailServer.INI.</value>
   </data>
+  <data name="Nothing needs action - all {0} external setup checks are done or not needed." xml:space="preserve">
+    <value>Ничего не требует действий - все {0} проверок внешней настройки выполнены или не нужны.</value>
+  </data>
+  <data name="Nothing needs action - all {0} external setup checks are done or not needed.|few" xml:space="preserve">
+    <value>Ничего не требует действий - все {0} проверки внешней настройки выполнены или не нужны.</value>
+  </data>
+  <data name="Nothing needs action - the {0} external setup check is done or not needed." xml:space="preserve">
+    <value>Ничего не требует действий - {0} проверка внешней настройки выполнена или не нужна.</value>
+  </data>
   <data name="Nothing needs action, but {0} item cannot be checked from here." xml:space="preserve">
     <value>Действий не требуется, но есть пункты, которые невозможно проверить отсюда: {0}.</value>
   </data>
@@ -8186,14 +8195,8 @@ Control Panel может читать файлы сообщений только
   <data name="Nothing needs action, but {0} items cannot be checked from here.|few" xml:space="preserve">
     <value>Действий не требуется, но есть пункты, которые невозможно проверить отсюда: {0}.</value>
   </data>
-  <data name="Nothing needs attention - all {0} external setup checks are done or not needed." xml:space="preserve">
-    <value>Внимания ничего не требует — все {0} проверок внешней настройки выполнены или не нужны.</value>
-  </data>
-  <data name="Nothing needs attention - all {0} external setup checks are done or not needed.|few" xml:space="preserve">
-    <value>Внимания ничего не требует — все {0} проверки внешней настройки выполнены или не нужны.</value>
-  </data>
-  <data name="Nothing needs attention - the {0} external setup check is done or not needed." xml:space="preserve">
-    <value>Внимания ничего не требует — все {0} проверка внешней настройки выполнены или не нужны.</value>
+  <data name="Nothing needs action." xml:space="preserve">
+    <value>Ничего не требует действий.</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Ничего не применено: пока было открыто подтверждение, параметры изменились, поэтому предварительный просмотр больше не описывает то, что произойдёт. Выполните предварительный просмотр заново.</value>
@@ -17619,8 +17622,44 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} снова {1}.</value>
   </data>
+  <data name="{0} item cannot be checked from here." xml:space="preserve">
+    <value>{0} пункт невозможно проверить отсюда.</value>
+  </data>
+  <data name="{0} item is done." xml:space="preserve">
+    <value>{0} пункт выполнен.</value>
+  </data>
+  <data name="{0} item is not needed." xml:space="preserve">
+    <value>{0} пункт не требуется.</value>
+  </data>
+  <data name="{0} item needs action." xml:space="preserve">
+    <value>{0} пункт требует действий.</value>
+  </data>
   <data name="{0} items" xml:space="preserve">
     <value>Элементов: {0}</value>
+  </data>
+  <data name="{0} items are done." xml:space="preserve">
+    <value>{0} пунктов выполнено.</value>
+  </data>
+  <data name="{0} items are done.|few" xml:space="preserve">
+    <value>{0} пункта выполнены.</value>
+  </data>
+  <data name="{0} items are not needed." xml:space="preserve">
+    <value>{0} пунктов не требуется.</value>
+  </data>
+  <data name="{0} items are not needed.|few" xml:space="preserve">
+    <value>{0} пункта не требуются.</value>
+  </data>
+  <data name="{0} items cannot be checked from here." xml:space="preserve">
+    <value>{0} пунктов невозможно проверить отсюда.</value>
+  </data>
+  <data name="{0} items cannot be checked from here.|few" xml:space="preserve">
+    <value>{0} пункта невозможно проверить отсюда.</value>
+  </data>
+  <data name="{0} items need action." xml:space="preserve">
+    <value>{0} пунктов требуют действий.</value>
+  </data>
+  <data name="{0} items need action.|few" xml:space="preserve">
+    <value>{0} пункта требуют действий.</value>
   </data>
   <data name="{0} key" xml:space="preserve">
     <value>Ключей: {0}</value>
@@ -17750,9 +17789,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} must be between {1} and {2}." xml:space="preserve">
     <value>{0} должно быть в диапазоне от {1} до {2}.</value>
-  </data>
-  <data name="{0} need action, {1} cannot be told from here, {2} done, {3} not needed." xml:space="preserve">
-    <value>{0} требуют действий, {1} невозможно определить отсюда, {2} сделано, {3} не требуется.</value>
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>Не использовано одноразовых кодов восстановления: {0}.</value>
@@ -17994,15 +18030,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} switched on." xml:space="preserve">
     <value>Правило {0} включено.</value>
   </data>
-  <data name="{0} thing needs attention." xml:space="preserve">
-    <value>{0} пункт требует внимания.</value>
-  </data>
-  <data name="{0} things need attention." xml:space="preserve">
-    <value>{0} пунктов требуют внимания.</value>
-  </data>
-  <data name="{0} things need attention.|few" xml:space="preserve">
-    <value>{0} пункта требуют внимания.</value>
-  </data>
   <data name="{0} to {1} of {2}" xml:space="preserve">
     <value>{0}–{1} из {2}</value>
   </data>
@@ -18077,15 +18104,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} {1} accounts had no e-mail address and were skipped.|few" xml:space="preserve">
     <value>{0} Пропущено учётных записей без адреса электронной почты: {1}.</value>
-  </data>
-  <data name="{0} {1} item cannot be checked from here." xml:space="preserve">
-    <value>{0} Пунктов, которые невозможно проверить отсюда: {1}.</value>
-  </data>
-  <data name="{0} {1} items cannot be checked from here." xml:space="preserve">
-    <value>{0} Пунктов, которые невозможно проверить отсюда: {1}.</value>
-  </data>
-  <data name="{0} {1} items cannot be checked from here.|few" xml:space="preserve">
-    <value>{0} Пунктов, которые невозможно проверить отсюда: {1}.</value>
   </data>
   <data name="{0} {1} message is on its way into them and arrives in a few seconds. All of the mailboxes sign in with the password {2}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
     <value>{0} {1} сообщение уже в пути и придёт через несколько секунд. Все почтовые ящики входят с паролем {2}. Он показан здесь один раз - запишите его, сервер его не сохранил.</value>

@@ -8089,17 +8089,20 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.INI key." xml:space="preserve">
     <value>Mikään ei täsmännyt hakuun "{0}". Kokeile sitä, mitä yrität saada aikaan ("pysäytä roskaposti", "anna laitteen lähettää postia"), sivun nimeä tai hMailServer.INI-avainta.</value>
   </data>
+  <data name="Nothing needs action - all {0} external setup checks are done or not needed." xml:space="preserve">
+    <value>Mikään ei vaadi toimia - kaikki {0} ulkoista määritystarkistusta on tehty tai niitä ei tarvita.</value>
+  </data>
+  <data name="Nothing needs action - the {0} external setup check is done or not needed." xml:space="preserve">
+    <value>Mikään ei vaadi toimia - {0} ulkoinen määritystarkistus on tehty tai sitä ei tarvita.</value>
+  </data>
   <data name="Nothing needs action, but {0} item cannot be checked from here." xml:space="preserve">
     <value>Mikään ei vaadi toimia, mutta {0} kohdetta ei voi tarkistaa täältä.</value>
   </data>
   <data name="Nothing needs action, but {0} items cannot be checked from here." xml:space="preserve">
     <value>Mikään ei vaadi toimia, mutta {0} kohdetta ei voi tarkistaa täältä.</value>
   </data>
-  <data name="Nothing needs attention - all {0} external setup checks are done or not needed." xml:space="preserve">
-    <value>Mikään ei vaadi huomiota - kaikki {0} ulkoista määritystarkistusta on tehty tai niitä ei tarvita.</value>
-  </data>
-  <data name="Nothing needs attention - the {0} external setup check is done or not needed." xml:space="preserve">
-    <value>Mikään ei vaadi huomiota - {0} ulkoinen määritystarkistus on tehty tai sitä ei tarvita.</value>
+  <data name="Nothing needs action." xml:space="preserve">
+    <value>Mikään ei vaadi toimia.</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Mitään ei otettu käyttöön: asetukset muuttuivat vahvistuksen ollessa auki, joten esikatselu ei enää kuvaa, mitä tämä tekisi. Aja esikatselu uudelleen.</value>
@@ -17324,8 +17327,32 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} on jälleen {1}.</value>
   </data>
+  <data name="{0} item cannot be checked from here." xml:space="preserve">
+    <value>{0} kohdetta ei voi tarkistaa täältä.</value>
+  </data>
+  <data name="{0} item is done." xml:space="preserve">
+    <value>{0} kohde on valmis.</value>
+  </data>
+  <data name="{0} item is not needed." xml:space="preserve">
+    <value>{0} kohdetta ei tarvita.</value>
+  </data>
+  <data name="{0} item needs action." xml:space="preserve">
+    <value>{0} kohde vaatii toimia.</value>
+  </data>
   <data name="{0} items" xml:space="preserve">
     <value>{0} kohdetta</value>
+  </data>
+  <data name="{0} items are done." xml:space="preserve">
+    <value>{0} kohdetta on valmiina.</value>
+  </data>
+  <data name="{0} items are not needed." xml:space="preserve">
+    <value>{0} kohdetta ei tarvita.</value>
+  </data>
+  <data name="{0} items cannot be checked from here." xml:space="preserve">
+    <value>{0} kohdetta ei voi tarkistaa täältä.</value>
+  </data>
+  <data name="{0} items need action." xml:space="preserve">
+    <value>{0} kohdetta vaatii toimia.</value>
   </data>
   <data name="{0} key" xml:space="preserve">
     <value>{0} avain</value>
@@ -17419,9 +17446,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} must be between {1} and {2}." xml:space="preserve">
     <value>{0} on oltava välillä {1} - {2}.</value>
-  </data>
-  <data name="{0} need action, {1} cannot be told from here, {2} done, {3} not needed." xml:space="preserve">
-    <value>{0} vaatii toimia, {1} ei voi selvittää täältä, {2} tehty, {3} ei tarvita.</value>
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>{0} tilin kertakäyttöisistä palautuskoodeista on käyttämättä.</value>
@@ -17603,12 +17627,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} switched on." xml:space="preserve">
     <value>{0} on otettu käyttöön.</value>
   </data>
-  <data name="{0} thing needs attention." xml:space="preserve">
-    <value>{0} asia vaatii huomiota.</value>
-  </data>
-  <data name="{0} things need attention." xml:space="preserve">
-    <value>{0} asiaa vaatii huomiota.</value>
-  </data>
   <data name="{0} to {1} of {2}" xml:space="preserve">
     <value>{0}–{1} / {2}</value>
   </data>
@@ -17668,12 +17686,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} {1} accounts had no e-mail address and were skipped." xml:space="preserve">
     <value>{0} {1} tilillä ei ollut sähköpostiosoitetta, ja ne ohitettiin.</value>
-  </data>
-  <data name="{0} {1} item cannot be checked from here." xml:space="preserve">
-    <value>{0} {1} kohdetta ei voi tarkistaa täältä.</value>
-  </data>
-  <data name="{0} {1} items cannot be checked from here." xml:space="preserve">
-    <value>{0} {1} kohdetta ei voi tarkistaa täältä.</value>
   </data>
   <data name="{0} {1} message is on its way into them and arrives in a few seconds. All of the mailboxes sign in with the password {2}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
     <value>{0} {1} viesti on matkalla niihin ja saapuu muutamassa sekunnissa. Kaikki postilaatikot kirjautuvat salasanalla {2}. Se näytetään tässä kerran - kirjoita se muistiin, sillä palvelin ei tallentanut sitä.</value>

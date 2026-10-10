@@ -8089,17 +8089,20 @@
   <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.INI key." xml:space="preserve">
     <value>没有与 "{0}" 匹配的内容。请尝试输入您想达成的目标（“阻止垃圾邮件”、“允许设备发送邮件”）、页面名称或 hMailServer.INI 键名。</value>
   </data>
+  <data name="Nothing needs action - all {0} external setup checks are done or not needed." xml:space="preserve">
+    <value>没有需要处理的项 - 全部 {0} 项外部设置检查都已完成或不需要。</value>
+  </data>
+  <data name="Nothing needs action - the {0} external setup check is done or not needed." xml:space="preserve">
+    <value>没有需要处理的项 - {0} 项外部设置检查已完成或不需要。</value>
+  </data>
   <data name="Nothing needs action, but {0} item cannot be checked from here." xml:space="preserve">
     <value>没有需要处理的事项，但有 {0} 项无法从此处检查。</value>
   </data>
   <data name="Nothing needs action, but {0} items cannot be checked from here." xml:space="preserve">
     <value>没有需要处理的事项，但有 {0} 项无法从此处检查。</value>
   </data>
-  <data name="Nothing needs attention - all {0} external setup checks are done or not needed." xml:space="preserve">
-    <value>无需处理 - 全部 {0} 项外部设置检查都已完成或不需要。</value>
-  </data>
-  <data name="Nothing needs attention - the {0} external setup check is done or not needed." xml:space="preserve">
-    <value>无需处理 - 全部 {0} 项外部设置检查都已完成或不需要。</value>
+  <data name="Nothing needs action." xml:space="preserve">
+    <value>没有需要处理的项。</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>未应用任何内容：在确认窗口打开期间选项发生了变化，因此预览不再描述此操作会做什么。请重新运行预览。</value>
@@ -17324,8 +17327,32 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} 又是 {1} 了。</value>
   </data>
+  <data name="{0} item cannot be checked from here." xml:space="preserve">
+    <value>有 {0} 项无法从此处检查。</value>
+  </data>
+  <data name="{0} item is done." xml:space="preserve">
+    <value>有 {0} 项已完成。</value>
+  </data>
+  <data name="{0} item is not needed." xml:space="preserve">
+    <value>有 {0} 项不需要。</value>
+  </data>
+  <data name="{0} item needs action." xml:space="preserve">
+    <value>有 {0} 项需要处理。</value>
+  </data>
   <data name="{0} items" xml:space="preserve">
     <value>{0} 项</value>
+  </data>
+  <data name="{0} items are done." xml:space="preserve">
+    <value>有 {0} 项已完成。</value>
+  </data>
+  <data name="{0} items are not needed." xml:space="preserve">
+    <value>有 {0} 项不需要。</value>
+  </data>
+  <data name="{0} items cannot be checked from here." xml:space="preserve">
+    <value>有 {0} 项无法从此处检查。</value>
+  </data>
+  <data name="{0} items need action." xml:space="preserve">
+    <value>有 {0} 项需要处理。</value>
   </data>
   <data name="{0} key" xml:space="preserve">
     <value>{0} 个密钥</value>
@@ -17419,9 +17446,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} must be between {1} and {2}." xml:space="preserve">
     <value>{0} 必须介于 {1} 和 {2} 之间。</value>
-  </data>
-  <data name="{0} need action, {1} cannot be told from here, {2} done, {3} not needed." xml:space="preserve">
-    <value>{0} 项需要处理，{1} 项无法从此处判断，{2} 项已完成，{3} 项不需要。</value>
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>此账户的一次性恢复代码中有 {0} 个未使用。</value>
@@ -17603,12 +17627,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} switched on." xml:space="preserve">
     <value>已启用 {0}。</value>
   </data>
-  <data name="{0} thing needs attention." xml:space="preserve">
-    <value>有 {0} 项需要处理。</value>
-  </data>
-  <data name="{0} things need attention." xml:space="preserve">
-    <value>有 {0} 项需要处理。</value>
-  </data>
   <data name="{0} to {1} of {2}" xml:space="preserve">
     <value>第 {0} 到 {1} 项，共 {2} 项</value>
   </data>
@@ -17668,12 +17686,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} {1} accounts had no e-mail address and were skipped." xml:space="preserve">
     <value>{0}有 {1} 个账户没有电子邮件地址，已被跳过。</value>
-  </data>
-  <data name="{0} {1} item cannot be checked from here." xml:space="preserve">
-    <value>{0}有 {1} 项无法从此处检查。</value>
-  </data>
-  <data name="{0} {1} items cannot be checked from here." xml:space="preserve">
-    <value>{0}有 {1} 项无法从此处检查。</value>
   </data>
   <data name="{0} {1} message is on its way into them and arrives in a few seconds. All of the mailboxes sign in with the password {2}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
     <value>{0}有 {1} 封邮件正在投递到其中，几秒钟后送达。所有邮箱都使用密码 {2} 登录。它在此处只显示一次，请记下来，因为本服务器并未保存它。</value>

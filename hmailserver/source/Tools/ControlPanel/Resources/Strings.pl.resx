@@ -8177,6 +8177,15 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.INI key." xml:space="preserve">
     <value>Nic nie pasuje do „{0}”. Warto spróbować opisać cel („zatrzymaj spam”, „pozwól urządzeniu wysyłać pocztę”), podać nazwę strony albo klucz z pliku hMailServer.INI.</value>
   </data>
+  <data name="Nothing needs action - all {0} external setup checks are done or not needed." xml:space="preserve">
+    <value>Nic nie wymaga działania - wszystkie kontrole konfiguracji zewnętrznej ({0}) są wykonane albo niepotrzebne.</value>
+  </data>
+  <data name="Nothing needs action - all {0} external setup checks are done or not needed.|few" xml:space="preserve">
+    <value>Nic nie wymaga działania - wszystkie kontrole konfiguracji zewnętrznej ({0}) są wykonane albo niepotrzebne.</value>
+  </data>
+  <data name="Nothing needs action - the {0} external setup check is done or not needed." xml:space="preserve">
+    <value>Nic nie wymaga działania - kontrola konfiguracji zewnętrznej ({0}) jest wykonana albo niepotrzebna.</value>
+  </data>
   <data name="Nothing needs action, but {0} item cannot be checked from here." xml:space="preserve">
     <value>Nic nie wymaga działania, ale {0} pozycji nie da się sprawdzić z tego miejsca.</value>
   </data>
@@ -8186,14 +8195,8 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Nothing needs action, but {0} items cannot be checked from here.|few" xml:space="preserve">
     <value>Nic nie wymaga działania, ale {0} pozycji nie da się sprawdzić z tego miejsca.</value>
   </data>
-  <data name="Nothing needs attention - all {0} external setup checks are done or not needed." xml:space="preserve">
-    <value>Nic nie wymaga uwagi - kontrole konfiguracji zewnętrznej ({0}) są wykonane albo niepotrzebne.</value>
-  </data>
-  <data name="Nothing needs attention - all {0} external setup checks are done or not needed.|few" xml:space="preserve">
-    <value>Nic nie wymaga uwagi - kontrole konfiguracji zewnętrznej ({0}) są wykonane albo niepotrzebne.</value>
-  </data>
-  <data name="Nothing needs attention - the {0} external setup check is done or not needed." xml:space="preserve">
-    <value>Nic nie wymaga uwagi - kontrola konfiguracji zewnętrznej ({0}) jest wykonana albo niepotrzebna.</value>
+  <data name="Nothing needs action." xml:space="preserve">
+    <value>Nic nie wymaga działania.</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Nic nie zostało zastosowane: opcje zmieniły się, gdy potwierdzenie było otwarte, więc podgląd nie opisuje już tego, co miałoby się stać. Należy ponownie uruchomić podgląd.</value>
@@ -17619,8 +17622,44 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} to znów {1}.</value>
   </data>
+  <data name="{0} item cannot be checked from here." xml:space="preserve">
+    <value>{0} pozycji nie da się sprawdzić z tego miejsca.</value>
+  </data>
+  <data name="{0} item is done." xml:space="preserve">
+    <value>{0} pozycja jest gotowa.</value>
+  </data>
+  <data name="{0} item is not needed." xml:space="preserve">
+    <value>{0} pozycja jest niepotrzebna.</value>
+  </data>
+  <data name="{0} item needs action." xml:space="preserve">
+    <value>{0} pozycja wymaga działania.</value>
+  </data>
   <data name="{0} items" xml:space="preserve">
     <value>Pozycje: {0}</value>
+  </data>
+  <data name="{0} items are done." xml:space="preserve">
+    <value>{0} pozycji jest gotowych.</value>
+  </data>
+  <data name="{0} items are done.|few" xml:space="preserve">
+    <value>{0} pozycje są gotowe.</value>
+  </data>
+  <data name="{0} items are not needed." xml:space="preserve">
+    <value>{0} pozycji jest niepotrzebnych.</value>
+  </data>
+  <data name="{0} items are not needed.|few" xml:space="preserve">
+    <value>{0} pozycje są niepotrzebne.</value>
+  </data>
+  <data name="{0} items cannot be checked from here." xml:space="preserve">
+    <value>{0} pozycji nie da się sprawdzić z tego miejsca.</value>
+  </data>
+  <data name="{0} items cannot be checked from here.|few" xml:space="preserve">
+    <value>{0} pozycji nie da się sprawdzić z tego miejsca.</value>
+  </data>
+  <data name="{0} items need action." xml:space="preserve">
+    <value>{0} pozycji wymaga działania.</value>
+  </data>
+  <data name="{0} items need action.|few" xml:space="preserve">
+    <value>{0} pozycje wymagają działania.</value>
   </data>
   <data name="{0} key" xml:space="preserve">
     <value>Klucze: {0}</value>
@@ -17750,9 +17789,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} must be between {1} and {2}." xml:space="preserve">
     <value>{0} musi mieścić się między {1} a {2}.</value>
-  </data>
-  <data name="{0} need action, {1} cannot be told from here, {2} done, {3} not needed." xml:space="preserve">
-    <value>{0} wymaga działania, {1} nie da się sprawdzić z tego miejsca, {2} gotowych, {3} niepotrzebnych.</value>
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>{0} z jednorazowych kodów odzyskiwania konta jest nieużytych.</value>
@@ -17994,15 +18030,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} switched on." xml:space="preserve">
     <value>Reguła {0} została włączona.</value>
   </data>
-  <data name="{0} thing needs attention." xml:space="preserve">
-    <value>{0} rzecz wymaga uwagi.</value>
-  </data>
-  <data name="{0} things need attention." xml:space="preserve">
-    <value>{0} rzeczy wymaga uwagi.</value>
-  </data>
-  <data name="{0} things need attention.|few" xml:space="preserve">
-    <value>{0} rzeczy wymagają uwagi.</value>
-  </data>
   <data name="{0} to {1} of {2}" xml:space="preserve">
     <value>{0} do {1} z {2}</value>
   </data>
@@ -18077,15 +18104,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} {1} accounts had no e-mail address and were skipped.|few" xml:space="preserve">
     <value>{0} {1} konta nie miały adresu e-mail i zostały pominięte.</value>
-  </data>
-  <data name="{0} {1} item cannot be checked from here." xml:space="preserve">
-    <value>{0} {1} pozycji nie da się sprawdzić z tego miejsca.</value>
-  </data>
-  <data name="{0} {1} items cannot be checked from here." xml:space="preserve">
-    <value>{0} {1} pozycji nie da się sprawdzić z tego miejsca.</value>
-  </data>
-  <data name="{0} {1} items cannot be checked from here.|few" xml:space="preserve">
-    <value>{0} {1} pozycji nie da się sprawdzić z tego miejsca.</value>
   </data>
   <data name="{0} {1} message is on its way into them and arrives in a few seconds. All of the mailboxes sign in with the password {2}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
     <value>{0} {1} wiadomość jest w drodze do nich i dotrze w ciągu kilku sekund. Wszystkie skrzynki logują się hasłem {2}. Jest ono pokazane tutaj tylko raz - zapisz je, bo ten serwer go nie zachował.</value>

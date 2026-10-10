@@ -8089,17 +8089,20 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.INI key." xml:space="preserve">
     <value>"{0}" ile eşleşen bir şey yok. Yapmaya çalıştığınız şeyi ("spam'i durdur", "bir cihazın posta göndermesine izin ver"), bir sayfa adını ya da bir hMailServer.INI anahtarını deneyin.</value>
   </data>
+  <data name="Nothing needs action - all {0} external setup checks are done or not needed." xml:space="preserve">
+    <value>İşlem gerektiren bir şey yok - {0} dış kurulum denetiminin tümü yapıldı ya da gerekmiyor.</value>
+  </data>
+  <data name="Nothing needs action - the {0} external setup check is done or not needed." xml:space="preserve">
+    <value>İşlem gerektiren bir şey yok - {0} dış kurulum denetimi yapıldı ya da gerekmiyor.</value>
+  </data>
   <data name="Nothing needs action, but {0} item cannot be checked from here." xml:space="preserve">
     <value>Eylem gerektiren bir şey yok, ama {0} öğe buradan denetlenemiyor.</value>
   </data>
   <data name="Nothing needs action, but {0} items cannot be checked from here." xml:space="preserve">
     <value>Eylem gerektiren bir şey yok, ama {0} öğe buradan denetlenemiyor.</value>
   </data>
-  <data name="Nothing needs attention - all {0} external setup checks are done or not needed." xml:space="preserve">
-    <value>Dikkat gerektiren bir şey yok - {0} dış kurulum denetiminin tümü yapıldı ya da gerekmiyor.</value>
-  </data>
-  <data name="Nothing needs attention - the {0} external setup check is done or not needed." xml:space="preserve">
-    <value>Dikkat gerektiren bir şey yok - {0} dış kurulum denetiminin tümü yapıldı ya da gerekmiyor.</value>
+  <data name="Nothing needs action." xml:space="preserve">
+    <value>İşlem gerektiren bir şey yok.</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Hiçbir şey uygulanmadı: onay açıkken seçenekler değişti; bu yüzden ön izleme artık bunun ne yapacağını anlatmıyor. Ön izlemeyi yeniden çalıştırın.</value>
@@ -17324,8 +17327,32 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} yeniden {1}.</value>
   </data>
+  <data name="{0} item cannot be checked from here." xml:space="preserve">
+    <value>{0} öğe buradan denetlenemiyor.</value>
+  </data>
+  <data name="{0} item is done." xml:space="preserve">
+    <value>{0} öğe tamamlandı.</value>
+  </data>
+  <data name="{0} item is not needed." xml:space="preserve">
+    <value>{0} öğe gerekmiyor.</value>
+  </data>
+  <data name="{0} item needs action." xml:space="preserve">
+    <value>{0} öğe işlem gerektiriyor.</value>
+  </data>
   <data name="{0} items" xml:space="preserve">
     <value>{0} öğe</value>
+  </data>
+  <data name="{0} items are done." xml:space="preserve">
+    <value>{0} öğe tamamlandı.</value>
+  </data>
+  <data name="{0} items are not needed." xml:space="preserve">
+    <value>{0} öğe gerekmiyor.</value>
+  </data>
+  <data name="{0} items cannot be checked from here." xml:space="preserve">
+    <value>{0} öğe buradan denetlenemiyor.</value>
+  </data>
+  <data name="{0} items need action." xml:space="preserve">
+    <value>{0} öğe işlem gerektiriyor.</value>
   </data>
   <data name="{0} key" xml:space="preserve">
     <value>{0} anahtar</value>
@@ -17419,9 +17446,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0} must be between {1} and {2}." xml:space="preserve">
     <value>{0}, {1} ile {2} arasında olmalıdır.</value>
-  </data>
-  <data name="{0} need action, {1} cannot be told from here, {2} done, {3} not needed." xml:space="preserve">
-    <value>{0} eylem gerektiriyor, {1} buradan anlaşılamıyor, {2} yapıldı, {3} gerekmiyor.</value>
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>Hesabın tek kullanımlık kurtarma kodlarından {0} tanesi kullanılmamış.</value>
@@ -17603,12 +17627,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} switched on." xml:space="preserve">
     <value>{0} açıldı.</value>
   </data>
-  <data name="{0} thing needs attention." xml:space="preserve">
-    <value>{0} öğe dikkat gerektiriyor.</value>
-  </data>
-  <data name="{0} things need attention." xml:space="preserve">
-    <value>{0} öğe dikkat gerektiriyor.</value>
-  </data>
   <data name="{0} to {1} of {2}" xml:space="preserve">
     <value>{2} kayıttan {0}–{1}</value>
   </data>
@@ -17668,12 +17686,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0} {1} accounts had no e-mail address and were skipped." xml:space="preserve">
     <value>{0} {1} hesabın e-posta adresi yoktu ve atlandı.</value>
-  </data>
-  <data name="{0} {1} item cannot be checked from here." xml:space="preserve">
-    <value>{0} {1} öğe buradan denetlenemiyor.</value>
-  </data>
-  <data name="{0} {1} items cannot be checked from here." xml:space="preserve">
-    <value>{0} {1} öğe buradan denetlenemiyor.</value>
   </data>
   <data name="{0} {1} message is on its way into them and arrives in a few seconds. All of the mailboxes sign in with the password {2}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
     <value>{0} Onlara doğru yolda olan {1} ileti var; birkaç saniye içinde ulaşır. Tüm posta kutuları {2} parolasıyla oturum açar. Burada yalnızca bir kez gösterilir - not edin, çünkü bu sunucu onu saklamadı.</value>

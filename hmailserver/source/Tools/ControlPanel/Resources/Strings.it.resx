@@ -8089,17 +8089,20 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.INI key." xml:space="preserve">
     <value>Nessuna corrispondenza per "{0}". Conviene provare con l'obiettivo da raggiungere ("bloccare lo spam", "far inviare posta a un dispositivo"), con il nome di una pagina, oppure con una chiave di hMailServer.INI.</value>
   </data>
+  <data name="Nothing needs action - all {0} external setup checks are done or not needed." xml:space="preserve">
+    <value>Nulla richiede interventi - tutti i {0} controlli di configurazione esterna sono completati o non necessari.</value>
+  </data>
+  <data name="Nothing needs action - the {0} external setup check is done or not needed." xml:space="preserve">
+    <value>Nulla richiede interventi - {0} controllo di configurazione esterna è completato o non necessario.</value>
+  </data>
   <data name="Nothing needs action, but {0} item cannot be checked from here." xml:space="preserve">
     <value>Nulla richiede interventi, ma {0} elemento non può essere verificato da qui.</value>
   </data>
   <data name="Nothing needs action, but {0} items cannot be checked from here." xml:space="preserve">
     <value>Nulla richiede interventi, ma {0} elementi non possono essere verificati da qui.</value>
   </data>
-  <data name="Nothing needs attention - all {0} external setup checks are done or not needed." xml:space="preserve">
-    <value>Nulla richiede attenzione - tutti i {0} controlli di configurazione esterna sono completati o non necessari.</value>
-  </data>
-  <data name="Nothing needs attention - the {0} external setup check is done or not needed." xml:space="preserve">
-    <value>Nulla richiede attenzione - il {0} controllo di configurazione esterna è completato o non necessario.</value>
+  <data name="Nothing needs action." xml:space="preserve">
+    <value>Nulla richiede interventi.</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Non è stato applicato nulla: le opzioni sono cambiate mentre la conferma era aperta, quindi l'anteprima non descrive più ciò che verrebbe fatto. Eseguire di nuovo l'anteprima.</value>
@@ -17324,8 +17327,32 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} è di nuovo {1}.</value>
   </data>
+  <data name="{0} item cannot be checked from here." xml:space="preserve">
+    <value>{0} elemento non può essere verificato da qui.</value>
+  </data>
+  <data name="{0} item is done." xml:space="preserve">
+    <value>{0} elemento è completato.</value>
+  </data>
+  <data name="{0} item is not needed." xml:space="preserve">
+    <value>{0} elemento non è necessario.</value>
+  </data>
+  <data name="{0} item needs action." xml:space="preserve">
+    <value>{0} elemento richiede un intervento.</value>
+  </data>
   <data name="{0} items" xml:space="preserve">
     <value>{0} elementi</value>
+  </data>
+  <data name="{0} items are done." xml:space="preserve">
+    <value>{0} elementi sono completati.</value>
+  </data>
+  <data name="{0} items are not needed." xml:space="preserve">
+    <value>{0} elementi non sono necessari.</value>
+  </data>
+  <data name="{0} items cannot be checked from here." xml:space="preserve">
+    <value>{0} elementi non possono essere verificati da qui.</value>
+  </data>
+  <data name="{0} items need action." xml:space="preserve">
+    <value>{0} elementi richiedono un intervento.</value>
   </data>
   <data name="{0} key" xml:space="preserve">
     <value>{0} chiave</value>
@@ -17419,9 +17446,6 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="{0} must be between {1} and {2}." xml:space="preserve">
     <value>{0} deve essere compreso tra {1} e {2}.</value>
-  </data>
-  <data name="{0} need action, {1} cannot be told from here, {2} done, {3} not needed." xml:space="preserve">
-    <value>{0} richiedono un intervento, {1} non determinabili da qui, {2} fatti, {3} non necessari.</value>
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>{0} dei codici di recupero monouso dell'account non sono stati usati.</value>
@@ -17603,12 +17627,6 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="{0} switched on." xml:space="preserve">
     <value>{0} attivata.</value>
   </data>
-  <data name="{0} thing needs attention." xml:space="preserve">
-    <value>{0} elemento richiede attenzione.</value>
-  </data>
-  <data name="{0} things need attention." xml:space="preserve">
-    <value>{0} elementi richiedono attenzione.</value>
-  </data>
   <data name="{0} to {1} of {2}" xml:space="preserve">
     <value>{0} a {1} di {2}</value>
   </data>
@@ -17668,12 +17686,6 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="{0} {1} accounts had no e-mail address and were skipped." xml:space="preserve">
     <value>{0} {1} account non avevano un indirizzo e-mail e sono stati saltati.</value>
-  </data>
-  <data name="{0} {1} item cannot be checked from here." xml:space="preserve">
-    <value>{0} {1} elemento non può essere verificato da qui.</value>
-  </data>
-  <data name="{0} {1} items cannot be checked from here." xml:space="preserve">
-    <value>{0} {1} elementi non possono essere verificati da qui.</value>
   </data>
   <data name="{0} {1} message is on its way into them and arrives in a few seconds. All of the mailboxes sign in with the password {2}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
     <value>{0} {1} messaggio è in viaggio verso di esse e arriva tra pochi secondi. Tutte le caselle accedono con la password {2}. È mostrata qui una sola volta: la annoti, perché questo server non l'ha conservata.</value>

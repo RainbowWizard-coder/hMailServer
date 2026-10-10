@@ -33,7 +33,7 @@ namespace hMailServer.ControlPanel.Views
    /// The setup summary runs <see cref="ExternalSetupChecks"/> - the same checks
    /// the Setup checklist page shows in full - because the administrator who most
    /// needs that page is the one who does not know it exists. The dashboard is
-   /// where they land, so it is where "3 things need attention" has to appear.
+   /// where they land, so it is where "3 items need action" has to appear.
    /// </summary>
    public partial class DashboardView : UserControl, IPageLifecycle, IRefreshablePage
    {
@@ -757,25 +757,13 @@ namespace hMailServer.ControlPanel.Views
          AttentionPill.Visibility = Visibility.Visible;
       }
 
-      // Each count is a whole sentence in the forms its language has; two counts
-      // are two sentences, the first placed whole in the second.
+      // Each count is a whole sentence in the forms its language has, in the words
+      // the Setup checklist page counts the same states with and its pills say:
+      // "11 items need action. 1 item cannot be checked from here.", where this card
+      // said "11 things need attention" beside an Action needed pill (review
+      // finding F034).
       private static string SummaryText_(int action, int unknown, int total)
-      {
-         if (action > 0)
-         {
-            string text = Plural(action, "{0} thing needs attention.", "{0} things need attention.");
-            return unknown > 0
-               ? PluralF(unknown, "{0} {1} item cannot be checked from here.", "{0} {1} items cannot be checked from here.", text, unknown)
-               : text;
-         }
-
-         if (unknown > 0)
-            return Plural(unknown, "Nothing needs action, but {0} item cannot be checked from here.", "Nothing needs action, but {0} items cannot be checked from here.");
-
-         return Plural(total,
-            "Nothing needs attention - the {0} external setup check is done or not needed.",
-            "Nothing needs attention - all {0} external setup checks are done or not needed.");
-      }
+         => SetupTally.Summary(action, unknown, total);
 
       /// <summary>
       /// One action item as one line: the warning mark plus the item's title as a

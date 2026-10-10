@@ -8089,17 +8089,20 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.INI key." xml:space="preserve">
     <value>Rien ne correspond à « {0} ». Essayez ce que vous cherchez à obtenir (« arrêter le spam », « permettre à un appareil d'envoyer du courrier »), un nom de page, ou une clé de hMailServer.INI.</value>
   </data>
+  <data name="Nothing needs action - all {0} external setup checks are done or not needed." xml:space="preserve">
+    <value>Rien ne demande d'action - les {0} vérifications de configuration externe sont toutes faites ou inutiles.</value>
+  </data>
+  <data name="Nothing needs action - the {0} external setup check is done or not needed." xml:space="preserve">
+    <value>Rien ne demande d'action - {0} vérification de configuration externe est faite ou inutile.</value>
+  </data>
   <data name="Nothing needs action, but {0} item cannot be checked from here." xml:space="preserve">
     <value>Rien ne demande d'action, mais {0} élément ne peut pas être vérifié d'ici.</value>
   </data>
   <data name="Nothing needs action, but {0} items cannot be checked from here." xml:space="preserve">
     <value>Rien ne demande d'action, mais {0} éléments ne peuvent pas être vérifiés d'ici.</value>
   </data>
-  <data name="Nothing needs attention - all {0} external setup checks are done or not needed." xml:space="preserve">
-    <value>Rien ne demande votre attention - les {0} vérifications de configuration externe sont toutes faites ou inutiles.</value>
-  </data>
-  <data name="Nothing needs attention - the {0} external setup check is done or not needed." xml:space="preserve">
-    <value>Rien ne demande votre attention - la {0} vérification de configuration externe est faite ou inutile.</value>
+  <data name="Nothing needs action." xml:space="preserve">
+    <value>Rien ne demande d'action.</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Rien n'a été appliqué : les options ont changé pendant que la confirmation était ouverte, l'aperçu ne décrit donc plus ce que cela ferait. Relancez l'aperçu.</value>
@@ -17324,8 +17327,32 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} vaut de nouveau {1}.</value>
   </data>
+  <data name="{0} item cannot be checked from here." xml:space="preserve">
+    <value>{0} élément ne peut pas être vérifié d'ici.</value>
+  </data>
+  <data name="{0} item is done." xml:space="preserve">
+    <value>{0} élément est terminé.</value>
+  </data>
+  <data name="{0} item is not needed." xml:space="preserve">
+    <value>{0} élément n'est pas nécessaire.</value>
+  </data>
+  <data name="{0} item needs action." xml:space="preserve">
+    <value>{0} élément demande une action.</value>
+  </data>
   <data name="{0} items" xml:space="preserve">
     <value>{0} éléments</value>
+  </data>
+  <data name="{0} items are done." xml:space="preserve">
+    <value>{0} éléments sont terminés.</value>
+  </data>
+  <data name="{0} items are not needed." xml:space="preserve">
+    <value>{0} éléments ne sont pas nécessaires.</value>
+  </data>
+  <data name="{0} items cannot be checked from here." xml:space="preserve">
+    <value>{0} éléments ne peuvent pas être vérifiés d'ici.</value>
+  </data>
+  <data name="{0} items need action." xml:space="preserve">
+    <value>{0} éléments demandent une action.</value>
   </data>
   <data name="{0} key" xml:space="preserve">
     <value>{0} clé</value>
@@ -17419,9 +17446,6 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="{0} must be between {1} and {2}." xml:space="preserve">
     <value>{0} doit être compris entre {1} et {2}.</value>
-  </data>
-  <data name="{0} need action, {1} cannot be told from here, {2} done, {3} not needed." xml:space="preserve">
-    <value>{0} demandent une action, {1} ne peuvent pas être déterminés d'ici, {2} faits, {3} inutiles.</value>
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>{0} des codes de récupération à usage unique du compte sont inutilisés.</value>
@@ -17603,12 +17627,6 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="{0} switched on." xml:space="preserve">
     <value>{0} mise en service.</value>
   </data>
-  <data name="{0} thing needs attention." xml:space="preserve">
-    <value>{0} point demande votre attention.</value>
-  </data>
-  <data name="{0} things need attention." xml:space="preserve">
-    <value>{0} points demandent votre attention.</value>
-  </data>
   <data name="{0} to {1} of {2}" xml:space="preserve">
     <value>{0} à {1} sur {2}</value>
   </data>
@@ -17668,12 +17686,6 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="{0} {1} accounts had no e-mail address and were skipped." xml:space="preserve">
     <value>{0} {1} comptes n'avaient pas d'adresse e-mail et ont été ignorés.</value>
-  </data>
-  <data name="{0} {1} item cannot be checked from here." xml:space="preserve">
-    <value>{0} {1} élément ne peut pas être vérifié d'ici.</value>
-  </data>
-  <data name="{0} {1} items cannot be checked from here." xml:space="preserve">
-    <value>{0} {1} éléments ne peuvent pas être vérifiés d'ici.</value>
   </data>
   <data name="{0} {1} message is on its way into them and arrives in a few seconds. All of the mailboxes sign in with the password {2}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
     <value>{0} {1} message est en route vers elles et arrive dans quelques secondes. Toutes les boîtes se connectent avec le mot de passe {2}. Il est affiché ici une seule fois : notez-le, car ce serveur ne l'a pas conservé.</value>
