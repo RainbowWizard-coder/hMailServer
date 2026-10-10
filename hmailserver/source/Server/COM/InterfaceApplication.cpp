@@ -117,9 +117,13 @@ STDMETHODIMP InterfaceApplication::Stop()
          return authentication_->GetAccessDenied();
        
       // The servers may be started again over COM, on the database this leaves
-      // open.
-      HM::Application::Instance()->StopServers(HM::Application::StopToStartAgain);
-   
+      // open. Refused while the server is stopping, and on the message
+      // indexer's own thread while another stop, start or reinitialise is under
+      // way (Application::StopServers).
+      HM::String refused = HM::Application::Instance()->StopServers();
+      if (!refused.IsEmpty())
+         return COMError::GenerateError("The servers were not stopped: " + refused);
+
       return S_OK;
    }
    catch (...)

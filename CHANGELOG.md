@@ -460,7 +460,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   a write on MySQL, and not at all when it is 0). A reinitialise waits for as long as that takes, since it closes
   the database straight after; a stop after which the process ends - the service's, or a signal's on Linux - waits a
   minute at most, says so in the log and goes on, so that a database that has stopped answering no longer holds the
-  stop for ever while the service controller is told that it is progressing. A start after a stop begins a new
+  stop for ever while the service controller is told that it is progressing. Such a stop then leaves the database
+  open, since the thread may still be using it, and ends the process at once, the thread with it, where closing
+  the database freed the connection the thread's statement was on and the process went on through the destructors
+  of its statics with the thread still running. A start after a stop begins a new
   thread, and no indexer is started while the servers are stopped, from a reinitialise's stop to its start, the
   start of the servers starting it from its setting - which is now saved before the indexer is started or stopped,
   where a save that came after the start of the servers had read it left the indexer stopped with the setting on,
@@ -470,7 +473,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   error, asked the thread to join itself, which Boost refuses with an exception (in every version): the script met
   an error and the setting was not saved. Such a start now leaves the indexer as it is, and after a stop made on
   that thread too takes the stop back. And a stop no longer waits for the thread holding the lock that such a
-  script's start or stop takes, which made the stop and the indexer wait for each other for ever. The stop asks the
+  script's start or stop takes, which made the stop and the indexer wait for each other for ever; nor does such a
+  script's `Application.Reinitialize`, `Stop` or `Start` wait for a reinitialise, a stop or a start of the servers
+  under way, which may be waiting for the indexer (below): it is refused with an error. The stop asks the
   thread to stop again at every second of its wait: a request thrown at an interruption point inside a catch-all is
   forgotten there - a database call's wait for a pooled connection is one, and the second look a batch takes at the
   accounts switched to encryption at rest while it ran makes such calls inside one - and the thread ran on with it
@@ -481,15 +486,38 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   pass made a statement after the stop had returned, a start straight after a stop began no indexer, and a start on
   the indexer's own thread threw; with the lock held across the wait, the indexer's own stop and start while a stop
   waited for it waited for that stop, and it for them, until its limit; a stop with a limit gives up on a pass that
-  outlasts it, the start after it beginning a new indexer once the pass has ended; and a stop ends a pass that
+  outlasts it, the start after it beginning a new indexer once the pass has ended; a stop ends a pass that
   swallowed its request in a catch-all, where with the request asked once it gave up at its limit of twenty seconds,
-  the pass still running. Found by the batch's Alpine
+  the pass still running; and the lock the servers' stops and starts take, held by a stop that waits for the pass,
+  is not waited for on the pass's own thread, where with it waited for the two waited for each other until the
+  stop's limit. Found by the batch's Alpine
   suite: the teardown of `FullTextSearch.AMailboxLargerThanOneLookupIsSearchedAWindowAtATime` reinitialised while
   the indexer was in the second batch of the test's 450 messages, and every fixture after it was refused a
   connection. With the test's backfill made one batch, so that its teardown always comes in the middle of it, the
   server died there in three Alpine runs of three (twice a segmentation fault, once the exception) and lives through
   it with the fix. The limit, the lock, the order of the save and the start on the indexer's own thread were found
-  by the re-check of the fix, and the request asked once by the re-check of that.
+  by the re-check of the fix, and the request asked once, the script's reinitialise and the database closed after
+  the minute by the re-check of that.
+- **Fixed: a service stop, a Windows shutdown or a SIGTERM during a reinitialise closed the database under the
+  reinitialise, and the process could end in a fault.** A reinitialise - COM's `Application.Reinitialize`, the REST
+  API's `POST /api/v1/server/reinitialize`, a backup restore's, an ACME deployment's - runs on a thread of its own,
+  and nothing held the stop before the process ends apart from it: that stop found the servers stopping and went
+  straight on to close the database, while the reinitialise was still stopping them, or had opened the database
+  again and was starting them (in every version). Since the stop waits for the message indexer (above), the window
+  was as long as the indexer's statement, and the minute's limit did not apply. Every stop, start and reinitialise
+  of the servers - COM's `Start` and `Stop` among them - now holds one lock, and the stop before the process ends
+  waits for one under way: the indexer a minute at most, as its own stop gives it, after which a reinitialise stops
+  short and leaves the rest to that stop; a reinitialise, a stop or a start that comes after it is refused, where
+  one queued behind it started the servers again in a process that was ending. A script that a stop or a start runs
+  on its own thread, asking for another, is refused rather than made to wait for itself. And the callback through
+  which a stop tells the Windows service controller that it is progressing is read under a lock of its own, where a
+  reinitialise's stop held a reference to it while the service's stop set it and reset it. On Linux, with the
+  indexer held in a statement by another session's lock, a SIGTERM three seconds after a REST reinitialise ended the
+  server at once, the database closed under the waiting reinitialise, and one sent just after the lock was let go
+  of, as the reinitialise opened the database again, ended it in a segmentation fault in two runs of seven; with the
+  fix the first waits the indexer's minute and ends with nothing closed under it, and the second waits for the
+  reinitialise and stops the servers it started, in ten runs of ten. Found by the re-check of the batch's
+  message indexer fix.
 
 ### Downloads and the release
 

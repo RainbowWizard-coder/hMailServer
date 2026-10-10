@@ -270,6 +270,24 @@ namespace HM
    }
 
    bool
+   MessageIndexer::LockServersUnlessOnItsThread(boost::unique_lock<boost::timed_mutex> &lock)
+   {
+      // Asked of worker_id_, as Start and Stop ask it, and let go of before the
+      // servers' mutex is taken: a stop holding that one takes this one.
+      bool onItsThread = false;
+      {
+         boost::lock_guard<boost::mutex> guard(starterMutex_);
+         onItsThread = boost::this_thread::get_id() == worker_id_;
+      }
+
+      if (onItsThread)
+         return lock.try_lock();
+
+      lock.lock();
+      return true;
+   }
+
+   bool
    MessageIndexer::Stop(const std::function<void()> &progress, int maxWaitSeconds)
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
@@ -847,7 +865,11 @@ namespace HM
             AskStopThenStart = 2,
             // A Stop and then a Start, once a Stop on another thread has asked
             // the pass to end: off and on again while that stop waits for it.
-            AskStopThenStartWhileAStopWaits = 3
+            AskStopThenStartWhileAStopWaits = 3,
+            // The servers' mutex, once a Stop on another thread has asked the
+            // pass to end: COM's Reinitialize from an OnError script while a
+            // reinitialise on another thread holds it and waits for the indexer.
+            AskServersLockWhileAStopWaits = 4
          };
 
          StandInPass() :
@@ -863,7 +885,9 @@ namespace HM
             statement_after_stop_(false),
             swallows_(false),
             swallowed_(0),
-            ends_(false)
+            ends_(false),
+            servers_mutex_(nullptr),
+            servers_lock_taken_(false)
          {
          }
 
@@ -880,12 +904,17 @@ namespace HM
             statement_after_stop_(false),
             swallows_(false),
             swallowed_(0),
-            ends_(false)
+            ends_(false),
+            servers_mutex_(nullptr),
+            servers_lock_taken_(false)
          {
          }
 
          // The indexer whose thread this runs on, for the asks.
          void SetIndexer(MessageIndexer *indexer) { indexer_ = indexer; }
+
+         // The servers' mutex its ask takes (AskServersLockWhileAStopWaits).
+         void SetServersMutex(boost::timed_mutex *mutex) { servers_mutex_ = mutex; }
 
          // How long a stretch with no interruption point lasts, from the next.
          void SetStretch(int milliseconds) { stretch_ms_.store(milliseconds); }
@@ -943,7 +972,7 @@ namespace HM
                // Nor while an ask to be made once a stop has asked the pass to
                // end is still to come: a request that came between AskIndexer_'s
                // look and this point would end the pass without it.
-               if (!swallows && ask_.load() != AskStopThenStartWhileAStopWaits)
+               if (!swallows && !AsksOnceAStopWaits_(ask_.load()))
                   boost::this_thread::interruption_point();
 
                {
@@ -986,6 +1015,7 @@ namespace HM
          }
 
          bool AskThrew() const { return ask_threw_.load(); }
+         bool ServersLockTaken() const { return servers_lock_taken_.load(); }
 
          void StopReturned() { stop_returned_.store(true); }
          bool StatementAfterStop() const { return statement_after_stop_.load(); }
@@ -998,11 +1028,17 @@ namespace HM
          void Ends() { ends_.store(true); }
 
       private:
+         // An ask made only once a stop has asked the pass to end.
+         static bool AsksOnceAStopWaits_(int ask)
+         {
+            return ask == AskStopThenStartWhileAStopWaits || ask == AskServersLockWhileAStopWaits;
+         }
+
          void AskIndexer_()
          {
             // Not yet, for the ask made while a stop waits: none has asked.
             const int asked = ask_.load();
-            if (asked == AskNothing || (asked == AskStopThenStartWhileAStopWaits && !boost::this_thread::interruption_requested()))
+            if (asked == AskNothing || (AsksOnceAStopWaits_(asked) && !boost::this_thread::interruption_requested()))
                return;
 
             const int ask = ask_.exchange(AskNothing);
@@ -1018,6 +1054,11 @@ namespace HM
                   // The two differ in when they are asked (above), not in what.
                   indexer_->Stop();
                   indexer_->Start();
+               }
+               else if (ask == AskServersLockWhileAStopWaits)
+               {
+                  boost::unique_lock<boost::timed_mutex> serversLock(*servers_mutex_, boost::defer_lock);
+                  servers_lock_taken_.store(indexer_->LockServersUnlessOnItsThread(serversLock));
                }
             }
             catch (...)
@@ -1048,6 +1089,8 @@ namespace HM
          std::atomic<bool> swallows_;
          std::atomic<int> swallowed_;
          std::atomic<bool> ends_;
+         boost::timed_mutex *servers_mutex_;
+         std::atomic<bool> servers_lock_taken_;
       };
 
       // Long enough for a thread to be made and begin, however slowly the tester
@@ -1065,6 +1108,7 @@ namespace HM
       TestAStopBeforeExitGivesUp_();
       TestItsOwnStartAndStopWhileAStopWaits_();
       TestASwallowedStopIsAskedAgain_();
+      TestItsOwnReinitialiseWhileAStopWaits_();
    }
 
    void
@@ -1248,6 +1292,49 @@ namespace HM
 
       if (swallowed != 1)
          throw std::logic_error("MessageIndexerTester: the stand-in pass swallowed no request to stop, so the test showed nothing.");
+   }
+
+   void
+   MessageIndexerTester::TestItsOwnReinitialiseWhileAStopWaits_()
+   {
+      StandInPass pass;
+      MessageIndexer indexer(boost::bind(&StandInPass::Run, &pass));
+      pass.SetIndexer(&indexer);
+
+      // The servers' mutex, held here as a reinitialise on another thread holds
+      // it while its stop waits for the indexer; the indexer's OnError script
+      // then asks for a reinitialise of its own, which takes the mutex first.
+      boost::timed_mutex serversMutex;
+      pass.SetServersMutex(&serversMutex);
+
+      indexer.Start();
+      if (!pass.WaitForRuns(1, StandInWait))
+         throw std::logic_error("MessageIndexerTester: the indexer's thread began no pass within a minute of Start.");
+
+      boost::unique_lock<boost::timed_mutex> held(serversMutex);
+      pass.Asks(StandInPass::AskServersLockWhileAStopWaits);
+
+      // A reinitialise's stop has no limit; this one has, so that the two
+      // waiting for each other ends the test rather than hangs it.
+      const bool ended = indexer.Stop(std::function<void()>(), 20);
+      held.unlock();
+
+      if (!ended)
+      {
+         indexer.Stop();
+         throw std::logic_error("MessageIndexerTester: a Stop that held the servers' mutex waited twenty seconds for the indexer, whose own thread waited for that mutex: a reinitialise asked by an OnError script while another reinitialise waits for the indexer, and the two waited for each other for ever.");
+      }
+
+      if (!pass.WaitForAsks(1, std::chrono::seconds(0)))
+         throw std::logic_error("MessageIndexerTester: the stand-in pass asked for the servers' mutex on its own thread not once while the Stop waited.");
+
+      if (pass.AskThrew() || pass.ServersLockTaken())
+         throw std::logic_error("MessageIndexerTester: the servers' mutex, held by a Stop waiting for the indexer, was answered as taken on the indexer's own thread.");
+
+      // Anywhere else it is waited for and taken.
+      boost::unique_lock<boost::timed_mutex> mine(serversMutex, boost::defer_lock);
+      if (!indexer.LockServersUnlessOnItsThread(mine) || !mine.owns_lock())
+         throw std::logic_error("MessageIndexerTester: the servers' mutex, free, was not taken on a thread other than the indexer's.");
    }
 
    void

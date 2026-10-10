@@ -115,6 +115,8 @@
 #include "BackupScheduleTask.h"
 #include "../LDAP/DirectorySyncTask.h"
 
+#include <chrono>
+
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
@@ -124,6 +126,13 @@
 
 namespace HM
 {
+   namespace
+   {
+      // How long a stop before the process ends waits for the message indexer's
+      // thread (StopServers_, ShutDown).
+      const int IndexerWaitBeforeExitSeconds = 60;
+   }
+
    Application::Application() :
       server_work_queue_("Server queue"),
       maintenance_queue_("Maintenance queue"),
@@ -483,6 +492,12 @@ namespace HM
    // Do uninitialization.
    //---------------------------------------------------------------------------()
    {
+      return ExitInstance_(true);
+   }
+
+   bool
+   Application::ExitInstance_(bool closeDatabase)
+   {
       initialized_ = false;
 
       // Close work queue
@@ -510,8 +525,22 @@ namespace HM
       }
       backupManager.reset();
 
-      LOG_DEBUG("Application::ExitInstance - Closing database connection...");
-      CloseDatabase();
+      if (closeDatabase)
+      {
+         LOG_DEBUG("Application::ExitInstance - Closing database connection...");
+         CloseDatabase();
+      }
+      else
+      {
+         // A thread ShutDown gave up on - the message indexer's, in a statement -
+         // may be using the database: closed under it, as until 10 October 2026,
+         // the close freed the connection the statement was on (PQfinish,
+         // mysql_close) while the call was still in it, and a statement after it
+         // went through the manager reset here. The process ends straight after
+         // this, the thread with it, and its end closes the connections
+         // (ShutDown).
+         LOG_APPLICATION("The database connections are left open: a thread the stop gave up on may be using them, and the process ends now.");
+      }
 
       MimeEnvironment::SetAutoFolding(false);
 
@@ -697,6 +726,21 @@ namespace HM
 
    bool
    Application::StartServers()
+   {
+      boost::unique_lock<boost::timed_mutex> lock(servers_mutex_, boost::defer_lock);
+      const String refused = TakeServersLock_(lock);
+      ServersLockHeld_ held(*this, lock);
+      if (!refused.IsEmpty())
+      {
+         LOG_APPLICATION("The servers are not started: " + refused);
+         return false;
+      }
+
+      return StartServers_();
+   }
+
+   bool
+   Application::StartServers_()
    {
       LOG_APPLICATION("Starting servers...")
 
@@ -980,13 +1024,14 @@ namespace HM
    //
    // Each reaches only a server that is running or draining; a stopped or starting
    // one reads the new value when StartServers runs, since the save published it
-   // first. The two that reach the scheduler do nothing while a reinitialise holds
-   // its mutex: that reinitialise is rebuilding the scheduler from the published
-   // values, and a handle to the one it is tearing down is not worth racing for.
-      // A service stop does not take that mutex, so the scheduler and the two task
-      // handles are copied under scheduler_handles_mutex_, which the stop's reset
-      // takes too. Each reads the value it takes when it runs, as Subscribe asks,
-      // and runs after the save's reload lock is released (IniFileSettings::Tell_).
+   // first. The two that reach the scheduler do nothing while a stop, a start or a
+   // reinitialise holds servers_mutex_: it is rebuilding the scheduler from the
+   // published values, or tearing it down, and a handle to the one it is tearing
+   // down is not worth racing for. A service stop did not take that mutex until 10
+   // October 2026, so the scheduler and the two task handles are copied under
+   // scheduler_handles_mutex_, which the stop's reset takes too. Each reads the
+   // value it takes when it runs, as Subscribe asks, and runs after the save's
+   // reload lock is released (IniFileSettings::Tell_).
    //
    // docs/SettingsApply.md lists them; a latch found later that cannot be redone
    // safely is marked reinitialize in build/ini-settings-baseline.txt instead.
@@ -1002,7 +1047,7 @@ namespace HM
       // The greylist cleaner's period, set from the setting when the task is built.
       ini->Subscribe(_T("GreylistingRecordExpirationInterval"), [this]()
       {
-         boost::unique_lock<boost::mutex> rebuilding(reinitialize_mutex_, boost::try_to_lock);
+         boost::unique_lock<boost::timed_mutex> rebuilding(servers_mutex_, boost::try_to_lock);
          if (!rebuilding.owns_lock() || !IsServing_())
             return;
 
@@ -1031,7 +1076,7 @@ namespace HM
          if (!BackupScheduleTask::IsEnabled())
             return;
 
-         boost::unique_lock<boost::mutex> rebuilding(reinitialize_mutex_, boost::try_to_lock);
+         boost::unique_lock<boost::timed_mutex> rebuilding(servers_mutex_, boost::try_to_lock);
          if (!rebuilding.owns_lock() || !IsServing_())
             return;
 
@@ -1508,54 +1553,201 @@ namespace HM
 
    }
 
-   void 
-   Application::StopServers(StopPurpose purpose)
+   String
+   Application::StopServers()
+   {
+      boost::unique_lock<boost::timed_mutex> lock(servers_mutex_, boost::defer_lock);
+      const String refused = TakeServersLock_(lock);
+      ServersLockHeld_ held(*this, lock);
+      if (!refused.IsEmpty())
+      {
+         LOG_APPLICATION("The servers are not stopped: " + refused);
+         return refused;
+      }
+
+      StopServers_(StopToStartAgain);
+      return "";
+   }
+
+   bool
+   Application::ShutDown()
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // The stop before the process ends (Application.h). Until 10 October 2026
+   // TerminateServer and the Linux server's exit called StopServers and
+   // ExitInstance as they stand, with nothing between them and a reinitialise
+   // on another thread - COM's, the REST API's, a backup restore's or an ACME
+   // deployment's: StopServers found the servers stopping and returned at once,
+   // and ExitInstance closed the database under the reinitialise, which then
+   // opened it again or faulted on it, and under the indexer's thread still in
+   // its statement.
+   //---------------------------------------------------------------------------()
+   {
+      // What comes after this - a reinitialise queued behind the one under way,
+      // a REST request's, COM's Start - is refused, and a reinitialise under way
+      // stops short after its stop.
+      shutting_down_ = true;
+
+      const std::function<void()> progress = StopProgress_();
+
+      boost::unique_lock<boost::timed_mutex> lock(servers_mutex_, boost::try_to_lock);
+      ServersLockHeld_ held(*this, lock);
+      if (!lock.owns_lock())
+      {
+         LOG_APPLICATION("Stopping: a reinitialise, or a stop or a start of the servers over COM, is under way, and this stop waits for it.");
+
+         // What that may wait for without a limit is the indexer's thread, which
+         // a reinitialise's stop waits for until it has ended: waited for here,
+         // for the minute this stop would give it. It ends at its next
+         // interruption point, both waits return, and the reinitialise stops
+         // short. A thread still in its statement after the minute is left to
+         // the process's end, with the reinitialise waiting for it.
+         if (!MessageIndexer::Instance()->Stop(progress, IndexerWaitBeforeExitSeconds))
+            return false;
+
+         // The rest of it is bounded - the drain, the sandbox's poller (a minute
+         // at most), the work queues (ten seconds each), a start that was under
+         // way - and is waited for as long as a stop of this one's own could
+         // take, in turns of a second with the service controller told.
+         const std::chrono::steady_clock::time_point deadline = std::chrono::steady_clock::now() +
+            std::chrono::seconds(IniFileSettings::Instance()->GetShutdownDrainSeconds() + 120);
+         while (!lock.try_lock_for(boost::chrono::seconds(1)))
+         {
+            if (progress)
+               progress();
+
+            if (std::chrono::steady_clock::now() >= deadline)
+            {
+               LOG_APPLICATION("Gave up waiting for the reinitialise, or the stop or the start of the servers over COM, that was under way. The process ends with it.");
+               return false;
+            }
+         }
+
+         held.Taken();
+      }
+
+      const bool ended = StopServers_(StopBeforeExit);
+      ExitInstance_(ended);
+      return ended;
+   }
+
+   String
+   Application::TakeServersLock_(boost::unique_lock<boost::timed_mutex> &lock)
+   {
+      // A script that the stop, the start or the reinitialise holding the mutex
+      // runs on its own thread - OnError, for an error it reports - asking for
+      // another: it would wait for the mutex its own thread holds.
+      if (servers_mutex_holder_.load() == std::this_thread::get_id())
+         return "a stop, a start or a reinitialise of the servers is under way on this thread, which asked for this from a script it runs.";
+
+      if (!MessageIndexer::Instance()->LockServersUnlessOnItsThread(lock))
+         return "a stop, a start or a reinitialise of the servers is under way, and it may be waiting for the message indexer, on whose thread this was asked.";
+
+      if (shutting_down_)
+      {
+         lock.unlock();
+         return "the server is stopping.";
+      }
+
+      return "";
+   }
+
+   Application::ServersLockHeld_::ServersLockHeld_(Application &application, boost::unique_lock<boost::timed_mutex> &lock) :
+      application_(application),
+      lock_(lock)
+   {
+      if (lock_.owns_lock())
+         Taken();
+   }
+
+   void
+   Application::ServersLockHeld_::Taken()
+   {
+      application_.servers_mutex_holder_ = std::this_thread::get_id();
+   }
+
+   Application::ServersLockHeld_::~ServersLockHeld_()
+   {
+      if (lock_.owns_lock())
+         application_.servers_mutex_holder_ = std::thread::id();
+   }
+
+   void
+   Application::SetStopProgressCallback(std::function<void()> callback)
+   {
+      boost::lock_guard<boost::mutex> guard(stop_progress_mutex_);
+      stop_progress_ = callback;
+   }
+
+   std::function<void()>
+   Application::StopProgress_() const
+   {
+      boost::lock_guard<boost::mutex> guard(stop_progress_mutex_);
+      return stop_progress_;
+   }
+
+   bool
+   Application::StopServers_(StopPurpose purpose)
    {
       LOG_APPLICATION("Stopping servers...")
 
       start_time_ = "";
+
+      // A copy: TerminateServer sets the callback on the service controller's
+      // thread, and this stop may be a reinitialise's on another, which held a
+      // reference to the member while the callback was set and reset.
+      const std::function<void()> progress = StopProgress_();
 
       // A stop from Running or from Draining, and from nothing else. The state
       // moves to Stopping under the drain lock, so that a drain arriving in the
       // same instant sees Stopping and is refused rather than both of them
       // acting on Running.
       bool wasDraining = false;
+      bool serving = false;
       {
          boost::lock_guard<boost::recursive_mutex> guard(drain_mutex_);
 
          int state = ServerStatus::Instance()->GetState();
-         if (state != ServerStatus::StateRunning && state != ServerStatus::StateDraining)
+         if (state == ServerStatus::StateRunning || state == ServerStatus::StateDraining)
          {
-            LOG_DEBUG("Application::~StopServers() - E1");
-            return;
-         }
+            serving = true;
+            wasDraining = state == ServerStatus::StateDraining;
+            ServerStatus::Instance()->SetState(ServerStatus::StateStopping);
+            drain_since_ = "";
 
-         wasDraining = state == ServerStatus::StateDraining;
-         ServerStatus::Instance()->SetState(ServerStatus::StateStopping);
-         drain_since_ = "";
+            // The doors first. Until this row a stop kept accepting through the
+            // whole drain window and the delivery manager kept handing out queued
+            // messages, so a client that connected during the drain was accepted,
+            // counted and then cut, and an outbound session could be cut mid-DATA.
+            // Now the listeners close and the queue pauses before anything is
+            // waited for - and a drain that was entered earlier has done this.
+            if (!wasDraining)
+            {
+               if (!CloseTheDoors_())
+                  LOG_APPLICATION("Drain: the listeners are NOT known to be closed (the io threads did not answer); stopping anyway.");
+            }
+            else
+            {
+               // Maintenance mode ends here, whoever stops the servers - a service
+               // stop, or a reinitialise from SIGHUP, the Control Panel, the REST
+               // route, a backup restore or an ACME deployment - and it says so,
+               // on the audit trail as well: the operator who entered it recorded
+               // "entered", and a "left" with no actor of theirs is the honest
+               // record of a drain that a restart ended.
+               LOG_APPLICATION("Drain: ended by a stop of the servers (a service stop or a reinitialise); the listeners were already closed.");
+               RecordDrainLeftByTheServer_(_T("Ended by a stop of the servers - a service stop or a reinitialise - with the listeners already closed."));
+            }
+         }
+      }
 
-         // The doors first. Until this row a stop kept accepting through the
-         // whole drain window and the delivery manager kept handing out queued
-         // messages, so a client that connected during the drain was accepted,
-         // counted and then cut, and an outbound session could be cut mid-DATA.
-         // Now the listeners close and the queue pauses before anything is
-         // waited for - and a drain that was entered earlier has done this.
-         if (!wasDraining)
-         {
-            if (!CloseTheDoors_())
-               LOG_APPLICATION("Drain: the listeners are NOT known to be closed (the io threads did not answer); stopping anyway.");
-         }
-         else
-         {
-            // Maintenance mode ends here, whoever stops the servers - a service
-            // stop, or a reinitialise from SIGHUP, the Control Panel, the REST
-            // route, a backup restore or an ACME deployment - and it says so,
-            // on the audit trail as well: the operator who entered it recorded
-            // "entered", and a "left" with no actor of theirs is the honest
-            // record of a drain that a restart ended.
-            LOG_APPLICATION("Drain: ended by a stop of the servers (a service stop or a reinitialise); the listeners were already closed.");
-            RecordDrainLeftByTheServer_(_T("Ended by a stop of the servers - a service stop or a reinitialise - with the listeners already closed."));
-         }
+      if (!serving)
+      {
+         // Stopped already - by COM's Stop, by a reinitialise that stopped short
+         // for ShutDown, or never started - and the indexer's thread may still be
+         // ending, after a stop made on that thread: waited for as below, so that
+         // a database closed after this is not closed under it.
+         LOG_DEBUG("Application::~StopServers() - E1");
+         return MessageIndexer::Instance()->Stop(progress, purpose == StopBeforeExit ? IndexerWaitBeforeExitSeconds : 0);
       }
 
       // Migration jobs first: each writes its counters and its resume marks and
@@ -1589,8 +1781,8 @@ namespace HM
 
                // About once a second: the service controller's checkpoint, so
                // that a stop honouring a long window is seen to be progressing.
-               if (stop_progress_ && (++polls % 5) == 0)
-                  stop_progress_();
+               if (progress && (++polls % 5) == 0)
+                  progress();
 
                Sleep(200);
             }
@@ -1616,7 +1808,7 @@ namespace HM
       // queue. What it holds stays held and is polled again after the start.
       // Joined, however long a request in flight takes to end (a minute at
       // most), with the service controller's checkpoint meanwhile.
-      Sandbox::Stop(stop_progress_);
+      Sandbox::Stop(progress);
 
       if (metrics_server_)
       {
@@ -1716,15 +1908,20 @@ namespace HM
       // statement timeout ends there, or any statement with the timeout at 0 or on
       // a connection gone silent. Until 10 October 2026 such a stop waited for it
       // without end while the service controller was told it was progressing. The
-      // stop now goes on, and the process's end cuts the statement, as it cuts a
-      // work queue's thread that has not left in ten seconds (WorkQueue::Stop).
-      const int indexerWaitBeforeExitSeconds = 60;
-      MessageIndexer::Instance()->Stop(stop_progress_, purpose == StopBeforeExit ? indexerWaitBeforeExitSeconds : 0);
+      // stop now goes on and answers false: ShutDown leaves the database open, the
+      // thread's connection with it, and the process ends at once, the thread
+      // with it, as a work queue's thread that has not left in ten seconds does
+      // (WorkQueue::Stop). Until 10 October 2026 this comment said the process's
+      // end cut the statement, but the database was closed under the thread
+      // first, and the process ended through the destructors of statics with the
+      // thread still running.
+      const bool indexerEnded = MessageIndexer::Instance()->Stop(progress, purpose == StopBeforeExit ? IndexerWaitBeforeExitSeconds : 0);
 
       ServerStatus::Instance()->SetState(ServerStatus::StateStopped);
 
       LOG_APPLICATION("Servers stopped.")
 
+      return indexerEnded;
    }
 
    bool
@@ -1892,10 +2089,22 @@ namespace HM
    {
       // One restart at a time: see the member's comment in Application.h. A
       // second caller waits for the first to finish and then restarts again,
-      // which is what it asked for.
-      boost::lock_guard<boost::mutex> guard(reinitialize_mutex_);
+      // which is what it asked for - unless it asks on the message indexer's
+      // own thread, or the process is ending (TakeServersLock_).
+      boost::unique_lock<boost::timed_mutex> lock(servers_mutex_, boost::defer_lock);
+      const String refused = TakeServersLock_(lock);
+      ServersLockHeld_ held(*this, lock);
+      if (!refused.IsEmpty())
+         return "The server was not reinitialised: " + refused;
 
-      StopServers(StopToStartAgain);
+      StopServers_(StopToStartAgain);
+
+      // A stop before the process ends came while this one stopped, and waits
+      // for it (ShutDown): that stop closes the database, and nothing is
+      // started again in a process that is ending.
+      if (shutting_down_)
+         return "The server was not started again: it is stopping.";
+
       ExitInstance();
 
       // The reconciled [Settings] map belongs to the database connection that has
@@ -1942,7 +2151,7 @@ namespace HM
       if (!InitInstance(sErrorMessage))
          return sErrorMessage;
 
-      if (!StartServers())
+      if (!StartServers_())
          return "Failed to start servers";
 
       return "";

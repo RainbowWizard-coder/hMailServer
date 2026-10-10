@@ -2336,9 +2336,27 @@ int main(int argc, char *argv[])
    // A fault from here on is recorded as one during shutdown, which is a
    // different finding from one in service.
    HM::CrashOracle::NotifyShutdownStarted();
-   HM::Application::Instance()->StopServers(HM::Application::StopBeforeExit);
-   HM::Application::Instance()->ExitInstance();
+
+   // A reinitialise under way - the REST API's, a backup restore's, an ACME
+   // deployment's - is waited for, the message indexer a minute at most, and
+   // the database closed (Application::ShutDown). Until 10 October 2026 a
+   // SIGTERM during such a reinitialise closed the database under it, and the
+   // process faulted on its way out.
+   const bool ended = HM::Application::Instance()->ShutDown();
 
    HM::Logger::Instance()->LogApplication(_T("Stopped."));
+
+   // A thread the stop gave up on - the indexer's, in a statement, or the
+   // reinitialise waiting for it - would run on through the destructors of
+   // statics that returning from main runs, with the database it may be using
+   // left open for it: the process ends here instead, which ends the thread and
+   // closes the connections. What the log and standard output hold is flushed
+   // first.
+   if (!ended)
+   {
+      (void) std::fflush(nullptr);
+      std::_Exit(0);
+   }
+
    return 0;
 }

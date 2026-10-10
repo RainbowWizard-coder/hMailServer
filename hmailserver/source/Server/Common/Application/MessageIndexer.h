@@ -43,7 +43,7 @@ namespace HM
       // maxWaitSeconds 0 waits until the thread has ended, as a Reinitialize
       // must, the database closed straight after. Above 0 it gives up after so
       // long, says so in the log and answers false, the thread left to end by
-      // itself: StopServers before the process ends (Application::StopBeforeExit),
+      // itself: the stop before the process ends (Application::ShutDown),
       // so that a database that has stopped answering does not hold a service
       // stop for ever while the service controller is told it is progressing.
       // progress is called about once a second while it waits (the service
@@ -55,6 +55,16 @@ namespace HM
       // so that such a script's Start or Stop, which return at once on that
       // thread, are never made to wait for the stop that waits for them.
       bool Stop(const std::function<void()> &progress = std::function<void()>(), int maxWaitSeconds = 0);
+
+      // Takes lock's mutex - Application's servers_mutex_, held across every
+      // stop, start and reinitialise of the servers - and answers whether it
+      // has. On the indexer's own thread - an OnError script it runs calling
+      // COM's Application.Reinitialize, Stop or Start - only when the mutex is
+      // free at once: the stop that holds it may be waiting for this thread to
+      // end, a reinitialise's without a limit, and this thread would wait for
+      // it in turn, for ever, as until 10 October 2026 such a Reinitialize did.
+      // Elsewhere it waits until the mutex is free.
+      bool LockServersUnlessOnItsThread(boost::unique_lock<boost::timed_mutex> &lock);
 
       void IndexNow();
 
@@ -172,7 +182,10 @@ namespace HM
    // the lock they need and the stop and the indexer waited for each other for
    // ever. And a Stop ends a pass that swallowed its request to stop in a
    // catch (...), where until 10 October 2026 the request was asked once and a
-   // Reinitialize's stop waited for ever. ClassTester runs
+   // Reinitialize's stop waited for ever; and the servers' mutex, held by a
+   // Stop that waits for the indexer, is not waited for on the indexer's own
+   // thread, where an OnError script's Reinitialize waited for it for ever
+   // while a reinitialise held it. ClassTester runs
    // Test on Windows, business-object-tests on Linux; TestAnExceptionOnItsThread
    // only business-object-tests, since on Windows the exception handler writes a
    // minidump of the server it runs in.
@@ -200,5 +213,6 @@ namespace HM
       void TestAStopBeforeExitGivesUp_();
       void TestItsOwnStartAndStopWhileAStopWaits_();
       void TestASwallowedStopIsAskedAgain_();
+      void TestItsOwnReinitialiseWhileAStopWaits_();
    };
 }

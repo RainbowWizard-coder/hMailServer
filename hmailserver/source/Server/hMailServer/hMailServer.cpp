@@ -1598,9 +1598,13 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
       ClassTester oTester;
       oTester.DoTests();
 
-      HM::Application::Instance()->StopServers(HM::Application::StopBeforeExit);
-
-      HM::Application::Instance()->ExitInstance();
+      // A thread the stop gave up on ends with the process, now, as after a
+      // service stop (TerminateServer).
+      if (!HM::Application::Instance()->ShutDown())
+      {
+         fflush(nullptr);
+         TerminateProcess(GetCurrentProcess(), 0);
+      }
    }
    else if (sLastParam.CompareNoCase(_T("/Debug")) == 0)
    {
@@ -1643,8 +1647,11 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
          DispatchMessage(&msg);
       }
 
-      HM::Application::Instance()->StopServers(HM::Application::StopBeforeExit);
-      HM::Application::Instance()->ExitInstance();
+      if (!HM::Application::Instance()->ShutDown())
+      {
+         fflush(nullptr);
+         TerminateProcess(GetCurrentProcess(), 0);
+      }
    }
    else if (sLastParam.CompareNoCase(_T("--upgrade-database")) == 0)
    {
@@ -2098,13 +2105,12 @@ TerminateServer()
          SetServiceStatus(ServiceStatusHandle, &ServiceStatus);
    });
 
-   // The process ends after it: the message indexer is waited for a minute at
-   // most (Application::StopBeforeExit), the checkpoint advancing meanwhile.
-   HM::Application::Instance()->StopServers(HM::Application::StopBeforeExit);
+   // The process ends after it: a stop, a start or a reinitialise under way is
+   // waited for, the message indexer a minute at most, the checkpoint advancing
+   // meanwhile, and the database closed (Application::ShutDown).
+   const bool ended = HM::Application::Instance()->ShutDown();
 
    HM::Application::Instance()->SetStopProgressCallback(std::function<void()>());
-
-   HM::Application::Instance()->ExitInstance();
 
    if (ServiceStatusHandle != 0)
    {
@@ -2113,8 +2119,17 @@ TerminateServer()
 
       ReportServiceStatus(SERVICE_STOPPED, 0);
    }
-   
 
+   // A thread the stop gave up on - the indexer's, in a statement, or a
+   // reinitialise waiting for it - would run on through the destructors of
+   // statics as the process ends, with the database it may be using left open
+   // for it: the process ends here instead, once the service controller has
+   // been told, which ends the thread and closes the connections.
+   if (!ended)
+   {
+      fflush(nullptr);
+      TerminateProcess(GetCurrentProcess(), 0);
+   }
 }
 
 

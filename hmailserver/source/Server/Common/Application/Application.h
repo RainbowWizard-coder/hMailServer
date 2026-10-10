@@ -6,6 +6,7 @@
 
 #include <atomic>
 #include <functional>
+#include <thread>
 
 #include "../Util/Event.h"
 
@@ -91,26 +92,47 @@ namespace HM
       // whatever this says.
       void SetStartedForDatabaseUpgrade() { started_for_database_upgrade_ = true; }
 
+      // The servers started, stopped, and stopped before the process ends. Each
+      // of these and Reinitialize holds servers_mutex_ throughout, so that one
+      // runs at a time: until 10 October 2026 nothing held them apart, and a
+      // service stop or a SIGTERM during a reinitialise found the servers
+      // stopping, went straight on, and closed the database under the
+      // reinitialise and the message indexer's thread it was waiting for -
+      // which faulted the Linux server on its way out. Made on the indexer's
+      // own thread, by an OnError script it runs, each is refused when another
+      // holds the mutex (MessageIndexer::LockServersUnlessOnItsThread); made on
+      // the thread that holds it, by a script the stop or the start runs, each
+      // is refused; and after ShutDown has begun every one is.
+      //
+      // StartServers: COM's Application.Start, the service's start, the Linux
+      // server's, a /Test run. False when the start failed or was refused, the
+      // reason in the log.
       bool StartServers();
 
-      // What a stop of the servers is for, which decides how long it waits for
-      // the message indexer's thread (MessageIndexer::Stop). StopToStartAgain:
-      // the servers may be started again in this process - after a Reinitialize,
-      // which closes the database as soon as the stop returns and opens it
-      // again, or after COM's Application.Stop, which leaves it open - so the
-      // indexer is waited for until it has ended, however long its statement
-      // takes. StopBeforeExit: the process ends after this stop - the service's
-      // stop, a signal's on Linux, the end of a /Debug or a test run - and the
-      // indexer is waited for a minute at most, so that a database that has
-      // stopped answering does not hold the stop for ever while the service
-      // controller is told that it is progressing.
-      enum StopPurpose
-      {
-         StopToStartAgain,
-         StopBeforeExit
-      };
+      // COM's Application.Stop: the servers stopped, to be started again in
+      // this process (StartServers, Reinitialize) on the database it leaves
+      // open, the indexer waited for until it has ended. Answers empty, or why
+      // the stop was refused.
+      String StopServers();
 
-      void StopServers(StopPurpose purpose);
+      // The stop before the process ends - the service's stop and Windows'
+      // shutdown (TerminateServer), a signal's on Linux, the end of a /Debug or
+      // a /Test run: the servers stopped, the indexer waited for a minute at
+      // most, the database closed (ExitInstance). A stop, a start or a
+      // reinitialise under way is waited for, and one that comes after does
+      // nothing. A reinitialise's stop waits for the indexer without a limit,
+      // so this waits for that thread itself, the same minute at most, and the
+      // reinitialise then stops short, leaving the rest to this.
+      //
+      // Answers false when a thread was left running - the indexer's, still in
+      // a statement, or the stop or start this waited for - in which case the
+      // database is left open, since that thread may be using it: the caller
+      // then ends the process at once, without the destructors of statics,
+      // which the thread may be using too (TerminateProcess, _Exit). Until 10
+      // October 2026 the database was closed under such a thread, and the
+      // process ended through the destructors.
+      bool ShutDown();
+
       void SubmitPendingEmail();
 
       // Maintenance mode - a drain without a stop - and what a stop does first.
@@ -153,7 +175,7 @@ namespace HM
       // so that the service host can tell the service controller the stop is
       // still making progress (a checkpoint) rather than letting its wait hint
       // run out. Empty by default; hMailServer.cpp sets it before a stop.
-      void SetStopProgressCallback(std::function<void()> callback) { stop_progress_ = callback; }
+      void SetStopProgressCallback(std::function<void()> callback);
 
       std::shared_ptr<SMTPDeliveryManager> GetSMTPDeliveryManager() {return smtp_delivery_manager_;} 
       std::shared_ptr<ExternalFetchManager> GetExternalFetchManager() {return external_fetch_manager_;} 
@@ -189,6 +211,64 @@ namespace HM
       boost::signals2::signal<void()> OnServerStopped;
 
    private:
+
+      // What a stop of the servers is for, which decides how long it waits for
+      // the message indexer's thread (MessageIndexer::Stop). StopToStartAgain:
+      // the servers may be started again in this process - after a Reinitialize,
+      // which closes the database as soon as the stop returns and opens it
+      // again, or after COM's Application.Stop, which leaves it open - so the
+      // indexer is waited for until it has ended, however long its statement
+      // takes. StopBeforeExit: the process ends after this stop (ShutDown), and
+      // the indexer is waited for a minute at most, so that a database that has
+      // stopped answering does not hold the stop for ever while the service
+      // controller is told that it is progressing.
+      enum StopPurpose
+      {
+         StopToStartAgain,
+         StopBeforeExit
+      };
+
+      // The stop and the start themselves, servers_mutex_ held. StopServers_
+      // answers whether the indexer's thread has ended: false when a stop
+      // before exit gave up on it, or the stop was made on that thread, which
+      // cannot wait for itself.
+      bool StopServers_(StopPurpose purpose);
+      bool StartServers_();
+
+      // servers_mutex_ taken by lock for a stop, a start or a reinitialise:
+      // answers empty, or why it was not taken - on the thread that holds it
+      // already, by a script the stop or the start it is making runs; on the
+      // indexer's own thread while another holds it; or after ShutDown has
+      // begun. The caller declares a ServersLockHeld_ straight after lock.
+      String TakeServersLock_(boost::unique_lock<boost::timed_mutex> &lock);
+
+      // Says which thread holds servers_mutex_ from when it is taken
+      // (TakeServersLock_, ShutDown) until this goes, before the lock does.
+      class ServersLockHeld_
+      {
+      public:
+         ServersLockHeld_(Application &application, boost::unique_lock<boost::timed_mutex> &lock);
+         ~ServersLockHeld_();
+
+         // Taken now, by ShutDown's own try.
+         void Taken();
+
+         ServersLockHeld_(const ServersLockHeld_ &) = delete;
+         ServersLockHeld_ &operator=(const ServersLockHeld_ &) = delete;
+
+      private:
+         Application &application_;
+         boost::unique_lock<boost::timed_mutex> &lock_;
+      };
+
+      // ExitInstance, the database closed only when closeDatabase is set: not
+      // when a thread ShutDown gave up on may be using it.
+      bool ExitInstance_(bool closeDatabase);
+
+      // The stop's progress callback, copied under its lock: TerminateServer
+      // sets it on the service controller's thread while a stop on another -
+      // a reinitialise's, which ShutDown waits for - may be calling it.
+      std::function<void()> StopProgress_() const;
 
       void RegisterSessionTypes_();
       void CreateScheduledTasks_();
@@ -231,6 +311,10 @@ namespace HM
       void RecordDrainLeftByTheServer_(const String &detail);
 
       std::function<void()> stop_progress_;
+      mutable boost::mutex stop_progress_mutex_;
+
+      // Set when ShutDown begins, and never cleared: the process is ending.
+      std::atomic<bool> shutting_down_{false};
 
       // Serialises the three state transitions that close or reopen the doors -
       // EnterDrain, LeaveDrain and the head of StopServers - so that a stop and
@@ -286,8 +370,14 @@ namespace HM
       // and two of them at once tear down and rebuild the same queues under
       // each other - a RunOnce task queued by one StartServers onto a
       // maintenance queue the other ExitInstance had just removed was an access
-      // violation. They run one after the other now.
-      boost::mutex reinitialize_mutex_;
+      // violation. They run one after the other, and since 10 October 2026 so
+      // do COM's Start and Stop and the stop before exit (StartServers, above).
+      // Timed, so that ShutDown can wait for it in turns of a second, telling
+      // the service controller meanwhile.
+      boost::timed_mutex servers_mutex_;
+
+      // The thread holding servers_mutex_, none while it is free.
+      std::atomic<std::thread::id> servers_mutex_holder_{std::thread::id()};
       std::shared_ptr<NotificationServer> notification_server_;
       std::shared_ptr<IOService> io_service_;
       std::shared_ptr<FolderManager> folder_manager_;
