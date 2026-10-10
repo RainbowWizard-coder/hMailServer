@@ -3664,14 +3664,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   needed. Next step: MTA-STS policy hosting..." and only then "11 values could not be read: ... The items above may be
   incomplete." The notice is now first and says it in the DNS records page's words, "Some values could not be read,
   so the cards below may be incomplete." with the reason last; and while values could not be read the tally begins
-  "Only what could be read is counted." and names no next step, since the step it would name is the first of the
-  items that could be told, not the first that needs doing. The tour never takes the keyboard - F6 moves into its
-  card and Escape ends the tour from inside it - and neither the card, its accessible name nor its first announcement
-  said so: the card's help text says "Press F6 to reach the tour's buttons; while one of them has the keyboard,
-  Escape ends the tour.", and the first step of a run shows the sentence as a tertiary line under its buttons and adds
-  it to what is announced; and the card's buttons wrap, where from the second step "Rundgang überspringen" ran off
-  the card's right edge in German. `SetupChecklistReadFailureTests`, `TourKeysHintTests` and `TourCardButtonsTests`
-  hold them.
+  "Only what could be read is counted.", and neither the tally nor a card names a next step - no card carries the Next
+  step pill or the page's primary button - since the step it would name is the first of the items that could be told,
+  not the first that needs doing. The tour never takes the keyboard - F6 moves into its card and Escape ends the tour
+  from inside it - and neither the card, its accessible name nor its first announcement said so: the card's help text
+  says "Press F6 to reach the tour's buttons; while one of them has the keyboard, Escape ends the tour.", and the
+  first step of a run shows the sentence as a tertiary line under its buttons and adds it to what is announced; and
+  the card's buttons wrap, where from the second step "Rundgang überspringen" ran off the card's right edge in German.
+  `SetupChecklistReadFailureTests`, `TourKeysHintTests` and `TourCardButtonsTests` hold them.
 
 - **Fixed: a scanner test that failed without the server's words said only "Connection failed." or "Scanner test
   failed."** Where the server gives no detail, the Anti-spam page's SpamAssassin test now says "SpamAssassin did not

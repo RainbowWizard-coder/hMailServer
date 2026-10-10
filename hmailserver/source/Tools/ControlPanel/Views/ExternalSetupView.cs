@@ -236,7 +236,12 @@ namespace hMailServer.ControlPanel.Views
          // The next step is the first item, in the checklist's own order, that
          // needs action: the order is the one a new installation meets them in
          // (docs/SetupChecklist.md), so the first open item is the one to do.
-         SetupItem next = checks_.Items.FirstOrDefault(i => i.State == SetupItemState.ActionNeeded);
+         // While values could not be read there is none, on the tally or on a card:
+         // the item it would be is the first of those that could be told, not the
+         // first that needs doing, and the card kept its Next step pill and the
+         // page's primary button after the tally stopped naming it (F040).
+         bool partial = checks_.FailedReads > 0;
+         SetupItem next = partial ? null : checks_.Items.FirstOrDefault(i => i.State == SetupItemState.ActionNeeded);
 
          nextCard_ = null;
          nextLink_ = null;
@@ -269,12 +274,9 @@ namespace hMailServer.ControlPanel.Views
          // cannot be checked from here. 4 items are not needed.", where one sentence
          // said "4 need action, 7 cannot be told from here, 0 done, 4 not needed"
          // (review finding F034). While values could not be read, the tally says
-         // first that it counts only what could be, and names no next step: the step
-         // it would name is the first of the items that could be told, not the first
-         // that needs doing (F040).
-         bool partial = checks_.FailedReads > 0;
+         // first that it counts only what could be, and names no next step (above).
          summary_.Text = Sentences(partial ? L("Only what could be read is counted.") : null,
-            SetupTally.Tally(action, unknown, done, unused, partial ? null : next?.Title));
+            SetupTally.Tally(action, unknown, done, unused, next?.Title));
          summary_.Visibility = Visibility.Visible;
 
          // Two sentences; each is whole in the catalogue.

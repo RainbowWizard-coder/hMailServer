@@ -14,8 +14,8 @@ namespace hMailServer.ControlPanel.Tests.Services
    /// policy hosting..." first, a tally counted from values that could not be read,
    /// and the notice that said so came after it and spoke of "the items above" while
    /// it sat above them. The notice is first, says the cards below may be incomplete
-   /// with its reason last, and the tally says it counts what could be read and
-   /// names no next step while reads fail.
+   /// with its reason last, and the tally says it counts what could be read; and
+   /// while reads fail neither the tally nor a card names a next step.
    ///
    /// Scanned rather than rendered: this assembly has no WPF.
    /// </summary>
@@ -49,9 +49,36 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          // A sentence of its own before the tally while values could not be read, and
          // the next step only while every value was.
-         Assert.Contains("bool partial = checks_.FailedReads > 0;", render, StringComparison.Ordinal);
          Assert.Contains("summary_.Text = Sentences(partial ? L(\"Only what could be read is counted.\") : null,", render, StringComparison.Ordinal);
-         Assert.Contains("next != null && !partial ? F(\"Next step: {0}.\", next.Title) : null);", render, StringComparison.Ordinal);
+         Assert.Contains("next != null ? F(\"Next step: {0}.\", next.Title) : null);", render, StringComparison.Ordinal);
+      }
+
+      [Fact]
+      public void WhileReadsFail_NoCardIsTheNextStep()
+      {
+         // The tally named no next step while values could not be read, and the first
+         // card that needed action kept its Next step pill, the page's primary button
+         // and "Next step." in its name: the step is withheld where it is chosen, before
+         // the cards are drawn, so that neither can name it.
+         string render = WithheldRowTests.MemberText(Source(), "private void RenderItems(string dnsNote)");
+         Assert.True(render != null, "ExternalSetupView.RenderItems is gone.");
+
+         int partial = render.IndexOf("bool partial = checks_.FailedReads > 0;", StringComparison.Ordinal);
+         int next = render.IndexOf("SetupItem next = partial ? null : checks_.Items.FirstOrDefault(i => i.State == SetupItemState.ActionNeeded);", StringComparison.Ordinal);
+         int cards = render.IndexOf("body_.Children.Add(ItemCard(item, ++number, ReferenceEquals(item, next)));", StringComparison.Ordinal);
+         Assert.True(partial >= 0, "RenderItems no longer asks whether values could not be read.");
+         Assert.True(next > partial, "The next step is chosen without asking whether values could not be read, or before it is asked.");
+         Assert.True(cards > next, "The cards are drawn before the next step is chosen, or no longer told which card it is.");
+         Assert.Equal(1, CountOf(render, "SetupItem next ="));
+         Assert.DoesNotContain("!partial", render, StringComparison.Ordinal);
+      }
+
+      private static int CountOf(string text, string part)
+      {
+         int count = 0;
+         for (int at = text.IndexOf(part, StringComparison.Ordinal); at >= 0; at = text.IndexOf(part, at + part.Length, StringComparison.Ordinal))
+            count++;
+         return count;
       }
 
       private static string Source()
