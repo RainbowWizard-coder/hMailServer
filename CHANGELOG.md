@@ -2201,8 +2201,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   checked yet" points at the daily check below it rather than at API & monitoring. API & monitoring names the page
   under On other pages (review finding F272).
 
-- **Fixed: settings filed under pages whose names do not describe them could not be found from those pages' names,
-  and two aliases sent the reader to the wrong page.** Logging holds the alerts, outbound webhooks and SNMP; API &
+- **Fixed: settings filed under pages whose names do not describe them could not be found from those pages' names, and
+  two aliases sent the reader to the wrong page.** Logging holds the alerts, outbound webhooks and SNMP; API &
   monitoring the Windows Event Log, the ManageSieve listener and the graceful shutdown, while its Webhooks alias
   outranked the real webhook settings and the Sieve alias sent the reader to the Rules page; Auto-ban holds the
   countries and the compromised accounts, Advanced the IPv6 delivery, the disk space, the migrations and the PST
@@ -2214,9 +2214,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Auto-ban, PST import and Migrations open Advanced, PROXY protocol and XCLIENT open Server limits & expert settings.
   The palette has the tasks "block mail from a country", "import a pst file", "send an alert to another system" and
   "put a proxy in front of the server". Delivery of e-mail's Rules tab says that it limits what every rule may do and
-  opens the Rules page, the Rules page signposts Delivery of e-mail, and Incoming relays signposts Server limits &
-  expert settings. The cards themselves stay where they are: moving them to the pages named for them is the owner's
-  to decide with the new groups (review finding F273).
+  opens the Rules page, the Rules page and Delivery of e-mail signpost each other among the three related pages the
+  breadcrumb bar shows, and Incoming relays signposts Server limits & expert settings. The cards themselves stay where
+  they are: moving them to the pages named for them is the owner's to decide with the new groups (review finding
+  F273).
 
 - **Fixed: a setting found by the Control Panel's Ctrl+K palette opened its page on the first tab, with nothing
   marked.** The settings index carried a setting's label, key and page and nothing of where on the page it was, so

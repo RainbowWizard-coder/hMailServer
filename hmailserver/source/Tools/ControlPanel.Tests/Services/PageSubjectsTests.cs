@@ -116,9 +116,12 @@ namespace hMailServer.ControlPanel.Tests.Services
       [Fact]
       public void ThePagesASubjectIsLookedForOnLinkToIt()
       {
-         Assert.Contains("delivery", NavigationMap.Find("rules").SeeAlso);
-         Assert.Contains("rules", NavigationMap.Find("delivery").SeeAlso);
-         Assert.Contains("hardening", NavigationMap.Find("relays").SeeAlso);
+         // Among the first three, which are what the breadcrumb's Related bar draws
+         // (MainWindow.UpdateBreadcrumb): Delivery of e-mail's link to Rules was its
+         // fourth and was never drawn.
+         Assert.Contains("delivery", NavigationMap.Find("rules").SeeAlso.Take(3));
+         Assert.Contains("rules", NavigationMap.Find("delivery").SeeAlso.Take(3));
+         Assert.Contains("hardening", NavigationMap.Find("relays").SeeAlso.Take(3));
 
          string server = ReadControlPanelFile(Path.Join("Views", "ServerSettingsView.xaml.cs"));
          int loopLimit = server.IndexOf("Path = \"RuleLoopLimit\"", StringComparison.Ordinal);
