@@ -810,6 +810,9 @@
   <data name="A_ction" xml:space="preserve">
     <value>A_ktion</value>
   </data>
+  <data name="A_dd address…" xml:space="preserve">
+    <value>A_dresse hinzufügen…</value>
+  </data>
   <data name="A_ddress" xml:space="preserve">
     <value>_Adresse</value>
   </data>
@@ -9524,7 +9527,7 @@ Führen Sie dies aus, wenn Clients melden, dass Nachrichten unter der falschen U
     <value>So viele vorherige Passwörter merken (0 = keine Historie)</value>
   </data>
   <data name="Remo_ve address" xml:space="preserve">
-    <value>Adresse _entfernen</value>
+    <value>Adresse en_tfernen</value>
   </data>
   <data name="Remo_ve the photo" xml:space="preserve">
     <value>F_oto entfernen</value>
@@ -14667,9 +14670,6 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="_Add address" xml:space="preserve">
     <value>Adresse _hinzufügen</value>
-  </data>
-  <data name="_Add address…" xml:space="preserve">
-    <value>Adresse _hinzufügen…</value>
   </data>
   <data name="_Add anyway" xml:space="preserve">
     <value>_Trotzdem hinzufügen</value>

@@ -31,7 +31,8 @@ What is checked
     restore page needs it: its five cards hold more captions than there are
     letters.
   * Code-built views and dialogs: every Button/CheckBox/RadioButton initialised
-    with a literal Content, every MakeButton("..."), every Label("...", editor)
+    with a literal Content, every MakeButton("...") or MakeButton_("..."), every
+    Label("...", editor)
     and Labelled*_("...", editor) caption, every FieldRow initialised with a
     literal Label and every caption a field helper puts on a FieldRow
     (DialogFields.Field, FormField_, Captioned), and every "<something>.Content
@@ -42,6 +43,18 @@ What is checked
     collide with any method's keys. A caption the code behind a XAML page
     sets on one of the page's named buttons - the server status page's Pause
     and Resume - joins the XAML page's scope, where it is on screen.
+  * A row of a settings page that is a class of its own - Banned now and the
+    two never-ban tables on the Auto-ban tab, each a class nested in
+    ServerSettingsView (Views/ServerSettingsView.BannedNow.cs and its
+    neighbours) - is scoped by its class, as any class is, and is drawn on
+    the tab its card is placed on (card.Settings.Add(new Rows ...), then
+    Tab("...").Cards.Add(card)), under the page's header. Its captions are
+    copied into one scope per tab, with every other such row on that tab and,
+    on a XAML page, the captions of the page's own XAML (the header's Reload
+    and Save changes, over every tab), so that two rows on one tab, or a row
+    and the header, cannot share a key: the Auto-ban tab's Add address... and
+    Add name... were both Alt+A, and in Russian Lift ban was Save changes'
+    Alt+С, each pair never compared while each class was a scope alone.
   * The button a confirmation names - Dialogs.Confirm(text, title, "Re_move")
     - and the fixed answers of Dialogs' own questions (new Choice("_Save", ...)
     for unsaved changes). A confirmation is a window of its own, its button
@@ -376,7 +389,7 @@ def cs_captions(path):
     # Type name = new() { Content = "..." }
     for m in re.finditer(r"\b" + kinds + r"\s+(\w+)\s*=\s*new\s*\(\)\s*\{(?:[^{}]|\{[^{}]*\})*?\bContent\s*=\s*" + LITERAL, src, re.S):
         add(out, m.start(), m.group(2), field=m.group(1), end=m.end())
-    for m in re.finditer(r"\bMakeButton\(\s*" + LITERAL, src):
+    for m in re.finditer(r"\bMakeButton_?\(\s*" + LITERAL, src):
         add(out, m.start(), m.group(1))
     for m in re.finditer(r"\bLabel\(\s*" + LITERAL + r"\s*,\s*\w+\s*\)", src):
         add(out, m.start(), m.group(1), labels=True)
@@ -470,6 +483,63 @@ def placed_captions(own, call, files):
                 seen.add((page, scope))
                 for c in own:
                     out.append(Caption(c.file, c.line, scope, c.raw, scoped_class, page=page, via=via))
+    return out
+
+
+# A settings page's row that is a class of its own, placed on a card by the
+# page's code: banned.Settings.Add(new BannedNowRows()), the card then placed on
+# a tab with Tab(L("Auto-ban")).Cards.Add(banned).
+ROW_PLACEMENT = r"\b(\w+)\.Settings\.Add\(\s*new\s+(\w+)\b"
+
+
+def row_captions(captions, files):
+    """The captions of a settings page's row classes, copied onto the tab each is
+    placed on: into one scope per tab of the placing method - the tab whose
+    Tab("...").Cards.Add(card) takes the card the row is added to - with the
+    captions of every other row class placed there and, for a XAML page, the
+    captions of the page's own XAML outside any card (its header, on screen over
+    every tab). A row class is a class whose captions are scoped by it, in a file
+    of the page's own (the page's name before the first dot), and is placed by
+    the page's code; one copy per tab, however many times it is placed there."""
+    rows = {}
+    for c in captions:
+        if c.class_name and c.scope == c.class_name and not c.via and c.file.endswith(".cs"):
+            rows.setdefault(c.class_name, []).append(c)
+    out = []
+    seen = set()
+    for path in files:
+        if not path.endswith(".cs"):
+            continue
+        with open(path, encoding="utf-8") as handle:
+            src = handle.read()
+        classes = body_ranges(src, CLASS)
+        methods = body_ranges(src, METHOD)
+        family = os.path.basename(path).split(".")[0]
+        header = []
+        if path.endswith(".xaml.cs") and os.path.exists(path[:-3]):
+            xaml = path[:-3]
+            header = [c for c in captions if c.file == xaml and c.scope == os.path.basename(xaml) and not c.via]
+        for m in re.finditer(ROW_PLACEMENT, src):
+            card, name = m.group(1), m.group(2)
+            own = [c for c in rows.get(name, []) if os.path.basename(c.file).split(".")[0] == family]
+            cls = innermost(classes, m.start())
+            method = innermost(methods, m.start())
+            if not own or not cls or not method or cls[0] == name:
+                continue
+            tab = re.search(r"\bTab\(\s*" + LITERAL + r"\s*\)\.Cards\.Add\(\s*" + re.escape(card) + r"\s*\)",
+                            src[method[1]:method[2]])
+            scope = f"{method[0]}, tab {unescape_cs(tab.group(1)) if tab else card}"
+            placed_by = f"{os.path.basename(path)}:{line_of(src, m.start())} Settings.Add(new {name})"
+            if (path, scope) not in seen:
+                seen.add((path, scope))
+                for c in header:
+                    out.append(Caption(c.file, c.line, scope, c.raw, cls[0], page=path,
+                                       via=(c.file, c.line, f"the page's header, over {scope}")))
+            if (path, scope, name) in seen:
+                continue
+            seen.add((path, scope, name))
+            for c in own:
+                out.append(Caption(c.file, c.line, scope, c.raw, cls[0], page=path, via=(c.file, c.line, placed_by)))
     return out
 
 
@@ -659,7 +729,7 @@ def self_test():
     Control Panel shipped (review findings F071 and F287): a field's caption with
     no key, a caption set in code on a XAML page's button, a dialog tab's key that
     is the Save button's under every tab, a verb with two keys, and the cards of a
-    page that answer their own keys."""
+    page that answer their own keys, and the row classes of a settings tab."""
     import tempfile
     failures = 0
 
@@ -750,6 +820,51 @@ def self_test():
         expect("a read-only row's Zero-access mailbox", [p for p in read_only_problems(rows) if "Zero-access" in p], False)
         expect("a read-only row as a field with no key", [c for c in cs_captions(account) if c.key is None], False)
 
+        # A settings page's row classes are on the tab their cards are placed on, under
+        # the page's header: Add address... and Add name... on one tab collide, and a
+        # row's key may not be the header's (the Auto-ban tab, review finding F231).
+        def settings(tag, address, lift, second_tab):
+            folder = os.path.join(root, tag)
+            os.mkdir(folder)
+            with open(os.path.join(folder, "SettingsView.xaml"), "w", encoding="utf-8") as handle:
+                handle.write(head.format("") + '<ui:Button Content="{loc:L \'_Reload\'}" />\n'
+                             '<ui:Button Content="{loc:L \'_Save changes\'}" />\n</UserControl>\n')
+            with open(os.path.join(folder, "SettingsView.xaml.cs"), "w", encoding="utf-8") as handle:
+                handle.write("namespace T\n{\n   public partial class SettingsView\n   {\n"
+                             "      public SettingsView()\n      {\n         tabs.Items.Add(new TabItem());\n      }\n\n"
+                             "      private void BuildAutoBan()\n      {\n"
+                             "         var banned = Card(L(\"Banned now\"));\n"
+                             "         banned.Settings.Add(new BannedRows());\n"
+                             "         Tab(L(\"Auto-ban\")).Cards.Add(banned);\n"
+                             "         var byName = Card(L(\"By name\"));\n"
+                             "         byName.Settings.Add(new NameRows { Path = \"Names\" });\n"
+                             f"         Tab(L(\"{second_tab}\")).Cards.Add(byName);\n      }}\n   }}\n}}\n")
+            with open(os.path.join(folder, "SettingsView.Rows.cs"), "w", encoding="utf-8") as handle:
+                handle.write("namespace T\n{\n   public partial class SettingsView\n   {\n"
+                             "      private sealed class BannedRows : ComSetting\n      {\n"
+                             "         protected override FrameworkElement BuildEditor(object value)\n         {\n"
+                             f"            var lift = new Wpf.Ui.Controls.Button {{ Content = L(\"{lift}\") }};\n"
+                             f"            add_ = MakeButton_(L(\"{address}\"), \"add\");\n"
+                             "            return null;\n         }\n      }\n\n"
+                             "      private sealed class NameRows : ComSetting\n      {\n"
+                             "         protected override FrameworkElement BuildEditor(object value)\n         {\n"
+                             "            var add = MakeButton(L(\"_Add name…\"), Appearance.Secondary, \"add-name\");\n"
+                             "            return null;\n         }\n      }\n   }\n}\n")
+            found = [os.path.join(folder, f) for f in sorted(os.listdir(folder))]
+            caps = []
+            for path in found:
+                caps += xaml_captions(path) if path.endswith(".xaml") else cs_captions(path)
+            return caps, collisions(caps + row_captions(caps, found))
+
+        caps, problems = settings("one", "_Add address…", "_Lift ban", "Auto-ban")
+        expect("a row's MakeButton_ caption is read", [c for c in caps if c.text == "Add address…"], True)
+        expect("_Add address… and _Add name… on one tab", [p for p in problems if "Add name" in p], True)
+        expect("_Add address… and _Add name… on two tabs", settings("two", "_Add address…", "_Lift ban", "By name")[1], False)
+        expect("a row's _Save ban under the header's _Save changes",
+               [p for p in settings("header", "A_dd address…", "_Save ban", "Auto-ban")[1] if "Save ban" in p], True)
+        expect("A_dd address…, _Lift ban, _Add name… and the header on one tab",
+               settings("fixed", "A_dd address…", "_Lift ban", "Auto-ban")[1], False)
+
     print("self-test: " + ("FAIL" if failures else "OK"))
     return 1 if failures else 0
 
@@ -781,6 +896,8 @@ def main():
         placed += placed_captions(own, call, files)
     # The window's bars: on screen with every page the window shows.
     placed += bar_captions(files)
+    # A settings page's row classes: on the tab their card is placed on, under the header.
+    placed += row_captions(all_captions, files)
     # coverage
     for c in all_captions:
         if c.text in EXEMPT:

@@ -810,6 +810,9 @@
   <data name="A_ction" xml:space="preserve">
     <value>Acc_ión</value>
   </data>
+  <data name="A_dd address…" xml:space="preserve">
+    <value>Añadir _dirección…</value>
+  </data>
   <data name="A_ddress" xml:space="preserve">
     <value>_Dirección</value>
   </data>
@@ -9524,7 +9527,7 @@ Ejecute esto si los clientes informan de mensajes que aparecen con un UID equivo
     <value>Recordar este número de contraseñas anteriores (0 = sin historial)</value>
   </data>
   <data name="Remo_ve address" xml:space="preserve">
-    <value>_Quitar dirección</value>
+    <value>Q_uitar dirección</value>
   </data>
   <data name="Remo_ve the photo" xml:space="preserve">
     <value>_Quitar la foto</value>
@@ -14667,9 +14670,6 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="_Add address" xml:space="preserve">
     <value>_Añadir dirección</value>
-  </data>
-  <data name="_Add address…" xml:space="preserve">
-    <value>_Añadir dirección…</value>
   </data>
   <data name="_Add anyway" xml:space="preserve">
     <value>_Añadir de todos modos</value>

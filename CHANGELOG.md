@@ -2879,8 +2879,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   with a warning that names every entry the server ignores - and Add address... and Remove address, which read the
   list again and write it at once. The Add dialog takes an address or a CIDR block as the server reads one - four
   decimal parts with no leading zero, a prefix no longer than the address - and says under its box an entry it would
-  not read or one listed already; Remove asks first. `NeverBanAddressListTests` holds the server's reading of an
-  entry, what each row covers, the refusals and the page's row.
+  not read or one listed already; Remove asks first. Every button of the Auto-ban tab - Banned now's, the two
+  tables' and the page's Reload and Save changes - has an Alt key of its own in English and in each of the
+  seventeen languages, Add address... Alt+D beside Add name...'s Alt+A, which `build/check-mnemonics.py` now holds
+  on every tab where a settings page places a row of its own. `NeverBanAddressListTests` holds the server's reading
+  of an entry, what each row covers, the refusals and the page's row, and `AccessKeysTests` the tab's keys.
 
 ### Administration
 

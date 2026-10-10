@@ -810,6 +810,9 @@
   <data name="A_ction" xml:space="preserve">
     <value>Ac_tion</value>
   </data>
+  <data name="A_dd address…" xml:space="preserve">
+    <value>Ajouter une a_dresse…</value>
+  </data>
   <data name="A_ddress" xml:space="preserve">
     <value>A_dresse</value>
   </data>
@@ -9524,7 +9527,7 @@ Exécutez ceci si des clients signalent des messages apparaissant sous le mauvai
     <value>Mémoriser ce nombre de mots de passe précédents (0 = pas d'historique)</value>
   </data>
   <data name="Remo_ve address" xml:space="preserve">
-    <value>Re_tirer l'adresse</value>
+    <value>Ret_irer l'adresse</value>
   </data>
   <data name="Remo_ve the photo" xml:space="preserve">
     <value>S_upprimer la photo</value>
@@ -14667,9 +14670,6 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="_Add address" xml:space="preserve">
     <value>_Ajouter l'adresse</value>
-  </data>
-  <data name="_Add address…" xml:space="preserve">
-    <value>_Ajouter une adresse…</value>
   </data>
   <data name="_Add anyway" xml:space="preserve">
     <value>_Ajouter quand même</value>

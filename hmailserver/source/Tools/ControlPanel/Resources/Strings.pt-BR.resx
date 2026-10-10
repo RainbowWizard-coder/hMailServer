@@ -810,6 +810,9 @@
   <data name="A_ction" xml:space="preserve">
     <value>_Ação</value>
   </data>
+  <data name="A_dd address…" xml:space="preserve">
+    <value>Adicionar _endereço…</value>
+  </data>
   <data name="A_ddress" xml:space="preserve">
     <value>_Endereço</value>
   </data>
@@ -9524,7 +9527,7 @@ Execute isto se os clientes relatarem mensagens aparecendo com o UID errado, ou 
     <value>Lembrar esta quantidade de senhas anteriores (0 = sem histórico)</value>
   </data>
   <data name="Remo_ve address" xml:space="preserve">
-    <value>Re_mover endereço</value>
+    <value>Rem_over endereço</value>
   </data>
   <data name="Remo_ve the photo" xml:space="preserve">
     <value>Re_mover a foto</value>
@@ -14668,9 +14671,6 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="_Add address" xml:space="preserve">
     <value>Ad_icionar endereço</value>
   </data>
-  <data name="_Add address…" xml:space="preserve">
-    <value>_Adicionar endereço…</value>
-  </data>
   <data name="_Add anyway" xml:space="preserve">
     <value>_Adicionar mesmo assim</value>
   </data>
@@ -15038,7 +15038,7 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
     <value>_Mais tarde</value>
   </data>
   <data name="_Lift ban" xml:space="preserve">
-    <value>_Remover banimento</value>
+    <value>Remover _banimento</value>
   </data>
   <data name="_Limit number of accounts" xml:space="preserve">
     <value>_Limitar o número de contas</value>

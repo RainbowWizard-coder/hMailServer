@@ -810,6 +810,9 @@
   <data name="A_ction" xml:space="preserve">
     <value>Å_tgärd</value>
   </data>
+  <data name="A_dd address…" xml:space="preserve">
+    <value>Lägg till _adress…</value>
+  </data>
   <data name="A_ddress" xml:space="preserve">
     <value>_Adress</value>
   </data>
@@ -9524,7 +9527,7 @@ Kör detta om klienter rapporterar meddelanden som dyker upp under fel UID, elle
     <value>Kom ihåg så här många tidigare lösenord (0 = ingen historik)</value>
   </data>
   <data name="Remo_ve address" xml:space="preserve">
-    <value>_Ta bort adress</value>
+    <value>Ta _bort adress</value>
   </data>
   <data name="Remo_ve the photo" xml:space="preserve">
     <value>_Ta bort fotot</value>
@@ -14667,9 +14670,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="_Add address" xml:space="preserve">
     <value>_Lägg till adress</value>
-  </data>
-  <data name="_Add address…" xml:space="preserve">
-    <value>_Lägg till adress…</value>
   </data>
   <data name="_Add anyway" xml:space="preserve">
     <value>_Lägg till ändå</value>

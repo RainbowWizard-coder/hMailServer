@@ -810,6 +810,9 @@
   <data name="A_ction" xml:space="preserve">
     <value>A_zione</value>
   </data>
+  <data name="A_dd address…" xml:space="preserve">
+    <value>Aggiungi un in_dirizzo…</value>
+  </data>
   <data name="A_ddress" xml:space="preserve">
     <value>_Indirizzo</value>
   </data>
@@ -9524,7 +9527,7 @@ Esegui questa operazione se i client segnalano messaggi che compaiono con l'UID 
     <value>Ricorda questo numero di password precedenti (0 = nessuno storico)</value>
   </data>
   <data name="Remo_ve address" xml:space="preserve">
-    <value>R_imuovi l'indirizzo</value>
+    <value>Ri_muovi l'indirizzo</value>
   </data>
   <data name="Remo_ve the photo" xml:space="preserve">
     <value>R_imuovi la foto</value>
@@ -14668,9 +14671,6 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="_Add address" xml:space="preserve">
     <value>A_ggiungi indirizzo</value>
   </data>
-  <data name="_Add address…" xml:space="preserve">
-    <value>_Aggiungi un indirizzo…</value>
-  </data>
   <data name="_Add anyway" xml:space="preserve">
     <value>_Aggiungi comunque</value>
   </data>
@@ -15038,7 +15038,7 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
     <value>_Più tardi</value>
   </data>
   <data name="_Lift ban" xml:space="preserve">
-    <value>Re_voca ban</value>
+    <value>Revoca _ban</value>
   </data>
   <data name="_Limit number of accounts" xml:space="preserve">
     <value>_Limita il numero di account</value>

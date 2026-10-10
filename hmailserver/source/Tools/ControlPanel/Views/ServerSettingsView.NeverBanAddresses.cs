@@ -77,7 +77,7 @@ namespace hMailServer.ControlPanel.Views
                Visibility = Visibility.Collapsed
             };
 
-            add_ = MakeButton_(L("_Add address…"), "never-ban-address-add");
+            add_ = MakeButton_(L("A_dd address…"), "never-ban-address-add");
             add_.Click += (_, _) => Add_();
 
             remove_ = MakeButton_(L("Remo_ve address"), "never-ban-address-remove");

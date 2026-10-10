@@ -816,6 +816,9 @@
   <data name="A_ction" xml:space="preserve">
     <value>Ді_я</value>
   </data>
+  <data name="A_dd address…" xml:space="preserve">
+    <value>Додати _адресу…</value>
+  </data>
   <data name="A_ddress" xml:space="preserve">
     <value>_Адреса</value>
   </data>
@@ -9630,7 +9633,7 @@
     <value>Пам’ятати стільки попередніх паролів (0 = без історії)</value>
   </data>
   <data name="Remo_ve address" xml:space="preserve">
-    <value>_Вилучити адресу</value>
+    <value>Ви_лучити адресу</value>
   </data>
   <data name="Remo_ve the photo" xml:space="preserve">
     <value>Видалити фотографію (_H)</value>
@@ -14848,9 +14851,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Add address" xml:space="preserve">
     <value>Д_одати адресу</value>
-  </data>
-  <data name="_Add address…" xml:space="preserve">
-    <value>_Додати адресу…</value>
   </data>
   <data name="_Add anyway" xml:space="preserve">
     <value>_Усе одно додати</value>

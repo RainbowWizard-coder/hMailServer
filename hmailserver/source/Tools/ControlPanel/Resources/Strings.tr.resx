@@ -810,6 +810,9 @@
   <data name="A_ction" xml:space="preserve">
     <value>E_ylem</value>
   </data>
+  <data name="A_dd address…" xml:space="preserve">
+    <value>Adres _ekle…</value>
+  </data>
   <data name="A_ddress" xml:space="preserve">
     <value>_Adres</value>
   </data>
@@ -9524,7 +9527,7 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
     <value>Bu kadar önceki parolayı hatırla (0 = geçmiş yok)</value>
   </data>
   <data name="Remo_ve address" xml:space="preserve">
-    <value>Adresi ka_ldır</value>
+    <value>A_dresi kaldır</value>
   </data>
   <data name="Remo_ve the photo" xml:space="preserve">
     <value>_Fotoğrafı kaldır</value>
@@ -14668,9 +14671,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="_Add address" xml:space="preserve">
     <value>Adres ek_le</value>
   </data>
-  <data name="_Add address…" xml:space="preserve">
-    <value>_Adres ekle…</value>
-  </data>
   <data name="_Add anyway" xml:space="preserve">
     <value>Yine de _ekle</value>
   </data>
@@ -15038,7 +15038,7 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
     <value>_Sonra</value>
   </data>
   <data name="_Lift ban" xml:space="preserve">
-    <value>Yasağı _kaldır</value>
+    <value>Ya_sağı kaldır</value>
   </data>
   <data name="_Limit number of accounts" xml:space="preserve">
     <value>Hesap sayısını _sınırla</value>

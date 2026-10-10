@@ -810,6 +810,9 @@
   <data name="A_ction" xml:space="preserve">
     <value>_Handling</value>
   </data>
+  <data name="A_dd address…" xml:space="preserve">
+    <value>Legg til _adresse…</value>
+  </data>
   <data name="A_ddress" xml:space="preserve">
     <value>_Adresse</value>
   </data>
@@ -9524,7 +9527,7 @@ Kjør dette hvis klienter melder om meldinger som dukker opp under feil UID, ell
     <value>Husk så mange tidligere passord (0 = ingen historikk)</value>
   </data>
   <data name="Remo_ve address" xml:space="preserve">
-    <value>_Fjern adresse</value>
+    <value>Fjern a_dresse</value>
   </data>
   <data name="Remo_ve the photo" xml:space="preserve">
     <value>_Fjern bildet</value>
@@ -14667,9 +14670,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="_Add address" xml:space="preserve">
     <value>Legg til _adresse</value>
-  </data>
-  <data name="_Add address…" xml:space="preserve">
-    <value>Legg til _adresse…</value>
   </data>
   <data name="_Add anyway" xml:space="preserve">
     <value>_Legg til likevel</value>

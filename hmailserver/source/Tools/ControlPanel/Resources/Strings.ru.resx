@@ -816,6 +816,9 @@
   <data name="A_ction" xml:space="preserve">
     <value>Де_йствие</value>
   </data>
+  <data name="A_dd address…" xml:space="preserve">
+    <value>Добавить _адрес…</value>
+  </data>
   <data name="A_ddress" xml:space="preserve">
     <value>_Адрес</value>
   </data>
@@ -9630,7 +9633,7 @@ Control Panel может читать файлы сообщений только
     <value>Запоминать столько предыдущих паролей (0 — без истории)</value>
   </data>
   <data name="Remo_ve address" xml:space="preserve">
-    <value>_Удалить адрес</value>
+    <value>Уда_лить адрес</value>
   </data>
   <data name="Remo_ve the photo" xml:space="preserve">
     <value>Удалить фотографию (_H)</value>
@@ -14849,9 +14852,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Add address" xml:space="preserve">
     <value>Д_обавить адрес</value>
   </data>
-  <data name="_Add address…" xml:space="preserve">
-    <value>_Добавить адрес…</value>
-  </data>
   <data name="_Add anyway" xml:space="preserve">
     <value>_Всё равно добавить</value>
   </data>
@@ -15219,7 +15219,7 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
     <value>По_зже</value>
   </data>
   <data name="_Lift ban" xml:space="preserve">
-    <value>_Снять блокировку</value>
+    <value>Снять _блокировку</value>
   </data>
   <data name="_Limit number of accounts" xml:space="preserve">
     <value>_Ограничить число учётных записей</value>

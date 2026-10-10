@@ -816,6 +816,9 @@
   <data name="A_ction" xml:space="preserve">
     <value>Dzi_ałanie</value>
   </data>
+  <data name="A_dd address…" xml:space="preserve">
+    <value>D_odaj adres…</value>
+  </data>
   <data name="A_ddress" xml:space="preserve">
     <value>_Adres</value>
   </data>
@@ -9630,7 +9633,7 @@ Warto to uruchomić, gdy klienty zgłaszają wiadomości pojawiające się pod n
     <value>Zapamiętuj tyle poprzednich haseł (0 = brak historii)</value>
   </data>
   <data name="Remo_ve address" xml:space="preserve">
-    <value>_Usuń adres</value>
+    <value>Usuń ad_res</value>
   </data>
   <data name="Remo_ve the photo" xml:space="preserve">
     <value>_Usuń zdjęcie</value>
@@ -14848,9 +14851,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="_Add address" xml:space="preserve">
     <value>D_odaj adres</value>
-  </data>
-  <data name="_Add address…" xml:space="preserve">
-    <value>_Dodaj adres…</value>
   </data>
   <data name="_Add anyway" xml:space="preserve">
     <value>_Dodaj mimo to</value>

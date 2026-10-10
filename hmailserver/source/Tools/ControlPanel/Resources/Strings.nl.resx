@@ -810,6 +810,9 @@
   <data name="A_ction" xml:space="preserve">
     <value>_Actie</value>
   </data>
+  <data name="A_dd address…" xml:space="preserve">
+    <value>Adres _toevoegen…</value>
+  </data>
   <data name="A_ddress" xml:space="preserve">
     <value>_Adres</value>
   </data>
@@ -9524,7 +9527,7 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
     <value>Dit aantal vorige wachtwoorden onthouden (0 = geen geschiedenis)</value>
   </data>
   <data name="Remo_ve address" xml:space="preserve">
-    <value>Adres ve_rwijderen</value>
+    <value>A_dres verwijderen</value>
   </data>
   <data name="Remo_ve the photo" xml:space="preserve">
     <value>_De foto verwijderen</value>
@@ -14668,9 +14671,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_Add address" xml:space="preserve">
     <value>Adres toe_voegen</value>
   </data>
-  <data name="_Add address…" xml:space="preserve">
-    <value>_Adres toevoegen…</value>
-  </data>
   <data name="_Add anyway" xml:space="preserve">
     <value>_Toch toevoegen</value>
   </data>
@@ -15038,7 +15038,7 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
     <value>_Later</value>
   </data>
   <data name="_Lift ban" xml:space="preserve">
-    <value>Verbanning _opheffen</value>
+    <value>_Verbanning opheffen</value>
   </data>
   <data name="_Limit number of accounts" xml:space="preserve">
     <value>_Aantal accounts beperken</value>

@@ -3,8 +3,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using Xunit;
 
 namespace hMailServer.ControlPanel.Tests.Services
@@ -129,9 +132,105 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("if c.text in EXEMPT or c.key is None or c.via or c.field:", checker, StringComparison.Ordinal);
          // Cards that answer their own keys.
          Assert.Contains(@"AccessKeyScope\.ByCard=""True""", checker, StringComparison.Ordinal);
+         // A settings page's row classes on the tab their card is placed on, with the
+         // page's header; and a row's MakeButton_ caption is read.
+         Assert.Contains("def row_captions(captions, files):", checker, StringComparison.Ordinal);
+         Assert.Contains("placed += row_captions(all_captions, files)", checker, StringComparison.Ordinal);
+         Assert.Contains(@"\bMakeButton_?\(\s*", checker, StringComparison.Ordinal);
          // And its negative controls.
          Assert.Contains("def self_test():", checker, StringComparison.Ordinal);
          Assert.Contains("localisation mnemonics mysql-charset", ReadRepositoryFile(".gitlab-ci.yml"), StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// The Auto-ban tab draws Banned now, the never-ban table by address and the
+      /// never-ban table by reverse name - three classes of ServerSettingsView's own -
+      /// at once, under the page header's Reload and Save changes, so no two of their
+      /// buttons may share an Alt key in English or in any catalogue: WPF, given two
+      /// targets for one key, moves the focus between them and presses neither. Add
+      /// address... took Add name...'s Alt+A, and in every language one of Lift ban,
+      /// Add address... and Remove address met a key already on the tab - in Russian
+      /// Lift ban was Save changes' Alt+С, in Brazilian Portuguese Reload's Alt+R - while
+      /// build/check-mnemonics.py gave each class a scope of its own (review finding
+      /// F231). The checker now holds every settings tab to it (row_captions); this
+      /// holds the tab it was found on, read from the source as the page builds it.
+      /// </summary>
+      [Fact]
+      public void TheAutoBanTabsButtons_ShareNoAccessKey_InEnglishOrAnyCatalogue()
+      {
+         var captions = new List<string>();
+         captions.AddRange(Regex.Matches(ReadView("ServerSettingsView.xaml"), @"<ui:Button\b[^>]*?\bContent=""\{loc:L '([^']*_[^']*)'\}""")
+            .Select(m => m.Groups[1].Value));
+         foreach ((string file, string rows) in new[]
+         {
+            ("ServerSettingsView.BannedNow.cs", "BannedNowRows"),
+            ("ServerSettingsView.NeverBanAddresses.cs", "NeverBanAddressRows"),
+            ("ServerSettingsView.NeverBanNames.cs", "NeverBanNameRows")
+         })
+         {
+            // The row class alone: the add dialogs that follow it in its file are
+            // windows of their own, as is the question a Remove asks.
+            string source = ReadView(file);
+            int start = source.IndexOf("private sealed class " + rows + " ", StringComparison.Ordinal);
+            Assert.True(start >= 0, file + " has no class " + rows + ".");
+            int end = source.IndexOf("\n      private static class ", start, StringComparison.Ordinal);
+            string body = end < 0 ? source.Substring(start) : source.Substring(start, end - start);
+            captions.AddRange(Regex.Matches(body, @"(?:\bMakeButton_?\(|\bContent = )L\(""([^""]*_[^""]*)""\)")
+               .Select(m => m.Groups[1].Value));
+         }
+
+         // Every button of the tab is read, so that the scan cannot go blind.
+         Assert.Equal(new[] { "_Reload", "_Save changes", "_Lift ban", "A_dd address…", "Remo_ve address", "_Add name…", "Re_move name", "C_heck an address…" },
+            captions);
+
+         string resources = Path.GetDirectoryName(ConfirmationPatternTests.ControlPanelFile(Path.Join("Resources", "Strings.resx")));
+         var offenders = new List<string>();
+         var languages = new List<(string Tag, Dictionary<string, string> Catalogue)> { ("en", null) };
+         foreach (string path in Directory.EnumerateFiles(resources, "Strings.*.resx"))
+         {
+            languages.Add((Path.GetFileNameWithoutExtension(path).Substring("Strings.".Length),
+               XDocument.Load(path).Root.Elements("data")
+                  .ToDictionary(d => (string)d.Attribute("name"), d => (string)d.Element("value") ?? "", StringComparer.Ordinal)));
+         }
+
+         Assert.Equal(18, languages.Count);
+         foreach ((string tag, Dictionary<string, string> catalogue) in languages)
+         {
+            // A text the catalogue leaves empty is shown in English.
+            var shown = captions.Select(c => catalogue != null && catalogue.TryGetValue(c, out string text) && text.Length > 0 ? text : c).ToList();
+            foreach (IGrouping<char?, string> shared in shown.GroupBy(AccessKeyOf_).Where(g => g.Key == null || g.Count() > 1))
+            {
+               offenders.Add(tag + ": " + (shared.Key == null
+                  ? "no Alt key in " + string.Join(", ", shared.Select(s => "\"" + s + "\""))
+                  : "Alt+" + shared.Key + " on " + string.Join(", ", shared.Select(s => "\"" + s + "\""))));
+            }
+         }
+
+         Assert.True(offenders.Count == 0,
+            "Two buttons of the Auto-ban tab share an Alt key, so that neither key presses its button; choose a letter the tab leaves free:\n" + string.Join("\n", offenders));
+      }
+
+      /// <summary>
+      /// The key a caption's Alt key is, as WPF's AccessText reads it: the character
+      /// after the first underscore that is not doubled, upper-cased as
+      /// AccessKeyManager compares keys; null where there is none.
+      /// </summary>
+      private static char? AccessKeyOf_(string caption)
+      {
+         for (int i = 0; i < caption.Length - 1; i++)
+         {
+            if (caption[i] != '_')
+               continue;
+            if (caption[i + 1] == '_')
+            {
+               i++;
+               continue;
+            }
+
+            return char.ToUpperInvariant(caption[i + 1]);
+         }
+
+         return null;
       }
 
       private static string ReadView(string file)

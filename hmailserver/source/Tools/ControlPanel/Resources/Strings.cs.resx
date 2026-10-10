@@ -816,6 +816,9 @@
   <data name="A_ction" xml:space="preserve">
     <value>_Akce</value>
   </data>
+  <data name="A_dd address…" xml:space="preserve">
+    <value>Přidat _adresu…</value>
+  </data>
   <data name="A_ddress" xml:space="preserve">
     <value>_Adresa</value>
   </data>
@@ -9630,7 +9633,7 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
     <value>Pamatovat si tento počet předchozích hesel (0 = žádná historie)</value>
   </data>
   <data name="Remo_ve address" xml:space="preserve">
-    <value>Odeb_rat adresu</value>
+    <value>_Odebrat adresu</value>
   </data>
   <data name="Remo_ve the photo" xml:space="preserve">
     <value>O_debrat fotografii</value>
@@ -14849,9 +14852,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Add address" xml:space="preserve">
     <value>_Přidat adresu</value>
   </data>
-  <data name="_Add address…" xml:space="preserve">
-    <value>_Přidat adresu…</value>
-  </data>
   <data name="_Add anyway" xml:space="preserve">
     <value>_Přesto přidat</value>
   </data>
@@ -15219,7 +15219,7 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
     <value>Poz_ději</value>
   </data>
   <data name="_Lift ban" xml:space="preserve">
-    <value>_Zrušit ban</value>
+    <value>Zrušit _ban</value>
   </data>
   <data name="_Limit number of accounts" xml:space="preserve">
     <value>_Omezit počet účtů</value>

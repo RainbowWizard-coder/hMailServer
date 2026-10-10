@@ -810,6 +810,9 @@
   <data name="A_ction" xml:space="preserve">
     <value>操作(_C)</value>
   </data>
+  <data name="A_dd address…" xml:space="preserve">
+    <value>添加地址(_D)…</value>
+  </data>
   <data name="A_ddress" xml:space="preserve">
     <value>地址(_D)</value>
   </data>
@@ -14667,9 +14670,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="_Add address" xml:space="preserve">
     <value>添加地址(_A)</value>
-  </data>
-  <data name="_Add address…" xml:space="preserve">
-    <value>添加地址(_A)…</value>
   </data>
   <data name="_Add anyway" xml:space="preserve">
     <value>仍然添加(_A)</value>

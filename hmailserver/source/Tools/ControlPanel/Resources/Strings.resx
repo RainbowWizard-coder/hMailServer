@@ -810,6 +810,9 @@
   <data name="A_ction" xml:space="preserve">
     <value>A_ction</value>
   </data>
+  <data name="A_dd address…" xml:space="preserve">
+    <value>A_dd address…</value>
+  </data>
   <data name="A_ddress" xml:space="preserve">
     <value>A_ddress</value>
   </data>
@@ -14667,9 +14670,6 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="_Add address" xml:space="preserve">
     <value>_Add address</value>
-  </data>
-  <data name="_Add address…" xml:space="preserve">
-    <value>_Add address…</value>
   </data>
   <data name="_Add anyway" xml:space="preserve">
     <value>_Add anyway</value>
