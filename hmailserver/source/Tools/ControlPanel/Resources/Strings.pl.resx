@@ -456,9 +456,6 @@
   <data name="A domain, a mailbox, a listener that offers TLS, and what the dashboard makes of it. Four minutes; leave whenever you like." xml:space="preserve">
     <value>Domena, skrzynka pocztowa, nasłuch oferujący TLS i to, co z tego wynika na Pulpicie. Cztery minuty; można przerwać w dowolnej chwili.</value>
   </data>
-  <data name="A domain, or an account address" xml:space="preserve">
-    <value>Domena lub adres konta</value>
-  </data>
   <data name="A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on." xml:space="preserve">
     <value>Plik przesyłanego typu w wiadomości z zewnątrz jest wysyłany do piaskownicy, którą prowadzisz lub subskrybujesz, a wiadomość czeka – w żadnej skrzynce pocztowej i poza kwarantanną – na jej werdykt: czysta zostaje dostarczona, złośliwa trafia do kwarantanny. Nic nie jest zatrzymywane, dopóki oba adresy nie zostaną ustawione, a ta opcja włączona.</value>
   </data>
@@ -1007,6 +1004,9 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   </data>
   <data name="Add a greylisting exemption" xml:space="preserve">
     <value>Dodaj wyjątek greylistingu</value>
+  </data>
+  <data name="Add a journaling rule" xml:space="preserve">
+    <value>Dodaj regułę dziennikowania</value>
   </data>
   <data name="Add a list entry" xml:space="preserve">
     <value>Dodaj wpis listy</value>
@@ -8231,6 +8231,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Opportunistic" xml:space="preserve">
     <value>Oportunistyczne</value>
   </data>
+  <data name="Optional" xml:space="preserve">
+    <value>Opcjonalnie</value>
+  </data>
   <data name="Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above." xml:space="preserve">
     <value>Opcjonalny inny tekst dla współpracowników - nadawców, których adres należy do tego serwera. Nigdy nie opuszcza serwera, więc może powiedzieć więcej niż wiadomość powyżej. Pusty oznacza wiadomość powyżej.</value>
   </data>
@@ -9824,6 +9827,18 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Routes" xml:space="preserve">
     <value>Trasy</value>
   </data>
+  <data name="Rule for {0} added." xml:space="preserve">
+    <value>Dodano regułę dla {0}.</value>
+  </data>
+  <data name="Rule for {0} removed." xml:space="preserve">
+    <value>Usunięto regułę dla {0}.</value>
+  </data>
+  <data name="Rule for {0} turned off." xml:space="preserve">
+    <value>Wyłączono regułę dla {0}.</value>
+  </data>
+  <data name="Rule for {0} turned on." xml:space="preserve">
+    <value>Włączono regułę dla {0}.</value>
+  </data>
   <data name="Rule loop limit" xml:space="preserve">
     <value>Limit pętli reguł</value>
   </data>
@@ -10063,9 +10078,6 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="S_tay" xml:space="preserve">
     <value>_Pozostań</value>
-  </data>
-  <data name="S_witch the rule over" xml:space="preserve">
-    <value>_Przełącz regułę</value>
   </data>
   <data name="Sa_ve and preview" xml:space="preserve">
     <value>Zapi_sz i wyświetl podgląd</value>
@@ -12806,6 +12818,9 @@ Dodać mimo to?</value>
   <data name="The rotation refused: {0}" xml:space="preserve">
     <value>Rotacja odmówiła: {0}</value>
   </data>
+  <data name="The rule for {0} was not there any more." xml:space="preserve">
+    <value>Reguły dla {0} już nie było.</value>
+  </data>
   <data name="The run did not finish. The rows below say what had already been done before it stopped - read them before running it again." xml:space="preserve">
     <value>Przebieg nie został ukończony. Wiersze poniżej mówią, co zdążyło się wykonać, zanim się zatrzymał - należy je przeczytać przed ponownym uruchomieniem.</value>
   </data>
@@ -13542,6 +13557,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="Try again" xml:space="preserve">
     <value>Spróbuj ponownie</value>
   </data>
+  <data name="Turn _on" xml:space="preserve">
+    <value>W_łącz</value>
+  </data>
   <data name="Turn debug logging off again" xml:space="preserve">
     <value>Wyłącz ponownie dziennik diagnostyczny</value>
   </data>
@@ -14160,9 +14178,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="Where the administrator is told, well before anything is refused. 1024 MB is roughly fifty more maximum-size messages." xml:space="preserve">
     <value>Kiedy administrator jest informowany, na długo zanim cokolwiek zostanie odrzucone. 1024 MB to mniej więcej pięćdziesiąt kolejnych wiadomości maksymalnego rozmiaru.</value>
   </data>
-  <data name="Where the copy goes" xml:space="preserve">
-    <value>Dokąd trafia kopia</value>
-  </data>
   <data name="Where the issued certificate would be written could not be determined, because neither the output folder above nor the server's data folder ([Directories] DataFolder in hMailServer.ini) could be read." xml:space="preserve">
     <value>Nie udało się ustalić, gdzie zostałby zapisany wystawiony certyfikat, bo nie dało się odczytać ani folderu wyjściowego powyżej, ani folderu danych serwera ([Directories] DataFolder w hMailServer.ini).</value>
   </data>
@@ -14309,9 +14324,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="Why" xml:space="preserve">
     <value>Powód</value>
-  </data>
-  <data name="Why (optional)" xml:space="preserve">
-    <value>Dlaczego (opcjonalnie)</value>
   </data>
   <data name="Why it was held" xml:space="preserve">
     <value>Dlaczego została zatrzymana</value>
@@ -15185,6 +15197,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="_To" xml:space="preserve">
     <value>_Do</value>
+  </data>
+  <data name="_Turn off" xml:space="preserve">
+    <value>W_yłącz</value>
   </data>
   <data name="_Turn off the second factor" xml:space="preserve">
     <value>_Wyłącz drugi składnik</value>

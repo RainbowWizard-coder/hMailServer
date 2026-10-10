@@ -453,9 +453,6 @@
   <data name="A domain, a mailbox, a listener that offers TLS, and what the dashboard makes of it. Four minutes; leave whenever you like." xml:space="preserve">
     <value>Bir etki alanı, bir posta kutusu, TLS sunan bir dinleyici ve Pano'nun bunlardan çıkardığı sonuç. Dört dakika; istediğiniz zaman çıkabilirsiniz.</value>
   </data>
-  <data name="A domain, or an account address" xml:space="preserve">
-    <value>Bir alan adı veya hesap adresi</value>
-  </data>
   <data name="A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on." xml:space="preserve">
     <value>Dışarıdan gelen bir iletideki gönderilen türde bir dosya, işlettiğiniz ya da abone olduğunuz bir korumalı alana gönderilir ve ileti hiçbir posta kutusunda ve karantinada olmadan kararını bekler: temiz olan teslim edilir, kötü amaçlı olan karantinaya alınır. Her iki adres ayarlanıp bu açılana kadar hiçbir şey bekletilmez.</value>
   </data>
@@ -1001,6 +998,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   </data>
   <data name="Add a greylisting exemption" xml:space="preserve">
     <value>Greylisting istisnası ekle</value>
+  </data>
+  <data name="Add a journaling rule" xml:space="preserve">
+    <value>Günlükleme kuralı ekle</value>
   </data>
   <data name="Add a list entry" xml:space="preserve">
     <value>Liste kaydı ekle</value>
@@ -8143,6 +8143,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Opportunistic" xml:space="preserve">
     <value>Fırsatçı</value>
   </data>
+  <data name="Optional" xml:space="preserve">
+    <value>İsteğe bağlı</value>
+  </data>
   <data name="Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above." xml:space="preserve">
     <value>İş arkadaşları için isteğe bağlı farklı bir metin - adresi bu sunucuya ait olan gönderenler. Sunucudan hiç çıkmaz, bu yüzden yukarıdaki iletiden daha fazlasını söyleyebilir. Boş, yukarıdaki ileti anlamına gelir.</value>
   </data>
@@ -9724,6 +9727,18 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Routes" xml:space="preserve">
     <value>Rotalar</value>
   </data>
+  <data name="Rule for {0} added." xml:space="preserve">
+    <value>{0} için kural eklendi.</value>
+  </data>
+  <data name="Rule for {0} removed." xml:space="preserve">
+    <value>{0} için kural kaldırıldı.</value>
+  </data>
+  <data name="Rule for {0} turned off." xml:space="preserve">
+    <value>{0} için kural devre dışı bırakıldı.</value>
+  </data>
+  <data name="Rule for {0} turned on." xml:space="preserve">
+    <value>{0} için kural etkinleştirildi.</value>
+  </data>
   <data name="Rule loop limit" xml:space="preserve">
     <value>Kural döngü sınırı</value>
   </data>
@@ -9963,9 +9978,6 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="S_tay" xml:space="preserve">
     <value>_Sayfada kal</value>
-  </data>
-  <data name="S_witch the rule over" xml:space="preserve">
-    <value>Kuralı de_ğiştir</value>
   </data>
   <data name="Sa_ve and preview" xml:space="preserve">
     <value>Kaydet _ve ön izle</value>
@@ -12643,6 +12655,9 @@ Yine de eklensin mi?</value>
   <data name="The rotation refused: {0}" xml:space="preserve">
     <value>Döndürme reddetti: {0}</value>
   </data>
+  <data name="The rule for {0} was not there any more." xml:space="preserve">
+    <value>{0} için kural artık yoktu.</value>
+  </data>
   <data name="The run did not finish. The rows below say what had already been done before it stopped - read them before running it again." xml:space="preserve">
     <value>Çalıştırma bitmedi. Aşağıdaki satırlar durmadan önce nelerin yapıldığını söylüyor - yeniden çalıştırmadan önce onları okuyun.</value>
   </data>
@@ -13376,6 +13391,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="Try again" xml:space="preserve">
     <value>Tekrar dene</value>
   </data>
+  <data name="Turn _on" xml:space="preserve">
+    <value>E_tkinleştir</value>
+  </data>
   <data name="Turn debug logging off again" xml:space="preserve">
     <value>Hata ayıklama günlüğünü yeniden kapat</value>
   </data>
@@ -13991,9 +14009,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="Where the administrator is told, well before anything is refused. 1024 MB is roughly fifty more maximum-size messages." xml:space="preserve">
     <value>Herhangi bir şey reddedilmeden çok önce yöneticiye nerede söylendiği. 1024 MB kabaca elli en büyük boyutlu ileti daha demektir.</value>
   </data>
-  <data name="Where the copy goes" xml:space="preserve">
-    <value>Kopyanın gideceği yer</value>
-  </data>
   <data name="Where the issued certificate would be written could not be determined, because neither the output folder above nor the server's data folder ([Directories] DataFolder in hMailServer.ini) could be read." xml:space="preserve">
     <value>Verilen sertifikanın nereye yazılacağı belirlenemedi, çünkü ne yukarıdaki çıkış klasörü ne de sunucunun veri klasörü (hMailServer.ini içindeki [Directories] DataFolder) okunabildi.</value>
   </data>
@@ -14140,9 +14155,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="Why" xml:space="preserve">
     <value>Neden</value>
-  </data>
-  <data name="Why (optional)" xml:space="preserve">
-    <value>Neden (isteğe bağlı)</value>
   </data>
   <data name="Why it was held" xml:space="preserve">
     <value>Neden tutuldu</value>
@@ -15013,6 +15025,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="_To" xml:space="preserve">
     <value>Ki_me</value>
+  </data>
+  <data name="_Turn off" xml:space="preserve">
+    <value>Devre _dışı bırak</value>
   </data>
   <data name="_Turn off the second factor" xml:space="preserve">
     <value>İkinci etkeni ka_pat</value>

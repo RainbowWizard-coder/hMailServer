@@ -453,9 +453,6 @@
   <data name="A domain, a mailbox, a listener that offers TLS, and what the dashboard makes of it. Four minutes; leave whenever you like." xml:space="preserve">
     <value>Et domæne, en postkasse, en lytter der tilbyder TLS, og hvad Dashboard siger om resultatet. Fire minutter; du kan stoppe når som helst.</value>
   </data>
-  <data name="A domain, or an account address" xml:space="preserve">
-    <value>Et domæne eller en kontoadresse</value>
-  </data>
   <data name="A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on." xml:space="preserve">
     <value>En fil af en indsendt type i en besked udefra sendes til en sandkasse, som du driver eller abonnerer på, og beskeden venter – i ingen postkasse og ikke i karantæne – på dens dom: ren leveres, skadelig sættes i karantæne. Intet tilbageholdes, før begge adresser er angivet, og dette er slået til.</value>
   </data>
@@ -1001,6 +998,9 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   </data>
   <data name="Add a greylisting exemption" xml:space="preserve">
     <value>Tilføj en greylisting-undtagelse</value>
+  </data>
+  <data name="Add a journaling rule" xml:space="preserve">
+    <value>Tilføj en journaliseringsregel</value>
   </data>
   <data name="Add a list entry" xml:space="preserve">
     <value>Tilføj en listepost</value>
@@ -8143,6 +8143,9 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Opportunistic" xml:space="preserve">
     <value>Opportunistisk</value>
   </data>
+  <data name="Optional" xml:space="preserve">
+    <value>Valgfri</value>
+  </data>
   <data name="Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above." xml:space="preserve">
     <value>Valgfri anden tekst til kolleger - afsendere, hvis adresse hører til denne server. Den forlader aldrig serveren og kan derfor sige mere end beskeden ovenfor. Tom betyder beskeden ovenfor.</value>
   </data>
@@ -9724,6 +9727,18 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="Routes" xml:space="preserve">
     <value>Ruter</value>
   </data>
+  <data name="Rule for {0} added." xml:space="preserve">
+    <value>Reglen for {0} er tilføjet.</value>
+  </data>
+  <data name="Rule for {0} removed." xml:space="preserve">
+    <value>Reglen for {0} er fjernet.</value>
+  </data>
+  <data name="Rule for {0} turned off." xml:space="preserve">
+    <value>Reglen for {0} er slået fra.</value>
+  </data>
+  <data name="Rule for {0} turned on." xml:space="preserve">
+    <value>Reglen for {0} er slået til.</value>
+  </data>
   <data name="Rule loop limit" xml:space="preserve">
     <value>Grænse for regelløkker</value>
   </data>
@@ -9963,9 +9978,6 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   </data>
   <data name="S_tay" xml:space="preserve">
     <value>_Bliv</value>
-  </data>
-  <data name="S_witch the rule over" xml:space="preserve">
-    <value>S_kift reglen om</value>
   </data>
   <data name="Sa_ve and preview" xml:space="preserve">
     <value>Gem _og forhåndsvis</value>
@@ -12643,6 +12655,9 @@ Tilføj alligevel?</value>
   <data name="The rotation refused: {0}" xml:space="preserve">
     <value>Rotationen afviste: {0}</value>
   </data>
+  <data name="The rule for {0} was not there any more." xml:space="preserve">
+    <value>Reglen for {0} fandtes ikke længere.</value>
+  </data>
   <data name="The run did not finish. The rows below say what had already been done before it stopped - read them before running it again." xml:space="preserve">
     <value>Kørslen blev ikke færdig. Rækkerne nedenfor siger, hvad der allerede var gjort, før den stoppede - læs dem, før du kører den igen.</value>
   </data>
@@ -13376,6 +13391,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="Try again" xml:space="preserve">
     <value>Prøv igen</value>
   </data>
+  <data name="Turn _on" xml:space="preserve">
+    <value>Slå t_il</value>
+  </data>
   <data name="Turn debug logging off again" xml:space="preserve">
     <value>Slå debug-logning fra igen</value>
   </data>
@@ -13991,9 +14009,6 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="Where the administrator is told, well before anything is refused. 1024 MB is roughly fifty more maximum-size messages." xml:space="preserve">
     <value>Hvor administratoren får besked, længe før noget afvises. 1024 MB er cirka halvtreds meddelelser mere af maksimal størrelse.</value>
   </data>
-  <data name="Where the copy goes" xml:space="preserve">
-    <value>Hvor kopien sendes hen</value>
-  </data>
   <data name="Where the issued certificate would be written could not be determined, because neither the output folder above nor the server's data folder ([Directories] DataFolder in hMailServer.ini) could be read." xml:space="preserve">
     <value>Hvor det udstedte certifikat ville blive skrevet, kunne ikke afgøres, fordi hverken outputmappen ovenfor eller serverens datamappe ([Directories] DataFolder i hMailServer.ini) kunne læses.</value>
   </data>
@@ -14140,9 +14155,6 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="Why" xml:space="preserve">
     <value>Hvorfor</value>
-  </data>
-  <data name="Why (optional)" xml:space="preserve">
-    <value>Hvorfor (valgfrit)</value>
   </data>
   <data name="Why it was held" xml:space="preserve">
     <value>Hvorfor den blev tilbageholdt</value>
@@ -15013,6 +15025,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="_To" xml:space="preserve">
     <value>_Til</value>
+  </data>
+  <data name="_Turn off" xml:space="preserve">
+    <value>S_lå fra</value>
   </data>
   <data name="_Turn off the second factor" xml:space="preserve">
     <value>_Slå anden faktor fra</value>

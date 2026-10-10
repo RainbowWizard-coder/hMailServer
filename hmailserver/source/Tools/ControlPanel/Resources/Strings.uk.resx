@@ -456,9 +456,6 @@
   <data name="A domain, a mailbox, a listener that offers TLS, and what the dashboard makes of it. Four minutes; leave whenever you like." xml:space="preserve">
     <value>Домен, поштова скринька, слухач із TLS і те, що з цього робить Інформаційна панель. Чотири хвилини; вийти можна будь-коли.</value>
   </data>
-  <data name="A domain, or an account address" xml:space="preserve">
-    <value>Домен або адреса облікового запису</value>
-  </data>
   <data name="A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on." xml:space="preserve">
     <value>Файл типу, що надсилається, у повідомленні ззовні надсилається до пісочниці, яку ви обслуговуєте або на яку підписані, а повідомлення чекає на її вердикт – у жодній поштовій скриньці й не в карантині: чисте доставляється, шкідливе потрапляє до карантину. Нічого не затримується, доки не задано обидві адреси й не ввімкнено цей параметр.</value>
   </data>
@@ -1007,6 +1004,9 @@
   </data>
   <data name="Add a greylisting exemption" xml:space="preserve">
     <value>Додати виняток сірого списку</value>
+  </data>
+  <data name="Add a journaling rule" xml:space="preserve">
+    <value>Додати правило журналювання</value>
   </data>
   <data name="Add a list entry" xml:space="preserve">
     <value>Додати запис списку</value>
@@ -8231,6 +8231,9 @@
   <data name="Opportunistic" xml:space="preserve">
     <value>Опортуністичний</value>
   </data>
+  <data name="Optional" xml:space="preserve">
+    <value>Необов'язково</value>
+  </data>
   <data name="Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above." xml:space="preserve">
     <value>Необов'язковий інший текст для колег — відправників, чия адреса належить цьому серверу. Він ніколи не залишає сервер, тому може сказати більше, ніж повідомлення вище. Порожнє означає повідомлення вище.</value>
   </data>
@@ -9824,6 +9827,18 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Routes" xml:space="preserve">
     <value>Маршрути</value>
   </data>
+  <data name="Rule for {0} added." xml:space="preserve">
+    <value>Правило для {0} додано.</value>
+  </data>
+  <data name="Rule for {0} removed." xml:space="preserve">
+    <value>Правило для {0} вилучено.</value>
+  </data>
+  <data name="Rule for {0} turned off." xml:space="preserve">
+    <value>Правило для {0} вимкнено.</value>
+  </data>
+  <data name="Rule for {0} turned on." xml:space="preserve">
+    <value>Правило для {0} увімкнено.</value>
+  </data>
   <data name="Rule loop limit" xml:space="preserve">
     <value>Обмеження циклів правил</value>
   </data>
@@ -10063,9 +10078,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="S_tay" xml:space="preserve">
     <value>За_лишитися</value>
-  </data>
-  <data name="S_witch the rule over" xml:space="preserve">
-    <value>П_еремкнути правило</value>
   </data>
   <data name="Sa_ve and preview" xml:space="preserve">
     <value>Збе_регти й переглянути</value>
@@ -12806,6 +12818,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The rotation refused: {0}" xml:space="preserve">
     <value>Ротація відмовила: {0}</value>
   </data>
+  <data name="The rule for {0} was not there any more." xml:space="preserve">
+    <value>Правила для {0} вже не було.</value>
+  </data>
   <data name="The run did not finish. The rows below say what had already been done before it stopped - read them before running it again." xml:space="preserve">
     <value>Прогін не завершився. Рядки нижче кажуть, що вже було зроблено до зупинки - прочитайте їх, перш ніж запускати знову.</value>
   </data>
@@ -13542,6 +13557,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Try again" xml:space="preserve">
     <value>Повторити спробу</value>
   </data>
+  <data name="Turn _on" xml:space="preserve">
+    <value>Ув_імкнути</value>
+  </data>
   <data name="Turn debug logging off again" xml:space="preserve">
     <value>Вимкнути журнал налагодження назад</value>
   </data>
@@ -14160,9 +14178,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Where the administrator is told, well before anything is refused. 1024 MB is roughly fifty more maximum-size messages." xml:space="preserve">
     <value>Коли адміністратору повідомляється, задовго до того, як щось буде відхилено. 1024 МБ - це приблизно п'ятдесят повідомлень максимального розміру.</value>
   </data>
-  <data name="Where the copy goes" xml:space="preserve">
-    <value>Куди йде копія</value>
-  </data>
   <data name="Where the issued certificate would be written could not be determined, because neither the output folder above nor the server's data folder ([Directories] DataFolder in hMailServer.ini) could be read." xml:space="preserve">
     <value>Не вдалося визначити, куди було б записано виданий сертифікат, бо не вдалося прочитати ані папку виводу вище, ані папку даних сервера ([Directories] DataFolder у hMailServer.ini).</value>
   </data>
@@ -14309,9 +14324,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Why" xml:space="preserve">
     <value>Причина</value>
-  </data>
-  <data name="Why (optional)" xml:space="preserve">
-    <value>Чому (необов'язково)</value>
   </data>
   <data name="Why it was held" xml:space="preserve">
     <value>Чому його затримано</value>
@@ -15185,6 +15197,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_To" xml:space="preserve">
     <value>_Кому</value>
+  </data>
+  <data name="_Turn off" xml:space="preserve">
+    <value>Ви_мкнути</value>
   </data>
   <data name="_Turn off the second factor" xml:space="preserve">
     <value>_Вимкнути другий фактор</value>

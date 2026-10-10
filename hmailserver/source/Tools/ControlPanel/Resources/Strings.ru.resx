@@ -456,9 +456,6 @@
   <data name="A domain, a mailbox, a listener that offers TLS, and what the dashboard makes of it. Four minutes; leave whenever you like." xml:space="preserve">
     <value>Домен, почтовый ящик, прослушиватель с TLS и то, что из этого делает Сводка. Четыре минуты; выйти можно в любой момент.</value>
   </data>
-  <data name="A domain, or an account address" xml:space="preserve">
-    <value>Домен или адрес учётной записи</value>
-  </data>
   <data name="A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on." xml:space="preserve">
     <value>Файл отправляемого типа в сообщении извне отправляется в песочницу, которую вы обслуживаете или на которую подписаны, а сообщение ждёт её вердикта – ни в одном почтовом ящике и не в карантине: чистое доставляется, вредоносное помещается в карантин. Ничего не задерживается, пока не заданы оба адреса и этот параметр не включён.</value>
   </data>
@@ -1007,6 +1004,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Add a greylisting exemption" xml:space="preserve">
     <value>Добавить исключение серых списков</value>
+  </data>
+  <data name="Add a journaling rule" xml:space="preserve">
+    <value>Добавить правило журналирования</value>
   </data>
   <data name="Add a list entry" xml:space="preserve">
     <value>Добавить запись списка</value>
@@ -8231,6 +8231,9 @@ Control Panel может читать файлы сообщений только
   <data name="Opportunistic" xml:space="preserve">
     <value>Оппортунистический</value>
   </data>
+  <data name="Optional" xml:space="preserve">
+    <value>Необязательно</value>
+  </data>
   <data name="Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above." xml:space="preserve">
     <value>Необязательный другой текст для коллег — отправителей, чей адрес принадлежит этому серверу. Он никогда не покидает сервер, поэтому может сказать больше, чем сообщение выше. Пусто означает сообщение выше.</value>
   </data>
@@ -9824,6 +9827,18 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Routes" xml:space="preserve">
     <value>Маршруты</value>
   </data>
+  <data name="Rule for {0} added." xml:space="preserve">
+    <value>Правило для {0} добавлено.</value>
+  </data>
+  <data name="Rule for {0} removed." xml:space="preserve">
+    <value>Правило для {0} удалено.</value>
+  </data>
+  <data name="Rule for {0} turned off." xml:space="preserve">
+    <value>Правило для {0} выключено.</value>
+  </data>
+  <data name="Rule for {0} turned on." xml:space="preserve">
+    <value>Правило для {0} включено.</value>
+  </data>
   <data name="Rule loop limit" xml:space="preserve">
     <value>Ограничение на циклы правил</value>
   </data>
@@ -10063,9 +10078,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="S_tay" xml:space="preserve">
     <value>Ос_таться</value>
-  </data>
-  <data name="S_witch the rule over" xml:space="preserve">
-    <value>П_ереключить правило</value>
   </data>
   <data name="Sa_ve and preview" xml:space="preserve">
     <value>Сохра_нить и просмотреть</value>
@@ -12806,6 +12818,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The rotation refused: {0}" xml:space="preserve">
     <value>Ротация отказала: {0}</value>
   </data>
+  <data name="The rule for {0} was not there any more." xml:space="preserve">
+    <value>Правила для {0} уже не было.</value>
+  </data>
   <data name="The run did not finish. The rows below say what had already been done before it stopped - read them before running it again." xml:space="preserve">
     <value>Прогон не завершился. Строки ниже говорят, что уже было сделано до остановки - прочитайте их, прежде чем запускать снова.</value>
   </data>
@@ -13542,6 +13557,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Try again" xml:space="preserve">
     <value>Повторить попытку</value>
   </data>
+  <data name="Turn _on" xml:space="preserve">
+    <value>Вкл_ючить</value>
+  </data>
   <data name="Turn debug logging off again" xml:space="preserve">
     <value>Выключить отладочный журнал обратно</value>
   </data>
@@ -14160,9 +14178,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Where the administrator is told, well before anything is refused. 1024 MB is roughly fifty more maximum-size messages." xml:space="preserve">
     <value>Когда администратору сообщается, задолго до того, как что-то будет отклонено. 1024 МБ - это примерно пятьдесят сообщений максимального размера.</value>
   </data>
-  <data name="Where the copy goes" xml:space="preserve">
-    <value>Куда уходит копия</value>
-  </data>
   <data name="Where the issued certificate would be written could not be determined, because neither the output folder above nor the server's data folder ([Directories] DataFolder in hMailServer.ini) could be read." xml:space="preserve">
     <value>Не удалось определить, куда был бы записан выданный сертификат, потому что не удалось прочитать ни папку вывода выше, ни папку данных сервера ([Directories] DataFolder в hMailServer.ini).</value>
   </data>
@@ -14309,9 +14324,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Why" xml:space="preserve">
     <value>Причина</value>
-  </data>
-  <data name="Why (optional)" xml:space="preserve">
-    <value>Почему (необязательно)</value>
   </data>
   <data name="Why it was held" xml:space="preserve">
     <value>Почему оно задержано</value>
@@ -15185,6 +15197,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_To" xml:space="preserve">
     <value>_Кому</value>
+  </data>
+  <data name="_Turn off" xml:space="preserve">
+    <value>Вык_лючить</value>
   </data>
   <data name="_Turn off the second factor" xml:space="preserve">
     <value>_Отключить второй фактор</value>

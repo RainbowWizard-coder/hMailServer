@@ -453,9 +453,6 @@
   <data name="A domain, a mailbox, a listener that offers TLS, and what the dashboard makes of it. Four minutes; leave whenever you like." xml:space="preserve">
     <value>A domain, a mailbox, a listener that offers TLS, and what the dashboard makes of it. Four minutes; leave whenever you like.</value>
   </data>
-  <data name="A domain, or an account address" xml:space="preserve">
-    <value>A domain, or an account address</value>
-  </data>
   <data name="A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on." xml:space="preserve">
     <value>A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on.</value>
   </data>
@@ -1001,6 +998,9 @@ The Control Panel can only read message files when it runs on the same machine a
   </data>
   <data name="Add a greylisting exemption" xml:space="preserve">
     <value>Add a greylisting exemption</value>
+  </data>
+  <data name="Add a journaling rule" xml:space="preserve">
+    <value>Add a journaling rule</value>
   </data>
   <data name="Add a list entry" xml:space="preserve">
     <value>Add a list entry</value>
@@ -8143,6 +8143,9 @@ Nothing already there is removed.</value>
   <data name="Opportunistic" xml:space="preserve">
     <value>Opportunistic</value>
   </data>
+  <data name="Optional" xml:space="preserve">
+    <value>Optional</value>
+  </data>
   <data name="Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above." xml:space="preserve">
     <value>Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above.</value>
   </data>
@@ -9724,6 +9727,18 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Routes" xml:space="preserve">
     <value>Routes</value>
   </data>
+  <data name="Rule for {0} added." xml:space="preserve">
+    <value>Rule for {0} added.</value>
+  </data>
+  <data name="Rule for {0} removed." xml:space="preserve">
+    <value>Rule for {0} removed.</value>
+  </data>
+  <data name="Rule for {0} turned off." xml:space="preserve">
+    <value>Rule for {0} turned off.</value>
+  </data>
+  <data name="Rule for {0} turned on." xml:space="preserve">
+    <value>Rule for {0} turned on.</value>
+  </data>
   <data name="Rule loop limit" xml:space="preserve">
     <value>Rule loop limit</value>
   </data>
@@ -9963,9 +9978,6 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   </data>
   <data name="S_tay" xml:space="preserve">
     <value>S_tay</value>
-  </data>
-  <data name="S_witch the rule over" xml:space="preserve">
-    <value>S_witch the rule over</value>
   </data>
   <data name="Sa_ve and preview" xml:space="preserve">
     <value>Sa_ve and preview</value>
@@ -12643,6 +12655,9 @@ Add it anyway?</value>
   <data name="The rotation refused: {0}" xml:space="preserve">
     <value>The rotation refused: {0}</value>
   </data>
+  <data name="The rule for {0} was not there any more." xml:space="preserve">
+    <value>The rule for {0} was not there any more.</value>
+  </data>
   <data name="The run did not finish. The rows below say what had already been done before it stopped - read them before running it again." xml:space="preserve">
     <value>The run did not finish. The rows below say what had already been done before it stopped - read them before running it again.</value>
   </data>
@@ -13376,6 +13391,9 @@ It will keep trying as you use the application.</value>
   <data name="Try again" xml:space="preserve">
     <value>Try again</value>
   </data>
+  <data name="Turn _on" xml:space="preserve">
+    <value>Turn _on</value>
+  </data>
   <data name="Turn debug logging off again" xml:space="preserve">
     <value>Turn debug logging off again</value>
   </data>
@@ -13991,9 +14009,6 @@ It will keep trying as you use the application.</value>
   <data name="Where the administrator is told, well before anything is refused. 1024 MB is roughly fifty more maximum-size messages." xml:space="preserve">
     <value>Where the administrator is told, well before anything is refused. 1024 MB is roughly fifty more maximum-size messages.</value>
   </data>
-  <data name="Where the copy goes" xml:space="preserve">
-    <value>Where the copy goes</value>
-  </data>
   <data name="Where the issued certificate would be written could not be determined, because neither the output folder above nor the server's data folder ([Directories] DataFolder in hMailServer.ini) could be read." xml:space="preserve">
     <value>Where the issued certificate would be written could not be determined, because neither the output folder above nor the server's data folder ([Directories] DataFolder in hMailServer.ini) could be read.</value>
   </data>
@@ -14140,9 +14155,6 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="Why" xml:space="preserve">
     <value>Why</value>
-  </data>
-  <data name="Why (optional)" xml:space="preserve">
-    <value>Why (optional)</value>
   </data>
   <data name="Why it was held" xml:space="preserve">
     <value>Why it was held</value>
@@ -15013,6 +15025,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="_To" xml:space="preserve">
     <value>_To</value>
+  </data>
+  <data name="_Turn off" xml:space="preserve">
+    <value>_Turn off</value>
   </data>
   <data name="_Turn off the second factor" xml:space="preserve">
     <value>_Turn off the second factor</value>

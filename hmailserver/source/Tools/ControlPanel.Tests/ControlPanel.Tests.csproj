@@ -250,6 +250,12 @@
     <Compile Include="..\ControlPanel\Services\DnsCheckSummary.cs" />
   </ItemGroup>
 
+  <!-- The Journaling and dual delivery page's words for a rule's state and for what
+       adding, switching and removing a rule did (review finding F255). -->
+  <ItemGroup>
+    <Compile Include="..\ControlPanel\Services\JournalRuleText.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <!-- WindowsServiceInfo queries Win32_Service; the app gets this through its
          own reference and the test assembly needs its own. -->

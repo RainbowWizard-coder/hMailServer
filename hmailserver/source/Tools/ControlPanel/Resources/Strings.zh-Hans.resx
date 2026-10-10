@@ -453,9 +453,6 @@
   <data name="A domain, a mailbox, a listener that offers TLS, and what the dashboard makes of it. Four minutes; leave whenever you like." xml:space="preserve">
     <value>一个域、一个邮箱、一个提供 TLS 的监听器，以及仪表板对这一切的判断。四分钟；随时可以退出。</value>
   </data>
-  <data name="A domain, or an account address" xml:space="preserve">
-    <value>域或账户地址</value>
-  </data>
   <data name="A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on." xml:space="preserve">
     <value>来自外部的邮件中属于提交类型的文件，会被发送到您运营或订阅的沙箱，邮件则在不进入任何邮箱、也不进入隔离区的情况下等待其判定：干净的会被投递，恶意的会被隔离。在设置两个地址并打开此选项之前，不会保留任何邮件。</value>
   </data>
@@ -1001,6 +998,9 @@
   </data>
   <data name="Add a greylisting exemption" xml:space="preserve">
     <value>添加灰名单豁免</value>
+  </data>
+  <data name="Add a journaling rule" xml:space="preserve">
+    <value>添加日志归档规则</value>
   </data>
   <data name="Add a list entry" xml:space="preserve">
     <value>添加名单条目</value>
@@ -8143,6 +8143,9 @@
   <data name="Opportunistic" xml:space="preserve">
     <value>机会性</value>
   </data>
+  <data name="Optional" xml:space="preserve">
+    <value>可选</value>
+  </data>
   <data name="Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above." xml:space="preserve">
     <value>可选的发给同事（地址属于本服务器的发件人）的不同正文。它永远不会离开服务器，因此可以比上面的正文多说一些。为空表示使用上面的正文。</value>
   </data>
@@ -9724,6 +9727,18 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Routes" xml:space="preserve">
     <value>路由</value>
   </data>
+  <data name="Rule for {0} added." xml:space="preserve">
+    <value>已添加 {0} 的规则。</value>
+  </data>
+  <data name="Rule for {0} removed." xml:space="preserve">
+    <value>已移除 {0} 的规则。</value>
+  </data>
+  <data name="Rule for {0} turned off." xml:space="preserve">
+    <value>已停用 {0} 的规则。</value>
+  </data>
+  <data name="Rule for {0} turned on." xml:space="preserve">
+    <value>已启用 {0} 的规则。</value>
+  </data>
   <data name="Rule loop limit" xml:space="preserve">
     <value>规则循环上限</value>
   </data>
@@ -9963,9 +9978,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="S_tay" xml:space="preserve">
     <value>留在此页(_T)</value>
-  </data>
-  <data name="S_witch the rule over" xml:space="preserve">
-    <value>切换规则(_W)</value>
   </data>
   <data name="Sa_ve and preview" xml:space="preserve">
     <value>保存并预览(_V)</value>
@@ -12643,6 +12655,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The rotation refused: {0}" xml:space="preserve">
     <value>轮换拒绝了操作：{0}</value>
   </data>
+  <data name="The rule for {0} was not there any more." xml:space="preserve">
+    <value>{0} 的规则已不存在。</value>
+  </data>
   <data name="The run did not finish. The rows below say what had already been done before it stopped - read them before running it again." xml:space="preserve">
     <value>运行未完成。下面的行说明了它停止之前已经做了什么 - 再次运行之前请先阅读。</value>
   </data>
@@ -13376,6 +13391,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Try again" xml:space="preserve">
     <value>重试</value>
   </data>
+  <data name="Turn _on" xml:space="preserve">
+    <value>启用(_O)</value>
+  </data>
   <data name="Turn debug logging off again" xml:space="preserve">
     <value>重新关闭调试日志</value>
   </data>
@@ -13991,9 +14009,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Where the administrator is told, well before anything is refused. 1024 MB is roughly fifty more maximum-size messages." xml:space="preserve">
     <value>在任何邮件被拒绝之前很久，管理员会在什么时候得到通知。1024 MB 大约相当于再多五十封最大尺寸的邮件。</value>
   </data>
-  <data name="Where the copy goes" xml:space="preserve">
-    <value>副本发往何处</value>
-  </data>
   <data name="Where the issued certificate would be written could not be determined, because neither the output folder above nor the server's data folder ([Directories] DataFolder in hMailServer.ini) could be read." xml:space="preserve">
     <value>无法确定已签发的证书会写到哪里，因为上面的输出文件夹和服务器的数据文件夹（hMailServer.ini 中的 [Directories] DataFolder）都无法读取。</value>
   </data>
@@ -14140,9 +14155,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Why" xml:space="preserve">
     <value>原因</value>
-  </data>
-  <data name="Why (optional)" xml:space="preserve">
-    <value>原因（可选）</value>
   </data>
   <data name="Why it was held" xml:space="preserve">
     <value>保留原因</value>
@@ -15013,6 +15025,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="_To" xml:space="preserve">
     <value>收件人(_T)</value>
+  </data>
+  <data name="_Turn off" xml:space="preserve">
+    <value>停用(_T)</value>
   </data>
   <data name="_Turn off the second factor" xml:space="preserve">
     <value>关闭第二因素(_T)</value>

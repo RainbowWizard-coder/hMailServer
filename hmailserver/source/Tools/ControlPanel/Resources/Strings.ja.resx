@@ -453,9 +453,6 @@
   <data name="A domain, a mailbox, a listener that offers TLS, and what the dashboard makes of it. Four minutes; leave whenever you like." xml:space="preserve">
     <value>ドメイン、メールボックス、TLS を提供するリスナー、そしてそれをダッシュボードがどう評価するか。4 分ほどで、いつでも中断できます。</value>
   </data>
-  <data name="A domain, or an account address" xml:space="preserve">
-    <value>ドメインまたはアカウントのアドレス</value>
-  </data>
   <data name="A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on." xml:space="preserve">
     <value>外部から届いたメッセージに含まれる送信対象の種類のファイルは、運用または契約しているサンドボックスに送信され、メッセージはどのメールボックスにも検疫にも入らないまま、その判定を待ちます。クリーンなら配信され、悪意ありなら検疫されます。両方のアドレスを設定してこれをオンにするまで、何も保留されません。</value>
   </data>
@@ -1001,6 +998,9 @@
   </data>
   <data name="Add a greylisting exemption" xml:space="preserve">
     <value>グレイリスティングの除外を追加</value>
+  </data>
+  <data name="Add a journaling rule" xml:space="preserve">
+    <value>ジャーナリング ルールを追加</value>
   </data>
   <data name="Add a list entry" xml:space="preserve">
     <value>リストのエントリを追加</value>
@@ -8143,6 +8143,9 @@
   <data name="Opportunistic" xml:space="preserve">
     <value>日和見的</value>
   </data>
+  <data name="Optional" xml:space="preserve">
+    <value>省略可</value>
+  </data>
   <data name="Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above." xml:space="preserve">
     <value>同僚 (このサーバーに属するアドレスの送信者) 向けの任意の別の本文。サーバーの外には出ないので、上の本文より多くを書けます。空なら上の本文を使います。</value>
   </data>
@@ -9724,6 +9727,18 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Routes" xml:space="preserve">
     <value>ルート</value>
   </data>
+  <data name="Rule for {0} added." xml:space="preserve">
+    <value>{0} のルールを追加しました。</value>
+  </data>
+  <data name="Rule for {0} removed." xml:space="preserve">
+    <value>{0} のルールを削除しました。</value>
+  </data>
+  <data name="Rule for {0} turned off." xml:space="preserve">
+    <value>{0} のルールをオフにしました。</value>
+  </data>
+  <data name="Rule for {0} turned on." xml:space="preserve">
+    <value>{0} のルールをオンにしました。</value>
+  </data>
   <data name="Rule loop limit" xml:space="preserve">
     <value>ルールのループ上限</value>
   </data>
@@ -9963,9 +9978,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="S_tay" xml:space="preserve">
     <value>このページに残る(_T)</value>
-  </data>
-  <data name="S_witch the rule over" xml:space="preserve">
-    <value>ルールを切り替え(_W)</value>
   </data>
   <data name="Sa_ve and preview" xml:space="preserve">
     <value>保存してプレビュー(_V)</value>
@@ -12643,6 +12655,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The rotation refused: {0}" xml:space="preserve">
     <value>ローテーションが拒否しました: {0}</value>
   </data>
+  <data name="The rule for {0} was not there any more." xml:space="preserve">
+    <value>{0} のルールは既にありませんでした。</value>
+  </data>
   <data name="The run did not finish. The rows below say what had already been done before it stopped - read them before running it again." xml:space="preserve">
     <value>実行は完了しませんでした。下の行は、停止するまでに既に行われた内容を示しています。再実行する前に読んでください。</value>
   </data>
@@ -13376,6 +13391,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Try again" xml:space="preserve">
     <value>再試行</value>
   </data>
+  <data name="Turn _on" xml:space="preserve">
+    <value>オンにする(_O)</value>
+  </data>
   <data name="Turn debug logging off again" xml:space="preserve">
     <value>デバッグ ログを再びオフにする</value>
   </data>
@@ -13991,9 +14009,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Where the administrator is told, well before anything is refused. 1024 MB is roughly fifty more maximum-size messages." xml:space="preserve">
     <value>何かが拒否されるずっと前に、管理者に通知する時点。1024 MB は、最大サイズのメッセージおよそ 50 通分です。</value>
   </data>
-  <data name="Where the copy goes" xml:space="preserve">
-    <value>写しの送り先</value>
-  </data>
   <data name="Where the issued certificate would be written could not be determined, because neither the output folder above nor the server's data folder ([Directories] DataFolder in hMailServer.ini) could be read." xml:space="preserve">
     <value>上の出力フォルダーもサーバーのデータ フォルダー (hMailServer.ini の [Directories] DataFolder) も読み取れなかったため、発行された証明書の書き込み先を判断できませんでした。</value>
   </data>
@@ -14140,9 +14155,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Why" xml:space="preserve">
     <value>理由</value>
-  </data>
-  <data name="Why (optional)" xml:space="preserve">
-    <value>理由 (任意)</value>
   </data>
   <data name="Why it was held" xml:space="preserve">
     <value>保留の理由</value>
@@ -15013,6 +15025,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_To" xml:space="preserve">
     <value>宛先(_T)</value>
+  </data>
+  <data name="_Turn off" xml:space="preserve">
+    <value>オフにする(_T)</value>
   </data>
   <data name="_Turn off the second factor" xml:space="preserve">
     <value>第 2 要素を無効にする(_T)</value>

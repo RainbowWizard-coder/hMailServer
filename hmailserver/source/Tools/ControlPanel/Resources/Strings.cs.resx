@@ -456,9 +456,6 @@
   <data name="A domain, a mailbox, a listener that offers TLS, and what the dashboard makes of it. Four minutes; leave whenever you like." xml:space="preserve">
     <value>Doména, poštovní schránka, listener, který nabízí TLS, a co z toho vyčte Přehled. Čtyři minuty; kdykoli můžete skončit.</value>
   </data>
-  <data name="A domain, or an account address" xml:space="preserve">
-    <value>Doména nebo adresa účtu</value>
-  </data>
   <data name="A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on." xml:space="preserve">
     <value>Soubor odesílaného typu ve zprávě zvenčí se odešle do sandboxu, který provozujete nebo si předplácíte, a zpráva čeká – v žádné poštovní schránce a mimo karanténu – na jeho verdikt: čistá se doručí, škodlivá jde do karantény. Nic se nezadrží, dokud nejsou nastaveny obě adresy a tato volba není zapnutá.</value>
   </data>
@@ -1007,6 +1004,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   </data>
   <data name="Add a greylisting exemption" xml:space="preserve">
     <value>Přidat výjimku z greylistingu</value>
+  </data>
+  <data name="Add a journaling rule" xml:space="preserve">
+    <value>Přidat pravidlo žurnálování</value>
   </data>
   <data name="Add a list entry" xml:space="preserve">
     <value>Přidat položku seznamu</value>
@@ -8231,6 +8231,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Opportunistic" xml:space="preserve">
     <value>Oportunistické</value>
   </data>
+  <data name="Optional" xml:space="preserve">
+    <value>Volitelné</value>
+  </data>
   <data name="Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above." xml:space="preserve">
     <value>Volitelný jiný text pro kolegy - odesílatele, jejichž adresa patří tomuto serveru. Nikdy neopustí server, takže může říct více než zpráva výše. Prázdné znamená zprávu výše.</value>
   </data>
@@ -9824,6 +9827,18 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Routes" xml:space="preserve">
     <value>Trasy</value>
   </data>
+  <data name="Rule for {0} added." xml:space="preserve">
+    <value>Pravidlo pro {0} bylo přidáno.</value>
+  </data>
+  <data name="Rule for {0} removed." xml:space="preserve">
+    <value>Pravidlo pro {0} bylo odebráno.</value>
+  </data>
+  <data name="Rule for {0} turned off." xml:space="preserve">
+    <value>Pravidlo pro {0} bylo vypnuto.</value>
+  </data>
+  <data name="Rule for {0} turned on." xml:space="preserve">
+    <value>Pravidlo pro {0} bylo zapnuto.</value>
+  </data>
   <data name="Rule loop limit" xml:space="preserve">
     <value>Limit smyček pravidel</value>
   </data>
@@ -10063,9 +10078,6 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="S_tay" xml:space="preserve">
     <value>Zů_stat</value>
-  </data>
-  <data name="S_witch the rule over" xml:space="preserve">
-    <value>P_řepnout pravidlo</value>
   </data>
   <data name="Sa_ve and preview" xml:space="preserve">
     <value>U_ložit a zobrazit náhled</value>
@@ -12806,6 +12818,9 @@ Přesto přidat?</value>
   <data name="The rotation refused: {0}" xml:space="preserve">
     <value>Rotace odmítla: {0}</value>
   </data>
+  <data name="The rule for {0} was not there any more." xml:space="preserve">
+    <value>Pravidlo pro {0} už neexistovalo.</value>
+  </data>
   <data name="The run did not finish. The rows below say what had already been done before it stopped - read them before running it again." xml:space="preserve">
     <value>Běh neskončil. Řádky níže říkají, co už bylo hotovo, než se zastavil - přečtěte si je, než ho spustíte znovu.</value>
   </data>
@@ -13542,6 +13557,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Try again" xml:space="preserve">
     <value>Zkusit znovu</value>
   </data>
+  <data name="Turn _on" xml:space="preserve">
+    <value>_Zapnout</value>
+  </data>
   <data name="Turn debug logging off again" xml:space="preserve">
     <value>Ladicí logování zase vypnout</value>
   </data>
@@ -14160,9 +14178,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Where the administrator is told, well before anything is refused. 1024 MB is roughly fifty more maximum-size messages." xml:space="preserve">
     <value>Kdy se to správce dozví, dlouho předtím, než se cokoli odmítne. 1024 MB je zhruba padesát dalších zpráv maximální velikosti.</value>
   </data>
-  <data name="Where the copy goes" xml:space="preserve">
-    <value>Kam kopie míří</value>
-  </data>
   <data name="Where the issued certificate would be written could not be determined, because neither the output folder above nor the server's data folder ([Directories] DataFolder in hMailServer.ini) could be read." xml:space="preserve">
     <value>Nešlo určit, kam by se vydaný certifikát zapsal, protože nešlo přečíst ani výstupní složku výše, ani datovou složku serveru ([Directories] DataFolder v hMailServer.ini).</value>
   </data>
@@ -14309,9 +14324,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="Why" xml:space="preserve">
     <value>Důvod</value>
-  </data>
-  <data name="Why (optional)" xml:space="preserve">
-    <value>Proč (nepovinné)</value>
   </data>
   <data name="Why it was held" xml:space="preserve">
     <value>Proč byla zadržena</value>
@@ -15185,6 +15197,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_To" xml:space="preserve">
     <value>_Komu</value>
+  </data>
+  <data name="_Turn off" xml:space="preserve">
+    <value>_Vypnout</value>
   </data>
   <data name="_Turn off the second factor" xml:space="preserve">
     <value>_Vypnout druhý faktor</value>

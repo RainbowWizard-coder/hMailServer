@@ -453,9 +453,6 @@
   <data name="A domain, a mailbox, a listener that offers TLS, and what the dashboard makes of it. Four minutes; leave whenever you like." xml:space="preserve">
     <value>Verkkotunnus, postilaatikko, TLS:ää tarjoava kuuntelija ja se, mitä Koontinäyttö niistä sanoo. Neljä minuuttia; voit poistua milloin tahansa.</value>
   </data>
-  <data name="A domain, or an account address" xml:space="preserve">
-    <value>Verkkotunnus tai tilin osoite</value>
-  </data>
   <data name="A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on." xml:space="preserve">
     <value>Lähetettävää tyyppiä oleva tiedosto ulkopuolelta tulevassa viestissä lähetetään hiekkalaatikkoon, jota ylläpidät tai jonka tilaat, ja viesti odottaa – ei missään postilaatikossa eikä karanteenissa – sen tuomiota: puhdas toimitetaan, haitallinen asetetaan karanteeniin. Mitään ei pidätetä, ennen kuin molemmat osoitteet on asetettu ja tämä on päällä.</value>
   </data>
@@ -1001,6 +998,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   </data>
   <data name="Add a greylisting exemption" xml:space="preserve">
     <value>Lisää harmaalistauksen poikkeus</value>
+  </data>
+  <data name="Add a journaling rule" xml:space="preserve">
+    <value>Lisää journalointisääntö</value>
   </data>
   <data name="Add a list entry" xml:space="preserve">
     <value>Lisää luettelon merkintä</value>
@@ -8143,6 +8143,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Opportunistic" xml:space="preserve">
     <value>Opportunistinen</value>
   </data>
+  <data name="Optional" xml:space="preserve">
+    <value>Valinnainen</value>
+  </data>
   <data name="Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above." xml:space="preserve">
     <value>Valinnainen eri teksti kollegoille - lähettäjille, joiden osoite kuuluu tälle palvelimelle. Se ei koskaan lähde palvelimelta, joten se voi kertoa enemmän kuin yllä oleva viesti. Tyhjä tarkoittaa yllä olevaa viestiä.</value>
   </data>
@@ -9724,6 +9727,18 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Routes" xml:space="preserve">
     <value>Reitit</value>
   </data>
+  <data name="Rule for {0} added." xml:space="preserve">
+    <value>Sääntö kohteelle {0} lisätty.</value>
+  </data>
+  <data name="Rule for {0} removed." xml:space="preserve">
+    <value>Sääntö kohteelle {0} poistettu.</value>
+  </data>
+  <data name="Rule for {0} turned off." xml:space="preserve">
+    <value>Sääntö kohteelle {0} poistettu käytöstä.</value>
+  </data>
+  <data name="Rule for {0} turned on." xml:space="preserve">
+    <value>Sääntö kohteelle {0} otettu käyttöön.</value>
+  </data>
   <data name="Rule loop limit" xml:space="preserve">
     <value>Sääntösilmukan raja</value>
   </data>
@@ -9963,9 +9978,6 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="S_tay" xml:space="preserve">
     <value>_Pysy</value>
-  </data>
-  <data name="S_witch the rule over" xml:space="preserve">
-    <value>_Vaihda säännön tila</value>
   </data>
   <data name="Sa_ve and preview" xml:space="preserve">
     <value>Ta_llenna ja esikatsele</value>
@@ -12643,6 +12655,9 @@ Lisätäänkö silti?</value>
   <data name="The rotation refused: {0}" xml:space="preserve">
     <value>Kierrätys kieltäytyi: {0}</value>
   </data>
+  <data name="The rule for {0} was not there any more." xml:space="preserve">
+    <value>Sääntöä kohteelle {0} ei enää ollut.</value>
+  </data>
   <data name="The run did not finish. The rows below say what had already been done before it stopped - read them before running it again." xml:space="preserve">
     <value>Ajo ei valmistunut. Alla olevat rivit kertovat, mitä oli jo tehty ennen pysähtymistä - lue ne ennen kuin ajat sen uudelleen.</value>
   </data>
@@ -13376,6 +13391,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="Try again" xml:space="preserve">
     <value>Yritä uudelleen</value>
   </data>
+  <data name="Turn _on" xml:space="preserve">
+    <value>Ot_a käyttöön</value>
+  </data>
   <data name="Turn debug logging off again" xml:space="preserve">
     <value>Kytke vianjäljityslokitus taas pois päältä</value>
   </data>
@@ -13991,9 +14009,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="Where the administrator is told, well before anything is refused. 1024 MB is roughly fifty more maximum-size messages." xml:space="preserve">
     <value>Missä vaiheessa järjestelmänvalvojalle kerrotaan, hyvissä ajoin ennen kuin mitään hylätään. 1024 Mt on karkeasti viisikymmentä enimmäiskokoista viestiä lisää.</value>
   </data>
-  <data name="Where the copy goes" xml:space="preserve">
-    <value>Minne kopio menee</value>
-  </data>
   <data name="Where the issued certificate would be written could not be determined, because neither the output folder above nor the server's data folder ([Directories] DataFolder in hMailServer.ini) could be read." xml:space="preserve">
     <value>Sitä, minne myönnetty varmenne kirjoitettaisiin, ei voitu määrittää, koska yllä olevaa tuloskansiota eikä palvelimen datakansiota ([Directories] DataFolder hMailServer.ini-tiedostossa) voitu lukea.</value>
   </data>
@@ -14140,9 +14155,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="Why" xml:space="preserve">
     <value>Syy</value>
-  </data>
-  <data name="Why (optional)" xml:space="preserve">
-    <value>Miksi (valinnainen)</value>
   </data>
   <data name="Why it was held" xml:space="preserve">
     <value>Miksi se pidätettiin</value>
@@ -15013,6 +15025,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="_To" xml:space="preserve">
     <value>_Vastaanottaja</value>
+  </data>
+  <data name="_Turn off" xml:space="preserve">
+    <value>P_oista käytöstä</value>
   </data>
   <data name="_Turn off the second factor" xml:space="preserve">
     <value>_Poista toinen tunnistustekijä käytöstä</value>
