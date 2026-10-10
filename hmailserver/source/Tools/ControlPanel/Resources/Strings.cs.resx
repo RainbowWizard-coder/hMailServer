@@ -1597,14 +1597,17 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Anti-spam settings (SpamAssassin timeouts)" xml:space="preserve">
     <value>Nastavení antispamu (časové limity SpamAssassinu)</value>
   </data>
-  <data name="Anti-spam settings (SpamAssassin)" xml:space="preserve">
-    <value>Nastavení antispamu (SpamAssassin)</value>
+  <data name="Anti-spam settings: test SpamAssassin" xml:space="preserve">
+    <value>Nastavení antispamu: otestovat SpamAssassin</value>
   </data>
   <data name="Anti-virus settings" xml:space="preserve">
     <value>Nastavení antiviru</value>
   </data>
   <data name="Anti-virus settings (ClamAV timeouts)" xml:space="preserve">
     <value>Nastavení antiviru (časové limity ClamAV)</value>
+  </data>
+  <data name="Anti-virus settings: test ClamAV" xml:space="preserve">
+    <value>Nastavení antiviru: otestovat ClamAV</value>
   </data>
   <data name="Anyone" xml:space="preserve">
     <value>Kdokoli</value>
@@ -11584,9 +11587,6 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Test ClamWin scanner" xml:space="preserve">
     <value>Otestovat skener ClamWin</value>
-  </data>
-  <data name="Test SpamAssassin and ClamAV" xml:space="preserve">
-    <value>Otestovat SpamAssassin a ClamAV</value>
   </data>
   <data name="Test SpamAssassin connection" xml:space="preserve">
     <value>Otestovat připojení k SpamAssassinu</value>

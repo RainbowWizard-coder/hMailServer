@@ -1585,14 +1585,17 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Anti-spam settings (SpamAssassin timeouts)" xml:space="preserve">
     <value>Configurações antispam (tempos limite do SpamAssassin)</value>
   </data>
-  <data name="Anti-spam settings (SpamAssassin)" xml:space="preserve">
-    <value>Configurações antispam (SpamAssassin)</value>
+  <data name="Anti-spam settings: test SpamAssassin" xml:space="preserve">
+    <value>Configurações antispam: testar o SpamAssassin</value>
   </data>
   <data name="Anti-virus settings" xml:space="preserve">
     <value>Configurações de antivírus</value>
   </data>
   <data name="Anti-virus settings (ClamAV timeouts)" xml:space="preserve">
     <value>Configurações de antivírus (tempos limite do ClamAV)</value>
+  </data>
+  <data name="Anti-virus settings: test ClamAV" xml:space="preserve">
+    <value>Configurações de antivírus: testar o ClamAV</value>
   </data>
   <data name="Anyone" xml:space="preserve">
     <value>Qualquer um</value>
@@ -11454,9 +11457,6 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="Test ClamWin scanner" xml:space="preserve">
     <value>Testar o verificador ClamWin</value>
-  </data>
-  <data name="Test SpamAssassin and ClamAV" xml:space="preserve">
-    <value>Testar o SpamAssassin e o ClamAV</value>
   </data>
   <data name="Test SpamAssassin connection" xml:space="preserve">
     <value>Testar a conexão com o SpamAssassin</value>

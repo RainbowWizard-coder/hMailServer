@@ -1585,14 +1585,17 @@
   <data name="Anti-spam settings (SpamAssassin timeouts)" xml:space="preserve">
     <value>反垃圾邮件设置（SpamAssassin 超时）</value>
   </data>
-  <data name="Anti-spam settings (SpamAssassin)" xml:space="preserve">
-    <value>反垃圾邮件设置（SpamAssassin）</value>
+  <data name="Anti-spam settings: test SpamAssassin" xml:space="preserve">
+    <value>反垃圾邮件设置：测试 SpamAssassin</value>
   </data>
   <data name="Anti-virus settings" xml:space="preserve">
     <value>反病毒设置</value>
   </data>
   <data name="Anti-virus settings (ClamAV timeouts)" xml:space="preserve">
     <value>反病毒设置（ClamAV 超时）</value>
+  </data>
+  <data name="Anti-virus settings: test ClamAV" xml:space="preserve">
+    <value>反病毒设置：测试 ClamAV</value>
   </data>
   <data name="Anyone" xml:space="preserve">
     <value>任何人</value>
@@ -11454,9 +11457,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Test ClamWin scanner" xml:space="preserve">
     <value>测试 ClamWin 扫描器</value>
-  </data>
-  <data name="Test SpamAssassin and ClamAV" xml:space="preserve">
-    <value>测试 SpamAssassin 和 ClamAV</value>
   </data>
   <data name="Test SpamAssassin connection" xml:space="preserve">
     <value>测试 SpamAssassin 连接</value>

@@ -1597,14 +1597,17 @@ Control Panel может читать файлы сообщений только
   <data name="Anti-spam settings (SpamAssassin timeouts)" xml:space="preserve">
     <value>Параметры антиспама (тайм-ауты SpamAssassin)</value>
   </data>
-  <data name="Anti-spam settings (SpamAssassin)" xml:space="preserve">
-    <value>Параметры антиспама (SpamAssassin)</value>
+  <data name="Anti-spam settings: test SpamAssassin" xml:space="preserve">
+    <value>Параметры антиспама: проверить SpamAssassin</value>
   </data>
   <data name="Anti-virus settings" xml:space="preserve">
     <value>Параметры антивируса</value>
   </data>
   <data name="Anti-virus settings (ClamAV timeouts)" xml:space="preserve">
     <value>Параметры антивируса (тайм-ауты ClamAV)</value>
+  </data>
+  <data name="Anti-virus settings: test ClamAV" xml:space="preserve">
+    <value>Параметры антивируса: проверить ClamAV</value>
   </data>
   <data name="Anyone" xml:space="preserve">
     <value>Любой</value>
@@ -11584,9 +11587,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Test ClamWin scanner" xml:space="preserve">
     <value>Проверить сканер ClamWin</value>
-  </data>
-  <data name="Test SpamAssassin and ClamAV" xml:space="preserve">
-    <value>Проверить SpamAssassin и ClamAV</value>
   </data>
   <data name="Test SpamAssassin connection" xml:space="preserve">
     <value>Проверить подключение к SpamAssassin</value>

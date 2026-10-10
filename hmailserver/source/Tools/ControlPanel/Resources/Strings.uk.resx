@@ -1597,14 +1597,17 @@
   <data name="Anti-spam settings (SpamAssassin timeouts)" xml:space="preserve">
     <value>Параметри захисту від спаму (час очікування SpamAssassin)</value>
   </data>
-  <data name="Anti-spam settings (SpamAssassin)" xml:space="preserve">
-    <value>Параметри захисту від спаму (SpamAssassin)</value>
+  <data name="Anti-spam settings: test SpamAssassin" xml:space="preserve">
+    <value>Параметри захисту від спаму: перевірити SpamAssassin</value>
   </data>
   <data name="Anti-virus settings" xml:space="preserve">
     <value>Параметри захисту від вірусів</value>
   </data>
   <data name="Anti-virus settings (ClamAV timeouts)" xml:space="preserve">
     <value>Параметри захисту від вірусів (час очікування ClamAV)</value>
+  </data>
+  <data name="Anti-virus settings: test ClamAV" xml:space="preserve">
+    <value>Параметри захисту від вірусів: перевірити ClamAV</value>
   </data>
   <data name="Anyone" xml:space="preserve">
     <value>Будь-хто</value>
@@ -11584,9 +11587,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Test ClamWin scanner" xml:space="preserve">
     <value>Перевірити сканер ClamWin</value>
-  </data>
-  <data name="Test SpamAssassin and ClamAV" xml:space="preserve">
-    <value>Перевірити SpamAssassin і ClamAV</value>
   </data>
   <data name="Test SpamAssassin connection" xml:space="preserve">
     <value>Перевірити з'єднання зі SpamAssassin</value>

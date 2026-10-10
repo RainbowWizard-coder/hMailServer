@@ -1597,14 +1597,17 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Anti-spam settings (SpamAssassin timeouts)" xml:space="preserve">
     <value>Ustawienia antyspamowe (limity czasu SpamAssassin)</value>
   </data>
-  <data name="Anti-spam settings (SpamAssassin)" xml:space="preserve">
-    <value>Ustawienia antyspamowe (SpamAssassin)</value>
+  <data name="Anti-spam settings: test SpamAssassin" xml:space="preserve">
+    <value>Ustawienia antyspamowe: przetestuj SpamAssassin</value>
   </data>
   <data name="Anti-virus settings" xml:space="preserve">
     <value>Ustawienia antywirusowe</value>
   </data>
   <data name="Anti-virus settings (ClamAV timeouts)" xml:space="preserve">
     <value>Ustawienia antywirusowe (limity czasu ClamAV)</value>
+  </data>
+  <data name="Anti-virus settings: test ClamAV" xml:space="preserve">
+    <value>Ustawienia antywirusowe: przetestuj ClamAV</value>
   </data>
   <data name="Anyone" xml:space="preserve">
     <value>Każdy</value>
@@ -11584,9 +11587,6 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="Test ClamWin scanner" xml:space="preserve">
     <value>Przetestuj skaner ClamWin</value>
-  </data>
-  <data name="Test SpamAssassin and ClamAV" xml:space="preserve">
-    <value>Przetestuj SpamAssassin i ClamAV</value>
   </data>
   <data name="Test SpamAssassin connection" xml:space="preserve">
     <value>Przetestuj połączenie ze SpamAssassin</value>

@@ -1585,14 +1585,17 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Anti-spam settings (SpamAssassin timeouts)" xml:space="preserve">
     <value>Roskapostisuojauksen asetukset (SpamAssassinin aikakatkaisut)</value>
   </data>
-  <data name="Anti-spam settings (SpamAssassin)" xml:space="preserve">
-    <value>Roskapostisuojauksen asetukset (SpamAssassin)</value>
+  <data name="Anti-spam settings: test SpamAssassin" xml:space="preserve">
+    <value>Roskapostisuojauksen asetukset: testaa SpamAssassin</value>
   </data>
   <data name="Anti-virus settings" xml:space="preserve">
     <value>Virustorjunnan asetukset</value>
   </data>
   <data name="Anti-virus settings (ClamAV timeouts)" xml:space="preserve">
     <value>Virustorjunnan asetukset (ClamAV-aikakatkaisut)</value>
+  </data>
+  <data name="Anti-virus settings: test ClamAV" xml:space="preserve">
+    <value>Virustorjunnan asetukset: testaa ClamAV</value>
   </data>
   <data name="Anyone" xml:space="preserve">
     <value>Kuka tahansa</value>
@@ -11454,9 +11457,6 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Test ClamWin scanner" xml:space="preserve">
     <value>Testaa ClamWin-tarkistin</value>
-  </data>
-  <data name="Test SpamAssassin and ClamAV" xml:space="preserve">
-    <value>Testaa SpamAssassin ja ClamAV</value>
   </data>
   <data name="Test SpamAssassin connection" xml:space="preserve">
     <value>Testaa SpamAssassin-yhteys</value>

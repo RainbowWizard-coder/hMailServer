@@ -49,7 +49,9 @@ namespace hMailServer.ControlPanel.Views
 
       public StalledMailView()
       {
-         var panel = new StackPanel { MaxWidth = 980, HorizontalAlignment = HorizontalAlignment.Left };
+         // The form's width, the settings pages' column: at 980 pixels each step's
+         // paragraph ran to about 180 characters a line (review finding F251).
+         var panel = new StackPanel { MaxWidth = DesignTokens.FormWidth, HorizontalAlignment = HorizontalAlignment.Left };
 
          panel.Children.Add(new PageHeader
          {
@@ -111,7 +113,7 @@ namespace hMailServer.ControlPanel.Views
             L("The lines this page refers to are written at debug level; the slow ones are also written at application level, so with application logging alone you still see the important ones. Reproduce the problem once, then read the log. Remember to turn debug logging off afterwards on a busy server."));
          var content = (StackPanel)card.Content;
 
-         var row = new StackPanel { Orientation = Orientation.Horizontal };
+         var row = new WrapPanel();
          var enable = debugOn_ = new Wpf.Ui.Controls.Button
          {
             Content = L("_Turn on debug logging now"),
@@ -149,10 +151,13 @@ namespace hMailServer.ControlPanel.Views
             (L("451 4.3.1 replies"), L("Acceptance exceeded the message finalization deadline (240 s by default): the sender retries rather than waiting for ever, the error entry names the deadline, and the stage timings above it name what consumed the time.")),
          }));
 
-         var links = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 10, 0, 0) };
+         var links = new WrapPanel { Margin = new Thickness(0, 10, 0, 0) };
          links.Children.Add(Link(L("Open the live logs"), "logs"));
-         links.Children.Add(Link(L("Anti-spam settings (SpamAssassin)"), "antispam"));
-         links.Children.Add(Link(L("Test SpamAssassin and ClamAV"), "diagnostics"));
+         // Each scanner's test is on its tab - Test SpamAssassin connection, Test
+         // ClamAV connection - where the link went to Diagnostics, which runs port 25,
+         // MX, backup-folder and IP checks and tests neither (review finding F251).
+         links.Children.Add(Link(L("Anti-spam settings: test SpamAssassin"), "antispam", N("SpamAssassin")));
+         links.Children.Add(Link(L("Anti-virus settings: test ClamAV"), "antivirus", N("ClamAV")));
          content.Children.Add(links);
          return card;
       }
@@ -162,7 +167,7 @@ namespace hMailServer.ControlPanel.Views
          var card = Section(L("If every message stalls, not just one"),
             L("Look for \"Task SMTP-accept session=42 ip=... waited 8 seconds for a thread in work queue Asynchronous task queue\" and, when it is severe, \"All 15 threads in work queue Asynchronous task queue have been busy for at least 120 seconds, so no further task on this queue can start\". That means every worker is occupied and messages are queuing behind them: one slow dependency does this to the whole server, which is why a single wedged scanner used to look like the server had stopped responding. The task names say which sessions are stuck; the stage timings say what they are stuck on."));
          var content = (StackPanel)card.Content;
-         var links = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 6, 0, 0) };
+         var links = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };
          links.Children.Add(Link(L("Server status (who is connected)"), "status"));
          links.Children.Add(Link(L("Threads and the stall threshold"), "hardening"));
          content.Children.Add(links);
@@ -180,10 +185,10 @@ namespace hMailServer.ControlPanel.Views
          content.Children.Add(Bullet(L("A custom virus scanner or external tool that hangs - bounded by 'External process timeout' on the Server limits & expert settings page.")));
          content.Children.Add(Bullet(L("The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it.")));
 
-         var links = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 10, 0, 0) };
+         var links = new WrapPanel { Margin = new Thickness(0, 10, 0, 0) };
          links.Children.Add(Link(L("Open the delivery queue"), "queue"));
          links.Children.Add(Link(L("Trace one message"), "messagetrace"));
-         links.Children.Add(Link(L("Anti-virus settings (ClamAV timeouts)"), "antivirus"));
+         links.Children.Add(Link(L("Anti-virus settings (ClamAV timeouts)"), "antivirus", N("ClamAV")));
          content.Children.Add(links);
          return card;
       }
@@ -207,7 +212,7 @@ namespace hMailServer.ControlPanel.Views
             (L("Wait for a free database connection (60)"), L("Waiting for a pooled database connection. 0 = no bound.")),
          }));
 
-         var links = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 10, 0, 0) };
+         var links = new WrapPanel { Margin = new Thickness(0, 10, 0, 0) };
          links.Children.Add(Link(L("Server limits & expert settings (the timeouts)"), "hardening"));
          links.Children.Add(Link(L("Anti-spam settings (SpamAssassin timeouts)"), "antispam"));
          links.Children.Add(Link(L("Anti-virus settings (ClamAV timeouts)"), "antivirus"));
@@ -303,7 +308,15 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private static Card Section(string heading, string intro)
       {
-         var card = new Card { Title = heading, Description = intro, Content = new StackPanel() };
+         // The paragraph is the step itself, so it is body text at the top of the
+         // card's content, where it was the card's description - 12-pixel caption
+         // text above tables and bullets of 14 (review finding F251).
+         var content = new StackPanel();
+         var paragraph = new TextBlock { Text = intro, Margin = new Thickness(0, 0, 0, 8) };
+         paragraph.SetResourceReference(StyleProperty, "TextBody");
+         content.Children.Add(paragraph);
+
+         var card = new Card { Title = heading, Content = content };
          card.SetResourceReference(MarginProperty, "AppCardGap");
          return card;
       }
@@ -356,7 +369,12 @@ namespace hMailServer.ControlPanel.Views
          return grid;
       }
 
-      private static Wpf.Ui.Controls.Button Link(string text, string navKey)
+      /// <summary>
+      /// A button to the page a step names, on the tab of it that <paramref name="tab"/>
+      /// heads - the English header, marked with N() - when it names one
+      /// (MainWindow.NavigateToTab).
+      /// </summary>
+      private static Wpf.Ui.Controls.Button Link(string text, string navKey, string tab = null)
       {
          var button = new Wpf.Ui.Controls.Button
          {
@@ -366,7 +384,7 @@ namespace hMailServer.ControlPanel.Views
             Cursor = System.Windows.Input.Cursors.Hand
          };
          AutomationProperties.SetName(button, text);
-         button.Click += (s, e) => (Application.Current.MainWindow as MainWindow)?.NavigateTo(navKey);
+         button.Click += (s, e) => (Application.Current.MainWindow as MainWindow)?.NavigateToTab(navKey, tab);
          return button;
       }
    }

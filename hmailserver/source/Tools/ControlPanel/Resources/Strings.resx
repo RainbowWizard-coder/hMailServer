@@ -1585,14 +1585,17 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Anti-spam settings (SpamAssassin timeouts)" xml:space="preserve">
     <value>Anti-spam settings (SpamAssassin timeouts)</value>
   </data>
-  <data name="Anti-spam settings (SpamAssassin)" xml:space="preserve">
-    <value>Anti-spam settings (SpamAssassin)</value>
+  <data name="Anti-spam settings: test SpamAssassin" xml:space="preserve">
+    <value>Anti-spam settings: test SpamAssassin</value>
   </data>
   <data name="Anti-virus settings" xml:space="preserve">
     <value>Anti-virus settings</value>
   </data>
   <data name="Anti-virus settings (ClamAV timeouts)" xml:space="preserve">
     <value>Anti-virus settings (ClamAV timeouts)</value>
+  </data>
+  <data name="Anti-virus settings: test ClamAV" xml:space="preserve">
+    <value>Anti-virus settings: test ClamAV</value>
   </data>
   <data name="Anyone" xml:space="preserve">
     <value>Anyone</value>
@@ -11454,9 +11457,6 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   </data>
   <data name="Test ClamWin scanner" xml:space="preserve">
     <value>Test ClamWin scanner</value>
-  </data>
-  <data name="Test SpamAssassin and ClamAV" xml:space="preserve">
-    <value>Test SpamAssassin and ClamAV</value>
   </data>
   <data name="Test SpamAssassin connection" xml:space="preserve">
     <value>Test SpamAssassin connection</value>

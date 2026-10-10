@@ -2290,6 +2290,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   troubleshooting). A tile's tool tip, and what a screen reader hears after its name, say which page it opens; the
   tiles of a row are as tall as each other and each row as tall as its tallest tile.
 
+- **Fixed: Diagnosing stalled mail's "Test SpamAssassin and ClamAV" opened a page that tests neither, and its rows of
+  links were cut in a narrow window.** The link went to Diagnostics, which runs port 25, MX, backup-folder and IP
+  checks; it is now two, Anti-spam settings: test SpamAssassin and Anti-virus settings: test ClamAV, each opening its
+  page on the tab with the scanner's test (SpamAssassin, ClamAV), and the ClamAV timeouts link opens the ClamAV tab
+  too. Every row of buttons wraps, where the row of three timeout links (708 pixels in English, about 790 in German
+  and Japanese) and the German debug-logging row were cut at 760 pixels; the page is the form's width, 760 pixels,
+  where each step's paragraph ran to about 180 characters a line; and that paragraph is body text at the top of the
+  step's card, where it was the card's description in 12-pixel caption text above tables and bullets of 14.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

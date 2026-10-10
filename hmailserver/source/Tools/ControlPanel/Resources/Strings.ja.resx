@@ -1585,14 +1585,17 @@
   <data name="Anti-spam settings (SpamAssassin timeouts)" xml:space="preserve">
     <value>スパム対策の設定 (SpamAssassin のタイムアウト)</value>
   </data>
-  <data name="Anti-spam settings (SpamAssassin)" xml:space="preserve">
-    <value>スパム対策の設定 (SpamAssassin)</value>
+  <data name="Anti-spam settings: test SpamAssassin" xml:space="preserve">
+    <value>スパム対策の設定: SpamAssassin をテスト</value>
   </data>
   <data name="Anti-virus settings" xml:space="preserve">
     <value>ウイルス対策の設定</value>
   </data>
   <data name="Anti-virus settings (ClamAV timeouts)" xml:space="preserve">
     <value>ウイルス対策の設定 (ClamAV のタイムアウト)</value>
+  </data>
+  <data name="Anti-virus settings: test ClamAV" xml:space="preserve">
+    <value>ウイルス対策の設定: ClamAV をテスト</value>
   </data>
   <data name="Anyone" xml:space="preserve">
     <value>全員</value>
@@ -11454,9 +11457,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Test ClamWin scanner" xml:space="preserve">
     <value>ClamWin スキャナーをテスト</value>
-  </data>
-  <data name="Test SpamAssassin and ClamAV" xml:space="preserve">
-    <value>SpamAssassin と ClamAV をテスト</value>
   </data>
   <data name="Test SpamAssassin connection" xml:space="preserve">
     <value>SpamAssassin 接続をテスト</value>
