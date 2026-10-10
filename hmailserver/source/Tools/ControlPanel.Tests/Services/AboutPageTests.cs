@@ -5,7 +5,9 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using hMailServer.ControlPanel.Services;
 using Xunit;
 
 namespace hMailServer.ControlPanel.Tests.Services
@@ -34,7 +36,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("\"https://www.hmailserver.co.uk/\"", page, StringComparison.Ordinal);
          Assert.Contains("\"https://gitlab.com/hmailserver/hmailserver/-/issues\"", page, StringComparison.Ordinal);
          Assert.Contains("L(\"_Copy version details\")", page, StringComparison.Ordinal);
-         Assert.Contains("ClipboardWriter.TrySetText(text.ToString(), out string error)", page, StringComparison.Ordinal);
+         Assert.Contains("ClipboardWriter.TrySetText(text, out string error)", page, StringComparison.Ordinal);
       }
 
       [Fact]
@@ -59,6 +61,54 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("StatusView.DatabaseTypeName((int)db.DatabaseType)", page, StringComparison.Ordinal);
          Assert.Contains("internal static string DatabaseTypeName(int type)",
             ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", "StatusView.xaml.cs")), StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// The host is the session's own and is read outside the server's version, so
+      /// that a version the server does not give leaves Connected to and the report's
+      /// server line with the host: read in one try with the version, a failed read
+      /// of Application.Version said "Not read" of the host beside the command bar's
+      /// Connected, and Copy version details left the server line out, host and all.
+      /// </summary>
+      [Fact]
+      public void TheHost_IsShownAndCopied_WhenTheServersVersionIsNotRead()
+      {
+         string enter = WithheldRowTests.MemberText(Page(), "public void OnEnter()");
+         Assert.NotNull(enter);
+         int host = enter.IndexOf("host_ = ServerSession.Current?.Host ?? \"\";", StringComparison.Ordinal);
+         Match block = Regex.Match(enter, @"^\s*try\s*$", RegexOptions.Multiline);
+         Assert.True(block.Success, "OnEnter reads nothing in a try.");
+         int attempt = block.Index;
+         int version = enter.IndexOf("serverVersion_ = (string)ServerSession.Current.Application.Version ?? \"\";", StringComparison.Ordinal);
+         Assert.True(host >= 0 && host < attempt && attempt < version, "The host is read inside the try that reads the server's version.");
+         Assert.Equal(1, enter.Split("host_ =").Length - 1);
+
+         string copy = WithheldRowTests.MemberText(Page(), "private void CopyVersionDetails_()");
+         Assert.NotNull(copy);
+         Assert.Contains("VersionDetailsReport.Text(ControlPanelVersion_(), serverVersion_, host_, database_,", copy, StringComparison.Ordinal);
+
+         // Connected to shows the host whatever the version read did.
+         Assert.Contains("hostValue_.Text = host_.Length > 0 ? host_ : L(\"Not read\");", enter, StringComparison.Ordinal);
+      }
+
+      [Fact]
+      public void TheReportsServerLine_KeepsTheHost_WhenTheVersionIsNotRead()
+      {
+         Assert.Equal("Server: hMailServer 6.3.6 on mail.example.com", VersionDetailsReport.ServerLine("6.3.6", "mail.example.com"));
+         Assert.Equal("Server: hMailServer (version not read) on mail.example.com", VersionDetailsReport.ServerLine("", "mail.example.com"));
+         Assert.Equal("Server: hMailServer 6.3.6", VersionDetailsReport.ServerLine("6.3.6", ""));
+         Assert.Null(VersionDetailsReport.ServerLine("", null));
+
+         string[] report = VersionDetailsReport.Text("6.3.6 (abc1234)", "", "mail.example.com", "", "10.0.1", "10.0.26200.0")
+            .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+         Assert.Equal(new[]
+         {
+            "hMailServer Control Panel 6.3.6 (abc1234)",
+            "Server: hMailServer (version not read) on mail.example.com",
+            ".NET 10.0.1",
+            "Windows 10.0.26200.0",
+         }, report);
+         Assert.Contains("Database: MySQL", VersionDetailsReport.Text("6.3.6", "6.3.6", "localhost", "MySQL", "10.0.1", "10.0"), StringComparison.Ordinal);
       }
 
       [Fact]

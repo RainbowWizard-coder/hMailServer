@@ -5,7 +5,6 @@
 using System;
 using System.Diagnostics;
 using System.Reflection;
-using System.Text;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
@@ -167,20 +166,15 @@ namespace hMailServer.ControlPanel.Views
 
       /// <summary>
       /// The details a report needs, in English whatever the Control Panel's
-      /// language, so that whoever reads the report can read them.
+      /// language, so that whoever reads the report can read them - the server's
+      /// line with the host whenever it is known (VersionDetailsReport).
       /// </summary>
       private void CopyVersionDetails_()
       {
-         var text = new StringBuilder();
-         text.Append("hMailServer Control Panel ").AppendLine(ControlPanelVersion_());   // no-loc: a report's lines
-         if (serverVersion_.Length > 0)
-            text.Append("Server: hMailServer ").Append(serverVersion_).Append(" on ").AppendLine(host_);   // no-loc
-         if (database_.Length > 0)
-            text.Append("Database: ").AppendLine(database_);   // no-loc
-         text.Append(".NET ").AppendLine(Environment.Version.ToString());   // no-loc
-         text.Append("Windows ").AppendLine(Environment.OSVersion.Version.ToString());   // no-loc
+         string text = VersionDetailsReport.Text(ControlPanelVersion_(), serverVersion_, host_, database_,
+            Environment.Version.ToString(), Environment.OSVersion.Version.ToString());
 
-         if (ClipboardWriter.TrySetText(text.ToString(), out string error))
+         if (ClipboardWriter.TrySetText(text, out string error))
             Toast.Success(L("The version details are on the clipboard."));
          else
             Toast.Failure(L("Could not copy: ") + error);
@@ -220,15 +214,21 @@ namespace hMailServer.ControlPanel.Views
 
       public void OnEnter()
       {
-         serverVersion_ = host_ = database_ = "";
+         serverVersion_ = database_ = "";
+
+         // The host is the session's own, known without asking the server, so that a
+         // version the server does not give leaves Connected to and the report's
+         // server line as they are; it was read in the version's try, and a failed
+         // read of Application.Version said "Not read" of the host beside a
+         // command bar that said Connected.
+         host_ = ServerSession.Current?.Host ?? "";
          try
          {
             serverVersion_ = (string)ServerSession.Current.Application.Version ?? "";
-            host_ = ServerSession.Current.Host ?? "";
          }
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
          {
-            serverVersion_ = host_ = "";
+            serverVersion_ = "";
          }
 
          // The database a credential that may not view the configuration is not

@@ -47,6 +47,10 @@
          pattern each (review finding F309). No WPF and no COM, so the tests hold
          every action's words. -->
     <Compile Include="..\ControlPanel\Services\RulePartText.cs" />
+    <!-- The About page's version details for a report, the server's line with the
+         host whenever it is known (review finding F314). No WPF, so the tests hold
+         each line. -->
+    <Compile Include="..\ControlPanel\Services\VersionDetailsReport.cs" />
     <!-- The Discovery page's reading of the REST API: the cases, a case's rows of
          the audit trail (so the audit trail's own reader is here with it), and
          where the listener is. No WPF and no network, so the tests can pin the
