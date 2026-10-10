@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using static hMailServer.ControlPanel.Services.Loc;
@@ -21,24 +22,87 @@ namespace hMailServer.ControlPanel.Services
    /// </summary>
    public static class SettingNumberRange
    {
-      private const NumberStyles WholeNumber =
-         NumberStyles.AllowLeadingWhite | NumberStyles.AllowTrailingWhite | NumberStyles.AllowLeadingSign | NumberStyles.AllowThousands;
+      // The spaces a reader groups digits with where the culture's separator is a
+      // space: fr writes a narrow no-break space, sv, nb, fi, cs, pl, ru and uk a
+      // no-break space, and every one of them types the space bar's.
+      private static readonly string[] Spaces = { " ", "\u00A0", "\u202F" };
 
       /// <summary>
-      /// The whole number the text is, in the reader's way of writing one ("10,000",
-      /// "10.000") or in digits alone; false for anything else, a fraction included.
+      /// The whole number the text is, in the reader's way of writing one; false for
+      /// anything else. <see cref="TryParse(string, CultureInfo, out long)"/> says what is
+      /// taken.
       /// </summary>
       public static bool TryParse(string text, out long value)
+         => TryParse(text, CultureInfo.CurrentCulture, out value);
+
+      /// <summary>
+      /// The whole number the text is: digits alone ("10000"), or digits grouped as
+      /// <paramref name="culture"/> groups them, every separator where it belongs
+      /// ("10,000" in English, "10.000" in German, "10 000" in French or Swedish);
+      /// false for anything else - a fraction ("1.5", "1,5"), a separator out of its
+      /// place, the other language's separator, a sign, a unit ("30s"). NumberStyles'
+      /// AllowThousands took a separator wherever it fell, so English read "1,5" as
+      /// 15 and German "1.5" (review finding F220), and the page saved a number other
+      /// than the one typed without a word.
+      /// </summary>
+      public static bool TryParse(string text, CultureInfo culture, out long value)
       {
+         value = 0;
          string trimmed = (text ?? "").Trim();
          if (trimmed.Length == 0)
-         {
-            value = 0;
             return false;
+
+         if (AllDigits_(trimmed))
+            return long.TryParse(trimmed, NumberStyles.None, CultureInfo.InvariantCulture, out value);
+
+         NumberFormatInfo format = (culture ?? CultureInfo.InvariantCulture).NumberFormat;
+         string separator = format.NumberGroupSeparator;
+         if (string.IsNullOrEmpty(separator))
+            return false;
+
+         string[] separators = Array.IndexOf(Spaces, separator) >= 0 ? Spaces : new[] { separator };
+         string[] groups = trimmed.Split(separators, StringSplitOptions.None);
+         if (groups.Length < 2 || !GroupedAs_(groups, format.NumberGroupSizes))
+            return false;
+
+         return long.TryParse(string.Concat(groups), NumberStyles.None, CultureInfo.InvariantCulture, out value);
+      }
+
+      // Whether the groups, read from the right, are as long as the culture makes them:
+      // each as long as its size (the last size repeating), the leftmost one to that
+      // long. A size of 0 leaves the digits to its left ungrouped.
+      private static bool GroupedAs_(string[] groups, int[] sizes)
+      {
+         if (sizes == null || sizes.Length == 0)
+            return false;
+
+         for (int i = groups.Length - 1, n = 0; i >= 0; i--, n++)
+         {
+            string group = groups[i];
+            int size = sizes[Math.Min(n, sizes.Length - 1)];
+            if (group.Length == 0 || !AllDigits_(group))
+               return false;
+
+            if (i == 0)
+               return size == 0 || group.Length <= size;
+
+            if (group.Length != size)
+               return false;
          }
 
-         return long.TryParse(trimmed, WholeNumber, CultureInfo.CurrentCulture, out value)
-            || long.TryParse(trimmed, WholeNumber, CultureInfo.InvariantCulture, out value);
+         return false;
+      }
+
+      // The digits 0 to 9 and nothing else: the server reads no other digit.
+      private static bool AllDigits_(string text)
+      {
+         foreach (char c in text)
+         {
+            if (c < '0' || c > '9')
+               return false;
+         }
+
+         return text.Length > 0;
       }
 
       /// <summary>

@@ -356,16 +356,23 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
-      /// A whole number: an up/down box 180 pixels wide, as ServerSettingsView's
-      /// numbers are, and the range the server reads the value in, which a save holds
-      /// it to with a message on the field (review findings F220 and F139). These
-      /// were 520-pixel boxes of free text whose save wrote whatever was typed - a
-      /// port of 70000, a PBKDF2 work factor the server then reports and replaces
-      /// with its own. The box sets no bounds of its own, which would pull a typed
-      /// value to the nearest one without a word; the range is the save's to say
-      /// (Services/SettingNumberRange). A value the file holds that is not a number
-      /// is shown as it is and, unchanged, not written. A key of another section
-      /// - [SendingLimits] - is read and written there.
+      /// A whole number: a box 180 pixels wide, as ServerSettingsView's numbers are,
+      /// and the range the server reads the value in, which a save holds it to with a
+      /// message on the field (review findings F220 and F139). These were 520-pixel
+      /// boxes of free text whose save wrote whatever was typed - a port of 70000, a
+      /// PBKDF2 work factor the server then reports and replaces with its own.
+      ///
+      /// A text box, as the LDAP and Directory synchronisation pages' numbers are, and
+      /// not a NumberBox: a NumberBox takes its text in as the keyboard leaves it -
+      /// which pressing Save with the mouse does, before Save asks the row - rounding
+      /// a fraction ("1.5" became 2) and putting back the value before for text it
+      /// cannot read ("30s", "10 000"), so that the save wrote a number other than
+      /// the one typed, or the old one, without a word; and with bounds it pulls a
+      /// value to the nearest one. The text stays as typed until the save asks
+      /// whether it is a whole number in the range (Services/SettingNumberRange), and
+      /// says on the field when it is not. A value the file holds that is not a
+      /// number is shown as it is and, unchanged, not written. A key of another
+      /// section - [SendingLimits] - is read and written there.
       /// </summary>
       private class NumberSetting : Setting
       {
@@ -384,7 +391,7 @@ namespace hMailServer.ControlPanel.Views
 
          protected override bool InSettingsSection => Section == null;
 
-         private Wpf.Ui.Controls.NumberBox box_;
+         private Wpf.Ui.Controls.TextBox box_;
 
          public override FrameworkElement CreateEditor(IniFeatureStore store)
          {
@@ -393,27 +400,22 @@ namespace hMailServer.ControlPanel.Views
                : IniDirect.ReadValue(store.IniPath, Section, Key, Default)) ?? "";
             raw = raw.Trim();
 
-            box_ = new Wpf.Ui.Controls.NumberBox
+            box_ = new Wpf.Ui.Controls.TextBox
             {
-               MaxDecimalPlaces = 0,
-               SmallChange = 1,
-               LargeChange = 10,
-               FontSize = Typography.Body,
+               Text = raw,
                Width = NumberWidth,
                HorizontalAlignment = HorizontalAlignment.Left,
                PlaceholderText = Placeholder
             };
 
-            if (SettingNumberRange.TryParse(raw, out long current))
-            {
-               box_.Value = current;
-               Loaded = current.ToString(CultureInfo.InvariantCulture);
-            }
-            else
-            {
-               box_.Text = raw;
-               Loaded = raw;
-            }
+            // No input method: with a Japanese or Chinese one on, a digit typed arrives
+            // as a full-width one, which the server does not read as a digit and the
+            // save refuses.
+            InputMethod.SetIsInputMethodEnabled(box_, false);
+
+            Loaded = SettingNumberRange.TryParse(raw, out long current)
+               ? current.ToString(CultureInfo.InvariantCulture)
+               : raw;
 
             Describe(box_, Key);
             box_.TextChanged += (s, e) => { if (Field != null) Field.Error = null; };
@@ -437,9 +439,8 @@ namespace hMailServer.ControlPanel.Views
          }
 
          /// <summary>
-         /// The number as hMailServer.INI spells it, read from what the box shows - a
-         /// value typed and not yet committed by the box is the one saved - or the text
-         /// itself when it is not a number.
+         /// The number as hMailServer.INI spells it, read from the text as typed, or
+         /// the text itself when it is not a whole number - which the save refuses.
          /// </summary>
          public override string LiveValue
          {

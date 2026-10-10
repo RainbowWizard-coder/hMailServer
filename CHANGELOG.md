@@ -1978,14 +1978,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   text and the DNS override took anything.** The ports, timeouts, cache lifetimes, sizes and work factors on Transport
   security, Certificates (ACME), API & monitoring, Server limits & expert settings, Authentication and Web services &
   autoconfiguration were 520-pixel text boxes, and Save wrote a port of 70000 or a PBKDF2 work factor the server then
-  reports and replaces with its own. Each is a 180-pixel number box, as on the other settings pages, and Save holds it
-  to the range the server reads it in - a port from 0 to 65,535, the OpenTelemetry interval from 5 to 3600, the
-  MTA-STS max age from a day to a year, a work factor 0 or its range - saying "Enter a whole number from 0 to 65,535."
-  on the field and writing nothing on the page. The MTA-STS policy mode is a list of enforce, testing and none, each
-  saying what it does; the DNS override is held to one IPv4 address as the server reads it; addresses are 260 pixels
-  wide and other text the width of the form, as on Directory authentication and Directory synchronisation, whose boxes
-  were 320 to 620 pixels and whose numbers are now 180. The drop size for oversized inbound messages is captioned in
-  KB, the unit the server compares it in, where it said bytes.
+  reports and replaces with its own. Each is a 180-pixel box, as on the other settings pages, that keeps the number as
+  typed, and Save holds it to the range the server reads it in - a port from 0 to 65,535, the OpenTelemetry interval
+  from 5 to 3600, the MTA-STS max age from a day to a year, a work factor 0 or its range - saying "Enter a whole number
+  from 0 to 65,535." on the field and writing nothing on the page. A number is digits, or digits grouped as the reader
+  writes them - 10,000 in English, 10.000 in German, 10 000 in French - and anything else is refused the same way,
+  never rounded, read as another number or put back to the value before: "1.5", "1,5" in English, "30s". The MTA-STS
+  policy mode is a list of enforce, testing and none, each saying what it does; the DNS override is held to one IPv4
+  address as the server reads it; addresses are 260 pixels wide and other text the width of the form, as on Directory
+  authentication and Directory synchronisation, whose boxes were 320 to 620 pixels and whose numbers are now 180. The
+  drop size for oversized inbound messages is captioned in KB, the unit the server compares it in, where it said bytes.
 
 - **Fixed: fields that count only while their switch is on stayed editable while it was off.** A domain's account,
   alias and list limits, its plus-addressing character, signature, relay credential, out-of-office text for local

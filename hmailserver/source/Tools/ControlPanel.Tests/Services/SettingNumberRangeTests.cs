@@ -23,6 +23,7 @@ namespace hMailServer.ControlPanel.Tests.Services
    /// </summary>
    public class SettingNumberRangeTests
    {
+      /// <summary>Held in English, whose separators the cases are written in.</summary>
       [Theory]
       [InlineData("0", 0, 65535, false, true)]
       [InlineData("65535", 0, 65535, false, true)]
@@ -31,13 +32,78 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("8o", 0, 65535, false, false)]
       [InlineData("", 0, 65535, false, false)]
       [InlineData("1.5", 0, 65535, false, false)]
+      [InlineData("1,5", 0, 65535, false, false)]        // not 15
       [InlineData(" 80 ", 1, 65535, false, true)]
       [InlineData("0", 10000, 10000000, true, true)]     // the built-in work factor
       [InlineData("9999", 10000, 10000000, true, false)]
       [InlineData("10,000", 10000, 10000000, true, true)] // as an English reader writes it
       [InlineData("2147483647", 0, int.MaxValue, false, true)]
       public void ANumber_IsSaved_OnlyInsideTheRangeTheServerReadsItIn(string text, long minimum, long maximum, bool zero, bool accepted)
-         => Assert.Equal(accepted, SettingNumberRange.Error(text, minimum, maximum, zero) == null);
+         => InCulture_("en-GB", () => Assert.Equal(accepted, SettingNumberRange.Error(text, minimum, maximum, zero) == null));
+
+      /// <summary>
+      /// A number is taken as typed or not at all (review finding F220): digits alone,
+      /// or grouped as the reader groups them with every separator in its place. A
+      /// separator anywhere else - the other language's decimal comma or point among
+      /// them - is refused, where NumberStyles.AllowThousands read English "1,5" and
+      /// German "1.5" as 15; and so is a sign, a unit, or a digit the server does not
+      /// read.
+      /// </summary>
+      [Theory]
+      [InlineData("en-GB", "10000", 10000L)]
+      [InlineData("en-GB", "080", 80L)]
+      [InlineData("en-GB", "10,000", 10000L)]
+      [InlineData("en-GB", "1,000,000", 1000000L)]
+      [InlineData("en-GB", "1,5", null)]
+      [InlineData("en-GB", "1.5", null)]
+      [InlineData("en-GB", "10,00", null)]
+      [InlineData("en-GB", "1,0000", null)]
+      [InlineData("en-GB", ",100", null)]
+      [InlineData("en-GB", "100,", null)]
+      [InlineData("en-GB", "10.000", null)]
+      [InlineData("en-GB", "10 000", null)]
+      [InlineData("en-GB", "+80", null)]
+      [InlineData("en-GB", "-1", null)]
+      [InlineData("en-GB", "30s", null)]
+      [InlineData("en-GB", "\uFF18\uFF10", null)]           // a full-width 80, from an input method
+      [InlineData("en-GB", "99999999999999999999", null)]
+      [InlineData("de-DE", "10.000", 10000L)]
+      [InlineData("de-DE", "10000", 10000L)]
+      [InlineData("de-DE", "1.5", null)]                      // not 15
+      [InlineData("de-DE", "2,5", null)]                      // not 2
+      [InlineData("de-DE", "10,000", null)]
+      [InlineData("fr-FR", "10 000", 10000L)]                 // the space bar's space
+      [InlineData("fr-FR", "10\u202F000", 10000L)]            // as French writes it
+      [InlineData("fr-FR", "10\u00A0000", 10000L)]
+      [InlineData("fr-FR", "1 0000", null)]
+      [InlineData("fr-FR", "1,5", null)]
+      [InlineData("sv-SE", "10 000", 10000L)]
+      [InlineData("ru-RU", "1 000 000", 1000000L)]
+      [InlineData("de-CH", "10\u2019000", 10000L)]
+      [InlineData("ja-JP", "10,000", 10000L)]
+      [InlineData("hi-IN", "1,00,000", 100000L)]              // groups of two above the first three
+      [InlineData("hi-IN", "100,000", null)]
+      public void ANumber_IsReadAsTyped_OrNotAtAll(string culture, string text, long? expected)
+      {
+         bool read = SettingNumberRange.TryParse(text, CultureInfo.GetCultureInfo(culture), out long value);
+         Assert.Equal(expected.HasValue, read);
+         if (expected.HasValue)
+            Assert.Equal(expected.Value, value);
+      }
+
+      private static void InCulture_(string name, Action test)
+      {
+         CultureInfo saved = CultureInfo.CurrentCulture;
+         try
+         {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(name);
+            test();
+         }
+         finally
+         {
+            CultureInfo.CurrentCulture = saved;
+         }
+      }
 
       [Fact]
       public void ARefusal_SaysTheRange_InTheReadersNumbers()
@@ -170,6 +236,36 @@ namespace hMailServer.ControlPanel.Tests.Services
          string number = source[source.IndexOf("private class NumberSetting", StringComparison.Ordinal)..source.IndexOf("private class WordSetting", StringComparison.Ordinal)];
          Assert.DoesNotContain("box_.Minimum", number, StringComparison.Ordinal);
          Assert.DoesNotContain("Minimum = Minimum", number, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// A number's editor is a text box, not a NumberBox, which takes its text in as
+      /// the keyboard leaves it - as pressing Save with the mouse makes it - rounding
+      /// "1.5" to 2 and putting the value before back for "30s", so that Save wrote a
+      /// number other than the one typed without a word (review finding F220). The
+      /// text stays as typed until the save reads it, and the box takes no input
+      /// method.
+      /// </summary>
+      [Fact]
+      public void ANumbersEditor_KeepsTheTextAsTyped_UntilTheSaveReadsIt()
+      {
+         string source = Source_();
+         string number = source[source.IndexOf("private class NumberSetting", StringComparison.Ordinal)..source.IndexOf("private class WordSetting", StringComparison.Ordinal)];
+         string code = string.Join("\n", number.Split('\n').Where(line => !line.TrimStart().StartsWith("//", StringComparison.Ordinal)));
+         Assert.DoesNotContain("NumberBox", code, StringComparison.Ordinal);
+         Assert.Contains("private Wpf.Ui.Controls.TextBox box_;", code, StringComparison.Ordinal);
+         Assert.Contains("box_ = new Wpf.Ui.Controls.TextBox", code, StringComparison.Ordinal);
+         Assert.Contains("Width = NumberWidth,", code, StringComparison.Ordinal);
+         Assert.Contains("InputMethod.SetIsInputMethodEnabled(box_, false);", code, StringComparison.Ordinal);
+
+         // What is saved and what is checked are read from the text as typed.
+         Assert.Contains("string text = (box_.Text ?? \"\").Trim();", code, StringComparison.Ordinal);
+         Assert.Contains("SettingNumberRange.Error(LiveValue, Minimum, Maximum, ZeroIsBuiltIn)", code, StringComparison.Ordinal);
+
+         // The parse takes no separator wherever it falls (AllowThousands), and no sign.
+         string parse = File.ReadAllText(Path.Join(Path.GetDirectoryName(Path.GetDirectoryName(SourcePath_())), "Services", "SettingNumberRange.cs"));
+         Assert.DoesNotContain("NumberStyles.AllowThousands", parse, StringComparison.Ordinal);
+         Assert.DoesNotContain("NumberStyles.AllowLeadingSign", parse, StringComparison.Ordinal);
       }
 
       /// <summary>F139's four width rules in one group: the directory pages take the settings pages' rule too.</summary>
