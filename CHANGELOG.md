@@ -3665,7 +3665,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   needed. Next step: MTA-STS policy hosting..." and only then "11 values could not be read: ... The items above may be
   incomplete." The notice is now first and says it in the DNS records page's words, "Some values could not be read,
   so the cards below may be incomplete." with the reason last; and while values could not be read the tally begins
-  "Only what could be read is counted.", and neither the tally nor a card names a next step - no card carries the Next
+  "An item that depends on a value that could not be read is counted as one that cannot be told, unless what was read
+  already shows that it needs action.", and neither the tally nor a card names a next step - no card carries the Next
   step pill or the page's primary button - since the step it would name is the first of the items that could be told,
   not the first that needs doing. An item that judges a value the checklist could not read says Cannot tell: with the
   domain list unread, DKIM signing said "No domains are configured" as Not needed, ARC sealing, where it is on, that

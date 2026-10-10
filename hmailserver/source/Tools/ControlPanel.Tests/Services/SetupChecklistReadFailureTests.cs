@@ -14,8 +14,10 @@ namespace hMailServer.ControlPanel.Tests.Services
    /// policy hosting..." first, a tally counted from values that could not be read,
    /// and the notice that said so came after it and spoke of "the items above" while
    /// it sat above them. The notice is first, says the cards below may be incomplete
-   /// with its reason last, and the tally says it counts what could be read; and
-   /// while reads fail neither the tally nor a card names a next step.
+   /// with its reason last, and the tally says how it counts an item that depends on
+   /// a value that could not be read; and while reads fail neither the tally nor a
+   /// card names a next step, and an item that depends on an unread value cannot be
+   /// told.
    ///
    /// Scanned rather than rendered: this assembly has no WPF.
    /// </summary>
@@ -42,14 +44,17 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       [Fact]
-      public void WhileReadsFail_TheTallyCountsWhatCouldBeRead_AndNamesNoNextStep()
+      public void WhileReadsFail_TheTallySaysHowItCountsAnUnreadValue_AndNamesNoNextStep()
       {
          string render = WithheldRowTests.MemberText(Source(), "private void RenderItems(string dnsNote)");
          Assert.True(render != null, "ExternalSetupView.RenderItems is gone.");
 
          // A sentence of its own before the tally while values could not be read, and
-         // the next step only while every value was.
-         Assert.Contains("summary_.Text = Sentences(partial ? L(\"Only what could be read is counted.\") : null,", render, StringComparison.Ordinal);
+         // the next step only while every value was. It said "Only what could be read is
+         // counted.", which the numbers were not: every item is counted, and an unread
+         // value is a Cannot tell finding of its item.
+         Assert.DoesNotContain("Only what could be read", Source(), StringComparison.Ordinal);
+         Assert.Contains("summary_.Text = Sentences(partial ? L(\"An item that depends on a value that could not be read is counted as one that cannot be told, unless what was read already shows that it needs action.\") : null,", render, StringComparison.Ordinal);
          Assert.Contains("next != null ? F(\"Next step: {0}.\", next.Title) : null);", render, StringComparison.Ordinal);
       }
 

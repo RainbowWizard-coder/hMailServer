@@ -274,8 +274,11 @@ namespace hMailServer.ControlPanel.Views
          // cannot be checked from here. 4 items are not needed.", where one sentence
          // said "4 need action, 7 cannot be told from here, 0 done, 4 not needed"
          // (review finding F034). While values could not be read, the tally says
-         // first that it counts only what could be, and names no next step (above).
-         summary_.Text = Sentences(partial ? L("Only what could be read is counted.") : null,
+         // first how it counts an item that depends on one - every item is counted,
+         // and an unread value is a Cannot tell finding of its item - and names no
+         // next step (above). It said that only what could be read was counted,
+         // which the numbers were not.
+         summary_.Text = Sentences(partial ? L("An item that depends on a value that could not be read is counted as one that cannot be told, unless what was read already shows that it needs action.") : null,
             SetupTally.Tally(action, unknown, done, unused, next?.Title));
          summary_.Visibility = Visibility.Visible;
 

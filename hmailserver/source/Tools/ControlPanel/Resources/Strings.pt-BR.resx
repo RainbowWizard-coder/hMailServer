@@ -1623,6 +1623,9 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="An external scanner process. 0 = no time limit." xml:space="preserve">
     <value>Um processo de verificação externo. 0 = sem limite de tempo.</value>
   </data>
+  <data name="An item that depends on a value that could not be read is counted as one that cannot be told, unless what was read already shows that it needs action." xml:space="preserve">
+    <value>Um item que depende de um valor que não pôde ser lido é contado entre os que não podem ser determinados, a menos que o que foi lido já mostre que ele precisa de ação.</value>
+  </data>
   <data name="An older, weaker option: a one-time code asked for after the password when signing in to this Control Panel, checked by the tool itself after the server has already accepted the password. The secret is stored per machine under HKLM, so enabling or disabling it needs local administrator rights, and it does nothing for the REST API or for scripts using the COM API. Prefer the server-enforced factor above; this one remains for existing setups." xml:space="preserve">
     <value>Uma opção mais antiga e mais fraca: um código de uso único pedido após a senha ao entrar neste Control Panel, verificado pela própria ferramenta depois que o servidor já aceitou a senha. O segredo é armazenado por máquina em HKLM, então ativar ou desativar exige direitos de administrador local, e não faz nada pela API REST ou por scripts que usam a API COM. Prefira o fator imposto pelo servidor acima; este permanece para instalações existentes.</value>
   </data>
@@ -8682,9 +8685,6 @@ Nada do que já está lá é removido.</value>
   </data>
   <data name="Only used together with the user name above" xml:space="preserve">
     <value>Usado apenas junto com o nome de usuário acima</value>
-  </data>
-  <data name="Only what could be read is counted." xml:space="preserve">
-    <value>Só o que pôde ser lido foi contado.</value>
   </data>
   <data name="Open" xml:space="preserve">
     <value>Aberto</value>
