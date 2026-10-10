@@ -144,8 +144,22 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void TheBreadcrumb_IsOneLine_AndKeepsAGapBeforeTheRelatedLinks()
       {
          string xaml = ConfirmationPatternTests.ReadControlPanelFile("MainWindow.xaml");
-         Assert.Matches(new Regex(@"<DockPanel x:Name=""BreadcrumbHost""[^>]*LastChildFill=""True"""), xaml);
+         Assert.Matches(new Regex(@"<scaffold:BreadcrumbTrailPanel x:Name=""BreadcrumbHost"""), xaml);
          Assert.DoesNotMatch(new Regex(@"<WrapPanel x:Name=""BreadcrumbHost"""), xaml);
+         // A DockPanel gave the group all the bar had and the page's name none.
+         Assert.DoesNotMatch(new Regex(@"<DockPanel x:Name=""BreadcrumbHost"""), xaml);
+         string panel = ConfirmationPatternTests.ReadControlPanelFile(System.IO.Path.Join("Views", "Scaffold", "BreadcrumbTrailPanel.cs"));
+         Assert.Contains("double[] widths = ShellGeometry.BreadcrumbWidths(availableSize.Width, desired, parts);", panel, StringComparison.Ordinal);
+         Assert.Contains("index == InternalChildren.Count - 1 ? BreadcrumbPart.Page", panel, StringComparison.Ordinal);
+         Assert.Contains("child is TextBlock ? BreadcrumbPart.Fixed", panel, StringComparison.Ordinal);
+         Assert.Contains("child is ButtonBase ? BreadcrumbPart.Group", panel, StringComparison.Ordinal);
+         Assert.Contains(": BreadcrumbPart.Marker;", panel, StringComparison.Ordinal);
+         // Only a part that is cut is measured again, in its share: measured again in
+         // its own width a group's words came out short and were cut with room to spare.
+         Assert.Matches(new Regex(@"if \(widths\[i\] < desired\[i\]\)\s+children\[i\]\.Measure\(new Size\(Math\.Max\(0, widths\[i\]\), availableSize\.Height\)\);"), panel);
+         // And each is placed at the width it measured to, the next straight after it.
+         Assert.Contains("double width = children[i].DesiredSize.Width;", panel, StringComparison.Ordinal);
+         Assert.Contains("children[i].Arrange(new Rect(x, 0, width, finalSize.Height));", panel, StringComparison.Ordinal);
          Assert.Matches(new Regex(@"<WrapPanel x:Name=""RelatedHost""[^>]*Margin=""12,0,0,0"""), xaml);
 
          string shell = ConfirmationPatternTests.ReadControlPanelFile("MainWindow.xaml.cs");
@@ -165,6 +179,120 @@ namespace hMailServer.ControlPanel.Tests.Services
          string group = WithheldRowTests.MemberText(shell, "private FrameworkElement GroupSegment(NavNode group)");
          Assert.True(group != null, "MainWindow.GroupSegment is gone.");
          Assert.Contains("Content = new TextBlock { Text = L(group.Title), TextTrimming = TextTrimming.CharacterEllipsis },", group, StringComparison.Ordinal);
+         // And the search's marker before the trail, cut with the groups.
+         string marker = WithheldRowTests.MemberText(shell, "private static FrameworkElement SearchMarker()");
+         Assert.True(marker != null, "MainWindow.SearchMarker is gone.");
+         Assert.Contains("TextTrimming = TextTrimming.CharacterEllipsis", marker, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// The page's name has the priority on a line too short for the trail: the
+      /// groups are cut first, to 48 pixels, then the page's name to 96, then the
+      /// groups to their ellipsis, and the page's name last. Beside the help pane in
+      /// a window of 760 the bar left the trail about 100 pixels, the group took
+      /// them all, and the page's name was given none (review finding F047).
+      /// </summary>
+      [Fact]
+      public void TheBreadcrumb_CutsTheGroupsBeforeThePagesName()
+      {
+         BreadcrumbPart[] trail = { BreadcrumbPart.Group, BreadcrumbPart.Fixed, BreadcrumbPart.Page };
+
+         // Room for all: each as wide as it is.
+         Assert.Equal(new[] { 170.0, 15, 185 }, ShellGeometry.BreadcrumbWidths(400, new[] { 170.0, 15, 185 }, trail));
+         Assert.Equal(new[] { 170.0, 15, 185 }, ShellGeometry.BreadcrumbWidths(double.PositiveInfinity, new[] { 170.0, 15, 185 }, trail));
+
+         // Short by 70: the group alone gives way, and the page's name is whole.
+         Assert.Equal(new[] { 100.0, 15, 185 }, ShellGeometry.BreadcrumbWidths(300, new[] { 170.0, 15, 185 }, trail));
+
+         // Short by 170: the group to its floor, then the page's name cut by what is still to give.
+         Assert.Equal(new[] { 48.0, 15, 137 }, ShellGeometry.BreadcrumbWidths(200, new[] { 170.0, 15, 185 }, trail));
+
+         // Beside the help pane at 760, "Accounts & domains > Domains": the page's
+         // name whole, the group under its floor rather than the page's name cut.
+         Assert.Equal(new[] { 36.0, 15, 50 }, ShellGeometry.BreadcrumbWidths(101, new[] { 120.0, 15, 50 }, trail));
+
+         // "Certificates & encryption > Automatic certificates (ACME)" there: the
+         // group to its ellipsis, the page's name what is left - never nothing.
+         double[] acme = ShellGeometry.BreadcrumbWidths(101, new[] { 170.0, 15, 185 }, trail);
+         Assert.Equal(ShellGeometry.BreadcrumbGroupLeast, acme[0]);
+         Assert.Equal(15, acme[1]);
+         Assert.Equal(62, acme[2], 6);
+
+         // The search's marker and a group, cut first, share each cut by what each can give.
+         BreadcrumbPart[] found = { BreadcrumbPart.Marker, BreadcrumbPart.Group, BreadcrumbPart.Fixed, BreadcrumbPart.Page };
+         double[] shared = ShellGeometry.BreadcrumbWidths(311, new[] { 98.0, 148, 15, 100 }, found);
+         Assert.Equal(98 - 50 * 50.0 / 150, shared[0], 6);
+         Assert.Equal(148 - 50 * 100.0 / 150, shared[1], 6);
+         Assert.Equal(100, shared[3]);
+
+         // Shorter, the marker is left out before the page's name is cut; the group
+         // keeps its floor.
+         double[] marked = ShellGeometry.BreadcrumbWidths(200, new[] { 98.0, 148, 15, 185 }, found).Select(width => Math.Round(width, 6)).ToArray();
+         Assert.Equal(new[] { 0.0, ShellGeometry.BreadcrumbGroupFloor, 15, 137 }, marked);
+         // And beside the help pane at 760 the marker is gone, the group at its
+         // ellipsis and the page's name what is left, as without the marker.
+         Assert.Equal(new[] { 0.0, ShellGeometry.BreadcrumbGroupLeast, 15, 62 },
+            ShellGeometry.BreadcrumbWidths(101, new[] { 98.0, 170, 15, 185 }, found).Select(width => Math.Round(width, 6)).ToArray());
+
+         // Whatever the width, no part is wider than it is, none is negative, and the
+         // line is filled no further than it is long while the parts can give.
+         for (double available = 0; available <= 420; available += 7)
+         {
+            double[] widths = ShellGeometry.BreadcrumbWidths(available, new[] { 170.0, 15, 185 }, trail);
+            Assert.All(widths, width => Assert.True(width >= 0));
+            Assert.True(widths[0] <= 170 && widths[2] <= 185);
+            Assert.Equal(15, widths[1]);
+            if (available >= 15 + ShellGeometry.BreadcrumbGroupLeast)
+               Assert.True(widths.Sum() <= available + 1e-9, "The trail overruns a line of " + available + ".");
+            // The page's name is never cut while a group is wider than its floor.
+            if (widths[2] < 185)
+               Assert.True(widths[0] <= ShellGeometry.BreadcrumbGroupFloor + 1e-9, "The page's name was cut before the group at " + available + ".");
+         }
+      }
+
+      /// <summary>
+      /// No part is ever given less than nothing, nor less than the floor of the
+      /// cut that took from it, whatever the widths: in widths of thirds of a pixel,
+      /// as at 150 %, a share worked out to a hair under zero - the search's marker
+      /// at -7.1E-15 in a trail of 273 pixels - the trail's panel asked for a Size
+      /// of negative width, and the layout threw, which ends the program; the
+      /// render harness met it on a page opened from search beside the help pane.
+      /// </summary>
+      [Fact]
+      public void TheBreadcrumbsWidths_AreNeverNegative_NorUnderTheirFloors()
+      {
+         BreadcrumbPart[] found = { BreadcrumbPart.Marker, BreadcrumbPart.Group, BreadcrumbPart.Fixed, BreadcrumbPart.Page };
+
+         // Three that came out under zero.
+         Assert.All(ShellGeometry.BreadcrumbWidths(273.0, new[] { 95.33333333333333, 195.0, 8.0, 223.66666666666666 }, found), width => Assert.True(width >= 0, width.ToString("R", System.Globalization.CultureInfo.InvariantCulture)));
+         Assert.All(ShellGeometry.BreadcrumbWidths(9.0, new[] { 88.33333333333333, 112.66666666666667, 8.0, 180.33333333333334 }, found), width => Assert.True(width >= 0, width.ToString("R", System.Globalization.CultureInfo.InvariantCulture)));
+         Assert.All(ShellGeometry.BreadcrumbWidths(9.666666666666666, new[] { 115.33333333333333, 21.666666666666668, 8.0, 198.66666666666666 }, found), width => Assert.True(width >= 0, width.ToString("R", System.Globalization.CultureInfo.InvariantCulture)));
+
+         double[][] trails =
+         {
+            new[] { 98.6667, 142, 8, 162.6667 },
+            new[] { 118, 175.3333, 8, 178.0001 },
+            new[] { 112.6667, 91.3333, 8, 104 },
+            new[] { 0.3333, 47.9999, 8, 96.0001 },
+         };
+         foreach (double[] desired in trails)
+         {
+            for (double available = 0; available <= 520; available += 1.0 / 3)
+            {
+               double[] widths = ShellGeometry.BreadcrumbWidths(available, desired, found);
+               for (int i = 0; i < widths.Length; i++)
+               {
+                  Assert.True(widths[i] >= 0, "Part " + i + " is " + widths[i] + " wide in " + available + ".");
+                  Assert.True(widths[i] <= desired[i], "Part " + i + " is wider than it is in " + available + ".");
+               }
+
+               // The group under its ellipsis never, the page's name under its floor
+               // only once the group is at its ellipsis.
+               Assert.True(widths[1] >= Math.Min(desired[1], ShellGeometry.BreadcrumbGroupLeast) - 1e-9, "The group went under its ellipsis in " + available + ".");
+               if (widths[3] < Math.Min(desired[3], ShellGeometry.BreadcrumbPageFloor) - 1e-9)
+                  Assert.True(widths[1] <= ShellGeometry.BreadcrumbGroupLeast + 1e-9, "The page's name went under its floor before the group reached its ellipsis in " + available + ".");
+            }
+         }
       }
 
       /// <summary>A glyph's family: its name without the size and without the qualifier after the first word - "ShieldKeyhole24" is a Shield.</summary>

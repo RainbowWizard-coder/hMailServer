@@ -343,12 +343,15 @@
                                 </ui:Button>
                             </StackPanel>
                             <!-- One line, never two: the trail's parts from the left and the
-                                 page's name last, given what is left and cut short with an
-                                 ellipsis, whole in its tool tip (UpdateBreadcrumb). A
-                                 WrapPanel put "Certificates (ACME)" on a line of its own in
-                                 the narrowest window, and the bar grew by a line (review
+                                 page's name last, cut short with an ellipsis where the line
+                                 is too short for them, the groups first and the page's name
+                                 last, whole in their tool tips (UpdateBreadcrumb,
+                                 Views/Scaffold/BreadcrumbTrailPanel). A WrapPanel put
+                                 "Certificates (ACME)" on a line of its own in the narrowest
+                                 window, and the bar grew by a line; a DockPanel that gave the
+                                 page's name what the group left gave it nothing there (review
                                  finding F047). -->
-                            <DockPanel x:Name="BreadcrumbHost" Grid.Column="1" LastChildFill="True"
+                            <scaffold:BreadcrumbTrailPanel x:Name="BreadcrumbHost" Grid.Column="1"
                                        VerticalAlignment="Center"
                                        AutomationProperties.AutomationId="breadcrumb" />
                             <!-- Twelve pixels (AppSpaceMd) from the trail, which ran into

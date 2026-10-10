@@ -882,9 +882,10 @@ namespace hMailServer.ControlPanel
 
             if (index == trail.Count - 1)
             {
-               // Last, so that the bar's DockPanel gives it the width the trail
-               // leaves, and cut short there rather than put on a line of its own
-               // (review finding F047); whole in its tool tip.
+               // Last, the part the trail's panel cuts last (BreadcrumbTrailPanel):
+               // where the line is too short it is cut short rather than put on a
+               // line of its own, and only once the groups before it are (review
+               // finding F047); whole in its tool tip.
                var here = new TextBlock
                {
                   Text = L(node.Title),
@@ -923,7 +924,8 @@ namespace hMailServer.ControlPanel
       {
          // Its words cut short with an ellipsis where the bar leaves the trail less
          // than its width - beside the help pane in the narrowest window - rather
-         // than clipped mid-word: the bar's DockPanel measures it in the width left.
+         // than clipped mid-word: the trail's panel cuts the groups first and the
+         // page's name last (BreadcrumbTrailPanel), measuring each in its width.
          var button = new Wpf.Ui.Controls.Button
          {
             Content = new TextBlock { Text = L(group.Title), TextTrimming = TextTrimming.CharacterEllipsis },
@@ -989,7 +991,9 @@ namespace hMailServer.ControlPanel
          };
          marker.SetResourceReference(Border.BackgroundProperty, "SubtleFillColorSecondaryBrush");
 
-         var text = new TextBlock { Text = L("Found by search"), FontSize = Typography.Caption };
+         // Cut short with the groups where the line is too short, before the page's
+         // name is (BreadcrumbTrailPanel).
+         var text = new TextBlock { Text = L("Found by search"), FontSize = Typography.Caption, TextTrimming = TextTrimming.CharacterEllipsis };
          text.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorSecondaryBrush");
          marker.Child = text;
 
