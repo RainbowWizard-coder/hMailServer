@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -107,6 +108,11 @@ namespace hMailServer.ControlPanel.Views
       private bool reloading_;
       private bool restoringRow_;
 
+      // The range Add made and what the card says of it, while the card shows it
+      // and until its permissions are saved.
+      private int addedRangeId_;
+      private string addedText_;
+
       /// <summary>
       /// The page as it is opened: read from the server, the card's boxes included.
       /// Changes left on the card when the page was left were discarded by leaving it
@@ -115,6 +121,7 @@ namespace hMailServer.ControlPanel.Views
       public void OnEnter()
       {
          ForgetPermissionChanges_();
+         addedText_ = null;
          Reload();
       }
 
@@ -206,7 +213,11 @@ namespace hMailServer.ControlPanel.Views
          try
          {
             ReadFailure.Clear(Notice, AddRangeButton, RestoreDefaultsButton);
+            // The order the list is in, which replacing its rows clears.
+            SortDescription[] order = RangeGrid.Items.SortDescriptions.ToArray();
+            ListSortDirection?[] directions = RangeGrid.Columns.Select(column => column.SortDirection).ToArray();
             RangeGrid.ItemsSource = rows;
+            SortRows_(order, directions);
             CountPill.Visibility = Visibility.Visible;
             ShowListState_();
 
@@ -231,6 +242,53 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
+      /// The rows in the order the server decides by - the highest priority first,
+      /// the ranges of one priority by name (review finding F230) - where they were
+      /// in the order the server listed them, though where ranges overlap the
+      /// higher priority wins. The Priority column's sort direction says so, so
+      /// that a click on its header turns the order round. A header clicked orders
+      /// the list by its column instead, and that order is kept when the rows are
+      /// read again, as every save, edit and add reads them.
+      /// </summary>
+      private void SortRows_(SortDescription[] order, ListSortDirection?[] directions)
+      {
+         bool chosen = order.Length > 0;
+         using (RangeGrid.Items.DeferRefresh())
+         {
+            RangeGrid.Items.SortDescriptions.Clear();
+            foreach (SortDescription by in chosen ? order : PriorityOrder)
+               RangeGrid.Items.SortDescriptions.Add(by);
+         }
+
+         for (int i = 0; i < RangeGrid.Columns.Count; i++)
+            RangeGrid.Columns[i].SortDirection = chosen && i < directions.Length ? directions[i] : null;
+         if (!chosen)
+            PriorityColumn.SortDirection = ListSortDirection.Descending;
+      }
+
+      private static readonly SortDescription[] PriorityOrder =
+      {
+         new(nameof(RangeRow.Priority), ListSortDirection.Descending),
+         new(nameof(RangeRow.Name), ListSortDirection.Ascending)
+      };
+
+      /// <summary>
+      /// The card's word on a range just added, while the card shows it; once the
+      /// card shows another range, or none, the range is no longer the one added.
+      /// </summary>
+      private void ShowAdded_()
+      {
+         if (permsRow_ == null || permsRow_.Id != addedRangeId_)
+         {
+            addedRangeId_ = 0;
+            addedText_ = null;
+         }
+
+         AddedNotice.Text = addedText_;
+         AddedNotice.Visibility = addedText_ == null ? Visibility.Collapsed : Visibility.Visible;
+      }
+
+      /// <summary>
       /// The permissions card with no range selected: the title asks for one, and
       /// the boxes are clear and disabled, so they show no range's permissions and
       /// cannot be changed with nothing to save them to.
@@ -246,6 +304,7 @@ namespace hMailServer.ControlPanel.Views
          permsSettled_ = SettingsPageState.Clean;
          ShowPermsState_();
          ShowRelayExposure_();
+         ShowAdded_();
       }
 
       private IEnumerable<CheckBox> PermissionBoxes()
@@ -399,6 +458,7 @@ namespace hMailServer.ControlPanel.Views
             permsSettled_ = SettingsPageState.Clean;
             ShowPermsState_();
             ShowRelayExposure_();
+            ShowAdded_();
          }
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
          {
@@ -501,7 +561,12 @@ namespace hMailServer.ControlPanel.Views
          }
 
          if (saved)
+         {
             perms_.Take(PermissionValues_());
+            // Its permissions chosen, a range just added needs the notice no more.
+            if (row.Id == addedRangeId_)
+               addedText_ = null;
+         }
          return saved;
       }
 
@@ -527,7 +592,11 @@ namespace hMailServer.ControlPanel.Views
             ForgetPermissionChanges_();
          }
 
-         new IPRangeDialog(Window.GetWindow(this), row.Id).ShowDialog();
+         var dialog = new IPRangeDialog(Window.GetWindow(this), row.Id);
+         dialog.ShowDialog();
+         // Saved there, a range just added has had its permissions chosen.
+         if (dialog.Saved && row.Id == addedRangeId_)
+            addedText_ = null;
          Reload();
       }
 
@@ -561,6 +630,7 @@ namespace hMailServer.ControlPanel.Views
          if (DialogFields.ShowFirstError(NewNameRow, NewLowerRow, NewUpperRow, NewPriorityRow))
             return;
 
+         int addedId;
          dynamic ranges = ServerSession.Current.Application.Settings.SecurityRanges;
          try
          {
@@ -573,6 +643,7 @@ namespace hMailServer.ControlPanel.Views
             range.AllowIMAPConnections = true;
             range.AllowPOP3Connections = true;
             range.Save();
+            addedId = (int)range.ID;
             ServerSession.Release(range);
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
@@ -587,6 +658,40 @@ namespace hMailServer.ControlPanel.Views
 
          NewName.Text = NewLower.Text = NewUpper.Text = "";
          Reload();
+         if (ReadFailure.IsShown(Notice))
+            return;
+
+         // The new range selected, its card in view with what to do next and the
+         // keyboard on its first box: it may connect but send no mail until it is
+         // given a direction, where nothing was selected and the card went on
+         // showing another range (review finding F230) - the palette's "Let a device
+         // send mail" leads here. A search typed in before that would leave it out
+         // of the list is cleared. With changes to another range on the card, the
+         // question about them comes first, and the notice once the card shows it.
+         if (RangeGrid.ItemsSource is List<RangeRow> rows && rows.Find(r => r.Id == addedId) is RangeRow added)
+         {
+            ListSearchState.Reveal(SearchBar, RangeGrid, added);
+            addedRangeId_ = addedId;
+            addedText_ = F("{0} added. Addresses in the range may connect, but send no mail until you choose what they may deliver and Save permissions.", name);
+            RangeGrid.SelectedItem = added;
+            if (permsRow_ != null && permsRow_.Id == addedId)
+            {
+               Announce.Request(AddedNotice);
+               RangeGrid.ScrollIntoView(added);
+               // After the list has brought the row into its own view - and the
+               // page's, which follows - the card's top, its title and the notice,
+               // at the top of the page's view: BringIntoView showed a tall card's
+               // foot in a short window, the notice scrolled out above. The keyboard
+               // goes to the first box, under the notice, which a box further down
+               // would scroll out of a short window again.
+               Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, new Action(() =>
+               {
+                  Point top = PermCard.TranslatePoint(new Point(0, 0), PageScroll);
+                  PageScroll.ScrollToVerticalOffset(PageScroll.VerticalOffset + top.Y);
+                  PermSmtp.Focus();
+               }));
+            }
+         }
       }
 
       /// <summary>

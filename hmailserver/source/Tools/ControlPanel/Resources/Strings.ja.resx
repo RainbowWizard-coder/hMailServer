@@ -16317,6 +16317,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} added." xml:space="preserve">
     <value>{0} を追加しました。</value>
   </data>
+  <data name="{0} added. Addresses in the range may connect, but send no mail until you choose what they may deliver and Save permissions." xml:space="preserve">
+    <value>{0} を追加しました。範囲内のアドレスは接続できますが、配信できる内容を選んで [権限を保存] を押すまでメールを送信できません。</value>
+  </data>
   <data name="{0} address" xml:space="preserve">
     <value>アドレス {0} 件</value>
   </data>

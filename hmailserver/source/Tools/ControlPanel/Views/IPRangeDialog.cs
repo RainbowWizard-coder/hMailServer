@@ -33,6 +33,9 @@ namespace hMailServer.ControlPanel.Views
 
       private readonly int rangeId_;
 
+      /// <summary>Whether the range was saved before the dialog closed.</summary>
+      internal bool Saved { get; private set; }
+
       // General
       private readonly TextBox name_ = new();
       private readonly TextBox lower_ = new();
@@ -349,6 +352,7 @@ namespace hMailServer.ControlPanel.Views
 
             r.Save();
             ServerSession.Release(r);
+            Saved = true;
             Close();
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))

@@ -16540,6 +16540,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} added." xml:space="preserve">
     <value>Добавлено: {0}.</value>
   </data>
+  <data name="{0} added. Addresses in the range may connect, but send no mail until you choose what they may deliver and Save permissions." xml:space="preserve">
+    <value>Добавлено: {0}. Адреса диапазона могут подключаться, но не смогут отправлять почту, пока вы не выберете, что им можно доставлять, и не нажмёте «Сохранить разрешения».</value>
+  </data>
   <data name="{0} address" xml:space="preserve">
     <value>{0} адрес</value>
   </data>

@@ -16317,6 +16317,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} added." xml:space="preserve">
     <value>{0} lisätty.</value>
   </data>
+  <data name="{0} added. Addresses in the range may connect, but send no mail until you choose what they may deliver and Save permissions." xml:space="preserve">
+    <value>{0} lisätty. Alueen osoitteet voivat muodostaa yhteyden, mutta eivät voi lähettää postia ennen kuin valitset, mitä ne saavat toimittaa, ja painat Tallenna käyttöoikeudet.</value>
+  </data>
   <data name="{0} address" xml:space="preserve">
     <value>{0} osoite</value>
   </data>

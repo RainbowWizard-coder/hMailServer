@@ -16317,6 +16317,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} added." xml:space="preserve">
     <value>{0} har lagts till.</value>
   </data>
+  <data name="{0} added. Addresses in the range may connect, but send no mail until you choose what they may deliver and Save permissions." xml:space="preserve">
+    <value>{0} har lagts till. Adresserna i intervallet kan ansluta men inte skicka e-post förrän du väljer vad de får leverera och klickar på Spara behörigheter.</value>
+  </data>
   <data name="{0} address" xml:space="preserve">
     <value>{0} adress</value>
   </data>

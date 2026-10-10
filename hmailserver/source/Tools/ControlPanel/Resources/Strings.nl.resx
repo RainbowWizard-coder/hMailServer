@@ -16317,6 +16317,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} added." xml:space="preserve">
     <value>{0} toegevoegd.</value>
   </data>
+  <data name="{0} added. Addresses in the range may connect, but send no mail until you choose what they may deliver and Save permissions." xml:space="preserve">
+    <value>{0} toegevoegd. De adressen in het bereik kunnen verbinding maken, maar geen mail verzenden tot u kiest wat ze mogen bezorgen en op Rechten opslaan klikt.</value>
+  </data>
   <data name="{0} address" xml:space="preserve">
     <value>{0} adres</value>
   </data>

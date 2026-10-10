@@ -16540,6 +16540,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} added." xml:space="preserve">
     <value>Přidáno: {0}.</value>
   </data>
+  <data name="{0} added. Addresses in the range may connect, but send no mail until you choose what they may deliver and Save permissions." xml:space="preserve">
+    <value>Přidáno: {0}. Adresy v rozsahu se mohou připojit, ale neodešlou žádnou poštu, dokud nezvolíte, co smějí doručovat, a nestisknete Uložit oprávnění.</value>
+  </data>
   <data name="{0} address" xml:space="preserve">
     <value>{0} adresa</value>
   </data>

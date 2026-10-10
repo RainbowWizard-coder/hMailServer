@@ -2739,6 +2739,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   checklist names the box by its new caption. `RelayExposureTests` holds the reach of a range, the words, the card,
   the dialog and the question.
 
+- **Fixed: a range added on the IP ranges page was not selected and said nothing of what it could do, and the list was
+  not in priority order.** A new range may connect but delivers in no direction, so it can send no mail until its
+  permissions are chosen; yet the reload after Add left the selection where it was, and the permissions card went on
+  showing another range - the palette's "Let a device send mail" led here and then said no more - and the rows were in
+  the order the server listed them, though where ranges overlap the higher priority wins. The new range is now
+  selected, its card brought to the top of the page with the keyboard in it, and the card says what to do next
+  ("Office printers added. Addresses in the range may connect, but send no mail until you choose what they may deliver
+  and Save permissions.") until its permissions are saved, on the card or in Properties…, or another range is shown; a
+  search that would hide the new range is cleared. The list is ordered by priority, the highest first and the ranges
+  of one priority by name; a header clicked orders it by its column - Priority's turns the order round - and that
+  order is kept when the list is read again. `IPRangeAddedTests` holds the add, the notice and the order.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

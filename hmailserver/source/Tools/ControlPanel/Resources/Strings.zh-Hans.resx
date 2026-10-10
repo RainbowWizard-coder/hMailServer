@@ -16317,6 +16317,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} added." xml:space="preserve">
     <value>已添加 {0}。</value>
   </data>
+  <data name="{0} added. Addresses in the range may connect, but send no mail until you choose what they may deliver and Save permissions." xml:space="preserve">
+    <value>已添加 {0}。此范围内的地址可以连接，但在您选择它们可以投递的内容并点击“保存权限”之前，无法发送邮件。</value>
+  </data>
   <data name="{0} address" xml:space="preserve">
     <value>{0} 个地址</value>
   </data>

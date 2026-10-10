@@ -16317,6 +16317,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="{0} added." xml:space="preserve">
     <value>{0} er lagt til.</value>
   </data>
+  <data name="{0} added. Addresses in the range may connect, but send no mail until you choose what they may deliver and Save permissions." xml:space="preserve">
+    <value>{0} er lagt til. Adressene i området kan koble til, men ikke sende e-post før du velger hva de kan levere, og trykker på Lagre tillatelser.</value>
+  </data>
   <data name="{0} address" xml:space="preserve">
     <value>{0} adresse</value>
   </data>

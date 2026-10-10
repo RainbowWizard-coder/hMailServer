@@ -89,7 +89,7 @@
                         <DataGridTextColumn Header="{loc:L 'Name'}" Binding="{Binding Name}" Width="*" MinWidth="160" ElementStyle="{StaticResource GridTrimmedText}" />
                         <DataGridTextColumn Header="{loc:L 'Lower IP'}" Binding="{Binding LowerIP}" Width="150" MinWidth="120" />
                         <DataGridTextColumn Header="{loc:L 'Upper IP'}" Binding="{Binding UpperIP}" Width="150" MinWidth="120" />
-                        <DataGridTextColumn Header="{loc:L 'Priority'}" Binding="{Binding Priority}" Width="80" MinWidth="64"
+                        <DataGridTextColumn x:Name="PriorityColumn" Header="{loc:L 'Priority'}" Binding="{Binding Priority}" Width="80" MinWidth="64"
                                             ElementStyle="{StaticResource GridNumberText}" HeaderStyle="{StaticResource GridNumberHeader}" />
                         <DataGridTextColumn Header="SMTP" Binding="{Binding Smtp}" Width="70" MinWidth="56" />
                         <DataGridTextColumn Header="IMAP" Binding="{Binding Imap}" Width="70" MinWidth="56" />
@@ -129,6 +129,11 @@
                  finding F229). The second box of a row counts only while the first is
                  ticked, and follows it. -->
             <StackPanel x:Name="PermGrid">
+                <!-- A range just added may connect but send no mail: what to do next,
+                     while the card shows it and until its permissions are saved
+                     (review finding F230). -->
+                <scaffold:InlineNotice x:Name="AddedNotice" Level="Information" Margin="0,0,0,12" Visibility="Collapsed"
+                                       AutomationProperties.AutomationId="ip-range-added" />
                 <UniformGrid x:Name="ConnectionsGrid" Columns="4" SizeChanged="ConnectionsGrid_SizeChanged">
                     <!-- A caption longer than its quarter of the card wraps under
                          itself. AccessText, not TextBlock, so the Alt key still works. -->

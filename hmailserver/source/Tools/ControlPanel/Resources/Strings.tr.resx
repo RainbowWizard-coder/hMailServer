@@ -16317,6 +16317,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} added." xml:space="preserve">
     <value>{0} eklendi.</value>
   </data>
+  <data name="{0} added. Addresses in the range may connect, but send no mail until you choose what they may deliver and Save permissions." xml:space="preserve">
+    <value>{0} eklendi. Aralıktaki adresler bağlanabilir, ancak neleri teslim edebileceklerini seçip İzinleri kaydet düğmesine basana kadar posta gönderemez.</value>
+  </data>
   <data name="{0} address" xml:space="preserve">
     <value>{0} adres</value>
   </data>

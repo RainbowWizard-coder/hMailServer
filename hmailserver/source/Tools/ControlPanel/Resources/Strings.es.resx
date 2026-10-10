@@ -16317,6 +16317,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="{0} added." xml:space="preserve">
     <value>Se añadió {0}.</value>
   </data>
+  <data name="{0} added. Addresses in the range may connect, but send no mail until you choose what they may deliver and Save permissions." xml:space="preserve">
+    <value>Se añadió {0}. Las direcciones del rango pueden conectarse, pero no enviar correo hasta que elija qué pueden entregar y pulse Guardar permisos.</value>
+  </data>
   <data name="{0} address" xml:space="preserve">
     <value>{0} dirección</value>
   </data>

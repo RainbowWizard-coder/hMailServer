@@ -16317,6 +16317,9 @@ It will keep trying as you use the application.</value>
   <data name="{0} added." xml:space="preserve">
     <value>{0} added.</value>
   </data>
+  <data name="{0} added. Addresses in the range may connect, but send no mail until you choose what they may deliver and Save permissions." xml:space="preserve">
+    <value>{0} added. Addresses in the range may connect, but send no mail until you choose what they may deliver and Save permissions.</value>
+  </data>
   <data name="{0} address" xml:space="preserve">
     <value>{0} address</value>
   </data>

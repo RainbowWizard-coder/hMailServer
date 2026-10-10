@@ -16540,6 +16540,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} added." xml:space="preserve">
     <value>Dodano: {0}.</value>
   </data>
+  <data name="{0} added. Addresses in the range may connect, but send no mail until you choose what they may deliver and Save permissions." xml:space="preserve">
+    <value>Dodano: {0}. Adresy z zakresu mogą się łączyć, ale nie wyślą poczty, dopóki nie zostanie wybrane, co mogą doręczać, i nie zostanie naciśnięty przycisk Zapisz uprawnienia.</value>
+  </data>
   <data name="{0} address" xml:space="preserve">
     <value>{0} adres</value>
   </data>
