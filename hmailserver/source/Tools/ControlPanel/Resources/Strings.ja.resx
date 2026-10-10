@@ -15578,9 +15578,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Download update" xml:space="preserve">
     <value>更新をダウンロード(_D)</value>
   </data>
-  <data name="_Edit" xml:space="preserve">
-    <value>編集(_E)</value>
-  </data>
   <data name="_Edit criterion…" xml:space="preserve">
     <value>条件を編集(_E)…</value>
   </data>

@@ -98,6 +98,24 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain("MakeButton(L(\"_Edit\")", editor, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// The public folder permissions dialog's Add and Edit open an entry's own
+      /// dialog, which asks for the account or group and its rights before anything
+      /// is saved, as the list editor's do, and say so with the ellipsis; they were
+      /// the dialog's "_Add" and "_Edit".
+      /// </summary>
+      [Fact]
+      public void TheFolderPermissionsAddAndEditSayTheyOpenADialog()
+      {
+         string dialog = Read("Views", "FolderPermissionsDialog.cs");
+
+         Assert.Contains("new PermissionEditDialog(", dialog, StringComparison.Ordinal);
+         Assert.Contains("var add = new Wpf.Ui.Controls.Button { Content = L(\"_Add…\")", dialog, StringComparison.Ordinal);
+         Assert.Contains("var edit = new Wpf.Ui.Controls.Button { Content = L(\"_Edit…\")", dialog, StringComparison.Ordinal);
+         Assert.DoesNotContain("L(\"_Add\")", dialog, StringComparison.Ordinal);
+         Assert.DoesNotContain("L(\"_Edit\")", dialog, StringComparison.Ordinal);
+      }
+
       [Fact]
       public void ASignpostNamesThePageItOpens()
       {

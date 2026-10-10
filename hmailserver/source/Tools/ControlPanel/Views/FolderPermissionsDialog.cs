@@ -116,9 +116,12 @@ namespace hMailServer.ControlPanel.Views
          });
 
          var actions = new StackPanel { Orientation = Orientation.Horizontal };
-         var add = new Wpf.Ui.Controls.Button { Content = L("_Add"), Appearance = Wpf.Ui.Controls.ControlAppearance.Primary, Margin = new Thickness(0, 0, DesignTokens.Space.Sm, 0), MinWidth = 88 };
+         // Add… and Edit… end in the ellipsis: each opens the entry's dialog, which
+         // asks for the account or group and its rights before it saves (review
+         // finding F305), as the list editor's Add… and Edit… do.
+         var add = new Wpf.Ui.Controls.Button { Content = L("_Add…"), Appearance = Wpf.Ui.Controls.ControlAppearance.Primary, Margin = new Thickness(0, 0, DesignTokens.Space.Sm, 0), MinWidth = 88 };
          add.Click += (s, e) => AddOrEdit(-1);
-         var edit = new Wpf.Ui.Controls.Button { Content = L("_Edit"), Margin = new Thickness(0, 0, DesignTokens.Space.Sm, 0), MinWidth = 88 };
+         var edit = new Wpf.Ui.Controls.Button { Content = L("_Edit…"), Margin = new Thickness(0, 0, DesignTokens.Space.Sm, 0), MinWidth = 88 };
          edit.Click += (s, e) => { if (list_.SelectedIndex >= 0) AddOrEdit(ids_[list_.SelectedIndex]); };
          // Remove, not Delete: it takes an entry out of a list the folder outlives,
          // as the group members' and the distribution lists' Remove do; red words on

@@ -15755,9 +15755,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_Download update" xml:space="preserve">
     <value>_Завантажити оновлення</value>
   </data>
-  <data name="_Edit" xml:space="preserve">
-    <value>_Змінити</value>
-  </data>
   <data name="_Edit criterion…" xml:space="preserve">
     <value>_Змінити критерій…</value>
   </data>

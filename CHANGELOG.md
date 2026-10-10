@@ -3387,14 +3387,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   checks…", the transport encryption and virus scanning overviews' "Ports…", "Certificates…", "Settings…" and
   "Patterns…", Directory authentication's "Open Domains..." and "Open Live logs...", REST API keys' "REST listener
   settings…", the settings pages' signposts' "Open…" and the SSL certificates page's "Set up ACME…" opened a page and
-  asked nothing, while the list editor's Add and Edit, which open its dialog, had no ellipsis. Each link now names the
-  page it opens without one - "Open Setup checklist", "Open Domains", "Open Protocols (host name)", "SSL/TLS →" as
-  the spam filtering overview already wrote it - and the list editor's buttons are "Add…" and "Edit…". The links in
-  a card are one style, `CompactPageLink` (the Caption size, 28 pixels tall at the least), where seven pages drew
-  their own 24-pixel links beside the card's 32-pixel buttons. The Dashboard's Uptime is the 28 pixels of the other
-  four figures, where it was 20, each figure shrinks only when it is wider than its card (at 760 pixels "128,431" was
-  cut to "128,43"), and the labels under them are the Caption size, where they were 11 pixels, and wrap where the card
-  is narrower than they are. `NavigationCaptionTests` holds the captions, the style and the figures.
+  asked nothing, while the list editor's Add and Edit, and the public folder permissions dialog's, which open a
+  dialog, had no ellipsis. Each link now names the page it opens without one - "Open Setup checklist", "Open Domains",
+  "Open Protocols (host name)", "SSL/TLS →" as the spam filtering overview already wrote it - and the list editor's
+  and the permissions dialog's buttons are "Add…" and "Edit…". The links in a card are one style, `CompactPageLink`
+  (the Caption size, 28 pixels tall at the least), where seven pages drew their own 24-pixel links beside the card's
+  32-pixel buttons. The Dashboard's Uptime is the 28 pixels of the other four figures, where it was 20, each figure
+  shrinks only when it is wider than its card (at 760 pixels "128,431" was cut to "128,43"), and the labels under them
+  are the Caption size, where they were 11 pixels, and wrap where the card is narrower than they are.
+  `NavigationCaptionTests` holds the captions, the style and the figures.
 
 - **Fixed: the Control Panel wrote three dashes and two ellipses, sometimes two of them in one sentence.** Most texts
   used the spaced hyphen, but 21 used an em dash and 3 an en dash ("Public — anyone can send" beside "Nobody - the

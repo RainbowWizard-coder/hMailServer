@@ -15568,9 +15568,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Download update" xml:space="preserve">
     <value>下载更新(_D)</value>
   </data>
-  <data name="_Edit" xml:space="preserve">
-    <value>编辑(_E)</value>
-  </data>
   <data name="_Edit criterion…" xml:space="preserve">
     <value>编辑条件(_E)…</value>
   </data>

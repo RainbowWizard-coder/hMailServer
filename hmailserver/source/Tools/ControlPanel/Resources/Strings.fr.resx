@@ -15568,9 +15568,6 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="_Download update" xml:space="preserve">
     <value>_Télécharger la mise à jour</value>
   </data>
-  <data name="_Edit" xml:space="preserve">
-    <value>_Modifier</value>
-  </data>
   <data name="_Edit criterion…" xml:space="preserve">
     <value>M_odifier le critère…</value>
   </data>
