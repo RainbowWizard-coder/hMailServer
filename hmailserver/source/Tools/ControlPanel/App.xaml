@@ -524,6 +524,40 @@
                 <Setter Property="BorderThickness" Value="1" />
             </Style>
 
+            <!-- A text box that wraps sets its lines ragged right, as every text
+                 in the Control Panel is. WPF-UI's styles stretch a text box's
+                 content (HorizontalContentAlignment Stretch), which WPF's text box
+                 reads as justified text, so that each wrapped line was spread to
+                 the box's width: an account's and a domain's signatures and
+                 auto-replies as they were typed ("message  when  I  am  back."), a
+                 rule's reply and disclaimer, a list's footer, a server message, an
+                 LDAP filter, and the domain's DKIM record, whose "Value: v=DKIM1;
+                 k=rsa;" stood in three pieces across the box above the key (review
+                 findings F026, F299). Only a box that wraps: a one-line box, and
+                 the text boxes inside WPF-UI's own controls, keep WPF-UI's
+                 alignment. Each is based on WPF-UI's by its key, as the check box's
+                 is (SharedTemplatesTests). RaggedRightTextBoxTests holds both. -->
+            <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource DefaultTextBoxStyle}">
+                <Style.Triggers>
+                    <Trigger Property="TextWrapping" Value="Wrap">
+                        <Setter Property="HorizontalContentAlignment" Value="Left" />
+                    </Trigger>
+                    <Trigger Property="TextWrapping" Value="WrapWithOverflow">
+                        <Setter Property="HorizontalContentAlignment" Value="Left" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+            <Style TargetType="{x:Type ui:TextBox}" BasedOn="{StaticResource DefaultUiTextBoxStyle}">
+                <Style.Triggers>
+                    <Trigger Property="TextWrapping" Value="Wrap">
+                        <Setter Property="HorizontalContentAlignment" Value="Left" />
+                    </Trigger>
+                    <Trigger Property="TextWrapping" Value="WrapWithOverflow">
+                        <Setter Property="HorizontalContentAlignment" Value="Left" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
             <!-- Every Hyperlink - the About page's, the help pane's list of
                  documents, a link inside a help document - in the link colour
                  (DesignTokens.Link), underlined, a shade further from the surface

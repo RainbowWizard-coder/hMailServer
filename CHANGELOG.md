@@ -3435,6 +3435,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   groups the review proposed beside it each add a rail glyph and wait on the owner's decision. `SidebarStructureTests`
   holds the place.
 
+- **Fixed: a text box that wraps justified its lines.** WPF-UI's styles stretch a text box's content, which WPF's text
+  box reads as justified text, so every wrapped line of an account's or a domain's signature and auto-reply, a rule's
+  reply and disclaimer, a distribution list's footer, a server message or an LDAP filter was spread to the box's width
+  as it was typed ("message  when  I  am  back."), and the domain dialog's DKIM record wrote "Value:", "v=DKIM1;" and
+  "k=rsa;" at the box's left, middle and right above the key. The implicit text box styles in `App.xaml`, WPF's and
+  WPF-UI's, set a box that wraps ragged right; a one-line box keeps WPF-UI's alignment. `docs/ControlPanelDesign.md`
+  states the rule beside the help pane's, and `RaggedRightTextBoxTests` holds both styles and refuses a box that wraps
+  and sets its own alignment.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
