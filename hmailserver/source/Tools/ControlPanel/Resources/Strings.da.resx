@@ -942,11 +942,14 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Active" xml:space="preserve">
     <value>Aktiv</value>
   </data>
+  <data name="Active Directory _domain" xml:space="preserve">
+    <value>Active Directory-_domæne</value>
+  </data>
+  <data name="Active Directory cannot be reached from this computer, so its accounts cannot be browsed here. Windows reported: {0}" xml:space="preserve">
+    <value>Active Directory kan ikke nås fra denne computer, så dens konti kan ikke gennemses her. Windows rapporterede: {0}</value>
+  </data>
   <data name="Active Directory is not available on this machine: {0}" xml:space="preserve">
     <value>Active Directory er ikke tilgængeligt på denne maskine: {0}</value>
-  </data>
-  <data name="Active Directory is not reachable from this computer: {0}" xml:space="preserve">
-    <value>Active Directory kan ikke nås fra denne computer: {0}</value>
   </data>
   <data name="Active Directory refuses anonymous searches by default, so search mode normally needs a credential that may read the directory. Negotiate and DN-template configurations need none of this." xml:space="preserve">
     <value>Active Directory afviser som standard anonyme søgninger, så søgetilstand kræver normalt legitimationsoplysninger, der må læse kataloget. Konfigurationer med Negotiate eller DN-skabelon kræver intet af dette.</value>
@@ -7117,8 +7120,8 @@ Intet, der allerede er der, fjernes.</value>
   <data name="No API keys yet, so every REST request has to carry the administrator password, which has full authority over every domain and cannot be scoped, expired or revoked on its own. Create a key to use in its place." xml:space="preserve">
     <value>Ingen API-nøgler endnu, så hver REST-forespørgsel skal have administratoradgangskoden med, som har fuld myndighed over alle domæner og ikke kan afgrænses, udløbe eller tilbagekaldes for sig. Opret en nøgle, der kan bruges i stedet.</value>
   </data>
-  <data name="No Active Directory domains could be found in the current forest." xml:space="preserve">
-    <value>Der blev ikke fundet nogen Active Directory-domæner i den aktuelle skov.</value>
+  <data name="No Active Directory domains could be found in the current forest, so there is nothing to search." xml:space="preserve">
+    <value>Der blev ikke fundet nogen Active Directory-domæner i den aktuelle skov, så der er intet at søge i.</value>
   </data>
   <data name="No Active Directory domains were found." xml:space="preserve">
     <value>Der blev ikke fundet nogen Active Directory-domæner.</value>
@@ -8487,6 +8490,9 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="Pages" xml:space="preserve">
     <value>Sider</value>
+  </data>
+  <data name="Part of a name (empty lists everyone)" xml:space="preserve">
+    <value>En del af et navn (tomt viser alle)</value>
   </data>
   <data name="Partly saved" xml:space="preserve">
     <value>Delvist gemt</value>
@@ -10456,9 +10462,6 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="Search failed: {0}" xml:space="preserve">
     <value>Søgningen mislykkedes: {0}</value>
   </data>
-  <data name="Search for part of an account name. Leave empty to list every user in the domain." xml:space="preserve">
-    <value>Søg efter en del af et kontonavn. Lad stå tomt for at liste alle brugere i domænet.</value>
-  </data>
   <data name="Search greylisting exemptions" xml:space="preserve">
     <value>Søg i greylisting-undtagelser</value>
   </data>
@@ -10599,9 +10602,6 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   </data>
   <data name="Select a domain" xml:space="preserve">
     <value>Vælg et domæne</value>
-  </data>
-  <data name="Select a domain first." xml:space="preserve">
-    <value>Vælg et domæne først.</value>
   </data>
   <data name="Select a domain to see its accounts." xml:space="preserve">
     <value>Vælg et domæne for at se dets konti.</value>
@@ -13355,8 +13355,8 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="This case's lines could not be read; the notice above says why." xml:space="preserve">
     <value>Sagens linjer kunne ikke læses; meddelelsen ovenfor fortæller hvorfor.</value>
   </data>
-  <data name="This computer is not joined to an Active Directory domain." xml:space="preserve">
-    <value>Denne computer er ikke tilsluttet et Active Directory-domæne.</value>
+  <data name="This computer is not joined to an Active Directory domain, so its accounts cannot be browsed here." xml:space="preserve">
+    <value>Denne computer er ikke joinet til et Active Directory-domæne, så dets konti kan ikke gennemses her.</value>
   </data>
   <data name="This computer's Control Panel code" xml:space="preserve">
     <value>Denne computers Control Panel-kode</value>
@@ -15013,6 +15013,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="_Name" xml:space="preserve">
     <value>_Navn</value>
+  </data>
+  <data name="_Name or account" xml:space="preserve">
+    <value>_Navn eller konto</value>
   </data>
   <data name="_Name or suffix" xml:space="preserve">
     <value>_Navn eller suffiks</value>

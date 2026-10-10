@@ -948,11 +948,14 @@ Control Panel может читать файлы сообщений только
   <data name="Active" xml:space="preserve">
     <value>Активно</value>
   </data>
+  <data name="Active Directory _domain" xml:space="preserve">
+    <value>_Домен Active Directory</value>
+  </data>
+  <data name="Active Directory cannot be reached from this computer, so its accounts cannot be browsed here. Windows reported: {0}" xml:space="preserve">
+    <value>Active Directory недоступна с этого компьютера, поэтому её учётные записи здесь просмотреть нельзя. Windows сообщила: {0}</value>
+  </data>
   <data name="Active Directory is not available on this machine: {0}" xml:space="preserve">
     <value>Active Directory недоступна на этом компьютере: {0}</value>
-  </data>
-  <data name="Active Directory is not reachable from this computer: {0}" xml:space="preserve">
-    <value>Active Directory недостижима с этого компьютера: {0}</value>
   </data>
   <data name="Active Directory refuses anonymous searches by default, so search mode normally needs a credential that may read the directory. Negotiate and DN-template configurations need none of this." xml:space="preserve">
     <value>Active Directory по умолчанию отклоняет анонимный поиск, поэтому режиму поиска обычно нужны учётные данные, которым разрешено читать каталог. Конфигурациям с Negotiate и с шаблоном DN ничего этого не требуется.</value>
@@ -7193,8 +7196,8 @@ Control Panel может читать файлы сообщений только
   <data name="No API keys yet, so every REST request has to carry the administrator password, which has full authority over every domain and cannot be scoped, expired or revoked on its own. Create a key to use in its place." xml:space="preserve">
     <value>Ключей API пока нет, поэтому каждый запрос REST должен передавать пароль администратора, у которого полные полномочия над всеми доменами и который нельзя отдельно ограничить, снабдить сроком действия или отозвать. Создайте ключ, чтобы использовать его вместо пароля.</value>
   </data>
-  <data name="No Active Directory domains could be found in the current forest." xml:space="preserve">
-    <value>В текущем лесу не удалось найти ни одного домена Active Directory.</value>
+  <data name="No Active Directory domains could be found in the current forest, so there is nothing to search." xml:space="preserve">
+    <value>В текущем лесу не найдено доменов Active Directory, поэтому искать негде.</value>
   </data>
   <data name="No Active Directory domains were found." xml:space="preserve">
     <value>Домены Active Directory не найдены.</value>
@@ -8578,6 +8581,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Pages" xml:space="preserve">
     <value>Страницы</value>
+  </data>
+  <data name="Part of a name (empty lists everyone)" xml:space="preserve">
+    <value>Часть имени (пусто - показать всех)</value>
   </data>
   <data name="Partly saved" xml:space="preserve">
     <value>Сохранено частично</value>
@@ -10580,9 +10586,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Search failed: {0}" xml:space="preserve">
     <value>Поиск не удался: {0}</value>
   </data>
-  <data name="Search for part of an account name. Leave empty to list every user in the domain." xml:space="preserve">
-    <value>Введите часть имени учётной записи. Оставьте поле пустым, чтобы перечислить всех пользователей домена.</value>
-  </data>
   <data name="Search greylisting exemptions" xml:space="preserve">
     <value>Поиск по исключениям серых списков</value>
   </data>
@@ -10723,9 +10726,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Select a domain" xml:space="preserve">
     <value>Выберите домен</value>
-  </data>
-  <data name="Select a domain first." xml:space="preserve">
-    <value>Сначала выберите домен.</value>
   </data>
   <data name="Select a domain to see its accounts." xml:space="preserve">
     <value>Выберите домен, чтобы увидеть его учётные записи.</value>
@@ -13521,8 +13521,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="This case's lines could not be read; the notice above says why." xml:space="preserve">
     <value>Строки этого дела не удалось прочитать; причина указана в уведомлении выше.</value>
   </data>
-  <data name="This computer is not joined to an Active Directory domain." xml:space="preserve">
-    <value>Этот компьютер не присоединён к домену Active Directory.</value>
+  <data name="This computer is not joined to an Active Directory domain, so its accounts cannot be browsed here." xml:space="preserve">
+    <value>Этот компьютер не присоединён к домену Active Directory, поэтому его учётные записи здесь просмотреть нельзя.</value>
   </data>
   <data name="This computer's Control Panel code" xml:space="preserve">
     <value>Код Control Panel этого компьютера</value>
@@ -15188,6 +15188,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Name" xml:space="preserve">
     <value>_Имя</value>
+  </data>
+  <data name="_Name or account" xml:space="preserve">
+    <value>_Имя или учётная запись</value>
   </data>
   <data name="_Name or suffix" xml:space="preserve">
     <value>_Имя или суффикс</value>

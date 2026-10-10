@@ -942,11 +942,14 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
   <data name="Active" xml:space="preserve">
     <value>Activo</value>
   </data>
+  <data name="Active Directory _domain" xml:space="preserve">
+    <value>_Dominio de Active Directory</value>
+  </data>
+  <data name="Active Directory cannot be reached from this computer, so its accounts cannot be browsed here. Windows reported: {0}" xml:space="preserve">
+    <value>No se puede acceder a Active Directory desde este equipo, así que sus cuentas no se pueden examinar aquí. Windows indicó: {0}</value>
+  </data>
   <data name="Active Directory is not available on this machine: {0}" xml:space="preserve">
     <value>Active Directory no está disponible en esta máquina: {0}</value>
-  </data>
-  <data name="Active Directory is not reachable from this computer: {0}" xml:space="preserve">
-    <value>Active Directory no es alcanzable desde este equipo: {0}</value>
   </data>
   <data name="Active Directory refuses anonymous searches by default, so search mode normally needs a credential that may read the directory. Negotiate and DN-template configurations need none of this." xml:space="preserve">
     <value>Active Directory rechaza por defecto las búsquedas anónimas, así que el modo búsqueda suele necesitar una credencial que pueda leer el directorio. Las configuraciones Negotiate y de plantilla de DN no necesitan nada de esto.</value>
@@ -7117,8 +7120,8 @@ No se elimina nada de lo que ya está.</value>
   <data name="No API keys yet, so every REST request has to carry the administrator password, which has full authority over every domain and cannot be scoped, expired or revoked on its own. Create a key to use in its place." xml:space="preserve">
     <value>Todavía no hay claves de API, así que cada petición REST tiene que llevar la contraseña de administrador, que tiene autoridad completa sobre todos los dominios y no se puede acotar, hacer caducar ni revocar por sí sola. Cree una clave para usarla en su lugar.</value>
   </data>
-  <data name="No Active Directory domains could be found in the current forest." xml:space="preserve">
-    <value>No se encontró ningún dominio de Active Directory en el bosque actual.</value>
+  <data name="No Active Directory domains could be found in the current forest, so there is nothing to search." xml:space="preserve">
+    <value>No se encontró ningún dominio de Active Directory en el bosque actual, así que no hay nada que buscar.</value>
   </data>
   <data name="No Active Directory domains were found." xml:space="preserve">
     <value>No se encontró ningún dominio de Active Directory.</value>
@@ -8487,6 +8490,9 @@ No se elimina nada de lo que ya está.</value>
   </data>
   <data name="Pages" xml:space="preserve">
     <value>Páginas</value>
+  </data>
+  <data name="Part of a name (empty lists everyone)" xml:space="preserve">
+    <value>Parte de un nombre (vacío muestra a todos)</value>
   </data>
   <data name="Partly saved" xml:space="preserve">
     <value>Guardado parcialmente</value>
@@ -10456,9 +10462,6 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Search failed: {0}" xml:space="preserve">
     <value>La búsqueda falló: {0}</value>
   </data>
-  <data name="Search for part of an account name. Leave empty to list every user in the domain." xml:space="preserve">
-    <value>Busque parte de un nombre de cuenta. Déjelo vacío para listar todos los usuarios del dominio.</value>
-  </data>
   <data name="Search greylisting exemptions" xml:space="preserve">
     <value>Buscar exenciones del greylisting</value>
   </data>
@@ -10599,9 +10602,6 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="Select a domain" xml:space="preserve">
     <value>Seleccione un dominio</value>
-  </data>
-  <data name="Select a domain first." xml:space="preserve">
-    <value>Seleccione primero un dominio.</value>
   </data>
   <data name="Select a domain to see its accounts." xml:space="preserve">
     <value>Seleccione un dominio para ver sus cuentas.</value>
@@ -13355,8 +13355,8 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="This case's lines could not be read; the notice above says why." xml:space="preserve">
     <value>No se pudieron leer las líneas de este caso; el aviso de arriba dice por qué.</value>
   </data>
-  <data name="This computer is not joined to an Active Directory domain." xml:space="preserve">
-    <value>Este equipo no está unido a ningún dominio de Active Directory.</value>
+  <data name="This computer is not joined to an Active Directory domain, so its accounts cannot be browsed here." xml:space="preserve">
+    <value>Este equipo no está unido a un dominio de Active Directory, así que sus cuentas no se pueden examinar aquí.</value>
   </data>
   <data name="This computer's Control Panel code" xml:space="preserve">
     <value>Código del Control Panel de este equipo</value>
@@ -15013,6 +15013,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="_Name" xml:space="preserve">
     <value>_Nombre</value>
+  </data>
+  <data name="_Name or account" xml:space="preserve">
+    <value>_Nombre o cuenta</value>
   </data>
   <data name="_Name or suffix" xml:space="preserve">
     <value>_Nombre o sufijo</value>

@@ -948,11 +948,14 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Active" xml:space="preserve">
     <value>Aktivní</value>
   </data>
+  <data name="Active Directory _domain" xml:space="preserve">
+    <value>_Doména Active Directory</value>
+  </data>
+  <data name="Active Directory cannot be reached from this computer, so its accounts cannot be browsed here. Windows reported: {0}" xml:space="preserve">
+    <value>Active Directory není z tohoto počítače dostupná, takže zde nelze procházet její účty. Windows ohlásil: {0}</value>
+  </data>
   <data name="Active Directory is not available on this machine: {0}" xml:space="preserve">
     <value>Active Directory není na tomto počítači k dispozici: {0}</value>
-  </data>
-  <data name="Active Directory is not reachable from this computer: {0}" xml:space="preserve">
-    <value>Na Active Directory z tohoto počítače nelze dosáhnout: {0}</value>
   </data>
   <data name="Active Directory refuses anonymous searches by default, so search mode normally needs a credential that may read the directory. Negotiate and DN-template configurations need none of this." xml:space="preserve">
     <value>Active Directory ve výchozím nastavení odmítá anonymní hledání, takže režim hledání obvykle vyžaduje přihlašovací údaje, které smějí adresář číst. Konfigurace s Negotiate a se šablonou DN nic z toho nepotřebují.</value>
@@ -7193,8 +7196,8 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No API keys yet, so every REST request has to carry the administrator password, which has full authority over every domain and cannot be scoped, expired or revoked on its own. Create a key to use in its place." xml:space="preserve">
     <value>Zatím žádné klíče API, takže každý požadavek REST musí nést heslo správce, které má plnou pravomoc nad každou doménou a nelze je samostatně omezit, nechat vypršet ani odvolat. Vytvořte klíč, který se použije místo něj.</value>
   </data>
-  <data name="No Active Directory domains could be found in the current forest." xml:space="preserve">
-    <value>V aktuální doménové struktuře se nepodařilo najít žádné domény Active Directory.</value>
+  <data name="No Active Directory domains could be found in the current forest, so there is nothing to search." xml:space="preserve">
+    <value>V aktuální doménové struktuře nebyly nalezeny žádné domény Active Directory, takže není co prohledávat.</value>
   </data>
   <data name="No Active Directory domains were found." xml:space="preserve">
     <value>Nebyly nalezeny žádné domény Active Directory.</value>
@@ -8578,6 +8581,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Pages" xml:space="preserve">
     <value>Stránky</value>
+  </data>
+  <data name="Part of a name (empty lists everyone)" xml:space="preserve">
+    <value>Část jména (prázdné vypíše všechny)</value>
   </data>
   <data name="Partly saved" xml:space="preserve">
     <value>Částečně uloženo</value>
@@ -10580,9 +10586,6 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Search failed: {0}" xml:space="preserve">
     <value>Hledání selhalo: {0}</value>
   </data>
-  <data name="Search for part of an account name. Leave empty to list every user in the domain." xml:space="preserve">
-    <value>Zadejte část názvu účtu. Ponecháte-li pole prázdné, vypíší se všichni uživatelé v doméně.</value>
-  </data>
   <data name="Search greylisting exemptions" xml:space="preserve">
     <value>Hledat ve výjimkách z greylistingu</value>
   </data>
@@ -10723,9 +10726,6 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Select a domain" xml:space="preserve">
     <value>Vyberte doménu</value>
-  </data>
-  <data name="Select a domain first." xml:space="preserve">
-    <value>Nejprve vyberte doménu.</value>
   </data>
   <data name="Select a domain to see its accounts." xml:space="preserve">
     <value>Vyberte doménu, chcete-li zobrazit její účty.</value>
@@ -13521,8 +13521,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="This case's lines could not be read; the notice above says why." xml:space="preserve">
     <value>Řádky tohoto případu nebylo možné přečíst; proč, říká oznámení výše.</value>
   </data>
-  <data name="This computer is not joined to an Active Directory domain." xml:space="preserve">
-    <value>Tento počítač není připojen k doméně Active Directory.</value>
+  <data name="This computer is not joined to an Active Directory domain, so its accounts cannot be browsed here." xml:space="preserve">
+    <value>Tento počítač není připojen k doméně Active Directory, takže zde nelze procházet její účty.</value>
   </data>
   <data name="This computer's Control Panel code" xml:space="preserve">
     <value>Kód Control Panelu tohoto počítače</value>
@@ -15188,6 +15188,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Name" xml:space="preserve">
     <value>_Název</value>
+  </data>
+  <data name="_Name or account" xml:space="preserve">
+    <value>_Jméno nebo účet</value>
   </data>
   <data name="_Name or suffix" xml:space="preserve">
     <value>_Název nebo přípona</value>

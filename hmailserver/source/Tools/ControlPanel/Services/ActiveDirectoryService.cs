@@ -51,7 +51,7 @@ namespace hMailServer.ControlPanel.Services
             object dnc = rootDse.Properties["defaultNamingContext"].Value;
             if (dnc == null || string.IsNullOrEmpty(dnc.ToString()))
             {
-               reason = L("This computer is not joined to an Active Directory domain.");
+               reason = L("This computer is not joined to an Active Directory domain, so its accounts cannot be browsed here.");
                return false;
             }
             reason = "";
@@ -59,7 +59,10 @@ namespace hMailServer.ControlPanel.Services
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            reason = F("Active Directory is not reachable from this computer: {0}", ServerSession.DescribeComError(ex));
+            // The reason Windows gave last, after what it means here (review finding
+            // F124): it was joined on with a dash and began with a capital, and the
+            // sentence said nothing of what could not be done.
+            reason = F("Active Directory cannot be reached from this computer, so its accounts cannot be browsed here. Windows reported: {0}", ServerSession.DescribeComError(ex));
             return false;
          }
       }

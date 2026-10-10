@@ -942,11 +942,14 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Active" xml:space="preserve">
     <value>Aktiv</value>
   </data>
+  <data name="Active Directory _domain" xml:space="preserve">
+    <value>Active Directory-_domän</value>
+  </data>
+  <data name="Active Directory cannot be reached from this computer, so its accounts cannot be browsed here. Windows reported: {0}" xml:space="preserve">
+    <value>Active Directory kan inte nås från den här datorn, så dess konton kan inte bläddras här. Windows rapporterade: {0}</value>
+  </data>
   <data name="Active Directory is not available on this machine: {0}" xml:space="preserve">
     <value>Active Directory är inte tillgängligt på den här datorn: {0}</value>
-  </data>
-  <data name="Active Directory is not reachable from this computer: {0}" xml:space="preserve">
-    <value>Active Directory kan inte nås från den här datorn: {0}</value>
   </data>
   <data name="Active Directory refuses anonymous searches by default, so search mode normally needs a credential that may read the directory. Negotiate and DN-template configurations need none of this." xml:space="preserve">
     <value>Active Directory vägrar anonyma sökningar som standard, så sökläget behöver normalt en inloggningsuppgift som får läsa katalogen. Konfigurationer med Negotiate och DN-mall behöver inget av detta.</value>
@@ -7117,8 +7120,8 @@ Inget som redan finns där tas bort.</value>
   <data name="No API keys yet, so every REST request has to carry the administrator password, which has full authority over every domain and cannot be scoped, expired or revoked on its own. Create a key to use in its place." xml:space="preserve">
     <value>Inga API-nycklar ännu, så varje REST-begäran måste bära administratörslösenordet, som har full behörighet över varje domän och inte kan avgränsas, löpa ut eller återkallas för sig. Skapa en nyckel att använda i stället.</value>
   </data>
-  <data name="No Active Directory domains could be found in the current forest." xml:space="preserve">
-    <value>Inga Active Directory-domäner kunde hittas i den aktuella skogen.</value>
+  <data name="No Active Directory domains could be found in the current forest, so there is nothing to search." xml:space="preserve">
+    <value>Inga Active Directory-domäner hittades i den aktuella skogen, så det finns inget att söka i.</value>
   </data>
   <data name="No Active Directory domains were found." xml:space="preserve">
     <value>Inga Active Directory-domäner hittades.</value>
@@ -8487,6 +8490,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="Pages" xml:space="preserve">
     <value>Sidor</value>
+  </data>
+  <data name="Part of a name (empty lists everyone)" xml:space="preserve">
+    <value>En del av ett namn (tomt visar alla)</value>
   </data>
   <data name="Partly saved" xml:space="preserve">
     <value>Delvis sparat</value>
@@ -10456,9 +10462,6 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Search failed: {0}" xml:space="preserve">
     <value>Sökningen misslyckades: {0}</value>
   </data>
-  <data name="Search for part of an account name. Leave empty to list every user in the domain." xml:space="preserve">
-    <value>Sök efter en del av ett kontonamn. Lämna tomt för att lista varje användare i domänen.</value>
-  </data>
   <data name="Search greylisting exemptions" xml:space="preserve">
     <value>Sök undantag från gråstlistning</value>
   </data>
@@ -10599,9 +10602,6 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Select a domain" xml:space="preserve">
     <value>Välj en domän</value>
-  </data>
-  <data name="Select a domain first." xml:space="preserve">
-    <value>Välj en domän först.</value>
   </data>
   <data name="Select a domain to see its accounts." xml:space="preserve">
     <value>Välj en domän för att se dess konton.</value>
@@ -13355,8 +13355,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="This case's lines could not be read; the notice above says why." xml:space="preserve">
     <value>Ärendets rader kunde inte läsas; meddelandet ovan säger varför.</value>
   </data>
-  <data name="This computer is not joined to an Active Directory domain." xml:space="preserve">
-    <value>Den här datorn är inte ansluten till en Active Directory-domän.</value>
+  <data name="This computer is not joined to an Active Directory domain, so its accounts cannot be browsed here." xml:space="preserve">
+    <value>Den här datorn är inte ansluten till en Active Directory-domän, så dess konton kan inte bläddras här.</value>
   </data>
   <data name="This computer's Control Panel code" xml:space="preserve">
     <value>Den här datorns kod för Kontrollpanelen</value>
@@ -15013,6 +15013,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="_Name" xml:space="preserve">
     <value>_Namn</value>
+  </data>
+  <data name="_Name or account" xml:space="preserve">
+    <value>_Namn eller konto</value>
   </data>
   <data name="_Name or suffix" xml:space="preserve">
     <value>_Namn eller suffix</value>

@@ -942,11 +942,14 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Active" xml:space="preserve">
     <value>Actief</value>
   </data>
+  <data name="Active Directory _domain" xml:space="preserve">
+    <value>Active Directory-_domein</value>
+  </data>
+  <data name="Active Directory cannot be reached from this computer, so its accounts cannot be browsed here. Windows reported: {0}" xml:space="preserve">
+    <value>Active Directory is vanaf deze computer niet bereikbaar, dus de accounts kunnen hier niet worden doorgebladerd. Windows meldde: {0}</value>
+  </data>
   <data name="Active Directory is not available on this machine: {0}" xml:space="preserve">
     <value>Active Directory is niet beschikbaar op deze machine: {0}</value>
-  </data>
-  <data name="Active Directory is not reachable from this computer: {0}" xml:space="preserve">
-    <value>Active Directory is niet bereikbaar vanaf deze computer: {0}</value>
   </data>
   <data name="Active Directory refuses anonymous searches by default, so search mode normally needs a credential that may read the directory. Negotiate and DN-template configurations need none of this." xml:space="preserve">
     <value>Active Directory weigert standaard anonieme zoekopdrachten, dus de zoekmodus heeft normaal een referentie nodig die de directory mag lezen. Negotiate- en DN-sjabloonconfiguraties hebben hier niets van nodig.</value>
@@ -7117,8 +7120,8 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No API keys yet, so every REST request has to carry the administrator password, which has full authority over every domain and cannot be scoped, expired or revoked on its own. Create a key to use in its place." xml:space="preserve">
     <value>Nog geen API-sleutels, dus elke REST-aanvraag moet het beheerderswachtwoord meesturen, dat volledige bevoegdheid over elk domein heeft en niet op zichzelf kan worden beperkt, laten verlopen of ingetrokken. Maak een sleutel aan om in plaats daarvan te gebruiken.</value>
   </data>
-  <data name="No Active Directory domains could be found in the current forest." xml:space="preserve">
-    <value>Er konden geen Active Directory-domeinen worden gevonden in het huidige forest.</value>
+  <data name="No Active Directory domains could be found in the current forest, so there is nothing to search." xml:space="preserve">
+    <value>Er zijn in het huidige forest geen Active Directory-domeinen gevonden, dus er valt niets te zoeken.</value>
   </data>
   <data name="No Active Directory domains were found." xml:space="preserve">
     <value>Er zijn geen Active Directory-domeinen gevonden.</value>
@@ -8487,6 +8490,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="Pages" xml:space="preserve">
     <value>Pagina's</value>
+  </data>
+  <data name="Part of a name (empty lists everyone)" xml:space="preserve">
+    <value>Deel van een naam (leeg toont iedereen)</value>
   </data>
   <data name="Partly saved" xml:space="preserve">
     <value>Gedeeltelijk opgeslagen</value>
@@ -10456,9 +10462,6 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Search failed: {0}" xml:space="preserve">
     <value>Zoeken mislukt: {0}</value>
   </data>
-  <data name="Search for part of an account name. Leave empty to list every user in the domain." xml:space="preserve">
-    <value>Zoek naar een deel van een accountnaam. Laat leeg om elke gebruiker in het domein op te sommen.</value>
-  </data>
   <data name="Search greylisting exemptions" xml:space="preserve">
     <value>Greylisting-uitzonderingen doorzoeken</value>
   </data>
@@ -10599,9 +10602,6 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Select a domain" xml:space="preserve">
     <value>Selecteer een domein</value>
-  </data>
-  <data name="Select a domain first." xml:space="preserve">
-    <value>Selecteer eerst een domein.</value>
   </data>
   <data name="Select a domain to see its accounts." xml:space="preserve">
     <value>Selecteer een domein om de accounts ervan te zien.</value>
@@ -13355,8 +13355,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="This case's lines could not be read; the notice above says why." xml:space="preserve">
     <value>De regels van deze zaak konden niet worden gelezen; de melding hierboven zegt waarom.</value>
   </data>
-  <data name="This computer is not joined to an Active Directory domain." xml:space="preserve">
-    <value>Deze computer is geen lid van een Active Directory-domein.</value>
+  <data name="This computer is not joined to an Active Directory domain, so its accounts cannot be browsed here." xml:space="preserve">
+    <value>Deze computer is niet lid van een Active Directory-domein, dus de accounts kunnen hier niet worden doorgebladerd.</value>
   </data>
   <data name="This computer's Control Panel code" xml:space="preserve">
     <value>Control Panel-code van deze computer</value>
@@ -15013,6 +15013,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="_Name" xml:space="preserve">
     <value>Naa_m</value>
+  </data>
+  <data name="_Name or account" xml:space="preserve">
+    <value>_Naam of account</value>
   </data>
   <data name="_Name or suffix" xml:space="preserve">
     <value>_Naam of achtervoegsel</value>

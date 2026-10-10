@@ -11,6 +11,7 @@ using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
 using hMailServer.ControlPanel.Services;
+using hMailServer.ControlPanel.Views.Scaffold;
 using static hMailServer.ControlPanel.Services.Loc;
 
 namespace hMailServer.ControlPanel.Views
@@ -19,7 +20,8 @@ namespace hMailServer.ControlPanel.Views
    /// Modal Active Directory account browser. Lists the forest's domains, searches their
    /// users and returns the selected account(s). Used to fill the AD fields on an account
    /// and to bulk-import members into groups / distribution lists. On the standard
-   /// frame: the query row above the list, the status line under it, Select and
+   /// frame: the query row above the list - the domain and the name, each captioned
+   /// above its box - the status under the list as a notice at its level, Select and
    /// Cancel in the footer.
    ///
    /// The results are a read-only DataGrid on the application's implicit grid
@@ -33,7 +35,12 @@ namespace hMailServer.ControlPanel.Views
    {
       private readonly bool multiSelect_;
       private readonly ComboBox domainBox_ = new() { MinWidth = 240 };
-      private readonly TextBox searchBox_ = new();
+
+      // What an empty box does is said in the box (review finding F124), where only
+      // the box's accessible name and a status line said it.
+      private readonly Wpf.Ui.Controls.TextBox searchBox_ = new() { PlaceholderText = L("Part of a name (empty lists everyone)") };
+
+      private readonly Wpf.Ui.Controls.Button searchButton_ = new() { Content = L("_Search") };
 
       // Seven rows at least, and it grows with the results to eleven or so
       // before it scrolls, so that the query row above it and the status line
@@ -51,7 +58,12 @@ namespace hMailServer.ControlPanel.Views
          SelectionUnit = DataGridSelectionUnit.FullRow
       };
 
-      private readonly TextBlock status_ = DialogFields.Note("");
+      // Where the picker stands, at the level of what it says (review finding F124):
+      // Warning where Active Directory cannot be reached or has no domain, Critical
+      // for a list or a search that failed, Information while searching and for what
+      // a search found. It was one line of grey caption text for all of them, with no
+      // mark and no next step. A polite live region, as every notice is.
+      private readonly InlineNotice status_ = new() { Visibility = Visibility.Collapsed };
 
       private readonly Wpf.Ui.Controls.Button okButton_ = new()
       {
@@ -107,35 +119,28 @@ namespace hMailServer.ControlPanel.Views
 
       private FrameworkElement BuildQueryRow()
       {
+         // The domain and the name each a field with its caption above the box, the
+         // captions of the line one height (FieldRow.LabelGroup) and Search under a
+         // row of that height, so that the boxes and the button line up (review
+         // finding F124). Domain was a 12-pixel caption to the left of its list, and
+         // the search box had no caption at all - a screen reader announced "edit".
          var grid = new Grid { Margin = new Thickness(0, 0, 0, DesignTokens.Space.Md) };
-         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+         Grid.SetIsSharedSizeScope(grid, true);
          grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
          grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
          grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-         var domainLabel = new TextBlock
-         {
-            Text = L("Domain"),
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(0, 0, DesignTokens.Space.Sm, 0)
-         };
-         domainLabel.SetResourceReference(StyleProperty, "TextCaption");
-         Grid.SetColumn(domainLabel, 0);
-         grid.Children.Add(domainLabel);
+         FieldRow domainRow = DialogFields.Field(L("Active Directory _domain"), domainBox_);
+         domainRow.LabelGroup = "AdQueryLine";
+         domainRow.Margin = new Thickness(0, 0, DesignTokens.Space.Md, 0);
+         Grid.SetColumn(domainRow, 0);
+         grid.Children.Add(domainRow);
 
-         domainBox_.Margin = new Thickness(0, 0, DesignTokens.Space.Md, 0);
-         AutomationProperties.SetName(domainBox_, L("Domain"));
-         Grid.SetColumn(domainBox_, 1);
-         grid.Children.Add(domainBox_);
-
-         // The search box has no caption of its own at all - it is a bare box
-         // between the domain list and the Search button, so a screen reader
-         // announced "edit" and a keyboard user tabbing in had no way to know what
-         // it was for. The name says what it does and what an empty box means,
-         // because "search with an empty box to list all users" is real behaviour
-         // that only the status line mentions.
-         AutomationProperties.SetName(searchBox_,
-            L("Search for part of an account name. Leave empty to list every user in the domain."));
+         FieldRow searchRow = DialogFields.Field(L("_Name or account"), searchBox_);
+         searchRow.LabelGroup = "AdQueryLine";
+         searchRow.Margin = new Thickness(0);
+         Grid.SetColumn(searchRow, 1);
+         grid.Children.Add(searchRow);
 
          // Handled, so the keystroke stops here. Without that, a default button
          // anywhere in this dialog would make one Enter both search and accept.
@@ -147,17 +152,16 @@ namespace hMailServer.ControlPanel.Views
             Search();
             e.Handled = true;
          };
-         Grid.SetColumn(searchBox_, 2);
-         grid.Children.Add(searchBox_);
-
-         var searchButton = new Wpf.Ui.Controls.Button
-         {
-            Content = L("_Search"),
-            Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0)
-         };
-         searchButton.Click += (s, e) => Search();
-         Grid.SetColumn(searchButton, 3);
-         grid.Children.Add(searchButton);
+         searchButton_.Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0);
+         searchButton_.VerticalAlignment = VerticalAlignment.Top;
+         searchButton_.Click += (s, e) => Search();
+         var buttonLine = new Grid();
+         buttonLine.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto, SharedSizeGroup = "AdQueryLine" });
+         buttonLine.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+         Grid.SetRow(searchButton_, 1);
+         buttonLine.Children.Add(searchButton_);
+         Grid.SetColumn(buttonLine, 2);
+         grid.Children.Add(buttonLine);
 
          return grid;
       }
@@ -207,13 +211,32 @@ namespace hMailServer.ControlPanel.Views
             Width = new DataGridLength(stars, DataGridLengthUnitType.Star)
          });
 
+      /// <summary>Where the picker stands, at the level of what it says; null hides it.</summary>
+      private void Say_(StatusLevel level, string text)
+      {
+         status_.Level = level;
+         status_.Text = text;
+         status_.Visibility = string.IsNullOrEmpty(text) ? Visibility.Collapsed : Visibility.Visible;
+      }
+
+      /// <summary>
+      /// The domain, the name and Search, which can be used only where there is a
+      /// domain to search: Search stayed live where Active Directory could not be
+      /// reached, and pressing it said "Select a domain first." (review finding F124).
+      /// </summary>
+      private void QueryCanRun_(bool canRun)
+      {
+         domainBox_.IsEnabled = canRun;
+         searchBox_.IsEnabled = canRun;
+         searchButton_.IsEnabled = canRun;
+      }
+
       private void LoadDomains()
       {
          if (!ActiveDirectoryService.IsAvailable(out string reason))
          {
-            status_.Text = reason;
-            domainBox_.IsEnabled = false;
-            searchBox_.IsEnabled = false;
+            Say_(StatusLevel.Warning, reason);
+            QueryCanRun_(false);
             return;
          }
 
@@ -222,31 +245,31 @@ namespace hMailServer.ControlPanel.Views
             var domains = ActiveDirectoryService.ListDomains();
             if (domains.Count == 0)
             {
-               status_.Text = L("No Active Directory domains could be found in the current forest.");
+               Say_(StatusLevel.Warning, L("No Active Directory domains could be found in the current forest, so there is nothing to search."));
+               QueryCanRun_(false);
                return;
             }
 
             domainBox_.ItemsSource = domains;
             domainBox_.SelectedIndex = 0;
-            status_.Text = L("Enter part of a name and press Search, or search with an empty box to list all users.");
+            QueryCanRun_(true);
+            Say_(StatusLevel.Information, L("Enter part of a name and press Search, or search with an empty box to list all users."));
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            status_.Text = F("Could not list domains: {0}", ServerSession.DescribeComError(ex));
+            Say_(StatusLevel.Critical, F("Could not list domains: {0}", ServerSession.DescribeComError(ex)));
+            QueryCanRun_(false);
          }
       }
 
       private async void Search()
       {
          string domain = domainBox_.SelectedItem as string;
-         if (string.IsNullOrEmpty(domain))
-         {
-            status_.Text = L("Select a domain first.");
+         if (string.IsNullOrEmpty(domain) || !searchButton_.IsEnabled)
             return;
-         }
 
          string filter = searchBox_.Text;
-         status_.Text = F("Searching {0}…", domain);
+         Say_(StatusLevel.Information, F("Searching {0}…", domain));
          Mouse.OverrideCursor = Cursors.Wait;
          list_.ItemsSource = null;
          okButton_.IsEnabled = false;
@@ -258,15 +281,15 @@ namespace hMailServer.ControlPanel.Views
             // The search stops at a thousand, so a thousand found is the first
             // thousand of more, which is said whole rather than as a fragment
             // after the count.
-            status_.Text = users.Count == 0
+            Say_(StatusLevel.Information, users.Count == 0
                ? F("No matching accounts in {0}.", domain)
                : users.Count >= 1000
                   ? F("The first {0} matching accounts are shown; refine the search to see the rest.", users.Count)
-                  : Plural(users.Count, "{0} account found.", "{0} accounts found.");
+                  : Plural(users.Count, "{0} account found.", "{0} accounts found."));
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            status_.Text = F("Search failed: {0}", ServerSession.DescribeComError(ex));
+            Say_(StatusLevel.Critical, F("Search failed: {0}", ServerSession.DescribeComError(ex)));
          }
          finally
          {

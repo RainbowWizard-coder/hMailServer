@@ -942,11 +942,14 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Active" xml:space="preserve">
     <value>Aktiivinen</value>
   </data>
+  <data name="Active Directory _domain" xml:space="preserve">
+    <value>Active Directory -_toimialue</value>
+  </data>
+  <data name="Active Directory cannot be reached from this computer, so its accounts cannot be browsed here. Windows reported: {0}" xml:space="preserve">
+    <value>Active Directoryyn ei saada yhteyttä tältä tietokoneelta, joten sen tilejä ei voi selata täällä. Windows ilmoitti: {0}</value>
+  </data>
   <data name="Active Directory is not available on this machine: {0}" xml:space="preserve">
     <value>Active Directory ei ole käytettävissä tällä koneella: {0}</value>
-  </data>
-  <data name="Active Directory is not reachable from this computer: {0}" xml:space="preserve">
-    <value>Active Directory ei ole tavoitettavissa tältä tietokoneelta: {0}</value>
   </data>
   <data name="Active Directory refuses anonymous searches by default, so search mode normally needs a credential that may read the directory. Negotiate and DN-template configurations need none of this." xml:space="preserve">
     <value>Active Directory hylkää oletuksena anonyymit haut, joten hakutila tarvitsee yleensä tunnistetiedot, joilla on lukuoikeus hakemistoon. Negotiate- ja DN-mallimääritykset eivät tarvitse tästä mitään.</value>
@@ -7117,8 +7120,8 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="No API keys yet, so every REST request has to carry the administrator password, which has full authority over every domain and cannot be scoped, expired or revoked on its own. Create a key to use in its place." xml:space="preserve">
     <value>API-avaimia ei vielä ole, joten jokaisen REST-pyynnön on kannettava ylläpitäjän salasanaa, jolla on täydet oikeudet jokaiseen toimialueeseen ja jota ei voi yksinään rajata, vanhentaa eikä kumota. Luo avain käytettäväksi sen sijaan.</value>
   </data>
-  <data name="No Active Directory domains could be found in the current forest." xml:space="preserve">
-    <value>Nykyisestä metsästä ei löytynyt Active Directory -toimialueita.</value>
+  <data name="No Active Directory domains could be found in the current forest, so there is nothing to search." xml:space="preserve">
+    <value>Nykyisestä metsästä ei löytynyt Active Directory -toimialueita, joten haettavaa ei ole.</value>
   </data>
   <data name="No Active Directory domains were found." xml:space="preserve">
     <value>Active Directory -toimialueita ei löytynyt.</value>
@@ -8487,6 +8490,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="Pages" xml:space="preserve">
     <value>Sivut</value>
+  </data>
+  <data name="Part of a name (empty lists everyone)" xml:space="preserve">
+    <value>Osa nimestä (tyhjä näyttää kaikki)</value>
   </data>
   <data name="Partly saved" xml:space="preserve">
     <value>Osittain tallennettu</value>
@@ -10456,9 +10462,6 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Search failed: {0}" xml:space="preserve">
     <value>Haku epäonnistui: {0}</value>
   </data>
-  <data name="Search for part of an account name. Leave empty to list every user in the domain." xml:space="preserve">
-    <value>Hae tilin nimen osalla. Jätä tyhjäksi luetellaksesi verkkotunnuksen kaikki käyttäjät.</value>
-  </data>
   <data name="Search greylisting exemptions" xml:space="preserve">
     <value>Hae harmaalistauksen poikkeuksista</value>
   </data>
@@ -10599,9 +10602,6 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Select a domain" xml:space="preserve">
     <value>Valitse verkkotunnus</value>
-  </data>
-  <data name="Select a domain first." xml:space="preserve">
-    <value>Valitse ensin verkkotunnus.</value>
   </data>
   <data name="Select a domain to see its accounts." xml:space="preserve">
     <value>Valitse verkkotunnus nähdäksesi sen tilit.</value>
@@ -13355,8 +13355,8 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="This case's lines could not be read; the notice above says why." xml:space="preserve">
     <value>Tämän tapauksen rivejä ei voitu lukea; yllä oleva ilmoitus kertoo miksi.</value>
   </data>
-  <data name="This computer is not joined to an Active Directory domain." xml:space="preserve">
-    <value>Tätä tietokonetta ei ole liitetty Active Directory -toimialueeseen.</value>
+  <data name="This computer is not joined to an Active Directory domain, so its accounts cannot be browsed here." xml:space="preserve">
+    <value>Tätä tietokonetta ei ole liitetty Active Directory -toimialueeseen, joten sen tilejä ei voi selata täällä.</value>
   </data>
   <data name="This computer's Control Panel code" xml:space="preserve">
     <value>Tämän tietokoneen Control Panel -koodi</value>
@@ -15013,6 +15013,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="_Name" xml:space="preserve">
     <value>_Nimi</value>
+  </data>
+  <data name="_Name or account" xml:space="preserve">
+    <value>_Nimi tai tili</value>
   </data>
   <data name="_Name or suffix" xml:space="preserve">
     <value>_Nimi tai pääte</value>

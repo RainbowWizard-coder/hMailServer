@@ -942,11 +942,14 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Active" xml:space="preserve">
     <value>Etkin</value>
   </data>
+  <data name="Active Directory _domain" xml:space="preserve">
+    <value>Active Directory _etki alanı</value>
+  </data>
+  <data name="Active Directory cannot be reached from this computer, so its accounts cannot be browsed here. Windows reported: {0}" xml:space="preserve">
+    <value>Bu bilgisayardan Active Directory'ye ulaşılamıyor, bu yüzden hesaplarına buradan göz atılamaz. Windows'un bildirdiği: {0}</value>
+  </data>
   <data name="Active Directory is not available on this machine: {0}" xml:space="preserve">
     <value>Active Directory bu makinede kullanılamıyor: {0}</value>
-  </data>
-  <data name="Active Directory is not reachable from this computer: {0}" xml:space="preserve">
-    <value>Active Directory bu bilgisayardan erişilebilir değil: {0}</value>
   </data>
   <data name="Active Directory refuses anonymous searches by default, so search mode normally needs a credential that may read the directory. Negotiate and DN-template configurations need none of this." xml:space="preserve">
     <value>Active Directory varsayılan olarak anonim aramaları reddeder; bu nedenle arama kipi normalde dizini okuyabilen bir kimlik bilgisi gerektirir. Negotiate ve DN şablonu yapılandırmalarının bunların hiçbirine ihtiyacı yoktur.</value>
@@ -7117,8 +7120,8 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="No API keys yet, so every REST request has to carry the administrator password, which has full authority over every domain and cannot be scoped, expired or revoked on its own. Create a key to use in its place." xml:space="preserve">
     <value>Henüz API anahtarı yok; bu yüzden her REST isteği, her etki alanı üzerinde tam yetkisi olan ve tek başına kapsamı daraltılamayan, süresi doldurulamayan ya da iptal edilemeyen yönetici parolasını taşımak zorunda. Onun yerine kullanılacak bir anahtar oluşturun.</value>
   </data>
-  <data name="No Active Directory domains could be found in the current forest." xml:space="preserve">
-    <value>Geçerli ormanda hiçbir Active Directory etki alanı bulunamadı.</value>
+  <data name="No Active Directory domains could be found in the current forest, so there is nothing to search." xml:space="preserve">
+    <value>Geçerli ormanda Active Directory etki alanı bulunamadı, bu yüzden aranacak bir şey yok.</value>
   </data>
   <data name="No Active Directory domains were found." xml:space="preserve">
     <value>Hiçbir Active Directory etki alanı bulunamadı.</value>
@@ -8487,6 +8490,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Pages" xml:space="preserve">
     <value>Sayfalar</value>
+  </data>
+  <data name="Part of a name (empty lists everyone)" xml:space="preserve">
+    <value>Adın bir kısmı (boş bırakılırsa herkes listelenir)</value>
   </data>
   <data name="Partly saved" xml:space="preserve">
     <value>Kısmen kaydedildi</value>
@@ -10456,9 +10462,6 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Search failed: {0}" xml:space="preserve">
     <value>Arama başarısız oldu: {0}</value>
   </data>
-  <data name="Search for part of an account name. Leave empty to list every user in the domain." xml:space="preserve">
-    <value>Bir hesap adının bir bölümünü arayın. Etki alanındaki her kullanıcıyı listelemek için boş bırakın.</value>
-  </data>
   <data name="Search greylisting exemptions" xml:space="preserve">
     <value>Greylisting istisnalarını ara</value>
   </data>
@@ -10599,9 +10602,6 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Select a domain" xml:space="preserve">
     <value>Bir etki alanı seçin</value>
-  </data>
-  <data name="Select a domain first." xml:space="preserve">
-    <value>Önce bir etki alanı seçin.</value>
   </data>
   <data name="Select a domain to see its accounts." xml:space="preserve">
     <value>Hesaplarını görmek için bir etki alanı seçin.</value>
@@ -13355,8 +13355,8 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="This case's lines could not be read; the notice above says why." xml:space="preserve">
     <value>Bu davanın satırları okunamadı; nedenini yukarıdaki bildirim söylüyor.</value>
   </data>
-  <data name="This computer is not joined to an Active Directory domain." xml:space="preserve">
-    <value>Bu bilgisayar bir Active Directory etki alanına katılmamış.</value>
+  <data name="This computer is not joined to an Active Directory domain, so its accounts cannot be browsed here." xml:space="preserve">
+    <value>Bu bilgisayar bir Active Directory etki alanına katılmamış, bu yüzden hesaplarına buradan göz atılamaz.</value>
   </data>
   <data name="This computer's Control Panel code" xml:space="preserve">
     <value>Bu bilgisayarın Denetim Masası kodu</value>
@@ -15013,6 +15013,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="_Name" xml:space="preserve">
     <value>_Ad</value>
+  </data>
+  <data name="_Name or account" xml:space="preserve">
+    <value>Ad veya _hesap</value>
   </data>
   <data name="_Name or suffix" xml:space="preserve">
     <value>_Ad veya sonek</value>

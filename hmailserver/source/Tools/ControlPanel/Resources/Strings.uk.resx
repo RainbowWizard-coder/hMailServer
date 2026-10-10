@@ -948,11 +948,14 @@
   <data name="Active" xml:space="preserve">
     <value>Активний</value>
   </data>
+  <data name="Active Directory _domain" xml:space="preserve">
+    <value>_Домен Active Directory</value>
+  </data>
+  <data name="Active Directory cannot be reached from this computer, so its accounts cannot be browsed here. Windows reported: {0}" xml:space="preserve">
+    <value>Active Directory недоступна з цього комп'ютера, тому її облікові записи тут переглянути не можна. Windows повідомила: {0}</value>
+  </data>
   <data name="Active Directory is not available on this machine: {0}" xml:space="preserve">
     <value>Active Directory недоступний на цьому комп’ютері: {0}</value>
-  </data>
-  <data name="Active Directory is not reachable from this computer: {0}" xml:space="preserve">
-    <value>Active Directory недосяжний із цього комп’ютера: {0}</value>
   </data>
   <data name="Active Directory refuses anonymous searches by default, so search mode normally needs a credential that may read the directory. Negotiate and DN-template configurations need none of this." xml:space="preserve">
     <value>Active Directory типово відхиляє анонімні пошуки, тому режим пошуку зазвичай потребує облікових даних, яким дозволено читати каталог. Конфігураціям з Negotiate і з DN-шаблоном нічого з цього не потрібно.</value>
@@ -7193,8 +7196,8 @@
   <data name="No API keys yet, so every REST request has to carry the administrator password, which has full authority over every domain and cannot be scoped, expired or revoked on its own. Create a key to use in its place." xml:space="preserve">
     <value>Ключів API ще немає, тому кожен запит REST мусить передавати пароль адміністратора, який має повні права над кожним доменом і який не можна окремо обмежити, обмежити в часі чи відкликати. Створіть ключ, щоб використовувати його замість пароля.</value>
   </data>
-  <data name="No Active Directory domains could be found in the current forest." xml:space="preserve">
-    <value>У поточному лісі не вдалося знайти жодного домену Active Directory.</value>
+  <data name="No Active Directory domains could be found in the current forest, so there is nothing to search." xml:space="preserve">
+    <value>У поточному лісі не знайдено доменів Active Directory, тому шукати немає де.</value>
   </data>
   <data name="No Active Directory domains were found." xml:space="preserve">
     <value>Доменів Active Directory не знайдено.</value>
@@ -8578,6 +8581,9 @@
   </data>
   <data name="Pages" xml:space="preserve">
     <value>Сторінки</value>
+  </data>
+  <data name="Part of a name (empty lists everyone)" xml:space="preserve">
+    <value>Частина імені (порожньо - показати всіх)</value>
   </data>
   <data name="Partly saved" xml:space="preserve">
     <value>Збережено частково</value>
@@ -10580,9 +10586,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Search failed: {0}" xml:space="preserve">
     <value>Пошук не вдався: {0}</value>
   </data>
-  <data name="Search for part of an account name. Leave empty to list every user in the domain." xml:space="preserve">
-    <value>Шукайте частину імені облікового запису. Залиште порожнім, щоб перелічити всіх користувачів домену.</value>
-  </data>
   <data name="Search greylisting exemptions" xml:space="preserve">
     <value>Пошук винятків сірого списку</value>
   </data>
@@ -10723,9 +10726,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Select a domain" xml:space="preserve">
     <value>Виберіть домен</value>
-  </data>
-  <data name="Select a domain first." xml:space="preserve">
-    <value>Спершу виберіть домен.</value>
   </data>
   <data name="Select a domain to see its accounts." xml:space="preserve">
     <value>Виберіть домен, щоб побачити його облікові записи.</value>
@@ -13521,8 +13521,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="This case's lines could not be read; the notice above says why." xml:space="preserve">
     <value>Рядки цієї справи не вдалося прочитати; причину вказано в повідомленні вище.</value>
   </data>
-  <data name="This computer is not joined to an Active Directory domain." xml:space="preserve">
-    <value>Цей комп'ютер не приєднано до домену Active Directory.</value>
+  <data name="This computer is not joined to an Active Directory domain, so its accounts cannot be browsed here." xml:space="preserve">
+    <value>Цей комп'ютер не приєднано до домену Active Directory, тому його облікові записи тут переглянути не можна.</value>
   </data>
   <data name="This computer's Control Panel code" xml:space="preserve">
     <value>Код Панелі керування цього комп'ютера</value>
@@ -15188,6 +15188,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Name" xml:space="preserve">
     <value>Н_азва</value>
+  </data>
+  <data name="_Name or account" xml:space="preserve">
+    <value>_Ім'я або обліковий запис</value>
   </data>
   <data name="_Name or suffix" xml:space="preserve">
     <value>_Ім'я або суфікс</value>

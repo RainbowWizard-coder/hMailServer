@@ -103,7 +103,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [Theory]
       [InlineData("Services/ExternalSetupChecks.cs", "F(\"The SSL certificate list could not be read: {0}\", firstError_)")]
       [InlineData("Services/ExternalSetupChecks.cs", "F(\"The TCP/IP port list could not be read: {0}\", firstError_)")]
-      [InlineData("Services/ActiveDirectoryService.cs", "F(\"Active Directory is not reachable from this computer: {0}\", ServerSession.DescribeComError(ex))")]
+      [InlineData("Services/ActiveDirectoryService.cs", "F(\"Active Directory cannot be reached from this computer, so its accounts cannot be browsed here. Windows reported: {0}\", ServerSession.DescribeComError(ex))")]
       [InlineData("Views/DashboardView.xaml.cs", "F(\"The external setup could not be checked: {0}\", ServerSession.DescribeComError(ex))")]
       public void AReasonJoinedToWhatFailed_FollowsAColon(string file, string call)
       {

@@ -942,11 +942,14 @@
   <data name="Active" xml:space="preserve">
     <value>有効</value>
   </data>
+  <data name="Active Directory _domain" xml:space="preserve">
+    <value>Active Directory ドメイン(_D)</value>
+  </data>
+  <data name="Active Directory cannot be reached from this computer, so its accounts cannot be browsed here. Windows reported: {0}" xml:space="preserve">
+    <value>このコンピューターから Active Directory に接続できないため、ここではそのアカウントを参照できません。Windows の報告: {0}</value>
+  </data>
   <data name="Active Directory is not available on this machine: {0}" xml:space="preserve">
     <value>このコンピューターでは Active Directory を利用できません: {0}</value>
-  </data>
-  <data name="Active Directory is not reachable from this computer: {0}" xml:space="preserve">
-    <value>このコンピューターから Active Directory に到達できません: {0}</value>
   </data>
   <data name="Active Directory refuses anonymous searches by default, so search mode normally needs a credential that may read the directory. Negotiate and DN-template configurations need none of this." xml:space="preserve">
     <value>Active Directory は既定で匿名の検索を拒否するため、検索モードでは通常、ディレクトリを読み取れる資格情報が必要です。Negotiate と DN テンプレートの構成では、これは一切不要です。</value>
@@ -7117,8 +7120,8 @@
   <data name="No API keys yet, so every REST request has to carry the administrator password, which has full authority over every domain and cannot be scoped, expired or revoked on its own. Create a key to use in its place." xml:space="preserve">
     <value>API キーはまだありません。そのため、REST リクエストのたびに管理者パスワードを送る必要があります。管理者パスワードはすべてのドメインに対する完全な権限を持ち、それだけを範囲で限定したり、期限を設けたり、失効させたりすることはできません。代わりに使うキーを作成してください。</value>
   </data>
-  <data name="No Active Directory domains could be found in the current forest." xml:space="preserve">
-    <value>現在のフォレストに Active Directory ドメインが見つかりませんでした。</value>
+  <data name="No Active Directory domains could be found in the current forest, so there is nothing to search." xml:space="preserve">
+    <value>現在のフォレストに Active Directory ドメインが見つからないため、検索する対象がありません。</value>
   </data>
   <data name="No Active Directory domains were found." xml:space="preserve">
     <value>Active Directory ドメインが見つかりませんでした。</value>
@@ -8487,6 +8490,9 @@
   </data>
   <data name="Pages" xml:space="preserve">
     <value>ページ</value>
+  </data>
+  <data name="Part of a name (empty lists everyone)" xml:space="preserve">
+    <value>名前の一部 (空にすると全員を表示)</value>
   </data>
   <data name="Partly saved" xml:space="preserve">
     <value>一部のみ保存しました</value>
@@ -10456,9 +10462,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Search failed: {0}" xml:space="preserve">
     <value>検索に失敗しました: {0}</value>
   </data>
-  <data name="Search for part of an account name. Leave empty to list every user in the domain." xml:space="preserve">
-    <value>アカウント名の一部で検索します。空のままにするとドメイン内のすべてのユーザーを一覧表示します。</value>
-  </data>
   <data name="Search greylisting exemptions" xml:space="preserve">
     <value>グレイリスティングの除外を検索</value>
   </data>
@@ -10599,9 +10602,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Select a domain" xml:space="preserve">
     <value>ドメインを選択</value>
-  </data>
-  <data name="Select a domain first." xml:space="preserve">
-    <value>先にドメインを選択してください。</value>
   </data>
   <data name="Select a domain to see its accounts." xml:space="preserve">
     <value>ドメインを選択するとそのアカウントが表示されます。</value>
@@ -13355,8 +13355,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="This case's lines could not be read; the notice above says why." xml:space="preserve">
     <value>このケースの行を読み取れませんでした。理由は上の通知のとおりです。</value>
   </data>
-  <data name="This computer is not joined to an Active Directory domain." xml:space="preserve">
-    <value>このコンピューターは Active Directory ドメインに参加していません。</value>
+  <data name="This computer is not joined to an Active Directory domain, so its accounts cannot be browsed here." xml:space="preserve">
+    <value>このコンピューターは Active Directory ドメインに参加していないため、ここではそのアカウントを参照できません。</value>
   </data>
   <data name="This computer's Control Panel code" xml:space="preserve">
     <value>このコンピューターのコントロールパネル コード</value>
@@ -15013,6 +15013,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Name" xml:space="preserve">
     <value>名前(_N)</value>
+  </data>
+  <data name="_Name or account" xml:space="preserve">
+    <value>名前またはアカウント(_N)</value>
   </data>
   <data name="_Name or suffix" xml:space="preserve">
     <value>名前またはサフィックス(_N)</value>

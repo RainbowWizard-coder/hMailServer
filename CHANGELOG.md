@@ -2823,6 +2823,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   directory shows the Let's Encrypt URL. `AcmeCertificateStateTests` holds the list's reading, the row's place, its
   order and its action.
 
+- **Fixed: the Browse Active Directory dialog said every state as one grey line, left Search live when nothing could
+  be searched, and had a search box with no caption.** Active Directory not reachable from this computer, no domain,
+  a list or a search that failed, a search under way and what it found were each one line of caption text under the
+  list, with no mark and no next step, the reason Windows gave joined on after a dash; where nothing could be
+  searched the domain list and the box were greyed and Search was not, and pressing it said "Select a domain
+  first."; Domain was a 12-pixel caption beside its list; and the search box had no caption or placeholder, only an
+  accessible name. The status is now a notice at the level of what it says - Warning where Active Directory cannot
+  be reached or has no domain, "Active Directory cannot be reached from this computer, so its accounts cannot be
+  browsed here. Windows reported: ...", Critical for a list or a search that failed, Information while searching and
+  for what a search found; Search is disabled with the domain list and the box; and the domain and the name are
+  captioned fields on one line, Active Directory domain and Name or account, the name's box saying "Part of a name
+  (empty lists everyone)". `ActiveDirectoryPickerStatusTests` holds the levels, Search, the fields and the reason.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

@@ -942,11 +942,14 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Active" xml:space="preserve">
     <value>Active</value>
   </data>
+  <data name="Active Directory _domain" xml:space="preserve">
+    <value>Active Directory _domain</value>
+  </data>
+  <data name="Active Directory cannot be reached from this computer, so its accounts cannot be browsed here. Windows reported: {0}" xml:space="preserve">
+    <value>Active Directory cannot be reached from this computer, so its accounts cannot be browsed here. Windows reported: {0}</value>
+  </data>
   <data name="Active Directory is not available on this machine: {0}" xml:space="preserve">
     <value>Active Directory is not available on this machine: {0}</value>
-  </data>
-  <data name="Active Directory is not reachable from this computer: {0}" xml:space="preserve">
-    <value>Active Directory is not reachable from this computer: {0}</value>
   </data>
   <data name="Active Directory refuses anonymous searches by default, so search mode normally needs a credential that may read the directory. Negotiate and DN-template configurations need none of this." xml:space="preserve">
     <value>Active Directory refuses anonymous searches by default, so search mode normally needs a credential that may read the directory. Negotiate and DN-template configurations need none of this.</value>
@@ -7117,8 +7120,8 @@ Nothing already there is removed.</value>
   <data name="No API keys yet, so every REST request has to carry the administrator password, which has full authority over every domain and cannot be scoped, expired or revoked on its own. Create a key to use in its place." xml:space="preserve">
     <value>No API keys yet, so every REST request has to carry the administrator password, which has full authority over every domain and cannot be scoped, expired or revoked on its own. Create a key to use in its place.</value>
   </data>
-  <data name="No Active Directory domains could be found in the current forest." xml:space="preserve">
-    <value>No Active Directory domains could be found in the current forest.</value>
+  <data name="No Active Directory domains could be found in the current forest, so there is nothing to search." xml:space="preserve">
+    <value>No Active Directory domains could be found in the current forest, so there is nothing to search.</value>
   </data>
   <data name="No Active Directory domains were found." xml:space="preserve">
     <value>No Active Directory domains were found.</value>
@@ -8487,6 +8490,9 @@ Nothing already there is removed.</value>
   </data>
   <data name="Pages" xml:space="preserve">
     <value>Pages</value>
+  </data>
+  <data name="Part of a name (empty lists everyone)" xml:space="preserve">
+    <value>Part of a name (empty lists everyone)</value>
   </data>
   <data name="Partly saved" xml:space="preserve">
     <value>Partly saved</value>
@@ -10456,9 +10462,6 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Search failed: {0}" xml:space="preserve">
     <value>Search failed: {0}</value>
   </data>
-  <data name="Search for part of an account name. Leave empty to list every user in the domain." xml:space="preserve">
-    <value>Search for part of an account name. Leave empty to list every user in the domain.</value>
-  </data>
   <data name="Search greylisting exemptions" xml:space="preserve">
     <value>Search greylisting exemptions</value>
   </data>
@@ -10599,9 +10602,6 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   </data>
   <data name="Select a domain" xml:space="preserve">
     <value>Select a domain</value>
-  </data>
-  <data name="Select a domain first." xml:space="preserve">
-    <value>Select a domain first.</value>
   </data>
   <data name="Select a domain to see its accounts." xml:space="preserve">
     <value>Select a domain to see its accounts.</value>
@@ -13355,8 +13355,8 @@ It will keep trying as you use the application.</value>
   <data name="This case's lines could not be read; the notice above says why." xml:space="preserve">
     <value>This case's lines could not be read; the notice above says why.</value>
   </data>
-  <data name="This computer is not joined to an Active Directory domain." xml:space="preserve">
-    <value>This computer is not joined to an Active Directory domain.</value>
+  <data name="This computer is not joined to an Active Directory domain, so its accounts cannot be browsed here." xml:space="preserve">
+    <value>This computer is not joined to an Active Directory domain, so its accounts cannot be browsed here.</value>
   </data>
   <data name="This computer's Control Panel code" xml:space="preserve">
     <value>This computer's Control Panel code</value>
@@ -15013,6 +15013,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="_Name" xml:space="preserve">
     <value>_Name</value>
+  </data>
+  <data name="_Name or account" xml:space="preserve">
+    <value>_Name or account</value>
   </data>
   <data name="_Name or suffix" xml:space="preserve">
     <value>_Name or suffix</value>

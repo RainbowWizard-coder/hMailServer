@@ -49,7 +49,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("AccountTwoFactorPanel.cs", "MakeButton(L(\"Re_move\")")]
       [InlineData("RouteDialog.cs", "Content = L(\"Re_move\")")]
       [InlineData("MessageTraceView.cs", "MakeButton(L(\"Remove _expired\")")]
-      [InlineData("ActiveDirectoryPickerDialog.cs", "Content = L(\"_Search\"),")]
+      [InlineData("ActiveDirectoryPickerDialog.cs", "searchButton_ = new() { Content = L(\"_Search\") }")]
       [InlineData("AppPasswordsPanel.cs", "MakeButton(L(\"_Copy\")")]
       [InlineData("DomainDialog.cs", "var dkimBrowse = new Wpf.Ui.Controls.Button { Content = L(\"_Browse…\")")]
       [InlineData("TcpIpPortDialog.cs", "var caBrowse = new Wpf.Ui.Controls.Button { Content = L(\"_Browse…\")")]

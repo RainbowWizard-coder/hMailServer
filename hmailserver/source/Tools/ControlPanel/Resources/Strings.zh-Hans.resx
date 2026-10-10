@@ -942,11 +942,14 @@
   <data name="Active" xml:space="preserve">
     <value>活动</value>
   </data>
+  <data name="Active Directory _domain" xml:space="preserve">
+    <value>Active Directory 域(_D)</value>
+  </data>
+  <data name="Active Directory cannot be reached from this computer, so its accounts cannot be browsed here. Windows reported: {0}" xml:space="preserve">
+    <value>无法从这台计算机访问 Active Directory，因此无法在此浏览其账户。Windows 报告：{0}</value>
+  </data>
   <data name="Active Directory is not available on this machine: {0}" xml:space="preserve">
     <value>本机上无法使用 Active Directory：{0}</value>
-  </data>
-  <data name="Active Directory is not reachable from this computer: {0}" xml:space="preserve">
-    <value>从本计算机无法访问 Active Directory：{0}</value>
   </data>
   <data name="Active Directory refuses anonymous searches by default, so search mode normally needs a credential that may read the directory. Negotiate and DN-template configurations need none of this." xml:space="preserve">
     <value>Active Directory 默认拒绝匿名搜索，因此搜索模式通常需要一个可以读取目录的凭据。Negotiate 和 DN 模板这两种配置都不需要这些。</value>
@@ -7117,8 +7120,8 @@
   <data name="No API keys yet, so every REST request has to carry the administrator password, which has full authority over every domain and cannot be scoped, expired or revoked on its own. Create a key to use in its place." xml:space="preserve">
     <value>还没有 API 密钥，因此每个 REST 请求都必须携带管理员密码；它对每个域都拥有完全权限，而且无法单独限定范围、设置过期或吊销。请创建一个密钥来代替它。</value>
   </data>
-  <data name="No Active Directory domains could be found in the current forest." xml:space="preserve">
-    <value>在当前林中找不到任何 Active Directory 域。</value>
+  <data name="No Active Directory domains could be found in the current forest, so there is nothing to search." xml:space="preserve">
+    <value>当前林中找不到任何 Active Directory 域，因此没有可搜索的内容。</value>
   </data>
   <data name="No Active Directory domains were found." xml:space="preserve">
     <value>未找到任何 Active Directory 域。</value>
@@ -8487,6 +8490,9 @@
   </data>
   <data name="Pages" xml:space="preserve">
     <value>页面</value>
+  </data>
+  <data name="Part of a name (empty lists everyone)" xml:space="preserve">
+    <value>名称的一部分（留空则列出所有人）</value>
   </data>
   <data name="Partly saved" xml:space="preserve">
     <value>部分已保存</value>
@@ -10456,9 +10462,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Search failed: {0}" xml:space="preserve">
     <value>搜索失败：{0}</value>
   </data>
-  <data name="Search for part of an account name. Leave empty to list every user in the domain." xml:space="preserve">
-    <value>搜索账户名的一部分。留空则列出域中的所有用户。</value>
-  </data>
   <data name="Search greylisting exemptions" xml:space="preserve">
     <value>搜索灰名单豁免</value>
   </data>
@@ -10599,9 +10602,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Select a domain" xml:space="preserve">
     <value>选择一个域</value>
-  </data>
-  <data name="Select a domain first." xml:space="preserve">
-    <value>请先选择一个域。</value>
   </data>
   <data name="Select a domain to see its accounts." xml:space="preserve">
     <value>选择一个域以查看其账户。</value>
@@ -13355,8 +13355,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="This case's lines could not be read; the notice above says why." xml:space="preserve">
     <value>无法读取此案件的行；原因见上方的通知。</value>
   </data>
-  <data name="This computer is not joined to an Active Directory domain." xml:space="preserve">
-    <value>此计算机未加入 Active Directory 域。</value>
+  <data name="This computer is not joined to an Active Directory domain, so its accounts cannot be browsed here." xml:space="preserve">
+    <value>这台计算机未加入 Active Directory 域，因此无法在此浏览其账户。</value>
   </data>
   <data name="This computer's Control Panel code" xml:space="preserve">
     <value>此计算机的控制面板代码</value>
@@ -15013,6 +15013,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="_Name" xml:space="preserve">
     <value>名称(_N)</value>
+  </data>
+  <data name="_Name or account" xml:space="preserve">
+    <value>名称或账户(_N)</value>
   </data>
   <data name="_Name or suffix" xml:space="preserve">
     <value>名称或后缀(_N)</value>
