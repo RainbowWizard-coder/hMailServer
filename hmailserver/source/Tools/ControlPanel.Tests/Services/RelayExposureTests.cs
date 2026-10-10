@@ -237,6 +237,39 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("tabs.Height = tallest;", fit, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// The words that point a reader at the box name it by its caption on the page
+      /// and in the dialog: the setting profiles' steps, which the Setting profiles page
+      /// shows under "What it cannot do for you", and the help page the TCP/IP ports
+      /// page opens. Both still said "Require TLS for auth" after the caption changed.
+      /// </summary>
+      [Theory]
+      [InlineData("hmailserver/source/Server/Common/Application/Profiles/office.json")]
+      [InlineData("hmailserver/source/Server/Common/Application/Profiles/gateway.json")]
+      [InlineData("hmailserver/source/Server/Common/Application/Profiles/relay.json")]
+      [InlineData("hmailserver/docs/SecureDefaults.md")]
+      public void TheProfilesAndTheHelp_NameTheBoxByItsCaption(string file)
+      {
+         string text = ReadRepositoryFile(file);
+         Assert.DoesNotContain("Require TLS for auth", text, StringComparison.Ordinal);
+         Assert.Contains("Require TLS before authentication", string.Join(" ", text.Split((char[])null, StringSplitOptions.RemoveEmptyEntries)), StringComparison.Ordinal);
+      }
+
+      private static string ReadRepositoryFile(string relative)
+      {
+         var directory = new DirectoryInfo(AppContext.BaseDirectory);
+         while (directory != null)
+         {
+            string candidate = Path.Join(directory.FullName, relative);
+            if (File.Exists(candidate))
+               return File.ReadAllText(candidate);
+            directory = directory.Parent;
+         }
+
+         Assert.Fail(relative + " could not be found from the test binaries.");
+         return null;
+      }
+
       private static string Read(string relative)
       {
          var directory = new DirectoryInfo(AppContext.BaseDirectory);

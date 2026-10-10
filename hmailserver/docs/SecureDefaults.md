@@ -294,9 +294,9 @@ the same way, new or upgraded:
   is `sign_in_no_tls` instead: it names those listeners, says to give them a
   certificate and STARTTLS first, carries no fix, and the Deck's button opens the
   Ports view. The Control Panel shows the same item and opens its IP ranges page,
-  where the setting is *Require TLS for auth* (*Require SSL/TLS when
-  authenticating* in the range's dialog); its advice says to give a listener
-  without TLS a certificate and STARTTLS on the TCP/IP ports page first.
+  where the setting is *Require TLS before authentication*, the same caption in
+  the range's dialog; its advice says to give a listener without TLS a
+  certificate and STARTTLS on the TCP/IP ports page first.
 * **TLS on the submission port** says `submission_self_signed`, action needed,
   while the port's certificate is the self-signed one - with the sentence that
   says to replace it and that ACME can.

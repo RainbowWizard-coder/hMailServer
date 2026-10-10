@@ -2698,8 +2698,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   is pointed out above the list; such a folder does not stop Add folder making the sub-folder its name spells, as the
   warning says it does, since a folder is told from another by its path and not by its names joined - the misnamed
   Projects.2025 at the top and Projects' 2025 are two. A sub-folder's Permissions open on the sub-folder, which the
-  permissions dialog looked for at the top alone. `PublicFolderTreeTests` holds the tree, the checks, the words and the
-  page's reads and writes.
+  permissions dialog looked for at the top alone. The help page both pages open (PublicFoldersAndGroups.md) says how the
+  tree, the delimiter, the refusals, a misnamed folder and Delete's sub-folders work, and on the Groups side Members…
+  with Enter, the double-click and F2, and the account picker. `PublicFolderTreeTests` holds the tree, the checks, the
+  words and the page's reads and writes.
 
 - **Fixed: a TLS port added on the TCP/IP ports page had no certificate and did not start, and every change to a port
   asked to reinitialise the server there and then.** The add form offered SSL/TLS and both STARTTLS modes but no
@@ -2744,8 +2746,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   sender from MAIL FROM - is said under the rows with the direction to tick Only after SMTP authentication for, at
   Critical, "an open relay", where it reaches the Internet and as a warning inside a private network, and its
   permissions are asked about before they are saved, on the page and in the dialog, whose tabs are as tall as the
-  Delivery tab with the longest of its notices, which a shorter tab cut off. The setup checklist names the box by its
-  new caption. `RelayExposureTests` holds the reach of a range, the words, the card, the dialog and the question.
+  Delivery tab with the longest of its notices, which a shorter tab cut off. The setup checklist, the steps of the
+  office, gateway and relay setting profiles (shown on the Setting profiles page) and the help page the TCP/IP ports
+  page opens (SecureDefaults.md) name the box by its new caption. `RelayExposureTests` holds the reach of a range, the
+  words, the card, the dialog and the question.
 
 - **Fixed: a range added on the IP ranges page was not selected and said nothing of what it could do, and the list was
   not in priority order.** A new range may connect but delivers in no direction, so it can send no mail until its

@@ -17,18 +17,31 @@ name*, on the *Protocols* page's *IMAP* tab), to the accounts its permissions le
 see it. Messages reach a public folder when somebody with the right copies, moves
 or appends one into it.
 
+The page lists the folders as a tree, each under the folder it is in.
+
 * **Add folder** asks for a name and creates the folder. A folder inside another
   is named with the IMAP hierarchy delimiter between the two names - `Sales.2026`
-  where the delimiter is a full stop - and the delimiter is *Folder hierarchy
-  delimiter*, on the same *IMAP* tab.
+  makes `2026` inside `Sales`, and `Sales` as well if it is not there yet, where
+  the delimiter is a full stop - and the delimiter is *Folder hierarchy
+  delimiter*, on the same *IMAP* tab. With a folder selected, the name starts
+  with that folder's name and the delimiter, so that what is typed goes inside
+  it. A name that begins or ends with the delimiter or has two together, a name
+  of more than 255 characters, a folder more than 25 levels down, or one that is
+  there already is refused under the box, and what was typed stays.
+* A folder whose own name holds the delimiter - one at the top named
+  `Sales.2026`, which Add folder made of such a name before 6.3.6 - is pointed
+  out above the list: a mail program finds a folder by splitting its name at the
+  delimiter, so it cannot open that one. Add folder with the same name makes the
+  sub-folder the name spells.
 * **Permissions** opens the folder's access-control list (below): who may see the
   folder, read it and change it.
-* **Delete** deletes the folder and every message in it, after asking, with
+* **Delete** deletes the folder, the folders inside it and every message in
+  them, after asking - the question says how many sub-folders go with it - with
   Cancel the answer Enter gives. There is no undo; a backup carries the public
   folders ([Backup.md](Backup.md)).
 
-From the keyboard, Enter or F2 opens the selected folder's permissions, Delete
-deletes it after asking and Insert adds one.
+From the keyboard, Enter or F2 - or a double-click - opens the selected folder's
+permissions, Delete deletes it after asking and Insert adds one.
 
 Permissions
 -----------
@@ -66,11 +79,19 @@ account listed in it gets what it is given. An account added to the group later
 gets the rights from then on; one removed loses them.
 
 * **Add** names a new group; **Edit** renames it.
-* **Members** opens the group's list of accounts: *Add account...* picks one of
-  the server's accounts, *Remove* takes the one selected off the list, after
+* **Members...**, the list's first verb, opens the group's list of accounts; Enter
+  and a double-click on a group open it too, and F2 renames the group. In it,
+  *Add account...* lists the server's accounts that are not members yet, under a
+  search box, *Find an account*, that narrows the list by address as it is typed
+  in. Ctrl and Shift choose several, and *Add* - or Enter, which in the search
+  box takes the one account the search leaves, or a double-click on an account -
+  puts them in the group. *Remove* takes the member selected off the list, after
   asking. A group with no members grants nothing to anyone.
 * **Delete** deletes the group after asking. The folder permissions and the
   calendar shares given to it are removed with it, so its members lose them.
+
+From the keyboard, Delete deletes the selected group after asking and Insert adds
+one.
 
 A group is the server's way of sharing, and is not a mailing address: mail cannot
 be sent to a group. An address that delivers to several accounts is a

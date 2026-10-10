@@ -53,7 +53,7 @@ namespace HM
 
          const TCHAR *const OfficeSteps[] =
          {
-            _T("Check that \"Require SSL/TLS when authenticating\" (the Control Panel's Require TLS for auth) is on for the Internet IP range - a new installation turns it on, an upgraded one keeps what it had (docs/SecureDefaults.md) - or make the submission port STARTTLS-required: that is what refuses a password sent in the clear - SMTP AUTH LOGIN, IMAP LOGIN and POP3 alike - and an IP range is not a setting a profile can write."),
+            _T("Check that \"Require SSL/TLS when authenticating\" (the Control Panel's Require TLS before authentication, on the IP ranges page and in the range's dialog) is on for the Internet IP range - a new installation turns it on, an upgraded one keeps what it had (docs/SecureDefaults.md) - or make the submission port STARTTLS-required: that is what refuses a password sent in the clear - SMTP AUTH LOGIN, IMAP LOGIN and POP3 alike - and an IP range is not a setting a profile can write."),
             _T("Give the submission port (587) STARTTLS with a certificate, or add port 465 with TLS: a port's security is the port's, not a setting, and the checklist's submission item says which port still takes a password in the clear."),
             _T("Switch each domain's quarantine digest and external-sender tag on in the domain's own settings: both are a domain's choice, and the server has no value of them to set."),
             _T("Set quarantine_digest_base_url to the address the webmail answers on, or the digest has no links to send."),
@@ -86,7 +86,7 @@ namespace HM
             _T("Put the gateway's addresses in SMTPXClientTrustedIPs if it sends XCLIENT, so that the session takes the real client's address from the start: until then XCLIENT is honoured from nobody."),
             _T("Before applying the profile, add the gateway's addresses to Incoming relays and leave spam protection on for the IP range they connect from: Incoming relays run SPF, HELO, PTR, DMARC and the DNS block lists after DATA against the address the gateway received the message from, read from its Received header, and until the addresses are there those tests judge the gateway's own."),
             _T("Name the ARC sealer the gateway signs as in arc_trusted_sealers: until then no ARC seal is trusted, and the ARC entry offsets nothing."),
-            _T("Check that \"Require SSL/TLS when authenticating\" is on for the Internet IP range - a new installation turns it on, an upgraded one keeps what it had (docs/SecureDefaults.md) - or make the submission port STARTTLS-required, for the people who sign in here directly: that is what refuses a password sent in the clear, and an IP range is not a setting a profile can write."),
+            _T("Check that \"Require SSL/TLS when authenticating\" (the Control Panel's Require TLS before authentication, on the IP ranges page and in the range's dialog) is on for the Internet IP range - a new installation turns it on, an upgraded one keeps what it had (docs/SecureDefaults.md) - or make the submission port STARTTLS-required, for the people who sign in here directly: that is what refuses a password sent in the clear, and an IP range is not a setting a profile can write."),
             _T("On the listener the gateway delivers to, leave TLS optional unless the gateway offers it: a port's security is the port's, not a setting."),
             _T("A backup-MX callout to the primary is a remote domain policy (callout), which a profile does not make."),
             nullptr
@@ -123,7 +123,7 @@ namespace HM
          const TCHAR *const RelaySteps[] =
          {
             _T("Decide who may relay: that is an IP range's question - require authentication on the range the senders connect from, or name their addresses - and a profile does not answer it."),
-            _T("Turn on \"Require SSL/TLS when authenticating\" on the IP range the senders connect from, or make the submission port STARTTLS-required: that is what refuses a password sent in the clear, and an IP range is not a setting a profile can write."),
+            _T("Turn on \"Require SSL/TLS when authenticating\" (the Control Panel's Require TLS before authentication, on the IP ranges page and in the range's dialog) on the IP range the senders connect from, or make the submission port STARTTLS-required: that is what refuses a password sent in the clear, and an IP range is not a setting a profile can write."),
             _T("Raise [Database] NumberOfConnections in hMailServer.ini to about the delivery thread count, 25 here: the deliveries, the sign-ins and the rest share that pool, five connections as shipped, and a wait for one longer than DBConnectionAcquireTimeout fails."),
             _T("Switch DKIM signing and its key rotation on for each sending domain: both are the domain's, and the server has no value of them to set."),
             _T("Set the sending limits per account in [SendingLimits] if the senders are to be held to a volume: those keys are the settings file's, not the store's."),
