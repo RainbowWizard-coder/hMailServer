@@ -130,6 +130,11 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("public partial class ServerSettingsView : IRevealSetting", ReadControlPanelFile(Path.Join("Views", "ServerSettingsView.Reveal.cs")), StringComparison.Ordinal);
          Assert.Contains("SettingsTabs.SelectedItem = item;", ReadControlPanelFile(Path.Join("Views", "ServerSettingsView.Reveal.cs")), StringComparison.Ordinal);
          Assert.Contains("public partial class FeatureSettingsView : IRevealSetting", ReadControlPanelFile(Path.Join("Views", "FeatureSettingsView.Reveal.cs")), StringComparison.Ordinal);
+         // On a section of tabs (Transport security) the card's tab is chosen and the row
+         // looked for in the strip once laid out, not in the panel such a section leaves empty.
+         string featureReveal = ReadControlPanelFile(Path.Join("Views", "FeatureSettingsView.Reveal.cs"));
+         Assert.Contains("cardTabs_.SelectedItem = item;", featureReveal, StringComparison.Ordinal);
+         Assert.Contains("Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() => Show_(cardTabs_, setting, shared)));", featureReveal, StringComparison.Ordinal);
 
          string reveal = ReadControlPanelFile(Path.Join("Views", "SettingReveal.cs"));
          Assert.Contains("ScrollTo_(row);", reveal, StringComparison.Ordinal);
@@ -169,7 +174,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          string feature = ReadControlPanelFile(Path.Join("Views", "FeatureSettingsView.Reveal.cs"));
          Assert.Contains("public bool RevealSetting(string key, string label)", feature, StringComparison.Ordinal);
          Assert.Contains("SettingReveal.SameLabel(candidate.Label, label == null ? null : L(label))", feature, StringComparison.Ordinal);
-         Assert.Contains("SettingReveal.Find(CardsPanel, null, setting.Label)", feature, StringComparison.Ordinal);
+         Assert.Contains("SettingReveal.Find(root, null, setting.Label)", feature, StringComparison.Ordinal);
       }
 
       /// <summary>

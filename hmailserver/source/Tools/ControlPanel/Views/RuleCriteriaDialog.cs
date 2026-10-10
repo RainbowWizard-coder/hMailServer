@@ -90,7 +90,7 @@ namespace hMailServer.ControlPanel.Views
 
          // Room for the message a press puts under the header name or the value, one
          // at a time: the longest, a size that is not a whole number of bytes, wraps
-         // to two lines at this width in French and German (review finding F213).
+         // to two lines at this width in French (review finding F213).
          KeepRoomForFieldErrors(2);
          Loaded += (s, e) => Load();
       }
