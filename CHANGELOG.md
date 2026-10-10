@@ -3048,6 +3048,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   as every other caption above a field is, the folder's with an Alt key. `SmallCopyTests` holds the titles, that no
   page's purpose names Ctrl+K, and that no FieldRow caption ends in a colon.
 
+- **Fixed: the Domains & accounts page called one act Properties and Edit, and the dialog its Members button opens said
+  recipient.** Domain and distribution list rows carried Properties, account rows and the Groups page Edit, for the
+  same act of opening the item's dialog, and each row's button was "Edit" or "Properties" to a screen reader whatever
+  row it was on. Every row that opens an editor now says Edit - the domain and account rows' word, the list row's glyph
+  a pencil where it was a cog, the rows' menus Edit… - and each button is named for its row, "Edit domain example.com",
+  "Edit account ...", "Edit distribution list ...", the name starting with the button's word in every language. The
+  members dialog says member throughout: its heading "Members of everyone@example.com" and title "Members - ...", its
+  box "Address to add as a member", "Remove the member ... from this list?", "No members yet, ...", "2 members added."
+  and its failures, where each said recipient. French, Italian and Russian give Members… an Alt key of its own
+  (Mem_bres, Mem_bri, Уча_стники), where it took the M of Modifier and Modifica and the У of Удалить beside it, on the
+  list's menu and on the Groups page. `DomainsVerbWordsTests` holds the rows, their names and Members…' keys in every
+  catalogue, and the dialog's words; `DomainsFormsTests` and `DomainsRowVerbsTests` hold the new names and menus.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

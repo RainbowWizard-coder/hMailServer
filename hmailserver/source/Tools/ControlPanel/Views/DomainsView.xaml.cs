@@ -16,7 +16,7 @@ namespace hMailServer.ControlPanel.Views
    {
       // The page's columns and cards keep a width below which what they hold runs
       // off their right edges: the domains column 280 pixels (its card 268, room
-      // for a name beside Properties and Delete), the column of accounts, aliases
+      // for a name beside Edit and Delete), the column of accounts, aliases
       // and lists 400, an alias or list card 280, and the new account's password
       // box 120 beside Generate and Create account. In the narrowest window
       // (760 by 520) the two columns were 268 and 232 pixels wide: Create account
@@ -138,6 +138,11 @@ namespace hMailServer.ControlPanel.Views
       {
          public string Name { get; set; }
          public bool Active { get; set; }
+
+         // The row's Edit button by the domain it opens, where every row's said
+         // only "Edit" (review finding F083). It starts with the button's word in
+         // every language, as a control's name starts with its caption.
+         public string EditName => F("Edit domain {0}", Name);
          public override string ToString() => Active ? Name : F("{0} (inactive)", Name);
       }
 
@@ -146,6 +151,9 @@ namespace hMailServer.ControlPanel.Views
       {
          public string Address { get; set; }
          public bool Active { get; set; }
+
+         // The row's Edit button by the account it opens (F083), as DomainRow's.
+         public string EditName => F("Edit account {0}", Address);
          public override string ToString() => Active ? Address : F("{0} (inactive)", Address);
       }
 
@@ -306,14 +314,14 @@ namespace hMailServer.ControlPanel.Views
 
       /// <summary>
       /// A distribution list in the lists card: its address, and the names of the
-      /// row's Properties and Members buttons, which are glyphs and say which list
+      /// row's Edit and Members buttons, which are glyphs and say which list
       /// each acts on in their tool tips and to a screen reader. ToString carries
       /// the address to a ListViewItem's accessible name, as AliasRow does.
       /// </summary>
       public class DistRow
       {
          public string Address { get; set; }
-         public string PropertiesName => F("Properties of {0}", Address);
+         public string EditName => F("Edit distribution list {0}", Address);
          public string MembersName => F("Members of {0}", Address);
          public override string ToString() => Address;
       }

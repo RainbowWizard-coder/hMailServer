@@ -1233,6 +1233,9 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Address to a_dd" xml:space="preserve">
     <value>_Adresse at tilføje</value>
   </data>
+  <data name="Address to add as a member" xml:space="preserve">
+    <value>Adresse, der skal tilføjes som medlem</value>
+  </data>
   <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
     <value>Adresse, domæne eller URL (https://host/...)</value>
   </data>
@@ -2992,8 +2995,8 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer er et varemærke tilhørende de respektive ejere; dette er en uafhængig, community-vedligeholdt fork.</value>
   </data>
-  <data name="Could not add all recipients: {0}" xml:space="preserve">
-    <value>Kunne ikke tilføje alle modtagere: {0}</value>
+  <data name="Could not add all the members: {0}" xml:space="preserve">
+    <value>Kunne ikke tilføje alle medlemmerne: {0}</value>
   </data>
   <data name="Could not add the address: {0}" xml:space="preserve">
     <value>Kunne ikke tilføje adressen: {0}</value>
@@ -3001,14 +3004,14 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Could not add the certificate: {0}" xml:space="preserve">
     <value>Kunne ikke tilføje certifikatet: {0}</value>
   </data>
+  <data name="Could not add the member: {0}" xml:space="preserve">
+    <value>Kunne ikke tilføje medlemmet: {0}</value>
+  </data>
   <data name="Could not add the port: {0}" xml:space="preserve">
     <value>Kunne ikke tilføje porten: {0}</value>
   </data>
   <data name="Could not add the range: {0}" xml:space="preserve">
     <value>Kunne ikke tilføje intervallet: {0}</value>
-  </data>
-  <data name="Could not add the recipient: {0}" xml:space="preserve">
-    <value>Kunne ikke tilføje modtageren: {0}</value>
   </data>
   <data name="Could not add the relay: {0}" xml:space="preserve">
     <value>Kunne ikke tilføje relayet: {0}</value>
@@ -3297,11 +3300,11 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Could not remove the criterion: {0}" xml:space="preserve">
     <value>Kunne ikke fjerne kriteriet: {0}</value>
   </data>
+  <data name="Could not remove the member: {0}" xml:space="preserve">
+    <value>Kunne ikke fjerne medlemmet: {0}</value>
+  </data>
   <data name="Could not remove the passphrase: {0}" xml:space="preserve">
     <value>Kunne ikke fjerne adgangssætningen: {0}</value>
-  </data>
-  <data name="Could not remove the recipient: {0}" xml:space="preserve">
-    <value>Kunne ikke fjerne modtageren: {0}</value>
   </data>
   <data name="Could not remove the sample domain: {0}" xml:space="preserve">
     <value>Kunne ikke fjerne prøvedomænet: {0}</value>
@@ -4363,9 +4366,6 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="E-mail address" xml:space="preserve">
     <value>E-mailadresse</value>
   </data>
-  <data name="E-mail address to add to the list" xml:space="preserve">
-    <value>E-mailadresse, der skal føjes til listen</value>
-  </data>
   <data name="E-mail every account on the server at once - for maintenance announcements." xml:space="preserve">
     <value>Send e-mail til hver konto på serveren på én gang - til vedligeholdelsesmeddelelser.</value>
   </data>
@@ -4420,6 +4420,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Edit a domain on the list" xml:space="preserve">
     <value>Redigér et domæne på listen</value>
   </data>
+  <data name="Edit account {0}" xml:space="preserve">
+    <value>Redigér kontoen {0}</value>
+  </data>
   <data name="Edit action" xml:space="preserve">
     <value>Redigér handling</value>
   </data>
@@ -4428,6 +4431,12 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Edit criterion" xml:space="preserve">
     <value>Redigér kriterium</value>
+  </data>
+  <data name="Edit distribution list {0}" xml:space="preserve">
+    <value>Redigér distributionslisten {0}</value>
+  </data>
+  <data name="Edit domain {0}" xml:space="preserve">
+    <value>Redigér domænet {0}</value>
   </data>
   <data name="Edit incoming relay" xml:space="preserve">
     <value>Redigér indgående relay</value>
@@ -7750,6 +7759,9 @@ Intet, der allerede er der, fjernes.</value>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>Ingen matchende konti i {0}.</value>
   </data>
+  <data name="No members yet, so mail sent to this list reaches nobody. Add an address below." xml:space="preserve">
+    <value>Ingen medlemmer endnu, så post sendt til denne liste når ingen. Tilføj en adresse nedenfor.</value>
+  </data>
   <data name="No message checked" xml:space="preserve">
     <value>Ingen meddelelse markeret</value>
   </data>
@@ -7830,9 +7842,6 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
     <value>Ingen offentlige mapper endnu. Tilføj mappe opretter en, som flere konti kan åbne; Rettigheder afgør derefter, hvem der må læse og skrive i den.</value>
-  </data>
-  <data name="No recipients yet, so mail sent to this list reaches nobody. Add an address below." xml:space="preserve">
-    <value>Ingen modtagere endnu, så post sendt til denne liste når ingen. Tilføj en adresse nedenfor.</value>
   </data>
   <data name="No recovery address is set. Until the account holder sets one in the webmail, a forgotten password can only be reset here." xml:space="preserve">
     <value>Der er ingen gendannelsesadresse sat. Indtil kontohaveren sætter en i webmailen, kan en glemt adgangskode kun nulstilles her.</value>
@@ -9177,12 +9186,6 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   <data name="Propagation period in hours" xml:space="preserve">
     <value>Udbredelsesperiode i timer</value>
   </data>
-  <data name="Properties" xml:space="preserve">
-    <value>Egenskaber</value>
-  </data>
-  <data name="Properties of {0}" xml:space="preserve">
-    <value>Egenskaber for {0}</value>
-  </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Beskyt gemte hemmeligheder med Windows DPAPI</value>
   </data>
@@ -9556,17 +9559,11 @@ Kør dette, hvis klienter melder om meddelelser, der dukker op under det forkert
   <data name="Recipients" xml:space="preserve">
     <value>Modtagere</value>
   </data>
-  <data name="Recipients - {0}" xml:space="preserve">
-    <value>Modtagere - {0}</value>
-  </data>
   <data name="Recipients a message may name before the delay starts (0 = off)" xml:space="preserve">
     <value>Modtagere, en meddelelse må nævne, før forsinkelsen begynder (0 = fra)</value>
   </data>
   <data name="Recipients are the stricter measure: one message to two thousand addresses is two thousand recipients." xml:space="preserve">
     <value>Modtagere er det strengere mål: én meddelelse til to tusind adresser er to tusind modtagere.</value>
-  </data>
-  <data name="Recipients of {0}" xml:space="preserve">
-    <value>Modtagere af {0}</value>
   </data>
   <data name="Recipients signal: percentage never written to before (1 to 100)" xml:space="preserve">
     <value>Modtagersignal: procentdel, der aldrig er skrevet til før (1 til 100)</value>
@@ -9880,8 +9877,8 @@ Kør dette, hvis klienter melder om meddelelser, der dukker op under det forkert
   <data name="Remove the journaling rule for {0}? What it has already sent stays where it was sent." xml:space="preserve">
     <value>Fjern journaliseringsreglen for {0}? Det, den allerede har sendt, bliver, hvor det blev sendt hen.</value>
   </data>
-  <data name="Remove the recipient {0} from this list?" xml:space="preserve">
-    <value>Fjern modtageren {0} fra denne liste?</value>
+  <data name="Remove the member {0} from this list?" xml:space="preserve">
+    <value>Fjern medlemmet {0} fra denne liste?</value>
   </data>
   <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
     <value>Fjern prøvedomænet med alle postkasser, beskeder og regler i det? Alt, du har tilføjet til det, følger med.</value>
@@ -15691,9 +15688,6 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="_Properties" xml:space="preserve">
     <value>_Egenskaber</value>
   </data>
-  <data name="_Properties…" xml:space="preserve">
-    <value>_Egenskaber…</value>
-  </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Protokol</value>
   </data>
@@ -17381,6 +17375,12 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="{0} makes {1} under {2}, and {2} as well if it is not there. With a folder selected, the name starts under it." xml:space="preserve">
     <value>{0} laver {1} under {2} og også {2}, hvis den ikke findes. Er en mappe valgt, begynder navnet under den.</value>
   </data>
+  <data name="{0} member added." xml:space="preserve">
+    <value>{0} medlem tilføjet.</value>
+  </data>
+  <data name="{0} members added." xml:space="preserve">
+    <value>{0} medlemmer tilføjet.</value>
+  </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} meddelelse</value>
   </data>
@@ -17512,12 +17512,6 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="{0} public folders" xml:space="preserve">
     <value>{0} offentlige mapper</value>
-  </data>
-  <data name="{0} recipient added." xml:space="preserve">
-    <value>{0} modtager tilføjet.</value>
-  </data>
-  <data name="{0} recipients added." xml:space="preserve">
-    <value>{0} modtagere tilføjet.</value>
   </data>
   <data name="{0} record beginning &quot;v=DMARC1&quot; exists at {1} with others like it. Receivers treat multiple DMARC records as no policy at all - remove all but one." xml:space="preserve">
     <value>Der findes {0} post, der begynder med "v=DMARC1", på {1} sammen med andre som den. Modtagere behandler flere DMARC-poster som slet ingen politik - fjern alle på nær én.</value>

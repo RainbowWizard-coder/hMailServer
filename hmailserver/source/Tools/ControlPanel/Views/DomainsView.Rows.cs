@@ -20,23 +20,25 @@ namespace hMailServer.ControlPanel.Views
    /// Once, so Tab enters the list on the selected row and the next Tab leaves
    /// it, and the arrow keys only move the selection - a keyboard user could
    /// select a domain or an account and then neither open, delete nor manage it.
-   /// So each list answers Enter with the selected row's Properties or Edit,
+   /// So each list answers Enter with the selected row's Edit,
    /// Delete with its delete and the confirmation that goes with it, Shift+F10,
    /// the Menu key and the right mouse button with a context menu of the same
-   /// verbs, and a double-click on a row with its Properties or Edit. The
+   /// verbs, and a double-click on a row with its Edit. The
    /// buttons stay for the mouse, and both roads lead to the one method per verb.
    /// </summary>
    public partial class DomainsView
    {
       private void WireRows_()
       {
-         WireList_(DomainList, L("_Properties…"), row => EditDomain_(((DomainRow)row).Name), null,
+         // Edit… on every list whose rows open an editor, as their buttons say (review
+         // finding F083), where the domain and list menus said Properties….
+         WireList_(DomainList, L("_Edit…"), row => EditDomain_(((DomainRow)row).Name), null,
             L("Delete _domain"), row => DeleteDomain_(((DomainRow)row).Name));
          WireList_(AccountList, L("_Edit…"), row => EditAccount_(((AccountRow)row).Address), null,
             L("Delete _account"), row => DeleteAccount_(((AccountRow)row).Address));
          WireList_(AliasList, null, null, null,
             L("Delete _alias"), row => DeleteAlias_(((AliasRow)row).Name));
-         WireList_(DistList, L("_Properties…"), row => EditDistList_(((DistRow)row).Address), row => EditRecipients_(((DistRow)row).Address),
+         WireList_(DistList, L("_Edit…"), row => EditDistList_(((DistRow)row).Address), row => EditRecipients_(((DistRow)row).Address),
             L("Delete _list"), row => DeleteDistList_(((DistRow)row).Address));
       }
 

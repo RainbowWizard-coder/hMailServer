@@ -1233,6 +1233,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Address to a_dd" xml:space="preserve">
     <value>Lisättävä _osoite</value>
   </data>
+  <data name="Address to add as a member" xml:space="preserve">
+    <value>Jäseneksi lisättävä osoite</value>
+  </data>
   <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
     <value>Osoite, verkkotunnus tai URL (https://host/...)</value>
   </data>
@@ -2992,8 +2995,8 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer on omistajiensa tavaramerkki; tämä on itsenäinen, yhteisön ylläpitämä haara.</value>
   </data>
-  <data name="Could not add all recipients: {0}" xml:space="preserve">
-    <value>Kaikkia vastaanottajia ei voitu lisätä: {0}</value>
+  <data name="Could not add all the members: {0}" xml:space="preserve">
+    <value>Kaikkia jäseniä ei voitu lisätä: {0}</value>
   </data>
   <data name="Could not add the address: {0}" xml:space="preserve">
     <value>Osoitetta ei voitu lisätä: {0}</value>
@@ -3001,14 +3004,14 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Could not add the certificate: {0}" xml:space="preserve">
     <value>Varmennetta ei voitu lisätä: {0}</value>
   </data>
+  <data name="Could not add the member: {0}" xml:space="preserve">
+    <value>Jäsentä ei voitu lisätä: {0}</value>
+  </data>
   <data name="Could not add the port: {0}" xml:space="preserve">
     <value>Porttia ei voitu lisätä: {0}</value>
   </data>
   <data name="Could not add the range: {0}" xml:space="preserve">
     <value>Aluetta ei voitu lisätä: {0}</value>
-  </data>
-  <data name="Could not add the recipient: {0}" xml:space="preserve">
-    <value>Vastaanottajaa ei voitu lisätä: {0}</value>
   </data>
   <data name="Could not add the relay: {0}" xml:space="preserve">
     <value>Välityspalvelinta ei voitu lisätä: {0}</value>
@@ -3297,11 +3300,11 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Could not remove the criterion: {0}" xml:space="preserve">
     <value>Ehtoa ei voitu poistaa: {0}</value>
   </data>
+  <data name="Could not remove the member: {0}" xml:space="preserve">
+    <value>Jäsentä ei voitu poistaa: {0}</value>
+  </data>
   <data name="Could not remove the passphrase: {0}" xml:space="preserve">
     <value>Tunnuslausetta ei voitu poistaa: {0}</value>
-  </data>
-  <data name="Could not remove the recipient: {0}" xml:space="preserve">
-    <value>Vastaanottajaa ei voitu poistaa: {0}</value>
   </data>
   <data name="Could not remove the sample domain: {0}" xml:space="preserve">
     <value>Näytetoimialuetta ei voitu poistaa: {0}</value>
@@ -4363,9 +4366,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="E-mail address" xml:space="preserve">
     <value>Sähköpostiosoite</value>
   </data>
-  <data name="E-mail address to add to the list" xml:space="preserve">
-    <value>Listalle lisättävä sähköpostiosoite</value>
-  </data>
   <data name="E-mail every account on the server at once - for maintenance announcements." xml:space="preserve">
     <value>Lähetä sähköposti palvelimen jokaiselle tilille kerralla - huoltoilmoituksia varten.</value>
   </data>
@@ -4420,6 +4420,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Edit a domain on the list" xml:space="preserve">
     <value>Muokkaa luettelon verkkotunnusta</value>
   </data>
+  <data name="Edit account {0}" xml:space="preserve">
+    <value>Muokkaa tiliä {0}</value>
+  </data>
   <data name="Edit action" xml:space="preserve">
     <value>Muokkaa toimintoa</value>
   </data>
@@ -4428,6 +4431,12 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Edit criterion" xml:space="preserve">
     <value>Muokkaa ehtoa</value>
+  </data>
+  <data name="Edit distribution list {0}" xml:space="preserve">
+    <value>Muokkaa jakelulistaa {0}</value>
+  </data>
+  <data name="Edit domain {0}" xml:space="preserve">
+    <value>Muokkaa verkkotunnusta {0}</value>
   </data>
   <data name="Edit incoming relay" xml:space="preserve">
     <value>Muokkaa saapuvaa välityspalvelinta</value>
@@ -7750,6 +7759,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>Ei täsmääviä tilejä kohteessa {0}.</value>
   </data>
+  <data name="No members yet, so mail sent to this list reaches nobody. Add an address below." xml:space="preserve">
+    <value>Ei vielä jäseniä, joten tälle listalle lähetetty posti ei tavoita ketään. Lisää osoite alla.</value>
+  </data>
   <data name="No message checked" xml:space="preserve">
     <value>Ei valittuja viestejä</value>
   </data>
@@ -7830,9 +7842,6 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
     <value>Julkisia kansioita ei vielä ole. Lisää kansio luo kansion, jonka useampi tili voi avata; Käyttöoikeudet määrää sitten, kuka saa lukea ja kirjoittaa siihen.</value>
-  </data>
-  <data name="No recipients yet, so mail sent to this list reaches nobody. Add an address below." xml:space="preserve">
-    <value>Ei vielä vastaanottajia, joten tälle listalle lähetetty posti ei tavoita ketään. Lisää osoite alla.</value>
   </data>
   <data name="No recovery address is set. Until the account holder sets one in the webmail, a forgotten password can only be reset here." xml:space="preserve">
     <value>Palautusosoitetta ei ole asetettu. Ennen kuin tilinhaltija asettaa sellaisen verkkopostissa, unohtuneen salasanan voi nollata vain täällä.</value>
@@ -9177,12 +9186,6 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Propagation period in hours" xml:space="preserve">
     <value>Leviämisaika tunteina</value>
   </data>
-  <data name="Properties" xml:space="preserve">
-    <value>Ominaisuudet</value>
-  </data>
-  <data name="Properties of {0}" xml:space="preserve">
-    <value>Listan {0} ominaisuudet</value>
-  </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Suojaa tallennetut salaisuudet Windows DPAPI:lla</value>
   </data>
@@ -9556,17 +9559,11 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   <data name="Recipients" xml:space="preserve">
     <value>Vastaanottajat</value>
   </data>
-  <data name="Recipients - {0}" xml:space="preserve">
-    <value>Vastaanottajat - {0}</value>
-  </data>
   <data name="Recipients a message may name before the delay starts (0 = off)" xml:space="preserve">
     <value>Vastaanottajat, jotka viesti voi nimetä ennen viiveen alkamista (0 = pois)</value>
   </data>
   <data name="Recipients are the stricter measure: one message to two thousand addresses is two thousand recipients." xml:space="preserve">
     <value>Vastaanottajat ovat tiukempi mittari: yksi viesti kahdelletuhannelle osoitteelle on kaksituhatta vastaanottajaa.</value>
-  </data>
-  <data name="Recipients of {0}" xml:space="preserve">
-    <value>Kohteen {0} vastaanottajat</value>
   </data>
   <data name="Recipients signal: percentage never written to before (1 to 100)" xml:space="preserve">
     <value>Vastaanottajasignaali: prosenttiosuus, jolle ei ole koskaan ennen kirjoitettu (1–100)</value>
@@ -9880,8 +9877,8 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   <data name="Remove the journaling rule for {0}? What it has already sent stays where it was sent." xml:space="preserve">
     <value>Poistetaanko journalointisääntö kohteelta {0}? Se, mitä se on jo lähettänyt, jää sinne minne se lähetettiin.</value>
   </data>
-  <data name="Remove the recipient {0} from this list?" xml:space="preserve">
-    <value>Poistetaanko vastaanottaja {0} tältä listalta?</value>
+  <data name="Remove the member {0} from this list?" xml:space="preserve">
+    <value>Poistetaanko jäsen {0} tältä listalta?</value>
   </data>
   <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
     <value>Poistetaanko näytetoimialue kaikkine postilaatikoineen, viesteineen ja sääntöineen? Myös kaikki siihen lisätty lähtee mukana.</value>
@@ -15691,9 +15688,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="_Properties" xml:space="preserve">
     <value>_Ominaisuudet</value>
   </data>
-  <data name="_Properties…" xml:space="preserve">
-    <value>_Ominaisuudet…</value>
-  </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Protokolla</value>
   </data>
@@ -17381,6 +17375,12 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} makes {1} under {2}, and {2} as well if it is not there. With a folder selected, the name starts under it." xml:space="preserve">
     <value>{0} luo kansion {1} kansion {2} alle ja myös kansion {2}, jos sitä ei ole. Kun kansio on valittuna, nimi alkaa sen alta.</value>
   </data>
+  <data name="{0} member added." xml:space="preserve">
+    <value>{0} jäsen lisätty.</value>
+  </data>
+  <data name="{0} members added." xml:space="preserve">
+    <value>{0} jäsentä lisätty.</value>
+  </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} viesti</value>
   </data>
@@ -17512,12 +17512,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} public folders" xml:space="preserve">
     <value>{0} julkista kansiota</value>
-  </data>
-  <data name="{0} recipient added." xml:space="preserve">
-    <value>{0} vastaanottaja lisätty.</value>
-  </data>
-  <data name="{0} recipients added." xml:space="preserve">
-    <value>{0} vastaanottajaa lisätty.</value>
   </data>
   <data name="{0} record beginning &quot;v=DMARC1&quot; exists at {1} with others like it. Receivers treat multiple DMARC records as no policy at all - remove all but one." xml:space="preserve">
     <value>{0} "v=DMARC1"-alkuinen tietue on olemassa kohteessa {1} muiden samanlaisten lisäksi. Vastaanottajat käsittelevät useita DMARC-tietueita kuin käytäntöä ei olisi lainkaan - poista kaikki paitsi yksi.</value>

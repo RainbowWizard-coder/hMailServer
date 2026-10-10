@@ -1239,6 +1239,9 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   <data name="Address to a_dd" xml:space="preserve">
     <value>_Adres do dodania</value>
   </data>
+  <data name="Address to add as a member" xml:space="preserve">
+    <value>Adres do dodania jako członek</value>
+  </data>
   <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
     <value>Adres, domena lub URL (https://host/...)</value>
   </data>
@@ -3016,8 +3019,8 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer jest znakiem towarowym swoich właścicieli; to jest niezależny fork utrzymywany przez społeczność.</value>
   </data>
-  <data name="Could not add all recipients: {0}" xml:space="preserve">
-    <value>Nie udało się dodać wszystkich odbiorców: {0}</value>
+  <data name="Could not add all the members: {0}" xml:space="preserve">
+    <value>Nie udało się dodać wszystkich członków: {0}</value>
   </data>
   <data name="Could not add the address: {0}" xml:space="preserve">
     <value>Nie udało się dodać adresu: {0}</value>
@@ -3025,14 +3028,14 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Could not add the certificate: {0}" xml:space="preserve">
     <value>Nie udało się dodać certyfikatu: {0}</value>
   </data>
+  <data name="Could not add the member: {0}" xml:space="preserve">
+    <value>Nie udało się dodać członka: {0}</value>
+  </data>
   <data name="Could not add the port: {0}" xml:space="preserve">
     <value>Nie udało się dodać portu: {0}</value>
   </data>
   <data name="Could not add the range: {0}" xml:space="preserve">
     <value>Nie udało się dodać zakresu: {0}</value>
-  </data>
-  <data name="Could not add the recipient: {0}" xml:space="preserve">
-    <value>Nie udało się dodać odbiorcy: {0}</value>
   </data>
   <data name="Could not add the relay: {0}" xml:space="preserve">
     <value>Nie udało się dodać przekaźnika: {0}</value>
@@ -3321,11 +3324,11 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Could not remove the criterion: {0}" xml:space="preserve">
     <value>Nie udało się usunąć kryterium: {0}</value>
   </data>
+  <data name="Could not remove the member: {0}" xml:space="preserve">
+    <value>Nie udało się usunąć członka: {0}</value>
+  </data>
   <data name="Could not remove the passphrase: {0}" xml:space="preserve">
     <value>Nie udało się usunąć hasła klucza: {0}</value>
-  </data>
-  <data name="Could not remove the recipient: {0}" xml:space="preserve">
-    <value>Nie udało się usunąć odbiorcy: {0}</value>
   </data>
   <data name="Could not remove the sample domain: {0}" xml:space="preserve">
     <value>Nie udało się usunąć przykładowej domeny: {0}</value>
@@ -4415,9 +4418,6 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="E-mail address" xml:space="preserve">
     <value>Adres e-mail</value>
   </data>
-  <data name="E-mail address to add to the list" xml:space="preserve">
-    <value>Adres e-mail do dodania do listy</value>
-  </data>
   <data name="E-mail every account on the server at once - for maintenance announcements." xml:space="preserve">
     <value>Wyślij wiadomość do wszystkich kont na serwerze naraz - na potrzeby ogłoszeń o pracach serwisowych.</value>
   </data>
@@ -4472,6 +4472,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Edit a domain on the list" xml:space="preserve">
     <value>Edytuj domenę na liście</value>
   </data>
+  <data name="Edit account {0}" xml:space="preserve">
+    <value>Edytuj konto {0}</value>
+  </data>
   <data name="Edit action" xml:space="preserve">
     <value>Edytuj akcję</value>
   </data>
@@ -4480,6 +4483,12 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="Edit criterion" xml:space="preserve">
     <value>Edytuj kryterium</value>
+  </data>
+  <data name="Edit distribution list {0}" xml:space="preserve">
+    <value>Edytuj listę dystrybucyjną {0}</value>
+  </data>
+  <data name="Edit domain {0}" xml:space="preserve">
+    <value>Edytuj domenę {0}</value>
   </data>
   <data name="Edit incoming relay" xml:space="preserve">
     <value>Edytuj przekaźnik przychodzący</value>
@@ -7826,6 +7835,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>Brak pasujących kont w {0}.</value>
   </data>
+  <data name="No members yet, so mail sent to this list reaches nobody. Add an address below." xml:space="preserve">
+    <value>Brak jeszcze członków, więc poczta wysłana na tę listę nie trafia do nikogo. Dodaj adres poniżej.</value>
+  </data>
   <data name="No message checked" xml:space="preserve">
     <value>Nie zaznaczono wiadomości</value>
   </data>
@@ -7909,9 +7921,6 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   </data>
   <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
     <value>Nie ma jeszcze folderów publicznych. Dodaj folder tworzy folder, który może otwierać kilka kont; Uprawnienia określa następnie, kto może w nim czytać i zapisywać.</value>
-  </data>
-  <data name="No recipients yet, so mail sent to this list reaches nobody. Add an address below." xml:space="preserve">
-    <value>Brak jeszcze odbiorców, więc poczta wysłana na tę listę nie trafia do nikogo. Dodaj adres poniżej.</value>
   </data>
   <data name="No recovery address is set. Until the account holder sets one in the webmail, a forgotten password can only be reset here." xml:space="preserve">
     <value>Nie ustawiono adresu odzyskiwania. Dopóki właściciel konta nie ustawi go w poczcie w przeglądarce, zapomniane hasło można zresetować tylko tutaj.</value>
@@ -9271,12 +9280,6 @@ Do czasu wznowienia nie będą przyjmowane nowe połączenia ani dostarczana poc
   <data name="Propagation period in hours" xml:space="preserve">
     <value>Okres propagacji w godzinach</value>
   </data>
-  <data name="Properties" xml:space="preserve">
-    <value>Właściwości</value>
-  </data>
-  <data name="Properties of {0}" xml:space="preserve">
-    <value>Właściwości {0}</value>
-  </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Chroń przechowywane sekrety mechanizmem DPAPI systemu Windows</value>
   </data>
@@ -9650,17 +9653,11 @@ Warto to uruchomić, gdy klienty zgłaszają wiadomości pojawiające się pod n
   <data name="Recipients" xml:space="preserve">
     <value>Odbiorcy</value>
   </data>
-  <data name="Recipients - {0}" xml:space="preserve">
-    <value>Odbiorcy - {0}</value>
-  </data>
   <data name="Recipients a message may name before the delay starts (0 = off)" xml:space="preserve">
     <value>Liczba odbiorców, których wiadomość może wskazać, zanim zacznie działać opóźnienie (0 = wyłączone)</value>
   </data>
   <data name="Recipients are the stricter measure: one message to two thousand addresses is two thousand recipients." xml:space="preserve">
     <value>Odbiorcy są miarą ostrzejszą: jedna wiadomość na dwa tysiące adresów to dwa tysiące odbiorców.</value>
-  </data>
-  <data name="Recipients of {0}" xml:space="preserve">
-    <value>Odbiorcy {0}</value>
   </data>
   <data name="Recipients signal: percentage never written to before (1 to 100)" xml:space="preserve">
     <value>Sygnał odbiorców: odsetek, do którego nigdy wcześniej nie pisano (od 1 do 100)</value>
@@ -9986,8 +9983,8 @@ Warto to uruchomić, gdy klienty zgłaszają wiadomości pojawiające się pod n
   <data name="Remove the journaling rule for {0}? What it has already sent stays where it was sent." xml:space="preserve">
     <value>Usunąć regułę dziennikowania dla {0}? To, co już wysłała, pozostaje tam, dokąd zostało wysłane.</value>
   </data>
-  <data name="Remove the recipient {0} from this list?" xml:space="preserve">
-    <value>Usunąć odbiorcę {0} z tej listy?</value>
+  <data name="Remove the member {0} from this list?" xml:space="preserve">
+    <value>Usunąć członka {0} z tej listy?</value>
   </data>
   <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
     <value>Usunąć przykładową domenę ze wszystkimi skrzynkami, wiadomościami i regułami? Zniknie także wszystko, co do niej dodano.</value>
@@ -15878,9 +15875,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="_Properties" xml:space="preserve">
     <value>Właś_ciwości</value>
   </data>
-  <data name="_Properties…" xml:space="preserve">
-    <value>_Właściwości…</value>
-  </data>
   <data name="_Protocol" xml:space="preserve">
     <value>Pr_otokół</value>
   </data>
@@ -17697,6 +17691,15 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} makes {1} under {2}, and {2} as well if it is not there. With a folder selected, the name starts under it." xml:space="preserve">
     <value>{0} tworzy {1} w {2}, a także {2}, jeśli go nie ma. Gdy wybrany jest folder, nazwa zaczyna się w nim.</value>
   </data>
+  <data name="{0} member added." xml:space="preserve">
+    <value>Dodano {0} członka.</value>
+  </data>
+  <data name="{0} members added." xml:space="preserve">
+    <value>Dodano {0} członków.</value>
+  </data>
+  <data name="{0} members added.|few" xml:space="preserve">
+    <value>Dodano {0} członków.</value>
+  </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} wiadomość</value>
   </data>
@@ -17873,15 +17876,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} public folders|few" xml:space="preserve">
     <value>{0} foldery publiczne</value>
-  </data>
-  <data name="{0} recipient added." xml:space="preserve">
-    <value>Dodano {0} odbiorcę.</value>
-  </data>
-  <data name="{0} recipients added." xml:space="preserve">
-    <value>Dodano {0} odbiorców.</value>
-  </data>
-  <data name="{0} recipients added.|few" xml:space="preserve">
-    <value>Dodano {0} odbiorców.</value>
   </data>
   <data name="{0} record beginning &quot;v=DMARC1&quot; exists at {1} with others like it. Receivers treat multiple DMARC records as no policy at all - remove all but one." xml:space="preserve">
     <value>Pod adresem {1} istnieje {0} rekord zaczynający się od „v=DMARC1” i inne podobne. Odbiorcy traktują wiele rekordów DMARC jak całkowity brak polityki - należy zostawić tylko jeden.</value>

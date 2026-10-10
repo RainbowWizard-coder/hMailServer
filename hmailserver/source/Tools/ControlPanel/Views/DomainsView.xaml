@@ -150,7 +150,7 @@
                     <Grid scaffold:FillPanel.Fill="True">
                         <!-- A row is the list's width, never wider: a name longer than
                              the room ends in an ellipsis, whole in its tool tip, and
-                             Properties and Delete stay on the row. Scrolled sideways,
+                             Edit and Delete stay on the row. Scrolled sideways,
                              one long domain name put every row's buttons off the
                              list's right edge, in the narrowest window every row's. -->
                         <scaffold:FillPanel>
@@ -186,7 +186,11 @@
                                                 <TextBlock Text="{Binding Name}" Style="{StaticResource RowName}" Margin="10,0,0,0" FontSize="14"
                                                            VerticalAlignment="Center" />
                                             </DockPanel>
-                                            <ui:Button Grid.Column="1" Content="{loc:L 'Properties'}" FontSize="12" Padding="8,3" Margin="6,0,6,0"
+                                            <!-- Edit, as the account rows and Groups say for the same act,
+                                                 where the domain and list rows said Properties (review
+                                                 finding F083); its accessible name says which domain. -->
+                                            <ui:Button Grid.Column="1" Content="{loc:L 'Edit'}" FontSize="12" Padding="8,3" Margin="6,0,6,0"
+                                                       AutomationProperties.Name="{Binding EditName}"
                                                        Tag="{Binding Name}" Click="EditDomain_Click" />
                                             <!-- Every row delete on the page is a DangerTextButton: the
                                                  style's danger fill-text shade clears 4.5:1 on the button
@@ -303,6 +307,7 @@
                                                            VerticalAlignment="Center" />
                                             </DockPanel>
                                             <ui:Button Grid.Column="1" Content="{loc:L 'Edit'}" FontSize="12" Padding="8,3" Margin="6,0,6,0"
+                                                       AutomationProperties.Name="{Binding EditName}"
                                                        Tag="{Binding Address}" Click="EditAccount_Click" />
                                             <ui:Button Grid.Column="2" Content="{loc:L 'Delete'}" Style="{StaticResource DangerTextButton}" FontSize="12"
                                                        Padding="8,3" Tag="{Binding Address}" Click="DeleteAccount_Click" />
@@ -435,7 +440,7 @@
                                         <DataTemplate>
                                             <!-- The address is the row's one datum, and three
                                                  buttons took most of a half-width card from it:
-                                                 beside Properties and Members as words, at 10
+                                                 beside Edit and Members as words, at 10
                                                  pixels, the rows read "everyone@e..." and
                                                  "board@exa..." in a 1280 by 800 window. The
                                                  three are glyphs in 24-pixel boxes, as the domain
@@ -450,8 +455,8 @@
                                                 </Grid.ColumnDefinitions>
                                                 <TextBlock Text="{Binding Address}" Style="{StaticResource GridTrimmedText}" FontSize="12" VerticalAlignment="Center"
                                                            Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                                                <ui:Button Grid.Column="1" Icon="{ui:SymbolIcon Settings24}" Padding="4" MinWidth="24" MinHeight="24" Margin="6,0,4,0"
-                                                           ToolTip="{Binding PropertiesName}" AutomationProperties.Name="{Binding PropertiesName}"
+                                                <ui:Button Grid.Column="1" Icon="{ui:SymbolIcon Edit24}" Padding="4" MinWidth="24" MinHeight="24" Margin="6,0,4,0"
+                                                           ToolTip="{Binding EditName}" AutomationProperties.Name="{Binding EditName}"
                                                            Tag="{Binding Address}" Click="EditDistList_Click" />
                                                 <ui:Button Grid.Column="2" Icon="{ui:SymbolIcon People24}" Padding="4" MinWidth="24" MinHeight="24" Margin="0,0,4,0"
                                                            ToolTip="{Binding MembersName}" AutomationProperties.Name="{Binding MembersName}"

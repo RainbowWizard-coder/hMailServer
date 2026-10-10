@@ -89,12 +89,12 @@ namespace hMailServer.ControlPanel.Tests.Services
             Assert.NotNull(button.Attribute("AutomationProperties.Name"));
          }
 
-         // Properties and Members say which list they act on; the row is otherwise three identical glyphs to a screen reader.
-         Assert.Equal("{Binding PropertiesName}", (string)buttons[0].Attribute("AutomationProperties.Name"));
+         // Edit and Members say which list they act on; the row is otherwise three identical glyphs to a screen reader.
+         Assert.Equal("{Binding EditName}", (string)buttons[0].Attribute("AutomationProperties.Name"));
          Assert.Equal("{Binding MembersName}", (string)buttons[1].Attribute("AutomationProperties.Name"));
 
          string code = CodeBehind();
-         Assert.Contains("public string PropertiesName => F(\"Properties of {0}\", Address);", code, StringComparison.Ordinal);
+         Assert.Contains("public string EditName => F(\"Edit distribution list {0}\", Address);", code, StringComparison.Ordinal);
          Assert.Contains("public string MembersName => F(\"Members of {0}\", Address);", code, StringComparison.Ordinal);
       }
 

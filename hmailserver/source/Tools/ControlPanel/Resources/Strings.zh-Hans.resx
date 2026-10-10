@@ -1233,6 +1233,9 @@
   <data name="Address to a_dd" xml:space="preserve">
     <value>要添加的地址(_D)</value>
   </data>
+  <data name="Address to add as a member" xml:space="preserve">
+    <value>要添加为成员的地址</value>
+  </data>
   <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
     <value>地址、域或 URL (https://host/...)</value>
   </data>
@@ -2992,8 +2995,8 @@
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer 是其各自所有者的商标；本软件是一个独立的、由社区维护的分支版本。</value>
   </data>
-  <data name="Could not add all recipients: {0}" xml:space="preserve">
-    <value>无法添加全部收件人：{0}</value>
+  <data name="Could not add all the members: {0}" xml:space="preserve">
+    <value>无法添加全部成员：{0}</value>
   </data>
   <data name="Could not add the address: {0}" xml:space="preserve">
     <value>无法添加该地址：{0}</value>
@@ -3001,14 +3004,14 @@
   <data name="Could not add the certificate: {0}" xml:space="preserve">
     <value>无法添加该证书：{0}</value>
   </data>
+  <data name="Could not add the member: {0}" xml:space="preserve">
+    <value>无法添加该成员：{0}</value>
+  </data>
   <data name="Could not add the port: {0}" xml:space="preserve">
     <value>无法添加该端口：{0}</value>
   </data>
   <data name="Could not add the range: {0}" xml:space="preserve">
     <value>无法添加该范围：{0}</value>
-  </data>
-  <data name="Could not add the recipient: {0}" xml:space="preserve">
-    <value>无法添加该收件人：{0}</value>
   </data>
   <data name="Could not add the relay: {0}" xml:space="preserve">
     <value>无法添加该中继：{0}</value>
@@ -3297,11 +3300,11 @@
   <data name="Could not remove the criterion: {0}" xml:space="preserve">
     <value>无法移除该条件：{0}</value>
   </data>
+  <data name="Could not remove the member: {0}" xml:space="preserve">
+    <value>无法移除该成员：{0}</value>
+  </data>
   <data name="Could not remove the passphrase: {0}" xml:space="preserve">
     <value>无法移除该密码短语：{0}</value>
-  </data>
-  <data name="Could not remove the recipient: {0}" xml:space="preserve">
-    <value>无法移除该收件人：{0}</value>
   </data>
   <data name="Could not remove the sample domain: {0}" xml:space="preserve">
     <value>无法移除样例域：{0}</value>
@@ -4363,9 +4366,6 @@
   <data name="E-mail address" xml:space="preserve">
     <value>电子邮件地址</value>
   </data>
-  <data name="E-mail address to add to the list" xml:space="preserve">
-    <value>要添加到列表的电子邮件地址</value>
-  </data>
   <data name="E-mail every account on the server at once - for maintenance announcements." xml:space="preserve">
     <value>一次性向服务器上的每个账户发送电子邮件 - 用于维护公告。</value>
   </data>
@@ -4420,6 +4420,9 @@
   <data name="Edit a domain on the list" xml:space="preserve">
     <value>编辑列表中的域</value>
   </data>
+  <data name="Edit account {0}" xml:space="preserve">
+    <value>编辑账户 {0}</value>
+  </data>
   <data name="Edit action" xml:space="preserve">
     <value>编辑操作</value>
   </data>
@@ -4428,6 +4431,12 @@
   </data>
   <data name="Edit criterion" xml:space="preserve">
     <value>编辑条件</value>
+  </data>
+  <data name="Edit distribution list {0}" xml:space="preserve">
+    <value>编辑分发列表 {0}</value>
+  </data>
+  <data name="Edit domain {0}" xml:space="preserve">
+    <value>编辑域 {0}</value>
   </data>
   <data name="Edit incoming relay" xml:space="preserve">
     <value>编辑传入中继</value>
@@ -7750,6 +7759,9 @@
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>{0} 中没有匹配的账户。</value>
   </data>
+  <data name="No members yet, so mail sent to this list reaches nobody. Add an address below." xml:space="preserve">
+    <value>还没有成员，因此发往此列表的邮件不会送达任何人。请在下方添加地址。</value>
+  </data>
   <data name="No message checked" xml:space="preserve">
     <value>未勾选任何邮件</value>
   </data>
@@ -7830,9 +7842,6 @@
   </data>
   <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
     <value>还没有公用文件夹。添加文件夹 会创建一个可供多个帐户打开的文件夹；然后由 权限 决定谁可以读写它。</value>
-  </data>
-  <data name="No recipients yet, so mail sent to this list reaches nobody. Add an address below." xml:space="preserve">
-    <value>还没有收件人，因此发往此列表的邮件不会送达任何人。请在下方添加地址。</value>
   </data>
   <data name="No recovery address is set. Until the account holder sets one in the webmail, a forgotten password can only be reset here." xml:space="preserve">
     <value>未设置恢复地址。在账户所有者于网页邮箱中设置之前，忘记的密码只能在这里重置。</value>
@@ -9177,12 +9186,6 @@
   <data name="Propagation period in hours" xml:space="preserve">
     <value>传播期（小时）</value>
   </data>
-  <data name="Properties" xml:space="preserve">
-    <value>属性</value>
-  </data>
-  <data name="Properties of {0}" xml:space="preserve">
-    <value>{0} 的属性</value>
-  </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>用 Windows DPAPI 保护存储的机密</value>
   </data>
@@ -9556,17 +9559,11 @@
   <data name="Recipients" xml:space="preserve">
     <value>收件人</value>
   </data>
-  <data name="Recipients - {0}" xml:space="preserve">
-    <value>收件人 - {0}</value>
-  </data>
   <data name="Recipients a message may name before the delay starts (0 = off)" xml:space="preserve">
     <value>延迟开始之前一封邮件可以指定的收件人数（0 = 关闭）</value>
   </data>
   <data name="Recipients are the stricter measure: one message to two thousand addresses is two thousand recipients." xml:space="preserve">
     <value>收件人数是更严格的衡量标准：一封发往两千个地址的邮件就是两千个收件人。</value>
-  </data>
-  <data name="Recipients of {0}" xml:space="preserve">
-    <value>{0} 的收件人</value>
   </data>
   <data name="Recipients signal: percentage never written to before (1 to 100)" xml:space="preserve">
     <value>收件人信号：从未写信给过的收件人所占百分比（1 到 100）</value>
@@ -9880,8 +9877,8 @@
   <data name="Remove the journaling rule for {0}? What it has already sent stays where it was sent." xml:space="preserve">
     <value>移除 {0} 的日志归档规则？已经发出的内容仍留在发往之处。</value>
   </data>
-  <data name="Remove the recipient {0} from this list?" xml:space="preserve">
-    <value>是否从此列表中移除收件人 {0}？</value>
+  <data name="Remove the member {0} from this list?" xml:space="preserve">
+    <value>是否从此列表中移除成员 {0}？</value>
   </data>
   <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
     <value>移除样例域及其中的所有邮箱、邮件和规则吗？之后添加到它里面的内容也会一并移除。</value>
@@ -15691,9 +15688,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Properties" xml:space="preserve">
     <value>属性(_P)</value>
   </data>
-  <data name="_Properties…" xml:space="preserve">
-    <value>属性(_P)…</value>
-  </data>
   <data name="_Protocol" xml:space="preserve">
     <value>协议(_P)</value>
   </data>
@@ -17381,6 +17375,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} makes {1} under {2}, and {2} as well if it is not there. With a folder selected, the name starts under it." xml:space="preserve">
     <value>{0} 会在 {2} 下创建 {1}，如果 {2} 不存在也会一并创建。选中某个文件夹时，名称从它下面开始。</value>
   </data>
+  <data name="{0} member added." xml:space="preserve">
+    <value>已添加 {0} 个成员。</value>
+  </data>
+  <data name="{0} members added." xml:space="preserve">
+    <value>已添加 {0} 个成员。</value>
+  </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} 封邮件</value>
   </data>
@@ -17512,12 +17512,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} public folders" xml:space="preserve">
     <value>{0} 个公用文件夹</value>
-  </data>
-  <data name="{0} recipient added." xml:space="preserve">
-    <value>已添加 {0} 个收件人。</value>
-  </data>
-  <data name="{0} recipients added." xml:space="preserve">
-    <value>已添加 {0} 个收件人。</value>
   </data>
   <data name="{0} record beginning &quot;v=DMARC1&quot; exists at {1} with others like it. Receivers treat multiple DMARC records as no policy at all - remove all but one." xml:space="preserve">
     <value>在 {1} 存在 {0} 条以 "v=DMARC1" 开头的记录。接收方会把多条 DMARC 记录视同完全没有策略 - 请只保留一条，删掉其余的。</value>

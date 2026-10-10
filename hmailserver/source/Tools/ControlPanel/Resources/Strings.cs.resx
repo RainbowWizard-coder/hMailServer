@@ -1239,6 +1239,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Address to a_dd" xml:space="preserve">
     <value>_Adresa k přidání</value>
   </data>
+  <data name="Address to add as a member" xml:space="preserve">
+    <value>Adresa, kterou přidat jako člena</value>
+  </data>
   <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
     <value>Adresa, doména nebo URL (https://host/...)</value>
   </data>
@@ -3016,8 +3019,8 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer je ochranná známka příslušných vlastníků; toto je nezávislý fork udržovaný komunitou.</value>
   </data>
-  <data name="Could not add all recipients: {0}" xml:space="preserve">
-    <value>Nepodařilo se přidat všechny příjemce: {0}</value>
+  <data name="Could not add all the members: {0}" xml:space="preserve">
+    <value>Nepodařilo se přidat všechny členy: {0}</value>
   </data>
   <data name="Could not add the address: {0}" xml:space="preserve">
     <value>Nepodařilo se přidat adresu: {0}</value>
@@ -3025,14 +3028,14 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Could not add the certificate: {0}" xml:space="preserve">
     <value>Nepodařilo se přidat certifikát: {0}</value>
   </data>
+  <data name="Could not add the member: {0}" xml:space="preserve">
+    <value>Nepodařilo se přidat člena: {0}</value>
+  </data>
   <data name="Could not add the port: {0}" xml:space="preserve">
     <value>Nepodařilo se přidat port: {0}</value>
   </data>
   <data name="Could not add the range: {0}" xml:space="preserve">
     <value>Nepodařilo se přidat rozsah: {0}</value>
-  </data>
-  <data name="Could not add the recipient: {0}" xml:space="preserve">
-    <value>Nepodařilo se přidat příjemce: {0}</value>
   </data>
   <data name="Could not add the relay: {0}" xml:space="preserve">
     <value>Nepodařilo se přidat relay: {0}</value>
@@ -3321,11 +3324,11 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Could not remove the criterion: {0}" xml:space="preserve">
     <value>Nepodařilo se odebrat kritérium: {0}</value>
   </data>
+  <data name="Could not remove the member: {0}" xml:space="preserve">
+    <value>Nepodařilo se odebrat člena: {0}</value>
+  </data>
   <data name="Could not remove the passphrase: {0}" xml:space="preserve">
     <value>Nepodařilo se odebrat přístupové heslo: {0}</value>
-  </data>
-  <data name="Could not remove the recipient: {0}" xml:space="preserve">
-    <value>Nepodařilo se odebrat příjemce: {0}</value>
   </data>
   <data name="Could not remove the sample domain: {0}" xml:space="preserve">
     <value>Nepodařilo se odstranit ukázkovou doménu: {0}</value>
@@ -4415,9 +4418,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="E-mail address" xml:space="preserve">
     <value>E-mailová adresa</value>
   </data>
-  <data name="E-mail address to add to the list" xml:space="preserve">
-    <value>E-mailová adresa, kterou přidat do seznamu</value>
-  </data>
   <data name="E-mail every account on the server at once - for maintenance announcements." xml:space="preserve">
     <value>Poslat e-mail každému účtu na serveru najednou - pro oznámení o údržbě.</value>
   </data>
@@ -4472,6 +4472,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Edit a domain on the list" xml:space="preserve">
     <value>Upravit doménu v seznamu</value>
   </data>
+  <data name="Edit account {0}" xml:space="preserve">
+    <value>Upravit účet {0}</value>
+  </data>
   <data name="Edit action" xml:space="preserve">
     <value>Upravit akci</value>
   </data>
@@ -4480,6 +4483,12 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Edit criterion" xml:space="preserve">
     <value>Upravit kritérium</value>
+  </data>
+  <data name="Edit distribution list {0}" xml:space="preserve">
+    <value>Upravit distribuční seznam {0}</value>
+  </data>
+  <data name="Edit domain {0}" xml:space="preserve">
+    <value>Upravit doménu {0}</value>
   </data>
   <data name="Edit incoming relay" xml:space="preserve">
     <value>Upravit příchozí relay</value>
@@ -7826,6 +7835,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>V {0} nejsou žádné odpovídající účty.</value>
   </data>
+  <data name="No members yet, so mail sent to this list reaches nobody. Add an address below." xml:space="preserve">
+    <value>Zatím žádní členové, takže pošta odeslaná na tento seznam nedojde nikomu. Přidejte adresu níže.</value>
+  </data>
   <data name="No message checked" xml:space="preserve">
     <value>Žádná zpráva není zaškrtnutá</value>
   </data>
@@ -7909,9 +7921,6 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
     <value>Zatím žádné veřejné složky. Přidat složku vytvoří složku, kterou může otevřít více účtů; Oprávnění pak určí, kdo do ní smí číst a zapisovat.</value>
-  </data>
-  <data name="No recipients yet, so mail sent to this list reaches nobody. Add an address below." xml:space="preserve">
-    <value>Zatím žádní příjemci, takže pošta odeslaná na tento seznam nedojde nikomu. Přidejte adresu níže.</value>
   </data>
   <data name="No recovery address is set. Until the account holder sets one in the webmail, a forgotten password can only be reset here." xml:space="preserve">
     <value>Adresa pro obnovu není nastavena. Dokud si ji držitel účtu nenastaví ve webové poště, zapomenuté heslo lze obnovit jen zde.</value>
@@ -9271,12 +9280,6 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Propagation period in hours" xml:space="preserve">
     <value>Doba šíření v hodinách</value>
   </data>
-  <data name="Properties" xml:space="preserve">
-    <value>Vlastnosti</value>
-  </data>
-  <data name="Properties of {0}" xml:space="preserve">
-    <value>Vlastnosti {0}</value>
-  </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Chránit uložená tajemství pomocí Windows DPAPI</value>
   </data>
@@ -9650,17 +9653,11 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
   <data name="Recipients" xml:space="preserve">
     <value>Příjemci</value>
   </data>
-  <data name="Recipients - {0}" xml:space="preserve">
-    <value>Příjemci – {0}</value>
-  </data>
   <data name="Recipients a message may name before the delay starts (0 = off)" xml:space="preserve">
     <value>Počet příjemců, které zpráva smí uvést, než začne prodleva (0 = vypnuto)</value>
   </data>
   <data name="Recipients are the stricter measure: one message to two thousand addresses is two thousand recipients." xml:space="preserve">
     <value>Příjemci jsou přísnější měřítko: jedna zpráva na dva tisíce adres je dva tisíce příjemců.</value>
-  </data>
-  <data name="Recipients of {0}" xml:space="preserve">
-    <value>Příjemci {0}</value>
   </data>
   <data name="Recipients signal: percentage never written to before (1 to 100)" xml:space="preserve">
     <value>Signál příjemců: procento, kterým se ještě nikdy nepsalo (1 až 100)</value>
@@ -9986,8 +9983,8 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
   <data name="Remove the journaling rule for {0}? What it has already sent stays where it was sent." xml:space="preserve">
     <value>Odebrat pravidlo žurnálování pro {0}? Co již odeslalo, zůstává tam, kam to bylo odesláno.</value>
   </data>
-  <data name="Remove the recipient {0} from this list?" xml:space="preserve">
-    <value>Odebrat příjemce {0} z tohoto seznamu?</value>
+  <data name="Remove the member {0} from this list?" xml:space="preserve">
+    <value>Odebrat člena {0} z tohoto seznamu?</value>
   </data>
   <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
     <value>Odstranit ukázkovou doménu se všemi schránkami, zprávami a pravidly v ní? Odejde i vše, co jste do ní přidali.</value>
@@ -15878,9 +15875,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Properties" xml:space="preserve">
     <value>_Vlastnosti</value>
   </data>
-  <data name="_Properties…" xml:space="preserve">
-    <value>_Vlastnosti…</value>
-  </data>
   <data name="_Protocol" xml:space="preserve">
     <value>P_rotokol</value>
   </data>
@@ -17697,6 +17691,15 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} makes {1} under {2}, and {2} as well if it is not there. With a folder selected, the name starts under it." xml:space="preserve">
     <value>{0} vytvoří {1} pod {2}, a pokud {2} neexistuje, vytvoří i ji. Je-li vybrána složka, název začíná pod ní.</value>
   </data>
+  <data name="{0} member added." xml:space="preserve">
+    <value>Přidán {0} člen.</value>
+  </data>
+  <data name="{0} members added." xml:space="preserve">
+    <value>Přidáno {0} členů.</value>
+  </data>
+  <data name="{0} members added.|few" xml:space="preserve">
+    <value>Přidáni {0} členové.</value>
+  </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} zpráva</value>
   </data>
@@ -17873,15 +17876,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} public folders|few" xml:space="preserve">
     <value>{0} veřejné složky</value>
-  </data>
-  <data name="{0} recipient added." xml:space="preserve">
-    <value>Přidán {0} příjemce.</value>
-  </data>
-  <data name="{0} recipients added." xml:space="preserve">
-    <value>Přidáno {0} příjemců.</value>
-  </data>
-  <data name="{0} recipients added.|few" xml:space="preserve">
-    <value>Přidáni {0} příjemci.</value>
   </data>
   <data name="{0} record beginning &quot;v=DMARC1&quot; exists at {1} with others like it. Receivers treat multiple DMARC records as no policy at all - remove all but one." xml:space="preserve">
     <value>Na {1} existuje {0} záznam začínající „v=DMARC1“ a další podobné. Příjemci považují více DMARC záznamů za žádnou politiku – odstraňte všechny kromě jednoho.</value>

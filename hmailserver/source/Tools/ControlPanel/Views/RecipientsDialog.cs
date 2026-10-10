@@ -51,12 +51,15 @@ namespace hMailServer.ControlPanel.Views
          listAddress_ = listAddress;
 
          Owner = owner;
-         Title = F("Recipients - {0}", listAddress);
+         // Member throughout, as the page's Members button that opens this dialog
+         // says, where the heading, the box, the question and the outcomes said
+         // recipient (review finding F082).
+         Title = F("Members - {0}", listAddress);
 
          var body = new StackPanel();
          body.Children.Add(notice_);
 
-         AutomationProperties.SetName(listBox_, F("Recipients of {0}", listAddress));
+         AutomationProperties.SetName(listBox_, F("Members of {0}", listAddress));
          var listHost = new Grid();
          listHost.Children.Add(listBox_);
          listHost.Children.Add(empty_);
@@ -108,7 +111,7 @@ namespace hMailServer.ControlPanel.Views
          // The box is captioned, as every other box on these dialogs is: it was a
          // bare box beside three buttons, which said what it was for to a screen
          // reader and to nobody else. The button sits on its baseline.
-         AutomationProperties.SetName(addBox_, L("E-mail address to add to the list"));
+         AutomationProperties.SetName(addBox_, L("Address to add as a member"));
 
          // Enter adds. Handled, so the keystroke cannot also reach a default button
          // if one is ever added here.
@@ -125,7 +128,7 @@ namespace hMailServer.ControlPanel.Views
          // than folded into the width of the box.
          bottom.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
          bottom.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-         TextBlock caption = DialogFields.Caption(L("E-mail address to add to the list"));
+         TextBlock caption = DialogFields.Caption(L("Address to add as a member"));
          Grid.SetColumnSpan(caption, 2);
          bottom.Children.Add(caption);
          Grid.SetRow(addBox_, 1);
@@ -144,7 +147,7 @@ namespace hMailServer.ControlPanel.Views
          var closeButton = new Wpf.Ui.Controls.Button { Content = L("Close"), MinWidth = 88 };
          closeButton.Click += (s, e) => Close();
 
-         UseFrame(F("Recipients of {0}", listAddress), body, null, closeButton, width: 520);
+         UseFrame(F("Members of {0}", listAddress), body, null, closeButton, width: 520);
          Loaded += (s, e) => Reload();
       }
 
@@ -207,7 +210,7 @@ namespace hMailServer.ControlPanel.Views
 
          listBox_.ItemsSource = rows;
          if (read)
-            StatusText.Show(empty_, null, rows.Count, null, L("No recipients yet, so mail sent to this list reaches nobody. Add an address below."));
+            StatusText.Show(empty_, null, rows.Count, null, L("No members yet, so mail sent to this list reaches nobody. Add an address below."));
          else
             empty_.Visibility = Visibility.Collapsed;
       }
@@ -236,7 +239,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            notice_.Show(StatusLevel.Critical, F("Could not add the recipient: {0}", ServerSession.DescribeComError(ex)));
+            notice_.Show(StatusLevel.Critical, F("Could not add the member: {0}", ServerSession.DescribeComError(ex)));
          }
          finally
          {
@@ -292,7 +295,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            notice_.Show(StatusLevel.Critical, F("Could not add all recipients: {0}", ServerSession.DescribeComError(ex)));
+            notice_.Show(StatusLevel.Critical, F("Could not add all the members: {0}", ServerSession.DescribeComError(ex)));
          }
          finally
          {
@@ -304,7 +307,7 @@ namespace hMailServer.ControlPanel.Views
             notice_.Show(StatusLevel.Information, PluralF(skipped,
                "{0} {1} account had no e-mail address and was skipped.",
                "{0} {1} accounts had no e-mail address and were skipped.",
-               Plural(added, "{0} recipient added.", "{0} recipients added."), skipped));
+               Plural(added, "{0} member added.", "{0} members added."), skipped));
       }
 
       /// <summary>The selected member's delivery, read from the server.</summary>
@@ -409,7 +412,7 @@ namespace hMailServer.ControlPanel.Views
          if (address == null)
             return;
 
-         if (!Dialogs.Confirm(F("Remove the recipient {0} from this list?", address), L("Control Panel"), L("Re_move"), destructive: true))
+         if (!Dialogs.Confirm(F("Remove the member {0} from this list?", address), L("Control Panel"), L("Re_move"), destructive: true))
             return;
 
          notice_.Hide();
@@ -438,7 +441,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            notice_.Show(StatusLevel.Critical, F("Could not remove the recipient: {0}", ServerSession.DescribeComError(ex)));
+            notice_.Show(StatusLevel.Critical, F("Could not remove the member: {0}", ServerSession.DescribeComError(ex)));
          }
          finally
          {

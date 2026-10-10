@@ -1233,6 +1233,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Address to a_dd" xml:space="preserve">
     <value>Toe te voegen a_dres</value>
   </data>
+  <data name="Address to add as a member" xml:space="preserve">
+    <value>Adres om als lid toe te voegen</value>
+  </data>
   <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
     <value>Adres, domein of URL (https://host/...)</value>
   </data>
@@ -2992,8 +2995,8 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is een handelsmerk van de respectievelijke eigenaren; dit is een onafhankelijke, door de gemeenschap onderhouden fork.</value>
   </data>
-  <data name="Could not add all recipients: {0}" xml:space="preserve">
-    <value>Kon niet alle ontvangers toevoegen: {0}</value>
+  <data name="Could not add all the members: {0}" xml:space="preserve">
+    <value>Kon niet alle leden toevoegen: {0}</value>
   </data>
   <data name="Could not add the address: {0}" xml:space="preserve">
     <value>Kon het adres niet toevoegen: {0}</value>
@@ -3001,14 +3004,14 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Could not add the certificate: {0}" xml:space="preserve">
     <value>Kon het certificaat niet toevoegen: {0}</value>
   </data>
+  <data name="Could not add the member: {0}" xml:space="preserve">
+    <value>Kon het lid niet toevoegen: {0}</value>
+  </data>
   <data name="Could not add the port: {0}" xml:space="preserve">
     <value>Kon de poort niet toevoegen: {0}</value>
   </data>
   <data name="Could not add the range: {0}" xml:space="preserve">
     <value>Kon het bereik niet toevoegen: {0}</value>
-  </data>
-  <data name="Could not add the recipient: {0}" xml:space="preserve">
-    <value>Kon de ontvanger niet toevoegen: {0}</value>
   </data>
   <data name="Could not add the relay: {0}" xml:space="preserve">
     <value>Kon de relay niet toevoegen: {0}</value>
@@ -3297,11 +3300,11 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Could not remove the criterion: {0}" xml:space="preserve">
     <value>Kon het criterium niet verwijderen: {0}</value>
   </data>
+  <data name="Could not remove the member: {0}" xml:space="preserve">
+    <value>Kon het lid niet verwijderen: {0}</value>
+  </data>
   <data name="Could not remove the passphrase: {0}" xml:space="preserve">
     <value>Kon de wachtwoordzin niet verwijderen: {0}</value>
-  </data>
-  <data name="Could not remove the recipient: {0}" xml:space="preserve">
-    <value>Kon de ontvanger niet verwijderen: {0}</value>
   </data>
   <data name="Could not remove the sample domain: {0}" xml:space="preserve">
     <value>Kon het voorbeelddomein niet verwijderen: {0}</value>
@@ -4363,9 +4366,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="E-mail address" xml:space="preserve">
     <value>E-mailadres</value>
   </data>
-  <data name="E-mail address to add to the list" xml:space="preserve">
-    <value>E-mailadres om aan de lijst toe te voegen</value>
-  </data>
   <data name="E-mail every account on the server at once - for maintenance announcements." xml:space="preserve">
     <value>In één keer een e-mail sturen naar elk account op de server - voor onderhoudsaankondigingen.</value>
   </data>
@@ -4420,6 +4420,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Edit a domain on the list" xml:space="preserve">
     <value>Een domein in de lijst bewerken</value>
   </data>
+  <data name="Edit account {0}" xml:space="preserve">
+    <value>Bewerken: account {0}</value>
+  </data>
   <data name="Edit action" xml:space="preserve">
     <value>Actie bewerken</value>
   </data>
@@ -4428,6 +4431,12 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Edit criterion" xml:space="preserve">
     <value>Criterium bewerken</value>
+  </data>
+  <data name="Edit distribution list {0}" xml:space="preserve">
+    <value>Bewerken: distributielijst {0}</value>
+  </data>
+  <data name="Edit domain {0}" xml:space="preserve">
+    <value>Bewerken: domein {0}</value>
   </data>
   <data name="Edit incoming relay" xml:space="preserve">
     <value>Inkomende relay bewerken</value>
@@ -7750,6 +7759,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>Geen overeenkomende accounts in {0}.</value>
   </data>
+  <data name="No members yet, so mail sent to this list reaches nobody. Add an address below." xml:space="preserve">
+    <value>Nog geen leden, dus mail naar deze lijst bereikt niemand. Voeg hieronder een adres toe.</value>
+  </data>
   <data name="No message checked" xml:space="preserve">
     <value>Geen bericht aangevinkt</value>
   </data>
@@ -7830,9 +7842,6 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
     <value>Nog geen openbare mappen. Map toevoegen maakt er een die meerdere accounts kunnen openen; Rechten bepaalt daarna wie erin mag lezen en schrijven.</value>
-  </data>
-  <data name="No recipients yet, so mail sent to this list reaches nobody. Add an address below." xml:space="preserve">
-    <value>Nog geen ontvangers, dus mail naar deze lijst bereikt niemand. Voeg hieronder een adres toe.</value>
   </data>
   <data name="No recovery address is set. Until the account holder sets one in the webmail, a forgotten password can only be reset here." xml:space="preserve">
     <value>Er is geen hersteladres ingesteld. Zolang de accounthouder er geen instelt in de webmail, kan een vergeten wachtwoord alleen hier worden hersteld.</value>
@@ -9177,12 +9186,6 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Propagation period in hours" xml:space="preserve">
     <value>Propagatieperiode in uren</value>
   </data>
-  <data name="Properties" xml:space="preserve">
-    <value>Eigenschappen</value>
-  </data>
-  <data name="Properties of {0}" xml:space="preserve">
-    <value>Eigenschappen van {0}</value>
-  </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Opgeslagen geheimen beschermen met Windows DPAPI</value>
   </data>
@@ -9556,17 +9559,11 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   <data name="Recipients" xml:space="preserve">
     <value>Ontvangers</value>
   </data>
-  <data name="Recipients - {0}" xml:space="preserve">
-    <value>Ontvangers - {0}</value>
-  </data>
   <data name="Recipients a message may name before the delay starts (0 = off)" xml:space="preserve">
     <value>Aantal ontvangers dat een bericht mag noemen voordat de vertraging begint (0 = uit)</value>
   </data>
   <data name="Recipients are the stricter measure: one message to two thousand addresses is two thousand recipients." xml:space="preserve">
     <value>Ontvangers zijn de strengere maatstaf: één bericht aan tweeduizend adressen is tweeduizend ontvangers.</value>
-  </data>
-  <data name="Recipients of {0}" xml:space="preserve">
-    <value>Ontvangers van {0}</value>
   </data>
   <data name="Recipients signal: percentage never written to before (1 to 100)" xml:space="preserve">
     <value>Ontvangerssignaal: percentage waaraan nog nooit is geschreven (1 tot 100)</value>
@@ -9880,8 +9877,8 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   <data name="Remove the journaling rule for {0}? What it has already sent stays where it was sent." xml:space="preserve">
     <value>De journalingregel voor {0} verwijderen? Wat al verzonden is, blijft waar het naartoe is gestuurd.</value>
   </data>
-  <data name="Remove the recipient {0} from this list?" xml:space="preserve">
-    <value>De ontvanger {0} uit deze lijst verwijderen?</value>
+  <data name="Remove the member {0} from this list?" xml:space="preserve">
+    <value>Het lid {0} uit deze lijst verwijderen?</value>
   </data>
   <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
     <value>Het voorbeelddomein verwijderen met alle postbussen, berichten en regels erin? Alles wat eraan is toegevoegd gaat mee.</value>
@@ -15691,9 +15688,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_Properties" xml:space="preserve">
     <value>_Eigenschappen</value>
   </data>
-  <data name="_Properties…" xml:space="preserve">
-    <value>_Eigenschappen…</value>
-  </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Protocol</value>
   </data>
@@ -17381,6 +17375,12 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} makes {1} under {2}, and {2} as well if it is not there. With a folder selected, the name starts under it." xml:space="preserve">
     <value>{0} maakt {1} onder {2}, en ook {2} als die er nog niet is. Met een map geselecteerd begint de naam eronder.</value>
   </data>
+  <data name="{0} member added." xml:space="preserve">
+    <value>{0} lid toegevoegd.</value>
+  </data>
+  <data name="{0} members added." xml:space="preserve">
+    <value>{0} leden toegevoegd.</value>
+  </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} bericht</value>
   </data>
@@ -17512,12 +17512,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} public folders" xml:space="preserve">
     <value>{0} openbare mappen</value>
-  </data>
-  <data name="{0} recipient added." xml:space="preserve">
-    <value>{0} ontvanger toegevoegd.</value>
-  </data>
-  <data name="{0} recipients added." xml:space="preserve">
-    <value>{0} ontvangers toegevoegd.</value>
   </data>
   <data name="{0} record beginning &quot;v=DMARC1&quot; exists at {1} with others like it. Receivers treat multiple DMARC records as no policy at all - remove all but one." xml:space="preserve">
     <value>Op {1} bestaat {0} record dat met "v=DMARC1" begint, naast andere zoals het. Ontvangers behandelen meerdere DMARC-records als helemaal geen beleid - verwijder ze op één na.</value>

@@ -1233,6 +1233,9 @@
   <data name="Address to a_dd" xml:space="preserve">
     <value>追加するアドレス(_D)</value>
   </data>
+  <data name="Address to add as a member" xml:space="preserve">
+    <value>メンバーとして追加するアドレス</value>
+  </data>
   <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
     <value>アドレス、ドメインまたは URL (https://host/...)</value>
   </data>
@@ -2992,8 +2995,8 @@
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer はそれぞれの所有者の商標です。これは独立した、コミュニティによって保守されているフォークです。</value>
   </data>
-  <data name="Could not add all recipients: {0}" xml:space="preserve">
-    <value>すべての受信者を追加できませんでした: {0}</value>
+  <data name="Could not add all the members: {0}" xml:space="preserve">
+    <value>すべてのメンバーを追加できませんでした: {0}</value>
   </data>
   <data name="Could not add the address: {0}" xml:space="preserve">
     <value>アドレスを追加できませんでした: {0}</value>
@@ -3001,14 +3004,14 @@
   <data name="Could not add the certificate: {0}" xml:space="preserve">
     <value>証明書を追加できませんでした: {0}</value>
   </data>
+  <data name="Could not add the member: {0}" xml:space="preserve">
+    <value>メンバーを追加できませんでした: {0}</value>
+  </data>
   <data name="Could not add the port: {0}" xml:space="preserve">
     <value>ポートを追加できませんでした: {0}</value>
   </data>
   <data name="Could not add the range: {0}" xml:space="preserve">
     <value>範囲を追加できませんでした: {0}</value>
-  </data>
-  <data name="Could not add the recipient: {0}" xml:space="preserve">
-    <value>受信者を追加できませんでした: {0}</value>
   </data>
   <data name="Could not add the relay: {0}" xml:space="preserve">
     <value>リレーを追加できませんでした: {0}</value>
@@ -3297,11 +3300,11 @@
   <data name="Could not remove the criterion: {0}" xml:space="preserve">
     <value>条件を削除できませんでした: {0}</value>
   </data>
+  <data name="Could not remove the member: {0}" xml:space="preserve">
+    <value>メンバーを削除できませんでした: {0}</value>
+  </data>
   <data name="Could not remove the passphrase: {0}" xml:space="preserve">
     <value>パスフレーズを削除できませんでした: {0}</value>
-  </data>
-  <data name="Could not remove the recipient: {0}" xml:space="preserve">
-    <value>受信者を削除できませんでした: {0}</value>
   </data>
   <data name="Could not remove the sample domain: {0}" xml:space="preserve">
     <value>サンプルドメインを削除できませんでした: {0}</value>
@@ -4363,9 +4366,6 @@
   <data name="E-mail address" xml:space="preserve">
     <value>メール アドレス</value>
   </data>
-  <data name="E-mail address to add to the list" xml:space="preserve">
-    <value>リストに追加するメール アドレス</value>
-  </data>
   <data name="E-mail every account on the server at once - for maintenance announcements." xml:space="preserve">
     <value>サーバー上のすべてのアカウントに一度にメールを送ります。メンテナンスの告知向けです。</value>
   </data>
@@ -4420,6 +4420,9 @@
   <data name="Edit a domain on the list" xml:space="preserve">
     <value>リストのドメインを編集</value>
   </data>
+  <data name="Edit account {0}" xml:space="preserve">
+    <value>編集: アカウント {0}</value>
+  </data>
   <data name="Edit action" xml:space="preserve">
     <value>アクションを編集</value>
   </data>
@@ -4428,6 +4431,12 @@
   </data>
   <data name="Edit criterion" xml:space="preserve">
     <value>条件を編集</value>
+  </data>
+  <data name="Edit distribution list {0}" xml:space="preserve">
+    <value>編集: 配布リスト {0}</value>
+  </data>
+  <data name="Edit domain {0}" xml:space="preserve">
+    <value>編集: ドメイン {0}</value>
   </data>
   <data name="Edit incoming relay" xml:space="preserve">
     <value>受信リレーを編集</value>
@@ -7750,6 +7759,9 @@
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>{0} に一致するアカウントはありません。</value>
   </data>
+  <data name="No members yet, so mail sent to this list reaches nobody. Add an address below." xml:space="preserve">
+    <value>メンバーがまだいないため、このリスト宛てのメールは誰にも届きません。下でアドレスを追加してください。</value>
+  </data>
   <data name="No message checked" xml:space="preserve">
     <value>チェックしたメッセージはありません</value>
   </data>
@@ -7830,9 +7842,6 @@
   </data>
   <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
     <value>パブリック フォルダーはまだありません。フォルダーを追加 で複数のアカウントが開けるフォルダーを作成し、権限 で読み書きできるユーザーを決めます。</value>
-  </data>
-  <data name="No recipients yet, so mail sent to this list reaches nobody. Add an address below." xml:space="preserve">
-    <value>受信者がまだいないため、このリスト宛てのメールは誰にも届きません。下でアドレスを追加してください。</value>
   </data>
   <data name="No recovery address is set. Until the account holder sets one in the webmail, a forgotten password can only be reset here." xml:space="preserve">
     <value>回復用アドレスは設定されていません。アカウント所有者がウェブメールで設定するまで、パスワードを忘れた場合はここでしかリセットできません。</value>
@@ -9177,12 +9186,6 @@
   <data name="Propagation period in hours" xml:space="preserve">
     <value>伝播期間 (時間)</value>
   </data>
-  <data name="Properties" xml:space="preserve">
-    <value>プロパティ</value>
-  </data>
-  <data name="Properties of {0}" xml:space="preserve">
-    <value>{0} のプロパティ</value>
-  </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>保存されたシークレットを Windows DPAPI で保護する</value>
   </data>
@@ -9556,17 +9559,11 @@
   <data name="Recipients" xml:space="preserve">
     <value>受信者</value>
   </data>
-  <data name="Recipients - {0}" xml:space="preserve">
-    <value>受信者 - {0}</value>
-  </data>
   <data name="Recipients a message may name before the delay starts (0 = off)" xml:space="preserve">
     <value>遅延が始まるまでに 1 通のメッセージが指定できる受信者数 (0 = 無効)</value>
   </data>
   <data name="Recipients are the stricter measure: one message to two thousand addresses is two thousand recipients." xml:space="preserve">
     <value>受信者数のほうが厳しい尺度です。2,000 件のアドレス宛ての 1 通のメッセージは、受信者 2,000 件と数えられます。</value>
-  </data>
-  <data name="Recipients of {0}" xml:space="preserve">
-    <value>{0} の受信者</value>
   </data>
   <data name="Recipients signal: percentage never written to before (1 to 100)" xml:space="preserve">
     <value>受信者の信号: これまで一度も書いたことのない相手の割合 (%、1 から 100)</value>
@@ -9880,8 +9877,8 @@
   <data name="Remove the journaling rule for {0}? What it has already sent stays where it was sent." xml:space="preserve">
     <value>{0} のジャーナリングルールを削除しますか。すでに送信されたものは送信先に残ります。</value>
   </data>
-  <data name="Remove the recipient {0} from this list?" xml:space="preserve">
-    <value>受信者 {0} をこのリストから削除しますか?</value>
+  <data name="Remove the member {0} from this list?" xml:space="preserve">
+    <value>メンバー {0} をこのリストから削除しますか?</value>
   </data>
   <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
     <value>サンプルドメインを、その中のすべてのメールボックス、メッセージ、ルールごと削除しますか。後から追加したものも一緒に削除されます。</value>
@@ -15691,9 +15688,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Properties" xml:space="preserve">
     <value>プロパティ(_P)</value>
   </data>
-  <data name="_Properties…" xml:space="preserve">
-    <value>プロパティ(_P)…</value>
-  </data>
   <data name="_Protocol" xml:space="preserve">
     <value>プロトコル(_P)</value>
   </data>
@@ -17381,6 +17375,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} makes {1} under {2}, and {2} as well if it is not there. With a folder selected, the name starts under it." xml:space="preserve">
     <value>{0} は {2} の下に {1} を作り、{2} がなければ {2} も作ります。フォルダーを選択していると、名前はその下から始まります。</value>
   </data>
+  <data name="{0} member added." xml:space="preserve">
+    <value>{0} 人のメンバーを追加しました。</value>
+  </data>
+  <data name="{0} members added." xml:space="preserve">
+    <value>{0} 人のメンバーを追加しました。</value>
+  </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} 件のメッセージ</value>
   </data>
@@ -17512,12 +17512,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} public folders" xml:space="preserve">
     <value>公開フォルダー {0} 件</value>
-  </data>
-  <data name="{0} recipient added." xml:space="preserve">
-    <value>{0} 件の受信者を追加しました。</value>
-  </data>
-  <data name="{0} recipients added." xml:space="preserve">
-    <value>{0} 件の受信者を追加しました。</value>
   </data>
   <data name="{0} record beginning &quot;v=DMARC1&quot; exists at {1} with others like it. Receivers treat multiple DMARC records as no policy at all - remove all but one." xml:space="preserve">
     <value>{1} には "v=DMARC1" で始まるレコードが {0} 件あります。受信側は複数の DMARC レコードをポリシーなしとして扱うため、1 つを残してすべて削除してください。</value>

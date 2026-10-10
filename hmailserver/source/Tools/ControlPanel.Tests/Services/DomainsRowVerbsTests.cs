@@ -37,10 +37,10 @@ namespace hMailServer.ControlPanel.Tests.Services
       // together. "_Members…" is the collection editor's caption, shared.
       public static TheoryData<string, string[]> Menus => new()
       {
-         { "DomainList", new[] { "_Properties…", "Delete _domain" } },
+         { "DomainList", new[] { "_Edit…", "Delete _domain" } },
          { "AccountList", new[] { "_Edit…", "Delete _account" } },
          { "AliasList", new[] { "Delete _alias" } },
-         { "DistList", new[] { "_Properties…", "_Members…", "Delete _list" } },
+         { "DistList", new[] { "_Edit…", "_Members…", "Delete _list" } },
       };
 
       [Fact]

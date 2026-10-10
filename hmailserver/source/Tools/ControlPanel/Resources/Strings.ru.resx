@@ -1239,6 +1239,9 @@ Control Panel может читать файлы сообщений только
   <data name="Address to a_dd" xml:space="preserve">
     <value>_Адрес для добавления</value>
   </data>
+  <data name="Address to add as a member" xml:space="preserve">
+    <value>Адрес, который добавить как участника</value>
+  </data>
   <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
     <value>Адрес, домен или URL (https://host/...)</value>
   </data>
@@ -3016,8 +3019,8 @@ Control Panel может читать файлы сообщений только
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer является товарным знаком соответствующих владельцев; это независимое ответвление, поддерживаемое сообществом.</value>
   </data>
-  <data name="Could not add all recipients: {0}" xml:space="preserve">
-    <value>Не удалось добавить всех получателей: {0}</value>
+  <data name="Could not add all the members: {0}" xml:space="preserve">
+    <value>Не удалось добавить всех участников: {0}</value>
   </data>
   <data name="Could not add the address: {0}" xml:space="preserve">
     <value>Не удалось добавить адрес: {0}</value>
@@ -3025,14 +3028,14 @@ Control Panel может читать файлы сообщений только
   <data name="Could not add the certificate: {0}" xml:space="preserve">
     <value>Не удалось добавить сертификат: {0}</value>
   </data>
+  <data name="Could not add the member: {0}" xml:space="preserve">
+    <value>Не удалось добавить участника: {0}</value>
+  </data>
   <data name="Could not add the port: {0}" xml:space="preserve">
     <value>Не удалось добавить порт: {0}</value>
   </data>
   <data name="Could not add the range: {0}" xml:space="preserve">
     <value>Не удалось добавить диапазон: {0}</value>
-  </data>
-  <data name="Could not add the recipient: {0}" xml:space="preserve">
-    <value>Не удалось добавить получателя: {0}</value>
   </data>
   <data name="Could not add the relay: {0}" xml:space="preserve">
     <value>Не удалось добавить ретрансляцию: {0}</value>
@@ -3321,11 +3324,11 @@ Control Panel может читать файлы сообщений только
   <data name="Could not remove the criterion: {0}" xml:space="preserve">
     <value>Не удалось удалить критерий: {0}</value>
   </data>
+  <data name="Could not remove the member: {0}" xml:space="preserve">
+    <value>Не удалось убрать участника: {0}</value>
+  </data>
   <data name="Could not remove the passphrase: {0}" xml:space="preserve">
     <value>Не удалось удалить парольную фразу: {0}</value>
-  </data>
-  <data name="Could not remove the recipient: {0}" xml:space="preserve">
-    <value>Не удалось удалить получателя: {0}</value>
   </data>
   <data name="Could not remove the sample domain: {0}" xml:space="preserve">
     <value>Не удалось удалить образцовый домен: {0}</value>
@@ -4415,9 +4418,6 @@ Control Panel может читать файлы сообщений только
   <data name="E-mail address" xml:space="preserve">
     <value>Адрес электронной почты</value>
   </data>
-  <data name="E-mail address to add to the list" xml:space="preserve">
-    <value>Адрес электронной почты для добавления в список</value>
-  </data>
   <data name="E-mail every account on the server at once - for maintenance announcements." xml:space="preserve">
     <value>Отправить письмо сразу всем учётным записям на сервере — для объявлений об обслуживании.</value>
   </data>
@@ -4472,6 +4472,9 @@ Control Panel может читать файлы сообщений только
   <data name="Edit a domain on the list" xml:space="preserve">
     <value>Изменить домен в списке</value>
   </data>
+  <data name="Edit account {0}" xml:space="preserve">
+    <value>Изменить учётную запись {0}</value>
+  </data>
   <data name="Edit action" xml:space="preserve">
     <value>Изменить действие</value>
   </data>
@@ -4480,6 +4483,12 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Edit criterion" xml:space="preserve">
     <value>Изменить критерий</value>
+  </data>
+  <data name="Edit distribution list {0}" xml:space="preserve">
+    <value>Изменить список рассылки {0}</value>
+  </data>
+  <data name="Edit domain {0}" xml:space="preserve">
+    <value>Изменить домен {0}</value>
   </data>
   <data name="Edit incoming relay" xml:space="preserve">
     <value>Изменить входящую ретрансляцию</value>
@@ -7826,6 +7835,9 @@ Control Panel может читать файлы сообщений только
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>В {0} нет подходящих учётных записей.</value>
   </data>
+  <data name="No members yet, so mail sent to this list reaches nobody. Add an address below." xml:space="preserve">
+    <value>Участников пока нет, поэтому почта, отправленная на этот список, никому не доходит. Добавьте адрес ниже.</value>
+  </data>
   <data name="No message checked" xml:space="preserve">
     <value>Сообщения не отмечены</value>
   </data>
@@ -7909,9 +7921,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
     <value>Общих папок пока нет. Добавить папку создаёт папку, которую могут открывать несколько учётных записей; Разрешения затем определяет, кто может читать и записывать в неё.</value>
-  </data>
-  <data name="No recipients yet, so mail sent to this list reaches nobody. Add an address below." xml:space="preserve">
-    <value>Получателей пока нет, поэтому почта, отправленная на этот список, никому не доходит. Добавьте адрес ниже.</value>
   </data>
   <data name="No recovery address is set. Until the account holder sets one in the webmail, a forgotten password can only be reset here." xml:space="preserve">
     <value>Адрес восстановления не задан. Пока владелец учётной записи не задаст его в веб-почте, забытый пароль можно сбросить только здесь.</value>
@@ -9271,12 +9280,6 @@ Control Panel может читать файлы сообщений только
   <data name="Propagation period in hours" xml:space="preserve">
     <value>Период распространения в часах</value>
   </data>
-  <data name="Properties" xml:space="preserve">
-    <value>Свойства</value>
-  </data>
-  <data name="Properties of {0}" xml:space="preserve">
-    <value>Свойства {0}</value>
-  </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Защищать хранимые секреты с помощью Windows DPAPI</value>
   </data>
@@ -9650,17 +9653,11 @@ Control Panel может читать файлы сообщений только
   <data name="Recipients" xml:space="preserve">
     <value>Получатели</value>
   </data>
-  <data name="Recipients - {0}" xml:space="preserve">
-    <value>Получатели — {0}</value>
-  </data>
   <data name="Recipients a message may name before the delay starts (0 = off)" xml:space="preserve">
     <value>Сколько получателей сообщение может назвать до начала задержки (0 — выключено)</value>
   </data>
   <data name="Recipients are the stricter measure: one message to two thousand addresses is two thousand recipients." xml:space="preserve">
     <value>Получатели — более строгая мера: одно сообщение на две тысячи адресов — это две тысячи получателей.</value>
-  </data>
-  <data name="Recipients of {0}" xml:space="preserve">
-    <value>Получатели {0}</value>
   </data>
   <data name="Recipients signal: percentage never written to before (1 to 100)" xml:space="preserve">
     <value>Сигнал получателей: процент тех, кому раньше никогда не писали (от 1 до 100)</value>
@@ -9986,8 +9983,8 @@ Control Panel может читать файлы сообщений только
   <data name="Remove the journaling rule for {0}? What it has already sent stays where it was sent." xml:space="preserve">
     <value>Убрать правило журналирования для {0}? То, что уже отправлено, останется там, куда было отправлено.</value>
   </data>
-  <data name="Remove the recipient {0} from this list?" xml:space="preserve">
-    <value>Убрать получателя {0} из этого списка?</value>
+  <data name="Remove the member {0} from this list?" xml:space="preserve">
+    <value>Убрать участника {0} из этого списка?</value>
   </data>
   <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
     <value>Удалить образцовый домен со всеми почтовыми ящиками, сообщениями и правилами в нём? Всё, что в него добавлено, тоже исчезнет.</value>
@@ -15878,9 +15875,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Properties" xml:space="preserve">
     <value>_Свойства</value>
   </data>
-  <data name="_Properties…" xml:space="preserve">
-    <value>_Свойства…</value>
-  </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Протокол</value>
   </data>
@@ -17697,6 +17691,15 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} makes {1} under {2}, and {2} as well if it is not there. With a folder selected, the name starts under it." xml:space="preserve">
     <value>{0} создаёт {1} в {2}, а также саму {2}, если её нет. Если выбрана папка, имя начинается внутри неё.</value>
   </data>
+  <data name="{0} member added." xml:space="preserve">
+    <value>Добавлен {0} участник.</value>
+  </data>
+  <data name="{0} members added." xml:space="preserve">
+    <value>Добавлено {0} участников.</value>
+  </data>
+  <data name="{0} members added.|few" xml:space="preserve">
+    <value>Добавлено {0} участника.</value>
+  </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} сообщение</value>
   </data>
@@ -17873,15 +17876,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} public folders|few" xml:space="preserve">
     <value>{0} общие папки</value>
-  </data>
-  <data name="{0} recipient added." xml:space="preserve">
-    <value>Добавлено получателей: {0}.</value>
-  </data>
-  <data name="{0} recipients added." xml:space="preserve">
-    <value>Добавлено получателей: {0}.</value>
-  </data>
-  <data name="{0} recipients added.|few" xml:space="preserve">
-    <value>Добавлено получателей: {0}.</value>
   </data>
   <data name="{0} record beginning &quot;v=DMARC1&quot; exists at {1} with others like it. Receivers treat multiple DMARC records as no policy at all - remove all but one." xml:space="preserve">
     <value>По адресу {1} существует {0} запись, начинающаяся с «v=DMARC1». Получатели считают несколько записей DMARC полным отсутствием политики — оставьте только одну.</value>
