@@ -384,8 +384,8 @@
   <data name="A JPEG, a PNG or a GIF, up to 100 KB. What is kept is judged by the bytes themselves, not by the file's name, and the photo is saved with the account." xml:space="preserve">
     <value>En JPEG, en PNG eller en GIF på højst 100 KB. Det, der gemmes, bedømmes ud fra selve byte, ikke ud fra filnavnet, og billedet gemmes sammen med kontoen.</value>
   </data>
-  <data name="A TXT record exists at {0}, but the private key file could not be read from this machine, so whether it carries the RIGHT key cannot be verified from here. Run the check on the server itself, or use the domain's DKIM tab." xml:space="preserve">
-    <value>Der findes en TXT-post på {0}, men den private nøglefil kunne ikke læses fra denne maskine, så det kan ikke verificeres herfra, om den indeholder den RIGTIGE nøgle. Kør kontrollen på selve serveren, eller brug domænets DKIM-fane.</value>
+  <data name="A TXT record exists at {0}, but the private key file could not be read from this machine, so whether it carries the right key cannot be verified from here. Run the check on the server itself, or use the domain's DKIM tab." xml:space="preserve">
+    <value>Der findes en TXT-post på {0}, men den private nøglefil kunne ikke læses fra denne maskine, så det kan ikke verificeres herfra, om den indeholder den rigtige nøgle. Kør kontrollen på selve serveren, eller brug domænets DKIM-fane.</value>
   </data>
   <data name="A Web application client in the Google Cloud console, with the Gmail API's mail scope." xml:space="preserve">
     <value>En webapplikationsklient i Google Cloud-konsollen med Gmail-API'ets mailomfang.</value>
@@ -450,8 +450,8 @@
   <data name="A domain may issue S/MIME certificates to its people from its own authority." xml:space="preserve">
     <value>Et domæne kan udstede S/MIME-certifikater til sine folk fra sin egen certifikatudsteder.</value>
   </data>
-  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never sign in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
-    <value>Et domænenavn her kræver, at SERVERENS egen computer er meldt ind i det pågældende domæne, fordi Windows validerer det med LogonUser. Fra en computer, der ikke er meldt ind, mislykkes hvert eneste forsøg, som om adgangskoden var forkert – også når domænenavnet blot er stavet forkert – så en postkasse, der er sat op på denne måde på en server uden domænetilhør, kan aldrig logge på og siger aldrig hvorfor. Hvis serveren ikke er meldt ind i et domæne, så brug i stedet LDAP-katalogodkendelse på siden Katalogodkendelse (LDAP): den binder til kataloget over netværket og kræver ingen domænetilmelding.</value>
+  <data name="A domain name here needs the server's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never sign in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
+    <value>Et domænenavn her kræver, at serverens egen computer er meldt ind i det pågældende domæne, fordi Windows validerer det med LogonUser. Fra en computer, der ikke er meldt ind, mislykkes hvert eneste forsøg, som om adgangskoden var forkert – også når domænenavnet blot er stavet forkert – så en postkasse, der er sat op på denne måde på en server uden domænetilhør, kan aldrig logge på og siger aldrig hvorfor. Hvis serveren ikke er meldt ind i et domæne, så brug i stedet LDAP-katalogodkendelse på siden Katalogodkendelse (LDAP): den binder til kataloget over netværket og kræver ingen domænetilmelding.</value>
   </data>
   <data name="A domain named {0} is already on this server, and it is not the sample domain this page makes, so no sample can be made here and this page will not remove it. If you do not want that domain, delete it on the Domains page." xml:space="preserve">
     <value>Et domæne ved navn {0} findes allerede på denne server, og det er ikke det prøvedomæne, denne side opretter, så der kan ikke laves nogen prøve her, og denne side fjerner det ikke. Hvis du ikke ønsker det domæne, så slet det på siden Domæner.</value>
@@ -573,8 +573,8 @@
   <data name="A notice is sent to the envelope sender of every infected message. Virus senders forge that address almost without exception, so this mostly delivers mail to people who did not send anything — which is backscatter, and it is what gets a server onto a block list." xml:space="preserve">
     <value>Der sendes en besked til konvolutafsenderen af hver inficeret meddelelse. Virusafsendere forfalsker næsten uden undtagelse den adresse, så dette leverer for det meste post til folk, der ikke har sendt noget — hvilket er backscatter, og det er sådan, en server ender på en blokeringsliste.</value>
   </data>
-  <data name="A one-time code required in addition to the administrator password, checked by the SERVER - so it applies to every client of that credential: this Control Panel, scripts using the COM API, and the REST API (which reads the code from an X-hMailServer-OTP header). The secret is stored on the server, in hMailServer.ini, machine-protected. It makes the administrator password worthless on its own. Keep the setup key safe: if the authenticator is lost, a local administrator deletes AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restarts the hMailServer service." xml:space="preserve">
-    <value>En engangskode, der kræves ud over administratoradgangskoden, og som kontrolleres af SERVEREN – så den gælder for hver klient, der bruger disse legitimationsoplysninger: dette Control Panel, scripts, der bruger COM-API'et, og REST-API'et (som læser koden fra en X-hMailServer-OTP-header). Hemmeligheden gemmes på serveren, i hMailServer.ini, maskinbeskyttet. Den gør administratoradgangskoden værdiløs i sig selv. Opbevar opsætningsnøglen sikkert: hvis godkendelsesappen mistes, sletter en lokal administrator AdministratorTotpSecret fra afsnittet [Security] i hMailServer.ini med en editor, der køres som administrator, og genstarter tjenesten hMailServer.</value>
+  <data name="A one-time code required in addition to the administrator password, checked by the server - so it applies to every client of that credential: this Control Panel, scripts using the COM API, and the REST API (which reads the code from an X-hMailServer-OTP header). The secret is stored on the server, in hMailServer.ini, machine-protected. It makes the administrator password worthless on its own. Keep the setup key safe: if the authenticator is lost, a local administrator deletes AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restarts the hMailServer service." xml:space="preserve">
+    <value>En engangskode, der kræves ud over administratoradgangskoden, og som kontrolleres af serveren – så den gælder for hver klient, der bruger disse legitimationsoplysninger: dette Control Panel, scripts, der bruger COM-API'et, og REST-API'et (som læser koden fra en X-hMailServer-OTP-header). Hemmeligheden gemmes på serveren, i hMailServer.ini, maskinbeskyttet. Den gør administratoradgangskoden værdiløs i sig selv. Opbevar opsætningsnøglen sikkert: hvis godkendelsesappen mistes, sletter en lokal administrator AdministratorTotpSecret fra afsnittet [Security] i hMailServer.ini med en editor, der køres som administrator, og genstarter tjenesten hMailServer.</value>
   </data>
   <data name="A passphrase is already stored for '{0}'. Saving replaces it - the old one cannot be recovered from here. Replace it?" xml:space="preserve">
     <value>Der er allerede gemt en adgangssætning for '{0}'. Hvis du gemmer, erstattes den – den gamle kan ikke gendannes herfra. Vil du erstatte den?</value>
@@ -582,8 +582,8 @@
   <data name="A passphrase is set: the archive is encrypted as it is written, file names included, and a restore asks for the passphrase." xml:space="preserve">
     <value>En adgangssætning er sat: arkivet krypteres, mens det skrives, filnavnene inklusive, og en gendannelse beder om adgangssætningen.</value>
   </data>
-  <data name="A passphrase is stored for this certificate. It is never displayed here - saving a new one replaces it. Whether it is the RIGHT passphrase is only proven when the server loads the key: after the next restart, check the application error log." xml:space="preserve">
-    <value>Der er gemt en adgangssætning for dette certifikat. Den vises aldrig her – hvis du gemmer en ny, erstattes den. Om det er den RIGTIGE adgangssætning, bevises først, når serveren indlæser nøglen: kontrollér programmets fejllog efter næste genstart.</value>
+  <data name="A passphrase is stored for this certificate. It is never displayed here - saving a new one replaces it. Whether it is the right passphrase is only proven when the server loads the key: after the next restart, check the application error log." xml:space="preserve">
+    <value>Der er gemt en adgangssætning for dette certifikat. Den vises aldrig her – hvis du gemmer en ny, erstattes den. Om det er den rigtige adgangssætning, bevises først, når serveren indlæser nøglen: kontrollér programmets fejllog efter næste genstart.</value>
   </data>
   <data name="A passphrase is stored, but the key file is not encrypted, so it is never used. Harmless - it simply does nothing." xml:space="preserve">
     <value>Der er gemt en adgangssætning, men nøglefilen er ikke krypteret, så den bruges aldrig. Harmløst – den gør ganske enkelt ingenting.</value>
@@ -627,8 +627,8 @@
   <data name="A remote server that answers extremely slowly. The idle timeout is re-armed on every byte, so a host that sends one byte occasionally used to hold a delivery thread indefinitely; 'Absolute lifetime of one client session' (30 minutes by default) is the absolute ceiling, armed once and never re-armed." xml:space="preserve">
     <value>En fjernserver, der svarer ekstremt langsomt. Inaktivitetstimeouten nulstilles ved hver byte, så en vært, der lejlighedsvis sender én byte, kunne før holde en leveringstråd i det uendelige; 'Absolut levetid for én klientsession' (30 minutter som standard) er det absolutte loft, som armeres én gang og aldrig nulstilles.</value>
   </data>
-  <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
-    <value>Et svar for hele domænet – et lukket kontor, en nedlagt afdeling. Det svarer kun for konti, der IKKE har deres egen feriemeddelelse: en kontos egen meddelelse vinder altid, og højst ét svar besvarer en given meddelelse.</value>
+  <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have no vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
+    <value>Et svar for hele domænet – et lukket kontor, en nedlagt afdeling. Det svarer kun for konti, der ikke har deres egen feriemeddelelse: en kontos egen meddelelse vinder altid, og højst ét svar besvarer en given meddelelse.</value>
   </data>
   <data name="A room" xml:space="preserve">
     <value>Et lokale</value>
@@ -780,14 +780,14 @@
   <data name="API keys" xml:space="preserve">
     <value>API-nøgler</value>
   </data>
-  <data name="ARC filtering is ENABLED but the trusted-sealer list is EMPTY, so it does nothing at all. That is deliberate, not a bug: anyone can fabricate a whole ARC chain and seal it with a key they publish in their own DNS, and it will validate perfectly - so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature, it is the feature." xml:space="preserve">
-    <value>ARC-filtrering er AKTIVERET, men listen over betroede forseglere er TOM, så den gør slet ingenting. Det er med vilje, ikke en fejl: hvem som helst kan fabrikere en hel ARC-kæde og forsegle den med en nøgle, de offentliggør i deres eget DNS, og den vil validere perfekt – så en kæde, der består, beviser intet, medmindre du på forhånd stoler på forsegleren. Listen er ikke en valgmulighed i funktionen, den er funktionen.</value>
-  </data>
   <data name="ARC filtering is enabled and trusts: {0}. Seals from any other domain are ignored, and matching is exact - a subdomain or a lookalike of a trusted name is not trusted." xml:space="preserve">
     <value>ARC-filtrering er aktiveret og stoler på: {0}. Segl fra ethvert andet domæne ignoreres, og sammenligningen er nøjagtig – et underdomæne eller et navn, der ligner et betroet, er ikke betroet.</value>
   </data>
   <data name="ARC filtering is off, so forwarded mail that fails DMARC is scored as it arrives. That is the default and it is a reasonable choice; turn it on only once you have forwarders whose seals you are willing to trust." xml:space="preserve">
     <value>ARC-filtrering er slået fra, så videresendt post, der ikke består DMARC, scores, som den ankommer. Det er standarden, og det er et fornuftigt valg; slå den kun til, når du har videresendere, hvis segl du er villig til at stole på.</value>
+  </data>
+  <data name="ARC filtering is on but the trusted-sealer list is empty, so it does nothing at all. This is by design: anyone can fabricate a whole ARC chain and seal it with a key they publish in their own DNS, and it will validate - so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature, it is the feature." xml:space="preserve">
+    <value>ARC-filtrering er aktiveret, men listen over betroede forseglere er tom, så den gør slet ingenting. Det er med vilje: hvem som helst kan fabrikere en hel ARC-kæde og forsegle den med en nøgle, de offentliggør i deres eget DNS, og den vil validere – så en kæde, der består, beviser intet, medmindre du på forhånd stoler på forsegleren. Listen er ikke en valgmulighed i funktionen, den er funktionen.</value>
   </data>
   <data name="ARC inbound filtering" xml:space="preserve">
     <value>ARC-filtrering af indgående post</value>
@@ -1581,8 +1581,8 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="An address is required." xml:space="preserve">
     <value>En adresse er påkrævet.</value>
   </data>
-  <data name="An address is spared only when one of its reverse names is covered AND resolves back to the address, since anybody who holds an address can write its reverse name. It applies to the next ban." xml:space="preserve">
-    <value>En adresse skånes kun, når et af dens omvendte navne er dækket OG peger tilbage på adressen, for den der har en adresse, kan selv skrive dens omvendte navn. Gælder fra næste blokering.</value>
+  <data name="An address is spared only when one of its reverse names is covered and also resolves back to the address, since anybody who holds an address can write its reverse name. It applies to the next ban." xml:space="preserve">
+    <value>En adresse skånes kun, når et af dens omvendte navne er dækket og peger tilbage på adressen, for den der har en adresse, kan selv skrive dens omvendte navn. Gælder fra næste blokering.</value>
   </data>
   <data name="An address or a block is required." xml:space="preserve">
     <value>En adresse eller en blok er påkrævet.</value>
@@ -1632,8 +1632,8 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="An external scanner process. 0 = no time limit." xml:space="preserve">
     <value>En ekstern scannerproces. 0 = ingen tidsgrænse.</value>
   </data>
-  <data name="An older, weaker option: a one-time code asked for after the password when signing in to THIS Control Panel, checked by the tool itself after the server has already accepted the password. The secret is stored per machine under HKLM, so enabling or disabling it needs local administrator rights, and it does nothing for the REST API or for scripts using the COM API. Prefer the server-enforced factor above; this one remains for existing setups." xml:space="preserve">
-    <value>En ældre og svagere mulighed: en engangskode, der spørges om efter adgangskoden ved pålogning til DETTE Control Panel, og som kontrolleres af værktøjet selv, efter at serveren allerede har accepteret adgangskoden. Hemmeligheden gemmes pr. maskine under HKLM, så det kræver lokale administratorrettigheder at slå den til eller fra, og den gør intet for REST-API'et eller for scripts, der bruger COM-API'et. Foretræk den serverhåndhævede faktor ovenfor; denne findes fortsat af hensyn til eksisterende opsætninger.</value>
+  <data name="An older, weaker option: a one-time code asked for after the password when signing in to this Control Panel, checked by the tool itself after the server has already accepted the password. The secret is stored per machine under HKLM, so enabling or disabling it needs local administrator rights, and it does nothing for the REST API or for scripts using the COM API. Prefer the server-enforced factor above; this one remains for existing setups." xml:space="preserve">
+    <value>En ældre og svagere mulighed: en engangskode, der spørges om efter adgangskoden ved pålogning til dette Control Panel, og som kontrolleres af værktøjet selv, efter at serveren allerede har accepteret adgangskoden. Hemmeligheden gemmes pr. maskine under HKLM, så det kræver lokale administratorrettigheder at slå den til eller fra, og den gør intet for REST-API'et eller for scripts, der bruger COM-API'et. Foretræk den serverhåndhævede faktor ovenfor; denne findes fortsat af hensyn til eksisterende opsætninger.</value>
   </data>
   <data name="An override replaces the global ceilings for that address; 0:0 exempts it entirely. Without the optional :hours the override uses the global period. A malformed line is ignored with a log entry and the global limit still applies to that account. Comment lines in this INI section are not shown here and are dropped if the list is saved." xml:space="preserve">
     <value>En tilsidesættelse erstatter de globale lofter for den adresse; 0:0 fritager den helt. Uden det valgfrie :hours bruger tilsidesættelsen den globale periode. En forkert udformet linje ignoreres med en logpost, og den globale grænse gælder stadig for den konto. Kommentarlinjer i denne INI-sektion vises ikke her og forsvinder, hvis listen gemmes.</value>
@@ -1747,8 +1747,8 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Applied when a connection is accepted, before the greeting. An allow list refuses an address whose country the database does not know; a block list lets it in." xml:space="preserve">
     <value>Anvendes, når en forbindelse modtages, før velkomsthilsenen. En tilladelsesliste afviser en adresse, hvis land databasen ikke kender; en blokeringsliste lukker den ind.</value>
   </data>
-  <data name="Applied when a password is CHOSEN - here, in the account editor, by a script or by the API - and never when one is checked at logon. That distinction is the whole design: an account whose password predates the policy keeps working, because locking people out of mailboxes they can open today is a worse outcome than the weak password it would be correcting. Tightening these settings therefore affects the next password each person sets, not the one they have. Everything is off until you turn it on, so an upgrade never starts refusing passwords on its own." xml:space="preserve">
-    <value>Anvendes, når en adgangskode VÆLGES – her, i kontoeditoren, af et script eller af API'et – og aldrig, når en adgangskode kontrolleres ved pålogning. Den skelnen er hele designet: en konto, hvis adgangskode er ældre end politikken, bliver ved med at virke, fordi det er et værre udfald at lukke folk ude fra postkasser, de kan åbne i dag, end den svage adgangskode, det ville rette op på. At stramme disse indstillinger påvirker derfor den næste adgangskode, hver person vælger, ikke den, de har. Alt er slået fra, indtil du slår det til, så en opgradering begynder aldrig af sig selv at afvise adgangskoder.</value>
+  <data name="Applied when a password is chosen - here, in the account editor, by a script or by the API - and never when one is checked at sign-in. That distinction is the whole design: an account whose password predates the policy keeps working, because locking people out of mailboxes they can open today is a worse outcome than the weak password it would be correcting. Tightening these settings therefore affects the next password each person sets, not the one they have. Everything is off until you turn it on, so an upgrade never starts refusing passwords on its own." xml:space="preserve">
+    <value>Anvendes, når en adgangskode vælges – her, i kontoeditoren, af et script eller af API'et – og aldrig, når en adgangskode kontrolleres ved pålogning. Den skelnen er hele designet: en konto, hvis adgangskode er ældre end politikken, bliver ved med at virke, fordi det er et værre udfald at lukke folk ude fra postkasser, de kan åbne i dag, end den svage adgangskode, det ville rette op på. At stramme disse indstillinger påvirker derfor den næste adgangskode, hver person vælger, ikke den, de har. Alt er slået fra, indtil du slår det til, så en opgradering begynder aldrig af sig selv at afvise adgangskoder.</value>
   </data>
   <data name="Applies _to" xml:space="preserve">
     <value>Gælder _for</value>
@@ -1885,8 +1885,8 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="At your DNS host, publish a TXT record at the domain, such as v=spf1 mx -all, naming the servers that send its mail. The DNS records page shows the record to publish." xml:space="preserve">
     <value>Offentliggør hos din DNS-udbyder en TXT-post på domænet, for eksempel v=spf1 mx -all, der navngiver de servere, som sender dets post. Siden DNS-poster viser den post, der skal offentliggøres.</value>
   </data>
-  <data name="At your DNS host, publish a TXT record named &lt;selector&gt;._domainkey.&lt;domain&gt; containing the public key (v=DKIM1; k=rsa; p=...). This page looks the record up through the Windows resolver, and where the key file is readable it also checks that the published key is the RIGHT key - a wrong value cannot be fixed by waiting." xml:space="preserve">
-    <value>Offentliggør hos din DNS-udbyder en TXT-post ved navn &lt;selector&gt;._domainkey.&lt;domain&gt;, der indeholder den offentlige nøgle (v=DKIM1; k=rsa; p=...). Denne side slår posten op gennem Windows-resolveren, og hvor nøglefilen kan læses, kontrollerer den også, at den offentliggjorte nøgle er den RIGTIGE nøgle – en forkert værdi kan ikke rettes ved at vente.</value>
+  <data name="At your DNS host, publish a TXT record named &lt;selector&gt;._domainkey.&lt;domain&gt; containing the public key (v=DKIM1; k=rsa; p=...). This page looks the record up through the Windows resolver, and where the key file is readable it also checks that the published key is the right one - a wrong value cannot be fixed by waiting." xml:space="preserve">
+    <value>Offentliggør hos din DNS-udbyder en TXT-post ved navn &lt;selector&gt;._domainkey.&lt;domain&gt;, der indeholder den offentlige nøgle (v=DKIM1; k=rsa; p=...). Denne side slår posten op gennem Windows-resolveren, og hvor nøglefilen kan læses, kontrollerer den også, at den offentliggjorte nøgle er den rigtige nøgle – en forkert værdi kan ikke rettes ved at vente.</value>
   </data>
   <data name="At your DNS host, publish a TXT record named _dmarc.&lt;domain&gt;, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish." xml:space="preserve">
     <value>Offentliggør hos din DNS-udbyder en TXT-post med navnet _dmarc.&lt;domain&gt;, der begynder med v=DMARC1; p=none, mens du læser rapporterne, og derefter p=quarantine eller p=reject. Siden DNS-poster viser den post, der skal offentliggøres.</value>
@@ -2254,8 +2254,8 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox in the Control Deck's delivery queue or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
     <value>Begge adresser er angivet. Om tjenesten svarer, kan ikke afgøres herfra: send en besked udefra med en vedhæftet fil af en indsendt type, og se efter den under Tilbageholdt til en sandkasse i Control Deckens leveringskø eller efter en linje i programloggen om, at den blev sendt til sandkassen.</value>
   </data>
-  <data name="Both overrides read the score this server recorded in the message, so they need 'Add X-hMailServer-Reason header' switched on, on the Anti-spam settings page. With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
-    <value>Begge tilsidesættelser læser den score, denne server registrerede i meddelelsen, så de kræver, at 'Tilføj X-hMailServer-Reason-header' er slået til på siden Antispam-indstillinger. Med den slået fra registreres ingen score, intet kan bevises, og ingen af tilsidesættelserne handler - kontoen beholder den serverdækkende adfærd. Værdien i filen stoles der ikke på i det tilfælde, fordi intet forhindrer en AFSENDER i at lægge en dér.</value>
+  <data name="Both overrides read the score this server recorded in the message, so they need 'Add X-hMailServer-Reason header' switched on, on the Anti-spam settings page. With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a sender putting one there." xml:space="preserve">
+    <value>Begge tilsidesættelser læser den score, denne server registrerede i meddelelsen, så de kræver, at 'Tilføj X-hMailServer-Reason-header' er slået til på siden Antispam-indstillinger. Med den slået fra registreres ingen score, intet kan bevises, og ingen af tilsidesættelserne handler - kontoen beholder den serverdækkende adfærd. Værdien i filen stoles der ikke på i det tilfælde, fordi intet forhindrer en afsender i at lægge en dér.</value>
   </data>
   <data name="Both thresholds are 0, so no score can mark or refuse anything - the server tests them with &quot;greater than 0&quot; before using them. It also stops testing as soon as the running total reaches the higher threshold, which is 0, so exactly one check runs in each phase and its result is discarded." xml:space="preserve">
     <value>Begge tærskler er 0, så ingen score kan markere eller afvise noget - serveren tester dem med "større end 0", før den bruger dem. Den holder også op med at teste, så snart den løbende sum når den højeste tærskel, som er 0, så præcis én kontrol kører i hver fase, og dens resultat kasseres.</value>
@@ -2442,9 +2442,6 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   </data>
   <data name="Certificate" xml:space="preserve">
     <value>Certifikat</value>
-  </data>
-  <data name="Certificate and key must BOTH be set to serve HTTPS; with only one of them TLS is NOT enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
-    <value>Certifikat og nøgle skal BEGGE være sat for at servere HTTPS; med kun én af dem er TLS IKKE aktiveret, og serveren logger det. I modsætning til REST API-lytteren er der intet fallback til ACME-certifikatet her. Hvis TLS er konfigureret, men ikke kan forberedes (en ulæselig fil, en nøgle, der ikke matcher), bliver sundhedsproberne på almindelig HTTP, og /metrics svarer 503 i stedet for at servere udstillingen i klartekst.</value>
   </data>
   <data name="Certificate authority file for a private Sigstore (PEM; empty = the public Fulcio roots)" xml:space="preserve">
     <value>Certifikatmyndighedsfil til en privat Sigstore (PEM; tom = de offentlige Fulcio-rødder)</value>
@@ -2722,8 +2719,8 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="ClamAV maximum timeout (90)" xml:space="preserve">
     <value>Maksimal timeout for ClamAV (90)</value>
   </data>
-  <data name="ClamAV: idle timeout per socket operation. 0 is NOT no bound." xml:space="preserve">
-    <value>ClamAV: timeout for inaktivitet pr. socketoperation. 0 er IKKE ingen grænse.</value>
+  <data name="ClamAV: idle timeout per socket operation. 0 does not mean no time limit." xml:space="preserve">
+    <value>ClamAV: timeout for inaktivitet pr. socketoperation. 0 betyder ikke ingen tidsgrænse.</value>
   </data>
   <data name="ClamWin" xml:space="preserve">
     <value>ClamWin</value>
@@ -3774,11 +3771,11 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="De_lete rule" xml:space="preserve">
     <value>S_let regel</value>
   </data>
-  <data name="Debug logging is ON. The stage timings and the DNS lines are being written; turn it off again when you have what you need." xml:space="preserve">
-    <value>Debug-logning er SLÅET TIL. Trintiderne og DNS-linjerne skrives; slå den fra igen, når du har, hvad du har brug for.</value>
-  </data>
   <data name="Debug logging is off. Application logging still records any stage that takes ten seconds or more." xml:space="preserve">
     <value>Debug-logning er slået fra. Applikationslogning registrerer stadig ethvert trin, der tager ti sekunder eller mere.</value>
+  </data>
+  <data name="Debug logging is on. The stage timings and the DNS lines are being written; turn it off again when you have what you need." xml:space="preserve">
+    <value>Debug-logning er slået til. Trintiderne og DNS-linjerne skrives; slå den fra igen, når du har, hvad du har brug for.</value>
   </data>
   <data name="Debug messages" xml:space="preserve">
     <value>Debug-meddelelser</value>
@@ -5353,8 +5350,8 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="For Administrator, the password chosen when hMailServer was installed; for your own account, its own password." xml:space="preserve">
     <value>For Administrator adgangskoden, der blev valgt, da hMailServer blev installeret; for din egen konto dens egen adgangskode.</value>
   </data>
-  <data name="For LDAPS or StartTLS: a certificate on the directory server that THIS machine trusts - issued by a CA in the Windows machine certificate store, with the host name above in it. A domain controller does not have one out of the box. The Negotiate bind method needs no certificate at all, because the password never crosses the network." xml:space="preserve">
-    <value>Til LDAPS eller StartTLS: et certifikat på katalogserveren, som DENNE maskine stoler på – udstedt af en CA i Windows' maskincertifikatlager, med værtsnavnet ovenfor i sig. En domænecontroller har ikke et sådant fra starten. Bindingsmetoden Negotiate kræver slet intet certifikat, fordi adgangskoden aldrig krydser netværket.</value>
+  <data name="For LDAPS or StartTLS: a certificate on the directory server that this machine trusts - issued by a CA in the Windows machine certificate store, with the host name above in it. A domain controller does not have one out of the box. The Negotiate bind method needs no certificate at all, because the password never crosses the network." xml:space="preserve">
+    <value>Til LDAPS eller StartTLS: et certifikat på katalogserveren, som denne maskine stoler på – udstedt af en CA i Windows' maskincertifikatlager, med værtsnavnet ovenfor i sig. En domænecontroller har ikke et sådant fra starten. Bindingsmetoden Negotiate kræver slet intet certifikat, fordi adgangskoden aldrig krydser netværket.</value>
   </data>
   <data name="For a MinIO or Ceph gateway behind a CA of your own. The host name is checked either way." xml:space="preserve">
     <value>Til en MinIO- eller Ceph-gateway bag en CA af din egen. Værtsnavnet kontrolleres under alle omstændigheder.</value>
@@ -5608,8 +5605,8 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="HTM_L disclaimer (empty = the plain text)" xml:space="preserve">
     <value>Ansvarsfraskrivelse som HTM_L (tom = den almindelige tekst)</value>
   </data>
-  <data name="HTTP Basic needs both the user name and the password. Only {0} is set, so Basic authentication is NOT enabled - the server logs this and behaves as if neither were set." xml:space="preserve">
-    <value>HTTP Basic kræver både brugernavnet og adgangskoden. Kun {0} er sat, så Basic-godkendelse er IKKE aktiveret - serveren logger dette og opfører sig, som om ingen af delene var sat.</value>
+  <data name="HTTP Basic needs both the user name and the password. Only {0} is set, so Basic authentication is not enabled - the server logs this and behaves as if neither were set." xml:space="preserve">
+    <value>HTTP Basic kræver både brugernavnet og adgangskoden. Kun {0} er sat, så Basic-godkendelse er ikke aktiveret - serveren logger dette og opfører sig, som om ingen af delene var sat.</value>
   </data>
   <data name="HTTP Basic password for /metrics" xml:space="preserve">
     <value>HTTP Basic-adgangskode til /metrics</value>
@@ -5916,6 +5913,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="IMAP sessions" xml:space="preserve">
     <value>IMAP-sessioner</value>
+  </data>
+  <data name="IMAP, POP3 and SMTP have no way to change a password, and the self-service portal refuses an expired one at sign-in like every other surface. An expired password is therefore renewed by an administrator - or by the person themselves only if they hold an app password, which still signs them in to the portal, where the expired password is accepted as the current one when setting a new one. Turning this on means someone has to be available for everybody else. Existing app passwords keep working, which is also the one way an affected person can still collect mail; Active Directory accounts are exempt, because their password lives in the directory and expires by its policy, not this one. The clock started when this server was upgraded, so nobody is expired the moment you set this." xml:space="preserve">
+    <value>IMAP, POP3 og SMTP har ingen måde at ændre en adgangskode på, og selvbetjeningsportalen afviser en udløbet adgangskode ved logon ligesom enhver anden flade. En udløbet adgangskode fornys derfor af en administrator - eller af personen selv, men kun hvis vedkommende har en app-adgangskode, som stadig logger vedkommende på portalen, hvor den udløbne adgangskode accepteres som den nuværende, når der sættes en ny. At slå dette til betyder, at nogen skal være til rådighed for alle andre. Eksisterende app-adgangskoder bliver ved med at virke, hvilket også er den ene måde, en berørt person stadig kan hente post på; Active Directory-konti er undtaget, fordi deres adgangskode ligger i kataloget og udløber efter dets politik, ikke denne. Uret startede, da denne server blev opgraderet, så ingen er udløbet i det øjeblik, du sætter dette.</value>
   </data>
   <data name="IP address" xml:space="preserve">
     <value>IP-adresse</value>
@@ -6920,11 +6920,11 @@ Hvert Web Push-abonnement under det nuværende par holder straks op med at virke
   <data name="Master user (empty = off)" xml:space="preserve">
     <value>Masterbruger (tomt = fra)</value>
   </data>
-  <data name="Match ALL criteria (AND)" xml:space="preserve">
-    <value>Match ALLE kriterier (AND)</value>
+  <data name="Match all criteria (AND)" xml:space="preserve">
+    <value>Match alle kriterier (AND)</value>
   </data>
-  <data name="Match ANY criterion (OR)" xml:space="preserve">
-    <value>Match ET HVILKET SOM HELST kriterium (OR)</value>
+  <data name="Match any criterion (OR)" xml:space="preserve">
+    <value>Match et hvilket som helst kriterium (OR)</value>
   </data>
   <data name="Matched against" xml:space="preserve">
     <value>Matches mod</value>
@@ -7507,8 +7507,8 @@ Intet, der allerede er der, fjernes.</value>
   <data name="No Active Directory domains were found." xml:space="preserve">
     <value>Der blev ikke fundet nogen Active Directory-domæner.</value>
   </data>
-  <data name="No DKIM key is configured for {0} yet. Generate one here: the private key is saved to a file of your choosing on this machine, the selector and key file are stored on the domain, and signing stays OFF until the DNS record below has been published and a check on this page has seen it - switching signing on before then would sign mail with a key the world cannot look up." xml:space="preserve">
-    <value>Der er endnu ikke konfigureret nogen DKIM-nøgle for {0}. Generér en her: den private nøgle gemmes i en fil efter dit valg på denne maskine, selectoren og nøglefilen gemmes på domænet, og signering forbliver FRA, indtil DNS-posten nedenfor er offentliggjort, og en kontrol på denne side har set den - at slå signering til før da ville signere post med en nøgle, som verden ikke kan slå op.</value>
+  <data name="No DKIM key is configured for {0} yet. Generate one here: the private key is saved to a file of your choosing on this machine, the selector and key file are stored on the domain, and signing stays off until the DNS record below has been published and a check on this page has seen it - switching signing on before then would sign mail with a key the world cannot look up." xml:space="preserve">
+    <value>Der er endnu ikke konfigureret nogen DKIM-nøgle for {0}. Generér en her: den private nøgle gemmes i en fil efter dit valg på denne maskine, selectoren og nøglefilen gemmes på domænet, og signering forbliver fra, indtil DNS-posten nedenfor er offentliggjort, og en kontrol på denne side har set den - at slå signering til før da ville signere post med en nøgle, som verden ikke kan slå op.</value>
   </data>
   <data name="No HELO name was recorded" xml:space="preserve">
     <value>Intet HELO-navn blev registreret</value>
@@ -8026,8 +8026,8 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Not checked" xml:space="preserve">
     <value>Ikke kontrolleret</value>
   </data>
-  <data name="Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT and MX records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
-    <value>Ærligt talt ikke kontrolleret herfra: at verificere PTR-posten kræver serverens OFFENTLIGE IP-adresse, som dette panel ikke kan fastslå (bag NAT kender maskinen den heller ikke selv), og denne sides kontrol læser kun TXT- og MX-poster. Test i stedet udefra: nslookup &lt;your public IP&gt; viser PTR-posten; den bør nævne værten ovenfor.</value>
+  <data name="Not checked from here: verifying the PTR needs the server's public IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT and MX records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
+    <value>Ikke kontrolleret herfra: at verificere PTR-posten kræver serverens offentlige IP-adresse, som dette panel ikke kan fastslå (bag NAT kender maskinen den heller ikke selv), og denne sides kontrol læser kun TXT- og MX-poster. Test i stedet udefra: nslookup &lt;your public IP&gt; viser PTR-posten; den bør nævne værten ovenfor.</value>
   </data>
   <data name="Not checked here: SURBL is asked about the links in a message once its body has arrived." xml:space="preserve">
     <value>Kontrolleres ikke her: SURBL spørges om linksene i en meddelelse, når dens indhold er ankommet.</value>
@@ -8320,8 +8320,8 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Off by default. Useful on shared machines." xml:space="preserve">
     <value>Slået fra som standard. Nyttigt på delte maskiner.</value>
   </data>
-  <data name="Off by default. When off, an unreachable directory refuses the sign-in and the server reports the real reason (throttled to once per minute per distinct problem) instead of retrying through Windows logon - which cannot succeed on a host that is not domain-joined, and whose failure would bury a precise diagnostic under an indistinguishable one. Turn on only on a domain-joined host that wants LDAP as its first choice. A password the directory REJECTED never falls back either way: retrying it would double every failed attempt and let one wrong password trigger a directory lockout policy." xml:space="preserve">
-    <value>Slået fra som standard. Når den er fra, afviser et katalog, der ikke kan nås, pålogningen, og serveren rapporterer den rigtige årsag (begrænset til én gang i minuttet pr. særskilt problem) i stedet for at forsøge igen gennem Windows-pålogning - hvilket ikke kan lykkes på en vært, der ikke er meldt ind i domænet, og hvis fejl ville begrave en præcis diagnose under en, der ikke kan skelnes fra andre. Slå den kun til på en vært, der er meldt ind i domænet, og som vil have LDAP som sit førstevalg. En adgangskode, som kataloget AFVISTE, falder aldrig tilbage, uanset hvad: at prøve den igen ville fordoble hvert mislykket forsøg og lade én forkert adgangskode udløse en udelukkelsespolitik i kataloget.</value>
+  <data name="Off by default. When off, an unreachable directory refuses the sign-in and the server reports the real reason (throttled to once per minute per distinct problem) instead of retrying through Windows logon - which cannot succeed on a host that is not domain-joined, and whose failure would bury a precise diagnostic under an indistinguishable one. Turn on only on a domain-joined host that wants LDAP as its first choice. A password the directory rejected never falls back either way: retrying it would double every failed attempt and let one wrong password trigger a directory lockout policy." xml:space="preserve">
+    <value>Slået fra som standard. Når den er fra, afviser et katalog, der ikke kan nås, pålogningen, og serveren rapporterer den rigtige årsag (begrænset til én gang i minuttet pr. særskilt problem) i stedet for at forsøge igen gennem Windows-pålogning - hvilket ikke kan lykkes på en vært, der ikke er meldt ind i domænet, og hvis fejl ville begrave en præcis diagnose under en, der ikke kan skelnes fra andre. Slå den kun til på en vært, der er meldt ind i domænet, og som vil have LDAP som sit førstevalg. En adgangskode, som kataloget afviste, falder aldrig tilbage, uanset hvad: at prøve den igen ville fordoble hvert mislykket forsøg og lade én forkert adgangskode udløse en udelukkelsespolitik i kataloget.</value>
   </data>
   <data name="Off by default. With it off nothing is queued and no push service is reached." xml:space="preserve">
     <value>Slået fra som standard. Slået fra sættes intet i kø, og ingen push-tjeneste kontaktes.</value>
@@ -8329,8 +8329,8 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Off by default. With it off nothing is read, counted or written." xml:space="preserve">
     <value>Slået fra som standard. Slået fra læses, tælles eller skrives intet.</value>
   </data>
-  <data name="Off by default. With unprotected LDAP and a simple bind, the server does NOT send the password and does NOT guess what you meant: it refuses the sign-in and reports the contradiction, once per minute. Turning this on sends passwords in the clear and should only ever happen on a network you control end to end." xml:space="preserve">
-    <value>Slået fra som standard. Med ubeskyttet LDAP og en simpel binding sender serveren IKKE adgangskoden og gætter IKKE på, hvad du mente: den afviser pålogningen og rapporterer modsigelsen, én gang i minuttet. At slå dette til sender adgangskoder i klartekst og bør kun nogensinde ske på et netværk, du kontrollerer fra ende til anden.</value>
+  <data name="Off by default. With unprotected LDAP and a simple bind, the server does not send the password and does not guess what you meant: it refuses the sign-in and reports the contradiction, once per minute. Turning this on sends passwords in the clear and should only ever happen on a network you control end to end." xml:space="preserve">
+    <value>Slået fra som standard. Med ubeskyttet LDAP og en simpel binding sender serveren ikke adgangskoden og gætter ikke på, hvad du mente: den afviser pålogningen og rapporterer modsigelsen, én gang i minuttet. At slå dette til sender adgangskoder i klartekst og bør kun nogensinde ske på et netværk, du kontrollerer fra ende til anden.</value>
   </data>
   <data name="Off by default. user@[192.0.2.7], user@localhost and user@co.uk are refused; MAIL FROM:&lt;&gt; has no domain and is not judged by this switch." xml:space="preserve">
     <value>Fra som standard. user@[192.0.2.7], user@localhost og user@co.uk afvises; MAIL FROM:&lt;&gt; har intet domæne og vurderes ikke af denne kontakt.</value>
@@ -8383,8 +8383,8 @@ Intet, der allerede er der, fjernes.</value>
   <data name="On by default, and inert until somebody sets a recovery address." xml:space="preserve">
     <value>Slået til som standard og uden virkning, indtil nogen angiver en gendannelsesadresse.</value>
   </data>
-  <data name="On by default, and only an explicit 0 in the INI turns it off. Turned off, the encrypted connection no longer proves it reaches YOUR directory: anyone who can intercept it can present any certificate and collect every password sent over it. The server notes the disabling in its application log once per service start. Only meaningful for LDAPS and StartTLS." xml:space="preserve">
-    <value>Slået til som standard, og kun et udtrykkeligt 0 i INI-filen slår den fra. Slået fra beviser den krypterede forbindelse ikke længere, at den når DIT katalog: enhver, der kan opsnappe den, kan fremvise et hvilket som helst certifikat og indsamle hver adgangskode, der sendes over den. Serveren noterer deaktiveringen i sin programlog én gang pr. start af tjenesten. Kun relevant for LDAPS og StartTLS.</value>
+  <data name="On by default, and only an explicit 0 in the INI turns it off. Turned off, the encrypted connection no longer proves it reaches your directory: anyone who can intercept it can present any certificate and collect every password sent over it. The server notes the disabling in its application log once per service start. Only meaningful for LDAPS and StartTLS." xml:space="preserve">
+    <value>Slået til som standard, og kun et udtrykkeligt 0 i INI-filen slår den fra. Slået fra beviser den krypterede forbindelse ikke længere, at den når dit katalog: enhver, der kan opsnappe den, kan fremvise et hvilket som helst certifikat og indsamle hver adgangskode, der sendes over den. Serveren noterer deaktiveringen i sin programlog én gang pr. start af tjenesten. Kun relevant for LDAPS og StartTLS.</value>
   </data>
   <data name="On by default, and the one switch here whose default is not the cautious one. With it off, a message for a mailbox that is already over quota is accepted and then answered with a non-delivery report addressed to the envelope sender - which the traffic that fills mailboxes fastest has forged. That report then goes from this server to somebody who sent nothing, which is backscatter, and it is this server's reputation that pays for it. Refusing at RCPT TO with a temporary 452 instead leaves the message in the sending server's queue, so a legitimate sender's mail waits for the mailbox to be emptied and is eventually reported by the machine that knows who the sender really is." xml:space="preserve">
     <value>Slået til som standard, og den ene kontakt her, hvis standard ikke er den forsigtige. Med den slået fra accepteres en meddelelse til en postkasse, der allerede er over kvoten, og besvares derefter med en rapport om manglende levering adresseret til konvolutafsenderen - som den trafik, der fylder postkasser hurtigst, har forfalsket. Den rapport går så fra denne server til nogen, der intet har sendt, hvilket er backscatter, og det er denne servers omdømme, der betaler for det. At afvise ved RCPT TO med en midlertidig 452 i stedet lader meddelelsen blive i den afsendende servers kø, så en legitim afsenders post venter på, at postkassen bliver tømt, og til sidst rapporteres af den maskine, der ved, hvem afsenderen virkelig er.</value>
@@ -8749,8 +8749,8 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above." xml:space="preserve">
     <value>Valgfri anden tekst til kolleger - afsendere, hvis adresse hører til denne server. Den forlader aldrig serveren og kan derfor sige mere end beskeden ovenfor. Tom betyder beskeden ovenfor.</value>
   </data>
-  <data name="Optional different text for local senders - colleagues can be told more than strangers. Empty means everyone gets the text above. Note this identifies the sender's ADDRESS, which is forgeable: treat it as a courtesy, never as a place for anything confidential." xml:space="preserve">
-    <value>Valgfri anden tekst til lokale afsendere - kolleger kan få mere at vide end fremmede. Tomt betyder, at alle får teksten ovenfor. Bemærk, at dette identificerer afsenderens ADRESSE, som kan forfalskes: betragt det som en høflighed, aldrig som et sted til noget fortroligt.</value>
+  <data name="Optional different text for local senders - colleagues can be told more than strangers. Empty means everyone gets the text above. Note this identifies the sender's address, which is forgeable: treat it as a courtesy, never as a place for anything confidential." xml:space="preserve">
+    <value>Valgfri anden tekst til lokale afsendere - kolleger kan få mere at vide end fremmede. Tomt betyder, at alle får teksten ovenfor. Bemærk, at dette identificerer afsenderens adresse, som kan forfalskes: betragt det som en høflighed, aldrig som et sted til noget fortroligt.</value>
   </data>
   <data name="Or browse by area" xml:space="preserve">
     <value>Eller gennemse efter område</value>
@@ -8812,8 +8812,8 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Override DNS server (empty = the name servers Windows uses)" xml:space="preserve">
     <value>Tilsidesæt DNS-server (tomt = de navneservere, Windows bruger)</value>
   </data>
-  <data name="Oversigning (RFC 6376 5.4) lists a header field name in the signature's h= tag once more often than the field occurs, which makes ADDING another one - a second From:, an injected Subject: - break the signature. Off by default: oversigning a field that a mailing list or forwarder legitimately adds costs those messages their DKIM pass." xml:space="preserve">
-    <value>Oversignering (RFC 6376 5.4) nævner et headerfeltnavn i signaturens h=-tag én gang mere, end feltet forekommer, hvilket gør, at det at TILFØJE endnu et - et ekstra From:, et indsat Subject: - bryder signaturen. Slået fra som standard: at oversignere et felt, som en mailingliste eller videresender legitimt tilføjer, koster de meddelelser deres DKIM-godkendelse.</value>
+  <data name="Oversigning (RFC 6376 5.4) lists a header field name in the signature's h= tag once more often than the field occurs, which makes adding another one - a second From:, an injected Subject: - break the signature. Off by default: oversigning a field that a mailing list or forwarder legitimately adds costs those messages their DKIM pass." xml:space="preserve">
+    <value>Oversignering (RFC 6376 5.4) nævner et headerfeltnavn i signaturens h=-tag én gang mere, end feltet forekommer, hvilket gør, at det at tilføje endnu et - et ekstra From:, et indsat Subject: - bryder signaturen. Slået fra som standard: at oversignere et felt, som en mailingliste eller videresender legitimt tilføjer, koster de meddelelser deres DKIM-godkendelse.</value>
   </data>
   <data name="Own value of {0}" xml:space="preserve">
     <value>Egen værdi for {0}</value>
@@ -9033,8 +9033,8 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   <data name="Per remote domain: the TLS this server demands in each direction, the size and connections it will attempt, and recipient verification for a domain it backs up." xml:space="preserve">
     <value>Pr. eksternt domæne: den TLS denne server kræver i hver retning, den størrelse og de forbindelser den vil forsøge, og modtagerverifikation for et domæne den er backup-MX for.</value>
   </data>
-  <data name="Per-account overrides of the server-wide spam handling, applied to THIS account's copy at delivery. They cannot reach back into the SMTP conversation: a message the global settings refuse, quarantine or greylist is stopped for every recipient before any per-account setting can run." xml:space="preserve">
-    <value>Tilsidesættelser pr. konto af den serverdækkende spamhåndtering, anvendt på DENNE kontos kopi ved levering. De kan ikke nå tilbage ind i SMTP-samtalen: en meddelelse, som de globale indstillinger afviser, sætter i karantæne eller greylister, stoppes for hver modtager, før nogen indstilling pr. konto kan køre.</value>
+  <data name="Per-account overrides of the server-wide spam handling, applied to this account's copy at delivery. They cannot reach back into the SMTP conversation: a message the global settings refuse, quarantine or greylist is stopped for every recipient before any per-account setting can run." xml:space="preserve">
+    <value>Tilsidesættelser pr. konto af den serverdækkende spamhåndtering, anvendt på denne kontos kopi ved levering. De kan ikke nå tilbage ind i SMTP-samtalen: en meddelelse, som de globale indstillinger afviser, sætter i karantæne eller greylister, stoppes for hver modtager, før nogen indstilling pr. konto kan køre.</value>
   </data>
   <data name="Per-account rules. You can add, rename, enable/disable and delete rules here; matching criteria and actions are managed on the server." xml:space="preserve">
     <value>Regler pr. konto. Du kan tilføje, omdøbe, aktivere/deaktivere og slette regler her; matchkriterier og handlinger administreres på serveren.</value>
@@ -9369,8 +9369,8 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   <data name="Put &quot;{0}&quot; ({1}, {2}) back into the mailbox of {3}?" xml:space="preserve">
     <value>Læg "{0}" ({1}, {2}) tilbage i postkassen for {3}?</value>
   </data>
-  <data name="Put a load balancer, a TLS terminator or a Postfix relay in front of the SMTP listener and every connection appears to come from IT - which silently breaks DNSBL checks, SPF, greylisting, auto-ban and the IP range rules all at once, while everything still reports success. These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server. The upstream has to be configured to send it or nothing here changes: HAProxy needs send-proxy or send-proxy-v2 on its server line, and a Postfix relay needs XCLIENT enabled towards this host. hMailServer cannot check that from here - and note that once an address is listed as a PROXY protocol proxy the header becomes REQUIRED from it, so a proxy that does not send one will have its connections dropped." xml:space="preserve">
-    <value>Sæt en load balancer, en TLS-terminator eller et Postfix-relay foran SMTP-lytteren, og hver forbindelse ser ud til at komme fra DEN - hvilket i stilhed bryder DNSBL-kontroller, SPF, greylisting, automatisk blokering og IP-intervalreglerne på én gang, mens alt stadig melder om succes. Disse lader en navngiven upstream give den rigtige klientadresse videre. Begge er slået fra som standard og stoler ikke på nogen, før en adresse er angivet, fordi en modpart, der kan omskrive sin egen kildeadresse, har overvundet hver IP-baseret kontrol på denne server. Upstreamen skal konfigureres til at sende den, ellers ændrer intet her sig: HAProxy kræver send-proxy eller send-proxy-v2 på sin server-linje, og et Postfix-relay kræver XCLIENT aktiveret mod denne vært. hMailServer kan ikke kontrollere det herfra - og bemærk, at når først en adresse er angivet som PROXY-protokol-proxy, bliver headeren PÅKRÆVET fra den, så en proxy, der ikke sender en, får sine forbindelser droppet.</value>
+  <data name="Put a load balancer, a TLS terminator or a Postfix relay in front of the SMTP listener and every connection appears to come from that device - which silently breaks DNSBL checks, SPF, greylisting, auto-ban and the IP range rules all at once, while everything still reports success. These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server. The upstream has to be configured to send it or nothing here changes: HAProxy needs send-proxy or send-proxy-v2 on its server line, and a Postfix relay needs XCLIENT enabled towards this host. hMailServer cannot check that from here - and note that once an address is listed as a PROXY protocol proxy the header becomes required from it, so a proxy that does not send one will have its connections dropped." xml:space="preserve">
+    <value>Sæt en load balancer, en TLS-terminator eller et Postfix-relay foran SMTP-lytteren, og hver forbindelse ser ud til at komme fra den - hvilket i stilhed bryder DNSBL-kontroller, SPF, greylisting, automatisk blokering og IP-intervalreglerne på én gang, mens alt stadig melder om succes. Disse lader en navngiven upstream give den rigtige klientadresse videre. Begge er slået fra som standard og stoler ikke på nogen, før en adresse er angivet, fordi en modpart, der kan omskrive sin egen kildeadresse, har overvundet hver IP-baseret kontrol på denne server. Upstreamen skal konfigureres til at sende den, ellers ændrer intet her sig: HAProxy kræver send-proxy eller send-proxy-v2 på sin server-linje, og et Postfix-relay kræver XCLIENT aktiveret mod denne vært. hMailServer kan ikke kontrollere det herfra - og bemærk, at når først en adresse er angivet som PROXY-protokol-proxy, bliver headeren påkrævet fra den, så en proxy, der ikke sender en, får sine forbindelser droppet.</value>
   </data>
   <data name="Put a setting back" xml:space="preserve">
     <value>Sæt en indstilling tilbage</value>
@@ -9422,9 +9422,6 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   </data>
   <data name="Quick early retries before the normal schedule (0 = off)" xml:space="preserve">
     <value>Hurtige tidlige genforsøg før den normale tidsplan (0 = fra)</value>
-  </data>
-  <data name="READ THIS FIRST: IMAP, POP3 and SMTP have no way to change a password, and the self-service portal refuses an expired one at sign-in like every other surface. An expired password is therefore renewed by an administrator - or by the person themselves only if they hold an app password, which still signs them in to the portal, where the expired password is accepted as the current one when setting a new one. Turning this on means someone has to be available for everybody else. Existing app passwords keep working, which is also the one way an affected person can still collect mail; Active Directory accounts are exempt, because their password lives in the directory and expires by its policy, not this one. The clock started when this server was upgraded, so nobody is expired the moment you set this." xml:space="preserve">
-    <value>LÆS DETTE FØRST: IMAP, POP3 og SMTP har ingen måde at ændre en adgangskode på, og selvbetjeningsportalen afviser en udløbet adgangskode ved logon ligesom enhver anden flade. En udløbet adgangskode fornys derfor af en administrator - eller af personen selv, men kun hvis vedkommende har en app-adgangskode, som stadig logger vedkommende på portalen, hvor den udløbne adgangskode accepteres som den nuværende, når der sættes en ny. At slå dette til betyder, at nogen skal være til rådighed for alle andre. Eksisterende app-adgangskoder bliver ved med at virke, hvilket også er den ene måde, en berørt person stadig kan hente post på; Active Directory-konti er undtaget, fordi deres adgangskode ligger i kataloget og udløber efter dets politik, ikke denne. Uret startede, da denne server blev opgraderet, så ingen er udløbet i det øjeblik, du sætter dette.</value>
   </data>
   <data name="REST API" xml:space="preserve">
     <value>REST API</value>
@@ -9625,8 +9622,8 @@ Kør dette, hvis klienter melder om meddelelser, der dukker op under det forkert
   <data name="Received headers" xml:space="preserve">
     <value>Received-headere</value>
   </data>
-  <data name="Receivers look up the PTR record of the connecting IP address and compare it with the name the server announces in HELO/EHLO; this server judges incoming mail by the same standard when the PTR and HELO checks on Anti-spam settings are on. Unlike every other record on this page, the PTR is NOT published in your domain's zone: it lives in the reverse zone of the IP address, which belongs to whoever owns the address - usually your hosting provider or ISP. Ask them to set it; there is nothing to paste into your own DNS console." xml:space="preserve">
-    <value>Modtagere slår PTR-posten for den forbindende IP-adresse op og sammenligner den med det navn, serveren annoncerer i HELO/EHLO; denne server bedømmer indgående post efter samme målestok, når PTR- og HELO-kontrollerne under Antispam-indstillinger er slået til. I modsætning til hver anden post på denne side offentliggøres PTR-posten IKKE i dit domænes zone: den ligger i IP-adressens omvendte zone, som tilhører den, der ejer adressen - normalt din hostingudbyder eller internetudbyder. Bed dem om at sætte den; der er intet at indsætte i din egen DNS-konsol.</value>
+  <data name="Receivers look up the PTR record of the connecting IP address and compare it with the name the server announces in HELO/EHLO; this server judges incoming mail by the same standard when the PTR and HELO checks on Anti-spam settings are on. Unlike every other record on this page, the PTR is not published in your domain's zone: it lives in the reverse zone of the IP address, which belongs to whoever owns the address - usually your hosting provider or ISP. Ask them to set it; there is nothing to paste into your own DNS console." xml:space="preserve">
+    <value>Modtagere slår PTR-posten for den forbindende IP-adresse op og sammenligner den med det navn, serveren annoncerer i HELO/EHLO; denne server bedømmer indgående post efter samme målestok, når PTR- og HELO-kontrollerne under Antispam-indstillinger er slået til. I modsætning til hver anden post på denne side offentliggøres PTR-posten ikke i dit domænes zone: den ligger i IP-adressens omvendte zone, som tilhører den, der ejer adressen - normalt din hostingudbyder eller internetudbyder. Bed dem om at sætte den; der er intet at indsætte i din egen DNS-konsol.</value>
   </data>
   <data name="Recently visited" xml:space="preserve">
     <value>Senest besøgt</value>
@@ -10047,13 +10044,13 @@ Postkassen og dens meddelelser flytter til den nye adresse. Post sendt til den g
   <data name="Repair" xml:space="preserve">
     <value>Reparér</value>
   </data>
-  <data name="Replace ALL IP ranges with the defaults?&#10;&#10;Every custom range - including any auto-ban entries - will be removed and replaced with 'My computer' (127.0.0.1) and 'Internet' (everything else). This changes who may connect and relay, immediately." xml:space="preserve">
-    <value>Erstat ALLE IP-intervaller med standarderne?
+  <data name="Replace all IP ranges with the defaults?&#10;&#10;Every custom range - including any auto-ban entries - will be removed and replaced with 'My computer' (127.0.0.1) and 'Internet' (everything else). This changes who may connect and relay, immediately." xml:space="preserve">
+    <value>Erstat alle IP-intervaller med standarderne?
 
 Hvert brugerdefineret interval - inklusive eventuelle poster fra automatisk blokering - fjernes og erstattes med 'Min computer' (127.0.0.1) og 'Internet' (alt andet). Dette ændrer, hvem der må forbinde og relaye, med det samme.</value>
   </data>
-  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security, and with SMTP authentication On on both SMTP ports, so a port 25 that is a honeypot takes AUTH again. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialised." xml:space="preserve">
-    <value>Erstat ALLE konfigurerede porte med standarderne?
+  <data name="Replace all configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security, and with SMTP authentication On on both SMTP ports, so a port 25 that is a honeypot takes AUTH again. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialised." xml:space="preserve">
+    <value>Erstat alle konfigurerede porte med standarderne?
 
 SMTP 25 og 587, POP3 110, IMAP 143 - uden forbindelsessikkerhed og med SMTP-godkendelse Til på begge SMTP-porte, så en port 25, der er en honeypot, tager imod AUTH igen. TLS-porte og brugerdefinerede bindinger fjernes. Ændringen træder i kraft, når serveren reinitialiseres.</value>
   </data>
@@ -11778,11 +11775,11 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="Signing in…" xml:space="preserve">
     <value>Logger på…</value>
   </data>
-  <data name="Signing is currently OFF - it can be switched on below once the record is confirmed published." xml:space="preserve">
-    <value>Signering er i øjeblikket FRA - den kan slås til nedenfor, når det er bekræftet, at posten er offentliggjort.</value>
+  <data name="Signing is currently off - it can be switched on below once the record is confirmed published." xml:space="preserve">
+    <value>Signering er i øjeblikket fra - den kan slås til nedenfor, når det er bekræftet, at posten er offentliggjort.</value>
   </data>
-  <data name="Signing is currently ON." xml:space="preserve">
-    <value>Signering er i øjeblikket TIL.</value>
+  <data name="Signing is currently on." xml:space="preserve">
+    <value>Signering er i øjeblikket til.</value>
   </data>
   <data name="Signing moved to the next key." xml:space="preserve">
     <value>Signeringen er skiftet til den næste nøgle.</value>
@@ -11937,8 +11934,8 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="SpamAssassin's verdict is thrown away: with merging off, a message it tags as spam is given the fixed score, which is {0}." xml:space="preserve">
     <value>SpamAssassins afgørelse smides væk: med sammenlægning slået fra får en meddelelse, den mærker som spam, den faste score, som er {0}.</value>
   </data>
-  <data name="SpamAssassin: idle timeout, and a session ceiling of this plus 30 s. 0 is NOT no bound." xml:space="preserve">
-    <value>SpamAssassin: timeout for inaktivitet, og et sessionsloft på denne plus 30 s. 0 er IKKE ingen grænse.</value>
+  <data name="SpamAssassin: idle timeout, and a session ceiling of this plus 30 s. 0 does not mean no time limit." xml:space="preserve">
+    <value>SpamAssassin: timeout for inaktivitet, og et sessionsloft på denne plus 30 s. 0 betyder ikke ingen tidsgrænse.</value>
   </data>
   <data name="SpamTestDNSBlackLists, SpamTestSURBL or SpamTestSPF slow" xml:space="preserve">
     <value>SpamTestDNSBlackLists, SpamTestSURBL eller SpamTestSPF langsom</value>
@@ -12222,8 +12219,8 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="TLS certificate file for the metrics listener (PEM)" xml:space="preserve">
     <value>TLS-certifikatfil til metriklytteren (PEM)</value>
   </data>
-  <data name="TLS for the metrics listener needs both the certificate and the private key. Only {0} is set, so TLS is NOT enabled and scrapes stay plain HTTP." xml:space="preserve">
-    <value>TLS for metriklytteren kræver både certifikatet og den private nøgle. Kun {0} er sat, så TLS er IKKE aktiveret, og scrapes forbliver almindelig HTTP.</value>
+  <data name="TLS for the metrics listener needs both the certificate and the private key. Only {0} is set, so TLS is not enabled and scrapes stay plain HTTP." xml:space="preserve">
+    <value>TLS for metriklytteren kræver både certifikatet og den private nøgle. Kun {0} er sat, så TLS er ikke aktiveret, og scrapes forbliver almindelig HTTP.</value>
   </data>
   <data name="TLS from the first byte. Nothing on this port is ever sent unencrypted." xml:space="preserve">
     <value>TLS fra den første byte. Intet på denne port sendes nogensinde ukrypteret.</value>
@@ -12408,8 +12405,8 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="The Control Deck is served by the REST API, which is off - give it a port on the API &amp; monitoring page." xml:space="preserve">
     <value>Control Deck leveres af REST-API'et, som er slået fra - giv det en port på siden API og overvågning.</value>
   </data>
-  <data name="The Control Panel is connected to another host, so the account ITS service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
-    <value>Control Panel er forbundet til en anden vært, så den konto, DENS tjeneste kører som, kan ikke læses herfra. Åbn Control Panel på selve serveren for at se den.</value>
+  <data name="The Control Panel is connected to another host, so the account its service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
+    <value>Control Panel er forbundet til en anden vært, så den konto, dens tjeneste kører som, kan ikke læses herfra. Åbn Control Panel på selve serveren for at se den.</value>
   </data>
   <data name="The DMARC aggregate and TLS-RPT reports other servers send about your domains, read from each domain's report mailbox - which is set in the domain's dialog." xml:space="preserve">
     <value>De samlede DMARC-rapporter og TLS-RPT-rapporter, som andre servere sender om dine domæner, læst fra hvert domænes rapportpostkasse - som indstilles i domænets dialogboks.</value>
@@ -12435,11 +12432,11 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="The HELO/EHLO host" xml:space="preserve">
     <value>HELO/EHLO-værten</value>
   </data>
-  <data name="The Host name on the Protocols page is EMPTY, so the server falls back to its Windows computer name - shown above as this machine's name. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
-    <value>Værtsnavnet på siden Protokoller er TOMT, så serveren falder tilbage til sit Windows-computernavn – vist ovenfor som denne maskines navn. Et nøgent computernavn er ikke et offentligt DNS-navn: modtagere, der sammenligner HELO med DNS, vil straffe det, og ingen PTR kan stemme overens med det. Sæt et rigtigt værtsnavn først.</value>
+  <data name="The Host name on the Protocols page is empty, so the server falls back to its Windows computer name - shown above as this machine's name. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
+    <value>Værtsnavnet på siden Protokoller er tomt, så serveren falder tilbage til sit Windows-computernavn – vist ovenfor som denne maskines navn. Et nøgent computernavn er ikke et offentligt DNS-navn: modtagere, der sammenligner HELO med DNS, vil straffe det, og ingen PTR kan stemme overens med det. Sæt et rigtigt værtsnavn først.</value>
   </data>
-  <data name="The Host name on the Protocols page is EMPTY, so the server falls back to its Windows computer name, which cannot be read from this machine. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
-    <value>Værtsnavnet på siden Protokoller er TOMT, så serveren falder tilbage til sit Windows-computernavn, som ikke kan læses fra denne maskine. Et nøgent computernavn er ikke et offentligt DNS-navn: modtagere, der sammenligner HELO med DNS, vil straffe det, og ingen PTR kan stemme overens med det. Sæt et rigtigt værtsnavn først.</value>
+  <data name="The Host name on the Protocols page is empty, so the server falls back to its Windows computer name, which cannot be read from this machine. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
+    <value>Værtsnavnet på siden Protokoller er tomt, så serveren falder tilbage til sit Windows-computernavn, som ikke kan læses fra denne maskine. Et nøgent computernavn er ikke et offentligt DNS-navn: modtagere, der sammenligner HELO med DNS, vil straffe det, og ingen PTR kan stemme overens med det. Sæt et rigtigt værtsnavn først.</value>
   </data>
   <data name="The IP range {0} takes a password only over TLS." xml:space="preserve">
     <value>IP-området {0} tager kun imod en adgangskode over TLS.</value>
@@ -12633,8 +12630,8 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="The allowed domain means the score cannot refuse or quarantine the message, though it can still mark it as spam." xml:space="preserve">
     <value>Fordi domænet er tilladt, kan scoren ikke afvise meddelelsen eller sætte den i karantæne, men den kan stadig markere den som spam.</value>
   </data>
-  <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
-    <value>Alternativet til bearer-tokenet, til scrapere, der kun taler HTTP Basic. Brugernavnet og adgangskoden skal BEGGE være sat: med kun én af dem logger serveren en advarsel ved opstart og opfører sig, som om ingen af dem var sat.</value>
+  <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must both be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
+    <value>Alternativet til bearer-tokenet, til scrapere, der kun taler HTTP Basic. Brugernavnet og adgangskoden skal begge være sat: med kun én af dem logger serveren en advarsel ved opstart og opfører sig, som om ingen af dem var sat.</value>
   </data>
   <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-11, a wildcard such as 127.0.0.*, or several joined by |" xml:space="preserve">
     <value>Det svar, der betyder, at adressen står på listen: 127.0.0.2, et interval såsom 127.0.0.2-11, et jokertegn såsom 127.0.0.*, eller flere adskilt med |</value>
@@ -12765,6 +12762,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="The certificate &quot;{0}&quot; is in use by a listener and has a problem: {1}" xml:space="preserve">
     <value>Certifikatet "{0}" er i brug af en lytter og har et problem: {1}</value>
   </data>
+  <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
+    <value>Certifikat og nøgle skal begge være sat for at servere HTTPS; med kun én af dem er TLS ikke aktiveret, og serveren logger det. I modsætning til REST API-lytteren er der intet fallback til ACME-certifikatet her. Hvis TLS er konfigureret, men ikke kan forberedes (en ulæselig fil, en nøgle, der ikke matcher), bliver sundhedsproberne på almindelig HTTP, og /metrics svarer 503 i stedet for at servere udstillingen i klartekst.</value>
+  </data>
   <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
     <value>Certifikatet udløb den {0}. Serveren indlæser det stadig, og dens porte starter stadig (den rapporterer fejl 5991 i applikationsloggen), men hver klient og postserver, der kontrollerer datoen, nægter at forbinde - hvilket i dag er næsten dem alle. Udskift certifikatet.</value>
   </data>
@@ -12881,8 +12881,8 @@ Markér nøglen ovenfor og kopiér den manuelt - den vises ikke igen.</value>
   <data name="The consistency check is switched off, so no scan has run. Turn on 'Periodically cross-check message rows against files on disk' on the {0} page; the server then scans at start-up and hourly and writes {1}." xml:space="preserve">
     <value>Konsistenskontrollen er slået fra, så ingen scanning er kørt. Slå 'Krydstjek periodisk meddelelsesrækker mod filer på disken' til på siden {0}; serveren scanner derefter ved opstart og hver time og skriver {1}.</value>
   </data>
-  <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.ini. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page." xml:space="preserve">
-    <value>Modstykket til ARC-forsegling: på indgående post kan en gyldig ARC-kæde fra en betroet forsegler opveje DMARC-fejlscoren for en meddelelse, hvis DMARC-godkendelse blev ødelagt af videresendelse (RFC 8617). Det konfigureres på fanen Afsendergodkendelse på siden Antispam-indstillinger, fordi det gemmes sammen med de andre antispam-indstillinger og ikke i hMailServer.ini. Med en tom liste over betroede forseglere gør funktionen slet ingenting, og det er med vilje: enhver kan fabrikere en hel ARC-kæde og forsegle den med nøgler publiceret i sit eget DNS, og den vil validere perfekt, så en godkendt kæde beviser intet, medmindre du allerede stoler på forsegleren. Listen er ikke en mulighed i funktionen - den er funktionen. Opvejningen overstiger aldrig DMARC-fejlscoren og gælder kun, mens DMARC-scoring er aktiveret på siden Antispam-indstillinger.</value>
+  <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.ini. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page." xml:space="preserve">
+    <value>Modstykket til ARC-forsegling: på indgående post kan en gyldig ARC-kæde fra en betroet forsegler opveje DMARC-fejlscoren for en meddelelse, hvis DMARC-godkendelse blev ødelagt af videresendelse (RFC 8617). Det konfigureres på fanen Afsendergodkendelse på siden Antispam-indstillinger, fordi det gemmes sammen med de andre antispam-indstillinger og ikke i hMailServer.ini. Med en tom liste over betroede forseglere gør funktionen slet ingenting, og det er med vilje: enhver kan fabrikere en hel ARC-kæde og forsegle den med nøgler publiceret i sit eget DNS, og den vil validere, så en godkendt kæde beviser intet, medmindre du allerede stoler på forsegleren. Listen er ikke en mulighed i funktionen - den er funktionen. Opvejningen overstiger aldrig DMARC-fejlscoren og gælder kun, mens DMARC-scoring er aktiveret på siden Antispam-indstillinger.</value>
   </data>
   <data name="The current password counts as the most recent one, so setting a password to itself is refused too - the repeat somebody is most likely to try." xml:space="preserve">
     <value>Den nuværende adgangskode tæller som den seneste, så at sætte en adgangskode til sig selv afvises også - den gentagelse, nogen mest sandsynligt vil prøve.</value>
@@ -12929,14 +12929,14 @@ Markér nøglen ovenfor og kopiér den manuelt - den vises ikke igen.</value>
   <data name="The delivery queue lists what is waiting and why." xml:space="preserve">
     <value>Leveringskøen viser, hvad der venter, og hvorfor.</value>
   </data>
-  <data name="The delivery that takes a mailbox past this percentage produces one notice to the person whose mailbox it is, from their own domain's postmaster. ONE, not one per message: the server treats the threshold as something the mailbox CROSSES rather than a state it is in, so a mailbox sitting at 95% is not warned about again on every delivery - which would fill it faster than the mail does. Emptying the mailbox and filling it again warns again, which is the behaviour anyone would expect and is free here rather than something that had to be remembered and expired. On by default, because the alternative is what this server did before: say nothing at all until mail starts being refused, by which point the person it happens to is the last to know." xml:space="preserve">
-    <value>Den levering, der bringer en postkasse forbi denne procent, giver én besked til den person, hvis postkasse det er, fra dennes eget domænes postmaster. ÉN, ikke én pr. meddelelse: serveren behandler tærsklen som noget, postkassen KRYDSER, snarere end en tilstand, den er i, så en postkasse, der står på 95 %, advares ikke igen ved hver levering - hvilket ville fylde den hurtigere, end posten gør. Tømmes postkassen og fyldes igen, advares der igen, hvilket er den adfærd, enhver ville forvente, og her er den gratis i stedet for noget, der skulle huskes og udløbe. Slået til som standard, fordi alternativet er, hvad denne server gjorde før: sige ingenting overhovedet, indtil post begynder at blive afvist, og på det tidspunkt er den, det sker for, den sidste, der ved det.</value>
+  <data name="The delivery that takes a mailbox past this percentage produces one notice to the person whose mailbox it is, from their own domain's postmaster. One notice, not one per message: the server treats the threshold as something the mailbox crosses rather than a state it is in, so a mailbox sitting at 95% is not warned about again on every delivery - which would fill it faster than the mail does. Emptying the mailbox and filling it again warns again. On by default; with it off, nothing is said until mail starts being refused." xml:space="preserve">
+    <value>Den levering, der bringer en postkasse forbi denne procent, giver én besked til den person, hvis postkasse det er, fra dennes eget domænes postmaster. Én besked, ikke én pr. meddelelse: serveren behandler tærsklen som noget, postkassen krydser, snarere end en tilstand, den er i, så en postkasse, der står på 95 %, advares ikke igen ved hver levering - hvilket ville fylde den hurtigere, end posten gør. Tømmes postkassen og fyldes igen, advares der igen. Slået til som standard; slået fra siges der ingenting, før post begynder at blive afvist.</value>
   </data>
-  <data name="The directory ACCEPTED the credentials: bound as {0}. This account would sign in." xml:space="preserve">
-    <value>Kataloget ACCEPTEREDE legitimationsoplysningerne: bundet som {0}. Denne konto ville kunne logge på.</value>
+  <data name="The directory accepted the credentials: bound as {0}. This account would sign in." xml:space="preserve">
+    <value>Kataloget accepterede legitimationsoplysningerne: bundet som {0}. Denne konto ville kunne logge på.</value>
   </data>
-  <data name="The directory answered and REFUSED these credentials: {0} (LDAP error {1}). The connection, transport and configuration are all working - this is a credentials problem, which is exactly what a user typing a wrong password would see." xml:space="preserve">
-    <value>Kataloget svarede og AFVISTE disse legitimationsoplysninger: {0} (LDAP-fejl {1}). Forbindelsen, transporten og konfigurationen virker alle - dette er et problem med legitimationsoplysningerne, præcis hvad en bruger, der skriver en forkert adgangskode, ville se.</value>
+  <data name="The directory answered and refused these credentials: {0} (LDAP error {1}). The connection, transport and configuration are all working - this is a credentials problem, which is exactly what a user typing a wrong password would see." xml:space="preserve">
+    <value>Kataloget svarede og afviste disse legitimationsoplysninger: {0} (LDAP-fejl {1}). Forbindelsen, transporten og konfigurationen virker alle - dette er et problem med legitimationsoplysningerne, præcis hvad en bruger, der skriver en forkert adgangskode, ville se.</value>
   </data>
   <data name="The directory said: {0}" xml:space="preserve">
     <value>Kataloget svarede: {0}</value>
@@ -13144,11 +13144,11 @@ kunne ikke indlæses. Meddelelsen er sandsynligvis leveret og ikke længere i k�
   <data name="The install's outcome could not be read." xml:space="preserve">
     <value>Installationens resultat kunne ikke læses.</value>
   </data>
-  <data name="The issued certificate EXPIRED on {0}, {1} day ago, and renewal has not replaced it. Clients are refusing this server's TLS. Check the error log for the last renewal attempt: the usual cause is that the CA can no longer reach this server on the http-01 challenge port." xml:space="preserve">
-    <value>Det udstedte certifikat UDLØB {0}, for {1} dag siden, og fornyelsen har ikke erstattet det. Klienter afviser denne servers TLS. Se i fejlloggen efter det seneste fornyelsesforsøg: den sædvanlige årsag er, at CA'en ikke længere kan nå denne server på http-01-udfordringsporten.</value>
+  <data name="The issued certificate expired on {0}, {1} day ago, and renewal has not replaced it. Clients are refusing this server's TLS. Check the error log for the last renewal attempt: the usual cause is that the CA can no longer reach this server on the http-01 challenge port." xml:space="preserve">
+    <value>Det udstedte certifikat udløb {0}, for {1} dag siden, og fornyelsen har ikke erstattet det. Klienter afviser denne servers TLS. Se i fejlloggen efter det seneste fornyelsesforsøg: den sædvanlige årsag er, at CA'en ikke længere kan nå denne server på http-01-udfordringsporten.</value>
   </data>
-  <data name="The issued certificate EXPIRED on {0}, {1} days ago, and renewal has not replaced it. Clients are refusing this server's TLS. Check the error log for the last renewal attempt: the usual cause is that the CA can no longer reach this server on the http-01 challenge port." xml:space="preserve">
-    <value>Det udstedte certifikat UDLØB {0}, for {1} dage siden, og fornyelsen har ikke erstattet det. Klienter afviser denne servers TLS. Se i fejlloggen efter det seneste fornyelsesforsøg: den sædvanlige årsag er, at CA'en ikke længere kan nå denne server på http-01-udfordringsporten.</value>
+  <data name="The issued certificate expired on {0}, {1} days ago, and renewal has not replaced it. Clients are refusing this server's TLS. Check the error log for the last renewal attempt: the usual cause is that the CA can no longer reach this server on the http-01 challenge port." xml:space="preserve">
+    <value>Det udstedte certifikat udløb {0}, for {1} dage siden, og fornyelsen har ikke erstattet det. Klienter afviser denne servers TLS. Se i fejlloggen efter det seneste fornyelsesforsøg: den sædvanlige årsag er, at CA'en ikke længere kan nå denne server på http-01-udfordringsporten.</value>
   </data>
   <data name="The issued certificate expires on {0}, in {1} day. The renewal task runs inside this window, so this is only a problem if the number stops falling - if it does, renewal is failing and the error log says why." xml:space="preserve">
     <value>Det udstedte certifikat udløber {0}, om {1} dag. Fornyelsesopgaven kører inden for dette vindue, så det er kun et problem, hvis tallet holder op med at falde - gør det det, mislykkes fornyelsen, og fejlloggen siger hvorfor.</value>
@@ -13207,8 +13207,8 @@ kunne ikke indlæses. Meddelelsen er sandsynligvis leveret og ikke længere i k�
   <data name="The key store could not be written, so no key was created: {0}. The Control Panel needs write access to that folder." xml:space="preserve">
     <value>Nøglelageret kunne ikke skrives, så ingen nøgle blev oprettet: {0}. Control Panel skal have skriveadgang til den mappe.</value>
   </data>
-  <data name="The key store could not be written, so the key was NOT revoked: {0}" xml:space="preserve">
-    <value>Nøglelageret kunne ikke skrives, så nøglen blev IKKE tilbagekaldt: {0}</value>
+  <data name="The key store could not be written, so the key was not revoked: {0}" xml:space="preserve">
+    <value>Nøglelageret kunne ikke skrives, så nøglen blev ikke tilbagekaldt: {0}</value>
   </data>
   <data name="The key store was not found, so there is nothing to revoke." xml:space="preserve">
     <value>Nøglelageret blev ikke fundet, så der er intet at tilbagekalde.</value>
@@ -13539,11 +13539,11 @@ Tilføj alligevel?</value>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>De samme linjer, kategorier og maske, som logfilerne får, med trace- og span-id vedhæftet, når et span er aktivt på den tråd, der loggede. Eksportøren eksporterer aldrig sine egne fejllinjer, ellers ville en død collector fodre sig selv.</value>
   </data>
-  <data name="The sandbox is ON but an address is empty, so nothing is held and nothing is submitted until both are set - the application log says so at every start. Set both addresses, or turn it off." xml:space="preserve">
-    <value>Sandkassen er SLÅET TIL, men en adresse er tom, så intet tilbageholdes og intet indsendes, før begge er angivet - programloggen siger det ved hver start. Angiv begge adresser, eller slå den fra.</value>
-  </data>
   <data name="The sandbox is off, which is the default: nothing is held and nothing is submitted." xml:space="preserve">
     <value>Sandkassen er slået fra, hvilket er standard: intet tilbageholdes, og intet indsendes.</value>
+  </data>
+  <data name="The sandbox is on but an address is empty, so nothing is held and nothing is submitted until both are set - the application log says so at every start. Set both addresses, or turn it off." xml:space="preserve">
+    <value>Sandkassen er slået til, men en adresse er tom, så intet tilbageholdes og intet indsendes, før begge er angivet - programloggen siger det ved hver start. Angiv begge adresser, eller slå den fra.</value>
   </data>
   <data name="The sandbox is switched on, but its submit or verdict address is empty." xml:space="preserve">
     <value>Sandkassen er slået til, men dens indsendelses- eller domsadresse er tom.</value>
@@ -13704,8 +13704,8 @@ Tilføj alligevel?</value>
   <data name="The server to ask (empty asks the domain's MX hosts)" xml:space="preserve">
     <value>Serveren der skal spørges (tom spørger domænets MX-værter)</value>
   </data>
-  <data name="The server's Host name (Protocols &gt; SMTP) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
-    <value>Serverens Værtsnavn (Protokoller &gt; SMTP) er TOMT, så den annoncerer sit Windows-computernavn i HELO/EHLO - ikke et offentligt DNS-navn - og ingen "a:"-mekanisme kan ærligt tilbydes. Forslaget autoriserer kun domænets MX-værter. Sæt værtsnavnet først; flere poster på denne side har brug for det.</value>
+  <data name="The server's Host name (Protocols &gt; SMTP) is empty, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
+    <value>Serverens Værtsnavn (Protokoller &gt; SMTP) er tomt, så den annoncerer sit Windows-computernavn i HELO/EHLO - ikke et offentligt DNS-navn - og ingen "a:"-mekanisme kan tilbydes. Forslaget autoriserer kun domænets MX-værter. Sæt værtsnavnet først; flere poster på denne side har brug for det.</value>
   </data>
   <data name="The server's administrator code" xml:space="preserve">
     <value>Serverens administratorkode</value>
@@ -13966,8 +13966,8 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="These are the ports the server listens on. The submission port, 587, is the one your own people send through." xml:space="preserve">
     <value>Dette er de porte, serveren lytter på. Submission-porten, 587, er den, dine egne folk sender igennem.</value>
   </data>
-  <data name="These belong together: expiry without history teaches people to alternate between two passwords, which is worse than not expiring at all. History only ever refuses a CHANGE, at the moment somebody is able to pick something else, so nobody is locked out by it. Expiry refuses a LOGON - read its description before turning it on." xml:space="preserve">
-    <value>Disse hører sammen: udløb uden historik lærer folk at skifte mellem to adgangskoder, hvilket er værre end slet ikke at udløbe. Historikken afviser kun en ÆNDRING, i det øjeblik nogen kan vælge noget andet, så ingen låses ude af den. Udløb afviser en PÅLOGNING - læs dets beskrivelse, før du slår det til.</value>
+  <data name="These belong together: expiry without history teaches people to alternate between two passwords, which is worse than not expiring at all. History only ever refuses a change, at the moment somebody is able to pick something else, so nobody is locked out by it. Expiry refuses a sign-in - read its description before turning it on." xml:space="preserve">
+    <value>Disse hører sammen: udløb uden historik lærer folk at skifte mellem to adgangskoder, hvilket er værre end slet ikke at udløbe. Historikken afviser kun en ændring, i det øjeblik nogen kan vælge noget andet, så ingen låses ude af den. Udløb afviser en pålogning - læs dets beskrivelse, før du slår det til.</value>
   </data>
   <data name="These limit what every rule may do. The rules themselves - what each one matches and what it does - are on the Rules page." xml:space="preserve">
     <value>Disse begrænser, hvad enhver regel må gøre. Selve reglerne - hvad hver af dem matcher, og hvad den gør - findes på siden Regler.</value>
@@ -14122,8 +14122,8 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="This server now" xml:space="preserve">
     <value>Denne server nu</value>
   </data>
-  <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from {0}." xml:space="preserve">
-    <value>Denne server KONTROLLERER kun SPF på indgående post; at publicere posten er for alle andre - den fortæller modtagende servere, hvilke maskiner der må sende post, der hævder at være fra {0}.</value>
+  <data name="This server only checks SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from {0}." xml:space="preserve">
+    <value>Denne server kontrollerer kun SPF på indgående post; at publicere posten er for alle andre - den fortæller modtagende servere, hvilke maskiner der må sende post, der hævder at være fra {0}.</value>
   </data>
   <data name="This server requires a one-time code for the administrator." xml:space="preserve">
     <value>Denne server kræver en engangskode for administratoren.</value>
@@ -14146,8 +14146,8 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="This suggestion cannot know your other senders. If anything else sends mail as {0} - a newsletter service, a website contact form, a hosted mailbox provider - copying this record as-is makes that mail fail SPF at every receiver that checks it. Add those senders to the record first." xml:space="preserve">
     <value>Dette forslag kan ikke kende dine andre afsendere. Hvis noget andet sender post som {0} - en nyhedsbrevstjeneste, en kontaktformular på et websted, en udbyder af hostede postkasser - får kopiering af denne post, som den er, den post til at fejle SPF hos hver modtager, der kontrollerer den. Tilføj de afsendere til posten først.</value>
   </data>
-  <data name="This validates against a LOCAL Windows account on the server's own computer, not against a domain. That is the right setting when there is no Active Directory." xml:space="preserve">
-    <value>Dette validerer mod en LOKAL Windows-konto på serverens egen computer, ikke mod et domæne. Det er den rigtige indstilling, når der ikke er noget Active Directory.</value>
+  <data name="This validates against a local Windows account on the server's own computer, not against a domain. That is the right setting when there is no Active Directory." xml:space="preserve">
+    <value>Dette validerer mod en lokal Windows-konto på serverens egen computer, ikke mod et domæne. Det er den rigtige indstilling, når der ikke er noget Active Directory.</value>
   </data>
   <data name="This validates against the domain &quot;{0}&quot;. The server's own computer must be joined to it." xml:space="preserve">
     <value>Dette validerer mod domænet "{0}". Serverens egen computer skal være tilsluttet det.</value>
@@ -14926,8 +14926,8 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="Where it goes" xml:space="preserve">
     <value>Hvor det sendes hen</value>
   </data>
-  <data name="Where mail FROM this domain leaves through. This is a different question from a route, which decides where mail addressed TO a domain is sent - it is for a server hosting several independent domains where each has its own delivery provider." xml:space="preserve">
-    <value>Hvor post FRA dette domæne går ud igennem. Det er et andet spørgsmål end en rute, som afgør, hvor post adresseret TIL et domæne sendes hen - det er til en server, der hoster flere uafhængige domæner, hvor hvert har sin egen leveringsudbyder.</value>
+  <data name="Where mail from this domain leaves through. This is a different question from a route, which decides where mail addressed to a domain is sent - it is for a server hosting several independent domains where each has its own delivery provider." xml:space="preserve">
+    <value>Hvor post fra dette domæne går ud igennem. Det er et andet spørgsmål end en rute, som afgør, hvor post adresseret til et domæne sendes hen - det er til en server, der hoster flere uafhængige domæner, hvor hvert har sin egen leveringsudbyder.</value>
   </data>
   <data name="Where new messages are stored" xml:space="preserve">
     <value>Hvor nye meddelelser gemmes</value>
@@ -16333,11 +16333,11 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="hMailServer cannot create any of these for itself. Each one missing has its own failure shape, and the server reports which one it hit - see the error log." xml:space="preserve">
     <value>hMailServer kan ikke oprette nogen af disse selv. Hver enkelt, der mangler, har sin egen fejlform, og serveren rapporterer, hvilken den ramte - se fejlloggen.</value>
   </data>
-  <data name="hMailServer does NOT implement CalDAV or CardDAV. These settings only answer the well-known discovery URLs (RFC 6764) with a redirect to the server that does, so a client configured with a user's mail address finds their calendar without being told a second address. Leave both empty unless you run such a server: empty means the discovery URLs answer 404, which is the honest response when there is nothing to point at. They need the web services listener above to be running, like everything else on this page." xml:space="preserve">
-    <value>hMailServer implementerer IKKE CalDAV eller CardDAV. Disse indstillinger besvarer kun de velkendte discovery-URL'er (RFC 6764) med en omdirigering til den server, der gør, så en klient, der er sat op med en brugers mailadresse, finder deres kalender uden at få oplyst endnu en adresse. Lad begge stå tomme, medmindre du driver sådan en server: tomt betyder, at discovery-URL'erne svarer 404, hvilket er det ærlige svar, når der ikke er noget at pege på. De kræver, at webtjenestelytteren ovenfor kører, ligesom alt andet på denne side.</value>
-  </data>
   <data name="hMailServer does not create or manage client certificates. The certificate authority and the client certificates themselves must be produced outside hMailServer (for example with OpenSSL or an internal PKI) - the server only trusts the CA bundle it is given here." xml:space="preserve">
     <value>hMailServer opretter eller administrerer ikke klientcertifikater. Certifikatmyndigheden og selve klientcertifikaterne skal frembringes uden for hMailServer (for eksempel med OpenSSL eller en intern PKI) - serveren stoler kun på det CA-bundt, den får her.</value>
+  </data>
+  <data name="hMailServer does not implement CalDAV or CardDAV. These settings only answer the well-known discovery URLs (RFC 6764) with a redirect to the server that does, so a client configured with a user's mail address finds their calendar without being told a second address. Leave both empty unless you run such a server: empty means the discovery URLs answer 404, which is the right response when there is nothing to point at. They need the web services listener above to be running, like everything else on this page." xml:space="preserve">
+    <value>hMailServer implementerer ikke CalDAV eller CardDAV. Disse indstillinger besvarer kun de velkendte discovery-URL'er (RFC 6764) med en omdirigering til den server, der gør, så en klient, der er sat op med en brugers mailadresse, finder deres kalender uden at få oplyst endnu en adresse. Lad begge stå tomme, medmindre du driver sådan en server: tomt betyder, at discovery-URL'erne svarer 404, hvilket er det rigtige svar, når der ikke er noget at pege på. De kræver, at webtjenestelytteren ovenfor kører, ligesom alt andet på denne side.</value>
   </data>
   <data name="hMailServer has been updated from {0} to {1}, and the service is running. Installed by {2} at {3}." xml:space="preserve">
     <value>hMailServer er opdateret fra {0} til {1}, og tjenesten kører. Installeret af {2} {3}.</value>
@@ -17999,8 +17999,8 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="{0}: the key file is an encrypted PEM but no passphrase is configured, so the key will not load (server error 6170) and every port using this certificate will not start. Set the private key password on the certificate." xml:space="preserve">
     <value>{0}: nøglefilen er en krypteret PEM, men der er ikke konfigureret nogen adgangssætning, så nøglen indlæses ikke (serverfejl 6170), og hver port, der bruger dette certifikat, starter ikke. Sæt adgangskoden til den private nøgle på certifikatet.</value>
   </data>
-  <data name="{0}: the key file is encrypted and a passphrase is configured. Whether it is the RIGHT passphrase is only proven when the server loads the key - check the error log for error 6170 after a restart." xml:space="preserve">
-    <value>{0}: nøglefilen er krypteret, og der er konfigureret en adgangssætning. Om det er den RIGTIGE adgangssætning, bevises først, når serveren indlæser nøglen - kig efter fejl 6170 i fejlloggen efter en genstart.</value>
+  <data name="{0}: the key file is encrypted and a passphrase is configured. Whether it is the right passphrase is only proven when the server loads the key - check the error log for error 6170 after a restart." xml:space="preserve">
+    <value>{0}: nøglefilen er krypteret, og der er konfigureret en adgangssætning. Om det er den rigtige adgangssætning, bevises først, når serveren indlæser nøglen - kig efter fejl 6170 i fejlloggen efter en genstart.</value>
   </data>
   <data name="{0}: the key file is encrypted, but whether a passphrase is configured could not be read (this requires the server-administrator account)." xml:space="preserve">
     <value>{0}: nøglefilen er krypteret, men om der er konfigureret en adgangssætning, kunne ikke læses (dette kræver serveradministratorkontoen).</value>
@@ -18026,8 +18026,8 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="{0}: the rotation record at {1} is published and matches the staged secondary key. Promote whenever it has propagated everywhere." xml:space="preserve">
     <value>{0}: rotationsposten på {1} er offentliggjort og svarer til den klargjorte sekundære nøgle. Forfrem, når den er udbredt overalt.</value>
   </data>
-  <data name="{0}: the secondary key is staged but no TXT record exists at {1} yet. Publish it and let it propagate BEFORE promoting the secondary key, or mail will sign with a key the world cannot look up." xml:space="preserve">
-    <value>{0}: den sekundære nøgle er klargjort, men der findes endnu ingen TXT-post på {1}. Offentliggør den, og lad den udbrede sig, FØR den sekundære nøgle forfremmes, ellers signeres post med en nøgle, som verden ikke kan slå op.</value>
+  <data name="{0}: the secondary key is staged but no TXT record exists at {1} yet. Publish it and let it propagate before promoting the secondary key, or mail will sign with a key the world cannot look up." xml:space="preserve">
+    <value>{0}: den sekundære nøgle er klargjort, men der findes endnu ingen TXT-post på {1}. Offentliggør den, og lad den udbrede sig, før den sekundære nøgle forfremmes, ellers signeres post med en nøgle, som verden ikke kan slå op.</value>
   </data>
   <data name="{0}: the {1} TXT record is published. Not checkable from here: that mta-sts.{2} resolves to this server, and that the certificate covers that name." xml:space="preserve">
     <value>{0}: {1} TXT-posten er offentliggjort. Kan ikke kontrolleres herfra: at mta-sts.{2} slås op til denne server, og at certifikatet dækker det navn.</value>
@@ -18050,7 +18050,7 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} indeholder ingen PEM-certifikatblok, så den rummer intet brugbart CA-certifikat (serverfejl 6140). Eksportér CA-certifikatet i PEM-format (Base64).</value>
   </data>
-  <data name="~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many spray sources live behind it. A score at or above the refuse threshold refuses the message during the SMTP conversation, as a fail does." xml:space="preserve">
+  <data name="~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many bulk senders hide behind it. A score at or above the refuse threshold refuses the message during the SMTP conversation, as a fail does." xml:space="preserve">
     <value>~all: domænet siger, at klienten formentlig ikke er autoriseret, men beder om, at beskeden alligevel accepteres, og mange masseudsendere gemmer sig bag det. En score på eller over afvisningstærsklen afviser beskeden under SMTP-samtalen, som et fail gør.</value>
   </data>
   <data name="… continued in {0}" xml:space="preserve">

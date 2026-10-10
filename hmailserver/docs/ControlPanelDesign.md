@@ -203,6 +203,8 @@ One name for one thing, in every text the Control Panel shows, so that a reader 
 
 A field's caption ends with no colon: the row's layout already says that the editor below belongs to it.
 
+No word is written in capitals to stress it, in English or in a translation: the sentence carries the stress ("Applied when a password is chosen - ... - and never when one is checked at sign-in"), and a risk the reader must not miss is a Warning notice. Capitals are for names - a protocol, a command, a record type, a unit, the rule editor's IF, THEN, (AND) and (OR) - and `EmphasisCapitalsTests` holds every catalogue to them (review finding F297).
+
 ## Tours
 
 A tour teaches a page while somebody uses it. One mechanism, the same shape in all three surfaces - this

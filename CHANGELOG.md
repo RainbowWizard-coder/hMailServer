@@ -3163,6 +3163,21 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   hint had said it multiplied the retry count. About 140 captions and hints, in every language. `CaptionFormTests`
   holds every caption of the Control Panel to the form.
 
+- **Fixed: about sixty texts wrote a word in capitals to stress it, and a few said "honestly" or "perfectly".** "This
+  server only CHECKS SPF on incoming mail", "the PTR is NOT published in your domain's zone", "applied to THIS
+  account's copy", "Where mail FROM this domain leaves through", "Match ALL criteria (AND)", "Replace ALL configured
+  ports", "READ THIS FIRST:", "Applied when a password is CHOSEN", "The directory ACCEPTED the credentials", "Signing
+  is currently ON." - and the catalogues copied the capitals, "den RICHTIGEN Schlüssel", "LESEN SIE DAS ZUERST",
+  「正しい」パスフレーズ. Every one is written in sentence case, in every language, and the sentence carries the stress:
+  "One notice, not one per message", "0 does not mean no time limit." where it was "0 is NOT no bound.", "every
+  connection appears to come from that device" where it was "from IT". "Not checked from here, honestly", "can
+  honestly be offered", "the honest response", "it will validate perfectly" and "That is deliberate, not a bug" lose
+  the word that told the administrator nothing, "many spray sources live behind it" is "many bulk senders hide behind
+  it", the quota warning's hint loses its two sentences about what the server did before, and the password expiry's
+  hint begins with what it says, where it began "READ THIS FIRST:" under a card that already says to read it.
+  `EmphasisCapitalsTests` holds the English and every catalogue to no word in capitals but a name - a protocol, a
+  command, a record type, a unit, the rule editor's operators and its IF and THEN.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

@@ -202,8 +202,8 @@ namespace hMailServer.ControlPanel.Views
          content.Children.Add(Table(new[]
          {
             (L("Message finalization deadline (240)"), L("The whole accept pipeline; then the sender gets a 451. 0 = no time limit.")),
-            (L("SpamAssassin maximum timeout (90)"), L("SpamAssassin: idle timeout, and a session ceiling of this plus 30 s. 0 is NOT no bound.")),
-            (L("ClamAV maximum timeout (90)"), L("ClamAV: idle timeout per socket operation. 0 is NOT no bound.")),
+            (L("SpamAssassin maximum timeout (90)"), L("SpamAssassin: idle timeout, and a session ceiling of this plus 30 s. 0 does not mean no time limit.")),
+            (L("ClamAV maximum timeout (90)"), L("ClamAV: idle timeout per socket operation. 0 does not mean no time limit.")),
             (L("DNS query timeout (10)"), L("A single DNS query. 0 = no time limit.")),
             (L("Event script execution timeout (60)"), L("One event script invocation. 0 = no time limit.")),
             (L("External process timeout (300)"), L("An external scanner process. 0 = no time limit.")),
@@ -271,7 +271,7 @@ namespace hMailServer.ControlPanel.Views
             if (!enabled)
                Say_(StatusLevel.Warning, L("Logging is off altogether, so nothing below will be written until it is on."));
             else if (debug)
-               Say_(StatusLevel.Warning, L("Debug logging is ON. The stage timings and the DNS lines are being written; turn it off again when you have what you need."));
+               Say_(StatusLevel.Warning, L("Debug logging is on. The stage timings and the DNS lines are being written; turn it off again when you have what you need."));
             else
                Say_(StatusLevel.Information, L("Debug logging is off. Application logging still records any stage that takes ten seconds or more."));
 

@@ -102,8 +102,8 @@ namespace hMailServer.ControlPanel.Views
          FormSubmit.Bind(AddRuleForm, AddRuleButton, NewRuleName);
 
          suppressMatchMode_ = true;
-         MatchMode.Items.Add(L("Match ALL criteria (AND)"));
-         MatchMode.Items.Add(L("Match ANY criterion (OR)"));
+         MatchMode.Items.Add(L("Match all criteria (AND)"));
+         MatchMode.Items.Add(L("Match any criterion (OR)"));
          MatchMode.SelectedIndex = 0;
          suppressMatchMode_ = false;
 

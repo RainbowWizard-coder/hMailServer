@@ -522,7 +522,7 @@ namespace hMailServer.ControlPanel.Views
       {
          Card card = Section(F("SPF - which machines may send mail as {0}", domain.Name), out StackPanel content);
 
-         content.Children.Add(Paragraph(F("This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from {0}.", domain.Name),
+         content.Children.Add(Paragraph(F("This server only checks SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from {0}.", domain.Name),
             Typography.Caption));
 
          string suggested = SuggestedSpf();
@@ -533,7 +533,7 @@ namespace hMailServer.ControlPanel.Views
          else if (serverHostName_.Length > 0)
             provenance = F("\"mx\" authorises whatever {0}'s MX records point at; \"a:{1}\" authorises the address of the host name this server announces in HELO/EHLO (Protocols > SMTP > Host name). \"~all\" soft-fails everything else - deliberately softer than \"-all\" until you are sure the list is complete.", domain.Name, serverHostName_);
          else
-            provenance = L("The server's Host name (Protocols > SMTP) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no \"a:\" mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it.");
+            provenance = L("The server's Host name (Protocols > SMTP) is empty, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no \"a:\" mechanism can be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it.");
 
          content.Children.Add(Paragraph(provenance, Typography.Caption));
 
@@ -633,7 +633,7 @@ namespace hMailServer.ControlPanel.Views
                return card;
             }
 
-            content.Children.Add(Paragraph(F("No DKIM key is configured for {0} yet. Generate one here: the private key is saved to a file of your choosing on this machine, the selector and key file are stored on the domain, and signing stays OFF until the DNS record below has been published and a check on this page has seen it - switching signing on before then would sign mail with a key the world cannot look up.", domain.Name),
+            content.Children.Add(Paragraph(F("No DKIM key is configured for {0} yet. Generate one here: the private key is saved to a file of your choosing on this machine, the selector and key file are stored on the domain, and signing stays off until the DNS record below has been published and a check on this page has seen it - switching signing on before then would sign mail with a key the world cannot look up.", domain.Name),
                Typography.Body));
 
             var selectorRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 4, 0, 8) };
@@ -684,7 +684,7 @@ namespace hMailServer.ControlPanel.Views
 
          content.Children.Add(Paragraph(Sentences(
                F("Derived from the domain's configured key: selector \"{0}\", private key file {1}.", domain.DkimSelector, domain.DkimKeyFile),
-               domain.DkimEnabled ? L("Signing is currently ON.") : L("Signing is currently OFF - it can be switched on below once the record is confirmed published."),
+               domain.DkimEnabled ? L("Signing is currently on.") : L("Signing is currently off - it can be switched on below once the record is confirmed published."),
                domain.DkimEnabled && expected == null
                   ? L("The key file could not be read from this machine, so the record value cannot be shown here; the domain's DKIM tab showed it when the key was made.")
                   : null),
@@ -769,7 +769,7 @@ namespace hMailServer.ControlPanel.Views
                   {
                      case DnsTxtLookup.LookupStatus.Found:
                         block.SetResult(StatusLevel.Information, L("Cannot tell"),
-                           F("A TXT record exists at {0}, but the private key file could not be read from this machine, so whether it carries the RIGHT key cannot be verified from here. Run the check on the server itself, or use the domain's DKIM tab.", host));
+                           F("A TXT record exists at {0}, but the private key file could not be read from this machine, so whether it carries the right key cannot be verified from here. Run the check on the server itself, or use the domain's DKIM tab.", host));
                         break;
                      case DnsTxtLookup.LookupStatus.NoRecord:
                         block.SetResult(StatusLevel.Warning, L("Not published"), NotFoundAdvice(host));
@@ -1487,7 +1487,7 @@ namespace hMailServer.ControlPanel.Views
       {
          Card card = Section(L("Reverse DNS (PTR) and the HELO name - set by whoever owns your IP address"), out StackPanel content);
 
-         content.Children.Add(Paragraph(L("Receivers look up the PTR record of the connecting IP address and compare it with the name the server announces in HELO/EHLO; this server judges incoming mail by the same standard when the PTR and HELO checks on Anti-spam settings are on. Unlike every other record on this page, the PTR is NOT published in your domain's zone: it lives in the reverse zone of the IP address, which belongs to whoever owns the address - usually your hosting provider or ISP. Ask them to set it; there is nothing to paste into your own DNS console."),
+         content.Children.Add(Paragraph(L("Receivers look up the PTR record of the connecting IP address and compare it with the name the server announces in HELO/EHLO; this server judges incoming mail by the same standard when the PTR and HELO checks on Anti-spam settings are on. Unlike every other record on this page, the PTR is not published in your domain's zone: it lives in the reverse zone of the IP address, which belongs to whoever owns the address - usually your hosting provider or ISP. Ask them to set it; there is nothing to paste into your own DNS console."),
             Typography.Caption));
 
          string heloName;
@@ -1507,8 +1507,8 @@ namespace hMailServer.ControlPanel.Views
          {
             heloName = IsLocalServer() ? Environment.MachineName : L("(the server's Windows computer name)");
             heloNote = IsLocalServer()
-               ? L("The Host name on the Protocols page is EMPTY, so the server falls back to its Windows computer name - shown above as this machine's name. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first.")
-               : L("The Host name on the Protocols page is EMPTY, so the server falls back to its Windows computer name, which cannot be read from this machine. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first.");
+               ? L("The Host name on the Protocols page is empty, so the server falls back to its Windows computer name - shown above as this machine's name. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first.")
+               : L("The Host name on the Protocols page is empty, so the server falls back to its Windows computer name, which cannot be read from this machine. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first.");
          }
 
          content.Children.Add(Label(L("Host name this server announces (give this to the IP's owner for the PTR):")));
@@ -1534,7 +1534,7 @@ namespace hMailServer.ControlPanel.Views
 
          content.Children.Add(Paragraph(heloNote, Typography.Caption));
 
-         content.Children.Add(Paragraph(L("Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT and MX records only. Test from outside instead: nslookup <your public IP> shows the PTR; it should name the host above."),
+         content.Children.Add(Paragraph(L("Not checked from here: verifying the PTR needs the server's public IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT and MX records only. Test from outside instead: nslookup <your public IP> shows the PTR; it should name the host above."),
             Typography.Caption));
 
          var links = new StackPanel { Orientation = Orientation.Horizontal };

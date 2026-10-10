@@ -736,7 +736,7 @@ namespace hMailServer.ControlPanel.Views
       private void RestoreDefaults_Click(object sender, RoutedEventArgs e)
       {
          if (!MessageBox.Confirm(
-                L("Replace ALL configured ports with the defaults?\n\nSMTP 25 and 587, POP3 110, IMAP 143 - without connection security, and with SMTP authentication On on both SMTP ports, so a port 25 that is a honeypot takes AUTH again. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialised."),
+                L("Replace all configured ports with the defaults?\n\nSMTP 25 and 587, POP3 110, IMAP 143 - without connection security, and with SMTP authentication On on both SMTP ports, so a port 25 that is a honeypot takes AUTH again. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialised."),
                 L("Control Panel"), L("_Replace all ports"), destructive: true))
             return;
 

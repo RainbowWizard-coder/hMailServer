@@ -1479,7 +1479,7 @@ namespace hMailServer.ControlPanel.Views
             return new WarningState
             {
                Level = StatusLevel.Information,
-               Text = L("The Control Panel is connected to another host, so the account ITS service runs as cannot be read from here. Open the Control Panel on the server itself to see it.")
+               Text = L("The Control Panel is connected to another host, so the account its service runs as cannot be read from here. Open the Control Panel on the server itself to see it.")
             };
          }
 
@@ -1639,8 +1639,8 @@ namespace hMailServer.ControlPanel.Views
                Page = "certs",
                Level = StatusLevel.Critical,
                Text = PluralF(-days,
-                  "The issued certificate EXPIRED on {0}, {1} day ago, and renewal has not replaced it. Clients are refusing this server's TLS. Check the error log for the last renewal attempt: the usual cause is that the CA can no longer reach this server on the http-01 challenge port.",
-                  "The issued certificate EXPIRED on {0}, {1} days ago, and renewal has not replaced it. Clients are refusing this server's TLS. Check the error log for the last renewal attempt: the usual cause is that the CA can no longer reach this server on the http-01 challenge port.",
+                  "The issued certificate expired on {0}, {1} day ago, and renewal has not replaced it. Clients are refusing this server's TLS. Check the error log for the last renewal attempt: the usual cause is that the CA can no longer reach this server on the http-01 challenge port.",
+                  "The issued certificate expired on {0}, {1} days ago, and renewal has not replaced it. Clients are refusing this server's TLS. Check the error log for the last renewal attempt: the usual cause is that the CA can no longer reach this server on the http-01 challenge port.",
                   expires, -days)
             };
          }
@@ -2138,7 +2138,7 @@ namespace hMailServer.ControlPanel.Views
                   // could not be edited at all, which stopped being true the moment the COM
                   // properties landed; a card that describes a limitation the product no
                   // longer has is the same defect as one that claims a feature it lacks.
-                  Blurb = L("The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.ini. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page.")
+                  Blurb = L("The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.ini. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page.")
                });
                cards_.Add(new CardDef
                {
@@ -2179,7 +2179,7 @@ namespace hMailServer.ControlPanel.Views
                   // handling and the automatic From.
                   Title = L("DKIM oversigning"),
                   Tab = L("Signing"),
-                  Blurb = L("Oversigning (RFC 6376 5.4) lists a header field name in the signature's h= tag once more often than the field occurs, which makes ADDING another one - a second From:, an injected Subject: - break the signature. Off by default: oversigning a field that a mailing list or forwarder legitimately adds costs those messages their DKIM pass."),
+                  Blurb = L("Oversigning (RFC 6376 5.4) lists a header field name in the signature's h= tag once more often than the field occurs, which makes adding another one - a second From:, an injected Subject: - break the signature. Off by default: oversigning a field that a mailing list or forwarder legitimately adds costs those messages their DKIM pass."),
                   Settings =
                   {
                      new TextSetting
@@ -2416,7 +2416,7 @@ namespace hMailServer.ControlPanel.Views
                         Key = "MetricsServerAuthUsername",
                         Label = L("HTTP Basic user name for /metrics (empty = Basic off)"),
                         Placeholder = "metrics",
-                        Blurb = L("The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set.")
+                        Blurb = L("The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must both be set: with only one of them the server logs a warning at startup and behaves as if neither were set.")
                      },
                      new SecretSetting
                      {
@@ -2438,7 +2438,7 @@ namespace hMailServer.ControlPanel.Views
                         Key = "MetricsServerPrivateKeyFile",
                         FileFilter = L("PEM/key files (*.pem;*.key)|*.pem;*.key|All files (*.*)|*.*"),
                         Label = L("TLS private key file for the metrics listener (PEM)"),
-                        Blurb = L("Certificate and key must BOTH be set to serve HTTPS; with only one of them TLS is NOT enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear.")
+                        Blurb = L("The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear.")
                      },
                      // JsonLogging moved to the Logging page, with the other log settings.
                      new TextSetting
@@ -2537,7 +2537,7 @@ namespace hMailServer.ControlPanel.Views
                            return new WarningState
                            {
                               Level = StatusLevel.Warning,
-                              Text = F("HTTP Basic needs both the user name and the password. Only {0} is set, so Basic authentication is NOT enabled - the server logs this and behaves as if neither were set.",
+                              Text = F("HTTP Basic needs both the user name and the password. Only {0} is set, so Basic authentication is not enabled - the server logs this and behaves as if neither were set.",
                                  userSet ? L("the user name") : L("the password"))
                            };
                         }
@@ -2558,7 +2558,7 @@ namespace hMailServer.ControlPanel.Views
                            return new WarningState
                            {
                               Level = StatusLevel.Warning,
-                              Text = F("TLS for the metrics listener needs both the certificate and the private key. Only {0} is set, so TLS is NOT enabled and scrapes stay plain HTTP.",
+                              Text = F("TLS for the metrics listener needs both the certificate and the private key. Only {0} is set, so TLS is not enabled and scrapes stay plain HTTP.",
                                  certSet ? L("the certificate") : L("the private key"))
                            };
                         }
@@ -2794,7 +2794,7 @@ namespace hMailServer.ControlPanel.Views
                   // against an address a header supplied, so chained proxies cannot
                   // bootstrap trust.
                   Title = L("Front-end proxies (PROXY protocol and XCLIENT)"),
-                  Blurb = L("Put a load balancer, a TLS terminator or a Postfix relay in front of the SMTP listener and every connection appears to come from IT - which silently breaks DNSBL checks, SPF, greylisting, auto-ban and the IP range rules all at once, while everything still reports success. These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server. The upstream has to be configured to send it or nothing here changes: HAProxy needs send-proxy or send-proxy-v2 on its server line, and a Postfix relay needs XCLIENT enabled towards this host. hMailServer cannot check that from here - and note that once an address is listed as a PROXY protocol proxy the header becomes REQUIRED from it, so a proxy that does not send one will have its connections dropped."),
+                  Blurb = L("Put a load balancer, a TLS terminator or a Postfix relay in front of the SMTP listener and every connection appears to come from that device - which silently breaks DNSBL checks, SPF, greylisting, auto-ban and the IP range rules all at once, while everything still reports success. These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server. The upstream has to be configured to send it or nothing here changes: HAProxy needs send-proxy or send-proxy-v2 on its server line, and a Postfix relay needs XCLIENT enabled towards this host. hMailServer cannot check that from here - and note that once an address is listed as a PROXY protocol proxy the header becomes required from it, so a proxy that does not send one will have its connections dropped."),
                   Settings =
                   {
                      new BoolSetting { Key = "SMTPProxyProtocolEnabled", Default = false, Label = L("Accept the PROXY protocol (v1 and v2) on the SMTP listener") },
@@ -3289,7 +3289,7 @@ namespace hMailServer.ControlPanel.Views
                cards_.Add(new CardDef
                {
                   Title = L("Calendar and contacts discovery (CalDAV / CardDAV)"),
-                  Blurb = L("hMailServer does NOT implement CalDAV or CardDAV. These settings only answer the well-known discovery URLs (RFC 6764) with a redirect to the server that does, so a client configured with a user's mail address finds their calendar without being told a second address. Leave both empty unless you run such a server: empty means the discovery URLs answer 404, which is the honest response when there is nothing to point at. They need the web services listener above to be running, like everything else on this page."),
+                  Blurb = L("hMailServer does not implement CalDAV or CardDAV. These settings only answer the well-known discovery URLs (RFC 6764) with a redirect to the server that does, so a client configured with a user's mail address finds their calendar without being told a second address. Leave both empty unless you run such a server: empty means the discovery URLs answer 404, which is the right response when there is nothing to point at. They need the web services listener above to be running, like everything else on this page."),
                   Settings =
                   {
                      new TextSetting

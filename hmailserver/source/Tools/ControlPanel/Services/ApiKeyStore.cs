@@ -386,7 +386,7 @@ namespace hMailServer.ControlPanel.Services
 
          if (!deleted)
          {
-            error = F("The key store could not be written, so the key was NOT revoked: {0}", path);
+            error = F("The key store could not be written, so the key was not revoked: {0}", path);
             return false;
          }
 

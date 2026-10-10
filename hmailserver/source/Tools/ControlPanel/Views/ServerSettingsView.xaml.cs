@@ -2151,7 +2151,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "QuotaWarningPercent",
             Label = L("Warn the mailbox owner at this percentage of their quota (0 = never)"),
             Default = 90,
-            Blurb = L("The delivery that takes a mailbox past this percentage produces one notice to the person whose mailbox it is, from their own domain's postmaster. ONE, not one per message: the server treats the threshold as something the mailbox CROSSES rather than a state it is in, so a mailbox sitting at 95% is not warned about again on every delivery - which would fill it faster than the mail does. Emptying the mailbox and filling it again warns again, which is the behaviour anyone would expect and is free here rather than something that had to be remembered and expired. On by default, because the alternative is what this server did before: say nothing at all until mail starts being refused, by which point the person it happens to is the last to know."),
+            Blurb = L("The delivery that takes a mailbox past this percentage produces one notice to the person whose mailbox it is, from their own domain's postmaster. One notice, not one per message: the server treats the threshold as something the mailbox crosses rather than a state it is in, so a mailbox sitting at 95% is not warned about again on every delivery - which would fill it faster than the mail does. Emptying the mailbox and filling it again warns again. On by default; with it off, nothing is said until mail starts being refused."),
             IniStore = iniStore_
          });
          smtp.Settings.Add(new ComText
@@ -2756,7 +2756,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "AntiSpam.UseSPFSoftFailScore",
             Label = L("SPF softfail score (0 = not scored)"),
             Numeric = true,
-            Blurb = L("~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many spray sources live behind it. A score at or above the refuse threshold refuses the message during the SMTP conversation, as a fail does.")
+            Blurb = L("~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many bulk senders hide behind it. A score at or above the refuse threshold refuses the message during the SMTP conversation, as a fail does.")
          });
          auth.Settings.Add(new ComText
          {
@@ -5370,7 +5370,7 @@ namespace hMailServer.ControlPanel.Views
          // not because the two are related. Everything here is off by default, and the
          // card says why that matters rather than leaving it to be discovered.
          var policy = Card(L("Policy for mailbox passwords"),
-            L("Applied when a password is CHOSEN - here, in the account editor, by a script or by the API - and never when one is checked at logon. That distinction is the whole design: an account whose password predates the policy keeps working, because locking people out of mailboxes they can open today is a worse outcome than the weak password it would be correcting. Tightening these settings therefore affects the next password each person sets, not the one they have. Everything is off until you turn it on, so an upgrade never starts refusing passwords on its own."));
+            L("Applied when a password is chosen - here, in the account editor, by a script or by the API - and never when one is checked at sign-in. That distinction is the whole design: an account whose password predates the policy keeps working, because locking people out of mailboxes they can open today is a worse outcome than the weak password it would be correcting. Tightening these settings therefore affects the next password each person sets, not the one they have. Everything is off until you turn it on, so an upgrade never starts refusing passwords on its own."));
          policy.Settings.Add(new IniNumber
          {
             Path = "PasswordPolicyMinimumLength",
@@ -5449,7 +5449,7 @@ namespace hMailServer.ControlPanel.Views
          // Separate from the complexity card above, because the two carry very
          // different risks and putting them under one heading would hide that.
          var ageing = Card(L("Reuse and expiry"),
-            L("These belong together: expiry without history teaches people to alternate between two passwords, which is worse than not expiring at all. History only ever refuses a CHANGE, at the moment somebody is able to pick something else, so nobody is locked out by it. Expiry refuses a LOGON - read its description before turning it on."));
+            L("These belong together: expiry without history teaches people to alternate between two passwords, which is worse than not expiring at all. History only ever refuses a change, at the moment somebody is able to pick something else, so nobody is locked out by it. Expiry refuses a sign-in - read its description before turning it on."));
          ageing.Settings.Add(new IniNumber
          {
             Path = "PasswordPolicyHistoryCount",
@@ -5463,7 +5463,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "PasswordPolicyMaximumAgeDays",
             Label = L("Expire passwords after (days; 0 = never)"),
             Default = 0,
-            Blurb = L("READ THIS FIRST: IMAP, POP3 and SMTP have no way to change a password, and the self-service portal refuses an expired one at sign-in like every other surface. An expired password is therefore renewed by an administrator - or by the person themselves only if they hold an app password, which still signs them in to the portal, where the expired password is accepted as the current one when setting a new one. Turning this on means someone has to be available for everybody else. Existing app passwords keep working, which is also the one way an affected person can still collect mail; Active Directory accounts are exempt, because their password lives in the directory and expires by its policy, not this one. The clock started when this server was upgraded, so nobody is expired the moment you set this."),
+            Blurb = L("IMAP, POP3 and SMTP have no way to change a password, and the self-service portal refuses an expired one at sign-in like every other surface. An expired password is therefore renewed by an administrator - or by the person themselves only if they hold an app password, which still signs them in to the portal, where the expired password is accepted as the current one when setting a new one. Turning this on means someone has to be available for everybody else. Existing app passwords keep working, which is also the one way an affected person can still collect mail; Active Directory accounts are exempt, because their password lives in the directory and expires by its policy, not this one. The clock started when this server was upgraded, so nobody is expired the moment you set this."),
             IniStore = iniStore_
          });
          Tab(L("Password")).Cards.Add(ageing);
@@ -5471,7 +5471,7 @@ namespace hMailServer.ControlPanel.Views
          // The one the server enforces, first because it is the one that matters:
          // it protects the credential itself on every surface, not just this tool.
          var serverTwoFactor = Card(L("Second factor on the administrator credential (recommended)"),
-            L("A one-time code required in addition to the administrator password, checked by the SERVER - so it applies to every client of that credential: this Control Panel, scripts using the COM API, and the REST API (which reads the code from an X-hMailServer-OTP header). The secret is stored on the server, in hMailServer.ini, machine-protected. It makes the administrator password worthless on its own. Keep the setup key safe: if the authenticator is lost, a local administrator deletes AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restarts the hMailServer service."));
+            L("A one-time code required in addition to the administrator password, checked by the server - so it applies to every client of that credential: this Control Panel, scripts using the COM API, and the REST API (which reads the code from an X-hMailServer-OTP header). The secret is stored on the server, in hMailServer.ini, machine-protected. It makes the administrator password worthless on its own. Keep the setup key safe: if the authenticator is lost, a local administrator deletes AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restarts the hMailServer service."));
 
          // Each card says whether its factor is on, as a pill and a sentence, with
          // the button worded by the state (review finding F240). Off is a Warning
@@ -5491,7 +5491,7 @@ namespace hMailServer.ControlPanel.Views
          Tab(L("Two-factor")).Cards.Add(serverTwoFactor);
 
          var twoFactor = Card(L("Two-factor for this Control Panel only"),
-            L("An older, weaker option: a one-time code asked for after the password when signing in to THIS Control Panel, checked by the tool itself after the server has already accepted the password. The secret is stored per machine under HKLM, so enabling or disabling it needs local administrator rights, and it does nothing for the REST API or for scripts using the COM API. Prefer the server-enforced factor above; this one remains for existing setups."));
+            L("An older, weaker option: a one-time code asked for after the password when signing in to this Control Panel, checked by the tool itself after the server has already accepted the password. The secret is stored per machine under HKLM, so enabling or disabling it needs local administrator rights, and it does nothing for the REST API or for scripts using the COM API. Prefer the server-enforced factor above; this one remains for existing setups."));
          twoFactor.Settings.Add(new TwoFactorStateRow
          {
             ReadOn = TotpManager.IsConfigured,

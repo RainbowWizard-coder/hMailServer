@@ -443,7 +443,7 @@ namespace hMailServer.ControlPanel.Views
          content.Children.Add(LabelledCheck_(verifyCertificate_,
             L("_Verify the directory server's certificate"),
             "ldap-verify-certificate",
-            StoredAs_(L("On by default, and only an explicit 0 in the INI turns it off. Turned off, the encrypted connection no longer proves it reaches YOUR directory: anyone who can intercept it can present any certificate and collect every password sent over it. The server notes the disabling in its application log once per service start. Only meaningful for LDAPS and StartTLS."), "VerifyCertificate")));
+            StoredAs_(L("On by default, and only an explicit 0 in the INI turns it off. Turned off, the encrypted connection no longer proves it reaches your directory: anyone who can intercept it can present any certificate and collect every password sent over it. The server notes the disabling in its application log once per service start. Only meaningful for LDAPS and StartTLS."), "VerifyCertificate")));
 
          content.Children.Add(timeoutRow_ = LabelledBox_(L("Time_out (seconds, 1 to 90)"), timeout_, "ldap-timeout",
             StoredAs_(L("Default 10, allowed range 1 to 90. The server reads values below 1 as 10 and clamps values above 90, because \"wait forever\" for an unreachable directory is how connection threads get exhausted."), "TimeoutSeconds"),
@@ -465,7 +465,7 @@ namespace hMailServer.ControlPanel.Views
          content.Children.Add(LabelledCheck_(allowUnprotected_,
             L("_Allow sending the password over an unprotected connection"),
             "ldap-allow-unprotected",
-            StoredAs_(L("Off by default. With unprotected LDAP and a simple bind, the server does NOT send the password and does NOT guess what you meant: it refuses the sign-in and reports the contradiction, once per minute. Turning this on sends passwords in the clear and should only ever happen on a network you control end to end."), "AllowUnprotectedPassword")));
+            StoredAs_(L("Off by default. With unprotected LDAP and a simple bind, the server does not send the password and does not guess what you meant: it refuses the sign-in and reports the contradiction, once per minute. Turning this on sends passwords in the clear and should only ever happen on a network you control end to end."), "AllowUnprotectedPassword")));
 
          return card;
       }
@@ -546,7 +546,7 @@ namespace hMailServer.ControlPanel.Views
          content.Children.Add(LabelledCheck_(fallback_,
             L("Retr_y through Windows logon when the directory is unavailable"),
             "ldap-fallback",
-            StoredAs_(L("Off by default. When off, an unreachable directory refuses the sign-in and the server reports the real reason (throttled to once per minute per distinct problem) instead of retrying through Windows logon - which cannot succeed on a host that is not domain-joined, and whose failure would bury a precise diagnostic under an indistinguishable one. Turn on only on a domain-joined host that wants LDAP as its first choice. A password the directory REJECTED never falls back either way: retrying it would double every failed attempt and let one wrong password trigger a directory lockout policy."), "FallbackToWindowsLogon")));
+            StoredAs_(L("Off by default. When off, an unreachable directory refuses the sign-in and the server reports the real reason (throttled to once per minute per distinct problem) instead of retrying through Windows logon - which cannot succeed on a host that is not domain-joined, and whose failure would bury a precise diagnostic under an indistinguishable one. Turn on only on a domain-joined host that wants LDAP as its first choice. A password the directory rejected never falls back either way: retrying it would double every failed attempt and let one wrong password trigger a directory lockout policy."), "FallbackToWindowsLogon")));
 
          return card;
       }
@@ -560,7 +560,7 @@ namespace hMailServer.ControlPanel.Views
             L("A reachable directory server. The hMailServer machine must reach the host above on the effective port (636 for LDAPS, 389 otherwise) through any firewall in between. A DMZ host usually needs a rule added for exactly this."));
 
          AddBullet_(content,
-            L("For LDAPS or StartTLS: a certificate on the directory server that THIS machine trusts - issued by a CA in the Windows machine certificate store, with the host name above in it. A domain controller does not have one out of the box. The Negotiate bind method needs no certificate at all, because the password never crosses the network."));
+            L("For LDAPS or StartTLS: a certificate on the directory server that this machine trusts - issued by a CA in the Windows machine certificate store, with the host name above in it. A domain controller does not have one out of the box. The Negotiate bind method needs no certificate at all, because the password never crosses the network."));
 
          AddBullet_(content,
             L("For search mode: a service account allowed to read the directory. Any ordinary domain account can, by default; it needs no other rights."));
@@ -2039,7 +2039,7 @@ namespace hMailServer.ControlPanel.Views
             if (outcome == Outcome.Success)
             {
                return LdapProbeResult.Make(StatusLevel.Good, Sentences([.. proven,
-                  F("The directory ACCEPTED the credentials: bound as {0}. This account would sign in.", boundAs)]));
+                  F("The directory accepted the credentials: bound as {0}. This account would sign in.", boundAs)]));
             }
 
             if (outcome == Outcome.Rejected)
@@ -2054,7 +2054,7 @@ namespace hMailServer.ControlPanel.Views
                   reason = DescribeError(user.LastError);
 
                return LdapProbeResult.Make(StatusLevel.Information, Sentences([.. proven,
-                  F("The directory answered and REFUSED these credentials: {0} (LDAP error {1}). The connection, transport and configuration are all working - this is a credentials problem, which is exactly what a user typing a wrong password would see.", reason, user.LastError)]));
+                  F("The directory answered and refused these credentials: {0} (LDAP error {1}). The connection, transport and configuration are all working - this is a credentials problem, which is exactly what a user typing a wrong password would see.", reason, user.LastError)]));
             }
 
             return Unavailable(user, config, L("binding as the user"));

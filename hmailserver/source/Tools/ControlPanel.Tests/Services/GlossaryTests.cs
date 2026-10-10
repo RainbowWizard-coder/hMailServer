@@ -46,9 +46,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          foreach (string text in EnglishTexts())
          {
             string rest = WindowsLogon.Aggregate(text, (s, allowed) => s.Replace(allowed, "", StringComparison.Ordinal));
-            // a password CHOSEN against one checked at logon, and expiry that refuses a
-            // LOGON: shouted words, rewritten with the others the tone pass changes
-            if (LogonWord.IsMatch(rest) && !rest.Contains("CHOSEN", StringComparison.Ordinal) && !rest.Contains("LOGON", StringComparison.Ordinal))
+            if (LogonWord.IsMatch(rest))
                offenders.Add(text);
          }
 

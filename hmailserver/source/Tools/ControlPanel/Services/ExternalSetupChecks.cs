@@ -438,7 +438,7 @@ namespace hMailServer.ControlPanel.Services
                if (result.Status == DnsTxtLookup.LookupStatus.NoRecord)
                {
                   finding.State = SetupItemState.ActionNeeded;
-                  finding.Text = F("{0}: the secondary key is staged but no TXT record exists at {1} yet. Publish it and let it propagate BEFORE promoting the secondary key, or mail will sign with a key the world cannot look up.", probe.Label, probe.Host);
+                  finding.Text = F("{0}: the secondary key is staged but no TXT record exists at {1} yet. Publish it and let it propagate before promoting the secondary key, or mail will sign with a key the world cannot look up.", probe.Label, probe.Host);
                }
                else if (probe.Expected == null)
                {
@@ -991,7 +991,7 @@ namespace hMailServer.ControlPanel.Services
          {
             Title = L("DKIM signing - publish each domain's public key in DNS"),
             Purpose = L("Signs outgoing mail so receivers can verify it really came from your domain; without the DNS record every signature fails verification."),
-            Action = L("At your DNS host, publish a TXT record named <selector>._domainkey.<domain> containing the public key (v=DKIM1; k=rsa; p=...). This page looks the record up through the Windows resolver, and where the key file is readable it also checks that the published key is the RIGHT key - a wrong value cannot be fixed by waiting."),
+            Action = L("At your DNS host, publish a TXT record named <selector>._domainkey.<domain> containing the public key (v=DKIM1; k=rsa; p=...). This page looks the record up through the Windows resolver, and where the key file is readable it also checks that the published key is the right one - a wrong value cannot be fixed by waiting."),
             Page = "domains"
          };
 
@@ -1157,7 +1157,7 @@ namespace hMailServer.ControlPanel.Services
             // The exact shape this whole page exists to catch: switched on, looks
             // configured, does nothing whatsoever.
             item.Add(SetupItemState.ActionNeeded,
-               L("ARC filtering is ENABLED but the trusted-sealer list is EMPTY, so it does nothing at all. That is deliberate, not a bug: anyone can fabricate a whole ARC chain and seal it with a key they publish in their own DNS, and it will validate perfectly - so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature, it is the feature."));
+               L("ARC filtering is on but the trusted-sealer list is empty, so it does nothing at all. This is by design: anyone can fabricate a whole ARC chain and seal it with a key they publish in their own DNS, and it will validate - so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature, it is the feature."));
          }
          else
          {
@@ -1500,7 +1500,7 @@ namespace hMailServer.ControlPanel.Services
                         F("{0}: the key file is encrypted, but whether a passphrase is configured could not be read (this requires the server-administrator account).", label));
                   else if (passwordSet)
                      item.Add(SetupItemState.Done,
-                        F("{0}: the key file is encrypted and a passphrase is configured. Whether it is the RIGHT passphrase is only proven when the server loads the key - check the error log for error 6170 after a restart.", label));
+                        F("{0}: the key file is encrypted and a passphrase is configured. Whether it is the right passphrase is only proven when the server loads the key - check the error log for error 6170 after a restart.", label));
                   else
                      item.Add(SetupItemState.ActionNeeded,
                         F("{0}: the key file is an encrypted PEM but no passphrase is configured, so the key will not load (server error 6170) and every port using this certificate will not start. Set the private key password on the certificate.", label));
@@ -1923,7 +1923,7 @@ namespace hMailServer.ControlPanel.Services
          else if (string.IsNullOrWhiteSpace(submitUrl) || string.IsNullOrWhiteSpace(verdictUrl))
          {
             item.Add(SetupItemState.ActionNeeded,
-               L("The sandbox is ON but an address is empty, so nothing is held and nothing is submitted until both are set - the application log says so at every start. Set both addresses, or turn it off."));
+               L("The sandbox is on but an address is empty, so nothing is held and nothing is submitted until both are set - the application log says so at every start. Set both addresses, or turn it off."));
          }
          else
          {

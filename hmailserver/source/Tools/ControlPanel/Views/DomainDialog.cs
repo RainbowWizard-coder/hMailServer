@@ -534,7 +534,7 @@ namespace hMailServer.ControlPanel.Views
          relaySecurity_.Items.Add(DialogFields.Combo(L("STARTTLS (required)"), 3));
 
          var panel = DialogFields.TabPanel();
-         panel.Children.Add(DialogFields.Note(L("Where mail FROM this domain leaves through. This is a different question from a route, which decides where mail addressed TO a domain is sent - it is for a server hosting several independent domains where each has its own delivery provider.")));
+         panel.Children.Add(DialogFields.Note(L("Where mail from this domain leaves through. This is a different question from a route, which decides where mail addressed to a domain is sent - it is for a server hosting several independent domains where each has its own delivery provider.")));
          panel.Children.Add(DialogFields.Note(L("Leave the host empty and the domain has no opinion: the server-wide smart host applies, exactly as it did before this setting existed. A route still wins over both, because a route is a statement about the destination.")));
          panel.Children.Add(DialogFields.Separator());
          panel.Children.Add(Label(L("_Relay host (empty = the server-wide smart host)"), relayHost_));
@@ -556,14 +556,14 @@ namespace hMailServer.ControlPanel.Views
       private ScrollViewer BuildOutOfOffice()
       {
          var panel = DialogFields.TabPanel();
-         panel.Children.Add(DialogFields.Note(L("A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message.")));
+         panel.Children.Add(DialogFields.Note(L("A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have no vacation message of their own: an account's own message always wins, and at most one reply answers any message.")));
          panel.Children.Add(DialogFields.Note(L("The usual auto-reply protections apply and cannot be switched off here: no reply to bounces, mailing lists or other auto-replies, one reply per sender, and the reply itself is marked Auto-Submitted so two servers cannot loop.")));
          panel.Children.Add(DialogFields.Separator());
          panel.Children.Add(DialogFields.Check(oooOn_));
          panel.Children.Add(Label(L("Su_bject"), oooSubject_));
          panel.Children.Add(Label(L("_Message"), oooMessage_));
          panel.Children.Add(DialogFields.Separator());
-         panel.Children.Add(DialogFields.Note(L("Optional different text for local senders - colleagues can be told more than strangers. Empty means everyone gets the text above. Note this identifies the sender's ADDRESS, which is forgeable: treat it as a courtesy, never as a place for anything confidential.")));
+         panel.Children.Add(DialogFields.Note(L("Optional different text for local senders - colleagues can be told more than strangers. Empty means everyone gets the text above. Note this identifies the sender's address, which is forgeable: treat it as a courtesy, never as a place for anything confidential.")));
          FieldRow internalSubjectRow = Label(L("Subject for _local senders (empty = same as above)"), oooInternalSubject_);
          panel.Children.Add(internalSubjectRow);
          FieldRow internalMessageRow = Label(L("Message for local s_enders (empty = same as above)"), oooInternalMessage_);

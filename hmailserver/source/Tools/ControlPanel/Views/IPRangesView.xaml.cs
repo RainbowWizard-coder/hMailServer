@@ -757,7 +757,7 @@ namespace hMailServer.ControlPanel.Views
       private void RestoreDefaults_Click(object sender, RoutedEventArgs e)
       {
          if (!MessageBox.Confirm(
-                L("Replace ALL IP ranges with the defaults?\n\nEvery custom range - including any auto-ban entries - will be removed and replaced with 'My computer' (127.0.0.1) and 'Internet' (everything else). This changes who may connect and relay, immediately."),
+                L("Replace all IP ranges with the defaults?\n\nEvery custom range - including any auto-ban entries - will be removed and replaced with 'My computer' (127.0.0.1) and 'Internet' (everything else). This changes who may connect and relay, immediately."),
                 L("Control Panel"), L("_Replace all ranges"), destructive: true))
             return;
 

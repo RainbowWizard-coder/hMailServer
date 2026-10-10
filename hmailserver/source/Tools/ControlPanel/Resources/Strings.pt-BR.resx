@@ -384,8 +384,8 @@
   <data name="A JPEG, a PNG or a GIF, up to 100 KB. What is kept is judged by the bytes themselves, not by the file's name, and the photo is saved with the account." xml:space="preserve">
     <value>Um JPEG, um PNG ou um GIF, de até 100 KB. O que é guardado se julga pelos próprios bytes, não pelo nome do arquivo, e a foto é salva com a conta.</value>
   </data>
-  <data name="A TXT record exists at {0}, but the private key file could not be read from this machine, so whether it carries the RIGHT key cannot be verified from here. Run the check on the server itself, or use the domain's DKIM tab." xml:space="preserve">
-    <value>Existe um registro TXT em {0}, mas o arquivo de chave privada não pôde ser lido nesta máquina, então não é possível verificar daqui se ele carrega a chave CERTA. Execute a verificação no próprio servidor, ou use a aba DKIM do domínio.</value>
+  <data name="A TXT record exists at {0}, but the private key file could not be read from this machine, so whether it carries the right key cannot be verified from here. Run the check on the server itself, or use the domain's DKIM tab." xml:space="preserve">
+    <value>Existe um registro TXT em {0}, mas o arquivo de chave privada não pôde ser lido nesta máquina, então não é possível verificar daqui se ele carrega a chave certa. Execute a verificação no próprio servidor, ou use a aba DKIM do domínio.</value>
   </data>
   <data name="A Web application client in the Google Cloud console, with the Gmail API's mail scope." xml:space="preserve">
     <value>Um cliente de aplicativo da web no console do Google Cloud, com o escopo de e-mail da API do Gmail.</value>
@@ -450,8 +450,8 @@
   <data name="A domain may issue S/MIME certificates to its people from its own authority." xml:space="preserve">
     <value>Um domínio pode emitir certificados S/MIME para o seu pessoal a partir da própria autoridade.</value>
   </data>
-  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never sign in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
-    <value>Um nome de domínio aqui exige que o próprio computador do SERVIDOR esteja ingressado nesse domínio, porque o Windows o valida com LogonUser. De um computador não ingressado, toda tentativa falha como se a senha estivesse errada - inclusive quando o nome do domínio está apenas escrito errado - de modo que uma caixa configurada assim em um servidor não ingressado nunca consegue entrar e nunca diz por quê. Se o servidor não está ingressado no domínio, use a autenticação por diretório LDAP na página Autenticação de diretório (LDAP): ela se vincula ao diretório pela rede e não precisa de ingresso no domínio.</value>
+  <data name="A domain name here needs the server's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never sign in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
+    <value>Um nome de domínio aqui exige que o próprio computador do servidor esteja ingressado nesse domínio, porque o Windows o valida com LogonUser. De um computador não ingressado, toda tentativa falha como se a senha estivesse errada - inclusive quando o nome do domínio está apenas escrito errado - de modo que uma caixa configurada assim em um servidor não ingressado nunca consegue entrar e nunca diz por quê. Se o servidor não está ingressado no domínio, use a autenticação por diretório LDAP na página Autenticação de diretório (LDAP): ela se vincula ao diretório pela rede e não precisa de ingresso no domínio.</value>
   </data>
   <data name="A domain named {0} is already on this server, and it is not the sample domain this page makes, so no sample can be made here and this page will not remove it. If you do not want that domain, delete it on the Domains page." xml:space="preserve">
     <value>Um domínio chamado {0} já está neste servidor e não é o domínio de amostra que esta página cria, então nenhuma amostra pode ser criada aqui e esta página não vai removê-lo. Se você não quiser esse domínio, exclua-o na página Domínios.</value>
@@ -573,8 +573,8 @@
   <data name="A notice is sent to the envelope sender of every infected message. Virus senders forge that address almost without exception, so this mostly delivers mail to people who did not send anything — which is backscatter, and it is what gets a server onto a block list." xml:space="preserve">
     <value>Um aviso é enviado ao remetente do envelope de cada mensagem infectada. Remetentes de vírus forjam esse endereço quase sem exceção, então isto na maioria das vezes entrega e-mails a pessoas que não enviaram nada — isso é backscatter, e é o que coloca um servidor numa lista de bloqueio.</value>
   </data>
-  <data name="A one-time code required in addition to the administrator password, checked by the SERVER - so it applies to every client of that credential: this Control Panel, scripts using the COM API, and the REST API (which reads the code from an X-hMailServer-OTP header). The secret is stored on the server, in hMailServer.ini, machine-protected. It makes the administrator password worthless on its own. Keep the setup key safe: if the authenticator is lost, a local administrator deletes AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restarts the hMailServer service." xml:space="preserve">
-    <value>Um código de uso único exigido além da senha de administrador, verificado pelo SERVIDOR - portanto vale para todo cliente dessa credencial: este Control Panel, scripts que usam a API COM e a API REST (que lê o código de um cabeçalho X-hMailServer-OTP). O segredo é armazenado no servidor, em hMailServer.ini, protegido pela máquina. Ele torna a senha de administrador inútil sozinha. Guarde a chave de configuração em segurança: se o autenticador for perdido, um administrador local apaga AdministratorTotpSecret da seção [Security] de hMailServer.ini, com um editor executado como administrador, e reinicia o serviço hMailServer.</value>
+  <data name="A one-time code required in addition to the administrator password, checked by the server - so it applies to every client of that credential: this Control Panel, scripts using the COM API, and the REST API (which reads the code from an X-hMailServer-OTP header). The secret is stored on the server, in hMailServer.ini, machine-protected. It makes the administrator password worthless on its own. Keep the setup key safe: if the authenticator is lost, a local administrator deletes AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restarts the hMailServer service." xml:space="preserve">
+    <value>Um código de uso único exigido além da senha de administrador, verificado pelo servidor - portanto vale para todo cliente dessa credencial: este Control Panel, scripts que usam a API COM e a API REST (que lê o código de um cabeçalho X-hMailServer-OTP). O segredo é armazenado no servidor, em hMailServer.ini, protegido pela máquina. Ele torna a senha de administrador inútil sozinha. Guarde a chave de configuração em segurança: se o autenticador for perdido, um administrador local apaga AdministratorTotpSecret da seção [Security] de hMailServer.ini, com um editor executado como administrador, e reinicia o serviço hMailServer.</value>
   </data>
   <data name="A passphrase is already stored for '{0}'. Saving replaces it - the old one cannot be recovered from here. Replace it?" xml:space="preserve">
     <value>Já há uma frase secreta armazenada para '{0}'. Salvar a substitui - a antiga não pode ser recuperada daqui. Substituir?</value>
@@ -582,8 +582,8 @@
   <data name="A passphrase is set: the archive is encrypted as it is written, file names included, and a restore asks for the passphrase." xml:space="preserve">
     <value>Há uma frase secreta: o arquivo é criptografado enquanto é gravado, incluindo os nomes dos arquivos, e uma restauração pede por ela.</value>
   </data>
-  <data name="A passphrase is stored for this certificate. It is never displayed here - saving a new one replaces it. Whether it is the RIGHT passphrase is only proven when the server loads the key: after the next restart, check the application error log." xml:space="preserve">
-    <value>Há uma frase secreta armazenada para este certificado. Ela nunca é mostrada aqui - salvar uma nova a substitui. Se é a frase CERTA só se prova quando o servidor carrega a chave: após o próximo reinício, verifique o log de erros do aplicativo.</value>
+  <data name="A passphrase is stored for this certificate. It is never displayed here - saving a new one replaces it. Whether it is the right passphrase is only proven when the server loads the key: after the next restart, check the application error log." xml:space="preserve">
+    <value>Há uma frase secreta armazenada para este certificado. Ela nunca é mostrada aqui - salvar uma nova a substitui. Se é a frase certa só se prova quando o servidor carrega a chave: após o próximo reinício, verifique o log de erros do aplicativo.</value>
   </data>
   <data name="A passphrase is stored, but the key file is not encrypted, so it is never used. Harmless - it simply does nothing." xml:space="preserve">
     <value>Há uma frase secreta armazenada, mas o arquivo de chave não está criptografado, então ela nunca é usada. Inofensivo - ela simplesmente não faz nada.</value>
@@ -627,8 +627,8 @@
   <data name="A remote server that answers extremely slowly. The idle timeout is re-armed on every byte, so a host that sends one byte occasionally used to hold a delivery thread indefinitely; 'Absolute lifetime of one client session' (30 minutes by default) is the absolute ceiling, armed once and never re-armed." xml:space="preserve">
     <value>Um servidor remoto que responde com extrema lentidão. O tempo limite de inatividade é rearmado a cada byte, então um host que envia um byte de vez em quando podia prender uma thread de entrega indefinidamente; 'Duração absoluta de uma sessão de cliente' (30 minutos por padrão) é o teto absoluto, armado uma vez e nunca rearmado.</value>
   </data>
-  <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
-    <value>Uma resposta para todo o domínio - um escritório fechado, um departamento desativado. Ela responde apenas por contas que NÃO têm mensagem de ausência própria: a mensagem própria de uma conta sempre vence, e no máximo uma resposta responde a qualquer mensagem.</value>
+  <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have no vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
+    <value>Uma resposta para todo o domínio - um escritório fechado, um departamento desativado. Ela responde apenas por contas que não têm mensagem de ausência própria: a mensagem própria de uma conta sempre vence, e no máximo uma resposta responde a qualquer mensagem.</value>
   </data>
   <data name="A room" xml:space="preserve">
     <value>Uma sala</value>
@@ -780,14 +780,14 @@
   <data name="API keys" xml:space="preserve">
     <value>Chaves de API</value>
   </data>
-  <data name="ARC filtering is ENABLED but the trusted-sealer list is EMPTY, so it does nothing at all. That is deliberate, not a bug: anyone can fabricate a whole ARC chain and seal it with a key they publish in their own DNS, and it will validate perfectly - so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature, it is the feature." xml:space="preserve">
-    <value>A filtragem ARC está ATIVADA mas a lista de seladores confiáveis está VAZIA, então ela não faz nada. Isso é deliberado, não um bug: qualquer um pode fabricar uma cadeia ARC inteira e selá-la com uma chave que publica no próprio DNS, e ela validará perfeitamente - então uma cadeia aprovada não prova nada a menos que você já confie no selador. A lista não é uma opção do recurso, ela é o recurso.</value>
-  </data>
   <data name="ARC filtering is enabled and trusts: {0}. Seals from any other domain are ignored, and matching is exact - a subdomain or a lookalike of a trusted name is not trusted." xml:space="preserve">
     <value>A filtragem ARC está ativada e confia em: {0}. Selos de qualquer outro domínio são ignorados, e a correspondência é exata - um subdomínio ou um nome parecido com um confiável não é confiável.</value>
   </data>
   <data name="ARC filtering is off, so forwarded mail that fails DMARC is scored as it arrives. That is the default and it is a reasonable choice; turn it on only once you have forwarders whose seals you are willing to trust." xml:space="preserve">
     <value>A filtragem ARC está desligada, então e-mails encaminhados que falham no DMARC são pontuados como chegam. Esse é o padrão e uma escolha razoável; ligue-a só quando tiver encaminhadores em cujos selos esteja disposto a confiar.</value>
+  </data>
+  <data name="ARC filtering is on but the trusted-sealer list is empty, so it does nothing at all. This is by design: anyone can fabricate a whole ARC chain and seal it with a key they publish in their own DNS, and it will validate - so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature, it is the feature." xml:space="preserve">
+    <value>A filtragem ARC está ativada mas a lista de seladores confiáveis está vazia, então ela não faz nada. Isso é intencional: qualquer um pode fabricar uma cadeia ARC inteira e selá-la com uma chave que publica no próprio DNS, e ela será validada - então uma cadeia aprovada não prova nada a menos que você já confie no selador. A lista não é uma opção do recurso, ela é o recurso.</value>
   </data>
   <data name="ARC inbound filtering" xml:space="preserve">
     <value>Filtragem ARC de entrada</value>
@@ -1581,7 +1581,7 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="An address is required." xml:space="preserve">
     <value>É necessário um endereço.</value>
   </data>
-  <data name="An address is spared only when one of its reverse names is covered AND resolves back to the address, since anybody who holds an address can write its reverse name. It applies to the next ban." xml:space="preserve">
+  <data name="An address is spared only when one of its reverse names is covered and also resolves back to the address, since anybody who holds an address can write its reverse name. It applies to the next ban." xml:space="preserve">
     <value>Um endereço só é poupado quando um de seus nomes reversos está coberto E resolve de volta para o endereço, pois qualquer um que tenha um endereço pode escrever o nome reverso dele. Vale a partir do próximo banimento.</value>
   </data>
   <data name="An address or a block is required." xml:space="preserve">
@@ -1632,8 +1632,8 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="An external scanner process. 0 = no time limit." xml:space="preserve">
     <value>Um processo de verificação externo. 0 = sem limite de tempo.</value>
   </data>
-  <data name="An older, weaker option: a one-time code asked for after the password when signing in to THIS Control Panel, checked by the tool itself after the server has already accepted the password. The secret is stored per machine under HKLM, so enabling or disabling it needs local administrator rights, and it does nothing for the REST API or for scripts using the COM API. Prefer the server-enforced factor above; this one remains for existing setups." xml:space="preserve">
-    <value>Uma opção mais antiga e mais fraca: um código de uso único pedido após a senha ao entrar NESTE Control Panel, verificado pela própria ferramenta depois que o servidor já aceitou a senha. O segredo é armazenado por máquina em HKLM, então ativar ou desativar exige direitos de administrador local, e não faz nada pela API REST ou por scripts que usam a API COM. Prefira o fator imposto pelo servidor acima; este permanece para instalações existentes.</value>
+  <data name="An older, weaker option: a one-time code asked for after the password when signing in to this Control Panel, checked by the tool itself after the server has already accepted the password. The secret is stored per machine under HKLM, so enabling or disabling it needs local administrator rights, and it does nothing for the REST API or for scripts using the COM API. Prefer the server-enforced factor above; this one remains for existing setups." xml:space="preserve">
+    <value>Uma opção mais antiga e mais fraca: um código de uso único pedido após a senha ao entrar neste Control Panel, verificado pela própria ferramenta depois que o servidor já aceitou a senha. O segredo é armazenado por máquina em HKLM, então ativar ou desativar exige direitos de administrador local, e não faz nada pela API REST ou por scripts que usam a API COM. Prefira o fator imposto pelo servidor acima; este permanece para instalações existentes.</value>
   </data>
   <data name="An override replaces the global ceilings for that address; 0:0 exempts it entirely. Without the optional :hours the override uses the global period. A malformed line is ignored with a log entry and the global limit still applies to that account. Comment lines in this INI section are not shown here and are dropped if the list is saved." xml:space="preserve">
     <value>Uma exceção substitui os tetos globais para aquele endereço; 0:0 o isenta por completo. Sem o :hours opcional, a exceção usa o período global. Uma linha malformada é ignorada com uma entrada de log e o limite global continua valendo para aquela conta. Linhas de comentário nesta seção INI não são mostradas aqui e são descartadas se a lista for salva.</value>
@@ -1747,8 +1747,8 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Applied when a connection is accepted, before the greeting. An allow list refuses an address whose country the database does not know; a block list lets it in." xml:space="preserve">
     <value>Aplicada quando uma conexão é aceita, antes da saudação. Uma lista de permissão recusa um endereço cujo país o banco não conhece; uma lista de bloqueio o deixa passar.</value>
   </data>
-  <data name="Applied when a password is CHOSEN - here, in the account editor, by a script or by the API - and never when one is checked at logon. That distinction is the whole design: an account whose password predates the policy keeps working, because locking people out of mailboxes they can open today is a worse outcome than the weak password it would be correcting. Tightening these settings therefore affects the next password each person sets, not the one they have. Everything is off until you turn it on, so an upgrade never starts refusing passwords on its own." xml:space="preserve">
-    <value>Aplicado quando uma senha é ESCOLHIDA - aqui, no editor de contas, por um script ou pela API - e nunca quando uma é verificada no login. Essa distinção é todo o desenho: uma conta cuja senha é anterior à política continua funcionando, porque deixar pessoas fora de caixas que conseguem abrir hoje é um resultado pior que a senha fraca que seria corrigida. Apertar estas configurações afeta, portanto, a próxima senha que cada pessoa definir, não a que ela tem. Tudo fica desligado até você ligar, então uma atualização nunca começa a recusar senhas por conta própria.</value>
+  <data name="Applied when a password is chosen - here, in the account editor, by a script or by the API - and never when one is checked at sign-in. That distinction is the whole design: an account whose password predates the policy keeps working, because locking people out of mailboxes they can open today is a worse outcome than the weak password it would be correcting. Tightening these settings therefore affects the next password each person sets, not the one they have. Everything is off until you turn it on, so an upgrade never starts refusing passwords on its own." xml:space="preserve">
+    <value>Aplicado quando uma senha é escolhida - aqui, no editor de contas, por um script ou pela API - e nunca quando uma é verificada no login. Essa distinção é todo o desenho: uma conta cuja senha é anterior à política continua funcionando, porque deixar pessoas fora de caixas que conseguem abrir hoje é um resultado pior que a senha fraca que seria corrigida. Apertar estas configurações afeta, portanto, a próxima senha que cada pessoa definir, não a que ela tem. Tudo fica desligado até você ligar, então uma atualização nunca começa a recusar senhas por conta própria.</value>
   </data>
   <data name="Applies _to" xml:space="preserve">
     <value>Aplica-se _a</value>
@@ -1885,8 +1885,8 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="At your DNS host, publish a TXT record at the domain, such as v=spf1 mx -all, naming the servers that send its mail. The DNS records page shows the record to publish." xml:space="preserve">
     <value>No seu provedor de DNS, publique um registro TXT no domínio, como v=spf1 mx -all, nomeando os servidores que enviam o e-mail dele. A página Registros DNS mostra o registro a publicar.</value>
   </data>
-  <data name="At your DNS host, publish a TXT record named &lt;selector&gt;._domainkey.&lt;domain&gt; containing the public key (v=DKIM1; k=rsa; p=...). This page looks the record up through the Windows resolver, and where the key file is readable it also checks that the published key is the RIGHT key - a wrong value cannot be fixed by waiting." xml:space="preserve">
-    <value>No seu provedor de DNS, publique um registro TXT chamado &lt;selector&gt;._domainkey.&lt;domain&gt; contendo a chave pública (v=DKIM1; k=rsa; p=...). Esta página consulta o registro através do resolvedor do Windows e, onde o arquivo de chave é legível, também verifica se a chave publicada é a chave CERTA - um valor errado não se corrige esperando.</value>
+  <data name="At your DNS host, publish a TXT record named &lt;selector&gt;._domainkey.&lt;domain&gt; containing the public key (v=DKIM1; k=rsa; p=...). This page looks the record up through the Windows resolver, and where the key file is readable it also checks that the published key is the right one - a wrong value cannot be fixed by waiting." xml:space="preserve">
+    <value>No seu provedor de DNS, publique um registro TXT chamado &lt;selector&gt;._domainkey.&lt;domain&gt; contendo a chave pública (v=DKIM1; k=rsa; p=...). Esta página consulta o registro através do resolvedor do Windows e, onde o arquivo de chave é legível, também verifica se a chave publicada é a chave certa - um valor errado não se corrige esperando.</value>
   </data>
   <data name="At your DNS host, publish a TXT record named _dmarc.&lt;domain&gt;, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish." xml:space="preserve">
     <value>No seu provedor de DNS, publique um registro TXT chamado _dmarc.&lt;domain&gt;, começando com v=DMARC1; p=none enquanto lê os relatórios, depois p=quarantine ou p=reject. A página Registros DNS mostra o registro a publicar.</value>
@@ -2254,8 +2254,8 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox in the Control Deck's delivery queue or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
     <value>Os dois endereços estão definidos. Se o serviço responde não dá para saber daqui: envie de fora uma mensagem com um arquivo anexado de um tipo enviado e procure-a em Retidas para um sandbox na fila de entrega do Control Deck, ou procure no log do aplicativo uma linha dizendo que ela foi enviada ao sandbox.</value>
   </data>
-  <data name="Both overrides read the score this server recorded in the message, so they need 'Add X-hMailServer-Reason header' switched on, on the Anti-spam settings page. With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
-    <value>Ambas as substituições leem a pontuação que este servidor registrou na mensagem, então elas precisam de 'Adicionar cabeçalho X-hMailServer-Reason' ligado na página Configurações antispam. Com isso desligado, nenhuma pontuação é registrada, nada é comprovável e nenhuma das substituições age - a conta mantém o comportamento de todo o servidor. O valor no arquivo não é confiável nesse caso porque nada impede um REMETENTE de colocar um lá.</value>
+  <data name="Both overrides read the score this server recorded in the message, so they need 'Add X-hMailServer-Reason header' switched on, on the Anti-spam settings page. With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a sender putting one there." xml:space="preserve">
+    <value>Ambas as substituições leem a pontuação que este servidor registrou na mensagem, então elas precisam de 'Adicionar cabeçalho X-hMailServer-Reason' ligado na página Configurações antispam. Com isso desligado, nenhuma pontuação é registrada, nada é comprovável e nenhuma das substituições age - a conta mantém o comportamento de todo o servidor. O valor no arquivo não é confiável nesse caso porque nada impede um remetente de colocar um lá.</value>
   </data>
   <data name="Both thresholds are 0, so no score can mark or refuse anything - the server tests them with &quot;greater than 0&quot; before using them. It also stops testing as soon as the running total reaches the higher threshold, which is 0, so exactly one check runs in each phase and its result is discarded." xml:space="preserve">
     <value>Ambos os limites são 0, então nenhuma pontuação pode marcar ou recusar nada - o servidor os testa com "maior que 0" antes de usá-los. Ele também para de testar assim que o total acumulado alcança o limite mais alto, que é 0, então exatamente uma verificação roda em cada fase e o resultado dela é descartado.</value>
@@ -2442,9 +2442,6 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   </data>
   <data name="Certificate" xml:space="preserve">
     <value>Certificado</value>
-  </data>
-  <data name="Certificate and key must BOTH be set to serve HTTPS; with only one of them TLS is NOT enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
-    <value>O certificado e a chave precisam AMBOS estar definidos para servir HTTPS; com apenas um deles o TLS NÃO é ativado e o servidor registra isso. Diferente do ouvinte da API REST, aqui não há como recorrer ao certificado do ACME. Se o TLS estiver configurado mas não puder ser preparado (um arquivo ilegível, uma chave que não corresponde), as sondas de saúde permanecem em HTTP puro e o /metrics responde 503 em vez de servir a exposição em texto claro.</value>
   </data>
   <data name="Certificate authority file for a private Sigstore (PEM; empty = the public Fulcio roots)" xml:space="preserve">
     <value>Arquivo da autoridade certificadora para um Sigstore privado (PEM; vazio = as raízes públicas do Fulcio)</value>
@@ -2722,8 +2719,8 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="ClamAV maximum timeout (90)" xml:space="preserve">
     <value>Tempo limite máximo do ClamAV (90)</value>
   </data>
-  <data name="ClamAV: idle timeout per socket operation. 0 is NOT no bound." xml:space="preserve">
-    <value>ClamAV: tempo limite de inatividade por operação de socket. 0 NÃO significa sem limite.</value>
+  <data name="ClamAV: idle timeout per socket operation. 0 does not mean no time limit." xml:space="preserve">
+    <value>ClamAV: tempo limite de inatividade por operação de socket. 0 não significa sem limite de tempo.</value>
   </data>
   <data name="ClamWin" xml:space="preserve">
     <value>ClamWin</value>
@@ -3774,11 +3771,11 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="De_lete rule" xml:space="preserve">
     <value>Excluir _regra</value>
   </data>
-  <data name="Debug logging is ON. The stage timings and the DNS lines are being written; turn it off again when you have what you need." xml:space="preserve">
-    <value>O log de depuração está LIGADO. Os tempos das etapas e as linhas de DNS estão sendo gravados; desligue-o de novo quando tiver o que precisa.</value>
-  </data>
   <data name="Debug logging is off. Application logging still records any stage that takes ten seconds or more." xml:space="preserve">
     <value>O log de depuração está desligado. O log de aplicação ainda registra qualquer etapa que leve dez segundos ou mais.</value>
+  </data>
+  <data name="Debug logging is on. The stage timings and the DNS lines are being written; turn it off again when you have what you need." xml:space="preserve">
+    <value>O log de depuração está ligado. Os tempos das etapas e as linhas de DNS estão sendo gravados; desligue-o de novo quando tiver o que precisa.</value>
   </data>
   <data name="Debug messages" xml:space="preserve">
     <value>Mensagens de depuração</value>
@@ -5353,8 +5350,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="For Administrator, the password chosen when hMailServer was installed; for your own account, its own password." xml:space="preserve">
     <value>Para Administrator, a senha escolhida ao instalar o hMailServer; para sua própria conta, a senha dela.</value>
   </data>
-  <data name="For LDAPS or StartTLS: a certificate on the directory server that THIS machine trusts - issued by a CA in the Windows machine certificate store, with the host name above in it. A domain controller does not have one out of the box. The Negotiate bind method needs no certificate at all, because the password never crosses the network." xml:space="preserve">
-    <value>Para LDAPS ou StartTLS: um certificado no servidor de diretório em que ESTA máquina confie - emitido por uma CA presente no repositório de certificados da máquina Windows, e contendo o nome de host acima. Um controlador de domínio não tem um de fábrica. O método de bind Negotiate não precisa de certificado algum, porque a senha nunca atravessa a rede.</value>
+  <data name="For LDAPS or StartTLS: a certificate on the directory server that this machine trusts - issued by a CA in the Windows machine certificate store, with the host name above in it. A domain controller does not have one out of the box. The Negotiate bind method needs no certificate at all, because the password never crosses the network." xml:space="preserve">
+    <value>Para LDAPS ou StartTLS: um certificado no servidor de diretório em que esta máquina confie - emitido por uma CA presente no repositório de certificados da máquina Windows, e contendo o nome de host acima. Um controlador de domínio não tem um de fábrica. O método de bind Negotiate não precisa de certificado algum, porque a senha nunca atravessa a rede.</value>
   </data>
   <data name="For a MinIO or Ceph gateway behind a CA of your own. The host name is checked either way." xml:space="preserve">
     <value>Para um gateway MinIO ou Ceph atrás de uma CA própria. O nome do host é verificado de qualquer forma.</value>
@@ -5608,8 +5605,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="HTM_L disclaimer (empty = the plain text)" xml:space="preserve">
     <value>Aviso legal em _HTML (vazio = o texto simples)</value>
   </data>
-  <data name="HTTP Basic needs both the user name and the password. Only {0} is set, so Basic authentication is NOT enabled - the server logs this and behaves as if neither were set." xml:space="preserve">
-    <value>O HTTP Basic precisa tanto do nome de usuário quanto da senha. Só {0} está definido, então a autenticação Basic NÃO está ativada - o servidor registra isso no log e se comporta como se nenhum dos dois estivesse definido.</value>
+  <data name="HTTP Basic needs both the user name and the password. Only {0} is set, so Basic authentication is not enabled - the server logs this and behaves as if neither were set." xml:space="preserve">
+    <value>O HTTP Basic precisa tanto do nome de usuário quanto da senha. Só {0} está definido, então a autenticação Basic não está ativada - o servidor registra isso no log e se comporta como se nenhum dos dois estivesse definido.</value>
   </data>
   <data name="HTTP Basic password for /metrics" xml:space="preserve">
     <value>Senha HTTP Basic para /metrics</value>
@@ -5916,6 +5913,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   </data>
   <data name="IMAP sessions" xml:space="preserve">
     <value>Sessões IMAP</value>
+  </data>
+  <data name="IMAP, POP3 and SMTP have no way to change a password, and the self-service portal refuses an expired one at sign-in like every other surface. An expired password is therefore renewed by an administrator - or by the person themselves only if they hold an app password, which still signs them in to the portal, where the expired password is accepted as the current one when setting a new one. Turning this on means someone has to be available for everybody else. Existing app passwords keep working, which is also the one way an affected person can still collect mail; Active Directory accounts are exempt, because their password lives in the directory and expires by its policy, not this one. The clock started when this server was upgraded, so nobody is expired the moment you set this." xml:space="preserve">
+    <value>IMAP, POP3 e SMTP não têm como trocar uma senha, e o portal de autoatendimento recusa uma senha expirada no login, como qualquer outra porta de entrada. Uma senha expirada é, portanto, renovada por um administrador - ou pela própria pessoa, mas só se ela tiver uma senha de aplicativo, que ainda a deixa entrar no portal, onde a senha expirada é aceita como a atual ao definir uma nova. Ativar isto significa que alguém precisa estar disponível para todos os outros. As senhas de aplicativo existentes continuam funcionando, o que é também a única forma de a pessoa afetada ainda coletar e-mails; as contas do Active Directory ficam isentas, porque a senha delas mora no diretório e expira pela política de lá, não por esta. O relógio começou a contar quando este servidor foi atualizado, então ninguém fica expirado no momento em que você define isto.</value>
   </data>
   <data name="IP address" xml:space="preserve">
     <value>Endereço IP</value>
@@ -6920,11 +6920,11 @@ Cada inscrição Web Push feita com o par atual para de funcionar na hora, e cad
   <data name="Master user (empty = off)" xml:space="preserve">
     <value>Usuário mestre (vazio = desligado)</value>
   </data>
-  <data name="Match ALL criteria (AND)" xml:space="preserve">
-    <value>Corresponder a TODOS os critérios (AND)</value>
+  <data name="Match all criteria (AND)" xml:space="preserve">
+    <value>Corresponder a todos os critérios (AND)</value>
   </data>
-  <data name="Match ANY criterion (OR)" xml:space="preserve">
-    <value>Corresponder a QUALQUER critério (OR)</value>
+  <data name="Match any criterion (OR)" xml:space="preserve">
+    <value>Corresponder a qualquer critério (OR)</value>
   </data>
   <data name="Matched against" xml:space="preserve">
     <value>Comparado com</value>
@@ -7507,8 +7507,8 @@ Nada do que já está lá é removido.</value>
   <data name="No Active Directory domains were found." xml:space="preserve">
     <value>Nenhum domínio do Active Directory foi encontrado.</value>
   </data>
-  <data name="No DKIM key is configured for {0} yet. Generate one here: the private key is saved to a file of your choosing on this machine, the selector and key file are stored on the domain, and signing stays OFF until the DNS record below has been published and a check on this page has seen it - switching signing on before then would sign mail with a key the world cannot look up." xml:space="preserve">
-    <value>Ainda não há chave DKIM configurada para {0}. Gere uma aqui: a chave privada é salva em um arquivo de sua escolha nesta máquina, o seletor e o arquivo de chave são armazenados no domínio, e a assinatura fica DESLIGADA até que o registro DNS abaixo tenha sido publicado e uma verificação nesta página o tenha visto - ligar a assinatura antes disso assinaria e-mails com uma chave que o mundo não consegue consultar.</value>
+  <data name="No DKIM key is configured for {0} yet. Generate one here: the private key is saved to a file of your choosing on this machine, the selector and key file are stored on the domain, and signing stays off until the DNS record below has been published and a check on this page has seen it - switching signing on before then would sign mail with a key the world cannot look up." xml:space="preserve">
+    <value>Ainda não há chave DKIM configurada para {0}. Gere uma aqui: a chave privada é salva em um arquivo de sua escolha nesta máquina, o seletor e o arquivo de chave são armazenados no domínio, e a assinatura fica desligada até que o registro DNS abaixo tenha sido publicado e uma verificação nesta página o tenha visto - ligar a assinatura antes disso assinaria e-mails com uma chave que o mundo não consegue consultar.</value>
   </data>
   <data name="No HELO name was recorded" xml:space="preserve">
     <value>Nenhum nome HELO foi registrado</value>
@@ -8026,8 +8026,8 @@ Nada do que já está lá é removido.</value>
   <data name="Not checked" xml:space="preserve">
     <value>Não verificado</value>
   </data>
-  <data name="Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT and MX records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
-    <value>Sinceramente, não é verificado daqui: verificar o PTR exige o endereço IP PÚBLICO do servidor, que este painel não consegue determinar (atrás de NAT a máquina também não o conhece), e o verificador desta página lê apenas registros TXT e MX. Em vez disso, teste de fora: nslookup &lt;your public IP&gt; mostra o PTR; ele deve nomear o host acima.</value>
+  <data name="Not checked from here: verifying the PTR needs the server's public IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT and MX records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
+    <value>Não é verificado daqui: verificar o PTR exige o endereço IP público do servidor, que este painel não consegue determinar (atrás de NAT a máquina também não o conhece), e o verificador desta página lê apenas registros TXT e MX. Em vez disso, teste de fora: nslookup &lt;your public IP&gt; mostra o PTR; ele deve nomear o host acima.</value>
   </data>
   <data name="Not checked here: SURBL is asked about the links in a message once its body has arrived." xml:space="preserve">
     <value>Não verificado aqui: o SURBL é consultado sobre os links de uma mensagem depois que o corpo chega.</value>
@@ -8320,8 +8320,8 @@ Nada do que já está lá é removido.</value>
   <data name="Off by default. Useful on shared machines." xml:space="preserve">
     <value>Desligado por padrão. Útil em máquinas compartilhadas.</value>
   </data>
-  <data name="Off by default. When off, an unreachable directory refuses the sign-in and the server reports the real reason (throttled to once per minute per distinct problem) instead of retrying through Windows logon - which cannot succeed on a host that is not domain-joined, and whose failure would bury a precise diagnostic under an indistinguishable one. Turn on only on a domain-joined host that wants LDAP as its first choice. A password the directory REJECTED never falls back either way: retrying it would double every failed attempt and let one wrong password trigger a directory lockout policy." xml:space="preserve">
-    <value>Desligado por padrão. Quando desligado, um diretório inalcançável recusa o login e o servidor informa o motivo real (limitado a uma vez por minuto por problema distinto) em vez de tentar de novo pelo login do Windows - que não pode ter êxito em um host não ingressado no domínio, e cuja falha enterraria um diagnóstico preciso sob outro indistinguível. Ligue apenas em um host ingressado no domínio que queira o LDAP como primeira escolha. Uma senha que o diretório REJEITOU nunca recorre à alternativa, de nenhum dos dois modos: tentá-la de novo dobraria cada tentativa falha e deixaria uma senha errada acionar uma política de bloqueio do diretório.</value>
+  <data name="Off by default. When off, an unreachable directory refuses the sign-in and the server reports the real reason (throttled to once per minute per distinct problem) instead of retrying through Windows logon - which cannot succeed on a host that is not domain-joined, and whose failure would bury a precise diagnostic under an indistinguishable one. Turn on only on a domain-joined host that wants LDAP as its first choice. A password the directory rejected never falls back either way: retrying it would double every failed attempt and let one wrong password trigger a directory lockout policy." xml:space="preserve">
+    <value>Desligado por padrão. Quando desligado, um diretório inalcançável recusa o login e o servidor informa o motivo real (limitado a uma vez por minuto por problema distinto) em vez de tentar de novo pelo login do Windows - que não pode ter êxito em um host não ingressado no domínio, e cuja falha enterraria um diagnóstico preciso sob outro indistinguível. Ligue apenas em um host ingressado no domínio que queira o LDAP como primeira escolha. Uma senha que o diretório rejeitou nunca recorre à alternativa, de nenhum dos dois modos: tentá-la de novo dobraria cada tentativa falha e deixaria uma senha errada acionar uma política de bloqueio do diretório.</value>
   </data>
   <data name="Off by default. With it off nothing is queued and no push service is reached." xml:space="preserve">
     <value>Desligado por padrão. Desligado, nada é enfileirado e nenhum serviço de push é acessado.</value>
@@ -8329,8 +8329,8 @@ Nada do que já está lá é removido.</value>
   <data name="Off by default. With it off nothing is read, counted or written." xml:space="preserve">
     <value>Desligado por padrão. Desligado, nada é lido, contado ou gravado.</value>
   </data>
-  <data name="Off by default. With unprotected LDAP and a simple bind, the server does NOT send the password and does NOT guess what you meant: it refuses the sign-in and reports the contradiction, once per minute. Turning this on sends passwords in the clear and should only ever happen on a network you control end to end." xml:space="preserve">
-    <value>Desligado por padrão. Com LDAP desprotegido e um vínculo simples, o servidor NÃO envia a senha e NÃO adivinha o que você quis dizer: ele recusa o login e informa a contradição, uma vez por minuto. Ligar isto envia senhas em texto claro e só deveria acontecer em uma rede que você controle de ponta a ponta.</value>
+  <data name="Off by default. With unprotected LDAP and a simple bind, the server does not send the password and does not guess what you meant: it refuses the sign-in and reports the contradiction, once per minute. Turning this on sends passwords in the clear and should only ever happen on a network you control end to end." xml:space="preserve">
+    <value>Desligado por padrão. Com LDAP desprotegido e um vínculo simples, o servidor não envia a senha e não adivinha o que você quis dizer: ele recusa o login e informa a contradição, uma vez por minuto. Ligar isto envia senhas em texto claro e só deveria acontecer em uma rede que você controle de ponta a ponta.</value>
   </data>
   <data name="Off by default. user@[192.0.2.7], user@localhost and user@co.uk are refused; MAIL FROM:&lt;&gt; has no domain and is not judged by this switch." xml:space="preserve">
     <value>Desligado por padrão. user@[192.0.2.7], user@localhost e user@co.uk são recusados; MAIL FROM:&lt;&gt; não tem domínio e não é julgado por este interruptor.</value>
@@ -8383,8 +8383,8 @@ Nada do que já está lá é removido.</value>
   <data name="On by default, and inert until somebody sets a recovery address." xml:space="preserve">
     <value>Ligado por padrão, e sem efeito até alguém definir um endereço de recuperação.</value>
   </data>
-  <data name="On by default, and only an explicit 0 in the INI turns it off. Turned off, the encrypted connection no longer proves it reaches YOUR directory: anyone who can intercept it can present any certificate and collect every password sent over it. The server notes the disabling in its application log once per service start. Only meaningful for LDAPS and StartTLS." xml:space="preserve">
-    <value>Ligado por padrão, e só um 0 explícito no INI o desliga. Desligado, a conexão criptografada deixa de provar que alcança o SEU diretório: qualquer um que consiga interceptá-la pode apresentar qualquer certificado e coletar todas as senhas enviadas por ela. O servidor anota essa desativação no log de aplicativo uma vez por inicialização do serviço. Só faz sentido para LDAPS e StartTLS.</value>
+  <data name="On by default, and only an explicit 0 in the INI turns it off. Turned off, the encrypted connection no longer proves it reaches your directory: anyone who can intercept it can present any certificate and collect every password sent over it. The server notes the disabling in its application log once per service start. Only meaningful for LDAPS and StartTLS." xml:space="preserve">
+    <value>Ligado por padrão, e só um 0 explícito no INI o desliga. Desligado, a conexão criptografada deixa de provar que alcança o seu diretório: qualquer um que consiga interceptá-la pode apresentar qualquer certificado e coletar todas as senhas enviadas por ela. O servidor anota essa desativação no log de aplicativo uma vez por inicialização do serviço. Só faz sentido para LDAPS e StartTLS.</value>
   </data>
   <data name="On by default, and the one switch here whose default is not the cautious one. With it off, a message for a mailbox that is already over quota is accepted and then answered with a non-delivery report addressed to the envelope sender - which the traffic that fills mailboxes fastest has forged. That report then goes from this server to somebody who sent nothing, which is backscatter, and it is this server's reputation that pays for it. Refusing at RCPT TO with a temporary 452 instead leaves the message in the sending server's queue, so a legitimate sender's mail waits for the mailbox to be emptied and is eventually reported by the machine that knows who the sender really is." xml:space="preserve">
     <value>Ligado por padrão, e a única opção aqui cujo padrão não é o cauteloso. Com ele desligado, uma mensagem para uma caixa que já está acima da cota é aceita e depois respondida com um relatório de não entrega endereçado ao remetente do envelope - que o tráfego que enche as caixas mais rápido forjou. Esse relatório então vai deste servidor para alguém que não enviou nada, o que é backscatter, e é a reputação deste servidor que paga por isso. Recusar no RCPT TO com um 452 temporário, em vez disso, deixa a mensagem na fila do servidor remetente, então o e-mail de um remetente legítimo espera a caixa ser esvaziada e acaba sendo reportado pela máquina que sabe quem o remetente realmente é.</value>
@@ -8749,8 +8749,8 @@ Nada do que já está lá é removido.</value>
   <data name="Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above." xml:space="preserve">
     <value>Texto diferente opcional para colegas - remetentes cujo endereço pertence a este servidor. Ele nunca sai do servidor, então pode dizer mais do que a mensagem acima. Vazio significa a mensagem acima.</value>
   </data>
-  <data name="Optional different text for local senders - colleagues can be told more than strangers. Empty means everyone gets the text above. Note this identifies the sender's ADDRESS, which is forgeable: treat it as a courtesy, never as a place for anything confidential." xml:space="preserve">
-    <value>Texto opcional diferente para remetentes locais - a colegas se pode dizer mais do que a estranhos. Vazio significa que todos recebem o texto acima. Observe que isto identifica o ENDEREÇO do remetente, que é forjável: trate-o como uma cortesia, nunca como um lugar para algo confidencial.</value>
+  <data name="Optional different text for local senders - colleagues can be told more than strangers. Empty means everyone gets the text above. Note this identifies the sender's address, which is forgeable: treat it as a courtesy, never as a place for anything confidential." xml:space="preserve">
+    <value>Texto opcional diferente para remetentes locais - a colegas se pode dizer mais do que a estranhos. Vazio significa que todos recebem o texto acima. Observe que isto identifica o endereço do remetente, que é forjável: trate-o como uma cortesia, nunca como um lugar para algo confidencial.</value>
   </data>
   <data name="Or browse by area" xml:space="preserve">
     <value>Ou navegue por área</value>
@@ -8812,8 +8812,8 @@ Nada do que já está lá é removido.</value>
   <data name="Override DNS server (empty = the name servers Windows uses)" xml:space="preserve">
     <value>Substituir o servidor DNS (vazio = os servidores de nomes que o Windows usa)</value>
   </data>
-  <data name="Oversigning (RFC 6376 5.4) lists a header field name in the signature's h= tag once more often than the field occurs, which makes ADDING another one - a second From:, an injected Subject: - break the signature. Off by default: oversigning a field that a mailing list or forwarder legitimately adds costs those messages their DKIM pass." xml:space="preserve">
-    <value>A sobreassinatura (RFC 6376 5.4) lista o nome de um campo de cabeçalho na tag h= da assinatura uma vez a mais do que o campo ocorre, o que faz com que ADICIONAR outro - um segundo From:, um Subject: injetado - quebre a assinatura. Desligada por padrão: sobreassinar um campo que uma lista de discussão ou um encaminhador adiciona legitimamente custa a essas mensagens a aprovação DKIM.</value>
+  <data name="Oversigning (RFC 6376 5.4) lists a header field name in the signature's h= tag once more often than the field occurs, which makes adding another one - a second From:, an injected Subject: - break the signature. Off by default: oversigning a field that a mailing list or forwarder legitimately adds costs those messages their DKIM pass." xml:space="preserve">
+    <value>A sobreassinatura (RFC 6376 5.4) lista o nome de um campo de cabeçalho na tag h= da assinatura uma vez a mais do que o campo ocorre, o que faz com que adicionar outro - um segundo From:, um Subject: injetado - quebre a assinatura. Desligada por padrão: sobreassinar um campo que uma lista de discussão ou um encaminhador adiciona legitimamente custa a essas mensagens a aprovação DKIM.</value>
   </data>
   <data name="Own value of {0}" xml:space="preserve">
     <value>Valor próprio de {0}</value>
@@ -9033,8 +9033,8 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   <data name="Per remote domain: the TLS this server demands in each direction, the size and connections it will attempt, and recipient verification for a domain it backs up." xml:space="preserve">
     <value>Por domínio remoto: o TLS que este servidor exige em cada sentido, o tamanho e as conexões que tentará, e a verificação de destinatários para um domínio do qual é MX de reserva.</value>
   </data>
-  <data name="Per-account overrides of the server-wide spam handling, applied to THIS account's copy at delivery. They cannot reach back into the SMTP conversation: a message the global settings refuse, quarantine or greylist is stopped for every recipient before any per-account setting can run." xml:space="preserve">
-    <value>Substituições por conta do tratamento de spam de todo o servidor, aplicadas à cópia DESTA conta na entrega. Elas não conseguem alcançar de volta a conversa SMTP: uma mensagem que as configurações globais recusam, colocam em quarentena ou submetem a greylisting é barrada para todos os destinatários antes que qualquer configuração por conta possa rodar.</value>
+  <data name="Per-account overrides of the server-wide spam handling, applied to this account's copy at delivery. They cannot reach back into the SMTP conversation: a message the global settings refuse, quarantine or greylist is stopped for every recipient before any per-account setting can run." xml:space="preserve">
+    <value>Substituições por conta do tratamento de spam de todo o servidor, aplicadas à cópia desta conta na entrega. Elas não conseguem alcançar de volta a conversa SMTP: uma mensagem que as configurações globais recusam, colocam em quarentena ou submetem a greylisting é barrada para todos os destinatários antes que qualquer configuração por conta possa rodar.</value>
   </data>
   <data name="Per-account rules. You can add, rename, enable/disable and delete rules here; matching criteria and actions are managed on the server." xml:space="preserve">
     <value>Regras por conta. Aqui você pode adicionar, renomear, ativar/desativar e excluir regras; os critérios de correspondência e as ações são gerenciados no servidor.</value>
@@ -9369,8 +9369,8 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   <data name="Put &quot;{0}&quot; ({1}, {2}) back into the mailbox of {3}?" xml:space="preserve">
     <value>Devolver "{0}" ({1}, {2}) à caixa de correio de {3}?</value>
   </data>
-  <data name="Put a load balancer, a TLS terminator or a Postfix relay in front of the SMTP listener and every connection appears to come from IT - which silently breaks DNSBL checks, SPF, greylisting, auto-ban and the IP range rules all at once, while everything still reports success. These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server. The upstream has to be configured to send it or nothing here changes: HAProxy needs send-proxy or send-proxy-v2 on its server line, and a Postfix relay needs XCLIENT enabled towards this host. hMailServer cannot check that from here - and note that once an address is listed as a PROXY protocol proxy the header becomes REQUIRED from it, so a proxy that does not send one will have its connections dropped." xml:space="preserve">
-    <value>Coloque um balanceador de carga, um terminador TLS ou um relay Postfix na frente do ouvinte SMTP e toda conexão passa a parecer vir DELE - o que quebra silenciosamente as verificações DNSBL, o SPF, o greylisting, o banimento automático e as regras de faixa de IP, tudo de uma vez, enquanto tudo continua relatando sucesso. Estes permitem que um upstream nomeado repasse o endereço real do cliente. Ambos vêm desligados e não confiam em ninguém até que um endereço seja listado, porque um par capaz de reescrever o próprio endereço de origem derrotou todo controle baseado em IP deste servidor. O upstream precisa estar configurado para enviá-lo, senão nada muda aqui: o HAProxy precisa de send-proxy ou send-proxy-v2 na linha de servidor dele, e um relay Postfix precisa de XCLIENT habilitado em direção a este host. O hMailServer não pode verificar isso daqui - e observe que, uma vez que um endereço esteja listado como proxy do protocolo PROXY, o cabeçalho passa a ser OBRIGATÓRIO vindo dele, então um proxy que não envie um terá suas conexões descartadas.</value>
+  <data name="Put a load balancer, a TLS terminator or a Postfix relay in front of the SMTP listener and every connection appears to come from that device - which silently breaks DNSBL checks, SPF, greylisting, auto-ban and the IP range rules all at once, while everything still reports success. These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server. The upstream has to be configured to send it or nothing here changes: HAProxy needs send-proxy or send-proxy-v2 on its server line, and a Postfix relay needs XCLIENT enabled towards this host. hMailServer cannot check that from here - and note that once an address is listed as a PROXY protocol proxy the header becomes required from it, so a proxy that does not send one will have its connections dropped." xml:space="preserve">
+    <value>Coloque um balanceador de carga, um terminador TLS ou um relay Postfix na frente do ouvinte SMTP e toda conexão passa a parecer vir dele - o que quebra silenciosamente as verificações DNSBL, o SPF, o greylisting, o banimento automático e as regras de faixa de IP, tudo de uma vez, enquanto tudo continua relatando sucesso. Estes permitem que um upstream nomeado repasse o endereço real do cliente. Ambos vêm desligados e não confiam em ninguém até que um endereço seja listado, porque um par capaz de reescrever o próprio endereço de origem derrotou todo controle baseado em IP deste servidor. O upstream precisa estar configurado para enviá-lo, senão nada muda aqui: o HAProxy precisa de send-proxy ou send-proxy-v2 na linha de servidor dele, e um relay Postfix precisa de XCLIENT habilitado em direção a este host. O hMailServer não pode verificar isso daqui - e observe que, uma vez que um endereço esteja listado como proxy do protocolo PROXY, o cabeçalho passa a ser obrigatório vindo dele, então um proxy que não envie um terá suas conexões descartadas.</value>
   </data>
   <data name="Put a setting back" xml:space="preserve">
     <value>Restaurar uma configuração</value>
@@ -9422,9 +9422,6 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   </data>
   <data name="Quick early retries before the normal schedule (0 = off)" xml:space="preserve">
     <value>Novas tentativas rápidas e antecipadas antes do agendamento normal (0 = desligado)</value>
-  </data>
-  <data name="READ THIS FIRST: IMAP, POP3 and SMTP have no way to change a password, and the self-service portal refuses an expired one at sign-in like every other surface. An expired password is therefore renewed by an administrator - or by the person themselves only if they hold an app password, which still signs them in to the portal, where the expired password is accepted as the current one when setting a new one. Turning this on means someone has to be available for everybody else. Existing app passwords keep working, which is also the one way an affected person can still collect mail; Active Directory accounts are exempt, because their password lives in the directory and expires by its policy, not this one. The clock started when this server was upgraded, so nobody is expired the moment you set this." xml:space="preserve">
-    <value>LEIA ISTO PRIMEIRO: IMAP, POP3 e SMTP não têm como trocar uma senha, e o portal de autoatendimento recusa uma senha expirada no login, como qualquer outra porta de entrada. Uma senha expirada é, portanto, renovada por um administrador - ou pela própria pessoa, mas só se ela tiver uma senha de aplicativo, que ainda a deixa entrar no portal, onde a senha expirada é aceita como a atual ao definir uma nova. Ativar isto significa que alguém precisa estar disponível para todos os outros. As senhas de aplicativo existentes continuam funcionando, o que é também a única forma de a pessoa afetada ainda coletar e-mails; as contas do Active Directory ficam isentas, porque a senha delas mora no diretório e expira pela política de lá, não por esta. O relógio começou a contar quando este servidor foi atualizado, então ninguém fica expirado no momento em que você define isto.</value>
   </data>
   <data name="REST API" xml:space="preserve">
     <value>API REST</value>
@@ -9625,8 +9622,8 @@ Execute isto se os clientes relatarem mensagens aparecendo com o UID errado, ou 
   <data name="Received headers" xml:space="preserve">
     <value>Cabeçalhos Received</value>
   </data>
-  <data name="Receivers look up the PTR record of the connecting IP address and compare it with the name the server announces in HELO/EHLO; this server judges incoming mail by the same standard when the PTR and HELO checks on Anti-spam settings are on. Unlike every other record on this page, the PTR is NOT published in your domain's zone: it lives in the reverse zone of the IP address, which belongs to whoever owns the address - usually your hosting provider or ISP. Ask them to set it; there is nothing to paste into your own DNS console." xml:space="preserve">
-    <value>Os destinatários consultam o registro PTR do endereço IP que se conecta e o comparam com o nome que o servidor anuncia em HELO/EHLO; este servidor julga o e-mail de entrada pelo mesmo critério quando as verificações de PTR e HELO em Configurações de anti-spam estão ligadas. Diferentemente de todos os outros registros desta página, o PTR NÃO é publicado na zona do seu domínio: ele mora na zona reversa do endereço IP, que pertence a quem for dono do endereço - normalmente o seu provedor de hospedagem ou ISP. Peça a eles que o definam; não há nada para colar no seu próprio console de DNS.</value>
+  <data name="Receivers look up the PTR record of the connecting IP address and compare it with the name the server announces in HELO/EHLO; this server judges incoming mail by the same standard when the PTR and HELO checks on Anti-spam settings are on. Unlike every other record on this page, the PTR is not published in your domain's zone: it lives in the reverse zone of the IP address, which belongs to whoever owns the address - usually your hosting provider or ISP. Ask them to set it; there is nothing to paste into your own DNS console." xml:space="preserve">
+    <value>Os destinatários consultam o registro PTR do endereço IP que se conecta e o comparam com o nome que o servidor anuncia em HELO/EHLO; este servidor julga o e-mail de entrada pelo mesmo critério quando as verificações de PTR e HELO em Configurações de anti-spam estão ligadas. Diferentemente de todos os outros registros desta página, o PTR não é publicado na zona do seu domínio: ele mora na zona reversa do endereço IP, que pertence a quem for dono do endereço - normalmente o seu provedor de hospedagem ou ISP. Peça a eles que o definam; não há nada para colar no seu próprio console de DNS.</value>
   </data>
   <data name="Recently visited" xml:space="preserve">
     <value>Visitados recentemente</value>
@@ -10047,13 +10044,13 @@ A caixa e suas mensagens passam para o novo endereço. E-mails enviados ao ender
   <data name="Repair" xml:space="preserve">
     <value>Reparar</value>
   </data>
-  <data name="Replace ALL IP ranges with the defaults?&#10;&#10;Every custom range - including any auto-ban entries - will be removed and replaced with 'My computer' (127.0.0.1) and 'Internet' (everything else). This changes who may connect and relay, immediately." xml:space="preserve">
-    <value>Substituir TODAS as faixas de IP pelos padrões?
+  <data name="Replace all IP ranges with the defaults?&#10;&#10;Every custom range - including any auto-ban entries - will be removed and replaced with 'My computer' (127.0.0.1) and 'Internet' (everything else). This changes who may connect and relay, immediately." xml:space="preserve">
+    <value>Substituir todas as faixas de IP pelos padrões?
 
 Cada faixa personalizada - incluindo quaisquer entradas de banimento automático - será removida e substituída por 'Meu computador' (127.0.0.1) e 'Internet' (todo o resto). Isso muda quem pode se conectar e usar relay, imediatamente.</value>
   </data>
-  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security, and with SMTP authentication On on both SMTP ports, so a port 25 that is a honeypot takes AUTH again. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialised." xml:space="preserve">
-    <value>Substituir TODAS as portas configuradas pelos padrões?
+  <data name="Replace all configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security, and with SMTP authentication On on both SMTP ports, so a port 25 that is a honeypot takes AUTH again. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialised." xml:space="preserve">
+    <value>Substituir todas as portas configuradas pelos padrões?
 
 SMTP 25 e 587, POP3 110, IMAP 143 - sem segurança de conexão e com a autenticação SMTP Ligado nas duas portas SMTP, então uma porta 25 que é uma isca volta a aceitar AUTH. As portas TLS e os vínculos personalizados serão removidos. A alteração vale quando o servidor for reinicializado.</value>
   </data>
@@ -11778,11 +11775,11 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Signing in…" xml:space="preserve">
     <value>Entrando…</value>
   </data>
-  <data name="Signing is currently OFF - it can be switched on below once the record is confirmed published." xml:space="preserve">
-    <value>A assinatura está atualmente DESLIGADO - pode ser ligado abaixo assim que o registro for confirmado como publicado.</value>
+  <data name="Signing is currently off - it can be switched on below once the record is confirmed published." xml:space="preserve">
+    <value>A assinatura está atualmente desligada - pode ser ligada abaixo assim que o registro for confirmado como publicado.</value>
   </data>
-  <data name="Signing is currently ON." xml:space="preserve">
-    <value>A assinatura está atualmente LIGADO.</value>
+  <data name="Signing is currently on." xml:space="preserve">
+    <value>A assinatura está atualmente ligada.</value>
   </data>
   <data name="Signing moved to the next key." xml:space="preserve">
     <value>A assinatura passou para a próxima chave.</value>
@@ -11937,8 +11934,8 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="SpamAssassin's verdict is thrown away: with merging off, a message it tags as spam is given the fixed score, which is {0}." xml:space="preserve">
     <value>O veredito do SpamAssassin é descartado: com a mesclagem desligada, uma mensagem que ele marca como spam recebe a pontuação fixa, que é {0}.</value>
   </data>
-  <data name="SpamAssassin: idle timeout, and a session ceiling of this plus 30 s. 0 is NOT no bound." xml:space="preserve">
-    <value>SpamAssassin: tempo limite de inatividade, e um teto de sessão igual a este mais 30 s. 0 NÃO significa ausência de limite.</value>
+  <data name="SpamAssassin: idle timeout, and a session ceiling of this plus 30 s. 0 does not mean no time limit." xml:space="preserve">
+    <value>SpamAssassin: tempo limite de inatividade, e um teto de sessão igual a este mais 30 s. 0 não significa sem limite de tempo.</value>
   </data>
   <data name="SpamTestDNSBlackLists, SpamTestSURBL or SpamTestSPF slow" xml:space="preserve">
     <value>SpamTestDNSBlackLists, SpamTestSURBL ou SpamTestSPF lentos</value>
@@ -12222,8 +12219,8 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="TLS certificate file for the metrics listener (PEM)" xml:space="preserve">
     <value>Arquivo de certificado TLS para o ouvinte de métricas (PEM)</value>
   </data>
-  <data name="TLS for the metrics listener needs both the certificate and the private key. Only {0} is set, so TLS is NOT enabled and scrapes stay plain HTTP." xml:space="preserve">
-    <value>O TLS para o ouvinte de métricas precisa tanto do certificado quanto da chave privada. Apenas {0} está definido, então o TLS NÃO está ativado e as coletas continuam em HTTP simples.</value>
+  <data name="TLS for the metrics listener needs both the certificate and the private key. Only {0} is set, so TLS is not enabled and scrapes stay plain HTTP." xml:space="preserve">
+    <value>O TLS para o ouvinte de métricas precisa tanto do certificado quanto da chave privada. Apenas {0} está definido, então o TLS não está ativado e as coletas continuam em HTTP simples.</value>
   </data>
   <data name="TLS from the first byte. Nothing on this port is ever sent unencrypted." xml:space="preserve">
     <value>TLS desde o primeiro byte. Nada nesta porta é enviado sem criptografia.</value>
@@ -12408,8 +12405,8 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="The Control Deck is served by the REST API, which is off - give it a port on the API &amp; monitoring page." xml:space="preserve">
     <value>O Control Deck é servido pela API REST, que está desligada - dê a ela uma porta na página API e monitoramento.</value>
   </data>
-  <data name="The Control Panel is connected to another host, so the account ITS service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
-    <value>O Control Panel está conectado a outro host, então a conta com a qual o serviço DELE roda não pode ser lida daqui. Abra o Control Panel no próprio servidor para vê-la.</value>
+  <data name="The Control Panel is connected to another host, so the account its service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
+    <value>O Control Panel está conectado a outro host, então a conta com a qual o serviço dele roda não pode ser lida daqui. Abra o Control Panel no próprio servidor para vê-la.</value>
   </data>
   <data name="The DMARC aggregate and TLS-RPT reports other servers send about your domains, read from each domain's report mailbox - which is set in the domain's dialog." xml:space="preserve">
     <value>Os relatórios agregados DMARC e TLS-RPT que outros servidores enviam sobre os seus domínios, lidos da caixa de relatórios de cada domínio - que é definida na janela do domínio.</value>
@@ -12435,11 +12432,11 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="The HELO/EHLO host" xml:space="preserve">
     <value>O host HELO/EHLO</value>
   </data>
-  <data name="The Host name on the Protocols page is EMPTY, so the server falls back to its Windows computer name - shown above as this machine's name. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
-    <value>O Nome do host na página Protocolos está VAZIO, então o servidor recorre ao seu nome de computador Windows - mostrado acima como o nome desta máquina. Um nome de computador simples não é um nome DNS público: destinatários que comparam o HELO com o DNS o penalizarão, e nenhum PTR pode concordar com ele. Defina antes um nome de host de verdade.</value>
+  <data name="The Host name on the Protocols page is empty, so the server falls back to its Windows computer name - shown above as this machine's name. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
+    <value>O Nome do host na página Protocolos está vazio, então o servidor recorre ao seu nome de computador Windows - mostrado acima como o nome desta máquina. Um nome de computador simples não é um nome DNS público: destinatários que comparam o HELO com o DNS o penalizarão, e nenhum PTR pode concordar com ele. Defina antes um nome de host de verdade.</value>
   </data>
-  <data name="The Host name on the Protocols page is EMPTY, so the server falls back to its Windows computer name, which cannot be read from this machine. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
-    <value>O Nome do host na página Protocolos está VAZIO, então o servidor recorre ao seu nome de computador Windows, que não pode ser lido nesta máquina. Um nome de computador simples não é um nome DNS público: destinatários que comparam o HELO com o DNS o penalizarão, e nenhum PTR pode concordar com ele. Defina antes um nome de host de verdade.</value>
+  <data name="The Host name on the Protocols page is empty, so the server falls back to its Windows computer name, which cannot be read from this machine. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
+    <value>O Nome do host na página Protocolos está vazio, então o servidor recorre ao seu nome de computador Windows, que não pode ser lido nesta máquina. Um nome de computador simples não é um nome DNS público: destinatários que comparam o HELO com o DNS o penalizarão, e nenhum PTR pode concordar com ele. Defina antes um nome de host de verdade.</value>
   </data>
   <data name="The IP range {0} takes a password only over TLS." xml:space="preserve">
     <value>O intervalo de IP {0} aceita uma senha somente por TLS.</value>
@@ -12633,8 +12630,8 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="The allowed domain means the score cannot refuse or quarantine the message, though it can still mark it as spam." xml:space="preserve">
     <value>Como o domínio é permitido, a pontuação não pode recusar a mensagem nem colocá-la na quarentena, mas ainda pode marcá-la como spam.</value>
   </data>
-  <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
-    <value>A alternativa ao token portador, para coletores que só falam HTTP Basic. O nome de usuário e a senha precisam AMBOS estar definidos: com apenas um deles, o servidor registra um aviso na inicialização e se comporta como se nenhum estivesse definido.</value>
+  <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must both be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
+    <value>A alternativa ao token portador, para coletores que só falam HTTP Basic. O nome de usuário e a senha precisam ambos estar definidos: com apenas um deles, o servidor registra um aviso na inicialização e se comporta como se nenhum estivesse definido.</value>
   </data>
   <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-11, a wildcard such as 127.0.0.*, or several joined by |" xml:space="preserve">
     <value>A resposta que significa listado: 127.0.0.2, um intervalo como 127.0.0.2-11, um curinga como 127.0.0.* ou várias unidas por |</value>
@@ -12765,6 +12762,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="The certificate &quot;{0}&quot; is in use by a listener and has a problem: {1}" xml:space="preserve">
     <value>O certificado "{0}" está em uso por um ouvinte e tem um problema: {1}</value>
   </data>
+  <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
+    <value>O certificado e a chave precisam ambos estar definidos para servir HTTPS; com apenas um deles o TLS não é ativado e o servidor registra isso. Diferente do ouvinte da API REST, aqui não há como recorrer ao certificado do ACME. Se o TLS estiver configurado mas não puder ser preparado (um arquivo ilegível, uma chave que não corresponde), as sondas de saúde permanecem em HTTP puro e o /metrics responde 503 em vez de servir a exposição em texto claro.</value>
+  </data>
   <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
     <value>O certificado expirou em {0}. O servidor ainda o carrega e as portas dele ainda iniciam (ele informa o erro 5991 no log do aplicativo), mas todo cliente e servidor de e-mail que verifica a data recusa a conexão - o que, hoje, é quase todos. Substitua o certificado.</value>
   </data>
@@ -12881,8 +12881,8 @@ Selecione a chave acima e copie-a à mão - ela não será mostrada de novo.</va
   <data name="The consistency check is switched off, so no scan has run. Turn on 'Periodically cross-check message rows against files on disk' on the {0} page; the server then scans at start-up and hourly and writes {1}." xml:space="preserve">
     <value>A verificação de consistência está desligada, então nenhum exame foi feito. Ative 'Conferir periodicamente as linhas de mensagens contra os arquivos em disco' na página {0}; o servidor então examina na inicialização e de hora em hora e grava {1}.</value>
   </data>
-  <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.ini. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page." xml:space="preserve">
-    <value>A contrapartida da selagem ARC: em e-mails recebidos, uma cadeia ARC válida de um selador confiável pode compensar a pontuação de falha do DMARC de uma mensagem cuja aprovação DMARC foi destruída pelo encaminhamento (RFC 8617). Ela é configurada na guia Auth do remetente da página Configurações antispam, porque é armazenada junto com as outras configurações antispam e não no hMailServer.ini. Com a lista de seladores confiáveis vazia, o recurso não faz absolutamente nada, por projeto: qualquer um pode fabricar uma cadeia ARC inteira e selá-la com chaves publicadas no próprio DNS, e ela validará perfeitamente, então uma cadeia que passa não prova nada a menos que você já confie no selador. A lista não é uma opção do recurso - ela é o recurso. A compensação nunca excede a pontuação de falha do DMARC, e só se aplica enquanto a pontuação DMARC estiver ativada na página Configurações antispam.</value>
+  <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.ini. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page." xml:space="preserve">
+    <value>A contrapartida da selagem ARC: em e-mails recebidos, uma cadeia ARC válida de um selador confiável pode compensar a pontuação de falha do DMARC de uma mensagem cuja aprovação DMARC foi destruída pelo encaminhamento (RFC 8617). Ela é configurada na guia Auth do remetente da página Configurações antispam, porque é armazenada junto com as outras configurações antispam e não no hMailServer.ini. Com a lista de seladores confiáveis vazia, o recurso não faz absolutamente nada, por projeto: qualquer um pode fabricar uma cadeia ARC inteira e selá-la com chaves publicadas no próprio DNS, e ela será validada, então uma cadeia que passa não prova nada a menos que você já confie no selador. A lista não é uma opção do recurso - ela é o recurso. A compensação nunca excede a pontuação de falha do DMARC, e só se aplica enquanto a pontuação DMARC estiver ativada na página Configurações antispam.</value>
   </data>
   <data name="The current password counts as the most recent one, so setting a password to itself is refused too - the repeat somebody is most likely to try." xml:space="preserve">
     <value>A senha atual conta como a mais recente, então definir uma senha igual a ela mesma também é recusado - justamente a repetição que alguém tem mais chance de tentar.</value>
@@ -12929,14 +12929,14 @@ Selecione a chave acima e copie-a à mão - ela não será mostrada de novo.</va
   <data name="The delivery queue lists what is waiting and why." xml:space="preserve">
     <value>A fila de entrega lista o que está esperando e por quê.</value>
   </data>
-  <data name="The delivery that takes a mailbox past this percentage produces one notice to the person whose mailbox it is, from their own domain's postmaster. ONE, not one per message: the server treats the threshold as something the mailbox CROSSES rather than a state it is in, so a mailbox sitting at 95% is not warned about again on every delivery - which would fill it faster than the mail does. Emptying the mailbox and filling it again warns again, which is the behaviour anyone would expect and is free here rather than something that had to be remembered and expired. On by default, because the alternative is what this server did before: say nothing at all until mail starts being refused, by which point the person it happens to is the last to know." xml:space="preserve">
-    <value>A entrega que leva uma caixa além desta porcentagem produz um aviso à pessoa dona da caixa, vindo do postmaster do próprio domínio dela. UM, não um por mensagem: o servidor trata o limiar como algo que a caixa ATRAVESSA e não como um estado em que ela está, então uma caixa parada em 95% não é avisada de novo a cada entrega - o que a encheria mais rápido do que o e-mail enche. Esvaziar a caixa e enchê-la de novo avisa de novo, que é o comportamento que qualquer um esperaria e que aqui sai de graça, em vez de ser algo que precisasse ser lembrado e expirado. Ligado por padrão, porque a alternativa é o que este servidor fazia antes: não dizer nada até que o e-mail comece a ser recusado, momento em que a pessoa a quem isso acontece é a última a saber.</value>
+  <data name="The delivery that takes a mailbox past this percentage produces one notice to the person whose mailbox it is, from their own domain's postmaster. One notice, not one per message: the server treats the threshold as something the mailbox crosses rather than a state it is in, so a mailbox sitting at 95% is not warned about again on every delivery - which would fill it faster than the mail does. Emptying the mailbox and filling it again warns again. On by default; with it off, nothing is said until mail starts being refused." xml:space="preserve">
+    <value>A entrega que leva uma caixa além desta porcentagem produz um aviso à pessoa dona da caixa, vindo do postmaster do próprio domínio dela. Um aviso, não um por mensagem: o servidor trata o limiar como algo que a caixa atravessa e não como um estado em que ela está, então uma caixa parada em 95% não é avisada de novo a cada entrega - o que a encheria mais rápido do que o e-mail enche. Esvaziar a caixa e enchê-la de novo avisa de novo. Ligado por padrão; desligado, nada é dito até que o e-mail comece a ser recusado.</value>
   </data>
-  <data name="The directory ACCEPTED the credentials: bound as {0}. This account would sign in." xml:space="preserve">
-    <value>O diretório ACEITOU as credenciais: vinculado como {0}. Esta conta conseguiria entrar.</value>
+  <data name="The directory accepted the credentials: bound as {0}. This account would sign in." xml:space="preserve">
+    <value>O diretório aceitou as credenciais: vinculado como {0}. Esta conta conseguiria entrar.</value>
   </data>
-  <data name="The directory answered and REFUSED these credentials: {0} (LDAP error {1}). The connection, transport and configuration are all working - this is a credentials problem, which is exactly what a user typing a wrong password would see." xml:space="preserve">
-    <value>O diretório respondeu e RECUSOU estas credenciais: {0} (erro LDAP {1}). A conexão, o transporte e a configuração estão todos funcionando - este é um problema de credenciais, exatamente o que um usuário digitando a senha errada veria.</value>
+  <data name="The directory answered and refused these credentials: {0} (LDAP error {1}). The connection, transport and configuration are all working - this is a credentials problem, which is exactly what a user typing a wrong password would see." xml:space="preserve">
+    <value>O diretório respondeu e recusou estas credenciais: {0} (erro LDAP {1}). A conexão, o transporte e a configuração estão todos funcionando - este é um problema de credenciais, exatamente o que um usuário digitando a senha errada veria.</value>
   </data>
   <data name="The directory said: {0}" xml:space="preserve">
     <value>O diretório disse: {0}</value>
@@ -13144,11 +13144,11 @@ não pôde ser carregado. A mensagem provavelmente já foi entregue e não está
   <data name="The install's outcome could not be read." xml:space="preserve">
     <value>Não foi possível ler o resultado da instalação.</value>
   </data>
-  <data name="The issued certificate EXPIRED on {0}, {1} day ago, and renewal has not replaced it. Clients are refusing this server's TLS. Check the error log for the last renewal attempt: the usual cause is that the CA can no longer reach this server on the http-01 challenge port." xml:space="preserve">
-    <value>O certificado emitido EXPIROU em {0}, há {1} dia, e a renovação não o substituiu. Os clientes estão recusando o TLS deste servidor. Verifique no log de erros a última tentativa de renovação: a causa habitual é que a CA não consegue mais alcançar este servidor na porta de desafio http-01.</value>
+  <data name="The issued certificate expired on {0}, {1} day ago, and renewal has not replaced it. Clients are refusing this server's TLS. Check the error log for the last renewal attempt: the usual cause is that the CA can no longer reach this server on the http-01 challenge port." xml:space="preserve">
+    <value>O certificado emitido expirou em {0}, há {1} dia, e a renovação não o substituiu. Os clientes estão recusando o TLS deste servidor. Verifique no log de erros a última tentativa de renovação: a causa habitual é que a CA não consegue mais alcançar este servidor na porta de desafio http-01.</value>
   </data>
-  <data name="The issued certificate EXPIRED on {0}, {1} days ago, and renewal has not replaced it. Clients are refusing this server's TLS. Check the error log for the last renewal attempt: the usual cause is that the CA can no longer reach this server on the http-01 challenge port." xml:space="preserve">
-    <value>O certificado emitido EXPIROU em {0}, há {1} dias, e a renovação não o substituiu. Os clientes estão recusando o TLS deste servidor. Verifique no log de erros a última tentativa de renovação: a causa habitual é que a CA não consegue mais alcançar este servidor na porta de desafio http-01.</value>
+  <data name="The issued certificate expired on {0}, {1} days ago, and renewal has not replaced it. Clients are refusing this server's TLS. Check the error log for the last renewal attempt: the usual cause is that the CA can no longer reach this server on the http-01 challenge port." xml:space="preserve">
+    <value>O certificado emitido expirou em {0}, há {1} dias, e a renovação não o substituiu. Os clientes estão recusando o TLS deste servidor. Verifique no log de erros a última tentativa de renovação: a causa habitual é que a CA não consegue mais alcançar este servidor na porta de desafio http-01.</value>
   </data>
   <data name="The issued certificate expires on {0}, in {1} day. The renewal task runs inside this window, so this is only a problem if the number stops falling - if it does, renewal is failing and the error log says why." xml:space="preserve">
     <value>O certificado emitido expira em {0}, daqui a {1} dia. A tarefa de renovação roda dentro desta janela, então isto só é um problema se o número parar de cair - se parar, a renovação está falhando e o log de erros diz por quê.</value>
@@ -13207,8 +13207,8 @@ não pôde ser carregado. A mensagem provavelmente já foi entregue e não está
   <data name="The key store could not be written, so no key was created: {0}. The Control Panel needs write access to that folder." xml:space="preserve">
     <value>O repositório de chaves não pôde ser gravado, então nenhuma chave foi criada: {0}. O Control Panel precisa de acesso de escrita a essa pasta.</value>
   </data>
-  <data name="The key store could not be written, so the key was NOT revoked: {0}" xml:space="preserve">
-    <value>O repositório de chaves não pôde ser gravado, então a chave NÃO foi revogada: {0}</value>
+  <data name="The key store could not be written, so the key was not revoked: {0}" xml:space="preserve">
+    <value>O repositório de chaves não pôde ser gravado, então a chave não foi revogada: {0}</value>
   </data>
   <data name="The key store was not found, so there is nothing to revoke." xml:space="preserve">
     <value>O repositório de chaves não foi encontrado, então não há nada para revogar.</value>
@@ -13539,11 +13539,11 @@ Adicionar mesmo assim?</value>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>As mesmas linhas, categorias e máscara que os arquivos de log recebem, com o id de trace e de span anexado sempre que houver um span ativo na thread que registrou. O exportador nunca exporta as próprias linhas de falha, senão um coletor morto se alimentaria a si mesmo.</value>
   </data>
-  <data name="The sandbox is ON but an address is empty, so nothing is held and nothing is submitted until both are set - the application log says so at every start. Set both addresses, or turn it off." xml:space="preserve">
-    <value>O sandbox está LIGADO, mas um endereço está vazio, então nada é retido nem enviado até que ambos sejam definidos - o log do aplicativo informa isso a cada início. Defina os dois endereços ou desligue-o.</value>
-  </data>
   <data name="The sandbox is off, which is the default: nothing is held and nothing is submitted." xml:space="preserve">
     <value>O sandbox está desativado, que é o padrão: nada é retido e nada é enviado.</value>
+  </data>
+  <data name="The sandbox is on but an address is empty, so nothing is held and nothing is submitted until both are set - the application log says so at every start. Set both addresses, or turn it off." xml:space="preserve">
+    <value>O sandbox está ligado, mas um endereço está vazio, então nada é retido nem enviado até que ambos sejam definidos - o log do aplicativo informa isso a cada início. Defina os dois endereços ou desligue-o.</value>
   </data>
   <data name="The sandbox is switched on, but its submit or verdict address is empty." xml:space="preserve">
     <value>O sandbox está ativado, mas o endereço de envio ou de veredito dele está vazio.</value>
@@ -13704,8 +13704,8 @@ Adicionar mesmo assim?</value>
   <data name="The server to ask (empty asks the domain's MX hosts)" xml:space="preserve">
     <value>O servidor a consultar (vazio consulta os hosts MX do domínio)</value>
   </data>
-  <data name="The server's Host name (Protocols &gt; SMTP) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
-    <value>O Nome do host do servidor (Protocolos &gt; SMTP) está VAZIO, então ele anuncia seu nome de computador Windows em HELO/EHLO - não um nome DNS público - e nenhum mecanismo "a:" pode ser oferecido com honestidade. A sugestão autoriza apenas os hosts MX do domínio. Defina o nome do host primeiro; vários registros desta página precisam dele.</value>
+  <data name="The server's Host name (Protocols &gt; SMTP) is empty, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
+    <value>O Nome do host do servidor (Protocolos &gt; SMTP) está vazio, então ele anuncia seu nome de computador Windows em HELO/EHLO - não um nome DNS público - e nenhum mecanismo "a:" pode ser oferecido. A sugestão autoriza apenas os hosts MX do domínio. Defina o nome do host primeiro; vários registros desta página precisam dele.</value>
   </data>
   <data name="The server's administrator code" xml:space="preserve">
     <value>Código de administrador do servidor</value>
@@ -13966,8 +13966,8 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="These are the ports the server listens on. The submission port, 587, is the one your own people send through." xml:space="preserve">
     <value>Estas são as portas em que o servidor escuta. A porta de envio, 587, é por onde as suas próprias pessoas enviam.</value>
   </data>
-  <data name="These belong together: expiry without history teaches people to alternate between two passwords, which is worse than not expiring at all. History only ever refuses a CHANGE, at the moment somebody is able to pick something else, so nobody is locked out by it. Expiry refuses a LOGON - read its description before turning it on." xml:space="preserve">
-    <value>Estes andam juntos: expiração sem histórico ensina as pessoas a alternar entre duas senhas, o que é pior do que não expirar nada. O histórico só recusa uma ALTERAÇÃO, no momento em que a pessoa consegue escolher outra coisa, então ninguém fica trancado do lado de fora por causa dele. A expiração recusa um LOGIN - leia a descrição dela antes de ligá-la.</value>
+  <data name="These belong together: expiry without history teaches people to alternate between two passwords, which is worse than not expiring at all. History only ever refuses a change, at the moment somebody is able to pick something else, so nobody is locked out by it. Expiry refuses a sign-in - read its description before turning it on." xml:space="preserve">
+    <value>Estes andam juntos: expiração sem histórico ensina as pessoas a alternar entre duas senhas, o que é pior do que não expirar nada. O histórico só recusa uma alteração, no momento em que a pessoa consegue escolher outra coisa, então ninguém fica trancado do lado de fora por causa dele. A expiração recusa um login - leia a descrição dela antes de ligá-la.</value>
   </data>
   <data name="These limit what every rule may do. The rules themselves - what each one matches and what it does - are on the Rules page." xml:space="preserve">
     <value>Estas configurações limitam o que cada regra pode fazer. As regras em si - o que cada uma corresponde e o que faz - estão na página Regras.</value>
@@ -14122,8 +14122,8 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="This server now" xml:space="preserve">
     <value>Este servidor agora</value>
   </data>
-  <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from {0}." xml:space="preserve">
-    <value>Este servidor apenas VERIFICA o SPF nos e-mails recebidos; publicar o registro é para todos os outros - ele diz aos servidores receptores quais máquinas têm permissão para enviar e-mails alegando vir de {0}.</value>
+  <data name="This server only checks SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from {0}." xml:space="preserve">
+    <value>Este servidor apenas verifica o SPF nos e-mails recebidos; publicar o registro é para todos os outros - ele diz aos servidores receptores quais máquinas têm permissão para enviar e-mails alegando vir de {0}.</value>
   </data>
   <data name="This server requires a one-time code for the administrator." xml:space="preserve">
     <value>Este servidor exige um código de uso único para o administrador.</value>
@@ -14146,8 +14146,8 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="This suggestion cannot know your other senders. If anything else sends mail as {0} - a newsletter service, a website contact form, a hosted mailbox provider - copying this record as-is makes that mail fail SPF at every receiver that checks it. Add those senders to the record first." xml:space="preserve">
     <value>Esta sugestão não tem como conhecer os seus outros remetentes. Se qualquer outra coisa envia e-mail como {0} - um serviço de newsletter, um formulário de contato de site, um provedor de caixas hospedadas - copiar este registro como está faz esses e-mails falharem no SPF em todo receptor que o verifique. Acrescente esses remetentes ao registro antes.</value>
   </data>
-  <data name="This validates against a LOCAL Windows account on the server's own computer, not against a domain. That is the right setting when there is no Active Directory." xml:space="preserve">
-    <value>Isto valida contra uma conta LOCAL do Windows no próprio computador do servidor, e não contra um domínio. É a configuração certa quando não há Active Directory.</value>
+  <data name="This validates against a local Windows account on the server's own computer, not against a domain. That is the right setting when there is no Active Directory." xml:space="preserve">
+    <value>Isto valida contra uma conta local do Windows no próprio computador do servidor, e não contra um domínio. É a configuração certa quando não há Active Directory.</value>
   </data>
   <data name="This validates against the domain &quot;{0}&quot;. The server's own computer must be joined to it." xml:space="preserve">
     <value>Isto valida contra o domínio "{0}". O próprio computador do servidor precisa estar ingressado nele.</value>
@@ -14926,8 +14926,8 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="Where it goes" xml:space="preserve">
     <value>Para onde vai</value>
   </data>
-  <data name="Where mail FROM this domain leaves through. This is a different question from a route, which decides where mail addressed TO a domain is sent - it is for a server hosting several independent domains where each has its own delivery provider." xml:space="preserve">
-    <value>Por onde saem os e-mails DESTE domínio. Esta é uma pergunta diferente da de uma rota, que decide para onde são enviados os e-mails endereçados A um domínio - ela serve a um servidor que hospeda vários domínios independentes, em que cada um tem seu próprio provedor de entrega.</value>
+  <data name="Where mail from this domain leaves through. This is a different question from a route, which decides where mail addressed to a domain is sent - it is for a server hosting several independent domains where each has its own delivery provider." xml:space="preserve">
+    <value>Por onde saem os e-mails deste domínio. Esta é uma pergunta diferente da de uma rota, que decide para onde são enviados os e-mails endereçados A um domínio - ela serve a um servidor que hospeda vários domínios independentes, em que cada um tem seu próprio provedor de entrega.</value>
   </data>
   <data name="Where new messages are stored" xml:space="preserve">
     <value>Onde as mensagens novas são guardadas</value>
@@ -16333,11 +16333,11 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="hMailServer cannot create any of these for itself. Each one missing has its own failure shape, and the server reports which one it hit - see the error log." xml:space="preserve">
     <value>O hMailServer não consegue criar nenhum destes por conta própria. Cada um que falta tem sua própria forma de falha, e o servidor informa qual delas encontrou - veja o log de erros.</value>
   </data>
-  <data name="hMailServer does NOT implement CalDAV or CardDAV. These settings only answer the well-known discovery URLs (RFC 6764) with a redirect to the server that does, so a client configured with a user's mail address finds their calendar without being told a second address. Leave both empty unless you run such a server: empty means the discovery URLs answer 404, which is the honest response when there is nothing to point at. They need the web services listener above to be running, like everything else on this page." xml:space="preserve">
-    <value>O hMailServer NÃO implementa CalDAV nem CardDAV. Estas configurações apenas respondem às URLs de descoberta well-known (RFC 6764) com um redirecionamento para o servidor que as implementa, de modo que um cliente configurado com o endereço de e-mail de um usuário encontre o calendário dele sem que lhe seja informado um segundo endereço. Deixe ambas vazias, a menos que você opere um servidor desses: vazio significa que as URLs de descoberta respondem 404, que é a resposta honesta quando não há nada para apontar. Elas precisam que o ouvinte de serviços web acima esteja em execução, como todo o resto desta página.</value>
-  </data>
   <data name="hMailServer does not create or manage client certificates. The certificate authority and the client certificates themselves must be produced outside hMailServer (for example with OpenSSL or an internal PKI) - the server only trusts the CA bundle it is given here." xml:space="preserve">
     <value>O hMailServer não cria nem gerencia certificados de cliente. A autoridade certificadora e os próprios certificados de cliente precisam ser produzidos fora do hMailServer (por exemplo, com o OpenSSL ou uma PKI interna) - o servidor apenas confia no pacote de CA que lhe é fornecido aqui.</value>
+  </data>
+  <data name="hMailServer does not implement CalDAV or CardDAV. These settings only answer the well-known discovery URLs (RFC 6764) with a redirect to the server that does, so a client configured with a user's mail address finds their calendar without being told a second address. Leave both empty unless you run such a server: empty means the discovery URLs answer 404, which is the right response when there is nothing to point at. They need the web services listener above to be running, like everything else on this page." xml:space="preserve">
+    <value>O hMailServer não implementa CalDAV nem CardDAV. Estas configurações apenas respondem às URLs de descoberta well-known (RFC 6764) com um redirecionamento para o servidor que as implementa, de modo que um cliente configurado com o endereço de e-mail de um usuário encontre o calendário dele sem que lhe seja informado um segundo endereço. Deixe ambas vazias, a menos que você opere um servidor desses: vazio significa que as URLs de descoberta respondem 404, que é a resposta correta quando não há nada para apontar. Elas precisam que o ouvinte de serviços web acima esteja em execução, como todo o resto desta página.</value>
   </data>
   <data name="hMailServer has been updated from {0} to {1}, and the service is running. Installed by {2} at {3}." xml:space="preserve">
     <value>O hMailServer foi atualizado de {0} para {1}, e o serviço está em execução. Instalado por {2} às {3}.</value>
@@ -17999,8 +17999,8 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="{0}: the key file is an encrypted PEM but no passphrase is configured, so the key will not load (server error 6170) and every port using this certificate will not start. Set the private key password on the certificate." xml:space="preserve">
     <value>{0}: o arquivo de chave é um PEM criptografado mas nenhuma frase secreta está configurada, então a chave não será carregada (erro do servidor 6170) e nenhuma porta que use este certificado iniciará. Defina a senha da chave privada no certificado.</value>
   </data>
-  <data name="{0}: the key file is encrypted and a passphrase is configured. Whether it is the RIGHT passphrase is only proven when the server loads the key - check the error log for error 6170 after a restart." xml:space="preserve">
-    <value>{0}: o arquivo de chave está criptografado e uma frase secreta está configurada. Se é a frase CERTA só se prova quando o servidor carrega a chave - verifique no log de erros se aparece o erro 6170 após um reinício.</value>
+  <data name="{0}: the key file is encrypted and a passphrase is configured. Whether it is the right passphrase is only proven when the server loads the key - check the error log for error 6170 after a restart." xml:space="preserve">
+    <value>{0}: o arquivo de chave está criptografado e uma frase secreta está configurada. Se é a frase certa só se prova quando o servidor carrega a chave - verifique no log de erros se aparece o erro 6170 após um reinício.</value>
   </data>
   <data name="{0}: the key file is encrypted, but whether a passphrase is configured could not be read (this requires the server-administrator account)." xml:space="preserve">
     <value>{0}: o arquivo de chave está criptografado, mas não foi possível ler se há uma frase secreta configurada (isso exige a conta de administrador do servidor).</value>
@@ -18026,8 +18026,8 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="{0}: the rotation record at {1} is published and matches the staged secondary key. Promote whenever it has propagated everywhere." xml:space="preserve">
     <value>{0}: o registro de rotação em {1} está publicado e corresponde à chave secundária preparada. Promova quando ele tiver se propagado por toda parte.</value>
   </data>
-  <data name="{0}: the secondary key is staged but no TXT record exists at {1} yet. Publish it and let it propagate BEFORE promoting the secondary key, or mail will sign with a key the world cannot look up." xml:space="preserve">
-    <value>{0}: a chave secundária está preparada mas ainda não existe nenhum registro TXT em {1}. Publique-o e deixe-o propagar ANTES de promover a chave secundária, ou os e-mails serão assinados com uma chave que o mundo não consegue consultar.</value>
+  <data name="{0}: the secondary key is staged but no TXT record exists at {1} yet. Publish it and let it propagate before promoting the secondary key, or mail will sign with a key the world cannot look up." xml:space="preserve">
+    <value>{0}: a chave secundária está preparada mas ainda não existe nenhum registro TXT em {1}. Publique-o e deixe-o propagar antes de promover a chave secundária, ou os e-mails serão assinados com uma chave que o mundo não consegue consultar.</value>
   </data>
   <data name="{0}: the {1} TXT record is published. Not checkable from here: that mta-sts.{2} resolves to this server, and that the certificate covers that name." xml:space="preserve">
     <value>{0}: o registro TXT {1} está publicado. Não verificável daqui: que mta-sts.{2} resolve para este servidor, e que o certificado cobre esse nome.</value>
@@ -18050,7 +18050,7 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} não contém nenhum bloco de certificado PEM, então não guarda nenhum certificado de CA utilizável (erro do servidor 6140). Exporte o certificado da CA no formato PEM (Base64).</value>
   </data>
-  <data name="~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many spray sources live behind it. A score at or above the refuse threshold refuses the message during the SMTP conversation, as a fail does." xml:space="preserve">
+  <data name="~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many bulk senders hide behind it. A score at or above the refuse threshold refuses the message during the SMTP conversation, as a fail does." xml:space="preserve">
     <value>~all: o domínio diz que o cliente provavelmente não está autorizado, mas pede que a mensagem seja aceita mesmo assim, e muitas fontes de envio em massa se escondem atrás disso. Uma pontuação igual ou acima do limiar de recusa recusa a mensagem durante a conversa SMTP, como um fail faz.</value>
   </data>
   <data name="… continued in {0}" xml:space="preserve">

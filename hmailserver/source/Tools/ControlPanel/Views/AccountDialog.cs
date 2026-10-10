@@ -392,7 +392,7 @@ namespace hMailServer.ControlPanel.Views
       private ScrollViewer BuildSpam()
       {
          var panel = DialogFields.TabPanel();
-         panel.Children.Add(DialogFields.Note(L("Per-account overrides of the server-wide spam handling, applied to THIS account's copy at delivery. They cannot reach back into the SMTP conversation: a message the global settings refuse, quarantine or greylist is stopped for every recipient before any per-account setting can run.")));
+         panel.Children.Add(DialogFields.Note(L("Per-account overrides of the server-wide spam handling, applied to this account's copy at delivery. They cannot reach back into the SMTP conversation: a message the global settings refuse, quarantine or greylist is stopped for every recipient before any per-account setting can run.")));
          panel.Children.Add(DialogFields.Check(spamFilterOn_));
          panel.Children.Add(DialogFields.Note(L("Unticked, a message the server classified as spam is still delivered here, unmarked - the spam headers and subject tag are removed from this account's copy. For the address that must never lose a mail.")));
 
@@ -401,7 +401,7 @@ namespace hMailServer.ControlPanel.Views
          spamDeleteRow_ = Label(L("_Delete threshold override (-1 or 0 = off)"), spamDelete_);
          panel.Children.Add(spamDeleteRow_);
 
-         panel.Children.Add(DialogFields.Note(L("Both overrides read the score this server recorded in the message, so they need 'Add X-hMailServer-Reason header' switched on, on the Anti-spam settings page. With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there.")));
+         panel.Children.Add(DialogFields.Note(L("Both overrides read the score this server recorded in the message, so they need 'Add X-hMailServer-Reason header' switched on, on the Anti-spam settings page. With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a sender putting one there.")));
          panel.Children.Add(DialogFields.Note(L("The delete override never deletes on a guess: the copy is removed only when the recorded score actually reached the value, and it goes to the quarantine store instead when that is enabled.")));
          return DialogFields.Scroll(panel);
       }
@@ -488,7 +488,7 @@ namespace hMailServer.ControlPanel.Views
          // (review finding F197).
          DialogFields.EnabledBy(isAd_, domainRow, userRow, browse);
 
-         panel.Children.Add(DialogFields.Note(L("A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never sign in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join.")));
+         panel.Children.Add(DialogFields.Note(L("A domain name here needs the server's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never sign in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join.")));
 
          adDomain_.TextChanged += (s, e) => RefreshDirectoryEffect_();
          isAd_.Checked += (s, e) => RefreshDirectoryEffect_();
@@ -664,7 +664,7 @@ namespace hMailServer.ControlPanel.Views
             || string.Equals(domain, Environment.MachineName, StringComparison.OrdinalIgnoreCase);
 
          directoryEffect_.Text = local
-            ? L("This validates against a LOCAL Windows account on the server's own computer, not against a domain. That is the right setting when there is no Active Directory.")
+            ? L("This validates against a local Windows account on the server's own computer, not against a domain. That is the right setting when there is no Active Directory.")
             : F("This validates against the domain \"{0}\". The server's own computer must be joined to it.", domain);
          directoryEffect_.Visibility = Visibility.Visible;
       }

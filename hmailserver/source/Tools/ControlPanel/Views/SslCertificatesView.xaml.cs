@@ -320,7 +320,7 @@ namespace hMailServer.ControlPanel.Views
                      L("A passphrase is stored, but the key file is not encrypted, so it is never used. Harmless - it simply does nothing."));
                }
                return new CertificateFinding(StatusLevel.Good, L("Passphrase stored"),
-                  L("A passphrase is stored for this certificate. It is never displayed here - saving a new one replaces it. Whether it is the RIGHT passphrase is only proven when the server loads the key: after the next restart, check the application error log."));
+                  L("A passphrase is stored for this certificate. It is never displayed here - saving a new one replaces it. Whether it is the right passphrase is only proven when the server loads the key: after the next restart, check the application error log."));
 
             case StoredPassphrase.NotSet:
                if (keyIsEncrypted == true)
