@@ -408,9 +408,6 @@
   <data name="A code from an authenticator app, required alongside this account's password. It applies where a code can actually be entered - the Control Panel and the API. Mail clients cannot present one, so once this is on they must use an app password instead." xml:space="preserve">
     <value>Een code van een authenticator-app, vereist naast het wachtwoord van dit account. Het geldt waar een code daadwerkelijk kan worden ingevoerd - het Control Panel en de API. E-mailclients kunnen er geen tonen, dus zodra dit aanstaat moeten zij een app-wachtwoord gebruiken.</value>
   </data>
-  <data name="A command-line virus scanner is one." xml:space="preserve">
-    <value>Een virusscanner op de opdrachtregel is er een.</value>
-  </data>
   <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself." xml:space="preserve">
     <value>Een kopie van de post van een domein, of van één account, naar een adres gestuurd – als envelopverslag met het bericht als bijlage, of als het bericht zelf.</value>
   </data>
@@ -5392,8 +5389,17 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
     <value>Bijvoorbeeld 10.0.0.5 of 10.0.0.0/24</value>
   </data>
+  <data name="For example a command-line virus scanner." xml:space="preserve">
+    <value>Bijvoorbeeld een virusscanner op de opdrachtregel.</value>
+  </data>
+  <data name="For example allow:GB,IE or block:CN,RU." xml:space="preserve">
+    <value>Bijvoorbeeld allow:GB,IE of block:CN,RU.</value>
+  </data>
   <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
     <value>Bijvoorbeeld http://127.0.0.1:11333/checkv2. Voorlopig alleen gewoon HTTP, dus de engine hoort op deze machine te staan of op een netwerk dat u vertrouwt - het hele bericht wordt ernaartoe gestuurd.</value>
+  </data>
+  <data name="For example partner.example, or .example for the domain and everything beneath it; separate them with commas or spaces." xml:space="preserve">
+    <value>Bijvoorbeeld partner.example, of .example voor het domein en alles eronder; scheid ze met komma's of spaties.</value>
   </data>
   <data name="For search mode: a service account allowed to read the directory. Any ordinary domain account can, by default; it needs no other rights." xml:space="preserve">
     <value>Voor de zoekmodus: een serviceaccount dat de directory mag lezen. Elk gewoon domeinaccount mag dat standaard; verdere rechten zijn niet nodig.</value>
@@ -16144,9 +16150,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="alias" xml:space="preserve">
     <value>alias</value>
   </data>
-  <data name="allow:GB,IE or block:CN,RU." xml:space="preserve">
-    <value>allow:GB,IE of block:CN,RU.</value>
-  </data>
   <data name="an account Windows did not report" xml:space="preserve">
     <value>een account dat Windows niet heeft gemeld</value>
   </data>
@@ -16717,9 +16720,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="p=none is the right starting point, not an oversight: it makes receivers check and report but deliver as normal. A stricter policy (quarantine or reject) tells every receiver to junk or refuse mail that fails alignment - and until reports show your own mail passing SPF or DKIM, the mail that fails will include yours. Tighten only after the reports say it is safe." xml:space="preserve">
     <value>p=none is het juiste beginpunt, geen omissie: het laat ontvangers controleren en rapporteren, maar gewoon bezorgen. Een strenger beleid (quarantine of reject) draagt elke ontvanger op mail die de uitlijning niet haalt als ongewenst te behandelen of te weigeren - en totdat de rapporten laten zien dat uw eigen mail SPF of DKIM haalt, hoort uw eigen mail bij de mail die faalt. Verscherp het pas wanneer de rapporten zeggen dat het veilig is.</value>
-  </data>
-  <data name="partner.example, or .example for the domain and everything beneath it, separated by commas or spaces." xml:space="preserve">
-    <value>partner.example, of .example voor het domein en alles eronder, gescheiden door komma's of spaties.</value>
   </data>
   <data name="pattern" xml:space="preserve">
     <value>patroon</value>

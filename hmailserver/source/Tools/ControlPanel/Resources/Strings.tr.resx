@@ -408,9 +408,6 @@
   <data name="A code from an authenticator app, required alongside this account's password. It applies where a code can actually be entered - the Control Panel and the API. Mail clients cannot present one, so once this is on they must use an app password instead." xml:space="preserve">
     <value>Bir kimlik doğrulayıcı uygulamadan gelen ve bu hesabın parolasının yanı sıra istenen kod. Yalnızca bir kodun gerçekten girilebildiği yerlerde geçerlidir - Denetim Masası ve API. Posta istemcileri kod sunamaz; bu nedenle bu açıldığında onların bunun yerine bir uygulama parolası kullanması gerekir.</value>
   </data>
-  <data name="A command-line virus scanner is one." xml:space="preserve">
-    <value>Komut satırı virüs tarayıcısı bunlardan biridir.</value>
-  </data>
   <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself." xml:space="preserve">
     <value>Bir alan adının ya da tek bir hesabın postasının bir adrese gönderilen kopyası: iletinin eklendiği bir zarf raporu olarak ya da iletinin kendisi olarak.</value>
   </data>
@@ -5392,8 +5389,17 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
     <value>Örneğin 10.0.0.5 veya 10.0.0.0/24</value>
   </data>
+  <data name="For example a command-line virus scanner." xml:space="preserve">
+    <value>Örneğin bir komut satırı virüs tarayıcısı.</value>
+  </data>
+  <data name="For example allow:GB,IE or block:CN,RU." xml:space="preserve">
+    <value>Örneğin allow:GB,IE veya block:CN,RU.</value>
+  </data>
   <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
     <value>Örneğin http://127.0.0.1:11333/checkv2. Şimdilik yalnızca düz HTTP; bu yüzden motor bu makinede ya da güvendiğiniz bir ağda olmalı - iletinin tamamı ona gönderilir.</value>
+  </data>
+  <data name="For example partner.example, or .example for the domain and everything beneath it; separate them with commas or spaces." xml:space="preserve">
+    <value>Örneğin partner.example veya etki alanı ve altındaki her şey için .example; bunları virgül veya boşlukla ayırın.</value>
   </data>
   <data name="For search mode: a service account allowed to read the directory. Any ordinary domain account can, by default; it needs no other rights." xml:space="preserve">
     <value>Arama kipi için: dizini okumasına izin verilen bir hizmet hesabı. Sıradan herhangi bir etki alanı hesabı varsayılan olarak okuyabilir; başka bir hak gerekmez.</value>
@@ -16144,9 +16150,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="alias" xml:space="preserve">
     <value>diğer ad</value>
   </data>
-  <data name="allow:GB,IE or block:CN,RU." xml:space="preserve">
-    <value>allow:GB,IE veya block:CN,RU.</value>
-  </data>
   <data name="an account Windows did not report" xml:space="preserve">
     <value>Windows'un bildirmediği bir hesap</value>
   </data>
@@ -16717,9 +16720,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="p=none is the right starting point, not an oversight: it makes receivers check and report but deliver as normal. A stricter policy (quarantine or reject) tells every receiver to junk or refuse mail that fails alignment - and until reports show your own mail passing SPF or DKIM, the mail that fails will include yours. Tighten only after the reports say it is safe." xml:space="preserve">
     <value>p=none bir gözden kaçma değil, doğru başlangıç noktasıdır: alıcıların denetleyip raporlamasını ama olağan biçimde teslim etmesini sağlar. Daha katı bir ilke (quarantine ya da reject), her alıcıya hizalamada başarısız olan postayı gereksiz kutusuna atmasını ya da reddetmesini söyler - ve raporlar kendi postanızın SPF ya da DKIM'i geçtiğini gösterene kadar başarısız olan posta sizinkini de içerir. Yalnızca raporlar güvenli olduğunu söyledikten sonra sıkılaştırın.</value>
-  </data>
-  <data name="partner.example, or .example for the domain and everything beneath it, separated by commas or spaces." xml:space="preserve">
-    <value>partner.example veya etki alanı ve altındaki her şey için .example; virgül veya boşlukla ayrılır.</value>
   </data>
   <data name="pattern" xml:space="preserve">
     <value>desen</value>

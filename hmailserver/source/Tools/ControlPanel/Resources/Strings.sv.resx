@@ -408,9 +408,6 @@
   <data name="A code from an authenticator app, required alongside this account's password. It applies where a code can actually be entered - the Control Panel and the API. Mail clients cannot present one, so once this is on they must use an app password instead." xml:space="preserve">
     <value>En kod från en autentiseringsapp, som krävs tillsammans med det här kontots lösenord. Den gäller där en kod faktiskt kan anges - Kontrollpanelen och API:et. E-postklienter kan inte visa upp en, så när detta är på måste de använda ett applösenord i stället.</value>
   </data>
-  <data name="A command-line virus scanner is one." xml:space="preserve">
-    <value>En kommandoradsvirusskanner är en sådan.</value>
-  </data>
   <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself." xml:space="preserve">
     <value>En kopia av en domäns post, eller av ett kontos, skickad till en adress – som en kuvertrapport med meddelandet bifogat, eller som själva meddelandet.</value>
   </data>
@@ -5392,8 +5389,17 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
     <value>Till exempel 10.0.0.5 eller 10.0.0.0/24</value>
   </data>
+  <data name="For example a command-line virus scanner." xml:space="preserve">
+    <value>Till exempel en kommandoradsvirusskanner.</value>
+  </data>
+  <data name="For example allow:GB,IE or block:CN,RU." xml:space="preserve">
+    <value>Till exempel allow:GB,IE eller block:CN,RU.</value>
+  </data>
   <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
     <value>Till exempel http://127.0.0.1:11333/checkv2. Bara vanlig HTTP tills vidare, så motorn bör finnas på den här datorn eller i ett nätverk du litar på - hela meddelandet skickas till den.</value>
+  </data>
+  <data name="For example partner.example, or .example for the domain and everything beneath it; separate them with commas or spaces." xml:space="preserve">
+    <value>Till exempel partner.example, eller .example för domänen och allt under den; skilj dem åt med kommatecken eller mellanslag.</value>
   </data>
   <data name="For search mode: a service account allowed to read the directory. Any ordinary domain account can, by default; it needs no other rights." xml:space="preserve">
     <value>För sökläge: ett tjänstekonto som får läsa katalogen. Vilket vanligt domänkonto som helst kan det som standard; det behöver inga andra rättigheter.</value>
@@ -16144,9 +16150,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="alias" xml:space="preserve">
     <value>alias</value>
   </data>
-  <data name="allow:GB,IE or block:CN,RU." xml:space="preserve">
-    <value>allow:GB,IE eller block:CN,RU.</value>
-  </data>
   <data name="an account Windows did not report" xml:space="preserve">
     <value>ett konto Windows inte rapporterade</value>
   </data>
@@ -16717,9 +16720,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="p=none is the right starting point, not an oversight: it makes receivers check and report but deliver as normal. A stricter policy (quarantine or reject) tells every receiver to junk or refuse mail that fails alignment - and until reports show your own mail passing SPF or DKIM, the mail that fails will include yours. Tighten only after the reports say it is safe." xml:space="preserve">
     <value>p=none är rätt utgångspunkt, inte ett förbiseende: det får mottagare att kontrollera och rapportera men leverera som vanligt. En strängare policy (quarantine eller reject) säger åt varje mottagare att skräpmarkera eller avvisa post som underkänns i justeringen - och tills rapporter visar att din egen post klarar SPF eller DKIM kommer posten som underkänns att omfatta din. Skärp först när rapporterna säger att det är säkert.</value>
-  </data>
-  <data name="partner.example, or .example for the domain and everything beneath it, separated by commas or spaces." xml:space="preserve">
-    <value>partner.example, eller .example för domänen och allt under den, åtskilda med kommatecken eller mellanslag.</value>
   </data>
   <data name="pattern" xml:space="preserve">
     <value>mönster</value>

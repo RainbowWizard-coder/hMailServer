@@ -401,7 +401,7 @@ namespace hMailServer.ControlPanel.Views
          var panel = DialogFields.TabPanel();
          panel.Children.Add(DialogFields.Note(L("Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted. An alias or a distribution list of this domain that reaches outside is yours, and a restricted account may write to it.")));
          panel.Children.Add(Label(L("Named _domains (empty = no restriction)"), restrictedDomains_)
-            .WithHint(L("partner.example, or .example for the domain and everything beneath it, separated by commas or spaces.")));
+            .WithHint(L("For example partner.example, or .example for the domain and everything beneath it; separate them with commas or spaces.")));
          return DialogFields.Scroll(panel);
       }
 
@@ -409,7 +409,7 @@ namespace hMailServer.ControlPanel.Views
       {
          var panel = DialogFields.TabPanel();
          panel.Children.Add(DialogFields.Note(L("Who may sign in to an account of this domain, by the country a MaxMind database places the address in: on every protocol, after the server's own policies for connecting, which are on the Auto-ban page with the database file. Nothing is judged until that file is set. A refused sign-in gets the ordinary wrong-password answer and is not counted against the account or the address.")));
-         panel.Children.Add(Label(L("_Country policy at sign-in (empty = off)"), countryPolicy_).WithHint(L("allow:GB,IE or block:CN,RU.")));
+         panel.Children.Add(Label(L("_Country policy at sign-in (empty = off)"), countryPolicy_).WithHint(L("For example allow:GB,IE or block:CN,RU.")));
          return DialogFields.Scroll(panel);
       }
 

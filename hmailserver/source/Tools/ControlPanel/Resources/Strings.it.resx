@@ -408,9 +408,6 @@
   <data name="A code from an authenticator app, required alongside this account's password. It applies where a code can actually be entered - the Control Panel and the API. Mail clients cannot present one, so once this is on they must use an app password instead." xml:space="preserve">
     <value>Un codice da un'app di autenticazione, richiesto insieme alla password di questo account. Si applica dove un codice può davvero essere inserito - il Control Panel e l'API. I client di posta non possono presentarne uno, quindi una volta attivato devono usare una password per app.</value>
   </data>
-  <data name="A command-line virus scanner is one." xml:space="preserve">
-    <value>Uno scanner antivirus da riga di comando ne è un esempio.</value>
-  </data>
   <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself." xml:space="preserve">
     <value>Una copia della posta di un dominio, o di un singolo account, inviata a un indirizzo: come rapporto sulla busta con il messaggio allegato, o come il messaggio stesso.</value>
   </data>
@@ -5392,8 +5389,17 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
     <value>Per esempio 10.0.0.5 o 10.0.0.0/24</value>
   </data>
+  <data name="For example a command-line virus scanner." xml:space="preserve">
+    <value>Ad esempio uno scanner antivirus da riga di comando.</value>
+  </data>
+  <data name="For example allow:GB,IE or block:CN,RU." xml:space="preserve">
+    <value>Ad esempio allow:GB,IE o block:CN,RU.</value>
+  </data>
   <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
     <value>Per esempio http://127.0.0.1:11333/checkv2. Per ora solo HTTP in chiaro, quindi il motore dovrebbe trovarsi su questa macchina o su una rete di cui ti fidi - gli viene inviato l'intero messaggio.</value>
+  </data>
+  <data name="For example partner.example, or .example for the domain and everything beneath it; separate them with commas or spaces." xml:space="preserve">
+    <value>Ad esempio partner.example, o .example per il dominio e tutto ciò che sta sotto; separali con virgole o spazi.</value>
   </data>
   <data name="For search mode: a service account allowed to read the directory. Any ordinary domain account can, by default; it needs no other rights." xml:space="preserve">
     <value>Per la modalità di ricerca: un account di servizio autorizzato a leggere la directory. Per impostazione predefinita può farlo qualsiasi normale account di dominio; non servono altri diritti.</value>
@@ -16144,9 +16150,6 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="alias" xml:space="preserve">
     <value>alias</value>
   </data>
-  <data name="allow:GB,IE or block:CN,RU." xml:space="preserve">
-    <value>allow:GB,IE o block:CN,RU.</value>
-  </data>
   <data name="an account Windows did not report" xml:space="preserve">
     <value>un account che Windows non ha segnalato</value>
   </data>
@@ -16717,9 +16720,6 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="p=none is the right starting point, not an oversight: it makes receivers check and report but deliver as normal. A stricter policy (quarantine or reject) tells every receiver to junk or refuse mail that fails alignment - and until reports show your own mail passing SPF or DKIM, the mail that fails will include yours. Tighten only after the reports say it is safe." xml:space="preserve">
     <value>p=none è il punto di partenza giusto, non una dimenticanza: fa sì che i server destinatari verifichino e segnalino, ma consegnino normalmente. Un criterio più severo (quarantine o reject) dice a ogni server destinatario di trattare come indesiderata o di rifiutare la posta che fallisce l'allineamento - e finché i rapporti non mostrano che la propria posta supera SPF o DKIM, tra la posta che fallisce ci sarà anche la propria. Inasprire il criterio solo dopo che i rapporti dicono che è sicuro.</value>
-  </data>
-  <data name="partner.example, or .example for the domain and everything beneath it, separated by commas or spaces." xml:space="preserve">
-    <value>partner.example, o .example per il dominio e tutto ciò che sta sotto, separati da virgole o spazi.</value>
   </data>
   <data name="pattern" xml:space="preserve">
     <value>schema</value>

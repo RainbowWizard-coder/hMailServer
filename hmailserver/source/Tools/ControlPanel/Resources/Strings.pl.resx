@@ -411,9 +411,6 @@
   <data name="A code from an authenticator app, required alongside this account's password. It applies where a code can actually be entered - the Control Panel and the API. Mail clients cannot present one, so once this is on they must use an app password instead." xml:space="preserve">
     <value>Kod z aplikacji uwierzytelniającej, wymagany obok hasła tego konta. Obowiązuje tam, gdzie kod da się faktycznie wpisać - w aplikacji Control Panel i w API. Klienty pocztowe nie potrafią go przedstawić, więc po włączeniu tej opcji muszą zamiast tego używać hasła aplikacji.</value>
   </data>
-  <data name="A command-line virus scanner is one." xml:space="preserve">
-    <value>Jednym z nich jest wierszowy skaner antywirusowy.</value>
-  </data>
   <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself." xml:space="preserve">
     <value>Kopia poczty domeny lub jednego konta, wysyłana na adres – jako raport koperty z załączoną wiadomością albo jako sama wiadomość.</value>
   </data>
@@ -5462,8 +5459,17 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
     <value>Na przykład 10.0.0.5 lub 10.0.0.0/24</value>
   </data>
+  <data name="For example a command-line virus scanner." xml:space="preserve">
+    <value>Na przykład wierszowy skaner antywirusowy.</value>
+  </data>
+  <data name="For example allow:GB,IE or block:CN,RU." xml:space="preserve">
+    <value>Na przykład allow:GB,IE lub block:CN,RU.</value>
+  </data>
   <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
     <value>Na przykład http://127.0.0.1:11333/checkv2. Na razie wyłącznie zwykły HTTP, więc silnik powinien znajdować się na tym komputerze albo w zaufanej sieci - wysyłana jest do niego cała wiadomość.</value>
+  </data>
+  <data name="For example partner.example, or .example for the domain and everything beneath it; separate them with commas or spaces." xml:space="preserve">
+    <value>Na przykład partner.example lub .example dla domeny i wszystkiego poniżej; rozdzielaj je przecinkami lub spacjami.</value>
   </data>
   <data name="For search mode: a service account allowed to read the directory. Any ordinary domain account can, by default; it needs no other rights." xml:space="preserve">
     <value>Dla trybu wyszukiwania: konto usługi uprawnione do czytania katalogu. Domyślnie może to każde zwykłe konto domenowe; nie potrzebuje ono żadnych innych uprawnień.</value>
@@ -16331,9 +16337,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="alias" xml:space="preserve">
     <value>alias</value>
   </data>
-  <data name="allow:GB,IE or block:CN,RU." xml:space="preserve">
-    <value>allow:GB,IE lub block:CN,RU.</value>
-  </data>
   <data name="an account Windows did not report" xml:space="preserve">
     <value>konto, którego system Windows nie zgłosił</value>
   </data>
@@ -16919,9 +16922,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="p=none is the right starting point, not an oversight: it makes receivers check and report but deliver as normal. A stricter policy (quarantine or reject) tells every receiver to junk or refuse mail that fails alignment - and until reports show your own mail passing SPF or DKIM, the mail that fails will include yours. Tighten only after the reports say it is safe." xml:space="preserve">
     <value>p=none to właściwy punkt wyjścia, a nie przeoczenie: sprawia, że odbierające serwery sprawdzają i raportują, ale dostarczają pocztę normalnie. Ostrzejsza polityka (quarantine albo reject) każe każdemu odbierającemu serwerowi wrzucić do śmieci lub odrzucić pocztę, która nie przechodzi zgodności - a dopóki raporty nie pokażą, że własna poczta przechodzi SPF lub DKIM, wśród tej odrzucanej będzie także poczta tego serwera. Zaostrzać należy dopiero wtedy, gdy raporty powiedzą, że jest to bezpieczne.</value>
-  </data>
-  <data name="partner.example, or .example for the domain and everything beneath it, separated by commas or spaces." xml:space="preserve">
-    <value>partner.example lub .example dla domeny i wszystkiego poniżej, rozdzielone przecinkami lub spacjami.</value>
   </data>
   <data name="pattern" xml:space="preserve">
     <value>wzorzec</value>

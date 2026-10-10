@@ -408,9 +408,6 @@
   <data name="A code from an authenticator app, required alongside this account's password. It applies where a code can actually be entered - the Control Panel and the API. Mail clients cannot present one, so once this is on they must use an app password instead." xml:space="preserve">
     <value>認証アプリが生成するコードで、このアカウントのパスワードと併せて必要になります。適用されるのは、実際にコードを入力できる場所、つまりコントロールパネルと API です。メール クライアントはコードを提示できないため、これを有効にした後は、代わりにアプリ パスワードを使用する必要があります。</value>
   </data>
-  <data name="A command-line virus scanner is one." xml:space="preserve">
-    <value>コマンド ライン ウイルス スキャナーはその一例です。</value>
-  </data>
   <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself." xml:space="preserve">
     <value>ドメインのメール、または 1 つのアカウントのメールの写しを、あるアドレスへ送ります。メールを添付したエンベロープ報告として送るか、メールそのものとして送ります。</value>
   </data>
@@ -5392,8 +5389,17 @@
   <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
     <value>例: 10.0.0.5 または 10.0.0.0/24</value>
   </data>
+  <data name="For example a command-line virus scanner." xml:space="preserve">
+    <value>例: コマンド ライン ウイルス スキャナー。</value>
+  </data>
+  <data name="For example allow:GB,IE or block:CN,RU." xml:space="preserve">
+    <value>例: allow:GB,IE または block:CN,RU。</value>
+  </data>
   <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
     <value>例: http://127.0.0.1:11333/checkv2。現時点では平文の HTTP のみなので、エンジンはこのコンピューター上か、信頼できるネットワーク上に置いてください。メッセージ全体がそこに送られます。</value>
+  </data>
+  <data name="For example partner.example, or .example for the domain and everything beneath it; separate them with commas or spaces." xml:space="preserve">
+    <value>例: partner.example、または .example でそのドメインと配下すべて。コンマまたは空白で区切ります。</value>
   </data>
   <data name="For search mode: a service account allowed to read the directory. Any ordinary domain account can, by default; it needs no other rights." xml:space="preserve">
     <value>検索モード用: ディレクトリを読み取ることを許可されたサービス アカウント。既定では通常のドメイン アカウントならどれでも読み取れ、ほかの権限は不要です。</value>
@@ -16144,9 +16150,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="alias" xml:space="preserve">
     <value>エイリアス</value>
   </data>
-  <data name="allow:GB,IE or block:CN,RU." xml:space="preserve">
-    <value>allow:GB,IE または block:CN,RU。</value>
-  </data>
   <data name="an account Windows did not report" xml:space="preserve">
     <value>Windows が報告しなかったアカウント</value>
   </data>
@@ -16717,9 +16720,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="p=none is the right starting point, not an oversight: it makes receivers check and report but deliver as normal. A stricter policy (quarantine or reject) tells every receiver to junk or refuse mail that fails alignment - and until reports show your own mail passing SPF or DKIM, the mail that fails will include yours. Tighten only after the reports say it is safe." xml:space="preserve">
     <value>p=none は見落としではなく、正しい出発点です。受信側にチェックとレポートをさせつつ、配信は通常どおり行わせます。より厳しいポリシー (quarantine または reject) は、アライメントに失敗したメールを迷惑メール扱いにするか拒否するよう、すべての受信側に指示します。そして、自分のメールが SPF または DKIM に合格しているとレポートが示すまでは、失敗するメールには自分のメールも含まれます。レポートが安全だと示してから、初めて厳しくしてください。</value>
-  </data>
-  <data name="partner.example, or .example for the domain and everything beneath it, separated by commas or spaces." xml:space="preserve">
-    <value>partner.example、または .example でそのドメインと配下すべて。コンマまたは空白で区切ります。</value>
   </data>
   <data name="pattern" xml:space="preserve">
     <value>パターン</value>

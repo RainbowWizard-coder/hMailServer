@@ -408,9 +408,6 @@
   <data name="A code from an authenticator app, required alongside this account's password. It applies where a code can actually be entered - the Control Panel and the API. Mail clients cannot present one, so once this is on they must use an app password instead." xml:space="preserve">
     <value>来自身份验证器应用的验证码，需与此账户的密码一并使用。它适用于确实能够输入验证码的场合 - 控制面板和 API。邮件客户端无法出示验证码，因此一旦启用此项，它们就必须改用应用密码。</value>
   </data>
-  <data name="A command-line virus scanner is one." xml:space="preserve">
-    <value>命令行病毒扫描器就是其中之一。</value>
-  </data>
   <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself." xml:space="preserve">
     <value>把某个域或某个账户的邮件副本发往一个地址：作为附有该邮件的信封报告，或者作为邮件本身。</value>
   </data>
@@ -5392,8 +5389,17 @@
   <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
     <value>例如 10.0.0.5 或 10.0.0.0/24</value>
   </data>
+  <data name="For example a command-line virus scanner." xml:space="preserve">
+    <value>例如命令行病毒扫描器。</value>
+  </data>
+  <data name="For example allow:GB,IE or block:CN,RU." xml:space="preserve">
+    <value>例如 allow:GB,IE 或 block:CN,RU。</value>
+  </data>
   <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
     <value>例如 http://127.0.0.1:11333/checkv2。目前仅支持纯 HTTP，因此引擎应当位于本机或您信任的网络上 - 整封邮件都会发送给它。</value>
+  </data>
+  <data name="For example partner.example, or .example for the domain and everything beneath it; separate them with commas or spaces." xml:space="preserve">
+    <value>例如 partner.example，或用 .example 表示该域及其下所有子域；用逗号或空格分隔。</value>
   </data>
   <data name="For search mode: a service account allowed to read the directory. Any ordinary domain account can, by default; it needs no other rights." xml:space="preserve">
     <value>搜索模式使用：一个被允许读取目录的服务账户。默认情况下任何普通域账户都可以；它不需要其他任何权限。</value>
@@ -16144,9 +16150,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="alias" xml:space="preserve">
     <value>别名</value>
   </data>
-  <data name="allow:GB,IE or block:CN,RU." xml:space="preserve">
-    <value>allow:GB,IE 或 block:CN,RU。</value>
-  </data>
   <data name="an account Windows did not report" xml:space="preserve">
     <value>一个 Windows 未报告的账户</value>
   </data>
@@ -16717,9 +16720,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="p=none is the right starting point, not an oversight: it makes receivers check and report but deliver as normal. A stricter policy (quarantine or reject) tells every receiver to junk or refuse mail that fails alignment - and until reports show your own mail passing SPF or DKIM, the mail that fails will include yours. Tighten only after the reports say it is safe." xml:space="preserve">
     <value>p=none 是正确的起点，而不是疏漏：它让接收方进行检查并发送报告，但照常投递。更严格的策略（quarantine 或 reject）会告诉每一个接收方把对齐失败的邮件丢进垃圾箱或直接拒收 - 而在报告显示您自己的邮件能通过 SPF 或 DKIM 之前，失败的邮件里就会有您自己的。只有在报告说安全之后再收紧。</value>
-  </data>
-  <data name="partner.example, or .example for the domain and everything beneath it, separated by commas or spaces." xml:space="preserve">
-    <value>partner.example，或 .example 表示该域及其下所有子域；用逗号或空格分隔。</value>
   </data>
   <data name="pattern" xml:space="preserve">
     <value>模式</value>

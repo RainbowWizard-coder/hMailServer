@@ -2776,7 +2776,7 @@ namespace hMailServer.ControlPanel.Views
                      new NumberSetting { Key = "ClientSessionCeiling", Minimum = 0, Default = "1800", Label = L("Absolute lifetime of one client session (seconds; 0 = no time limit)") },
                      new NumberSetting { Key = "DBConnectionAcquireTimeout", Minimum = 0, Default = "60", Label = L("Wait for a free database connection (seconds; 0 = wait for ever)") },
                      new NumberSetting { Key = "ScriptTimeout", Minimum = 0, Default = "60", Label = L("Event script execution timeout (seconds; 0 = no time limit)") },
-                     new NumberSetting { Key = "ExternalProcessTimeout", Minimum = 0, Default = "300", Label = L("External process timeout (seconds; 0 = no time limit)"), Blurb = L("A command-line virus scanner is one.") },
+                     new NumberSetting { Key = "ExternalProcessTimeout", Minimum = 0, Default = "300", Label = L("External process timeout (seconds; 0 = no time limit)"), Blurb = L("For example a command-line virus scanner.") },
                      new NumberSetting { Key = "AsyncQueueStallThreshold", Minimum = 0, Default = "120", Label = L("Report the async work queue as stalled after (seconds; 0 = never)") },
                      new NumberSetting { Key = "AsyncQueueReservedThreads", Minimum = 0, Default = "2", Label = L("Threads reserved so the async queue cannot be starved (0 = none)") }
                   }

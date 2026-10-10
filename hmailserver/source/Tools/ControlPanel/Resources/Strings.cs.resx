@@ -411,9 +411,6 @@
   <data name="A code from an authenticator app, required alongside this account's password. It applies where a code can actually be entered - the Control Panel and the API. Mail clients cannot present one, so once this is on they must use an app password instead." xml:space="preserve">
     <value>Kód z ověřovací aplikace, vyžadovaný spolu s heslem tohoto účtu. Uplatní se tam, kde lze kód skutečně zadat – v Control Panelu a v API. Poštovní klienti kód předat neumějí, takže jakmile je toto zapnuto, musí místo něj používat heslo aplikace.</value>
   </data>
-  <data name="A command-line virus scanner is one." xml:space="preserve">
-    <value>Jedním z nich je antivirový skener z příkazového řádku.</value>
-  </data>
   <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself." xml:space="preserve">
     <value>Kopie pošty domény nebo jednoho účtu, odeslaná na adresu – jako zpráva o obálce s připojenou zprávou, nebo jako zpráva samotná.</value>
   </data>
@@ -5462,8 +5459,17 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
     <value>Například 10.0.0.5 nebo 10.0.0.0/24</value>
   </data>
+  <data name="For example a command-line virus scanner." xml:space="preserve">
+    <value>Například antivirový skener z příkazového řádku.</value>
+  </data>
+  <data name="For example allow:GB,IE or block:CN,RU." xml:space="preserve">
+    <value>Například allow:GB,IE nebo block:CN,RU.</value>
+  </data>
   <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
     <value>Například http://127.0.0.1:11333/checkv2. Zatím jen prosté HTTP, takže engine by měl být na tomto počítači nebo v síti, které důvěřujete - posílá se mu celá zpráva.</value>
+  </data>
+  <data name="For example partner.example, or .example for the domain and everything beneath it; separate them with commas or spaces." xml:space="preserve">
+    <value>Například partner.example, nebo .example pro doménu a vše pod ní; oddělujte je čárkami nebo mezerami.</value>
   </data>
   <data name="For search mode: a service account allowed to read the directory. Any ordinary domain account can, by default; it needs no other rights." xml:space="preserve">
     <value>Pro režim hledání: servisní účet, který smí číst adresář. Ve výchozím stavu to smí jakýkoli běžný doménový účet; jiná práva nepotřebuje.</value>
@@ -16331,9 +16337,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="alias" xml:space="preserve">
     <value>alias</value>
   </data>
-  <data name="allow:GB,IE or block:CN,RU." xml:space="preserve">
-    <value>allow:GB,IE nebo block:CN,RU.</value>
-  </data>
   <data name="an account Windows did not report" xml:space="preserve">
     <value>účet, který Windows nenahlásily</value>
   </data>
@@ -16919,9 +16922,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="p=none is the right starting point, not an oversight: it makes receivers check and report but deliver as normal. A stricter policy (quarantine or reject) tells every receiver to junk or refuse mail that fails alignment - and until reports show your own mail passing SPF or DKIM, the mail that fails will include yours. Tighten only after the reports say it is safe." xml:space="preserve">
     <value>p=none je správný výchozí bod, ne opomenutí: přiměje příjemce kontrolovat a hlásit, ale doručovat normálně. Přísnější politika (quarantine nebo reject) říká každému příjemci, aby poštu, která neprojde zarovnáním, zahodil do nevyžádané nebo odmítl – a dokud hlášení neukážou, že vaše vlastní pošta prochází SPF nebo DKIM, bude mezi poštou, která neprojde, i ta vaše. Zpřísněte teprve tehdy, až hlášení řeknou, že je to bezpečné.</value>
-  </data>
-  <data name="partner.example, or .example for the domain and everything beneath it, separated by commas or spaces." xml:space="preserve">
-    <value>partner.example, nebo .example pro doménu a vše pod ní, oddělené čárkami nebo mezerami.</value>
   </data>
   <data name="pattern" xml:space="preserve">
     <value>vzor</value>

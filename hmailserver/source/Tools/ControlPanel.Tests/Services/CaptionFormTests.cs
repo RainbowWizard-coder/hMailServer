@@ -342,7 +342,7 @@ namespace hMailServer.ControlPanel.Tests.Services
             Assert.Contains("L(\"" + caption + "\")", feature, StringComparison.Ordinal);
          }
 
-         Assert.Contains("Label = L(\"External process timeout (seconds; 0 = no time limit)\"), Blurb = L(\"A command-line virus scanner is one.\")", feature, StringComparison.Ordinal);
+         Assert.Contains("Label = L(\"External process timeout (seconds; 0 = no time limit)\"), Blurb = L(\"For example a command-line virus scanner.\")", feature, StringComparison.Ordinal);
          Assert.Contains("Label = L(\"Update feed URL (empty = the built-in feed)\"), Blurb = L(\"Set it to use a mirror.\")", feature, StringComparison.Ordinal);
          Assert.Contains("Label = L(\"Expunge records to keep (0 = keep everything)\"), Blurb = L(\"Keeping everything also skips the prune at start-up.\")", server, StringComparison.Ordinal);
          Assert.Contains("Label = L(\"Maximum characters per log line (at least 100)\"), Blurb = L(\"Only applied at log level 2 or lower.\")", server, StringComparison.Ordinal);

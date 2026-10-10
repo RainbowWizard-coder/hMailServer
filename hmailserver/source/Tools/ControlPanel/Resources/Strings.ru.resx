@@ -411,9 +411,6 @@
   <data name="A code from an authenticator app, required alongside this account's password. It applies where a code can actually be entered - the Control Panel and the API. Mail clients cannot present one, so once this is on they must use an app password instead." xml:space="preserve">
     <value>Код из приложения-аутентификатора, требуемый вместе с паролем этой учётной записи. Он применяется там, где код действительно можно ввести, — в Control Panel и в API. Почтовые клиенты предъявить его не могут, поэтому после включения им придётся использовать пароль приложения.</value>
   </data>
-  <data name="A command-line virus scanner is one." xml:space="preserve">
-    <value>Например, антивирусный сканер командной строки.</value>
-  </data>
   <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself." xml:space="preserve">
     <value>Копия почты домена или одной учётной записи, отправленная на адрес: как отчёт о конверте с вложенным сообщением или как само сообщение.</value>
   </data>
@@ -5462,8 +5459,17 @@ Control Panel может читать файлы сообщений только
   <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
     <value>Например, 10.0.0.5 или 10.0.0.0/24</value>
   </data>
+  <data name="For example a command-line virus scanner." xml:space="preserve">
+    <value>Например, антивирусный сканер командной строки.</value>
+  </data>
+  <data name="For example allow:GB,IE or block:CN,RU." xml:space="preserve">
+    <value>Например, allow:GB,IE или block:CN,RU.</value>
+  </data>
   <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
     <value>Например, http://127.0.0.1:11333/checkv2. Пока поддерживается только незашифрованный HTTP, поэтому движок должен находиться на этом компьютере или в сети, которой вы доверяете, — ему передаётся всё сообщение целиком.</value>
+  </data>
+  <data name="For example partner.example, or .example for the domain and everything beneath it; separate them with commas or spaces." xml:space="preserve">
+    <value>Например, partner.example или .example для домена и всего под ним; разделяйте их запятыми или пробелами.</value>
   </data>
   <data name="For search mode: a service account allowed to read the directory. Any ordinary domain account can, by default; it needs no other rights." xml:space="preserve">
     <value>Для режима поиска: учётная запись службы, которой разрешено читать каталог. По умолчанию это может любая обычная доменная учётная запись; других прав ей не нужно.</value>
@@ -16331,9 +16337,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="alias" xml:space="preserve">
     <value>псевдоним</value>
   </data>
-  <data name="allow:GB,IE or block:CN,RU." xml:space="preserve">
-    <value>allow:GB,IE или block:CN,RU.</value>
-  </data>
   <data name="an account Windows did not report" xml:space="preserve">
     <value>учётная запись, о которой Windows не сообщила</value>
   </data>
@@ -16919,9 +16922,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="p=none is the right starting point, not an oversight: it makes receivers check and report but deliver as normal. A stricter policy (quarantine or reject) tells every receiver to junk or refuse mail that fails alignment - and until reports show your own mail passing SPF or DKIM, the mail that fails will include yours. Tighten only after the reports say it is safe." xml:space="preserve">
     <value>p=none — это правильная отправная точка, а не недосмотр: получатели проверяют и присылают отчёты, но доставляют почту как обычно. Более строгая политика (quarantine или reject) велит каждому получателю отправлять в спам или отклонять почту, не прошедшую выравнивание, — а пока отчёты не покажут, что ваша собственная почта проходит SPF или DKIM, среди непрошедшей будет и ваша. Ужесточайте политику только после того, как отчёты скажут, что это безопасно.</value>
-  </data>
-  <data name="partner.example, or .example for the domain and everything beneath it, separated by commas or spaces." xml:space="preserve">
-    <value>partner.example или .example для домена и всего под ним, через запятую или пробел.</value>
   </data>
   <data name="pattern" xml:space="preserve">
     <value>шаблон</value>

@@ -182,6 +182,38 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("Label(L(\"_Postmaster address\"), postmaster_).WithHint(L(\"Mail to unknown recipients is redirected here.\"))", domain, StringComparison.Ordinal);
          Assert.Contains("Label(L(\"_Restricted delivery\"), restrictedDelivery_).WithHint(L(\"The named domains are on the domain's dialog.\"))", account, StringComparison.Ordinal);
          Assert.Contains("Label(L(\"Windows _domain (empty = a local Windows account)\"), adDomain_);", account, StringComparison.Ordinal);
+         Assert.Contains(".WithHint(L(\"For example allow:GB,IE or block:CN,RU.\"))", domain, StringComparison.Ordinal);
+         Assert.Contains(".WithHint(L(\"For example partner.example, or .example for the domain and everything beneath it; separate them with commas or spaces.\"))", domain, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// A hint that moved out of a caption says what it is, as a sentence does: the domain dialog's
+      /// country blocking showed "allow:GB,IE or block:CN,RU." alone under its box and the restricted
+      /// delivery "partner.example, or .example for the domain ...", which a screen reader read as the
+      /// editor's help text with nothing to say they were examples.
+      /// </summary>
+      [Fact]
+      public void TheDialogsHints_BeginAsSentencesDo()
+      {
+         var hint = new Regex(@"(?:\.WithHint\(|\bHint = )L\(\s*""((?:[^""\\]|\\.)*)""");
+         var offenders = new List<string>();
+         int read = 0;
+         foreach ((string relative, string source) in ConfirmationPatternTests.SourceFiles())
+         {
+            string name = Path.GetFileName(relative);
+            if (!name.EndsWith("Dialog.cs", StringComparison.Ordinal) && name != "CollectionSpecs.cs")
+               continue;
+            foreach (Match match in hint.Matches(source))
+            {
+               read++;
+               string text = match.Groups[1].Value;
+               if (!(char.IsUpper(text[0]) || char.IsDigit(text[0]) || text[0] is '\'' or '"' or '\\'))
+                  offenders.Add(relative + ": " + text);
+            }
+         }
+
+         Assert.True(read > 30, "Only " + read + " hints were read from the dialogs.");
+         Assert.True(offenders.Count == 0, "A hint begins as a sentence, \"For example ...\":\n" + string.Join("\n", offenders));
       }
    }
 }

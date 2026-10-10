@@ -408,9 +408,6 @@
   <data name="A code from an authenticator app, required alongside this account's password. It applies where a code can actually be entered - the Control Panel and the API. Mail clients cannot present one, so once this is on they must use an app password instead." xml:space="preserve">
     <value>En kode fra en autentiseringsapp, som kreves i tillegg til passordet til denne kontoen. Den gjelder der en kode faktisk kan skrives inn - Control Panel og API-et. E-postklienter kan ikke oppgi en kode, så når dette er slått på, må de bruke et app-passord i stedet.</value>
   </data>
-  <data name="A command-line virus scanner is one." xml:space="preserve">
-    <value>En kommandolinjebasert virusskanner er én av dem.</value>
-  </data>
   <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself." xml:space="preserve">
     <value>En kopi av et domenes post, eller av én kontos, sendt til en adresse – som en konvoluttrapport med meldingen vedlagt, eller som selve meldingen.</value>
   </data>
@@ -5392,8 +5389,17 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
     <value>For eksempel 10.0.0.5 eller 10.0.0.0/24</value>
   </data>
+  <data name="For example a command-line virus scanner." xml:space="preserve">
+    <value>For eksempel en kommandolinjebasert virusskanner.</value>
+  </data>
+  <data name="For example allow:GB,IE or block:CN,RU." xml:space="preserve">
+    <value>For eksempel allow:GB,IE eller block:CN,RU.</value>
+  </data>
   <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
     <value>For eksempel http://127.0.0.1:11333/checkv2. Bare ren HTTP foreløpig, så motoren bør være på denne maskinen eller på et nettverk du stoler på - hele meldingen sendes til den.</value>
+  </data>
+  <data name="For example partner.example, or .example for the domain and everything beneath it; separate them with commas or spaces." xml:space="preserve">
+    <value>For eksempel partner.example, eller .example for domenet og alt under det; skill dem med komma eller mellomrom.</value>
   </data>
   <data name="For search mode: a service account allowed to read the directory. Any ordinary domain account can, by default; it needs no other rights." xml:space="preserve">
     <value>For søkemodus: en tjenestekonto som har lov til å lese katalogen. Enhver vanlig domenekonto kan det, som standard; den trenger ingen andre rettigheter.</value>
@@ -16144,9 +16150,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="alias" xml:space="preserve">
     <value>alias</value>
   </data>
-  <data name="allow:GB,IE or block:CN,RU." xml:space="preserve">
-    <value>allow:GB,IE eller block:CN,RU.</value>
-  </data>
   <data name="an account Windows did not report" xml:space="preserve">
     <value>en konto Windows ikke rapporterte</value>
   </data>
@@ -16717,9 +16720,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="p=none is the right starting point, not an oversight: it makes receivers check and report but deliver as normal. A stricter policy (quarantine or reject) tells every receiver to junk or refuse mail that fails alignment - and until reports show your own mail passing SPF or DKIM, the mail that fails will include yours. Tighten only after the reports say it is safe." xml:space="preserve">
     <value>p=none er det riktige utgangspunktet, ikke en forglemmelse: det får mottakere til å kontrollere og rapportere, men levere som normalt. En strengere policy (quarantine eller reject) ber hver mottaker om å kaste eller avvise post som feiler samsvar - og til rapportene viser at din egen post består SPF eller DKIM, vil posten som feiler, omfatte din. Stram til først når rapportene sier at det er trygt.</value>
-  </data>
-  <data name="partner.example, or .example for the domain and everything beneath it, separated by commas or spaces." xml:space="preserve">
-    <value>partner.example, eller .example for domenet og alt under det, adskilt med komma eller mellomrom.</value>
   </data>
   <data name="pattern" xml:space="preserve">
     <value>mønster</value>

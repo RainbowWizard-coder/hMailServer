@@ -408,9 +408,6 @@
   <data name="A code from an authenticator app, required alongside this account's password. It applies where a code can actually be entered - the Control Panel and the API. Mail clients cannot present one, so once this is on they must use an app password instead." xml:space="preserve">
     <value>Un código de una aplicación de autenticación, exigido junto con la contraseña de esta cuenta. Se aplica donde realmente puede escribirse un código - el Control Panel y la API. Los clientes de correo no pueden presentar uno, así que una vez activado deben usar una contraseña de aplicación.</value>
   </data>
-  <data name="A command-line virus scanner is one." xml:space="preserve">
-    <value>Un antivirus de línea de comandos es uno de ellos.</value>
-  </data>
   <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself." xml:space="preserve">
     <value>Una copia del correo de un dominio, o de una cuenta, enviada a una dirección: como un informe de sobre con el mensaje adjunto, o como el mensaje mismo.</value>
   </data>
@@ -5392,8 +5389,17 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
     <value>Por ejemplo, 10.0.0.5 o 10.0.0.0/24</value>
   </data>
+  <data name="For example a command-line virus scanner." xml:space="preserve">
+    <value>Por ejemplo, un antivirus de línea de comandos.</value>
+  </data>
+  <data name="For example allow:GB,IE or block:CN,RU." xml:space="preserve">
+    <value>Por ejemplo, allow:GB,IE o block:CN,RU.</value>
+  </data>
   <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
     <value>Por ejemplo http://127.0.0.1:11333/checkv2. Solo HTTP plano por ahora, así que el motor debería estar en esta máquina o en una red de confianza - se le envía el mensaje entero.</value>
+  </data>
+  <data name="For example partner.example, or .example for the domain and everything beneath it; separate them with commas or spaces." xml:space="preserve">
+    <value>Por ejemplo, partner.example, o .example para el dominio y todo lo que hay debajo; sepárelos con comas o espacios.</value>
   </data>
   <data name="For search mode: a service account allowed to read the directory. Any ordinary domain account can, by default; it needs no other rights." xml:space="preserve">
     <value>Para el modo de búsqueda: una cuenta de servicio con permiso para leer el directorio. Cualquier cuenta de dominio corriente puede, por defecto; no necesita ningún otro derecho.</value>
@@ -16144,9 +16150,6 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="alias" xml:space="preserve">
     <value>alias</value>
   </data>
-  <data name="allow:GB,IE or block:CN,RU." xml:space="preserve">
-    <value>allow:GB,IE o block:CN,RU.</value>
-  </data>
   <data name="an account Windows did not report" xml:space="preserve">
     <value>una cuenta de la que Windows no informó</value>
   </data>
@@ -16717,9 +16720,6 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="p=none is the right starting point, not an oversight: it makes receivers check and report but deliver as normal. A stricter policy (quarantine or reject) tells every receiver to junk or refuse mail that fails alignment - and until reports show your own mail passing SPF or DKIM, the mail that fails will include yours. Tighten only after the reports say it is safe." xml:space="preserve">
     <value>p=none es el punto de partida correcto, no un descuido: hace que los receptores comprueben e informen, pero entreguen con normalidad. Una política más estricta (quarantine o reject) dice a todos los receptores que echen a la basura o rechacen el correo que falle la alineación - y hasta que los informes muestren que su propio correo pasa SPF o DKIM, el correo que falla incluirá el suyo. Apriete solo cuando los informes digan que es seguro.</value>
-  </data>
-  <data name="partner.example, or .example for the domain and everything beneath it, separated by commas or spaces." xml:space="preserve">
-    <value>partner.example, o .example para el dominio y todo lo que hay debajo, separados por comas o espacios.</value>
   </data>
   <data name="pattern" xml:space="preserve">
     <value>patrón</value>
