@@ -3357,8 +3357,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   modern administration app", "re-armed with modern cryptography"), where its words now say what is so (review finding
   F314, and the owner's choice of 9 October 2026). The help pane's list of every document is grouped as the sidebar is
   - under each group the documents its pages and their tabs open - then Reference and Building and packaging, each by
-  title, where some 120 documents stood in one run with ContinuousIntegration, Fuzzing and Nix among the operators'
-  guides; while the list shows, its search box says Search all documentation and narrows the list to the documents
+  title, the project's pipelines, environments and packages under the last, the snap with the Nix flake and Alpine,
+  where some 120 documents stood in one run with ContinuousIntegration, Fuzzing and Nix among the operators' guides;
+  while the list shows, its search box says Search all documentation and narrows the list to the documents
   whose title or text holds the words, Enter opening the first, where it said Search this document and searched the
   list's own words; and Back, at the head of the pane, returns to what a link in it left. docs/ControlPanelDesign.md's
   frame describes the window's four rows, the help pane and the pending bar, and names the two renamed groups by their

@@ -55,6 +55,15 @@ namespace hMailServer.ControlPanel.Tests.Services
             Assert.Equal(HelpDocumentList.Building, Of(build).Heading);
          Assert.Equal(HelpDocumentList.Reference, Of("HighAvailabilityRunbook").Heading);
 
+         // One rule for the documents of the packages, each of which says how its
+         // package is installed, how it is built and what has run: the snap stood
+         // under Reference while the Nix flake and Alpine, its counterparts, stood
+         // under Building and packaging.
+         Assert.Equal(Of("Nix").Heading, Of("Snap").Heading);
+         Assert.Equal(Of("Nix").Heading, Of("Alpine").Heading);
+         foreach (string package in new[] { "Snap", "ContainerImage", "PackageManagers", "CommandLinePackages", "PackagesDeb", "PackagesRpm", "PackagesAppImage", "PackagesWindows", "SourceTarball", "SourcePackages" })
+            Assert.Equal(HelpDocumentList.Building, Of(package).Heading);
+
          Assert.All(sections, s => Assert.Equal(s.Names.OrderBy(HelpPages.TitleOf, StringComparer.CurrentCultureIgnoreCase), s.Names));
          Assert.All(HelpDocumentList.BuildingAndPackaging, name => Assert.True(HelpPages.Has(name), name + " is not a document."));
       }

@@ -44,15 +44,21 @@ namespace hMailServer.ControlPanel.Services
 
       /// <summary>
       /// The documents about making, packaging and testing hMailServer rather than
-      /// running it: its pipelines and packages, its build and test environments and
-      /// the Control Panel's design. One that a page opens is listed under the page's
-      /// group all the same.
+      /// running it: its pipelines, its build and test environments, the Control
+      /// Panel's design, and each of its packages - the snap, the Nix flake, Alpine's
+      /// APKBUILD, the container image and chart, winget and Chocolatey, the
+      /// command-line clients', the .deb, the .rpm, the AppImage, the installers and
+      /// the source - whose documents each say how the package is installed, how it
+      /// is built and what has run, one rule for all of them: the snap stood under
+      /// Reference while the Nix flake and Alpine, its counterparts, stood here. One
+      /// that a page opens is listed under the page's group all the same.
       /// </summary>
       public static readonly IReadOnlyList<string> BuildingAndPackaging = new[]
       {
-         "Alpine", "Channels", "ContinuousIntegration", "ControlPanelDesign", "Fuzzing", // no-loc: documents' names
-         "Nix", "PackagesAppImage", "PackagesDeb", "PackagesRpm", "PackagesWindows", "RegressionEnvironment", // no-loc
-         "ReproducibleBuilds", "SourcePackages", "SourceTarball", "TestLab", "ThirdPartyBinaries", "WindowsOnArm", // no-loc
+         "Alpine", "Channels", "CommandLinePackages", "ContainerImage", "ContinuousIntegration", // no-loc: documents' names
+         "ControlPanelDesign", "Fuzzing", "Nix", "PackageManagers", "PackagesAppImage", "PackagesDeb", "PackagesRpm", // no-loc
+         "PackagesWindows", "RegressionEnvironment", "ReproducibleBuilds", "Snap", "SourcePackages", "SourceTarball", // no-loc
+         "TestLab", "ThirdPartyBinaries", "WindowsOnArm", // no-loc
       };
 
       /// <summary>
