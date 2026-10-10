@@ -978,9 +978,6 @@
   <data name="Add a _header the reader shows as a banner" xml:space="preserve">
     <value>読み手が帯として表示するヘッダーを付ける(_H)</value>
   </data>
-  <data name="Add a _route" xml:space="preserve">
-    <value>ルートを追加(_R)</value>
-  </data>
   <data name="Add a blocked attachment pattern" xml:space="preserve">
     <value>ブロックする添付ファイルのパターンを追加</value>
   </data>
@@ -1016,6 +1013,9 @@
   </data>
   <data name="Add a remote domain policy" xml:space="preserve">
     <value>リモート ドメインのポリシーを追加</value>
+  </data>
+  <data name="Add a ro_ute" xml:space="preserve">
+    <value>ルートを追加(_U)</value>
   </data>
   <data name="Add a row to a list, or go to the form that adds one" xml:space="preserve">
     <value>一覧に行を追加する、または行を追加するフォームに移動する</value>
@@ -3851,8 +3851,8 @@
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>配信して記録だけする</value>
   </data>
-  <data name="Deliver local → _remote" xml:space="preserve">
-    <value>ローカル → リモートに配信する(_R)</value>
+  <data name="Deliver lo_cal → remote" xml:space="preserve">
+    <value>ローカル → リモートに配信する(_C)</value>
   </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
     <value>指定したドメイン宛てのメールを、MX レコードを参照する代わりに選択したサーバーに配信します。</value>
@@ -4539,9 +4539,6 @@
   </data>
   <data name="Enter, F2" xml:space="preserve">
     <value>Enter、F2</value>
-  </data>
-  <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
-    <value>検索に一致したエントリ: {1} 件中 {0} 件。</value>
   </data>
   <data name="Entry skipped" xml:space="preserve">
     <value>エントリをスキップ</value>
@@ -8293,9 +8290,6 @@
   <data name="P_ort" xml:space="preserve">
     <value>ポート(_O)</value>
   </data>
-  <data name="P_rotocol" xml:space="preserve">
-    <value>プロトコル(_R)</value>
-  </data>
   <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM:" xml:space="preserve">
     <value>この DNS TXT レコードを DNS プロバイダーで公開してから、DKIM を有効にしてください(_U):</value>
   </data>
@@ -8667,6 +8661,9 @@
   <data name="Protection" xml:space="preserve">
     <value>保護</value>
   </data>
+  <data name="Proto_col" xml:space="preserve">
+    <value>プロトコル(_C)</value>
+  </data>
   <data name="Protocol" xml:space="preserve">
     <value>プロトコル</value>
   </data>
@@ -8879,6 +8876,9 @@
   </data>
   <data name="Re_move name" xml:space="preserve">
     <value>名前を削除(_M)</value>
+  </data>
+  <data name="Re_move stored passphrase" xml:space="preserve">
+    <value>保存済みパスフレーズを削除(_M)</value>
   </data>
   <data name="Re_move the rule" xml:space="preserve">
     <value>ルールを削除(_M)</value>
@@ -9258,6 +9258,9 @@
   </data>
   <data name="Relying party (empty = the host the page is on)" xml:space="preserve">
     <value>証明書利用者 (空 = ページを提供しているホスト)</value>
+  </data>
+  <data name="Rem_ove criterion" xml:space="preserve">
+    <value>条件を削除(_O)</value>
   </data>
   <data name="Remember this many previous passwords (0 = no history)" xml:space="preserve">
     <value>記憶する過去のパスワードの数 (0 = 履歴なし)</value>
@@ -14900,14 +14903,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Reload from disk" xml:space="preserve">
     <value>ディスクから再読み込み(_R)</value>
   </data>
-  <data name="_Remove criterion" xml:space="preserve">
-    <value>条件を削除(_R)</value>
-  </data>
   <data name="_Remove message" xml:space="preserve">
     <value>メッセージを削除(_R)</value>
-  </data>
-  <data name="_Remove stored passphrase" xml:space="preserve">
-    <value>保存済みパスフレーズを削除(_R)</value>
   </data>
   <data name="_Rename the account" xml:space="preserve">
     <value>アカウント名を変更(_R)</value>
@@ -16095,6 +16092,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} IP addresses" xml:space="preserve">
     <value>IP アドレス {0} 件</value>
   </data>
+  <data name="{0} IP range" xml:space="preserve">
+    <value>IP 範囲 {0} 件</value>
+  </data>
+  <data name="{0} IP ranges" xml:space="preserve">
+    <value>IP 範囲 {0} 件</value>
+  </data>
   <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
     <value>{0}ウイルスが見つかった場合は、添付ファイルは取り除かれ、メッセージはそのまま配信されます。</value>
   </data>
@@ -16158,17 +16161,17 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} added." xml:space="preserve">
     <value>{0} を追加しました。</value>
   </data>
+  <data name="{0} address" xml:space="preserve">
+    <value>アドレス {0} 件</value>
+  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} 件のアドレスがリストにあり、新しい {1} 件を表示しています。検索して絞り込んでください。</value>
   </data>
-  <data name="{0} address listed." xml:space="preserve">
-    <value>{0} 件のアドレスがリストにあります。</value>
+  <data name="{0} addresses" xml:space="preserve">
+    <value>アドレス {0} 件</value>
   </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} 件のアドレスがリストにあり、新しい {1} 件を表示しています。検索して絞り込んでください。</value>
-  </data>
-  <data name="{0} addresses listed." xml:space="preserve">
-    <value>{0} 件のアドレスがリストにあります。</value>
   </data>
   <data name="{0} aliases" xml:space="preserve">
     <value>エイリアス {0} 件</value>
@@ -16211,6 +16214,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} cases. Select one for its lines on the audit trail." xml:space="preserve">
     <value>{0} 件のケース。ケースを選択すると監査ログの行が表示されます。</value>
+  </data>
+  <data name="{0} certificate" xml:space="preserve">
+    <value>証明書 {0} 件</value>
+  </data>
+  <data name="{0} certificates" xml:space="preserve">
+    <value>証明書 {0} 件</value>
   </data>
   <data name="{0} change carried out, none failed." xml:space="preserve">
     <value>{0} 件の変更を実行し、失敗はありませんでした。</value>
@@ -16275,17 +16284,17 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} entry" xml:space="preserve">
     <value>{0} 件のエントリ</value>
   </data>
+  <data name="{0} event" xml:space="preserve">
+    <value>イベント {0} 件</value>
+  </data>
   <data name="{0} event past the retention window was removed." xml:space="preserve">
     <value>保持期間を過ぎた {0} 件のイベントを削除しました。</value>
   </data>
-  <data name="{0} event, newest first." xml:space="preserve">
-    <value>{0} 件のイベント、新しい順です。</value>
+  <data name="{0} events" xml:space="preserve">
+    <value>イベント {0} 件</value>
   </data>
   <data name="{0} events past the retention window were removed." xml:space="preserve">
     <value>保持期間を過ぎた {0} 件のイベントを削除しました。</value>
-  </data>
-  <data name="{0} events, newest first." xml:space="preserve">
-    <value>{0} 件のイベント、新しい順です。</value>
   </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>{0} 件の外部 POP3 取り込みアカウントでウイルス対策が無効になっているため、それらのアカウントが収集したメールは、ここでの設定にかかわらずスキャンされずに配信されます。このスイッチはこのページではなく、取り込みアカウント側にあります。</value>
@@ -16422,17 +16431,11 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} message cannot be listed and will be left where it is. The first reason: {1}" xml:space="preserve">
     <value>{0} 件のメッセージは一覧に登録できないため、そのままにします。最初の理由: {1}</value>
   </data>
-  <data name="{0} message held." xml:space="preserve">
-    <value>{0} 件のメッセージが保留されています。</value>
-  </data>
   <data name="{0} message past the retention window was removed." xml:space="preserve">
     <value>保持期間を過ぎた {0} 件のメッセージを削除しました。</value>
   </data>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} 件のメッセージが、ディスク上に存在しないファイルを参照しています。</value>
-  </data>
-  <data name="{0} message waiting for delivery." xml:space="preserve">
-    <value>{0} 件のメッセージが配信を待っています。</value>
   </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} 件のメッセージ</value>
@@ -16440,17 +16443,11 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
     <value>{0} 件のメッセージは一覧に登録できないため、そのままにします。最初の理由: {1}</value>
   </data>
-  <data name="{0} messages held." xml:space="preserve">
-    <value>{0} 件のメッセージが保留されています。</value>
-  </data>
   <data name="{0} messages past the retention window were removed." xml:space="preserve">
     <value>保持期間を過ぎた {0} 件のメッセージを削除しました。</value>
   </data>
   <data name="{0} messages reference a file that is missing on disk." xml:space="preserve">
     <value>{0} 件のメッセージが、ディスク上に存在しないファイルを参照しています。</value>
-  </data>
-  <data name="{0} messages waiting for delivery." xml:space="preserve">
-    <value>{0} 件のメッセージが配信を待っています。</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} 分</value>
@@ -16524,17 +16521,23 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>スキャナーの判定にかかわらず、{0} 件のパターンに一致する添付ファイルが、ファイル名によってすべてのメッセージから取り除かれます。</value>
   </data>
+  <data name="{0} port" xml:space="preserve">
+    <value>ポート {0} 件</value>
+  </data>
+  <data name="{0} ports" xml:space="preserve">
+    <value>ポート {0} 件</value>
+  </data>
   <data name="{0} problem" xml:space="preserve">
     <value>問題 {0} 件</value>
   </data>
   <data name="{0} problems" xml:space="preserve">
     <value>問題 {0} 件</value>
   </data>
-  <data name="{0} public folder." xml:space="preserve">
-    <value>公開フォルダー {0} 件。</value>
+  <data name="{0} public folder" xml:space="preserve">
+    <value>公開フォルダー {0} 件</value>
   </data>
-  <data name="{0} public folders." xml:space="preserve">
-    <value>公開フォルダー {0} 件。</value>
+  <data name="{0} public folders" xml:space="preserve">
+    <value>公開フォルダー {0} 件</value>
   </data>
   <data name="{0} recipient added." xml:space="preserve">
     <value>{0} 件の受信者を追加しました。</value>
@@ -16563,26 +16566,23 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} remote domain policies" xml:space="preserve">
     <value>リモートドメインのポリシー {0} 件</value>
   </data>
+  <data name="{0} route" xml:space="preserve">
+    <value>ルート {0} 件</value>
+  </data>
+  <data name="{0} routes" xml:space="preserve">
+    <value>ルート {0} 件</value>
+  </data>
   <data name="{0} row needs reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>適用する前に読むべき行が {0} 件あります。スキップされたエントリは、誰かが期待しているのに手に入らないメールボックスであり、無効にされたエントリは取り上げられるメールボックスです。</value>
   </data>
   <data name="{0} rows need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>適用する前に読むべき行が {0} 件あります。スキップされたエントリは、誰かが期待しているのに手に入らないメールボックスであり、無効にされたエントリは取り上げられるメールボックスです。</value>
   </data>
-  <data name="{0} rule of the server, evaluated top to bottom." xml:space="preserve">
-    <value>サーバーのルール {0} 件。上から順に評価されます。</value>
-  </data>
-  <data name="{0} rule of {1}, evaluated top to bottom." xml:space="preserve">
-    <value>{1} のルール {0} 件。上から順に評価されます。</value>
+  <data name="{0} rule" xml:space="preserve">
+    <value>ルール {0} 件</value>
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>ルール {0} 件</value>
-  </data>
-  <data name="{0} rules of the server, evaluated top to bottom." xml:space="preserve">
-    <value>サーバーのルール {0} 件。上から順に評価されます。</value>
-  </data>
-  <data name="{0} rules of {1}, evaluated top to bottom." xml:space="preserve">
-    <value>{1} のルール {0} 件。上から順に評価されます。</value>
   </data>
   <data name="{0} sample copied to the clipboard." xml:space="preserve">
     <value>{0} 件のサンプルをクリップボードにコピーしました。</value>

@@ -317,25 +317,33 @@ namespace hMailServer.ControlPanel.Views
          root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
          root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
 
+         // The list's verbs as on every list page (docs/ControlPanelDesign.md, List
+         // pages; review finding F288): the selected row's Edit and Delete, then
+         // Add, the Primary, at the right edge, in words alone as every other
+         // header and toolbar button is - the glyphs were this editor's own.
+         // Refresh is the page's verb and goes in the header; in a dialog's tab,
+         // which has no header, it stands before Add.
          var actions = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
-         if (spec_.CanAdd)
-         {
-            addButton_ = MakeButton(L("_Add"), ControlAppearance.Primary, SymbolRegular.Add24, (_, _) => OpenDialog(null));
-            actions.Children.Add(addButton_);
-         }
-         var edit = MakeButton(L("_Edit"), ControlAppearance.Secondary, SymbolRegular.Edit24, (_, _) => EditSelected());
+         var edit = MakeButton(L("_Edit"), ControlAppearance.Secondary, (_, _) => EditSelected());
          actions.Children.Add(edit);
          Wpf.Ui.Controls.Button del = null;
          if (spec_.CanDelete)
          {
-            del = MakeButton(L("_Delete"), ControlAppearance.Secondary, SymbolRegular.Delete24, (_, _) => DeleteSelected());
+            del = MakeButton(L("_Delete"), ControlAppearance.Secondary, (_, _) => DeleteSelected());
             // Red words only while it can be pressed (App.xaml says why a
             // style and not a local Foreground).
             if (Application.Current?.TryFindResource("DangerTextButton") is Style danger)
                del.Style = danger;
             actions.Children.Add(del);
          }
-         actions.Children.Add(MakeButton(L("_Refresh"), ControlAppearance.Secondary, SymbolRegular.ArrowSync24, (_, _) => Reload()));
+         var refresh = MakeButton(L("_Refresh"), ControlAppearance.Secondary, (_, _) => Reload());
+         if (embedded_)
+            actions.Children.Add(refresh);
+         if (spec_.CanAdd)
+         {
+            addButton_ = MakeButton(L("_Add"), ControlAppearance.Primary, (_, _) => OpenDialog(null));
+            actions.Children.Add(addButton_);
+         }
          // Edit and Delete act on the selected row, so they are enabled only
          // while there is one; with nothing selected they used to answer a click
          // with "Select a row first." in the status line.
@@ -344,9 +352,10 @@ namespace hMailServer.ControlPanel.Views
          else
             Services.SelectionGate.Bind(grid_, edit);
 
-         // Page mode puts the title, the count and the actions in one header;
-         // embedded mode has no page title to hang them on, so the hint goes
-         // above a toolbar that carries the count and the same actions.
+         // Page mode puts the title, the count and Refresh in the header, and the
+         // list's verbs in the toolbar with the search; embedded mode has no page
+         // title to hang them on, so the hint goes above a toolbar that carries
+         // the count and the same verbs.
          if (embedded_)
          {
             var head = new StackPanel { Margin = new Thickness(0, 0, 0, 10) };
@@ -379,7 +388,7 @@ namespace hMailServer.ControlPanel.Views
                PageKey = spec_.PageKey,
                Subtitle = spec_.Subtitle,
                Status = countBadge_,
-               Actions = actions
+               Actions = refresh
             });
          }
 
@@ -410,7 +419,7 @@ namespace hMailServer.ControlPanel.Views
          // The search above the notices and the list, as on the IP ranges page.
          if (!embedded_)
          {
-            search_ = new Toolbar { SearchPlaceholder = L(spec_.SearchPlaceholder) };
+            search_ = new Toolbar { SearchPlaceholder = L(spec_.SearchPlaceholder), Actions = actions };
             search_.SearchTextChanged += (_, _) => ShowListState_();
             parts.Children.Add(search_);
          }
@@ -545,13 +554,12 @@ namespace hMailServer.ControlPanel.Views
          Content = root;
       }
 
-      private static Button MakeButton(string text, ControlAppearance appearance, SymbolRegular icon, RoutedEventHandler onClick)
+      private static Button MakeButton(string text, ControlAppearance appearance, RoutedEventHandler onClick)
       {
          var b = new Button
          {
             Content = text,
             Appearance = appearance,
-            Icon = new SymbolIcon { Symbol = icon },
             Margin = new Thickness(8, 0, 0, 0),
             MinWidth = 92
          };

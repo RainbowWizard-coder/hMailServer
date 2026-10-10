@@ -19,7 +19,18 @@
         </Grid.RowDefinitions>
 
         <scaffold:PageHeader PageKey="certs"
-                             Subtitle="{loc:L 'Certificates available for TLS ports, with what this machine can verify about each: the files, the expiry date, and whether the key belongs to the certificate. With ACME enabled, Let\'s Encrypt certificates appear here automatically.'}" />
+                             Subtitle="{loc:L 'Certificates available for TLS ports, with what this machine can verify about each: the files, the expiry date, and whether the key belongs to the certificate. With ACME enabled, Let\'s Encrypt certificates appear here automatically.'}">
+            <!-- The list page pattern (docs/ControlPanelDesign.md, List pages): the
+                 count beside the title and Refresh in the header, the list's own
+                 verbs in the toolbar above it (review finding F288). -->
+            <scaffold:PageHeader.Status>
+                <scaffold:StatusPill x:Name="CountPill" Level="Normal" Visibility="Collapsed"
+                                     AutomationProperties.AutomationId="list-count" />
+            </scaffold:PageHeader.Status>
+            <scaffold:PageHeader.Actions>
+                <ui:Button x:Name="RefreshButton" Content="{loc:L '_Refresh'}" Click="Refresh_Click" />
+            </scaffold:PageHeader.Actions>
+        </scaffold:PageHeader>
 
         <!-- The IP ranges shape: the list takes the height the parts under it
              leave in the window, down to a floor of four rows, and below that
@@ -121,7 +132,7 @@
                 <StackPanel Orientation="Horizontal">
                     <ui:Button x:Name="SavePassphraseButton" Content="{loc:L 'Save _passphrase'}" Appearance="Primary" Click="SavePassphrase_Click" Margin="0,0,8,0"
                                AutomationProperties.HelpText="{loc:L 'Save the private key passphrase for the selected certificate'}" ToolTip="{loc:L 'Save the private key passphrase for the selected certificate'}" />
-                    <ui:Button Content="{loc:L '_Remove stored passphrase'}" Click="ClearPassphrase_Click"
+                    <ui:Button Content="{loc:L 'Re_move stored passphrase'}" Click="ClearPassphrase_Click"
                                AutomationProperties.HelpText="{loc:L 'Remove the stored private key passphrase from the selected certificate'}" ToolTip="{loc:L 'Remove the stored private key passphrase from the selected certificate'}" />
                 </StackPanel>
             </scaffold:Card.Footer>

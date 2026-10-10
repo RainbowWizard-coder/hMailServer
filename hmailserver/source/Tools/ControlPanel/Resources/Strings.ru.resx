@@ -984,9 +984,6 @@ Control Panel может читать файлы сообщений только
   <data name="Add a _header the reader shows as a banner" xml:space="preserve">
     <value>Добавлять _заголовок, который читатель показывает полосой</value>
   </data>
-  <data name="Add a _route" xml:space="preserve">
-    <value>Добавить _маршрут</value>
-  </data>
   <data name="Add a blocked attachment pattern" xml:space="preserve">
     <value>Добавить шаблон для заблокированных вложений</value>
   </data>
@@ -1022,6 +1019,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Add a remote domain policy" xml:space="preserve">
     <value>Добавить правило для внешнего домена</value>
+  </data>
+  <data name="Add a ro_ute" xml:space="preserve">
+    <value>Добавить _маршрут</value>
   </data>
   <data name="Add a row to a list, or go to the form that adds one" xml:space="preserve">
     <value>Добавить строку в список или перейти к форме, которая её добавляет</value>
@@ -3897,7 +3897,7 @@ Control Panel может читать файлы сообщений только
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>Доставить и только записать</value>
   </data>
-  <data name="Deliver local → _remote" xml:space="preserve">
+  <data name="Deliver lo_cal → remote" xml:space="preserve">
     <value>Доставка: локальный → _удалённый</value>
   </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
@@ -4585,9 +4585,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Enter, F2" xml:space="preserve">
     <value>Enter, F2</value>
-  </data>
-  <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
-    <value>Записей, соответствующих поиску: {0} из {1}.</value>
   </data>
   <data name="Entry skipped" xml:space="preserve">
     <value>Запись пропущена</value>
@@ -8381,9 +8378,6 @@ Control Panel может читать файлы сообщений только
   <data name="P_ort" xml:space="preserve">
     <value>По_рт</value>
   </data>
-  <data name="P_rotocol" xml:space="preserve">
-    <value>_Протокол</value>
-  </data>
   <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM:" xml:space="preserve">
     <value>Опубликуйте _эту запись DNS TXT у своего поставщика DNS, затем включите DKIM:</value>
   </data>
@@ -8755,6 +8749,9 @@ Control Panel может читать файлы сообщений только
   <data name="Protection" xml:space="preserve">
     <value>Защита</value>
   </data>
+  <data name="Proto_col" xml:space="preserve">
+    <value>_Протокол</value>
+  </data>
   <data name="Protocol" xml:space="preserve">
     <value>Протокол</value>
   </data>
@@ -8967,6 +8964,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Re_move name" xml:space="preserve">
     <value>_Удалить имя</value>
+  </data>
+  <data name="Re_move stored passphrase" xml:space="preserve">
+    <value>_Убрать сохранённую парольную фразу</value>
   </data>
   <data name="Re_move the rule" xml:space="preserve">
     <value>Удалить п_равило</value>
@@ -9358,6 +9358,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Relying party (empty = the host the page is on)" xml:space="preserve">
     <value>Проверяющая сторона (пусто = узел, на котором находится страница)</value>
+  </data>
+  <data name="Rem_ove criterion" xml:space="preserve">
+    <value>Уб_рать критерий</value>
   </data>
   <data name="Remember this many previous passwords (0 = no history)" xml:space="preserve">
     <value>Запоминать столько предыдущих паролей (0 — без истории)</value>
@@ -15072,14 +15075,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Reload from disk" xml:space="preserve">
     <value>Перезагрузить с _диска</value>
   </data>
-  <data name="_Remove criterion" xml:space="preserve">
-    <value>У_брать критерий</value>
-  </data>
   <data name="_Remove message" xml:space="preserve">
     <value>_Удалить сообщение</value>
-  </data>
-  <data name="_Remove stored passphrase" xml:space="preserve">
-    <value>_Убрать сохранённую парольную фразу</value>
   </data>
   <data name="_Rename the account" xml:space="preserve">
     <value>_Переименовать учётную запись</value>
@@ -15145,7 +15142,7 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
     <value>_Поиск</value>
   </data>
   <data name="_Security" xml:space="preserve">
-    <value>_Безопасность</value>
+    <value>Б_езопасность</value>
   </data>
   <data name="_Send" xml:space="preserve">
     <value>_Отправить</value>
@@ -16288,6 +16285,15 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} IP addresses" xml:space="preserve">
     <value>IP-адресов: {0}</value>
   </data>
+  <data name="{0} IP range" xml:space="preserve">
+    <value>{0} диапазон IP</value>
+  </data>
+  <data name="{0} IP ranges" xml:space="preserve">
+    <value>{0} диапазонов IP</value>
+  </data>
+  <data name="{0} IP ranges|few" xml:space="preserve">
+    <value>{0} диапазона IP</value>
+  </data>
   <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
     <value>{0} Если вирус найден, вложения удаляются, а сообщение всё равно доставляется.</value>
   </data>
@@ -16372,11 +16378,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} added." xml:space="preserve">
     <value>Добавлено: {0}.</value>
   </data>
+  <data name="{0} address" xml:space="preserve">
+    <value>{0} адрес</value>
+  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>Адресов в списке: {0}, показаны {1} последних. Воспользуйтесь поиском, чтобы сузить список.</value>
   </data>
-  <data name="{0} address listed." xml:space="preserve">
-    <value>Адресов в списке: {0}.</value>
+  <data name="{0} addresses" xml:space="preserve">
+    <value>{0} адресов</value>
   </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>Адресов в списке: {0}, показаны {1} последних. Воспользуйтесь поиском, чтобы сузить список.</value>
@@ -16384,11 +16393,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them.|few" xml:space="preserve">
     <value>Адресов в списке: {0}, показаны {1} последних. Воспользуйтесь поиском, чтобы сузить список.</value>
   </data>
-  <data name="{0} addresses listed." xml:space="preserve">
-    <value>Адресов в списке: {0}.</value>
-  </data>
-  <data name="{0} addresses listed.|few" xml:space="preserve">
-    <value>Адресов в списке: {0}.</value>
+  <data name="{0} addresses|few" xml:space="preserve">
+    <value>{0} адреса</value>
   </data>
   <data name="{0} aliases" xml:space="preserve">
     <value>Псевдонимов: {0}</value>
@@ -16440,6 +16446,15 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} cases. Select one for its lines on the audit trail.|few" xml:space="preserve">
     <value>Дел: {0}. Выберите одно, чтобы увидеть его строки в журнале аудита.</value>
+  </data>
+  <data name="{0} certificate" xml:space="preserve">
+    <value>{0} сертификат</value>
+  </data>
+  <data name="{0} certificates" xml:space="preserve">
+    <value>{0} сертификатов</value>
+  </data>
+  <data name="{0} certificates|few" xml:space="preserve">
+    <value>{0} сертификата</value>
   </data>
   <data name="{0} change carried out, none failed." xml:space="preserve">
     <value>Выполнено изменений: {0}, ни одно не завершилось ошибкой.</value>
@@ -16519,11 +16534,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} entry" xml:space="preserve">
     <value>{0} запись</value>
   </data>
+  <data name="{0} event" xml:space="preserve">
+    <value>{0} событие</value>
+  </data>
   <data name="{0} event past the retention window was removed." xml:space="preserve">
     <value>Удалено событий за пределами срока хранения: {0}.</value>
   </data>
-  <data name="{0} event, newest first." xml:space="preserve">
-    <value>Событий: {0}, новые сверху.</value>
+  <data name="{0} events" xml:space="preserve">
+    <value>{0} событий</value>
   </data>
   <data name="{0} events past the retention window were removed." xml:space="preserve">
     <value>Удалено событий за пределами срока хранения: {0}.</value>
@@ -16531,11 +16549,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} events past the retention window were removed.|few" xml:space="preserve">
     <value>Удалено событий за пределами срока хранения: {0}.</value>
   </data>
-  <data name="{0} events, newest first." xml:space="preserve">
-    <value>Событий: {0}, новые сверху.</value>
-  </data>
-  <data name="{0} events, newest first.|few" xml:space="preserve">
-    <value>Событий: {0}, новые сверху.</value>
+  <data name="{0} events|few" xml:space="preserve">
+    <value>{0} события</value>
   </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>У {0} внешней учётной записи сбора POP3 антивирус выключен, поэтому собираемая ею почта доставляется без проверки, что бы здесь ни было задано. Переключатель находится на учётной записи сбора почты, а не на этой странице.</value>
@@ -16690,17 +16705,11 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} message cannot be listed and will be left where it is. The first reason: {1}" xml:space="preserve">
     <value>Для {0} сообщения нельзя создать запись; они останутся там, где есть. Первая причина: {1}</value>
   </data>
-  <data name="{0} message held." xml:space="preserve">
-    <value>Задержано сообщений: {0}.</value>
-  </data>
   <data name="{0} message past the retention window was removed." xml:space="preserve">
     <value>Удалено сообщений за пределами срока хранения: {0}.</value>
   </data>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} сообщение ссылается на файл, отсутствующий на диске.</value>
-  </data>
-  <data name="{0} message waiting for delivery." xml:space="preserve">
-    <value>Сообщений в ожидании доставки: {0}.</value>
   </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} сообщений</value>
@@ -16710,12 +16719,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}|few" xml:space="preserve">
     <value>Для {0} сообщений нельзя создать запись; они останутся там, где есть. Первая причина: {1}</value>
-  </data>
-  <data name="{0} messages held." xml:space="preserve">
-    <value>Задержано сообщений: {0}.</value>
-  </data>
-  <data name="{0} messages held.|few" xml:space="preserve">
-    <value>Задержано сообщений: {0}.</value>
   </data>
   <data name="{0} messages past the retention window were removed." xml:space="preserve">
     <value>Удалено сообщений за пределами срока хранения: {0}.</value>
@@ -16728,12 +16731,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} messages reference a file that is missing on disk.|few" xml:space="preserve">
     <value>Сообщений, ссылающихся на отсутствующий на диске файл: {0}.</value>
-  </data>
-  <data name="{0} messages waiting for delivery." xml:space="preserve">
-    <value>Сообщений в ожидании доставки: {0}.</value>
-  </data>
-  <data name="{0} messages waiting for delivery.|few" xml:space="preserve">
-    <value>Сообщений в ожидании доставки: {0}.</value>
   </data>
   <data name="{0} messages|few" xml:space="preserve">
     <value>{0} сообщения</value>
@@ -16825,6 +16822,15 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say.|few" xml:space="preserve">
     <value>{0} шаблона удаляются из каждого сообщения по имени файла, что бы ни говорили сканеры.</value>
   </data>
+  <data name="{0} port" xml:space="preserve">
+    <value>{0} порт</value>
+  </data>
+  <data name="{0} ports" xml:space="preserve">
+    <value>{0} портов</value>
+  </data>
+  <data name="{0} ports|few" xml:space="preserve">
+    <value>{0} порта</value>
+  </data>
   <data name="{0} problem" xml:space="preserve">
     <value>Проблем: {0}</value>
   </data>
@@ -16834,14 +16840,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} problems|few" xml:space="preserve">
     <value>Проблем: {0}</value>
   </data>
-  <data name="{0} public folder." xml:space="preserve">
-    <value>Общих папок: {0}.</value>
+  <data name="{0} public folder" xml:space="preserve">
+    <value>{0} общая папка</value>
   </data>
-  <data name="{0} public folders." xml:space="preserve">
-    <value>Общих папок: {0}.</value>
+  <data name="{0} public folders" xml:space="preserve">
+    <value>{0} общих папок</value>
   </data>
-  <data name="{0} public folders.|few" xml:space="preserve">
-    <value>Общих папок: {0}.</value>
+  <data name="{0} public folders|few" xml:space="preserve">
+    <value>{0} общие папки</value>
   </data>
   <data name="{0} recipient added." xml:space="preserve">
     <value>Добавлено получателей: {0}.</value>
@@ -16879,6 +16885,15 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} remote domain policies" xml:space="preserve">
     <value>Правил для внешних доменов: {0}</value>
   </data>
+  <data name="{0} route" xml:space="preserve">
+    <value>{0} маршрут</value>
+  </data>
+  <data name="{0} routes" xml:space="preserve">
+    <value>{0} маршрутов</value>
+  </data>
+  <data name="{0} routes|few" xml:space="preserve">
+    <value>{0} маршрута</value>
+  </data>
   <data name="{0} row needs reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>Перед применением нужно прочитать строк: {0} — пропущенная запись означает почтовый ящик, которого кто-то ждёт и не получит, а отключённая — почтовый ящик, который отбирают.</value>
   </data>
@@ -16888,26 +16903,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} rows need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away.|few" xml:space="preserve">
     <value>Перед применением нужно прочитать строк: {0} — пропущенная запись означает почтовый ящик, которого кто-то ждёт и не получит, а отключённая — почтовый ящик, который отбирают.</value>
   </data>
-  <data name="{0} rule of the server, evaluated top to bottom." xml:space="preserve">
-    <value>Правил сервера: {0}, проверяются сверху вниз.</value>
-  </data>
-  <data name="{0} rule of {1}, evaluated top to bottom." xml:space="preserve">
-    <value>Правил домена {1}: {0}, проверяются сверху вниз.</value>
+  <data name="{0} rule" xml:space="preserve">
+    <value>Правил: {0}</value>
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>Правил: {0}</value>
   </data>
-  <data name="{0} rules of the server, evaluated top to bottom." xml:space="preserve">
-    <value>Правил сервера: {0}, проверяются сверху вниз.</value>
-  </data>
-  <data name="{0} rules of the server, evaluated top to bottom.|few" xml:space="preserve">
-    <value>Правил сервера: {0}, проверяются сверху вниз.</value>
-  </data>
-  <data name="{0} rules of {1}, evaluated top to bottom." xml:space="preserve">
-    <value>Правил домена {1}: {0}, проверяются сверху вниз.</value>
-  </data>
-  <data name="{0} rules of {1}, evaluated top to bottom.|few" xml:space="preserve">
-    <value>Правил домена {1}: {0}, проверяются сверху вниз.</value>
+  <data name="{0} rules|few" xml:space="preserve">
+    <value>Правил: {0}</value>
   </data>
   <data name="{0} sample copied to the clipboard." xml:space="preserve">
     <value>Скопировано образцов в буфер обмена: {0}.</value>

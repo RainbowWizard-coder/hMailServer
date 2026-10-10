@@ -64,6 +64,10 @@ namespace hMailServer.ControlPanel.Views
 
       private readonly InlineNotice status_ = new() { Visibility = Visibility.Collapsed };
 
+      // How many events the search or the followed message has, beside the title
+      // (review finding F288); none until a query has worked.
+      private readonly StatusPill count_ = new() { Level = StatusLevel.Normal, Visibility = Visibility.Collapsed };
+
       // MessageTraceRetentionDays, read over COM when there is a session and from
       // hMailServer.ini otherwise, for Remove expired: 0 keeps every event.
       private readonly IniFeatureStore iniStore_ = new();
@@ -118,10 +122,11 @@ namespace hMailServer.ControlPanel.Views
          list_.ItemsSource = rows;
          StatusText.Show(empty_, null, count, null, emptyMessage);
 
-         if (count == 0)
-            status_.Visibility = Visibility.Collapsed;
-         else
-            Status_(StatusLevel.Information, Plural(count, "{0} event, newest first.", "{0} events, newest first."));
+         // How many events the search found, beside the title, where an
+         // Information notice said it (review finding F288).
+         status_.Visibility = Visibility.Collapsed;
+         count_.Text = Plural(count, "{0} event", "{0} events");
+         count_.Visibility = Visibility.Visible;
       }
 
       /// <summary>
@@ -173,6 +178,7 @@ namespace hMailServer.ControlPanel.Views
       private void Search_(string address)
       {
          rerun_ = () => Search_(address);
+         count_.Visibility = Visibility.Collapsed;
          try
          {
             dynamic trace = OpenTrace();
@@ -214,6 +220,7 @@ namespace hMailServer.ControlPanel.Views
       private void Follow_(int queueId)
       {
          rerun_ = () => Follow_(queueId);
+         count_.Visibility = Visibility.Collapsed;
          try
          {
             dynamic trace = OpenTrace();
@@ -314,6 +321,7 @@ namespace hMailServer.ControlPanel.Views
 
          root.Children.Add(new PageHeader
          {
+            Status = count_,
             PageKey = "messagetrace",
             Subtitle = L("What happened to a particular message. Search by any address - it matches senders and recipients - then follow one row to see every event for that message in order.")
          });

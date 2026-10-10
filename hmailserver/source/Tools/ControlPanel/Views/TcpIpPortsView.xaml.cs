@@ -163,6 +163,7 @@ namespace hMailServer.ControlPanel.Views
             // (Services/ReadFailure).
             ReadFailure.Show(Notice, EmptyStatus, PortGrid, L("Could not read the ports: "), ex, Reload,
                AddPortButton, RestoreDefaultsButton);
+            CountPill.Visibility = Visibility.Collapsed;
             HideSummary_();
          }
       }
@@ -232,9 +233,14 @@ namespace hMailServer.ControlPanel.Views
          PortGrid.ItemsSource = rows;
          ListSearch.Apply(PortGrid, SearchBar.SearchText);
          StatusText.Show(EmptyStatus, null, rows.Count, null, L("No ports, so from its next start or reinitialise the server takes no SMTP, POP3 or IMAP connection."));
+         CountPill.Text = Plural(rows.Count, "{0} port", "{0} ports");
+         CountPill.Visibility = Visibility.Visible;
 
          ShowListenerSummary(rows, local, serverState);
       }
+
+      /// <summary>The header's Refresh: the list read again, as F5 reads it.</summary>
+      private void Refresh_Click(object sender, RoutedEventArgs e) => Reload();
 
       /// <summary>
       /// One row's badge.

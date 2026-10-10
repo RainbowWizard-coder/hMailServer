@@ -978,9 +978,6 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Add a _header the reader shows as a banner" xml:space="preserve">
     <value>Add a _header the reader shows as a banner</value>
   </data>
-  <data name="Add a _route" xml:space="preserve">
-    <value>Add a _route</value>
-  </data>
   <data name="Add a blocked attachment pattern" xml:space="preserve">
     <value>Add a blocked attachment pattern</value>
   </data>
@@ -1016,6 +1013,9 @@ The Control Panel can only read message files when it runs on the same machine a
   </data>
   <data name="Add a remote domain policy" xml:space="preserve">
     <value>Add a remote domain policy</value>
+  </data>
+  <data name="Add a ro_ute" xml:space="preserve">
+    <value>Add a ro_ute</value>
   </data>
   <data name="Add a row to a list, or go to the form that adds one" xml:space="preserve">
     <value>Add a row to a list, or go to the form that adds one</value>
@@ -3851,8 +3851,8 @@ The sender was told it was accepted, so nothing will retry and there is no other
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>Deliver it, and only record it</value>
   </data>
-  <data name="Deliver local → _remote" xml:space="preserve">
-    <value>Deliver local → _remote</value>
+  <data name="Deliver lo_cal → remote" xml:space="preserve">
+    <value>Deliver lo_cal → remote</value>
   </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
     <value>Deliver mail for named domains to a chosen server instead of looking up its MX record.</value>
@@ -4539,9 +4539,6 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Enter, F2" xml:space="preserve">
     <value>Enter, F2</value>
-  </data>
-  <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
-    <value>Entries that match the search: {0} of {1}.</value>
   </data>
   <data name="Entry skipped" xml:space="preserve">
     <value>Entry skipped</value>
@@ -8293,9 +8290,6 @@ Nothing already there is removed.</value>
   <data name="P_ort" xml:space="preserve">
     <value>P_ort</value>
   </data>
-  <data name="P_rotocol" xml:space="preserve">
-    <value>P_rotocol</value>
-  </data>
   <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM:" xml:space="preserve">
     <value>P_ublish this DNS TXT record at your DNS provider, then enable DKIM:</value>
   </data>
@@ -8667,6 +8661,9 @@ No new connections will be accepted and no mail will be delivered until it is re
   <data name="Protection" xml:space="preserve">
     <value>Protection</value>
   </data>
+  <data name="Proto_col" xml:space="preserve">
+    <value>Proto_col</value>
+  </data>
   <data name="Protocol" xml:space="preserve">
     <value>Protocol</value>
   </data>
@@ -8879,6 +8876,9 @@ No new connections will be accepted and no mail will be delivered until it is re
   </data>
   <data name="Re_move name" xml:space="preserve">
     <value>Re_move name</value>
+  </data>
+  <data name="Re_move stored passphrase" xml:space="preserve">
+    <value>Re_move stored passphrase</value>
   </data>
   <data name="Re_move the rule" xml:space="preserve">
     <value>Re_move the rule</value>
@@ -9258,6 +9258,9 @@ Run this if clients report messages appearing under the wrong UID, or after rest
   </data>
   <data name="Relying party (empty = the host the page is on)" xml:space="preserve">
     <value>Relying party (empty = the host the page is on)</value>
+  </data>
+  <data name="Rem_ove criterion" xml:space="preserve">
+    <value>Rem_ove criterion</value>
   </data>
   <data name="Remember this many previous passwords (0 = no history)" xml:space="preserve">
     <value>Remember this many previous passwords (0 = no history)</value>
@@ -14900,14 +14903,8 @@ It will keep trying as you use the application.</value>
   <data name="_Reload from disk" xml:space="preserve">
     <value>_Reload from disk</value>
   </data>
-  <data name="_Remove criterion" xml:space="preserve">
-    <value>_Remove criterion</value>
-  </data>
   <data name="_Remove message" xml:space="preserve">
     <value>_Remove message</value>
-  </data>
-  <data name="_Remove stored passphrase" xml:space="preserve">
-    <value>_Remove stored passphrase</value>
   </data>
   <data name="_Rename the account" xml:space="preserve">
     <value>_Rename the account</value>
@@ -16095,6 +16092,12 @@ It will keep trying as you use the application.</value>
   <data name="{0} IP addresses" xml:space="preserve">
     <value>{0} IP addresses</value>
   </data>
+  <data name="{0} IP range" xml:space="preserve">
+    <value>{0} IP range</value>
+  </data>
+  <data name="{0} IP ranges" xml:space="preserve">
+    <value>{0} IP ranges</value>
+  </data>
   <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
     <value>{0} If a virus is found, the attachments are stripped and the message is still delivered.</value>
   </data>
@@ -16158,17 +16161,17 @@ It will keep trying as you use the application.</value>
   <data name="{0} added." xml:space="preserve">
     <value>{0} added.</value>
   </data>
+  <data name="{0} address" xml:space="preserve">
+    <value>{0} address</value>
+  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} address listed, showing the {1} most recent. Search to narrow them.</value>
   </data>
-  <data name="{0} address listed." xml:space="preserve">
-    <value>{0} address listed.</value>
+  <data name="{0} addresses" xml:space="preserve">
+    <value>{0} addresses</value>
   </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} addresses listed, showing the {1} most recent. Search to narrow them.</value>
-  </data>
-  <data name="{0} addresses listed." xml:space="preserve">
-    <value>{0} addresses listed.</value>
   </data>
   <data name="{0} aliases" xml:space="preserve">
     <value>{0} aliases</value>
@@ -16211,6 +16214,12 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="{0} cases. Select one for its lines on the audit trail." xml:space="preserve">
     <value>{0} cases. Select one for its lines on the audit trail.</value>
+  </data>
+  <data name="{0} certificate" xml:space="preserve">
+    <value>{0} certificate</value>
+  </data>
+  <data name="{0} certificates" xml:space="preserve">
+    <value>{0} certificates</value>
   </data>
   <data name="{0} change carried out, none failed." xml:space="preserve">
     <value>{0} change carried out, none failed.</value>
@@ -16275,17 +16284,17 @@ It will keep trying as you use the application.</value>
   <data name="{0} entry" xml:space="preserve">
     <value>{0} entry</value>
   </data>
+  <data name="{0} event" xml:space="preserve">
+    <value>{0} event</value>
+  </data>
   <data name="{0} event past the retention window was removed." xml:space="preserve">
     <value>{0} event past the retention window was removed.</value>
   </data>
-  <data name="{0} event, newest first." xml:space="preserve">
-    <value>{0} event, newest first.</value>
+  <data name="{0} events" xml:space="preserve">
+    <value>{0} events</value>
   </data>
   <data name="{0} events past the retention window were removed." xml:space="preserve">
     <value>{0} events past the retention window were removed.</value>
-  </data>
-  <data name="{0} events, newest first." xml:space="preserve">
-    <value>{0} events, newest first.</value>
   </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.</value>
@@ -16422,17 +16431,11 @@ It will keep trying as you use the application.</value>
   <data name="{0} message cannot be listed and will be left where it is. The first reason: {1}" xml:space="preserve">
     <value>{0} message cannot be listed and will be left where it is. The first reason: {1}</value>
   </data>
-  <data name="{0} message held." xml:space="preserve">
-    <value>{0} message held.</value>
-  </data>
   <data name="{0} message past the retention window was removed." xml:space="preserve">
     <value>{0} message past the retention window was removed.</value>
   </data>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} message references a file that is missing on disk.</value>
-  </data>
-  <data name="{0} message waiting for delivery." xml:space="preserve">
-    <value>{0} message waiting for delivery.</value>
   </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} messages</value>
@@ -16440,17 +16443,11 @@ It will keep trying as you use the application.</value>
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
     <value>{0} messages cannot be listed and will be left where they are. The first reason: {1}</value>
   </data>
-  <data name="{0} messages held." xml:space="preserve">
-    <value>{0} messages held.</value>
-  </data>
   <data name="{0} messages past the retention window were removed." xml:space="preserve">
     <value>{0} messages past the retention window were removed.</value>
   </data>
   <data name="{0} messages reference a file that is missing on disk." xml:space="preserve">
     <value>{0} messages reference a file that is missing on disk.</value>
-  </data>
-  <data name="{0} messages waiting for delivery." xml:space="preserve">
-    <value>{0} messages waiting for delivery.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} min</value>
@@ -16524,17 +16521,23 @@ It will keep trying as you use the application.</value>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} patterns are stripped from every message by file name, whatever the scanners say.</value>
   </data>
+  <data name="{0} port" xml:space="preserve">
+    <value>{0} port</value>
+  </data>
+  <data name="{0} ports" xml:space="preserve">
+    <value>{0} ports</value>
+  </data>
   <data name="{0} problem" xml:space="preserve">
     <value>{0} problem</value>
   </data>
   <data name="{0} problems" xml:space="preserve">
     <value>{0} problems</value>
   </data>
-  <data name="{0} public folder." xml:space="preserve">
-    <value>{0} public folder.</value>
+  <data name="{0} public folder" xml:space="preserve">
+    <value>{0} public folder</value>
   </data>
-  <data name="{0} public folders." xml:space="preserve">
-    <value>{0} public folders.</value>
+  <data name="{0} public folders" xml:space="preserve">
+    <value>{0} public folders</value>
   </data>
   <data name="{0} recipient added." xml:space="preserve">
     <value>{0} recipient added.</value>
@@ -16563,26 +16566,23 @@ It will keep trying as you use the application.</value>
   <data name="{0} remote domain policies" xml:space="preserve">
     <value>{0} remote domain policies</value>
   </data>
+  <data name="{0} route" xml:space="preserve">
+    <value>{0} route</value>
+  </data>
+  <data name="{0} routes" xml:space="preserve">
+    <value>{0} routes</value>
+  </data>
   <data name="{0} row needs reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} row needs reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away.</value>
   </data>
   <data name="{0} rows need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} rows need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away.</value>
   </data>
-  <data name="{0} rule of the server, evaluated top to bottom." xml:space="preserve">
-    <value>{0} rule of the server, evaluated top to bottom.</value>
-  </data>
-  <data name="{0} rule of {1}, evaluated top to bottom." xml:space="preserve">
-    <value>{0} rule of {1}, evaluated top to bottom.</value>
+  <data name="{0} rule" xml:space="preserve">
+    <value>{0} rule</value>
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>{0} rules</value>
-  </data>
-  <data name="{0} rules of the server, evaluated top to bottom." xml:space="preserve">
-    <value>{0} rules of the server, evaluated top to bottom.</value>
-  </data>
-  <data name="{0} rules of {1}, evaluated top to bottom." xml:space="preserve">
-    <value>{0} rules of {1}, evaluated top to bottom.</value>
   </data>
   <data name="{0} sample copied to the clipboard." xml:space="preserve">
     <value>{0} sample copied to the clipboard.</value>

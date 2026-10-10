@@ -978,9 +978,6 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Add a _header the reader shows as a banner" xml:space="preserve">
     <value>Tilføj en _header, som læseren viser som et banner</value>
   </data>
-  <data name="Add a _route" xml:space="preserve">
-    <value>Tilføj en _rute</value>
-  </data>
   <data name="Add a blocked attachment pattern" xml:space="preserve">
     <value>Tilføj et mønster for blokerede vedhæftede filer</value>
   </data>
@@ -1016,6 +1013,9 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   </data>
   <data name="Add a remote domain policy" xml:space="preserve">
     <value>Tilføj en politik for et eksternt domæne</value>
+  </data>
+  <data name="Add a ro_ute" xml:space="preserve">
+    <value>Tilføj en _rute</value>
   </data>
   <data name="Add a row to a list, or go to the form that adds one" xml:space="preserve">
     <value>Tilføj en række til en liste, eller gå til den formular, der tilføjer en</value>
@@ -3851,7 +3851,7 @@ Afsenderen fik at vide, at den var accepteret, så intet forsøger igen, og der 
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>Lever den og registrér den kun</value>
   </data>
-  <data name="Deliver local → _remote" xml:space="preserve">
+  <data name="Deliver lo_cal → remote" xml:space="preserve">
     <value>Levér lokal → _ekstern</value>
   </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
@@ -4539,9 +4539,6 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Enter, F2" xml:space="preserve">
     <value>Enter, F2</value>
-  </data>
-  <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
-    <value>Poster, der matcher søgningen: {0} af {1}.</value>
   </data>
   <data name="Entry skipped" xml:space="preserve">
     <value>Post sprunget over</value>
@@ -8293,9 +8290,6 @@ Intet, der allerede er der, fjernes.</value>
   <data name="P_ort" xml:space="preserve">
     <value>P_ort</value>
   </data>
-  <data name="P_rotocol" xml:space="preserve">
-    <value>_Protokol</value>
-  </data>
   <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM:" xml:space="preserve">
     <value>Offentliggør denne DNS _TXT-post hos din DNS-udbyder, og aktivér derefter DKIM:</value>
   </data>
@@ -8667,6 +8661,9 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   <data name="Protection" xml:space="preserve">
     <value>Beskyttelse</value>
   </data>
+  <data name="Proto_col" xml:space="preserve">
+    <value>_Protokol</value>
+  </data>
   <data name="Protocol" xml:space="preserve">
     <value>Protokol</value>
   </data>
@@ -8879,6 +8876,9 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   </data>
   <data name="Re_move name" xml:space="preserve">
     <value>_Fjern navn</value>
+  </data>
+  <data name="Re_move stored passphrase" xml:space="preserve">
+    <value>_Fjern gemt adgangssætning</value>
   </data>
   <data name="Re_move the rule" xml:space="preserve">
     <value>Fje_rn reglen</value>
@@ -9259,6 +9259,9 @@ Kør dette, hvis klienter melder om meddelelser, der dukker op under det forkert
   <data name="Relying party (empty = the host the page is on)" xml:space="preserve">
     <value>Afhængig part (tom = den vært, siden ligger på)</value>
   </data>
+  <data name="Rem_ove criterion" xml:space="preserve">
+    <value>_Fjern kriterium</value>
+  </data>
   <data name="Remember this many previous passwords (0 = no history)" xml:space="preserve">
     <value>Husk så mange tidligere adgangskoder (0 = ingen historik)</value>
   </data>
@@ -9569,7 +9572,7 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
     <value>Gendan konfiguration, domæner og meddelelser fra en sikkerhedskopifil.</value>
   </data>
   <data name="Restore de_faults" xml:space="preserve">
-    <value>Gend_an standarder</value>
+    <value>N_ulstil til standard</value>
   </data>
   <data name="Restore dom_ains" xml:space="preserve">
     <value>Gendan dom_æner</value>
@@ -9977,7 +9980,7 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
     <value>Gem _niveauer nu</value>
   </data>
   <data name="Save _passphrase" xml:space="preserve">
-    <value>Gem _adgangssætning</value>
+    <value>_Gem adgangssætning</value>
   </data>
   <data name="Save it and reopen it: a level's own value belongs to something that exists." xml:space="preserve">
     <value>Gem og åbn igen: et niveaus egen værdi hører til noget, der findes.</value>
@@ -14900,14 +14903,8 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="_Reload from disk" xml:space="preserve">
     <value>Genindlæs _fra disken</value>
   </data>
-  <data name="_Remove criterion" xml:space="preserve">
-    <value>_Fjern kriterium</value>
-  </data>
   <data name="_Remove message" xml:space="preserve">
     <value>_Fjern meddelelse</value>
-  </data>
-  <data name="_Remove stored passphrase" xml:space="preserve">
-    <value>_Fjern gemt adgangssætning</value>
   </data>
   <data name="_Rename the account" xml:space="preserve">
     <value>_Omdøb kontoen</value>
@@ -16095,6 +16092,12 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="{0} IP addresses" xml:space="preserve">
     <value>{0} IP-adresser</value>
   </data>
+  <data name="{0} IP range" xml:space="preserve">
+    <value>{0} IP-interval</value>
+  </data>
+  <data name="{0} IP ranges" xml:space="preserve">
+    <value>{0} IP-intervaller</value>
+  </data>
   <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
     <value>{0} Hvis der findes en virus, fjernes de vedhæftede filer, og meddelelsen leveres stadig.</value>
   </data>
@@ -16158,17 +16161,17 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="{0} added." xml:space="preserve">
     <value>{0} er tilføjet.</value>
   </data>
+  <data name="{0} address" xml:space="preserve">
+    <value>{0} adresse</value>
+  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} adresse på listen, de {1} nyeste vises. Søg for at indsnævre dem.</value>
   </data>
-  <data name="{0} address listed." xml:space="preserve">
-    <value>{0} adresse på listen.</value>
+  <data name="{0} addresses" xml:space="preserve">
+    <value>{0} adresser</value>
   </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} adresser på listen, de {1} nyeste vises. Søg for at indsnævre dem.</value>
-  </data>
-  <data name="{0} addresses listed." xml:space="preserve">
-    <value>{0} adresser på listen.</value>
   </data>
   <data name="{0} aliases" xml:space="preserve">
     <value>{0} aliasser</value>
@@ -16211,6 +16214,12 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="{0} cases. Select one for its lines on the audit trail." xml:space="preserve">
     <value>{0} sager. Vælg en for at se dens linjer i revisionsloggen.</value>
+  </data>
+  <data name="{0} certificate" xml:space="preserve">
+    <value>{0} certifikat</value>
+  </data>
+  <data name="{0} certificates" xml:space="preserve">
+    <value>{0} certifikater</value>
   </data>
   <data name="{0} change carried out, none failed." xml:space="preserve">
     <value>{0} ændring udført, ingen mislykkedes.</value>
@@ -16275,17 +16284,17 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="{0} entry" xml:space="preserve">
     <value>{0} post</value>
   </data>
+  <data name="{0} event" xml:space="preserve">
+    <value>{0} hændelse</value>
+  </data>
   <data name="{0} event past the retention window was removed." xml:space="preserve">
     <value>{0} hændelse uden for opbevaringsvinduet blev fjernet.</value>
   </data>
-  <data name="{0} event, newest first." xml:space="preserve">
-    <value>{0} hændelse, nyeste først.</value>
+  <data name="{0} events" xml:space="preserve">
+    <value>{0} hændelser</value>
   </data>
   <data name="{0} events past the retention window were removed." xml:space="preserve">
     <value>{0} hændelser uden for opbevaringsvinduet blev fjernet.</value>
-  </data>
-  <data name="{0} events, newest first." xml:space="preserve">
-    <value>{0} hændelser, nyeste først.</value>
   </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>{0} ekstern POP3-afhentningskonto har antivirus slået fra, så post, der afhentes af den, leveres uscannet, uanset hvad der er sat her. Kontakten sidder på afhentningskontoen, ikke på denne side.</value>
@@ -16422,17 +16431,11 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="{0} message cannot be listed and will be left where it is. The first reason: {1}" xml:space="preserve">
     <value>{0} meddelelse kan ikke vises på listen og efterlades, hvor den er. Den første grund: {1}</value>
   </data>
-  <data name="{0} message held." xml:space="preserve">
-    <value>{0} meddelelse tilbageholdt.</value>
-  </data>
   <data name="{0} message past the retention window was removed." xml:space="preserve">
     <value>{0} meddelelse uden for opbevaringsvinduet blev fjernet.</value>
   </data>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} meddelelse henviser til en fil, der mangler på disken.</value>
-  </data>
-  <data name="{0} message waiting for delivery." xml:space="preserve">
-    <value>{0} meddelelse venter på levering.</value>
   </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} meddelelser</value>
@@ -16440,17 +16443,11 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
     <value>{0} meddelelser kan ikke vises på listen og efterlades, hvor de er. Den første grund: {1}</value>
   </data>
-  <data name="{0} messages held." xml:space="preserve">
-    <value>{0} meddelelser tilbageholdt.</value>
-  </data>
   <data name="{0} messages past the retention window were removed." xml:space="preserve">
     <value>{0} meddelelser uden for opbevaringsvinduet blev fjernet.</value>
   </data>
   <data name="{0} messages reference a file that is missing on disk." xml:space="preserve">
     <value>{0} meddelelser henviser til en fil, der mangler på disken.</value>
-  </data>
-  <data name="{0} messages waiting for delivery." xml:space="preserve">
-    <value>{0} meddelelser venter på levering.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} min.</value>
@@ -16524,17 +16521,23 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} mønstre fjernes fra hver meddelelse efter filnavn, uanset hvad scannerne siger.</value>
   </data>
+  <data name="{0} port" xml:space="preserve">
+    <value>{0} port</value>
+  </data>
+  <data name="{0} ports" xml:space="preserve">
+    <value>{0} porte</value>
+  </data>
   <data name="{0} problem" xml:space="preserve">
     <value>{0} problem</value>
   </data>
   <data name="{0} problems" xml:space="preserve">
     <value>{0} problemer</value>
   </data>
-  <data name="{0} public folder." xml:space="preserve">
-    <value>{0} offentlig mappe.</value>
+  <data name="{0} public folder" xml:space="preserve">
+    <value>{0} offentlig mappe</value>
   </data>
-  <data name="{0} public folders." xml:space="preserve">
-    <value>{0} offentlige mapper.</value>
+  <data name="{0} public folders" xml:space="preserve">
+    <value>{0} offentlige mapper</value>
   </data>
   <data name="{0} recipient added." xml:space="preserve">
     <value>{0} modtager tilføjet.</value>
@@ -16563,26 +16566,23 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="{0} remote domain policies" xml:space="preserve">
     <value>{0} politikker for eksterne domæner</value>
   </data>
+  <data name="{0} route" xml:space="preserve">
+    <value>{0} rute</value>
+  </data>
+  <data name="{0} routes" xml:space="preserve">
+    <value>{0} ruter</value>
+  </data>
   <data name="{0} row needs reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} række skal læses, før du anvender - en oversprunget post er en postkasse, nogen forventer og ikke får, og en deaktiveret er en postkasse, der bliver taget fra nogen.</value>
   </data>
   <data name="{0} rows need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} rækker skal læses, før du anvender - en oversprunget post er en postkasse, nogen forventer og ikke får, og en deaktiveret er en postkasse, der bliver taget fra nogen.</value>
   </data>
-  <data name="{0} rule of the server, evaluated top to bottom." xml:space="preserve">
-    <value>{0} regel for serveren, evalueret fra top til bund.</value>
-  </data>
-  <data name="{0} rule of {1}, evaluated top to bottom." xml:space="preserve">
-    <value>{0} regel for {1}, evalueret fra top til bund.</value>
+  <data name="{0} rule" xml:space="preserve">
+    <value>{0} regel</value>
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>{0} regler</value>
-  </data>
-  <data name="{0} rules of the server, evaluated top to bottom." xml:space="preserve">
-    <value>{0} regler for serveren, evalueret fra top til bund.</value>
-  </data>
-  <data name="{0} rules of {1}, evaluated top to bottom." xml:space="preserve">
-    <value>{0} regler for {1}, evalueret fra top til bund.</value>
   </data>
   <data name="{0} sample copied to the clipboard." xml:space="preserve">
     <value>{0} måling kopieret til udklipsholderen.</value>

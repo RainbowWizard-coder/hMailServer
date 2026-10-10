@@ -44,11 +44,14 @@ namespace hMailServer.ControlPanel.Tests.Services
          string code = ReadControlPanelFile(Path.Join("Views", "RulesView.xaml.cs"));
          Assert.DoesNotContain("\"{0} rule(s)", code, StringComparison.Ordinal);
 
-         string subtitle = WithheldRowTests.MemberText(code, "private string Subtitle_(int count)");
+         // Whose rules in the subtitle, how many in the pill beside the title, as
+         // on every list page (review finding F288).
+         string subtitle = WithheldRowTests.MemberText(code, "private string Subtitle_()");
          Assert.True(subtitle != null, "RulesView.Subtitle_ is gone.");
-         Assert.Contains("{0} rules of the server, evaluated top to bottom.", subtitle, StringComparison.Ordinal);
-         Assert.Contains("{0} rules of {1}, evaluated top to bottom.", subtitle, StringComparison.Ordinal);
+         Assert.Contains("Server-wide message rules, evaluated top to bottom.", subtitle, StringComparison.Ordinal);
+         Assert.Contains("Message rules of {0}, evaluated top to bottom.", subtitle, StringComparison.Ordinal);
          Assert.Contains("scopeDomain_", subtitle, StringComparison.Ordinal);
+         Assert.Contains("CountPill.Text = Plural(rows.Count, \"{0} rule\", \"{0} rules\");", code, StringComparison.Ordinal);
 
          string changed = WithheldRowTests.MemberText(code, "private void Scope_Changed(object sender, SelectionChangedEventArgs e)");
          Assert.True(changed != null, "RulesView.Scope_Changed is gone.");

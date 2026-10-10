@@ -29,7 +29,9 @@ namespace hMailServer.ControlPanel.Views
       private readonly PageHeader header_ = new();
       private readonly InlineNotice notice_ = new() { Visibility = Visibility.Collapsed };
       private readonly EmptyState empty_ = new() { Icon = Wpf.Ui.Controls.SymbolRegular.FolderPeople24, Visibility = Visibility.Collapsed };
-      private readonly TextBlock count_ = new() { Margin = new Thickness(0, 12, 0, 0) };
+      // How many folders there are, beside the title, where a caption under the
+      // list said "4 public folders." (review finding F288).
+      private readonly StatusPill count_ = new() { Level = StatusLevel.Normal, Visibility = Visibility.Collapsed };
 
       // The search, live over the folders' names, as on every other list page
       // (review finding F210).
@@ -55,23 +57,29 @@ namespace hMailServer.ControlPanel.Views
          root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
          root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
          root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
          header_.PageKey = "publicfolders";
          header_.Subtitle = L("Shared IMAP folders that several accounts can access. Use the hierarchy delimiter to create sub-folders, and edit permissions to grant access.");
          System.Windows.Automation.AutomationProperties.SetName(list_, L("Public folders"));
 
-         var actions = new StackPanel { Orientation = Orientation.Horizontal };
-         addButton_ = MakeButton(L("_Add folder"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => AddFolder());
-         actions.Children.Add(addButton_);
+         // The list page pattern (docs/ControlPanelDesign.md, List pages; review
+         // findings F288, F289): the count and Refresh in the header; the selected
+         // folder's Permissions and Delete, then Add folder, the Primary, at the
+         // right edge of the toolbar over the list, where the Primary came first.
+         var actions = new WrapPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
          var permissions = MakeButton(L("_Permissions"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => EditPermissions());
          actions.Children.Add(permissions);
          var delete = MakeButton(L("_Delete"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => DeleteFolder());
          hMailServer.ControlPanel.Services.ButtonStyles.DangerText(delete);
          actions.Children.Add(delete);
          hMailServer.ControlPanel.Services.SelectionGate.Bind(list_, permissions, delete);
-         actions.Children.Add(MakeButton(L("_Refresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload()));
-         header_.Actions = actions;
+         addButton_ = MakeButton(L("_Add folder"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => AddFolder());
+         actions.Children.Add(addButton_);
+         foreach (FrameworkElement button in actions.Children)
+            button.Margin = new Thickness(button.Margin.Left, 2, button.Margin.Right, 2);
+         search_.Actions = actions;
+         header_.Status = count_;
+         header_.Actions = MakeButton(L("_Refresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload());
          root.Children.Add(header_);
 
          search_.SearchTextChanged += (_, _) => ShowSearch_();
@@ -91,10 +99,6 @@ namespace hMailServer.ControlPanel.Views
          // Enter and F2 open the selected folder's permissions, Delete deletes it
          // and Insert adds one; a double-click on a folder opens its permissions.
          GridKeys.Wire(list_, permissions, delete, addButton_);
-
-         count_.SetResourceReference(StyleProperty, "TextCaption");
-         Grid.SetRow(count_, 4);
-         root.Children.Add(count_);
 
          Content = root;
       }
@@ -133,7 +137,8 @@ namespace hMailServer.ControlPanel.Views
                   names.Add((string)f.Name);
                   ServerSession.Release(f);
                }
-               count_.Text = Plural(count, "{0} public folder.", "{0} public folders.");
+               count_.Text = Plural(count, "{0} public folder", "{0} public folders");
+               count_.Visibility = Visibility.Visible;
             }
             finally
             {
@@ -147,7 +152,7 @@ namespace hMailServer.ControlPanel.Views
             // what happened, with Try again, and Add folder waits for a read that
             // works (Services/ReadFailure).
             ReadFailure.Show(notice_, empty_, list_, L("Could not read the public folders: "), ex, Reload, addButton_);
-            count_.Text = "";
+            count_.Visibility = Visibility.Collapsed;
             return;
          }
 

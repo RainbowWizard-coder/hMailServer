@@ -17,7 +17,18 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <scaffold:PageHeader PageKey="routes" />
+        <scaffold:PageHeader PageKey="routes">
+            <!-- The list page pattern (docs/ControlPanelDesign.md, List pages): the
+                 count beside the title and Refresh in the header, the list's own
+                 verbs in the toolbar above it (review finding F288). -->
+            <scaffold:PageHeader.Status>
+                <scaffold:StatusPill x:Name="CountPill" Level="Normal" Visibility="Collapsed"
+                                     AutomationProperties.AutomationId="list-count" />
+            </scaffold:PageHeader.Status>
+            <scaffold:PageHeader.Actions>
+                <ui:Button x:Name="RefreshButton" Content="{loc:L '_Refresh'}" Click="Refresh_Click" />
+            </scaffold:PageHeader.Actions>
+        </scaffold:PageHeader>
 
         <!-- The IP ranges shape: the list takes the height the add form leaves in
              the window, down to a floor of three rows, and below that the page
@@ -71,7 +82,7 @@
                 <scaffold:EmptyState x:Name="EmptyStatus" Icon="ArrowSplit24" Visibility="Collapsed"
                                      AutomationProperties.LiveSetting="Polite">
                     <scaffold:EmptyState.Action>
-                        <ui:Button Content="{loc:L 'Add a _route'}" Click="AddRouteAction_Click"
+                        <ui:Button Content="{loc:L 'Add a ro_ute'}" Click="AddRouteAction_Click"
                                    AutomationProperties.AutomationId="routes-add-first" />
                     </scaffold:EmptyState.Action>
                 </scaffold:EmptyState>

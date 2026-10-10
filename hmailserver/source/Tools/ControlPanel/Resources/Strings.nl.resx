@@ -978,9 +978,6 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Add a _header the reader shows as a banner" xml:space="preserve">
     <value>Een _kopregel toevoegen die de lezer als balk toont</value>
   </data>
-  <data name="Add a _route" xml:space="preserve">
-    <value>Een route _toevoegen</value>
-  </data>
   <data name="Add a blocked attachment pattern" xml:space="preserve">
     <value>Een patroon voor geblokkeerde bijlagen toevoegen</value>
   </data>
@@ -1016,6 +1013,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   </data>
   <data name="Add a remote domain policy" xml:space="preserve">
     <value>Een regel voor een extern domein toevoegen</value>
+  </data>
+  <data name="Add a ro_ute" xml:space="preserve">
+    <value>Een route _toevoegen</value>
   </data>
   <data name="Add a row to a list, or go to the form that adds one" xml:space="preserve">
     <value>Een rij aan een lijst toevoegen, of naar het formulier gaan dat er een toevoegt</value>
@@ -3851,7 +3851,7 @@ De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert 
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>Afleveren en alleen vastleggen</value>
   </data>
-  <data name="Deliver local → _remote" xml:space="preserve">
+  <data name="Deliver lo_cal → remote" xml:space="preserve">
     <value>Lokaal → e_xtern bezorgen</value>
   </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
@@ -4539,9 +4539,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Enter, F2" xml:space="preserve">
     <value>Enter, F2</value>
-  </data>
-  <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
-    <value>Vermeldingen die overeenkomen met de zoekopdracht: {0} van {1}.</value>
   </data>
   <data name="Entry skipped" xml:space="preserve">
     <value>Vermelding overgeslagen</value>
@@ -6872,7 +6869,7 @@ Niets wat er al staat wordt verwijderd.</value>
     <value>T_ekst van de melding (gestuurd aan een afzender die deze server host, met de naam van de regel)</value>
   </data>
   <data name="Na_me" xml:space="preserve">
-    <value>_Naam</value>
+    <value>Naa_m</value>
   </data>
   <data name="Name" xml:space="preserve">
     <value>Naam</value>
@@ -6896,7 +6893,7 @@ Niets wat er al staat wordt verwijderd.</value>
     <value>Namen die nooit automatisch gebannen worden</value>
   </data>
   <data name="Ne_w rule name" xml:space="preserve">
-    <value>_Naam van de nieuwe regel</value>
+    <value>Naa_m van de nieuwe regel</value>
   </data>
   <data name="Negotiate (Kerberos/NTLM) - the password never crosses the network" xml:space="preserve">
     <value>Negotiate (Kerberos/NTLM) - het wachtwoord gaat nooit over het netwerk</value>
@@ -8293,9 +8290,6 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="P_ort" xml:space="preserve">
     <value>Poo_rt</value>
   </data>
-  <data name="P_rotocol" xml:space="preserve">
-    <value>_Protocol</value>
-  </data>
   <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM:" xml:space="preserve">
     <value>Publiceer dit DNS-TXT-_record bij uw DNS-provider en schakel DKIM dan in:</value>
   </data>
@@ -8667,6 +8661,9 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Protection" xml:space="preserve">
     <value>Bescherming</value>
   </data>
+  <data name="Proto_col" xml:space="preserve">
+    <value>_Protocol</value>
+  </data>
   <data name="Protocol" xml:space="preserve">
     <value>Protocol</value>
   </data>
@@ -8879,6 +8876,9 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   </data>
   <data name="Re_move name" xml:space="preserve">
     <value>Naam ve_rwijderen</value>
+  </data>
+  <data name="Re_move stored passphrase" xml:space="preserve">
+    <value>_Opgeslagen wachtwoordzin verwijderen</value>
   </data>
   <data name="Re_move the rule" xml:space="preserve">
     <value>Regel ve_rwijderen</value>
@@ -9258,6 +9258,9 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   </data>
   <data name="Relying party (empty = the host the page is on)" xml:space="preserve">
     <value>Vertrouwende partij (leeg = de host waarop de pagina staat)</value>
+  </data>
+  <data name="Rem_ove criterion" xml:space="preserve">
+    <value>Criterium _verwijderen</value>
   </data>
   <data name="Remember this many previous passwords (0 = no history)" xml:space="preserve">
     <value>Dit aantal vorige wachtwoorden onthouden (0 = geen geschiedenis)</value>
@@ -14900,14 +14903,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_Reload from disk" xml:space="preserve">
     <value>Opnieuw _laden vanaf schijf</value>
   </data>
-  <data name="_Remove criterion" xml:space="preserve">
-    <value>Criterium _verwijderen</value>
-  </data>
   <data name="_Remove message" xml:space="preserve">
     <value>Bericht _verwijderen</value>
-  </data>
-  <data name="_Remove stored passphrase" xml:space="preserve">
-    <value>_Opgeslagen wachtwoordzin verwijderen</value>
   </data>
   <data name="_Rename the account" xml:space="preserve">
     <value>Account _hernoemen</value>
@@ -16095,6 +16092,12 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} IP addresses" xml:space="preserve">
     <value>{0} IP-adressen</value>
   </data>
+  <data name="{0} IP range" xml:space="preserve">
+    <value>{0} IP-bereik</value>
+  </data>
+  <data name="{0} IP ranges" xml:space="preserve">
+    <value>{0} IP-bereiken</value>
+  </data>
   <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
     <value>{0} Als er een virus wordt gevonden, worden de bijlagen verwijderd en wordt het bericht alsnog bezorgd.</value>
   </data>
@@ -16158,17 +16161,17 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} added." xml:space="preserve">
     <value>{0} toegevoegd.</value>
   </data>
+  <data name="{0} address" xml:space="preserve">
+    <value>{0} adres</value>
+  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} adres op de lijst, de {1} nieuwste worden getoond. Zoek om ze te beperken.</value>
   </data>
-  <data name="{0} address listed." xml:space="preserve">
-    <value>{0} adres op de lijst.</value>
+  <data name="{0} addresses" xml:space="preserve">
+    <value>{0} adressen</value>
   </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} adressen op de lijst, de {1} nieuwste worden getoond. Zoek om ze te beperken.</value>
-  </data>
-  <data name="{0} addresses listed." xml:space="preserve">
-    <value>{0} adressen op de lijst.</value>
   </data>
   <data name="{0} aliases" xml:space="preserve">
     <value>{0} aliassen</value>
@@ -16211,6 +16214,12 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} cases. Select one for its lines on the audit trail." xml:space="preserve">
     <value>{0} zaken. Selecteer er een voor de regels in het auditlogboek.</value>
+  </data>
+  <data name="{0} certificate" xml:space="preserve">
+    <value>{0} certificaat</value>
+  </data>
+  <data name="{0} certificates" xml:space="preserve">
+    <value>{0} certificaten</value>
   </data>
   <data name="{0} change carried out, none failed." xml:space="preserve">
     <value>{0} wijziging doorgevoerd, geen enkele mislukt.</value>
@@ -16275,17 +16284,17 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} entry" xml:space="preserve">
     <value>{0} vermelding</value>
   </data>
+  <data name="{0} event" xml:space="preserve">
+    <value>{0} gebeurtenis</value>
+  </data>
   <data name="{0} event past the retention window was removed." xml:space="preserve">
     <value>{0} gebeurtenis voorbij het bewaarvenster is verwijderd.</value>
   </data>
-  <data name="{0} event, newest first." xml:space="preserve">
-    <value>{0} gebeurtenis, nieuwste eerst.</value>
+  <data name="{0} events" xml:space="preserve">
+    <value>{0} gebeurtenissen</value>
   </data>
   <data name="{0} events past the retention window were removed." xml:space="preserve">
     <value>{0} gebeurtenissen voorbij het bewaarvenster zijn verwijderd.</value>
-  </data>
-  <data name="{0} events, newest first." xml:space="preserve">
-    <value>{0} gebeurtenissen, nieuwste eerst.</value>
   </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>{0} extern POP3-ophaalaccount heeft antivirus uitgeschakeld, dus mail die door dit account wordt opgehaald, wordt ongescand bezorgd, wat hier ook is ingesteld. De schakelaar staat op het ophaalaccount, niet op deze pagina.</value>
@@ -16422,17 +16431,11 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} message cannot be listed and will be left where it is. The first reason: {1}" xml:space="preserve">
     <value>{0} bericht kan niet worden vermeld en blijft waar het is. De eerste reden: {1}</value>
   </data>
-  <data name="{0} message held." xml:space="preserve">
-    <value>{0} bericht vastgehouden.</value>
-  </data>
   <data name="{0} message past the retention window was removed." xml:space="preserve">
     <value>{0} bericht voorbij het bewaarvenster is verwijderd.</value>
   </data>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} bericht verwijst naar een bestand dat ontbreekt op schijf.</value>
-  </data>
-  <data name="{0} message waiting for delivery." xml:space="preserve">
-    <value>{0} bericht wacht op bezorging.</value>
   </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} berichten</value>
@@ -16440,17 +16443,11 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
     <value>{0} berichten kunnen niet worden vermeld en blijven waar ze zijn. De eerste reden: {1}</value>
   </data>
-  <data name="{0} messages held." xml:space="preserve">
-    <value>{0} berichten vastgehouden.</value>
-  </data>
   <data name="{0} messages past the retention window were removed." xml:space="preserve">
     <value>{0} berichten voorbij het bewaarvenster zijn verwijderd.</value>
   </data>
   <data name="{0} messages reference a file that is missing on disk." xml:space="preserve">
     <value>{0} berichten verwijzen naar een bestand dat ontbreekt op schijf.</value>
-  </data>
-  <data name="{0} messages waiting for delivery." xml:space="preserve">
-    <value>{0} berichten wachten op bezorging.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} min</value>
@@ -16524,17 +16521,23 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} patronen worden op bestandsnaam uit elk bericht verwijderd, wat de scanners ook zeggen.</value>
   </data>
+  <data name="{0} port" xml:space="preserve">
+    <value>{0} poort</value>
+  </data>
+  <data name="{0} ports" xml:space="preserve">
+    <value>{0} poorten</value>
+  </data>
   <data name="{0} problem" xml:space="preserve">
     <value>{0} probleem</value>
   </data>
   <data name="{0} problems" xml:space="preserve">
     <value>{0} problemen</value>
   </data>
-  <data name="{0} public folder." xml:space="preserve">
-    <value>{0} openbare map.</value>
+  <data name="{0} public folder" xml:space="preserve">
+    <value>{0} openbare map</value>
   </data>
-  <data name="{0} public folders." xml:space="preserve">
-    <value>{0} openbare mappen.</value>
+  <data name="{0} public folders" xml:space="preserve">
+    <value>{0} openbare mappen</value>
   </data>
   <data name="{0} recipient added." xml:space="preserve">
     <value>{0} ontvanger toegevoegd.</value>
@@ -16563,26 +16566,23 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} remote domain policies" xml:space="preserve">
     <value>{0} regels voor externe domeinen</value>
   </data>
+  <data name="{0} route" xml:space="preserve">
+    <value>{0} route</value>
+  </data>
+  <data name="{0} routes" xml:space="preserve">
+    <value>{0} routes</value>
+  </data>
   <data name="{0} row needs reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} rij moet worden gelezen voordat u toepast - een overgeslagen vermelding is een postvak dat iemand verwacht en niet zal krijgen, en een uitgeschakelde is een postvak dat wordt afgenomen.</value>
   </data>
   <data name="{0} rows need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} rijen moeten worden gelezen voordat u toepast - een overgeslagen vermelding is een postvak dat iemand verwacht en niet zal krijgen, en een uitgeschakelde is een postvak dat wordt afgenomen.</value>
   </data>
-  <data name="{0} rule of the server, evaluated top to bottom." xml:space="preserve">
-    <value>{0} regel van de server, van boven naar beneden geëvalueerd.</value>
-  </data>
-  <data name="{0} rule of {1}, evaluated top to bottom." xml:space="preserve">
-    <value>{0} regel van {1}, van boven naar beneden geëvalueerd.</value>
+  <data name="{0} rule" xml:space="preserve">
+    <value>{0} regel</value>
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>{0} regels</value>
-  </data>
-  <data name="{0} rules of the server, evaluated top to bottom." xml:space="preserve">
-    <value>{0} regels van de server, van boven naar beneden geëvalueerd.</value>
-  </data>
-  <data name="{0} rules of {1}, evaluated top to bottom." xml:space="preserve">
-    <value>{0} regels van {1}, van boven naar beneden geëvalueerd.</value>
   </data>
   <data name="{0} sample copied to the clipboard." xml:space="preserve">
     <value>{0} meetpunt naar het klembord gekopieerd.</value>

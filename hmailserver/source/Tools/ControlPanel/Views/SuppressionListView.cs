@@ -59,6 +59,11 @@ namespace hMailServer.ControlPanel.Views
       };
 
       private readonly InlineNotice status_ = new() { Visibility = Visibility.Collapsed };
+
+      // How many addresses the domain's list holds, beside the title, where an
+      // Information notice said "3 addresses listed." (review finding F288).
+      private readonly StatusPill count_ = new() { Level = StatusLevel.Normal, Visibility = Visibility.Collapsed };
+
       private readonly InlineNotice processingOff_ = new() { Visibility = Visibility.Collapsed };
       private readonly EmptyState empty_ = new() { Icon = Wpf.Ui.Controls.SymbolRegular.MailWarning24, Visibility = Visibility.Collapsed };
 
@@ -171,6 +176,7 @@ namespace hMailServer.ControlPanel.Views
          ReadFailure.Clear(status_, addButton_);
          status_.Visibility = Visibility.Collapsed;
          processingOff_.Visibility = Visibility.Collapsed;
+         count_.Visibility = Visibility.Collapsed;
 
          if (Domain.Length == 0)
          {
@@ -217,13 +223,16 @@ namespace hMailServer.ControlPanel.Views
                processingOff_.Visibility = Visibility.Visible;
             }
 
+            count_.Text = Plural(list.Total, "{0} address", "{0} addresses");
+            count_.Visibility = Visibility.Visible;
+
+            // A list longer than the page reads is a state with a consequence -
+            // what is not shown is still applied - so it keeps its notice.
             if (list.Total > list.Entries.Count)
                Status_(StatusLevel.Information, PluralF(list.Total,
                   "{0} address listed, showing the {1} most recent. Search to narrow them.",
                   "{0} addresses listed, showing the {1} most recent. Search to narrow them.",
                   list.Total, list.Entries.Count));
-            else if (list.Total > 0)
-               Status_(StatusLevel.Information, Plural(list.Total, "{0} address listed.", "{0} addresses listed."));
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -414,25 +423,31 @@ namespace hMailServer.ControlPanel.Views
          root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
          root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
 
-         // Add…, Remove and Refresh in the page header, as the delivery queue's
-         // actions are: beside the domain box in the toolbar they had no width
-         // left in the narrowest window, and were not drawn at all.
-         var actions = new StackPanel { Orientation = Orientation.Horizontal };
-         addButton_ = MakeButton(L("_Add…"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => AddEntry());
-         actions.Children.Add(addButton_);
+         // The list page pattern (docs/ControlPanelDesign.md, List pages; review
+         // finding F288): the count and Refresh in the header, Remove and then
+         // Add…, the Primary, in the toolbar over the list. They were in the
+         // header because beside the domain box they had no width left in the
+         // narrowest window and were not drawn at all; the toolbar puts them on a
+         // row of their own there now (Services/ToolbarRows).
+         var actions = new WrapPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
          var remove = MakeButton(L("Re_move"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => RemoveSelected());
          ButtonStyles.DangerText(remove);
          actions.Children.Add(remove);
          SelectionGate.Bind(entries_, remove);
+         addButton_ = MakeButton(L("_Add…"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => AddEntry());
+         actions.Children.Add(addButton_);
          // Delete removes the selected address after asking; Insert adds one.
          GridKeys.Wire(entries_, null, remove, addButton_);
-         actions.Children.Add(MakeButton(L("_Refresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload()));
+         foreach (FrameworkElement button in actions.Children)
+            button.Margin = new Thickness(button.Margin.Left, 2, button.Margin.Right, 2);
+         toolbar_.Actions = actions;
 
          root.Children.Add(new PageHeader
          {
             PageKey = "suppressions",
             Subtitle = L("Addresses a domain no longer sends to because mail to them bounced for good, or because somebody put them here - with the counts behind each one. The list is per sending domain."),
-            Actions = actions
+            Status = count_,
+            Actions = MakeButton(L("_Refresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => searchDelay_.Now())
          });
 
          // The IP ranges shape, with two lists: the list and the bounce counts

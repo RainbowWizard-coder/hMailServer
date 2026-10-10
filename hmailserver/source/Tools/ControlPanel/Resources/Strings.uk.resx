@@ -984,9 +984,6 @@
   <data name="Add a _header the reader shows as a banner" xml:space="preserve">
     <value>Додавати за_головок, який читач показує смужкою</value>
   </data>
-  <data name="Add a _route" xml:space="preserve">
-    <value>Додати _маршрут</value>
-  </data>
   <data name="Add a blocked attachment pattern" xml:space="preserve">
     <value>Додати шаблон для заблокованих вкладень</value>
   </data>
@@ -1022,6 +1019,9 @@
   </data>
   <data name="Add a remote domain policy" xml:space="preserve">
     <value>Додати правило для зовнішнього домену</value>
+  </data>
+  <data name="Add a ro_ute" xml:space="preserve">
+    <value>Додати _маршрут</value>
   </data>
   <data name="Add a row to a list, or go to the form that adds one" xml:space="preserve">
     <value>Додати рядок до списку або перейти до форми, що його додає</value>
@@ -3694,7 +3694,7 @@
     <value>Видаляти повідомлення з карантину після (днів; 0 = ніколи)</value>
   </data>
   <data name="Delete selected ra_nge" xml:space="preserve">
-    <value>Видалити вибраний діапазо_н</value>
+    <value>Видалити ви_браний діапазон</value>
   </data>
   <data name="Delete the DNS block list {0}?" xml:space="preserve">
     <value>Видалити список блокування DNS {0}?</value>
@@ -3897,7 +3897,7 @@
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>Доставити й лише записати</value>
   </data>
-  <data name="Deliver local → _remote" xml:space="preserve">
+  <data name="Deliver lo_cal → remote" xml:space="preserve">
     <value>Доставляти локальні → _віддаленим</value>
   </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
@@ -4585,9 +4585,6 @@
   </data>
   <data name="Enter, F2" xml:space="preserve">
     <value>Enter, F2</value>
-  </data>
-  <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
-    <value>Записів, що відповідають пошуку: {0} з {1}.</value>
   </data>
   <data name="Entry skipped" xml:space="preserve">
     <value>Запис пропущено</value>
@@ -8381,9 +8378,6 @@
   <data name="P_ort" xml:space="preserve">
     <value>По_рт</value>
   </data>
-  <data name="P_rotocol" xml:space="preserve">
-    <value>_Протокол</value>
-  </data>
   <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM:" xml:space="preserve">
     <value>Опублікуйте _цей DNS TXT-запис у свого DNS-провайдера, а потім увімкніть DKIM:</value>
   </data>
@@ -8755,6 +8749,9 @@
   <data name="Protection" xml:space="preserve">
     <value>Захист</value>
   </data>
+  <data name="Proto_col" xml:space="preserve">
+    <value>_Протокол</value>
+  </data>
   <data name="Protocol" xml:space="preserve">
     <value>Протокол</value>
   </data>
@@ -8967,6 +8964,9 @@
   </data>
   <data name="Re_move name" xml:space="preserve">
     <value>_Вилучити ім'я</value>
+  </data>
+  <data name="Re_move stored passphrase" xml:space="preserve">
+    <value>_Вилучити збережену парольну фразу</value>
   </data>
   <data name="Re_move the rule" xml:space="preserve">
     <value>Ви_лучити правило</value>
@@ -9358,6 +9358,9 @@
   </data>
   <data name="Relying party (empty = the host the page is on)" xml:space="preserve">
     <value>Перевірна сторона (порожньо = вузол, на якому розміщено сторінку)</value>
+  </data>
+  <data name="Rem_ove criterion" xml:space="preserve">
+    <value>Ви_лучити критерій</value>
   </data>
   <data name="Remember this many previous passwords (0 = no history)" xml:space="preserve">
     <value>Пам’ятати стільки попередніх паролів (0 = без історії)</value>
@@ -15072,14 +15075,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_Reload from disk" xml:space="preserve">
     <value>Перезавантажити з _диска</value>
   </data>
-  <data name="_Remove criterion" xml:space="preserve">
-    <value>Ви_лучити критерій</value>
-  </data>
   <data name="_Remove message" xml:space="preserve">
     <value>_Вилучити повідомлення</value>
-  </data>
-  <data name="_Remove stored passphrase" xml:space="preserve">
-    <value>_Вилучити збережену парольну фразу</value>
   </data>
   <data name="_Rename the account" xml:space="preserve">
     <value>_Перейменувати обліковий запис</value>
@@ -15157,7 +15154,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>_Сервер</value>
   </data>
   <data name="_Set up ACME…" xml:space="preserve">
-    <value>_Налаштувати ACME…</value>
+    <value>На_лаштувати ACME…</value>
   </data>
   <data name="_Show in IP ranges" xml:space="preserve">
     <value>Показ_ати в діапазонах IP</value>
@@ -16288,6 +16285,15 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} IP addresses" xml:space="preserve">
     <value>IP-адрес: {0}</value>
   </data>
+  <data name="{0} IP range" xml:space="preserve">
+    <value>{0} діапазон IP</value>
+  </data>
+  <data name="{0} IP ranges" xml:space="preserve">
+    <value>{0} діапазонів IP</value>
+  </data>
+  <data name="{0} IP ranges|few" xml:space="preserve">
+    <value>{0} діапазони IP</value>
+  </data>
   <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
     <value>{0} Якщо знайдено вірус, вкладення вилучаються, а повідомлення все одно доставляється.</value>
   </data>
@@ -16372,11 +16378,14 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} added." xml:space="preserve">
     <value>Додано: {0}.</value>
   </data>
+  <data name="{0} address" xml:space="preserve">
+    <value>{0} адреса</value>
+  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>Адрес у списку: {0}, показано {1} найновіших. Скористайтеся пошуком, щоб звузити список.</value>
   </data>
-  <data name="{0} address listed." xml:space="preserve">
-    <value>Адрес у списку: {0}.</value>
+  <data name="{0} addresses" xml:space="preserve">
+    <value>{0} адрес</value>
   </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>Адрес у списку: {0}, показано {1} найновіших. Скористайтеся пошуком, щоб звузити список.</value>
@@ -16384,11 +16393,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them.|few" xml:space="preserve">
     <value>Адрес у списку: {0}, показано {1} найновіших. Скористайтеся пошуком, щоб звузити список.</value>
   </data>
-  <data name="{0} addresses listed." xml:space="preserve">
-    <value>Адрес у списку: {0}.</value>
-  </data>
-  <data name="{0} addresses listed.|few" xml:space="preserve">
-    <value>Адрес у списку: {0}.</value>
+  <data name="{0} addresses|few" xml:space="preserve">
+    <value>{0} адреси</value>
   </data>
   <data name="{0} aliases" xml:space="preserve">
     <value>Псевдонімів: {0}</value>
@@ -16440,6 +16446,15 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} cases. Select one for its lines on the audit trail.|few" xml:space="preserve">
     <value>Справ: {0}. Виберіть одну, щоб побачити її рядки в журналі аудиту.</value>
+  </data>
+  <data name="{0} certificate" xml:space="preserve">
+    <value>{0} сертифікат</value>
+  </data>
+  <data name="{0} certificates" xml:space="preserve">
+    <value>{0} сертифікатів</value>
+  </data>
+  <data name="{0} certificates|few" xml:space="preserve">
+    <value>{0} сертифікати</value>
   </data>
   <data name="{0} change carried out, none failed." xml:space="preserve">
     <value>Виконано {0} зміну, жодна не зазнала невдачі.</value>
@@ -16519,11 +16534,14 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} entry" xml:space="preserve">
     <value>{0} запис</value>
   </data>
+  <data name="{0} event" xml:space="preserve">
+    <value>{0} подія</value>
+  </data>
   <data name="{0} event past the retention window was removed." xml:space="preserve">
     <value>Вилучено {0} подію поза вікном зберігання.</value>
   </data>
-  <data name="{0} event, newest first." xml:space="preserve">
-    <value>{0} подія, найновіші спочатку.</value>
+  <data name="{0} events" xml:space="preserve">
+    <value>{0} подій</value>
   </data>
   <data name="{0} events past the retention window were removed." xml:space="preserve">
     <value>Вилучено {0} подій поза вікном зберігання.</value>
@@ -16531,11 +16549,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} events past the retention window were removed.|few" xml:space="preserve">
     <value>Вилучено {0} події поза вікном зберігання.</value>
   </data>
-  <data name="{0} events, newest first." xml:space="preserve">
-    <value>{0} подій, найновіші спочатку.</value>
-  </data>
-  <data name="{0} events, newest first.|few" xml:space="preserve">
-    <value>{0} події, найновіші спочатку.</value>
+  <data name="{0} events|few" xml:space="preserve">
+    <value>{0} події</value>
   </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>У {0} зовнішнього облікового запису збирання POP3 антивірус вимкнено, тому зібрана ним пошта доставляється без сканування, хай що тут задано. Перемикач на обліковому записі збирання, а не на цій сторінці.</value>
@@ -16690,17 +16705,11 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} message cannot be listed and will be left where it is. The first reason: {1}" xml:space="preserve">
     <value>Для {0} повідомлення не можна створити запис; вони залишаться там, де є. Перша причина: {1}</value>
   </data>
-  <data name="{0} message held." xml:space="preserve">
-    <value>{0} повідомлення утримано.</value>
-  </data>
   <data name="{0} message past the retention window was removed." xml:space="preserve">
     <value>Вилучено {0} повідомлення поза вікном зберігання.</value>
   </data>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} повідомлення посилається на файл, якого немає на диску.</value>
-  </data>
-  <data name="{0} message waiting for delivery." xml:space="preserve">
-    <value>{0} повідомлення чекає на доставку.</value>
   </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} повідомлень</value>
@@ -16710,12 +16719,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}|few" xml:space="preserve">
     <value>Для {0} повідомлень не можна створити запис; вони залишаться там, де є. Перша причина: {1}</value>
-  </data>
-  <data name="{0} messages held." xml:space="preserve">
-    <value>{0} повідомлень утримано.</value>
-  </data>
-  <data name="{0} messages held.|few" xml:space="preserve">
-    <value>{0} повідомлення утримано.</value>
   </data>
   <data name="{0} messages past the retention window were removed." xml:space="preserve">
     <value>Вилучено {0} повідомлень поза вікном зберігання.</value>
@@ -16728,12 +16731,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} messages reference a file that is missing on disk.|few" xml:space="preserve">
     <value>{0} повідомлення посилаються на файл, якого немає на диску.</value>
-  </data>
-  <data name="{0} messages waiting for delivery." xml:space="preserve">
-    <value>{0} повідомлень чекають на доставку.</value>
-  </data>
-  <data name="{0} messages waiting for delivery.|few" xml:space="preserve">
-    <value>{0} повідомлення чекають на доставку.</value>
   </data>
   <data name="{0} messages|few" xml:space="preserve">
     <value>{0} повідомлення</value>
@@ -16825,6 +16822,15 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say.|few" xml:space="preserve">
     <value>{0} шаблони вилучаються з кожного повідомлення за ім’ям файлу, хай що кажуть сканери.</value>
   </data>
+  <data name="{0} port" xml:space="preserve">
+    <value>{0} порт</value>
+  </data>
+  <data name="{0} ports" xml:space="preserve">
+    <value>{0} портів</value>
+  </data>
+  <data name="{0} ports|few" xml:space="preserve">
+    <value>{0} порти</value>
+  </data>
   <data name="{0} problem" xml:space="preserve">
     <value>Проблем: {0}</value>
   </data>
@@ -16834,14 +16840,14 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} problems|few" xml:space="preserve">
     <value>Проблем: {0}</value>
   </data>
-  <data name="{0} public folder." xml:space="preserve">
-    <value>{0} публічна папка.</value>
+  <data name="{0} public folder" xml:space="preserve">
+    <value>{0} публічна папка</value>
   </data>
-  <data name="{0} public folders." xml:space="preserve">
-    <value>{0} публічних папок.</value>
+  <data name="{0} public folders" xml:space="preserve">
+    <value>{0} публічних папок</value>
   </data>
-  <data name="{0} public folders.|few" xml:space="preserve">
-    <value>{0} публічні папки.</value>
+  <data name="{0} public folders|few" xml:space="preserve">
+    <value>{0} публічні папки</value>
   </data>
   <data name="{0} recipient added." xml:space="preserve">
     <value>Додано {0} отримувача.</value>
@@ -16879,6 +16885,15 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} remote domain policies" xml:space="preserve">
     <value>Правил для зовнішніх доменів: {0}</value>
   </data>
+  <data name="{0} route" xml:space="preserve">
+    <value>{0} маршрут</value>
+  </data>
+  <data name="{0} routes" xml:space="preserve">
+    <value>{0} маршрутів</value>
+  </data>
+  <data name="{0} routes|few" xml:space="preserve">
+    <value>{0} маршрути</value>
+  </data>
   <data name="{0} row needs reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} рядок потрібно прочитати перед застосуванням — пропущений запис означає поштову скриньку, на яку хтось розраховує й не отримає, а вимкнений — поштову скриньку, яку забирають.</value>
   </data>
@@ -16888,26 +16903,14 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} rows need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away.|few" xml:space="preserve">
     <value>{0} рядки потрібно прочитати перед застосуванням — пропущений запис означає поштову скриньку, на яку хтось розраховує й не отримає, а вимкнений — поштову скриньку, яку забирають.</value>
   </data>
-  <data name="{0} rule of the server, evaluated top to bottom." xml:space="preserve">
-    <value>Правил сервера: {0}, оцінюються згори донизу.</value>
-  </data>
-  <data name="{0} rule of {1}, evaluated top to bottom." xml:space="preserve">
-    <value>Правил домену {1}: {0}, оцінюються згори донизу.</value>
+  <data name="{0} rule" xml:space="preserve">
+    <value>Правил: {0}</value>
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>Правил: {0}</value>
   </data>
-  <data name="{0} rules of the server, evaluated top to bottom." xml:space="preserve">
-    <value>Правил сервера: {0}, оцінюються згори донизу.</value>
-  </data>
-  <data name="{0} rules of the server, evaluated top to bottom.|few" xml:space="preserve">
-    <value>Правил сервера: {0}, оцінюються згори донизу.</value>
-  </data>
-  <data name="{0} rules of {1}, evaluated top to bottom." xml:space="preserve">
-    <value>Правил домену {1}: {0}, оцінюються згори донизу.</value>
-  </data>
-  <data name="{0} rules of {1}, evaluated top to bottom.|few" xml:space="preserve">
-    <value>Правил домену {1}: {0}, оцінюються згори донизу.</value>
+  <data name="{0} rules|few" xml:space="preserve">
+    <value>Правил: {0}</value>
   </data>
   <data name="{0} sample copied to the clipboard." xml:space="preserve">
     <value>{0} зразок скопійовано до буфера обміну.</value>

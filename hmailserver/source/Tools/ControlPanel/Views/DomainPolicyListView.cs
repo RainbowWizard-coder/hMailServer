@@ -52,6 +52,11 @@ namespace hMailServer.ControlPanel.Views
       private readonly InlineNotice status_ = new() { Visibility = Visibility.Collapsed };
       private readonly EmptyState empty_ = new() { Icon = Wpf.Ui.Controls.SymbolRegular.Globe24, Visibility = Visibility.Collapsed };
 
+      // How many entries the list holds, and while the search hides some how many
+      // it shows, beside the title, where an Information notice said "Entries that
+      // match the search: 1 of 4." (review findings F288, F210).
+      private readonly StatusPill count_ = new() { Level = StatusLevel.Normal, Visibility = Visibility.Collapsed };
+
       private List<EntryView> all_ = new();
 
       // Add waits for a read that works (Services/ReadFailure).
@@ -189,6 +194,7 @@ namespace hMailServer.ControlPanel.Views
       {
          all_ = new List<EntryView>();
          ReadFailure.Show(status_, empty_, entries_, prefix, why, Reload, addButton_);
+         count_.Visibility = Visibility.Collapsed;
       }
 
       // A filter over the rows already here: the whole list is a handful of
@@ -223,12 +229,13 @@ namespace hMailServer.ControlPanel.Views
          StatusText.Show(empty_, null, all_.Count, null,
             L("The list is empty, and an empty list changes nothing: every domain is greylisted and scored as before."));
 
-         // The match notice goes with the search: typed away, it said "1 of 4"
-         // under a list of four (review finding F210).
-         if (all_.Count > 0 && shown.Count < all_.Count)
-            Status_(StatusLevel.Information, F("Entries that match the search: {0} of {1}.", shown.Count, all_.Count));
-         else if (status_.Level == StatusLevel.Information && !ReadFailure.IsShown(status_))
-            status_.Visibility = Visibility.Collapsed;
+         // The count beside the title, and while the search hides entries how
+         // many it shows: no notice, which the search left saying "1 of 4" under a
+         // list of four once it was typed away (review findings F288, F210).
+         count_.Text = search.Length > 0 && all_.Count > 0
+            ? F("Shown: {0} of {1}", shown.Count, all_.Count)
+            : Plural(all_.Count, "{0} entry", "{0} entries");
+         count_.Visibility = Visibility.Visible;
       }
 
       private void AddEntry()
@@ -292,6 +299,8 @@ namespace hMailServer.ControlPanel.Views
 
          root.Children.Add(new PageHeader
          {
+            Status = count_,
+            Actions = MakeButton(L("_Refresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload()),
             PageKey = "domainpolicylist",
             Subtitle = L("Sending organisations decided about by their domain rather than by the IP address of the week. Allowed: not greylisted and never refused on the spam score, while every test still runs and logs. Blocked: refused at MAIL FROM before greylisting, scoring or any lookup. Matched on the envelope sender's domain, the HELO name, or either; inbound unauthenticated sessions only.")
          });
@@ -318,17 +327,18 @@ namespace hMailServer.ControlPanel.Views
          Grid.SetRow(scroll, 1);
          root.Children.Add(scroll);
 
-         // Wraps, rather than cutting Refresh off the right edge in a narrow window.
+         // The list's verbs, Delete and then Add…, the Primary, at the right edge;
+         // Refresh is the page's and is in the header (docs/ControlPanelDesign.md,
+         // List pages; review finding F288). Wraps in a narrow window.
          var actions = new WrapPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
-         addButton_ = MakeButton(L("_Add…"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => AddEntry());
-         actions.Children.Add(addButton_);
          var remove = MakeButton(L("_Delete"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => RemoveSelected());
          ButtonStyles.DangerText(remove);
          actions.Children.Add(remove);
          SelectionGate.Bind(entries_, remove);
+         addButton_ = MakeButton(L("_Add…"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => AddEntry());
+         actions.Children.Add(addButton_);
          // Delete deletes the selected entry after asking; Insert adds one.
          GridKeys.Wire(entries_, null, remove, addButton_);
-         actions.Children.Add(MakeButton(L("_Refresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload()));
          foreach (FrameworkElement button in actions.Children)
             button.Margin = new Thickness(button.Margin.Left, 2, button.Margin.Right, 2);
          toolbar_.Actions = actions;

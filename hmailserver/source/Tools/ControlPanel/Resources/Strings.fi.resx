@@ -978,9 +978,6 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Add a _header the reader shows as a banner" xml:space="preserve">
     <value>Lisää _otsake, jonka lukija näyttää palkkina</value>
   </data>
-  <data name="Add a _route" xml:space="preserve">
-    <value>Lisää re_itti</value>
-  </data>
   <data name="Add a blocked attachment pattern" xml:space="preserve">
     <value>Lisää estettyjen liitteiden kuvio</value>
   </data>
@@ -1016,6 +1013,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   </data>
   <data name="Add a remote domain policy" xml:space="preserve">
     <value>Lisää etäverkkotunnuksen käytäntö</value>
+  </data>
+  <data name="Add a ro_ute" xml:space="preserve">
+    <value>Li_sää reitti</value>
   </data>
   <data name="Add a row to a list, or go to the form that adds one" xml:space="preserve">
     <value>Lisää rivi luetteloon tai siirry lomakkeeseen, joka lisää sen</value>
@@ -1348,7 +1348,7 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
     <value>_Salli SMTP-yhteydet</value>
   </data>
   <data name="Allow _IMAP" xml:space="preserve">
-    <value>Salli _IMAP</value>
+    <value>Salli IMAP-y_hteydet</value>
   </data>
   <data name="Allow _IMAP connections" xml:space="preserve">
     <value>Salli _IMAP-yhteydet</value>
@@ -3851,7 +3851,7 @@ Lähettäjälle kerrottiin, että se hyväksyttiin, joten mikään ei yritä uud
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>Toimita ja vain kirjaa</value>
   </data>
-  <data name="Deliver local → _remote" xml:space="preserve">
+  <data name="Deliver lo_cal → remote" xml:space="preserve">
     <value>Toimita paikallinen → et_ä</value>
   </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
@@ -4178,7 +4178,7 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
     <value>Jokainen roskapostitarkistus siinä järjestyksessä, jossa palvelin sen ajaa, mitä se lisää pistemäärään ja mitä yhteispistemäärä tekee viestille. Mitään ei voi muokata täällä: kunkin rivin linkki avaa sivun, joka omistaa sen asetuksen.</value>
   </data>
   <data name="Ed_it action…" xml:space="preserve">
-    <value>Muokkaa to_imintoa…</value>
+    <value>Muo_kkaa toimintoa…</value>
   </data>
   <data name="Edit" xml:space="preserve">
     <value>Muokkaa</value>
@@ -4539,9 +4539,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Enter, F2" xml:space="preserve">
     <value>Enter, F2</value>
-  </data>
-  <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
-    <value>Hakua vastaavat merkinnät: {0}/{1}.</value>
   </data>
   <data name="Entry skipped" xml:space="preserve">
     <value>Merkintä ohitettu</value>
@@ -5821,7 +5818,7 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
     <value>Journalointi ja kaksoistoimitus</value>
   </data>
   <data name="Ke_y passphrase (only for an encrypted key)" xml:space="preserve">
-    <value>Ava_imen tunnuslause (vain salatulle avaimelle)</value>
+    <value>Avaim_en tunnuslause (vain salatulle avaimelle)</value>
   </data>
   <data name="Keep" xml:space="preserve">
     <value>Säilytä</value>
@@ -8293,9 +8290,6 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="P_ort" xml:space="preserve">
     <value>Po_rtti</value>
   </data>
-  <data name="P_rotocol" xml:space="preserve">
-    <value>_Protokolla</value>
-  </data>
   <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM:" xml:space="preserve">
     <value>_Julkaise tämä DNS TXT -tietue DNS-palveluntarjoajallasi ja ota sitten DKIM käyttöön:</value>
   </data>
@@ -8667,6 +8661,9 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Protection" xml:space="preserve">
     <value>Suojaus</value>
   </data>
+  <data name="Proto_col" xml:space="preserve">
+    <value>_Protokolla</value>
+  </data>
   <data name="Protocol" xml:space="preserve">
     <value>Protokolla</value>
   </data>
@@ -8879,6 +8876,9 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   </data>
   <data name="Re_move name" xml:space="preserve">
     <value>_Poista nimi</value>
+  </data>
+  <data name="Re_move stored passphrase" xml:space="preserve">
+    <value>_Poista tallennettu tunnuslause</value>
   </data>
   <data name="Re_move the rule" xml:space="preserve">
     <value>Poista _sääntö</value>
@@ -9258,6 +9258,9 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   </data>
   <data name="Relying party (empty = the host the page is on)" xml:space="preserve">
     <value>Luottava osapuoli (tyhjä = isäntä, jolla sivu on)</value>
+  </data>
+  <data name="Rem_ove criterion" xml:space="preserve">
+    <value>_Poista ehto</value>
   </data>
   <data name="Remember this many previous passwords (0 = no history)" xml:space="preserve">
     <value>Muista näin monta aiempaa salasanaa (0 = ei historiaa)</value>
@@ -14900,14 +14903,8 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="_Reload from disk" xml:space="preserve">
     <value>_Lataa uudelleen levyltä</value>
   </data>
-  <data name="_Remove criterion" xml:space="preserve">
-    <value>_Poista ehto</value>
-  </data>
   <data name="_Remove message" xml:space="preserve">
     <value>_Poista viesti</value>
-  </data>
-  <data name="_Remove stored passphrase" xml:space="preserve">
-    <value>_Poista tallennettu tunnuslause</value>
   </data>
   <data name="_Rename the account" xml:space="preserve">
     <value>_Nimeä tili uudelleen</value>
@@ -16095,6 +16092,12 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} IP addresses" xml:space="preserve">
     <value>{0} IP-osoitetta</value>
   </data>
+  <data name="{0} IP range" xml:space="preserve">
+    <value>{0} IP-alue</value>
+  </data>
+  <data name="{0} IP ranges" xml:space="preserve">
+    <value>{0} IP-aluetta</value>
+  </data>
   <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
     <value>{0} Jos virus löytyy, liitteet poistetaan ja viesti toimitetaan silti.</value>
   </data>
@@ -16158,17 +16161,17 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} added." xml:space="preserve">
     <value>{0} lisätty.</value>
   </data>
+  <data name="{0} address" xml:space="preserve">
+    <value>{0} osoite</value>
+  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} osoite listalla, {1} uusinta näytetään. Rajaa hakemalla.</value>
   </data>
-  <data name="{0} address listed." xml:space="preserve">
-    <value>{0} osoite listalla.</value>
+  <data name="{0} addresses" xml:space="preserve">
+    <value>{0} osoitetta</value>
   </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} osoitetta listalla, {1} uusinta näytetään. Rajaa hakemalla.</value>
-  </data>
-  <data name="{0} addresses listed." xml:space="preserve">
-    <value>{0} osoitetta listalla.</value>
   </data>
   <data name="{0} aliases" xml:space="preserve">
     <value>{0} aliasta</value>
@@ -16211,6 +16214,12 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} cases. Select one for its lines on the audit trail." xml:space="preserve">
     <value>{0} tapausta. Valitse yksi nähdäksesi sen rivit tarkastuslokissa.</value>
+  </data>
+  <data name="{0} certificate" xml:space="preserve">
+    <value>{0} varmenne</value>
+  </data>
+  <data name="{0} certificates" xml:space="preserve">
+    <value>{0} varmennetta</value>
   </data>
   <data name="{0} change carried out, none failed." xml:space="preserve">
     <value>{0} muutos tehty, yksikään ei epäonnistunut.</value>
@@ -16275,17 +16284,17 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} entry" xml:space="preserve">
     <value>{0} merkintä</value>
   </data>
+  <data name="{0} event" xml:space="preserve">
+    <value>{0} tapahtuma</value>
+  </data>
   <data name="{0} event past the retention window was removed." xml:space="preserve">
     <value>{0} säilytysikkunan ylittänyt tapahtuma poistettiin.</value>
   </data>
-  <data name="{0} event, newest first." xml:space="preserve">
-    <value>{0} tapahtuma, uusin ensin.</value>
+  <data name="{0} events" xml:space="preserve">
+    <value>{0} tapahtumaa</value>
   </data>
   <data name="{0} events past the retention window were removed." xml:space="preserve">
     <value>{0} säilytysikkunan ylittänyttä tapahtumaa poistettiin.</value>
-  </data>
-  <data name="{0} events, newest first." xml:space="preserve">
-    <value>{0} tapahtumaa, uusin ensin.</value>
   </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>{0} ulkoisella POP3-noutotilillä on virustorjunta pois päältä, joten sen noutama posti toimitetaan skannaamatta riippumatta siitä, mitä tässä on asetettu. Kytkin on noutotilillä, ei tällä sivulla.</value>
@@ -16422,17 +16431,11 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} message cannot be listed and will be left where it is. The first reason: {1}" xml:space="preserve">
     <value>{0} viesti ei mahdu luetteloon, ja se jätetään paikoilleen. Ensimmäinen syy: {1}</value>
   </data>
-  <data name="{0} message held." xml:space="preserve">
-    <value>{0} viesti pidätetty.</value>
-  </data>
   <data name="{0} message past the retention window was removed." xml:space="preserve">
     <value>{0} säilytysikkunan ylittänyt viesti poistettiin.</value>
   </data>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} viesti viittaa tiedostoon, joka puuttuu levyltä.</value>
-  </data>
-  <data name="{0} message waiting for delivery." xml:space="preserve">
-    <value>{0} viesti odottaa toimitusta.</value>
   </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} viestiä</value>
@@ -16440,17 +16443,11 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
     <value>{0} viestiä ei mahdu luetteloon, ja ne jätetään paikoilleen. Ensimmäinen syy: {1}</value>
   </data>
-  <data name="{0} messages held." xml:space="preserve">
-    <value>{0} viestiä pidätetty.</value>
-  </data>
   <data name="{0} messages past the retention window were removed." xml:space="preserve">
     <value>{0} säilytysikkunan ylittänyttä viestiä poistettiin.</value>
   </data>
   <data name="{0} messages reference a file that is missing on disk." xml:space="preserve">
     <value>{0} viestiä viittaa tiedostoon, joka puuttuu levyltä.</value>
-  </data>
-  <data name="{0} messages waiting for delivery." xml:space="preserve">
-    <value>{0} viestiä odottaa toimitusta.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} min</value>
@@ -16524,17 +16521,23 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} kuviota poistetaan jokaisesta viestistä tiedostonimen perusteella riippumatta siitä, mitä tarkistimet sanovat.</value>
   </data>
+  <data name="{0} port" xml:space="preserve">
+    <value>{0} portti</value>
+  </data>
+  <data name="{0} ports" xml:space="preserve">
+    <value>{0} porttia</value>
+  </data>
   <data name="{0} problem" xml:space="preserve">
     <value>{0} ongelma</value>
   </data>
   <data name="{0} problems" xml:space="preserve">
     <value>{0} ongelmaa</value>
   </data>
-  <data name="{0} public folder." xml:space="preserve">
-    <value>{0} julkinen kansio.</value>
+  <data name="{0} public folder" xml:space="preserve">
+    <value>{0} julkinen kansio</value>
   </data>
-  <data name="{0} public folders." xml:space="preserve">
-    <value>{0} julkista kansiota.</value>
+  <data name="{0} public folders" xml:space="preserve">
+    <value>{0} julkista kansiota</value>
   </data>
   <data name="{0} recipient added." xml:space="preserve">
     <value>{0} vastaanottaja lisätty.</value>
@@ -16563,26 +16566,23 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} remote domain policies" xml:space="preserve">
     <value>{0} etäverkkotunnuksen käytäntöä</value>
   </data>
+  <data name="{0} route" xml:space="preserve">
+    <value>{0} reitti</value>
+  </data>
+  <data name="{0} routes" xml:space="preserve">
+    <value>{0} reittiä</value>
+  </data>
   <data name="{0} row needs reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} rivi on luettava ennen käyttöönottoa - ohitettu merkintä on postilaatikko, jota joku odottaa eikä saa, ja käytöstä poistettu on postilaatikko, joka otetaan pois.</value>
   </data>
   <data name="{0} rows need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} riviä on luettava ennen käyttöönottoa - ohitettu merkintä on postilaatikko, jota joku odottaa eikä saa, ja käytöstä poistettu on postilaatikko, joka otetaan pois.</value>
   </data>
-  <data name="{0} rule of the server, evaluated top to bottom." xml:space="preserve">
-    <value>{0} palvelimen sääntö, arvioidaan ylhäältä alas.</value>
-  </data>
-  <data name="{0} rule of {1}, evaluated top to bottom." xml:space="preserve">
-    <value>{0} sääntö kohteelle {1}, arvioidaan ylhäältä alas.</value>
+  <data name="{0} rule" xml:space="preserve">
+    <value>{0} sääntö</value>
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>{0} sääntöä</value>
-  </data>
-  <data name="{0} rules of the server, evaluated top to bottom." xml:space="preserve">
-    <value>{0} palvelimen sääntöä, arvioidaan ylhäältä alas.</value>
-  </data>
-  <data name="{0} rules of {1}, evaluated top to bottom." xml:space="preserve">
-    <value>{0} sääntöä kohteelle {1}, arvioidaan ylhäältä alas.</value>
   </data>
   <data name="{0} sample copied to the clipboard." xml:space="preserve">
     <value>{0} näyte kopioitu leikepöydälle.</value>

@@ -95,6 +95,9 @@
     <!-- And where an overflowing tab strip scrolls to, by whole headers, and which of
          its edges cuts a header and so fades (review findings F193 and F107). -->
     <Compile Include="..\ControlPanel\Services\TabStripSnap.cs" />
+    <!-- And whether a list page's toolbar puts its actions on a row of their own
+         under the search and the filters (review finding F288). -->
+    <Compile Include="..\ControlPanel\Services\ToolbarRows.cs" />
     <!-- And the server settings page's own, which is a different lifecycle from
          the INI pages' above: read and written over COM, so it is clean, unsaved,
          saving, saved or partly saved, with no service restart in it. -->

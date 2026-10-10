@@ -978,9 +978,6 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
   <data name="Add a _header the reader shows as a banner" xml:space="preserve">
     <value>Añadir una ca_becera que el lector muestra como franja</value>
   </data>
-  <data name="Add a _route" xml:space="preserve">
-    <value>Añadir una _ruta</value>
-  </data>
   <data name="Add a blocked attachment pattern" xml:space="preserve">
     <value>Añadir un patrón de adjuntos bloqueados</value>
   </data>
@@ -1016,6 +1013,9 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
   </data>
   <data name="Add a remote domain policy" xml:space="preserve">
     <value>Añadir una política de dominio remoto</value>
+  </data>
+  <data name="Add a ro_ute" xml:space="preserve">
+    <value>Añadir una _ruta</value>
   </data>
   <data name="Add a row to a list, or go to the form that adds one" xml:space="preserve">
     <value>Añadir una fila a una lista, o ir al formulario que la añade</value>
@@ -3851,7 +3851,7 @@ Al remitente se le dijo que fue aceptado, así que nada lo reintentará y no hay
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>Entregarlo y solo registrarlo</value>
   </data>
-  <data name="Deliver local → _remote" xml:space="preserve">
+  <data name="Deliver lo_cal → remote" xml:space="preserve">
     <value>Entregar local → _remoto</value>
   </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
@@ -4539,9 +4539,6 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   </data>
   <data name="Enter, F2" xml:space="preserve">
     <value>Intro, F2</value>
-  </data>
-  <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
-    <value>Entradas que coinciden con la búsqueda: {0} de {1}.</value>
   </data>
   <data name="Entry skipped" xml:space="preserve">
     <value>Entrada omitida</value>
@@ -8293,9 +8290,6 @@ No se elimina nada de lo que ya está.</value>
   <data name="P_ort" xml:space="preserve">
     <value>P_uerto</value>
   </data>
-  <data name="P_rotocol" xml:space="preserve">
-    <value>P_rotocolo</value>
-  </data>
   <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM:" xml:space="preserve">
     <value>_Publique este registro DNS TXT en su proveedor de DNS y active después DKIM:</value>
   </data>
@@ -8667,6 +8661,9 @@ No se aceptarán conexiones nuevas ni se entregará correo hasta que se reanude.
   <data name="Protection" xml:space="preserve">
     <value>Protección</value>
   </data>
+  <data name="Proto_col" xml:space="preserve">
+    <value>P_rotocolo</value>
+  </data>
   <data name="Protocol" xml:space="preserve">
     <value>Protocolo</value>
   </data>
@@ -8879,6 +8876,9 @@ No se aceptarán conexiones nuevas ni se entregará correo hasta que se reanude.
   </data>
   <data name="Re_move name" xml:space="preserve">
     <value>_Quitar nombre</value>
+  </data>
+  <data name="Re_move stored passphrase" xml:space="preserve">
+    <value>_Quitar la frase de contraseña guardada</value>
   </data>
   <data name="Re_move the rule" xml:space="preserve">
     <value>E_liminar la regla</value>
@@ -9259,6 +9259,9 @@ Ejecute esto si los clientes informan de mensajes que aparecen con un UID equivo
   <data name="Relying party (empty = the host the page is on)" xml:space="preserve">
     <value>Parte de confianza (vacío = el host en el que está la página)</value>
   </data>
+  <data name="Rem_ove criterion" xml:space="preserve">
+    <value>_Quitar criterio</value>
+  </data>
   <data name="Remember this many previous passwords (0 = no history)" xml:space="preserve">
     <value>Recordar este número de contraseñas anteriores (0 = sin historial)</value>
   </data>
@@ -9479,7 +9482,7 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
     <value>Exigir TLS al correo de este dominio</value>
   </data>
   <data name="Require _TLS for auth" xml:space="preserve">
-    <value>Exigir _TLS para la autenticación</value>
+    <value>E_xigir TLS para la autenticación</value>
   </data>
   <data name="Require at least one character that is not a letter or digit" xml:space="preserve">
     <value>Exigir al menos un carácter que no sea letra ni dígito</value>
@@ -14900,14 +14903,8 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="_Reload from disk" xml:space="preserve">
     <value>_Recargar desde el disco</value>
   </data>
-  <data name="_Remove criterion" xml:space="preserve">
-    <value>_Quitar criterio</value>
-  </data>
   <data name="_Remove message" xml:space="preserve">
     <value>_Quitar el mensaje</value>
-  </data>
-  <data name="_Remove stored passphrase" xml:space="preserve">
-    <value>_Quitar la frase de contraseña guardada</value>
   </data>
   <data name="_Rename the account" xml:space="preserve">
     <value>_Cambiar el nombre de la cuenta</value>
@@ -15006,7 +15003,7 @@ Seguirá intentándolo mientras usa la aplicación.</value>
     <value>_Quitar el rol</value>
   </data>
   <data name="_Target SMTP host" xml:space="preserve">
-    <value>Host SMTP de des_tino</value>
+    <value>_Host SMTP de destino</value>
   </data>
   <data name="_Test connection" xml:space="preserve">
     <value>_Probar la conexión</value>
@@ -16095,6 +16092,12 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="{0} IP addresses" xml:space="preserve">
     <value>{0} direcciones IP</value>
   </data>
+  <data name="{0} IP range" xml:space="preserve">
+    <value>{0} rango de IP</value>
+  </data>
+  <data name="{0} IP ranges" xml:space="preserve">
+    <value>{0} rangos de IP</value>
+  </data>
   <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
     <value>{0} Si se encuentra un virus, se quitan los adjuntos y el mensaje se entrega igualmente.</value>
   </data>
@@ -16158,17 +16161,17 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="{0} added." xml:space="preserve">
     <value>Se añadió {0}.</value>
   </data>
+  <data name="{0} address" xml:space="preserve">
+    <value>{0} dirección</value>
+  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} dirección en la lista; se muestran las {1} más recientes. Busque para acotarlas.</value>
   </data>
-  <data name="{0} address listed." xml:space="preserve">
-    <value>{0} dirección en la lista.</value>
+  <data name="{0} addresses" xml:space="preserve">
+    <value>{0} direcciones</value>
   </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} direcciones en la lista; se muestran las {1} más recientes. Busque para acotarlas.</value>
-  </data>
-  <data name="{0} addresses listed." xml:space="preserve">
-    <value>{0} direcciones en la lista.</value>
   </data>
   <data name="{0} aliases" xml:space="preserve">
     <value>{0} alias</value>
@@ -16211,6 +16214,12 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="{0} cases. Select one for its lines on the audit trail." xml:space="preserve">
     <value>{0} casos. Seleccione uno para ver sus líneas en el registro de auditoría.</value>
+  </data>
+  <data name="{0} certificate" xml:space="preserve">
+    <value>{0} certificado</value>
+  </data>
+  <data name="{0} certificates" xml:space="preserve">
+    <value>{0} certificados</value>
   </data>
   <data name="{0} change carried out, none failed." xml:space="preserve">
     <value>{0} cambio realizado, ninguno falló.</value>
@@ -16275,17 +16284,17 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="{0} entry" xml:space="preserve">
     <value>{0} entrada</value>
   </data>
+  <data name="{0} event" xml:space="preserve">
+    <value>{0} evento</value>
+  </data>
   <data name="{0} event past the retention window was removed." xml:space="preserve">
     <value>Se eliminó {0} evento fuera de la ventana de retención.</value>
   </data>
-  <data name="{0} event, newest first." xml:space="preserve">
-    <value>{0} evento, los más recientes primero.</value>
+  <data name="{0} events" xml:space="preserve">
+    <value>{0} eventos</value>
   </data>
   <data name="{0} events past the retention window were removed." xml:space="preserve">
     <value>Se eliminaron {0} eventos fuera de la ventana de retención.</value>
-  </data>
-  <data name="{0} events, newest first." xml:space="preserve">
-    <value>{0} eventos, los más recientes primero.</value>
   </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>{0} cuenta de recogida POP3 externa tiene el antivirus desactivado, así que el correo recogido por ella se entrega sin analizar sea cual sea lo que se configure aquí. El interruptor está en la cuenta de recogida, no en esta página.</value>
@@ -16422,17 +16431,11 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="{0} message cannot be listed and will be left where it is. The first reason: {1}" xml:space="preserve">
     <value>{0} mensaje no se puede incluir en la lista y se dejará donde está. El primer motivo: {1}</value>
   </data>
-  <data name="{0} message held." xml:space="preserve">
-    <value>{0} mensaje retenido.</value>
-  </data>
   <data name="{0} message past the retention window was removed." xml:space="preserve">
     <value>Se eliminó {0} mensaje fuera de la ventana de retención.</value>
   </data>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} mensaje hace referencia a un archivo que falta en el disco.</value>
-  </data>
-  <data name="{0} message waiting for delivery." xml:space="preserve">
-    <value>{0} mensaje esperando entrega.</value>
   </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} mensajes</value>
@@ -16440,17 +16443,11 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
     <value>{0} mensajes no se pueden incluir en la lista y se dejarán donde están. El primer motivo: {1}</value>
   </data>
-  <data name="{0} messages held." xml:space="preserve">
-    <value>{0} mensajes retenidos.</value>
-  </data>
   <data name="{0} messages past the retention window were removed." xml:space="preserve">
     <value>Se eliminaron {0} mensajes fuera de la ventana de retención.</value>
   </data>
   <data name="{0} messages reference a file that is missing on disk." xml:space="preserve">
     <value>{0} mensajes hacen referencia a un archivo que falta en el disco.</value>
-  </data>
-  <data name="{0} messages waiting for delivery." xml:space="preserve">
-    <value>{0} mensajes esperando entrega.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} min</value>
@@ -16524,17 +16521,23 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} patrones se eliminan de cada mensaje por nombre de archivo, digan lo que digan los analizadores.</value>
   </data>
+  <data name="{0} port" xml:space="preserve">
+    <value>{0} puerto</value>
+  </data>
+  <data name="{0} ports" xml:space="preserve">
+    <value>{0} puertos</value>
+  </data>
   <data name="{0} problem" xml:space="preserve">
     <value>{0} problema</value>
   </data>
   <data name="{0} problems" xml:space="preserve">
     <value>{0} problemas</value>
   </data>
-  <data name="{0} public folder." xml:space="preserve">
-    <value>{0} carpeta pública.</value>
+  <data name="{0} public folder" xml:space="preserve">
+    <value>{0} carpeta pública</value>
   </data>
-  <data name="{0} public folders." xml:space="preserve">
-    <value>{0} carpetas públicas.</value>
+  <data name="{0} public folders" xml:space="preserve">
+    <value>{0} carpetas públicas</value>
   </data>
   <data name="{0} recipient added." xml:space="preserve">
     <value>{0} destinatario añadido.</value>
@@ -16563,26 +16566,23 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="{0} remote domain policies" xml:space="preserve">
     <value>{0} políticas de dominio remoto</value>
   </data>
+  <data name="{0} route" xml:space="preserve">
+    <value>{0} ruta</value>
+  </data>
+  <data name="{0} routes" xml:space="preserve">
+    <value>{0} rutas</value>
+  </data>
   <data name="{0} row needs reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} fila necesita leerse antes de aplicar - una entrada omitida es un buzón que alguien espera y no tendrá, y una desactivada es un buzón que se retira.</value>
   </data>
   <data name="{0} rows need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} filas necesitan leerse antes de aplicar - una entrada omitida es un buzón que alguien espera y no tendrá, y una desactivada es un buzón que se retira.</value>
   </data>
-  <data name="{0} rule of the server, evaluated top to bottom." xml:space="preserve">
-    <value>{0} regla del servidor, evaluada de arriba abajo.</value>
-  </data>
-  <data name="{0} rule of {1}, evaluated top to bottom." xml:space="preserve">
-    <value>{0} regla de {1}, evaluada de arriba abajo.</value>
+  <data name="{0} rule" xml:space="preserve">
+    <value>{0} regla</value>
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>{0} reglas</value>
-  </data>
-  <data name="{0} rules of the server, evaluated top to bottom." xml:space="preserve">
-    <value>{0} reglas del servidor, evaluadas de arriba abajo.</value>
-  </data>
-  <data name="{0} rules of {1}, evaluated top to bottom." xml:space="preserve">
-    <value>{0} reglas de {1}, evaluadas de arriba abajo.</value>
   </data>
   <data name="{0} sample copied to the clipboard." xml:space="preserve">
     <value>{0} muestra copiada al portapapeles.</value>

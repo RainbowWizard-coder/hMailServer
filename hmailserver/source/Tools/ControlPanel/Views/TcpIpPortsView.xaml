@@ -18,7 +18,18 @@
         </Grid.RowDefinitions>
 
         <scaffold:PageHeader PageKey="ports"
-                             Subtitle="{loc:L 'The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one. The Listening column is read from this machine\'s open ports, not from the configuration, so it shows what is actually happening rather than what was asked for.'}" />
+                             Subtitle="{loc:L 'The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one. The Listening column is read from this machine\'s open ports, not from the configuration, so it shows what is actually happening rather than what was asked for.'}">
+            <!-- The list page pattern (docs/ControlPanelDesign.md, List pages): the
+                 count beside the title and Refresh in the header, the list's own
+                 verbs in the toolbar above it (review finding F288). -->
+            <scaffold:PageHeader.Status>
+                <scaffold:StatusPill x:Name="CountPill" Level="Normal" Visibility="Collapsed"
+                                     AutomationProperties.AutomationId="list-count" />
+            </scaffold:PageHeader.Status>
+            <scaffold:PageHeader.Actions>
+                <ui:Button x:Name="RefreshButton" Content="{loc:L '_Refresh'}" Click="Refresh_Click" />
+            </scaffold:PageHeader.Actions>
+        </scaffold:PageHeader>
 
         <!-- The IP ranges shape: the list takes the height the parts under it
              leave in the window, down to a floor of three rows, and below that
@@ -127,7 +138,7 @@
                     <ColumnDefinition Width="2*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <scaffold:FieldRow Label="{loc:L 'P_rotocol'}" Margin="0,0,8,0" LabelGroup="PortLine">
+                <scaffold:FieldRow Label="{loc:L 'Proto_col'}" Margin="0,0,8,0" LabelGroup="PortLine">
                     <ComboBox x:Name="NewProtocol" SelectedIndex="0">
                         <ComboBoxItem Content="SMTP" />
                         <ComboBoxItem Content="POP3" />

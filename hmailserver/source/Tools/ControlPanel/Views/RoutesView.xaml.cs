@@ -86,6 +86,7 @@ namespace hMailServer.ControlPanel.Views
             // fact this page has now: both go, the notice says what happened, with
             // Try again, and Add waits for a read that works (Services/ReadFailure).
             ReadFailure.Show(Notice, EmptyStatus, RouteGrid, L("Could not read the routes: "), ex, Reload, AddRouteButton);
+            CountPill.Visibility = Visibility.Collapsed;
             return;
          }
 
@@ -93,7 +94,12 @@ namespace hMailServer.ControlPanel.Views
          RouteGrid.ItemsSource = rows;
          ListSearch.Apply(RouteGrid, SearchBar.SearchText);
          StatusText.Show(EmptyStatus, null, rows.Count, null, L("No routes, so every domain's mail is delivered the usual way: to its MX hosts, or through the relay set on the Delivery of e-mail page."));
+         CountPill.Text = Plural(rows.Count, "{0} route", "{0} routes");
+         CountPill.Visibility = Visibility.Visible;
       }
+
+      /// <summary>The header's Refresh: the list read again, as F5 reads it.</summary>
+      private void Refresh_Click(object sender, RoutedEventArgs e) => Reload();
 
       private void Search_TextChanged(object sender, EventArgs e)
          => ListSearch.Apply(RouteGrid, SearchBar.SearchText);

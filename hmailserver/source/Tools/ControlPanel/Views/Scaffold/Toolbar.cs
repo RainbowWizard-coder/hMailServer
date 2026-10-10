@@ -89,6 +89,102 @@ namespace hMailServer.ControlPanel.Views.Scaffold
 
       protected override AutomationControlType ControlType => AutomationControlType.ToolBar;
 
+      /// <summary>
+      /// The actions sit beside the search box and the filters while the widest of
+      /// them fits in the width those leave, wrapping there when they are a
+      /// WrapPanel, and go on a row of their own under them, at the right edge,
+      /// when it does not (Services/ToolbarRows): a list page's Edit, Delete and
+      /// Add… beside the suppression list's search and sending domain had no width
+      /// in the narrowest window and were not drawn at all. The filters go under the
+      /// search, from the left, when the two are wider than the toolbar, and the
+      /// actions are then beside the search where they fit and under the filters
+      /// where they do not.
+      /// </summary>
+      protected override Size MeasureOverride(Size constraint)
+      {
+         if (!double.IsInfinity(constraint.Width) && Part<FrameworkElement>("PART_Actions") is { } actions)
+         {
+            var any = new Size(double.PositiveInfinity, double.PositiveInfinity);
+            double search = 0, filters = 0;
+            if (Part<FrameworkElement>("PART_Search") is { Visibility: Visibility.Visible } box)
+            {
+               box.Measure(any);
+               search = box.DesiredSize.Width;
+            }
+
+            FrameworkElement slot = Part<FrameworkElement>("PART_Filters");
+            if (slot is { Visibility: Visibility.Visible })
+            {
+               // Measured where it stands beside the search, with its margin: the
+               // margin is cleared below only while the filters are under it.
+               slot.Measure(any);
+               filters = slot.DesiredSize.Width + (System.Windows.Controls.Grid.GetRow(slot) == 0 ? 0 : Services.ToolbarRows.Gap);
+            }
+
+            bool filtersUnder = Services.ToolbarRows.FiltersUnder(constraint.Width, search, filters);
+            if (slot != null)
+               Place_(slot, filtersUnder ? 1 : 0, filtersUnder ? 0 : 1, filtersUnder ? 4 : 1, filtersUnder ? new Thickness(0, Services.ToolbarRows.Gap, 0, 0) : null);
+            if (filtersUnder)
+               slot.HorizontalAlignment = HorizontalAlignment.Left;
+
+            bool under = actions.Visibility == Visibility.Visible
+                         && Services.ToolbarRows.ActionsUnder(constraint.Width, search, filtersUnder ? 0 : filters, WidestAction_(Actions, any));
+            int row = under ? (filtersUnder ? 2 : 1) : 0;
+            Place_(actions, row, under ? 0 : 2, under ? 4 : 2, under ? new Thickness(0, Services.ToolbarRows.Gap, 0, 0) : null);
+         }
+
+         return base.MeasureOverride(constraint);
+      }
+
+      /// <summary>
+      /// Puts a part of the template in a row and columns of its grid, with a margin
+      /// of its own there, or - at null - the template's margin back.
+      /// </summary>
+      private static void Place_(FrameworkElement part, int row, int column, int span, Thickness? margin)
+      {
+         if (System.Windows.Controls.Grid.GetRow(part) == row && System.Windows.Controls.Grid.GetColumn(part) == column)
+            return;
+
+         System.Windows.Controls.Grid.SetRow(part, row);
+         System.Windows.Controls.Grid.SetColumn(part, column);
+         System.Windows.Controls.Grid.SetColumnSpan(part, span);
+         if (margin is { } own)
+            part.Margin = own;
+         else
+            part.ClearValue(MarginProperty);
+         if (row == 0)
+            part.ClearValue(HorizontalAlignmentProperty);
+      }
+
+      /// <summary>
+      /// The width of the widest action of a WrapPanel of them, which wraps them; of
+      /// any other panel or element as a whole, since it does not.
+      /// </summary>
+      private static double WidestAction_(object actions, Size any)
+      {
+         if (actions is System.Windows.Controls.WrapPanel panel)
+         {
+            double widest = 0;
+            foreach (UIElement child in panel.Children)
+            {
+               if (child.Visibility == Visibility.Collapsed)
+                  continue;
+               child.Measure(any);
+               widest = System.Math.Max(widest, child.DesiredSize.Width);
+            }
+
+            return widest;
+         }
+
+         if (actions is UIElement element)
+         {
+            element.Measure(any);
+            return element.DesiredSize.Width;
+         }
+
+         return 0;
+      }
+
       public override void OnApplyTemplate()
       {
          base.OnApplyTemplate();

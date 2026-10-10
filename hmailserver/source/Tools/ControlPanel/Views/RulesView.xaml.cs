@@ -264,10 +264,11 @@ namespace hMailServer.ControlPanel.Views
             // the rule that was selected, the notice says what happened, with
             // Try again, and Add rule waits for a read that works (Services/ReadFailure).
             ReadFailure.Show(Notice, EmptyStatus, RuleGrid, L("Could not read the rules: "), ex, Reload, AddRuleButton);
+            CountPill.Visibility = Visibility.Collapsed;
             selectedRuleId_ = 0;
             CriteriaGrid.ItemsSource = null;
             ActionsGrid.ItemsSource = null;
-            HeaderPanel.Subtitle = Subtitle_(0);
+            HeaderPanel.Subtitle = Subtitle_();
             return;
          }
 
@@ -275,32 +276,30 @@ namespace hMailServer.ControlPanel.Views
          RuleGrid.ItemsSource = rows;
          ListSearch.Apply(RuleGrid, SearchBar.SearchText);
          StatusText.Show(EmptyStatus, null, rows.Count, null, L("No rules defined yet - create one below."));
-         HeaderPanel.Subtitle = Subtitle_(rows.Count);
+         HeaderPanel.Subtitle = Subtitle_();
+         CountPill.Text = Plural(rows.Count, "{0} rule", "{0} rules");
+         CountPill.Visibility = Visibility.Visible;
 
          CriteriaGrid.ItemsSource = null;
          ActionsGrid.ItemsSource = null;
       }
 
       /// <summary>
-      /// The subtitle: how many rules the list shows, and whose - the server's or the
-      /// domain's chosen in Show rules for - where it said "4 rule(s)" of whichever
-      /// was chosen (review finding F226). One whole sentence for none, one and
-      /// several, per scope.
+      /// The subtitle: whose rules the list shows - the server's or the domain's
+      /// chosen in Show rules for - where it said "4 rule(s)" of whichever was
+      /// chosen (review finding F226). How many is the pill's beside the title, as
+      /// on every list page (review finding F288), where the subtitle counted them.
       /// </summary>
-      private string Subtitle_(int count)
-      {
-         if (scopeDomain_ == null)
-         {
-            return count == 0 ? L("Server-wide message rules, evaluated top to bottom.")
-               : Plural(count, "{0} rule of the server, evaluated top to bottom.", "{0} rules of the server, evaluated top to bottom.");
-         }
-
-         return count == 0 ? F("Message rules of {0}, evaluated top to bottom.", scopeDomain_)
-            : PluralF(count, "{0} rule of {1}, evaluated top to bottom.", "{0} rules of {1}, evaluated top to bottom.", count, scopeDomain_);
-      }
+      private string Subtitle_()
+         => scopeDomain_ == null
+            ? L("Server-wide message rules, evaluated top to bottom.")
+            : F("Message rules of {0}, evaluated top to bottom.", scopeDomain_);
 
       private void Search_TextChanged(object sender, EventArgs e)
          => ListSearch.Apply(RuleGrid, SearchBar.SearchText);
+
+      /// <summary>The header's Refresh: the list read again, as F5 reads it.</summary>
+      private void Refresh_Click(object sender, RoutedEventArgs e) => Reload();
 
       private static readonly string[] FieldNames =
          { "?", L("From"), L("To"), L("CC"), L("Subject"), L("Body"), L("Message size"), L("Recipient list"), L("Delivery attempts"),

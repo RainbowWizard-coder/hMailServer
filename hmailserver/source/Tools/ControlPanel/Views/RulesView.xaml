@@ -22,7 +22,18 @@
         <!-- Titled as the navigation map names the page; "Global rules" is one of
              its aliases, and the page shows a domain's rules as well. -->
         <scaffold:PageHeader x:Name="HeaderPanel" PageKey="rules"
-                             Subtitle="{loc:L 'Server-wide message rules, evaluated top to bottom.'}" />
+                             Subtitle="{loc:L 'Server-wide message rules, evaluated top to bottom.'}">
+            <!-- The list page pattern (docs/ControlPanelDesign.md, List pages): the
+                 count beside the title and Refresh in the header, the list's own
+                 verbs in the toolbar above it (review finding F288). -->
+            <scaffold:PageHeader.Status>
+                <scaffold:StatusPill x:Name="CountPill" Level="Normal" Visibility="Collapsed"
+                                     AutomationProperties.AutomationId="list-count" />
+            </scaffold:PageHeader.Status>
+            <scaffold:PageHeader.Actions>
+                <ui:Button x:Name="RefreshButton" Content="{loc:L '_Refresh'}" Click="Refresh_Click" />
+            </scaffold:PageHeader.Actions>
+        </scaffold:PageHeader>
 
         <!-- The list of rules and the criteria and actions under it take the
              height the toolbar and the add form leave in the window, one to 1.3
@@ -173,7 +184,7 @@
                     <WrapPanel Orientation="Horizontal">
                         <ui:Button x:Name="AddCriterionButton" Content="{loc:L 'Add _criterion…'}" Appearance="Primary" Click="AddCriterion_Click" Margin="0,0,8,4" />
                         <ui:Button x:Name="EditCriterionButton" Content="{loc:L '_Edit criterion…'}" Click="EditCriterion_Click" Margin="0,0,8,4" />
-                        <ui:Button x:Name="RemoveCriterionButton" Content="{loc:L '_Remove criterion'}" Style="{StaticResource DangerTextButton}" Click="RemoveCriterion_Click" Margin="0,0,0,4" />
+                        <ui:Button x:Name="RemoveCriterionButton" Content="{loc:L 'Rem_ove criterion'}" Style="{StaticResource DangerTextButton}" Click="RemoveCriterion_Click" Margin="0,0,0,4" />
                     </WrapPanel>
                 </scaffold:Card.Footer>
             </scaffold:Card>

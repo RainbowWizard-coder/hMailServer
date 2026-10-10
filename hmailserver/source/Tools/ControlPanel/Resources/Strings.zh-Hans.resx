@@ -978,9 +978,6 @@
   <data name="Add a _header the reader shows as a banner" xml:space="preserve">
     <value>添加读者显示为横幅的邮件头(_H)</value>
   </data>
-  <data name="Add a _route" xml:space="preserve">
-    <value>添加路由(_R)</value>
-  </data>
   <data name="Add a blocked attachment pattern" xml:space="preserve">
     <value>添加附件拦截模式</value>
   </data>
@@ -1016,6 +1013,9 @@
   </data>
   <data name="Add a remote domain policy" xml:space="preserve">
     <value>添加远程域策略</value>
+  </data>
+  <data name="Add a ro_ute" xml:space="preserve">
+    <value>添加路由(_U)</value>
   </data>
   <data name="Add a row to a list, or go to the form that adds one" xml:space="preserve">
     <value>向列表添加一行，或转到添加行的表单</value>
@@ -3851,8 +3851,8 @@
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>照常投递，仅作记录</value>
   </data>
-  <data name="Deliver local → _remote" xml:space="preserve">
-    <value>投递本地 → 远程(_R)</value>
+  <data name="Deliver lo_cal → remote" xml:space="preserve">
+    <value>投递本地 → 远程(_C)</value>
   </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
     <value>把发往指定域的邮件投递到选定的服务器，而不是查询其 MX 记录。</value>
@@ -4539,9 +4539,6 @@
   </data>
   <data name="Enter, F2" xml:space="preserve">
     <value>Enter、F2</value>
-  </data>
-  <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
-    <value>与搜索匹配的条目：{1} 个中的 {0} 个。</value>
   </data>
   <data name="Entry skipped" xml:space="preserve">
     <value>已跳过条目</value>
@@ -8293,9 +8290,6 @@
   <data name="P_ort" xml:space="preserve">
     <value>端口(_O)</value>
   </data>
-  <data name="P_rotocol" xml:space="preserve">
-    <value>协议(_R)</value>
-  </data>
   <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM:" xml:space="preserve">
     <value>在您的 DNS 提供商处发布此 DNS TXT 记录，然后启用 DKIM(_U)：</value>
   </data>
@@ -8667,6 +8661,9 @@
   <data name="Protection" xml:space="preserve">
     <value>防护</value>
   </data>
+  <data name="Proto_col" xml:space="preserve">
+    <value>协议(_C)</value>
+  </data>
   <data name="Protocol" xml:space="preserve">
     <value>协议</value>
   </data>
@@ -8879,6 +8876,9 @@
   </data>
   <data name="Re_move name" xml:space="preserve">
     <value>删除名称(_M)</value>
+  </data>
+  <data name="Re_move stored passphrase" xml:space="preserve">
+    <value>移除已存储的密码短语(_M)</value>
   </data>
   <data name="Re_move the rule" xml:space="preserve">
     <value>移除规则(_M)</value>
@@ -9258,6 +9258,9 @@
   </data>
   <data name="Relying party (empty = the host the page is on)" xml:space="preserve">
     <value>依赖方（空 = 提供页面的主机）</value>
+  </data>
+  <data name="Rem_ove criterion" xml:space="preserve">
+    <value>移除条件(_O)</value>
   </data>
   <data name="Remember this many previous passwords (0 = no history)" xml:space="preserve">
     <value>记住这么多个历史密码（0 = 不保留历史）</value>
@@ -14900,14 +14903,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Reload from disk" xml:space="preserve">
     <value>从磁盘重新加载(_R)</value>
   </data>
-  <data name="_Remove criterion" xml:space="preserve">
-    <value>移除条件(_R)</value>
-  </data>
   <data name="_Remove message" xml:space="preserve">
     <value>移除邮件(_R)</value>
-  </data>
-  <data name="_Remove stored passphrase" xml:space="preserve">
-    <value>移除已存储的密码短语(_R)</value>
   </data>
   <data name="_Rename the account" xml:space="preserve">
     <value>重命名账户(_R)</value>
@@ -16095,6 +16092,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} IP addresses" xml:space="preserve">
     <value>{0} 个 IP 地址</value>
   </data>
+  <data name="{0} IP range" xml:space="preserve">
+    <value>{0} 个 IP 范围</value>
+  </data>
+  <data name="{0} IP ranges" xml:space="preserve">
+    <value>{0} 个 IP 范围</value>
+  </data>
   <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
     <value>{0}如果发现病毒，附件被剥除，邮件仍然投递。</value>
   </data>
@@ -16158,17 +16161,17 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} added." xml:space="preserve">
     <value>已添加 {0}。</value>
   </data>
+  <data name="{0} address" xml:space="preserve">
+    <value>{0} 个地址</value>
+  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>列表中有 {0} 个地址，显示最近的 {1} 个。可通过搜索缩小范围。</value>
   </data>
-  <data name="{0} address listed." xml:space="preserve">
-    <value>列表中有 {0} 个地址。</value>
+  <data name="{0} addresses" xml:space="preserve">
+    <value>{0} 个地址</value>
   </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>列表中有 {0} 个地址，显示最近的 {1} 个。可通过搜索缩小范围。</value>
-  </data>
-  <data name="{0} addresses listed." xml:space="preserve">
-    <value>列表中有 {0} 个地址。</value>
   </data>
   <data name="{0} aliases" xml:space="preserve">
     <value>{0} 个别名</value>
@@ -16211,6 +16214,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} cases. Select one for its lines on the audit trail." xml:space="preserve">
     <value>{0} 个案件。选择一个即可查看其在审计记录中的行。</value>
+  </data>
+  <data name="{0} certificate" xml:space="preserve">
+    <value>{0} 个证书</value>
+  </data>
+  <data name="{0} certificates" xml:space="preserve">
+    <value>{0} 个证书</value>
   </data>
   <data name="{0} change carried out, none failed." xml:space="preserve">
     <value>已执行 {0} 项更改，没有失败。</value>
@@ -16275,17 +16284,17 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} entry" xml:space="preserve">
     <value>{0} 个条目</value>
   </data>
+  <data name="{0} event" xml:space="preserve">
+    <value>{0} 个事件</value>
+  </data>
   <data name="{0} event past the retention window was removed." xml:space="preserve">
     <value>已移除 {0} 个超出保留窗口的事件。</value>
   </data>
-  <data name="{0} event, newest first." xml:space="preserve">
-    <value>{0} 个事件，最新的在前。</value>
+  <data name="{0} events" xml:space="preserve">
+    <value>{0} 个事件</value>
   </data>
   <data name="{0} events past the retention window were removed." xml:space="preserve">
     <value>已移除 {0} 个超出保留窗口的事件。</value>
-  </data>
-  <data name="{0} events, newest first." xml:space="preserve">
-    <value>{0} 个事件，最新的在前。</value>
   </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>有 {0} 个外部 POP3 收取账户关闭了反病毒，因此由它们收取的邮件会以未扫描的状态投递，无论此处如何设置。该开关在收取账户上，而不在本页上。</value>
@@ -16422,17 +16431,11 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} message cannot be listed and will be left where it is. The first reason: {1}" xml:space="preserve">
     <value>{0} 封邮件无法列入名单，将保留原状。首个原因：{1}</value>
   </data>
-  <data name="{0} message held." xml:space="preserve">
-    <value>已暂挂 {0} 封邮件。</value>
-  </data>
   <data name="{0} message past the retention window was removed." xml:space="preserve">
     <value>已移除 {0} 封超出保留窗口的邮件。</value>
   </data>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>有 {0} 封邮件引用了磁盘上已缺失的文件。</value>
-  </data>
-  <data name="{0} message waiting for delivery." xml:space="preserve">
-    <value>有 {0} 封邮件正在等待投递。</value>
   </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} 封邮件</value>
@@ -16440,17 +16443,11 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
     <value>{0} 封邮件无法列入名单，将保留原状。首个原因：{1}</value>
   </data>
-  <data name="{0} messages held." xml:space="preserve">
-    <value>已暂挂 {0} 封邮件。</value>
-  </data>
   <data name="{0} messages past the retention window were removed." xml:space="preserve">
     <value>已移除 {0} 封超出保留窗口的邮件。</value>
   </data>
   <data name="{0} messages reference a file that is missing on disk." xml:space="preserve">
     <value>有 {0} 封邮件引用了磁盘上已缺失的文件。</value>
-  </data>
-  <data name="{0} messages waiting for delivery." xml:space="preserve">
-    <value>有 {0} 封邮件正在等待投递。</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} 分钟</value>
@@ -16524,17 +16521,23 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} 个模式会按文件名从每封邮件中剥除，无论扫描器如何判定。</value>
   </data>
+  <data name="{0} port" xml:space="preserve">
+    <value>{0} 个端口</value>
+  </data>
+  <data name="{0} ports" xml:space="preserve">
+    <value>{0} 个端口</value>
+  </data>
   <data name="{0} problem" xml:space="preserve">
     <value>{0} 个问题</value>
   </data>
   <data name="{0} problems" xml:space="preserve">
     <value>{0} 个问题</value>
   </data>
-  <data name="{0} public folder." xml:space="preserve">
-    <value>{0} 个公用文件夹。</value>
+  <data name="{0} public folder" xml:space="preserve">
+    <value>{0} 个公用文件夹</value>
   </data>
-  <data name="{0} public folders." xml:space="preserve">
-    <value>{0} 个公用文件夹。</value>
+  <data name="{0} public folders" xml:space="preserve">
+    <value>{0} 个公用文件夹</value>
   </data>
   <data name="{0} recipient added." xml:space="preserve">
     <value>已添加 {0} 个收件人。</value>
@@ -16563,26 +16566,23 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} remote domain policies" xml:space="preserve">
     <value>{0} 条远程域策略</value>
   </data>
+  <data name="{0} route" xml:space="preserve">
+    <value>{0} 条路由</value>
+  </data>
+  <data name="{0} routes" xml:space="preserve">
+    <value>{0} 条路由</value>
+  </data>
   <data name="{0} row needs reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>在您应用之前有 {0} 行需要先读一读 - 被跳过的条目意味着有人期待的邮箱不会出现，而被禁用的条目意味着一个邮箱正在被收回。</value>
   </data>
   <data name="{0} rows need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>在您应用之前有 {0} 行需要先读一读 - 被跳过的条目意味着有人期待的邮箱不会出现，而被禁用的条目意味着一个邮箱正在被收回。</value>
   </data>
-  <data name="{0} rule of the server, evaluated top to bottom." xml:space="preserve">
-    <value>服务器的规则 {0} 条，自上而下评估。</value>
-  </data>
-  <data name="{0} rule of {1}, evaluated top to bottom." xml:space="preserve">
-    <value>{1} 的规则 {0} 条，自上而下评估。</value>
+  <data name="{0} rule" xml:space="preserve">
+    <value>{0} 条规则</value>
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>{0} 条规则</value>
-  </data>
-  <data name="{0} rules of the server, evaluated top to bottom." xml:space="preserve">
-    <value>服务器的规则 {0} 条，自上而下评估。</value>
-  </data>
-  <data name="{0} rules of {1}, evaluated top to bottom." xml:space="preserve">
-    <value>{1} 的规则 {0} 条，自上而下评估。</value>
   </data>
   <data name="{0} sample copied to the clipboard." xml:space="preserve">
     <value>已把 {0} 个样本复制到剪贴板。</value>

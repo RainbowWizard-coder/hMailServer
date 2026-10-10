@@ -23,20 +23,28 @@ namespace hMailServer.ControlPanel.Tests.Services
    /// </summary>
    public class SuppressionListPageTests
    {
+      /// <summary>
+      /// The list page pattern (review finding F288): Remove and then Add…, the
+      /// Primary, in the toolbar over the list, the count and Refresh in the
+      /// header. The actions were put in the header because beside the domain box
+      /// they had no width in the narrowest window; the toolbar puts them on a row
+      /// of their own there now, so that they are drawn whatever the width.
+      /// </summary>
       [Fact]
-      public void TheActions_AreInThePageHeader_NotTheToolbar()
+      public void TheActions_AreInTheToolbar_AndRefreshAndTheCountInTheHeader()
       {
          string build = Build();
-         Assert.Contains("Actions = actions", build, StringComparison.Ordinal);
-         Assert.DoesNotContain("toolbar_.Actions", build, StringComparison.Ordinal);
+         Assert.Contains("toolbar_.Actions = actions;", build, StringComparison.Ordinal);
+         Assert.Contains("Status = count_,", build, StringComparison.Ordinal);
+         Assert.Matches(new Regex(@"Actions = MakeButton\(L\(""_Refresh""\)"), build);
 
-         // Add…, Remove and Refresh, built before the header that holds them.
+         int remove = build.IndexOf("L(\"Re_move\")", StringComparison.Ordinal);
+         int add = build.IndexOf("L(\"_Add…\")", StringComparison.Ordinal);
          int header = build.IndexOf("root.Children.Add(new PageHeader", StringComparison.Ordinal);
-         foreach (string caption in new[] { "L(\"_Add…\")", "L(\"Re_move\")", "L(\"_Refresh\")" })
-         {
-            int at = build.IndexOf(caption, StringComparison.Ordinal);
-            Assert.True(at >= 0 && at < header, caption + " is not built for the page header.");
-         }
+         Assert.True(remove >= 0 && add > remove && header > add, "Remove, then Add…, the Primary, are not the toolbar's actions in that order.");
+
+         string toolbar = ReadControlPanelFile(Path.Join("Views", "Scaffold", "Toolbar.cs"));
+         Assert.Contains("Services.ToolbarRows.ActionsUnder(", toolbar, StringComparison.Ordinal);
       }
 
       [Fact]

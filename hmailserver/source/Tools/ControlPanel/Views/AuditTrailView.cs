@@ -39,6 +39,10 @@ namespace hMailServer.ControlPanel.Views
       private readonly InlineNotice status_ = new() { Visibility = Visibility.Collapsed };
       private readonly EmptyState empty_ = new() { Icon = Wpf.Ui.Controls.SymbolRegular.DocumentBulletList24, Visibility = Visibility.Collapsed };
 
+      // Which rows of how many the page shows, "1 to 100 of 1,284", beside the
+      // title, where an Information notice said it (review finding F288).
+      private readonly StatusPill count_ = new() { Level = StatusLevel.Normal, Visibility = Visibility.Collapsed };
+
       private const int PageSize = 100;
       private int offset_;
       private int total_;
@@ -71,6 +75,7 @@ namespace hMailServer.ControlPanel.Views
       {
          ReadFailure.Clear(status_);
          status_.Visibility = Visibility.Collapsed;
+         count_.Visibility = Visibility.Collapsed;
 
          try
          {
@@ -100,7 +105,10 @@ namespace hMailServer.ControlPanel.Views
                L("Nothing has been recorded yet. Every administrative change appears here."));
 
             if (report.Total > 0)
-               Status_(StatusLevel.Information, F("{0} to {1} of {2}", offset_ + 1, offset_ + report.Entries.Count, report.Total));
+            {
+               count_.Text = F("{0} to {1} of {2}", offset_ + 1, offset_ + report.Entries.Count, report.Total);
+               count_.Visibility = Visibility.Visible;
+            }
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -259,6 +267,8 @@ namespace hMailServer.ControlPanel.Views
 
          root.Children.Add(new PageHeader
          {
+            Status = count_,
+            Actions = MakeButton(L("_Refresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload()),
             PageKey = "audit",
             Subtitle = L("Every administrative change as one row in a hash chain: who made it, when, over which interface, from where, and with what authority. A setting's change can be put back from its row.")
          });
@@ -272,14 +282,17 @@ namespace hMailServer.ControlPanel.Views
          // A WrapPanel, so that in a narrow window the last buttons move to a
          // second line rather than off the edge (the toolbar gives the actions
          // the width that is left).
-         var actions = new WrapPanel { Orientation = Orientation.Horizontal };
+         // The pages of rows, the chain's check and then Put back, the Primary, at
+         // the right edge, where it came first; Refresh is the page's and is in the
+         // header (docs/ControlPanelDesign.md, List pages; review findings F288,
+         // F289).
+         var actions = new WrapPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
+         actions.Children.Add(MakeButton(L("_Newer"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => { offset_ = Math.Max(0, offset_ - PageSize); Reload(); }));
+         actions.Children.Add(MakeButton(L("_Older"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => { if (offset_ + PageSize < total_) { offset_ += PageSize; Reload(); } }));
+         actions.Children.Add(MakeButton(L("_Verify the chain"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => VerifyChain()));
          var putBack = MakeButton(L("_Put back"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => PutBackSelected());
          actions.Children.Add(putBack);
          SelectionGate.Bind(rows_, putBack);
-         actions.Children.Add(MakeButton(L("_Verify the chain"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => VerifyChain()));
-         actions.Children.Add(MakeButton(L("_Newer"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => { offset_ = Math.Max(0, offset_ - PageSize); Reload(); }));
-         actions.Children.Add(MakeButton(L("_Older"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => { if (offset_ + PageSize < total_) { offset_ += PageSize; Reload(); } }));
-         actions.Children.Add(MakeButton(L("_Refresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload()));
          foreach (FrameworkElement button in actions.Children)
             button.Margin = new Thickness(button.Margin.Left, 3, button.Margin.Right, 3);
          toolbar_.Actions = actions;

@@ -139,9 +139,8 @@ namespace hMailServer.ControlPanel.Views
             ListSearch.Apply(QueueGrid, SearchBar.SearchText);
             ReadFailure.Clear(Notice);
             StatusText.Show(EmptyStatus, Notice, rows.Count, null, L("The delivery queue is empty."));
-            Header.Subtitle = rows.Count == 0
-               ? L("Messages waiting for delivery.")
-               : Plural(rows.Count, "{0} message waiting for delivery.", "{0} messages waiting for delivery.");
+            CountPill.Text = Plural(rows.Count, "{0} message", "{0} messages");
+            CountPill.Visibility = Visibility.Visible;
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -149,7 +148,7 @@ namespace hMailServer.ControlPanel.Views
             // is a fact this page has now: both go, and the notice says what
             // happened, with Try again (Services/ReadFailure).
             ReadFailure.Show(Notice, EmptyStatus, QueueGrid, L("Could not read the queue: "), ex, Reload);
-            Header.Subtitle = L("Messages waiting for delivery.");
+            CountPill.Visibility = Visibility.Collapsed;
          }
       }
 

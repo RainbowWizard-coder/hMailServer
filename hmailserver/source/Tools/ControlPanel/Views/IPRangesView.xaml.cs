@@ -184,6 +184,7 @@ namespace hMailServer.ControlPanel.Views
             // thing to offer over a list that could not be seen (Services/ReadFailure).
             ReadFailure.Show(Notice, EmptyStatus, RangeGrid, L("Could not read the IP ranges: "), ex, Reload,
                AddRangeButton, RestoreDefaultsButton);
+            CountPill.Visibility = Visibility.Collapsed;
             // The permissions card keeps the edits it holds: a read that failed
             // is no more a reason to lose them than an added range is, and the
             // next read that works selects their range again. With none, the
@@ -200,6 +201,8 @@ namespace hMailServer.ControlPanel.Views
             RangeGrid.ItemsSource = rows;
             ListSearch.Apply(RangeGrid, SearchBar.SearchText);
             StatusText.Show(EmptyStatus, null, rows.Count, null, L("No IP ranges, so this server refuses every SMTP, POP3 and IMAP connection until one exists."));
+            CountPill.Text = Plural(rows.Count, "{0} IP range", "{0} IP ranges");
+            CountPill.Visibility = Visibility.Visible;
 
             // Selected, not scrolled into view: the list keeps its own offset when its
             // rows are replaced, and ScrollIntoView would bring the row into the
@@ -246,6 +249,12 @@ namespace hMailServer.ControlPanel.Views
 
       private void Search_TextChanged(object sender, EventArgs e)
          => ListSearch.Apply(RangeGrid, SearchBar.SearchText);
+
+      /// <summary>
+      /// The header's Refresh: the ranges read again as F5 reads them, the selected
+      /// range kept and the permission boxes' unsaved changes with it.
+      /// </summary>
+      private void Refresh_Click(object sender, RoutedEventArgs e) => Reload();
 
       private void RangeGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
       {

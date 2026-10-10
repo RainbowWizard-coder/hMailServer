@@ -113,6 +113,10 @@ namespace hMailServer.ControlPanel.Views
       // each was held (QuarantineReview.Filter).
       private readonly Toolbar search_ = new();
 
+      // How many messages are held, beside the title, where an Information notice
+      // said "5 messages held." (review finding F288).
+      private readonly StatusPill count_ = new() { Level = StatusLevel.Normal, Visibility = Visibility.Collapsed };
+
       // What the empty state says with no search, and how many are held and were
       // listed, so that a search that matches nothing can say so and give the
       // state back when it is cleared.
@@ -289,12 +293,15 @@ namespace hMailServer.ControlPanel.Views
                total_ = total;
                ShowSearchState_();
 
-               if (total == 0)
-                  status_.Visibility = Visibility.Collapsed;
-               else if (messages.Count < total)
+               count_.Text = Plural(total, "{0} message", "{0} messages");
+               count_.Visibility = Visibility.Visible;
+
+               // A list longer than the page reads is a state with a consequence -
+               // the rest are still held - so it keeps its notice.
+               if (messages.Count < total)
                   Status_(StatusLevel.Information, F("{0} held, showing the {1} most recent. The rest are still there - work through these, or let the retention sweep age them out.", total, messages.Count));
                else
-                  Status_(StatusLevel.Information, Plural(total, "{0} message held.", "{0} messages held."));
+                  status_.Visibility = Visibility.Collapsed;
             }
             finally
             {
@@ -310,6 +317,7 @@ namespace hMailServer.ControlPanel.Views
             review_.Load(new List<HeldMessage>());
             selectAll_.IsChecked = false;
             ReadFailure.Show(status_, empty_, list_, L("Could not read the quarantine: "), ex, Reload);
+            count_.Visibility = Visibility.Collapsed;
          }
       }
 
@@ -1348,17 +1356,26 @@ namespace hMailServer.ControlPanel.Views
          var groupLabel = new Label { Content = L("Gro_up by"), Target = grouping_, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 6, 0) };
          AutomationProperties.SetName(grouping_, L("Group by"));
 
+         // The list page pattern (docs/ControlPanelDesign.md, List pages; review
+         // finding F288): the count, the digest's settings and Refresh in the
+         // header; the grouping, a filter, beside the search, and Remove expired,
+         // which acts on the list, in the toolbar over it. All four were in the
+         // header, which squeezed the title in a narrow window.
          var actions = new StackPanel { Orientation = Orientation.Horizontal };
-         actions.Children.Add(groupLabel);
-         actions.Children.Add(grouping_);
+         actions.Children.Add(MakeButton(L("Di_gest settings"), ControlAppearance.Secondary, (_, _) => EditDigestSettings()));
+         actions.Children.Add(MakeButton(L("_Refresh"), ControlAppearance.Secondary, (_, _) => Reload()));
+
+         var filters = new StackPanel { Orientation = Orientation.Horizontal };
+         filters.Children.Add(groupLabel);
+         filters.Children.Add(grouping_);
+         search_.Filters = filters;
          removeExpired_ = MakeButton(L("Remove _expired"), ControlAppearance.Secondary, (_, _) => SweepExpired());
          ButtonStyles.DangerText(removeExpired_);
-         actions.Children.Add(removeExpired_);
-         actions.Children.Add(MakeButton(L("_Refresh"), ControlAppearance.Secondary, (_, _) => Reload()));
-         actions.Children.Add(MakeButton(L("Di_gest settings"), ControlAppearance.Secondary, (_, _) => EditDigestSettings()));
+         search_.Actions = removeExpired_;
 
          root.Children.Add(new PageHeader
          {
+            Status = count_,
             PageKey = "quarantine",
             Subtitle = L("Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message, on a group, or - in the header - on every checked message."),
             Actions = actions

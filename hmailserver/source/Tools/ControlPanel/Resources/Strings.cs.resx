@@ -984,9 +984,6 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Add a _header the reader shows as a banner" xml:space="preserve">
     <value>Přidat _hlavičku, kterou čtenář zobrazí jako pruh</value>
   </data>
-  <data name="Add a _route" xml:space="preserve">
-    <value>Přidat _trasu</value>
-  </data>
   <data name="Add a blocked attachment pattern" xml:space="preserve">
     <value>Přidat vzor blokovaných příloh</value>
   </data>
@@ -1022,6 +1019,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   </data>
   <data name="Add a remote domain policy" xml:space="preserve">
     <value>Přidat pravidlo pro vzdálenou doménu</value>
+  </data>
+  <data name="Add a ro_ute" xml:space="preserve">
+    <value>Přidat _trasu</value>
   </data>
   <data name="Add a row to a list, or go to the form that adds one" xml:space="preserve">
     <value>Přidat řádek do seznamu nebo přejít do formuláře, který ho přidá</value>
@@ -3897,7 +3897,7 @@ Odesílateli bylo řečeno, že byla přijata, takže nic ji nezopakuje a jiná 
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>Doručit a jen zaznamenat</value>
   </data>
-  <data name="Deliver local → _remote" xml:space="preserve">
+  <data name="Deliver lo_cal → remote" xml:space="preserve">
     <value>Doručovat místní → _vzdálené</value>
   </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
@@ -4585,9 +4585,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Enter, F2" xml:space="preserve">
     <value>Enter, F2</value>
-  </data>
-  <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
-    <value>Položky odpovídající hledání: {0} z {1}.</value>
   </data>
   <data name="Entry skipped" xml:space="preserve">
     <value>Položka přeskočena</value>
@@ -8381,9 +8378,6 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="P_ort" xml:space="preserve">
     <value>P_ort</value>
   </data>
-  <data name="P_rotocol" xml:space="preserve">
-    <value>_Protokol</value>
-  </data>
   <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM:" xml:space="preserve">
     <value>Publikujte tento _DNS TXT záznam u svého poskytovatele DNS a poté zapněte DKIM:</value>
   </data>
@@ -8755,6 +8749,9 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Protection" xml:space="preserve">
     <value>Ochrana</value>
   </data>
+  <data name="Proto_col" xml:space="preserve">
+    <value>_Protokol</value>
+  </data>
   <data name="Protocol" xml:space="preserve">
     <value>Protokol</value>
   </data>
@@ -8967,6 +8964,9 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   </data>
   <data name="Re_move name" xml:space="preserve">
     <value>Odeb_rat název</value>
+  </data>
+  <data name="Re_move stored passphrase" xml:space="preserve">
+    <value>_Odstranit uložené přístupové heslo</value>
   </data>
   <data name="Re_move the rule" xml:space="preserve">
     <value>Odeb_rat pravidlo</value>
@@ -9359,6 +9359,9 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
   <data name="Relying party (empty = the host the page is on)" xml:space="preserve">
     <value>Spoléhající strana (prázdné = hostitel, na kterém je stránka)</value>
   </data>
+  <data name="Rem_ove criterion" xml:space="preserve">
+    <value>_Odebrat kritérium</value>
+  </data>
   <data name="Remember this many previous passwords (0 = no history)" xml:space="preserve">
     <value>Pamatovat si tento počet předchozích hesel (0 = žádná historie)</value>
   </data>
@@ -9708,10 +9711,10 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
     <value>Obnovení spuštěno – běží na pozadí na serveru.</value>
   </data>
   <data name="Restore the default p_orts" xml:space="preserve">
-    <value>O_bnovit výchozí porty</value>
+    <value>Ob_novit výchozí porty</value>
   </data>
   <data name="Restore the default ran_ges" xml:space="preserve">
-    <value>O_bnovit výchozí rozsahy</value>
+    <value>Obnovit výcho_zí rozsahy</value>
   </data>
   <data name="Restore the mailbo_x" xml:space="preserve">
     <value>Obnovit sc_hránku</value>
@@ -15072,14 +15075,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Reload from disk" xml:space="preserve">
     <value>Znovu _načíst z disku</value>
   </data>
-  <data name="_Remove criterion" xml:space="preserve">
-    <value>_Odebrat kritérium</value>
-  </data>
   <data name="_Remove message" xml:space="preserve">
     <value>_Odebrat zprávu</value>
-  </data>
-  <data name="_Remove stored passphrase" xml:space="preserve">
-    <value>_Odstranit uložené přístupové heslo</value>
   </data>
   <data name="_Rename the account" xml:space="preserve">
     <value>_Přejmenovat účet</value>
@@ -16288,6 +16285,15 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} IP addresses" xml:space="preserve">
     <value>Adresy IP: {0}</value>
   </data>
+  <data name="{0} IP range" xml:space="preserve">
+    <value>{0} rozsah IP</value>
+  </data>
+  <data name="{0} IP ranges" xml:space="preserve">
+    <value>{0} rozsahů IP</value>
+  </data>
+  <data name="{0} IP ranges|few" xml:space="preserve">
+    <value>{0} rozsahy IP</value>
+  </data>
   <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
     <value>{0} Pokud je nalezen virus, přílohy se odstraní a zpráva se přesto doručí.</value>
   </data>
@@ -16372,11 +16378,14 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} added." xml:space="preserve">
     <value>Přidáno: {0}.</value>
   </data>
+  <data name="{0} address" xml:space="preserve">
+    <value>{0} adresa</value>
+  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>Na seznamu je {0} adresa, zobrazeno {1} nejnovějších. Vyhledáváním je zúžíte.</value>
   </data>
-  <data name="{0} address listed." xml:space="preserve">
-    <value>Na seznamu je {0} adresa.</value>
+  <data name="{0} addresses" xml:space="preserve">
+    <value>{0} adres</value>
   </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>Na seznamu je {0} adres, zobrazeno {1} nejnovějších. Vyhledáváním je zúžíte.</value>
@@ -16384,11 +16393,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them.|few" xml:space="preserve">
     <value>Na seznamu jsou {0} adresy, zobrazeno {1} nejnovějších. Vyhledáváním je zúžíte.</value>
   </data>
-  <data name="{0} addresses listed." xml:space="preserve">
-    <value>Na seznamu je {0} adres.</value>
-  </data>
-  <data name="{0} addresses listed.|few" xml:space="preserve">
-    <value>Na seznamu jsou {0} adresy.</value>
+  <data name="{0} addresses|few" xml:space="preserve">
+    <value>{0} adresy</value>
   </data>
   <data name="{0} aliases" xml:space="preserve">
     <value>Aliasy: {0}</value>
@@ -16440,6 +16446,15 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} cases. Select one for its lines on the audit trail.|few" xml:space="preserve">
     <value>Případů: {0}. Vyberte jeden a zobrazí se jeho řádky v auditním záznamu.</value>
+  </data>
+  <data name="{0} certificate" xml:space="preserve">
+    <value>{0} certifikát</value>
+  </data>
+  <data name="{0} certificates" xml:space="preserve">
+    <value>{0} certifikátů</value>
+  </data>
+  <data name="{0} certificates|few" xml:space="preserve">
+    <value>{0} certifikáty</value>
   </data>
   <data name="{0} change carried out, none failed." xml:space="preserve">
     <value>Provedena {0} změna, žádná neselhala.</value>
@@ -16519,11 +16534,14 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} entry" xml:space="preserve">
     <value>{0} položka</value>
   </data>
+  <data name="{0} event" xml:space="preserve">
+    <value>{0} událost</value>
+  </data>
   <data name="{0} event past the retention window was removed." xml:space="preserve">
     <value>Odstraněna {0} událost za oknem uchovávání.</value>
   </data>
-  <data name="{0} event, newest first." xml:space="preserve">
-    <value>{0} událost, nejnovější první.</value>
+  <data name="{0} events" xml:space="preserve">
+    <value>{0} událostí</value>
   </data>
   <data name="{0} events past the retention window were removed." xml:space="preserve">
     <value>Odstraněno {0} událostí za oknem uchovávání.</value>
@@ -16531,11 +16549,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} events past the retention window were removed.|few" xml:space="preserve">
     <value>Odstraněny {0} události za oknem uchovávání.</value>
   </data>
-  <data name="{0} events, newest first." xml:space="preserve">
-    <value>{0} událostí, nejnovější první.</value>
-  </data>
-  <data name="{0} events, newest first.|few" xml:space="preserve">
-    <value>{0} události, nejnovější první.</value>
+  <data name="{0} events|few" xml:space="preserve">
+    <value>{0} události</value>
   </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>U {0} externího účtu pro stahování POP3 je antivirus vypnutý, takže pošta, kterou vyzvedává, se doručuje neskenovaná bez ohledu na to, co je nastaveno zde. Přepínač je na účtu pro stahování, ne na této stránce.</value>
@@ -16690,17 +16705,11 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} message cannot be listed and will be left where it is. The first reason: {1}" xml:space="preserve">
     <value>Pro {0} zprávu nelze zapsat záznam; zůstane tam, kde je. První důvod: {1}</value>
   </data>
-  <data name="{0} message held." xml:space="preserve">
-    <value>{0} zpráva pozdržena.</value>
-  </data>
   <data name="{0} message past the retention window was removed." xml:space="preserve">
     <value>Odstraněna {0} zpráva za oknem uchovávání.</value>
   </data>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} zpráva odkazuje na soubor, který na disku chybí.</value>
-  </data>
-  <data name="{0} message waiting for delivery." xml:space="preserve">
-    <value>{0} zpráva čeká na doručení.</value>
   </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} zpráv</value>
@@ -16710,12 +16719,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}|few" xml:space="preserve">
     <value>Pro {0} zprávy nelze zapsat záznam; zůstanou tam, kde jsou. První důvod: {1}</value>
-  </data>
-  <data name="{0} messages held." xml:space="preserve">
-    <value>{0} zpráv pozdrženo.</value>
-  </data>
-  <data name="{0} messages held.|few" xml:space="preserve">
-    <value>{0} zprávy pozdrženy.</value>
   </data>
   <data name="{0} messages past the retention window were removed." xml:space="preserve">
     <value>Odstraněno {0} zpráv za oknem uchovávání.</value>
@@ -16728,12 +16731,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} messages reference a file that is missing on disk.|few" xml:space="preserve">
     <value>{0} zprávy odkazují na soubor, který na disku chybí.</value>
-  </data>
-  <data name="{0} messages waiting for delivery." xml:space="preserve">
-    <value>{0} zpráv čeká na doručení.</value>
-  </data>
-  <data name="{0} messages waiting for delivery.|few" xml:space="preserve">
-    <value>{0} zprávy čekají na doručení.</value>
   </data>
   <data name="{0} messages|few" xml:space="preserve">
     <value>{0} zprávy</value>
@@ -16825,6 +16822,15 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say.|few" xml:space="preserve">
     <value>{0} vzory se z každé zprávy odstraňují podle názvu souboru, ať skenery říkají cokoli.</value>
   </data>
+  <data name="{0} port" xml:space="preserve">
+    <value>{0} port</value>
+  </data>
+  <data name="{0} ports" xml:space="preserve">
+    <value>{0} portů</value>
+  </data>
+  <data name="{0} ports|few" xml:space="preserve">
+    <value>{0} porty</value>
+  </data>
   <data name="{0} problem" xml:space="preserve">
     <value>Problémy: {0}</value>
   </data>
@@ -16834,14 +16840,14 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} problems|few" xml:space="preserve">
     <value>Problémy: {0}</value>
   </data>
-  <data name="{0} public folder." xml:space="preserve">
-    <value>{0} veřejná složka.</value>
+  <data name="{0} public folder" xml:space="preserve">
+    <value>{0} veřejná složka</value>
   </data>
-  <data name="{0} public folders." xml:space="preserve">
-    <value>{0} veřejných složek.</value>
+  <data name="{0} public folders" xml:space="preserve">
+    <value>{0} veřejných složek</value>
   </data>
-  <data name="{0} public folders.|few" xml:space="preserve">
-    <value>{0} veřejné složky.</value>
+  <data name="{0} public folders|few" xml:space="preserve">
+    <value>{0} veřejné složky</value>
   </data>
   <data name="{0} recipient added." xml:space="preserve">
     <value>Přidán {0} příjemce.</value>
@@ -16879,6 +16885,15 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} remote domain policies" xml:space="preserve">
     <value>Pravidla pro vzdálené domény: {0}</value>
   </data>
+  <data name="{0} route" xml:space="preserve">
+    <value>{0} trasa</value>
+  </data>
+  <data name="{0} routes" xml:space="preserve">
+    <value>{0} tras</value>
+  </data>
+  <data name="{0} routes|few" xml:space="preserve">
+    <value>{0} trasy</value>
+  </data>
   <data name="{0} row needs reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} řádek je třeba přečíst, než použijete – přeskočená položka je poštovní schránka, kterou někdo očekává a nedostane, a zakázaná je poštovní schránka, která se někomu odebírá.</value>
   </data>
@@ -16888,26 +16903,14 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} rows need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away.|few" xml:space="preserve">
     <value>{0} řádky je třeba přečíst, než použijete – přeskočená položka je poštovní schránka, kterou někdo očekává a nedostane, a zakázaná je poštovní schránka, která se někomu odebírá.</value>
   </data>
-  <data name="{0} rule of the server, evaluated top to bottom." xml:space="preserve">
-    <value>Pravidla serveru: {0}, vyhodnocovaná shora dolů.</value>
-  </data>
-  <data name="{0} rule of {1}, evaluated top to bottom." xml:space="preserve">
-    <value>Pravidla domény {1}: {0}, vyhodnocovaná shora dolů.</value>
+  <data name="{0} rule" xml:space="preserve">
+    <value>Pravidla: {0}</value>
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>Pravidla: {0}</value>
   </data>
-  <data name="{0} rules of the server, evaluated top to bottom." xml:space="preserve">
-    <value>Pravidla serveru: {0}, vyhodnocovaná shora dolů.</value>
-  </data>
-  <data name="{0} rules of the server, evaluated top to bottom.|few" xml:space="preserve">
-    <value>Pravidla serveru: {0}, vyhodnocovaná shora dolů.</value>
-  </data>
-  <data name="{0} rules of {1}, evaluated top to bottom." xml:space="preserve">
-    <value>Pravidla domény {1}: {0}, vyhodnocovaná shora dolů.</value>
-  </data>
-  <data name="{0} rules of {1}, evaluated top to bottom.|few" xml:space="preserve">
-    <value>Pravidla domény {1}: {0}, vyhodnocovaná shora dolů.</value>
+  <data name="{0} rules|few" xml:space="preserve">
+    <value>Pravidla: {0}</value>
   </data>
   <data name="{0} sample copied to the clipboard." xml:space="preserve">
     <value>{0} vzorek zkopírován do schránky.</value>

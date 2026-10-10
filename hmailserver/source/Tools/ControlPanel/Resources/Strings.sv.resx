@@ -978,9 +978,6 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Add a _header the reader shows as a banner" xml:space="preserve">
     <value>Lägg till ett _huvud som läsaren visar som en list</value>
   </data>
-  <data name="Add a _route" xml:space="preserve">
-    <value>Lägg till en _rutt</value>
-  </data>
   <data name="Add a blocked attachment pattern" xml:space="preserve">
     <value>Lägg till ett mönster för blockerade bilagor</value>
   </data>
@@ -1016,6 +1013,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   </data>
   <data name="Add a remote domain policy" xml:space="preserve">
     <value>Lägg till en regel för extern domän</value>
+  </data>
+  <data name="Add a ro_ute" xml:space="preserve">
+    <value>Lägg till en _rutt</value>
   </data>
   <data name="Add a row to a list, or go to the form that adds one" xml:space="preserve">
     <value>Lägg till en rad i en lista, eller gå till formuläret som lägger till en</value>
@@ -3851,7 +3851,7 @@ Avsändaren fick veta att det accepterades, så inget kommer att försöka igen 
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>Leverera och registrera bara</value>
   </data>
-  <data name="Deliver local → _remote" xml:space="preserve">
+  <data name="Deliver lo_cal → remote" xml:space="preserve">
     <value>Leverera lokalt → _fjärr</value>
   </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
@@ -4049,7 +4049,7 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
     <value>D_omän</value>
   </data>
   <data name="Do_main (e.g. partner.com)" xml:space="preserve">
-    <value>_Domän (t.ex. partner.com)</value>
+    <value>Domä_n (t.ex. partner.com)</value>
   </data>
   <data name="Does not match the certificate" xml:space="preserve">
     <value>Matchar inte certifikatet</value>
@@ -4539,9 +4539,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Enter, F2" xml:space="preserve">
     <value>Enter, F2</value>
-  </data>
-  <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
-    <value>Poster som matchar sökningen: {0} av {1}.</value>
   </data>
   <data name="Entry skipped" xml:space="preserve">
     <value>Post överhoppad</value>
@@ -8293,9 +8290,6 @@ Inget som redan finns där tas bort.</value>
   <data name="P_ort" xml:space="preserve">
     <value>P_ort</value>
   </data>
-  <data name="P_rotocol" xml:space="preserve">
-    <value>P_rotokoll</value>
-  </data>
   <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM:" xml:space="preserve">
     <value>Publicera _den här DNS TXT-posten hos din DNS-leverantör, och aktivera sedan DKIM:</value>
   </data>
@@ -8667,6 +8661,9 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="Protection" xml:space="preserve">
     <value>Skydd</value>
   </data>
+  <data name="Proto_col" xml:space="preserve">
+    <value>P_rotokoll</value>
+  </data>
   <data name="Protocol" xml:space="preserve">
     <value>Protokoll</value>
   </data>
@@ -8879,6 +8876,9 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   </data>
   <data name="Re_move name" xml:space="preserve">
     <value>_Ta bort namn</value>
+  </data>
+  <data name="Re_move stored passphrase" xml:space="preserve">
+    <value>Ta bort sparad lösenfra_s</value>
   </data>
   <data name="Re_move the rule" xml:space="preserve">
     <value>Ta bo_rt regeln</value>
@@ -9259,6 +9259,9 @@ Kör detta om klienter rapporterar meddelanden som dyker upp under fel UID, elle
   <data name="Relying party (empty = the host the page is on)" xml:space="preserve">
     <value>Förlitande part (tomt = värden som sidan ligger på)</value>
   </data>
+  <data name="Rem_ove criterion" xml:space="preserve">
+    <value>Ta _bort kriterium</value>
+  </data>
   <data name="Remember this many previous passwords (0 = no history)" xml:space="preserve">
     <value>Kom ihåg så här många tidigare lösenord (0 = ingen historik)</value>
   </data>
@@ -9569,7 +9572,7 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
     <value>Återställ konfiguration, domäner och meddelanden från en säkerhetskopia.</value>
   </data>
   <data name="Restore de_faults" xml:space="preserve">
-    <value>Återställ standar_d</value>
+    <value>Återst_äll standard</value>
   </data>
   <data name="Restore dom_ains" xml:space="preserve">
     <value>Återställ d_omäner</value>
@@ -14900,14 +14903,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="_Reload from disk" xml:space="preserve">
     <value>Ladda _om från disk</value>
   </data>
-  <data name="_Remove criterion" xml:space="preserve">
-    <value>Ta _bort kriterium</value>
-  </data>
   <data name="_Remove message" xml:space="preserve">
     <value>_Ta bort meddelandet</value>
-  </data>
-  <data name="_Remove stored passphrase" xml:space="preserve">
-    <value>Ta bort sparad lösenfra_s</value>
   </data>
   <data name="_Rename the account" xml:space="preserve">
     <value>_Byt namn på kontot</value>
@@ -16095,6 +16092,12 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} IP addresses" xml:space="preserve">
     <value>{0} IP-adresser</value>
   </data>
+  <data name="{0} IP range" xml:space="preserve">
+    <value>{0} IP-intervall</value>
+  </data>
+  <data name="{0} IP ranges" xml:space="preserve">
+    <value>{0} IP-intervall</value>
+  </data>
   <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
     <value>{0} Om ett virus hittas tas bilagorna bort och meddelandet levereras ändå.</value>
   </data>
@@ -16158,17 +16161,17 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} added." xml:space="preserve">
     <value>{0} har lagts till.</value>
   </data>
+  <data name="{0} address" xml:space="preserve">
+    <value>{0} adress</value>
+  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} adress listad, de {1} senaste visas. Sök för att begränsa dem.</value>
   </data>
-  <data name="{0} address listed." xml:space="preserve">
-    <value>{0} adress listad.</value>
+  <data name="{0} addresses" xml:space="preserve">
+    <value>{0} adresser</value>
   </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} adresser listade, de {1} senaste visas. Sök för att begränsa dem.</value>
-  </data>
-  <data name="{0} addresses listed." xml:space="preserve">
-    <value>{0} adresser listade.</value>
   </data>
   <data name="{0} aliases" xml:space="preserve">
     <value>{0} alias</value>
@@ -16211,6 +16214,12 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} cases. Select one for its lines on the audit trail." xml:space="preserve">
     <value>{0} ärenden. Välj ett för dess rader i granskningsloggen.</value>
+  </data>
+  <data name="{0} certificate" xml:space="preserve">
+    <value>{0} certifikat</value>
+  </data>
+  <data name="{0} certificates" xml:space="preserve">
+    <value>{0} certifikat</value>
   </data>
   <data name="{0} change carried out, none failed." xml:space="preserve">
     <value>{0} ändring genomförd, ingen misslyckades.</value>
@@ -16275,17 +16284,17 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} entry" xml:space="preserve">
     <value>{0} post</value>
   </data>
+  <data name="{0} event" xml:space="preserve">
+    <value>{0} händelse</value>
+  </data>
   <data name="{0} event past the retention window was removed." xml:space="preserve">
     <value>{0} händelse bortom lagringsfönstret togs bort.</value>
   </data>
-  <data name="{0} event, newest first." xml:space="preserve">
-    <value>{0} händelse, nyaste först.</value>
+  <data name="{0} events" xml:space="preserve">
+    <value>{0} händelser</value>
   </data>
   <data name="{0} events past the retention window were removed." xml:space="preserve">
     <value>{0} händelser bortom lagringsfönstret togs bort.</value>
-  </data>
-  <data name="{0} events, newest first." xml:space="preserve">
-    <value>{0} händelser, nyaste först.</value>
   </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>{0} externt POP3-hämtningskonto har antivirus avstängt, så post som hämtas av det levereras oskannad oavsett vad som är satt här. Brytaren finns på hämtningskontot, inte på den här sidan.</value>
@@ -16422,17 +16431,11 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} message cannot be listed and will be left where it is. The first reason: {1}" xml:space="preserve">
     <value>{0} meddelande kan inte listas och lämnas kvar där det är. Den första anledningen: {1}</value>
   </data>
-  <data name="{0} message held." xml:space="preserve">
-    <value>{0} meddelande kvarhållet.</value>
-  </data>
   <data name="{0} message past the retention window was removed." xml:space="preserve">
     <value>{0} meddelande bortom lagringsfönstret togs bort.</value>
   </data>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} meddelande hänvisar till en fil som saknas på disk.</value>
-  </data>
-  <data name="{0} message waiting for delivery." xml:space="preserve">
-    <value>{0} meddelande väntar på leverans.</value>
   </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} meddelanden</value>
@@ -16440,17 +16443,11 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
     <value>{0} meddelanden kan inte listas och lämnas kvar där de är. Den första anledningen: {1}</value>
   </data>
-  <data name="{0} messages held." xml:space="preserve">
-    <value>{0} meddelanden kvarhållna.</value>
-  </data>
   <data name="{0} messages past the retention window were removed." xml:space="preserve">
     <value>{0} meddelanden bortom lagringsfönstret togs bort.</value>
   </data>
   <data name="{0} messages reference a file that is missing on disk." xml:space="preserve">
     <value>{0} meddelanden hänvisar till en fil som saknas på disk.</value>
-  </data>
-  <data name="{0} messages waiting for delivery." xml:space="preserve">
-    <value>{0} meddelanden väntar på leverans.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} min</value>
@@ -16524,17 +16521,23 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} mönster tas bort från varje meddelande efter filnamn, oavsett vad skannrarna säger.</value>
   </data>
+  <data name="{0} port" xml:space="preserve">
+    <value>{0} port</value>
+  </data>
+  <data name="{0} ports" xml:space="preserve">
+    <value>{0} portar</value>
+  </data>
   <data name="{0} problem" xml:space="preserve">
     <value>{0} problem</value>
   </data>
   <data name="{0} problems" xml:space="preserve">
     <value>{0} problem</value>
   </data>
-  <data name="{0} public folder." xml:space="preserve">
-    <value>{0} publik mapp.</value>
+  <data name="{0} public folder" xml:space="preserve">
+    <value>{0} publik mapp</value>
   </data>
-  <data name="{0} public folders." xml:space="preserve">
-    <value>{0} publika mappar.</value>
+  <data name="{0} public folders" xml:space="preserve">
+    <value>{0} publika mappar</value>
   </data>
   <data name="{0} recipient added." xml:space="preserve">
     <value>{0} mottagare tillagd.</value>
@@ -16563,26 +16566,23 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} remote domain policies" xml:space="preserve">
     <value>{0} regler för externa domäner</value>
   </data>
+  <data name="{0} route" xml:space="preserve">
+    <value>{0} rutt</value>
+  </data>
+  <data name="{0} routes" xml:space="preserve">
+    <value>{0} rutter</value>
+  </data>
   <data name="{0} row needs reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} rad behöver läsas innan du tillämpar - en överhoppad post är en brevlåda någon förväntar sig och inte får, och en inaktiverad är en brevlåda som tas bort.</value>
   </data>
   <data name="{0} rows need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} rader behöver läsas innan du tillämpar - en överhoppad post är en brevlåda någon förväntar sig och inte får, och en inaktiverad är en brevlåda som tas bort.</value>
   </data>
-  <data name="{0} rule of the server, evaluated top to bottom." xml:space="preserve">
-    <value>{0} regel för servern, utvärderad uppifrån och ned.</value>
-  </data>
-  <data name="{0} rule of {1}, evaluated top to bottom." xml:space="preserve">
-    <value>{0} regel för {1}, utvärderad uppifrån och ned.</value>
+  <data name="{0} rule" xml:space="preserve">
+    <value>{0} regel</value>
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>{0} regler</value>
-  </data>
-  <data name="{0} rules of the server, evaluated top to bottom." xml:space="preserve">
-    <value>{0} regler för servern, utvärderade uppifrån och ned.</value>
-  </data>
-  <data name="{0} rules of {1}, evaluated top to bottom." xml:space="preserve">
-    <value>{0} regler för {1}, utvärderade uppifrån och ned.</value>
   </data>
   <data name="{0} sample copied to the clipboard." xml:space="preserve">
     <value>{0} stickprov kopierat till urklipp.</value>

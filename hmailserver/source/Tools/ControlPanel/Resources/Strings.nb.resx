@@ -978,9 +978,6 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Add a _header the reader shows as a banner" xml:space="preserve">
     <value>Legg til en _header som leseren viser som et banner</value>
   </data>
-  <data name="Add a _route" xml:space="preserve">
-    <value>Legg til en _rute</value>
-  </data>
   <data name="Add a blocked attachment pattern" xml:space="preserve">
     <value>Legg til et mønster for blokkerte vedlegg</value>
   </data>
@@ -1016,6 +1013,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   </data>
   <data name="Add a remote domain policy" xml:space="preserve">
     <value>Legg til en regel for et eksternt domene</value>
+  </data>
+  <data name="Add a ro_ute" xml:space="preserve">
+    <value>Legg til en _rute</value>
   </data>
   <data name="Add a row to a list, or go to the form that adds one" xml:space="preserve">
     <value>Legg til en rad i en liste, eller gå til skjemaet som legger til en</value>
@@ -3851,7 +3851,7 @@ Avsenderen fikk beskjed om at den ble godtatt, så ingenting vil prøve på nytt
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>Lever den og bare registrer den</value>
   </data>
-  <data name="Deliver local → _remote" xml:space="preserve">
+  <data name="Deliver lo_cal → remote" xml:space="preserve">
     <value>Lever lokal → _ekstern</value>
   </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
@@ -4049,7 +4049,7 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
     <value>Do_mene</value>
   </data>
   <data name="Do_main (e.g. partner.com)" xml:space="preserve">
-    <value>_Domene (f.eks. partner.com)</value>
+    <value>Dom_ene (f.eks. partner.com)</value>
   </data>
   <data name="Does not match the certificate" xml:space="preserve">
     <value>Samsvarer ikke med sertifikatet</value>
@@ -4539,9 +4539,6 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Enter, F2" xml:space="preserve">
     <value>Enter, F2</value>
-  </data>
-  <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
-    <value>Oppføringer som passer til søket: {0} av {1}.</value>
   </data>
   <data name="Entry skipped" xml:space="preserve">
     <value>Oppføring hoppet over</value>
@@ -6115,7 +6112,7 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
     <value>Direkte, fra den kjørende serveren. Treffraten er andelen oppslag besvart fra minnet siden tellerne sist ble nullstilt - noe de gjør når tjenesten starter på nytt, når en hurtigbuffer slås av, og når TTL-en dens endres, så en rate rett etter noe av dette beskriver et svært kort utvalg. Et oppslag etter noe som ikke finnes, teller som en bom og bufrer ingenting, så en server som sonderes etter adresser den ikke huser, viser en lav rate uten at noe er galt med hurtigbufferen.</value>
   </data>
   <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
-    <value>Ne_dre IP (f.eks. 10.0.0.0)</value>
+    <value>Nedre IP (_f.eks. 10.0.0.0)</value>
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Laster…</value>
@@ -8293,9 +8290,6 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="P_ort" xml:space="preserve">
     <value>P_ort</value>
   </data>
-  <data name="P_rotocol" xml:space="preserve">
-    <value>_Protokoll</value>
-  </data>
   <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM:" xml:space="preserve">
     <value>Publiser _denne DNS TXT-oppføringen hos DNS-leverandøren din, og aktiver deretter DKIM:</value>
   </data>
@@ -8667,6 +8661,9 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   <data name="Protection" xml:space="preserve">
     <value>Beskyttelse</value>
   </data>
+  <data name="Proto_col" xml:space="preserve">
+    <value>_Protokoll</value>
+  </data>
   <data name="Protocol" xml:space="preserve">
     <value>Protokoll</value>
   </data>
@@ -8879,6 +8876,9 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   </data>
   <data name="Re_move name" xml:space="preserve">
     <value>_Fjern navn</value>
+  </data>
+  <data name="Re_move stored passphrase" xml:space="preserve">
+    <value>_Fjern lagret passfrase</value>
   </data>
   <data name="Re_move the rule" xml:space="preserve">
     <value>Fje_rn regelen</value>
@@ -9258,6 +9258,9 @@ Kjør dette hvis klienter melder om meldinger som dukker opp under feil UID, ell
   </data>
   <data name="Relying party (empty = the host the page is on)" xml:space="preserve">
     <value>Avhengig part (tomt = verten siden ligger på)</value>
+  </data>
+  <data name="Rem_ove criterion" xml:space="preserve">
+    <value>_Fjern kriterium</value>
   </data>
   <data name="Remember this many previous passwords (0 = no history)" xml:space="preserve">
     <value>Husk så mange tidligere passord (0 = ingen historikk)</value>
@@ -14900,14 +14903,8 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="_Reload from disk" xml:space="preserve">
     <value>Last _på nytt fra disk</value>
   </data>
-  <data name="_Remove criterion" xml:space="preserve">
-    <value>_Fjern kriterium</value>
-  </data>
   <data name="_Remove message" xml:space="preserve">
     <value>_Fjern melding</value>
-  </data>
-  <data name="_Remove stored passphrase" xml:space="preserve">
-    <value>_Fjern lagret passfrase</value>
   </data>
   <data name="_Rename the account" xml:space="preserve">
     <value>_Gi kontoen nytt navn</value>
@@ -16095,6 +16092,12 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="{0} IP addresses" xml:space="preserve">
     <value>{0} IP-adresser</value>
   </data>
+  <data name="{0} IP range" xml:space="preserve">
+    <value>{0} IP-område</value>
+  </data>
+  <data name="{0} IP ranges" xml:space="preserve">
+    <value>{0} IP-områder</value>
+  </data>
   <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
     <value>{0} Hvis et virus blir funnet, fjernes vedleggene og meldingen leveres likevel.</value>
   </data>
@@ -16158,17 +16161,17 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="{0} added." xml:space="preserve">
     <value>{0} er lagt til.</value>
   </data>
+  <data name="{0} address" xml:space="preserve">
+    <value>{0} adresse</value>
+  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} adresse listet, de {1} nyeste vises. Søk for å avgrense.</value>
   </data>
-  <data name="{0} address listed." xml:space="preserve">
-    <value>{0} adresse listet.</value>
+  <data name="{0} addresses" xml:space="preserve">
+    <value>{0} adresser</value>
   </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} adresser listet, de {1} nyeste vises. Søk for å avgrense.</value>
-  </data>
-  <data name="{0} addresses listed." xml:space="preserve">
-    <value>{0} adresser listet.</value>
   </data>
   <data name="{0} aliases" xml:space="preserve">
     <value>{0} aliaser</value>
@@ -16211,6 +16214,12 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="{0} cases. Select one for its lines on the audit trail." xml:space="preserve">
     <value>{0} saker. Velg én for å se linjene i revisjonsloggen.</value>
+  </data>
+  <data name="{0} certificate" xml:space="preserve">
+    <value>{0} sertifikat</value>
+  </data>
+  <data name="{0} certificates" xml:space="preserve">
+    <value>{0} sertifikater</value>
   </data>
   <data name="{0} change carried out, none failed." xml:space="preserve">
     <value>{0} endring utført, ingen mislyktes.</value>
@@ -16275,17 +16284,17 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="{0} entry" xml:space="preserve">
     <value>{0} oppføring</value>
   </data>
+  <data name="{0} event" xml:space="preserve">
+    <value>{0} hendelse</value>
+  </data>
   <data name="{0} event past the retention window was removed." xml:space="preserve">
     <value>{0} hendelse forbi oppbevaringsvinduet ble fjernet.</value>
   </data>
-  <data name="{0} event, newest first." xml:space="preserve">
-    <value>{0} hendelse, nyeste først.</value>
+  <data name="{0} events" xml:space="preserve">
+    <value>{0} hendelser</value>
   </data>
   <data name="{0} events past the retention window were removed." xml:space="preserve">
     <value>{0} hendelser forbi oppbevaringsvinduet ble fjernet.</value>
-  </data>
-  <data name="{0} events, newest first." xml:space="preserve">
-    <value>{0} hendelser, nyeste først.</value>
   </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>{0} ekstern POP3-hentekonto har antivirus slått av, så post hentet av den leveres uskannet uansett hva som er satt her. Bryteren ligger på hentekontoen, ikke på denne siden.</value>
@@ -16422,17 +16431,11 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="{0} message cannot be listed and will be left where it is. The first reason: {1}" xml:space="preserve">
     <value>{0} melding kan ikke vises i listen og blir liggende der den er. Den første grunnen: {1}</value>
   </data>
-  <data name="{0} message held." xml:space="preserve">
-    <value>{0} melding holdt tilbake.</value>
-  </data>
   <data name="{0} message past the retention window was removed." xml:space="preserve">
     <value>{0} melding forbi oppbevaringsvinduet ble fjernet.</value>
   </data>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} melding refererer til en fil som mangler på disken.</value>
-  </data>
-  <data name="{0} message waiting for delivery." xml:space="preserve">
-    <value>{0} melding venter på levering.</value>
   </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} meldinger</value>
@@ -16440,17 +16443,11 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
     <value>{0} meldinger kan ikke vises i listen og blir liggende der de er. Den første grunnen: {1}</value>
   </data>
-  <data name="{0} messages held." xml:space="preserve">
-    <value>{0} meldinger holdt tilbake.</value>
-  </data>
   <data name="{0} messages past the retention window were removed." xml:space="preserve">
     <value>{0} meldinger forbi oppbevaringsvinduet ble fjernet.</value>
   </data>
   <data name="{0} messages reference a file that is missing on disk." xml:space="preserve">
     <value>{0} meldinger refererer til en fil som mangler på disken.</value>
-  </data>
-  <data name="{0} messages waiting for delivery." xml:space="preserve">
-    <value>{0} meldinger venter på levering.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} min</value>
@@ -16524,17 +16521,23 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} mønstre fjernes fra hver melding etter filnavn, uansett hva skannerne sier.</value>
   </data>
+  <data name="{0} port" xml:space="preserve">
+    <value>{0} port</value>
+  </data>
+  <data name="{0} ports" xml:space="preserve">
+    <value>{0} porter</value>
+  </data>
   <data name="{0} problem" xml:space="preserve">
     <value>{0} problem</value>
   </data>
   <data name="{0} problems" xml:space="preserve">
     <value>{0} problemer</value>
   </data>
-  <data name="{0} public folder." xml:space="preserve">
-    <value>{0} offentlig mappe.</value>
+  <data name="{0} public folder" xml:space="preserve">
+    <value>{0} offentlig mappe</value>
   </data>
-  <data name="{0} public folders." xml:space="preserve">
-    <value>{0} offentlige mapper.</value>
+  <data name="{0} public folders" xml:space="preserve">
+    <value>{0} offentlige mapper</value>
   </data>
   <data name="{0} recipient added." xml:space="preserve">
     <value>{0} mottaker lagt til.</value>
@@ -16563,26 +16566,23 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="{0} remote domain policies" xml:space="preserve">
     <value>{0} regler for eksterne domener</value>
   </data>
+  <data name="{0} route" xml:space="preserve">
+    <value>{0} rute</value>
+  </data>
+  <data name="{0} routes" xml:space="preserve">
+    <value>{0} ruter</value>
+  </data>
   <data name="{0} row needs reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} rad må leses før du bruker endringene - en overhoppet oppføring er en postboks noen forventer og ikke får, og en deaktivert er en postboks som tas bort.</value>
   </data>
   <data name="{0} rows need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} rader må leses før du bruker endringene - en overhoppet oppføring er en postboks noen forventer og ikke får, og en deaktivert er en postboks som tas bort.</value>
   </data>
-  <data name="{0} rule of the server, evaluated top to bottom." xml:space="preserve">
-    <value>{0} regel for serveren, evaluert fra topp til bunn.</value>
-  </data>
-  <data name="{0} rule of {1}, evaluated top to bottom." xml:space="preserve">
-    <value>{0} regel for {1}, evaluert fra topp til bunn.</value>
+  <data name="{0} rule" xml:space="preserve">
+    <value>{0} regel</value>
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>{0} regler</value>
-  </data>
-  <data name="{0} rules of the server, evaluated top to bottom." xml:space="preserve">
-    <value>{0} regler for serveren, evaluert fra topp til bunn.</value>
-  </data>
-  <data name="{0} rules of {1}, evaluated top to bottom." xml:space="preserve">
-    <value>{0} regler for {1}, evaluert fra topp til bunn.</value>
   </data>
   <data name="{0} sample copied to the clipboard." xml:space="preserve">
     <value>{0} eksempel kopiert til utklippstavlen.</value>

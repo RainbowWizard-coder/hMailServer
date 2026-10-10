@@ -150,6 +150,15 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
+                        <!-- The rows under the first hold the filters when they do not
+                             fit beside the search, and the actions when the widest of
+                             them does not fit beside what is before them
+                             (Toolbar.MeasureOverride, Services/ToolbarRows). -->
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
                         <ui:TextBox x:Name="PART_Search"
                                     Text="{Binding SearchText, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                     PlaceholderText="{TemplateBinding SearchPlaceholder}"

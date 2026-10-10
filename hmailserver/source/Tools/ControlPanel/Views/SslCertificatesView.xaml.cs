@@ -186,6 +186,8 @@ namespace hMailServer.ControlPanel.Views
             ReadFailure.Clear(LoadNotice, AddCertButton);
             StatusText.Show(EmptyStatus, LoadNotice, rows.Count, null, L("No certificates yet, so no port can offer TLS. Add one from PEM files below, or let ACME issue one."));
          }
+         CountPill.Text = Plural(rows.Count, "{0} certificate", "{0} certificates");
+         CountPill.Visibility = failure == null ? Visibility.Visible : Visibility.Collapsed;
 
          if (reselectId != 0)
          {
@@ -460,7 +462,7 @@ namespace hMailServer.ControlPanel.Views
             return;
 
          if (!MessageBox.Confirm(F("Remove the stored passphrase for '{0}'? If the key file is encrypted, the key will stop loading at the next restart (server error 6170) and the TLS ports using this certificate will not start.", row.Name), L("Control Panel"),
-               L("_Remove stored passphrase"), destructive: true))
+               L("Re_move stored passphrase"), destructive: true))
          {
             return;
          }
@@ -517,6 +519,9 @@ namespace hMailServer.ControlPanel.Views
       }
 
       // ---- search / browse / add / delete ----------------------------------------
+
+      /// <summary>The header's Refresh: the certificates and their file checks read again, as F5 reads them.</summary>
+      private void Refresh_Click(object sender, RoutedEventArgs e) => Reload((CertGrid.SelectedItem as CertRow)?.Id ?? 0);
 
       private void Search_TextChanged(object sender, EventArgs e)
          => ListSearch.Apply(CertGrid, SearchBar.SearchText);

@@ -978,9 +978,6 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Add a _header the reader shows as a banner" xml:space="preserve">
     <value>Okuyucunun şerit olarak gösterdiği bir _başlık ekle</value>
   </data>
-  <data name="Add a _route" xml:space="preserve">
-    <value>_Rota ekle</value>
-  </data>
   <data name="Add a blocked attachment pattern" xml:space="preserve">
     <value>Engellenen ek deseni ekle</value>
   </data>
@@ -1016,6 +1013,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   </data>
   <data name="Add a remote domain policy" xml:space="preserve">
     <value>Uzak alan adı ilkesi ekle</value>
+  </data>
+  <data name="Add a ro_ute" xml:space="preserve">
+    <value>_Rota ekle</value>
   </data>
   <data name="Add a row to a list, or go to the form that adds one" xml:space="preserve">
     <value>Bir listeye satır ekle veya satır ekleyen forma git</value>
@@ -3851,7 +3851,7 @@ Gönderene kabul edildiği söylendi; bu nedenle hiçbir şey yeniden denemeyece
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>Teslim et ve yalnızca kaydet</value>
   </data>
-  <data name="Deliver local → _remote" xml:space="preserve">
+  <data name="Deliver lo_cal → remote" xml:space="preserve">
     <value>Yerel → _uzak teslim</value>
   </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
@@ -4539,9 +4539,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Enter, F2" xml:space="preserve">
     <value>Enter, F2</value>
-  </data>
-  <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
-    <value>Aramayla eşleşen girdiler: {0} / {1}.</value>
   </data>
   <data name="Entry skipped" xml:space="preserve">
     <value>Girdi atlandı</value>
@@ -6896,7 +6893,7 @@ Zaten orada olan hiçbir şey silinmez.</value>
     <value>Hiçbir zaman otomatik yasaklanmayan adlar</value>
   </data>
   <data name="Ne_w rule name" xml:space="preserve">
-    <value>Ye_ni kural adı</value>
+    <value>Yeni k_ural adı</value>
   </data>
   <data name="Negotiate (Kerberos/NTLM) - the password never crosses the network" xml:space="preserve">
     <value>Negotiate (Kerberos/NTLM) - parola ağdan hiç geçmez</value>
@@ -8293,9 +8290,6 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="P_ort" xml:space="preserve">
     <value>P_ort</value>
   </data>
-  <data name="P_rotocol" xml:space="preserve">
-    <value>_Protokol</value>
-  </data>
   <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM:" xml:space="preserve">
     <value>Bu DNS _TXT kaydını DNS sağlayıcınızda yayımlayın, sonra DKIM'i etkinleştirin:</value>
   </data>
@@ -8599,7 +8593,7 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
     <value>Önceki yıl</value>
   </data>
   <data name="Pri_ority" xml:space="preserve">
-    <value>Ö_ncelik</value>
+    <value>Ön_celik</value>
   </data>
   <data name="Prioritize ChaCha20-Poly1305 when the client prefers it (needs TLS 1.2 or 1.3)" xml:space="preserve">
     <value>İstemci yeğlediğinde ChaCha20-Poly1305'e öncelik ver (TLS 1.2 ya da 1.3 gerekir)</value>
@@ -8666,6 +8660,9 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   </data>
   <data name="Protection" xml:space="preserve">
     <value>Koruma</value>
+  </data>
+  <data name="Proto_col" xml:space="preserve">
+    <value>_Protokol</value>
   </data>
   <data name="Protocol" xml:space="preserve">
     <value>Protokol</value>
@@ -8879,6 +8876,9 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   </data>
   <data name="Re_move name" xml:space="preserve">
     <value>Adı ka_ldır</value>
+  </data>
+  <data name="Re_move stored passphrase" xml:space="preserve">
+    <value>Saklanan parola ifadesini _kaldır</value>
   </data>
   <data name="Re_move the rule" xml:space="preserve">
     <value>Kuralı kaldı_r</value>
@@ -9258,6 +9258,9 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   </data>
   <data name="Relying party (empty = the host the page is on)" xml:space="preserve">
     <value>Bağlı taraf (boş = sayfayı sunan ana bilgisayar)</value>
+  </data>
+  <data name="Rem_ove criterion" xml:space="preserve">
+    <value>Öl_çütü kaldır</value>
   </data>
   <data name="Remember this many previous passwords (0 = no history)" xml:space="preserve">
     <value>Bu kadar önceki parolayı hatırla (0 = geçmiş yok)</value>
@@ -14900,14 +14903,8 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="_Reload from disk" xml:space="preserve">
     <value>Diskten _yeniden yükle</value>
   </data>
-  <data name="_Remove criterion" xml:space="preserve">
-    <value>Öl_çütü kaldır</value>
-  </data>
   <data name="_Remove message" xml:space="preserve">
     <value>İletiyi _kaldır</value>
-  </data>
-  <data name="_Remove stored passphrase" xml:space="preserve">
-    <value>Saklanan parola ifadesini _kaldır</value>
   </data>
   <data name="_Rename the account" xml:space="preserve">
     <value>Hesabı _yeniden adlandır</value>
@@ -16095,6 +16092,12 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} IP addresses" xml:space="preserve">
     <value>{0} IP adresi</value>
   </data>
+  <data name="{0} IP range" xml:space="preserve">
+    <value>{0} IP aralığı</value>
+  </data>
+  <data name="{0} IP ranges" xml:space="preserve">
+    <value>{0} IP aralığı</value>
+  </data>
   <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
     <value>{0} Virüs bulunursa ekler çıkarılır ve ileti yine teslim edilir.</value>
   </data>
@@ -16158,17 +16161,17 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} added." xml:space="preserve">
     <value>{0} eklendi.</value>
   </data>
+  <data name="{0} address" xml:space="preserve">
+    <value>{0} adres</value>
+  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>Listede {0} adres var, en yeni {1} tanesi gösteriliyor. Daraltmak için arayın.</value>
   </data>
-  <data name="{0} address listed." xml:space="preserve">
-    <value>Listede {0} adres var.</value>
+  <data name="{0} addresses" xml:space="preserve">
+    <value>{0} adres</value>
   </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>Listede {0} adres var, en yeni {1} tanesi gösteriliyor. Daraltmak için arayın.</value>
-  </data>
-  <data name="{0} addresses listed." xml:space="preserve">
-    <value>Listede {0} adres var.</value>
   </data>
   <data name="{0} aliases" xml:space="preserve">
     <value>{0} diğer ad</value>
@@ -16211,6 +16214,12 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0} cases. Select one for its lines on the audit trail." xml:space="preserve">
     <value>{0} dava. Denetim izindeki satırlarını görmek için birini seçin.</value>
+  </data>
+  <data name="{0} certificate" xml:space="preserve">
+    <value>{0} sertifika</value>
+  </data>
+  <data name="{0} certificates" xml:space="preserve">
+    <value>{0} sertifika</value>
   </data>
   <data name="{0} change carried out, none failed." xml:space="preserve">
     <value>{0} değişiklik yapıldı, hiçbiri başarısız olmadı.</value>
@@ -16275,17 +16284,17 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} entry" xml:space="preserve">
     <value>{0} girdi</value>
   </data>
+  <data name="{0} event" xml:space="preserve">
+    <value>{0} olay</value>
+  </data>
   <data name="{0} event past the retention window was removed." xml:space="preserve">
     <value>Saklama penceresini geçen {0} olay kaldırıldı.</value>
   </data>
-  <data name="{0} event, newest first." xml:space="preserve">
-    <value>{0} olay, en yenisi önce.</value>
+  <data name="{0} events" xml:space="preserve">
+    <value>{0} olay</value>
   </data>
   <data name="{0} events past the retention window were removed." xml:space="preserve">
     <value>Saklama penceresini geçen {0} olay kaldırıldı.</value>
-  </data>
-  <data name="{0} events, newest first." xml:space="preserve">
-    <value>{0} olay, en yenisi önce.</value>
   </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>{0} dış POP3 toplama hesabında virüsten koruma kapalı; bu yüzden onun topladığı posta, burada ne ayarlanırsa ayarlansın taranmadan teslim ediliyor. Anahtar bu sayfada değil, toplama hesabının üzerindedir.</value>
@@ -16422,17 +16431,11 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} message cannot be listed and will be left where it is. The first reason: {1}" xml:space="preserve">
     <value>{0} ileti için liste kaydı oluşturulamıyor; olduğu yerde bırakılacak. İlk neden: {1}</value>
   </data>
-  <data name="{0} message held." xml:space="preserve">
-    <value>{0} ileti bekletiliyor.</value>
-  </data>
   <data name="{0} message past the retention window was removed." xml:space="preserve">
     <value>Saklama penceresini geçen {0} ileti kaldırıldı.</value>
   </data>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} ileti diskte eksik olan bir dosyaya başvuruyor.</value>
-  </data>
-  <data name="{0} message waiting for delivery." xml:space="preserve">
-    <value>{0} ileti teslim bekliyor.</value>
   </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} ileti</value>
@@ -16440,17 +16443,11 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
     <value>{0} ileti için liste kaydı oluşturulamıyor; oldukları yerde bırakılacak. İlk neden: {1}</value>
   </data>
-  <data name="{0} messages held." xml:space="preserve">
-    <value>{0} ileti bekletiliyor.</value>
-  </data>
   <data name="{0} messages past the retention window were removed." xml:space="preserve">
     <value>Saklama penceresini geçen {0} ileti kaldırıldı.</value>
   </data>
   <data name="{0} messages reference a file that is missing on disk." xml:space="preserve">
     <value>{0} ileti diskte eksik olan bir dosyaya başvuruyor.</value>
-  </data>
-  <data name="{0} messages waiting for delivery." xml:space="preserve">
-    <value>{0} ileti teslim bekliyor.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} dk</value>
@@ -16524,17 +16521,23 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} desen, tarayıcılar ne derse desin her iletiden dosya adına göre çıkarılıyor.</value>
   </data>
+  <data name="{0} port" xml:space="preserve">
+    <value>{0} port</value>
+  </data>
+  <data name="{0} ports" xml:space="preserve">
+    <value>{0} port</value>
+  </data>
   <data name="{0} problem" xml:space="preserve">
     <value>{0} sorun</value>
   </data>
   <data name="{0} problems" xml:space="preserve">
     <value>{0} sorun</value>
   </data>
-  <data name="{0} public folder." xml:space="preserve">
-    <value>{0} genel klasör.</value>
+  <data name="{0} public folder" xml:space="preserve">
+    <value>{0} genel klasör</value>
   </data>
-  <data name="{0} public folders." xml:space="preserve">
-    <value>{0} genel klasör.</value>
+  <data name="{0} public folders" xml:space="preserve">
+    <value>{0} genel klasör</value>
   </data>
   <data name="{0} recipient added." xml:space="preserve">
     <value>{0} alıcı eklendi.</value>
@@ -16563,26 +16566,23 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} remote domain policies" xml:space="preserve">
     <value>{0} uzak alan adı ilkesi</value>
   </data>
+  <data name="{0} route" xml:space="preserve">
+    <value>{0} rota</value>
+  </data>
+  <data name="{0} routes" xml:space="preserve">
+    <value>{0} rota</value>
+  </data>
   <data name="{0} row needs reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>Uygulamadan önce {0} satırın okunması gerekiyor - atlanan bir girdi, birinin beklediği ve alamayacağı bir posta kutusudur; devre dışı bırakılan biri ise elinden alınan bir posta kutusudur.</value>
   </data>
   <data name="{0} rows need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>Uygulamadan önce {0} satırın okunması gerekiyor - atlanan bir girdi, birinin beklediği ve alamayacağı bir posta kutusudur; devre dışı bırakılan biri ise elinden alınan bir posta kutusudur.</value>
   </data>
-  <data name="{0} rule of the server, evaluated top to bottom." xml:space="preserve">
-    <value>Sunucunun {0} kuralı, yukarıdan aşağıya değerlendirilir.</value>
-  </data>
-  <data name="{0} rule of {1}, evaluated top to bottom." xml:space="preserve">
-    <value>{1} için {0} kural, yukarıdan aşağıya değerlendirilir.</value>
+  <data name="{0} rule" xml:space="preserve">
+    <value>{0} kural</value>
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>{0} kural</value>
-  </data>
-  <data name="{0} rules of the server, evaluated top to bottom." xml:space="preserve">
-    <value>Sunucunun {0} kuralı, yukarıdan aşağıya değerlendirilir.</value>
-  </data>
-  <data name="{0} rules of {1}, evaluated top to bottom." xml:space="preserve">
-    <value>{1} için {0} kural, yukarıdan aşağıya değerlendirilir.</value>
   </data>
   <data name="{0} sample copied to the clipboard." xml:space="preserve">
     <value>{0} örnek panoya kopyalandı.</value>

@@ -11,10 +11,14 @@
     xmlns:scaffold="clr-namespace:hMailServer.ControlPanel.Views.Scaffold"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
 
-    <!-- A list page on the scaffold: the header with the page's actions, the
-         toolbar with the search, a notice for what the last action said, and
-         the grid filling the rest - the grid scrolls itself, so the page has
-         no ScrollViewer of its own and takes the page padding as a margin. -->
+    <!-- A list page on the scaffold (docs/ControlPanelDesign.md, List pages):
+         the header with the count and Refresh, the toolbar with the search and
+         the selected message's verbs, Deliver now the Primary at the right edge,
+         a notice for what the last action said, and the grid filling the rest -
+         the grid scrolls itself, so the page has no ScrollViewer of its own and
+         takes the page padding as a margin. The verbs were in the header with a
+         glyph each, the Primary between them, and the count in the subtitle
+         (review findings F288, F289). -->
     <Grid Margin="{StaticResource AppPagePadding}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -25,26 +29,25 @@
 
         <scaffold:PageHeader x:Name="Header" PageKey="queue"
                              Subtitle="{loc:L 'Messages waiting for delivery.'}">
+            <scaffold:PageHeader.Status>
+                <scaffold:StatusPill x:Name="CountPill" Level="Normal" Visibility="Collapsed"
+                                     AutomationProperties.AutomationId="list-count" />
+            </scaffold:PageHeader.Status>
             <scaffold:PageHeader.Actions>
-                <StackPanel Orientation="Horizontal">
-                    <ui:Button x:Name="ViewButton" Content="{loc:L '_View source'}" Click="View_Click" Margin="0,0,8,0">
-                        <ui:Button.Icon><ui:SymbolIcon Symbol="DocumentText24" /></ui:Button.Icon>
-                    </ui:Button>
-                    <ui:Button x:Name="RetryButton" Content="{loc:L '_Deliver now'}" Appearance="Primary" Click="Retry_Click" Margin="0,0,8,0">
-                        <ui:Button.Icon><ui:SymbolIcon Symbol="Send24" /></ui:Button.Icon>
-                    </ui:Button>
-                    <ui:Button x:Name="RemoveButton" Content="{loc:L 'Re_move'}" Style="{StaticResource DangerTextButton}" Click="Remove_Click" Margin="0,0,8,0">
-                        <ui:Button.Icon><ui:SymbolIcon Symbol="Delete24" /></ui:Button.Icon>
-                    </ui:Button>
-                    <ui:Button Content="{loc:L '_Refresh'}" Click="Refresh_Click">
-                        <ui:Button.Icon><ui:SymbolIcon Symbol="ArrowClockwise24" /></ui:Button.Icon>
-                    </ui:Button>
-                </StackPanel>
+                <ui:Button Content="{loc:L '_Refresh'}" Click="Refresh_Click" />
             </scaffold:PageHeader.Actions>
         </scaffold:PageHeader>
 
         <scaffold:Toolbar x:Name="SearchBar" Grid.Row="1" SearchPlaceholder="{loc:L 'Search the delivery queue'}"
-                          SearchTextChanged="Search_TextChanged" />
+                          SearchTextChanged="Search_TextChanged">
+            <scaffold:Toolbar.Actions>
+                <WrapPanel HorizontalAlignment="Right">
+                    <ui:Button x:Name="ViewButton" Content="{loc:L '_View source'}" Click="View_Click" Margin="0,2,8,2" />
+                    <ui:Button x:Name="RemoveButton" Content="{loc:L 'Re_move'}" Style="{StaticResource DangerTextButton}" Click="Remove_Click" Margin="0,2,8,2" />
+                    <ui:Button x:Name="RetryButton" Content="{loc:L '_Deliver now'}" Appearance="Primary" Click="Retry_Click" Margin="0,2,0,2" />
+                </WrapPanel>
+            </scaffold:Toolbar.Actions>
+        </scaffold:Toolbar>
 
         <!-- What the last action said: a retriggered delivery, a removal, a
              failure. Collapsed until there is something to say. -->
