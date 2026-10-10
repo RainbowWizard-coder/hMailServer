@@ -9400,7 +9400,7 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Program to run when an address is banned or unbanned (empty = none)" xml:space="preserve">
     <value>Program spuštěný při zákazu nebo zrušení zákazu adresy (prázdné = žádný)</value>
   </data>
-  <data name="Progressive Robot Ltd is a software engineering company that builds and modernizes production software - taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling." xml:space="preserve">
+  <data name="Progressive Robot Ltd is a software engineering company that builds and modernises production software - taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling." xml:space="preserve">
     <value>Progressive Robot Ltd je softwarová firma, která staví a modernizuje produkční software – bere vyzrálé systémy z reálného provozu a přivádí je na současnou úroveň zabezpečení, spolehlivosti a nástrojů.</value>
   </data>
   <data name="Progressive Robot Ltd is a software engineering company. It maintains the hMailServer 6.x line, an independent fork of the open-source mail server." xml:space="preserve">

@@ -9400,7 +9400,7 @@
   <data name="Program to run when an address is banned or unbanned (empty = none)" xml:space="preserve">
     <value>Програма, що запускається, коли адресу забанено або розбанено (порожньо = немає)</value>
   </data>
-  <data name="Progressive Robot Ltd is a software engineering company that builds and modernizes production software - taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling." xml:space="preserve">
+  <data name="Progressive Robot Ltd is a software engineering company that builds and modernises production software - taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling." xml:space="preserve">
     <value>Progressive Robot Ltd — компанія з розробки програмного забезпечення, яка створює та модернізує робоче програмне забезпечення: бере зрілі системи з реального світу й доводить їх до сучасних стандартів безпеки, надійності та інструментарію.</value>
   </data>
   <data name="Progressive Robot Ltd is a software engineering company. It maintains the hMailServer 6.x line, an independent fork of the open-source mail server." xml:space="preserve">

@@ -9300,7 +9300,7 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Program to run when an address is banned or unbanned (empty = none)" xml:space="preserve">
     <value>Programma dat wordt uitgevoerd wanneer een adres wordt geband of vrijgegeven (leeg = geen)</value>
   </data>
-  <data name="Progressive Robot Ltd is a software engineering company that builds and modernizes production software - taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling." xml:space="preserve">
+  <data name="Progressive Robot Ltd is a software engineering company that builds and modernises production software - taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling." xml:space="preserve">
     <value>Progressive Robot Ltd is een software-engineeringbedrijf dat productiesoftware bouwt en moderniseert - het neemt volgroeide systemen uit de praktijk en brengt ze op het huidige niveau van beveiliging, betrouwbaarheid en gereedschap.</value>
   </data>
   <data name="Progressive Robot Ltd is a software engineering company. It maintains the hMailServer 6.x line, an independent fork of the open-source mail server." xml:space="preserve">

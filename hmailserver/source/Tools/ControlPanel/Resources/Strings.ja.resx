@@ -9310,7 +9310,7 @@
   <data name="Program to run when an address is banned or unbanned (empty = none)" xml:space="preserve">
     <value>アドレスの BAN と解除の際に実行するプログラム (空 = なし)</value>
   </data>
-  <data name="Progressive Robot Ltd is a software engineering company that builds and modernizes production software - taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling." xml:space="preserve">
+  <data name="Progressive Robot Ltd is a software engineering company that builds and modernises production software - taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling." xml:space="preserve">
     <value>Progressive Robot Ltd は、実運用ソフトウェアの構築と近代化を手がけるソフトウェア エンジニアリング企業です。成熟した実世界のシステムを引き受け、セキュリティ、信頼性、ツール群を現在の水準へ引き上げます。</value>
   </data>
   <data name="Progressive Robot Ltd is a software engineering company. It maintains the hMailServer 6.x line, an independent fork of the open-source mail server." xml:space="preserve">
