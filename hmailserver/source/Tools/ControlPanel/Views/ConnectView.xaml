@@ -82,10 +82,11 @@
                                HorizontalAlignment="Stretch" Height="38" Click="Connect_Click" />
                     <StackPanel x:Name="BusyPanel" Orientation="Horizontal" Visibility="Collapsed"
                                 HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <ui:ProgressRing IsIndeterminate="True" Width="20" Height="20" />
+                        <ui:ProgressRing IsIndeterminate="True" Width="20" Height="20" AutomationProperties.Name="{loc:L 'Signing in'}" />
                         <TextBlock x:Name="BusyText" Text="{loc:L 'Signing in…'}" FontSize="13" Margin="10,0,0,0"
                                    VerticalAlignment="Center"
-                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                   AutomationProperties.LiveSetting="Polite" />
                     </StackPanel>
                 </Grid>
 

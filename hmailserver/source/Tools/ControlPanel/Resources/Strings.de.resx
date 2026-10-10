@@ -11862,6 +11862,9 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="Signing identity the certificate must begin with (empty = this project's two release workflows)" xml:space="preserve">
     <value>Signaturidentität, mit der das Zertifikat beginnen muss (leer = die beiden Release-Workflows dieses Projekts)</value>
   </data>
+  <data name="Signing in" xml:space="preserve">
+    <value>Anmeldung läuft</value>
+  </data>
   <data name="Signing in again from the same device ends the earlier session" xml:space="preserve">
     <value>Eine erneute Anmeldung vom selben Gerät beendet die frühere Sitzung</value>
   </data>
@@ -17134,6 +17137,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="{0} - exit code {1} means infected" xml:space="preserve">
     <value>{0} - Exit-Code {1} bedeutet infiziert</value>
+  </data>
+  <data name="{0} - hMailServer Control Panel" xml:space="preserve">
+    <value>{0} - hMailServer Control Panel</value>
   </data>
   <data name="{0} - put back: {1}, left as they were: {2}; waiting for a reinitialise: {3}, for a restart: {4}." xml:space="preserve">
     <value>{0} - zurückgesetzt: {1}, unverändert gelassen: {2}; warten auf ein Reinitialisieren: {3}, auf einen Neustart: {4}.</value>

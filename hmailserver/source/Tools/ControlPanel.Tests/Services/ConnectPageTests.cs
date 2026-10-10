@@ -58,7 +58,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void AFailedSignIn_ScrollsItsNoticeIntoView()
       {
          string code = ReadControlPanelFile(Path.Join("Views", "ConnectView.xaml.cs"));
-         string fail = WithheldRowTests.MemberText(code, "private void Fail_(string message)");
+         string fail = WithheldRowTests.MemberText(code, "private void Fail_(string message, StatusLevel level)");
          Assert.True(fail != null, "ConnectView.Fail_ is gone.");
          Assert.Contains("ErrorNotice.BringIntoView();", fail, StringComparison.Ordinal);
       }

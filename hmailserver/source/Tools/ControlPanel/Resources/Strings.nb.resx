@@ -11862,6 +11862,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Signing identity the certificate must begin with (empty = this project's two release workflows)" xml:space="preserve">
     <value>Signeringsidentiteten sertifikatet må begynne med (tom = dette prosjektets to utgivelsesarbeidsflyter)</value>
   </data>
+  <data name="Signing in" xml:space="preserve">
+    <value>Logger på</value>
+  </data>
   <data name="Signing in again from the same device ends the earlier session" xml:space="preserve">
     <value>En ny pålogging fra samme enhet avslutter den tidligere økten</value>
   </data>
@@ -17134,6 +17137,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="{0} - exit code {1} means infected" xml:space="preserve">
     <value>{0} - avslutningskode {1} betyr infisert</value>
+  </data>
+  <data name="{0} - hMailServer Control Panel" xml:space="preserve">
+    <value>{0} - hMailServer Control Panel</value>
   </data>
   <data name="{0} - put back: {1}, left as they were: {2}; waiting for a reinitialise: {3}, for a restart: {4}." xml:space="preserve">
     <value>{0} - satt tilbake: {1}, latt være som de var: {2}; venter på en reinitialisering: {3}, på en omstart: {4}.</value>

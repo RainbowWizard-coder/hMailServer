@@ -12019,6 +12019,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Signing identity the certificate must begin with (empty = this project's two release workflows)" xml:space="preserve">
     <value>Tożsamość podpisująca, od której musi się zaczynać certyfikat (puste = dwa przepływy pracy wydania tego projektu)</value>
   </data>
+  <data name="Signing in" xml:space="preserve">
+    <value>Logowanie</value>
+  </data>
   <data name="Signing in again from the same device ends the earlier session" xml:space="preserve">
     <value>Ponowne zalogowanie z tego samego urządzenia kończy wcześniejszą sesję</value>
   </data>
@@ -17339,6 +17342,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} - exit code {1} means infected" xml:space="preserve">
     <value>{0} - kod wyjścia {1} oznacza infekcję</value>
+  </data>
+  <data name="{0} - hMailServer Control Panel" xml:space="preserve">
+    <value>{0} - hMailServer Control Panel</value>
   </data>
   <data name="{0} - put back: {1}, left as they were: {2}; waiting for a reinitialise: {3}, for a restart: {4}." xml:space="preserve">
     <value>{0} - przywrócone: {1}, pozostawione bez zmian: {2}; czekające na ponowną inicjalizację: {3}, na ponowne uruchomienie: {4}.</value>

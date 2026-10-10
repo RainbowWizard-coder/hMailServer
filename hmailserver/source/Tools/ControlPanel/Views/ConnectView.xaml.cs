@@ -49,6 +49,21 @@ namespace hMailServer.ControlPanel.Views
          InitializeComponent();
          onConnected_ = onConnected;
          BuildLanguageBox_();
+
+         // The server and the user name of the last sign-in that worked, where
+         // every launch opened on localhost and Administrator (review finding F033).
+         // The XAML's literals are the fallback SignInMemory gives as well.
+         (string host, string user) = SignInMemory.Read();
+         HostBox.Text = host;
+         UserBox.Text = user;
+
+         // Enter signs in through the default button, which a screen reader can name
+         // as the one Enter presses, where a KeyDown handler on the whole page started
+         // a sign-in from any control that left Enter unhandled - the closed Language
+         // box among them (F030). Collapsed while a sign-in runs, it presses nothing
+         // then; Connect_Click's guard stays.
+         ConnectButton.IsDefault = true;
+
          if (!string.IsNullOrEmpty(notice))
          {
             ErrorNotice.Level = level;
@@ -66,11 +81,6 @@ namespace hMailServer.ControlPanel.Views
 
             HostBox.Focus();
             HostBox.SelectAll();
-         };
-         KeyDown += (s, e) =>
-         {
-            if (e.Key == System.Windows.Input.Key.Enter)
-               Connect_Click(this, new RoutedEventArgs());
          };
       }
 
@@ -99,11 +109,12 @@ namespace hMailServer.ControlPanel.Views
 
             if (!reach.Reachable)
             {
-               Fail_(reach.Error);
+               Fail_(reach.Error, StatusLevel.Critical);
                return;
             }
 
             BusyText.Text = L("Signing in…");
+            Announce.Request(BusyText);
 
             // Back on the UI thread deliberately: the COM proxy belongs to the
             // apartment that creates it, and this is the apartment that has to
@@ -112,6 +123,7 @@ namespace hMailServer.ControlPanel.Views
             await Task.Delay(50);
 
             var session = new ServerSession();
+            bool cancelled = false;
 
             // session.Connect tries the password. On a server that enforces a second
             // factor on the administrator it fails with SecondFactorRequired set, so
@@ -120,9 +132,11 @@ namespace hMailServer.ControlPanel.Views
             // would hide that the password was the problem. The `&&` short-circuits, so
             // TryWithCode_ (which shows a dialog) runs only when a code is actually wanted.
             if (!session.Connect(host, user, password, out string error)
-                && (!session.SecondFactorRequired || !TryWithCode_(session, host, user, password, out error)))
+                && (!session.SecondFactorRequired || !TryWithCode_(session, host, user, password, out cancelled, out error)))
             {
-               Fail_(error ?? L("Connection failed."));
+               // A password or a code the server refused, or the prompt cancelled, is a
+               // Warning; a server that could not be asked is Critical (F029).
+               Fail_(error ?? L("Connection failed."), SignInMemory.FailureLevel(session.CredentialRefused, cancelled));
                return;
             }
 
@@ -134,24 +148,26 @@ namespace hMailServer.ControlPanel.Views
             // Connect reports its own failures through the out parameter, so
             // reaching here means something further out went wrong. Showing it
             // beats an unhandled exception dialog over the sign-in card.
-            Fail_(ex.Message);
+            Fail_(ex.Message, StatusLevel.Critical);
          }
       }
 
       // Prompts for the administrator's one-time code and retries the connect with
       // it. Returns false (with a reason in error) when the user cancels or the
       // code is refused; the caller then fails the sign-in as normal.
-      private bool TryWithCode_(ServerSession session, string host, string user, string password, out string error)
+      private bool TryWithCode_(ServerSession session, string host, string user, string password, out bool cancelled, out string error)
       {
          var prompt = new TotpPromptDialog(Window.GetWindow(this));
 
-         if (prompt.ShowDialog() != true)
+         cancelled = prompt.ShowDialog() != true;
+         if (cancelled)
          {
             error = L("Sign-in cancelled.");
             return false;
          }
 
          BusyText.Text = L("Signing in…");
+         Announce.Request(BusyText);
          return session.Connect(host, user, password, prompt.Code, out error);
       }
 
@@ -203,8 +219,14 @@ namespace hMailServer.ControlPanel.Views
          languageReady_ = true;
       }
 
-      private void Fail_(string message)
+      /// <summary>
+      /// Says why the sign-in failed, at <paramref name="level"/>: Warning for what
+      /// the reader can type again, Critical for a server that could not be asked
+      /// (SignInMemory.FailureLevel). The notice was Critical for every failure.
+      /// </summary>
+      private void Fail_(string message, StatusLevel level)
       {
+         ErrorNotice.Level = level;
          ErrorNotice.Text = message;
          ErrorNotice.Visibility = Visibility.Visible;
          // Under the fold in a window shorter than the card: the page scrolls
@@ -230,6 +252,11 @@ namespace hMailServer.ControlPanel.Views
          {
             BusyText.Text = message ?? L("Signing in…");
             ErrorNotice.Visibility = Visibility.Collapsed;
+
+            // The busy line is a polite live region: a screen reader hears
+            // "Contacting localhost…" and then "Signing in…", where it heard
+            // nothing until the failure or the next page (review finding F031).
+            Announce.Request(BusyText);
          }
 
          ConnectButton.Visibility = busy ? Visibility.Collapsed : Visibility.Visible;

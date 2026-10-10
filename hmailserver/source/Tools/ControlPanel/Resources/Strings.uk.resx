@@ -12019,6 +12019,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Signing identity the certificate must begin with (empty = this project's two release workflows)" xml:space="preserve">
     <value>Ідентичність підписування, з якої має починатися сертифікат (порожньо = два робочі процеси випуску цього проєкту)</value>
   </data>
+  <data name="Signing in" xml:space="preserve">
+    <value>Вхід</value>
+  </data>
   <data name="Signing in again from the same device ends the earlier session" xml:space="preserve">
     <value>Повторний вхід з того самого пристрою завершує попередній сеанс</value>
   </data>
@@ -17339,6 +17342,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} - exit code {1} means infected" xml:space="preserve">
     <value>{0} — код виходу {1} означає зараження</value>
+  </data>
+  <data name="{0} - hMailServer Control Panel" xml:space="preserve">
+    <value>{0} - hMailServer Control Panel</value>
   </data>
   <data name="{0} - put back: {1}, left as they were: {2}; waiting for a reinitialise: {3}, for a restart: {4}." xml:space="preserve">
     <value>{0} — повернуто: {1}, залишено як було: {2}; чекають на повторну ініціалізацію: {3}, на перезапуск: {4}.</value>

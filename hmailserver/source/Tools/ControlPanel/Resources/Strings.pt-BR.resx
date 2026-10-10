@@ -11862,6 +11862,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Signing identity the certificate must begin with (empty = this project's two release workflows)" xml:space="preserve">
     <value>Identidade de assinatura com que o certificado deve começar (vazio = os dois fluxos de trabalho de publicação de versões deste projeto)</value>
   </data>
+  <data name="Signing in" xml:space="preserve">
+    <value>Entrando</value>
+  </data>
   <data name="Signing in again from the same device ends the earlier session" xml:space="preserve">
     <value>Fazer login de novo pelo mesmo dispositivo encerra a sessão anterior</value>
   </data>
@@ -17134,6 +17137,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="{0} - exit code {1} means infected" xml:space="preserve">
     <value>{0} - código de saída {1} significa infectado</value>
+  </data>
+  <data name="{0} - hMailServer Control Panel" xml:space="preserve">
+    <value>{0} - hMailServer Control Panel</value>
   </data>
   <data name="{0} - put back: {1}, left as they were: {2}; waiting for a reinitialise: {3}, for a restart: {4}." xml:space="preserve">
     <value>{0} - restauradas: {1}, deixadas como estavam: {2}; aguardando uma reinicialização completa: {3}, um reinício: {4}.</value>

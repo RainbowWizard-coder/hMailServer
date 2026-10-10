@@ -1128,6 +1128,10 @@ namespace hMailServer.ControlPanel
 
          connected_ = true;
 
+         // The next launch opens on this server and user name (F033); never the password.
+         if (ServerSession.Current is ServerSession signedIn)
+            SignInMemory.Remember(signedIn.Host, signedIn.UserName);
+
          // The tree was built at start-up for nobody in particular. Built again
          // now for the credential that has just signed in, so that a page its
          // role may not use is left out rather than shown and refused - and
@@ -1226,6 +1230,13 @@ namespace hMailServer.ControlPanel
 
          AdminName.Text = user ?? "";
          AdminName.Visibility = string.IsNullOrEmpty(user) ? Visibility.Collapsed : Visibility.Visible;
+
+         // The window names the server it manages, "mail.example.com - hMailServer
+         // Control Panel", for as long as it is signed in to it, and the product
+         // alone on the sign-in page: two Control Panels open on two servers looked
+         // the same in the taskbar and in Alt+Tab (review finding F033). The title
+         // bar shows the window's title.
+         Title = SignInMemory.WindowTitle(host);
       }
 
       /// <summary>

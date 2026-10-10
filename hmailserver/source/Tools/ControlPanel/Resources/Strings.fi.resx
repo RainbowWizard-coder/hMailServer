@@ -11862,6 +11862,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Signing identity the certificate must begin with (empty = this project's two release workflows)" xml:space="preserve">
     <value>Allekirjoitusidentiteetti, jolla varmenteen on alettava (tyhjä = tämän projektin kaksi julkaisutyönkulkua)</value>
   </data>
+  <data name="Signing in" xml:space="preserve">
+    <value>Kirjaudutaan sisään</value>
+  </data>
   <data name="Signing in again from the same device ends the earlier session" xml:space="preserve">
     <value>Uusi kirjautuminen samalta laitteelta päättää aiemman istunnon</value>
   </data>
@@ -17134,6 +17137,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} - exit code {1} means infected" xml:space="preserve">
     <value>{0} - poistumiskoodi {1} tarkoittaa tartuntaa</value>
+  </data>
+  <data name="{0} - hMailServer Control Panel" xml:space="preserve">
+    <value>{0} - hMailServer Control Panel</value>
   </data>
   <data name="{0} - put back: {1}, left as they were: {2}; waiting for a reinitialise: {3}, for a restart: {4}." xml:space="preserve">
     <value>{0} - palautettu: {1}, jätetty ennalleen: {2}; odottaa uudelleenalustusta: {3}, uudelleenkäynnistystä: {4}.</value>

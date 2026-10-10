@@ -11862,6 +11862,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Signing identity the certificate must begin with (empty = this project's two release workflows)" xml:space="preserve">
     <value>Signing identity the certificate must begin with (empty = this project's two release workflows)</value>
   </data>
+  <data name="Signing in" xml:space="preserve">
+    <value>Signing in</value>
+  </data>
   <data name="Signing in again from the same device ends the earlier session" xml:space="preserve">
     <value>Signing in again from the same device ends the earlier session</value>
   </data>
@@ -17134,6 +17137,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="{0} - exit code {1} means infected" xml:space="preserve">
     <value>{0} - exit code {1} means infected</value>
+  </data>
+  <data name="{0} - hMailServer Control Panel" xml:space="preserve">
+    <value>{0} - hMailServer Control Panel</value>
   </data>
   <data name="{0} - put back: {1}, left as they were: {2}; waiting for a reinitialise: {3}, for a restart: {4}." xml:space="preserve">
     <value>{0} - put back: {1}, left as they were: {2}; waiting for a reinitialise: {3}, for a restart: {4}.</value>

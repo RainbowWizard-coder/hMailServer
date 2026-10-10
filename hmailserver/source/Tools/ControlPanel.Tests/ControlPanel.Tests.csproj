@@ -52,6 +52,13 @@
     <Compile Include="..\ControlPanel\Services\LastSignInText.cs" />
   </ItemGroup>
 
+  <!-- The sign-in page's server and user name kept from the last sign-in that worked, the
+       window's title naming its server, and the level a failed sign-in is said at (review
+       findings F029 and F033). -->
+  <ItemGroup>
+    <Compile Include="..\ControlPanel\Services\SignInMemory.cs" />
+  </ItemGroup>
+
   <!-- Chart accessibility: the palette, the catalogue, the table view and the
        status vocabulary. These are compiled straight into the test assembly rather
        than routed through ControlPanel.Core, because the app compiles them too (they

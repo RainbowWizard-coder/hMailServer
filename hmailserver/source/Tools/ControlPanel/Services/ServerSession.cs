@@ -198,6 +198,14 @@ namespace hMailServer.ControlPanel.Services
       public bool SecondFactorRequired { get; private set; }
 
       /// <summary>
+      /// Set by the most recent failed Connect when the server answered and refused
+      /// the password, or the one-time code with it - not when it could not be
+      /// reached or asked. The sign-in page says the first as a Warning, the reader's
+      /// to type again, and the second as Critical (SignInMemory.FailureLevel).
+      /// </summary>
+      public bool CredentialRefused { get; private set; }
+
+      /// <summary>
       /// Whether this session was signed in with a one-time code as well as the
       /// password. Such a sign-in cannot be carried across an administrator's install
       /// of an update (AfterUpdateHandoff): the code is spent.
@@ -356,10 +364,12 @@ namespace hMailServer.ControlPanel.Services
          if (!Open(normalizedHost, userName, password, code, out dynamic app, out bool secondFactorRequired, out error))
          {
             SecondFactorRequired = secondFactorRequired;
+            CredentialRefused = error == AuthenticationFailed_;
             return false;
          }
 
          SecondFactorRequired = false;
+         CredentialRefused = false;
          UsedSecondFactor = !string.IsNullOrEmpty(code);
 
          lock (gate_)

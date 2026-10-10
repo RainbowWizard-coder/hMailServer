@@ -3639,6 +3639,21 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   F307, F308, F098; T3.3 work item 11). `CardGridTidyingTests` holds them. Seven new strings in all seventeen
   languages; six that nothing uses any more are gone.
 
+- **Fixed: the sign-in page called a mistyped password Critical, took Enter from every control on it, said nothing to a
+  screen reader while it worked and opened on localhost and Administrator every time, and the window never said which
+  server it managed.** A password or a one-time code the server refused, and a second-factor prompt cancelled, are now
+  a Warning, the reader's to type again; only a server that could not be reached or asked is Critical, where every
+  failure was, and that was the first word the page's assertive notice spoke. Enter presses the sign-in button as the
+  page's default button, where a KeyDown handler on the whole page started a sign-in from any control that left Enter
+  unhandled, the closed Language box among them. The busy line is a polite live region, announced as it changes -
+  "Contacting localhost…", then "Signing in…" - and the progress ring is named "Signing in". The server and the user
+  name of the last sign-in that worked are kept beside the window's other settings, as `LastHost` and `LastUser` under
+  `HKCU\Software\hMailServer\ControlPanel` - never the password - and the page opens on them, localhost and
+  Administrator where nothing is kept. Once signed in, the window's title, in its title bar, the taskbar and Alt+Tab,
+  is "mail.example.com - hMailServer Control Panel", so that two Control Panels on two servers can be told apart, and
+  the product alone again on the sign-in page. `SignInMemoryTests` holds the levels, the prefill, the title and the
+  page and the window to using them.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

@@ -11862,6 +11862,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Signing identity the certificate must begin with (empty = this project's two release workflows)" xml:space="preserve">
     <value>Signeringsidentitet som certifikatet måste börja med (tomt = det här projektets två utgivningsarbetsflöden)</value>
   </data>
+  <data name="Signing in" xml:space="preserve">
+    <value>Loggar in</value>
+  </data>
   <data name="Signing in again from the same device ends the earlier session" xml:space="preserve">
     <value>En ny inloggning från samma enhet avslutar den tidigare sessionen</value>
   </data>
@@ -17134,6 +17137,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} - exit code {1} means infected" xml:space="preserve">
     <value>{0} - utgångskod {1} betyder infekterat</value>
+  </data>
+  <data name="{0} - hMailServer Control Panel" xml:space="preserve">
+    <value>{0} - hMailServer Kontrollpanel</value>
   </data>
   <data name="{0} - put back: {1}, left as they were: {2}; waiting for a reinitialise: {3}, for a restart: {4}." xml:space="preserve">
     <value>{0} - återställda: {1}, lämnade som de var: {2}; väntar på en ominitiering: {3}, på en omstart: {4}.</value>

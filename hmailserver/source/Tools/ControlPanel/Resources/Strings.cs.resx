@@ -12019,6 +12019,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Signing identity the certificate must begin with (empty = this project's two release workflows)" xml:space="preserve">
     <value>Podpisová identita, kterou musí certifikát začínat (prázdné = dva workflow vydání tohoto projektu)</value>
   </data>
+  <data name="Signing in" xml:space="preserve">
+    <value>Přihlašování</value>
+  </data>
   <data name="Signing in again from the same device ends the earlier session" xml:space="preserve">
     <value>Nové přihlášení ze stejného zařízení ukončí předchozí relaci</value>
   </data>
@@ -17339,6 +17342,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} - exit code {1} means infected" xml:space="preserve">
     <value>{0} – návratový kód {1} znamená nakaženou</value>
+  </data>
+  <data name="{0} - hMailServer Control Panel" xml:space="preserve">
+    <value>{0} - hMailServer Control Panel</value>
   </data>
   <data name="{0} - put back: {1}, left as they were: {2}; waiting for a reinitialise: {3}, for a restart: {4}." xml:space="preserve">
     <value>{0} - vráceno: {1}, ponecháno beze změny: {2}; čeká na reinicializaci: {3}, na restart: {4}.</value>

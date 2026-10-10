@@ -11872,6 +11872,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Signing identity the certificate must begin with (empty = this project's two release workflows)" xml:space="preserve">
     <value>証明書が先頭に持っていなければならない署名 ID (空 = このプロジェクトの 2 つのリリース ワークフロー)</value>
   </data>
+  <data name="Signing in" xml:space="preserve">
+    <value>サインイン中</value>
+  </data>
   <data name="Signing in again from the same device ends the earlier session" xml:space="preserve">
     <value>同じデバイスから再びサインインすると前のセッションが終了する</value>
   </data>
@@ -17144,6 +17147,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} - exit code {1} means infected" xml:space="preserve">
     <value>{0} - 終了コード {1} は感染を意味します</value>
+  </data>
+  <data name="{0} - hMailServer Control Panel" xml:space="preserve">
+    <value>{0} - hMailServer コントロールパネル</value>
   </data>
   <data name="{0} - put back: {1}, left as they were: {2}; waiting for a reinitialise: {3}, for a restart: {4}." xml:space="preserve">
     <value>{0} - 元に戻した設定: {1} 件、そのままの設定: {2} 件。再初期化待ち: {3} 件、再起動待ち: {4} 件。</value>

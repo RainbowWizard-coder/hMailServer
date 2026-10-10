@@ -149,7 +149,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       private static readonly (string File, string Phrase, string Why)[] LocalCatches =
       {
          ("AccountDialog.cs", "Could not read the photo", "a local image file"),
-         ("ConnectView.xaml.cs", "Fail_(ex.Message)", "the sign-in page's own reporting"),
+         ("ConnectView.xaml.cs", "Fail_(ex.Message, StatusLevel.Critical)", "the sign-in page's own reporting"),
          ("BackupView.xaml.cs", "could not be read from this machine", "the backup destination's folder, listed on this machine"),
          ("DirectorySyncView.cs", "saveState_.Fail(F(\"Could not save: {0}\", ex.Message))", "hMailServer.ini on this machine"),
          ("DnsRecordsView.cs", "ex.InnerException != null ? ex.InnerException.Message", "an HTTPS fetch from this machine"),

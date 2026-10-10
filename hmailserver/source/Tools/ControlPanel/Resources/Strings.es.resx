@@ -11862,6 +11862,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Signing identity the certificate must begin with (empty = this project's two release workflows)" xml:space="preserve">
     <value>Identidad de firma con la que debe empezar el certificado (vacío = los dos flujos de trabajo de publicación de este proyecto)</value>
   </data>
+  <data name="Signing in" xml:space="preserve">
+    <value>Iniciando sesión</value>
+  </data>
   <data name="Signing in again from the same device ends the earlier session" xml:space="preserve">
     <value>Iniciar sesión de nuevo desde el mismo dispositivo cierra la sesión anterior</value>
   </data>
@@ -17134,6 +17137,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="{0} - exit code {1} means infected" xml:space="preserve">
     <value>{0} - el código de salida {1} significa infectado</value>
+  </data>
+  <data name="{0} - hMailServer Control Panel" xml:space="preserve">
+    <value>{0} - hMailServer Control Panel</value>
   </data>
   <data name="{0} - put back: {1}, left as they were: {2}; waiting for a reinitialise: {3}, for a restart: {4}." xml:space="preserve">
     <value>{0} - restaurados: {1}, dejados como estaban: {2}; a la espera de una reinicialización: {3}, de un reinicio: {4}.</value>

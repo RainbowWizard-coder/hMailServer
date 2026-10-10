@@ -11862,6 +11862,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Signing identity the certificate must begin with (empty = this project's two release workflows)" xml:space="preserve">
     <value>证书必须以其开头的签名身份（留空 = 本项目的两个发布工作流）</value>
   </data>
+  <data name="Signing in" xml:space="preserve">
+    <value>正在登录</value>
+  </data>
   <data name="Signing in again from the same device ends the earlier session" xml:space="preserve">
     <value>从同一设备再次登录会结束之前的会话</value>
   </data>
@@ -17134,6 +17137,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} - exit code {1} means infected" xml:space="preserve">
     <value>{0} - 退出代码 {1} 表示已感染</value>
+  </data>
+  <data name="{0} - hMailServer Control Panel" xml:space="preserve">
+    <value>{0} - hMailServer 控制面板</value>
   </data>
   <data name="{0} - put back: {1}, left as they were: {2}; waiting for a reinitialise: {3}, for a restart: {4}." xml:space="preserve">
     <value>{0} - 已恢复：{1}，保持原样：{2}；等待重新初始化：{3}，等待重启：{4}。</value>

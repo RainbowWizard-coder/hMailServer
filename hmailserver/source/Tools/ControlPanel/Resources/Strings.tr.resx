@@ -11862,6 +11862,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Signing identity the certificate must begin with (empty = this project's two release workflows)" xml:space="preserve">
     <value>Sertifikanın başında bulunması gereken imzalama kimliği (boş = bu projenin iki sürüm iş akışı)</value>
   </data>
+  <data name="Signing in" xml:space="preserve">
+    <value>Oturum açılıyor</value>
+  </data>
   <data name="Signing in again from the same device ends the earlier session" xml:space="preserve">
     <value>Aynı cihazdan yeniden oturum açmak önceki oturumu sonlandırır</value>
   </data>
@@ -17134,6 +17137,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0} - exit code {1} means infected" xml:space="preserve">
     <value>{0} - çıkış kodu {1} virüslü demektir</value>
+  </data>
+  <data name="{0} - hMailServer Control Panel" xml:space="preserve">
+    <value>{0} - hMailServer Denetim Masası</value>
   </data>
   <data name="{0} - put back: {1}, left as they were: {2}; waiting for a reinitialise: {3}, for a restart: {4}." xml:space="preserve">
     <value>{0} - geri alınan: {1}, olduğu gibi bırakılan: {2}; yeniden başlatma (Reinitialize) bekleyen: {3}, hizmetin yeniden başlatılmasını bekleyen: {4}.</value>
