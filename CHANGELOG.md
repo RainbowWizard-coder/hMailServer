@@ -3711,6 +3711,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `RolesFormFeedbackTests` holds the messages, the outcomes, the card and the related pages, and the card's sentence
   to what the Deck's Roles view does.
 
+- **Fixed: in Japanese, the setup checklist's DKIM signing item named the record to publish
+  `<selector>.domainkey.<domain>`.** The translation had lost the underscore of `_domainkey`, read as an Alt key and
+  moved to the end of the text as "(_D)", so that a reader who published what it said made a record no receiver looks
+  up; it now names `<selector>._domainkey.<domain>`, and the "(_D)" is gone. `build/check-catalogues.py` holds every
+  translation to the DNS labels its English names - `_domainkey`, `_dmarc`, `_mta-sts`, `_smtp._tls` and the service
+  labels - and found no other.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

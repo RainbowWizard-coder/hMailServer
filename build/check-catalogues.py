@@ -15,8 +15,10 @@ catalogue, or against what the server does at run time:
             script/save - and the stalled-mail page lists them so that an
             administrator can match the page against the log; a translated
             copy matches nothing. The same holds for setting and INI names,
-            file names, %TOKEN% and <token>, INBOX, and the syntax a user
-            types verbatim. These have to survive translation unchanged.
+            file names, %TOKEN% and <token>, INBOX, the underscore labels of
+            the DNS names a reader publishes (_domainkey, _mta-sts), and the
+            syntax a user types verbatim. These have to survive translation
+            unchanged.
 
   pages     Where a caption says "on the Transport security page", the
             translation has to name that page the way that page's own title
@@ -214,6 +216,11 @@ SETTING = re.compile(r"\b(?:[A-Z][a-z0-9]+){2,}\b")
 FILENAME = re.compile(r"\b[\w.\\-]+\.(?:INI|ini|exe|log|xml|dll|py|ps1|md|resx)\b")
 PERCENT = re.compile(r"%[A-Za-z]+%")
 ANGLED = re.compile(r"<[a-z][a-z0-9\\_.-]*>")
+# The underscore labels of the DNS names a text tells the reader to publish or look up:
+# the Japanese text of DKIM signing's item named <selector>.domainkey.<domain>, its
+# underscore read as an Alt key and moved to the end as "(_D)", a record no receiver
+# looks up (found rendering the setup checklist for review finding F040).
+DNS_LABEL = re.compile(r"(?<![A-Za-z0-9])_(?:domainkey|dmarc|mta-sts|smtp|tls|tcp|submissions?|imaps?|pop3s?|autodiscover|caldavs?|carddavs?|report|bimi)(?![A-Za-z0-9-])")
 PLACEHOLDER = re.compile(r"\{\d+(?:[:,][^}]*)?\}")
 # Digits, optionally in groups of three. "451. 0" is two numbers, not 4510.
 NUMBER = re.compile(r"\d+(?:[ ,. ]\d{3})*")
@@ -448,6 +455,11 @@ def check(tag, catalogue, pages=None):
             if match not in target and match not in plain:
                findings.append((source, "%r is a literal; the translation changed it" % match))
 
+      # A DNS name's label is held to the value as it is, not with an Alt key taken out.
+      for match in sorted(set(DNS_LABEL.findall(source))):
+         if match not in target:
+            findings.append((source, "the DNS label %r is not in the translation" % match))
+
       if len(source) > 40:
          for title, translated in sorted(titles.items()):
             if source == title or translated in target:
@@ -574,6 +586,18 @@ def self_test():
       found = bool(check("de", {"Suppression list": "Unterdrückungsliste", reference: value}))
       if found != expected:
          print("FAIL: %r is %s as naming the page wrongly" % (value, "reported" if found else "not reported"))
+         failures += 1
+
+   # The DNS label rule: the shipped Japanese DKIM text is refused, the mended one and a
+   # caption's Alt key are not.
+   dkim = "At your DNS host, publish a TXT record named <selector>._domainkey.<domain>."
+   for (source, value), expected in (((dkim, "DNS で <selector>.domainkey.<domain> を公開します。(_D)"), True),
+                                     ((dkim, "DNS で <selector>._domainkey.<domain> を公開します。"), False),
+                                     (("Publish _dmarc.<domain> and _mta-sts.<domain>.", "_dmarc.<domain> を公開します。"), True),
+                                     (("_Domains", "ドメイン(_D)"), False)):
+      found = any("DNS label" in why for _, why in check("ja", {source: value}))
+      if found != expected:
+         print("FAIL: %r is %s as losing a DNS label" % (value, "reported" if found else "not reported"))
          failures += 1
 
    # The English reference rule: a page or a tab named in the text exists by that name.
