@@ -209,6 +209,44 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain("HelpPanel.ShowPage(key)", shell, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// A document the pane is given starts at its top, and moves to the page's
+      /// heading once it has been laid out. The viewer's ScrollViewer keeps its
+      /// offset when the document is replaced, and a block's BringIntoView asked
+      /// before the new document is laid out does nothing, so the pane reset to the
+      /// top by asking it of the first block, and reached the heading straight after
+      /// the document was given, both in vain: a page with no guide opened at the
+      /// foot of the list of documents after a long document's heading, a tab's
+      /// document part-way down. Every document now goes through ShowFromTheTop_,
+      /// which sets the ScrollViewer itself back, and the heading is brought into
+      /// view at Loaded priority, after the layout.
+      /// </summary>
+      [Fact]
+      public void ADocumentOpensAtItsTop_AndAtItsHeadingOnceLaidOut()
+      {
+         string pane = File.ReadAllText(Path.Combine(FindControlPanel(), "Views", "HelpPane.cs"));
+
+         Assert.Single(Regex.Matches(pane, @"viewer_\.Document\s*=(?!=)"));
+         string top = WithheldRowTests.MemberText(pane, "private void ShowFromTheTop_(FlowDocument document)");
+         Assert.True(top != null, "HelpPane no longer gives the viewer its documents through ShowFromTheTop_.");
+         Assert.Contains("viewer_.Document = document;", top, StringComparison.Ordinal);
+         Assert.Contains("DocumentScroller_()?.ScrollToHome();", top, StringComparison.Ordinal);
+         Assert.Contains("ShowFromTheTop_(DocumentList_(intro));", pane, StringComparison.Ordinal);
+         Assert.Contains("ShowFromTheTop_(built.Document);", pane, StringComparison.Ordinal);
+         Assert.Contains("ShowFromTheTop_(DocumentList_(null));", pane, StringComparison.Ordinal);
+
+         string scroller = WithheldRowTests.MemberText(pane, "private ScrollViewer DocumentScroller_()");
+         Assert.True(scroller != null && scroller.Contains("\"PART_ContentHost\"", StringComparison.Ordinal),
+            "HelpPane no longer finds the viewer's own ScrollViewer.");
+
+         string heading = WithheldRowTests.MemberText(pane, "private void ScrollToHeading_(string heading)");
+         Assert.True(heading != null, "HelpPane no longer scrolls to a heading through ScrollToHeading_.");
+         Assert.Contains("DispatcherPriority.Loaded", heading, StringComparison.Ordinal);
+         Assert.Contains("block.BringIntoView();", heading, StringComparison.Ordinal);
+         Assert.Contains("ReferenceEquals(viewer_.Document, document)", heading, StringComparison.Ordinal);
+         Assert.DoesNotContain("FirstBlock", pane, StringComparison.Ordinal);
+      }
+
       [Fact]
       public void AKeyThatIsNotAPageHasNoHelp()
       {

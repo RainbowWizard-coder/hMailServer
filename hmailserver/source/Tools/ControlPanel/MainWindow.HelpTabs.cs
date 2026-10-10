@@ -46,7 +46,9 @@ namespace hMailServer.ControlPanel
       /// <summary>
       /// Shows the help for the page just opened, and once more when it has been
       /// laid out: a page opened for the first time has no tab strip to read until
-      /// then, and one reached by Back is put back on its tab then.
+      /// then, and one reached by Back is put back on its tab then. The second call
+      /// is for the tab alone; the pane reaches a document's heading by itself, once
+      /// the document is laid out (HelpPane.ScrollToHeading_).
       /// </summary>
       private void ShowHelpForNewPage_(string key)
       {

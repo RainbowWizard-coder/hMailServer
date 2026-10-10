@@ -2155,11 +2155,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   is the tab showing - Logging's SNMP, Audit trail and Alerts & webhooks, the anti-spam settings' Sender auth, Host
   checks, Greylisting and Spam traps, the anti-virus settings' Sandbox, Auto-ban's Countries and Compromised accounts,
   Performance's Message store, Advanced's Scripting and Migrations, Delivery of e-mail's Feedback, Reputation and
-  Mailing lists, and four of the Webmail page's - and the help follows the tab as it changes. A document the pane
-  opens after another starts at its top, where it kept the other's place, and two documents whose prose wraps to put
-  "0." at the start of a line - Service account and Source packages - no longer stop the pane, which read the line as
-  a list numbered from 0 and could not draw it. build/check-help-map.py holds every tab entry to a tab its page
-  builds, and fails a document listed as reference-only whose title or name is a tab's or a card's heading.
+  Mailing lists, and four of the Webmail page's - and the help follows the tab as it changes. The pane opens each
+  document at its top, or at the page's heading once the document has been laid out, where it kept the place of the
+  document shown before and reached the heading only on a document already showing; and two documents whose prose
+  wraps to put "0." at the start of a line - Service account and Source packages - no longer stop the pane, which read
+  the line as a list numbered from 0 and could not draw it. build/check-help-map.py holds every tab entry to a tab its
+  page builds, and fails a document listed as reference-only whose title or name is a tab's or a card's heading.
 
 ### Administration
 

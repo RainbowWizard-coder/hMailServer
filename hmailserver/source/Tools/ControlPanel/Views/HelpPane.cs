@@ -224,8 +224,7 @@ namespace hMailServer.ControlPanel.Views
          var none = new Paragraph(new Run(L("No guide covers this page yet. Every document is listed below."))) { Margin = new Thickness(0, 0, 0, 14) };
          none.SetResourceReference(TextElement.ForegroundProperty, "TextFillColorSecondaryBrush");
          intro.Add(none);
-         viewer_.Document = DocumentList_(intro);
-         ScrollToHeading_(null);
+         ShowFromTheTop_(DocumentList_(intro));
       }
 
       /// <summary>
@@ -244,7 +243,7 @@ namespace hMailServer.ControlPanel.Views
             headings_.Children.Clear();
             headingBlocks_ = new Dictionary<string, Block>();
             title_.Text = name ?? "";
-            viewer_.Document = new FlowDocument(new Paragraph(new Run(L("This document is not in this copy of the program."))));
+            ShowFromTheTop_(new FlowDocument(new Paragraph(new Run(L("This document is not in this copy of the program.")))));
             UpdateWikiLink_();
             return;
          }
@@ -254,8 +253,8 @@ namespace hMailServer.ControlPanel.Views
             string text = HelpPages.Read(spelled) ?? "";
             IReadOnlyList<MdBlock> blocks = MarkdownBlocks.Parse(text);
             MarkdownFlow.Built built = MarkdownFlow.Build(blocks, (doc, fragment) => ShowDocument(doc, HeadingForFragment_(doc, fragment)));
-            viewer_.Document = built.Document;
             headingBlocks_ = built.Headings;
+            ShowFromTheTop_(built.Document);
             shown_ = spelled;
             search_.Text = "";
 
@@ -284,8 +283,7 @@ namespace hMailServer.ControlPanel.Views
          search_.Text = "";
          title_.Text = L("All documentation");
          UpdateWikiLink_();
-         viewer_.Document = DocumentList_(null);
-         ScrollToHeading_(null);
+         ShowFromTheTop_(DocumentList_(null));
       }
 
       /// <summary>
@@ -341,19 +339,74 @@ namespace hMailServer.ControlPanel.Views
          return button;
       }
 
+      /// <summary>
+      /// Gives the viewer a new document, at its top. The viewer's ScrollViewer
+      /// keeps its offset when the document is replaced, so a document opened after
+      /// another opened at the other's place - the foot of the list of documents on a
+      /// page with no guide after a long document's heading, the middle of the SNMP
+      /// document when the Logging page's SNMP tab was chosen after the syslog
+      /// document had been scrolled. The offset is set back on the ScrollViewer
+      /// itself: a block's BringIntoView, which this asked of the first block, does
+      /// nothing until the new document has been laid out.
+      /// </summary>
+      private void ShowFromTheTop_(FlowDocument document)
+      {
+         viewer_.Document = document;
+         DocumentScroller_()?.ScrollToHome();
+      }
+
+      /// <summary>
+      /// Scrolls the document showing to a heading, or to its top when the heading
+      /// is not one of its own or none is named. The heading's block is brought into
+      /// view at Loaded priority, once the layout has run: asked at once, straight
+      /// after <see cref="ShowFromTheTop_"/>, it is not acted on, because the
+      /// viewer finds where a block is only in a document it has laid out - which
+      /// is why a page's heading was reached only when its document was already
+      /// showing. When another document has replaced it by then, that one is
+      /// left as it is.
+      /// </summary>
       private void ScrollToHeading_(string heading)
       {
-         if (!string.IsNullOrEmpty(heading) && headingBlocks_.TryGetValue(heading, out Block block))
-         {
-            block.BringIntoView();
+         FlowDocument document = viewer_.Document;
+         if (document == null)
             return;
-         }
 
-         // The top: the document's first block. ContentStart.Paragraph, which this
-         // asked, is null before the first block, so a document opened after another
-         // kept the other's place - the middle of the SNMP document when the
-         // Logging page's SNMP tab was chosen after a long page's help.
-         viewer_.Document?.Blocks.FirstBlock?.BringIntoView();
+         Block block = null;
+         if (!string.IsNullOrEmpty(heading))
+            headingBlocks_.TryGetValue(heading, out block);
+
+         Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, new Action(() =>
+         {
+            if (!ReferenceEquals(viewer_.Document, document))
+               return;
+
+            if (block != null)
+               block.BringIntoView();
+            else
+               DocumentScroller_()?.ScrollToHome();
+         }));
+      }
+
+      /// <summary>
+      /// The viewer's own ScrollViewer, the one in its template; null before the
+      /// template is applied, when the viewer has never been scrolled.
+      /// </summary>
+      private ScrollViewer DocumentScroller_()
+      {
+         if (viewer_.Template?.FindName("PART_ContentHost", viewer_) is ScrollViewer part)
+            return part;
+
+         var pending = new Stack<DependencyObject>();
+         pending.Push(viewer_);
+         while (pending.Count > 0)
+         {
+            DependencyObject node = pending.Pop();
+            if (node is ScrollViewer found)
+               return found;
+            for (int i = System.Windows.Media.VisualTreeHelper.GetChildrenCount(node) - 1; i >= 0; i--)
+               pending.Push(System.Windows.Media.VisualTreeHelper.GetChild(node, i));
+         }
+         return null;
       }
 
       /// <summary>
