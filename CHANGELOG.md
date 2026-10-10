@@ -3484,6 +3484,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   (F207) and are as they should be. `TlsCertificateRowTests` and `StatusSemanticsTests` hold the rows, their levels
   against the notes, and the neutral mark.
 
+- **Fixed: a check box stood ten pixels right of the column its card's captions, boxes and hints share, and the lines
+  under it aligned with neither the box nor its caption.** WPF-UI's padding is the box's margin, so that the square
+  stood at 336 pixels against 325 for every caption, text box and hint of a settings card, and at 35 against 25 in a
+  dialog; a hint under a box began at the row's edge; Back up messages' two options on the backup page stood 22 pixels
+  in, under neither its box nor its caption; and on the IP ranges page a permission whose caption wrapped pushed the
+  other boxes of its row off their line (review finding F294). Every check box stands on the text column, its caption
+  at the top beside it; the hint, the Applies line and the message under a box start under its caption, 28 pixels in -
+  the box and its gap - as a dialog's note laid under one does, and so do Directory synchronisation's note on marking
+  accounts inactive and a setting level's own value; the backup page's two options stand under Back up messages'
+  caption, their notes under their own; and the IP ranges page's permission boxes keep to the top of their row.
+  `CheckBoxColumnTests` holds the style, the inset and each of the pages.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

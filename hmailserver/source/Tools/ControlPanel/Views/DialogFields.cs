@@ -75,12 +75,44 @@ namespace hMailServer.ControlPanel.Views
          return block;
       }
 
-      /// <summary>A sentence under a control saying what the setting actually does.</summary>
+      /// <summary>
+      /// A sentence under a control saying what the setting actually does. Under a check
+      /// box or a radio button with a caption it starts under the caption, the box and
+      /// its gap in (DesignTokens.CheckBoxCaptionInset), as a hint under a box in a
+      /// FieldRow does: it stood at the box's own edge, and once the box stood on the
+      /// text column, left of the caption it explains (review finding F294).
+      /// </summary>
       public static TextBlock Note(string text)
       {
          var block = new TextBlock { Text = text, Margin = new Thickness(0, 0, 0, DesignTokens.Space.Md) };
          block.SetResourceReference(FrameworkElement.StyleProperty, "TextCaption");
+         block.Loaded += (_, _) => UnderItsCheckBox_(block);
          return block;
+      }
+
+      /// <summary>
+      /// The note's left edge under the caption of the check box just above it in its
+      /// panel - the box's own left margin and the caption inset - and at the panel's
+      /// edge under anything else. Read as the note is laid out, since the note is made
+      /// before the dialog decides what goes above it.
+      /// </summary>
+      private static void UnderItsCheckBox_(TextBlock note)
+      {
+         if (note.Parent is not Panel panel)
+            return;
+
+         int at = panel.Children.IndexOf(note);
+         UIElement above = null;
+         for (int i = at - 1; i >= 0 && above == null; i--)
+         {
+            if (panel.Children[i].Visibility != Visibility.Collapsed)
+               above = panel.Children[i];
+         }
+
+         double left = above is FrameworkElement box && FieldRow.CaptionsItself(box)
+            ? box.Margin.Left + DesignTokens.CheckBoxCaptionInset
+            : 0;
+         note.Margin = new Thickness(left, note.Margin.Top, note.Margin.Right, note.Margin.Bottom);
       }
 
       /// <summary>Body text in the ramp - a dialog's explanation, a status line.</summary>

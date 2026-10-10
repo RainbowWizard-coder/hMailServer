@@ -97,6 +97,16 @@ namespace hMailServer.ControlPanel.Services
       public const double FormWidth = 760;
 
       /// <summary>
+      /// How far a check box's caption starts in from the box's left edge: the box,
+      /// 20 pixels, and the gap WPF-UI keeps after it, 8 (a radio button's circle is
+      /// the same). The lines under a check box - its hint, its Applies line, its
+      /// message, a note, an option that belongs to it - start here, under its
+      /// caption, as the lines under a field start under its box (AppCheckBoxIndent
+      /// in Tokens.xaml; review finding F294).
+      /// </summary>
+      public const double CheckBoxCaptionInset = 28;
+
+      /// <summary>
       /// The widest a page's subtitle runs on its line under the title (AppSubtitleWidth
       /// in Tokens.xaml): about a hundred and twenty characters of body text, two lines
       /// for the two sentences a subtitle holds (review finding F279).

@@ -203,7 +203,8 @@ namespace hMailServer.ControlPanel.Views
             MaxWidth = 420,
             HorizontalAlignment = HorizontalAlignment.Left,
             MinWidth = 160,
-            Margin = new Thickness(24, 2, 0, 2)
+            // The box's own value and what it does, under its caption (review finding F294).
+            Margin = new Thickness(DesignTokens.CheckBoxCaptionInset, 2, 0, 2)
          };
          AutomationProperties.SetName(value, F("Own value of {0}", level.Name));
          check.Checked += (_, _) => value.IsEnabled = true;
@@ -211,7 +212,7 @@ namespace hMailServer.ControlPanel.Views
 
          panel.Children.Add(check);
          panel.Children.Add(value);
-         effect.Margin = new Thickness(24, 0, 0, 0);
+         effect.Margin = new Thickness(DesignTokens.CheckBoxCaptionInset, 0, 0, 0);
          panel.Children.Add(effect);
 
          rows_.Add(new Row { Level = level, Own = check, Value = value, Effect = effect, LoadedOwn = has, LoadedValue = has ? own : "" });

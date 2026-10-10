@@ -308,8 +308,19 @@
                  inside the dictionary that defines the implicit style, a
                  StaticResource for the type key finds the entry being defined
                  and yields null, and a style based on nothing gave every box
-                 the classic theme's 13-pixel square with a black tick. -->
+                 the classic theme's 13-pixel square with a black tick.
+                 The box stands on the text column, where every caption, box and
+                 hint of its card or dialog starts: WPF-UI's padding (11,5,11,6)
+                 is the bullet's margin, so the square stood eleven pixels right of
+                 them, and a hint under it aligned with neither the box nor its
+                 caption (review finding F294). The caption starts the box and its
+                 gap further in, DesignTokens.CheckBoxCaptionInset (28), which is
+                 where the lines under a box go (FieldRow, DialogFields.Note). The
+                 content is at the top, beside the box, however tall the box is
+                 laid out. -->
             <Style TargetType="CheckBox" BasedOn="{StaticResource DefaultCheckBoxStyle}">
+                <Setter Property="Padding" Value="0,5,11,6" />
+                <Setter Property="VerticalContentAlignment" Value="Top" />
                 <Style.Resources>
                     <DataTemplate DataType="{x:Type sys:String}">
                         <AccessText Text="{Binding}" TextWrapping="Wrap" />

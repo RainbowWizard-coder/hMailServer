@@ -406,7 +406,8 @@ namespace hMailServer.ControlPanel.Views
          {
             Text = L("Off by default. An account that stops being visible in the directory is far more often a search that changed than a person who left, and the two mistakes do not cost the same. Nothing is disabled at all when the enumeration was cut short or came back empty."),
             TextWrapping = TextWrapping.Wrap,
-            Margin = new Thickness(24, 0, 0, 16)
+            // Under the box's caption (review finding F294).
+            Margin = new Thickness(DesignTokens.CheckBoxCaptionInset, 0, 0, 16)
          };
          disableHint.SetResourceReference(StyleProperty, "TextCaptionTertiary");
          content.Children.Add(disableHint);

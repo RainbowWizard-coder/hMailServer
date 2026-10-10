@@ -169,7 +169,11 @@
                     <!-- A caption longer than its quarter of the card wraps under
                          itself. AccessText, not TextBlock, so the Alt key still works. -->
                     <UniformGrid.Resources>
+                        <!-- At the top of their cells, so that a caption that wraps
+                             leaves its box on the line of its row's others, where every
+                             box of the row was centred against the tallest (F294). -->
                         <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
+                            <Setter Property="VerticalAlignment" Value="Top" />
                             <Setter Property="ContentTemplate">
                                 <Setter.Value>
                                     <DataTemplate>

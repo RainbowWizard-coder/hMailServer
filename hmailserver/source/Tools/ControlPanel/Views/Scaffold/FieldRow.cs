@@ -207,6 +207,26 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          Apply_();
       }
 
+      /// <summary>
+      /// Whether the editor is a check box or a radio button with a caption of its own:
+      /// the lines under it - the message, the Applies line, the hint - then start under
+      /// its caption, the box and its gap in (DesignTokens.CheckBoxCaptionInset), where
+      /// they started at the row's edge and a hint under a box aligned with neither the
+      /// box nor its caption (review finding F294).
+      /// </summary>
+      internal static bool CaptionsItself(object editor)
+         => editor is ToggleButton { Content: not null } toggle && (toggle is CheckBox || toggle is RadioButton);
+
+      private void IndentLines_()
+      {
+         double inset = CaptionsItself(Content) ? DesignTokens.CheckBoxCaptionInset : 0;
+         foreach (string part in new[] { "PART_ErrorRow", "PART_Applies", "PART_Hint" })
+         {
+            if (Part<FrameworkElement>(part) is { } line)
+               line.Margin = new Thickness(inset, DesignTokens.Space.Xs, 0, 0);
+         }
+      }
+
       private static void OnAnyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
       {
          var row = (FieldRow)d;
@@ -252,6 +272,8 @@ namespace hMailServer.ControlPanel.Views.Scaffold
 
       private void Apply_()
       {
+         IndentLines_();
+
          string label = Label ?? "";
          var editor = Content as FrameworkElement;
 

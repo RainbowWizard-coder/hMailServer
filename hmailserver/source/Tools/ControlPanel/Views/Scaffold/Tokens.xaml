@@ -44,6 +44,10 @@
     <!-- The widest a form is laid out, whatever the window does. -->
     <sys:Double x:Key="AppFormWidth">760</sys:Double>
 
+    <!-- Under a check box's caption: the box and its gap (DesignTokens.CheckBoxCaptionInset),
+         for an option that belongs to the box above it. -->
+    <Thickness x:Key="AppCheckBoxIndent">28,0,0,0</Thickness>
+
     <!-- The widest a page's subtitle runs under its title (DesignTokens.SubtitleWidth). -->
     <sys:Double x:Key="AppSubtitleWidth">840</sys:Double>
 
