@@ -3558,13 +3558,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   cut, in English and German. The tree is now a share of the window's width - 310 pixels at 1280 - set in pixels as
   the window changes (`Services/ShellGeometry`), so the pane takes its width from the page alone; where the tree and
   the pane would leave the page less than 512 pixels, the sidebar is the rail while the pane is open, a glyph opening
-  its group's pages in the flyout, and the tree again once the pane closes, neither recorded as a choice. Welcome, the
-  Dashboard and About have glyphs of their own - a house, a chart and an information mark - where the rail drew their
-  translated initials and their labels started left of the groups' in the tree, and Sign-in & access is a person with
-  a lock, where it was a second shield beside Spam & virus filtering's. The breadcrumb's trail no longer wraps: where
-  its line is too short, the groups' segments are cut short first and the page's name last, each with an ellipsis and
-  whole in its tool tip, so that beside the help pane in the narrowest window the bar still names the page
-  (`Views/Scaffold/BreadcrumbTrailPanel`), and the Related links keep twelve pixels from it, where "Certificates
+  its group's pages in the flyout, and the tree again once the pane closes, neither recorded as a choice; a keyboard
+  on the tree's row for the page goes to the rail's glyph for it and back, where it was left on the window. Welcome,
+  the Dashboard and About have glyphs of their own - a house, a chart and an information mark - where the rail drew
+  their translated initials and their labels started left of the groups' in the tree, and Sign-in & access is a person
+  with a lock, where it was a second shield beside Spam & virus filtering's. The breadcrumb's trail no longer wraps:
+  where its line is too short, the groups' segments are cut short first and the page's name last, each with an
+  ellipsis and whole in its tool tip, so that beside the help pane in the narrowest window the bar still names the
+  page (`Views/Scaffold/BreadcrumbTrailPanel`), and the Related links keep twelve pixels from it, where "Certificates
   (ACME)" went onto a second line at 760 pixels and "Transport security" ran into "Related:" (review findings F021,
   F022, F023, F047; T3.3 work item 7). Beside the wider sidebar the Domains page's alias and list cards keep 270
   pixels each where they kept 280, so that they stay side by side at 1280, and the audit trail's grid scrolls sideways

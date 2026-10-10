@@ -617,6 +617,13 @@ namespace hMailServer.ControlPanel
             return;
          }
 
+         // Where the keyboard was before the tree and the rail change places: in
+         // either, it would be left on a row or a glyph no longer shown, which WPF
+         // answers by putting it on the window, the next Tab starting again from
+         // the command bar - F1 on a tree row in a window of 1000 to 1180 pixels
+         // makes the tree the rail beside the help pane (KeepKeyboardInNavigation_).
+         bool keyboardInSidebar = SidebarPane.IsKeyboardFocusWithin;
+
          railShowing_ = rail;
          sidebarShown_ = shown;
 
@@ -651,6 +658,26 @@ namespace hMailServer.ControlPanel
          SidebarFooter.Visibility = rail ? Visibility.Collapsed : Visibility.Visible;
 
          UpdateSidebarToggle_();
+
+         if (keyboardInSidebar)
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, new Action(KeepKeyboardInNavigation_));
+      }
+
+      /// <summary>
+      /// The keyboard, which was in the sidebar as the tree and the rail changed
+      /// places, on the navigation's own place for the page - the rail's glyph for
+      /// it, or its row of the tree - as F6 takes it there (NavigationTarget_);
+      /// unless it is somewhere shown already, as closing the help pane leaves it
+      /// on the help button.
+      /// </summary>
+      private void KeepKeyboardInNavigation_()
+      {
+         if (Keyboard.FocusedElement is UIElement { IsVisible: true } focused && !ReferenceEquals(focused, this))
+            return;
+
+         IInputElement target = NavigationTarget_();
+         if (target != null)
+            Keyboard.Focus(target);
       }
 
       /// <summary>

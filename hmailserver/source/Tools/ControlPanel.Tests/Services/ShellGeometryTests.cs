@@ -98,6 +98,35 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("treeBesideHelpChosen_ = !sidebarCollapsedByUser_;", toggle, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// The keyboard stays in the navigation when the tree and the rail change
+      /// places under it: F1 on a tree row in a window of 1000 to 1180 pixels makes
+      /// the tree the rail beside the help pane, and the row the keyboard was on was
+      /// collapsed with nothing told, so that WPF put the keyboard on the window and
+      /// the next Tab started from the command bar. Once laid out it goes to the
+      /// navigation's own place for the page, as F6 takes it there - unless it is on
+      /// something shown already, as closing the pane leaves it on the help button.
+      /// </summary>
+      [Fact]
+      public void TheKeyboard_StaysInTheNavigation_WhenTheTreeAndTheRailChangePlaces()
+      {
+         string shell = ConfirmationPatternTests.ReadControlPanelFile("MainWindow.xaml.cs");
+         string apply = WithheldRowTests.MemberText(shell, "private void ApplySidebar_()");
+         Assert.True(apply != null, "MainWindow.ApplySidebar_ is gone.");
+         int asked = apply.IndexOf("bool keyboardInSidebar = SidebarPane.IsKeyboardFocusWithin;", StringComparison.Ordinal);
+         int switched = apply.IndexOf("NavTree.Visibility = rail ? Visibility.Collapsed : Visibility.Visible;", StringComparison.Ordinal);
+         int kept = apply.IndexOf("Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, new Action(KeepKeyboardInNavigation_));", StringComparison.Ordinal);
+         Assert.True(asked >= 0 && switched >= 0 && kept >= 0, "ApplySidebar_ no longer keeps the keyboard in the navigation as the tree and the rail change places.");
+         Assert.True(asked < switched && switched < kept, "ApplySidebar_ asks where the keyboard is after the tree and the rail have changed places, or hands it on before.");
+         Assert.Contains("if (keyboardInSidebar)", apply, StringComparison.Ordinal);
+
+         string keep = WithheldRowTests.MemberText(shell, "private void KeepKeyboardInNavigation_()");
+         Assert.True(keep != null, "MainWindow.KeepKeyboardInNavigation_ is gone.");
+         Assert.Contains("if (Keyboard.FocusedElement is UIElement { IsVisible: true } focused && !ReferenceEquals(focused, this))", keep, StringComparison.Ordinal);
+         Assert.Contains("IInputElement target = NavigationTarget_();", keep, StringComparison.Ordinal);
+         Assert.Contains("Keyboard.Focus(target);", keep, StringComparison.Ordinal);
+      }
+
       /// <summary>Every top-level row - each group, and Welcome, the Dashboard and About - has a glyph, and only those rows do.</summary>
       [Fact]
       public void EveryTopLevelRow_HasAGlyph_AndNoPageInAGroupDoes()
