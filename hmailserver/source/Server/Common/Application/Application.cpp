@@ -767,6 +767,38 @@ namespace HM
    }
 
    bool
+   Application::InitInstanceAndStart(String &sErrorMessage, const std::function<bool()> &finish)
+   {
+      boost::unique_lock<boost::timed_mutex> lock(servers_mutex_, boost::defer_lock);
+      const String refused = TakeServersLock_(lock, *MessageIndexer::Instance());
+      ServersLockHeld_ held(*this, lock);
+      if (!refused.IsEmpty())
+      {
+         sErrorMessage = "The server was not started: " + refused;
+         return false;
+      }
+
+      if (!InitInstance(sErrorMessage))
+         return false;
+
+      if (finish && finish())
+      {
+         sErrorMessage = Reinitialize_();
+         return sErrorMessage.IsEmpty();
+      }
+
+      // A stop before the process ends that came during InitInstance waits for
+      // this (ShutDown): nothing is started, and that stop closes the database.
+      if (shutting_down_)
+      {
+         sErrorMessage = "The server was not started: it is stopping.";
+         return false;
+      }
+
+      return StartServers_();
+   }
+
+   bool
    Application::StartServers_()
    {
       LOG_APPLICATION("Starting servers...")
@@ -1621,7 +1653,7 @@ namespace HM
       ServersLockHeld_ held(*this, lock);
       if (!lock.owns_lock())
       {
-         LOG_APPLICATION("Stopping: a reinitialise, or a stop or a start of the servers over COM, is under way, and this stop waits for it.");
+         LOG_APPLICATION("Stopping: a start, a stop or a reinitialise of the servers is under way, and this stop waits for it.");
 
          // What that may wait for without a limit is the indexer's thread, which
          // a reinitialise's stop waits for until it has ended: waited for here,
@@ -1645,7 +1677,7 @@ namespace HM
 
             if (std::chrono::steady_clock::now() >= deadline)
             {
-               LOG_APPLICATION("Gave up waiting for the reinitialise, or the stop or the start of the servers over COM, that was under way. The process ends with it.");
+               LOG_APPLICATION("Gave up waiting for the start, the stop or the reinitialise of the servers that was under way. The process ends with it.");
                return false;
             }
          }
@@ -2137,6 +2169,12 @@ namespace HM
       if (!refused.IsEmpty())
          return "The server was not reinitialised: " + refused;
 
+      return Reinitialize_();
+   }
+
+   String
+   Application::Reinitialize_()
+   {
       StopServers_(StopToStartAgain);
 
       // A stop before the process ends came while this one stopped, and waits
@@ -2380,6 +2418,9 @@ namespace HM
          application.shutting_down_ = false;
 
          TestComsStopAndStartWaitAMomentAtMost_();
+         application.shutting_down_ = false;
+
+         TestTheServicesStartTakesTheLockFirst_();
          application.shutting_down_ = false;
       }
       catch (...)
@@ -2758,6 +2799,70 @@ namespace HM
       const std::chrono::steady_clock::duration atLeast = std::chrono::seconds(limit) - std::chrono::milliseconds(500);
       if (stop->took < atLeast || start->took < atLeast)
          throw std::logic_error("ServersLockTester: COM's Stop or Start during a reinitialise under way was refused without waiting the few seconds it waits.");
+   }
+
+   void
+   ServersLockTester::TestTheServicesStartTakesTheLockFirst_()
+   {
+      Application &application = *Application::Instance();
+      std::shared_ptr<ServersLockAnswers> answers = std::make_shared<ServersLockAnswers>();
+
+      // A stop holds the mutex - the one before the process ends, which the
+      // service takes from the moment it reports itself running - until the
+      // test lets it go.
+      boost::thread stop([&application, answers]()
+      {
+         boost::unique_lock<boost::timed_mutex> lock(application.servers_mutex_, boost::defer_lock);
+         const String taking = application.TakeServersLock_(lock, *MessageIndexer::Instance());
+         Application::ServersLockHeld_ held(application, lock);
+         answers->Set([&]() { answers->taking = taking; answers->holding = true; });
+
+         answers->WaitFor(ServersLockWait, [&answers]() { return answers->let_go; });
+      });
+
+      if (!answers->WaitFor(ServersLockWait, [&answers]() { return answers->holding; }) || !answers->taking.IsEmpty())
+      {
+         answers->Set([&]() { answers->let_go = true; });
+         stop.join();
+         throw std::logic_error("ServersLockTester: the servers' mutex was not taken for the stop the test stands in for.");
+      }
+
+      // The service's start, on a thread of its own as ServiceMain's is. It
+      // waits for the mutex before InitInstance; the stop it waited for has
+      // ended the process's servers when it lets go (shutting_down_), so the
+      // start is refused there and opens nothing - in business-object-tests,
+      // which has no database, an InitInstance would fail on the way, saying
+      // something else.
+      std::shared_ptr<String> startAnswer = std::make_shared<String>();
+      std::shared_ptr<std::atomic<bool>> startReturned = std::make_shared<std::atomic<bool>>(false);
+      std::shared_ptr<std::atomic<bool>> finishCalled = std::make_shared<std::atomic<bool>>(false);
+      boost::thread start([&application, startAnswer, startReturned, finishCalled]()
+      {
+         String error;
+         application.InitInstanceAndStart(error, [finishCalled]() { finishCalled->store(true); return false; });
+         *startAnswer = error;
+         startReturned->store(true);
+      });
+
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+      const bool returnedEarly = startReturned->load();
+
+      application.shutting_down_ = true;
+      answers->Set([&]() { answers->let_go = true; });
+      stop.join();
+
+      const bool joined = start.try_join_for(boost::chrono::seconds(20));
+      if (!joined)
+         start.detach();
+
+      if (returnedEarly)
+         throw std::logic_error("ServersLockTester: the service's start returned while a stop held the servers' mutex: it went on to InitInstance without it, and a stop arriving then closed the database under InitInstance, as the installer's stop after its start for the database step could until 10 October 2026.");
+
+      if (!joined)
+         throw std::logic_error("ServersLockTester: the service's start had not returned twenty seconds after the stop let go of the servers' mutex.");
+
+      if (!startAnswer->Contains(_T("the server is stopping")) || finishCalled->load())
+         throw std::logic_error("ServersLockTester: the service's start, which waited for a stop before the process ends, was not refused once that stop let go of the servers' mutex, before it opened anything.");
    }
 
    void

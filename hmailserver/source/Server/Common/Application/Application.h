@@ -112,6 +112,19 @@ namespace HM
       // that is above 0, and the start then refused.
       bool StartServers(int maxWaitSeconds = 0, String *refused = nullptr);
 
+      // The service's start, and a /Debug run's (InitializeApplication):
+      // InitInstance, then finish when it is given - what the start does with
+      // the database open before the servers start, true when it changed the
+      // server, which is then reinitialised - and then the servers started, all
+      // with servers_mutex_ held. The service reports itself running, and
+      // accepts a stop, before this begins, so that a stop arriving meanwhile -
+      // the installer's, straight after the start it makes for the database
+      // step - waits for it (ShutDown), where until 10 October 2026 it closed
+      // the database under InitInstance or the new installation's defaults.
+      // False when InitInstance failed, the start was refused or failed, or
+      // that stop came first, why in sErrorMessage when there is a reason.
+      bool InitInstanceAndStart(String &sErrorMessage, const std::function<bool()> &finish);
+
       // COM's Application.Stop: the servers stopped, to be started again in
       // this process (StartServers, Reinitialize) on the database it leaves
       // open, the indexer waited for until it has ended. Answers empty, or why
@@ -134,8 +147,8 @@ namespace HM
       // shutdown (TerminateServer), a signal's on Linux, the end of a /Debug or
       // a /Test run: the servers stopped, the indexer waited for a minute at
       // most, the database closed (ExitInstance). A stop, a start or a
-      // reinitialise under way is waited for, and one that comes after does
-      // nothing. A reinitialise's stop waits for the indexer without a limit,
+      // reinitialise under way is waited for - the service's own start among
+      // them (InitInstanceAndStart) - and one that comes after does nothing. A reinitialise's stop waits for the indexer without a limit,
       // so this waits for that thread itself, the same minute at most, and the
       // reinitialise then stops short, leaving the rest to this.
       //
@@ -253,6 +266,9 @@ namespace HM
       // cannot wait for itself.
       bool StopServers_(StopPurpose purpose);
       bool StartServers_();
+
+      // Reinitialize itself, servers_mutex_ held.
+      String Reinitialize_();
 
       // servers_mutex_ taken by lock for a stop, a start or a reinitialise:
       // answers empty, or why it was not taken - on the thread that holds it
@@ -456,7 +472,8 @@ namespace HM
    // process ends, sets the process's server state and holds the mutex for
    // seconds, and so runs in business-object-tests alone, which has no
    // servers, after every other test. It also holds COM's Application.Stop and
-   // Start to the few seconds they wait for one under way.
+   // Start to the few seconds they wait for one under way, and the service's
+   // start to taking the mutex before it opens the database.
    class ServersLockTester
    {
    public:
@@ -469,6 +486,7 @@ namespace HM
       void TestRefusedOnceTheStopBeforeExitHasBegun_();
       void TestTheStopBeforeExitWaitsForOneUnderWay_();
       void TestComsStopAndStartWaitAMomentAtMost_();
+      void TestTheServicesStartTakesTheLockFirst_();
       void TestAWorkQueuesThreadLeftKeepsTheDatabaseOpen_();
    };
 }

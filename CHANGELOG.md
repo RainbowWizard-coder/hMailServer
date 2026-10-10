@@ -523,7 +523,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   did nothing and answered that it had stopped the servers, and a `Start` was refused as a start that failed. The
   limit keeps a Control Panel's call from waiting as long as the indexer's statement, and a script's call on one of a
   work queue's threads below the ten seconds that queue's stop gives the thread, after which the call would have
-  stopped the servers the reinitialise had started again. And the callback through
+  stopped the servers the reinitialise had started again. The Windows service's own start holds the lock too, from
+  opening the database through a new installation's defaults, its stored-secrets key and the ini it writes, to the
+  start of the servers: the service reports itself running, and so takes a stop, before it opens the database, and
+  a stop then - the installer's, straight after the start it makes for the database step - closed the database
+  under them (in every version); it now waits for them. And the callback through
   which a stop tells the Windows service controller that it is progressing is read under a lock of its own, where a
   reinitialise's stop held a reference to it while the service's stop set it and reset it. On Linux, with the
   indexer held in a statement by another session's lock, a SIGTERM three seconds after a REST reinitialise ended the
@@ -4602,7 +4606,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   queue not counted, the test fails. COM's `Stop` and `Start`, made while a reinitialise holds the lock, must be
   refused after their five seconds and not before them; waiting without a limit, they had not returned after twenty.
   A reinitialise asked once the stop before the process ends has begun must be refused before the lock is let go
-  of. `business-object-tests` now writes each
+  of, and the service's start must wait for that stop's lock before it opens the database; without the lock it
+  returned at once. `business-object-tests` now writes each
   result out as it comes, so that a test after a failure that never returns leaves the failure in the output.
 
 ### Documentation

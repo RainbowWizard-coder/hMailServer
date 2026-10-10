@@ -80,8 +80,10 @@
 //     begun every one is refused, and that stop waits for one under way, where
 //     until 10 October 2026 it closed the database under a reinitialise; and it
 //     leaves the database open while a thread a work queue's stop gave up on still
-//     runs, where it closed it under that thread. Run last, since it makes that
-//     stop.
+//     runs, where it closed it under that thread. COM's Stop and Start wait five
+//     seconds at most for one under way, where they waited for it without a
+//     limit, and the service's start takes the mutex before it opens the
+//     database. Run last, since it makes that stop.
 //   - A message's X-hMailServer-LoopCount, which comes with mail from anyone, is a
 //     count only when it is digits, and never above the limit (LoopCountTester,
 //     Common/Rules/RuleGuard.cpp): MessageData and the Sieve evaluator read it with
@@ -571,7 +573,7 @@ main(int /*argc*/, char * /*argv*/[])
    failed += Run(&TestServersLock, "a reinitialise, a stop or a start asked on the thread that holds the servers' mutex, or on the message indexer's own thread while a stop that holds it waits for the indexer, is refused at once");
 
    // Last: it makes the stop before the process ends.
-   failed += Run(&TestServersLockBeforeExit, "once the stop before the process ends has begun a reinitialise, a stop or a start is refused, that stop waits for one under way, and it leaves the database open while a thread a work queue's stop gave up on still runs; COM's Stop and Start wait a few seconds at most for one under way");
+   failed += Run(&TestServersLockBeforeExit, "once the stop before the process ends has begun a reinitialise, a stop or a start is refused, that stop waits for one under way, and it leaves the database open while a thread a work queue's stop gave up on still runs; COM's Stop and Start wait a few seconds at most for one under way, and the service's start takes the mutex before it opens the database");
 
    return failed == 0 ? 0 : 1;
 }

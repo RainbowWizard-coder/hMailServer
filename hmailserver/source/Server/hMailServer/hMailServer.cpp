@@ -2108,8 +2108,11 @@ TerminateServer()
    });
 
    // The process ends after it: a stop, a start or a reinitialise under way is
-   // waited for, the message indexer a minute at most, the checkpoint advancing
-   // meanwhile, and the database closed (Application::ShutDown).
+   // waited for - this service's own start among them, which reports the
+   // service running before it opens the database (ServiceMain,
+   // InitializeApplication) - the message indexer a minute at most, the
+   // checkpoint advancing meanwhile, and the database closed
+   // (Application::ShutDown).
    const bool ended = HM::Application::Instance()->ShutDown();
 
    HM::Application::Instance()->SetStopProgressCallback(std::function<void()>());
@@ -2188,7 +2191,8 @@ ServiceController (DWORD Opcode)
 // may write and NT SERVICE\hMailServer may not; the line says which. True when
 // the server may have been changed, and the start is then made again
 // (Application::Reinitialize) so that the listeners are built from what it now
-// holds.
+// holds. Called with the database open and the servers' lock held
+// (Application::InitInstanceAndStart), so that a stop meanwhile waits for it.
 static bool FinishNewInstallationAtStart()
 {
    const int defaults = HM::NewInstallDefaults::ApplyAtServiceStart();
@@ -2233,27 +2237,21 @@ void InitializeApplication()
    // loaded properly, StartServers() will start the TCP/IP
    // servers.
 
-   // First allocate all singletons.
+   // First allocate all singletons. A start asked to finish a new installation
+   // (FinishNewInstallationAtStart) does that once the database is open, and
+   // starts again, listeners and all, when it changed the server. All of it
+   // holds the servers' lock (Application::InitInstanceAndStart): the service
+   // has told the service controller that it runs and takes a stop - the
+   // installer's, straight after the start it makes for the database step -
+   // which until 10 October 2026 closed the database under InitInstance, or
+   // under the new installation's defaults, the stored-secrets key and the
+   // ini they write, and now waits for them.
+   const bool finish = g_finishNewInstallationAtStart;
+   g_finishNewInstallationAtStart = false;
+
    String sErrorMessage;
-   if (HM::Application::Instance()->InitInstance(sErrorMessage))
-   {
-      // A start asked to finish a new installation (FinishNewInstallationAtStart)
-      // does that first, and starts again, listeners and all, when it changed the
-      // server.
-      const bool finish = g_finishNewInstallationAtStart;
-      g_finishNewInstallationAtStart = false;
-      if (finish && FinishNewInstallationAtStart())
-      {
-         HM::Application::Instance()->Reinitialize();
-      }
-      else
-      {
-         // We were able to connect to the database server
-         // and the database is of the correct version. So
-         // now we should start the TCP/IP-servers.
-         HM::Application::Instance()->StartServers();
-      }
-   }
+   HM::Application::Instance()->InitInstanceAndStart(sErrorMessage,
+      finish ? std::function<bool()>(&FinishNewInstallationAtStart) : std::function<bool()>());
 
    // Now that the configuration has been loaded, the logger has a log mask and this
    // line will actually reach the application log. Said once per process start, so
