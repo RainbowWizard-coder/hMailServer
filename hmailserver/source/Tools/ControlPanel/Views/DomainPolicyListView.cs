@@ -492,7 +492,7 @@ namespace hMailServer.ControlPanel.Views
          double floor = GridStyles.HeaderWidth((string)addedColumn_.Header);
          foreach (EntryView entry in all_)
             floor = Math.Max(floor, GridStyles.CellWidth(entry.Added));
-         addedColumn_.MinWidth = Math.Ceiling(floor);
+         addedColumn_.MinWidth = GridStyles.UpToDevicePixels(floor);
       }
 
       /// <summary>A column of names that shares the width the others leave, over a floor of so many pixels or its header's width where that is more.</summary>

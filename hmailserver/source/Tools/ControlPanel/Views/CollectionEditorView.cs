@@ -227,6 +227,10 @@ namespace hMailServer.ControlPanel.Views
       private readonly DataGrid grid_ = new();
       private readonly ObservableCollection<Row> rows_ = new();
 
+      // Each column of the grid with the field it shows, for the floors measured from
+      // their words (FloorFieldColumns_).
+      private readonly List<(FieldSpec Field, DataGridColumn Column)> fieldColumns_ = new();
+
       // How many entries there are, as a pill beside the page title - a state,
       // so it is drawn the way every other state on every other page is. Normal,
       // because a count says nothing on its own.
@@ -554,7 +558,10 @@ namespace hMailServer.ControlPanel.Views
             }
 
             grid_.Columns.Add(col);
+            fieldColumns_.Add((f, col));
          }
+
+         FloorFieldColumns_();
 
          // The grid's floor is its own three rows, on a FillPanel of its own, so
          // that the empty state laid over it raises the card's floor where its
@@ -668,6 +675,7 @@ namespace hMailServer.ControlPanel.Views
          ReadFailure.Clear(status_, addButton_);
          ShowState_(state);
          ShowListState_();
+         FloorFieldColumns_();
 
          Row keep = selectId > 0 ? rows_.FirstOrDefault(r => r.Id == selectId) : null;
          if (keep == null)
@@ -798,6 +806,47 @@ namespace hMailServer.ControlPanel.Views
 
          cells.Insert(0, first ?? "");
          return RowSpeech.Of(cells.ToArray());
+      }
+
+      /// <summary>
+      /// No column narrower than its header, and no column of a field's named width
+      /// narrower than the widest of its words - a tick box's two words, a number, a
+      /// date - each measured in the grid's font at the Windows text size, so that a
+      /// narrow window scrolls the grid sideways rather than cutting a word: the allow
+      /// and block list's "Expires (server time)" is wider than its 150 pixels in six of
+      /// the seventeen languages, 199 in Russian, and Block in Russian, 101, than
+      /// Action's 90 (review finding F317). Free text - an address, a reason, and a
+      /// choice, whose words can be a sentence (the remote domains' Outbound TLS) - ends
+      /// in an ellipsis instead and is whole in its tool tip. After the columns are
+      /// built and after every read.
+      /// </summary>
+      private void FloorFieldColumns_()
+      {
+         foreach ((FieldSpec f, DataGridColumn column) in fieldColumns_)
+         {
+            double floor = GridStyles.HeaderWidth(column.Header as string);
+            if (!double.IsNaN(f.GridWidth))
+            {
+               if (f.Kind == FieldKind.Bool)
+                  floor = Math.Max(floor, Math.Max(GridStyles.CellWidth(f.GridTrue ?? L("Yes")), GridStyles.CellWidth(f.GridFalse ?? L("No"))));
+
+               // Each of the words once: a list of a thousand blocked senders says Block a
+               // thousand times.
+               bool closed = f.Kind is FieldKind.Bool or FieldKind.Number;
+               var measured = new HashSet<string>(StringComparer.Ordinal);
+               foreach (Row row in rows_)
+               {
+                  if (!closed && !(row.Values.TryGetValue(f.Prop, out object value) && value is DateTime))
+                     continue;
+
+                  string words = CellWords_(f, row);
+                  if (measured.Add(words))
+                     floor = Math.Max(floor, GridStyles.CellWidth(words));
+               }
+            }
+
+            column.MinWidth = GridStyles.UpToDevicePixels(Math.Max(TextScaleFactor.Scaled(double.IsNaN(f.GridWidth) ? StarColumnFloor : f.GridWidth), floor));
+         }
       }
 
       /// <summary>A cell's words as the grid shows them, through the same rules as its converters.</summary>

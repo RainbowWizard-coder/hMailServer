@@ -247,6 +247,11 @@ namespace hMailServer.ControlPanel.Views
             DateTime? localNow = sameClock ? now : null;
             CreatedColumn.Header = localNow == null ? L("Created (server time)") : L("Created");
             CreatedColumn.MinWidth = Math.Max(110, GridStyles.HeaderWidth((string)CreatedColumn.Header));
+            // No column narrower than its header, measured at the Windows text size: ID and
+            // Tries keep their pixels as numbers, but at 150 per cent German cut "Versuche"
+            // to "Vers…" (review finding F317).
+            foreach (DataGridColumn column in QueueGrid.Columns)
+               column.MinWidth = Math.Max(column.MinWidth, GridStyles.UpToDevicePixels(GridStyles.HeaderWidth(column.Header as string)));
 
             // Tab-separated: id, created, from, recipients, next try, file, locked, tries
             foreach (string[] columns in snap.QueueRows

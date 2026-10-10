@@ -447,8 +447,48 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("Floor_(UpperColumn, GridStyles.CellWidth(row.UpperIP));", floors, StringComparison.Ordinal);
          Assert.Contains("Floor_(column, GridStyles.CellWidth(L(\"Yes\")));", floors, StringComparison.Ordinal);
          Assert.Contains("Floor_(column, GridStyles.CellWidth(L(\"No\")));", floors, StringComparison.Ordinal);
+         // The delivery queue's columns, its numbers' too, at their headers: German cut "Versuche" to "Vers…".
+         Assert.Matches(@"foreach \(DataGridColumn column in QueueGrid\.Columns\)\s+column\.MinWidth = Math\.Max\(column\.MinWidth, GridStyles\.UpToDevicePixels\(GridStyles\.HeaderWidth\(column\.Header as string\)\)\);",
+            WithheldRowTests.MemberText(Read("Views", "QueueView.xaml.cs"), "private void Reload()"));
+         // The lists of fields: every column at its header, and one of a named width at its
+         // tick box's two words, its numbers and its dates, after the columns are built and after
+         // every read - "Expires (server time)" is wider than 150 pixels in Russian. A choice
+         // can be a sentence (the remote domains' Outbound TLS) and ends in an ellipsis.
+         string editor = Read("Views", "CollectionEditorView.cs");
+         string fields = WithheldRowTests.MemberText(editor, "private void FloorFieldColumns_()");
+         Assert.True(fields != null, "CollectionEditorView.FloorFieldColumns_ is gone.");
+         Assert.Contains("double floor = GridStyles.HeaderWidth(column.Header as string);", fields, StringComparison.Ordinal);
+         Assert.Contains("floor = Math.Max(floor, Math.Max(GridStyles.CellWidth(f.GridTrue ?? L(\"Yes\")), GridStyles.CellWidth(f.GridFalse ?? L(\"No\"))));", fields, StringComparison.Ordinal);
+         Assert.Contains("bool closed = f.Kind is FieldKind.Bool or FieldKind.Number;", fields, StringComparison.Ordinal);
+         Assert.Contains("if (!closed && !(row.Values.TryGetValue(f.Prop, out object value) && value is DateTime))", fields, StringComparison.Ordinal);
+         Assert.Matches(@"string words = CellWords_\(f, row\);\s+if \(measured\.Add\(words\)\)\s+floor = Math\.Max\(floor, GridStyles\.CellWidth\(words\)\);", fields);
+         Assert.Contains("column.MinWidth = GridStyles.UpToDevicePixels(Math.Max(TextScaleFactor.Scaled(double.IsNaN(f.GridWidth) ? StarColumnFloor : f.GridWidth), floor));", fields, StringComparison.Ordinal);
+         Assert.Matches(@"fieldColumns_\.Add\(\(f, col\)\);\s+\}\s+FloorFieldColumns_\(\);", editor);
+         Assert.Matches(@"ShowListState_\(\);\s+FloorFieldColumns_\(\);", WithheldRowTests.MemberText(editor, "private void Load_(int selectId, int selectIndex, bool focus)"));
          Assert.Contains("RangeGrid.ItemsSource = rows;", ranges, StringComparison.Ordinal);
          Assert.Contains("FloorColumns_(rows);", ranges, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// The floors the columns of words were given are whole device pixels, rounded up:
+      /// layout rounding draws a column at a whole number of them, and at a display scale
+      /// of 150 per cent a floor of 123, 184.5 of them, was drawn at 122.67 and cut the
+      /// German "Erforderlich" it was measured for to "Erforderli…".
+      /// </summary>
+      [Fact]
+      public void TheFloors_AreWholeDevicePixels()
+      {
+         string helper = WithheldRowTests.MemberText(Read("Services", "GridStyles.cs"), "public static double UpToDevicePixels(double width)");
+         Assert.True(helper != null, "GridStyles.UpToDevicePixels is gone.");
+         Assert.Contains("double pixelsPerDip = window != null ? VisualTreeHelper.GetDpi(window).PixelsPerDip : 1.0;", helper, StringComparison.Ordinal);
+         Assert.Contains("return Math.Ceiling(width * pixelsPerDip - 1e-6) / pixelsPerDip;", helper, StringComparison.Ordinal);
+
+         Assert.Contains("private static void Floor_(DataGridColumn column, double width) => column.MinWidth = Math.Max(column.MinWidth, GridStyles.UpToDevicePixels(width));",
+            Read("Views", "IPRangesView.xaml.cs"), StringComparison.Ordinal);
+         Assert.Contains("addedColumn_.MinWidth = GridStyles.UpToDevicePixels(floor);", Read("Views", "DomainPolicyListView.cs"), StringComparison.Ordinal);
+         string list = Read("Views", "SuppressionListView.cs");
+         Assert.Contains("column.MinWidth = GridStyles.UpToDevicePixels(floor);", list, StringComparison.Ordinal);
+         Assert.Contains("return GridStyles.UpToDevicePixels(widest);", list, StringComparison.Ordinal);
       }
 
       /// <summary>

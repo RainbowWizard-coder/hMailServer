@@ -234,6 +234,21 @@ namespace hMailServer.ControlPanel.Services
          style.Setters.Add(new Setter(System.Windows.Automation.AutomationProperties.HelpTextProperty, caption));
          column.HeaderStyle = style;
       }
+
+      /// <summary>
+      /// A column's floor rounded up to the window's whole device pixels. Layout rounding
+      /// draws a column at a whole number of them, so that a floor between two - 123 at a
+      /// display scale of 150 per cent is 184.5 - is drawn at the one below, and the word
+      /// it was measured for is cut by a fraction of a pixel: at 150 per cent text the
+      /// greylisting bypass list's German "Erforderlich" read "Erforderli…" in a column
+      /// floored at it, its text given 98.67 of the 99 pixels it needs.
+      /// </summary>
+      public static double UpToDevicePixels(double width)
+      {
+         Window window = Application.Current?.MainWindow;
+         double pixelsPerDip = window != null ? VisualTreeHelper.GetDpi(window).PixelsPerDip : 1.0;
+         return Math.Ceiling(width * pixelsPerDip - 1e-6) / pixelsPerDip;
+      }
    }
 
    /// <summary>

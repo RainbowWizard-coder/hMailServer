@@ -3793,14 +3793,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   status and Listed, the IP ranges' addresses and their SMTP, IMAP and POP3, the incoming relays' addresses and a
   chart's data table's times, fixed at 70 to 170 pixels, are as wide as their words over floors of their widest,
   measured at the text size, where at 150 per cent Added read "9/28/2026 8:18 P…" and the suppression list's dates
-  were cut mid-glyph; the lists of fields' named widths rise with the text size; the message trace's addresses end in
-  an ellipsis where they are wider than their share; and the rules grid's Enabled column fits its pill. Three WPF-UI
-  styles that held the size their dictionary had when it was read - a caption with an Alt key, a list box's rows, a
-  rich text box - take the scaled size. When Windows says the setting changed, the resources follow at once and a
-  toast says that pages already open keep the rest of their text at the old size until the Control Panel is restarted.
-  docs/ControlPanelDesign.md says the rule. `TextScaleTests` holds the factor, the ramp, the start-up, the tokens and
-  line heights on every converted file, the sizes set in code, the grid floors, the dialogs and the columns, and that
-  no column of words in a page's XAML or built in code is a fixed number of pixels.
+  were cut mid-glyph; the lists of fields' named widths rise with the text size, no list's column is narrower than its
+  header and none of a named width narrower than its widest tick-box word, number or date; no column of the IP ranges
+  or the delivery queue is narrower than its header, Priority, ID and Tries included, columns of numbers that keep
+  their pixels, where at 150 per cent German cut "Priori…" and "Vers…"; these floors are whole device pixels, rounded
+  up, where at a display scale of 150 per cent a column floored at a word was drawn a third of a pixel narrower and
+  cut it; the message trace's addresses end in an ellipsis where they are wider than their share; and the rules grid's
+  Enabled column fits its pill. Three WPF-UI styles that held the size their dictionary had when it was read - a
+  caption with an Alt key, a list box's rows, a rich text box - take the scaled size. When Windows says the setting
+  changed, the resources follow at once and a toast says that pages already open keep the rest of their text at the
+  old size until the Control Panel is restarted. docs/ControlPanelDesign.md says the rule. `TextScaleTests` holds the
+  factor, the ramp, the start-up, the tokens and line heights on every converted file, the sizes set in code, the grid
+  floors, the dialogs and the columns, and that no column of words in a page's XAML or built in code is a fixed number
+  of pixels.
 
 ### Administration
 
