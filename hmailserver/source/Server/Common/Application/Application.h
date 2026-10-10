@@ -29,6 +29,7 @@ namespace HM
    class RestApiServer;
    class WebServicesServer;
    class ManageSieveServer;
+   class MessageIndexer;
 
    class Application : public Singleton<Application>
    {
@@ -212,6 +213,8 @@ namespace HM
 
    private:
 
+      friend class ServersLockTester;
+
       // What a stop of the servers is for, which decides how long it waits for
       // the message indexer's thread (MessageIndexer::Stop). StopToStartAgain:
       // the servers may be started again in this process - after a Reinitialize,
@@ -240,7 +243,9 @@ namespace HM
       // already, by a script the stop or the start it is making runs; on the
       // indexer's own thread while another holds it; or after ShutDown has
       // begun. The caller declares a ServersLockHeld_ straight after lock.
-      String TakeServersLock_(boost::unique_lock<boost::timed_mutex> &lock);
+      // indexer is the server's (MessageIndexer::Instance), or a tester's
+      // stand-in (ServersLockTester).
+      String TakeServersLock_(boost::unique_lock<boost::timed_mutex> &lock, MessageIndexer &indexer);
 
       // Says which thread holds servers_mutex_ from when it is taken
       // (TakeServersLock_, ShutDown) until this goes, before the lock does.
@@ -407,5 +412,36 @@ namespace HM
       // always been; elsewhere long is 64 bits and the counter would be the one
       // width the interlocked call cannot take.
       LONG unique_id_;
+   };
+
+   // Application's servers_mutex_, which every stop, start and reinitialise of
+   // the servers holds (StartServers, above), driven through Application itself.
+   // A reinitialise, a stop or a start asked on the thread that holds the mutex
+   // - by a script that the stop or the start it is making runs - is refused at
+   // once, where it would wait for the mutex its own thread holds; one asked on
+   // the message indexer's own thread while another holds the mutex - by an
+   // OnError script the indexer runs - is refused at once, where the holder may
+   // be waiting for that thread to end; once the stop before the process ends
+   // (ShutDown) has begun every one is refused; and that stop waits for one
+   // under way. Until 10 October 2026 no test drove the mutex: the indexer's
+   // test (MessageIndexerTester) took one of its own.
+   //
+   // Test lets go of whatever it takes at once and starts and stops nothing,
+   // the indexer it asks on being a stand-in with no database, so that it runs
+   // wherever ClassTester runs - in the server, on Windows - and in
+   // business-object-tests. TestTheStopBeforeExit makes the stop before the
+   // process ends, and sets the process's server state, and so runs in
+   // business-object-tests alone, which has no servers, after every other test.
+   class ServersLockTester
+   {
+   public:
+      void Test();
+      void TestTheStopBeforeExit();
+
+   private:
+      void TestAskedOnTheThreadThatHoldsIt_();
+      void TestAskedOnTheIndexersThreadWhileAStopWaits_();
+      void TestRefusedOnceTheStopBeforeExitHasBegun_();
+      void TestTheStopBeforeExitWaitsForOneUnderWay_();
    };
 }

@@ -4571,6 +4571,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   though it uses none: in a `/Test` run whose start failed, or `Utilities.RunTestSuite` after `Application.Stop`,
   each of the indexer's tests waited a minute and failed. `business-object-tests` starts one with the servers
   stopped.
+- **`ServersLockTester` drives the lock that every stop, start and reinitialise of the servers now holds
+  (*Correctness*, above), through the server's own calls.** Until now no test reached it: the indexer's test took a
+  lock of its own, so that a change that waited for the lock on the indexer's own thread, or dropped the refusal on
+  the thread that holds it, passed every tester. A reinitialise, a stop and a start asked on the thread that holds
+  the lock, as a script the stop or the start runs would ask them, must be refused within twenty seconds, and the
+  lock asked for on a stand-in indexer's own thread while a stop that holds it waits for that thread must be
+  refused too; with either refusal taken out the test fails after twenty seconds. `TestInternals` runs these on
+  Windows and `business-object-tests` on Linux. `business-object-tests` also makes the stop before the process
+  ends: once it has begun, a reinitialise and a stop are refused, and it waits for a reinitialise that holds the
+  lock - a reinitialise queued behind that one being refused too. Without the refusal the queued reinitialise ran,
+  and with the stop going straight on it returned while the lock was held. `business-object-tests` now writes each
+  result out as it comes, so that a test after a failure that never returns leaves the failure in the output.
 
 ### Documentation
 

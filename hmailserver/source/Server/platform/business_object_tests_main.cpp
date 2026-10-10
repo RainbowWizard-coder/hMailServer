@@ -71,6 +71,15 @@
 //     A tester's stand-in, which uses no database, starts while the servers are
 //     stopped, where ClassTester's indexer tests in such a server each waited a
 //     minute and failed.
+//   - The servers' mutex, which every stop, start and reinitialise of the servers
+//     holds, refuses what would wait for ever (ServersLockTester, Common/
+//     Application/Application.cpp, through Application itself): a reinitialise, a
+//     stop or a start asked on the thread that holds it, by a script the stop or
+//     the start runs, or on the message indexer's own thread while a stop that
+//     holds it waits for the indexer. Once the stop before the process ends has
+//     begun every one is refused, and that stop waits for one under way, where
+//     until 10 October 2026 it closed the database under a reinitialise. Run last,
+//     since it makes that stop.
 //   - A message's X-hMailServer-LoopCount, which comes with mail from anyone, is a
 //     count only when it is digits, and never above the limit (LoopCountTester,
 //     Common/Rules/RuleGuard.cpp): MessageData and the Sieve evaluator read it with
@@ -141,6 +150,7 @@
 #include "../Common/Util/MailboxKeys.h"
 #include "../Common/Application/ExceptionHandler.h"
 #include "../Common/Application/Logger.h"
+#include "../Common/Application/Application.h"
 #include "../Common/Application/MessageIndexer.h"
 #include "../Common/Util/OidcSignIn.h"
 #include "../Common/Util/RestApiServer.h"
@@ -384,11 +394,15 @@ namespace
       {
          test();
          printf("ok    %s\n", name);
+         (void) fflush(stdout);
          return 0;
       }
       catch (const std::exception &failure)
       {
+         // Written out at once, so that a test after it that never returns
+         // leaves the failure in the output.
          printf("FAIL  %s: %s\n", name, failure.what());
+         (void) fflush(stdout);
          return 1;
       }
    }
@@ -461,6 +475,20 @@ namespace
       tester.TestAnExceptionOnItsThread();
 
       Expect(HM::Logger::SuppressedWrites() > before, "the exception on the indexer's thread was not reported");
+   }
+
+   void
+   TestServersLock()
+   {
+      HM::ServersLockTester tester;
+      tester.Test();
+   }
+
+   void
+   TestServersLockBeforeExit()
+   {
+      HM::ServersLockTester tester;
+      tester.TestTheStopBeforeExit();
    }
 
    void
@@ -538,6 +566,10 @@ main(int /*argc*/, char * /*argv*/[])
    failed += Run(&TestMessageIndexerStopAndStart, "the message indexer's Stop waits for the pass in flight, or gives up at its limit, a Start straight after a Stop begins a new indexer, and a Start or a Stop on the indexer's own thread neither joins it nor waits for a Stop that waits for it, and a Stop ends a pass that swallowed its request to stop; the servers' mutex a Stop holds while it waits is not waited for on the indexer's own thread; a tester's stand-in starts while the servers are stopped");
    failed += Run(&TestWorkerException, "an exception on a worker's thread is reported and answered as a failure, and ends nothing more than the work");
    failed += Run(&TestMessageIndexerException, "an exception on the message indexer's thread is reported and ends that thread, not the process, and the next Start begins the indexer again");
+   failed += Run(&TestServersLock, "a reinitialise, a stop or a start asked on the thread that holds the servers' mutex, or on the message indexer's own thread while a stop that holds it waits for the indexer, is refused at once");
+
+   // Last: it makes the stop before the process ends.
+   failed += Run(&TestServersLockBeforeExit, "once the stop before the process ends has begun a reinitialise, a stop or a start is refused, and that stop waits for one under way");
 
    return failed == 0 ? 0 : 1;
 }

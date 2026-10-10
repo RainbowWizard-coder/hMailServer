@@ -891,6 +891,17 @@ namespace HM
       MessageIndexerTester messageIndexerTester;
       messageIndexerTester.Test();
 
+      // The servers' mutex, which every stop, start and reinitialise of the
+      // servers holds (Application/Application.h): a reinitialise, a stop or a
+      // start asked on the thread that holds it - by a script the stop or the
+      // start runs - or on the message indexer's own thread while a stop that
+      // holds it waits for the indexer - by an OnError script - is refused at
+      // once, where it would have waited for ever. What it takes it lets go of
+      // at once, and it starts and stops nothing.
+      OutputDebugString(_T("hMailServer: Testing the servers' mutex\n"));
+      ServersLockTester serversLockTester;
+      serversLockTester.Test();
+
       // Parameter substitution matters most on the two backends the bench does not
       // usually run: MySQL and PostgreSQL report GetSupportsCommandParameters() as
       // false, so they take the string-substitution path, while MSSQL and SQL CE use

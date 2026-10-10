@@ -71,6 +71,7 @@ namespace HM
    private:
 
       friend class MessageIndexerTester;
+      friend class ServersLockTester;
 
       // An indexer whose thread runs work rather than the indexer's loop - a
       // stand-in with the loop's interruption points and none of its database,
