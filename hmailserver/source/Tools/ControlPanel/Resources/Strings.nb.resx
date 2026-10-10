@@ -759,6 +759,9 @@
   <data name="ARC inbound filtering - name the forwarders you trust" xml:space="preserve">
     <value>ARC-filtrering av innkommende e-post - navngi videresenderne du stoler på</value>
   </data>
+  <data name="ARC inbound filtering and its trusted sealers" xml:space="preserve">
+    <value>ARC-filtrering av innkommende e-post og dens betrodde forseglere</value>
+  </data>
   <data name="ARC sealing" xml:space="preserve">
     <value>ARC-forsegling</value>
   </data>
@@ -3363,9 +3366,6 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="DANE for inbound mail - publish TLSA records for your MX hosts" xml:space="preserve">
     <value>DANE for innkommende post - publiser TLSA-oppføringer for MX-vertene dine</value>
   </data>
-  <data name="DANE, MTA-STS, ARC and TLS reporting - proving to other servers that TLS is required." xml:space="preserve">
-    <value>DANE, MTA-STS, ARC og TLS-rapportering - å bevise overfor andre servere at TLS kreves.</value>
-  </data>
   <data name="DANE, MTA-STS, ARC and TLS reporting." xml:space="preserve">
     <value>DANE, MTA-STS, ARC og TLS-rapportering.</value>
   </data>
@@ -4377,6 +4377,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Passordfrase for kr_yptering</value>
+  </data>
+  <data name="Encryption to other servers, the signatures and results this server adds to mail, forwarded mail and the reports it sends." xml:space="preserve">
+    <value>Kryptering til andre servere, signaturene og resultatene denne serveren legger til e-post, videresendt e-post og rapportene den sender.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Endepunkt (tomt = tjenestens eget)</value>
@@ -8188,9 +8191,6 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Outbound delivery, retries and throttling. Keeping forwarded mail SPF-aligned (SRS) and bounce tagging (BATV) are on the Transport security page." xml:space="preserve">
     <value>Utgående levering, nye forsøk og struping. Å holde videresendt post SPF-justert (SRS) og merking av returer (BATV) er på siden Transportsikkerhet.</value>
   </data>
-  <data name="Outbound mail authentication and encryption policies." xml:space="preserve">
-    <value>Autentiserings- og krypteringspolicyer for utgående post.</value>
-  </data>
   <data name="Outbound webhooks" xml:space="preserve">
     <value>Utgående webhooks</value>
   </data>
@@ -9429,6 +9429,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   </data>
   <data name="Report the async work queue as stalled after (seconds)" xml:space="preserve">
     <value>Rapporter den asynkrone arbeidskøen som stoppet etter (sekunder)</value>
+  </data>
+  <data name="Reports" xml:space="preserve">
+    <value>Rapporter</value>
   </data>
   <data name="Reports received" xml:space="preserve">
     <value>Mottatte rapporter</value>
@@ -10920,6 +10923,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   </data>
   <data name="Signed by {0} and recorded in the Sigstore log at {1}; version {2}, {3}." xml:space="preserve">
     <value>Signert av {0} og registrert i Sigstore-loggen {1}; versjon {2}, {3}.</value>
+  </data>
+  <data name="Signing" xml:space="preserve">
+    <value>Signering</value>
   </data>
   <data name="Signing _algorithm" xml:space="preserve">
     <value>S_igneringsalgoritme</value>

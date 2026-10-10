@@ -668,9 +668,15 @@ namespace hMailServer.ControlPanel.Services
                   // title and landed on the wrong half can get to the right one.
                   seeAlso: "tlsoverview|security|autoban|certs|ports"),
 
+               // Four tabs since review finding F228 - Encryption, Signing, Forwarding
+               // and Reports - and a description of all four: it spoke of outbound TLS
+               // alone, over ten cards of which six are mail authentication and three
+               // are about inbound mail. Its aliases name what those cards hold.
                Page("security", N("Transport security"),
-                  N("DANE, MTA-STS, ARC and TLS reporting - proving to other servers that TLS is required."),
-                  aliases: "DANE|TLSA|MTA-STS|TLS-RPT|TLS reporting|ARC|Downgrade|Opportunistic TLS|Enforce TLS",
+                  N("Encryption to other servers, the signatures and results this server adds to mail, forwarded mail and the reports it sends."),
+                  aliases: "DANE|TLSA|MTA-STS|TLS-RPT|TLS reporting|ARC|Downgrade|Opportunistic TLS|Enforce TLS|" +
+                           "SRS|Sender Rewriting Scheme|BATV|Bounce address tag|Forged bounces|DKIM oversigning|Oversign|DKIM expiry|DKIM timestamps|" +
+                           "Authentication-Results|Received-SPF|DMARC reports|DMARC aggregate reports|rua",
                   seeAlso: "certs|dns|webservices")),
 
             Group("ShieldCheckmark24", N("Spam & virus filtering"),

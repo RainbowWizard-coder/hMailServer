@@ -2267,6 +2267,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   server offers are switched; and Authentication's Related links begin with Protocols, Directory authentication (LDAP)
   and Administrative access.
 
+- **Fixed: Transport security's subtitle said "Outbound mail authentication and encryption policies." over cards about
+  inbound mail, and the page was one scroll of ten cards, six of them mail authentication, with Save scrolling away.**
+  The page has four tabs - Encryption (DANE and DNSSEC, MTA-STS), Signing (ARC sealing and inbound filtering, DKIM
+  signature timestamps and oversigning, the Authentication-Results header), Forwarding (SRS and BATV) and Reports
+  (TLS-RPT and DMARC) - drawn as the other tabbed settings pages are, the header with Reload and Save changes above the
+  strip and each tab scrolling under it, and a Reload or a return to the page stays on the tab it was on. The subtitle
+  and the page's description read "Encryption to other servers, the signatures and results this server adds to mail,
+  forwarded mail and the reports it sends."; SRS, Sender Rewriting Scheme, BATV, DKIM oversigning, DKIM expiry,
+  Authentication-Results, Received-SPF and DMARC reports find the page in Ctrl+K. The ARC inbound filtering card,
+  which only said that it is configured on Anti-spam, has a row with Open… that opens Anti-spam settings on its Sender
+  auth tab, where the trusted sealers are, and Server limits & expert settings' row for SRS and BATV opens the
+  Forwarding tab: a signpost row that names a tab opens its page on it (MainWindow.NavigateToTab).
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

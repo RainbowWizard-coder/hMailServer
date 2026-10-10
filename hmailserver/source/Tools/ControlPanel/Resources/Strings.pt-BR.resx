@@ -759,6 +759,9 @@
   <data name="ARC inbound filtering - name the forwarders you trust" xml:space="preserve">
     <value>Filtragem ARC de entrada - nomeie os encaminhadores em que confia</value>
   </data>
+  <data name="ARC inbound filtering and its trusted sealers" xml:space="preserve">
+    <value>A filtragem ARC de entrada e os seus seladores confiáveis</value>
+  </data>
   <data name="ARC sealing" xml:space="preserve">
     <value>Selagem ARC</value>
   </data>
@@ -3363,9 +3366,6 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="DANE for inbound mail - publish TLSA records for your MX hosts" xml:space="preserve">
     <value>DANE para e-mails de entrada - publique registros TLSA para seus hosts MX</value>
   </data>
-  <data name="DANE, MTA-STS, ARC and TLS reporting - proving to other servers that TLS is required." xml:space="preserve">
-    <value>DANE, MTA-STS, ARC e relatórios TLS - provar a outros servidores que o TLS é exigido.</value>
-  </data>
   <data name="DANE, MTA-STS, ARC and TLS reporting." xml:space="preserve">
     <value>DANE, MTA-STS, ARC e relatórios TLS.</value>
   </data>
@@ -4377,6 +4377,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   </data>
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>_Frase secreta de criptografia</value>
+  </data>
+  <data name="Encryption to other servers, the signatures and results this server adds to mail, forwarded mail and the reports it sends." xml:space="preserve">
+    <value>A criptografia para outros servidores, as assinaturas e os resultados que este servidor adiciona ao e-mail, o e-mail encaminhado e os relatórios que ele envia.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Endpoint (vazio = o do próprio serviço)</value>
@@ -8188,9 +8191,6 @@ Nada do que já está lá é removido.</value>
   <data name="Outbound delivery, retries and throttling. Keeping forwarded mail SPF-aligned (SRS) and bounce tagging (BATV) are on the Transport security page." xml:space="preserve">
     <value>Entrega de saída, novas tentativas e limitação de taxa. Manter o e-mail encaminhado alinhado com SPF (SRS) e a marcação de devoluções (BATV) ficam na página Segurança de transporte.</value>
   </data>
-  <data name="Outbound mail authentication and encryption policies." xml:space="preserve">
-    <value>Políticas de autenticação e criptografia do e-mail de saída.</value>
-  </data>
   <data name="Outbound webhooks" xml:space="preserve">
     <value>Webhooks de saída</value>
   </data>
@@ -9429,6 +9429,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="Report the async work queue as stalled after (seconds)" xml:space="preserve">
     <value>Relatar a fila de trabalho assíncrona como travada após (segundos)</value>
+  </data>
+  <data name="Reports" xml:space="preserve">
+    <value>Relatórios</value>
   </data>
   <data name="Reports received" xml:space="preserve">
     <value>Relatórios recebidos</value>
@@ -10920,6 +10923,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="Signed by {0} and recorded in the Sigstore log at {1}; version {2}, {3}." xml:space="preserve">
     <value>Assinado por {0} e registrado no log do Sigstore às {1}; versão {2}, {3}.</value>
+  </data>
+  <data name="Signing" xml:space="preserve">
+    <value>Assinatura</value>
   </data>
   <data name="Signing _algorithm" xml:space="preserve">
     <value>Alg_oritmo de assinatura</value>

@@ -765,6 +765,9 @@
   <data name="ARC inbound filtering - name the forwarders you trust" xml:space="preserve">
     <value>Входящая фильтрация ARC — укажите пересылающие серверы, которым вы доверяете</value>
   </data>
+  <data name="ARC inbound filtering and its trusted sealers" xml:space="preserve">
+    <value>Входящая фильтрация ARC и её доверенные запечатывающие</value>
+  </data>
   <data name="ARC sealing" xml:space="preserve">
     <value>Запечатывание ARC</value>
   </data>
@@ -3387,9 +3390,6 @@ Control Panel может читать файлы сообщений только
   <data name="DANE for inbound mail - publish TLSA records for your MX hosts" xml:space="preserve">
     <value>DANE для входящей почты — опубликуйте записи TLSA для своих узлов MX</value>
   </data>
-  <data name="DANE, MTA-STS, ARC and TLS reporting - proving to other servers that TLS is required." xml:space="preserve">
-    <value>DANE, MTA-STS, ARC и отчётность по TLS — доказательство другим серверам того, что TLS обязателен.</value>
-  </data>
   <data name="DANE, MTA-STS, ARC and TLS reporting." xml:space="preserve">
     <value>DANE, MTA-STS, ARC и отчётность по TLS.</value>
   </data>
@@ -4423,6 +4423,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Парольная фраза _шифрования</value>
+  </data>
+  <data name="Encryption to other servers, the signatures and results this server adds to mail, forwarded mail and the reports it sends." xml:space="preserve">
+    <value>Шифрование при связи с другими серверами, подписи и результаты, которые этот сервер добавляет к почте, пересылаемая почта и отчёты, которые он отправляет.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Конечная точка (пусто = собственная точка службы)</value>
@@ -8276,9 +8279,6 @@ Control Panel может читать файлы сообщений только
   <data name="Outbound delivery, retries and throttling. Keeping forwarded mail SPF-aligned (SRS) and bounce tagging (BATV) are on the Transport security page." xml:space="preserve">
     <value>Исходящая доставка, повторные попытки и ограничение скорости. Сохранение выравнивания SPF для пересылаемой почты (SRS) и пометка возвратных сообщений (BATV) находятся на странице «Транспортная безопасность».</value>
   </data>
-  <data name="Outbound mail authentication and encryption policies." xml:space="preserve">
-    <value>Политики аутентификации и шифрования исходящей почты.</value>
-  </data>
   <data name="Outbound webhooks" xml:space="preserve">
     <value>Исходящие веб-хуки</value>
   </data>
@@ -9529,6 +9529,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Report the async work queue as stalled after (seconds)" xml:space="preserve">
     <value>Сообщать о зависании асинхронной рабочей очереди через (секунды)</value>
+  </data>
+  <data name="Reports" xml:space="preserve">
+    <value>Отчёты</value>
   </data>
   <data name="Reports received" xml:space="preserve">
     <value>Получаемые отчёты</value>
@@ -11047,6 +11050,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Signed by {0} and recorded in the Sigstore log at {1}; version {2}, {3}." xml:space="preserve">
     <value>Подписано {0} и записано в журнал Sigstore в {1}; версия {2}, {3}.</value>
+  </data>
+  <data name="Signing" xml:space="preserve">
+    <value>Подпись</value>
   </data>
   <data name="Signing _algorithm" xml:space="preserve">
     <value>_Алгоритм подписи</value>

@@ -759,6 +759,9 @@
   <data name="ARC inbound filtering - name the forwarders you trust" xml:space="preserve">
     <value>Gelen postada ARC filtrelemesi - güvendiğiniz ileticileri belirtin</value>
   </data>
+  <data name="ARC inbound filtering and its trusted sealers" xml:space="preserve">
+    <value>Gelen postada ARC filtrelemesi ve güvenilen mühürleyicileri</value>
+  </data>
   <data name="ARC sealing" xml:space="preserve">
     <value>ARC mühürleme</value>
   </data>
@@ -3363,9 +3366,6 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="DANE for inbound mail - publish TLSA records for your MX hosts" xml:space="preserve">
     <value>Gelen posta için DANE - MX ana bilgisayarlarınız için TLSA kayıtları yayımlayın</value>
   </data>
-  <data name="DANE, MTA-STS, ARC and TLS reporting - proving to other servers that TLS is required." xml:space="preserve">
-    <value>DANE, MTA-STS, ARC ve TLS raporlama - diğer sunuculara TLS'nin zorunlu olduğunu kanıtlamak.</value>
-  </data>
   <data name="DANE, MTA-STS, ARC and TLS reporting." xml:space="preserve">
     <value>DANE, MTA-STS, ARC ve TLS raporlama.</value>
   </data>
@@ -4377,6 +4377,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>_Şifreleme parola tümcesi</value>
+  </data>
+  <data name="Encryption to other servers, the signatures and results this server adds to mail, forwarded mail and the reports it sends." xml:space="preserve">
+    <value>Diğer sunuculara şifreleme, bu sunucunun postaya eklediği imzalar ve sonuçlar, iletilen posta ve gönderdiği raporlar.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Uç nokta (boş = hizmetin kendi uç noktası)</value>
@@ -8188,9 +8191,6 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Outbound delivery, retries and throttling. Keeping forwarded mail SPF-aligned (SRS) and bounce tagging (BATV) are on the Transport security page." xml:space="preserve">
     <value>Giden teslim, yeniden denemeler ve kısıtlama. İletilen postayı SPF ile hizalı tutmak (SRS) ve geri dönme etiketleme (BATV) Taşıma güvenliği sayfasındadır.</value>
   </data>
-  <data name="Outbound mail authentication and encryption policies." xml:space="preserve">
-    <value>Giden posta kimlik doğrulama ve şifreleme ilkeleri.</value>
-  </data>
   <data name="Outbound webhooks" xml:space="preserve">
     <value>Giden webhook'lar</value>
   </data>
@@ -9429,6 +9429,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Report the async work queue as stalled after (seconds)" xml:space="preserve">
     <value>Eşzamansız iş kuyruğunu şu süre sonra takılmış olarak bildir (saniye)</value>
+  </data>
+  <data name="Reports" xml:space="preserve">
+    <value>Raporlar</value>
   </data>
   <data name="Reports received" xml:space="preserve">
     <value>Alınan raporlar</value>
@@ -10920,6 +10923,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Signed by {0} and recorded in the Sigstore log at {1}; version {2}, {3}." xml:space="preserve">
     <value>{0} tarafından imzalandı ve {1} saatinde Sigstore günlüğüne kaydedildi; sürüm {2}, {3}.</value>
+  </data>
+  <data name="Signing" xml:space="preserve">
+    <value>İmzalama</value>
   </data>
   <data name="Signing _algorithm" xml:space="preserve">
     <value>_İmzalama algoritması</value>

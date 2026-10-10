@@ -759,6 +759,9 @@
   <data name="ARC inbound filtering - name the forwarders you trust" xml:space="preserve">
     <value>Inkomende ARC-filtering - noem de doorstuurders die u vertrouwt</value>
   </data>
+  <data name="ARC inbound filtering and its trusted sealers" xml:space="preserve">
+    <value>Inkomende ARC-filtering en de vertrouwde verzegelaars ervan</value>
+  </data>
   <data name="ARC sealing" xml:space="preserve">
     <value>ARC-verzegeling</value>
   </data>
@@ -3363,9 +3366,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="DANE for inbound mail - publish TLSA records for your MX hosts" xml:space="preserve">
     <value>DANE voor inkomende mail - publiceer TLSA-records voor uw MX-hosts</value>
   </data>
-  <data name="DANE, MTA-STS, ARC and TLS reporting - proving to other servers that TLS is required." xml:space="preserve">
-    <value>DANE, MTA-STS, ARC en TLS-rapportage - aan andere servers bewijzen dat TLS vereist is.</value>
-  </data>
   <data name="DANE, MTA-STS, ARC and TLS reporting." xml:space="preserve">
     <value>DANE, MTA-STS, ARC en TLS-rapportage.</value>
   </data>
@@ -4377,6 +4377,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Wachtwoordzin voor versleutelin_g</value>
+  </data>
+  <data name="Encryption to other servers, the signatures and results this server adds to mail, forwarded mail and the reports it sends." xml:space="preserve">
+    <value>Versleuteling naar andere servers, de handtekeningen en resultaten die deze server aan mail toevoegt, doorgestuurde mail en de rapporten die hij verstuurt.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Eindpunt (leeg = dat van de dienst)</value>
@@ -8188,9 +8191,6 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Outbound delivery, retries and throttling. Keeping forwarded mail SPF-aligned (SRS) and bounce tagging (BATV) are on the Transport security page." xml:space="preserve">
     <value>Uitgaande bezorging, nieuwe pogingen en snelheidsbeperking. Doorgestuurde mail SPF-uitgelijnd houden (SRS) en het taggen van bounces (BATV) staan op de pagina Transportbeveiliging.</value>
   </data>
-  <data name="Outbound mail authentication and encryption policies." xml:space="preserve">
-    <value>Beleid voor authenticatie en versleuteling van uitgaande mail.</value>
-  </data>
   <data name="Outbound webhooks" xml:space="preserve">
     <value>Uitgaande webhooks</value>
   </data>
@@ -9429,6 +9429,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Report the async work queue as stalled after (seconds)" xml:space="preserve">
     <value>De asynchrone werkwachtrij als vastgelopen melden na (seconden)</value>
+  </data>
+  <data name="Reports" xml:space="preserve">
+    <value>Rapporten</value>
   </data>
   <data name="Reports received" xml:space="preserve">
     <value>Ontvangen rapporten</value>
@@ -10920,6 +10923,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Signed by {0} and recorded in the Sigstore log at {1}; version {2}, {3}." xml:space="preserve">
     <value>Ondertekend door {0} en vastgelegd in het Sigstore-logboek om {1}; versie {2}, {3}.</value>
+  </data>
+  <data name="Signing" xml:space="preserve">
+    <value>Ondertekening</value>
   </data>
   <data name="Signing _algorithm" xml:space="preserve">
     <value>Ondertekenings_algoritme</value>

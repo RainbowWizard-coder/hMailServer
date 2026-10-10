@@ -10,6 +10,7 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using hMailServer.ControlPanel.Services;
 using hMailServer.ControlPanel.Views.Scaffold;
 using System.Linq;
@@ -1055,13 +1056,20 @@ namespace hMailServer.ControlPanel.Views
       private class ElsewhereSetting : Setting
       {
          private readonly string page_;
+         private readonly string tab_;
 
          /// <summary>Creates a signpost row pointing at the page that owns a setting.</summary>
          /// <param name="page">Nav key of the page that owns the setting.</param>
          /// <param name="caption">What is over there, in the administrator's words.</param>
-         public ElsewhereSetting(string page, string caption)
+         /// <param name="tab">
+         /// The English header of the page's tab that holds it, marked with N(), or
+         /// null: the row then names the tab and its button opens the page on it
+         /// (MainWindow.NavigateToTab), where it opened the page on its first tab.
+         /// </param>
+         public ElsewhereSetting(string page, string caption, string tab = null)
          {
             page_ = page;
+            tab_ = tab;
             Label = caption;
          }
 
@@ -1073,6 +1081,8 @@ namespace hMailServer.ControlPanel.Views
             string destination = NavigationMap.LocationOf(page_);
             if (string.IsNullOrEmpty(destination))
                destination = NavigationMap.TitleOf(page_);
+            if (!string.IsNullOrEmpty(tab_))
+               destination += " > " + L(tab_);
 
             var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, DesignTokens.Space.Sm) };
 
@@ -1098,7 +1108,7 @@ namespace hMailServer.ControlPanel.Views
             button.SetResourceReference(FontSizeProperty, "AppFontSizeCaption");
             AutomationProperties.SetName(button, F("Open {0}, which now has {1}", destination, Label));
             SetAid(button, "elsewhere-" + page_);
-            button.Click += (s, e) => (Application.Current?.MainWindow as MainWindow)?.NavigateTo(page_);
+            button.Click += (s, e) => (Application.Current?.MainWindow as MainWindow)?.NavigateToTab(page_, tab_);
             row.Children.Add(button);
 
             return row;
@@ -1319,6 +1329,15 @@ namespace hMailServer.ControlPanel.Views
          /// switch and are greyed while it is off (<see cref="WireEnabledBy_"/>).
          /// </summary>
          public string EnabledByKey;
+
+         /// <summary>
+         /// The tab the card is drawn on, translated, or null for a page without tabs.
+         /// A section whose cards name tabs is drawn as ServerSettingsView draws its
+         /// pages - the header and the notice above a tab strip, each tab scrolling on
+         /// its own (<see cref="FrameTabs_"/>) - its tabs in the order their first cards
+         /// come.
+         /// </summary>
+         public string Tab;
       }
 
       // The master switches the settings under them follow (Setting.DependsOn).
@@ -1948,6 +1967,8 @@ namespace hMailServer.ControlPanel.Views
          section_ = section;
          UpdateCard.Visibility = IsUpdatesPage_ ? Visibility.Visible : Visibility.Collapsed;
          BuildDefinition();
+         if (cards_.Any(card => card.Tab != null))
+            FrameTabs_();
          BuildUi();
       }
 
@@ -1998,10 +2019,11 @@ namespace hMailServer.ControlPanel.Views
          {
             case Section.Security:
                Header.PageKey = "security";
-               Header.Subtitle = L("Outbound mail authentication and encryption policies.");
+               Header.Subtitle = L("Encryption to other servers, the signatures and results this server adds to mail, forwarded mail and the reports it sends.");
                cards_.Add(new CardDef
                {
                   Title = L("DANE & DNSSEC"),
+                  Tab = L("Encryption"),
                   Blurb = L("Validates recipient TLSA records with in-process DNSSEC and blocks delivery over forged chains (RFC 7672)."),
                   Settings =
                   {
@@ -2013,6 +2035,7 @@ namespace hMailServer.ControlPanel.Views
                cards_.Add(new CardDef
                {
                   Title = L("MTA-STS"),
+                  Tab = L("Encryption"),
                   Blurb = L("Discovers and enforces recipient MTA-STS policies before delivering over TLS (RFC 8461). To publish a policy for your own domains, see the Web services & autoconfiguration page."),
                   Settings =
                   {
@@ -2022,6 +2045,7 @@ namespace hMailServer.ControlPanel.Views
                cards_.Add(new CardDef
                {
                   Title = L("ARC sealing"),
+                  Tab = L("Signing"),
                   // The prerequisite sentence is stated rather than checked here:
                   // whether a hosted domain has a DKIM selector and key file lives
                   // in the database, behind the COM API, and this page works from
@@ -2048,6 +2072,11 @@ namespace hMailServer.ControlPanel.Views
                   // prevent - so until a real accessor exists, the card only tells
                   // the truth about where the switch is and what it needs.
                   Title = L("ARC inbound filtering"),
+                  Tab = L("Signing"),
+                  Settings =
+                  {
+                     new ElsewhereSetting("antispam", L("ARC inbound filtering and its trusted sealers"), N("Sender auth"))
+                  },
                   // These two are database settings rather than ini values, so they are not
                   // editable on this page - which is for hMailServer.INI. They ARE editable,
                   // on the Anti-spam page, and this card points there. It used to say they
@@ -2059,6 +2088,7 @@ namespace hMailServer.ControlPanel.Views
                cards_.Add(new CardDef
                {
                   Title = L("DKIM signature timestamps"),
+                  Tab = L("Signing"),
                   Blurb = L("When a DKIM signature was made, and when it stops being one a verifier should honour (RFC 6376 3.5)."),
                   Settings =
                   {
@@ -2093,6 +2123,7 @@ namespace hMailServer.ControlPanel.Views
                   // DKIM::InitializeOversigning_ for the length cap, the invalid-name
                   // handling and the automatic From.
                   Title = L("DKIM oversigning"),
+                  Tab = L("Signing"),
                   Blurb = L("Oversigning (RFC 6376 5.4) lists a header field name in the signature's h= tag once more often than the field occurs, which makes ADDING another one - a second From:, an injected Subject: - break the signature. Off by default: oversigning a field that a mailing list or forwarder legitimately adds costs those messages their DKIM pass."),
                   Settings =
                   {
@@ -2111,6 +2142,7 @@ namespace hMailServer.ControlPanel.Views
                   // results carrier has an auth= slot, but nothing feeds it yet, so
                   // advertising it would be a capability claim with nothing behind it.
                   Title = L("Authentication results on inbound mail"),
+                  Tab = L("Signing"),
                   Blurb = L("Records the verdicts this server itself reached about each inbound message - SPF, DKIM and DMARC - as trace headers on the delivered message, for downstream filters and diagnostics (RFC 8601, RFC 7208)."),
                   Settings =
                   {
@@ -2137,35 +2169,6 @@ namespace hMailServer.ControlPanel.Views
                      }
                   }
                });
-               cards_.Add(new CardDef
-               {
-                  Title = L("TLS reporting (TLS-RPT)"),
-                  Blurb = L("Sends daily aggregate reports about TLS connection failures to recipient domains (RFC 8460)."),
-                  Settings =
-                  {
-                     // Named "TLS report..." rather than "Report..." since DMARC
-                     // reporting joined this page: two identically-labelled fields
-                     // on one page are ambiguous to anyone who cannot see which
-                     // card they are in, and AccessibleNamesTests fails on it.
-                     new TextSetting { Key = "TlsRptFromAddress", Label = L("TLS report sender address (empty = disabled)"), Placeholder = "tlsrpt@yourdomain.com" },
-                     new TextSetting { Key = "TlsRptOrganizationName", Default = "hMailServer", Label = L("Organization name in TLS reports") }
-                  }
-               });
-               // The same shape as TLS reporting above and deliberately beside it:
-               // both are reports this server sends to other domains about their
-               // own mail, both are inert until a sender address is set, and an
-               // administrator who has just switched one on is the person most
-               // likely to want the other.
-               cards_.Add(new CardDef
-               {
-                  Title = L("DMARC aggregate reporting (rua)"),
-                  Blurb = L("Sends the daily aggregate reports that domains ask for with a rua= tag in their DMARC record (RFC 7489) - who sent mail claiming to be them, and whether it passed. Reports only go to an address outside the policy domain when that address's own DNS says it wants them, so a domain cannot use its DMARC record to aim this server's reports at somebody else."),
-                  Settings =
-                  {
-                     new TextSetting { Key = "DmarcRptFromAddress", Label = L("DMARC report sender address (empty = disabled)"), Placeholder = "dmarc@yourdomain.com" },
-                     new TextSetting { Key = "DmarcRptOrganizationName", Default = "hMailServer", Label = L("Organization name in DMARC reports") }
-                  }
-               });
                // Moved here from the catch-all INI page. This is the same subject as
                // the rest of this page - whether mail this server sends still passes
                // the recipient's authentication checks - and forwarding is the single
@@ -2175,6 +2178,7 @@ namespace hMailServer.ControlPanel.Views
                cards_.Add(new CardDef
                {
                   Title = L("Forwarded mail & bounce protection (SRS / BATV)"),
+                  Tab = L("Forwarding"),
                   Blurb = L("Forwarding a message keeps the original envelope sender, so the next hop checks SPF for a domain that never authorised this server and the message fails. These are the two answers. SRS rewrites the envelope sender into one this server can vouch for and can undo on the way back, so bounces still reach the original sender; BATV tags the envelope sender of outbound mail so a forged bounce - one for a message this server never sent - can be told apart from a real one. Both use a server-wide secret and do nothing at all until one is set."),
                   Settings =
                   {
@@ -2224,6 +2228,37 @@ namespace hMailServer.ControlPanel.Views
                            };
                         }
                      }
+                  }
+               });
+               cards_.Add(new CardDef
+               {
+                  Title = L("TLS reporting (TLS-RPT)"),
+                  Tab = L("Reports"),
+                  Blurb = L("Sends daily aggregate reports about TLS connection failures to recipient domains (RFC 8460)."),
+                  Settings =
+                  {
+                     // Named "TLS report..." rather than "Report..." since DMARC
+                     // reporting joined this page: two identically-labelled fields
+                     // on one page are ambiguous to anyone who cannot see which
+                     // card they are in, and AccessibleNamesTests fails on it.
+                     new TextSetting { Key = "TlsRptFromAddress", Label = L("TLS report sender address (empty = disabled)"), Placeholder = "tlsrpt@yourdomain.com" },
+                     new TextSetting { Key = "TlsRptOrganizationName", Default = "hMailServer", Label = L("Organization name in TLS reports") }
+                  }
+               });
+               // The same shape as TLS reporting above and deliberately beside it:
+               // both are reports this server sends to other domains about their
+               // own mail, both are inert until a sender address is set, and an
+               // administrator who has just switched one on is the person most
+               // likely to want the other.
+               cards_.Add(new CardDef
+               {
+                  Title = L("DMARC aggregate reporting (rua)"),
+                  Tab = L("Reports"),
+                  Blurb = L("Sends the daily aggregate reports that domains ask for with a rua= tag in their DMARC record (RFC 7489) - who sent mail claiming to be them, and whether it passed. Reports only go to an address outside the policy domain when that address's own DNS says it wants them, so a domain cannot use its DMARC record to aim this server's reports at somebody else."),
+                  Settings =
+                  {
+                     new TextSetting { Key = "DmarcRptFromAddress", Label = L("DMARC report sender address (empty = disabled)"), Placeholder = "dmarc@yourdomain.com" },
+                     new TextSetting { Key = "DmarcRptOrganizationName", Default = "hMailServer", Label = L("Organization name in DMARC reports") }
                   }
                });
                break;
@@ -2988,7 +3023,7 @@ namespace hMailServer.ControlPanel.Views
                      new ElsewhereSetting("tls", L("TLS session tickets, session cache size, resumption lifetime and ticket-key rotation")),
                      new ElsewhereSetting("delivery", L("Extra delivery attempts per additional MX host")),
                      new ElsewhereSetting("performance", L("Max parallel external POP3 fetch threads")),
-                     new ElsewhereSetting("security", L("SRS, BATV and the plain envelope-sender rewrite for forwarded mail"))
+                     new ElsewhereSetting("security", L("SRS, BATV and the plain envelope-sender rewrite for forwarded mail"), N("Forwarding"))
                   }
                });
                break;
@@ -3255,6 +3290,7 @@ namespace hMailServer.ControlPanel.Views
       private void BuildUi()
       {
          CardsPanel.Children.Clear();
+         int shownTab = ClearTabs_();
          warningRows_.Clear();
          editors_.Clear();
          store_.ForgetFallback();
@@ -3301,7 +3337,7 @@ namespace hMailServer.ControlPanel.Views
             };
             var surface = new Card { Content = section };
             surface.SetResourceReference(MarginProperty, "AppCardGap");
-            CardsPanel.Children.Add(surface);
+            PanelFor_(card).Children.Add(surface);
          }
 
          // A setting that counts only while a switch is on follows the switch, once
@@ -3316,6 +3352,8 @@ namespace hMailServer.ControlPanel.Views
                master.Box.Unchecked += (s, e) => { if (setting.Field != null) setting.Field.Error = null; };
             }
          }
+
+         ShowTab_(shownTab);
 
          // Wire every editor to the warnings AFTER all the editors exist, because
          // a warning may read a setting on a later card than its own - and to the
@@ -3413,6 +3451,106 @@ namespace hMailServer.ControlPanel.Views
 
          toggle.OnEditorChanged(Follow);
          Follow();
+      }
+
+      /// <summary>The tab strip of a tabbed section (<see cref="FrameTabs_"/>), or null.</summary>
+      private TabControl cardTabs_;
+
+      /// <summary>Each tab's column of cards, by its header, for this build of the page.</summary>
+      private readonly Dictionary<string, StackPanel> tabPanels_ = new(StringComparer.Ordinal);
+
+      /// <summary>
+      /// Draws a section whose cards name tabs as ServerSettingsView draws its pages:
+      /// the header with Reload and Save changes, the notice and the line that names
+      /// the store above a tab strip, and each tab's cards scrolling under it, so that
+      /// Save is in view however long a tab is. Transport security was one scroll of
+      /// ten cards under a header that scrolled away with Save (review finding F228).
+      /// The markup is the untabbed pages' frame, a scroll viewer round the header and
+      /// the cards; this takes the header and the panel under it out of it, into a
+      /// grid with the strip below, and puts the grid in its place.
+      /// </summary>
+      private void FrameTabs_()
+      {
+         if (cardTabs_ != null || Header.Parent is not Panel outer || CardsPanel.Parent is not Panel inner)
+            return;
+
+         outer.Children.Remove(Header);
+         outer.Children.Remove(inner);
+
+         var frame = new Grid();
+         frame.SetResourceReference(MarginProperty, "AppPagePadding");
+         frame.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+         frame.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+         frame.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+
+         Grid.SetRow(Header, 0);
+         frame.Children.Add(Header);
+         Grid.SetRow(inner, 1);
+         frame.Children.Add(inner);
+
+         cardTabs_ = new TabControl
+         {
+            Background = Brushes.Transparent,
+            BorderThickness = new Thickness(0),
+            Padding = new Thickness(0, DesignTokens.Space.Sm, 0, 0)
+         };
+         AutomationProperties.SetAutomationId(cardTabs_, "feature-settings-tabs");
+         Grid.SetRow(cardTabs_, 2);
+         frame.Children.Add(cardTabs_);
+
+         Content = frame;
+      }
+
+      /// <summary>Empties the tab strip for a build of the page; the tab that was showing, or -1.</summary>
+      private int ClearTabs_()
+      {
+         tabPanels_.Clear();
+         if (cardTabs_ == null)
+            return -1;
+
+         int shown = cardTabs_.SelectedIndex;
+         cardTabs_.Items.Clear();
+         return shown;
+      }
+
+      /// <summary>
+      /// The column a card goes in: its tab's, made the first time the tab is asked
+      /// for, or the page's own on a page without tabs. A tab's column is the form's
+      /// width and keeps clear of the tab's scroll bar, as ServerSettingsView's are.
+      /// </summary>
+      private Panel PanelFor_(CardDef card)
+      {
+         if (cardTabs_ == null || card.Tab == null)
+            return CardsPanel;
+
+         if (tabPanels_.TryGetValue(card.Tab, out StackPanel panel))
+            return panel;
+
+         panel = new StackPanel
+         {
+            MaxWidth = DesignTokens.FormWidth,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Margin = new Thickness(0, DesignTokens.Space.Xs, DesignTokens.Space.Md, DesignTokens.Space.Xs)
+         };
+         tabPanels_[card.Tab] = panel;
+         cardTabs_.Items.Add(new TabItem
+         {
+            Header = card.Tab,
+            Content = new ScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Content = panel }
+         });
+         return panel;
+      }
+
+      /// <summary>
+      /// After a build, the tab that was showing before it - a Reload or a return to
+      /// the page keeps the reader where they were - or the first.
+      /// </summary>
+      private void ShowTab_(int shown)
+      {
+         if (cardTabs_ == null || cardTabs_.Items.Count == 0)
+            return;
+
+         cardTabs_.SelectedIndex = shown >= 0 && shown < cardTabs_.Items.Count ? shown : 0;
       }
 
       /// <summary>An editor changed: the warnings that read it, and the pill.</summary>
