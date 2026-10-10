@@ -2770,6 +2770,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="ClamAV and external scanners, and what to do with a message that is found to be infected." xml:space="preserve">
     <value>ClamAV i skanery zewnętrzne oraz to, co zrobić z wiadomością uznaną za zainfekowaną.</value>
   </data>
+  <data name="ClamAV did not answer at {0}. Check that clamd is running and listens on TCP (TCPSocket in clamd.conf)." xml:space="preserve">
+    <value>ClamAV nie odpowiedział pod adresem {0}. Sprawdź, czy clamd działa i nasłuchuje przez TCP (TCPSocket w clamd.conf).</value>
+  </data>
   <data name="ClamAV maximum timeout (90)" xml:space="preserve">
     <value>Maksymalny limit czasu ClamAV (90)</value>
   </data>
@@ -11101,9 +11104,6 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Scan with clamd" xml:space="preserve">
     <value>Skanuj przez clamd</value>
   </data>
-  <data name="Scanner test failed." xml:space="preserve">
-    <value>Test skanera nie powiódł się.</value>
-  </data>
   <data name="Scanner test succeeded." xml:space="preserve">
     <value>Test skanera powiódł się.</value>
   </data>
@@ -12177,6 +12177,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="SpamAssassin" xml:space="preserve">
     <value>SpamAssassin</value>
+  </data>
+  <data name="SpamAssassin did not answer at {0}. Check that spamd is running, listens on that port and allows this server (--allowed-ips)." xml:space="preserve">
+    <value>SpamAssassin nie odpowiedział pod adresem {0}. Sprawdź, czy spamd działa, nasłuchuje na tym porcie i zezwala temu serwerowi (--allowed-ips).</value>
   </data>
   <data name="SpamAssassin is on with no host set, so every message is accepted without a verdict and raises server error 5508." xml:space="preserve">
     <value>SpamAssassin jest włączony, ale nie ustawiono hosta, więc każda wiadomość jest przyjmowana bez werdyktu i wywołuje błąd serwera 5508.</value>
@@ -13842,6 +13845,9 @@ Dodać mimo to?</value>
   </data>
   <data name="The scan result is only readable on the server machine - hMailServer.ini was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
     <value>Wynik skanowania da się odczytać tylko na komputerze serwera - nie znaleziono tu pliku hMailServer.ini. Serwer udostępnia tę samą liczbę jako metrykę hmailserver_messagestore_missing_files.</value>
+  </data>
+  <data name="The scanner gave no result. Check the clamscan.exe path and the signature database folder." xml:space="preserve">
+    <value>Skaner nie zwrócił wyniku. Sprawdź ścieżkę do clamscan.exe i folder bazy sygnatur.</value>
   </data>
   <data name="The schedule and the retention are stored in hMailServer.ini on the server." xml:space="preserve">
     <value>Harmonogram i zasady przechowywania są zapisywane w hMailServer.ini na serwerze.</value>

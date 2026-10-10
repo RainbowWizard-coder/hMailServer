@@ -2737,6 +2737,9 @@
   <data name="ClamAV and external scanners, and what to do with a message that is found to be infected." xml:space="preserve">
     <value>ClamAV 和外部扫描器，以及对被发现感染的邮件如何处理。</value>
   </data>
+  <data name="ClamAV did not answer at {0}. Check that clamd is running and listens on TCP (TCPSocket in clamd.conf)." xml:space="preserve">
+    <value>ClamAV 在 {0} 没有应答。请检查 clamd 是否正在运行并在 TCP 上侦听（clamd.conf 中的 TCPSocket）。</value>
+  </data>
   <data name="ClamAV maximum timeout (90)" xml:space="preserve">
     <value>ClamAV 最大超时（90）</value>
   </data>
@@ -10950,9 +10953,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Scan with clamd" xml:space="preserve">
     <value>使用 clamd 扫描</value>
   </data>
-  <data name="Scanner test failed." xml:space="preserve">
-    <value>扫描器测试失败。</value>
-  </data>
   <data name="Scanner test succeeded." xml:space="preserve">
     <value>扫描器测试成功。</value>
   </data>
@@ -12020,6 +12020,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="SpamAssassin" xml:space="preserve">
     <value>SpamAssassin</value>
+  </data>
+  <data name="SpamAssassin did not answer at {0}. Check that spamd is running, listens on that port and allows this server (--allowed-ips)." xml:space="preserve">
+    <value>SpamAssassin 在 {0} 没有应答。请检查 spamd 是否正在运行、是否在该端口上侦听，以及是否允许此服务器 (--allowed-ips)。</value>
   </data>
   <data name="SpamAssassin is on with no host set, so every message is accepted without a verdict and raises server error 5508." xml:space="preserve">
     <value>SpamAssassin 已开启但未设置主机，因此每封邮件都在没有判定的情况下被接受，并且每封都会引发服务器错误 5508。</value>
@@ -13655,6 +13658,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The scan result is only readable on the server machine - hMailServer.ini was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
     <value>扫描结果只能在服务器机器上读取 - 此处未找到 hMailServer.ini。服务器以 hmailserver_messagestore_missing_files 指标发布同一数字。</value>
+  </data>
+  <data name="The scanner gave no result. Check the clamscan.exe path and the signature database folder." xml:space="preserve">
+    <value>扫描程序没有给出结果。请检查 clamscan.exe 路径和签名数据库文件夹。</value>
   </data>
   <data name="The schedule and the retention are stored in hMailServer.ini on the server." xml:space="preserve">
     <value>计划和保留设置存储在服务器上的 hMailServer.ini 中。</value>

@@ -2770,6 +2770,9 @@ Control Panel может читать файлы сообщений только
   <data name="ClamAV and external scanners, and what to do with a message that is found to be infected." xml:space="preserve">
     <value>ClamAV и внешние сканеры, а также что делать с сообщением, признанным заражённым.</value>
   </data>
+  <data name="ClamAV did not answer at {0}. Check that clamd is running and listens on TCP (TCPSocket in clamd.conf)." xml:space="preserve">
+    <value>ClamAV не ответил по адресу {0}. Проверьте, что clamd запущен и прослушивает TCP (TCPSocket в clamd.conf).</value>
+  </data>
   <data name="ClamAV maximum timeout (90)" xml:space="preserve">
     <value>Максимальный тайм-аут ClamAV (90)</value>
   </data>
@@ -11101,9 +11104,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Scan with clamd" xml:space="preserve">
     <value>Сканировать с помощью clamd</value>
   </data>
-  <data name="Scanner test failed." xml:space="preserve">
-    <value>Проверка сканера не удалась.</value>
-  </data>
   <data name="Scanner test succeeded." xml:space="preserve">
     <value>Проверка сканера прошла успешно.</value>
   </data>
@@ -12177,6 +12177,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="SpamAssassin" xml:space="preserve">
     <value>SpamAssassin</value>
+  </data>
+  <data name="SpamAssassin did not answer at {0}. Check that spamd is running, listens on that port and allows this server (--allowed-ips)." xml:space="preserve">
+    <value>SpamAssassin не ответил по адресу {0}. Проверьте, что spamd запущен, прослушивает этот порт и разрешает этот сервер (--allowed-ips).</value>
   </data>
   <data name="SpamAssassin is on with no host set, so every message is accepted without a verdict and raises server error 5508." xml:space="preserve">
     <value>SpamAssassin включён, но узел не задан, поэтому каждое сообщение принимается без вердикта и вызывает ошибку сервера 5508.</value>
@@ -13842,6 +13845,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The scan result is only readable on the server machine - hMailServer.ini was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
     <value>Результат сканирования читается только на машине сервера - hMailServer.ini здесь не найден. Сервер публикует то же число в метрике hmailserver_messagestore_missing_files.</value>
+  </data>
+  <data name="The scanner gave no result. Check the clamscan.exe path and the signature database folder." xml:space="preserve">
+    <value>Сканер не вернул результата. Проверьте путь к clamscan.exe и папку базы сигнатур.</value>
   </data>
   <data name="The schedule and the retention are stored in hMailServer.ini on the server." xml:space="preserve">
     <value>Расписание и срок хранения сохраняются в hMailServer.ini на сервере.</value>

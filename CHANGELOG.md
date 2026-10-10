@@ -3669,6 +3669,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the card's right edge in German. `SetupChecklistReadFailureTests`, `TourKeysHintTests` and `TourCardButtonsTests`
   hold them.
 
+- **Fixed: a scanner test that failed without the server's words said only "Connection failed." or "Scanner test
+  failed."** Where the server gives no detail, the Anti-spam page's SpamAssassin test now says "SpamAssassin did not
+  answer at localhost:783. Check that spamd is running, listens on that port and allows this server
+  (--allowed-ips).", the Anti-virus page's ClamAV test "ClamAV did not answer at 127.0.0.1:3310. Check that clamd is
+  running and listens on TCP (TCPSocket in clamd.conf).", an IPv6 address in brackets, and its ClamWin test "The
+  scanner gave no result. Check the clamscan.exe path and the signature database folder." The server's own words,
+  where it gives them, are shown as before. `ScannerTestFallbackTests` holds the three sentences and the page to
+  using them.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

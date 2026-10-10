@@ -6109,8 +6109,10 @@ namespace hMailServer.ControlPanel.Views
                "TestSpamAssassinConnection", BindingFlags.InvokeMethod, null, (object)antispam, args);
             bool ok = ret is bool b && b;
             string msg = args.Length > 2 ? args[2] as string : null;
+            // Where the server gives no detail, a failure says where it asked and what
+            // to check, where it said "Connection failed." (review finding F049).
             if (string.IsNullOrEmpty(msg))
-               msg = ok ? L("Connection succeeded.") : L("Connection failed.");
+               msg = ok ? L("Connection succeeded.") : ScannerTestFallback.SpamAssassin(host, port);
             return (ok ? StatusLevel.Good : StatusLevel.Critical, msg);
          }
          finally
@@ -6455,7 +6457,7 @@ namespace hMailServer.ControlPanel.Views
             bool ok = ret is bool b && b;
             string msg = args.Length > 2 ? args[2] as string : null;
             if (string.IsNullOrEmpty(msg))
-               msg = ok ? L("Connection succeeded.") : L("Connection failed.");
+               msg = ok ? L("Connection succeeded.") : ScannerTestFallback.ClamAv(host, port);
             return (ok ? StatusLevel.Good : StatusLevel.Critical, msg);
          }
          finally
@@ -6478,7 +6480,7 @@ namespace hMailServer.ControlPanel.Views
             bool ok = ret is bool b && b;
             string msg = args.Length > 2 ? args[2] as string : null;
             if (string.IsNullOrEmpty(msg))
-               msg = ok ? L("Scanner test succeeded.") : L("Scanner test failed.");
+               msg = ok ? L("Scanner test succeeded.") : ScannerTestFallback.ClamWin();
             return (ok ? StatusLevel.Good : StatusLevel.Critical, msg);
          }
          finally

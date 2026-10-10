@@ -2737,6 +2737,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="ClamAV and external scanners, and what to do with a message that is found to be infected." xml:space="preserve">
     <value>ClamAV ve dış tarayıcılar ve virüslü bulunan bir iletiyle ne yapılacağı.</value>
   </data>
+  <data name="ClamAV did not answer at {0}. Check that clamd is running and listens on TCP (TCPSocket in clamd.conf)." xml:space="preserve">
+    <value>ClamAV {0} adresinde yanıt vermedi. clamd'nin çalıştığını ve TCP üzerinden dinlediğini (clamd.conf içinde TCPSocket) denetleyin.</value>
+  </data>
   <data name="ClamAV maximum timeout (90)" xml:space="preserve">
     <value>ClamAV en büyük zaman aşımı (90)</value>
   </data>
@@ -10950,9 +10953,6 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Scan with clamd" xml:space="preserve">
     <value>clamd ile tara</value>
   </data>
-  <data name="Scanner test failed." xml:space="preserve">
-    <value>Tarayıcı sınaması başarısız oldu.</value>
-  </data>
   <data name="Scanner test succeeded." xml:space="preserve">
     <value>Tarayıcı sınaması başarılı oldu.</value>
   </data>
@@ -12020,6 +12020,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="SpamAssassin" xml:space="preserve">
     <value>SpamAssassin</value>
+  </data>
+  <data name="SpamAssassin did not answer at {0}. Check that spamd is running, listens on that port and allows this server (--allowed-ips)." xml:space="preserve">
+    <value>SpamAssassin {0} adresinde yanıt vermedi. spamd'nin çalıştığını, o portu dinlediğini ve bu sunucuya izin verdiğini (--allowed-ips) denetleyin.</value>
   </data>
   <data name="SpamAssassin is on with no host set, so every message is accepted without a verdict and raises server error 5508." xml:space="preserve">
     <value>SpamAssassin ana bilgisayar ayarlanmadan açık, bu yüzden her ileti karar verilmeden kabul ediliyor ve sunucu hatası 5508'e yol açıyor.</value>
@@ -13655,6 +13658,9 @@ Yine de eklensin mi?</value>
   </data>
   <data name="The scan result is only readable on the server machine - hMailServer.ini was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
     <value>Tarama sonucu yalnızca sunucu makinesinde okunabilir - hMailServer.ini burada bulunamadı. Sunucu aynı sayıyı hmailserver_messagestore_missing_files ölçümü olarak yayımlar.</value>
+  </data>
+  <data name="The scanner gave no result. Check the clamscan.exe path and the signature database folder." xml:space="preserve">
+    <value>Tarayıcı bir sonuç vermedi. clamscan.exe yolunu ve imza veritabanı klasörünü denetleyin.</value>
   </data>
   <data name="The schedule and the retention are stored in hMailServer.ini on the server." xml:space="preserve">
     <value>Zamanlama ve saklama, sunucudaki hMailServer.ini dosyasında saklanır.</value>

@@ -2737,6 +2737,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="ClamAV and external scanners, and what to do with a message that is found to be infected." xml:space="preserve">
     <value>ClamAV och externa skannrar, och vad som ska göras med ett meddelande som visar sig vara infekterat.</value>
   </data>
+  <data name="ClamAV did not answer at {0}. Check that clamd is running and listens on TCP (TCPSocket in clamd.conf)." xml:space="preserve">
+    <value>ClamAV svarade inte på {0}. Kontrollera att clamd körs och lyssnar på TCP (TCPSocket i clamd.conf).</value>
+  </data>
   <data name="ClamAV maximum timeout (90)" xml:space="preserve">
     <value>Maximal tidsgräns för ClamAV (90)</value>
   </data>
@@ -10950,9 +10953,6 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Scan with clamd" xml:space="preserve">
     <value>Skanna med clamd</value>
   </data>
-  <data name="Scanner test failed." xml:space="preserve">
-    <value>Skannertestet misslyckades.</value>
-  </data>
   <data name="Scanner test succeeded." xml:space="preserve">
     <value>Skannertestet lyckades.</value>
   </data>
@@ -12020,6 +12020,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="SpamAssassin" xml:space="preserve">
     <value>SpamAssassin</value>
+  </data>
+  <data name="SpamAssassin did not answer at {0}. Check that spamd is running, listens on that port and allows this server (--allowed-ips)." xml:space="preserve">
+    <value>SpamAssassin svarade inte på {0}. Kontrollera att spamd körs, lyssnar på den porten och tillåter den här servern (--allowed-ips).</value>
   </data>
   <data name="SpamAssassin is on with no host set, so every message is accepted without a verdict and raises server error 5508." xml:space="preserve">
     <value>SpamAssassin är på utan någon värd satt, så varje meddelande accepteras utan utlåtande och ger serverfel 5508.</value>
@@ -13655,6 +13658,9 @@ Lägg till det ändå?</value>
   </data>
   <data name="The scan result is only readable on the server machine - hMailServer.ini was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
     <value>Genomsökningsresultatet går bara att läsa på serverdatorn - hMailServer.ini hittades inte här. Servern publicerar samma tal som mätvärdet hmailserver_messagestore_missing_files.</value>
+  </data>
+  <data name="The scanner gave no result. Check the clamscan.exe path and the signature database folder." xml:space="preserve">
+    <value>Skannern gav inget resultat. Kontrollera sökvägen till clamscan.exe och mappen för signaturdatabasen.</value>
   </data>
   <data name="The schedule and the retention are stored in hMailServer.ini on the server." xml:space="preserve">
     <value>Schemat och lagringstiden lagras i hMailServer.ini på servern.</value>

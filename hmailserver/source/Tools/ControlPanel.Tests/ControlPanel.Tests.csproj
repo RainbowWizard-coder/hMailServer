@@ -59,6 +59,12 @@
     <Compile Include="..\ControlPanel\Services\SignInMemory.cs" />
   </ItemGroup>
 
+  <!-- What a scanner test on the anti-spam and anti-virus settings pages says when it failed
+       and the server gave no detail: where it asked and what to check (review finding F049). -->
+  <ItemGroup>
+    <Compile Include="..\ControlPanel\Services\ScannerTestFallback.cs" />
+  </ItemGroup>
+
   <!-- Chart accessibility: the palette, the catalogue, the table view and the
        status vocabulary. These are compiled straight into the test assembly rather
        than routed through ControlPanel.Core, because the app compiles them too (they
