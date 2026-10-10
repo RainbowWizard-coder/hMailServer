@@ -11740,7 +11740,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
     <value>服务器导览</value>
   </data>
   <data name="Show me around this page" xml:space="preserve">
-    <value>本页导览</value>
+    <value>服务器导览（从本页开始）</value>
   </data>
   <data name="Show password" xml:space="preserve">
     <value>显示密码</value>

@@ -3574,8 +3574,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   only the tool tips told them apart. The tour's button is now a light bulb with "Show me around" beside it where the
   header has room for the words, and the light bulb alone where only that keeps the page's actions beside its title,
   as the owner decided on 9 October 2026; Welcome's is the light bulb too, and the question mark is the help pane's
-  alone. Like the tour's card, the header's button carries no Alt key, since it is on whichever page a tour visits
-  (review findings F024, F081; T3.3 work item 8). `TourGlyphTests` holds the glyphs and the rule for the words.
+  alone. Like the tour's card, the header's button carries no Alt key, since it is on whichever page a tour visits;
+  and its accessible name starts with the words it shows in every language, as WCAG 2.5.3 asks, where in eight of them
+  the button said the server's tour and its name this page's (review findings F024, F081; T3.3 work item 8).
+  `TourGlyphTests` holds the glyphs, the rule for the words and the name in every catalogue.
 
 - **Fixed: the help pane's All documentation could be pressed on its own list, its heading links were too small a
   target, and a search that matched nothing said nothing.** With the list of every document showing, the pane's only

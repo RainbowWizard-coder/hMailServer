@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using hMailServer.ControlPanel.Services;
 using Xunit;
 
@@ -80,6 +81,36 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("actions = others + TourButtonWidth_(help, words);", measure, StringComparison.Ordinal);
          Assert.DoesNotContain("help.Measure(", measure, StringComparison.Ordinal);
          Assert.Contains("bar.Margin = under ? new Thickness(0, 12, 0, 0) : new Thickness(BesideGap, 6, 0, 0);", measure, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// The button's name starts with the words it shows, in every language, so
+      /// that a person who says the words on it reaches it by speech and a screen
+      /// reader says what the eye reads (WCAG 2.5.3, Label in Name). In eight
+      /// catalogues "Show me around" was the server tour's name and "Show me around
+      /// this page" this page's tour in other words - the Japanese button read
+      /// サーバーの案内 and was named このページの案内.
+      /// </summary>
+      [Fact]
+      public void TheTourButtonsName_StartsWithTheWordsItShows_InEveryLanguage()
+      {
+         string resources = Path.GetDirectoryName(ControlPanelFile_(Path.Join("Resources", "Strings.resx")));
+         var problems = new System.Collections.Generic.List<string>();
+         int catalogues = 0;
+         foreach (string path in Directory.GetFiles(resources, "Strings*.resx"))
+         {
+            catalogues++;
+            var values = XDocument.Load(path).Root.Elements("data")
+               .ToDictionary(data => (string)data.Attribute("name"), data => data.Element("value")?.Value ?? "", StringComparer.Ordinal);
+            // The English catalogue's values are its keys.
+            string words = values.TryGetValue("Show me around", out string shown) && shown.Length > 0 ? shown : "Show me around";
+            string name = values.TryGetValue("Show me around this page", out string named) && named.Length > 0 ? named : "Show me around this page";
+            if (!name.StartsWith(words, StringComparison.Ordinal))
+               problems.Add(Path.GetFileName(path) + ": shows '" + words + "', named '" + name + "'");
+         }
+
+         Assert.Equal(18, catalogues);
+         Assert.True(problems.Count == 0, string.Join(Environment.NewLine, problems));
       }
 
       [Fact]

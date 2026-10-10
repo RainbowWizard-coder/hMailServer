@@ -11897,7 +11897,7 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
     <value>Przewodnik po serwerze</value>
   </data>
   <data name="Show me around this page" xml:space="preserve">
-    <value>Przewodnik po tej stronie</value>
+    <value>Przewodnik po serwerze - od tej strony</value>
   </data>
   <data name="Show password" xml:space="preserve">
     <value>Pokaż hasło</value>

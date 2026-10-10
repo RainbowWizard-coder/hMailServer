@@ -11740,7 +11740,7 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
     <value>Recorrido guiado</value>
   </data>
   <data name="Show me around this page" xml:space="preserve">
-    <value>Recorrido por esta página</value>
+    <value>Recorrido guiado por esta página</value>
   </data>
   <data name="Show password" xml:space="preserve">
     <value>Mostrar la contraseña</value>

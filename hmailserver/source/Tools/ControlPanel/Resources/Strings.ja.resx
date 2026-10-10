@@ -11750,7 +11750,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>サーバーの案内</value>
   </data>
   <data name="Show me around this page" xml:space="preserve">
-    <value>このページの案内</value>
+    <value>サーバーの案内 (このページから)</value>
   </data>
   <data name="Show password" xml:space="preserve">
     <value>パスワードを表示</value>

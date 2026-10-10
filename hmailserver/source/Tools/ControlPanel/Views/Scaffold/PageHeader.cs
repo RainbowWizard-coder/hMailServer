@@ -171,7 +171,10 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          // which opens the help pane and not the tour (review findings F024 and
          // F081; the owner's decision of 9 October 2026). No Alt key, as the tour's
          // card has none: the button is on whichever page a tour visits, and a key
-         // it claimed would sooner or later be one that page already owns.
+         // it claimed would sooner or later be one that page already owns. The name
+         // starts with the words the button shows, in every language, so that saying
+         // them reaches it (WCAG 2.5.3, Label in Name; TourGlyphTests holds the
+         // catalogues to it).
          string caption = L("Show me around this page");
          help.ToolTip = caption;
          AutomationProperties.SetName(help, caption);

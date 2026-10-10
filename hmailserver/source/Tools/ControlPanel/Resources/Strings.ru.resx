@@ -11897,7 +11897,7 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
     <value>Экскурсия по серверу</value>
   </data>
   <data name="Show me around this page" xml:space="preserve">
-    <value>Экскурсия по этой странице</value>
+    <value>Экскурсия по серверу - с этой страницы</value>
   </data>
   <data name="Show password" xml:space="preserve">
     <value>Показать пароль</value>

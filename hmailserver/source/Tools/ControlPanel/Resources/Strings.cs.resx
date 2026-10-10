@@ -11897,7 +11897,7 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
     <value>Provést mě serverem</value>
   </data>
   <data name="Show me around this page" xml:space="preserve">
-    <value>Provést mě touto stránkou</value>
+    <value>Provést mě serverem - od této stránky</value>
   </data>
   <data name="Show password" xml:space="preserve">
     <value>Zobrazit heslo</value>

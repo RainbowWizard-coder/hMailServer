@@ -11740,7 +11740,7 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
     <value>Beni gezdir</value>
   </data>
   <data name="Show me around this page" xml:space="preserve">
-    <value>Bu sayfayı gezdir</value>
+    <value>Beni gezdir - bu sayfadan başlayarak</value>
   </data>
   <data name="Show password" xml:space="preserve">
     <value>Parolayı göster</value>
