@@ -28,7 +28,7 @@
     <value>「{0}」は保存されませんでした: {1}</value>
   </data>
   <data name="'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have signed in." xml:space="preserve">
-    <value>「ドメイン内の全員が送信できる」とは、送信者アドレスがこのサーバーでホストしているドメインのものであることを意味します。リストが認証も必須にしていない限り、外部の人間でもこれを詐称できます。ログインした人だけにリストを限定する必要がある場合は、下のチェックボックスをオンにしてください。</value>
+    <value>「ドメイン内の全員が送信できる」とは、送信者アドレスがこのサーバーでホストしているドメインのものであることを意味します。リストが認証も必須にしていない限り、外部の人間でもこれを詐称できます。サインインした人だけにリストを限定する必要がある場合は、下のチェックボックスをオンにしてください。</value>
   </data>
   <data name="'Protect stored secrets with Windows DPAPI' on the Server limits &amp; expert settings page is off, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed." xml:space="preserve">
     <value>[サーバーの制限と上級者向け設定] ページの「保存されたシークレットを Windows DPAPI で保護する」がオフのため、アカウントの第二要素と [Settings] のシークレットは書かれたまま保存され、保存シークレットの鍵は必要ありません。</value>
@@ -436,7 +436,7 @@
     <value>ドメインは、自分の認証局からその利用者に S/MIME 証明書を発行できます。</value>
   </data>
   <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never sign in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
-    <value>ここにドメイン名を指定する場合、サーバー自身のコンピューターがそのドメインに参加している必要があります。Windows が LogonUser で検証するためです。参加していないコンピューターからは、ドメイン名を単に打ち間違えた場合も含め、すべての試行がパスワードが違うときとまったく同じように失敗します。そのため、ドメインに参加していないサーバーでこのように設定したメールボックスは決してログインできず、その理由も示されません。サーバーがドメインに参加していない場合は、代わりに[ディレクトリ認証 (LDAP)] ページの LDAP ディレクトリ認証を使用してください。こちらはネットワーク越しにディレクトリへバインドするため、ドメインへの参加は不要です。</value>
+    <value>ここにドメイン名を指定する場合、サーバー自身のコンピューターがそのドメインに参加している必要があります。Windows が LogonUser で検証するためです。参加していないコンピューターからは、ドメイン名を単に打ち間違えた場合も含め、すべての試行がパスワードが違うときとまったく同じように失敗します。そのため、ドメインに参加していないサーバーでこのように設定したメールボックスは決してサインインできず、その理由も示されません。サーバーがドメインに参加していない場合は、代わりに[ディレクトリ認証 (LDAP)] ページの LDAP ディレクトリ認証を使用してください。こちらはネットワーク越しにディレクトリへバインドするため、ドメインへの参加は不要です。</value>
   </data>
   <data name="A domain named {0} is already on this server, and it is not the sample domain this page makes, so no sample can be made here and this page will not remove it. If you do not want that domain, delete it on the Domains page." xml:space="preserve">
     <value>{0} という名前のドメインがすでにこのサーバーにありますが、このページが作るサンプルドメインではありません。そのため、ここではサンプルを作成できず、このページがそのドメインを削除することもありません。そのドメインが不要な場合は、ドメイン ページで削除してください。</value>
@@ -7517,7 +7517,7 @@
     <value>OAuth2 は無効 (既定値) のため、ID プロバイダーも鍵素材も不要です。</value>
   </data>
   <data name="OAuth2 is on and allows RS256, but 'RSA/EC public key file' on the Authentication page is empty - every RS256 token fails signature verification, so no client can sign in with a token. Install the identity provider's public key as a PEM file and choose it there." xml:space="preserve">
-    <value>OAuth2 は有効で RS256 を許可していますが、[認証] ページの「RSA/EC 公開鍵ファイル」が空です。すべての RS256 トークンが署名検証に失敗するため、どのクライアントもトークンでログオンできません。ID プロバイダーの公開鍵を PEM ファイルとしてインストールし、そこでそれを選択してください。</value>
+    <value>OAuth2 は有効で RS256 を許可していますが、[認証] ページの「RSA/EC 公開鍵ファイル」が空です。すべての RS256 トークンが署名検証に失敗するため、どのクライアントもトークンでサインインできません。ID プロバイダーの公開鍵を PEM ファイルとしてインストールし、そこでそれを選択してください。</value>
   </data>
   <data name="OAuth2 is switched on but no client can log on with a token, because it is missing {0}. Signature verification cannot run at all, so every token is rejected and the log records only a failed logon - which reads as &quot;the password is wrong&quot; rather than as a configuration gap." xml:space="preserve">
     <value>OAuth2 はオンになっていますが、{0} がないため、どのクライアントもトークンでログオンできません。署名検証をまったく実行できないため、すべてのトークンが拒否され、ログにはログオンの失敗しか記録されません。それは設定の不備ではなく「パスワードが違う」と読めてしまいます。</value>
