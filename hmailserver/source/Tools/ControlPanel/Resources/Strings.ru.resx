@@ -4427,6 +4427,9 @@ Control Panel может читать файлы сообщений только
   <data name="Enable _greylisting for this domain" xml:space="preserve">
     <value>Включить серые списки для _этого домена</value>
   </data>
+  <data name="Enable _now" xml:space="preserve">
+    <value>Включить _сейчас</value>
+  </data>
   <data name="Enable anti-_virus for this range" xml:space="preserve">
     <value>Включить анти_вирус для этого диапазона</value>
   </data>
@@ -16549,8 +16552,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} added to the group." xml:space="preserve">
     <value>Добавлено в группу: {0}.</value>
   </data>
-  <data name="{0} added, switched off: give it its criteria and actions, then Enable switches it on." xml:space="preserve">
-    <value>Правило {0} добавлено выключенным: задайте ему критерии и действия, затем включите его кнопкой «Включить».</value>
+  <data name="{0} added, switched off: Enable now switches it on once it has a criterion and an action." xml:space="preserve">
+    <value>Правило {0} добавлено выключенным: кнопка «Включить сейчас» включит его, как только у него будут критерий и действие.</value>
   </data>
   <data name="{0} added." xml:space="preserve">
     <value>Добавлено: {0}.</value>
@@ -16773,6 +16776,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} has &quot;{1}&quot; in its own name rather than being a sub-folder, so a mail client cannot open it. Add folder now makes such a name a sub-folder." xml:space="preserve">
     <value>В имени папки {0} есть «{1}», хотя она не вложенная, поэтому почтовый клиент не может её открыть. Добавить папку теперь создаёт из такого имени вложенную папку.</value>
+  </data>
+  <data name="{0} has a criterion and an action: Enable now switches it on." xml:space="preserve">
+    <value>У правила {0} есть критерий и действие: кнопка «Включить сейчас» включит его.</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} перенесён на {1}.</value>
@@ -17220,6 +17226,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} stops here: the next thing it points at is not on this screen." xml:space="preserve">
     <value>«{0}» останавливается здесь: следующее, на что она указывает, отсутствует на этом экране.</value>
+  </data>
+  <data name="{0} switched on." xml:space="preserve">
+    <value>Правило {0} включено.</value>
   </data>
   <data name="{0} thing needs attention." xml:space="preserve">
     <value>{0} пункт требует внимания.</value>

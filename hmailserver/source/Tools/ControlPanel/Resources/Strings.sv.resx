@@ -4378,6 +4378,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Enable _greylisting for this domain" xml:space="preserve">
     <value>Aktivera _gråstlistning för den här domänen</value>
   </data>
+  <data name="Enable _now" xml:space="preserve">
+    <value>Aktiv_era nu</value>
+  </data>
   <data name="Enable anti-_virus for this range" xml:space="preserve">
     <value>Aktivera anti_virus för intervallet</value>
   </data>
@@ -16326,8 +16329,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} added to the group." xml:space="preserve">
     <value>{0} har lagts till i gruppen.</value>
   </data>
-  <data name="{0} added, switched off: give it its criteria and actions, then Enable switches it on." xml:space="preserve">
-    <value>{0} har lagts till, avstängd: ge den kriterier och åtgärder, och slå sedan på den med Aktivera.</value>
+  <data name="{0} added, switched off: Enable now switches it on once it has a criterion and an action." xml:space="preserve">
+    <value>{0} har lagts till, avstängd: Aktivera nu slår på den när den har ett kriterium och en åtgärd.</value>
   </data>
   <data name="{0} added." xml:space="preserve">
     <value>{0} har lagts till.</value>
@@ -16502,6 +16505,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} has &quot;{1}&quot; in its own name rather than being a sub-folder, so a mail client cannot open it. Add folder now makes such a name a sub-folder." xml:space="preserve">
     <value>{0} har ”{1}” i sitt eget namn i stället för att vara en undermapp, så en e-postklient kan inte öppna den. Lägg till mapp gör nu ett sådant namn till en undermapp.</value>
+  </data>
+  <data name="{0} has a criterion and an action: Enable now switches it on." xml:space="preserve">
+    <value>{0} har ett kriterium och en åtgärd: Aktivera nu slår på den.</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} har flyttats till {1}.</value>
@@ -16853,6 +16859,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} stops here: the next thing it points at is not on this screen." xml:space="preserve">
     <value>”{0}” stannar här: nästa sak den pekar på finns inte på den här skärmen.</value>
+  </data>
+  <data name="{0} switched on." xml:space="preserve">
+    <value>{0} är påslagen.</value>
   </data>
   <data name="{0} thing needs attention." xml:space="preserve">
     <value>{0} sak behöver åtgärdas.</value>

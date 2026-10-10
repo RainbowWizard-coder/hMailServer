@@ -4378,6 +4378,9 @@
   <data name="Enable _greylisting for this domain" xml:space="preserve">
     <value>为此域启用灰名单(_G)</value>
   </data>
+  <data name="Enable _now" xml:space="preserve">
+    <value>立即启用(_N)</value>
+  </data>
   <data name="Enable anti-_virus for this range" xml:space="preserve">
     <value>为此范围启用反病毒(_V)</value>
   </data>
@@ -16326,8 +16329,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} added to the group." xml:space="preserve">
     <value>已将 {0} 添加到组中。</value>
   </data>
-  <data name="{0} added, switched off: give it its criteria and actions, then Enable switches it on." xml:space="preserve">
-    <value>已添加 {0}，处于关闭状态：为它设置条件和操作，然后点击“启用”将其打开。</value>
+  <data name="{0} added, switched off: Enable now switches it on once it has a criterion and an action." xml:space="preserve">
+    <value>已添加 {0}，处于关闭状态：为它设置条件和操作后，点击“立即启用”即可将其打开。</value>
   </data>
   <data name="{0} added." xml:space="preserve">
     <value>已添加 {0}。</value>
@@ -16502,6 +16505,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} has &quot;{1}&quot; in its own name rather than being a sub-folder, so a mail client cannot open it. Add folder now makes such a name a sub-folder." xml:space="preserve">
     <value>{0} 的名称本身包含“{1}”，而不是子文件夹，因此邮件客户端无法打开它。“添加文件夹”现在会把这样的名称创建为子文件夹。</value>
+  </data>
+  <data name="{0} has a criterion and an action: Enable now switches it on." xml:space="preserve">
+    <value>{0} 已有条件和操作：点击“立即启用”即可将其打开。</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} 已迁移到 {1}。</value>
@@ -16853,6 +16859,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} stops here: the next thing it points at is not on this screen." xml:space="preserve">
     <value>“{0}”到此为止：它接下来要指向的内容不在这个屏幕上。</value>
+  </data>
+  <data name="{0} switched on." xml:space="preserve">
+    <value>已启用 {0}。</value>
   </data>
   <data name="{0} thing needs attention." xml:space="preserve">
     <value>有 {0} 项需要处理。</value>

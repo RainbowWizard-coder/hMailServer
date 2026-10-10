@@ -4378,6 +4378,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Enable _greylisting for this domain" xml:space="preserve">
     <value>_Greylisting für diese Domain einschalten</value>
   </data>
+  <data name="Enable _now" xml:space="preserve">
+    <value>_Jetzt aktivieren</value>
+  </data>
   <data name="Enable anti-_virus for this range" xml:space="preserve">
     <value>Anti-_Virus für diesen Bereich einschalten</value>
   </data>
@@ -16326,8 +16329,8 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="{0} added to the group." xml:space="preserve">
     <value>{0} zur Gruppe hinzugefügt.</value>
   </data>
-  <data name="{0} added, switched off: give it its criteria and actions, then Enable switches it on." xml:space="preserve">
-    <value>{0} hinzugefügt, ausgeschaltet: Geben Sie der Regel ihre Kriterien und Aktionen, dann schaltet Aktivieren sie ein.</value>
+  <data name="{0} added, switched off: Enable now switches it on once it has a criterion and an action." xml:space="preserve">
+    <value>{0} hinzugefügt, ausgeschaltet: Jetzt aktivieren schaltet die Regel ein, sobald sie ein Kriterium und eine Aktion hat.</value>
   </data>
   <data name="{0} added." xml:space="preserve">
     <value>{0} hinzugefügt.</value>
@@ -16502,6 +16505,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="{0} has &quot;{1}&quot; in its own name rather than being a sub-folder, so a mail client cannot open it. Add folder now makes such a name a sub-folder." xml:space="preserve">
     <value>{0} hat „{1}“ im eigenen Namen, statt ein Unterordner zu sein, daher kann ein Mail-Client den Ordner nicht öffnen. Ordner hinzufügen macht aus einem solchen Namen jetzt einen Unterordner.</value>
+  </data>
+  <data name="{0} has a criterion and an action: Enable now switches it on." xml:space="preserve">
+    <value>{0} hat ein Kriterium und eine Aktion: Jetzt aktivieren schaltet die Regel ein.</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} wurde nach {1} verschoben.</value>
@@ -16853,6 +16859,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="{0} stops here: the next thing it points at is not on this screen." xml:space="preserve">
     <value>„{0}“ endet hier: Das Nächste, worauf der Rundgang zeigt, ist auf diesem Bildschirm nicht vorhanden.</value>
+  </data>
+  <data name="{0} switched on." xml:space="preserve">
+    <value>{0} eingeschaltet.</value>
   </data>
   <data name="{0} thing needs attention." xml:space="preserve">
     <value>{0} Punkt braucht Aufmerksamkeit.</value>

@@ -4378,6 +4378,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Enable _greylisting for this domain" xml:space="preserve">
     <value>Attiva il _greylisting per questo dominio</value>
   </data>
+  <data name="Enable _now" xml:space="preserve">
+    <value>Attiva _ora</value>
+  </data>
   <data name="Enable anti-_virus for this range" xml:space="preserve">
     <value>Attiva l'anti_virus per questo intervallo</value>
   </data>
@@ -16326,8 +16329,8 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="{0} added to the group." xml:space="preserve">
     <value>Aggiunto al gruppo: {0}.</value>
   </data>
-  <data name="{0} added, switched off: give it its criteria and actions, then Enable switches it on." xml:space="preserve">
-    <value>{0} aggiunta, disattivata: dalle i criteri e le azioni, poi Attiva la accende.</value>
+  <data name="{0} added, switched off: Enable now switches it on once it has a criterion and an action." xml:space="preserve">
+    <value>{0} aggiunta, disattivata: Attiva ora la accende appena ha un criterio e un'azione.</value>
   </data>
   <data name="{0} added." xml:space="preserve">
     <value>Aggiunto: {0}.</value>
@@ -16502,6 +16505,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="{0} has &quot;{1}&quot; in its own name rather than being a sub-folder, so a mail client cannot open it. Add folder now makes such a name a sub-folder." xml:space="preserve">
     <value>{0} ha "{1}" nel proprio nome invece di essere una sottocartella, quindi un client di posta non può aprirla. Aggiungi cartella ora fa di un nome simile una sottocartella.</value>
+  </data>
+  <data name="{0} has a criterion and an action: Enable now switches it on." xml:space="preserve">
+    <value>{0} ha un criterio e un'azione: Attiva ora la accende.</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} è stata spostata a {1}.</value>
@@ -16853,6 +16859,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="{0} stops here: the next thing it points at is not on this screen." xml:space="preserve">
     <value>«{0}» si ferma qui: l'elemento successivo che indica non è su questo schermo.</value>
+  </data>
+  <data name="{0} switched on." xml:space="preserve">
+    <value>{0} attivata.</value>
   </data>
   <data name="{0} thing needs attention." xml:space="preserve">
     <value>{0} elemento richiede attenzione.</value>

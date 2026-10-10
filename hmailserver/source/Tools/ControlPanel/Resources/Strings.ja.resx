@@ -4378,6 +4378,9 @@
   <data name="Enable _greylisting for this domain" xml:space="preserve">
     <value>このドメインでグレイリスティングを有効にする(_G)</value>
   </data>
+  <data name="Enable _now" xml:space="preserve">
+    <value>今すぐ有効にする(_N)</value>
+  </data>
   <data name="Enable anti-_virus for this range" xml:space="preserve">
     <value>この範囲でウイルス対策を有効にする(_V)</value>
   </data>
@@ -16326,8 +16329,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} added to the group." xml:space="preserve">
     <value>{0} をグループに追加しました。</value>
   </data>
-  <data name="{0} added, switched off: give it its criteria and actions, then Enable switches it on." xml:space="preserve">
-    <value>{0} を無効の状態で追加しました。条件とアクションを設定してから、[有効にする] で有効にしてください。</value>
+  <data name="{0} added, switched off: Enable now switches it on once it has a criterion and an action." xml:space="preserve">
+    <value>{0} を無効の状態で追加しました。条件とアクションを設定すると、[今すぐ有効にする] で有効にできます。</value>
   </data>
   <data name="{0} added." xml:space="preserve">
     <value>{0} を追加しました。</value>
@@ -16502,6 +16505,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} has &quot;{1}&quot; in its own name rather than being a sub-folder, so a mail client cannot open it. Add folder now makes such a name a sub-folder." xml:space="preserve">
     <value>{0} はサブフォルダーではなく、名前そのものに「{1}」を含んでいるため、メール クライアントで開けません。[フォルダーを追加] は、このような名前をサブフォルダーとして作成するようになりました。</value>
+  </data>
+  <data name="{0} has a criterion and an action: Enable now switches it on." xml:space="preserve">
+    <value>{0} には条件とアクションがあります。[今すぐ有効にする] で有効にできます。</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} を {1} に移動しました。</value>
@@ -16853,6 +16859,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} stops here: the next thing it points at is not on this screen." xml:space="preserve">
     <value>「{0}」はここまでです。次に指し示す対象がこの画面にありません。</value>
+  </data>
+  <data name="{0} switched on." xml:space="preserve">
+    <value>{0} を有効にしました。</value>
   </data>
   <data name="{0} thing needs attention." xml:space="preserve">
     <value>{0} 件、対応が必要です。</value>

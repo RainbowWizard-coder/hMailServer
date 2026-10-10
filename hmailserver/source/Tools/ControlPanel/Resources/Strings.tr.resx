@@ -4378,6 +4378,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Enable _greylisting for this domain" xml:space="preserve">
     <value>Bu etki alanı için _greylisting'i etkinleştir</value>
   </data>
+  <data name="Enable _now" xml:space="preserve">
+    <value>_Şimdi etkinleştir</value>
+  </data>
   <data name="Enable anti-_virus for this range" xml:space="preserve">
     <value>Bu aralık için _virüsten korumayı etkinleştir</value>
   </data>
@@ -16326,8 +16329,8 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} added to the group." xml:space="preserve">
     <value>{0} gruba eklendi.</value>
   </data>
-  <data name="{0} added, switched off: give it its criteria and actions, then Enable switches it on." xml:space="preserve">
-    <value>{0} kapalı olarak eklendi: ona ölçütlerini ve eylemlerini verin, ardından Etkinleştir ile açın.</value>
+  <data name="{0} added, switched off: Enable now switches it on once it has a criterion and an action." xml:space="preserve">
+    <value>{0} kapalı olarak eklendi: bir ölçütü ve bir eylemi olduğunda Şimdi etkinleştir onu açar.</value>
   </data>
   <data name="{0} added." xml:space="preserve">
     <value>{0} eklendi.</value>
@@ -16502,6 +16505,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0} has &quot;{1}&quot; in its own name rather than being a sub-folder, so a mail client cannot open it. Add folder now makes such a name a sub-folder." xml:space="preserve">
     <value>{0} bir alt klasör olmak yerine kendi adında "{1}" taşıyor, bu yüzden bir posta istemcisi onu açamaz. Klasör ekle artık böyle bir adı alt klasör yapar.</value>
+  </data>
+  <data name="{0} has a criterion and an action: Enable now switches it on." xml:space="preserve">
+    <value>{0} için bir ölçüt ve bir eylem var: Şimdi etkinleştir onu açar.</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} posta kutusu {1} adresine taşındı.</value>
@@ -16853,6 +16859,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0} stops here: the next thing it points at is not on this screen." xml:space="preserve">
     <value>“{0}” burada duruyor: gösterdiği bir sonraki öğe bu ekranda değil.</value>
+  </data>
+  <data name="{0} switched on." xml:space="preserve">
+    <value>{0} açıldı.</value>
   </data>
   <data name="{0} thing needs attention." xml:space="preserve">
     <value>{0} öğe dikkat gerektiriyor.</value>

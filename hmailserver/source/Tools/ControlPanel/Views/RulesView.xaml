@@ -87,11 +87,6 @@
              state, which would say there are no rules (Services/ReadFailure). -->
         <scaffold:InlineNotice x:Name="Notice" Visibility="Collapsed" />
 
-        <!-- What Add rule did: the new rule, switched off until it has its criteria
-             and actions (review finding F225). -->
-        <scaffold:InlineNotice x:Name="OutcomeNotice" Visibility="Collapsed"
-                               AutomationProperties.AutomationId="rules-outcome" />
-
         <!-- The floor: the column headers, three rows and a pixel for layout
              rounding, 136 (at 135 the grid rounded a device pixel short and
              the header one long at 150 and 175 % scaling, and it held two
@@ -167,6 +162,16 @@
                 </Grid>
             </Grid>
         </scaffold:Card>
+
+        <!-- What Add rule did, under the form it was pressed in and above the criteria
+             and actions it speaks of: the new rule, switched off until it has its
+             criteria and actions, with Enable now, which the code-behind puts in it and
+             enables once the rule has a criterion and an action (review finding F225).
+             The toolbar's Enable is scrolled out of view after Add rule; above the list,
+             the notice was cut at its top in a 1280 by 800 window by the scroll that
+             shows Add criterion…. -->
+        <scaffold:InlineNotice x:Name="OutcomeNotice" Visibility="Collapsed"
+                               AutomationProperties.AutomationId="rules-outcome" />
 
         <!-- The selected rule's criteria and actions: side by side, or one above
              the other where either would be narrower than 340 pixels

@@ -4378,6 +4378,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Enable _greylisting for this domain" xml:space="preserve">
     <value>Aktiver _grålisting for dette domenet</value>
   </data>
+  <data name="Enable _now" xml:space="preserve">
+    <value>_Aktiver nå</value>
+  </data>
   <data name="Enable anti-_virus for this range" xml:space="preserve">
     <value>Aktiver anti_virus for dette området</value>
   </data>
@@ -16326,8 +16329,8 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="{0} added to the group." xml:space="preserve">
     <value>{0} er lagt til i gruppen.</value>
   </data>
-  <data name="{0} added, switched off: give it its criteria and actions, then Enable switches it on." xml:space="preserve">
-    <value>{0} er lagt til, slått av: gi den kriterier og handlinger, og slå den deretter på med Aktiver.</value>
+  <data name="{0} added, switched off: Enable now switches it on once it has a criterion and an action." xml:space="preserve">
+    <value>{0} er lagt til, slått av: Aktiver nå slår den på når den har et kriterium og en handling.</value>
   </data>
   <data name="{0} added." xml:space="preserve">
     <value>{0} er lagt til.</value>
@@ -16502,6 +16505,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="{0} has &quot;{1}&quot; in its own name rather than being a sub-folder, so a mail client cannot open it. Add folder now makes such a name a sub-folder." xml:space="preserve">
     <value>{0} har «{1}» i sitt eget navn i stedet for å være en undermappe, så en e-postklient kan ikke åpne den. Legg til mappe gjør nå et slikt navn til en undermappe.</value>
+  </data>
+  <data name="{0} has a criterion and an action: Enable now switches it on." xml:space="preserve">
+    <value>{0} har et kriterium og en handling: Aktiver nå slår den på.</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} er flyttet til {1}.</value>
@@ -16853,6 +16859,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="{0} stops here: the next thing it points at is not on this screen." xml:space="preserve">
     <value>«{0}» stopper her: det neste den peker på, finnes ikke på denne skjermen.</value>
+  </data>
+  <data name="{0} switched on." xml:space="preserve">
+    <value>{0} er slått på.</value>
   </data>
   <data name="{0} thing needs attention." xml:space="preserve">
     <value>{0} ting trenger oppmerksomhet.</value>

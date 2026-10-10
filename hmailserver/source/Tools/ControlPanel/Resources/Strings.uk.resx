@@ -4427,6 +4427,9 @@
   <data name="Enable _greylisting for this domain" xml:space="preserve">
     <value>Увімкнути сірий список _для цього домену</value>
   </data>
+  <data name="Enable _now" xml:space="preserve">
+    <value>_Увімкнути зараз</value>
+  </data>
   <data name="Enable anti-_virus for this range" xml:space="preserve">
     <value>Увімкнути захист від _вірусів для цього діапазону</value>
   </data>
@@ -16549,8 +16552,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} added to the group." xml:space="preserve">
     <value>Додано до групи: {0}.</value>
   </data>
-  <data name="{0} added, switched off: give it its criteria and actions, then Enable switches it on." xml:space="preserve">
-    <value>Правило {0} додано вимкненим: задайте йому критерії та дії, а потім увімкніть кнопкою «Увімкнути».</value>
+  <data name="{0} added, switched off: Enable now switches it on once it has a criterion and an action." xml:space="preserve">
+    <value>Правило {0} додано вимкненим: кнопка «Увімкнути зараз» увімкне його, щойно в нього будуть критерій і дія.</value>
   </data>
   <data name="{0} added." xml:space="preserve">
     <value>Додано: {0}.</value>
@@ -16773,6 +16776,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} has &quot;{1}&quot; in its own name rather than being a sub-folder, so a mail client cannot open it. Add folder now makes such a name a sub-folder." xml:space="preserve">
     <value>У назві папки {0} є «{1}», хоча вона не вкладена, тому поштовий клієнт не може її відкрити. Додати папку тепер створює з такої назви вкладену папку.</value>
+  </data>
+  <data name="{0} has a criterion and an action: Enable now switches it on." xml:space="preserve">
+    <value>Правило {0} має критерій і дію: кнопка «Увімкнути зараз» увімкне його.</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} перенесено на {1}.</value>
@@ -17220,6 +17226,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} stops here: the next thing it points at is not on this screen." xml:space="preserve">
     <value>«{0}» зупиняється тут: наступне, на що вона вказує, відсутнє на цьому екрані.</value>
+  </data>
+  <data name="{0} switched on." xml:space="preserve">
+    <value>Правило {0} увімкнено.</value>
   </data>
   <data name="{0} thing needs attention." xml:space="preserve">
     <value>{0} пункт потребує уваги.</value>

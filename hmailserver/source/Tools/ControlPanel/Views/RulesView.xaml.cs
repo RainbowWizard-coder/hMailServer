@@ -150,6 +150,8 @@ namespace hMailServer.ControlPanel.Views
 
       public void OnEnter()
       {
+         // A notice about a rule added before the page was left is done with.
+         HideOutcome_();
          LoadScopes();
          Reload();
       }
@@ -243,6 +245,8 @@ namespace hMailServer.ControlPanel.Views
             };
          }
 
+         // The new rule's notice is about a rule of the list that is going.
+         HideOutcome_();
          Reload();
       }
 
@@ -297,6 +301,9 @@ namespace hMailServer.ControlPanel.Views
 
          ReadFailure.Clear(Notice, AddRuleButton);
          RuleGrid.ItemsSource = rows;
+         // The new rule's notice goes with the rule, deleted here or elsewhere.
+         if (addedRuleId_ != 0 && !rows.Exists(r => r.Id == addedRuleId_))
+            HideOutcome_();
          HeaderPanel.Subtitle = Subtitle_();
          CountPill.Visibility = Visibility.Visible;
          ShowListState_();
@@ -349,11 +356,142 @@ namespace hMailServer.ControlPanel.Views
       private void HideOutcome_()
       {
          addedRuleId_ = 0;
+         addedSwitchedOn_ = false;
+         addedReady_ = false;
+         OutcomeNotice.Content = null;
          OutcomeNotice.Visibility = Visibility.Collapsed;
       }
 
-      // The rule Add rule just made, which the notice above the list is about.
+      // The rule Add rule just made, which the notice above the list is about, its
+      // name, and whether the notice's Enable now has switched it on.
       private int addedRuleId_;
+      private string addedRuleName_;
+      private bool addedSwitchedOn_;
+      private bool addedReady_;
+      private Wpf.Ui.Controls.Button enableAddedButton_;
+
+      /// <summary>
+      /// The new rule's notice with Enable now (review finding F225): after Add rule the
+      /// page is at the add form and the toolbar's Enable is scrolled out of view, so
+      /// the notice that says to switch the rule on carries the button. It is pressed
+      /// only once the rule has a criterion and an action (RuleCards.CanSwitchOn), and
+      /// the notice says what it waits for; once the rule has both, the notice says
+      /// so - afresh, to a screen reader too - and, as it comes to have both, puts the
+      /// keyboard on Enable now, the rule's next step, with the notice in view: in a
+      /// short window the page is at the criteria and actions then, the notice above
+      /// the view. Shown again after each change to the rule's criteria and actions
+      /// (RefreshDetails), while the rule is the selected one and has not been switched
+      /// on from here.
+      /// </summary>
+      private void ShowAddedOutcome_()
+      {
+         if (addedRuleId_ == 0 || addedSwitchedOn_ || selectedRuleId_ != addedRuleId_)
+            return;
+
+         bool ready = RuleCards.CanSwitchOn(CriteriaGrid.Items.Count, ActionsGrid.Items.Count);
+         bool becameReady = ready && !addedReady_;
+         addedReady_ = ready;
+         Wpf.Ui.Controls.Button enable = EnableAddedButton_();
+         enable.IsEnabled = ready;
+         string text = ready ? RuleCards.Ready(addedRuleName_) : RuleCards.Added(addedRuleName_);
+         if (!(OutcomeNotice.Visibility == Visibility.Visible && ReferenceEquals(OutcomeNotice.Content, enable) && OutcomeNotice.Text == text))
+         {
+            OutcomeNotice.Content = enable;
+            SayOutcome_(StatusLevel.Information, text);
+         }
+
+         // After the dialog that added the criterion or the action has given the
+         // keyboard back to the page.
+         if (becameReady)
+         {
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input, new Action(() =>
+            {
+               if (ReferenceEquals(OutcomeNotice.Content, enable) && enable.IsEnabled && OutcomeNotice.IsVisible)
+                  FocusWithNotice_(enable);
+            }));
+         }
+      }
+
+      /// <summary>
+      /// The keyboard on the new rule's next step - Add criterion…, then Enable now -
+      /// and the notice in view with it where the window has the room: the scroll that
+      /// brings the step into view is the least that shows it, and may leave the top
+      /// of the notice above the view, as it left it under the header with the notice
+      /// above the list. Measured once the step's own bring-into-view has run, at
+      /// Loaded priority, after layout: a BringIntoView of the notice made before the
+      /// button's focus was undone by the button's. Where the two do not fit, the
+      /// step is what is shown.
+      /// </summary>
+      private void FocusWithNotice_(Control step)
+      {
+         if (!step.Focus())
+            return;
+
+         Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, new Action(() =>
+         {
+            if (!OutcomeNotice.IsVisible || !step.IsVisible || !step.IsKeyboardFocused)
+               return;
+
+            Rect notice = OutcomeNotice.TransformToAncestor(PageScroll).TransformBounds(new Rect(OutcomeNotice.RenderSize));
+            Rect shown = step.TransformToAncestor(PageScroll).TransformBounds(new Rect(step.RenderSize));
+            if (notice.Top < 0 && shown.Bottom - notice.Top <= PageScroll.ViewportHeight)
+               PageScroll.ScrollToVerticalOffset(Math.Max(0, PageScroll.VerticalOffset + notice.Top));
+         }));
+      }
+
+      private Wpf.Ui.Controls.Button EnableAddedButton_()
+      {
+         if (enableAddedButton_ != null)
+            return enableAddedButton_;
+
+         var button = new Wpf.Ui.Controls.Button
+         {
+            Content = L("Enable _now"),
+            Appearance = Wpf.Ui.Controls.ControlAppearance.Secondary,
+            VerticalAlignment = VerticalAlignment.Center
+         };
+         System.Windows.Automation.AutomationProperties.SetAutomationId(button, "rules-enable-added");
+         button.Click += (_, _) => EnableAdded_();
+         return enableAddedButton_ = button;
+      }
+
+      /// <summary>
+      /// Enable now: the new rule switched on through the toolbar's road
+      /// (WithSelectedRule, which saves it and reads the list again), the rule
+      /// selected first where the selection has moved off it; then the notice says it
+      /// is on, without the button, and the keyboard goes to the rule's row.
+      /// </summary>
+      private void EnableAdded_()
+      {
+         if (addedRuleId_ == 0)
+            return;
+
+         if ((RuleGrid.SelectedItem as RuleRow)?.Id != addedRuleId_)
+         {
+            if (RuleGrid.ItemsSource is not List<RuleRow> rows || rows.Find(r => r.Id == addedRuleId_) is not RuleRow row)
+            {
+               HideOutcome_();
+               return;
+            }
+
+            ListSearchState.Reveal(SearchBar, RuleGrid, row);
+            RuleGrid.SelectedItem = row;
+         }
+
+         string name = addedRuleName_;
+         WithSelectedRule(rule =>
+         {
+            rule.Active = true;
+            rule.Save();
+            addedSwitchedOn_ = true;
+         });
+         if (!addedSwitchedOn_ || ReadFailure.IsShown(Notice))
+            return;
+
+         GridKeys.FocusSelectedRow(RuleGrid);
+         OutcomeNotice.Content = null;
+         SayOutcome_(StatusLevel.Good, RuleCards.SwitchedOn(name));
+      }
 
       /// <summary>
       /// The subtitle: whose rules the list shows - the server's or the domain's
@@ -474,6 +612,7 @@ namespace hMailServer.ControlPanel.Views
          CriteriaGrid.ItemsSource = criteria;
          ActionsGrid.ItemsSource = actions;
          ShowRuleParts_();
+         ShowAddedOutcome_();
 
          suppressMatchMode_ = true;
          MatchMode.SelectedIndex = useAnd ? 0 : 1;
@@ -615,8 +754,11 @@ namespace hMailServer.ControlPanel.Views
             RuleGrid.SelectedItem = added;
             ShowRowInList_(added);
             addedRuleId_ = addedId;
-            SayOutcome_(StatusLevel.Information, RuleCards.Added(name));
-            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input, new Action(() => AddCriterionButton.Focus()));
+            addedRuleName_ = name;
+            addedSwitchedOn_ = false;
+            addedReady_ = false;
+            ShowAddedOutcome_();
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input, new Action(() => FocusWithNotice_(AddCriterionButton)));
          }
       }
 

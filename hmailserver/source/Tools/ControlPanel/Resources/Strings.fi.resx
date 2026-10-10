@@ -4378,6 +4378,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Enable _greylisting for this domain" xml:space="preserve">
     <value>Ota _harmaalistaus käyttöön tälle verkkotunnukselle</value>
   </data>
+  <data name="Enable _now" xml:space="preserve">
+    <value>Ota _heti käyttöön</value>
+  </data>
   <data name="Enable anti-_virus for this range" xml:space="preserve">
     <value>Ota _virustorjunta käyttöön tälle alueelle</value>
   </data>
@@ -16326,8 +16329,8 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} added to the group." xml:space="preserve">
     <value>{0} lisätty ryhmään.</value>
   </data>
-  <data name="{0} added, switched off: give it its criteria and actions, then Enable switches it on." xml:space="preserve">
-    <value>{0} lisätty pois käytöstä: anna sille ehdot ja toiminnot ja ota se sitten käyttöön painikkeella Ota käyttöön.</value>
+  <data name="{0} added, switched off: Enable now switches it on once it has a criterion and an action." xml:space="preserve">
+    <value>{0} lisätty pois käytöstä: Ota heti käyttöön ottaa sen käyttöön, kun sillä on ehto ja toiminto.</value>
   </data>
   <data name="{0} added." xml:space="preserve">
     <value>{0} lisätty.</value>
@@ -16502,6 +16505,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} has &quot;{1}&quot; in its own name rather than being a sub-folder, so a mail client cannot open it. Add folder now makes such a name a sub-folder." xml:space="preserve">
     <value>Kansion {0} omassa nimessä on "{1}" sen sijaan, että se olisi alikansio, joten postiasiakas ei voi avata sitä. Lisää kansio tekee nyt tällaisesta nimestä alikansion.</value>
+  </data>
+  <data name="{0} has a criterion and an action: Enable now switches it on." xml:space="preserve">
+    <value>Säännöllä {0} on ehto ja toiminto: Ota heti käyttöön ottaa sen käyttöön.</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} on siirretty osoitteeseen {1}.</value>
@@ -16853,6 +16859,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} stops here: the next thing it points at is not on this screen." xml:space="preserve">
     <value>”{0}” päättyy tähän: seuraava kohde, johon se osoittaa, ei ole tällä näytöllä.</value>
+  </data>
+  <data name="{0} switched on." xml:space="preserve">
+    <value>{0} on otettu käyttöön.</value>
   </data>
   <data name="{0} thing needs attention." xml:space="preserve">
     <value>{0} asia vaatii huomiota.</value>

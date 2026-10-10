@@ -34,7 +34,84 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal("No criteria yet, so this rule matches no message and does nothing.", RuleCards.CriteriaEmpty(true));
          Assert.Equal("Select a rule above to see what it does.", RuleCards.ActionsEmpty(false));
          Assert.Equal("No actions yet, so this rule does nothing to the messages it matches.", RuleCards.ActionsEmpty(true));
-         Assert.Equal("Spam to junk added, switched off: give it its criteria and actions, then Enable switches it on.", RuleCards.Added("Spam to junk"));
+         Assert.Equal("Spam to junk added, switched off: Enable now switches it on once it has a criterion and an action.", RuleCards.Added("Spam to junk"));
+         Assert.Equal("Spam to junk has a criterion and an action: Enable now switches it on.", RuleCards.Ready("Spam to junk"));
+         Assert.Equal("Spam to junk switched on.", RuleCards.SwitchedOn("Spam to junk"));
+      }
+
+      /// <summary>
+      /// The notice's Enable now waits for a criterion and an action: a rule switched on
+      /// before them acts on live mail while the rest is still being added.
+      /// </summary>
+      [Theory]
+      [InlineData(0, 0, false)]
+      [InlineData(1, 0, false)]
+      [InlineData(0, 2, false)]
+      [InlineData(1, 1, true)]
+      [InlineData(3, 2, true)]
+      public void EnableNow_WaitsForACriterionAndAnAction(int criteria, int actions, bool can)
+         => Assert.Equal(can, RuleCards.CanSwitchOn(criteria, actions));
+
+      /// <summary>
+      /// The new rule's notice carries Enable now (the unit's skeptic review of F225):
+      /// after Add rule the page is at the add form and the toolbar's Enable is scrolled
+      /// out of view, while the notice named it. The button is in the notice as
+      /// PortsChangedNotice carries Reinitialise now, pressed only once the rule has a
+      /// criterion and an action - re-checked as they are added - and it switches the
+      /// rule on through the toolbar's road, then says so without the button and puts
+      /// the keyboard on the rule's row. The notice goes when the page is opened
+      /// again, when Show rules for changes and when its rule is gone.
+      /// </summary>
+      [Fact]
+      public void TheNewRulesNotice_CarriesEnableNow()
+      {
+         string code = Read(Path.Join("Views", "RulesView.xaml.cs"));
+         string add = WithheldRowTests.MemberText(code, "private void AddRule_Click(object sender, RoutedEventArgs e)");
+         Assert.Contains("addedRuleName_ = name;", add, StringComparison.Ordinal);
+         Assert.Contains("ShowAddedOutcome_();", add, StringComparison.Ordinal);
+
+         string show = WithheldRowTests.MemberText(code, "private void ShowAddedOutcome_()");
+         Assert.True(show != null, "RulesView.ShowAddedOutcome_ is gone.");
+         Assert.Contains("RuleCards.CanSwitchOn(CriteriaGrid.Items.Count, ActionsGrid.Items.Count)", show, StringComparison.Ordinal);
+         Assert.Contains("enable.IsEnabled = ready;", show, StringComparison.Ordinal);
+         Assert.Contains("ready ? RuleCards.Ready(addedRuleName_) : RuleCards.Added(addedRuleName_)", show, StringComparison.Ordinal);
+         Assert.Contains("OutcomeNotice.Content = enable;", show, StringComparison.Ordinal);
+         // As the rule comes to have both, the keyboard goes to Enable now with the notice in view.
+         Assert.Contains("bool becameReady = ready && !addedReady_;", show, StringComparison.Ordinal);
+         Assert.True(show.IndexOf("FocusWithNotice_(enable);", StringComparison.Ordinal) > show.IndexOf("if (becameReady)", StringComparison.Ordinal),
+            "The keyboard does not go to Enable now once the rule has a criterion and an action.");
+
+         // The notice is under the add form and above the criteria and actions.
+         string xaml = Read(Path.Join("Views", "RulesView.xaml"));
+         int form = xaml.IndexOf("x:Name=\"AddRuleForm\"", StringComparison.Ordinal);
+         int notice = xaml.IndexOf("x:Name=\"OutcomeNotice\"", StringComparison.Ordinal);
+         int parts = xaml.IndexOf("x:Name=\"RuleParts\"", StringComparison.Ordinal);
+         Assert.True(form > 0 && notice > form && parts > notice, "The new rule's notice is not between the add form and the criteria and actions.");
+
+         string details = WithheldRowTests.MemberText(code, "private void RefreshDetails()");
+         Assert.Contains("ShowAddedOutcome_();", details, StringComparison.Ordinal);
+
+         string button = WithheldRowTests.MemberText(code, "private Wpf.Ui.Controls.Button EnableAddedButton_()");
+         Assert.True(button != null, "RulesView.EnableAddedButton_ is gone.");
+         Assert.Contains("Content = L(\"Enable _now\")", button, StringComparison.Ordinal);
+         Assert.Contains("button.Click += (_, _) => EnableAdded_();", button, StringComparison.Ordinal);
+
+         string enable = WithheldRowTests.MemberText(code, "private void EnableAdded_()");
+         Assert.True(enable != null, "RulesView.EnableAdded_ is gone.");
+         int on = enable.IndexOf("rule.Active = true;", StringComparison.Ordinal);
+         int saves = enable.IndexOf("rule.Save();", StringComparison.Ordinal);
+         Assert.True(on > 0 && saves > on, "Enable now does not switch the rule on and save it.");
+         Assert.Contains("WithSelectedRule(rule =>", enable, StringComparison.Ordinal);
+         int focus = enable.IndexOf("GridKeys.FocusSelectedRow(RuleGrid);", StringComparison.Ordinal);
+         int drops = enable.IndexOf("OutcomeNotice.Content = null;", StringComparison.Ordinal);
+         Assert.True(focus > 0 && drops > focus, "The keyboard is not moved off Enable now before the button leaves the notice.");
+         Assert.Contains("RuleCards.SwitchedOn(name)", enable, StringComparison.Ordinal);
+
+         string hide = WithheldRowTests.MemberText(code, "private void HideOutcome_()");
+         Assert.Contains("OutcomeNotice.Content = null;", hide, StringComparison.Ordinal);
+         Assert.Contains("HideOutcome_();", WithheldRowTests.MemberText(code, "public void OnEnter()"), StringComparison.Ordinal);
+         Assert.Contains("HideOutcome_();", WithheldRowTests.MemberText(code, "private void Scope_Changed(object sender, SelectionChangedEventArgs e)"), StringComparison.Ordinal);
+         Assert.Contains("!rows.Exists(r => r.Id == addedRuleId_)", WithheldRowTests.MemberText(code, "private void Reload()"), StringComparison.Ordinal);
       }
 
       [Fact]
@@ -57,8 +134,13 @@ namespace hMailServer.ControlPanel.Tests.Services
          string show = WithheldRowTests.MemberText(code, "private void ShowRowInList_(RuleRow row)");
          Assert.True(show != null, "RulesView.ShowRowInList_ is gone.");
          Assert.Contains("list.ScrollToEnd();", show, StringComparison.Ordinal);
-         Assert.Contains("AddCriterionButton.Focus()", add, StringComparison.Ordinal);
-         Assert.Contains("RuleCards.Added(name)", add, StringComparison.Ordinal);
+         Assert.Contains("FocusWithNotice_(AddCriterionButton)", add, StringComparison.Ordinal);
+         string step = WithheldRowTests.MemberText(code, "private void FocusWithNotice_(Control step)");
+         Assert.True(step != null, "RulesView.FocusWithNotice_ is gone.");
+         Assert.Contains("step.Focus()", step, StringComparison.Ordinal);
+         Assert.Contains("DispatcherPriority.Loaded", step, StringComparison.Ordinal);
+         Assert.Contains("shown.Bottom - notice.Top <= PageScroll.ViewportHeight", step, StringComparison.Ordinal);
+         Assert.DoesNotContain("SayOutcome_(StatusLevel.Information, RuleCards.Added(name));", add, StringComparison.Ordinal);
       }
 
       [Fact]

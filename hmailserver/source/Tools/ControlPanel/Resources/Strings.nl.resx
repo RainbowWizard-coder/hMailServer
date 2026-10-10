@@ -4378,6 +4378,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Enable _greylisting for this domain" xml:space="preserve">
     <value>_Greylisting inschakelen voor dit domein</value>
   </data>
+  <data name="Enable _now" xml:space="preserve">
+    <value>Nu _inschakelen</value>
+  </data>
   <data name="Enable anti-_virus for this range" xml:space="preserve">
     <value>Anti_virus inschakelen voor dit bereik</value>
   </data>
@@ -16326,8 +16329,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} added to the group." xml:space="preserve">
     <value>{0} aan de groep toegevoegd.</value>
   </data>
-  <data name="{0} added, switched off: give it its criteria and actions, then Enable switches it on." xml:space="preserve">
-    <value>{0} toegevoegd, uitgeschakeld: geef de regel zijn criteria en acties en schakel hem daarna in met Inschakelen.</value>
+  <data name="{0} added, switched off: Enable now switches it on once it has a criterion and an action." xml:space="preserve">
+    <value>{0} toegevoegd, uitgeschakeld: Nu inschakelen schakelt de regel in zodra hij een criterium en een actie heeft.</value>
   </data>
   <data name="{0} added." xml:space="preserve">
     <value>{0} toegevoegd.</value>
@@ -16502,6 +16505,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} has &quot;{1}&quot; in its own name rather than being a sub-folder, so a mail client cannot open it. Add folder now makes such a name a sub-folder." xml:space="preserve">
     <value>{0} heeft "{1}" in de eigen naam in plaats van een submap te zijn, dus een e-mailclient kan de map niet openen. Map toevoegen maakt van zo'n naam nu een submap.</value>
+  </data>
+  <data name="{0} has a criterion and an action: Enable now switches it on." xml:space="preserve">
+    <value>{0} heeft een criterium en een actie: Nu inschakelen schakelt de regel in.</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} is verplaatst naar {1}.</value>
@@ -16853,6 +16859,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} stops here: the next thing it points at is not on this screen." xml:space="preserve">
     <value>“{0}” stopt hier: het volgende waarnaar de rondleiding wijst, staat niet op dit scherm.</value>
+  </data>
+  <data name="{0} switched on." xml:space="preserve">
+    <value>{0} ingeschakeld.</value>
   </data>
   <data name="{0} thing needs attention." xml:space="preserve">
     <value>{0} punt vraagt aandacht.</value>
