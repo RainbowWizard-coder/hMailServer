@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Xml.Linq;
 using hMailServer.ControlPanel.Services;
 using Xunit;
@@ -67,6 +68,63 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal("3 пункта требуют действий.", SetupTally.NeedAction(3));
          Assert.Equal("5 пунктов требуют действий.", SetupTally.NeedAction(5));
          Assert.Equal("21 пункт требует действий.", SetupTally.NeedAction(21));
+      }
+
+      /// <summary>
+      /// The sentences say the pills' words in German too: the Dashboard's card showed
+      /// the pill Handlungsbedarf beside "10 Punkte erfordern eine Maßnahme." and the
+      /// checklist its Fertig pills beside "9 Punkte sind erledigt.", the finding's own
+      /// two names for one state in the reader's language.
+      /// </summary>
+      [Fact]
+      public void InGerman_TheSentencesSayThePillsWords()
+      {
+         Dictionary<string, string> german = ReadResx("Strings.de.resx");
+         Assert.Equal("Handlungsbedarf", german["Action needed"]);
+         Assert.Equal("Fertig", german["Done"]);
+         Assert.Equal("Nicht nötig", german["Not needed"]);
+
+         Loc.Use((text, culture) => german.TryGetValue(text, out string value) ? value : null, CultureInfo.GetCultureInfo("de"));
+         Assert.Equal("Bei 10 Punkten besteht Handlungsbedarf. 1 Punkt kann von hier aus nicht geprüft werden.", SetupTally.Summary(10, 1, 25));
+         Assert.Equal("Bei 1 Punkt besteht Handlungsbedarf.", SetupTally.Summary(1, 0, 25));
+         Assert.Equal("Kein Handlungsbedarf, aber 1 Punkt kann von hier aus nicht geprüft werden.", SetupTally.Summary(0, 1, 25));
+         Assert.Equal("Kein Handlungsbedarf, aber 2 Punkte können von hier aus nicht geprüft werden.", SetupTally.Summary(0, 2, 25));
+         Assert.Equal("Kein Handlungsbedarf - alle 25 Prüfungen der externen Einrichtung sind fertig oder nicht nötig.", SetupTally.Summary(0, 0, 25));
+         Assert.Equal("Kein Handlungsbedarf - 1 Prüfung der externen Einrichtung ist fertig oder nicht nötig.", SetupTally.Summary(0, 0, 1));
+         Assert.Equal("Bei 4 Punkten besteht Handlungsbedarf. 1 Punkt ist fertig. Nächster Schritt: SPF.", SetupTally.Tally(4, 0, 1, 0, "SPF"));
+         Assert.Equal("Kein Handlungsbedarf. 9 Punkte sind fertig. 4 Punkte sind nicht nötig.", SetupTally.Tally(0, 0, 9, 4, null));
+      }
+
+      /// <summary>
+      /// Every language says that nothing needs action in one phrase, the checklist's
+      /// "Nothing needs action." and the card's sentences that go on from it alike:
+      /// the card's "Nothing needs action, but ..." was a text from before the tally,
+      /// which German, Japanese, Chinese, Russian, Ukrainian and Turkish said in other
+      /// words than the tally's own sentence beside it.
+      /// </summary>
+      [Fact]
+      public void InEveryLanguage_NothingNeedsAction_IsOnePhrase()
+      {
+         string[] goOn =
+         {
+            "Nothing needs action - the {0} external setup check is done or not needed.",
+            "Nothing needs action - all {0} external setup checks are done or not needed.",
+            "Nothing needs action, but {0} item cannot be checked from here.",
+            "Nothing needs action, but {0} items cannot be checked from here.",
+         };
+         var failures = new List<string>();
+         foreach (string path in Directory.GetFiles(ResourcesDirectory(), "Strings.*.resx"))
+         {
+            Dictionary<string, string> catalogue = ReadResx(Path.GetFileName(path));
+            string phrase = catalogue["Nothing needs action."].TrimEnd('.', '\u3002');
+            foreach (string key in goOn.SelectMany(k => new[] { k, k + "|few" }).Where(catalogue.ContainsKey))
+            {
+               if (!catalogue[key].StartsWith(phrase, StringComparison.Ordinal))
+                  failures.Add(Path.GetFileName(path) + ": " + key + " = " + catalogue[key] + ", beside " + phrase);
+            }
+         }
+
+         Assert.True(failures.Count == 0, string.Join(Environment.NewLine, failures));
       }
 
       [Fact]

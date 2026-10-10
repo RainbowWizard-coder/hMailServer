@@ -8099,19 +8099,19 @@ Nichts, was schon dort ist, wird entfernt.</value>
     <value>Nichts passte auf „{0}". Versuchen Sie es mit dem, was Sie erreichen wollen („Spam stoppen", „ein Gerät Mail senden lassen"), einem Seitennamen oder einem Schlüssel aus hMailServer.INI.</value>
   </data>
   <data name="Nothing needs action - all {0} external setup checks are done or not needed." xml:space="preserve">
-    <value>Nichts erfordert eine Maßnahme - alle {0} Prüfungen der externen Einrichtung sind erledigt oder nicht nötig.</value>
+    <value>Kein Handlungsbedarf - alle {0} Prüfungen der externen Einrichtung sind fertig oder nicht nötig.</value>
   </data>
   <data name="Nothing needs action - the {0} external setup check is done or not needed." xml:space="preserve">
-    <value>Nichts erfordert eine Maßnahme - {0} Prüfung der externen Einrichtung ist erledigt oder nicht nötig.</value>
+    <value>Kein Handlungsbedarf - {0} Prüfung der externen Einrichtung ist fertig oder nicht nötig.</value>
   </data>
   <data name="Nothing needs action, but {0} item cannot be checked from here." xml:space="preserve">
-    <value>Nichts erfordert eine Maßnahme, aber {0} Punkt kann von hier aus nicht geprüft werden.</value>
+    <value>Kein Handlungsbedarf, aber {0} Punkt kann von hier aus nicht geprüft werden.</value>
   </data>
   <data name="Nothing needs action, but {0} items cannot be checked from here." xml:space="preserve">
-    <value>Nichts erfordert eine Maßnahme, aber {0} Punkte können von hier aus nicht geprüft werden.</value>
+    <value>Kein Handlungsbedarf, aber {0} Punkte können von hier aus nicht geprüft werden.</value>
   </data>
   <data name="Nothing needs action." xml:space="preserve">
-    <value>Nichts erfordert eine Maßnahme.</value>
+    <value>Kein Handlungsbedarf.</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Es wurde nichts angewendet: die Optionen haben sich geändert, während die Bestätigung offen war, die Vorschau beschreibt also nicht mehr, was dies tun würde. Führen Sie die Vorschau erneut aus.</value>
@@ -17340,19 +17340,19 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
     <value>{0} Punkt kann von hier aus nicht geprüft werden.</value>
   </data>
   <data name="{0} item is done." xml:space="preserve">
-    <value>{0} Punkt ist erledigt.</value>
+    <value>{0} Punkt ist fertig.</value>
   </data>
   <data name="{0} item is not needed." xml:space="preserve">
     <value>{0} Punkt ist nicht nötig.</value>
   </data>
   <data name="{0} item needs action." xml:space="preserve">
-    <value>{0} Punkt erfordert eine Maßnahme.</value>
+    <value>Bei {0} Punkt besteht Handlungsbedarf.</value>
   </data>
   <data name="{0} items" xml:space="preserve">
     <value>{0} Elemente</value>
   </data>
   <data name="{0} items are done." xml:space="preserve">
-    <value>{0} Punkte sind erledigt.</value>
+    <value>{0} Punkte sind fertig.</value>
   </data>
   <data name="{0} items are not needed." xml:space="preserve">
     <value>{0} Punkte sind nicht nötig.</value>
@@ -17361,7 +17361,7 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
     <value>{0} Punkte können von hier aus nicht geprüft werden.</value>
   </data>
   <data name="{0} items need action." xml:space="preserve">
-    <value>{0} Punkte erfordern eine Maßnahme.</value>
+    <value>Bei {0} Punkten besteht Handlungsbedarf.</value>
   </data>
   <data name="{0} key" xml:space="preserve">
     <value>{0} Schlüssel</value>

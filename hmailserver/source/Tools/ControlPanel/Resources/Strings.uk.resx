@@ -8196,13 +8196,13 @@
     <value>Ніщо не потребує дій - {0} перевірку зовнішнього налаштування виконано або вона не потрібна.</value>
   </data>
   <data name="Nothing needs action, but {0} item cannot be checked from here." xml:space="preserve">
-    <value>Нічого не потребує дій, але {0} пункт неможливо перевірити звідси.</value>
+    <value>Ніщо не потребує дій, але {0} пункт неможливо перевірити звідси.</value>
   </data>
   <data name="Nothing needs action, but {0} items cannot be checked from here." xml:space="preserve">
-    <value>Нічого не потребує дій, але {0} пунктів неможливо перевірити звідси.</value>
+    <value>Ніщо не потребує дій, але {0} пунктів неможливо перевірити звідси.</value>
   </data>
   <data name="Nothing needs action, but {0} items cannot be checked from here.|few" xml:space="preserve">
-    <value>Нічого не потребує дій, але {0} пункти неможливо перевірити звідси.</value>
+    <value>Ніщо не потребує дій, але {0} пункти неможливо перевірити звідси.</value>
   </data>
   <data name="Nothing needs action." xml:space="preserve">
     <value>Ніщо не потребує дій.</value>

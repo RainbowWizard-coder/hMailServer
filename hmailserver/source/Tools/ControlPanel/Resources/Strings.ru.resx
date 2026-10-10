@@ -8196,13 +8196,13 @@ Control Panel может читать файлы сообщений только
     <value>Ничего не требует действий - {0} проверка внешней настройки выполнена или не нужна.</value>
   </data>
   <data name="Nothing needs action, but {0} item cannot be checked from here." xml:space="preserve">
-    <value>Действий не требуется, но есть пункты, которые невозможно проверить отсюда: {0}.</value>
+    <value>Ничего не требует действий, но {0} пункт невозможно проверить отсюда.</value>
   </data>
   <data name="Nothing needs action, but {0} items cannot be checked from here." xml:space="preserve">
-    <value>Действий не требуется, но есть пункты, которые невозможно проверить отсюда: {0}.</value>
+    <value>Ничего не требует действий, но {0} пунктов невозможно проверить отсюда.</value>
   </data>
   <data name="Nothing needs action, but {0} items cannot be checked from here.|few" xml:space="preserve">
-    <value>Действий не требуется, но есть пункты, которые невозможно проверить отсюда: {0}.</value>
+    <value>Ничего не требует действий, но {0} пункта невозможно проверить отсюда.</value>
   </data>
   <data name="Nothing needs action." xml:space="preserve">
     <value>Ничего не требует действий.</value>

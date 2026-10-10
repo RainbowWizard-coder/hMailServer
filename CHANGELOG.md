@@ -3035,7 +3035,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   language has for the count and in its pill's words: the card "11 items need action. 1 item cannot be checked from
   here." or "Nothing needs action - all 25 external setup checks are done or not needed.", and the checklist "4 items
   need action. 7 items cannot be checked from here. 4 items are not needed. Next step: ...", leaving out a state no
-  item is in. `SetupTallyTests` holds the sentences, a Russian count's few and many forms, and both pages reading them.
+  item is in. `SetupTallyTests` holds the sentences, a Russian count's few and many forms, the German ones in their
+  pills' words - "Bei 10 Punkten besteht Handlungsbedarf." beside the pill Handlungsbedarf, where they said "10 Punkte
+  erfordern eine Maßnahme." - every language's "Nothing needs action" in one phrase, and both pages reading them.
 
 - **Fixed: three small copy slips - a chart title that said its unit twice, a palette row that told its reader to press
   Ctrl+K, and five field captions that ended in a colon.** The Dashboard's sessions chart was titled "Active sessions

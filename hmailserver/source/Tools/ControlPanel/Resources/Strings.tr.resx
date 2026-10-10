@@ -8105,10 +8105,10 @@ Zaten orada olan hiçbir şey silinmez.</value>
     <value>İşlem gerektiren bir şey yok - {0} dış kurulum denetimi yapıldı ya da gerekmiyor.</value>
   </data>
   <data name="Nothing needs action, but {0} item cannot be checked from here." xml:space="preserve">
-    <value>Eylem gerektiren bir şey yok, ama {0} öğe buradan denetlenemiyor.</value>
+    <value>İşlem gerektiren bir şey yok, ama {0} öğe buradan denetlenemiyor.</value>
   </data>
   <data name="Nothing needs action, but {0} items cannot be checked from here." xml:space="preserve">
-    <value>Eylem gerektiren bir şey yok, ama {0} öğe buradan denetlenemiyor.</value>
+    <value>İşlem gerektiren bir şey yok, ama {0} öğe buradan denetlenemiyor.</value>
   </data>
   <data name="Nothing needs action." xml:space="preserve">
     <value>İşlem gerektiren bir şey yok.</value>

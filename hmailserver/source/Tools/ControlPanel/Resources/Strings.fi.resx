@@ -8099,19 +8099,19 @@ Mitään jo olemassa olevaa ei poisteta.</value>
     <value>Mikään ei täsmännyt hakuun "{0}". Kokeile sitä, mitä yrität saada aikaan ("pysäytä roskaposti", "anna laitteen lähettää postia"), sivun nimeä tai hMailServer.INI-avainta.</value>
   </data>
   <data name="Nothing needs action - all {0} external setup checks are done or not needed." xml:space="preserve">
-    <value>Mikään ei vaadi toimia - kaikki {0} ulkoista määritystarkistusta on tehty tai niitä ei tarvita.</value>
+    <value>Mikään ei vaadi toimenpiteitä - kaikki {0} ulkoista määritystarkistusta on valmiina tai niitä ei tarvita.</value>
   </data>
   <data name="Nothing needs action - the {0} external setup check is done or not needed." xml:space="preserve">
-    <value>Mikään ei vaadi toimia - {0} ulkoinen määritystarkistus on tehty tai sitä ei tarvita.</value>
+    <value>Mikään ei vaadi toimenpiteitä - {0} ulkoinen määritystarkistus on valmis tai sitä ei tarvita.</value>
   </data>
   <data name="Nothing needs action, but {0} item cannot be checked from here." xml:space="preserve">
-    <value>Mikään ei vaadi toimia, mutta {0} kohdetta ei voi tarkistaa täältä.</value>
+    <value>Mikään ei vaadi toimenpiteitä, mutta {0} kohdetta ei voi tarkistaa täältä.</value>
   </data>
   <data name="Nothing needs action, but {0} items cannot be checked from here." xml:space="preserve">
-    <value>Mikään ei vaadi toimia, mutta {0} kohdetta ei voi tarkistaa täältä.</value>
+    <value>Mikään ei vaadi toimenpiteitä, mutta {0} kohdetta ei voi tarkistaa täältä.</value>
   </data>
   <data name="Nothing needs action." xml:space="preserve">
-    <value>Mikään ei vaadi toimia.</value>
+    <value>Mikään ei vaadi toimenpiteitä.</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Mitään ei otettu käyttöön: asetukset muuttuivat vahvistuksen ollessa auki, joten esikatselu ei enää kuvaa, mitä tämä tekisi. Aja esikatselu uudelleen.</value>
@@ -17346,7 +17346,7 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
     <value>{0} kohdetta ei tarvita.</value>
   </data>
   <data name="{0} item needs action." xml:space="preserve">
-    <value>{0} kohde vaatii toimia.</value>
+    <value>{0} kohde vaatii toimenpiteitä.</value>
   </data>
   <data name="{0} items" xml:space="preserve">
     <value>{0} kohdetta</value>
@@ -17361,7 +17361,7 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
     <value>{0} kohdetta ei voi tarkistaa täältä.</value>
   </data>
   <data name="{0} items need action." xml:space="preserve">
-    <value>{0} kohdetta vaatii toimia.</value>
+    <value>{0} kohdetta vaatii toimenpiteitä.</value>
   </data>
   <data name="{0} key" xml:space="preserve">
     <value>{0} avain</value>

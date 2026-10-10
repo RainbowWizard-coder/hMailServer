@@ -8105,10 +8105,10 @@
     <value>没有需要处理的项 - {0} 项外部设置检查已完成或不需要。</value>
   </data>
   <data name="Nothing needs action, but {0} item cannot be checked from here." xml:space="preserve">
-    <value>没有需要处理的事项，但有 {0} 项无法从此处检查。</value>
+    <value>没有需要处理的项，但有 {0} 项无法从此处检查。</value>
   </data>
   <data name="Nothing needs action, but {0} items cannot be checked from here." xml:space="preserve">
-    <value>没有需要处理的事项，但有 {0} 项无法从此处检查。</value>
+    <value>没有需要处理的项，但有 {0} 项无法从此处检查。</value>
   </data>
   <data name="Nothing needs action." xml:space="preserve">
     <value>没有需要处理的项。</value>

@@ -8105,10 +8105,10 @@
     <value>対応が必要な項目はありません。{0} 件の外部セットアップ チェックは完了しているか不要です。</value>
   </data>
   <data name="Nothing needs action, but {0} item cannot be checked from here." xml:space="preserve">
-    <value>対処が必要なものはありませんが、{0} 件の項目はここでは確認できません。</value>
+    <value>対応が必要な項目はありませんが、{0} 件の項目はここでは確認できません。</value>
   </data>
   <data name="Nothing needs action, but {0} items cannot be checked from here." xml:space="preserve">
-    <value>対処が必要なものはありませんが、{0} 件の項目はここでは確認できません。</value>
+    <value>対応が必要な項目はありませんが、{0} 件の項目はここでは確認できません。</value>
   </data>
   <data name="Nothing needs action." xml:space="preserve">
     <value>対応が必要な項目はありません。</value>
