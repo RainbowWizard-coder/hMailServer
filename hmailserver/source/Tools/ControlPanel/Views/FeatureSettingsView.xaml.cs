@@ -3110,9 +3110,9 @@ namespace hMailServer.ControlPanel.Views
                      // The two round trips to the provider, both off unless set: its
                      // published keys instead of a hand-copied PEM file, and a live
                      // revocation check after a token verifies.
-                     new TextSetting { Key = "OAuth2JwksUrl", DependsOn = OAuth2Switch, Label = L("JWK Set URL (the provider's published signing keys; empty = the key file only)"), Placeholder = "https://login.microsoftonline.com/<tenant>/discovery/v2.0/keys" },
+                     new TextSetting { Key = "OAuth2JwksUrl", DependsOn = OAuth2Switch, Label = L("JWK Set URL (the provider's published signing keys; empty = the key file only)"), Placeholder = ExamplePlaceholder.Of("https://login.microsoftonline.com/<tenant>/discovery/v2.0/keys") }, // no-loc: an example URL, the same in every language
                      new NumberSetting { Key = "OAuth2JwksCacheSeconds", DependsOn = OAuth2Switch, Minimum = 10, Default = "3600", Label = L("Seconds to keep the JWK Set before re-fetching (a token naming an unknown key id re-fetches at once)") },
-                     new TextSetting { Key = "OAuth2IntrospectionUrl", DependsOn = OAuth2Switch, Label = L("Token introspection endpoint (RFC 7662; empty = no revocation check)"), Placeholder = "https://idp.example.com/oauth2/introspect" },
+                     new TextSetting { Key = "OAuth2IntrospectionUrl", DependsOn = OAuth2Switch, Label = L("Token introspection endpoint (RFC 7662; empty = no revocation check)"), Placeholder = ExamplePlaceholder.Of("https://idp.example.com/oauth2/introspect") }, // no-loc: an example URL, the same in every language
                      new TextSetting { Key = "OAuth2IntrospectionClientId", DependsOn = OAuth2Switch, Label = L("Client id this server introspects as") },
                      new SecretSetting { Key = "OAuth2IntrospectionClientSecret", DependsOn = OAuth2Switch, Label = L("Client secret for introspection"), Hint = L("Issued by the provider together with the client id") },
                      new NumberSetting { Key = "OAuth2IntrospectionCacheSeconds", DependsOn = OAuth2Switch, Minimum = 0, Default = "300", Label = L("Seconds an introspection verdict is reused (never past the token's own expiry)") },

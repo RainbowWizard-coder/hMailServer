@@ -146,8 +146,11 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("ExamplePlaceholder.Of(\"svc-mail@example.local\")", ldap, StringComparison.Ordinal);
          Assert.Contains("L(\"Default 10, allowed range 1 to 90.", ldap, StringComparison.Ordinal);
 
-         // Authentication: the token issuer is an example.
+         // Authentication: the OAuth2 card's three URLs - the token issuer, the provider's
+         // published keys and its introspection endpoint - are examples.
          Assert.Contains("Placeholder = ExamplePlaceholder.Of(\"https://login.microsoftonline.com/<tenant>/v2.0\")", features, StringComparison.Ordinal);
+         Assert.Contains("Placeholder = ExamplePlaceholder.Of(\"https://login.microsoftonline.com/<tenant>/discovery/v2.0/keys\")", features, StringComparison.Ordinal);
+         Assert.Contains("Placeholder = ExamplePlaceholder.Of(\"https://idp.example.com/oauth2/introspect\")", features, StringComparison.Ordinal);
 
          // Directory synchronisation: a box whose placeholder is the default its emptiness
          // stands for names that default in its hint too.
