@@ -63,6 +63,11 @@
        and the server gave no detail: where it asked and what to check (review finding F049). -->
   <ItemGroup>
     <Compile Include="..\ControlPanel\Services\ScannerTestFallback.cs" />
+  <!-- The Domains & accounts page's addresses: a name completed with the selected
+       domain, the boxes' example placeholders, and the domain an account search's
+       whole address names (review findings F092 and F096). -->
+  <ItemGroup>
+    <Compile Include="..\ControlPanel\Services\HostedAddress.cs" />
   </ItemGroup>
 
   <!-- Chart accessibility: the palette, the catalogue, the table view and the

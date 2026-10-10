@@ -3859,8 +3859,11 @@
   <data name="Delete _list" xml:space="preserve">
     <value>配布リストを削除(_L)</value>
   </data>
-  <data name="Delete alias" xml:space="preserve">
-    <value>エイリアスを削除</value>
+  <data name="Delete account {0}" xml:space="preserve">
+    <value>削除: アカウント {0}</value>
+  </data>
+  <data name="Delete alias {0}" xml:space="preserve">
+    <value>エイリアス {0} を削除</value>
   </data>
   <data name="Delete app password" xml:space="preserve">
     <value>アプリ パスワードを削除</value>
@@ -3880,11 +3883,11 @@
   <data name="Delete confirmed after (days)" xml:space="preserve">
     <value>確認後に削除するまでの日数</value>
   </data>
-  <data name="Delete distribution list" xml:space="preserve">
-    <value>配布リストを削除</value>
+  <data name="Delete distribution list {0}" xml:space="preserve">
+    <value>配布リスト {0} を削除</value>
   </data>
-  <data name="Delete domain" xml:space="preserve">
-    <value>ドメインを削除</value>
+  <data name="Delete domain {0}" xml:space="preserve">
+    <value>ドメイン {0} を削除</value>
   </data>
   <data name="Delete e-mail" xml:space="preserve">
     <value>メールを削除</value>
@@ -9387,6 +9390,9 @@
   </data>
   <data name="Propagation period in hours" xml:space="preserve">
     <value>伝播期間 (時間)</value>
+  </data>
+  <data name="Properties of domain {0}" xml:space="preserve">
+    <value>プロパティ: ドメイン {0}</value>
   </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>保存されたシークレットを Windows DPAPI で保護する</value>

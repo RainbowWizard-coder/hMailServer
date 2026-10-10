@@ -3718,6 +3718,23 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   translation to the DNS labels its English names - `_domainkey`, `_dmarc`, `_mta-sts`, `_smtp._tls` and the service
   labels - and found no other.
 
+- **Fixed: the Domains & accounts page filled the Address box with "user@" as text, lost the account it had just made
+  or moved, could not find an address of another domain, and named no row to a screen reader.** The Address box held
+  "user@" and the domain in the primary colour, so an untouched Create account made a mailbox called user and typing a
+  name meant selecting "user" first; the other boxes' placeholders read "newdomain.com", "alias@domain",
+  "target@anywhere" and "list@domain". The box is now empty with "name@" and the domain as its placeholder, the alias
+  and list boxes show "sales@" and "team@" and the domain, the Domain box example.org and the alias's target
+  person@example.net, and a name typed without an @ in the account, alias or list box is completed with the selected
+  domain. Create account selects and scrolls to the new account, as Add domain does, and a mailbox moved or renamed to
+  another domain from its dialog is followed there and selected, where the page read the old domain's accounts again
+  and the mailbox vanished. A whole address of another hosted domain in Search accounts selects that domain first,
+  where "user01@example.net" found nothing while example.com was selected. On an empty server "Add a domain" is the
+  one primary button and Create account a plain one until a domain is selected. Every row button is named for its
+  row - "Properties of domain example.com", "Edit account user@example.com", "Delete alias info@example.com" - where a
+  screen reader heard "Properties" and "Delete domain" on every row, each name starting with the button's words in
+  every language. `HostedAddressTests` holds the completion, the placeholders, the search, the selections, the primary
+  button and the names.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

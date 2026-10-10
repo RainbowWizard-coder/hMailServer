@@ -3882,8 +3882,11 @@ Control Panel может читать файлы сообщений только
   <data name="Delete _list" xml:space="preserve">
     <value>Удалить список _рассылки</value>
   </data>
-  <data name="Delete alias" xml:space="preserve">
-    <value>Удалить псевдоним</value>
+  <data name="Delete account {0}" xml:space="preserve">
+    <value>Удалить учётную запись {0}</value>
+  </data>
+  <data name="Delete alias {0}" xml:space="preserve">
+    <value>Удалить псевдоним {0}</value>
   </data>
   <data name="Delete app password" xml:space="preserve">
     <value>Удалить пароль приложения</value>
@@ -3903,11 +3906,11 @@ Control Panel может читать файлы сообщений только
   <data name="Delete confirmed after (days)" xml:space="preserve">
     <value>Удалять подтверждённые записи через (дни)</value>
   </data>
-  <data name="Delete distribution list" xml:space="preserve">
-    <value>Удалить список рассылки</value>
+  <data name="Delete distribution list {0}" xml:space="preserve">
+    <value>Удалить список рассылки {0}</value>
   </data>
-  <data name="Delete domain" xml:space="preserve">
-    <value>Удалить домен</value>
+  <data name="Delete domain {0}" xml:space="preserve">
+    <value>Удалить домен {0}</value>
   </data>
   <data name="Delete e-mail" xml:space="preserve">
     <value>Удалить письмо</value>
@@ -9486,6 +9489,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Propagation period in hours" xml:space="preserve">
     <value>Период распространения в часах</value>
+  </data>
+  <data name="Properties of domain {0}" xml:space="preserve">
+    <value>Свойства домена {0}</value>
   </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Защищать хранимые секреты с помощью Windows DPAPI</value>

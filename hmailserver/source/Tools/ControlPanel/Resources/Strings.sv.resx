@@ -3849,8 +3849,11 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Delete _list" xml:space="preserve">
     <value>Ta bort distributions_lista</value>
   </data>
-  <data name="Delete alias" xml:space="preserve">
-    <value>Ta bort alias</value>
+  <data name="Delete account {0}" xml:space="preserve">
+    <value>Ta bort kontot {0}</value>
+  </data>
+  <data name="Delete alias {0}" xml:space="preserve">
+    <value>Ta bort aliaset {0}</value>
   </data>
   <data name="Delete app password" xml:space="preserve">
     <value>Ta bort applösenord</value>
@@ -3870,11 +3873,11 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Delete confirmed after (days)" xml:space="preserve">
     <value>Ta bort bekräftade efter (dagar)</value>
   </data>
-  <data name="Delete distribution list" xml:space="preserve">
-    <value>Ta bort distributionslista</value>
+  <data name="Delete distribution list {0}" xml:space="preserve">
+    <value>Ta bort distributionslistan {0}</value>
   </data>
-  <data name="Delete domain" xml:space="preserve">
-    <value>Ta bort domän</value>
+  <data name="Delete domain {0}" xml:space="preserve">
+    <value>Ta bort domänen {0}</value>
   </data>
   <data name="Delete e-mail" xml:space="preserve">
     <value>Ta bort e-post</value>
@@ -9377,6 +9380,9 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   </data>
   <data name="Propagation period in hours" xml:space="preserve">
     <value>Spridningstid i timmar</value>
+  </data>
+  <data name="Properties of domain {0}" xml:space="preserve">
+    <value>Egenskaper för domänen {0}</value>
   </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Skydda lagrade hemligheter med Windows DPAPI</value>

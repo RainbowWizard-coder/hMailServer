@@ -3849,8 +3849,11 @@ Los detalles completos se escribieron en:
   <data name="Delete _list" xml:space="preserve">
     <value>Borrar _lista de distribución</value>
   </data>
-  <data name="Delete alias" xml:space="preserve">
-    <value>Borrar alias</value>
+  <data name="Delete account {0}" xml:space="preserve">
+    <value>Borrar la cuenta {0}</value>
+  </data>
+  <data name="Delete alias {0}" xml:space="preserve">
+    <value>Borrar el alias {0}</value>
   </data>
   <data name="Delete app password" xml:space="preserve">
     <value>Borrar contraseña de aplicación</value>
@@ -3870,11 +3873,11 @@ Los detalles completos se escribieron en:
   <data name="Delete confirmed after (days)" xml:space="preserve">
     <value>Borrar los confirmados después de (días)</value>
   </data>
-  <data name="Delete distribution list" xml:space="preserve">
-    <value>Borrar lista de distribución</value>
+  <data name="Delete distribution list {0}" xml:space="preserve">
+    <value>Borrar la lista de distribución {0}</value>
   </data>
-  <data name="Delete domain" xml:space="preserve">
-    <value>Borrar dominio</value>
+  <data name="Delete domain {0}" xml:space="preserve">
+    <value>Borrar el dominio {0}</value>
   </data>
   <data name="Delete e-mail" xml:space="preserve">
     <value>Borrar correo</value>
@@ -9377,6 +9380,9 @@ No se aceptarán conexiones nuevas ni se entregará correo hasta que se reanude.
   </data>
   <data name="Propagation period in hours" xml:space="preserve">
     <value>Período de propagación en horas</value>
+  </data>
+  <data name="Properties of domain {0}" xml:space="preserve">
+    <value>Propiedades del dominio {0}</value>
   </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Proteger los secretos guardados con DPAPI de Windows</value>

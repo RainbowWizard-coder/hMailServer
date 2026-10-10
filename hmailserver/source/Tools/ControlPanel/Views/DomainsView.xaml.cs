@@ -200,6 +200,12 @@ namespace hMailServer.ControlPanel.Views
          // every language, as a control's name starts with its caption.
          public string EditName => F("Edit domain {0}", Name);
          public override string ToString() => Active ? Name : F("{0} (inactive)", Name);
+
+         // The row's buttons named for the row (review finding F102), each name
+         // starting with its button's caption: on every row a screen reader heard
+         // "Properties" and "Delete domain", with nothing to say which domain.
+         public string PropertiesName => F("Properties of domain {0}", Name);
+         public string DeleteName => F("Delete domain {0}", Name);
       }
 
       /// <summary>Same shape for the account list.</summary>
@@ -211,6 +217,9 @@ namespace hMailServer.ControlPanel.Views
          // The row's Edit button by the account it opens (F083), as DomainRow's.
          public string EditName => F("Edit account {0}", Address);
          public override string ToString() => Active ? Address : F("{0} (inactive)", Address);
+
+         public string EditName => F("Edit account {0}", Address);
+         public string DeleteName => F("Delete account {0}", Address);
       }
 
       private string SelectedDomainName() => (DomainList.SelectedItem as DomainRow)?.Name;
@@ -288,12 +297,60 @@ namespace hMailServer.ControlPanel.Views
          FloorDomainList_();
       }
 
+      /// <summary>
+      /// The account search filters the selected domain's accounts, and a whole
+      /// address of another hosted domain selects that domain first (review finding
+      /// F096), whose accounts the selection reads and the search then filters:
+      /// typing "user01@example.net" while example.com was selected found nothing.
+      /// </summary>
       private void AccountSearch_TextChanged(object sender, EventArgs e)
-         => ListSearch.Apply(AccountList, AccountSearch.SearchText);
+      {
+         var domains = DomainList.ItemsSource as List<DomainRow>;
+         string other = HostedAddress.DomainToShow(AccountSearch.SearchText, domains?.ConvertAll(d => d.Name), SelectedDomainName());
+         if (other != null && SelectDomain_(other))
+            return;
+
+         ListSearch.Apply(AccountList, AccountSearch.SearchText);
+      }
+
+      /// <summary>
+      /// Selects the hosted domain of that name, which reads its accounts, aliases and
+      /// lists, and brings it into view, clearing the domain search where that hides
+      /// its row. False where the page holds no such domain.
+      /// </summary>
+      private bool SelectDomain_(string name)
+      {
+         DomainRow row = (DomainList.ItemsSource as List<DomainRow>)?.Find(r => string.Equals(r.Name, name, StringComparison.OrdinalIgnoreCase));
+         if (row == null)
+            return false;
+
+         if (!DomainList.Items.Contains(row))
+            DomainSearch.SearchText = "";
+
+         DomainList.SelectedItem = row;
+         DomainList.ScrollIntoView(row);
+         return ReferenceEquals(DomainList.SelectedItem, row);
+      }
+
+      /// <summary>The account of that address in the accounts card, selected and scrolled to, where the card shows it.</summary>
+      private void SelectAccount_(string address)
+      {
+         if ((AccountList.ItemsSource as List<AccountRow>)?.Find(r => string.Equals(r.Address, address, StringComparison.OrdinalIgnoreCase)) is not AccountRow row
+             || !AccountList.Items.Contains(row))
+            return;
+
+         AccountList.SelectedItem = row;
+         AccountList.ScrollIntoView(row);
+      }
 
       private void DomainList_SelectionChanged(object sender, SelectionChangedEventArgs e)
       {
          ClearDomainFormErrors_();
+
+         // An address typed for one domain is not one of the next: the box empties
+         // when the domain changes, as it did when it was filled with user@ and the
+         // domain.
+         NewAccountBox.Text = "";
          ReloadAccounts();
          ReloadAliases();
          ReloadDistLists();
@@ -311,6 +368,8 @@ namespace hMailServer.ControlPanel.Views
          public string Target => "→ " + Value; // no-loc: an arrow, not a word
 
          public string Display { get; set; }
+
+         public string DeleteName => F("Delete alias {0}", Name);
 
          // The alias list is a ListView with an ItemTemplate, so the visible text
          // comes from the Display binding - but a ListViewItem's accessible name
@@ -383,6 +442,7 @@ namespace hMailServer.ControlPanel.Views
          public string Address { get; set; }
          public string EditName => F("Edit distribution list {0}", Address);
          public string MembersName => F("Members of {0}", Address);
+         public string DeleteName => F("Delete distribution list {0}", Address);
          public override string ToString() => Address;
       }
 
@@ -429,7 +489,9 @@ namespace hMailServer.ControlPanel.Views
 
       private void AddAlias_Click(object sender, RoutedEventArgs e)
       {
-         string name = NewAliasName.Text.Trim();
+         // A name typed without an @ is an alias of the selected domain, as the
+         // box's placeholder - "sales@" and the domain - shows (review finding F092).
+         string name = HostedAddress.Complete(NewAliasName.Text, SelectedDomainName());
          string value = NewAliasValue.Text.Trim();
          if (DomainList.SelectedItem == null)
             return;
@@ -520,7 +582,7 @@ namespace hMailServer.ControlPanel.Views
 
       private void AddDistList_Click(object sender, RoutedEventArgs e)
       {
-         string address = NewDistAddress.Text.Trim();
+         string address = HostedAddress.Complete(NewDistAddress.Text, SelectedDomainName());
          if (DomainList.SelectedItem == null)
             return;
 
@@ -651,11 +713,12 @@ namespace hMailServer.ControlPanel.Views
             NewAccountPassword.Password = "";
             StatusText.Show(AccountStatus, null, 0, null, L("Select a domain to see its accounts."));
             AccountForm.IsEnabled = false;
+            ShowAddressPlaceholders_(null);
             return;
          }
 
          AccountsCard.Title = F("{0} - accounts", domainName);
-         NewAccountBox.Text = "user@" + domainName;
+         ShowAddressPlaceholders_(domainName);
 
          var rows = new List<AccountRow>();
          try
@@ -694,6 +757,24 @@ namespace hMailServer.ControlPanel.Views
          AccountList.ItemsSource = rows;
          ListSearch.Apply(AccountList, AccountSearch.SearchText);
          StatusText.Show(AccountStatus, null, rows.Count, null, L("No accounts in this domain yet."));
+      }
+
+      /// <summary>
+      /// The address boxes of the selected domain show an example address in it as
+      /// their placeholders - reserved names, never text in the box (review finding
+      /// F092): the Address box held "user@" and the domain as text, so an untouched
+      /// Create account made a mailbox called user, and the alias and list boxes read
+      /// "alias@domain" and "list@domain". A name typed without an @ is completed with
+      /// the domain (HostedAddress.Complete). And Create account is the card's primary
+      /// button while a domain is selected and a plain one while none is, when the
+      /// domains card's "Add a domain" is the screen's primary (review finding F097).
+      /// </summary>
+      private void ShowAddressPlaceholders_(string domainName)
+      {
+         NewAccountBox.PlaceholderText = HostedAddress.Placeholder("name", domainName); // no-loc: an example address
+         NewAliasName.PlaceholderText = HostedAddress.Placeholder("sales", domainName); // no-loc: an example address
+         NewDistAddress.PlaceholderText = HostedAddress.Placeholder("team", domainName); // no-loc: an example address
+         AddAccountButton.Appearance = domainName == null ? Wpf.Ui.Controls.ControlAppearance.Secondary : Wpf.Ui.Controls.ControlAppearance.Primary;
       }
 
       private void EditDomain_Click(object sender, RoutedEventArgs e)
@@ -864,7 +945,7 @@ namespace hMailServer.ControlPanel.Views
       private void AddAccount_Click(object sender, RoutedEventArgs e)
       {
          string domainName = SelectedDomainName();
-         string address = NewAccountBox.Text.Trim();
+         string address = HostedAddress.Complete(NewAccountBox.Text, domainName);
          string password = NewAccountPassword.Password;
 
          if (domainName == null)
@@ -910,8 +991,13 @@ namespace hMailServer.ControlPanel.Views
             ServerSession.Release(domains);
          }
 
+         // The new account is selected and scrolled to, as a new domain is (review
+         // finding F095), where the list was read again with nothing to say which row
+         // was the one just made; the box empties for the next.
+         NewAccountBox.Text = "";
          NewAccountPassword.Password = "";
          ReloadAccounts();
+         SelectAccount_(address);
       }
 
       private void EditAccount_Click(object sender, RoutedEventArgs e)
@@ -926,7 +1012,19 @@ namespace hMailServer.ControlPanel.Views
          if (domainName == null)
             return;
 
-         new AccountDialog(Window.GetWindow(this), domainName, address).ShowDialog();
+         var dialog = new AccountDialog(Window.GetWindow(this), domainName, address);
+         dialog.ShowDialog();
+
+         // A mailbox moved or renamed to another domain is followed there and
+         // selected in it (review finding F095): the page read the old domain's
+         // accounts again, and the mailbox simply vanished from them.
+         if (HostedAddress.DomainOf(dialog.MovedTo) is string movedDomain)
+         {
+            ReloadDomains(select: movedDomain);
+            SelectAccount_(dialog.MovedTo);
+            return;
+         }
+
          ReloadAccounts();
       }
 

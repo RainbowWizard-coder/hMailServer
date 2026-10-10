@@ -3849,8 +3849,11 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Delete _list" xml:space="preserve">
     <value>Verteiler_liste löschen</value>
   </data>
-  <data name="Delete alias" xml:space="preserve">
-    <value>Alias löschen</value>
+  <data name="Delete account {0}" xml:space="preserve">
+    <value>Löschen: Konto {0}</value>
+  </data>
+  <data name="Delete alias {0}" xml:space="preserve">
+    <value>Alias {0} löschen</value>
   </data>
   <data name="Delete app password" xml:space="preserve">
     <value>App-Passwort löschen</value>
@@ -3870,11 +3873,11 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Delete confirmed after (days)" xml:space="preserve">
     <value>Bestätigt löschen nach (Tagen)</value>
   </data>
-  <data name="Delete distribution list" xml:space="preserve">
-    <value>Verteilerliste löschen</value>
+  <data name="Delete distribution list {0}" xml:space="preserve">
+    <value>Verteilerliste {0} löschen</value>
   </data>
-  <data name="Delete domain" xml:space="preserve">
-    <value>Domain löschen</value>
+  <data name="Delete domain {0}" xml:space="preserve">
+    <value>Domain {0} löschen</value>
   </data>
   <data name="Delete e-mail" xml:space="preserve">
     <value>E-Mail löschen</value>
@@ -9377,6 +9380,9 @@ Es werden keine neuen Verbindungen angenommen und keine Mail zugestellt, bis er 
   </data>
   <data name="Propagation period in hours" xml:space="preserve">
     <value>Verbreitungszeit in Stunden</value>
+  </data>
+  <data name="Properties of domain {0}" xml:space="preserve">
+    <value>Eigenschaften der Domain {0}</value>
   </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Gespeicherte Geheimnisse mit Windows-DPAPI schützen</value>

@@ -3849,8 +3849,11 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Delete _list" xml:space="preserve">
     <value>Slett distribusjons_liste</value>
   </data>
-  <data name="Delete alias" xml:space="preserve">
-    <value>Slett alias</value>
+  <data name="Delete account {0}" xml:space="preserve">
+    <value>Slett kontoen {0}</value>
+  </data>
+  <data name="Delete alias {0}" xml:space="preserve">
+    <value>Slett aliaset {0}</value>
   </data>
   <data name="Delete app password" xml:space="preserve">
     <value>Slett app-passord</value>
@@ -3870,11 +3873,11 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Delete confirmed after (days)" xml:space="preserve">
     <value>Slett bekreftede etter (dager)</value>
   </data>
-  <data name="Delete distribution list" xml:space="preserve">
-    <value>Slett distribusjonsliste</value>
+  <data name="Delete distribution list {0}" xml:space="preserve">
+    <value>Slett distribusjonslisten {0}</value>
   </data>
-  <data name="Delete domain" xml:space="preserve">
-    <value>Slett domene</value>
+  <data name="Delete domain {0}" xml:space="preserve">
+    <value>Slett domenet {0}</value>
   </data>
   <data name="Delete e-mail" xml:space="preserve">
     <value>Slett e-post</value>
@@ -9377,6 +9380,9 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   </data>
   <data name="Propagation period in hours" xml:space="preserve">
     <value>Spredningsperiode i timer</value>
+  </data>
+  <data name="Properties of domain {0}" xml:space="preserve">
+    <value>Egenskaper for domenet {0}</value>
   </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Beskytt lagrede hemmeligheter med Windows DPAPI</value>

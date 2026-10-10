@@ -3849,8 +3849,11 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Delete _list" xml:space="preserve">
     <value>Excluir _lista de distribuição</value>
   </data>
-  <data name="Delete alias" xml:space="preserve">
-    <value>Excluir alias</value>
+  <data name="Delete account {0}" xml:space="preserve">
+    <value>Excluir a conta {0}</value>
+  </data>
+  <data name="Delete alias {0}" xml:space="preserve">
+    <value>Excluir o alias {0}</value>
   </data>
   <data name="Delete app password" xml:space="preserve">
     <value>Excluir senha de aplicativo</value>
@@ -3870,11 +3873,11 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Delete confirmed after (days)" xml:space="preserve">
     <value>Excluir confirmados após (dias)</value>
   </data>
-  <data name="Delete distribution list" xml:space="preserve">
-    <value>Excluir lista de distribuição</value>
+  <data name="Delete distribution list {0}" xml:space="preserve">
+    <value>Excluir a lista de distribuição {0}</value>
   </data>
-  <data name="Delete domain" xml:space="preserve">
-    <value>Excluir domínio</value>
+  <data name="Delete domain {0}" xml:space="preserve">
+    <value>Excluir o domínio {0}</value>
   </data>
   <data name="Delete e-mail" xml:space="preserve">
     <value>Excluir e-mail</value>
@@ -9377,6 +9380,9 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   </data>
   <data name="Propagation period in hours" xml:space="preserve">
     <value>Período de propagação em horas</value>
+  </data>
+  <data name="Properties of domain {0}" xml:space="preserve">
+    <value>Propriedades do domínio {0}</value>
   </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Proteger os segredos armazenados com o DPAPI do Windows</value>

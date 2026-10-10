@@ -3882,8 +3882,11 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Delete _list" xml:space="preserve">
     <value>Usuń _listę dystrybucyjną</value>
   </data>
-  <data name="Delete alias" xml:space="preserve">
-    <value>Usuń alias</value>
+  <data name="Delete account {0}" xml:space="preserve">
+    <value>Usuń konto {0}</value>
+  </data>
+  <data name="Delete alias {0}" xml:space="preserve">
+    <value>Usuń alias {0}</value>
   </data>
   <data name="Delete app password" xml:space="preserve">
     <value>Usuń hasło aplikacji</value>
@@ -3903,11 +3906,11 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Delete confirmed after (days)" xml:space="preserve">
     <value>Usuwaj potwierdzone po (dni)</value>
   </data>
-  <data name="Delete distribution list" xml:space="preserve">
-    <value>Usuń listę dystrybucyjną</value>
+  <data name="Delete distribution list {0}" xml:space="preserve">
+    <value>Usuń listę dystrybucyjną {0}</value>
   </data>
-  <data name="Delete domain" xml:space="preserve">
-    <value>Usuń domenę</value>
+  <data name="Delete domain {0}" xml:space="preserve">
+    <value>Usuń domenę {0}</value>
   </data>
   <data name="Delete e-mail" xml:space="preserve">
     <value>Usuń wiadomość</value>
@@ -9486,6 +9489,9 @@ Do czasu wznowienia nie będą przyjmowane nowe połączenia ani dostarczana poc
   </data>
   <data name="Propagation period in hours" xml:space="preserve">
     <value>Okres propagacji w godzinach</value>
+  </data>
+  <data name="Properties of domain {0}" xml:space="preserve">
+    <value>Właściwości domeny {0}</value>
   </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Chroń przechowywane sekrety mechanizmem DPAPI systemu Windows</value>

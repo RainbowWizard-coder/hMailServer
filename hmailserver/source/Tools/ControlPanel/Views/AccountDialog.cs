@@ -1447,8 +1447,19 @@ namespace hMailServer.ControlPanel.Views
          var dialog = new MailboxMoveDialog(this, address_);
 
          if (dialog.ShowDialog() == true)
+         {
+            MovedTo = dialog.MovedTo;
             Close();
+         }
       }
+
+      /// <summary>
+      /// The address the mailbox was moved or renamed to from this dialog, or null: the
+      /// Domains &amp; accounts page follows it into its domain and selects it there
+      /// (review finding F095), where the page read the old domain's accounts again
+      /// and a mailbox moved to another domain vanished from the screen.
+      /// </summary>
+      public string MovedTo { get; private set; }
 
       private static FieldRow Label(string text, FrameworkElement editor) => DialogFields.Field(text, editor);
    }

@@ -3882,8 +3882,11 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Delete _list" xml:space="preserve">
     <value>Odstranit distribuční _seznam</value>
   </data>
-  <data name="Delete alias" xml:space="preserve">
-    <value>Smazat alias</value>
+  <data name="Delete account {0}" xml:space="preserve">
+    <value>Smazat účet {0}</value>
+  </data>
+  <data name="Delete alias {0}" xml:space="preserve">
+    <value>Smazat alias {0}</value>
   </data>
   <data name="Delete app password" xml:space="preserve">
     <value>Smazat heslo aplikace</value>
@@ -3903,11 +3906,11 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Delete confirmed after (days)" xml:space="preserve">
     <value>Smazat potvrzené záznamy po (dnech)</value>
   </data>
-  <data name="Delete distribution list" xml:space="preserve">
-    <value>Odstranit distribuční seznam</value>
+  <data name="Delete distribution list {0}" xml:space="preserve">
+    <value>Odstranit distribuční seznam {0}</value>
   </data>
-  <data name="Delete domain" xml:space="preserve">
-    <value>Odstranit doménu</value>
+  <data name="Delete domain {0}" xml:space="preserve">
+    <value>Odstranit doménu {0}</value>
   </data>
   <data name="Delete e-mail" xml:space="preserve">
     <value>Odstranit e-mail</value>
@@ -9486,6 +9489,9 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   </data>
   <data name="Propagation period in hours" xml:space="preserve">
     <value>Doba šíření v hodinách</value>
+  </data>
+  <data name="Properties of domain {0}" xml:space="preserve">
+    <value>Vlastnosti domény {0}</value>
   </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Chránit uložená tajemství pomocí Windows DPAPI</value>

@@ -3849,8 +3849,11 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Delete _list" xml:space="preserve">
     <value>Slet distributions_liste</value>
   </data>
-  <data name="Delete alias" xml:space="preserve">
-    <value>Slet alias</value>
+  <data name="Delete account {0}" xml:space="preserve">
+    <value>Slet kontoen {0}</value>
+  </data>
+  <data name="Delete alias {0}" xml:space="preserve">
+    <value>Slet aliasset {0}</value>
   </data>
   <data name="Delete app password" xml:space="preserve">
     <value>Slet app-adgangskode</value>
@@ -3870,11 +3873,11 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Delete confirmed after (days)" xml:space="preserve">
     <value>Slet bekræftede efter (dage)</value>
   </data>
-  <data name="Delete distribution list" xml:space="preserve">
-    <value>Slet distributionsliste</value>
+  <data name="Delete distribution list {0}" xml:space="preserve">
+    <value>Slet distributionslisten {0}</value>
   </data>
-  <data name="Delete domain" xml:space="preserve">
-    <value>Slet domæne</value>
+  <data name="Delete domain {0}" xml:space="preserve">
+    <value>Slet domænet {0}</value>
   </data>
   <data name="Delete e-mail" xml:space="preserve">
     <value>Slet e-mail</value>
@@ -9377,6 +9380,9 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   </data>
   <data name="Propagation period in hours" xml:space="preserve">
     <value>Udbredelsesperiode i timer</value>
+  </data>
+  <data name="Properties of domain {0}" xml:space="preserve">
+    <value>Egenskaber for domænet {0}</value>
   </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Beskyt gemte hemmeligheder med Windows DPAPI</value>

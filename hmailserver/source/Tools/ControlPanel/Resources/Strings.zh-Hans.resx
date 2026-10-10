@@ -3849,8 +3849,11 @@
   <data name="Delete _list" xml:space="preserve">
     <value>删除分发列表(_L)</value>
   </data>
-  <data name="Delete alias" xml:space="preserve">
-    <value>删除别名</value>
+  <data name="Delete account {0}" xml:space="preserve">
+    <value>删除账户 {0}</value>
+  </data>
+  <data name="Delete alias {0}" xml:space="preserve">
+    <value>删除别名 {0}</value>
   </data>
   <data name="Delete app password" xml:space="preserve">
     <value>删除应用密码</value>
@@ -3870,11 +3873,11 @@
   <data name="Delete confirmed after (days)" xml:space="preserve">
     <value>在多少天后删除已确认的邮件（天）</value>
   </data>
-  <data name="Delete distribution list" xml:space="preserve">
-    <value>删除分发列表</value>
+  <data name="Delete distribution list {0}" xml:space="preserve">
+    <value>删除分发列表 {0}</value>
   </data>
-  <data name="Delete domain" xml:space="preserve">
-    <value>删除域</value>
+  <data name="Delete domain {0}" xml:space="preserve">
+    <value>删除域 {0}</value>
   </data>
   <data name="Delete e-mail" xml:space="preserve">
     <value>删除电子邮件</value>
@@ -9377,6 +9380,9 @@
   </data>
   <data name="Propagation period in hours" xml:space="preserve">
     <value>传播期（小时）</value>
+  </data>
+  <data name="Properties of domain {0}" xml:space="preserve">
+    <value>属性：域 {0}</value>
   </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>用 Windows DPAPI 保护存储的机密</value>

@@ -3882,8 +3882,11 @@
   <data name="Delete _list" xml:space="preserve">
     <value>Видалити список _розсилки</value>
   </data>
-  <data name="Delete alias" xml:space="preserve">
-    <value>Видалити псевдонім</value>
+  <data name="Delete account {0}" xml:space="preserve">
+    <value>Видалити обліковий запис {0}</value>
+  </data>
+  <data name="Delete alias {0}" xml:space="preserve">
+    <value>Видалити псевдонім {0}</value>
   </data>
   <data name="Delete app password" xml:space="preserve">
     <value>Видалити пароль програми</value>
@@ -3903,11 +3906,11 @@
   <data name="Delete confirmed after (days)" xml:space="preserve">
     <value>Видаляти підтверджені записи через (дні)</value>
   </data>
-  <data name="Delete distribution list" xml:space="preserve">
-    <value>Видалити список розсилки</value>
+  <data name="Delete distribution list {0}" xml:space="preserve">
+    <value>Видалити список розсилки {0}</value>
   </data>
-  <data name="Delete domain" xml:space="preserve">
-    <value>Видалити домен</value>
+  <data name="Delete domain {0}" xml:space="preserve">
+    <value>Видалити домен {0}</value>
   </data>
   <data name="Delete e-mail" xml:space="preserve">
     <value>Видалити лист</value>
@@ -9486,6 +9489,9 @@
   </data>
   <data name="Propagation period in hours" xml:space="preserve">
     <value>Період поширення в годинах</value>
+  </data>
+  <data name="Properties of domain {0}" xml:space="preserve">
+    <value>Властивості домену {0}</value>
   </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Захищати збережені секрети за допомогою Windows DPAPI</value>
