@@ -1914,7 +1914,7 @@
     <value>DNS ホスティング先で、このドメインのメールを送信するサーバーを示す v=spf1 mx -all のような TXT レコードをドメインに公開します。DNS レコード ページに公開すべきレコードが表示されます。</value>
   </data>
   <data name="At your DNS host, publish a TXT record named &lt;selector&gt;._domainkey.&lt;domain&gt; containing the public key (v=DKIM1; k=rsa; p=...). This page looks the record up through the Windows resolver, and where the key file is readable it also checks that the published key is the right one - a wrong value cannot be fixed by waiting." xml:space="preserve">
-    <value>DNS のホスティング事業者で、&lt;selector&gt;.domainkey.&lt;domain&gt; という名前の TXT レコードを公開し、公開鍵 (v=DKIM1; k=rsa; p=...) を格納してください。このページはそのレコードを Windows のリゾルバーを通じて参照し、鍵ファイルが読み取れる場合は、公開されている鍵が正しい鍵かどうかも確認します。値が誤っている場合、待っても直りません。(_D)</value>
+    <value>DNS のホスティング事業者で、&lt;selector&gt;._domainkey.&lt;domain&gt; という名前の TXT レコードを公開し、公開鍵 (v=DKIM1; k=rsa; p=...) を格納してください。このページはそのレコードを Windows のリゾルバーを通じて参照し、鍵ファイルが読み取れる場合は、公開されている鍵が正しい鍵かどうかも確認します。値が誤っている場合、待っても直りません。</value>
   </data>
   <data name="At your DNS host, publish a TXT record named _dmarc.&lt;domain&gt;, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish." xml:space="preserve">
     <value>DNS ホスティング先で、_dmarc.&lt;domain&gt; という名前の TXT レコードを公開します。レポートを読む間は v=DMARC1; p=none で始め、その後 p=quarantine または p=reject にします。DNS レコード ページに公開すべきレコードが表示されます。</value>
@@ -13395,7 +13395,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>メトリクスのバインド アドレスが通常の IPv4 アドレスではないため (ここではホスト名と IPv6 は受け付けられません)、メトリクス リスナーはまったく起動しません。</value>
   </data>
   <data name="The name spamd looks up its per-user preferences for - a user_prefs file or a row in its SQL preference store. Leave empty unless spamd has been set up for it: a spamd told to change to a user it cannot find may refuse the scan, and an unscanned message is delivered as if SpamAssassin were unreachable." xml:space="preserve">
-    <value>spamd がユーザーごとの設定を検索する名前です。userprefs ファイル、または SQL 設定ストアの行です。spamd がそのように設定されていない限り空のままにしてください。見つからないユーザーに切り替えるよう指示された spamd はスキャンを拒否することがあり、スキャンされなかったメッセージは SpamAssassin に到達できなかった場合と同じように配信されます。(_P)</value>
+    <value>spamd がユーザーごとの設定を検索する名前です。user_prefs ファイル、または SQL 設定ストアの行です。spamd がそのように設定されていない限り空のままにしてください。見つからないユーザーに切り替えるよう指示された spamd はスキャンを拒否することがあり、スキャンされなかったメッセージは SpamAssassin に到達できなかった場合と同じように配信されます。</value>
   </data>
   <data name="The named domains are on the domain's dialog." xml:space="preserve">
     <value>指定ドメインはドメインのダイアログにあります。</value>
