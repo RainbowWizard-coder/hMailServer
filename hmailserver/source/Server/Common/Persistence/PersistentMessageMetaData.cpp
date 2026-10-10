@@ -206,12 +206,14 @@ namespace HM
    // its own statement and a short pause between two - as
    // PersistentMessageIndex::DeleteOrphanedItems has swept the full-text terms
    // since 9c76455c1. It was one statement over the whole table, which the
-   // message indexer runs at every start before anything else, with no
+   // message indexer ran at every start before anything else, with no
    // interruption point in it: a stop of the servers then waited for the whole
    // of it (MessageIndexer::Stop), and on SQL Server Compact the scheduled tasks
    // that start with the service waited for the database's one connection as
-   // they did for the terms' sweep. Now a stop waits for a slice. The gaps
-   // between the ids the table names are stepped over, not walked.
+   // they did for the terms' sweep. Now a stop waits for a slice, and the
+   // indexer sweeps once it has first caught up after a start, then on the
+   // full-index cadence (MessageIndexer::WorkerFuncInternal). The gaps between
+   // the ids the table names are stepped over, not walked.
    //---------------------------------------------------------------------------()
    {
       const __int64 sliceIds = 1000;

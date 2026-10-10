@@ -219,11 +219,19 @@ namespace HM
    {
       LOG_DEBUG("Message indexer started...");
 
-      PersistentMessageMetaData persistentMetaData;
-      persistentMetaData.DeleteOrphanedItems();
-
-      if (IniFileSettings::Instance()->GetIndexerFullTextEnabled())
-         PersistentMessageIndex::DeleteOrphanedItems();
+      // The sweeps for the rows of messages that are gone - the sort's copy of
+      // their headers, and with the full-text index on their terms - once the
+      // indexer has first caught up, and then on the full-index cadence. Until
+      // 10 October 2026 both ran at every start before the first message was
+      // indexed, and in slices a pause apart they held it back for at least 50
+      // ms for every thousand message ids the tables name - some 150 seconds
+      // for the terms of SQL Server Compact's 100,000 messages - at every start
+      // of the service and every reinitialise. Since schema 6030 a foreign key
+      // on delete cascade takes those rows with their message wherever foreign
+      // keys are enforced, every engine but MySQL's MyISAM, so the sweeps find
+      // nothing there. The rows are dead, never wrong answers: the sort and the
+      // search read them by the ids of messages still in the folder.
+      bool sweptSinceStart = false;
 
       while (true)
       {
@@ -244,18 +252,21 @@ namespace HM
             continue;
          }
 
-         if (IniFileSettings::Instance()->GetIndexerFullTextEnabled())
-         {
-            // Terms of deleted messages, on the full-index cadence. Stale
-            // terms are dead rows, never wrong answers - a search only ever
-            // sees messages still in the folder - so this is housekeeping,
-            // not correctness, and can be slow.
-            int fullMinutes = IniFileSettings::Instance()->GetIndexerFullMinutes();
-            if (fullMinutes < 1)
-               fullMinutes = 720;
+         int fullMinutes = IniFileSettings::Instance()->GetIndexerFullMinutes();
+         if (fullMinutes < 1)
+            fullMinutes = 720;
 
-            if ((full_text_iteration_count_ % fullMinutes) == 0)
+         if (!sweptSinceStart || (full_text_iteration_count_ % fullMinutes) == 0)
+         {
+            // Housekeeping, not correctness, and it can be slow; a stop ends it
+            // between two slices.
+            PersistentMessageMetaData persistentMetaData;
+            persistentMetaData.DeleteOrphanedItems();
+
+            if (IniFileSettings::Instance()->GetIndexerFullTextEnabled())
                PersistentMessageIndex::DeleteOrphanedItems();
+
+            sweptSinceStart = true;
          }
 
          index_now_.WaitFor(boost::chrono::minutes(1));

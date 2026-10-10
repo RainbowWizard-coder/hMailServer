@@ -261,10 +261,11 @@ $app.Settings.MessageIndexing.Clear()
 powershell -NoProfile -ExecutionPolicy Bypass -File build\readme-shots\bench.ps1 -Down
 ```
 
-Why the five minutes: with the full-text index on, the indexer's start walks the
-index for the rows of messages that are gone, right after a restart - a thousand
-messages a statement, some two and a half minutes on SQL Server Compact with the
-hundred thousand - and the first open would share the database with it. Both passes wait the same, and the folder is
+Why the five minutes: with the full-text index on, the indexer walks the index for
+the rows of messages that are gone once it has caught up after a restart - with the
+index already built, straight after it - a thousand messages a statement, some two
+and a half minutes on SQL Server Compact with the hundred thousand, and the first
+open would share the database with it. Both passes wait the same, and the folder is
 still read cold, on its first use. The logging may stay off afterwards: the next
 gate's setup switches it on itself.
 

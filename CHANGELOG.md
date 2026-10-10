@@ -454,8 +454,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the thread to end, telling the service controller meanwhile. The thread ends at its next interruption point -
   before each message of a batch, between two slices of its sweeps for the rows of messages that are gone, in the
   pauses - which can be several statements away: a pass reads what it is to index with several before its first
-  message. The sweep of the message metadata, which the indexer makes at every start, was one statement over the
-  whole table; it is now cut into slices as the full-text terms' sweep is (*Operations*, below). A statement lasts
+  message. The sweep of the message metadata, which the indexer made at every start, was one statement over the
+  whole table; it is now cut into slices as the full-text terms' sweep is, and both come once the indexer has caught
+  up after a start rather than before its first message (*Operations*, below). A statement lasts
   as long as the database takes to answer it, or `DatabaseStatementTimeout` where the database applies that (not to
   a write on MySQL, and not at all when it is 0). A reinitialise waits for as long as that takes, since it closes
   the database straight after; a stop after which the process ends - the service's, or a signal's on Linux - waits a
@@ -4156,8 +4157,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the restart with the index on in both measuring runs of 7 October 2026. It now removes them a thousand message ids a
   statement, stepping over the ids the index names none of, with a pause of 50 ms between two: some 150 seconds in all
   there, no statement over 1.6 seconds. The sweep of the message metadata for the messages that are gone, which the
-  indexer makes at every start whether the full-text index is on or not, is cut the same way: it was one statement
-  over the whole table, which a stop of the servers had to wait for (*Correctness*, above).
+  indexer made at every start whether the full-text index is on or not, is cut the same way: it was one statement
+  over the whole table, which a stop of the servers had to wait for (*Correctness*, above). And both now run once the
+  indexer has first caught up after a start, and then on the full-index cadence, rather than before it indexes
+  anything: in slices a pause apart they held back the first message by at least 50 ms for every thousand message ids
+  the tables name, at every start of the service and every reinitialise, and since schema 6030 the rows they look
+  for go with their message wherever foreign keys are enforced - every engine but MySQL's MyISAM - so there they
+  find nothing.
 - **The Windows installer gives the service's stop the minute the stop may spend on the message indexer.** Setup,
   the silent install a live update runs, and the uninstaller wait for the service to report that it has stopped for
   `ShutdownDrainSeconds` plus 30 seconds (from 6.3.4), and then refuse to go on. The service's stop now waits up to
