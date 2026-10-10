@@ -87,6 +87,11 @@ namespace hMailServer.ControlPanel.Views
          // description under it names the rule (review finding F227), once Load has
          // read it.
          frame_ = UseFrame(L("IF"), body, save, cancel, width: 480);
+
+         // Room for the message a press puts under the header name or the value, one
+         // at a time: the longest, a size that is not a whole number of bytes, wraps
+         // to two lines at this width in French and German (review finding F213).
+         KeepRoomForFieldErrors(2);
          Loaded += (s, e) => Load();
       }
 

@@ -1864,8 +1864,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   under the box, the box's border turns the danger colour and its focus ring with it, and an edit of the value takes
   the message away; every dialog whose field can be refused - Allow or block a domain, the never-ban name, the
   suppression list's Add, both two-factor setups, the administrator password, a REST API key's Create, the port
-  binding and the mailbox move among them - keeps room for its message, so that its buttons stay where they were,
-  while a row shown or collapsed still grows or shrinks the dialog.
+  binding, the mailbox move, a rule's criterion and an incoming relay's Edit among them - keeps room for its message,
+  so that its buttons stay where they were, while a row shown or collapsed still grows or shrinks the dialog.
 
 - **Fixed: the Domains & accounts page's four forms answered a bad value with a message box or with nothing at all.**
   Add domain said "Enter a valid domain name." in a message box, Create account said "Address and password are
