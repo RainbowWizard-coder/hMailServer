@@ -321,6 +321,9 @@
   <data name="514 is the registered port for UDP and for plain TCP; 6514 is the registered port for syslog over TLS." xml:space="preserve">
     <value>514 er den registrerte porten for UDP og for vanlig TCP; 6514 er den registrerte porten for syslog over TLS.</value>
   </data>
+  <data name="6-digit _code from your authenticator app" xml:space="preserve">
+    <value>6-sifret _kode fra autentiseringsappen din</value>
+  </data>
   <data name="60 by default. Events past it are dropped and counted, not queued." xml:space="preserve">
     <value>60 som standard. Hendelser utover det forkastes og telles, de settes ikke i kø.</value>
   </data>
@@ -4735,9 +4738,6 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Enter part of a name and press Search, or search with an empty box to list all users." xml:space="preserve">
     <value>Skriv inn en del av et navn og trykk Søk, eller søk med tomt felt for å liste alle brukere.</value>
   </data>
-  <data name="Enter the 6-digit _code from your authenticator app:" xml:space="preserve">
-    <value>_Skriv inn den 6-sifrede koden fra autentiseringsappen din:</value>
-  </data>
   <data name="Enter the account's address." xml:space="preserve">
     <value>Skriv inn kontoens adresse.</value>
   </data>
@@ -5281,8 +5281,8 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Folder hierarchy delimiter" xml:space="preserve">
     <value>Skilletegn for mappehierarki</value>
   </data>
-  <data name="Folder name (use the hierarchy delimiter for sub-folders):" xml:space="preserve">
-    <value>Mappenavn (bruk hierarkiskilletegnet for undermapper):</value>
+  <data name="Folder name (use the hierarchy delimiter for sub-folders)" xml:space="preserve">
+    <value>Mappenavn (bruk hierarkiskilletegnet for undermapper)</value>
   </data>
   <data name="Folder permission" xml:space="preserve">
     <value>Mappetillatelse</value>
@@ -8821,8 +8821,8 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="P_ort" xml:space="preserve">
     <value>P_ort</value>
   </data>
-  <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM:" xml:space="preserve">
-    <value>Publiser _denne DNS TXT-oppføringen hos DNS-leverandøren din, og aktiver deretter DKIM:</value>
+  <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM" xml:space="preserve">
+    <value>Publiser _denne DNS TXT-oppføringen hos DNS-leverandøren din, og aktiver deretter DKIM</value>
   </data>
   <data name="Page Down" xml:space="preserve">
     <value>Side ned</value>

@@ -321,6 +321,9 @@
   <data name="514 is the registered port for UDP and for plain TCP; 6514 is the registered port for syslog over TLS." xml:space="preserve">
     <value>514 は UDP と平文 TCP の登録済みポート、6514 は TLS 上の syslog の登録済みポートです。</value>
   </data>
+  <data name="6-digit _code from your authenticator app" xml:space="preserve">
+    <value>認証アプリの 6 桁のコード(_C)</value>
+  </data>
   <data name="60 by default. Events past it are dropped and counted, not queued." xml:space="preserve">
     <value>既定は 60 です。これを超えたイベントはキューに入れられず、破棄されて数えられます。</value>
   </data>
@@ -4735,9 +4738,6 @@
   <data name="Enter part of a name and press Search, or search with an empty box to list all users." xml:space="preserve">
     <value>名前の一部を入力して「検索」を押すか、空のまま検索してすべてのユーザーを一覧表示してください。</value>
   </data>
-  <data name="Enter the 6-digit _code from your authenticator app:" xml:space="preserve">
-    <value>認証アプリの 6 桁のコードを入力してください(_C):</value>
-  </data>
   <data name="Enter the account's address." xml:space="preserve">
     <value>アカウントのアドレスを入力してください。</value>
   </data>
@@ -5281,8 +5281,8 @@
   <data name="Folder hierarchy delimiter" xml:space="preserve">
     <value>フォルダー階層の区切り文字</value>
   </data>
-  <data name="Folder name (use the hierarchy delimiter for sub-folders):" xml:space="preserve">
-    <value>フォルダー名 (サブフォルダーには階層の区切り文字を使用):</value>
+  <data name="Folder name (use the hierarchy delimiter for sub-folders)" xml:space="preserve">
+    <value>フォルダー名 (サブフォルダーには階層の区切り文字を使用)</value>
   </data>
   <data name="Folder permission" xml:space="preserve">
     <value>フォルダーの権限</value>
@@ -8821,8 +8821,8 @@
   <data name="P_ort" xml:space="preserve">
     <value>ポート(_O)</value>
   </data>
-  <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM:" xml:space="preserve">
-    <value>この DNS TXT レコードを DNS プロバイダーで公開してから、DKIM を有効にしてください(_U):</value>
+  <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM" xml:space="preserve">
+    <value>この DNS TXT レコードを DNS プロバイダーで公開してから、DKIM を有効にしてください(_U)</value>
   </data>
   <data name="Page Down" xml:space="preserve">
     <value>次のページ</value>

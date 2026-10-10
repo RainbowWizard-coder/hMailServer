@@ -321,6 +321,9 @@
   <data name="514 is the registered port for UDP and for plain TCP; 6514 is the registered port for syslog over TLS." xml:space="preserve">
     <value>514 ist der registrierte Port für UDP und für einfaches TCP; 6514 ist der registrierte Port für syslog über TLS.</value>
   </data>
+  <data name="6-digit _code from your authenticator app" xml:space="preserve">
+    <value>6-stelliger _Code aus Ihrer Authenticator-App</value>
+  </data>
   <data name="60 by default. Events past it are dropped and counted, not queued." xml:space="preserve">
     <value>Standardmäßig 60. Ereignisse darüber hinaus werden verworfen und gezählt, nicht eingereiht.</value>
   </data>
@@ -4735,9 +4738,6 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Enter part of a name and press Search, or search with an empty box to list all users." xml:space="preserve">
     <value>Geben Sie einen Teil eines Namens ein und klicken Sie auf Suchen, oder suchen Sie mit leerem Feld, um alle Benutzer aufzulisten.</value>
   </data>
-  <data name="Enter the 6-digit _code from your authenticator app:" xml:space="preserve">
-    <value>_Geben Sie den 6-stelligen Code aus Ihrer Authenticator-App ein:</value>
-  </data>
   <data name="Enter the account's address." xml:space="preserve">
     <value>Geben Sie die Adresse des Kontos ein.</value>
   </data>
@@ -5281,8 +5281,8 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Folder hierarchy delimiter" xml:space="preserve">
     <value>Trennzeichen der Ordnerhierarchie</value>
   </data>
-  <data name="Folder name (use the hierarchy delimiter for sub-folders):" xml:space="preserve">
-    <value>Ordnername (verwenden Sie das Hierarchie-Trennzeichen für Unterordner):</value>
+  <data name="Folder name (use the hierarchy delimiter for sub-folders)" xml:space="preserve">
+    <value>Ordnername (verwenden Sie das Hierarchie-Trennzeichen für Unterordner)</value>
   </data>
   <data name="Folder permission" xml:space="preserve">
     <value>Ordnerberechtigung</value>
@@ -8821,8 +8821,8 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="P_ort" xml:space="preserve">
     <value>P_ort</value>
   </data>
-  <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM:" xml:space="preserve">
-    <value>_Veröffentlichen Sie diesen DNS-TXT-Eintrag bei Ihrem DNS-Anbieter und schalten Sie dann DKIM ein:</value>
+  <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM" xml:space="preserve">
+    <value>_Veröffentlichen Sie diesen DNS-TXT-Eintrag bei Ihrem DNS-Anbieter und schalten Sie dann DKIM ein</value>
   </data>
   <data name="Page Down" xml:space="preserve">
     <value>Seite nach unten</value>

@@ -3038,15 +3038,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   item is in. `SetupTallyTests` holds the sentences, a Russian count's few and many forms, and both pages reading them.
 
 - **Fixed: three small copy slips - a chart title that said its unit twice, a palette row that told its reader to press
-  Ctrl+K, and two field captions that ended in a colon.** The Dashboard's sessions chart was titled "Active sessions
+  Ctrl+K, and five field captions that ended in a colon.** The Dashboard's sessions chart was titled "Active sessions
   (sessions)", which Japanese cut to "アクティブなセッション (セッショ…" at 1280; a chart card now shows its unit in brackets only
   where its title does not name it (`ChartDefinition.CardTitle`, the sessions chart marked `TitleNamesUnit`, since
   Finnish counts "istuntoa" in "Aktiiviset istunnot"), and the table and the spoken words keep the unit. The Welcome
   page's purpose, which the Ctrl+K palette shows as its first row and the sidebar as a tool tip, said "or press Ctrl+K
   and describe what you want to do" to a reader already in the palette; it says "or describe what you want to do in the
   search". The DNS records page's "Domain:" and the new public folder's "Folder name:" are "Domain" and "Folder name",
-  as every other caption above a field is, the folder's with an Alt key. `SmallCopyTests` holds the titles, that no
-  page's purpose names Ctrl+K, and that no FieldRow caption ends in a colon.
+  as every other caption above a field is, the folder's with an Alt key; the second factor's prompt asks for the
+  "6-digit code from your authenticator app", where it said "Enter the 6-digit code from your authenticator app:", and
+  the DKIM record of the domain's dialog and the new IMAP folder of the account's end in no colon. `SmallCopyTests`
+  holds the titles, that no page's purpose names Ctrl+K, and that no FieldRow caption ends in a colon - a Label set in
+  code or in XAML, a caption given to a helper that builds the row, or a text prompt's.
 
 - **Fixed: the Domains & accounts page called one act Properties and Edit, and the dialog its Members button opens said
   recipient.** Domain and distribution list rows carried Properties, account rows and the Groups page Edit, for the

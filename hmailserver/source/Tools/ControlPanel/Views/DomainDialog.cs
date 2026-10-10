@@ -647,7 +647,7 @@ namespace hMailServer.ControlPanel.Views
          panel.Children.Add(dkimGen);
 
          dkimDnsPanel_ = new StackPanel { Visibility = Visibility.Collapsed };
-         dkimDnsPanel_.Children.Add(DialogFields.Field(L("P_ublish this DNS TXT record at your DNS provider, then enable DKIM:"), dkimDns_));
+         dkimDnsPanel_.Children.Add(DialogFields.Field(L("P_ublish this DNS TXT record at your DNS provider, then enable DKIM"), dkimDns_));
          var dkimCopy = new Wpf.Ui.Controls.Button { Content = L("_Copy DNS value"), Margin = new Thickness(0, 0, 0, DesignTokens.Space.Md) };
          AutomationProperties.SetAutomationId(dkimCopy, "DkimCopyDns");
          dkimCopy.Click += (s, e) => CopyToClipboard(dkimDnsValue_);

@@ -321,6 +321,9 @@
   <data name="514 is the registered port for UDP and for plain TCP; 6514 is the registered port for syslog over TLS." xml:space="preserve">
     <value>514 est le port enregistré pour UDP et pour TCP en clair ; 6514 est le port enregistré pour syslog sur TLS.</value>
   </data>
+  <data name="6-digit _code from your authenticator app" xml:space="preserve">
+    <value>_Code à 6 chiffres de votre application d'authentification</value>
+  </data>
   <data name="60 by default. Events past it are dropped and counted, not queued." xml:space="preserve">
     <value>60 par défaut. Les événements au-delà sont abandonnés et comptés, pas mis en file.</value>
   </data>
@@ -4735,9 +4738,6 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Enter part of a name and press Search, or search with an empty box to list all users." xml:space="preserve">
     <value>Saisissez une partie d'un nom et appuyez sur Rechercher, ou cherchez avec une case vide pour lister tous les utilisateurs.</value>
   </data>
-  <data name="Enter the 6-digit _code from your authenticator app:" xml:space="preserve">
-    <value>_Saisissez le code à 6 chiffres de votre application d'authentification :</value>
-  </data>
   <data name="Enter the account's address." xml:space="preserve">
     <value>Saisissez l'adresse du compte.</value>
   </data>
@@ -5281,8 +5281,8 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Folder hierarchy delimiter" xml:space="preserve">
     <value>Délimiteur de hiérarchie des dossiers</value>
   </data>
-  <data name="Folder name (use the hierarchy delimiter for sub-folders):" xml:space="preserve">
-    <value>Nom du dossier (utilisez le délimiteur de hiérarchie pour les sous-dossiers) :</value>
+  <data name="Folder name (use the hierarchy delimiter for sub-folders)" xml:space="preserve">
+    <value>Nom du dossier (utilisez le délimiteur de hiérarchie pour les sous-dossiers)</value>
   </data>
   <data name="Folder permission" xml:space="preserve">
     <value>Permission de dossier</value>
@@ -8821,8 +8821,8 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="P_ort" xml:space="preserve">
     <value>P_ort</value>
   </data>
-  <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM:" xml:space="preserve">
-    <value>_Publiez cet enregistrement DNS TXT chez votre fournisseur DNS, puis activez DKIM :</value>
+  <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM" xml:space="preserve">
+    <value>_Publiez cet enregistrement DNS TXT chez votre fournisseur DNS, puis activez DKIM</value>
   </data>
   <data name="Page Down" xml:space="preserve">
     <value>Page suivante</value>

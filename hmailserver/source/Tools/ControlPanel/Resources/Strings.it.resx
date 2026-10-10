@@ -321,6 +321,9 @@
   <data name="514 is the registered port for UDP and for plain TCP; 6514 is the registered port for syslog over TLS." xml:space="preserve">
     <value>514 è la porta registrata per UDP e per TCP in chiaro; 6514 è la porta registrata per syslog su TLS.</value>
   </data>
+  <data name="6-digit _code from your authenticator app" xml:space="preserve">
+    <value>_Codice a 6 cifre della tua app di autenticazione</value>
+  </data>
   <data name="60 by default. Events past it are dropped and counted, not queued." xml:space="preserve">
     <value>60 per impostazione predefinita. Gli eventi oltre il limite vengono scartati e contati, non accodati.</value>
   </data>
@@ -4735,9 +4738,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Enter part of a name and press Search, or search with an empty box to list all users." xml:space="preserve">
     <value>Indica una parte di un nome e premi Cerca, oppure cerca con la casella vuota per elencare tutti gli utenti.</value>
   </data>
-  <data name="Enter the 6-digit _code from your authenticator app:" xml:space="preserve">
-    <value>_Inserisci il codice a 6 cifre della tua app di autenticazione:</value>
-  </data>
   <data name="Enter the account's address." xml:space="preserve">
     <value>Indica l'indirizzo dell'account.</value>
   </data>
@@ -5281,8 +5281,8 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Folder hierarchy delimiter" xml:space="preserve">
     <value>Delimitatore della gerarchia di cartelle</value>
   </data>
-  <data name="Folder name (use the hierarchy delimiter for sub-folders):" xml:space="preserve">
-    <value>Nome della cartella (usa il delimitatore di gerarchia per le sottocartelle):</value>
+  <data name="Folder name (use the hierarchy delimiter for sub-folders)" xml:space="preserve">
+    <value>Nome della cartella (usa il delimitatore di gerarchia per le sottocartelle)</value>
   </data>
   <data name="Folder permission" xml:space="preserve">
     <value>Permesso della cartella</value>
@@ -8821,8 +8821,8 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="P_ort" xml:space="preserve">
     <value>P_orta</value>
   </data>
-  <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM:" xml:space="preserve">
-    <value>_Pubblica questo record DNS TXT presso il tuo provider DNS, poi attiva DKIM:</value>
+  <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM" xml:space="preserve">
+    <value>_Pubblica questo record DNS TXT presso il tuo provider DNS, poi attiva DKIM</value>
   </data>
   <data name="Page Down" xml:space="preserve">
     <value>Pagina giù</value>

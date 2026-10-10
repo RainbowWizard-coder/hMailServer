@@ -321,6 +321,9 @@
   <data name="514 is the registered port for UDP and for plain TCP; 6514 is the registered port for syslog over TLS." xml:space="preserve">
     <value>514 to zarejestrowany port dla UDP i zwykłego TCP; 6514 to zarejestrowany port dla syslog przez TLS.</value>
   </data>
+  <data name="6-digit _code from your authenticator app" xml:space="preserve">
+    <value>6-cyfrowy _kod z aplikacji uwierzytelniającej</value>
+  </data>
   <data name="60 by default. Events past it are dropped and counted, not queued." xml:space="preserve">
     <value>Domyślnie 60. Zdarzenia ponad ten limit są odrzucane i liczone, a nie kolejkowane.</value>
   </data>
@@ -4787,9 +4790,6 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Enter part of a name and press Search, or search with an empty box to list all users." xml:space="preserve">
     <value>Wpisz część nazwy i naciśnij Szukaj albo wyszukaj z pustym polem, aby wypisać wszystkich użytkowników.</value>
   </data>
-  <data name="Enter the 6-digit _code from your authenticator app:" xml:space="preserve">
-    <value>_Wpisz 6-cyfrowy kod z aplikacji uwierzytelniającej:</value>
-  </data>
   <data name="Enter the account's address." xml:space="preserve">
     <value>Należy podać adres konta.</value>
   </data>
@@ -5351,8 +5351,8 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Folder hierarchy delimiter" xml:space="preserve">
     <value>Separator hierarchii folderów</value>
   </data>
-  <data name="Folder name (use the hierarchy delimiter for sub-folders):" xml:space="preserve">
-    <value>Nazwa folderu (dla podfolderów należy użyć separatora hierarchii):</value>
+  <data name="Folder name (use the hierarchy delimiter for sub-folders)" xml:space="preserve">
+    <value>Nazwa folderu (dla podfolderów należy użyć separatora hierarchii)</value>
   </data>
   <data name="Folder permission" xml:space="preserve">
     <value>Uprawnienie do folderu</value>
@@ -8915,8 +8915,8 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="P_ort" xml:space="preserve">
     <value>Po_rt</value>
   </data>
-  <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM:" xml:space="preserve">
-    <value>Należy opublikować ten _rekord DNS TXT u swojego operatora DNS, a następnie włączyć DKIM:</value>
+  <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM" xml:space="preserve">
+    <value>Należy opublikować ten _rekord DNS TXT u swojego operatora DNS, a następnie włączyć DKIM</value>
   </data>
   <data name="Page Down" xml:space="preserve">
     <value>Strona w dół</value>

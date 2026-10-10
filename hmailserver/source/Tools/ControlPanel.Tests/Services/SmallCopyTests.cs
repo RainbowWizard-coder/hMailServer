@@ -72,17 +72,43 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
+      /// The helpers that build a FieldRow from a caption given first - DialogFields'
+      /// Field and ReadOnlyField, the dialogs' one-line Label that forwards to Field,
+      /// and the pages' own - whose calls <see cref="NoFieldRowCaption_EndsInAColon"/>
+      /// reads a caption from.
+      /// </summary>
+      private static readonly string[] CaptionHelpers = { "Field", "ReadOnlyField", "Label", "LabelledBox_", "LabelledCombo_", "FormField_", "Captioned" };
+
+      private const string Literal = @"""((?:[^""\\]|\\.)*)""";
+
+      /// <summary>
       /// A FieldRow's caption names its field and ends in no colon: "Domain:" above
       /// the DNS records page's domain list and "Folder name:" in the new public
-      /// folder's prompt were the two that did, where Server, User name, Password,
-      /// Address and the Domains page's Domain do not.
+      /// folder's prompt were the two the review found, where Server, User name,
+      /// Password, Address and the Domains page's Domain do not. The rule read
+      /// only <c>Label = L("...")</c> and XAML's <c>Label=</c>, and passed beside
+      /// three more that a helper builds: the second factor's "Enter the 6-digit
+      /// code from your authenticator app:" (DialogFields.Field), the domain's
+      /// "Publish this DNS TXT record at your DNS provider, then enable DKIM:" and
+      /// the account's new IMAP folder's "Folder name (...):" (PromptText). It
+      /// reads a caption wherever the Control Panel gives one as a literal: a
+      /// Label set in code or in XAML, the first argument of every helper that
+      /// builds a FieldRow from a caption, and a text prompt's caption, its third.
       /// </summary>
       [Fact]
       public void NoFieldRowCaption_EndsInAColon()
       {
          string root = Path.GetDirectoryName(Path.GetDirectoryName(ControlPanelPath(Path.Join("Views", "ConnectView.xaml"))));
-         var code = new Regex(@"\bLabel\s*=\s*L\(\s*""((?:[^""\\]|\\.)*)""\s*\)");
+         var readers = new Dictionary<string, Regex>
+         {
+            ["Label ="] = new Regex(@"\bLabel\s*=\s*[LF]\(\s*" + Literal),
+            ["helper"] = new Regex(@"(?<![\w.])(?:DialogFields\.)?(" + string.Join("|", CaptionHelpers) + @")\(\s*L\(\s*" + Literal + @"\s*\)\s*,"),
+            ["prompt"] = new Regex(@"(?<![\w.])(?:DialogFields\.PromptText|PromptText|InputDialog\.Prompt)\(\s*[^,;]*?,\s*L\(\s*""(?:[^""\\]|\\.)*""\s*\)\s*,\s*L\(\s*" + Literal + @"\s*\)"),
+         };
          var xaml = new Regex(@"\bLabel=""\{loc:L '((?:[^'\\]|\\.)*)'\}""");
+         var declaration = new Regex(@"\b(?:Scaffold\.)?FieldRow\s+(\w+)\s*\(\s*string\s+\w+");
+         var read = new Dictionary<string, int>(StringComparer.Ordinal);
+         var declared = new SortedSet<string>(StringComparer.Ordinal);
          var found = new List<string>();
          foreach (string path in Directory.EnumerateFiles(root, "*.*", SearchOption.AllDirectories)
                      .Where(p => p.EndsWith(".cs", StringComparison.Ordinal) || p.EndsWith(".xaml", StringComparison.Ordinal)))
@@ -92,14 +118,30 @@ namespace hMailServer.ControlPanel.Tests.Services
                continue;
 
             string text = File.ReadAllText(path);
-            foreach (Match m in (path.EndsWith(".xaml", StringComparison.Ordinal) ? xaml : code).Matches(text))
+            IEnumerable<(string Reader, Match Match)> captions = path.EndsWith(".xaml", StringComparison.Ordinal)
+               ? xaml.Matches(text).Select(m => ("XAML", m))
+               : readers.SelectMany(r => r.Value.Matches(text).Select(m => (r.Key == "helper" ? m.Groups[1].Value : r.Key, m)));
+            foreach ((string reader, Match m) in captions)
             {
-               if (m.Groups[1].Value.TrimEnd().EndsWith(':'))
-                  found.Add(relative + ": " + m.Groups[1].Value);
+               read[reader] = read.GetValueOrDefault(reader) + 1;
+               string caption = m.Groups[m.Groups.Count - 1].Value;
+               if (caption.TrimEnd().EndsWith(':'))
+                  found.Add(relative + " (" + reader + "): " + caption);
             }
+
+            foreach (Match m in declaration.Matches(text))
+               declared.Add(m.Groups[1].Value);
          }
 
          Assert.True(found.Count == 0, "Captions that end in a colon:" + Environment.NewLine + string.Join(Environment.NewLine, found));
+
+         // A helper the rule does not know is a caption it does not read; and each
+         // reader, each helper among them, reads some caption, so that a call shape
+         // it no longer matches cannot pass for no colon.
+         Assert.True(declared.IsSubsetOf(CaptionHelpers), "A FieldRow helper that takes its caption first and that NoFieldRowCaption_EndsInAColon does not read: "
+            + string.Join(", ", declared.Except(CaptionHelpers)));
+         foreach (string reader in CaptionHelpers.Concat(new[] { "Label =", "prompt", "XAML" }))
+            Assert.True(read.GetValueOrDefault(reader) > 0, "No caption read through " + reader + "; the rule's pattern for it no longer matches the source.");
 
          string folders = ReadControlPanelFile(Path.Join("Views", "PublicFoldersView.cs"));
          Assert.Contains("InputDialog.Prompt(Window.GetWindow(this), L(\"New public folder\"), L(\"_Folder name\"));", folders, StringComparison.Ordinal);

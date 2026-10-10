@@ -321,6 +321,9 @@
   <data name="514 is the registered port for UDP and for plain TCP; 6514 is the registered port for syslog over TLS." xml:space="preserve">
     <value>514 是 UDP 和明文 TCP 的注册端口；6514 是 syslog over TLS 的注册端口。</value>
   </data>
+  <data name="6-digit _code from your authenticator app" xml:space="preserve">
+    <value>身份验证器应用中的 6 位代码(_C)</value>
+  </data>
   <data name="60 by default. Events past it are dropped and counted, not queued." xml:space="preserve">
     <value>默认 60。超过的事件会被丢弃并计数，而不是排队。</value>
   </data>
@@ -4735,9 +4738,6 @@
   <data name="Enter part of a name and press Search, or search with an empty box to list all users." xml:space="preserve">
     <value>输入名称的一部分并按“搜索”，或者用空白框搜索以列出所有用户。</value>
   </data>
-  <data name="Enter the 6-digit _code from your authenticator app:" xml:space="preserve">
-    <value>输入身份验证器应用中的 6 位代码(_C)：</value>
-  </data>
   <data name="Enter the account's address." xml:space="preserve">
     <value>请输入账户的地址。</value>
   </data>
@@ -5281,8 +5281,8 @@
   <data name="Folder hierarchy delimiter" xml:space="preserve">
     <value>文件夹层次分隔符</value>
   </data>
-  <data name="Folder name (use the hierarchy delimiter for sub-folders):" xml:space="preserve">
-    <value>文件夹名称（子文件夹请使用层次分隔符）：</value>
+  <data name="Folder name (use the hierarchy delimiter for sub-folders)" xml:space="preserve">
+    <value>文件夹名称（子文件夹请使用层次分隔符）</value>
   </data>
   <data name="Folder permission" xml:space="preserve">
     <value>文件夹权限</value>
@@ -8821,8 +8821,8 @@
   <data name="P_ort" xml:space="preserve">
     <value>端口(_O)</value>
   </data>
-  <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM:" xml:space="preserve">
-    <value>在您的 DNS 提供商处发布此 DNS TXT 记录，然后启用 DKIM(_U)：</value>
+  <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM" xml:space="preserve">
+    <value>在您的 DNS 提供商处发布此 DNS TXT 记录，然后启用 DKIM(_U)</value>
   </data>
   <data name="Page Down" xml:space="preserve">
     <value>向下翻页</value>

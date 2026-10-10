@@ -321,6 +321,9 @@
   <data name="514 is the registered port for UDP and for plain TCP; 6514 is the registered port for syslog over TLS." xml:space="preserve">
     <value>514 is the registered port for UDP and for plain TCP; 6514 is the registered port for syslog over TLS.</value>
   </data>
+  <data name="6-digit _code from your authenticator app" xml:space="preserve">
+    <value>6-digit _code from your authenticator app</value>
+  </data>
   <data name="60 by default. Events past it are dropped and counted, not queued." xml:space="preserve">
     <value>60 by default. Events past it are dropped and counted, not queued.</value>
   </data>
@@ -4735,9 +4738,6 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Enter part of a name and press Search, or search with an empty box to list all users." xml:space="preserve">
     <value>Enter part of a name and press Search, or search with an empty box to list all users.</value>
   </data>
-  <data name="Enter the 6-digit _code from your authenticator app:" xml:space="preserve">
-    <value>Enter the 6-digit _code from your authenticator app:</value>
-  </data>
   <data name="Enter the account's address." xml:space="preserve">
     <value>Enter the account's address.</value>
   </data>
@@ -5281,8 +5281,8 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Folder hierarchy delimiter" xml:space="preserve">
     <value>Folder hierarchy delimiter</value>
   </data>
-  <data name="Folder name (use the hierarchy delimiter for sub-folders):" xml:space="preserve">
-    <value>Folder name (use the hierarchy delimiter for sub-folders):</value>
+  <data name="Folder name (use the hierarchy delimiter for sub-folders)" xml:space="preserve">
+    <value>Folder name (use the hierarchy delimiter for sub-folders)</value>
   </data>
   <data name="Folder permission" xml:space="preserve">
     <value>Folder permission</value>
@@ -8821,8 +8821,8 @@ Nothing already there is removed.</value>
   <data name="P_ort" xml:space="preserve">
     <value>P_ort</value>
   </data>
-  <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM:" xml:space="preserve">
-    <value>P_ublish this DNS TXT record at your DNS provider, then enable DKIM:</value>
+  <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM" xml:space="preserve">
+    <value>P_ublish this DNS TXT record at your DNS provider, then enable DKIM</value>
   </data>
   <data name="Page Down" xml:space="preserve">
     <value>Page Down</value>

@@ -321,6 +321,9 @@
   <data name="514 is the registered port for UDP and for plain TCP; 6514 is the registered port for syslog over TLS." xml:space="preserve">
     <value>514 é a porta registrada para UDP e para TCP simples; 6514 é a porta registrada para syslog sobre TLS.</value>
   </data>
+  <data name="6-digit _code from your authenticator app" xml:space="preserve">
+    <value>_Código de 6 dígitos do seu aplicativo autenticador</value>
+  </data>
   <data name="60 by default. Events past it are dropped and counted, not queued." xml:space="preserve">
     <value>60 por padrão. Eventos acima disso são descartados e contados, não enfileirados.</value>
   </data>
@@ -4735,9 +4738,6 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Enter part of a name and press Search, or search with an empty box to list all users." xml:space="preserve">
     <value>Informe parte de um nome e pressione Buscar, ou busque com a caixa vazia para listar todos os usuários.</value>
   </data>
-  <data name="Enter the 6-digit _code from your authenticator app:" xml:space="preserve">
-    <value>_Digite o código de 6 dígitos do seu aplicativo autenticador:</value>
-  </data>
   <data name="Enter the account's address." xml:space="preserve">
     <value>Informe o endereço da conta.</value>
   </data>
@@ -5281,8 +5281,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Folder hierarchy delimiter" xml:space="preserve">
     <value>Delimitador de hierarquia de pastas</value>
   </data>
-  <data name="Folder name (use the hierarchy delimiter for sub-folders):" xml:space="preserve">
-    <value>Nome da pasta (use o delimitador de hierarquia para subpastas):</value>
+  <data name="Folder name (use the hierarchy delimiter for sub-folders)" xml:space="preserve">
+    <value>Nome da pasta (use o delimitador de hierarquia para subpastas)</value>
   </data>
   <data name="Folder permission" xml:space="preserve">
     <value>Permissão de pasta</value>
@@ -8821,8 +8821,8 @@ Nada do que já está lá é removido.</value>
   <data name="P_ort" xml:space="preserve">
     <value>P_orta</value>
   </data>
-  <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM:" xml:space="preserve">
-    <value>Publique _este registro DNS TXT no seu provedor de DNS e então ative o DKIM:</value>
+  <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM" xml:space="preserve">
+    <value>Publique _este registro DNS TXT no seu provedor de DNS e então ative o DKIM</value>
   </data>
   <data name="Page Down" xml:space="preserve">
     <value>Uma página abaixo</value>

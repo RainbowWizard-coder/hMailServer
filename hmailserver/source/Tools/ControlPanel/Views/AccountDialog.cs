@@ -842,7 +842,7 @@ namespace hMailServer.ControlPanel.Views
       private void AddFolder()
       {
          folderNotice_.Hide();
-         string name = DialogFields.PromptText(this, L("New IMAP folder"), L("Folder name (use the hierarchy delimiter for sub-folders):"));
+         string name = DialogFields.PromptText(this, L("New IMAP folder"), L("Folder name (use the hierarchy delimiter for sub-folders)"));
          if (string.IsNullOrWhiteSpace(name))
             return;
 

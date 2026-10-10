@@ -321,6 +321,9 @@
   <data name="514 is the registered port for UDP and for plain TCP; 6514 is the registered port for syslog over TLS." xml:space="preserve">
     <value>514 - зареєстрований порт для UDP і для звичайного TCP; 6514 - зареєстрований порт для syslog поверх TLS.</value>
   </data>
+  <data name="6-digit _code from your authenticator app" xml:space="preserve">
+    <value>6-значний _код із застосунку-автентифікатора</value>
+  </data>
   <data name="60 by default. Events past it are dropped and counted, not queued." xml:space="preserve">
     <value>Типово 60. Події понад це відкидаються й рахуються, а не ставляться в чергу.</value>
   </data>
@@ -4787,9 +4790,6 @@
   <data name="Enter part of a name and press Search, or search with an empty box to list all users." xml:space="preserve">
     <value>Введіть частину імені й натисніть «Пошук», або шукайте з порожнім полем, щоб перелічити всіх користувачів.</value>
   </data>
-  <data name="Enter the 6-digit _code from your authenticator app:" xml:space="preserve">
-    <value>_Введіть 6-значний код із застосунку-автентифікатора:</value>
-  </data>
   <data name="Enter the account's address." xml:space="preserve">
     <value>Введіть адресу облікового запису.</value>
   </data>
@@ -5351,8 +5351,8 @@
   <data name="Folder hierarchy delimiter" xml:space="preserve">
     <value>Роздільник ієрархії папок</value>
   </data>
-  <data name="Folder name (use the hierarchy delimiter for sub-folders):" xml:space="preserve">
-    <value>Назва папки (використовуйте роздільник ієрархії для підпапок):</value>
+  <data name="Folder name (use the hierarchy delimiter for sub-folders)" xml:space="preserve">
+    <value>Назва папки (використовуйте роздільник ієрархії для підпапок)</value>
   </data>
   <data name="Folder permission" xml:space="preserve">
     <value>Право на папку</value>
@@ -8915,8 +8915,8 @@
   <data name="P_ort" xml:space="preserve">
     <value>По_рт</value>
   </data>
-  <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM:" xml:space="preserve">
-    <value>Опублікуйте _цей DNS TXT-запис у свого DNS-провайдера, а потім увімкніть DKIM:</value>
+  <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM" xml:space="preserve">
+    <value>Опублікуйте _цей DNS TXT-запис у свого DNS-провайдера, а потім увімкніть DKIM</value>
   </data>
   <data name="Page Down" xml:space="preserve">
     <value>Сторінка вниз</value>

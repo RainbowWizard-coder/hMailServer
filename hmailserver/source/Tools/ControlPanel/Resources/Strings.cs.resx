@@ -321,6 +321,9 @@
   <data name="514 is the registered port for UDP and for plain TCP; 6514 is the registered port for syslog over TLS." xml:space="preserve">
     <value>514 je registrovaný port pro UDP a pro prosté TCP; 6514 je registrovaný port pro syslog přes TLS.</value>
   </data>
+  <data name="6-digit _code from your authenticator app" xml:space="preserve">
+    <value>6místný _kód z ověřovací aplikace</value>
+  </data>
   <data name="60 by default. Events past it are dropped and counted, not queued." xml:space="preserve">
     <value>Výchozí 60. Události nad tento limit se zahazují a počítají, nezařazují se do fronty.</value>
   </data>
@@ -4787,9 +4790,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Enter part of a name and press Search, or search with an empty box to list all users." xml:space="preserve">
     <value>Zadejte část jména a stiskněte Hledat, nebo hledejte s prázdným polem pro výpis všech uživatelů.</value>
   </data>
-  <data name="Enter the 6-digit _code from your authenticator app:" xml:space="preserve">
-    <value>_Zadejte 6místný kód z ověřovací aplikace:</value>
-  </data>
   <data name="Enter the account's address." xml:space="preserve">
     <value>Zadejte adresu účtu.</value>
   </data>
@@ -5351,8 +5351,8 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Folder hierarchy delimiter" xml:space="preserve">
     <value>Oddělovač hierarchie složek</value>
   </data>
-  <data name="Folder name (use the hierarchy delimiter for sub-folders):" xml:space="preserve">
-    <value>Název složky (pro podsložky použijte oddělovač hierarchie):</value>
+  <data name="Folder name (use the hierarchy delimiter for sub-folders)" xml:space="preserve">
+    <value>Název složky (pro podsložky použijte oddělovač hierarchie)</value>
   </data>
   <data name="Folder permission" xml:space="preserve">
     <value>Oprávnění složky</value>
@@ -8915,8 +8915,8 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="P_ort" xml:space="preserve">
     <value>P_ort</value>
   </data>
-  <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM:" xml:space="preserve">
-    <value>Publikujte tento _DNS TXT záznam u svého poskytovatele DNS a poté zapněte DKIM:</value>
+  <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM" xml:space="preserve">
+    <value>Publikujte tento _DNS TXT záznam u svého poskytovatele DNS a poté zapněte DKIM</value>
   </data>
   <data name="Page Down" xml:space="preserve">
     <value>O stránku dolů</value>

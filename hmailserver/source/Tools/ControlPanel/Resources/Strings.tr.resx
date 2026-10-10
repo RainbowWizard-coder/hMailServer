@@ -321,6 +321,9 @@
   <data name="514 is the registered port for UDP and for plain TCP; 6514 is the registered port for syslog over TLS." xml:space="preserve">
     <value>514, UDP ve düz TCP için kayıtlı bağlantı noktasıdır; 6514, TLS üzerinden syslog için kayıtlı bağlantı noktasıdır.</value>
   </data>
+  <data name="6-digit _code from your authenticator app" xml:space="preserve">
+    <value>Kimlik doğrulayıcı uygulamanızdaki 6 haneli _kod</value>
+  </data>
   <data name="60 by default. Events past it are dropped and counted, not queued." xml:space="preserve">
     <value>Varsayılan 60. Bunu aşan olaylar kuyruğa alınmaz, atılır ve sayılır.</value>
   </data>
@@ -4735,9 +4738,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Enter part of a name and press Search, or search with an empty box to list all users." xml:space="preserve">
     <value>Bir adın bir kısmını girip Ara'ya basın ya da tüm kullanıcıları listelemek için kutu boşken arayın.</value>
   </data>
-  <data name="Enter the 6-digit _code from your authenticator app:" xml:space="preserve">
-    <value>_Kimlik doğrulayıcı uygulamanızdaki 6 haneli kodu girin:</value>
-  </data>
   <data name="Enter the account's address." xml:space="preserve">
     <value>Hesabın adresini girin.</value>
   </data>
@@ -5281,8 +5281,8 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Folder hierarchy delimiter" xml:space="preserve">
     <value>Klasör hiyerarşisi ayırıcısı</value>
   </data>
-  <data name="Folder name (use the hierarchy delimiter for sub-folders):" xml:space="preserve">
-    <value>Klasör adı (alt klasörler için hiyerarşi ayırıcısını kullanın):</value>
+  <data name="Folder name (use the hierarchy delimiter for sub-folders)" xml:space="preserve">
+    <value>Klasör adı (alt klasörler için hiyerarşi ayırıcısını kullanın)</value>
   </data>
   <data name="Folder permission" xml:space="preserve">
     <value>Klasör izni</value>
@@ -8821,8 +8821,8 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="P_ort" xml:space="preserve">
     <value>P_ort</value>
   </data>
-  <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM:" xml:space="preserve">
-    <value>Bu DNS _TXT kaydını DNS sağlayıcınızda yayımlayın, sonra DKIM'i etkinleştirin:</value>
+  <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM" xml:space="preserve">
+    <value>Bu DNS _TXT kaydını DNS sağlayıcınızda yayımlayın, sonra DKIM'i etkinleştirin</value>
   </data>
   <data name="Page Down" xml:space="preserve">
     <value>Sayfa Aşağı</value>

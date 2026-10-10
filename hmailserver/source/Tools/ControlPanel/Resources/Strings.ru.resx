@@ -321,6 +321,9 @@
   <data name="514 is the registered port for UDP and for plain TCP; 6514 is the registered port for syslog over TLS." xml:space="preserve">
     <value>514 - зарегистрированный порт для UDP и для обычного TCP; 6514 - зарегистрированный порт для syslog поверх TLS.</value>
   </data>
+  <data name="6-digit _code from your authenticator app" xml:space="preserve">
+    <value>6-значный _код из приложения-аутентификатора</value>
+  </data>
   <data name="60 by default. Events past it are dropped and counted, not queued." xml:space="preserve">
     <value>По умолчанию 60. События сверх этого отбрасываются и подсчитываются, а не ставятся в очередь.</value>
   </data>
@@ -4787,9 +4790,6 @@ Control Panel может читать файлы сообщений только
   <data name="Enter part of a name and press Search, or search with an empty box to list all users." xml:space="preserve">
     <value>Введите часть имени и нажмите «Найти» либо выполните поиск с пустым полем, чтобы получить список всех пользователей.</value>
   </data>
-  <data name="Enter the 6-digit _code from your authenticator app:" xml:space="preserve">
-    <value>_Введите 6-значный код из приложения-аутентификатора:</value>
-  </data>
   <data name="Enter the account's address." xml:space="preserve">
     <value>Введите адрес учётной записи.</value>
   </data>
@@ -5351,8 +5351,8 @@ Control Panel может читать файлы сообщений только
   <data name="Folder hierarchy delimiter" xml:space="preserve">
     <value>Разделитель иерархии папок</value>
   </data>
-  <data name="Folder name (use the hierarchy delimiter for sub-folders):" xml:space="preserve">
-    <value>Имя папки (для вложенных папок используйте разделитель иерархии):</value>
+  <data name="Folder name (use the hierarchy delimiter for sub-folders)" xml:space="preserve">
+    <value>Имя папки (для вложенных папок используйте разделитель иерархии)</value>
   </data>
   <data name="Folder permission" xml:space="preserve">
     <value>Разрешение на папку</value>
@@ -8915,8 +8915,8 @@ Control Panel может читать файлы сообщений только
   <data name="P_ort" xml:space="preserve">
     <value>По_рт</value>
   </data>
-  <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM:" xml:space="preserve">
-    <value>Опубликуйте _эту запись DNS TXT у своего поставщика DNS, затем включите DKIM:</value>
+  <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM" xml:space="preserve">
+    <value>Опубликуйте _эту запись DNS TXT у своего поставщика DNS, затем включите DKIM</value>
   </data>
   <data name="Page Down" xml:space="preserve">
     <value>Страница вниз</value>
