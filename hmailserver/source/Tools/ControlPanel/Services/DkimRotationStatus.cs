@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Text.Json;
 using static hMailServer.ControlPanel.Services.Loc;
 
@@ -195,9 +194,13 @@ namespace hMailServer.ControlPanel.Services
       public static string ReasonText(string reason)
          => reason != null && Reasons.TryGetValue(reason, out string text) ? L(text) : reason ?? "";
 
-      /// <summary>A time the document gives, in the reader's time zone.</summary>
+      /// <summary>
+      /// A time the document gives, an instant, in this computer's time and the reader's
+      /// short date and time (ServerTimeText), where it was a fixed yyyy-MM-dd HH:mm in
+      /// every language (review finding F321).
+      /// </summary>
       public static string When(DateTimeOffset? time)
-         => time.HasValue ? time.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture) : "—"; // no-loc
+         => time.HasValue ? ServerTimeText.Cell(time.Value.ToLocalTime().DateTime) : "—"; // no-loc
 
       /// <summary>The words this reads, for the tests.</summary>
       public static IEnumerable<string> KnownPhases => Phases.Keys;

@@ -6232,7 +6232,7 @@ namespace hMailServer.ControlPanel.Views
                MegaBytes("blob_bytes"),
                root.GetProperty("saved_percent").GetDouble().ToString("N1", culture),
                root.GetProperty("compressed_files").GetInt64().ToString("N0", culture),
-               DateTimeOffset.FromUnixTimeSeconds(measured).LocalDateTime.ToString("g", culture));
+               ServerTimeText.Cell(DateTimeOffset.FromUnixTimeSeconds(measured).LocalDateTime));
          }
       }
 

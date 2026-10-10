@@ -5143,6 +5143,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Expires" xml:space="preserve">
     <value>Expire</value>
   </data>
+  <data name="Expires (server time)" xml:space="preserve">
+    <value>Expire (heure du serveur)</value>
+  </data>
   <data name="Expires _on (server time)" xml:space="preserve">
     <value>Expire _le (heure du serveur)</value>
   </data>
@@ -6456,11 +6459,11 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Dernière sauvegarde : {0} ({1}).</value>
   </data>
-  <data name="Last bounce" xml:space="preserve">
-    <value>Dernier rebond</value>
+  <data name="Last bounce (server time)" xml:space="preserve">
+    <value>Dernier rebond (heure du serveur)</value>
   </data>
-  <data name="Last delivered" xml:space="preserve">
-    <value>Dernière remise</value>
+  <data name="Last delivered (server time)" xml:space="preserve">
+    <value>Dernière remise (heure du serveur)</value>
   </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Dernière analyse : {0}.</value>
@@ -11931,8 +11934,8 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Simultaneous connections (0 = no limit)" xml:space="preserve">
     <value>Connexions simultanées (0 = pas de limite)</value>
   </data>
-  <data name="Since" xml:space="preserve">
-    <value>Depuis</value>
+  <data name="Since (server time)" xml:space="preserve">
+    <value>Depuis (heure du serveur)</value>
   </data>
   <data name="Since the service started" xml:space="preserve">
     <value>Depuis le démarrage du service</value>

@@ -64,6 +64,13 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>The reader's short date and long time, with the seconds, where they count.</summary>
       public static string CellWithSeconds(DateTime when) => when.ToString("G", CultureInfo.CurrentCulture);
 
+      /// <summary>
+      /// The reader's short date alone - "08/10/2026", "08.10.2026", "2026/10/08" - for a
+      /// day whose hour says nothing, in a sentence: the day a certificate expires, the day
+      /// a setting profile was applied.
+      /// </summary>
+      public static string Date(DateTime when) => when.ToString("d", CultureInfo.CurrentCulture);
+
       /// <summary>The short date and time marked as the server's, for a value outside a column whose header names the clock.</summary>
       public static string Marked(DateTime when) => F("{0} (server time)", Cell(when));
 
@@ -73,6 +80,10 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>A time the server wrote, in the reader's short date and time; the text as it came where it is not such a time.</summary>
       public static string Cell(string serverText)
          => Parse(serverText) is DateTime when ? Cell(when) : (serverText ?? "").Trim();
+
+      /// <summary>A time the server wrote, in the reader's short date and the time to the second; the text as it came where it is not such a time.</summary>
+      public static string CellWithSeconds(string serverText)
+         => Parse(serverText) is DateTime when ? CellWithSeconds(when) : (serverText ?? "").Trim();
 
       /// <summary>
       /// A grid cell for a time the server wrote: how long ago or how soon it is where the

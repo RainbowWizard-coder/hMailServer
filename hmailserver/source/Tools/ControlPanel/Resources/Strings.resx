@@ -5143,6 +5143,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Expires" xml:space="preserve">
     <value>Expires</value>
   </data>
+  <data name="Expires (server time)" xml:space="preserve">
+    <value>Expires (server time)</value>
+  </data>
   <data name="Expires _on (server time)" xml:space="preserve">
     <value>Expires _on (server time)</value>
   </data>
@@ -6456,11 +6459,11 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Last backup: {0} ({1}).</value>
   </data>
-  <data name="Last bounce" xml:space="preserve">
-    <value>Last bounce</value>
+  <data name="Last bounce (server time)" xml:space="preserve">
+    <value>Last bounce (server time)</value>
   </data>
-  <data name="Last delivered" xml:space="preserve">
-    <value>Last delivered</value>
+  <data name="Last delivered (server time)" xml:space="preserve">
+    <value>Last delivered (server time)</value>
   </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Last scan: {0}.</value>
@@ -11931,8 +11934,8 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Simultaneous connections (0 = no limit)" xml:space="preserve">
     <value>Simultaneous connections (0 = no limit)</value>
   </data>
-  <data name="Since" xml:space="preserve">
-    <value>Since</value>
+  <data name="Since (server time)" xml:space="preserve">
+    <value>Since (server time)</value>
   </data>
   <data name="Since the service started" xml:space="preserve">
     <value>Since the service started</value>

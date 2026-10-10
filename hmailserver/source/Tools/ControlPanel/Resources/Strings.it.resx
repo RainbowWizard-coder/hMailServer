@@ -5143,6 +5143,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Expires" xml:space="preserve">
     <value>Scade</value>
   </data>
+  <data name="Expires (server time)" xml:space="preserve">
+    <value>Scade (ora del server)</value>
+  </data>
   <data name="Expires _on (server time)" xml:space="preserve">
     <value>Scade _il (ora del server)</value>
   </data>
@@ -6456,11 +6459,11 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Ultimo backup: {0} ({1}).</value>
   </data>
-  <data name="Last bounce" xml:space="preserve">
-    <value>Ultimo rimbalzo</value>
+  <data name="Last bounce (server time)" xml:space="preserve">
+    <value>Ultimo rimbalzo (ora del server)</value>
   </data>
-  <data name="Last delivered" xml:space="preserve">
-    <value>Ultima consegna</value>
+  <data name="Last delivered (server time)" xml:space="preserve">
+    <value>Ultima consegna (ora del server)</value>
   </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Ultima scansione: {0}.</value>
@@ -11931,8 +11934,8 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="Simultaneous connections (0 = no limit)" xml:space="preserve">
     <value>Connessioni simultanee (0 = nessun limite)</value>
   </data>
-  <data name="Since" xml:space="preserve">
-    <value>Dal</value>
+  <data name="Since (server time)" xml:space="preserve">
+    <value>Dal (ora del server)</value>
   </data>
   <data name="Since the service started" xml:space="preserve">
     <value>Dall'avvio del servizio</value>

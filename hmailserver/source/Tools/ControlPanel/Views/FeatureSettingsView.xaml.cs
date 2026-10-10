@@ -1630,7 +1630,7 @@ namespace hMailServer.ControlPanel.Views
          }
 
          int days = health.DaysRemaining.Value;
-         string expires = health.ExpiresOn.Value.ToString("d MMMM yyyy", System.Globalization.CultureInfo.CurrentCulture); // no-loc
+         string expires = ServerTimeText.Date(health.ExpiresOn.Value);
 
          if (days < 0)
          {

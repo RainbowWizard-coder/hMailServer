@@ -468,6 +468,9 @@ namespace hMailServer.ControlPanel.Views
          {
             Header = added,
             Binding = new System.Windows.Data.Binding(nameof(EntryView.Added)),
+            // Sorted by the server's own yyyy-MM-dd HH:mm:ss, which sorts as the times
+            // do, not by the reader's form of it, in which 10/1/2026 comes before 9/28/2026.
+            SortMemberPath = nameof(EntryView.Created),
             Width = new DataGridLength(Math.Max(150, GridStyles.HeaderWidth(added))),
             MinWidth = Math.Max(150, GridStyles.HeaderWidth(added))
          }));

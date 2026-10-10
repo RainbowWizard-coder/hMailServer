@@ -5143,6 +5143,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Expires" xml:space="preserve">
     <value>Ablauf</value>
   </data>
+  <data name="Expires (server time)" xml:space="preserve">
+    <value>Ablauf (Serverzeit)</value>
+  </data>
   <data name="Expires _on (server time)" xml:space="preserve">
     <value>Läuft ab a_m (Serverzeit)</value>
   </data>
@@ -6456,11 +6459,11 @@ Der geprüfte Installer wird dem Update-Helfer übergeben: der Dienst stoppt, di
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Letzte Sicherung: {0} ({1}).</value>
   </data>
-  <data name="Last bounce" xml:space="preserve">
-    <value>Letzte Unzustellbarkeit</value>
+  <data name="Last bounce (server time)" xml:space="preserve">
+    <value>Letzte Unzustellbarkeit (Serverzeit)</value>
   </data>
-  <data name="Last delivered" xml:space="preserve">
-    <value>Zuletzt zugestellt</value>
+  <data name="Last delivered (server time)" xml:space="preserve">
+    <value>Zuletzt zugestellt (Serverzeit)</value>
   </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Letzter Scan: {0}.</value>
@@ -11931,8 +11934,8 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="Simultaneous connections (0 = no limit)" xml:space="preserve">
     <value>Gleichzeitige Verbindungen (0 = keine Grenze)</value>
   </data>
-  <data name="Since" xml:space="preserve">
-    <value>Seit</value>
+  <data name="Since (server time)" xml:space="preserve">
+    <value>Seit (Serverzeit)</value>
   </data>
   <data name="Since the service started" xml:space="preserve">
     <value>Seit dem Start des Dienstes</value>

@@ -5143,6 +5143,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Expires" xml:space="preserve">
     <value>Expira</value>
   </data>
+  <data name="Expires (server time)" xml:space="preserve">
+    <value>Expira (horário do servidor)</value>
+  </data>
   <data name="Expires _on (server time)" xml:space="preserve">
     <value>Expira e_m (hora do servidor)</value>
   </data>
@@ -6456,11 +6459,11 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Último backup: {0} ({1}).</value>
   </data>
-  <data name="Last bounce" xml:space="preserve">
-    <value>Último retorno</value>
+  <data name="Last bounce (server time)" xml:space="preserve">
+    <value>Último retorno (horário do servidor)</value>
   </data>
-  <data name="Last delivered" xml:space="preserve">
-    <value>Última entrega</value>
+  <data name="Last delivered (server time)" xml:space="preserve">
+    <value>Última entrega (horário do servidor)</value>
   </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Última verificação: {0}.</value>
@@ -11931,8 +11934,8 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Simultaneous connections (0 = no limit)" xml:space="preserve">
     <value>Conexões simultâneas (0 = sem limite)</value>
   </data>
-  <data name="Since" xml:space="preserve">
-    <value>Desde</value>
+  <data name="Since (server time)" xml:space="preserve">
+    <value>Desde (horário do servidor)</value>
   </data>
   <data name="Since the service started" xml:space="preserve">
     <value>Desde que o serviço foi iniciado</value>

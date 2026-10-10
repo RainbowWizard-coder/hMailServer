@@ -179,7 +179,7 @@ namespace hMailServer.ControlPanel.Views
       {
          if (!element.TryGetProperty(name, out JsonElement value) || value.ValueKind != JsonValueKind.Number || !value.TryGetInt64(out long seconds) || seconds <= 0)
             return "";
-         return DateTimeOffset.FromUnixTimeSeconds(seconds).ToLocalTime().ToString("yyyy-MM-dd");
+         return ServerTimeText.Date(DateTimeOffset.FromUnixTimeSeconds(seconds).ToLocalTime().DateTime);
       }
 
       private static string CautionWord_(string caution) => caution switch

@@ -5143,6 +5143,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Expires" xml:space="preserve">
     <value>Utløper</value>
   </data>
+  <data name="Expires (server time)" xml:space="preserve">
+    <value>Utløper (servertid)</value>
+  </data>
   <data name="Expires _on (server time)" xml:space="preserve">
     <value>Utløper _den (servertid)</value>
   </data>
@@ -6456,11 +6459,11 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Siste sikkerhetskopi: {0} ({1}).</value>
   </data>
-  <data name="Last bounce" xml:space="preserve">
-    <value>Siste returmelding</value>
+  <data name="Last bounce (server time)" xml:space="preserve">
+    <value>Siste returmelding (servertid)</value>
   </data>
-  <data name="Last delivered" xml:space="preserve">
-    <value>Sist levert</value>
+  <data name="Last delivered (server time)" xml:space="preserve">
+    <value>Sist levert (servertid)</value>
   </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Siste skanning: {0}.</value>
@@ -11931,8 +11934,8 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Simultaneous connections (0 = no limit)" xml:space="preserve">
     <value>Samtidige tilkoblinger (0 = ingen grense)</value>
   </data>
-  <data name="Since" xml:space="preserve">
-    <value>Siden</value>
+  <data name="Since (server time)" xml:space="preserve">
+    <value>Siden (servertid)</value>
   </data>
   <data name="Since the service started" xml:space="preserve">
     <value>Siden tjenesten startet</value>

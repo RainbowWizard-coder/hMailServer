@@ -5143,6 +5143,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Expires" xml:space="preserve">
     <value>Süre sonu</value>
   </data>
+  <data name="Expires (server time)" xml:space="preserve">
+    <value>Süre sonu (sunucu saati)</value>
+  </data>
   <data name="Expires _on (server time)" xml:space="preserve">
     <value>Bitiş _zamanı (sunucu saati)</value>
   </data>
@@ -6456,11 +6459,11 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Son yedekleme: {0} ({1}).</value>
   </data>
-  <data name="Last bounce" xml:space="preserve">
-    <value>Son geri dönüş</value>
+  <data name="Last bounce (server time)" xml:space="preserve">
+    <value>Son geri dönüş (sunucu saati)</value>
   </data>
-  <data name="Last delivered" xml:space="preserve">
-    <value>Son teslim</value>
+  <data name="Last delivered (server time)" xml:space="preserve">
+    <value>Son teslim (sunucu saati)</value>
   </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Son tarama: {0}.</value>
@@ -11931,8 +11934,8 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Simultaneous connections (0 = no limit)" xml:space="preserve">
     <value>Eşzamanlı bağlantı (0 = sınır yok)</value>
   </data>
-  <data name="Since" xml:space="preserve">
-    <value>Başlangıç</value>
+  <data name="Since (server time)" xml:space="preserve">
+    <value>Başlangıç (sunucu saati)</value>
   </data>
   <data name="Since the service started" xml:space="preserve">
     <value>Hizmet başladığından beri</value>

@@ -5143,6 +5143,9 @@
   <data name="Expires" xml:space="preserve">
     <value>到期</value>
   </data>
+  <data name="Expires (server time)" xml:space="preserve">
+    <value>到期（服务器时间）</value>
+  </data>
   <data name="Expires _on (server time)" xml:space="preserve">
     <value>到期于(_O)（服务器时间）</value>
   </data>
@@ -6456,11 +6459,11 @@
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>上次备份：{0}（{1}）。</value>
   </data>
-  <data name="Last bounce" xml:space="preserve">
-    <value>最近退信</value>
+  <data name="Last bounce (server time)" xml:space="preserve">
+    <value>最近退信（服务器时间）</value>
   </data>
-  <data name="Last delivered" xml:space="preserve">
-    <value>最近投递</value>
+  <data name="Last delivered (server time)" xml:space="preserve">
+    <value>最近投递（服务器时间）</value>
   </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>上次扫描：{0}。</value>
@@ -11931,8 +11934,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Simultaneous connections (0 = no limit)" xml:space="preserve">
     <value>同时连接数（0 = 不限制）</value>
   </data>
-  <data name="Since" xml:space="preserve">
-    <value>列入时间</value>
+  <data name="Since (server time)" xml:space="preserve">
+    <value>列入时间（服务器时间）</value>
   </data>
   <data name="Since the service started" xml:space="preserve">
     <value>自服务启动以来</value>

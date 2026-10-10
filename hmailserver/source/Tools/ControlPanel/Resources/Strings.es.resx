@@ -5143,6 +5143,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Expires" xml:space="preserve">
     <value>Caduca</value>
   </data>
+  <data name="Expires (server time)" xml:space="preserve">
+    <value>Caduca (hora del servidor)</value>
+  </data>
   <data name="Expires _on (server time)" xml:space="preserve">
     <value>Caduca _el (hora del servidor)</value>
   </data>
@@ -6456,11 +6459,11 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Última copia de seguridad: {0} ({1}).</value>
   </data>
-  <data name="Last bounce" xml:space="preserve">
-    <value>Último rebote</value>
+  <data name="Last bounce (server time)" xml:space="preserve">
+    <value>Último rebote (hora del servidor)</value>
   </data>
-  <data name="Last delivered" xml:space="preserve">
-    <value>Última entrega</value>
+  <data name="Last delivered (server time)" xml:space="preserve">
+    <value>Última entrega (hora del servidor)</value>
   </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Último análisis: {0}.</value>
@@ -11931,8 +11934,8 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Simultaneous connections (0 = no limit)" xml:space="preserve">
     <value>Conexiones simultáneas (0 = sin límite)</value>
   </data>
-  <data name="Since" xml:space="preserve">
-    <value>Desde</value>
+  <data name="Since (server time)" xml:space="preserve">
+    <value>Desde (hora del servidor)</value>
   </data>
   <data name="Since the service started" xml:space="preserve">
     <value>Desde que se inició el servicio</value>

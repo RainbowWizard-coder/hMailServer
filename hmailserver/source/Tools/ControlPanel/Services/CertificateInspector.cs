@@ -238,7 +238,9 @@ namespace hMailServer.ControlPanel.Services
          health.ExpiresOn = expires;
          health.DaysRemaining = daysRemaining;
 
-         string date = expires.ToString("yyyy-MM-dd");
+         // The reader's short date (ServerTimeText), where it was yyyy-MM-dd in every
+         // language (review finding F321).
+         string date = ServerTimeText.Date(expires);
 
          if (expires < now)
          {
@@ -253,7 +255,7 @@ namespace hMailServer.ControlPanel.Services
          {
             health.NotValidUntil = certificate.NotBefore;
             health.CertificateFile = new CertificateFinding(StatusLevel.Warning,
-               F("Not valid until {0}", certificate.NotBefore.ToString("yyyy-MM-dd")),
+               F("Not valid until {0}", ServerTimeText.Date(certificate.NotBefore)),
                L("The server serves it (server error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock."));
          }
          else if (daysRemaining <= ExpiryWarningDays)

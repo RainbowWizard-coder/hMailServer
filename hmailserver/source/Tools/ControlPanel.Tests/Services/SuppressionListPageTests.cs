@@ -78,8 +78,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("Trimmed_(L(\"Reason\"), nameof(EntryView.Why), new DataGridLength(140), 140)", columns, StringComparison.Ordinal);
          Assert.Contains("Fitted_(L(\"Status code\"), nameof(EntryView.Status), 84)", columns, StringComparison.Ordinal);
          Assert.Contains("Trimmed_(L(\"Source\"), nameof(EntryView.Source), new DataGridLength(1, DataGridLengthUnitType.Star), 160)", columns, StringComparison.Ordinal);
-         Assert.Contains("Text_(L(\"Since\"), nameof(EntryView.Since), new DataGridLength(150))", columns, StringComparison.Ordinal);
-         Assert.Contains("Text_(L(\"Expires\"), nameof(EntryView.Expires), new DataGridLength(150))", columns, StringComparison.Ordinal);
+         Assert.Contains("Text_(L(\"Since (server time)\"), nameof(EntryView.Since), new DataGridLength(150))", columns, StringComparison.Ordinal);
+         Assert.Contains("Text_(L(\"Expires (server time)\"), nameof(EntryView.Expires), new DataGridLength(150))", columns, StringComparison.Ordinal);
 
          // No column of the list, or of the counts, is left to size itself to its
          // cells with no floor, which is what let the address take the width the
@@ -102,8 +102,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          string code = Source();
          string columns = WithheldRowTests.MemberText(code, "private void BuildColumns_()");
          Assert.Contains("Trimmed_(L(\"Address\"), nameof(CountView.Address), new DataGridLength(1, DataGridLengthUnitType.Star), 180)", columns, StringComparison.Ordinal);
-         Assert.Contains("Text_(L(\"Last bounce\"), nameof(CountView.LastBounce), new DataGridLength(150))", columns, StringComparison.Ordinal);
-         Assert.Contains("Text_(L(\"Last delivered\"), nameof(CountView.LastDelivered), new DataGridLength(150))", columns, StringComparison.Ordinal);
+         Assert.Contains("Text_(L(\"Last bounce (server time)\"), nameof(CountView.LastBounce), new DataGridLength(150))", columns, StringComparison.Ordinal);
+         Assert.Contains("Text_(L(\"Last delivered (server time)\"), nameof(CountView.LastDelivered), new DataGridLength(150))", columns, StringComparison.Ordinal);
          Assert.Contains("Text_(L(\"Listed\"), nameof(CountView.Listed), new DataGridLength(70))", columns, StringComparison.Ordinal);
 
          // The six counts: 64 pixels, or the header's width where that is more, so

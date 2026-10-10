@@ -264,8 +264,14 @@ namespace hMailServer.ControlPanel.Views
          public string Why { get; init; }
          public string Status { get; init; }
          public string Source { get; init; }
+         // The server's dates in the reader's short date and time, under headers that
+         // name its clock, where they were its own "2026-10-08 18:30:00" (review finding
+         // F321); each column sorts by the time, an entry that never expires after
+         // every one that does.
          public string Since { get; init; }
+         public DateTime? SinceAt { get; init; }
          public string Expires { get; init; }
+         public DateTime? ExpiresAt { get; init; }
          public string Detail { get; init; }
 
          // An entry put here by hand, whose detail is the administrator's note
@@ -275,7 +281,7 @@ namespace hMailServer.ControlPanel.Views
          // The address, why it is listed and the status, then the two dates with
          // their columns' names, as one statement.
          public override string ToString()
-            => RowSpeech.Of(Address, Why, Status, Source, RowSpeech.Labelled(L("Since"), Since), RowSpeech.Labelled(L("Expires"), Expires));
+            => RowSpeech.Of(Address, Why, Status, Source, RowSpeech.Labelled(L("Since (server time)"), Since), RowSpeech.Labelled(L("Expires (server time)"), Expires));
       }
 
       private sealed class CountView
@@ -288,8 +294,12 @@ namespace hMailServer.ControlPanel.Views
          public int Other { get; init; }
          public int InARow { get; init; }
          public string LastStatus { get; init; }
+         // As the list's dates are: the reader's form, the server's clock, sorted by the
+         // time, an address never delivered to before every one that was.
          public string LastBounce { get; init; }
+         public DateTime? LastBounceAt { get; init; }
          public string LastDelivered { get; init; }
+         public DateTime? LastDeliveredAt { get; init; }
          public string Listed { get; init; }
 
          // The address, then each count with its column's name: a row of bare
@@ -299,7 +309,7 @@ namespace hMailServer.ControlPanel.Views
             RowSpeech.Labelled(CategoryText_("hard"), Count_(Hard)), RowSpeech.Labelled(CategoryText_("soft"), Count_(Soft)),
             RowSpeech.Labelled(CategoryText_("mailbox_full"), Count_(MailboxFull)), RowSpeech.Labelled(CategoryText_("policy"), Count_(Policy)),
             RowSpeech.Labelled(CategoryText_("other"), Count_(Other)), RowSpeech.Labelled(L("In a row"), Count_(InARow)),
-            RowSpeech.Labelled(L("Last status code"), LastStatus), RowSpeech.Labelled(L("Last delivered"), LastDelivered), Listed);
+            RowSpeech.Labelled(L("Last status code"), LastStatus), RowSpeech.Labelled(L("Last delivered (server time)"), LastDelivered), Listed);
 
          private static string Count_(int count) => count.ToString(System.Globalization.CultureInfo.CurrentCulture);
       }
@@ -336,8 +346,10 @@ namespace hMailServer.ControlPanel.Views
                Why = row.Source == "manual" ? CategoryText_("") : CategoryText_(row.Category),
                Status = row.Status,
                Source = SourceText_(row.Source),
-               Since = row.Created,
-               Expires = row.Expires.Length == 0 ? L("Never") : row.Expired ? F("{0} (expired)", row.Expires) : row.Expires,
+               Since = ServerTimeText.Cell(row.Created),
+               SinceAt = ServerTimeText.Parse(row.Created),
+               Expires = row.Expires.Length == 0 ? L("Never") : row.Expired ? F("{0} (expired)", ServerTimeText.Cell(row.Expires)) : ServerTimeText.Cell(row.Expires),
+               ExpiresAt = row.Expires.Length == 0 ? DateTime.MaxValue : ServerTimeText.Parse(row.Expires),
                Detail = row.RemoteMta.Length == 0 ? row.Diagnostic : row.RemoteMta + ": " + row.Diagnostic, // no-loc: a host name and the words it answered with
                ByHand = row.Source == "manual"
             });
@@ -362,8 +374,10 @@ namespace hMailServer.ControlPanel.Views
                Other = row.Other,
                InARow = row.ConsecutiveHard,
                LastStatus = row.LastStatus,
-               LastBounce = row.LastBounce,
-               LastDelivered = row.LastDelivered.Length == 0 ? L("Never") : row.LastDelivered,
+               LastBounce = ServerTimeText.Cell(row.LastBounce),
+               LastBounceAt = ServerTimeText.Parse(row.LastBounce),
+               LastDelivered = row.LastDelivered.Length == 0 ? L("Never") : ServerTimeText.Cell(row.LastDelivered),
+               LastDeliveredAt = ServerTimeText.Parse(row.LastDelivered),
                Listed = row.Suppressed ? L("Listed") : ""
             });
          }
@@ -598,8 +612,8 @@ namespace hMailServer.ControlPanel.Views
          entries_.Columns.Add(Trimmed_(L("Reason"), nameof(EntryView.Why), new DataGridLength(140), 140));
          entries_.Columns.Add(Fitted_(L("Status code"), nameof(EntryView.Status), 84));
          entries_.Columns.Add(Trimmed_(L("Source"), nameof(EntryView.Source), new DataGridLength(1, DataGridLengthUnitType.Star), 160));
-         entries_.Columns.Add(Text_(L("Since"), nameof(EntryView.Since), new DataGridLength(150)));
-         entries_.Columns.Add(Text_(L("Expires"), nameof(EntryView.Expires), new DataGridLength(150)));
+         entries_.Columns.Add(Sorted_(Text_(L("Since (server time)"), nameof(EntryView.Since), new DataGridLength(150)), nameof(EntryView.SinceAt)));
+         entries_.Columns.Add(Sorted_(Text_(L("Expires (server time)"), nameof(EntryView.Expires), new DataGridLength(150)), nameof(EntryView.ExpiresAt)));
 
          // The remote's own words, or the note, on the row's tip rather than in a
          // column: they are sentences, and a column of sentences takes the width
@@ -623,8 +637,8 @@ namespace hMailServer.ControlPanel.Views
          // Its codes' width over a floor, as the list's Status code is: fixed at its
          // header's measured width, "Last status code" was cut by its last letters.
          counts_.Columns.Add(Fitted_(L("Last status code"), nameof(CountView.LastStatus), 90));
-         counts_.Columns.Add(Text_(L("Last bounce"), nameof(CountView.LastBounce), new DataGridLength(150)));
-         counts_.Columns.Add(Text_(L("Last delivered"), nameof(CountView.LastDelivered), new DataGridLength(150)));
+         counts_.Columns.Add(Sorted_(Text_(L("Last bounce (server time)"), nameof(CountView.LastBounce), new DataGridLength(150)), nameof(CountView.LastBounceAt)));
+         counts_.Columns.Add(Sorted_(Text_(L("Last delivered (server time)"), nameof(CountView.LastDelivered), new DataGridLength(150)), nameof(CountView.LastDeliveredAt)));
          counts_.Columns.Add(Text_(L("Listed"), nameof(CountView.Listed), new DataGridLength(70)));
       }
 
@@ -633,6 +647,13 @@ namespace hMailServer.ControlPanel.Views
       {
          double floor = Floor_(header, width.IsAbsolute ? width.Value : 0);
          return new() { Header = header, Binding = new System.Windows.Data.Binding(path), Width = width.IsAbsolute ? new DataGridLength(floor) : width, MinWidth = floor };
+      }
+
+      /// <summary>A column of dates sorted by the time itself, not by the words the reader's culture writes it in.</summary>
+      private static DataGridTextColumn Sorted_(DataGridTextColumn column, string sortPath)
+      {
+         column.SortMemberPath = sortPath;
+         return column;
       }
 
       /// <summary>A column of names: a star's share of the width over a floor, each cut short with an ellipsis and whole in its tool tip.</summary>

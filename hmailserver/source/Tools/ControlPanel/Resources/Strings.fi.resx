@@ -5143,6 +5143,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Expires" xml:space="preserve">
     <value>Vanhenee</value>
   </data>
+  <data name="Expires (server time)" xml:space="preserve">
+    <value>Vanhenee (palvelimen aikaa)</value>
+  </data>
   <data name="Expires _on (server time)" xml:space="preserve">
     <value>Vanhenemis_hetki (palvelimen aika)</value>
   </data>
@@ -6456,11 +6459,11 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Viimeisin varmuuskopio: {0} ({1}).</value>
   </data>
-  <data name="Last bounce" xml:space="preserve">
-    <value>Viimeisin palautus</value>
+  <data name="Last bounce (server time)" xml:space="preserve">
+    <value>Viimeisin palautus (palvelimen aikaa)</value>
   </data>
-  <data name="Last delivered" xml:space="preserve">
-    <value>Viimeksi toimitettu</value>
+  <data name="Last delivered (server time)" xml:space="preserve">
+    <value>Viimeksi toimitettu (palvelimen aikaa)</value>
   </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Viimeisin tarkistus: {0}.</value>
@@ -11931,8 +11934,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Simultaneous connections (0 = no limit)" xml:space="preserve">
     <value>Samanaikaiset yhteydet (0 = ei rajaa)</value>
   </data>
-  <data name="Since" xml:space="preserve">
-    <value>Alkaen</value>
+  <data name="Since (server time)" xml:space="preserve">
+    <value>Alkaen (palvelimen aikaa)</value>
   </data>
   <data name="Since the service started" xml:space="preserve">
     <value>Palvelun käynnistymisestä lähtien</value>

@@ -232,11 +232,27 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       [Fact]
-      public void ATimeIsShownInTheReadersZoneAndNoTimeAsADash()
+      public void ATimeIsShownInTheReadersZoneAndFormat_AndNoTimeAsADash()
       {
          DateTimeOffset time = DateTimeOffset.FromUnixTimeSeconds(1789000000);
-         Assert.Equal(time.ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture), DkimRotationStatus.When(time));
+         Assert.Equal(ServerTimeText.Cell(time.ToLocalTime().DateTime), DkimRotationStatus.When(time));
          Assert.Equal("—", DkimRotationStatus.When(null));
+
+         // The reader's short date and time, where it was yyyy-MM-dd HH:mm in every language.
+         CultureInfo culture = CultureInfo.CurrentCulture;
+         try
+         {
+            var local = new DateTime(2026, 10, 8, 14, 36, 0);
+            var instant = new DateTimeOffset(local, TimeZoneInfo.Local.GetUtcOffset(local));
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("en-GB");
+            Assert.Equal("08/10/2026 14:36", DkimRotationStatus.When(instant));
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("de-DE");
+            Assert.Equal("08.10.2026 14:36", DkimRotationStatus.When(instant));
+         }
+         finally
+         {
+            CultureInfo.CurrentCulture = culture;
+         }
       }
 
       private static string ResourcesDirectory()

@@ -202,7 +202,16 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private sealed class TraceRow
       {
+         // As the server wrote it, its own local time.
          public string OccurredTime { get; init; }
+
+         // The reader's short date and the time to the second, under a header that
+         // names the server's clock, where the cell was the server's "2026-10-10
+         // 20:26:26" under "Time" (review finding F321); sorted by the time itself, and
+         // whole, marked as the server's, in the cell's tool tip.
+         public string Time => ServerTimeText.CellWithSeconds(OccurredTime);
+         public DateTime? OccurredAt => ServerTimeText.Parse(OccurredTime);
+         public string TimeTip => ServerTimeText.GridTip(OccurredTime);
          public string EventName { get; init; }
          public string Sender { get; init; }
          public string Recipient { get; init; }
@@ -225,7 +234,7 @@ namespace hMailServer.ControlPanel.Views
 
          // The time and the event, then the sender, the recipient and the status
          // with their columns' names.
-         public override string ToString() => RowSpeech.Of(OccurredTime, EventName,
+         public override string ToString() => RowSpeech.Of(Time, EventName,
             RowSpeech.Labelled(L("Sender"), Sender), RowSpeech.Labelled(L("Recipient"), Recipient),
             RowSpeech.Labelled(L("Status"), StatusText));
       }
@@ -579,10 +588,17 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private void BuildColumns()
       {
+         // When each event happened by the server's clock, as the audit trail's When
+         // says it; the whole time is the cell's tool tip, which the row's own tip
+         // stands behind.
+         var timeTip = new Style(typeof(TextBlock), DataGridTextColumn.DefaultElementStyle);
+         timeTip.Setters.Add(new Setter(ToolTipProperty, new System.Windows.Data.Binding(nameof(TraceRow.TimeTip))));
          list_.Columns.Add(new DataGridTextColumn
          {
-            Header = L("Time"),
-            Binding = new System.Windows.Data.Binding(nameof(TraceRow.OccurredTime)),
+            Header = L("When (server time)"),
+            Binding = new System.Windows.Data.Binding(nameof(TraceRow.Time)),
+            SortMemberPath = nameof(TraceRow.OccurredAt),
+            ElementStyle = timeTip,
             // Auto, not SizeToCells. SizeToCells measures the CELLS only, so on an
             // empty grid the column collapses to zero and its header disappears
             // with it - which is how Quarantine shipped a table showing Sender,

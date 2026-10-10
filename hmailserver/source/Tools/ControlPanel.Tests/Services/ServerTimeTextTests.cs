@@ -69,9 +69,15 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal("08/10/2026 02:36:53 (server time)", ServerTimeText.Full(when));
          Assert.Equal("08/10/2026 02:36", ServerTimeText.Cell("2026-10-08 02:36:53"));
          Assert.Equal("not a time", ServerTimeText.Cell(" not a time "));
+         Assert.Equal("08/10/2026 02:36:53", ServerTimeText.CellWithSeconds("2026-10-08 02:36:53"));
+         Assert.Equal("not a time", ServerTimeText.CellWithSeconds(" not a time "));
+         Assert.Equal("08/10/2026", ServerTimeText.Date(when));
 
          CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("de-DE");
          Assert.Equal("08.10.2026 02:36", ServerTimeText.Cell(when));
+         Assert.Equal("08.10.2026", ServerTimeText.Date(when));
+         CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("ja-JP");
+         Assert.Equal("2026/10/08", ServerTimeText.Date(when));
       }
 
       [Theory]
@@ -168,8 +174,58 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
+      /// The message trace's times and the suppression list's dates are the reader's, under
+      /// headers that name the server's clock, and each column sorts by the time: the trace
+      /// showed the server's "2026-10-10 20:26:26" under "Time", and the list its
+      /// "2026-10-08 18:30:00" under Since, Expires, Last bounce and Last delivered.
+      /// </summary>
+      [Fact]
+      public void TheMessageTraceAndTheSuppressionList_SayTheServersDatesInTheReadersForm()
+      {
+         string trace = Read("MessageTraceView.cs");
+         Assert.Contains("public string Time => ServerTimeText.CellWithSeconds(OccurredTime);", trace, StringComparison.Ordinal);
+         Assert.Contains("public DateTime? OccurredAt => ServerTimeText.Parse(OccurredTime);", trace, StringComparison.Ordinal);
+         Assert.Contains("public string TimeTip => ServerTimeText.GridTip(OccurredTime);", trace, StringComparison.Ordinal);
+         string columns = WithheldRowTests.MemberText(trace, "private void BuildColumns()");
+         Assert.Contains("Header = L(\"When (server time)\"),", columns, StringComparison.Ordinal);
+         Assert.Contains("Binding = new System.Windows.Data.Binding(nameof(TraceRow.Time)),", columns, StringComparison.Ordinal);
+         Assert.Contains("SortMemberPath = nameof(TraceRow.OccurredAt),", columns, StringComparison.Ordinal);
+         Assert.Contains("new Setter(ToolTipProperty, new System.Windows.Data.Binding(nameof(TraceRow.TimeTip)))", columns, StringComparison.Ordinal);
+         Assert.DoesNotContain("L(\"Time\")", trace, StringComparison.Ordinal);
+
+         string list = Read("SuppressionListView.cs");
+         foreach (string line in new[]
+         {
+            "Since = ServerTimeText.Cell(row.Created),",
+            "SinceAt = ServerTimeText.Parse(row.Created),",
+            "Expires = row.Expires.Length == 0 ? L(\"Never\") : row.Expired ? F(\"{0} (expired)\", ServerTimeText.Cell(row.Expires)) : ServerTimeText.Cell(row.Expires),",
+            "ExpiresAt = row.Expires.Length == 0 ? DateTime.MaxValue : ServerTimeText.Parse(row.Expires),",
+            "LastBounce = ServerTimeText.Cell(row.LastBounce),",
+            "LastBounceAt = ServerTimeText.Parse(row.LastBounce),",
+            "LastDelivered = row.LastDelivered.Length == 0 ? L(\"Never\") : ServerTimeText.Cell(row.LastDelivered),",
+            "LastDeliveredAt = ServerTimeText.Parse(row.LastDelivered),",
+         })
+            Assert.Contains(line, list, StringComparison.Ordinal);
+
+         string built = WithheldRowTests.MemberText(list, "private void BuildColumns_()");
+         foreach ((string header, string sort) in new[] { ("Since (server time)", "EntryView.SinceAt"), ("Expires (server time)", "EntryView.ExpiresAt"),
+            ("Last bounce (server time)", "CountView.LastBounceAt"), ("Last delivered (server time)", "CountView.LastDeliveredAt") })
+         {
+            Match column = Regex.Match(built, @"Columns\.Add\((.*L\(""" + Regex.Escape(header) + @"""\).*)\);");
+            Assert.True(column.Success, "The suppression list has no column headed " + header + ".");
+            Assert.Contains("nameof(" + sort + ")", column.Value, StringComparison.Ordinal);
+         }
+
+         // The allowed and blocked domains' Added sorts by the server's own form, as the times do.
+         string policy = WithheldRowTests.MemberText(Read("DomainPolicyListView.cs"), "private void BuildColumns_()");
+         Assert.Contains("Binding = new System.Windows.Data.Binding(nameof(EntryView.Added)),", policy, StringComparison.Ordinal);
+         Assert.Contains("SortMemberPath = nameof(EntryView.Created),", policy, StringComparison.Ordinal);
+      }
+
+      /// <summary>
       /// No page or helper that F321 found writing a date in a form of its own does so
-      /// again: every date there goes through ServerTimeText.
+      /// again, nor any that the unit's review found after it: every date there goes
+      /// through ServerTimeText.
       /// </summary>
       [Theory]
       [InlineData("Views", "QueueView.xaml.cs")]
@@ -183,6 +239,14 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("Services", "ServerUptimeText.cs")]
       [InlineData("Services", "DomainPolicyWords.cs")]
       [InlineData("Services", "BackupRestoreReport.cs")]
+      [InlineData("Views", "MessageTraceView.cs")]
+      [InlineData("Views", "SuppressionListView.cs")]
+      [InlineData("Views", "ProfilesView.cs")]
+      [InlineData("Services", "DkimRotationStatus.cs")]
+      [InlineData("Views", "DomainDialog.cs")]
+      [InlineData("Services", "CertificateInspector.cs")]
+      [InlineData("Views", "FeatureSettingsView.xaml.cs")]
+      [InlineData("Views", "ServerSettingsView.xaml.cs")]
       public void NoneOfTheseWritesADateInAFormOfItsOwn(string folder, string file)
       {
          string source = HostedAddressTests.ReadControlPanelFile(Path.Join(folder, file));

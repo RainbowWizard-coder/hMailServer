@@ -5153,6 +5153,9 @@
   <data name="Expires" xml:space="preserve">
     <value>有効期限</value>
   </data>
+  <data name="Expires (server time)" xml:space="preserve">
+    <value>有効期限 (サーバー時刻)</value>
+  </data>
   <data name="Expires _on (server time)" xml:space="preserve">
     <value>有効期限 (サーバー時刻)(_O)</value>
   </data>
@@ -6466,11 +6469,11 @@
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>前回のバックアップ: {0} ({1})。</value>
   </data>
-  <data name="Last bounce" xml:space="preserve">
-    <value>最後のバウンス</value>
+  <data name="Last bounce (server time)" xml:space="preserve">
+    <value>最後のバウンス (サーバー時刻)</value>
   </data>
-  <data name="Last delivered" xml:space="preserve">
-    <value>最後の配信</value>
+  <data name="Last delivered (server time)" xml:space="preserve">
+    <value>最後の配信 (サーバー時刻)</value>
   </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>前回のスキャン: {0}。</value>
@@ -11941,8 +11944,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Simultaneous connections (0 = no limit)" xml:space="preserve">
     <value>同時接続数 (0 = 無制限)</value>
   </data>
-  <data name="Since" xml:space="preserve">
-    <value>登録日時</value>
+  <data name="Since (server time)" xml:space="preserve">
+    <value>登録日時 (サーバー時刻)</value>
   </data>
   <data name="Since the service started" xml:space="preserve">
     <value>サービスの開始以降</value>

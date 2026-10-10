@@ -5219,6 +5219,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Expires" xml:space="preserve">
     <value>Wygasa</value>
   </data>
+  <data name="Expires (server time)" xml:space="preserve">
+    <value>Wygasa (czas serwera)</value>
+  </data>
   <data name="Expires _on (server time)" xml:space="preserve">
     <value>Wygasa _dnia (czas serwera)</value>
   </data>
@@ -6541,11 +6544,11 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Ostatnia kopia zapasowa: {0} ({1}).</value>
   </data>
-  <data name="Last bounce" xml:space="preserve">
-    <value>Ostatni zwrot</value>
+  <data name="Last bounce (server time)" xml:space="preserve">
+    <value>Ostatni zwrot (czas serwera)</value>
   </data>
-  <data name="Last delivered" xml:space="preserve">
-    <value>Ostatnie doręczenie</value>
+  <data name="Last delivered (server time)" xml:space="preserve">
+    <value>Ostatnie doręczenie (czas serwera)</value>
   </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Ostatnie skanowanie: {0}.</value>
@@ -12088,8 +12091,8 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Simultaneous connections (0 = no limit)" xml:space="preserve">
     <value>Jednoczesne połączenia (0 = bez ograniczenia)</value>
   </data>
-  <data name="Since" xml:space="preserve">
-    <value>Od</value>
+  <data name="Since (server time)" xml:space="preserve">
+    <value>Od (czas serwera)</value>
   </data>
   <data name="Since the service started" xml:space="preserve">
     <value>Od uruchomienia usługi</value>

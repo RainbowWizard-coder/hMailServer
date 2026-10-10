@@ -5143,6 +5143,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Expires" xml:space="preserve">
     <value>Verloopt</value>
   </data>
+  <data name="Expires (server time)" xml:space="preserve">
+    <value>Verloopt (servertijd)</value>
+  </data>
   <data name="Expires _on (server time)" xml:space="preserve">
     <value>Verloopt o_p (servertijd)</value>
   </data>
@@ -6456,11 +6459,11 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Last backup: {0} ({1})." xml:space="preserve">
     <value>Laatste back-up: {0} ({1}).</value>
   </data>
-  <data name="Last bounce" xml:space="preserve">
-    <value>Laatste bounce</value>
+  <data name="Last bounce (server time)" xml:space="preserve">
+    <value>Laatste bounce (servertijd)</value>
   </data>
-  <data name="Last delivered" xml:space="preserve">
-    <value>Laatst afgeleverd</value>
+  <data name="Last delivered (server time)" xml:space="preserve">
+    <value>Laatst afgeleverd (servertijd)</value>
   </data>
   <data name="Last scan: {0}." xml:space="preserve">
     <value>Laatste scan: {0}.</value>
@@ -11931,8 +11934,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Simultaneous connections (0 = no limit)" xml:space="preserve">
     <value>Gelijktijdige verbindingen (0 = geen limiet)</value>
   </data>
-  <data name="Since" xml:space="preserve">
-    <value>Sinds</value>
+  <data name="Since (server time)" xml:space="preserve">
+    <value>Sinds (servertijd)</value>
   </data>
   <data name="Since the service started" xml:space="preserve">
     <value>Sinds de start van de service</value>
