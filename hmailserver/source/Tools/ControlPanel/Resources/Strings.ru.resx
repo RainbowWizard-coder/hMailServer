@@ -2764,6 +2764,9 @@ Control Panel может читать файлы сообщений только
   <data name="Confirmed: {0}. A password-reset link can be sent there." xml:space="preserve">
     <value>Подтверждён: {0}. Ссылку для сброса пароля можно отправить туда.</value>
   </data>
+  <data name="Connect to another server…" xml:space="preserve">
+    <value>Подключиться к другому серверу…</value>
+  </data>
   <data name="Connect to server" xml:space="preserve">
     <value>Подключиться к серверу</value>
   </data>
@@ -2814,6 +2817,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Connection succeeded." xml:space="preserve">
     <value>Подключение выполнено.</value>
+  </data>
+  <data name="Connection to {0} lost - the Control Panel tries again on your next action; nothing can be saved until it is back" xml:space="preserve">
+    <value>Подключение к {0} потеряно - Control Panel попробует снова при вашем следующем действии; до его возвращения ничего нельзя сохранить</value>
   </data>
   <data name="Connections" xml:space="preserve">
     <value>Подключения</value>
@@ -9155,6 +9161,9 @@ Control Panel может читать файлы сообщений только
   <data name="Reconnected to {0} after the service restarted." xml:space="preserve">
     <value>Подключение к {0} восстановлено после перезапуска службы.</value>
   </data>
+  <data name="Reconnecting to {0} - what is on screen may be out of date" xml:space="preserve">
+    <value>Повторное подключение к {0} - то, что на экране, может быть устаревшим</value>
+  </data>
   <data name="Reconnecting…" xml:space="preserve">
     <value>Повторное подключение…</value>
   </data>
@@ -11132,6 +11141,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Sign aliases _too" xml:space="preserve">
     <value>_Подписывать также и псевдонимы</value>
   </data>
+  <data name="Sign in again" xml:space="preserve">
+    <value>Войти снова</value>
+  </data>
   <data name="Sign in to a server first." xml:space="preserve">
     <value>Сначала войдите на сервер.</value>
   </data>
@@ -11140,6 +11152,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
     <value>Чтобы просматривать или изменять эти параметры, войдите с учётной записью администратора сервера hMailServer. ({0})</value>
+  </data>
+  <data name="Sign out" xml:space="preserve">
+    <value>Выйти</value>
   </data>
   <data name="Sign people in with a SAML identity provider - Entra ID, Okta, ADFS. Give the provider this server's metadata, which is the webmail's base address followed by /saml/metadata. SAML is off until the provider's entity ID, sign-in address and certificate are all set." xml:space="preserve">
     <value>Выполнять вход людей через поставщика удостоверений SAML — Entra ID, Okta, ADFS. Передайте поставщику метаданные этого сервера — это базовый адрес веб-почты, за которым следует /saml/metadata. SAML выключен, пока не заданы все три: идентификатор сущности, адрес входа и сертификат поставщика.</value>

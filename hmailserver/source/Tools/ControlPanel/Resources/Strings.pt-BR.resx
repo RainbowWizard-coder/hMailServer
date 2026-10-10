@@ -2740,6 +2740,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Confirmed: {0}. A password-reset link can be sent there." xml:space="preserve">
     <value>Confirmado: {0}. Um link de redefinição pode ser enviado para lá.</value>
   </data>
+  <data name="Connect to another server…" xml:space="preserve">
+    <value>Conectar a outro servidor…</value>
+  </data>
   <data name="Connect to server" xml:space="preserve">
     <value>Conectar ao servidor</value>
   </data>
@@ -2790,6 +2793,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   </data>
   <data name="Connection succeeded." xml:space="preserve">
     <value>A conexão foi bem-sucedida.</value>
+  </data>
+  <data name="Connection to {0} lost - the Control Panel tries again on your next action; nothing can be saved until it is back" xml:space="preserve">
+    <value>Conexão com {0} perdida - o Control Panel tenta de novo na sua próxima ação; nada pode ser salvo até que ela volte</value>
   </data>
   <data name="Connections" xml:space="preserve">
     <value>Conexões</value>
@@ -9067,6 +9073,9 @@ Execute isto se os clientes relatarem mensagens aparecendo com o UID errado, ou 
   <data name="Reconnected to {0} after the service restarted." xml:space="preserve">
     <value>Reconectado a {0} depois que o serviço reiniciou.</value>
   </data>
+  <data name="Reconnecting to {0} - what is on screen may be out of date" xml:space="preserve">
+    <value>Reconectando a {0} - o que está na tela pode estar desatualizado</value>
+  </data>
   <data name="Reconnecting…" xml:space="preserve">
     <value>Reconectando…</value>
   </data>
@@ -11005,6 +11014,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Sign aliases _too" xml:space="preserve">
     <value>Assinar os aliases _também</value>
   </data>
+  <data name="Sign in again" xml:space="preserve">
+    <value>Entrar novamente</value>
+  </data>
   <data name="Sign in to a server first." xml:space="preserve">
     <value>Entre em um servidor primeiro.</value>
   </data>
@@ -11013,6 +11025,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
     <value>Entre com a conta de administrador do servidor hMailServer para ver ou alterar estas configurações. ({0})</value>
+  </data>
+  <data name="Sign out" xml:space="preserve">
+    <value>Sair</value>
   </data>
   <data name="Sign people in with a SAML identity provider - Entra ID, Okta, ADFS. Give the provider this server's metadata, which is the webmail's base address followed by /saml/metadata. SAML is off until the provider's entity ID, sign-in address and certificate are all set." xml:space="preserve">
     <value>Fazer o login das pessoas com um provedor de identidade SAML - Entra ID, Okta, ADFS. Dê ao provedor os metadados deste servidor, que são o endereço base do webmail seguido de /saml/metadata. O SAML fica desligado até que o ID da entidade, o endereço de login e o certificado do provedor estejam todos definidos.</value>

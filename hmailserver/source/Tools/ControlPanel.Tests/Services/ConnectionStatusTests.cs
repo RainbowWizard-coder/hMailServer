@@ -59,15 +59,33 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("mail.example.test", connected);
          Assert.Contains("Administrator", connected);
 
-         foreach (LinkState state in new[] { LinkState.NotConnected, LinkState.Reconnecting, LinkState.Lost })
-         {
-            string sentence = ConnectionStatus.Describe(state, "mail.example.test", "Administrator");
-            Assert.Equal(ConnectionStatus.WordFor(state), sentence);
-         }
+         // Before sign-in there is no session to describe: the word.
+         Assert.Equal(ConnectionStatus.WordFor(LinkState.NotConnected), ConnectionStatus.Describe(LinkState.NotConnected, "mail.example.test", "Administrator"));
 
-         // A live link with no host to name falls back to the word rather than
-         // to a sentence with a hole in it.
-         Assert.Equal(ConnectionStatus.WordFor(LinkState.Connected), ConnectionStatus.Describe(LinkState.Connected, null, null));
+         // A link with no host to name falls back to the word rather than to a
+         // sentence with a hole in it.
+         foreach (LinkState state in ConnectionStatus.AllStates)
+            Assert.Equal(ConnectionStatus.WordFor(state), ConnectionStatus.Describe(state, null, null));
+      }
+
+      /// <summary>
+      /// While the link heals, and after it went, the pill's tool tip and accessible
+      /// name say which server and what happens next (review finding F012): they
+      /// repeated "Reconnecting…" and "Connection lost", with nothing that said the
+      /// Control Panel tries again, or that nothing can be saved meanwhile.
+      /// </summary>
+      [Fact]
+      public void AHealingOrLostLink_SaysWhichServerAndWhatHappensNext()
+      {
+         string reconnecting = ConnectionStatus.Describe(LinkState.Reconnecting, "mail.example.test", "Administrator");
+         Assert.Equal("Reconnecting to mail.example.test - what is on screen may be out of date", reconnecting);
+
+         string lost = ConnectionStatus.Describe(LinkState.Lost, "mail.example.test", "Administrator");
+         Assert.Equal("Connection to mail.example.test lost - the Control Panel tries again on your next action; nothing can be saved until it is back", lost);
+
+         // Neither names the account, which is not what failed.
+         Assert.DoesNotContain("Administrator", reconnecting);
+         Assert.DoesNotContain("Administrator", lost);
       }
    }
 }

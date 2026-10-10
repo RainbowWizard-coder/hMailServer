@@ -80,12 +80,18 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("x:Name=\"SidebarPane\"", xaml, StringComparison.Ordinal);
          Assert.Contains("x:Name=\"ContentSurface\"", xaml, StringComparison.Ordinal);
 
-         // Sign-in enables both, and a refused second factor disables the tree again.
+         // Sign-in enables both, and a refused second factor disables the tree again -
+         // through ShowSignIn_, the way Sign out goes back to the sign-in page (review
+         // finding F012).
          string connected = WithheldRowTests.MemberText(source, "private void OnConnected()");
          Assert.True(connected != null, "MainWindow.OnConnected is gone.");
          Assert.Contains("NavTree.IsEnabled = true;", connected, StringComparison.Ordinal);
          Assert.Contains("SearchButton.IsEnabled = true;", connected, StringComparison.Ordinal);
-         Assert.Contains("NavTree.IsEnabled = false;", connected, StringComparison.Ordinal);
+         Assert.Contains("ShowSignIn_(", connected, StringComparison.Ordinal);
+         string signIn = WithheldRowTests.MemberText(source, "private void ShowSignIn_(string host, string userName, bool focusServer)");
+         Assert.True(signIn != null, "MainWindow.ShowSignIn_ is gone.");
+         Assert.Contains("NavTree.IsEnabled = false;", signIn, StringComparison.Ordinal);
+         Assert.Contains("SearchButton.IsEnabled = false;", signIn, StringComparison.Ordinal);
       }
 
       /// <summary>

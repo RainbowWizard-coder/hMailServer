@@ -2740,6 +2740,9 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Confirmed: {0}. A password-reset link can be sent there." xml:space="preserve">
     <value>Bestätigt: {0}. Ein Link zum Zurücksetzen des Kennworts kann dorthin gesendet werden.</value>
   </data>
+  <data name="Connect to another server…" xml:space="preserve">
+    <value>Mit einem anderen Server verbinden…</value>
+  </data>
   <data name="Connect to server" xml:space="preserve">
     <value>Mit Server verbinden</value>
   </data>
@@ -2790,6 +2793,9 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   </data>
   <data name="Connection succeeded." xml:space="preserve">
     <value>Verbindung erfolgreich.</value>
+  </data>
+  <data name="Connection to {0} lost - the Control Panel tries again on your next action; nothing can be saved until it is back" xml:space="preserve">
+    <value>Verbindung zu {0} verloren - das Control Panel versucht es bei Ihrer nächsten Aktion erneut; bis sie zurück ist, kann nichts gespeichert werden</value>
   </data>
   <data name="Connections" xml:space="preserve">
     <value>Verbindungen</value>
@@ -9067,6 +9073,9 @@ Führen Sie dies aus, wenn Clients melden, dass Nachrichten unter der falschen U
   <data name="Reconnected to {0} after the service restarted." xml:space="preserve">
     <value>Wieder mit {0} verbunden, nachdem der Dienst neu gestartet ist.</value>
   </data>
+  <data name="Reconnecting to {0} - what is on screen may be out of date" xml:space="preserve">
+    <value>Verbindung zu {0} wird wiederhergestellt - was angezeigt wird, ist womöglich veraltet</value>
+  </data>
   <data name="Reconnecting…" xml:space="preserve">
     <value>Verbindung wird wiederhergestellt…</value>
   </data>
@@ -11005,6 +11014,9 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="Sign aliases _too" xml:space="preserve">
     <value>A_uch Aliase signieren</value>
   </data>
+  <data name="Sign in again" xml:space="preserve">
+    <value>Erneut anmelden</value>
+  </data>
   <data name="Sign in to a server first." xml:space="preserve">
     <value>Melden Sie sich zuerst an einem Server an.</value>
   </data>
@@ -11013,6 +11025,9 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   </data>
   <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
     <value>Melden Sie sich mit dem Server-Administratorkonto von hMailServer an, um diese Einstellungen zu sehen oder zu ändern. ({0})</value>
+  </data>
+  <data name="Sign out" xml:space="preserve">
+    <value>Abmelden</value>
   </data>
   <data name="Sign people in with a SAML identity provider - Entra ID, Okta, ADFS. Give the provider this server's metadata, which is the webmail's base address followed by /saml/metadata. SAML is off until the provider's entity ID, sign-in address and certificate are all set." xml:space="preserve">
     <value>Leute mit einem SAML-Identitätsanbieter anmelden - Entra ID, Okta, ADFS. Geben Sie dem Anbieter die Metadaten dieses Servers, das ist die Basisadresse des Webmails gefolgt von /saml/metadata. SAML ist aus, bis Entity-ID, Anmeldeadresse und Zertifikat des Anbieters alle gesetzt sind.</value>

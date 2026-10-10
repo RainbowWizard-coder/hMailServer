@@ -2740,6 +2740,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Confirmed: {0}. A password-reset link can be sent there." xml:space="preserve">
     <value>Vahvistettu: {0}. Palautuslinkki voidaan lähettää sinne.</value>
   </data>
+  <data name="Connect to another server…" xml:space="preserve">
+    <value>Yhdistä toiseen palvelimeen…</value>
+  </data>
   <data name="Connect to server" xml:space="preserve">
     <value>Yhdistä palvelimeen</value>
   </data>
@@ -2790,6 +2793,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Connection succeeded." xml:space="preserve">
     <value>Yhteys onnistui.</value>
+  </data>
+  <data name="Connection to {0} lost - the Control Panel tries again on your next action; nothing can be saved until it is back" xml:space="preserve">
+    <value>Yhteys kohteeseen {0} katkesi - Control Panel yrittää uudelleen seuraavalla toiminnollasi; mitään ei voi tallentaa ennen kuin yhteys palaa</value>
   </data>
   <data name="Connections" xml:space="preserve">
     <value>Yhteydet</value>
@@ -9067,6 +9073,9 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   <data name="Reconnected to {0} after the service restarted." xml:space="preserve">
     <value>Yhdistetty uudelleen kohteeseen {0} palvelun uudelleenkäynnistyksen jälkeen.</value>
   </data>
+  <data name="Reconnecting to {0} - what is on screen may be out of date" xml:space="preserve">
+    <value>Yhdistetään uudelleen kohteeseen {0} - näytöllä oleva voi olla vanhentunutta</value>
+  </data>
   <data name="Reconnecting…" xml:space="preserve">
     <value>Yhdistetään uudelleen…</value>
   </data>
@@ -11005,6 +11014,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Sign aliases _too" xml:space="preserve">
     <value>Allekirjoita _myös aliakset</value>
   </data>
+  <data name="Sign in again" xml:space="preserve">
+    <value>Kirjaudu uudelleen</value>
+  </data>
   <data name="Sign in to a server first." xml:space="preserve">
     <value>Kirjaudu ensin palvelimeen.</value>
   </data>
@@ -11013,6 +11025,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
     <value>Kirjaudu hMailServerin palvelimen järjestelmänvalvojan tilillä nähdäksesi tai muuttaaksesi näitä asetuksia. ({0})</value>
+  </data>
+  <data name="Sign out" xml:space="preserve">
+    <value>Kirjaudu ulos</value>
   </data>
   <data name="Sign people in with a SAML identity provider - Entra ID, Okta, ADFS. Give the provider this server's metadata, which is the webmail's base address followed by /saml/metadata. SAML is off until the provider's entity ID, sign-in address and certificate are all set." xml:space="preserve">
     <value>Kirjaa ihmiset sisään SAML-identiteettipalvelulla - Entra ID, Okta, ADFS. Anna palvelulle tämän palvelimen metatiedot, joiden osoite on verkkopostin perusosoite ja perään /saml/metadata. SAML on pois päältä, kunnes palvelun entiteettitunnus, kirjautumisosoite ja varmenne on kaikki asetettu.</value>

@@ -81,15 +81,30 @@ namespace hMailServer.ControlPanel.Services
       }
 
       /// <summary>
-      /// The sentence a screen reader hears for the pill: the word, and for a live
-      /// session the host and the account, which is what "connected" means.
+      /// The sentence a screen reader hears for the pill, and its tool tip: for a
+      /// live session the host and the account, which is what "connected" means;
+      /// while the link heals or after it went, the host and what happens next
+      /// (review finding F012) - the tool tip and the name said "Connection lost"
+      /// again, and nothing said that the Control Panel tries again, nor that
+      /// nothing can be saved meanwhile. The word alone where there is no host to
+      /// name, before sign-in.
       /// </summary>
       public static string Describe(LinkState state, string host, string userName)
       {
-         if (state == LinkState.Connected && !string.IsNullOrEmpty(host))
-            return F("Connected to {0} as {1}", host, userName ?? "");
+         if (string.IsNullOrEmpty(host))
+            return WordFor(state);
 
-         return WordFor(state);
+         switch (state)
+         {
+            case LinkState.Connected:
+               return F("Connected to {0} as {1}", host, userName ?? "");
+            case LinkState.Reconnecting:
+               return F("Reconnecting to {0} - what is on screen may be out of date", host);
+            case LinkState.Lost:
+               return F("Connection to {0} lost - the Control Panel tries again on your next action; nothing can be saved until it is back", host);
+            default:
+               return WordFor(state);
+         }
       }
    }
 }

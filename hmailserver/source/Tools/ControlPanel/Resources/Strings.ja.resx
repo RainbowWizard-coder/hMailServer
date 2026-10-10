@@ -2740,6 +2740,9 @@
   <data name="Confirmed: {0}. A password-reset link can be sent there." xml:space="preserve">
     <value>確認済み: {0}。パスワード リセットのリンクをそこへ送れます。</value>
   </data>
+  <data name="Connect to another server…" xml:space="preserve">
+    <value>別のサーバーに接続…</value>
+  </data>
   <data name="Connect to server" xml:space="preserve">
     <value>サーバーに接続</value>
   </data>
@@ -2790,6 +2793,9 @@
   </data>
   <data name="Connection succeeded." xml:space="preserve">
     <value>接続に成功しました。</value>
+  </data>
+  <data name="Connection to {0} lost - the Control Panel tries again on your next action; nothing can be saved until it is back" xml:space="preserve">
+    <value>{0} への接続が切断されました - コントロールパネルは次の操作で再試行します。接続が戻るまで何も保存できません</value>
   </data>
   <data name="Connections" xml:space="preserve">
     <value>接続</value>
@@ -9067,6 +9073,9 @@
   <data name="Reconnected to {0} after the service restarted." xml:space="preserve">
     <value>サービスの再起動後、{0} に再接続しました。</value>
   </data>
+  <data name="Reconnecting to {0} - what is on screen may be out of date" xml:space="preserve">
+    <value>{0} に再接続中 - 画面の内容は最新でない可能性があります</value>
+  </data>
   <data name="Reconnecting…" xml:space="preserve">
     <value>再接続中…</value>
   </data>
@@ -11005,6 +11014,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Sign aliases _too" xml:space="preserve">
     <value>エイリアスにも署名する(_T)</value>
   </data>
+  <data name="Sign in again" xml:space="preserve">
+    <value>もう一度サインイン</value>
+  </data>
   <data name="Sign in to a server first." xml:space="preserve">
     <value>まずサーバーにサインインしてください。</value>
   </data>
@@ -11013,6 +11025,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
     <value>これらの設定を表示または変更するには、hMailServer のサーバー管理者アカウントでサインインしてください。({0})</value>
+  </data>
+  <data name="Sign out" xml:space="preserve">
+    <value>サインアウト</value>
   </data>
   <data name="Sign people in with a SAML identity provider - Entra ID, Okta, ADFS. Give the provider this server's metadata, which is the webmail's base address followed by /saml/metadata. SAML is off until the provider's entity ID, sign-in address and certificate are all set." xml:space="preserve">
     <value>SAML ID プロバイダー (Entra ID、Okta、ADFS) で利用者をサインインさせます。プロバイダーには、このサーバーのメタデータ (ウェブメールのベース アドレスに /saml/metadata を付けたもの) を渡します。エンティティ ID、サインイン アドレス、プロバイダーの証明書の 3 つがすべて設定されるまで SAML はオフです。</value>

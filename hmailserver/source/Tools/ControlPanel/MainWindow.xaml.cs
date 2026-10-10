@@ -1064,17 +1064,11 @@ namespace hMailServer.ControlPanel
          if (!VerifyTwoFactor())
          {
             // Two-factor verification failed or was cancelled: drop the session
-            // and return to the connect screen instead of revealing the UI.
-            connected_ = false;
-            EndTour(record: false);
-            history_.Clear();
-            NavTree.IsEnabled = false;
-            NavRail.IsEnabled = false;
-            SearchButton.IsEnabled = false;
-            BreadcrumbBar.Visibility = Visibility.Collapsed;
-            ShowLinkState_(LinkState.NotConnected);
-            currentPage_ = null;
-            ContentHost.Content = new ConnectView(OnConnected);
+            // and return to the connect screen instead of revealing the UI - the
+            // way Sign out goes, the session ended with it, where it stayed the
+            // current one, signed in on its password.
+            ServerSession refused = ServerSession.Current;
+            ShowSignIn_(refused?.Host, refused?.UserName, focusServer: false);
             return;
          }
 
@@ -1160,6 +1154,7 @@ namespace hMailServer.ControlPanel
       /// </summary>
       private void ShowLinkState_(LinkState state)
       {
+         linkState_ = state;
          ServerSession session = ServerSession.Current;
          string host = state == LinkState.NotConnected ? null : session?.Host;
          string user = state == LinkState.NotConnected ? null : session?.UserName;
@@ -2041,6 +2036,17 @@ namespace hMailServer.ControlPanel
          ServerSession session = ServerSession.Current;
          if (connected_ && session != null)
          {
+            // With the link gone and not coming back by itself, the way back first
+            // (review finding F012): the sign-in page, on this server and account.
+            if (linkState_ == LinkState.Lost)
+            {
+               var again = new MenuItem { Header = L("Sign in again") };
+               System.Windows.Automation.AutomationProperties.SetAutomationId(again, "admin-sign-in-again");
+               again.Click += (s, args) => SignOut_(anotherServer: false);
+               menu.Items.Add(again);
+               menu.Items.Add(new Separator());
+            }
+
             menu.Items.Add(new MenuItem
             {
                Header = F("Connected to {0} as {1}", session.Host, session.UserName),
@@ -2081,9 +2087,92 @@ namespace hMailServer.ControlPanel
             var about = new MenuItem { Header = L(NavigationMap.TitleOf("about")) };
             about.Click += (s, args) => NavigateTo("about");
             menu.Items.Add(about);
+
+            // Ending the session, or starting one on another server, without
+            // closing the program (review finding F012): the sign-in page came
+            // back only after a refused second factor.
+            menu.Items.Add(new Separator());
+            var other = new MenuItem { Header = L("Connect to another server…") };
+            System.Windows.Automation.AutomationProperties.SetAutomationId(other, "admin-connect-other");
+            other.Click += (s, args) => SignOut_(anotherServer: true);
+            menu.Items.Add(other);
+            var signOut = new MenuItem { Header = L("Sign out") };
+            System.Windows.Automation.AutomationProperties.SetAutomationId(signOut, "admin-sign-out");
+            signOut.Click += (s, args) => SignOut_(anotherServer: false);
+            menu.Items.Add(signOut);
          }
 
          menu.IsOpen = true;
+      }
+
+      // The link's state as the pill last showed it: the administrator's menu offers
+      // Sign in again while it is Lost.
+      private LinkState linkState_ = LinkState.NotConnected;
+
+      /// <summary>
+      /// Sign out, Connect to another server and Sign in again: the page's unsaved
+      /// changes asked about first, as every way off a page asks, then the session
+      /// ended and the sign-in page shown - on the same server and account, the
+      /// keyboard in the password, or with the server's box chosen to type another.
+      /// </summary>
+      private void SignOut_(bool anotherServer)
+      {
+         if (!MayLeaveCurrentPage_())
+            return;
+
+         ServerSession session = ServerSession.Current;
+         ShowSignIn_(session?.Host, session?.UserName, focusServer: anotherServer);
+      }
+
+      /// <summary>
+      /// The window as it is before sign-in, from a session: any tour ended, the
+      /// page on screen left and every page built for the session let go - another
+      /// sign-in may be another account or another server, and a page is built for
+      /// what its credential may do - the history cleared, the navigation, the search
+      /// and the help put away, the breadcrumb and the pending bar hidden, the session
+      /// ended and no longer the current one, and the sign-in page shown with the
+      /// server and the account it was on.
+      /// </summary>
+      private void ShowSignIn_(string host, string userName, bool focusServer)
+      {
+         connected_ = false;
+         EndTour(record: false);
+
+         if (ContentHost.Content is IPageLifecycle page)
+         {
+            try
+            {
+               page.OnLeave();
+            }
+            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+            {
+               // Leaving a page must never block signing out.
+            }
+         }
+
+         pageCache_.Clear();
+         history_.Clear();
+         NavTree.IsEnabled = false;
+         NavRail.IsEnabled = false;
+         SearchButton.IsEnabled = false;
+         HelpButton.IsEnabled = false;
+         if (helpOpen_)
+         {
+            // Put away, and open again at the next sign-in as it was left.
+            bool wanted = helpWanted_;
+            CloseHelp_();
+            helpWanted_ = wanted;
+            SaveHelpPreference_();
+         }
+         BreadcrumbBar.Visibility = Visibility.Collapsed;
+         HidePendingBar_();
+         currentPage_ = null;
+         VersionText.Text = "";
+
+         ServerSession.Current?.SignOut();
+         ServerSession.SetCurrent(null);
+         ShowLinkState_(LinkState.NotConnected);
+         ContentHost.Content = new ConnectView(OnConnected, host, userName, focusServer);
       }
 
       private void Theme_Click(object sender, RoutedEventArgs e)

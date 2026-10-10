@@ -2740,6 +2740,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Confirmed: {0}. A password-reset link can be sent there." xml:space="preserve">
     <value>Bevestigd: {0}. Er kan een herstelkoppeling naartoe worden gestuurd.</value>
   </data>
+  <data name="Connect to another server…" xml:space="preserve">
+    <value>Verbinden met een andere server…</value>
+  </data>
   <data name="Connect to server" xml:space="preserve">
     <value>Verbinden met server</value>
   </data>
@@ -2790,6 +2793,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Connection succeeded." xml:space="preserve">
     <value>Verbinding geslaagd.</value>
+  </data>
+  <data name="Connection to {0} lost - the Control Panel tries again on your next action; nothing can be saved until it is back" xml:space="preserve">
+    <value>Verbinding met {0} verbroken - het Control Panel probeert het opnieuw bij uw volgende actie; niets kan worden opgeslagen tot ze terug is</value>
   </data>
   <data name="Connections" xml:space="preserve">
     <value>Verbindingen</value>
@@ -9067,6 +9073,9 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   <data name="Reconnected to {0} after the service restarted." xml:space="preserve">
     <value>Opnieuw verbonden met {0} nadat de service opnieuw was gestart.</value>
   </data>
+  <data name="Reconnecting to {0} - what is on screen may be out of date" xml:space="preserve">
+    <value>Opnieuw verbinden met {0} - wat op het scherm staat, is mogelijk verouderd</value>
+  </data>
   <data name="Reconnecting…" xml:space="preserve">
     <value>Opnieuw verbinden…</value>
   </data>
@@ -11005,6 +11014,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Sign aliases _too" xml:space="preserve">
     <value>Ook aliassen onder_tekenen</value>
   </data>
+  <data name="Sign in again" xml:space="preserve">
+    <value>Opnieuw aanmelden</value>
+  </data>
   <data name="Sign in to a server first." xml:space="preserve">
     <value>Meld u eerst aan bij een server.</value>
   </data>
@@ -11013,6 +11025,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
     <value>Meld u aan met het hMailServer-serverbeheerdersaccount om deze instellingen te bekijken of te wijzigen. ({0})</value>
+  </data>
+  <data name="Sign out" xml:space="preserve">
+    <value>Afmelden</value>
   </data>
   <data name="Sign people in with a SAML identity provider - Entra ID, Okta, ADFS. Give the provider this server's metadata, which is the webmail's base address followed by /saml/metadata. SAML is off until the provider's entity ID, sign-in address and certificate are all set." xml:space="preserve">
     <value>Mensen aanmelden met een SAML-identiteitsprovider - Entra ID, Okta, ADFS. Geef de provider de metadata van deze server: het basisadres van de webmail gevolgd door /saml/metadata. SAML staat uit totdat de entiteits-ID, het aanmeldadres en het certificaat van de provider allemaal zijn ingesteld.</value>

@@ -2740,6 +2740,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Confirmed: {0}. A password-reset link can be sent there." xml:space="preserve">
     <value>Confirmed: {0}. A password-reset link can be sent there.</value>
   </data>
+  <data name="Connect to another server…" xml:space="preserve">
+    <value>Connect to another server…</value>
+  </data>
   <data name="Connect to server" xml:space="preserve">
     <value>Connect to server</value>
   </data>
@@ -2790,6 +2793,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   </data>
   <data name="Connection succeeded." xml:space="preserve">
     <value>Connection succeeded.</value>
+  </data>
+  <data name="Connection to {0} lost - the Control Panel tries again on your next action; nothing can be saved until it is back" xml:space="preserve">
+    <value>Connection to {0} lost - the Control Panel tries again on your next action; nothing can be saved until it is back</value>
   </data>
   <data name="Connections" xml:space="preserve">
     <value>Connections</value>
@@ -9067,6 +9073,9 @@ Run this if clients report messages appearing under the wrong UID, or after rest
   <data name="Reconnected to {0} after the service restarted." xml:space="preserve">
     <value>Reconnected to {0} after the service restarted.</value>
   </data>
+  <data name="Reconnecting to {0} - what is on screen may be out of date" xml:space="preserve">
+    <value>Reconnecting to {0} - what is on screen may be out of date</value>
+  </data>
   <data name="Reconnecting…" xml:space="preserve">
     <value>Reconnecting…</value>
   </data>
@@ -11005,6 +11014,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Sign aliases _too" xml:space="preserve">
     <value>Sign aliases _too</value>
   </data>
+  <data name="Sign in again" xml:space="preserve">
+    <value>Sign in again</value>
+  </data>
   <data name="Sign in to a server first." xml:space="preserve">
     <value>Sign in to a server first.</value>
   </data>
@@ -11013,6 +11025,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   </data>
   <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
     <value>Sign in with the hMailServer server-administrator account to view or change these settings. ({0})</value>
+  </data>
+  <data name="Sign out" xml:space="preserve">
+    <value>Sign out</value>
   </data>
   <data name="Sign people in with a SAML identity provider - Entra ID, Okta, ADFS. Give the provider this server's metadata, which is the webmail's base address followed by /saml/metadata. SAML is off until the provider's entity ID, sign-in address and certificate are all set." xml:space="preserve">
     <value>Sign people in with a SAML identity provider - Entra ID, Okta, ADFS. Give the provider this server's metadata, which is the webmail's base address followed by /saml/metadata. SAML is off until the provider's entity ID, sign-in address and certificate are all set.</value>

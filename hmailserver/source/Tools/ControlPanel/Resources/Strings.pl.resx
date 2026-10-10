@@ -2764,6 +2764,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Confirmed: {0}. A password-reset link can be sent there." xml:space="preserve">
     <value>Potwierdzony: {0}. Można tam wysłać odnośnik resetujący.</value>
   </data>
+  <data name="Connect to another server…" xml:space="preserve">
+    <value>Połącz z innym serwerem…</value>
+  </data>
   <data name="Connect to server" xml:space="preserve">
     <value>Połącz z serwerem</value>
   </data>
@@ -2814,6 +2817,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   </data>
   <data name="Connection succeeded." xml:space="preserve">
     <value>Połączenie powiodło się.</value>
+  </data>
+  <data name="Connection to {0} lost - the Control Panel tries again on your next action; nothing can be saved until it is back" xml:space="preserve">
+    <value>Utracono połączenie z {0} - Control Panel spróbuje ponownie przy Twojej następnej czynności; dopóki nie wróci, nic nie można zapisać</value>
   </data>
   <data name="Connections" xml:space="preserve">
     <value>Połączenia</value>
@@ -9155,6 +9161,9 @@ Warto to uruchomić, gdy klienty zgłaszają wiadomości pojawiające się pod n
   <data name="Reconnected to {0} after the service restarted." xml:space="preserve">
     <value>Ponownie połączono z {0} po ponownym uruchomieniu usługi.</value>
   </data>
+  <data name="Reconnecting to {0} - what is on screen may be out of date" xml:space="preserve">
+    <value>Ponowne łączenie z {0} - to, co widać na ekranie, może być nieaktualne</value>
+  </data>
   <data name="Reconnecting…" xml:space="preserve">
     <value>Ponowne łączenie…</value>
   </data>
@@ -11132,6 +11141,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Sign aliases _too" xml:space="preserve">
     <value>Podpisuj _także aliasy</value>
   </data>
+  <data name="Sign in again" xml:space="preserve">
+    <value>Zaloguj się ponownie</value>
+  </data>
   <data name="Sign in to a server first." xml:space="preserve">
     <value>Najpierw zaloguj się do serwera.</value>
   </data>
@@ -11140,6 +11152,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
     <value>Aby wyświetlić lub zmienić te ustawienia, zaloguj się przy użyciu konta administratora serwera hMailServer. ({0})</value>
+  </data>
+  <data name="Sign out" xml:space="preserve">
+    <value>Wyloguj się</value>
   </data>
   <data name="Sign people in with a SAML identity provider - Entra ID, Okta, ADFS. Give the provider this server's metadata, which is the webmail's base address followed by /saml/metadata. SAML is off until the provider's entity ID, sign-in address and certificate are all set." xml:space="preserve">
     <value>Loguj ludzi przez dostawcę tożsamości SAML - Entra ID, Okta, ADFS. Przekaż dostawcy metadane tego serwera, czyli adres bazowy poczty w przeglądarce, po którym następuje /saml/metadata. SAML jest wyłączony, dopóki identyfikator jednostki, adres logowania i certyfikat dostawcy nie są wszystkie ustawione.</value>

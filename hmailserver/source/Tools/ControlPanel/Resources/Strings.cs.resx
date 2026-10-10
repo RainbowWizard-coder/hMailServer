@@ -2764,6 +2764,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Confirmed: {0}. A password-reset link can be sent there." xml:space="preserve">
     <value>Potvrzeno: {0}. Odkaz pro obnovu hesla tam lze poslat.</value>
   </data>
+  <data name="Connect to another server…" xml:space="preserve">
+    <value>Připojit se k jinému serveru…</value>
+  </data>
   <data name="Connect to server" xml:space="preserve">
     <value>Připojit k serveru</value>
   </data>
@@ -2814,6 +2817,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Connection succeeded." xml:space="preserve">
     <value>Připojení se zdařilo.</value>
+  </data>
+  <data name="Connection to {0} lost - the Control Panel tries again on your next action; nothing can be saved until it is back" xml:space="preserve">
+    <value>Připojení k {0} ztraceno - Control Panel to zkusí znovu při vaší další akci; dokud se nevrátí, nelze nic uložit</value>
   </data>
   <data name="Connections" xml:space="preserve">
     <value>Připojení</value>
@@ -9155,6 +9161,9 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
   <data name="Reconnected to {0} after the service restarted." xml:space="preserve">
     <value>Po restartu služby znovu připojeno k {0}.</value>
   </data>
+  <data name="Reconnecting to {0} - what is on screen may be out of date" xml:space="preserve">
+    <value>Znovu se připojuje k {0} - co je na obrazovce, nemusí být aktuální</value>
+  </data>
   <data name="Reconnecting…" xml:space="preserve">
     <value>Znovu se připojuje…</value>
   </data>
@@ -11132,6 +11141,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Sign aliases _too" xml:space="preserve">
     <value>Podepisovat _také aliasy</value>
   </data>
+  <data name="Sign in again" xml:space="preserve">
+    <value>Znovu se přihlásit</value>
+  </data>
   <data name="Sign in to a server first." xml:space="preserve">
     <value>Nejprve se přihlaste k serveru.</value>
   </data>
@@ -11140,6 +11152,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
     <value>Pro zobrazení nebo změnu těchto nastavení se přihlaste účtem správce serveru hMailServer. ({0})</value>
+  </data>
+  <data name="Sign out" xml:space="preserve">
+    <value>Odhlásit se</value>
   </data>
   <data name="Sign people in with a SAML identity provider - Entra ID, Okta, ADFS. Give the provider this server's metadata, which is the webmail's base address followed by /saml/metadata. SAML is off until the provider's entity ID, sign-in address and certificate are all set." xml:space="preserve">
     <value>Přihlašovat lidi přes poskytovatele identity SAML - Entra ID, Okta, ADFS. Dejte poskytovateli metadata tohoto serveru, tedy základní adresu webové pošty, za níž následuje /saml/metadata. SAML je vypnuté, dokud nejsou ID entity, přihlašovací adresa a certifikát poskytovatele všechny nastavené.</value>

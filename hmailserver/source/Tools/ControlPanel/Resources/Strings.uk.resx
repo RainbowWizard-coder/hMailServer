@@ -2764,6 +2764,9 @@
   <data name="Confirmed: {0}. A password-reset link can be sent there." xml:space="preserve">
     <value>Підтверджено: {0}. Посилання для скидання пароля можна надіслати туди.</value>
   </data>
+  <data name="Connect to another server…" xml:space="preserve">
+    <value>Під'єднатися до іншого сервера…</value>
+  </data>
   <data name="Connect to server" xml:space="preserve">
     <value>Підключитися до сервера</value>
   </data>
@@ -2814,6 +2817,9 @@
   </data>
   <data name="Connection succeeded." xml:space="preserve">
     <value>Підключення успішне.</value>
+  </data>
+  <data name="Connection to {0} lost - the Control Panel tries again on your next action; nothing can be saved until it is back" xml:space="preserve">
+    <value>З'єднання з {0} втрачено - Панель керування спробує знову під час вашої наступної дії; доки його не відновлено, нічого не можна зберегти</value>
   </data>
   <data name="Connections" xml:space="preserve">
     <value>Підключення</value>
@@ -9155,6 +9161,9 @@
   <data name="Reconnected to {0} after the service restarted." xml:space="preserve">
     <value>Повторно підключено до {0} після перезапуску служби.</value>
   </data>
+  <data name="Reconnecting to {0} - what is on screen may be out of date" xml:space="preserve">
+    <value>Повторне підключення до {0} - те, що на екрані, може бути застарілим</value>
+  </data>
   <data name="Reconnecting…" xml:space="preserve">
     <value>Повторне підключення…</value>
   </data>
@@ -11132,6 +11141,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Sign aliases _too" xml:space="preserve">
     <value>Підписувати _також псевдоніми</value>
   </data>
+  <data name="Sign in again" xml:space="preserve">
+    <value>Увійти знову</value>
+  </data>
   <data name="Sign in to a server first." xml:space="preserve">
     <value>Спершу увійдіть на сервер.</value>
   </data>
@@ -11140,6 +11152,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
     <value>Щоб переглядати або змінювати ці параметри, увійдіть з обліковим записом адміністратора сервера hMailServer. ({0})</value>
+  </data>
+  <data name="Sign out" xml:space="preserve">
+    <value>Вийти</value>
   </data>
   <data name="Sign people in with a SAML identity provider - Entra ID, Okta, ADFS. Give the provider this server's metadata, which is the webmail's base address followed by /saml/metadata. SAML is off until the provider's entity ID, sign-in address and certificate are all set." xml:space="preserve">
     <value>Виконувати вхід людей через постачальника ідентичності SAML — Entra ID, Okta, ADFS. Передайте постачальникові метадані цього сервера — це базова адреса вебпошти, за якою йде /saml/metadata. SAML вимкнено, доки не задано всі три: ідентифікатор сутності, адресу входу й сертифікат постачальника.</value>

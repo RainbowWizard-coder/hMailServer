@@ -2740,6 +2740,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Confirmed: {0}. A password-reset link can be sent there." xml:space="preserve">
     <value>Bekräftad: {0}. En återställningslänk kan skickas dit.</value>
   </data>
+  <data name="Connect to another server…" xml:space="preserve">
+    <value>Anslut till en annan server…</value>
+  </data>
   <data name="Connect to server" xml:space="preserve">
     <value>Anslut till server</value>
   </data>
@@ -2790,6 +2793,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Connection succeeded." xml:space="preserve">
     <value>Anslutningen lyckades.</value>
+  </data>
+  <data name="Connection to {0} lost - the Control Panel tries again on your next action; nothing can be saved until it is back" xml:space="preserve">
+    <value>Anslutningen till {0} bröts - Kontrollpanel försöker igen vid din nästa åtgärd; inget kan sparas förrän den är tillbaka</value>
   </data>
   <data name="Connections" xml:space="preserve">
     <value>Anslutningar</value>
@@ -9067,6 +9073,9 @@ Kör detta om klienter rapporterar meddelanden som dyker upp under fel UID, elle
   <data name="Reconnected to {0} after the service restarted." xml:space="preserve">
     <value>Återansluten till {0} efter att tjänsten startade om.</value>
   </data>
+  <data name="Reconnecting to {0} - what is on screen may be out of date" xml:space="preserve">
+    <value>Ansluter igen till {0} - det som visas kan vara inaktuellt</value>
+  </data>
   <data name="Reconnecting…" xml:space="preserve">
     <value>Ansluter igen…</value>
   </data>
@@ -11005,6 +11014,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Sign aliases _too" xml:space="preserve">
     <value>Signera även al_ias</value>
   </data>
+  <data name="Sign in again" xml:space="preserve">
+    <value>Logga in igen</value>
+  </data>
   <data name="Sign in to a server first." xml:space="preserve">
     <value>Logga in på en server först.</value>
   </data>
@@ -11013,6 +11025,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
     <value>Logga in med hMailServers serveradministratörskonto för att se eller ändra de här inställningarna. ({0})</value>
+  </data>
+  <data name="Sign out" xml:space="preserve">
+    <value>Logga ut</value>
   </data>
   <data name="Sign people in with a SAML identity provider - Entra ID, Okta, ADFS. Give the provider this server's metadata, which is the webmail's base address followed by /saml/metadata. SAML is off until the provider's entity ID, sign-in address and certificate are all set." xml:space="preserve">
     <value>Logga in folk med en SAML-identitetsleverantör - Entra ID, Okta, ADFS. Ge leverantören serverns metadata, som är webbmejlens basadress följd av /saml/metadata. SAML är av tills leverantörens entitets-ID, inloggningsadress och certifikat alla är angivna.</value>

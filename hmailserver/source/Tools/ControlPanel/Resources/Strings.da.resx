@@ -2740,6 +2740,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Confirmed: {0}. A password-reset link can be sent there." xml:space="preserve">
     <value>Bekræftet: {0}. Et nulstillingslink kan sendes dertil.</value>
   </data>
+  <data name="Connect to another server…" xml:space="preserve">
+    <value>Opret forbindelse til en anden server…</value>
+  </data>
   <data name="Connect to server" xml:space="preserve">
     <value>Forbind til server</value>
   </data>
@@ -2790,6 +2793,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   </data>
   <data name="Connection succeeded." xml:space="preserve">
     <value>Forbindelsen lykkedes.</value>
+  </data>
+  <data name="Connection to {0} lost - the Control Panel tries again on your next action; nothing can be saved until it is back" xml:space="preserve">
+    <value>Forbindelsen til {0} er mistet - Control Panel prøver igen ved din næste handling; intet kan gemmes, før den er tilbage</value>
   </data>
   <data name="Connections" xml:space="preserve">
     <value>Forbindelser</value>
@@ -9067,6 +9073,9 @@ Kør dette, hvis klienter melder om meddelelser, der dukker op under det forkert
   <data name="Reconnected to {0} after the service restarted." xml:space="preserve">
     <value>Forbundet igen til {0}, efter at tjenesten genstartede.</value>
   </data>
+  <data name="Reconnecting to {0} - what is on screen may be out of date" xml:space="preserve">
+    <value>Forbinder igen til {0} - det, der vises, kan være forældet</value>
+  </data>
   <data name="Reconnecting…" xml:space="preserve">
     <value>Forbinder igen…</value>
   </data>
@@ -11005,6 +11014,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="Sign aliases _too" xml:space="preserve">
     <value>Signér _også aliasser</value>
   </data>
+  <data name="Sign in again" xml:space="preserve">
+    <value>Log på igen</value>
+  </data>
   <data name="Sign in to a server first." xml:space="preserve">
     <value>Log først på en server.</value>
   </data>
@@ -11013,6 +11025,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   </data>
   <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
     <value>Log på med hMailServers serveradministratorkonto for at se eller ændre disse indstillinger. ({0})</value>
+  </data>
+  <data name="Sign out" xml:space="preserve">
+    <value>Log af</value>
   </data>
   <data name="Sign people in with a SAML identity provider - Entra ID, Okta, ADFS. Give the provider this server's metadata, which is the webmail's base address followed by /saml/metadata. SAML is off until the provider's entity ID, sign-in address and certificate are all set." xml:space="preserve">
     <value>Log folk på med en SAML-identitetsudbyder - Entra ID, Okta, ADFS. Giv udbyderen serverens metadata, som er webmailens basisadresse efterfulgt af /saml/metadata. SAML er slået fra, indtil udbyderens entitets-id, logonadresse og certifikat alle er angivet.</value>

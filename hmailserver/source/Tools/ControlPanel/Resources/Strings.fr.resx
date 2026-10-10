@@ -2740,6 +2740,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Confirmed: {0}. A password-reset link can be sent there." xml:space="preserve">
     <value>Confirmée : {0}. Un lien de réinitialisation peut y être envoyé.</value>
   </data>
+  <data name="Connect to another server…" xml:space="preserve">
+    <value>Se connecter à un autre serveur…</value>
+  </data>
   <data name="Connect to server" xml:space="preserve">
     <value>Se connecter au serveur</value>
   </data>
@@ -2790,6 +2793,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   </data>
   <data name="Connection succeeded." xml:space="preserve">
     <value>Connexion réussie.</value>
+  </data>
+  <data name="Connection to {0} lost - the Control Panel tries again on your next action; nothing can be saved until it is back" xml:space="preserve">
+    <value>Connexion à {0} perdue - le Control Panel réessaie à votre prochaine action ; rien ne peut être enregistré avant son retour</value>
   </data>
   <data name="Connections" xml:space="preserve">
     <value>Connexions</value>
@@ -9067,6 +9073,9 @@ Exécutez ceci si des clients signalent des messages apparaissant sous le mauvai
   <data name="Reconnected to {0} after the service restarted." xml:space="preserve">
     <value>Reconnecté à {0} après le redémarrage du service.</value>
   </data>
+  <data name="Reconnecting to {0} - what is on screen may be out of date" xml:space="preserve">
+    <value>Reconnexion à {0} - ce qui est affiché n'est peut-être plus à jour</value>
+  </data>
   <data name="Reconnecting…" xml:space="preserve">
     <value>Reconnexion…</value>
   </data>
@@ -11005,6 +11014,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Sign aliases _too" xml:space="preserve">
     <value>_Signer aussi les alias</value>
   </data>
+  <data name="Sign in again" xml:space="preserve">
+    <value>Se reconnecter</value>
+  </data>
   <data name="Sign in to a server first." xml:space="preserve">
     <value>Connectez-vous d'abord à un serveur.</value>
   </data>
@@ -11013,6 +11025,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   </data>
   <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
     <value>Connectez-vous avec le compte d'administrateur du serveur hMailServer pour voir ou modifier ces réglages. ({0})</value>
+  </data>
+  <data name="Sign out" xml:space="preserve">
+    <value>Se déconnecter</value>
   </data>
   <data name="Sign people in with a SAML identity provider - Entra ID, Okta, ADFS. Give the provider this server's metadata, which is the webmail's base address followed by /saml/metadata. SAML is off until the provider's entity ID, sign-in address and certificate are all set." xml:space="preserve">
     <value>Connecter les utilisateurs avec un fournisseur d'identité SAML - Entra ID, Okta, ADFS. Donnez au fournisseur les métadonnées de ce serveur, à savoir l'adresse de base du webmail suivie de /saml/metadata. SAML reste désactivé tant que l'ID d'entité, l'adresse de connexion et le certificat du fournisseur ne sont pas tous définis.</value>

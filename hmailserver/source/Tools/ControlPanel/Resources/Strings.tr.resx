@@ -2740,6 +2740,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Confirmed: {0}. A password-reset link can be sent there." xml:space="preserve">
     <value>Doğrulandı: {0}. Oraya bir parola sıfırlama bağlantısı gönderilebilir.</value>
   </data>
+  <data name="Connect to another server…" xml:space="preserve">
+    <value>Başka bir sunucuya bağlan…</value>
+  </data>
   <data name="Connect to server" xml:space="preserve">
     <value>Sunucuya bağlan</value>
   </data>
@@ -2790,6 +2793,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Connection succeeded." xml:space="preserve">
     <value>Bağlantı başarılı.</value>
+  </data>
+  <data name="Connection to {0} lost - the Control Panel tries again on your next action; nothing can be saved until it is back" xml:space="preserve">
+    <value>{0} sunucusuyla bağlantı kesildi - Denetim Masası sonraki işleminizde yeniden dener; bağlantı dönene kadar hiçbir şey kaydedilemez</value>
   </data>
   <data name="Connections" xml:space="preserve">
     <value>Bağlantılar</value>
@@ -9067,6 +9073,9 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   <data name="Reconnected to {0} after the service restarted." xml:space="preserve">
     <value>Hizmet yeniden başlatıldıktan sonra {0} sunucusuna yeniden bağlanıldı.</value>
   </data>
+  <data name="Reconnecting to {0} - what is on screen may be out of date" xml:space="preserve">
+    <value>{0} sunucusuna yeniden bağlanılıyor - ekrandakiler güncel olmayabilir</value>
+  </data>
   <data name="Reconnecting…" xml:space="preserve">
     <value>Yeniden bağlanıyor…</value>
   </data>
@@ -11005,6 +11014,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Sign aliases _too" xml:space="preserve">
     <value>Diğer _adları da imzala</value>
   </data>
+  <data name="Sign in again" xml:space="preserve">
+    <value>Yeniden oturum aç</value>
+  </data>
   <data name="Sign in to a server first." xml:space="preserve">
     <value>Önce bir sunucuda oturum açın.</value>
   </data>
@@ -11013,6 +11025,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
     <value>Bu ayarları görüntülemek ya da değiştirmek için hMailServer sunucu yöneticisi hesabıyla oturum açın. ({0})</value>
+  </data>
+  <data name="Sign out" xml:space="preserve">
+    <value>Oturumu kapat</value>
   </data>
   <data name="Sign people in with a SAML identity provider - Entra ID, Okta, ADFS. Give the provider this server's metadata, which is the webmail's base address followed by /saml/metadata. SAML is off until the provider's entity ID, sign-in address and certificate are all set." xml:space="preserve">
     <value>Kişilerin bir SAML kimlik sağlayıcısıyla - Entra ID, Okta, ADFS - oturum açmasını sağlayın. Sağlayıcıya bu sunucunun meta verisini verin: web postasının taban adresine /saml/metadata eklenmiş hali. Üçü de - varlık kimliği, oturum açma adresi ve sağlayıcının sertifikası - ayarlanana kadar SAML kapalıdır.</value>

@@ -16,8 +16,27 @@ namespace hMailServer.ControlPanel.Views
       private readonly Action onConnected_;
       private bool connecting_;
 
+      // Where the keyboard goes as the page opens: the password, or - for Connect
+      // to another server - the server's box, its text chosen to be typed over.
+      private bool focusServer_;
+
       public ConnectView(Action onConnected) : this(onConnected, null, StatusLevel.Normal)
       {
+      }
+
+      /// <summary>
+      /// The sign-in page after a session ended (review finding F012): Sign out and
+      /// Sign in again come back to the server and the account that were signed in,
+      /// the keyboard in the password; Connect to another server to the server's
+      /// box, ready to type another.
+      /// </summary>
+      public ConnectView(Action onConnected, string host, string userName, bool focusServer) : this(onConnected)
+      {
+         if (!string.IsNullOrEmpty(host))
+            HostBox.Text = host;
+         if (!string.IsNullOrEmpty(userName))
+            UserBox.Text = userName;
+         focusServer_ = focusServer;
       }
 
       /// <summary>
@@ -37,7 +56,17 @@ namespace hMailServer.ControlPanel.Views
             ErrorNotice.Visibility = Visibility.Visible;
          }
 
-         Loaded += (s, e) => PasswordBox.Focus();
+         Loaded += (s, e) =>
+         {
+            if (!focusServer_)
+            {
+               PasswordBox.Focus();
+               return;
+            }
+
+            HostBox.Focus();
+            HostBox.SelectAll();
+         };
          KeyDown += (s, e) =>
          {
             if (e.Key == System.Windows.Input.Key.Enter)

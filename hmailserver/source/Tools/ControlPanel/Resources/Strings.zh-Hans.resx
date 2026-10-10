@@ -2740,6 +2740,9 @@
   <data name="Confirmed: {0}. A password-reset link can be sent there." xml:space="preserve">
     <value>已确认：{0}。可以把密码重置链接发送到那里。</value>
   </data>
+  <data name="Connect to another server…" xml:space="preserve">
+    <value>连接到其他服务器…</value>
+  </data>
   <data name="Connect to server" xml:space="preserve">
     <value>连接到服务器</value>
   </data>
@@ -2790,6 +2793,9 @@
   </data>
   <data name="Connection succeeded." xml:space="preserve">
     <value>连接成功。</value>
+  </data>
+  <data name="Connection to {0} lost - the Control Panel tries again on your next action; nothing can be saved until it is back" xml:space="preserve">
+    <value>与 {0} 的连接已断开 - 控制面板会在您下一次操作时重试；在连接恢复之前无法保存任何内容</value>
   </data>
   <data name="Connections" xml:space="preserve">
     <value>连接</value>
@@ -9067,6 +9073,9 @@
   <data name="Reconnected to {0} after the service restarted." xml:space="preserve">
     <value>服务重启后已重新连接到 {0}。</value>
   </data>
+  <data name="Reconnecting to {0} - what is on screen may be out of date" xml:space="preserve">
+    <value>正在重新连接到 {0} - 屏幕上的内容可能已过时</value>
+  </data>
   <data name="Reconnecting…" xml:space="preserve">
     <value>正在重新连接…</value>
   </data>
@@ -11005,6 +11014,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Sign aliases _too" xml:space="preserve">
     <value>也为别名签名(_T)</value>
   </data>
+  <data name="Sign in again" xml:space="preserve">
+    <value>重新登录</value>
+  </data>
   <data name="Sign in to a server first." xml:space="preserve">
     <value>请先登录到服务器。</value>
   </data>
@@ -11013,6 +11025,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
     <value>要查看或更改这些设置，请使用 hMailServer 服务器管理员账户登录。({0})</value>
+  </data>
+  <data name="Sign out" xml:space="preserve">
+    <value>注销</value>
   </data>
   <data name="Sign people in with a SAML identity provider - Entra ID, Okta, ADFS. Give the provider this server's metadata, which is the webmail's base address followed by /saml/metadata. SAML is off until the provider's entity ID, sign-in address and certificate are all set." xml:space="preserve">
     <value>通过 SAML 身份提供商（Entra ID、Okta、ADFS）让用户登录。把本服务器的元数据（网页邮箱的基础地址加上 /saml/metadata）提供给提供商。在实体 ID、登录地址和提供商的证书这三项都设置之前，SAML 处于关闭状态。</value>

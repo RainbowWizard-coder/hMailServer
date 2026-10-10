@@ -2740,6 +2740,9 @@ Los detalles completos se escribieron en:
   <data name="Confirmed: {0}. A password-reset link can be sent there." xml:space="preserve">
     <value>Confirmada: {0}. Se puede enviar allí un enlace de restablecimiento.</value>
   </data>
+  <data name="Connect to another server…" xml:space="preserve">
+    <value>Conectar con otro servidor…</value>
+  </data>
   <data name="Connect to server" xml:space="preserve">
     <value>Conectar al servidor</value>
   </data>
@@ -2790,6 +2793,9 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Connection succeeded." xml:space="preserve">
     <value>Conexión correcta.</value>
+  </data>
+  <data name="Connection to {0} lost - the Control Panel tries again on your next action; nothing can be saved until it is back" xml:space="preserve">
+    <value>Conexión con {0} perdida - el Control Panel lo vuelve a intentar en su próxima acción; no se puede guardar nada hasta que vuelva</value>
   </data>
   <data name="Connections" xml:space="preserve">
     <value>Conexiones</value>
@@ -9067,6 +9073,9 @@ Ejecute esto si los clientes informan de mensajes que aparecen con un UID equivo
   <data name="Reconnected to {0} after the service restarted." xml:space="preserve">
     <value>Reconectado a {0} tras reiniciarse el servicio.</value>
   </data>
+  <data name="Reconnecting to {0} - what is on screen may be out of date" xml:space="preserve">
+    <value>Reconectando con {0} - lo que hay en pantalla puede estar desactualizado</value>
+  </data>
   <data name="Reconnecting…" xml:space="preserve">
     <value>Reconectando…</value>
   </data>
@@ -11005,6 +11014,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Sign aliases _too" xml:space="preserve">
     <value>Firmar _también los alias</value>
   </data>
+  <data name="Sign in again" xml:space="preserve">
+    <value>Iniciar sesión de nuevo</value>
+  </data>
   <data name="Sign in to a server first." xml:space="preserve">
     <value>Inicie sesión primero en un servidor.</value>
   </data>
@@ -11013,6 +11025,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
     <value>Inicie sesión con la cuenta de administrador del servidor hMailServer para ver o cambiar estos ajustes. ({0})</value>
+  </data>
+  <data name="Sign out" xml:space="preserve">
+    <value>Cerrar sesión</value>
   </data>
   <data name="Sign people in with a SAML identity provider - Entra ID, Okta, ADFS. Give the provider this server's metadata, which is the webmail's base address followed by /saml/metadata. SAML is off until the provider's entity ID, sign-in address and certificate are all set." xml:space="preserve">
     <value>Iniciar la sesión de la gente con un proveedor de identidad SAML - Entra ID, Okta, ADFS. Dé al proveedor los metadatos de este servidor, que son la dirección base del webmail seguida de /saml/metadata. SAML está desactivado hasta que el ID de entidad, la dirección de inicio de sesión y el certificado del proveedor estén definidos.</value>

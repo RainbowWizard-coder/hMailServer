@@ -483,6 +483,36 @@ namespace hMailServer.ControlPanel.Services
 
       public bool Reconnect(out string error) => Reconnect(1, TimeSpan.Zero, out error);
 
+      /// <summary>
+      /// Ends the session: lets go of the server's object and forgets the
+      /// password, so that nothing still holding the session - a page left open, the
+      /// REST client - can use the credential again, and no heal opens the link
+      /// again. The shell's Sign out, Connect to another server and Sign in again,
+      /// and a second factor refused after the password was accepted (review finding
+      /// F012). After it, <see cref="Application"/> is null.
+      /// </summary>
+      public void SignOut()
+      {
+         lock (gate_)
+         {
+            dynamic app = app_;
+            app_ = null;
+            linkBroken_ = false;
+            password_?.Dispose();
+            password_ = null;
+
+            try
+            {
+               Release((object)app);
+            }
+            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+            {
+               // A proxy whose server has gone can throw as it is let go; the
+               // session has still ended.
+            }
+         }
+      }
+
       /// <summary>Marks the link as gone, so the next use of
       /// <see cref="Application"/> reconnects instead of failing.</summary>
       public void Invalidate()

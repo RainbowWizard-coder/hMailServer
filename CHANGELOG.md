@@ -2615,6 +2615,22 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `DashboardAttentionTests` holds the arithmetic, the order, the card's level and the buttons, and
   `StatusWarningLevelTests` holds each check's level and page where the checks now are.
 
+- **Fixed: nothing signed out of the Control Panel, connected it to another server or led back from Connection lost
+  short of closing the program.** The administrator's menu held who was signed in, the version, the language, the
+  theme and About; the sign-in page came back only after a cancelled second factor, which left the session the current
+  one, signed in on its password; and with the link lost the pill read "Connection lost", its tool tip and accessible
+  name repeating the two words, with nothing that said the Control Panel tries again or offered to sign in again. The
+  menu now ends with Connect to another server… and Sign out, and starts with Sign in again while the link is lost.
+  Each asks about the page's unsaved changes first, as every way off a page does, then ends any tour, leaves the page
+  and lets go of every page built for the session, clears the history, puts the navigation, the search and the help
+  away, hides the breadcrumb and the pending bar, ends the session - the server's object released and the password
+  forgotten (ServerSession.SignOut) - and shows the sign-in page on the server and the account that were signed in,
+  the keyboard in the password, or in the server's box with its name chosen to type another; a refused second factor
+  goes the same way. The pill's tool tip and name say what happens next: "Reconnecting to mail.example.com - what is
+  on screen may be out of date" and "Connection to mail.example.com lost - the Control Panel tries again on your next
+  action; nothing can be saved until it is back". `SignOutTests` holds the menu, the steps and the session's end, and
+  `ConnectionStatusTests` the sentences.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
