@@ -241,6 +241,70 @@ namespace hMailServer.ControlPanel.Services
          return results;
       }
 
+      /// <summary>
+      /// The line above the rows, and what a screen reader hears when a check is done:
+      /// which list decides what happens to the sender, at that list's level, with its
+      /// sentence - "The list that decides is Allowed and blocked domains. The entry
+      /// mass-mail.example blocks this domain: its mail is refused at MAIL FROM." Of the
+      /// answers <see cref="ApplyPrecedence"/> gave, in the server's order: a spam
+      /// exemption that covers the sender, unless the allow and block list then blocks it
+      /// at delivery; an exemption on a condition not asked about, which decides if the
+      /// condition holds; a blocked domain; a blocked sender, whose score refuses the
+      /// message; the allow and block list, whose word overrules the spam verdict at
+      /// delivery; and an allowed domain. With none of them, the spam checks and their
+      /// score decide. A list that could not be read leaves the answer open, and says so.
+      /// </summary>
+      public static (StatusLevel Level, string Text) Summary(IReadOnlyList<SenderCheckResult> answers)
+      {
+         answers ??= Array.Empty<SenderCheckResult>();
+         SenderCheckResult exemption = Answer_(answers, "spamwhitelist"); // no-loc: page keys
+         SenderCheckResult domain = Answer_(answers, "domainpolicylist");
+         SenderCheckResult blocked = Answer_(answers, "blockedsenders");
+         SenderCheckResult list = Answer_(answers, "senderlist");
+
+         static bool Matches(SenderCheckResult answer) => answer?.Outcome == SenderCheckOutcome.Matches;
+
+         SenderCheckResult deciding = null;
+         bool conditional = false;
+         if (Matches(exemption))
+            deciding = Matches(list) && list.Blocks ? list : exemption;
+         else if (exemption?.Outcome == SenderCheckOutcome.MatchesIf)
+            (deciding, conditional) = (exemption, true);
+         else if (Matches(domain) && domain.Blocks)
+            deciding = domain;
+         else if (Matches(blocked) && blocked.Blocks)
+            deciding = blocked;
+         else if (Matches(list))
+            deciding = list;
+         else if (Matches(domain))
+            deciding = domain;
+
+         StatusLevel level;
+         string text;
+         if (deciding == null)
+         {
+            level = StatusLevel.Information;
+            text = L("No list decides for this sender: the spam checks and their score do.");
+         }
+         else
+         {
+            level = Pill(deciding).Level;
+            string title = L(NavigationMap.TitleOf(deciding.Page));
+            text = conditional
+               ? F("The list that decides is {0}, if its condition holds. {1}", title, deciding.Text)
+               : F("The list that decides is {0}. {1}", title, deciding.Text);
+         }
+
+         if (answers.Any(answer => answer.Outcome == SenderCheckOutcome.NotRead))
+         {
+            text = Sentences(text, L("A list could not be read, so the answer may change once it can be."));
+            if (level < StatusLevel.Warning)
+               level = StatusLevel.Warning;
+         }
+
+         return (level, text);
+      }
+
       // The lists a spam exemption keeps the server from reading: every one but itself
       // and the allow and block list, which delivery reads.
       private static readonly HashSet<string> SkippedForAnExemption_ = new HashSet<string>(StringComparer.Ordinal)

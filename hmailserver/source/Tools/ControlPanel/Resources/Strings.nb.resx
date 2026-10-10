@@ -480,6 +480,9 @@
   <data name="A label is required. It is how this key is told apart from the others months from now." xml:space="preserve">
     <value>En etikett er påkrevd. Det er slik denne nøkkelen skilles fra de andre om noen måneder.</value>
   </data>
+  <data name="A list could not be read, so the answer may change once it can be." xml:space="preserve">
+    <value>En liste kunne ikke leses, så svaret kan endre seg når den kan leses.</value>
+  </data>
   <data name="A listener wants a certificate and STARTTLS, so that no password crosses the network in the clear." xml:space="preserve">
     <value>En lytter trenger et sertifikat og STARTTLS, slik at ingen passord krysser nettverket i klartekst.</value>
   </data>
@@ -7252,6 +7255,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="No key of any scope can create or revoke keys - that needs the administrator password, or this page. A key restricted to particular domains is also refused the delivery-queue endpoints outright, because the queue is server-wide and cannot be filtered by domain." xml:space="preserve">
     <value>Ingen nøkkel av noe omfang kan opprette eller tilbakekalle nøkler - det krever administratorpassordet, eller denne siden. En nøkkel begrenset til bestemte domener avvises også fullstendig fra leveringskø-endepunktene, fordi køen er serveromfattende og ikke kan filtreres etter domene.</value>
   </data>
+  <data name="No list decides for this sender: the spam checks and their score do." xml:space="preserve">
+    <value>Ingen liste avgjør for denne avsenderen: det gjør spamkontrollene og poengsummen deres.</value>
+  </data>
   <data name="No listeners are configured, so nothing can connect to this server." xml:space="preserve">
     <value>Ingen lyttere er konfigurert, så ingenting kan koble til denne serveren.</value>
   </data>
@@ -12313,6 +12319,12 @@ kunne ikke lastes. Meldingen er sannsynligvis levert og ikke lenger i køen.</va
   </data>
   <data name="The list is empty, and an empty list changes nothing: every domain is greylisted and scored as before." xml:space="preserve">
     <value>Listen er tom, og en tom liste endrer ingenting: hvert domene greylistes og poengsettes som før.</value>
+  </data>
+  <data name="The list that decides is {0}, if its condition holds. {1}" xml:space="preserve">
+    <value>Listen som avgjør, er {0}, hvis betingelsen dens er oppfylt. {1}</value>
+  </data>
+  <data name="The list that decides is {0}. {1}" xml:space="preserve">
+    <value>Listen som avgjør, er {0}. {1}</value>
   </data>
   <data name="The listener is configured. What remains is outside the server: publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; records for each mail domain, then test from a client machine." xml:space="preserve">
     <value>Lytteren er konfigurert. Det som gjenstår, ligger utenfor serveren: publiser autoconfig.&lt;domain&gt;- og autodiscover.&lt;domain&gt;-oppføringer for hvert postdomene, og test så fra en klientmaskin.</value>

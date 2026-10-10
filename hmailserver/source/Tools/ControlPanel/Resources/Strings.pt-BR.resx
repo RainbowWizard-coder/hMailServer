@@ -480,6 +480,9 @@
   <data name="A label is required. It is how this key is told apart from the others months from now." xml:space="preserve">
     <value>Um rótulo é obrigatório. É o que distingue esta chave das outras daqui a meses.</value>
   </data>
+  <data name="A list could not be read, so the answer may change once it can be." xml:space="preserve">
+    <value>Não foi possível ler uma lista, então a resposta pode mudar quando ela puder ser lida.</value>
+  </data>
   <data name="A listener wants a certificate and STARTTLS, so that no password crosses the network in the clear." xml:space="preserve">
     <value>Um ouvinte precisa de um certificado e de STARTTLS, para que nenhuma senha atravesse a rede em texto claro.</value>
   </data>
@@ -7252,6 +7255,9 @@ Nada do que já está lá é removido.</value>
   <data name="No key of any scope can create or revoke keys - that needs the administrator password, or this page. A key restricted to particular domains is also refused the delivery-queue endpoints outright, because the queue is server-wide and cannot be filtered by domain." xml:space="preserve">
     <value>Nenhuma chave, de qualquer escopo, pode criar ou revogar chaves - isso exige a senha de administrador, ou esta página. Uma chave restrita a determinados domínios também tem os endpoints da fila de entrega negados por completo, porque a fila é de todo o servidor e não pode ser filtrada por domínio.</value>
   </data>
+  <data name="No list decides for this sender: the spam checks and their score do." xml:space="preserve">
+    <value>Nenhuma lista decide sobre este remetente: quem decide são as verificações de spam e a pontuação delas.</value>
+  </data>
   <data name="No listeners are configured, so nothing can connect to this server." xml:space="preserve">
     <value>Nenhum ouvinte está configurado, então nada pode se conectar a este servidor.</value>
   </data>
@@ -12313,6 +12319,12 @@ não pôde ser carregado. A mensagem provavelmente já foi entregue e não está
   </data>
   <data name="The list is empty, and an empty list changes nothing: every domain is greylisted and scored as before." xml:space="preserve">
     <value>A lista está vazia, e uma lista vazia não muda nada: cada domínio passa por greylisting e pontuação como antes.</value>
+  </data>
+  <data name="The list that decides is {0}, if its condition holds. {1}" xml:space="preserve">
+    <value>A lista que decide é {0}, se a condição dela for atendida. {1}</value>
+  </data>
+  <data name="The list that decides is {0}. {1}" xml:space="preserve">
+    <value>A lista que decide é {0}. {1}</value>
   </data>
   <data name="The listener is configured. What remains is outside the server: publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; records for each mail domain, then test from a client machine." xml:space="preserve">
     <value>O ouvinte está configurado. O que resta está fora do servidor: publique registros autoconfig.&lt;domain&gt; e autodiscover.&lt;domain&gt; para cada domínio de e-mail, e depois teste a partir de uma máquina cliente.</value>

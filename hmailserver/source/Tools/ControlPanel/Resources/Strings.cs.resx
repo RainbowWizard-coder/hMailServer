@@ -483,6 +483,9 @@
   <data name="A label is required. It is how this key is told apart from the others months from now." xml:space="preserve">
     <value>Popisek je povinný. Podle něj se tento klíč po měsících odliší od ostatních.</value>
   </data>
+  <data name="A list could not be read, so the answer may change once it can be." xml:space="preserve">
+    <value>Jeden ze seznamů se nepodařilo přečíst, takže se odpověď může změnit, až ho přečíst půjde.</value>
+  </data>
   <data name="A listener wants a certificate and STARTTLS, so that no password crosses the network in the clear." xml:space="preserve">
     <value>Listener potřebuje certifikát a STARTTLS, aby žádné heslo neputovalo sítí v nešifrované podobě.</value>
   </data>
@@ -7325,6 +7328,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No key of any scope can create or revoke keys - that needs the administrator password, or this page. A key restricted to particular domains is also refused the delivery-queue endpoints outright, because the queue is server-wide and cannot be filtered by domain." xml:space="preserve">
     <value>Klíč nemůže vytvářet ani odvolávat klíče, ať má jakýkoli rozsah – k tomu je potřeba heslo správce nebo tato stránka. Klíči omezenému na určité domény jsou navíc rovnou odepřeny koncové body doručovací fronty, protože fronta platí pro celý server a nelze ji filtrovat podle domény.</value>
   </data>
+  <data name="No list decides for this sender: the spam checks and their score do." xml:space="preserve">
+    <value>O tomto odesílateli nerozhoduje žádný seznam: rozhodují kontroly spamu a jejich skóre.</value>
+  </data>
   <data name="No listeners are configured, so nothing can connect to this server." xml:space="preserve">
     <value>Nejsou nastaveny žádné listenery, takže se k tomuto serveru nemůže nic připojit.</value>
   </data>
@@ -12476,6 +12482,12 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   </data>
   <data name="The list is empty, and an empty list changes nothing: every domain is greylisted and scored as before." xml:space="preserve">
     <value>Seznam je prázdný a prázdný seznam nic nemění: každá doména prochází greylistingem a bodováním jako dosud.</value>
+  </data>
+  <data name="The list that decides is {0}, if its condition holds. {1}" xml:space="preserve">
+    <value>Rozhoduje seznam {0}, pokud platí jeho podmínka. {1}</value>
+  </data>
+  <data name="The list that decides is {0}. {1}" xml:space="preserve">
+    <value>Rozhoduje seznam {0}. {1}</value>
   </data>
   <data name="The listener is configured. What remains is outside the server: publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; records for each mail domain, then test from a client machine." xml:space="preserve">
     <value>Listener je nakonfigurován. Zbývá to, co je mimo server: publikujte záznamy autoconfig.&lt;domain&gt; a autodiscover.&lt;domain&gt; pro každou poštovní doménu a pak to otestujte z klientského počítače.</value>

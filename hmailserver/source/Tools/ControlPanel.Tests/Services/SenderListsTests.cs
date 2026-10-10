@@ -374,6 +374,68 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal(SenderCheckOutcome.NotReached, At_(addressOnly, "blockedsenders").Outcome);
       }
 
+      // ---- the line that says which list decides --------------------------------------
+
+      /// <summary>
+      /// Above the rows, the list that decides, at its level, with its sentence - the line
+      /// a screen reader hears once a check is done, where the eight rows it added were
+      /// not a live region and it heard nothing.
+      /// </summary>
+      [Fact]
+      public void TheSummarySaysWhichListDecides()
+      {
+         // The exemption covers the office network's sender, and nothing blocks it at delivery.
+         (StatusLevel level, string text) = SenderCheck.Summary(SenderCheck.ApplyPrecedence(Answers_("news@mass-mail.example", "10.1.2.3")));
+         Assert.Equal(StatusLevel.Good, level);
+         Assert.StartsWith("The list that decides is Spam exemptions. The exemption \"The office network\"", text, StringComparison.Ordinal);
+
+         // The exemption covers it, but the allow and block list blocks the address at delivery.
+         (level, text) = SenderCheck.Summary(SenderCheck.ApplyPrecedence(Answers_("spammer@mass-mail.example", "10.1.2.3")));
+         Assert.Equal(StatusLevel.Warning, level);
+         Assert.StartsWith("The list that decides is Allow and block list. The entry spammer@mass-mail.example blocks this sender", text, StringComparison.Ordinal);
+
+         // From outside the office network the blocked domain refuses it at MAIL FROM.
+         (level, text) = SenderCheck.Summary(SenderCheck.ApplyPrecedence(Answers_("news@mass-mail.example", "192.0.2.7")));
+         Assert.Equal(StatusLevel.Warning, level);
+         Assert.Equal("The list that decides is Allowed and blocked domains. The entry mass-mail.example blocks this domain: its mail is refused at MAIL FROM.", text);
+
+         // With the domain allowed, the blocked sender only adds to the score, and the allowed domain decides.
+         (level, text) = SenderCheck.Summary(SenderCheck.ApplyPrecedence(Answers_("news@mass-mail.example", "192.0.2.7", "white")));
+         Assert.Equal(StatusLevel.Good, level);
+         Assert.StartsWith("The list that decides is Allowed and blocked domains. The entry mass-mail.example allows this domain", text, StringComparison.Ordinal);
+
+         // The address alone: the exemption decides if the sender connects from its range.
+         (level, text) = SenderCheck.Summary(SenderCheck.ApplyPrecedence(Answers_("news@mass-mail.example", "")));
+         Assert.Equal(StatusLevel.Information, level);
+         Assert.StartsWith("The list that decides is Spam exemptions, if its condition holds. The exemption \"The office network\"", text, StringComparison.Ordinal);
+
+         // No list says anything: the spam checks decide.
+         (level, text) = SenderCheck.Summary(SenderCheck.ApplyPrecedence(Answers_("someone@example.org", "192.0.2.7")));
+         Assert.Equal(StatusLevel.Information, level);
+         Assert.Equal("No list decides for this sender: the spam checks and their score do.", text);
+      }
+
+      /// <summary>
+      /// A blocked sender whose score refuses the message decides before the allow and
+      /// block list, which a refused message never reaches; a list that could not be read
+      /// leaves the answer open, at Warning at least.
+      /// </summary>
+      [Fact]
+      public void ABlockedSenderDecidesAndAListNotReadLeavesTheAnswerOpen()
+      {
+         List<SenderCheckResult> asked = Answers_("news@mass-mail.example", "192.0.2.7");
+         asked[1] = SenderCheck.DomainPolicy("", "news@mass-mail.example");
+         (StatusLevel level, string text) = SenderCheck.Summary(SenderCheck.ApplyPrecedence(asked));
+         Assert.Equal(StatusLevel.Warning, level);
+         Assert.Equal("The list that decides is Blocked senders. The entry mass-mail.example matches, adding 100 to the score.", text);
+
+         asked = Answers_("someone@example.org", "192.0.2.7");
+         asked[7] = SenderCheck.NotRead("senderlist", "the link went");
+         (level, text) = SenderCheck.Summary(SenderCheck.ApplyPrecedence(asked));
+         Assert.Equal(StatusLevel.Warning, level);
+         Assert.Equal("No list decides for this sender: the spam checks and their score do. A list could not be read, so the answer may change once it can be.", text);
+      }
+
       [Fact]
       public void EveryAnswerHasItsPill()
       {
@@ -398,8 +460,19 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("Section(L(\"Check a sender\")", view, StringComparison.Ordinal);
          Assert.Contains("answers.Add(Check_((object)antiSpam, list.Page, address, ip));", view, StringComparison.Ordinal);
          // The rows are the answers as the server acts on them, each with the pill its outcome has.
-         Assert.Contains("foreach (SenderCheckResult answer in SenderCheck.ApplyPrecedence(answers))", view, StringComparison.Ordinal);
+         Assert.Contains("IReadOnlyList<SenderCheckResult> applied = SenderCheck.ApplyPrecedence(answers);", view, StringComparison.Ordinal);
+         Assert.Contains("foreach (SenderCheckResult answer in applied)", view, StringComparison.Ordinal);
          Assert.Contains("(StatusLevel level, string word) = SenderCheck.Pill(result);", view, StringComparison.Ordinal);
+
+         // A check that answered says which list decides in the card's notice, a live
+         // region, after the rows are drawn: the keyboard stays in the address box.
+         string run = view.Substring(view.IndexOf("private void RunCheck_()", StringComparison.Ordinal));
+         run = run.Substring(0, run.IndexOf("private void SayCheck_(", StringComparison.Ordinal));
+         int rows = run.IndexOf("checkResults_.Children.Add(CheckRow_(answer));", StringComparison.Ordinal);
+         int said = run.IndexOf("SayCheck_(level, summary);", StringComparison.Ordinal);
+         Assert.True(rows > 0 && said > rows, "RunCheck_ does not say which list decides once the rows are drawn.");
+         Assert.Contains("(StatusLevel level, string summary) = SenderCheck.Summary(applied);", run, StringComparison.Ordinal);
+         Assert.Contains("private readonly InlineNotice checkNotice_", view, StringComparison.Ordinal);
          Assert.Contains("return SenderCheck.NotRead(page, ServerSession.DescribeComError(ex));", view, StringComparison.Ordinal);
          Assert.Contains("FormSubmit.Bind(form, checkButton_, checkAddress_, checkIp_);", view, StringComparison.Ordinal);
          Assert.Contains("body_.Children.Add(CheckCard_());", view, StringComparison.Ordinal);

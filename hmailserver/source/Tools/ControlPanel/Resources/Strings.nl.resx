@@ -480,6 +480,9 @@
   <data name="A label is required. It is how this key is told apart from the others months from now." xml:space="preserve">
     <value>Een label is verplicht. Daaraan wordt deze sleutel over maanden van de andere onderscheiden.</value>
   </data>
+  <data name="A list could not be read, so the answer may change once it can be." xml:space="preserve">
+    <value>Een lijst kon niet worden gelezen, dus het antwoord kan veranderen zodra dat wel lukt.</value>
+  </data>
   <data name="A listener wants a certificate and STARTTLS, so that no password crosses the network in the clear." xml:space="preserve">
     <value>Een listener heeft een certificaat en STARTTLS nodig, zodat er geen wachtwoord onversleuteld over het netwerk gaat.</value>
   </data>
@@ -7252,6 +7255,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No key of any scope can create or revoke keys - that needs the administrator password, or this page. A key restricted to particular domains is also refused the delivery-queue endpoints outright, because the queue is server-wide and cannot be filtered by domain." xml:space="preserve">
     <value>Geen enkele sleutel, met welk bereik dan ook, kan sleutels aanmaken of intrekken - daarvoor is het beheerderswachtwoord nodig, of deze pagina. Een sleutel die tot bepaalde domeinen beperkt is, krijgt bovendien ronduit geen toegang tot de eindpunten van de bezorgwachtrij, omdat de wachtrij serverbreed is en niet op domein kan worden gefilterd.</value>
   </data>
+  <data name="No list decides for this sender: the spam checks and their score do." xml:space="preserve">
+    <value>Geen lijst beslist over deze afzender: dat doen de spamcontroles en hun score.</value>
+  </data>
   <data name="No listeners are configured, so nothing can connect to this server." xml:space="preserve">
     <value>Er zijn geen listeners geconfigureerd, dus niets kan verbinding maken met deze server.</value>
   </data>
@@ -12313,6 +12319,12 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   </data>
   <data name="The list is empty, and an empty list changes nothing: every domain is greylisted and scored as before." xml:space="preserve">
     <value>De lijst is leeg, en een lege lijst verandert niets: elk domein wordt zoals voorheen gegreylist en gescoord.</value>
+  </data>
+  <data name="The list that decides is {0}, if its condition holds. {1}" xml:space="preserve">
+    <value>De lijst die beslist, is {0}, als aan zijn voorwaarde is voldaan. {1}</value>
+  </data>
+  <data name="The list that decides is {0}. {1}" xml:space="preserve">
+    <value>De lijst die beslist, is {0}. {1}</value>
   </data>
   <data name="The listener is configured. What remains is outside the server: publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; records for each mail domain, then test from a client machine." xml:space="preserve">
     <value>De listener is geconfigureerd. Wat overblijft, ligt buiten de server: publiceer voor elk maildomein records voor autoconfig.&lt;domain&gt; en autodiscover.&lt;domain&gt;, en test daarna vanaf een clientmachine.</value>

@@ -480,6 +480,9 @@
   <data name="A label is required. It is how this key is told apart from the others months from now." xml:space="preserve">
     <value>必须填写标签。几个月之后，正是靠它把这个密钥与其他密钥区分开。</value>
   </data>
+  <data name="A list could not be read, so the answer may change once it can be." xml:space="preserve">
+    <value>有一个列表无法读取，因此在能够读取后答案可能会改变。</value>
+  </data>
   <data name="A listener wants a certificate and STARTTLS, so that no password crosses the network in the clear." xml:space="preserve">
     <value>监听器需要证书和 STARTTLS，这样就不会有密码以明文形式穿过网络。</value>
   </data>
@@ -7252,6 +7255,9 @@
   <data name="No key of any scope can create or revoke keys - that needs the administrator password, or this page. A key restricted to particular domains is also refused the delivery-queue endpoints outright, because the queue is server-wide and cannot be filtered by domain." xml:space="preserve">
     <value>任何作用域的密钥都不能创建或吊销密钥 - 这需要管理员密码，或者本页。限制到特定域的密钥还会被直接拒绝访问投递队列端点，因为队列是服务器范围的，无法按域过滤。</value>
   </data>
+  <data name="No list decides for this sender: the spam checks and their score do." xml:space="preserve">
+    <value>没有列表决定此发件人的处理：由垃圾邮件检查及其分数决定。</value>
+  </data>
   <data name="No listeners are configured, so nothing can connect to this server." xml:space="preserve">
     <value>未配置任何监听器，因此没有任何东西能连接到本服务器。</value>
   </data>
@@ -12313,6 +12319,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The list is empty, and an empty list changes nothing: every domain is greylisted and scored as before." xml:space="preserve">
     <value>列表为空，空列表不会改变任何事情：每个域都像以前一样被灰名单和计分。</value>
+  </data>
+  <data name="The list that decides is {0}, if its condition holds. {1}" xml:space="preserve">
+    <value>如果其条件成立，起决定作用的列表是 {0}。{1}</value>
+  </data>
+  <data name="The list that decides is {0}. {1}" xml:space="preserve">
+    <value>起决定作用的列表是 {0}。{1}</value>
   </data>
   <data name="The listener is configured. What remains is outside the server: publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; records for each mail domain, then test from a client machine." xml:space="preserve">
     <value>监听器已配置。剩下的是服务器之外的事: 为每个邮件域发布 autoconfig.&lt;domain&gt; 和 autodiscover.&lt;domain&gt; 记录，然后从一台客户端计算机进行测试。</value>

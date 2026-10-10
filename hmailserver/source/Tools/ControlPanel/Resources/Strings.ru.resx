@@ -483,6 +483,9 @@
   <data name="A label is required. It is how this key is told apart from the others months from now." xml:space="preserve">
     <value>Метка обязательна. Именно по ней этот ключ можно будет отличить от остальных спустя месяцы.</value>
   </data>
+  <data name="A list could not be read, so the answer may change once it can be." xml:space="preserve">
+    <value>Один из списков не удалось прочитать, поэтому ответ может измениться, когда это станет возможно.</value>
+  </data>
   <data name="A listener wants a certificate and STARTTLS, so that no password crosses the network in the clear." xml:space="preserve">
     <value>Прослушивателю нужны сертификат и STARTTLS, чтобы ни один пароль не шёл по сети в открытом виде.</value>
   </data>
@@ -7325,6 +7328,9 @@ Control Panel может читать файлы сообщений только
   <data name="No key of any scope can create or revoke keys - that needs the administrator password, or this page. A key restricted to particular domains is also refused the delivery-queue endpoints outright, because the queue is server-wide and cannot be filtered by domain." xml:space="preserve">
     <value>Ни один ключ, с какой бы областью действия он ни был, не может создавать или отзывать ключи — для этого нужен пароль администратора или эта страница. Ключу, ограниченному определёнными доменами, вдобавок наотрез отказано в конечных точках очереди доставки, поскольку очередь общая для всего сервера и не может быть отфильтрована по домену.</value>
   </data>
+  <data name="No list decides for this sender: the spam checks and their score do." xml:space="preserve">
+    <value>Ни один список не решает судьбу этого отправителя: решают проверки на спам и их оценка.</value>
+  </data>
   <data name="No listeners are configured, so nothing can connect to this server." xml:space="preserve">
     <value>Прослушиватели не настроены, поэтому подключиться к этому серверу невозможно.</value>
   </data>
@@ -12476,6 +12482,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The list is empty, and an empty list changes nothing: every domain is greylisted and scored as before." xml:space="preserve">
     <value>Список пуст, а пустой список ничего не меняет: каждый домен проходит greylisting и оценку, как и раньше.</value>
+  </data>
+  <data name="The list that decides is {0}, if its condition holds. {1}" xml:space="preserve">
+    <value>Решает список «{0}», если выполняется его условие. {1}</value>
+  </data>
+  <data name="The list that decides is {0}. {1}" xml:space="preserve">
+    <value>Решает список «{0}». {1}</value>
   </data>
   <data name="The listener is configured. What remains is outside the server: publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; records for each mail domain, then test from a client machine." xml:space="preserve">
     <value>Прослушиватель настроен. Осталось то, что вне сервера: опубликуйте записи autoconfig.&lt;domain&gt; и autodiscover.&lt;domain&gt; для каждого почтового домена, затем проверьте с клиентской машины.</value>

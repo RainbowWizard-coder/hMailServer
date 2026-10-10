@@ -2237,9 +2237,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   reads the lists: a spam exemption that covers the sender keeps the server from every other list but the allow and
   block list, which delivery still reads; a blocked domain is refused at MAIL FROM, before any later list; and an
   allowed domain is never greylisted, nor refused or quarantined by its score, so a blocked sender's entry adds to the
-  score without stopping it. The DNS block lists and SURBL are asked of the network as mail arrives and are not
-  checked here, nor are entries matched against the HELO name alone; a list that cannot be read says so while the
-  others answer (review finding F269).
+  score without stopping it. Above the rows, a line says which list decides, at its level and with its sentence - "The
+  list that decides is Allowed and blocked domains. The entry mass-mail.example blocks this domain: its mail is refused
+  at MAIL FROM." - or that none does and the spam checks and their score decide, and a screen reader hears it once the
+  check is done, the keyboard staying in the address box. The DNS block lists and SURBL are asked of the network as
+  mail arrives and are not checked here, nor are entries matched against the HELO name alone; a list that cannot be
+  read says so while the others answer, and the line then says the answer may change (review finding F269).
 
 ### Administration
 

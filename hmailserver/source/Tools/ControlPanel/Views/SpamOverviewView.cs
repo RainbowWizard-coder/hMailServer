@@ -851,8 +851,15 @@ namespace hMailServer.ControlPanel.Views
 
             // Each list was asked on its own; the rows say what the server does with
             // the sender, where a list it meets first keeps a later one from being read.
-            foreach (SenderCheckResult answer in SenderCheck.ApplyPrecedence(answers))
+            IReadOnlyList<SenderCheckResult> applied = SenderCheck.ApplyPrecedence(answers);
+            foreach (SenderCheckResult answer in applied)
                checkResults_.Children.Add(CheckRow_(answer));
+
+            // Above the rows, which list decides, at its level: the notice is a polite
+            // live region, so a screen reader, whose keyboard stays in the address box
+            // after Enter, hears the answer - where the rows alone said nothing to it.
+            (StatusLevel level, string summary) = SenderCheck.Summary(applied);
+            SayCheck_(level, summary);
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {

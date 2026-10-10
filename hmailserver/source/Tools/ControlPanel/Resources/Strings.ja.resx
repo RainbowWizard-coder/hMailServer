@@ -480,6 +480,9 @@
   <data name="A label is required. It is how this key is told apart from the others months from now." xml:space="preserve">
     <value>ラベルは必須です。数か月後にこのキーをほかのキーと見分ける手掛かりになります。</value>
   </data>
+  <data name="A list could not be read, so the answer may change once it can be." xml:space="preserve">
+    <value>読み取れなかったリストがあるため、読み取れるようになると答えが変わる場合があります。</value>
+  </data>
   <data name="A listener wants a certificate and STARTTLS, so that no password crosses the network in the clear." xml:space="preserve">
     <value>リスナーには証明書と STARTTLS が必要です。パスワードが平文でネットワークを流れないようにするためです。</value>
   </data>
@@ -7252,6 +7255,9 @@
   <data name="No key of any scope can create or revoke keys - that needs the administrator password, or this page. A key restricted to particular domains is also refused the delivery-queue endpoints outright, because the queue is server-wide and cannot be filtered by domain." xml:space="preserve">
     <value>どのスコープのキーもキーの作成や失効はできません。それには管理者パスワードか、このページが必要です。特定のドメインに限定されたキーは、配信キューのエンドポイントも無条件に拒否されます。キューはサーバー全体のものであり、ドメインで絞り込めないためです。</value>
   </data>
+  <data name="No list decides for this sender: the spam checks and their score do." xml:space="preserve">
+    <value>この送信者について判断するリストはありません。スパム チェックとそのスコアで判断されます。</value>
+  </data>
   <data name="No listeners are configured, so nothing can connect to this server." xml:space="preserve">
     <value>リスナーが設定されていないため、このサーバーには何も接続できません。</value>
   </data>
@@ -12313,6 +12319,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The list is empty, and an empty list changes nothing: every domain is greylisted and scored as before." xml:space="preserve">
     <value>リストは空です。空のリストは何も変えません。すべてのドメインは従来どおりグレイリストとスコア付けの対象です。</value>
+  </data>
+  <data name="The list that decides is {0}, if its condition holds. {1}" xml:space="preserve">
+    <value>条件を満たす場合、判断するリストは {0} です。{1}</value>
+  </data>
+  <data name="The list that decides is {0}. {1}" xml:space="preserve">
+    <value>判断するリストは {0} です。{1}</value>
   </data>
   <data name="The listener is configured. What remains is outside the server: publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; records for each mail domain, then test from a client machine." xml:space="preserve">
     <value>リスナーは設定済みです。残っているのはサーバーの外側の作業です。各メール ドメインの autoconfig.&lt;domain&gt; と autodiscover.&lt;domain&gt; レコードを公開し、クライアント マシンからテストしてください。</value>

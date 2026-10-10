@@ -480,6 +480,9 @@
   <data name="A label is required. It is how this key is told apart from the others months from now." xml:space="preserve">
     <value>Nimike on pakollinen. Sen avulla tämä avain erotetaan muista kuukausien päästä.</value>
   </data>
+  <data name="A list could not be read, so the answer may change once it can be." xml:space="preserve">
+    <value>Yhtä luetteloa ei voitu lukea, joten vastaus voi muuttua, kun se voidaan lukea.</value>
+  </data>
   <data name="A listener wants a certificate and STARTTLS, so that no password crosses the network in the clear." xml:space="preserve">
     <value>Kuuntelija tarvitsee varmenteen ja STARTTLS:n, jottei yksikään salasana kulje verkossa selväkielisenä.</value>
   </data>
@@ -7252,6 +7255,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="No key of any scope can create or revoke keys - that needs the administrator password, or this page. A key restricted to particular domains is also refused the delivery-queue endpoints outright, because the queue is server-wide and cannot be filtered by domain." xml:space="preserve">
     <value>Minkään laajuinen avain ei voi luoda tai kumota avaimia - siihen tarvitaan järjestelmänvalvojan salasana tai tämä sivu. Tiettyihin verkkotunnuksiin rajattu avain evätään myös suoraan toimitusjonon päätepisteistä, koska jono on palvelimenlaajuinen eikä sitä voi suodattaa verkkotunnuksen mukaan.</value>
   </data>
+  <data name="No list decides for this sender: the spam checks and their score do." xml:space="preserve">
+    <value>Mikään luettelo ei ratkaise tämän lähettäjän kohtaloa: sen ratkaisevat roskapostitarkistukset ja niiden pistemäärä.</value>
+  </data>
   <data name="No listeners are configured, so nothing can connect to this server." xml:space="preserve">
     <value>Kuuntelijoita ei ole määritetty, joten mikään ei voi yhdistää tähän palvelimeen.</value>
   </data>
@@ -12313,6 +12319,12 @@ ei voitu ladata. Viesti on todennäköisesti toimitettu eikä ole enää jonossa
   </data>
   <data name="The list is empty, and an empty list changes nothing: every domain is greylisted and scored as before." xml:space="preserve">
     <value>Luettelo on tyhjä, eikä tyhjä luettelo muuta mitään: jokainen verkkotunnus greylistataan ja pisteytetään kuten ennenkin.</value>
+  </data>
+  <data name="The list that decides is {0}, if its condition holds. {1}" xml:space="preserve">
+    <value>Ratkaiseva luettelo on {0}, jos sen ehto täyttyy. {1}</value>
+  </data>
+  <data name="The list that decides is {0}. {1}" xml:space="preserve">
+    <value>Ratkaiseva luettelo on {0}. {1}</value>
   </data>
   <data name="The listener is configured. What remains is outside the server: publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; records for each mail domain, then test from a client machine." xml:space="preserve">
     <value>Kuuntelija on määritetty. Jäljellä on palvelimen ulkopuolinen osuus: julkaise autoconfig.&lt;domain&gt;- ja autodiscover.&lt;domain&gt;-tietueet jokaiselle postiverkkotunnukselle ja testaa sitten asiakaskoneelta.</value>

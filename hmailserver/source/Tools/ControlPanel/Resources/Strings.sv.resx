@@ -480,6 +480,9 @@
   <data name="A label is required. It is how this key is told apart from the others months from now." xml:space="preserve">
     <value>En etikett krävs. Det är så den här nyckeln skiljs från de andra om några månader.</value>
   </data>
+  <data name="A list could not be read, so the answer may change once it can be." xml:space="preserve">
+    <value>En lista kunde inte läsas, så svaret kan ändras när den kan läsas.</value>
+  </data>
   <data name="A listener wants a certificate and STARTTLS, so that no password crosses the network in the clear." xml:space="preserve">
     <value>En lyssnare behöver ett certifikat och STARTTLS, så att inget lösenord passerar nätverket i klartext.</value>
   </data>
@@ -7252,6 +7255,9 @@ Inget som redan finns där tas bort.</value>
   <data name="No key of any scope can create or revoke keys - that needs the administrator password, or this page. A key restricted to particular domains is also refused the delivery-queue endpoints outright, because the queue is server-wide and cannot be filtered by domain." xml:space="preserve">
     <value>Ingen nyckel av något omfång kan skapa eller återkalla nycklar - det kräver administratörslösenordet, eller den här sidan. En nyckel begränsad till vissa domäner nekas också leveranskö-slutpunkterna helt, eftersom kön är serverövergripande och inte kan filtreras per domän.</value>
   </data>
+  <data name="No list decides for this sender: the spam checks and their score do." xml:space="preserve">
+    <value>Ingen lista avgör för den här avsändaren: det gör skräppostkontrollerna och deras poäng.</value>
+  </data>
   <data name="No listeners are configured, so nothing can connect to this server." xml:space="preserve">
     <value>Inga lyssnare är konfigurerade, så inget kan ansluta till den här servern.</value>
   </data>
@@ -12313,6 +12319,12 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   </data>
   <data name="The list is empty, and an empty list changes nothing: every domain is greylisted and scored as before." xml:space="preserve">
     <value>Listan är tom, och en tom lista ändrar ingenting: varje domän greylistas och poängsätts som förut.</value>
+  </data>
+  <data name="The list that decides is {0}, if its condition holds. {1}" xml:space="preserve">
+    <value>Listan som avgör är {0}, om dess villkor är uppfyllt. {1}</value>
+  </data>
+  <data name="The list that decides is {0}. {1}" xml:space="preserve">
+    <value>Listan som avgör är {0}. {1}</value>
   </data>
   <data name="The listener is configured. What remains is outside the server: publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; records for each mail domain, then test from a client machine." xml:space="preserve">
     <value>Lyssnaren är konfigurerad. Det som återstår finns utanför servern: publicera posterna autoconfig.&lt;domain&gt; och autodiscover.&lt;domain&gt; för varje e-postdomän, och testa sedan från en klientdator.</value>
