@@ -8134,9 +8134,6 @@ No se elimina nada de lo que ya está.</value>
   <data name="Open the live logs" xml:space="preserve">
     <value>Abrir los registros en vivo</value>
   </data>
-  <data name="Open the member list of '{0}'." xml:space="preserve">
-    <value>Abrir la lista de miembros de '{0}'.</value>
-  </data>
   <data name="Open the selected row of a list" xml:space="preserve">
     <value>Abrir la fila seleccionada de una lista</value>
   </data>
@@ -10515,9 +10512,6 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="Select a folder first." xml:space="preserve">
     <value>Seleccione primero una carpeta.</value>
-  </data>
-  <data name="Select a group to edit which accounts are members of it." xml:space="preserve">
-    <value>Seleccione un grupo para editar qué cuentas son miembros de él.</value>
   </data>
   <data name="Select a message first." xml:space="preserve">
     <value>Seleccione primero un mensaje.</value>

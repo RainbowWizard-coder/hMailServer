@@ -8222,9 +8222,6 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Open the live logs" xml:space="preserve">
     <value>Otwórz dzienniki na żywo</value>
   </data>
-  <data name="Open the member list of '{0}'." xml:space="preserve">
-    <value>Otwórz listę członków grupy '{0}'.</value>
-  </data>
   <data name="Open the selected row of a list" xml:space="preserve">
     <value>Otwórz zaznaczony wiersz listy</value>
   </data>
@@ -10636,9 +10633,6 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="Select a folder first." xml:space="preserve">
     <value>Najpierw wybierz folder.</value>
-  </data>
-  <data name="Select a group to edit which accounts are members of it." xml:space="preserve">
-    <value>Wybierz grupę, aby edytować listę kont będących jej członkami.</value>
   </data>
   <data name="Select a message first." xml:space="preserve">
     <value>Najpierw wybierz wiadomość.</value>
@@ -16513,14 +16507,14 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} addresses" xml:space="preserve">
     <value>{0} adresów</value>
   </data>
+  <data name="{0} addresses|few" xml:space="preserve">
+    <value>{0} adresy</value>
+  </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>Adresów na liście: {0}, pokazano {1} najnowszych. Wyszukaj, aby zawęzić.</value>
   </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them.|few" xml:space="preserve">
     <value>Adresów na liście: {0}, pokazano {1} najnowszych. Wyszukaj, aby zawęzić.</value>
-  </data>
-  <data name="{0} addresses|few" xml:space="preserve">
-    <value>{0} adresy</value>
   </data>
   <data name="{0} aliases" xml:space="preserve">
     <value>Aliasy: {0}</value>
@@ -16669,14 +16663,14 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} events" xml:space="preserve">
     <value>{0} zdarzeń</value>
   </data>
+  <data name="{0} events|few" xml:space="preserve">
+    <value>{0} zdarzenia</value>
+  </data>
   <data name="{0} events past the retention window were removed." xml:space="preserve">
     <value>Usunięto {0} zdarzeń, które wykroczyły poza okno przechowywania.</value>
   </data>
   <data name="{0} events past the retention window were removed.|few" xml:space="preserve">
     <value>Usunięto {0} zdarzenia, które wykroczyły poza okno przechowywania.</value>
-  </data>
-  <data name="{0} events|few" xml:space="preserve">
-    <value>{0} zdarzenia</value>
   </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>Na {0} zewnętrznym koncie pobierania POP3 antywirus jest wyłączony, więc poczta pobierana przez to konto jest dostarczana bez skanowania, niezależnie od tego, co ustawiono tutaj. Przełącznik jest na koncie pobierania, a nie na tej stronie.</value>
@@ -16849,6 +16843,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} wiadomości</value>
   </data>
+  <data name="{0} messages|few" xml:space="preserve">
+    <value>{0} wiadomości</value>
+  </data>
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
     <value>Nie można ująć na liście {0} wiadomości; pozostaną tam, gdzie są. Pierwszy powód: {1}</value>
   </data>
@@ -16866,9 +16863,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} messages reference a file that is missing on disk.|few" xml:space="preserve">
     <value>{0} wiadomości odwołują się do pliku, którego brakuje na dysku.</value>
-  </data>
-  <data name="{0} messages|few" xml:space="preserve">
-    <value>{0} wiadomości</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} min</value>

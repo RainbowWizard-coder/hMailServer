@@ -8134,9 +8134,6 @@
   <data name="Open the live logs" xml:space="preserve">
     <value>打开实时日志</value>
   </data>
-  <data name="Open the member list of '{0}'." xml:space="preserve">
-    <value>打开“{0}”的成员列表。</value>
-  </data>
   <data name="Open the selected row of a list" xml:space="preserve">
     <value>打开列表中选中的行</value>
   </data>
@@ -10515,9 +10512,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Select a folder first." xml:space="preserve">
     <value>请先选择一个文件夹。</value>
-  </data>
-  <data name="Select a group to edit which accounts are members of it." xml:space="preserve">
-    <value>选择一个组以编辑哪些账户是其成员。</value>
   </data>
   <data name="Select a message first." xml:space="preserve">
     <value>请先选择一封邮件。</value>

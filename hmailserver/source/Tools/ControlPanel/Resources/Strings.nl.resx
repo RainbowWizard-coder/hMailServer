@@ -8134,9 +8134,6 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Open the live logs" xml:space="preserve">
     <value>De live logboeken openen</value>
   </data>
-  <data name="Open the member list of '{0}'." xml:space="preserve">
-    <value>De ledenlijst van '{0}' openen.</value>
-  </data>
   <data name="Open the selected row of a list" xml:space="preserve">
     <value>De geselecteerde rij van een lijst openen</value>
   </data>
@@ -10515,9 +10512,6 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Select a folder first." xml:space="preserve">
     <value>Selecteer eerst een map.</value>
-  </data>
-  <data name="Select a group to edit which accounts are members of it." xml:space="preserve">
-    <value>Selecteer een groep om te bewerken welke accounts er lid van zijn.</value>
   </data>
   <data name="Select a message first." xml:space="preserve">
     <value>Selecteer eerst een bericht.</value>

@@ -8134,9 +8134,6 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Open the live logs" xml:space="preserve">
     <value>Avaa reaaliaikaiset lokit</value>
   </data>
-  <data name="Open the member list of '{0}'." xml:space="preserve">
-    <value>Avaa ryhmän '{0}' jäsenluettelo.</value>
-  </data>
   <data name="Open the selected row of a list" xml:space="preserve">
     <value>Avaa luettelon valittu rivi</value>
   </data>
@@ -10515,9 +10512,6 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Select a folder first." xml:space="preserve">
     <value>Valitse ensin kansio.</value>
-  </data>
-  <data name="Select a group to edit which accounts are members of it." xml:space="preserve">
-    <value>Valitse ryhmä muokataksesi, mitkä tilit ovat sen jäseniä.</value>
   </data>
   <data name="Select a message first." xml:space="preserve">
     <value>Valitse ensin viesti.</value>

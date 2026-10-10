@@ -47,7 +47,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
       /// <summary>Every list page's list is wired, and no list keeps the grid's own double-click.</summary>
       [Theory]
-      [InlineData("CollectionEditorView.cs", "GridKeys.Wire(grid_, edit, del, addButton_);")]
+      [InlineData("CollectionEditorView.cs", "GridKeys.Wire(grid_, () => GridKeys.Press(openVerb_ ?? edit), GridKeys.Pressing(del), GridKeys.Pressing(addButton_));")]
       [InlineData("PublicFoldersView.cs", "GridKeys.Wire(list_, permissions, delete, addButton_);")]
       [InlineData("RoutesView.xaml.cs", "GridKeys.Wire(RouteGrid, GridKeys.Pressing(PropertiesButton), GridKeys.Pressing(DeleteButton), GridKeys.Focusing(NewDomain));")]
       [InlineData("TcpIpPortsView.xaml.cs", "GridKeys.Wire(PortGrid, GridKeys.Pressing(PropertiesButton), GridKeys.Pressing(DeleteButton), GridKeys.Focusing(NewProtocol));")]

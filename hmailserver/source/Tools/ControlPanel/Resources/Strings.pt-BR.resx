@@ -8134,9 +8134,6 @@ Nada do que já está lá é removido.</value>
   <data name="Open the live logs" xml:space="preserve">
     <value>Abrir os logs ao vivo</value>
   </data>
-  <data name="Open the member list of '{0}'." xml:space="preserve">
-    <value>Abrir a lista de membros de '{0}'.</value>
-  </data>
   <data name="Open the selected row of a list" xml:space="preserve">
     <value>Abrir a linha selecionada de uma lista</value>
   </data>
@@ -10515,9 +10512,6 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="Select a folder first." xml:space="preserve">
     <value>Selecione uma pasta primeiro.</value>
-  </data>
-  <data name="Select a group to edit which accounts are members of it." xml:space="preserve">
-    <value>Selecione um grupo para editar quais contas são membros dele.</value>
   </data>
   <data name="Select a message first." xml:space="preserve">
     <value>Selecione uma mensagem primeiro.</value>

@@ -683,91 +683,51 @@ namespace hMailServer.ControlPanel.Views
    /// one thing the generic editor cannot offer - a way into the selected group's
    /// member list (<see cref="GroupMembersDialog"/>).
    ///
-   /// The selection is observed through the DataGrid's bubbling SelectionChanged
-   /// event rather than by reaching into the editor's internals, so the editor
-   /// stays a black box; the grid's rows are <see cref="CollectionEditorView.Row"/>
-   /// instances, which carry the group's database ID and name.
+   /// Members… is the list's first verb, beside Edit, Delete and Add, enabled
+   /// while a group is selected, and Enter and a double-click on a group open it;
+   /// F2 is Edit, the group's rename (review finding F201). It was a lone button
+   /// under the list, 760 pixels down at 1280 by 800, with a hint beside it that
+   /// changed as a group was chosen without being announced, and a double-click
+   /// on a group - the page's reason to exist being its members - renamed it. What
+   /// the hint said is the empty state's and the subtitle's.
    /// </summary>
    public sealed class GroupsPageView : UserControl, IPageLifecycle
    {
-      private static string HintNoSelection =>
-         L("Select a group to edit which accounts are members of it.");
-
       private readonly CollectionEditorView editor_;
       private readonly Wpf.Ui.Controls.Button membersButton_;
-      private readonly TextBlock membersHint_;
-
-      private int selectedGroupId_ = -1;
-      private string selectedGroupName_ = "";
 
       public GroupsPageView(CollectionSpec spec)
       {
          // The editor in its page mode, as every other list of the kind: its
          // header with the title, the count and the page's actions, its search
          // (review finding F112: the page had none, the domains page beside it
-         // did) and the list; the members row goes under the list, inside the
-         // page's scrolling parts. The page drew its own header around the
-         // editor's embedded form, whose toolbar had no search.
+         // did) and the list, with Members… first among its verbs. The page drew
+         // its own header around the editor's embedded form, whose toolbar had no
+         // search.
          editor_ = new CollectionEditorView(spec);
-
-         var membersRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 12, 0, 0) };
 
          membersButton_ = new Wpf.Ui.Controls.Button
          {
             Content = L("_Members…"),
+            Appearance = Wpf.Ui.Controls.ControlAppearance.Secondary,
             MinWidth = 110,
             IsEnabled = false
          };
          ControlHelp.Explain(membersButton_, L("Edit the members of the selected group"));
+         System.Windows.Automation.AutomationProperties.SetAutomationId(membersButton_, "groups-members");
          membersButton_.Click += (_, _) => OpenMembers();
-         membersRow.Children.Add(membersButton_);
-
-         membersHint_ = new TextBlock
-         {
-            Text = HintNoSelection,
-            TextWrapping = TextWrapping.Wrap,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(10, 0, 0, 0)
-         };
-         membersHint_.SetResourceReference(StyleProperty, "TextCaption");
-         membersRow.Children.Add(membersHint_);
-
-         editor_.AddBelowList(membersRow);
+         editor_.AddRowVerb(membersButton_, opensRow: true);
 
          Content = editor_;
-
-         // handledEventsToo, in case a future DataGrid template handles the event
-         // on its way up; today it arrives unhandled.
-         AddHandler(Selector.SelectionChangedEvent, new SelectionChangedEventHandler(OnSelectionChanged), true);
-      }
-
-      private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
-      {
-         if (e.OriginalSource is not DataGrid grid)
-            return;
-
-         if (grid.SelectedItem is Row row && row.Id > 0)
-         {
-            selectedGroupId_ = row.Id;
-            selectedGroupName_ = row.Display("Name"); // no-loc
-            membersButton_.IsEnabled = true;
-            membersHint_.Text = F("Open the member list of '{0}'.", selectedGroupName_);
-         }
-         else
-         {
-            selectedGroupId_ = -1;
-            selectedGroupName_ = "";
-            membersButton_.IsEnabled = false;
-            membersHint_.Text = HintNoSelection;
-         }
       }
 
       private void OpenMembers()
       {
-         if (selectedGroupId_ <= 0)
+         (int id, string name) = editor_.SelectedEntry();
+         if (id <= 0)
             return;
 
-         var dialog = new GroupMembersDialog(Window.GetWindow(this), selectedGroupId_, selectedGroupName_);
+         var dialog = new GroupMembersDialog(Window.GetWindow(this), id, name ?? "");
          dialog.ShowDialog();
       }
 

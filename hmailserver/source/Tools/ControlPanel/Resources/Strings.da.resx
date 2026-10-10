@@ -8134,9 +8134,6 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Open the live logs" xml:space="preserve">
     <value>Åbn de levende logs</value>
   </data>
-  <data name="Open the member list of '{0}'." xml:space="preserve">
-    <value>Åbn medlemslisten for '{0}'.</value>
-  </data>
   <data name="Open the selected row of a list" xml:space="preserve">
     <value>Åbn den valgte række i en liste</value>
   </data>
@@ -10515,9 +10512,6 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   </data>
   <data name="Select a folder first." xml:space="preserve">
     <value>Vælg en mappe først.</value>
-  </data>
-  <data name="Select a group to edit which accounts are members of it." xml:space="preserve">
-    <value>Vælg en gruppe for at redigere, hvilke konti der er medlemmer af den.</value>
   </data>
   <data name="Select a message first." xml:space="preserve">
     <value>Vælg en meddelelse først.</value>

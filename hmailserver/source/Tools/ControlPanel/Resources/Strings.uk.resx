@@ -8222,9 +8222,6 @@
   <data name="Open the live logs" xml:space="preserve">
     <value>Відкрити живі журнали</value>
   </data>
-  <data name="Open the member list of '{0}'." xml:space="preserve">
-    <value>Відкрити список учасників «{0}».</value>
-  </data>
   <data name="Open the selected row of a list" xml:space="preserve">
     <value>Відкрити вибраний рядок списку</value>
   </data>
@@ -10636,9 +10633,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Select a folder first." xml:space="preserve">
     <value>Спершу виберіть папку.</value>
-  </data>
-  <data name="Select a group to edit which accounts are members of it." xml:space="preserve">
-    <value>Виберіть групу, щоб редагувати, які облікові записи є її учасниками.</value>
   </data>
   <data name="Select a message first." xml:space="preserve">
     <value>Спершу виберіть повідомлення.</value>
@@ -16513,14 +16507,14 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} addresses" xml:space="preserve">
     <value>{0} адрес</value>
   </data>
+  <data name="{0} addresses|few" xml:space="preserve">
+    <value>{0} адреси</value>
+  </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>Адрес у списку: {0}, показано {1} найновіших. Скористайтеся пошуком, щоб звузити список.</value>
   </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them.|few" xml:space="preserve">
     <value>Адрес у списку: {0}, показано {1} найновіших. Скористайтеся пошуком, щоб звузити список.</value>
-  </data>
-  <data name="{0} addresses|few" xml:space="preserve">
-    <value>{0} адреси</value>
   </data>
   <data name="{0} aliases" xml:space="preserve">
     <value>Псевдонімів: {0}</value>
@@ -16669,14 +16663,14 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} events" xml:space="preserve">
     <value>{0} подій</value>
   </data>
+  <data name="{0} events|few" xml:space="preserve">
+    <value>{0} події</value>
+  </data>
   <data name="{0} events past the retention window were removed." xml:space="preserve">
     <value>Вилучено {0} подій поза вікном зберігання.</value>
   </data>
   <data name="{0} events past the retention window were removed.|few" xml:space="preserve">
     <value>Вилучено {0} події поза вікном зберігання.</value>
-  </data>
-  <data name="{0} events|few" xml:space="preserve">
-    <value>{0} події</value>
   </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>У {0} зовнішнього облікового запису збирання POP3 антивірус вимкнено, тому зібрана ним пошта доставляється без сканування, хай що тут задано. Перемикач на обліковому записі збирання, а не на цій сторінці.</value>
@@ -16849,6 +16843,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} messages" xml:space="preserve">
     <value>{0} повідомлень</value>
   </data>
+  <data name="{0} messages|few" xml:space="preserve">
+    <value>{0} повідомлення</value>
+  </data>
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
     <value>Для {0} повідомлень не можна створити запис; вони залишаться там, де є. Перша причина: {1}</value>
   </data>
@@ -16866,9 +16863,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} messages reference a file that is missing on disk.|few" xml:space="preserve">
     <value>{0} повідомлення посилаються на файл, якого немає на диску.</value>
-  </data>
-  <data name="{0} messages|few" xml:space="preserve">
-    <value>{0} повідомлення</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} хв</value>

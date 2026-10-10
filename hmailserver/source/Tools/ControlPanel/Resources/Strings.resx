@@ -8134,9 +8134,6 @@ Nothing already there is removed.</value>
   <data name="Open the live logs" xml:space="preserve">
     <value>Open the live logs</value>
   </data>
-  <data name="Open the member list of '{0}'." xml:space="preserve">
-    <value>Open the member list of '{0}'.</value>
-  </data>
   <data name="Open the selected row of a list" xml:space="preserve">
     <value>Open the selected row of a list</value>
   </data>
@@ -10515,9 +10512,6 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   </data>
   <data name="Select a folder first." xml:space="preserve">
     <value>Select a folder first.</value>
-  </data>
-  <data name="Select a group to edit which accounts are members of it." xml:space="preserve">
-    <value>Select a group to edit which accounts are members of it.</value>
   </data>
   <data name="Select a message first." xml:space="preserve">
     <value>Select a message first.</value>

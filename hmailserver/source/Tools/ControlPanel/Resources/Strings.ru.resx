@@ -8222,9 +8222,6 @@ Control Panel может читать файлы сообщений только
   <data name="Open the live logs" xml:space="preserve">
     <value>Открыть живые журналы</value>
   </data>
-  <data name="Open the member list of '{0}'." xml:space="preserve">
-    <value>Открыть список участников «{0}».</value>
-  </data>
   <data name="Open the selected row of a list" xml:space="preserve">
     <value>Открыть выбранную строку списка</value>
   </data>
@@ -10636,9 +10633,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Select a folder first." xml:space="preserve">
     <value>Сначала выберите папку.</value>
-  </data>
-  <data name="Select a group to edit which accounts are members of it." xml:space="preserve">
-    <value>Выберите группу, чтобы изменить состав входящих в неё учётных записей.</value>
   </data>
   <data name="Select a message first." xml:space="preserve">
     <value>Сначала выберите сообщение.</value>
@@ -16513,14 +16507,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} addresses" xml:space="preserve">
     <value>{0} адресов</value>
   </data>
+  <data name="{0} addresses|few" xml:space="preserve">
+    <value>{0} адреса</value>
+  </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>Адресов в списке: {0}, показаны {1} последних. Воспользуйтесь поиском, чтобы сузить список.</value>
   </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them.|few" xml:space="preserve">
     <value>Адресов в списке: {0}, показаны {1} последних. Воспользуйтесь поиском, чтобы сузить список.</value>
-  </data>
-  <data name="{0} addresses|few" xml:space="preserve">
-    <value>{0} адреса</value>
   </data>
   <data name="{0} aliases" xml:space="preserve">
     <value>Псевдонимов: {0}</value>
@@ -16669,14 +16663,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} events" xml:space="preserve">
     <value>{0} событий</value>
   </data>
+  <data name="{0} events|few" xml:space="preserve">
+    <value>{0} события</value>
+  </data>
   <data name="{0} events past the retention window were removed." xml:space="preserve">
     <value>Удалено событий за пределами срока хранения: {0}.</value>
   </data>
   <data name="{0} events past the retention window were removed.|few" xml:space="preserve">
     <value>Удалено событий за пределами срока хранения: {0}.</value>
-  </data>
-  <data name="{0} events|few" xml:space="preserve">
-    <value>{0} события</value>
   </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>У {0} внешней учётной записи сбора POP3 антивирус выключен, поэтому собираемая ею почта доставляется без проверки, что бы здесь ни было задано. Переключатель находится на учётной записи сбора почты, а не на этой странице.</value>
@@ -16849,6 +16843,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} messages" xml:space="preserve">
     <value>{0} сообщений</value>
   </data>
+  <data name="{0} messages|few" xml:space="preserve">
+    <value>{0} сообщения</value>
+  </data>
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
     <value>Для {0} сообщений нельзя создать запись; они останутся там, где есть. Первая причина: {1}</value>
   </data>
@@ -16866,9 +16863,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} messages reference a file that is missing on disk.|few" xml:space="preserve">
     <value>Сообщений, ссылающихся на отсутствующий на диске файл: {0}.</value>
-  </data>
-  <data name="{0} messages|few" xml:space="preserve">
-    <value>{0} сообщения</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} мин</value>

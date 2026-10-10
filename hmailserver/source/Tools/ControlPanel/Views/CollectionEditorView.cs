@@ -256,6 +256,12 @@ namespace hMailServer.ControlPanel.Views
       private Button addFirst_;
       private FillPanel parts_;
 
+      // The list's verbs, and the verb of a row that a page built on this one puts
+      // first (AddRowVerb): the Groups page's Members…, which Enter and a
+      // double-click press in place of Edit (review finding F201).
+      private StackPanel actions_;
+      private Button openVerb_;
+
       public CollectionEditorView(CollectionSpec spec) : this(spec, false)
       {
       }
@@ -332,6 +338,7 @@ namespace hMailServer.ControlPanel.Views
          // Refresh is the page's verb and goes in the header; in a dialog's tab,
          // which has no header, it stands before Add.
          var actions = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
+         actions_ = actions;
          var edit = MakeButton(L("_Edit"), ControlAppearance.Secondary, (_, _) => EditSelected());
          actions.Children.Add(edit);
          Wpf.Ui.Controls.Button del = null;
@@ -464,8 +471,11 @@ namespace hMailServer.ControlPanel.Views
          // Enter and F2 edit the selected row, Delete deletes it after asking and
          // Insert adds one, each through its button; a double-click edits a row,
          // where it was the grid's and a double-click on a header's divider, to
-         // fit a column, opened Edit as well (Views/GridKeys).
-         GridKeys.Wire(grid_, edit, del, addButton_);
+         // fit a column, opened Edit as well (Views/GridKeys). On a page whose rows
+         // open something else (AddRowVerb), Enter and the double-click press that
+         // verb and F2 alone is Edit, the rename.
+         GridKeys.WireRename(grid_, () => openVerb_ != null && GridKeys.Press(edit));
+         GridKeys.Wire(grid_, () => GridKeys.Press(openVerb_ ?? edit), GridKeys.Pressing(del), GridKeys.Pressing(addButton_));
          System.Windows.Automation.AutomationProperties.SetName(grid_, spec_.Title);
 
          foreach (FieldSpec f in spec_.Fields.Where(f => f.ShowInGrid))
@@ -730,6 +740,32 @@ namespace hMailServer.ControlPanel.Views
       /// parts: the Groups page's Members row. Page mode only.
       /// </summary>
       internal void AddBelowList(UIElement part) => parts_?.Children.Add(part);
+
+      /// <summary>
+      /// A verb of the selected row that a page built on this list puts first among
+      /// the list's verbs, before Edit, and enables only while a row is selected:
+      /// the Groups page's Members…, which was a lone button under the list, away
+      /// from the verbs, while Enter and a double-click on a group opened the
+      /// rename (review finding F201). With <paramref name="opensRow"/>, Enter and
+      /// a double-click on a row press it, and F2 is left to Edit.
+      /// </summary>
+      internal void AddRowVerb(Button verb, bool opensRow)
+      {
+         if (verb == null || actions_ == null)
+            return;
+
+         verb.Margin = new Thickness(8, 0, 0, 0);
+         if (verb.MinWidth < 92)
+            verb.MinWidth = 92;
+         actions_.Children.Insert(0, verb);
+         Services.SelectionGate.Bind(grid_, verb);
+         if (opensRow)
+            openVerb_ = verb;
+      }
+
+      /// <summary>The selected row's database id and the words it is known by, or (0, null) with none selected.</summary>
+      internal (int Id, string Name) SelectedEntry()
+         => grid_.SelectedItem is Row row && row.Id > 0 ? (row.Id, DeleteName_(row)) : (0, null);
 
       /// <summary>
       /// A row as a screen reader hears it: every cell the grid shows, as the grid

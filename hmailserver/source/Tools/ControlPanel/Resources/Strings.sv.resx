@@ -8134,9 +8134,6 @@ Inget som redan finns där tas bort.</value>
   <data name="Open the live logs" xml:space="preserve">
     <value>Öppna direktloggarna</value>
   </data>
-  <data name="Open the member list of '{0}'." xml:space="preserve">
-    <value>Öppna medlemslistan för '{0}'.</value>
-  </data>
   <data name="Open the selected row of a list" xml:space="preserve">
     <value>Öppna den markerade raden i en lista</value>
   </data>
@@ -10515,9 +10512,6 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Select a folder first." xml:space="preserve">
     <value>Välj en mapp först.</value>
-  </data>
-  <data name="Select a group to edit which accounts are members of it." xml:space="preserve">
-    <value>Välj en grupp för att redigera vilka konton som är medlemmar i den.</value>
   </data>
   <data name="Select a message first." xml:space="preserve">
     <value>Välj ett meddelande först.</value>

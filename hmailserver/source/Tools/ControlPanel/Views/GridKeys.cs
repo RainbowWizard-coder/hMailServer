@@ -85,6 +85,35 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
+      /// F2 on a selected row renames it through <paramref name="rename"/>, for a
+      /// list whose Enter and double-click open something other than the row's
+      /// Edit - the Groups page's rows open their members, and F2 is Windows' key
+      /// for a rename (review finding F201). Wired before <see cref="Wire(Selector, Func{bool}, Func{bool}, Func{bool})"/>,
+      /// whose handler then sees the key handled; a rename that answers false
+      /// leaves F2 to it, which opens the row as Enter does.
+      /// </summary>
+      public static void WireRename(Selector list, Func<bool> rename)
+      {
+         if (list == null || rename == null)
+            return;
+
+         list.PreviewKeyDown += (_, e) =>
+         {
+            if (e.Handled || e.Key != Key.F2 || Keyboard.Modifiers != ModifierKeys.None || list.SelectedItem == null
+                || !FromTheRows_(list, e.OriginalSource as DependencyObject))
+               return;
+
+            bool hadKeyboard = list.IsKeyboardFocusWithin;
+            if (rename())
+            {
+               e.Handled = true;
+               if (hadKeyboard)
+                  list.Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() => FocusSelectedRow(list)));
+            }
+         };
+      }
+
+      /// <summary>
       /// Presses <paramref name="button"/> as a click would, now, and says whether
       /// it could be pressed: not when it is disabled or not on screen. Its Click
       /// handlers run before this returns - a dialog the button opens has closed

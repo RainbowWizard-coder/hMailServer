@@ -2662,6 +2662,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the tab's button that opens it is, with Cancel beside its act until it is done and Close after.
   `TwoFactorPromptsTests` holds the card, the prompts and the dialog.
 
+- **Fixed: the Groups page's Members… was a lone button under the list, and a double-click on a group renamed it.**
+  Add, Edit and Delete were in the toolbar over the list and Refresh in the header, but Members… - what a group is
+  for - sat under the list, 760 pixels down at 1280 by 800, beside a hint that changed as a group was chosen and was
+  never announced; Enter and a double-click on a group opened the rename. Members… is now the list's first verb,
+  before Edit, Delete and Add, enabled while a group is selected; Enter and a double-click on a group open its
+  members, and F2 is Edit, the rename. What the hint said is the subtitle's and the empty state's, and the list
+  editor takes such a verb of a row from any page built on it (`CollectionEditorView.AddRowVerb`,
+  `GridKeys.WireRename`). `GroupsPageVerbsTests` holds the verb, its place and the keys.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

@@ -8134,9 +8134,6 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="Open the live logs" xml:space="preserve">
     <value>Ouvrir les journaux en direct</value>
   </data>
-  <data name="Open the member list of '{0}'." xml:space="preserve">
-    <value>Ouvrir la liste des membres de « {0} ».</value>
-  </data>
   <data name="Open the selected row of a list" xml:space="preserve">
     <value>Ouvrir la ligne sélectionnée d'une liste</value>
   </data>
@@ -10515,9 +10512,6 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   </data>
   <data name="Select a folder first." xml:space="preserve">
     <value>Sélectionnez d'abord un dossier.</value>
-  </data>
-  <data name="Select a group to edit which accounts are members of it." xml:space="preserve">
-    <value>Sélectionnez un groupe pour modifier quels comptes en sont membres.</value>
   </data>
   <data name="Select a message first." xml:space="preserve">
     <value>Sélectionnez d'abord un message.</value>

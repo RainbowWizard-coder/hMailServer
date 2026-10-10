@@ -8222,9 +8222,6 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Open the live logs" xml:space="preserve">
     <value>Otevřít živé logy</value>
   </data>
-  <data name="Open the member list of '{0}'." xml:space="preserve">
-    <value>Otevřít seznam členů skupiny '{0}'.</value>
-  </data>
   <data name="Open the selected row of a list" xml:space="preserve">
     <value>Otevřít vybraný řádek seznamu</value>
   </data>
@@ -10636,9 +10633,6 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Select a folder first." xml:space="preserve">
     <value>Nejprve vyberte složku.</value>
-  </data>
-  <data name="Select a group to edit which accounts are members of it." xml:space="preserve">
-    <value>Vyberte skupinu, chcete-li upravit, které účty jsou jejími členy.</value>
   </data>
   <data name="Select a message first." xml:space="preserve">
     <value>Nejprve vyberte zprávu.</value>
@@ -16513,14 +16507,14 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} addresses" xml:space="preserve">
     <value>{0} adres</value>
   </data>
+  <data name="{0} addresses|few" xml:space="preserve">
+    <value>{0} adresy</value>
+  </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>Na seznamu je {0} adres, zobrazeno {1} nejnovějších. Vyhledáváním je zúžíte.</value>
   </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them.|few" xml:space="preserve">
     <value>Na seznamu jsou {0} adresy, zobrazeno {1} nejnovějších. Vyhledáváním je zúžíte.</value>
-  </data>
-  <data name="{0} addresses|few" xml:space="preserve">
-    <value>{0} adresy</value>
   </data>
   <data name="{0} aliases" xml:space="preserve">
     <value>Aliasy: {0}</value>
@@ -16669,14 +16663,14 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} events" xml:space="preserve">
     <value>{0} událostí</value>
   </data>
+  <data name="{0} events|few" xml:space="preserve">
+    <value>{0} události</value>
+  </data>
   <data name="{0} events past the retention window were removed." xml:space="preserve">
     <value>Odstraněno {0} událostí za oknem uchovávání.</value>
   </data>
   <data name="{0} events past the retention window were removed.|few" xml:space="preserve">
     <value>Odstraněny {0} události za oknem uchovávání.</value>
-  </data>
-  <data name="{0} events|few" xml:space="preserve">
-    <value>{0} události</value>
   </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>U {0} externího účtu pro stahování POP3 je antivirus vypnutý, takže pošta, kterou vyzvedává, se doručuje neskenovaná bez ohledu na to, co je nastaveno zde. Přepínač je na účtu pro stahování, ne na této stránce.</value>
@@ -16849,6 +16843,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} zpráv</value>
   </data>
+  <data name="{0} messages|few" xml:space="preserve">
+    <value>{0} zprávy</value>
+  </data>
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
     <value>Pro {0} zpráv nelze zapsat záznam; zůstanou tam, kde jsou. První důvod: {1}</value>
   </data>
@@ -16866,9 +16863,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} messages reference a file that is missing on disk.|few" xml:space="preserve">
     <value>{0} zprávy odkazují na soubor, který na disku chybí.</value>
-  </data>
-  <data name="{0} messages|few" xml:space="preserve">
-    <value>{0} zprávy</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} min</value>

@@ -8134,9 +8134,6 @@
   <data name="Open the live logs" xml:space="preserve">
     <value>ライブ ログを開く</value>
   </data>
-  <data name="Open the member list of '{0}'." xml:space="preserve">
-    <value>'{0}' のメンバー リストを開きます。</value>
-  </data>
   <data name="Open the selected row of a list" xml:space="preserve">
     <value>一覧で選択した行を開く</value>
   </data>
@@ -10515,9 +10512,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Select a folder first." xml:space="preserve">
     <value>先にフォルダーを選択してください。</value>
-  </data>
-  <data name="Select a group to edit which accounts are members of it." xml:space="preserve">
-    <value>グループを選択して、どのアカウントがメンバーかを編集します。</value>
   </data>
   <data name="Select a message first." xml:space="preserve">
     <value>先にメッセージを選択してください。</value>

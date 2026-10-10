@@ -8134,9 +8134,6 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="Open the live logs" xml:space="preserve">
     <value>Die Live-Protokolle öffnen</value>
   </data>
-  <data name="Open the member list of '{0}'." xml:space="preserve">
-    <value>Die Mitgliederliste von '{0}' öffnen.</value>
-  </data>
   <data name="Open the selected row of a list" xml:space="preserve">
     <value>Die ausgewählte Zeile einer Liste öffnen</value>
   </data>
@@ -10515,9 +10512,6 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   </data>
   <data name="Select a folder first." xml:space="preserve">
     <value>Wählen Sie zuerst einen Ordner aus.</value>
-  </data>
-  <data name="Select a group to edit which accounts are members of it." xml:space="preserve">
-    <value>Wählen Sie eine Gruppe aus, um zu bearbeiten, welche Konten Mitglieder darin sind.</value>
   </data>
   <data name="Select a message first." xml:space="preserve">
     <value>Wählen Sie zuerst eine Nachricht aus.</value>

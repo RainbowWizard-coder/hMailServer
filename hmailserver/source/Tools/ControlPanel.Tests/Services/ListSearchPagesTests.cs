@@ -71,13 +71,13 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("SearchPlaceholder = N(\"" + placeholder + "\"),", body, StringComparison.Ordinal);
       }
 
-      /// <summary>The Groups page is the editor's page mode, with its search and count, and its Members row under the list.</summary>
+      /// <summary>The Groups page is the editor's page mode, with its search and count, and Members… first among its verbs (GroupsPageVerbsTests).</summary>
       [Fact]
       public void TheGroupsPage_IsAListPageWithItsSearch()
       {
          string specs = ReadControlPanelFile(Path.Join("Views", "CollectionSpecs.cs"));
          Assert.Contains("editor_ = new CollectionEditorView(spec);", specs, StringComparison.Ordinal);
-         Assert.Contains("editor_.AddBelowList(membersRow);", specs, StringComparison.Ordinal);
+         Assert.Contains("editor_.AddRowVerb(membersButton_, opensRow: true);", specs, StringComparison.Ordinal);
          Assert.DoesNotContain("new CollectionEditorView(spec, embedded: true)", specs, StringComparison.Ordinal);
       }
 
