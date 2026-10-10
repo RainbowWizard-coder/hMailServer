@@ -9046,6 +9046,9 @@
   <data name="Readable text (body and text attachments)" xml:space="preserve">
     <value>Читабельний текст (тіло листа та текстові вкладення)</value>
   </data>
+  <data name="Reading the cases…" xml:space="preserve">
+    <value>Читання справ…</value>
+  </data>
   <data name="Reading the directory..." xml:space="preserve">
     <value>Читання каталогу...</value>
   </data>
@@ -10559,6 +10562,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Select _all" xml:space="preserve">
     <value>Виділити _все</value>
   </data>
+  <data name="Select a case above to see its lines on the audit trail." xml:space="preserve">
+    <value>Виберіть справу вище, щоб побачити її рядки в журналі аудиту.</value>
+  </data>
   <data name="Select a domain" xml:space="preserve">
     <value>Виберіть домен</value>
   </data>
@@ -11998,6 +12004,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The audit lines need view_audit as well, which this credential does not hold." xml:space="preserve">
     <value>Для рядків журналу аудиту потрібен також view_audit, якого ці облікові дані не мають.</value>
+  </data>
+  <data name="The audit trail holds no line for this case." xml:space="preserve">
+    <value>У журналі аудиту немає жодного рядка для цієї справи.</value>
   </data>
   <data name="The authserv-id: the first token of every Authentication-Results header this server writes, always lower-cased, and the name a downstream filter checks before trusting the verdicts. The same name decides which arriving Authentication-Results headers are treated as forged: one claiming this identity is removed, while one naming any other identity is left completely untouched." xml:space="preserve">
     <value>Ідентифікатор authserv-id: перший токен кожного заголовка Authentication-Results, який пише цей сервер, завжди в нижньому регістрі, і ім'я, яке фільтр нижче за потоком перевіряє, перш ніж довіряти висновкам. Це саме ім'я вирішує, які вхідні заголовки Authentication-Results вважати підробленими: той, що заявляє цю ідентичність, видаляється, а той, що називає будь-яку іншу, залишається зовсім недоторканим.</value>

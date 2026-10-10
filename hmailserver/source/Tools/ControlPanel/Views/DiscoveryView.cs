@@ -69,6 +69,17 @@ namespace hMailServer.ControlPanel.Views
       private List<AuditRow> audit_ = new();
       private bool loading_;
 
+      // While the REST API is asked, which can take up to eight seconds, over the
+      // cases' place: the page showed nothing at all meanwhile (review finding F291).
+      private readonly LoadingState reading_ = new() { Text = L("Reading the cases…"), Visibility = Visibility.Collapsed };
+
+      // In the lines' place while no case is selected, or the one selected has
+      // none: the lines' card showed its bare column headers (F291).
+      private readonly EmptyState noLines_ = new() { Icon = Wpf.Ui.Controls.SymbolRegular.DocumentBulletList24, Visibility = Visibility.Collapsed };
+
+      // The card of the selected case's lines, hidden while there are no cases to select.
+      private Card linesCard_;
+
       public DiscoveryView() => Build_();
 
       // Read on entry: a case opened in the Deck since the page was last shown
@@ -99,6 +110,8 @@ namespace hMailServer.ControlPanel.Views
          cases_.ItemsSource = null;
          lines_.ItemsSource = null;
          empty_.Visibility = Visibility.Collapsed;
+         noLines_.Visibility = Visibility.Collapsed;
+         linesCard_.Visibility = Visibility.Collapsed;
       }
 
       // async void because it is started from OnEnter and a button, and nothing
@@ -112,6 +125,7 @@ namespace hMailServer.ControlPanel.Views
          status_.Visibility = Visibility.Collapsed;
          ControlDeckLink.Update(deck_);
          Uri endpoint = null;
+         Reading_(true);
 
          try
          {
@@ -200,23 +214,8 @@ namespace hMailServer.ControlPanel.Views
                audit.AddRange(page.Entries);
             }
 
-            loaded_ = report.Cases;
-            audit_ = audit;
-            cases_.ItemsSource = report.Cases.Select(CaseRow_).ToList();
-
-            StatusText.Show(empty_, null, report.Cases.Count, null,
-               L("No case has been opened. Cases are opened in the Control Deck."));
-
-            if (auditNote != null)
-               Status_(StatusLevel.Warning, auditNote);
-            else if (report.Cases.Count > 0)
-               Status_(StatusLevel.Information, Plural(report.Cases.Count,
-                  "{0} case. Select it for its lines on the audit trail.",
-                  "{0} cases. Select one for its lines on the audit trail."));
-
-            if (report.Cases.Count > 0)
-               cases_.SelectedIndex = 0;
-            ShowLines_();
+            Reading_(false);
+            Present_(report.Cases, audit, auditNote);
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -234,8 +233,51 @@ namespace hMailServer.ControlPanel.Views
          }
          finally
          {
+            Reading_(false);
             loading_ = false;
          }
+      }
+
+      /// <summary>
+      /// The ring and "Reading the cases…" in the cases' place while the REST
+      /// API is asked, the grid's rows, its empty state and the lines of the last
+      /// read out of the way; gone again whatever the read came to.
+      /// </summary>
+      private void Reading_(bool reading)
+      {
+         reading_.Visibility = reading ? Visibility.Visible : Visibility.Collapsed;
+         if (reading)
+         {
+            cases_.ItemsSource = null;
+            empty_.Visibility = Visibility.Collapsed;
+            linesCard_.Visibility = Visibility.Collapsed;
+         }
+      }
+
+      /// <summary>
+      /// The cases and their lines as read: the first case selected, its lines
+      /// under it, and the lines' card hidden while there is no case to select.
+      /// </summary>
+      private void Present_(IReadOnlyList<DiscoveryCase> cases, List<AuditRow> audit, string auditNote)
+      {
+         loaded_ = cases ?? Array.Empty<DiscoveryCase>();
+         audit_ = audit ?? new List<AuditRow>();
+         cases_.ItemsSource = loaded_.Select(CaseRow_).ToList();
+
+         StatusText.Show(empty_, null, loaded_.Count, null,
+            L("No case has been opened. Cases are opened in the Control Deck."));
+         linesCard_.Visibility = loaded_.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+
+         if (auditNote != null)
+            Status_(StatusLevel.Warning, auditNote);
+         else if (loaded_.Count > 0)
+            Status_(StatusLevel.Information, Plural(loaded_.Count,
+               "{0} case. Select it for its lines on the audit trail.",
+               "{0} cases. Select one for its lines on the audit trail."));
+
+         if (loaded_.Count > 0)
+            cases_.SelectedIndex = 0;
+         ShowLines_();
       }
 
       private static async Task<Reply> Get_(Uri endpoint, string path, string authorization)
@@ -268,16 +310,26 @@ namespace hMailServer.ControlPanel.Views
             : F("The REST API answered {0}: {1}", reply.Status, sentence);
       }
 
+      /// <summary>
+      /// The selected case's lines, or in their place what is missing: a case to
+      /// select, or any line naming the one selected. The card showed its bare
+      /// column headers in both (review finding F291).
+      /// </summary>
       private void ShowLines_()
       {
          if (cases_.SelectedItem is not CaseRow row)
          {
             lines_.ItemsSource = null;
+            noLines_.Text = L("Select a case above to see its lines on the audit trail.");
+            noLines_.Visibility = Visibility.Visible;
             return;
          }
 
          DiscoveryCase theCase = loaded_.FirstOrDefault(c => c.Id == row.Id);
-         lines_.ItemsSource = DiscoveryReport.LinesOf(theCase, audit_).Select(LineRow_).ToList();
+         List<LineRow> lines = DiscoveryReport.LinesOf(theCase, audit_).Select(LineRow_).ToList();
+         lines_.ItemsSource = lines;
+         noLines_.Text = L("The audit trail holds no line for this case.");
+         noLines_.Visibility = lines.Count > 0 ? Visibility.Collapsed : Visibility.Visible;
       }
 
       /// <summary>A case as the grid shows it: the server's words turned into the reader's.</summary>
@@ -408,40 +460,66 @@ namespace hMailServer.ControlPanel.Views
 
          parts.Children.Add(status_);
 
-         cases_.Columns.Add(Text_(L("Name"), nameof(CaseRow.Name), new DataGridLength(1, DataGridLengthUnitType.Star)));
+         // The name and the detail share what the short columns leave, over a floor,
+         // cut short with an ellipsis: with no floor the name was given nothing in
+         // the smallest window, "Co" for Contoso dispute under a header cut to "N...".
+         cases_.Columns.Add(Shared_(L("Name"), nameof(CaseRow.Name), 160));
          cases_.Columns.Add(Text_(L("State"), nameof(CaseRow.State), DataGridLength.Auto));
          cases_.Columns.Add(Text_(L("Opened"), nameof(CaseRow.Opened), DataGridLength.Auto));
          cases_.Columns.Add(Text_(L("Opened by"), nameof(CaseRow.OpenedBy), DataGridLength.Auto));
-         cases_.Columns.Add(Text_(L("Searches"), nameof(CaseRow.Searches), DataGridLength.Auto));
-         cases_.Columns.Add(Text_(L("Live holds"), nameof(CaseRow.LiveHolds), DataGridLength.Auto));
-         cases_.Columns.Add(Text_(L("Exports"), nameof(CaseRow.Exports), DataGridLength.Auto));
+         // The counts right-aligned, as every count in a grid is (GridStyles.Number):
+         // they were left-aligned text (review finding F291).
+         cases_.Columns.Add(Count_(L("Searches"), nameof(CaseRow.Searches)));
+         cases_.Columns.Add(Count_(L("Live holds"), nameof(CaseRow.LiveHolds)));
+         cases_.Columns.Add(Count_(L("Exports"), nameof(CaseRow.Exports)));
          cases_.RowStyle = TipStyle_(nameof(CaseRow.Description));
          cases_.SelectionChanged += (_, _) => ShowLines_();
          AutomationProperties.SetName(cases_, L("Discovery cases"));
 
+         // Each grid's three rows on a FillPanel of its own and its card floored
+         // at what it holds, as the domain lists are: the cases' empty state and
+         // the ring while they are read, and the lines' empty state, laid over the
+         // rows, raise the card's floor where they need more. The two cards were
+         // floored at the list cards' height and shared the room so that in the
+         // smallest window the lines' grid showed no row at all (F291).
+         var caseRows = new FillPanel();
+         caseRows.Children.Add(FillPanel.Filling(cases_, FillPanel.ListRowsFloor));
          var host = new Grid();
-         host.Children.Add(cases_);
+         host.Children.Add(caseRows);
          host.Children.Add(empty_);
+         host.Children.Add(reading_);
+         EmptyStateUnderHeaders.Keep(empty_, cases_);
          var casesCard = new Card { Padding = new Thickness(8), Content = host };
-         parts.Children.Add(FillPanel.Filling(casesCard, FillPanel.ListCardFloor));
+         parts.Children.Add(FillPanel.Filling(casesCard, 0));
 
          lines_.Columns.Add(Text_(L("When"), nameof(LineRow.When), DataGridLength.Auto));
          lines_.Columns.Add(Text_(L("Who"), nameof(LineRow.Who), DataGridLength.Auto));
          lines_.Columns.Add(Text_(L("Interface"), nameof(LineRow.Interface), DataGridLength.Auto));
          lines_.Columns.Add(Text_(L("Object"), nameof(LineRow.Object), DataGridLength.Auto));
          lines_.Columns.Add(Text_(L("Action"), nameof(LineRow.Action), DataGridLength.Auto));
-         lines_.Columns.Add(Text_(L("Detail"), nameof(LineRow.Detail), new DataGridLength(1, DataGridLengthUnitType.Star)));
+         lines_.Columns.Add(Shared_(L("Detail"), nameof(LineRow.Detail), 140));
          lines_.RowStyle = TipStyle_(nameof(LineRow.Detail));
          AutomationProperties.SetName(lines_, L("The case's lines on the audit trail"));
 
-         var linesCard = new Card
+         var lineRows = new FillPanel();
+         lineRows.Children.Add(FillPanel.Filling(lines_, FillPanel.ListRowsFloor));
+         var linesHost = new Grid();
+         linesHost.Children.Add(lineRows);
+         linesHost.Children.Add(noLines_);
+         EmptyStateUnderHeaders.Keep(noLines_, lines_);
+
+         // The card padding every titled card has (AppCardPadding, the Card's own),
+         // so that its title stands where the other pages' card titles do: at
+         // eight pixels it stood twelve to their left (F291). Shown once there are
+         // cases to choose from.
+         linesCard_ = new Card
          {
             Title = L("The case's lines on the audit trail"),
-            Padding = new Thickness(8),
             Margin = new Thickness(0, 12, 0, 0),
-            Content = lines_
+            Content = linesHost,
+            Visibility = Visibility.Collapsed
          };
-         parts.Children.Add(FillPanel.Filling(linesCard, FillPanel.TitledListCardFloor));
+         parts.Children.Add(FillPanel.Filling(linesCard_, 0));
 
          Content = root;
       }
@@ -458,5 +536,21 @@ namespace hMailServer.ControlPanel.Views
 
       private static DataGridTextColumn Text_(string header, string path, DataGridLength width)
          => new() { Header = header, Binding = new System.Windows.Data.Binding(path), Width = width };
+
+      /// <summary>A column that takes the width the others leave, over a floor of so many pixels or its header's width, its cells cut short with an ellipsis.</summary>
+      private static DataGridTextColumn Shared_(string header, string path, double floor)
+      {
+         DataGridTextColumn column = GridStyles.Trimmed(Text_(header, path, new DataGridLength(1, DataGridLengthUnitType.Star)));
+         column.MinWidth = Math.Max(floor, GridStyles.HeaderWidth(header));
+         return column;
+      }
+
+      /// <summary>A column of counts: as wide as its widest and its header, the digits and the header right-aligned.</summary>
+      private static DataGridTextColumn Count_(string header, string path)
+      {
+         DataGridTextColumn column = Text_(header, path, DataGridLength.Auto);
+         GridStyles.Number(column);
+         return column;
+      }
    }
 }

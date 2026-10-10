@@ -2505,6 +2505,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   list is and which list to use instead, and the notice is gone. `DomainPolicyEditTests` holds the words, the date,
   the request, the columns, the Edit wiring and the dialog's keys against its fields in every catalogue.
 
+- **Fixed: the Discovery page showed nothing while it read the cases, bare headers where it had no lines to show, and
+  no row of the lines in the smallest window.** The REST API's reads can take eight seconds, and the page stayed as it
+  was meanwhile; the lines' card showed its column headers alone until a case was selected, and where the selected
+  case had no lines; its title stood twelve pixels left of every other titled card's, at the list card's eight pixels
+  of padding; the Searches, Live holds and Exports counts were left-aligned text; and the two cards, floored at the
+  list cards' height and sharing the room, left the lines' grid no row at all in a 760 by 520 window. A ring now says
+  "Reading the cases…" in the cases' place from the first request to the last; the lines' card says "Select a case
+  above to see its lines on the audit trail." or "The audit trail holds no line for this case." under its headers, and
+  is hidden while there are no cases to choose from; it takes the Card's own padding; the counts are right-aligned;
+  and each grid keeps three rows on a FillPanel of its own inside a card floored at what it holds, below which the
+  page scrolls, with the case's name and a line's detail floored too and cut short with an ellipsis, where the
+  smallest window gave the name nothing ("Co" under a header cut to "N..."). `DiscoveryPageTests` holds the counts,
+  the padding, the floors, the empty states and the ring.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

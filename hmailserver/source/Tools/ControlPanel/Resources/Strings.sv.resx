@@ -8958,6 +8958,9 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="Readable text (body and text attachments)" xml:space="preserve">
     <value>Läsbar text (brödtext och textbilagor)</value>
   </data>
+  <data name="Reading the cases…" xml:space="preserve">
+    <value>Läser ärendena…</value>
+  </data>
   <data name="Reading the directory..." xml:space="preserve">
     <value>Läser katalogen...</value>
   </data>
@@ -10438,6 +10441,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Select _all" xml:space="preserve">
     <value>Markera _alla</value>
   </data>
+  <data name="Select a case above to see its lines on the audit trail." xml:space="preserve">
+    <value>Välj ett ärende ovan för dess rader i granskningsloggen.</value>
+  </data>
   <data name="Select a domain" xml:space="preserve">
     <value>Välj en domän</value>
   </data>
@@ -11868,6 +11874,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="The audit lines need view_audit as well, which this credential does not hold." xml:space="preserve">
     <value>Granskningsraderna kräver även view_audit, som de här inloggningsuppgifterna inte har.</value>
+  </data>
+  <data name="The audit trail holds no line for this case." xml:space="preserve">
+    <value>Granskningsloggen har inga rader för det här ärendet.</value>
   </data>
   <data name="The authserv-id: the first token of every Authentication-Results header this server writes, always lower-cased, and the name a downstream filter checks before trusting the verdicts. The same name decides which arriving Authentication-Results headers are treated as forged: one claiming this identity is removed, while one naming any other identity is left completely untouched." xml:space="preserve">
     <value>Authserv-id:t: det första ordet i varje Authentication-Results-rubrik den här servern skriver, alltid i gemener, och det namn ett filter längre fram kontrollerar innan det litar på domarna. Samma namn avgör vilka inkommande Authentication-Results-rubriker som behandlas som förfalskade: en som utger sig för den här identiteten tas bort, medan en som namnger någon annan identitet lämnas helt orörd.</value>

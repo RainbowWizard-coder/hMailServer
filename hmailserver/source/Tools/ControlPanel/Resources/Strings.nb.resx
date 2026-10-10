@@ -8958,6 +8958,9 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   <data name="Readable text (body and text attachments)" xml:space="preserve">
     <value>Lesbar tekst (brødtekst og tekstvedlegg)</value>
   </data>
+  <data name="Reading the cases…" xml:space="preserve">
+    <value>Leser sakene…</value>
+  </data>
   <data name="Reading the directory..." xml:space="preserve">
     <value>Leser katalogen...</value>
   </data>
@@ -10438,6 +10441,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Select _all" xml:space="preserve">
     <value>Merk _alt</value>
   </data>
+  <data name="Select a case above to see its lines on the audit trail." xml:space="preserve">
+    <value>Velg en sak ovenfor for å se linjene i revisjonsloggen.</value>
+  </data>
   <data name="Select a domain" xml:space="preserve">
     <value>Velg et domene</value>
   </data>
@@ -11868,6 +11874,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   </data>
   <data name="The audit lines need view_audit as well, which this credential does not hold." xml:space="preserve">
     <value>Revisjonslinjene krever også view_audit, som denne påloggingsinformasjonen ikke har.</value>
+  </data>
+  <data name="The audit trail holds no line for this case." xml:space="preserve">
+    <value>Revisjonsloggen har ingen linjer for denne saken.</value>
   </data>
   <data name="The authserv-id: the first token of every Authentication-Results header this server writes, always lower-cased, and the name a downstream filter checks before trusting the verdicts. The same name decides which arriving Authentication-Results headers are treated as forged: one claiming this identity is removed, while one naming any other identity is left completely untouched." xml:space="preserve">
     <value>authserv-id: det første tokenet i hver Authentication-Results-header denne serveren skriver, alltid med små bokstaver, og navnet et nedstrøms filter sjekker før det stoler på avgjørelsene. Det samme navnet avgjør hvilke ankommende Authentication-Results-headere som behandles som forfalskede: en som hevder denne identiteten, fjernes, mens en som nevner en hvilken som helst annen identitet, lar være helt urørt.</value>

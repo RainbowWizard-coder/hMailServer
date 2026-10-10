@@ -8958,6 +8958,9 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   <data name="Readable text (body and text attachments)" xml:space="preserve">
     <value>Texto legível (corpo e anexos de texto)</value>
   </data>
+  <data name="Reading the cases…" xml:space="preserve">
+    <value>Lendo os casos…</value>
+  </data>
   <data name="Reading the directory..." xml:space="preserve">
     <value>Lendo o diretório...</value>
   </data>
@@ -10438,6 +10441,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Select _all" xml:space="preserve">
     <value>Selecionar _tudo</value>
   </data>
+  <data name="Select a case above to see its lines on the audit trail." xml:space="preserve">
+    <value>Selecione um caso acima para ver suas linhas na trilha de auditoria.</value>
+  </data>
   <data name="Select a domain" xml:space="preserve">
     <value>Selecione um domínio</value>
   </data>
@@ -11868,6 +11874,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="The audit lines need view_audit as well, which this credential does not hold." xml:space="preserve">
     <value>As linhas de auditoria também exigem view_audit, que esta credencial não tem.</value>
+  </data>
+  <data name="The audit trail holds no line for this case." xml:space="preserve">
+    <value>A trilha de auditoria não tem nenhuma linha para este caso.</value>
   </data>
   <data name="The authserv-id: the first token of every Authentication-Results header this server writes, always lower-cased, and the name a downstream filter checks before trusting the verdicts. The same name decides which arriving Authentication-Results headers are treated as forged: one claiming this identity is removed, while one naming any other identity is left completely untouched." xml:space="preserve">
     <value>O authserv-id: o primeiro token de cada cabeçalho Authentication-Results que este servidor escreve, sempre em minúsculas, e o nome que um filtro adiante verifica antes de confiar nos vereditos. O mesmo nome decide quais cabeçalhos Authentication-Results que chegam são tratados como forjados: um que alega esta identidade é removido, enquanto um que nomeia qualquer outra identidade é deixado completamente intacto.</value>

@@ -8958,6 +8958,9 @@
   <data name="Readable text (body and text attachments)" xml:space="preserve">
     <value>読み取り可能なテキスト (本文とテキスト添付ファイル)</value>
   </data>
+  <data name="Reading the cases…" xml:space="preserve">
+    <value>ケースを読み込み中…</value>
+  </data>
   <data name="Reading the directory..." xml:space="preserve">
     <value>ディレクトリを読み取っています...</value>
   </data>
@@ -10438,6 +10441,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Select _all" xml:space="preserve">
     <value>すべて選択(_A)</value>
   </data>
+  <data name="Select a case above to see its lines on the audit trail." xml:space="preserve">
+    <value>上でケースを選択すると、監査ログの行が表示されます。</value>
+  </data>
   <data name="Select a domain" xml:space="preserve">
     <value>ドメインを選択</value>
   </data>
@@ -11868,6 +11874,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The audit lines need view_audit as well, which this credential does not hold." xml:space="preserve">
     <value>監査ログの行を表示するには view_audit も必要ですが、この資格情報には付与されていません。</value>
+  </data>
+  <data name="The audit trail holds no line for this case." xml:space="preserve">
+    <value>このケースの監査ログの行はありません。</value>
   </data>
   <data name="The authserv-id: the first token of every Authentication-Results header this server writes, always lower-cased, and the name a downstream filter checks before trusting the verdicts. The same name decides which arriving Authentication-Results headers are treated as forged: one claiming this identity is removed, while one naming any other identity is left completely untouched." xml:space="preserve">
     <value>authserv-id: このサーバーが書くすべての Authentication-Results ヘッダーの最初のトークンで、常に小文字です。下流のフィルターが判定を信頼する前に確認する名前です。同じ名前が、到着した Authentication-Results ヘッダーのどれを偽造として扱うかも決めます。この ID を名乗るものは削除され、他の ID を名乗るものはまったく手を付けられません。</value>
