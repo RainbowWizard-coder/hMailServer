@@ -29,9 +29,11 @@ catalogue, or against what the server does at run time:
   references
             The English names pages and tabs that exist, by their titles: "the
             X page" ends in a title the navigation map gives, "the X tab" in a
-            tab header a view declares. "The backup log on the Logs page", "the
-            Status page" and the account dialog's "Account tab" sent the reader
-            to names that are not on screen (review findings F048, F280, F126).
+            tab header a view declares, and what it says something is "under"
+            is a page or a group of the navigation. "The backup log on the
+            Logs page", "the Status page", the account dialog's "Account tab"
+            and "a page of their own under Anti-spam" sent the reader to names
+            that are not on screen (review findings F048, F280, F126).
 
   numbers   Every RFC number, port, size and count the English states is
             stated by the translation too. Digit-group separators differ
@@ -95,6 +97,18 @@ def navigation_titles():
 PAGE_TITLES = sorted(set(PAGE_TITLES) | set(navigation_titles()))
 
 
+def navigation_groups():
+   """Every group title the navigation map gives - the sidebar's headings, Spam & virus
+   filtering, Sign-in & access - which a text may name as the place a page is under."""
+   path = os.path.join(ROOT, "hmailserver", "source", "Tools", "ControlPanel", "Services", "NavigationMap.cs")
+   try:
+      with open(path, encoding="utf-8-sig") as handle:
+         source = handle.read()
+   except OSError:
+      return []
+   return re.findall(r'\bGroup\("[A-Za-z0-9]+",\s*N\("((?:[^"\\]|\\.)*)"\)', source)
+
+
 def tab_headers():
    """Every tab header the Control Panel's views declare - Tab(L("...")) on the settings
    pages, Header = L("...") on the dialogs' TabItems, Header="{loc:L '...'}" in XAML -
@@ -131,14 +145,29 @@ PAGE_REFERENCE = re.compile(r"\b[Tt]he ([A-Z][\w&'/().,-]*(?: [\w&'/().,-]+){0,4
 TAB_REFERENCE = re.compile(r"(?:\b[Tt]he|\bits|'s) ([A-Z][\w&'/().,-]*(?: [\w&'/().,-]+){0,3}) tab(?![\w-])")
 NOT_A_CONTROL_PANEL_PAGE = ("Control Deck", "Deck's")
 
+# A place the English says something is under: "Allowed and blocked domains have a page
+# of their own under Anti-spam" sent the reader to a group the sidebar does not have -
+# the page is under Spam & virus filtering (review finding F280, found re-checking
+# 4a53ffb35, whose page rule reads only "the X page"). A capitalised run of at most five
+# words after "under" that ends its clause has to be a page title or a group title the
+# navigation map gives. The archive's Inbound and Error folders and the registry's HKLM
+# are names of their own and not places in the Control Panel.
+UNDER_REFERENCE = re.compile(r"\bunder ([A-Z][\w&'/-]*(?: [\w&'/-]+){0,4})(?=[.,;:]|$)")
+NOT_A_NAVIGATION_PLACE = ("HKLM", "Inbound", "Error")
 
-def reference_findings(english, titles, tabs):
+
+def reference_findings(english, titles, tabs, groups=()):
    """Findings for the English texts that name a page or a tab the Control Panel does not have."""
    def known(name, names):
       return any(name == known_name or name.endswith(" " + known_name) for known_name in names)
 
    findings = []
    for text in sorted(english):
+      for match in UNDER_REFERENCE.finditer(text):
+         name = match.group(1)
+         if name in titles or name in groups or name in NOT_A_NAVIGATION_PLACE:
+            continue
+         findings.append((text, "says it is under %r, which is not a page or a group of the navigation" % name))
       for match in PAGE_REFERENCE.finditer(text):
          name = match.group(1)
          if any(word in name for word in NOT_A_CONTROL_PANEL_PAGE) or known(name, titles):
@@ -376,6 +405,27 @@ def self_test():
    if "General" not in tab_headers() or "Windows directory" not in tab_headers():
       print("FAIL: the tab rule does not read the account dialog's tab headers")
       failures += 1
+
+   # The place rule: what a text says something is under is a page or a group.
+   pages = {"Anti-spam settings", "Advanced", "Allowed and blocked domains"}
+   groups = {"Spam & virus filtering", "Sign-in & access"}
+   places = {
+      "Allowed and blocked domains have a page of their own under Anti-spam.": True,
+      "Domains are allowed or blocked outright on the Allowed and blocked domains page, under Spam & virus filtering.": False,
+      "Until it is turned on under Anti-spam settings, spam over the threshold is refused.": False,
+      "The engine itself is switched on under Advanced.": False,
+      "It is switched on under Anti-spam.": True,
+      "Mail from elsewhere is filed under Inbound, and reports under Error, with a copy for each recipient.": False,
+      "The secret is stored per machine under HKLM, so enabling it needs local administrator rights.": False,
+   }
+   for text, expected in places.items():
+      found = bool(reference_findings({text}, pages, set(), groups))
+      if found != expected:
+         print("FAIL: %r is %s as naming a place the navigation does not have" % (text, "reported" if found else "not reported"))
+         failures += 1
+   if "Spam & virus filtering" not in navigation_groups():
+      print("FAIL: the place rule does not read the navigation map's group titles")
+      failures += 1
    print("self-test: %d failure(s)" % failures)
    return 1 if failures else 0
 
@@ -395,7 +445,7 @@ def main():
       return 1
 
    # The English itself: every page and tab it names is one the Control Panel has.
-   references = reference_findings(english, set(PAGE_TITLES), tab_headers())
+   references = reference_findings(english, set(PAGE_TITLES), tab_headers(), set(navigation_groups()))
    for source, what in references:
       print("  [en] %s\n        in %r" % (what, source[:110]))
    total = len(references)

@@ -6132,8 +6132,8 @@
   <data name="Lower the mark and delete thresholds, or turn on more of the checks." xml:space="preserve">
     <value>降低标记和删除阈值，或者打开更多的检查。</value>
   </data>
-  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. Allowed and blocked domains have a page of their own under Anti-spam." xml:space="preserve">
-    <value>MAIL FROM:&lt;&gt; 是投递报告的回传路径，而报告只有一个收件人：发送该报告所涉邮件的地址。空发件人随后又指定第二个收件人，就是反向散射、伪造的报告或探测。关闭时，服务器像以往一样接受它。开启时，第二个及之后的每个 RCPT TO 都回应 550，该事务的 DATA 也被拒绝；只有一个收件人的空发件人从不受影响。仅适用于运行反垃圾邮件测试的 IP 范围内的未认证会话，绝不适用于反垃圾邮件豁免中的发件人。允许与拦截的域在“反垃圾邮件”下有自己的页面。</value>
+  <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. To allow or block a domain outright, use the Allowed and blocked domains page, under Spam &amp; virus filtering." xml:space="preserve">
+    <value>MAIL FROM:&lt;&gt; 是投递报告的回传路径，而报告只有一个收件人：发送该报告所涉邮件的地址。空发件人随后又指定第二个收件人，就是反向散射、伪造的报告或探测。关闭时，服务器像以往一样接受它。开启时，第二个及之后的每个 RCPT TO 都回应 550，该事务的 DATA 也被拒绝；只有一个收件人的空发件人从不受影响。仅适用于运行反垃圾邮件测试的 IP 范围内的未认证会话，绝不适用于反垃圾邮件豁免中的发件人。要整体允许或拦截某个域，请使用“垃圾邮件和病毒过滤”下的“允许与拦截的域”页。</value>
   </data>
   <data name="MD5 (legacy)" xml:space="preserve">
     <value>MD5（旧式）</value>

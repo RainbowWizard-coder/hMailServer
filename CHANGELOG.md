@@ -2050,15 +2050,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   captions.** The backup warnings pointed at "the backup log on the Logs page", the update settings at "the Status
   page", the sender-authentication headers and ARC trust at "the Anti-spam page, under sender authentication", the
   setup checklist at "the Backup page" and "the Anti-virus page's Sandbox tab", the Windows directory tab at "the
-  Directory authentication page"; the account's spam overrides needed "Add reason to header" switched on, the
-  distribution list's hint explained "Anyone in the domain", the blocked-recipients claim "Refuse" and "Deliver and
-  record", and the status page said "No public host name is configured in the SMTP settings". Each now names the page
-  by its title - Live logs, Server status, Anti-spam settings (and its Sender auth tab), Backup & restore, Anti-virus
-  settings, Directory authentication (LDAP) - and the option by its caption: 'Add X-hMailServer-Reason header',
-  'Anyone in the domain can send', 'Refuse it, with the reason', 'Deliver it, and only record it', and "No host name
-  is set: 'Host name (HELO/EHLO greeting)' on the Protocols page's SMTP tab is empty", in all seventeen languages with
-  each catalogue's own titles and captions. build/check-catalogues.py now also reads the English: every "the X page"
-  it names must end in a title the navigation map gives.
+  Directory authentication page", and the null sender card said allowed and blocked domains "have a page of their own
+  under Anti-spam", a group the sidebar does not have; the account's spam overrides needed "Add reason to header"
+  switched on, the distribution list's hint explained "Anyone in the domain", the blocked-recipients claim "Refuse"
+  and "Deliver and record", and the status page said "No public host name is configured in the SMTP settings". Each
+  now names the page by its title - Live logs, Server status, Anti-spam settings (and its Sender auth tab), Backup &
+  restore, Anti-virus settings, Directory authentication (LDAP), "the Allowed and blocked domains page, under Spam &
+  virus filtering" - and the option by its caption: 'Add X-hMailServer-Reason header', 'Anyone in the domain can
+  send', 'Refuse it, with the reason', 'Deliver it, and only record it', and "No host name is set: 'Host name
+  (HELO/EHLO greeting)' on the Protocols page's SMTP tab is empty", in all seventeen languages with each catalogue's
+  own titles and captions. build/check-catalogues.py now also reads the English: every "the X page" it names must end
+  in a title the navigation map gives, and what it says something is under must be a page or a group of the
+  navigation.
 
 - **Fixed: the account dialog's Windows directory tab sent the reader to "the password on the Account tab", and the
   directory authentication page to "the account's Directory tab"; neither tab exists.** They are the General and
