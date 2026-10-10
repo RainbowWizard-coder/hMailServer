@@ -6940,6 +6940,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Ne_w rule name" xml:space="preserve">
     <value>_Uuden säännön nimi</value>
   </data>
+  <data name="Needs attention" xml:space="preserve">
+    <value>Vaatii huomiota</value>
+  </data>
   <data name="Negotiate (Kerberos/NTLM) - the password never crosses the network" xml:space="preserve">
     <value>Negotiate (Kerberos/NTLM) - salasana ei koskaan kulje verkon yli</value>
   </data>
@@ -16553,6 +16556,12 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} more active domains were not looked up." xml:space="preserve">
     <value>{0} muuta aktiivista verkkotunnusta ei haettu.</value>
+  </data>
+  <data name="{0} more step on the {1}" xml:space="preserve">
+    <value>{1}: vielä {0} vaihe</value>
+  </data>
+  <data name="{0} more steps on the {1}" xml:space="preserve">
+    <value>{1}: vielä {0} vaihetta</value>
   </data>
   <data name="{0} must be a whole number." xml:space="preserve">
     <value>{0} on oltava kokonaisluku.</value>

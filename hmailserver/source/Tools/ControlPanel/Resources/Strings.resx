@@ -6940,6 +6940,9 @@ Nothing already there is removed.</value>
   <data name="Ne_w rule name" xml:space="preserve">
     <value>Ne_w rule name</value>
   </data>
+  <data name="Needs attention" xml:space="preserve">
+    <value>Needs attention</value>
+  </data>
   <data name="Negotiate (Kerberos/NTLM) - the password never crosses the network" xml:space="preserve">
     <value>Negotiate (Kerberos/NTLM) - the password never crosses the network</value>
   </data>
@@ -16553,6 +16556,12 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="{0} more active domains were not looked up." xml:space="preserve">
     <value>{0} more active domains were not looked up.</value>
+  </data>
+  <data name="{0} more step on the {1}" xml:space="preserve">
+    <value>{0} more step on the {1}</value>
+  </data>
+  <data name="{0} more steps on the {1}" xml:space="preserve">
+    <value>{0} more steps on the {1}</value>
   </data>
   <data name="{0} must be a whole number." xml:space="preserve">
     <value>{0} must be a whole number.</value>

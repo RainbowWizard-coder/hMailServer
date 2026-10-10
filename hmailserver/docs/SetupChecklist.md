@@ -85,6 +85,16 @@ DKIM item verifies the record against the key file, and so is its
 says what the service runs as, and raises a service account password an earlier
 version left in `hMailServer.INI`.
 
+On the page, the summary's *Go to the next step* brings the marked item on
+screen with the keyboard on its button, and an item that is done or not needed
+is one line - its number, its state, its title and its button - that a click
+opens to the rest; an item that needs action, or that cannot be told, is shown
+whole. The dashboard's card lists the next step and the two after it, then one
+line that says how many more the checklist holds and opens it, under the
+configuration warnings of the *Server status* page - an IP range that relays for
+anybody, no host name, refused bounces, localhost banned - each with the page
+that puts it right.
+
 The Control Panel adds one item of its own to the first hour, after the account:
 **the host name**, `Settings.HostName`, the name the server announces in
 HELO/EHLO and every receiver compares with DNS. It is done when the name is a

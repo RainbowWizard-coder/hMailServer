@@ -22,7 +22,10 @@ namespace hMailServer.ControlPanel.Tests.Services
    /// to get wrong in any language.
    ///
    /// Scanned rather than rendered, as UnreadRowTests is: this assembly has no
-   /// WPF. Each test fails against the tree before the fix.
+   /// WPF. Each test fails against the tree before the fix. The checks themselves
+   /// are Services/ConfigurationChecks since the Dashboard's attention card reads
+   /// them as well (review finding F242); the page draws each at the level the
+   /// check gives it.
    /// </summary>
    public class StatusWarningLevelTests
    {
@@ -36,13 +39,22 @@ namespace hMailServer.ControlPanel.Tests.Services
             "StatusView.AddWarning takes a severity word, which the catalogue translates and nothing can then map.");
          Assert.False(source.Contains("ForConfigurationWarning", StringComparison.Ordinal),
             "StatusView still maps a word onto a level.");
+
+         // It draws each check at the level the check carries.
+         Assert.True(source.Contains("count += AddWarning(warning.Level, warning.Text, warning.Page);", StringComparison.Ordinal),
+            "StatusView no longer draws the configuration checks at their own levels.");
+         string checks = ReadChecks();
+         Assert.False(checks.Contains("AddWarning(string severity", StringComparison.Ordinal),
+            "ConfigurationChecks adds a warning with a severity word, which the catalogue translates and nothing can then map.");
+         Assert.False(checks.Contains("ForConfigurationWarning", StringComparison.Ordinal),
+            "ConfigurationChecks maps a word onto a level.");
       }
 
       [Fact]
       public void EveryWarning_NamesItsLevel_AndNoSeverityWordIsTranslated()
       {
-         string source = ReadStatusView();
-         MatchCollection calls = Regex.Matches(source, @"(?<!int )AddWarning\(([^,]+),");
+         string source = ReadChecks();
+         MatchCollection calls = Regex.Matches(source, @"(?<!(?:int|void) )AddWarning\(([^,]+),");
          // Four checks: the auto-ban count went to the statistics and a failed read
          // to the notice under the header, neither of which is a warning.
          Assert.True(calls.Count >= 4, "The Server status page has fewer configuration warnings than it had.");
@@ -55,7 +67,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          }
 
          foreach (string word in new[] { "L(\"Critical\")", "L(\"High\")", "L(\"Medium\")", "L(\"Info\")" })
-            Assert.False(source.Contains(word, StringComparison.Ordinal), "StatusView translates the severity word " + word + ", which no mapping can then recognise.");
+            Assert.False(source.Contains(word, StringComparison.Ordinal), "ConfigurationChecks translates the severity word " + word + ", which no mapping can then recognise.");
       }
 
       /// <summary>
@@ -71,7 +83,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("Localhost is currently banned", "StatusLevel.Warning", "ipranges")]
       public void EachWarning_CarriesTheLevelItAlwaysMeant_AndThePageThatFixesIt(string fragment, string level, string page)
       {
-         string source = ReadStatusView();
+         string source = ReadChecks();
          // A count's warning is a Plural call, its one form first.
          Match call = Regex.Matches(source, @"AddWarning\((StatusLevel\.\w+),\s*(?:[LF]\(|Plural\([^,]+,\s*)""([^""]*)""[^;]*?,\s*""(\w+)""\);")
             .Cast<Match>()
@@ -142,6 +154,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       private static string ReadStatusViewXaml() => ReadStatusView("StatusView.xaml");
+
+      private static string ReadChecks() => ReadStatusView(Path.Join("..", "Services", "ConfigurationChecks.cs"));
 
       private static string ReadStatusView(string file = "StatusView.xaml.cs")
       {

@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text.Json;
@@ -90,8 +91,43 @@ namespace hMailServer.ControlPanel.Views
 
          BuildRangeSelector_();
 
+         // Each KPI card opens the page its figure is read on (review finding
+         // F242), and says so in its tool tip and its help text.
+         foreach (Button card in KpiCards_())
+         {
+            string opens = F("Open {0}", L(NavigationMap.TitleOf((string)card.Tag)));
+            card.ToolTip = opens;
+            AutomationProperties.SetHelpText(card, opens);
+         }
+         NameKpiCards_();
+
          timer_ = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
          timer_.Tick += (s, e) => Refresh();
+      }
+
+      /// <summary>The five KPI cards, each a button whose Tag is the key of the page it opens.</summary>
+      private Button[] KpiCards_() => new[] { KpiUptimeCard, KpiProcessedCard, KpiQueueCard, KpiSpamCard, KpiVirusesCard };
+
+      /// <summary>
+      /// Each KPI card named as its figure is - "Messages processed, 1,234" - so
+      /// that a screen reader on the card hears the label it shows, then the
+      /// number, and the label is the start of the name (WCAG 2.5.3).
+      /// </summary>
+      private void NameKpiCards_()
+      {
+         var figures = new (Button card, TextBlock value)[]
+         {
+            (KpiUptimeCard, KpiUptime), (KpiProcessedCard, KpiProcessed), (KpiQueueCard, KpiQueue),
+            (KpiSpamCard, KpiSpam), (KpiVirusesCard, KpiViruses)
+         };
+         foreach ((Button card, TextBlock value) in figures)
+            AutomationProperties.SetName(card, AutomationProperties.GetName(value));
+      }
+
+      private void KpiCard_Click(object sender, RoutedEventArgs e)
+      {
+         if (sender is FrameworkElement card && card.Tag is string page)
+            (Application.Current?.MainWindow as MainWindow)?.NavigateTo(page);
       }
 
       // The chart range is one choice of four: a radio group named Chart range,
@@ -364,6 +400,7 @@ namespace hMailServer.ControlPanel.Views
             SetKpi_(KpiViruses, L("Viruses removed"), snap.VirusesRemoved.ToString("N0"));
             SetKpi_(KpiUptime, L("Uptime"), ServerUptimeText.Uptime(snap.StartTime, DateTime.Now, ServerSession.IsLocalSession, compact: true));
             ShowQueue_(snap.QueueLength);
+            NameKpiCards_();
 
             // Two clocks on purpose. The table's Time column has to be local time
             // to mean anything to the reader, but the throughput rate is a division
@@ -435,6 +472,7 @@ namespace hMailServer.ControlPanel.Views
             }
 
             KpiQueueBadge.Visibility = Visibility.Hidden;
+            NameKpiCards_();
             return;
          }
 
@@ -444,6 +482,7 @@ namespace hMailServer.ControlPanel.Views
             value.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorSecondaryBrush");
             AutomationProperties.SetName(value, F("{0}, {1}, as read at {2}", label, value.Text, time));
          }
+         NameKpiCards_();
 
          Header.Subtitle = F("Figures from {0}, the last time the server could be read.", time);
       }
@@ -584,6 +623,9 @@ namespace hMailServer.ControlPanel.Views
                return;
             }
 
+            // The Server status page's configuration checks, read by the same code
+            // that page reads them with, once per check as the setup is.
+            configurationWarnings_ = ReadConfigurationWarnings_(session);
             RenderAttention_(checks, checks.DnsLookupCount);
 
             if (checks.DnsLookupCount == 0)
@@ -639,16 +681,22 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private void RenderAttention_(ExternalSetupChecks checks, int pendingDnsLookups)
       {
-         int action = checks.Items.Count(i => i.State == SetupItemState.ActionNeeded);
+         IReadOnlyList<ConfigurationWarning> warnings = configurationWarnings_;
+         var steps = checks.Items.Where(i => i.State == SetupItemState.ActionNeeded).ToList();
+         int action = steps.Count;
          int unknown = checks.Items.Count(i => i.State == SetupItemState.CannotTell);
 
-         SetupItemState overall = action > 0 ? SetupItemState.ActionNeeded
+         // A configuration warning is a thing that needs attention as an open step
+         // of the checklist is.
+         SetupItemState overall = action + warnings.Count > 0 ? SetupItemState.ActionNeeded
             : unknown > 0 ? SetupItemState.CannotTell
             : SetupItemState.Done;
 
          SetAttentionHeader_(overall);
+         // An open relay makes the card Critical.
+         AttentionPill.Level = DashboardAttention.CardLevel(AttentionPill.Level, warnings);
 
-         AttentionSummary.Text = SummaryText_(action, unknown, checks.Items.Count);
+         AttentionSummary.Text = SummaryText_(action + warnings.Count, unknown, checks.Items.Count);
 
          // One utterance for a screen reader: the state word first, then the
          // counts, so the severity is heard even though the visible word sits in
@@ -656,10 +704,21 @@ namespace hMailServer.ControlPanel.Views
          AutomationProperties.SetName(AttentionSummary,
             ExternalSetupChecks.StateWord(overall) + ": " + AttentionSummary.Text);
 
+         // The configuration warnings, the most severe first; then the checklist's
+         // next step and two more, and a line for the rest that opens the
+         // checklist (review finding F242).
          AttentionItems.Children.Clear();
-         int index = 0;
-         foreach (SetupItem item in checks.Items.Where(i => i.State == SetupItemState.ActionNeeded))
-            AttentionItems.Children.Add(AttentionLine_(item, index++));
+         int line = 0;
+         foreach (ConfigurationWarning warning in warnings)
+            AttentionItems.Children.Add(WarningLine_(warning, line++));
+
+         int shown = DashboardAttention.StepsToShow(steps.Count);
+         for (int index = 0; index < shown; index++)
+            AttentionItems.Children.Add(AttentionLine_(steps[index], index));
+
+         int more = DashboardAttention.StepsLeftToTheChecklist(steps.Count);
+         if (more > 0)
+            AttentionItems.Children.Add(MoreStepsLine_(more));
 
          string note = pendingDnsLookups > 0
             ? Plural(pendingDnsLookups,
@@ -793,5 +852,107 @@ namespace hMailServer.ControlPanel.Views
 
       private void OpenExternalSetup_Click(object sender, RoutedEventArgs e)
          => (Application.Current?.MainWindow as MainWindow)?.NavigateTo("externalsetup");
+
+      // ---- the configuration checks in the attention card --------------------
+
+      /// <summary>The Server status page's configuration warnings, as the last check read them.</summary>
+      private IReadOnlyList<ConfigurationWarning> configurationWarnings_ = Array.Empty<ConfigurationWarning>();
+
+      /// <summary>
+      /// The configuration warnings, the most severe first (Services/
+      /// ConfigurationChecks, which Server status reads too), or none when the
+      /// settings could not be read: Server status says that, and the card says
+      /// nothing it has not checked.
+      /// </summary>
+      private static IReadOnlyList<ConfigurationWarning> ReadConfigurationWarnings_(ServerSession session)
+      {
+         try
+         {
+            return DashboardAttention.MostSevereFirst(ConfigurationChecks.Read((object)session.Application, out _));
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            return Array.Empty<ConfigurationWarning>();
+         }
+      }
+
+      /// <summary>
+      /// One configuration warning as one line of the card: its level's mark, its
+      /// sentence and a button to the page that puts it right, under the steps'
+      /// marks and titles. The level is the mark's shape and colour and the word
+      /// that starts the line's accessible name, never the colour alone.
+      /// </summary>
+      private static FrameworkElement WarningLine_(ConfigurationWarning warning, int index)
+      {
+         var row = new Grid { Margin = new Thickness(0, 2, 0, 2) };
+         row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(22) });
+         row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+         row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+         row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+         StatusPresentation presentation = StatusSemantics.For(warning.Level);
+         var mark = new System.Windows.Shapes.Path
+         {
+            Width = 9,
+            Height = 9,
+            Stretch = System.Windows.Media.Stretch.Fill,
+            Margin = new Thickness(1, 5, 8, 0),
+            VerticalAlignment = VerticalAlignment.Top
+         };
+         ShapeMarkVisuals.ApplyMark(mark, presentation.Shape, presentation.BrushKey);
+         Grid.SetColumn(mark, 1);
+         row.Children.Add(mark);
+
+         var text = new TextBlock
+         {
+            Text = warning.Text,
+            FontSize = Typography.Label,
+            TextWrapping = TextWrapping.Wrap,
+            Margin = new Thickness(6, 2, 12, 2),
+            VerticalAlignment = VerticalAlignment.Top
+         };
+         AutomationProperties.SetName(text, presentation.SeverityWord + ": " + warning.Text);
+         AutomationProperties.SetAutomationId(text, "dashboard-check-" + index.ToString(CultureInfo.InvariantCulture));
+         Grid.SetColumn(text, 2);
+         row.Children.Add(text);
+
+         if (!string.IsNullOrEmpty(warning.Page))
+         {
+            Wpf.Ui.Controls.Button open = NoticeActions.OpenPage(warning.Page, "dashboard-check-open-" + index.ToString(CultureInfo.InvariantCulture));
+            open.FontSize = Typography.Caption;
+            open.Padding = new Thickness(8, 3, 8, 3);
+            open.VerticalAlignment = VerticalAlignment.Top;
+            Grid.SetColumn(open, 3);
+            row.Children.Add(open);
+         }
+
+         return row;
+      }
+
+      /// <summary>
+      /// The line under the steps the card lists, for the ones it leaves out: how
+      /// many, on the setup checklist, which it opens.
+      /// </summary>
+      private static FrameworkElement MoreStepsLine_(int more)
+      {
+         string checklist = L(NavigationMap.TitleOf("externalsetup"));
+         string caption = PluralF(more, "{0} more step on the {1}", "{0} more steps on the {1}", more, checklist);
+
+         var link = new Wpf.Ui.Controls.Button
+         {
+            Appearance = Wpf.Ui.Controls.ControlAppearance.Transparent,
+            FontSize = Typography.Label,
+            Padding = new Thickness(6, 2, 8, 2),
+            Margin = new Thickness(40, 2, 0, 0),
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Cursor = System.Windows.Input.Cursors.Hand,
+            Content = caption,
+            ToolTip = F("Open {0}", checklist)
+         };
+         AutomationProperties.SetHelpText(link, F("Open {0}", checklist));
+         AutomationProperties.SetAutomationId(link, "dashboard-attention-more");
+         link.Click += (s, e) => (Application.Current?.MainWindow as MainWindow)?.NavigateTo("externalsetup");
+         return link;
+      }
    }
 }

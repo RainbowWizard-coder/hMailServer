@@ -6940,6 +6940,9 @@
   <data name="Ne_w rule name" xml:space="preserve">
     <value>新しいルールの名前(_W)</value>
   </data>
+  <data name="Needs attention" xml:space="preserve">
+    <value>対応が必要</value>
+  </data>
   <data name="Negotiate (Kerberos/NTLM) - the password never crosses the network" xml:space="preserve">
     <value>Negotiate (Kerberos/NTLM) - パスワードがネットワークを流れることはありません</value>
   </data>
@@ -16553,6 +16556,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} more active domains were not looked up." xml:space="preserve">
     <value>さらに {0} 件の有効なドメインは検索されませんでした。</value>
+  </data>
+  <data name="{0} more step on the {1}" xml:space="preserve">
+    <value>{1} にあと {0} 件の手順</value>
+  </data>
+  <data name="{0} more steps on the {1}" xml:space="preserve">
+    <value>{1} にあと {0} 件の手順</value>
   </data>
   <data name="{0} must be a whole number." xml:space="preserve">
     <value>{0} は整数でなければなりません。</value>

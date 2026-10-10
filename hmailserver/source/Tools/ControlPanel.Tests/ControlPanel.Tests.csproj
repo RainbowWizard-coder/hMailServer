@@ -262,6 +262,13 @@
     <Compile Include="..\ControlPanel\Services\DomainPolicyWords.cs" />
   </ItemGroup>
 
+  <!-- What the Dashboard's attention card lists and in what order: the configuration
+       warnings it shares with Server status, the setup steps it shows and the rest
+       (review finding F242). -->
+  <ItemGroup>
+    <Compile Include="..\ControlPanel\Services\ConfigurationWarning.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <!-- WindowsServiceInfo queries Win32_Service; the app gets this through its
          own reference and the test assembly needs its own. -->

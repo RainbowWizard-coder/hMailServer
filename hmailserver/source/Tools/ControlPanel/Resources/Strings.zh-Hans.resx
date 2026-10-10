@@ -6940,6 +6940,9 @@
   <data name="Ne_w rule name" xml:space="preserve">
     <value>新规则名称(_W)</value>
   </data>
+  <data name="Needs attention" xml:space="preserve">
+    <value>需要关注</value>
+  </data>
   <data name="Negotiate (Kerberos/NTLM) - the password never crosses the network" xml:space="preserve">
     <value>Negotiate（Kerberos/NTLM）- 密码从不经过网络</value>
   </data>
@@ -16553,6 +16556,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} more active domains were not looked up." xml:space="preserve">
     <value>另有 {0} 个活动的域未查询。</value>
+  </data>
+  <data name="{0} more step on the {1}" xml:space="preserve">
+    <value>{1}中还有 {0} 个步骤</value>
+  </data>
+  <data name="{0} more steps on the {1}" xml:space="preserve">
+    <value>{1}中还有 {0} 个步骤</value>
   </data>
   <data name="{0} must be a whole number." xml:space="preserve">
     <value>{0} 必须是整数。</value>

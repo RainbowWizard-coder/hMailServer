@@ -6940,6 +6940,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Ne_w rule name" xml:space="preserve">
     <value>Yeni k_ural adı</value>
   </data>
+  <data name="Needs attention" xml:space="preserve">
+    <value>İlgi gerektiriyor</value>
+  </data>
   <data name="Negotiate (Kerberos/NTLM) - the password never crosses the network" xml:space="preserve">
     <value>Negotiate (Kerberos/NTLM) - parola ağdan hiç geçmez</value>
   </data>
@@ -16553,6 +16556,12 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0} more active domains were not looked up." xml:space="preserve">
     <value>{0} etkin alan adı daha aranmadı.</value>
+  </data>
+  <data name="{0} more step on the {1}" xml:space="preserve">
+    <value>{1} içinde {0} adım daha</value>
+  </data>
+  <data name="{0} more steps on the {1}" xml:space="preserve">
+    <value>{1} içinde {0} adım daha</value>
   </data>
   <data name="{0} must be a whole number." xml:space="preserve">
     <value>{0} bir tam sayı olmalıdır.</value>

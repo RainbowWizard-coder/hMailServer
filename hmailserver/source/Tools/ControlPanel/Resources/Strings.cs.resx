@@ -7013,6 +7013,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Ne_w rule name" xml:space="preserve">
     <value>N_ázev nového pravidla</value>
   </data>
+  <data name="Needs attention" xml:space="preserve">
+    <value>Vyžaduje pozornost</value>
+  </data>
   <data name="Negotiate (Kerberos/NTLM) - the password never crosses the network" xml:space="preserve">
     <value>Negotiate (Kerberos/NTLM) – heslo nikdy neprochází sítí</value>
   </data>
@@ -16848,6 +16851,15 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} more active domains were not looked up.|few" xml:space="preserve">
     <value>{0} další aktivní domény nebyly vyhledány.</value>
+  </data>
+  <data name="{0} more step on the {1}" xml:space="preserve">
+    <value>{1}: ještě {0} krok</value>
+  </data>
+  <data name="{0} more steps on the {1}" xml:space="preserve">
+    <value>{1}: ještě {0} kroků</value>
+  </data>
+  <data name="{0} more steps on the {1}|few" xml:space="preserve">
+    <value>{1}: ještě {0} kroky</value>
   </data>
   <data name="{0} must be a whole number." xml:space="preserve">
     <value>{0} musí být celé číslo.</value>

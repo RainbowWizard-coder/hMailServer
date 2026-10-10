@@ -6940,6 +6940,9 @@ Inget som redan finns där tas bort.</value>
   <data name="Ne_w rule name" xml:space="preserve">
     <value>Namn _på ny regel</value>
   </data>
+  <data name="Needs attention" xml:space="preserve">
+    <value>Kräver uppmärksamhet</value>
+  </data>
   <data name="Negotiate (Kerberos/NTLM) - the password never crosses the network" xml:space="preserve">
     <value>Negotiate (Kerberos/NTLM) - lösenordet går aldrig över nätverket</value>
   </data>
@@ -16553,6 +16556,12 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} more active domains were not looked up." xml:space="preserve">
     <value>{0} aktiva domäner till slogs inte upp.</value>
+  </data>
+  <data name="{0} more step on the {1}" xml:space="preserve">
+    <value>{0} steg till i {1}</value>
+  </data>
+  <data name="{0} more steps on the {1}" xml:space="preserve">
+    <value>{0} steg till i {1}</value>
   </data>
   <data name="{0} must be a whole number." xml:space="preserve">
     <value>{0} måste vara ett heltal.</value>

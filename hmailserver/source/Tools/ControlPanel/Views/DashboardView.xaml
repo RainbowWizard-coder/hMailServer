@@ -11,6 +11,48 @@
     xmlns:scaffold="clr-namespace:hMailServer.ControlPanel.Views.Scaffold"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
 
+    <UserControl.Resources>
+        <!-- A KPI card that opens the page its figure comes from (review finding
+             F242): the card's surface, outline and radius, the hover fill of a
+             card that can be pointed at (AppCardHoverBrush), and while the
+             keyboard is on it a ring in the focus colour drawn over the outline,
+             so that nothing moves. The five cards were figures that led nowhere. -->
+        <Style x:Key="KpiCardButton" TargetType="Button">
+            <Setter Property="Padding" Value="{StaticResource AppCardPadding}" />
+            <Setter Property="MinHeight" Value="96" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border x:Name="Bd" Background="{DynamicResource AppCardBackgroundBrush}"
+                                    BorderBrush="{DynamicResource AppCardBorderBrush}" BorderThickness="1"
+                                    CornerRadius="{StaticResource AppCardCornerRadius}"
+                                    Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+                                <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                            </Border>
+                            <Border x:Name="Ring" BorderBrush="{DynamicResource AppFocusBrush}" BorderThickness="2"
+                                    CornerRadius="{StaticResource AppCardCornerRadius}" Visibility="Collapsed"
+                                    IsHitTestVisible="False" SnapsToDevicePixels="True" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AppCardHoverBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Ring" Property="Visibility" Value="Visible" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
     <!-- The first page on the scaffold, and the pattern for the rest: the page
          owns its ScrollViewer with AppPagePadding, a PageHeader at the top, Cards
          for the surfaces, a StatusPill where a state is shown. -->
@@ -40,8 +82,13 @@
                  pill), never colour alone, and each item that needs action is one
                  click from the page that fixes it. The check starts after first
                  paint and its DNS half runs off the UI thread, so this card never
-                 delays the dashboard. -->
-            <scaffold:Card Margin="{StaticResource AppCardGap}" AutomationProperties.Name="{loc:L 'Setup checklist'}"
+                 delays the dashboard. The Server status page's configuration
+                 checks come first, the most severe first, each with the page that
+                 puts it right; then the checklist's next step and two more, and
+                 one line for the rest, which opens the checklist (review finding
+                 F242): the card listed every open step, eleven to fourteen rows
+                 on a new server, and the figures and charts went below the fold. -->
+            <scaffold:Card Margin="{StaticResource AppCardGap}" AutomationProperties.Name="{loc:L 'Needs attention'}"
                            AutomationProperties.AutomationId="dashboard-verdict">
                 <StackPanel>
                     <Grid>
@@ -72,7 +119,11 @@
                 </StackPanel>
             </scaffold:Card>
 
-            <!-- KPI row: fixed-height cards, value top-aligned, label bottom-anchored.
+            <!-- KPI row: fixed-height cards, value top-aligned, label bottom-anchored,
+                 each a button to the page its figure is read on: the uptime and
+                 the messages processed to Server status, the queue to the
+                 Delivery queue, the spam to the spam overview and the viruses to
+                 the virus overview (KpiCardButton, review finding F242).
                  The accessible name of each value is set in code to "label, value"
                  on every refresh. AutomationProperties.LabeledBy looks like the
                  right tool and is not: on a TextBlock it *replaces* the announced
@@ -83,7 +134,8 @@
                  statistics cannot be read: a 0 here is a count, and "In queue 0"
                  is a statement the page cannot make before it has asked. -->
             <UniformGrid Columns="5" Margin="{StaticResource AppCardGap}">
-                <scaffold:Card MinHeight="96" Margin="0,0,12,0">
+                <Button x:Name="KpiUptimeCard" Style="{StaticResource KpiCardButton}" Margin="0,0,12,0" Tag="status" Click="KpiCard_Click"
+                        AutomationProperties.AutomationId="dashboard-kpi-uptime">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
@@ -92,8 +144,9 @@
                         <TextBlock x:Name="KpiUptime" Text="—" Style="{StaticResource KpiValue}" FontSize="20" />
                         <TextBlock Grid.Row="1" Text="{loc:L 'Uptime'}" Style="{StaticResource KpiLabel}" />
                     </Grid>
-                </scaffold:Card>
-                <scaffold:Card MinHeight="96" Margin="0,0,12,0">
+                </Button>
+                <Button x:Name="KpiProcessedCard" Style="{StaticResource KpiCardButton}" Margin="0,0,12,0" Tag="status" Click="KpiCard_Click"
+                        AutomationProperties.AutomationId="dashboard-kpi-processed">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
@@ -102,8 +155,9 @@
                         <TextBlock x:Name="KpiProcessed" Text="—" Style="{StaticResource KpiValue}" />
                         <TextBlock Grid.Row="1" Text="{loc:L 'Messages processed'}" Style="{StaticResource KpiLabel}" />
                     </Grid>
-                </scaffold:Card>
-                <scaffold:Card MinHeight="96" Margin="0,0,12,0">
+                </Button>
+                <Button x:Name="KpiQueueCard" Style="{StaticResource KpiCardButton}" Margin="0,0,12,0" Tag="queue" Click="KpiCard_Click"
+                        AutomationProperties.AutomationId="dashboard-kpi-queue">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
@@ -134,8 +188,9 @@
                         </StackPanel>
                         <TextBlock Grid.Row="1" Text="{loc:L 'In queue'}" Style="{StaticResource KpiLabel}" />
                     </Grid>
-                </scaffold:Card>
-                <scaffold:Card MinHeight="96" Margin="0,0,12,0">
+                </Button>
+                <Button x:Name="KpiSpamCard" Style="{StaticResource KpiCardButton}" Margin="0,0,12,0" Tag="spamoverview" Click="KpiCard_Click"
+                        AutomationProperties.AutomationId="dashboard-kpi-spam">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
@@ -144,8 +199,9 @@
                         <TextBlock x:Name="KpiSpam" Text="—" Style="{StaticResource KpiValue}" />
                         <TextBlock Grid.Row="1" Text="{loc:L 'Spam detected'}" Style="{StaticResource KpiLabel}" />
                     </Grid>
-                </scaffold:Card>
-                <scaffold:Card MinHeight="96">
+                </Button>
+                <Button x:Name="KpiVirusesCard" Style="{StaticResource KpiCardButton}" Tag="virusoverview" Click="KpiCard_Click"
+                        AutomationProperties.AutomationId="dashboard-kpi-viruses">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
@@ -154,7 +210,7 @@
                         <TextBlock x:Name="KpiViruses" Text="—" Style="{StaticResource KpiValue}" />
                         <TextBlock Grid.Row="1" Text="{loc:L 'Viruses removed'}" Style="{StaticResource KpiLabel}" />
                     </Grid>
-                </scaffold:Card>
+                </Button>
             </UniformGrid>
 
             <!-- Charts. Both cards are built in code from ChartCatalog: an

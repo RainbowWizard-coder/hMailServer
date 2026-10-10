@@ -6940,6 +6940,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Ne_w rule name" xml:space="preserve">
     <value>_Nome della nuova regola</value>
   </data>
+  <data name="Needs attention" xml:space="preserve">
+    <value>Richiede attenzione</value>
+  </data>
   <data name="Negotiate (Kerberos/NTLM) - the password never crosses the network" xml:space="preserve">
     <value>Negotiate (Kerberos/NTLM) - la password non attraversa mai la rete</value>
   </data>
@@ -16553,6 +16556,12 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="{0} more active domains were not looked up." xml:space="preserve">
     <value>{0} altri domini attivi non sono stati cercati.</value>
+  </data>
+  <data name="{0} more step on the {1}" xml:space="preserve">
+    <value>Ancora {0} passo nella {1}</value>
+  </data>
+  <data name="{0} more steps on the {1}" xml:space="preserve">
+    <value>Ancora {0} passi nella {1}</value>
   </data>
   <data name="{0} must be a whole number." xml:space="preserve">
     <value>{0} deve essere un numero intero.</value>

@@ -7013,6 +7013,9 @@
   <data name="Ne_w rule name" xml:space="preserve">
     <value>Н_азва нового правила</value>
   </data>
+  <data name="Needs attention" xml:space="preserve">
+    <value>Потребує уваги</value>
+  </data>
   <data name="Negotiate (Kerberos/NTLM) - the password never crosses the network" xml:space="preserve">
     <value>Negotiate (Kerberos/NTLM) — пароль ніколи не передається мережею</value>
   </data>
@@ -16848,6 +16851,15 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} more active domains were not looked up.|few" xml:space="preserve">
     <value>Ще {0} активні домени не перевірялися.</value>
+  </data>
+  <data name="{0} more step on the {1}" xml:space="preserve">
+    <value>{1}: ще {0} крок</value>
+  </data>
+  <data name="{0} more steps on the {1}" xml:space="preserve">
+    <value>{1}: ще {0} кроків</value>
+  </data>
+  <data name="{0} more steps on the {1}|few" xml:space="preserve">
+    <value>{1}: ще {0} кроки</value>
   </data>
   <data name="{0} must be a whole number." xml:space="preserve">
     <value>{0} має бути цілим числом.</value>

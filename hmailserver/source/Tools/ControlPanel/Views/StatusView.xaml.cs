@@ -284,50 +284,19 @@ namespace hMailServer.ControlPanel.Views
 
          try
          {
-            dynamic settings = app.Settings;
-            try
-            {
-               // Each check names the page that puts it right, and opens it.
-               if (((string)settings.HostName).Length == 0)
-                  count += AddWarning(StatusLevel.Warning, L("No host name is set: 'Host name (HELO/EHLO greeting)' on the Protocols page's SMTP tab is empty."), "protocols");
+            // Each check names the page that puts it right, and opens it. The
+            // checks are Services/ConfigurationChecks, which the Dashboard's
+            // attention card reads as well (review finding F242).
+            // As an object, so that the call is bound here and not at run time.
+            System.Collections.Generic.IReadOnlyList<ConfigurationWarning> found = ConfigurationChecks.Read((object)app, out int autoban);
+            foreach (ConfigurationWarning warning in found)
+               count += AddWarning(warning.Level, warning.Text, warning.Page);
 
-               if ((bool)settings.DenyMailFromNull)
-                  count += AddWarning(StatusLevel.Warning, L("Mail from an empty sender address is denied. Many servers send bounces from <>, which will be rejected."), "protocols");
-
-               dynamic ranges = settings.SecurityRanges;
-               int autoban = 0;
-               int rangeCount = (int)ranges.Count;
-               for (int i = 0; i < rangeCount; i++)
-               {
-                  dynamic range = ranges.Item[i];
-                  try
-                  {
-                     if ((bool)range.AllowDeliveryFromRemoteToRemote && !(bool)range.RequireSMTPAuthExternalToExternal)
-                        count += AddWarning(StatusLevel.Critical, F("IP range '{0}' allows external-to-external delivery without authentication (open relay risk).", (string)range.Name), "ipranges");
-
-                     if ((string)range.LowerIP == "127.0.0.1" && (string)range.UpperIP == "127.0.0.1" && (bool)range.Expires)
-                        count += AddWarning(StatusLevel.Warning, L("Localhost is currently banned in the IP ranges."), "ipranges");
-
-                     if ((bool)range.Expires)
-                        autoban++;
-                  }
-                  finally
-                  {
-                     ServerSession.Release(range);
-                  }
-               }
-               ServerSession.Release(ranges);
-
-               // A count, which is a statistic and not a finding: it was filed as
-               // an Information "warning", the one item in that card on most
-               // servers.
-               SetValue_(AutobanValue, L("Auto-ban IP ranges"), autoban.ToString("N0"));
-               AutobanLink.Visibility = autoban > 0 ? Visibility.Visible : Visibility.Collapsed;
-            }
-            finally
-            {
-               ServerSession.Release(settings);
-            }
+            // A count, which is a statistic and not a finding: it was filed as
+            // an Information "warning", the one item in that card on most
+            // servers.
+            SetValue_(AutobanValue, L("Auto-ban IP ranges"), autoban.ToString("N0"));
+            AutobanLink.Visibility = autoban > 0 ? Visibility.Visible : Visibility.Collapsed;
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {

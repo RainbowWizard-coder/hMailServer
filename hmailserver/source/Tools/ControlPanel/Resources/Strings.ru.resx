@@ -7013,6 +7013,9 @@ Control Panel может читать файлы сообщений только
   <data name="Ne_w rule name" xml:space="preserve">
     <value>И_мя нового правила</value>
   </data>
+  <data name="Needs attention" xml:space="preserve">
+    <value>Требует внимания</value>
+  </data>
   <data name="Negotiate (Kerberos/NTLM) - the password never crosses the network" xml:space="preserve">
     <value>Negotiate (Kerberos/NTLM) — пароль никогда не идёт по сети</value>
   </data>
@@ -16848,6 +16851,15 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} more active domains were not looked up.|few" xml:space="preserve">
     <value>Ещё {0} активных домена не проверялись.</value>
+  </data>
+  <data name="{0} more step on the {1}" xml:space="preserve">
+    <value>{1}: ещё {0} шаг</value>
+  </data>
+  <data name="{0} more steps on the {1}" xml:space="preserve">
+    <value>{1}: ещё {0} шагов</value>
+  </data>
+  <data name="{0} more steps on the {1}|few" xml:space="preserve">
+    <value>{1}: ещё {0} шага</value>
   </data>
   <data name="{0} must be a whole number." xml:space="preserve">
     <value>{0} должно быть целым числом.</value>

@@ -2600,6 +2600,21 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   and Apply this profile; each profile in the list is its title with "Would change here: 3 of 31" beside it in the
   caption colour; and the column is Notes. `ProfilesPageFlowTests` holds the titles, the acts and the list.
 
+- **Fixed: the Dashboard's attention card filled the first screen, the Server status page's configuration warnings
+  never reached it, and its figures led nowhere.** The card listed every open step of the setup checklist - eleven to
+  fourteen rows, 330 to 400 pixels on a new server - so that the figures began 577 to 650 pixels down and both charts
+  were below the fold at 1280 by 800, for a list that is the Setup checklist one click away; an open relay, a missing
+  host name, refused bounces and localhost banned were said on Server status alone; and the five figures were cards
+  that could not be pressed. The card now lists the configuration warnings first, the most severe first, each with
+  its mark and a button to the page that puts it right, and is Critical while an IP range relays for anybody; then the
+  checklist's next step and two more; then "8 more steps on the Setup checklist", which opens it. The checks are read
+  by one piece of code for both pages (Services/ConfigurationChecks), so that they cannot disagree. Each figure is a
+  button to the page it is read on - Uptime and Messages processed to Server status, In queue to the Delivery queue,
+  Spam detected to the spam overview and Viruses removed to the virus overview - drawn as the card was, with the hover
+  of a card that can be pointed at and a focus ring that moves nothing, and named as its figure is, the label first.
+  `DashboardAttentionTests` holds the arithmetic, the order, the card's level and the buttons, and
+  `StatusWarningLevelTests` holds each check's level and page where the checks now are.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
