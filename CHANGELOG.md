@@ -3457,6 +3457,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   states the rule beside the help pane's, and `RaggedRightTextBoxTests` holds both styles and refuses a box that wraps
   and sets its own alignment.
 
+- **Fixed: the SSL certificates page and Directory synchronisation drew two filled accent buttons on one screen, and
+  the passphrase box was as wide as its placeholder.** With a certificate selected, Save passphrase on its details
+  card and Add on the add form were both Primary, beside the red Delete selected, and Directory synchronisation's
+  Preview was Primary under the header's Save changes, so that each page showed two buttons that looked like its one
+  way on; the details card's New passphrase box was 151 pixels wide, its placeholder's width, and grew as a passphrase
+  was typed (review finding F140). Save passphrase, Preview and Save and preview are secondary buttons, so that the
+  add form's Add and the header's Save changes are each page's one Primary, and the passphrase box is 360 pixels wide
+  whatever it holds. `OnePrimaryPerScreenTests` holds both pages to one Primary and the box to its width.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

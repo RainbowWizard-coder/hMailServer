@@ -419,11 +419,13 @@ namespace hMailServer.ControlPanel.Views
          System.Windows.Automation.AutomationProperties.SetAutomationId(unsavedSelection_, "dirsync-unsaved-selection");
          content.Children.Insert(0, unsavedSelection_);
 
+         // Secondary, as Preview and Apply beside it are: the page's one Primary
+         // is Save changes in the header, as on every page of settings, where the
+         // card's Preview was a second filled accent button (review finding F140).
          saveAndPreviewButton_ = new Wpf.Ui.Controls.Button
          {
             Content = L("Sa_ve and preview"),
             Margin = new Thickness(0, 0, 8, 8),
-            Appearance = Wpf.Ui.Controls.ControlAppearance.Primary,
             Visibility = Visibility.Collapsed
          };
          ControlHelp.Explain(saveAndPreviewButton_,
@@ -435,8 +437,7 @@ namespace hMailServer.ControlPanel.Views
          previewButton_ = new Wpf.Ui.Controls.Button
          {
             Content = L("_Preview"),
-            Margin = new Thickness(0, 0, 8, 8),
-            Appearance = Wpf.Ui.Controls.ControlAppearance.Primary
+            Margin = new Thickness(0, 0, 8, 8)
          };
          ControlHelp.Explain(previewButton_,
             L("Show what a synchronisation would do, changing nothing"));
@@ -909,8 +910,6 @@ namespace hMailServer.ControlPanel.Views
          saveAndPreviewButton_.Visibility = unsaved ? Visibility.Visible : Visibility.Collapsed;
          saveAndPreviewButton_.IsEnabled = !running_;
          previewButton_.IsEnabled = !unsaved && !running_;
-         // Preview stays the primary only while it is the one that can be pressed.
-         previewButton_.Appearance = unsaved ? Wpf.Ui.Controls.ControlAppearance.Secondary : Wpf.Ui.Controls.ControlAppearance.Primary;
          applyButton_.IsEnabled = !unsaved && !running_ && previewedOptions_ != null && previewedOptions_ == CurrentOptions_();
       }
 

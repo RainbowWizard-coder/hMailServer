@@ -215,17 +215,26 @@
                 <scaffold:FieldRow x:Name="PassphraseRow" Label="{loc:L 'Private _key passphrase'}"
                                    Hint="{loc:L 'Only needed when the key file is encrypted: with an encrypted key and no passphrase, the key does not load (server error 6170) and every TLS port using this certificate does not start - inbound mail on those ports stops. The passphrase is a secret: it is stored protected on the server and never displayed here again, and saving a new one replaces whatever was stored before.'}"
                                    Margin="0">
-                    <local:PasswordField x:Name="PassphraseBox" MaxWidth="360" HorizontalAlignment="Left" PlaceholderText="{loc:L 'New passphrase'}" />
+                    <!-- A width of its own: aligned left with only a MaxWidth, the
+                         box was as wide as its placeholder, 151 pixels, and grew
+                         as a passphrase was typed (review finding F140). A MinWidth
+                         and not a Width: WPF-UI's template aligns its box as the
+                         control is aligned and gives it the control's MinWidth, so
+                         a Width alone left the box at its placeholder's. -->
+                    <local:PasswordField x:Name="PassphraseBox" MinWidth="360" MaxWidth="360" HorizontalAlignment="Left" PlaceholderText="{loc:L 'New passphrase'}" />
                 </scaffold:FieldRow>
             </StackPanel>
             <scaffold:Card.Footer>
                 <StackPanel x:Name="PassphraseActions" Orientation="Horizontal">
-                    <!-- Remove before Save, the Primary, last (review finding F289).
-                         Remove can be pressed while a passphrase is stored, or while the
-                         page cannot tell, and Save while its box holds one (F236). -->
+                    <!-- Remove before Save, last (review finding F289). Save is the
+                         card's own act and a secondary button: the page's one
+                         Primary is the add form's Add, where the two were filled
+                         accent buttons beside the red Delete selected (F140).
+                         Remove can be pressed while a passphrase is stored, or while
+                         the page cannot tell, and Save while its box holds one (F236). -->
                     <ui:Button x:Name="ClearPassphraseButton" Content="{loc:L 'Re_move stored passphrase'}" Click="ClearPassphrase_Click" Margin="0,0,8,0"
                                AutomationProperties.HelpText="{loc:L 'Remove the stored private key passphrase from the selected certificate'}" ToolTip="{loc:L 'Remove the stored private key passphrase from the selected certificate'}" />
-                    <ui:Button x:Name="SavePassphraseButton" Content="{loc:L 'Save _passphrase'}" Appearance="Primary" Click="SavePassphrase_Click"
+                    <ui:Button x:Name="SavePassphraseButton" Content="{loc:L 'Save _passphrase'}" Click="SavePassphrase_Click"
                                AutomationProperties.HelpText="{loc:L 'Save the private key passphrase for the selected certificate'}" ToolTip="{loc:L 'Save the private key passphrase for the selected certificate'}" />
                 </StackPanel>
             </scaffold:Card.Footer>
