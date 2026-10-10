@@ -2768,7 +2768,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   "Auto-ban: ..." - among the permanent ranges with no column to tell them apart and no filter, so lifting one meant
   opening IP ranges, searching, picking the row by its address and deleting it. The Auto-ban page now opens on
   Banned now: each ban's address, why it was banned - the user name a run of failed sign-ins was guessing at, the
-  spam trap, the null sender or the sign-in attempt on a delivery port - and when it ends, "23 min from now" from a
+  spam trap, the null sender or the sign-in attempt on a delivery port, without the counter the server adds to the
+  name of a second ban for the same user name or trap, "(1)" - and when it ends, "23 min from now" from a
   Control Panel on the server itself and the server's time from one elsewhere, with Lift ban on its row (a 24-pixel
   button named for the row) and under the list (Delete on the row presses it); Lift ban asks first, Cancel taking
   Enter, deletes the range by its id as IP ranges does, and says "The ban on 198.51.100.77 is lifted." The IP ranges

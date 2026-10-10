@@ -51,6 +51,15 @@ namespace hMailServer.ControlPanel.Services
             ? rangeName.Substring(Prefix.Length).Trim()
             : (rangeName ?? "").Trim();
 
+         // Every writer names its range through AccountLogon::CreateIPRange, which makes
+         // the name unique where a ban of that name exists already (GetIPRangeName_:
+         // " (1)" to " (10)", then " (Z" and nine random characters, then a GUID in
+         // braces) - a counter the reader has no use for, and one a second address that
+         // mails the same spam trap while the first is banned is given as readily as a
+         // second run of failed sign-ins as one user name. So the suffix goes before the
+         // cause is read, for each of the four.
+         rest = UniqueSuffix_.Replace(rest, "");
+
          const string trap = "spam trap "; // no-loc: the server's words (AccountLogon::BanForSpamTrap)
          if (rest.StartsWith(trap, StringComparison.Ordinal))
             return F("Mail to the spam trap {0}", rest.Substring(trap.Length).Trim());
@@ -61,12 +70,7 @@ namespace hMailServer.ControlPanel.Services
          if (rest.StartsWith("AUTH on a delivery port", StringComparison.Ordinal)) // no-loc: the server's words
             return L("A sign-in attempt on a port that takes no password");
 
-         // A run of failed sign-ins is named for the user name it guessed at, made unique
-         // by the server where a ban of that name exists already (AccountLogon's
-         // GetIPRangeName_: " (1)" to " (10)", then " (Z" and nine random characters,
-         // then a GUID in braces) - a counter the reader has no use for, so the cause is
-         // the user name alone.
-         rest = UniqueSuffix_.Replace(rest, "");
+         // A run of failed sign-ins is named for the user name it guessed at.
          return rest.Length == 0 ? "" : F("Failed sign-ins as {0}", rest);
       }
 
