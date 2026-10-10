@@ -4683,7 +4683,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   GitLab's table but those entries (`node_modules` and `bower_components` stay out). The new
   `build/ci/secret-detection-rules.sh` makes the rules in the analyzer's image - the job puts them where the analyzer
   reads them, since a custom ruleset is GitLab Ultimate's and gitleaks' `[extend]` takes no allowlist away, and
-  `scan-secrets.py` runs it before gitleaks - and refuses when the image's allowlist is not the one the project's
+  `scan-secrets.py` runs its own tree's copy before gitleaks, so that no code of the commits it scans runs - and
+  refuses when the image's allowlist is not the one the project's
   replaces, by its hash, so that new rules that change what GitLab leaves out are read first. Over every branch and
   tag on GitLab (2,873 commits) and `master`'s tree the widened rules found everything GitLab's had and five more, none
   a secret - the OpenPGP fixtures' two test keys and three lines that test a text for a key's armour header - which

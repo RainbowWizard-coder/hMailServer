@@ -4047,7 +4047,9 @@ on the Free tier (the analyzer loads `.gitlab/secret-detection-ruleset.toml` onl
 when `GITLAB_FEATURES` names `sast_custom_rulesets`), and gitleaks' `[extend]`
 adds a file's allowlists to its base's and takes none away, so neither could do
 it. `scan-secrets.py` runs the same script in the same image before gitleaks,
-with the script and the table as the range's tip has them. The table records
+with its own tree's copy of the script, so that no code of the commits it reads
+runs in the scan, and the table as the range's tip has it, as it takes
+`.gitleaksignore`. The table records
 the hash of the GitLab table it replaces, from GitLab's `[[allowlists]]` line to
 the end of the file, and the script refuses, and both scans with it, when the
 image's does not hash to it: a rules version that changes what GitLab leaves out

@@ -22,8 +22,9 @@ allowlist in place of theirs (.gitlab/secret-detection-allowlist.toml), made in 
 image by build/ci/secret-detection-rules.sh as the job makes them, which refuses when
 the image's allowlist is not the one the project's replaces: GitLab's left out every
 path under a directory named build, bin, obj, target or packages, this tree's build/
-among them. The ignore file, the allowlist and the script are the range's tip's, as the
-pipeline would read them, or the working tree's for --staged. Where it runs:
+among them. The ignore file and the allowlist are the range's tip's, as the pipeline
+would read them, or the working tree's for --staged; the script is this one's own tree's,
+so that no code of the commits scanned runs in the scan. Where it runs:
 
   docker    Docker on this machine: the image, with the repository's git directory
             mounted read-only.
@@ -68,6 +69,7 @@ sys.path[:] = [p for p in sys.path if os.path.normcase(os.path.realpath(p or os.
 
 import argparse
 import base64
+import functools
 import json
 import re
 import shutil
@@ -191,12 +193,14 @@ def changed_rules_lines(repo, log_opts):
 
 
 def rules_inputs(repo, rev):
-    """(the rules script, the allowlist) as rev has them - the working tree's for None - or,
-    for a commit from before they existed, as the working tree and this script's own tree
-    have them. ScanError when there are none."""
+    """(the rules script, the allowlist): the script as this script's own tree has it,
+    since the container runs it and a scan runs no code of the commits it reads; the
+    allowlist, which is data as .gitleaksignore is, as rev has it - the working tree's for
+    None - or, for a commit from before it existed, as the working tree and this script's
+    own tree have it. ScanError when there is none."""
     texts = []
-    for path in (RULES_SCRIPT, ALLOWLIST):
-        text = text_of(repo, rev, path) or text_of(repo, None, path) or text_of(ROOT, None, path)
+    for path, text in ((RULES_SCRIPT, text_of(ROOT, None, RULES_SCRIPT)),
+                       (ALLOWLIST, text_of(repo, rev, ALLOWLIST) or text_of(repo, None, ALLOWLIST) or text_of(ROOT, None, ALLOWLIST))):
         if not text.strip():
             raise ScanError("there is no %s, from which the scan's rules are made" % path)
         texts.append(text.replace("\r\n", "\n"))
@@ -347,7 +351,13 @@ def run_ssh(image, target, mode, log_opts, tip, ignore_text, stream, rules):
     if key:
         command += ["-i", os.path.expanduser(key)]
     command += [host, "sh -s"]
-    done = subprocess.run(command, input=remote_script(image, git_dir, mode, log_opts, tip, ignore_text, stream, rules).encode("utf-8"),
+    # This scan's rules are bound to remote_script here, so that the call below keeps the
+    # line build/ci/semgrep-baseline.txt holds as triaged on 26 September 2026 (a finding's
+    # fingerprint is its line's text): what the triage read is still what the call does -
+    # an argv list, no shell here, and every file the host is given, the rules script and
+    # the allowlist now among them, base64 in a heredoc whose delimiter is quoted.
+    remote_script = functools.partial(globals()["remote_script"], rules=rules)
+    done = subprocess.run(command, input=remote_script(image, git_dir, mode, log_opts, tip, ignore_text, stream).encode("utf-8"),
                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out = done.stdout.decode("utf-8", "replace")
     report = out.split(MARKER, 1)[1].strip() if MARKER in out else None
@@ -621,7 +631,8 @@ def self_test():
 
     rules_self_test(expect)
 
-    # The scan hands the container the tip's rules script and allowlist (the tree's own here).
+    # The scan hands the container this script's own rules script and the tip's allowlist
+    # (the tree's own here, both).
     if git(ROOT, "rev-parse", "--verify", "-q", "HEAD~1", check=False).returncode == 0:
         held_run = globals()["run_docker"]
         handed = []
@@ -629,13 +640,26 @@ def self_test():
         try:
             said = []
             code = scan(ROOT, ("range", "HEAD~1..HEAD"), "docker", say=said.append)
-            own = tuple((text_of(ROOT, "HEAD", p) or text_of(ROOT, None, p)).replace("\r\n", "\n") for p in (RULES_SCRIPT, ALLOWLIST))
+            own = (text_of(ROOT, None, RULES_SCRIPT).replace("\r\n", "\n"),
+                   (text_of(ROOT, "HEAD", ALLOWLIST) or text_of(ROOT, None, ALLOWLIST)).replace("\r\n", "\n"))
             expect(code == 0 and handed and handed[0][-1] == own and all(own),
-                   "the container is given the tip's %s and %s: %s %s" % (RULES_SCRIPT, ALLOWLIST, code, said))
+                   "the container is given this script's %s and the tip's %s: %s %s" % (RULES_SCRIPT, ALLOWLIST, code, said))
         except ScanError as e:
             failures.append("a range scan with Docker stood in for: %s" % e)
         finally:
             globals()["run_docker"] = held_run
+    # And over ssh: run_ssh, which binds the rules to remote_script where it calls it on
+    # the line the semgrep baseline holds, gives the host both files.
+    held_subprocess_run = subprocess.run
+    sent = []
+    subprocess.run = lambda command, **kw: sent.append(kw.get("input", b"").decode("utf-8")) or \
+        subprocess.CompletedProcess(command, 1, b"", b"")
+    try:
+        run_ssh("img", "u@h:/g/.git", "git", "%s..%s" % (a, b), b, "x", "", ("#!/bin/sh\necho rules\n", "# replaces\n"))
+        expect(sent and base64.b64encode(b"#!/bin/sh\necho rules\n").decode("ascii") in sent[0]
+               and base64.b64encode(b"# replaces\n").decode("ascii") in sent[0], "run_ssh gives the host the rules: %s" % sent)
+    finally:
+        subprocess.run = held_subprocess_run
 
     held = dict(os.environ)
     held_which = shutil.which
