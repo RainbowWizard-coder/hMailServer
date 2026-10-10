@@ -176,6 +176,10 @@ knows that a reader trusts `example.com` can write `example.com`. That is true
 of every safe-sender list there is. Keep allow entries to correspondents whose
 domains publish DMARC, and prefer a single address to a whole domain.
 
+Blocking has the same limit. **Blocked senders** matches the envelope address
+the sender claims, so it stops a correspondent who keeps using one address; it
+is no defence against spoofing, and stops nothing that changes its address.
+
 ### Where each list is edited
 
 | List | Webmail | Control Panel | Control Deck | REST | COM |

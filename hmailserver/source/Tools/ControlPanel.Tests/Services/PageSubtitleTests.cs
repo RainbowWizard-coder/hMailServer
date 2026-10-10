@@ -179,6 +179,30 @@ namespace hMailServer.ControlPanel.Tests.Services
 
       private const string ListeningTip = "The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for.";
 
+      /// <summary>
+      /// What the cut subtitles said is in the help document each page's help opens
+      /// (HelpMap): Blocked senders' warning, that it matches the address the sender
+      /// claims and is no defence against spoofing, had been cut from the page and was in
+      /// no document, while the commit that cut it said it was.
+      /// </summary>
+      [Theory]
+      [InlineData("blockedsenders", "matches the envelope address the sender claims")]
+      [InlineData("blockedsenders", "no defence against spoofing")]
+      [InlineData("senderlist", "Nearest first: the account, then its domain, then the server.")]
+      [InlineData("senderlist", "which refuses the message during the SMTP conversation")]
+      [InlineData("greylistbypass", "a suffix with a leading dot")]
+      [InlineData("greylistbypass", "Greylisting decides at `RCPT TO`")]
+      [InlineData("greylistbypass", "privilege granted to a named domain")]
+      [InlineData("roles", "The four built-in roles cannot be edited")]
+      public void WhatTheCutSubtitlesSaid_IsInTheHelpTheirPagesOpen(string page, string words)
+      {
+         HelpTarget target = HelpMap.For(page);
+         Assert.NotNull(target);
+         string docs = Path.GetFullPath(Path.Join(Path.GetDirectoryName(ControlPanelFile("App.xaml.cs")), "..", "..", "..", "docs"));
+         string text = Regex.Replace(File.ReadAllText(Path.Join(docs, target.Doc)), @"\s+", " ");
+         Assert.Contains(words, text, StringComparison.Ordinal);
+      }
+
       /// <summary>The number of sentences in an English text: a full stop, a question or an exclamation mark, then a space and a capital, a quotation or a bracket, or the end.</summary>
       internal static int Sentences(string text)
          => Regex.Matches(text.Trim(), @"[.!?](?=\s+[A-Z""“(]|\s*$)").Count;
