@@ -52,6 +52,13 @@ catalogue, or against what the server does at run time:
             (SAME_IN_EVERY_SCRIPT). An acronym in capitals is a name, but for
             the few English words written in capitals (CAPITAL_WORDS).
 
+  quotations
+            A German, Czech or Polish quotation opens with the low mark and is
+            closed by its language's own high one (QUOTES) before the next
+            opens: 83 German texts closed one with the typewriter's straight
+            quote, „Prüfen" beside „Sicherung jetzt starten“ (review finding
+            F038).
+
 The Czech, Polish, Russian and Ukrainian plural forms ("<English>|few", which
 Loc.Plural reads for counts such as 2 to 4) are held to the English they stand in for, by the
 same rules.
@@ -237,6 +244,38 @@ CAPITAL_WORDS = {"IF", "THEN", "AND", "OR", "NOT", "ELSE"}
 
 WORDS = re.compile(r"[A-Za-z]+(?:[ -][A-Za-z]+)*")
 
+# The quotation marks of the catalogues that open a quotation low: German and Czech
+# close it with the high reversed mark, Polish with the high one. A German quotation
+# closed by the typewriter's straight quote - „Prüfen", „wird geprüft", „v=DMARC1",
+# the palette's „Spam stoppen" - is two styles in one pair (review finding F038): 83
+# German texts closed so until 6.3.7.
+QUOTES = {"de": ("„", "“"), "cs": ("„", "“"), "pl": ("„", "”")}
+
+
+def quotation_findings(tag, target):
+   """What is wrong with the quotation marks of one translation: a quotation that its
+   language's closing mark does not close before the next one opens or the text ends,
+   and a closing mark that closes nothing."""
+   marks = QUOTES.get(tag)
+   if marks is None:
+      return []
+   opening, closing = marks
+   findings = []
+   open_at = None
+   for index, char in enumerate(target):
+      if char == opening:
+         if open_at is not None:
+            findings.append("the quotation at %r is not closed by %s before the next one opens"
+                            % (target[open_at:open_at + 24], closing))
+         open_at = index
+      elif char == closing:
+         if open_at is None:
+            findings.append("%s at %r closes no quotation" % (closing, target[max(0, index - 20):index + 1]))
+         open_at = None
+   if open_at is not None:
+      findings.append("the quotation at %r is not closed by %s" % (target[open_at:open_at + 24], closing))
+   return findings
+
 
 def untranslated(tag, source, target):
    """True when a catalogue of another script gives an English key of ordinary words back as it is."""
@@ -310,6 +349,9 @@ def check(tag, catalogue, pages=None):
          findings.append((source, "the value is the English itself; translate it, or add it to SAME_IN_EVERY_SCRIPT "
                                   "if it is a name every language keeps"))
 
+      for problem in quotation_findings(tag, target):
+         findings.append((source, problem))
+
       wanted = {digits(m.group(0)) for m in NUMBER.finditer(bare)}
       have = {digits(m.group(0)) for m in NUMBER.finditer(PLACEHOLDER.sub(" ", target))}
       for number in sorted(w for w in wanted - have if len(w) >= 2):
@@ -363,6 +405,28 @@ def self_test():
       found = untranslated(tag, source, target)
       if found != expected:
          print("FAIL: [%s] %r -> %r is %s as untranslated" % (tag, source, target, "reported" if found else "not reported"))
+         failures += 1
+
+   # The quotation rule: a German, Czech or Polish quotation is closed by its
+   # language's own mark, and only a quotation is.
+   quotations = {
+      ("de", "Klicken Sie auf „Prüfen\", um den Eintrag zu lesen."): True,
+      ("de", "Klicken Sie auf „Prüfen”."): True,
+      ("de", "Klicken Sie auf „Prüfen“."): False,
+      ("de", "„Ein“ und „Aus“"): False,
+      ("de", "„Ein und „Aus“"): True,
+      ("de", "Ein“"): True,
+      ("de", "Ohne Anführungszeichen."): False,
+      ("cs", "Klikněte na „Zkontrolovat“."): False,
+      ("cs", "Klikněte na „Zkontrolovat\"."): True,
+      ("pl", "Kliknij „Sprawdź”."): False,
+      ("pl", "Kliknij „Sprawdź“."): True,
+      ("fr", "Cliquez sur «Vérifier»."): False,
+   }
+   for (tag, value), expected in quotations.items():
+      found = bool(quotation_findings(tag, value))
+      if found != expected:
+         print("FAIL: [%s] %r is %s as a quotation closed wrongly" % (tag, value, "reported" if found else "not reported"))
          failures += 1
 
    # The page rule reads every navigation title: a page outside the old list of

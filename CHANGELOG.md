@@ -3376,6 +3376,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   starts from one document in the pane's face, size and colour, ragged right and unhyphenated
   (`MarkdownFlow.NewDocument`). `HelpDocumentTypographyTests` holds it.
 
+- **Fixed: German quotations closed with a straight typewriter quote.** 83 German texts opened a quotation with „
+  and closed it with ", so the palette's placeholder read „Spam stoppen", DNS records „v=DMARC1" and the setup
+  checklist „Prüfen", beside „Sicherung jetzt starten“ closed properly elsewhere. Every German quotation now closes
+  with “, and `build/check-catalogues.py` holds the German, Czech and Polish catalogues to quotations closed by their
+  language's own mark before the next one opens.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
