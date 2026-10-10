@@ -7255,6 +7255,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="No certificate assigned" xml:space="preserve">
     <value>Nessun certificato assegnato</value>
   </data>
+  <data name="No certificate can be issued without a host name: add at least one to the host names below." xml:space="preserve">
+    <value>Nessun certificato può essere emesso senza un nome host: aggiungine almeno uno ai nomi host qui sotto.</value>
+  </data>
   <data name="No certificate file is configured, so this entry cannot be used by any TLS port." xml:space="preserve">
     <value>Non è configurato alcun file di certificato, quindi questa voce non può essere usata da alcuna porta TLS.</value>
   </data>

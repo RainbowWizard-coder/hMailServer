@@ -7255,6 +7255,9 @@
   <data name="No certificate assigned" xml:space="preserve">
     <value>証明書が割り当てられていません</value>
   </data>
+  <data name="No certificate can be issued without a host name: add at least one to the host names below." xml:space="preserve">
+    <value>ホスト名がないと証明書を発行できません。下のホスト名に少なくとも 1 つ追加してください。</value>
+  </data>
   <data name="No certificate file is configured, so this entry cannot be used by any TLS port." xml:space="preserve">
     <value>証明書ファイルが設定されていないため、このエントリはどの TLS ポートでも使えません。</value>
   </data>

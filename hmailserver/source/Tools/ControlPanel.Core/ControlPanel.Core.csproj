@@ -167,6 +167,8 @@
     <Compile Include="..\ControlPanel\Services\TimeUntilText.cs" />
     <Compile Include="..\ControlPanel\Services\AutoBanList.cs" />
     <Compile Include="..\ControlPanel\Services\IpRangeCells.cs" />
+    <!-- Whether AcmeDomains names a host, as the server reads it (review finding F237). -->
+    <Compile Include="..\ControlPanel\Services\AcmeHostNames.cs" />
   </ItemGroup>
 
   <!-- The operator documentation, embedded straight from the repository as

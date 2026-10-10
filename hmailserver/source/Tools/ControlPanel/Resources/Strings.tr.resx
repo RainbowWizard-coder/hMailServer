@@ -7255,6 +7255,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="No certificate assigned" xml:space="preserve">
     <value>Sertifika atanmamış</value>
   </data>
+  <data name="No certificate can be issued without a host name: add at least one to the host names below." xml:space="preserve">
+    <value>Ana bilgisayar adı olmadan sertifika verilemez: aşağıdaki ana bilgisayar adlarına en az bir tane ekleyin.</value>
+  </data>
   <data name="No certificate file is configured, so this entry cannot be used by any TLS port." xml:space="preserve">
     <value>Hiç sertifika dosyası yapılandırılmamış; bu yüzden bu girdi hiçbir TLS portu tarafından kullanılamaz.</value>
   </data>

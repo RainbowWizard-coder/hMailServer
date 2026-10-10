@@ -7255,6 +7255,9 @@ Inget som redan finns där tas bort.</value>
   <data name="No certificate assigned" xml:space="preserve">
     <value>Inget certifikat tilldelat</value>
   </data>
+  <data name="No certificate can be issued without a host name: add at least one to the host names below." xml:space="preserve">
+    <value>Inget certifikat kan utfärdas utan ett värdnamn: lägg till minst ett bland värdnamnen nedan.</value>
+  </data>
   <data name="No certificate file is configured, so this entry cannot be used by any TLS port." xml:space="preserve">
     <value>Ingen certifikatfil är konfigurerad, så den här posten kan inte användas av någon TLS-port.</value>
   </data>

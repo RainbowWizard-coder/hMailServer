@@ -7255,6 +7255,9 @@ Intet, der allerede er der, fjernes.</value>
   <data name="No certificate assigned" xml:space="preserve">
     <value>Intet certifikat tildelt</value>
   </data>
+  <data name="No certificate can be issued without a host name: add at least one to the host names below." xml:space="preserve">
+    <value>Der kan ikke udstedes et certifikat uden et værtsnavn: tilføj mindst ét til værtsnavnene nedenfor.</value>
+  </data>
   <data name="No certificate file is configured, so this entry cannot be used by any TLS port." xml:space="preserve">
     <value>Der er ikke konfigureret nogen certifikatfil, så denne post kan ikke bruges af nogen TLS-port.</value>
   </data>

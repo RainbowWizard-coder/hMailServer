@@ -7331,6 +7331,9 @@ Control Panel может читать файлы сообщений только
   <data name="No certificate assigned" xml:space="preserve">
     <value>Сертификат не назначен</value>
   </data>
+  <data name="No certificate can be issued without a host name: add at least one to the host names below." xml:space="preserve">
+    <value>Без имени узла сертификат не может быть выпущен: добавьте хотя бы одно имя в поле имён узлов ниже.</value>
+  </data>
   <data name="No certificate file is configured, so this entry cannot be used by any TLS port." xml:space="preserve">
     <value>Файл сертификата не задан, поэтому эту запись не сможет использовать ни один порт TLS.</value>
   </data>

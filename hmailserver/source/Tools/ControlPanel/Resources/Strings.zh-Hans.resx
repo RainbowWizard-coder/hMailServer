@@ -7255,6 +7255,9 @@
   <data name="No certificate assigned" xml:space="preserve">
     <value>未分配证书</value>
   </data>
+  <data name="No certificate can be issued without a host name: add at least one to the host names below." xml:space="preserve">
+    <value>没有主机名就无法颁发证书：请在下面的主机名中至少添加一个。</value>
+  </data>
   <data name="No certificate file is configured, so this entry cannot be used by any TLS port." xml:space="preserve">
     <value>未配置证书文件，因此任何 TLS 端口都无法使用此条目。</value>
   </data>

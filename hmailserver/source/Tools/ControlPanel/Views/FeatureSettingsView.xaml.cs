@@ -1322,6 +1322,14 @@ namespace hMailServer.ControlPanel.Views
       {
          public StatusLevel Level;
          public string Text;
+
+         /// <summary>
+         /// The navigation key of the page that shows more of what the notice says, or
+         /// null: the notice then carries Open and that page's title
+         /// (Services/NoticeActions) - the ACME certificate's state, which the SSL
+         /// certificates page lists with the others (review finding F237).
+         /// </summary>
+         public string Page;
       }
 
       /// <summary>
@@ -1337,6 +1345,15 @@ namespace hMailServer.ControlPanel.Views
          public string Aid;
 
          public Func<WarningState> Compute;
+
+         /// <summary>
+         /// Whether the notice is the card's first row, above the fields, where the
+         /// card's one live fact is read before the requests under it - the ACME
+         /// certificate's state, which was below the card's seven fields and so below
+         /// the fold at 1280 by 800 (review finding F237). A warning about the fields
+         /// is under them, as every other is.
+         /// </summary>
+         public bool First;
       }
 
       private class CardDef
@@ -1380,6 +1397,10 @@ namespace hMailServer.ControlPanel.Views
       {
          public WarningDef Def;
          public InlineNotice Notice;
+
+         /// <summary>The notice's Open button, made once for its page and kept across the warning's reruns.</summary>
+         public UIElement Action;
+         public string ActionPage;
       }
 
       private readonly List<WarningRow> warningRows_ = new();
@@ -1539,12 +1560,27 @@ namespace hMailServer.ControlPanel.Views
          if (!LiveBool_("AcmeEnabled", false))
             return null;
 
+         // Switched on with no host name, nothing can be issued: the server asks the
+         // CA for a certificate for the names listed, and with none it asks for
+         // nothing. Said first, and alone - where the page went on to say that none
+         // had been issued yet and that, if that persisted, the CA could not reach
+         // this server, which sent the reader to the network (review finding F237).
+         if (!AcmeHostNames.Any(LiveText_("AcmeDomains", "")))
+         {
+            return new WarningState
+            {
+               Level = StatusLevel.Critical,
+               Text = L("No certificate can be issued without a host name: add at least one to the host names below.")
+            };
+         }
+
          if (!ServerSession.IsLocalSession)
          {
             return new WarningState
             {
                Level = StatusLevel.Information,
-               Text = L("The issued certificate is a file on the server's disk, and the Control Panel is connected to another host, so its expiry cannot be read from here.")
+               Text = L("The issued certificate is a file on the server's disk, and the Control Panel is connected to another host, so its expiry cannot be read from here."),
+               Page = "certs"
             };
          }
 
@@ -1600,6 +1636,7 @@ namespace hMailServer.ControlPanel.Views
          {
             return new WarningState
             {
+               Page = "certs",
                Level = StatusLevel.Critical,
                Text = PluralF(-days,
                   "The issued certificate EXPIRED on {0}, {1} day ago, and renewal has not replaced it. Clients are refusing this server's TLS. Check the error log for the last renewal attempt: the usual cause is that the CA can no longer reach this server on the http-01 challenge port.",
@@ -1612,6 +1649,7 @@ namespace hMailServer.ControlPanel.Views
          {
             return new WarningState
             {
+               Page = "certs",
                Level = StatusLevel.Warning,
                Text = PluralF(days,
                   "The issued certificate expires on {0}, in {1} day. The renewal task runs inside this window, so this is only a problem if the number stops falling - if it does, renewal is failing and the error log says why.",
@@ -1622,6 +1660,7 @@ namespace hMailServer.ControlPanel.Views
 
          return new WarningState
          {
+            Page = "certs",
             Level = StatusLevel.Good,
             Text = PluralF(days,
                "A certificate is issued and valid until {0}, {1} day from now. Renewal starts automatically inside the last {2} days.",
@@ -2291,7 +2330,7 @@ namespace hMailServer.ControlPanel.Views
                      new BoolSetting { Key = "AcmeEnabled", Default = false, Label = L("Issue and renew certificates automatically") },
                      new TextSetting { Key = "AcmeContactEmail", DependsOn = AcmeSwitch, Label = L("Contact e-mail (CA expiry notices)"), Placeholder = "admin@yourdomain.com" },
                      new TextSetting { Key = "AcmeDomains", DependsOn = AcmeSwitch, Label = L("Host names for the certificate (comma separated)"), Placeholder = "mail.yourdomain.com, mta-sts.yourdomain.com" }, // no-loc
-                     new TextSetting { Key = "AcmeDirectoryUrl", DependsOn = AcmeSwitch, Default = "https://acme-v02.api.letsencrypt.org/directory", Label = L("ACME directory URL") },
+                     new TextSetting { Key = "AcmeDirectoryUrl", DependsOn = AcmeSwitch, Default = "https://acme-v02.api.letsencrypt.org/directory", Placeholder = "https://acme-v02.api.letsencrypt.org/directory", Label = L("ACME directory URL") }, // no-loc: a URL
                      new NumberSetting { Key = "AcmeHttpPort", DependsOn = AcmeSwitch, Minimum = 1, Maximum = 65535, Default = "80", Label = L("Port for http-01 challenges") },
                      new PathSetting { Key = "AcmeCertificateDirectory", PickFolder = true, Label = L("Certificate output folder (empty = Data\\ACME)"), Placeholder = L("Falls back to Data\\ACME") },
                      new BoolSetting { Key = "AcmeReuseKey", DependsOn = AcmeSwitch, Default = true, Label = L("Reuse the private key across renewals (keeps DANE TLSA records valid)") }
@@ -2306,6 +2345,7 @@ namespace hMailServer.ControlPanel.Views
                      new WarningDef
                      {
                         Aid = "AcmeCertificateState",
+                        First = true,
                         Compute = ComputeAcmeCertificateState_
                      }
                   }
@@ -3338,7 +3378,18 @@ namespace hMailServer.ControlPanel.Views
                last.Margin = new Thickness(0);
 
             foreach (WarningDef def in card.Warnings)
-               fields.Children.Add(BuildWarningRow_(def));
+            {
+               // A warning that is the card's first row goes above its fields, with
+               // the gap under it a field row keeps (WarningDef.First).
+               if (def.First)
+               {
+                  var first = (FrameworkElement)BuildWarningRow_(def);
+                  first.Margin = new Thickness(0, 0, 0, DesignTokens.Space.Md);
+                  fields.Children.Insert(0, first);
+               }
+               else
+                  fields.Children.Add(BuildWarningRow_(def));
+            }
 
             var section = new SettingsSection
             {
@@ -3696,6 +3747,17 @@ namespace hMailServer.ControlPanel.Views
 
             row.Notice.Level = state.Level;
             row.Notice.Text = state.Text;
+            if (state.Page == null)
+               row.Notice.Content = null;
+            else
+            {
+               if (row.Action == null || row.ActionPage != state.Page)
+               {
+                  row.Action = NoticeActions.OpenPage(state.Page, (row.Def.Aid ?? "warning") + "-open-" + state.Page);
+                  row.ActionPage = state.Page;
+               }
+               row.Notice.Content = row.Action;
+            }
             row.Notice.Visibility = Visibility.Visible;
          }
       }

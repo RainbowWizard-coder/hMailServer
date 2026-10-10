@@ -7331,6 +7331,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No certificate assigned" xml:space="preserve">
     <value>Není přiřazen žádný certifikát</value>
   </data>
+  <data name="No certificate can be issued without a host name: add at least one to the host names below." xml:space="preserve">
+    <value>Bez názvu hostitele nelze vydat žádný certifikát: přidejte alespoň jeden do názvů hostitelů níže.</value>
+  </data>
   <data name="No certificate file is configured, so this entry cannot be used by any TLS port." xml:space="preserve">
     <value>Není nastaven žádný soubor certifikátu, takže tuto položku nemůže použít žádný TLS port.</value>
   </data>

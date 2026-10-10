@@ -7331,6 +7331,9 @@
   <data name="No certificate assigned" xml:space="preserve">
     <value>Сертифікат не призначено</value>
   </data>
+  <data name="No certificate can be issued without a host name: add at least one to the host names below." xml:space="preserve">
+    <value>Без імені вузла сертифікат не можна випустити: додайте принаймні одне ім'я до імен вузлів нижче.</value>
+  </data>
   <data name="No certificate file is configured, so this entry cannot be used by any TLS port." xml:space="preserve">
     <value>Файл сертифіката не налаштовано, тому цей запис не може використовувати жоден порт TLS.</value>
   </data>

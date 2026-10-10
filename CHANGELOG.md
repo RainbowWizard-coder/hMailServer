@@ -2811,6 +2811,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   pixels while the path columns show the file's name, the whole path in the tool tip. `CertificatesAddFlowTests` holds
   the form, the name, the outcome, the buttons and the columns.
 
+- **Fixed: the Automatic certificates (ACME) page put its issued certificate below the fold, and blamed the network
+  for a host-name list that was empty.** The card's one live fact - a certificate issued and valid until a date, near
+  its end, expired, or none yet - was its last row, under seven fields and below the fold at 1280 by 800; with Issue
+  and renew automatically ticked and no host name, the page saved it and then said that no certificate had been
+  issued yet and that, if that persisted, the CA could not reach this server, while the server - which splits the
+  list at commas as the page now does - asks the CA for nothing without a name; and the ACME directory URL had no
+  placeholder. The certificate's state is now the card's first row, with Open SSL certificates beside an issued
+  certificate; with the switch on and no host name the row says at Critical, and alone, "No certificate can be
+  issued without a host name: add at least one to the host names below.", and goes as a name is typed; and the
+  directory shows the Let's Encrypt URL. `AcmeCertificateStateTests` holds the list's reading, the row's place, its
+  order and its action.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

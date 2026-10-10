@@ -7255,6 +7255,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="No certificate assigned" xml:space="preserve">
     <value>Varmennetta ei ole määritetty</value>
   </data>
+  <data name="No certificate can be issued without a host name: add at least one to the host names below." xml:space="preserve">
+    <value>Varmennetta ei voi myöntää ilman konenimeä: lisää vähintään yksi alla oleviin konenimiin.</value>
+  </data>
   <data name="No certificate file is configured, so this entry cannot be used by any TLS port." xml:space="preserve">
     <value>Varmennetiedostoa ei ole määritetty, joten mikään TLS-portti ei voi käyttää tätä merkintää.</value>
   </data>
