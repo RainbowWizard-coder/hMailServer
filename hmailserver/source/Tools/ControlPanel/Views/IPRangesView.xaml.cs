@@ -46,8 +46,8 @@ namespace hMailServer.ControlPanel.Views
          SelectionGate.Bind(RangeGrid, PropertiesButton, DeleteRangeButton);
 
          // Every box follows the card's pill: Unsaved changes from the first change,
-         // and the relay notice, which follows External to external and its
-         // authentication.
+         // and the relay notice, which follows Local to external and External to
+         // external and their authentication.
          foreach (CheckBox box in PermissionBoxes())
          {
             box.Checked += (s, e) => { ShowPermsState_(); ShowRelayExposure_(); };
@@ -319,21 +319,26 @@ namespace hMailServer.ControlPanel.Views
 
       /// <summary>
       /// The card's word on relaying (Services/RelayExposure): a range that lets the
-      /// addresses in it send mail from outside to outside without signing in is an
-      /// open relay where it reaches the Internet, at Critical, and a warning inside
-      /// a network of its own; none for one address, or while External to external
-      /// asks for authentication or is not allowed.
+      /// addresses in it send mail to an external address without signing in - External
+      /// to external, or Local to external, which anyone can use by giving one of this
+      /// server's domains as the sender - is an open relay where it reaches the
+      /// Internet, at Critical, and a warning inside a network of its own; none for one
+      /// address, or while both directions ask for authentication or are not allowed.
       /// </summary>
       private void ShowRelayExposure_()
       {
          RelayExposure.Reach reach = permsRow_ == null || !PermGrid.IsEnabled
             ? RelayExposure.Reach.None
-            : RelayExposure.Of(permsRow_.LowerIP, permsRow_.UpperIP, PermRR.IsChecked is true, PermAuthRR.IsChecked is true);
-         string notice = RelayExposure.Notice(reach);
+            : RelayExposure.Of(permsRow_.LowerIP, permsRow_.UpperIP, PermLR.IsChecked is true, PermAuthLR.IsChecked is true, PermRR.IsChecked is true, PermAuthRR.IsChecked is true);
+         string notice = RelayExposure.Notice(reach, OpenOnCard_());
          RelayNotice.Level = RelayExposure.LevelOf(reach);
          RelayNotice.Text = notice;
          RelayNotice.Visibility = notice == null ? Visibility.Collapsed : Visibility.Visible;
       }
+
+      /// <summary>The directions to an external address the card's boxes let through without signing in.</summary>
+      private RelayExposure.Open OpenOnCard_()
+         => RelayExposure.OpenDirections(PermLR.IsChecked is true, PermAuthLR.IsChecked is true, PermRR.IsChecked is true, PermAuthRR.IsChecked is true);
 
       private void Search_TextChanged(object sender, EventArgs e) => ShowListState_();
 
@@ -518,8 +523,8 @@ namespace hMailServer.ControlPanel.Views
          // Permissions that make an open relay are asked about first, whichever way
          // they are saved - Save permissions, the question before another range is
          // shown, the one before the range's dialog opens (review finding F229).
-         if (RelayExposure.Of(row.LowerIP, row.UpperIP, PermRR.IsChecked is true, PermAuthRR.IsChecked is true) == RelayExposure.Reach.Internet
-             && !MessageBox.Confirm(RelayExposure.SaveQuestion(row.Name), L("Control Panel"), L("Sa_ve permissions"), destructive: true))
+         if (RelayExposure.Of(row.LowerIP, row.UpperIP, PermLR.IsChecked is true, PermAuthLR.IsChecked is true, PermRR.IsChecked is true, PermAuthRR.IsChecked is true) == RelayExposure.Reach.Internet
+             && !MessageBox.Confirm(RelayExposure.SaveQuestion(row.Name, OpenOnCard_()), L("Control Panel"), L("Sa_ve permissions"), destructive: true))
             return false;
 
          bool saved = false;

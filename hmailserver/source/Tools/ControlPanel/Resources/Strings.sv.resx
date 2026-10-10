@@ -1633,8 +1633,14 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Anyone in the domain can send" xml:space="preserve">
     <value>Vem som helst i domänen kan skicka</value>
   </data>
+  <data name="Anyone in this range can relay mail through this server to any address without signing in, by giving one of this server's domains as the sender: an open relay. Tick Only after SMTP authentication for Local to external, unless the range is a few machines you trust." xml:space="preserve">
+    <value>Vem som helst i det här intervallet kan vidarebefordra e-post via den här servern till valfri adress utan att logga in genom att ange en av den här serverns domäner som avsändare: ett öppet relä. Markera Endast efter SMTP-autentisering för Lokalt till externt, om inte intervallet är några få datorer du litar på.</value>
+  </data>
   <data name="Anyone in this range can relay mail through this server to any address without signing in: an open relay. Tick Only after SMTP authentication for External to external, unless the range is a few machines you trust." xml:space="preserve">
     <value>Vem som helst i det här intervallet kan vidarebefordra e-post via den här servern till valfri adress utan att logga in: ett öppet relä. Markera Endast efter SMTP-autentisering för Externt till externt, om inte intervallet är några få datorer du litar på.</value>
+  </data>
+  <data name="Anyone in this range can relay mail through this server to any address without signing in: an open relay. Tick Only after SMTP authentication for Local to external and for External to external, unless the range is a few machines you trust." xml:space="preserve">
+    <value>Vem som helst i det här intervallet kan vidarebefordra e-post via den här servern till valfri adress utan att logga in: ett öppet relä. Markera Endast efter SMTP-autentisering för Lokalt till externt och för Externt till externt, om inte intervallet är några få datorer du litar på.</value>
   </data>
   <data name="Anyone the owner approves after they confirm" xml:space="preserve">
     <value>Vem som helst som ägaren godkänner efter att de bekräftar</value>
@@ -4726,8 +4732,14 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>Varje lokal mottagares kopia blir ett annat namn för samma fil inne i arkivmappen, så ett meddelande till tio brevlådor kostar en kopia snarare än tio. Kräver en arkivmapp på NTFS; om länken inte kan skapas kopierar servern filen och säger det i SMTP-loggen.</value>
   </data>
+  <data name="Every machine in this range can relay mail through this server to any address without signing in, by giving one of this server's domains as the sender. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for Local to external." xml:space="preserve">
+    <value>Varje dator i det här intervallet kan vidarebefordra e-post via den här servern till valfri adress utan att logga in genom att ange en av den här serverns domäner som avsändare. Det passar en skrivare eller ett program i ditt eget nätverk; markera annars Endast efter SMTP-autentisering för Lokalt till externt.</value>
+  </data>
   <data name="Every machine in this range can relay mail through this server to any address without signing in. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for External to external." xml:space="preserve">
     <value>Varje dator i det här intervallet kan vidarebefordra e-post via den här servern till valfri adress utan att logga in. Det passar en skrivare eller ett program i ditt eget nätverk; markera annars Endast efter SMTP-autentisering för Externt till externt.</value>
+  </data>
+  <data name="Every machine in this range can relay mail through this server to any address without signing in. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for Local to external and for External to external." xml:space="preserve">
+    <value>Varje dator i det här intervallet kan vidarebefordra e-post via den här servern till valfri adress utan att logga in. Det passar en skrivare eller ett program i ditt eget nätverk; markera annars Endast efter SMTP-autentisering för Lokalt till externt och för Externt till externt.</value>
   </data>
   <data name="Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
     <value>Varje meddelande som levereras till kontot krypteras, efter filtren, med kontots egen OpenPGP-nyckel, och den här servern kan inte läsa, söka i, exportera eller återställa dess post. Bara personen kan stänga av det, från webbmejlen; inget här kan.</value>
@@ -10110,6 +10122,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Save the export as" xml:space="preserve">
     <value>Spara exporten som</value>
+  </data>
+  <data name="Save the permissions of {0}? Anyone in it can then relay mail through this server to any address without signing in, by giving one of this server's domains as the sender: an open relay." xml:space="preserve">
+    <value>Spara behörigheterna för {0}? Vem som helst i det kan då vidarebefordra e-post via den här servern till valfri adress utan att logga in genom att ange en av den här serverns domäner som avsändare: ett öppet relä.</value>
   </data>
   <data name="Save the permissions of {0}? Anyone in it can then relay mail through this server to any address without signing in: an open relay." xml:space="preserve">
     <value>Spara behörigheterna för {0}? Vem som helst i det kan då vidarebefordra e-post via den här servern till valfri adress utan att logga in: ett öppet relä.</value>

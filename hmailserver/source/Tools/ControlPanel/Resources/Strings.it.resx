@@ -1633,8 +1633,14 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Anyone in the domain can send" xml:space="preserve">
     <value>Chiunque nel dominio può inviare</value>
   </data>
+  <data name="Anyone in this range can relay mail through this server to any address without signing in, by giving one of this server's domains as the sender: an open relay. Tick Only after SMTP authentication for Local to external, unless the range is a few machines you trust." xml:space="preserve">
+    <value>Chiunque in questo intervallo può inoltrare posta tramite questo server a qualsiasi indirizzo senza accedere, indicando come mittente uno dei domini di questo server: un open relay. Spunta Solo dopo l'autenticazione SMTP per Da locale a esterno, a meno che l'intervallo non sia di poche macchine fidate.</value>
+  </data>
   <data name="Anyone in this range can relay mail through this server to any address without signing in: an open relay. Tick Only after SMTP authentication for External to external, unless the range is a few machines you trust." xml:space="preserve">
     <value>Chiunque in questo intervallo può inoltrare posta tramite questo server a qualsiasi indirizzo senza accedere: un open relay. Spunta Solo dopo l'autenticazione SMTP per Da esterno a esterno, a meno che l'intervallo non sia di poche macchine fidate.</value>
+  </data>
+  <data name="Anyone in this range can relay mail through this server to any address without signing in: an open relay. Tick Only after SMTP authentication for Local to external and for External to external, unless the range is a few machines you trust." xml:space="preserve">
+    <value>Chiunque in questo intervallo può inoltrare posta tramite questo server a qualsiasi indirizzo senza accedere: un open relay. Spunta Solo dopo l'autenticazione SMTP per Da locale a esterno e per Da esterno a esterno, a meno che l'intervallo non sia di poche macchine fidate.</value>
   </data>
   <data name="Anyone the owner approves after they confirm" xml:space="preserve">
     <value>Chiunque il proprietario approvi dopo che conferma</value>
@@ -4726,8 +4732,14 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>La copia di ogni destinatario locale diventa un altro nome per lo stesso file dentro la cartella di archivio, quindi un messaggio per dieci caselle costa una copia invece di dieci. Richiede una cartella di archivio NTFS; se il collegamento non può essere creato il server copia il file e lo dice nel registro SMTP.</value>
   </data>
+  <data name="Every machine in this range can relay mail through this server to any address without signing in, by giving one of this server's domains as the sender. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for Local to external." xml:space="preserve">
+    <value>Ogni macchina di questo intervallo può inoltrare posta tramite questo server a qualsiasi indirizzo senza accedere, indicando come mittente uno dei domini di questo server. Va bene per una stampante o un'applicazione della tua rete; altrimenti spunta Solo dopo l'autenticazione SMTP per Da locale a esterno.</value>
+  </data>
   <data name="Every machine in this range can relay mail through this server to any address without signing in. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for External to external." xml:space="preserve">
     <value>Ogni macchina di questo intervallo può inoltrare posta tramite questo server a qualsiasi indirizzo senza accedere. Va bene per una stampante o un'applicazione della tua rete; altrimenti spunta Solo dopo l'autenticazione SMTP per Da esterno a esterno.</value>
+  </data>
+  <data name="Every machine in this range can relay mail through this server to any address without signing in. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for Local to external and for External to external." xml:space="preserve">
+    <value>Ogni macchina di questo intervallo può inoltrare posta tramite questo server a qualsiasi indirizzo senza accedere. Va bene per una stampante o un'applicazione della tua rete; altrimenti spunta Solo dopo l'autenticazione SMTP per Da locale a esterno e per Da esterno a esterno.</value>
   </data>
   <data name="Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
     <value>Ogni messaggio consegnato a questo account viene cifrato, dopo i filtri, con la chiave OpenPGP dell'account, e questo server non può leggere, cercare, esportare né recuperare la sua posta. Solo la persona può disattivarlo, dalla webmail; niente qui può farlo.</value>
@@ -10110,6 +10122,9 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   </data>
   <data name="Save the export as" xml:space="preserve">
     <value>Salva l'esportazione come</value>
+  </data>
+  <data name="Save the permissions of {0}? Anyone in it can then relay mail through this server to any address without signing in, by giving one of this server's domains as the sender: an open relay." xml:space="preserve">
+    <value>Salvare i permessi di {0}? Chiunque al suo interno potrà allora inoltrare posta tramite questo server a qualsiasi indirizzo senza accedere, indicando come mittente uno dei domini di questo server: un open relay.</value>
   </data>
   <data name="Save the permissions of {0}? Anyone in it can then relay mail through this server to any address without signing in: an open relay." xml:space="preserve">
     <value>Salvare i permessi di {0}? Chiunque al suo interno potrà allora inoltrare posta tramite questo server a qualsiasi indirizzo senza accedere: un open relay.</value>

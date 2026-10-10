@@ -1633,8 +1633,14 @@
   <data name="Anyone in the domain can send" xml:space="preserve">
     <value>域内任何人都可以发信</value>
   </data>
+  <data name="Anyone in this range can relay mail through this server to any address without signing in, by giving one of this server's domains as the sender: an open relay. Tick Only after SMTP authentication for Local to external, unless the range is a few machines you trust." xml:space="preserve">
+    <value>此范围内的任何人只要以此服务器的某个域作为发件人，就无需登录即可通过此服务器把邮件中继到任意地址：这是开放中继。除非该范围只是几台您信任的计算机，否则请为“本地到外部”勾选“仅在 SMTP 身份验证后”。</value>
+  </data>
   <data name="Anyone in this range can relay mail through this server to any address without signing in: an open relay. Tick Only after SMTP authentication for External to external, unless the range is a few machines you trust." xml:space="preserve">
     <value>此范围内的任何人都无需登录即可通过此服务器把邮件中继到任意地址：这是开放中继。除非该范围只是几台您信任的计算机，否则请为“外部到外部”勾选“仅在 SMTP 身份验证后”。</value>
+  </data>
+  <data name="Anyone in this range can relay mail through this server to any address without signing in: an open relay. Tick Only after SMTP authentication for Local to external and for External to external, unless the range is a few machines you trust." xml:space="preserve">
+    <value>此范围内的任何人都无需登录即可通过此服务器把邮件中继到任意地址：这是开放中继。除非该范围只是几台您信任的计算机，否则请为“本地到外部”和“外部到外部”勾选“仅在 SMTP 身份验证后”。</value>
   </data>
   <data name="Anyone the owner approves after they confirm" xml:space="preserve">
     <value>由所有者在确认后批准的任何人</value>
@@ -4726,8 +4732,14 @@
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>每个本地收件人的副本都成为存档文件夹中同一个文件的另一个名称，因此发给十个邮箱的邮件只占一份副本而不是十份。需要 NTFS 存档文件夹；如果无法创建链接，服务器会复制文件并在 SMTP 日志中说明。</value>
   </data>
+  <data name="Every machine in this range can relay mail through this server to any address without signing in, by giving one of this server's domains as the sender. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for Local to external." xml:space="preserve">
+    <value>此范围内的每台计算机只要以此服务器的某个域作为发件人，就无需登录即可通过此服务器把邮件中继到任意地址。这适合您自己网络中的打印机或应用程序；否则请为“本地到外部”勾选“仅在 SMTP 身份验证后”。</value>
+  </data>
   <data name="Every machine in this range can relay mail through this server to any address without signing in. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for External to external." xml:space="preserve">
     <value>此范围内的每台计算机都无需登录即可通过此服务器把邮件中继到任意地址。这适合您自己网络中的打印机或应用程序；否则请为“外部到外部”勾选“仅在 SMTP 身份验证后”。</value>
+  </data>
+  <data name="Every machine in this range can relay mail through this server to any address without signing in. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for Local to external and for External to external." xml:space="preserve">
+    <value>此范围内的每台计算机都无需登录即可通过此服务器把邮件中继到任意地址。这适合您自己网络中的打印机或应用程序；否则请为“本地到外部”和“外部到外部”勾选“仅在 SMTP 身份验证后”。</value>
   </data>
   <data name="Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
     <value>投递到此账户的每封邮件在过滤器处理后都会用账户自己的 OpenPGP 密钥加密，此服务器无法阅读、搜索、导出或恢复其邮件。只有本人能从网页邮箱关闭它；这里无法关闭。</value>
@@ -10110,6 +10122,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Save the export as" xml:space="preserve">
     <value>导出另存为</value>
+  </data>
+  <data name="Save the permissions of {0}? Anyone in it can then relay mail through this server to any address without signing in, by giving one of this server's domains as the sender: an open relay." xml:space="preserve">
+    <value>要保存 {0} 的权限吗？保存后，其中的任何人只要以此服务器的某个域作为发件人，就无需登录即可通过此服务器把邮件中继到任意地址：这是开放中继。</value>
   </data>
   <data name="Save the permissions of {0}? Anyone in it can then relay mail through this server to any address without signing in: an open relay." xml:space="preserve">
     <value>要保存 {0} 的权限吗？保存后，其中的任何人都无需登录即可通过此服务器把邮件中继到任意地址：这是开放中继。</value>

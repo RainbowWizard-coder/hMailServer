@@ -1645,8 +1645,14 @@ Control Panel может читать файлы сообщений только
   <data name="Anyone in the domain can send" xml:space="preserve">
     <value>Отправлять может любой в домене</value>
   </data>
+  <data name="Anyone in this range can relay mail through this server to any address without signing in, by giving one of this server's domains as the sender: an open relay. Tick Only after SMTP authentication for Local to external, unless the range is a few machines you trust." xml:space="preserve">
+    <value>Любой в этом диапазоне может без входа пересылать почту через этот сервер на любой адрес, указав отправителем один из доменов этого сервера: это открытый ретранслятор. Отметьте «Только после аутентификации SMTP» для «Локальный → внешний», если только диапазон — не несколько доверенных машин.</value>
+  </data>
   <data name="Anyone in this range can relay mail through this server to any address without signing in: an open relay. Tick Only after SMTP authentication for External to external, unless the range is a few machines you trust." xml:space="preserve">
     <value>Любой в этом диапазоне может без входа пересылать почту через этот сервер на любой адрес: это открытый ретранслятор. Отметьте «Только после аутентификации SMTP» для «Внешний → внешний», если только диапазон — не несколько доверенных машин.</value>
+  </data>
+  <data name="Anyone in this range can relay mail through this server to any address without signing in: an open relay. Tick Only after SMTP authentication for Local to external and for External to external, unless the range is a few machines you trust." xml:space="preserve">
+    <value>Любой в этом диапазоне может без входа пересылать почту через этот сервер на любой адрес: это открытый ретранслятор. Отметьте «Только после аутентификации SMTP» для «Локальный → внешний» и для «Внешний → внешний», если только диапазон — не несколько доверенных машин.</value>
   </data>
   <data name="Anyone the owner approves after they confirm" xml:space="preserve">
     <value>Любой, кого владелец одобрит после подтверждения</value>
@@ -4778,8 +4784,14 @@ Control Panel может читать файлы сообщений только
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>Копия каждого локального получателя становится ещё одним именем того же файла внутри папки архива, поэтому сообщение для десяти почтовых ящиков стоит одной копии, а не десяти. Требуется папка архива на NTFS; если создать ссылку не удаётся, сервер копирует файл и сообщает об этом в журнале SMTP.</value>
   </data>
+  <data name="Every machine in this range can relay mail through this server to any address without signing in, by giving one of this server's domains as the sender. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for Local to external." xml:space="preserve">
+    <value>Любая машина в этом диапазоне может без входа пересылать почту через этот сервер на любой адрес, указав отправителем один из доменов этого сервера. Это подходит для принтера или приложения в вашей собственной сети; иначе отметьте «Только после аутентификации SMTP» для «Локальный → внешний».</value>
+  </data>
   <data name="Every machine in this range can relay mail through this server to any address without signing in. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for External to external." xml:space="preserve">
     <value>Любая машина в этом диапазоне может без входа пересылать почту через этот сервер на любой адрес. Это подходит для принтера или приложения в вашей собственной сети; иначе отметьте «Только после аутентификации SMTP» для «Внешний → внешний».</value>
+  </data>
+  <data name="Every machine in this range can relay mail through this server to any address without signing in. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for Local to external and for External to external." xml:space="preserve">
+    <value>Любая машина в этом диапазоне может без входа пересылать почту через этот сервер на любой адрес. Это подходит для принтера или приложения в вашей собственной сети; иначе отметьте «Только после аутентификации SMTP» для «Локальный → внешний» и для «Внешний → внешний».</value>
   </data>
   <data name="Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
     <value>Каждое письмо, доставленное на эту учётную запись, после фильтров шифруется её собственным ключом OpenPGP, и этот сервер не может читать, искать, экспортировать или восстанавливать её почту. Выключить это может только сам человек из веб-почты; здесь это невозможно.</value>
@@ -10213,6 +10225,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Save the export as" xml:space="preserve">
     <value>Сохранить экспорт как</value>
+  </data>
+  <data name="Save the permissions of {0}? Anyone in it can then relay mail through this server to any address without signing in, by giving one of this server's domains as the sender: an open relay." xml:space="preserve">
+    <value>Сохранить разрешения диапазона {0}? Тогда любой в нём сможет без входа пересылать почту через этот сервер на любой адрес, указав отправителем один из доменов этого сервера: это открытый ретранслятор.</value>
   </data>
   <data name="Save the permissions of {0}? Anyone in it can then relay mail through this server to any address without signing in: an open relay." xml:space="preserve">
     <value>Сохранить разрешения диапазона {0}? Тогда любой в нём сможет без входа пересылать почту через этот сервер на любой адрес: это открытый ретранслятор.</value>

@@ -1645,8 +1645,14 @@
   <data name="Anyone in the domain can send" xml:space="preserve">
     <value>Надсилати може будь-хто в домені</value>
   </data>
+  <data name="Anyone in this range can relay mail through this server to any address without signing in, by giving one of this server's domains as the sender: an open relay. Tick Only after SMTP authentication for Local to external, unless the range is a few machines you trust." xml:space="preserve">
+    <value>Будь-хто в цьому діапазоні може без входу пересилати пошту через цей сервер на будь-яку адресу, вказавши відправником один із доменів цього сервера: це відкритий ретранслятор. Позначте «Лише після автентифікації SMTP» для «Локальні до зовнішніх», якщо діапазон — не кілька довірених машин.</value>
+  </data>
   <data name="Anyone in this range can relay mail through this server to any address without signing in: an open relay. Tick Only after SMTP authentication for External to external, unless the range is a few machines you trust." xml:space="preserve">
     <value>Будь-хто в цьому діапазоні може без входу пересилати пошту через цей сервер на будь-яку адресу: це відкритий ретранслятор. Позначте «Лише після автентифікації SMTP» для «Зовнішні до зовнішніх», якщо діапазон — не кілька довірених машин.</value>
+  </data>
+  <data name="Anyone in this range can relay mail through this server to any address without signing in: an open relay. Tick Only after SMTP authentication for Local to external and for External to external, unless the range is a few machines you trust." xml:space="preserve">
+    <value>Будь-хто в цьому діапазоні може без входу пересилати пошту через цей сервер на будь-яку адресу: це відкритий ретранслятор. Позначте «Лише після автентифікації SMTP» для «Локальні до зовнішніх» і для «Зовнішні до зовнішніх», якщо діапазон — не кілька довірених машин.</value>
   </data>
   <data name="Anyone the owner approves after they confirm" xml:space="preserve">
     <value>Будь-хто, кого власник схвалить після підтвердження</value>
@@ -4778,8 +4784,14 @@
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>Копія кожного локального отримувача стає ще одним іменем того самого файлу в папці архіву, тому повідомлення десятьом скринькам коштує однієї копії замість десяти. Потрібна папка архіву на NTFS; якщо посилання створити не вдається, сервер копіює файл і повідомляє про це в журналі SMTP.</value>
   </data>
+  <data name="Every machine in this range can relay mail through this server to any address without signing in, by giving one of this server's domains as the sender. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for Local to external." xml:space="preserve">
+    <value>Будь-яка машина в цьому діапазоні може без входу пересилати пошту через цей сервер на будь-яку адресу, вказавши відправником один із доменів цього сервера. Це підходить для принтера чи застосунку у вашій власній мережі; інакше позначте «Лише після автентифікації SMTP» для «Локальні до зовнішніх».</value>
+  </data>
   <data name="Every machine in this range can relay mail through this server to any address without signing in. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for External to external." xml:space="preserve">
     <value>Будь-яка машина в цьому діапазоні може без входу пересилати пошту через цей сервер на будь-яку адресу. Це підходить для принтера чи застосунку у вашій власній мережі; інакше позначте «Лише після автентифікації SMTP» для «Зовнішні до зовнішніх».</value>
+  </data>
+  <data name="Every machine in this range can relay mail through this server to any address without signing in. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for Local to external and for External to external." xml:space="preserve">
+    <value>Будь-яка машина в цьому діапазоні може без входу пересилати пошту через цей сервер на будь-яку адресу. Це підходить для принтера чи застосунку у вашій власній мережі; інакше позначте «Лише після автентифікації SMTP» для «Локальні до зовнішніх» і для «Зовнішні до зовнішніх».</value>
   </data>
   <data name="Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
     <value>Кожен лист, доставлений на цей обліковий запис, після фільтрів шифрується його власним ключем OpenPGP, і цей сервер не може читати, шукати, експортувати чи відновлювати цю пошту. Вимкнути це може лише сама людина з вебпошти; тут це неможливо.</value>
@@ -10213,6 +10225,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Save the export as" xml:space="preserve">
     <value>Зберегти експорт як</value>
+  </data>
+  <data name="Save the permissions of {0}? Anyone in it can then relay mail through this server to any address without signing in, by giving one of this server's domains as the sender: an open relay." xml:space="preserve">
+    <value>Зберегти дозволи діапазону {0}? Тоді будь-хто в ньому зможе без входу пересилати пошту через цей сервер на будь-яку адресу, вказавши відправником один із доменів цього сервера: це відкритий ретранслятор.</value>
   </data>
   <data name="Save the permissions of {0}? Anyone in it can then relay mail through this server to any address without signing in: an open relay." xml:space="preserve">
     <value>Зберегти дозволи діапазону {0}? Тоді будь-хто в ньому зможе без входу пересилати пошту через цей сервер на будь-яку адресу: це відкритий ретранслятор.</value>

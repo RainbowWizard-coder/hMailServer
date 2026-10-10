@@ -2727,21 +2727,22 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   and a switched-off rule's row is in the secondary text colour. `RuleCardsTests` holds the words, the add, the gate,
   the switch, the cards and the row's colour.
 
-- **Fixed: the IP ranges page showed relaying apart from its authentication, said nothing of an open relay, and
-  called every permission by another name than the range's dialog.** The permissions card had "Deliver remote → remote
-  (relay)" while "Require auth: external to external" was on a tab of the dialog alone, so that unticking relay on the
-  shipped Internet range stopped roaming users sending mail and ticking it on a range that asked for no authentication
-  made an open relay, with no word either way; and the card said "Allow SMTP", "Require TLS for auth" and "remote" where
-  the dialog said "Allow SMTP connections", "Require SSL/TLS when authenticating" and "external" - four names for the
-  TLS box in all. The card and the dialog now say the same: Allow SMTP connections, Allow IMAP connections, Allow POP3
+- **Fixed: the IP ranges page showed relaying apart from its authentication, said nothing of an open relay, and called
+  every permission by another name than the range's dialog.** The permissions card had "Deliver remote → remote (relay)"
+  while "Require auth: external to external" was on a tab of the dialog alone, so that unticking relay on the shipped
+  Internet range stopped roaming users sending mail and ticking it on a range that asked for no authentication made an
+  open relay, with no word either way; and the card said "Allow SMTP", "Require TLS for auth" and "remote" where the
+  dialog said "Allow SMTP connections", "Require SSL/TLS when authenticating" and "external" - four names for the TLS
+  box in all. The card and the dialog now say the same: Allow SMTP connections, Allow IMAP connections, Allow POP3
   connections, Require TLS before authentication, and each delivery direction - Local to local, Local to external,
   External to local, External to external (relay) - on a row of its own under Allow delivery, with Only after SMTP
   authentication beside it, which follows it; the dialog's Relaying and Require auth tabs are one Delivery tab of the
-  same rows. A range wider than one address that lets External to external through without authentication is
-  said under the rows - Critical, "an open relay", where it reaches the Internet, and a warning inside a private
-  network - and its permissions are asked about before they are saved, on the page and in the dialog. The setup
-  checklist names the box by its new caption. `RelayExposureTests` holds the reach of a range, the words, the card,
-  the dialog and the question.
+  same rows. A range wider than one address that lets External to external through without authentication, or Local to
+  external - which relays for whoever gives one of this server's domains as the sender, since the server takes the
+  sender from MAIL FROM - is said under the rows with the direction to tick Only after SMTP authentication for, at
+  Critical, "an open relay", where it reaches the Internet and as a warning inside a private network, and its
+  permissions are asked about before they are saved, on the page and in the dialog. The setup checklist names the box by
+  its new caption. `RelayExposureTests` holds the reach of a range, the words, the card, the dialog and the question.
 
 - **Fixed: a range added on the IP ranges page was not selected and said nothing of what it could do, and the list was
   not in priority order.** A new range may connect but delivers in no direction, so it can send no mail until its

@@ -149,7 +149,7 @@ namespace hMailServer.ControlPanel.Views
 
          relayNotice_.Margin = new Thickness(0, DesignTokens.Space.Md, 0, 0);
          p.Children.Add(relayNotice_);
-         foreach (CheckBox box in new[] { rr_, authEE_ })
+         foreach (CheckBox box in new[] { lr_, authLE_, rr_, authEE_ })
          {
             box.Checked += (s, e) => ShowRelayExposure_();
             box.Unchecked += (s, e) => ShowRelayExposure_();
@@ -163,13 +163,17 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>The Delivery tab's word on relaying without authentication, as the page's card says it.</summary>
       private void ShowRelayExposure_()
       {
-         RelayExposure.Reach reach = RelayExposure.Of(lower_.Text, upper_.Text, rr_.IsChecked is true, authEE_.IsChecked is true);
-         string notice = RelayExposure.Notice(reach);
+         RelayExposure.Reach reach = RelayExposure.Of(lower_.Text, upper_.Text, lr_.IsChecked is true, authLE_.IsChecked is true, rr_.IsChecked is true, authEE_.IsChecked is true);
+         string notice = RelayExposure.Notice(reach, OpenHere_());
          if (notice == null)
             relayNotice_.Hide();
          else
             relayNotice_.Show(RelayExposure.LevelOf(reach), notice);
       }
+
+      /// <summary>The directions to an external address the Delivery tab lets through without signing in.</summary>
+      private RelayExposure.Open OpenHere_()
+         => RelayExposure.OpenDirections(lr_.IsChecked is true, authLE_.IsChecked is true, rr_.IsChecked is true, authEE_.IsChecked is true);
 
       private ScrollViewer BuildProtection()
       {
@@ -312,8 +316,8 @@ namespace hMailServer.ControlPanel.Views
          }
 
          // Permissions that make an open relay are asked about first (review finding F229).
-         if (RelayExposure.Of(lower_.Text, upper_.Text, rr_.IsChecked is true, authEE_.IsChecked is true) == RelayExposure.Reach.Internet
-             && !MessageBox.Confirm(RelayExposure.SaveQuestion(name_.Text.Trim()), L("Control Panel"), L("_Save"), destructive: true))
+         if (RelayExposure.Of(lower_.Text, upper_.Text, lr_.IsChecked is true, authLE_.IsChecked is true, rr_.IsChecked is true, authEE_.IsChecked is true) == RelayExposure.Reach.Internet
+             && !MessageBox.Confirm(RelayExposure.SaveQuestion(name_.Text.Trim(), OpenHere_()), L("Control Panel"), L("_Save"), destructive: true))
             return;
 
          dynamic ranges = ServerSession.Current.Application.Settings.SecurityRanges;

@@ -25,6 +25,7 @@ namespace hMailServer.ControlPanel.Tests.Services
    {
       public void Dispose() => Loc.Reset();
 
+      // External to external, with Local to external allowed after authentication as the shipped Internet range has it.
       [Theory]
       // Relaying that asks for authentication, or is not allowed, is no exposure.
       [InlineData("0.0.0.0", "255.255.255.255", true, true, RelayExposure.Reach.None)]
@@ -46,17 +47,80 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("10.0.0.1", "fe80::1", true, false, RelayExposure.Reach.Internet)]
       [InlineData("not an address", "10.0.0.9", true, false, RelayExposure.Reach.Internet)]
       public void ARangesReach_IsHowFarItLetsMailBeRelayedWithoutSigningIn(string lower, string upper, bool allow, bool requireAuth, RelayExposure.Reach reach)
-         => Assert.Equal(reach, RelayExposure.Of(lower, upper, allow, requireAuth));
+         => Assert.Equal(reach, RelayExposure.Of(lower, upper, true, true, allow, requireAuth));
+
+      /// <summary>
+      /// Local to external relays as well: the server takes a local sender from MAIL
+      /// FROM, which anyone can write, and counts the direction allowed without
+      /// authentication as relaying without it (SMTPConnection::RelayToRemotePermittedWithoutAuth_).
+      /// The check looked at External to external alone, so that unticking Only after
+      /// SMTP authentication for Local to external on the shipped Internet range made an
+      /// open relay with no word and no question.
+      /// </summary>
+      [Theory]
+      // The shipped Internet range: both directions allowed, each after authentication.
+      [InlineData("0.0.0.0", "255.255.255.255", true, true, true, true, RelayExposure.Reach.None)]
+      // Local to external without authentication: an open relay on the Internet, a warning on a private network.
+      [InlineData("0.0.0.0", "255.255.255.255", true, false, false, false, RelayExposure.Reach.Internet)]
+      [InlineData("0.0.0.0", "255.255.255.255", true, false, true, true, RelayExposure.Reach.Internet)]
+      [InlineData("192.168.1.0", "192.168.1.255", true, false, false, false, RelayExposure.Reach.Network)]
+      // My computer as shipped: Local to external without authentication, one address.
+      [InlineData("127.0.0.1", "127.0.0.1", true, false, true, true, RelayExposure.Reach.None)]
+      // Not allowed, or allowed after authentication: nothing.
+      [InlineData("0.0.0.0", "255.255.255.255", false, false, false, false, RelayExposure.Reach.None)]
+      [InlineData("203.0.113.0", "203.0.113.255", true, true, false, false, RelayExposure.Reach.None)]
+      // Both open: as wide as the range.
+      [InlineData("203.0.113.0", "203.0.113.255", true, false, true, false, RelayExposure.Reach.Internet)]
+      [InlineData("10.0.0.0", "10.0.0.255", true, false, true, false, RelayExposure.Reach.Network)]
+      public void LocalToExternal_WithoutAuthentication_RelaysToo(string lower, string upper, bool allowLocal, bool authLocal, bool allowExternal, bool authExternal, RelayExposure.Reach reach)
+         => Assert.Equal(reach, RelayExposure.Of(lower, upper, allowLocal, authLocal, allowExternal, authExternal));
+
+      [Fact]
+      public void TheOpenDirections_AreTheOnesAllowedWithoutAuthentication()
+      {
+         Assert.Equal(RelayExposure.Open.None, RelayExposure.OpenDirections(true, true, true, true));
+         Assert.Equal(RelayExposure.Open.None, RelayExposure.OpenDirections(false, false, false, false));
+         Assert.Equal(RelayExposure.Open.LocalToExternal, RelayExposure.OpenDirections(true, false, true, true));
+         Assert.Equal(RelayExposure.Open.ExternalToExternal, RelayExposure.OpenDirections(false, false, true, false));
+         Assert.Equal(RelayExposure.Open.LocalToExternal | RelayExposure.Open.ExternalToExternal, RelayExposure.OpenDirections(true, false, true, false));
+      }
+
+      /// <summary>Each notice names the direction to tick Only after SMTP authentication for, and Local to external's says who can use it.</summary>
+      [Fact]
+      public void TheNotice_NamesTheOpenDirection()
+      {
+         RelayExposure.Open local = RelayExposure.Open.LocalToExternal, external = RelayExposure.Open.ExternalToExternal, both = local | external;
+         Assert.Null(RelayExposure.Notice(RelayExposure.Reach.Internet, RelayExposure.Open.None));
+         Assert.Null(RelayExposure.Notice(RelayExposure.Reach.None, both));
+
+         string internetLocal = RelayExposure.Notice(RelayExposure.Reach.Internet, local);
+         Assert.Contains("by giving one of this server's domains as the sender: an open relay.", internetLocal, StringComparison.Ordinal);
+         Assert.Contains("Tick Only after SMTP authentication for Local to external,", internetLocal, StringComparison.Ordinal);
+         Assert.DoesNotContain("External to external", internetLocal, StringComparison.Ordinal);
+
+         string networkLocal = RelayExposure.Notice(RelayExposure.Reach.Network, local);
+         Assert.Contains("by giving one of this server's domains as the sender.", networkLocal, StringComparison.Ordinal);
+         Assert.EndsWith("tick Only after SMTP authentication for Local to external.", networkLocal, StringComparison.Ordinal);
+
+         Assert.Contains("for Local to external and for External to external,", RelayExposure.Notice(RelayExposure.Reach.Internet, both), StringComparison.Ordinal);
+         Assert.EndsWith("for Local to external and for External to external.", RelayExposure.Notice(RelayExposure.Reach.Network, both), StringComparison.Ordinal);
+         Assert.Contains("for External to external, unless", RelayExposure.Notice(RelayExposure.Reach.Internet, external), StringComparison.Ordinal);
+         Assert.DoesNotContain("Local to external", RelayExposure.Notice(RelayExposure.Reach.Internet, external), StringComparison.Ordinal);
+
+         Assert.Equal("Save the permissions of Office? Anyone in it can then relay mail through this server to any address without signing in, by giving one of this server's domains as the sender: an open relay.",
+            RelayExposure.SaveQuestion("Office", local));
+         Assert.Equal(RelayExposure.SaveQuestion("Office", external), RelayExposure.SaveQuestion("Office", both));
+      }
 
       [Fact]
       public void TheNotice_IsCriticalForAnOpenRelay_AndAWarningInsideANetwork()
       {
          Assert.Equal(StatusLevel.Critical, RelayExposure.LevelOf(RelayExposure.Reach.Internet));
          Assert.Equal(StatusLevel.Warning, RelayExposure.LevelOf(RelayExposure.Reach.Network));
-         Assert.Null(RelayExposure.Notice(RelayExposure.Reach.None));
-         Assert.StartsWith("Anyone in this range can relay mail through this server to any address without signing in: an open relay.", RelayExposure.Notice(RelayExposure.Reach.Internet), StringComparison.Ordinal);
-         Assert.StartsWith("Every machine in this range can relay mail through this server", RelayExposure.Notice(RelayExposure.Reach.Network), StringComparison.Ordinal);
-         Assert.Equal("Save the permissions of Office? Anyone in it can then relay mail through this server to any address without signing in: an open relay.", RelayExposure.SaveQuestion("Office"));
+         Assert.Null(RelayExposure.Notice(RelayExposure.Reach.None, RelayExposure.Open.ExternalToExternal));
+         Assert.StartsWith("Anyone in this range can relay mail through this server to any address without signing in: an open relay.", RelayExposure.Notice(RelayExposure.Reach.Internet, RelayExposure.Open.ExternalToExternal), StringComparison.Ordinal);
+         Assert.StartsWith("Every machine in this range can relay mail through this server", RelayExposure.Notice(RelayExposure.Reach.Network, RelayExposure.Open.ExternalToExternal), StringComparison.Ordinal);
+         Assert.Equal("Save the permissions of Office? Anyone in it can then relay mail through this server to any address without signing in: an open relay.", RelayExposure.SaveQuestion("Office", RelayExposure.Open.ExternalToExternal));
       }
 
       /// <summary>
@@ -101,7 +165,11 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          string save = WithheldRowTests.MemberText(code, "private bool SavePermissions_(RangeRow row)");
          Assert.Contains("range.RequireSMTPAuthExternalToExternal = PermAuthRR.IsChecked is true;", save, StringComparison.Ordinal);
-         int asks = save.IndexOf("RelayExposure.SaveQuestion(row.Name)", StringComparison.Ordinal);
+         int asks = save.IndexOf("RelayExposure.SaveQuestion(row.Name, OpenOnCard_())", StringComparison.Ordinal);
+         Assert.Contains("RelayExposure.Of(row.LowerIP, row.UpperIP, PermLR.IsChecked is true, PermAuthLR.IsChecked is true, PermRR.IsChecked is true, PermAuthRR.IsChecked is true)", save, StringComparison.Ordinal);
+         string notice = WithheldRowTests.MemberText(code, "private void ShowRelayExposure_()");
+         Assert.Contains("PermLR.IsChecked is true, PermAuthLR.IsChecked is true, PermRR.IsChecked is true, PermAuthRR.IsChecked is true", notice, StringComparison.Ordinal);
+         Assert.Contains("RelayExposure.Notice(reach, OpenOnCard_())", notice, StringComparison.Ordinal);
          int writes = save.IndexOf("range.Save();", StringComparison.Ordinal);
          Assert.True(asks >= 0 && writes > asks, "Permissions that make an open relay are saved without asking.");
 
@@ -124,7 +192,11 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("(L(\"External to external (rela_y)\"), rr_, authEE_)", dialog, StringComparison.Ordinal);
 
          string save = WithheldRowTests.MemberText(dialog, "private void Save()");
-         Assert.Contains("RelayExposure.SaveQuestion(name_.Text.Trim())", save, StringComparison.Ordinal);
+         Assert.Contains("RelayExposure.SaveQuestion(name_.Text.Trim(), OpenHere_())", save, StringComparison.Ordinal);
+         Assert.Contains("RelayExposure.Of(lower_.Text, upper_.Text, lr_.IsChecked is true, authLE_.IsChecked is true, rr_.IsChecked is true, authEE_.IsChecked is true)", save, StringComparison.Ordinal);
+
+         // The Delivery tab's notice follows Local to external and its authentication as well.
+         Assert.Contains("foreach (CheckBox box in new[] { lr_, authLE_, rr_, authEE_ })", dialog, StringComparison.Ordinal);
 
          // The setup checklist names the box by its caption.
          string checks = Read(Path.Join("Services", "ExternalSetupChecks.cs"));

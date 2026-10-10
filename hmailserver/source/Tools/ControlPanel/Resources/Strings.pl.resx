@@ -1645,8 +1645,14 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Anyone in the domain can send" xml:space="preserve">
     <value>Każdy w domenie może wysyłać</value>
   </data>
+  <data name="Anyone in this range can relay mail through this server to any address without signing in, by giving one of this server's domains as the sender: an open relay. Tick Only after SMTP authentication for Local to external, unless the range is a few machines you trust." xml:space="preserve">
+    <value>Każdy w tym zakresie może bez logowania przekazywać pocztę przez ten serwer na dowolny adres, podając jako nadawcę jedną z domen tego serwera: otwarty przekaźnik. Należy zaznaczyć Tylko po uwierzytelnieniu SMTP przy Lokalne do zewnętrznych, chyba że zakres to kilka zaufanych maszyn.</value>
+  </data>
   <data name="Anyone in this range can relay mail through this server to any address without signing in: an open relay. Tick Only after SMTP authentication for External to external, unless the range is a few machines you trust." xml:space="preserve">
     <value>Każdy w tym zakresie może bez logowania przekazywać pocztę przez ten serwer na dowolny adres: otwarty przekaźnik. Należy zaznaczyć Tylko po uwierzytelnieniu SMTP przy Zewnętrzne do zewnętrznych, chyba że zakres to kilka zaufanych maszyn.</value>
+  </data>
+  <data name="Anyone in this range can relay mail through this server to any address without signing in: an open relay. Tick Only after SMTP authentication for Local to external and for External to external, unless the range is a few machines you trust." xml:space="preserve">
+    <value>Każdy w tym zakresie może bez logowania przekazywać pocztę przez ten serwer na dowolny adres: otwarty przekaźnik. Należy zaznaczyć Tylko po uwierzytelnieniu SMTP przy Lokalne do zewnętrznych i przy Zewnętrzne do zewnętrznych, chyba że zakres to kilka zaufanych maszyn.</value>
   </data>
   <data name="Anyone the owner approves after they confirm" xml:space="preserve">
     <value>Każdy, kogo właściciel zatwierdzi po potwierdzeniu</value>
@@ -4778,8 +4784,14 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>Kopia każdego lokalnego odbiorcy staje się kolejną nazwą tego samego pliku w folderze archiwum, więc wiadomość do dziesięciu skrzynek pocztowych kosztuje jedną kopię, a nie dziesięć. Wymaga folderu archiwum na NTFS; jeśli dowiązania nie da się utworzyć, serwer kopiuje plik i informuje o tym w dzienniku SMTP.</value>
   </data>
+  <data name="Every machine in this range can relay mail through this server to any address without signing in, by giving one of this server's domains as the sender. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for Local to external." xml:space="preserve">
+    <value>Każda maszyna w tym zakresie może bez logowania przekazywać pocztę przez ten serwer na dowolny adres, podając jako nadawcę jedną z domen tego serwera. To odpowiada drukarce lub aplikacji we własnej sieci; w przeciwnym razie należy zaznaczyć Tylko po uwierzytelnieniu SMTP przy Lokalne do zewnętrznych.</value>
+  </data>
   <data name="Every machine in this range can relay mail through this server to any address without signing in. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for External to external." xml:space="preserve">
     <value>Każda maszyna w tym zakresie może bez logowania przekazywać pocztę przez ten serwer na dowolny adres. To odpowiada drukarce lub aplikacji we własnej sieci; w przeciwnym razie należy zaznaczyć Tylko po uwierzytelnieniu SMTP przy Zewnętrzne do zewnętrznych.</value>
+  </data>
+  <data name="Every machine in this range can relay mail through this server to any address without signing in. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for Local to external and for External to external." xml:space="preserve">
+    <value>Każda maszyna w tym zakresie może bez logowania przekazywać pocztę przez ten serwer na dowolny adres. To odpowiada drukarce lub aplikacji we własnej sieci; w przeciwnym razie należy zaznaczyć Tylko po uwierzytelnieniu SMTP przy Lokalne do zewnętrznych i przy Zewnętrzne do zewnętrznych.</value>
   </data>
   <data name="Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
     <value>Każda wiadomość doręczona na to konto jest po filtrach szyfrowana własnym kluczem OpenPGP konta, a ten serwer nie może czytać, przeszukiwać, eksportować ani odzyskać tej poczty. Tylko ta osoba może to wyłączyć, z poczty webowej; tutaj nic tego nie zrobi.</value>
@@ -10213,6 +10225,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="Save the export as" xml:space="preserve">
     <value>Zapisz eksport jako</value>
+  </data>
+  <data name="Save the permissions of {0}? Anyone in it can then relay mail through this server to any address without signing in, by giving one of this server's domains as the sender: an open relay." xml:space="preserve">
+    <value>Zapisać uprawnienia zakresu {0}? Każdy w nim będzie mógł wtedy bez logowania przekazywać pocztę przez ten serwer na dowolny adres, podając jako nadawcę jedną z domen tego serwera: otwarty przekaźnik.</value>
   </data>
   <data name="Save the permissions of {0}? Anyone in it can then relay mail through this server to any address without signing in: an open relay." xml:space="preserve">
     <value>Zapisać uprawnienia zakresu {0}? Każdy w nim będzie mógł wtedy bez logowania przekazywać pocztę przez ten serwer na dowolny adres: otwarty przekaźnik.</value>

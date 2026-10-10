@@ -1633,8 +1633,14 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Anyone in the domain can send" xml:space="preserve">
     <value>Etki alanındaki herkes gönderebilir</value>
   </data>
+  <data name="Anyone in this range can relay mail through this server to any address without signing in, by giving one of this server's domains as the sender: an open relay. Tick Only after SMTP authentication for Local to external, unless the range is a few machines you trust." xml:space="preserve">
+    <value>Bu aralıktaki herkes, gönderen olarak bu sunucunun etki alanlarından birini belirterek oturum açmadan bu sunucu üzerinden herhangi bir adrese posta aktarabilir: açık bir aktarıcı. Aralık güvendiğiniz birkaç makine değilse, Yerelden dışa için Yalnızca SMTP kimlik doğrulamasından sonra seçeneğini işaretleyin.</value>
+  </data>
   <data name="Anyone in this range can relay mail through this server to any address without signing in: an open relay. Tick Only after SMTP authentication for External to external, unless the range is a few machines you trust." xml:space="preserve">
     <value>Bu aralıktaki herkes oturum açmadan bu sunucu üzerinden herhangi bir adrese posta aktarabilir: açık bir aktarıcı. Aralık güvendiğiniz birkaç makine değilse, Dıştan dışa için Yalnızca SMTP kimlik doğrulamasından sonra seçeneğini işaretleyin.</value>
+  </data>
+  <data name="Anyone in this range can relay mail through this server to any address without signing in: an open relay. Tick Only after SMTP authentication for Local to external and for External to external, unless the range is a few machines you trust." xml:space="preserve">
+    <value>Bu aralıktaki herkes oturum açmadan bu sunucu üzerinden herhangi bir adrese posta aktarabilir: açık bir aktarıcı. Aralık güvendiğiniz birkaç makine değilse, Yerelden dışa ve Dıştan dışa için Yalnızca SMTP kimlik doğrulamasından sonra seçeneğini işaretleyin.</value>
   </data>
   <data name="Anyone the owner approves after they confirm" xml:space="preserve">
     <value>Onaylandıktan sonra sahibinin onayladığı herkes</value>
@@ -4726,8 +4732,14 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>Her yerel alıcının kopyası, arşiv klasörü içindeki aynı dosyanın başka bir adı olur; böylece on posta kutusuna giden bir ileti on değil bir kopyaya mal olur. NTFS bir arşiv klasörü gerektirir; bağlantı oluşturulamazsa sunucu dosyayı kopyalar ve bunu SMTP günlüğünde söyler.</value>
   </data>
+  <data name="Every machine in this range can relay mail through this server to any address without signing in, by giving one of this server's domains as the sender. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for Local to external." xml:space="preserve">
+    <value>Bu aralıktaki her makine, gönderen olarak bu sunucunun etki alanlarından birini belirterek oturum açmadan bu sunucu üzerinden herhangi bir adrese posta aktarabilir. Bu, kendi ağınızdaki bir yazıcıya ya da uygulamaya uyar; aksi hâlde Yerelden dışa için Yalnızca SMTP kimlik doğrulamasından sonra seçeneğini işaretleyin.</value>
+  </data>
   <data name="Every machine in this range can relay mail through this server to any address without signing in. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for External to external." xml:space="preserve">
     <value>Bu aralıktaki her makine oturum açmadan bu sunucu üzerinden herhangi bir adrese posta aktarabilir. Bu, kendi ağınızdaki bir yazıcıya ya da uygulamaya uyar; aksi hâlde Dıştan dışa için Yalnızca SMTP kimlik doğrulamasından sonra seçeneğini işaretleyin.</value>
+  </data>
+  <data name="Every machine in this range can relay mail through this server to any address without signing in. That suits a printer or an application on your own network; otherwise tick Only after SMTP authentication for Local to external and for External to external." xml:space="preserve">
+    <value>Bu aralıktaki her makine oturum açmadan bu sunucu üzerinden herhangi bir adrese posta aktarabilir. Bu, kendi ağınızdaki bir yazıcıya ya da uygulamaya uyar; aksi hâlde Yerelden dışa ve Dıştan dışa için Yalnızca SMTP kimlik doğrulamasından sonra seçeneğini işaretleyin.</value>
   </data>
   <data name="Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
     <value>Bu hesaba teslim edilen her ileti, süzgeçlerden sonra hesabın kendi OpenPGP anahtarıyla şifrelenir ve bu sunucu postasını okuyamaz, arayamaz, dışa aktaramaz veya kurtaramaz. Yalnızca kişi web postasından kapatabilir; burada hiçbir şey kapatamaz.</value>
@@ -10110,6 +10122,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Save the export as" xml:space="preserve">
     <value>Dışa aktarmayı farklı kaydet</value>
+  </data>
+  <data name="Save the permissions of {0}? Anyone in it can then relay mail through this server to any address without signing in, by giving one of this server's domains as the sender: an open relay." xml:space="preserve">
+    <value>{0} izinleri kaydedilsin mi? Ardından içindeki herkes, gönderen olarak bu sunucunun etki alanlarından birini belirterek oturum açmadan bu sunucu üzerinden herhangi bir adrese posta aktarabilir: açık bir aktarıcı.</value>
   </data>
   <data name="Save the permissions of {0}? Anyone in it can then relay mail through this server to any address without signing in: an open relay." xml:space="preserve">
     <value>{0} izinleri kaydedilsin mi? Ardından içindeki herkes oturum açmadan bu sunucu üzerinden herhangi bir adrese posta aktarabilir: açık bir aktarıcı.</value>
