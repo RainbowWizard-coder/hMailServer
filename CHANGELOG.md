@@ -2956,13 +2956,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   is still held - which is how most quarantined messages got there; and the plan, a preview that could not be made,
   the messages that cannot be listed and the public-suffix warning were one block of plain text, the Primary disabled
   with no reason (review finding F262). The page now tells the dialog whether the server-wide score held any of the
-  messages - a hold during the SMTP conversation, which records the HELO name, never a rule's or the sandbox's, or on
-  an older server a score at or over the delete threshold - and an allow of such messages preselects the domain on the
-  list of allowed and blocked domains, the list that stops it; with the address chosen, a Warning under it says "This
-  will not stop the next message from this sender being held if it scores 20 or more.", with the server's threshold. A
-  preview that could not be made is a Critical notice with Try again, the messages that cannot be listed a Warning,
-  and a public suffix a Warning holding the List it anyway box; a request that would write nothing says so.
-  `QuarantineListDialogTests` holds which holds the score made and the dialog's wiring.
+  messages - a score at or over the server's refuse threshold, which only the hold during the SMTP conversation
+  records, never a rule's, the sandbox's or an account's own threshold, and never a block-list or impersonation hold,
+  which record 0 - and an allow of such messages preselects the domain on the list of allowed and blocked domains, the
+  list that stops it, while every other hold keeps the address, which stops a block-list hold and an account's
+  threshold where the domain does not; with the address chosen, a Warning under it says "This will not stop the next
+  message from this sender being held if it scores 20 or more.", with the server's threshold. A preview that could not
+  be made is a Critical notice with Try again, the messages that cannot be listed a Warning, and a public suffix a
+  Warning holding the List it anyway box; a request that would write nothing says so. `QuarantineListDialogTests`
+  holds which holds the score made and the dialog's wiring.
 
 - **Fixed: Anti-spam settings called the refuse threshold the delete threshold, saved thresholds that contradict each
   other, and said how many settings a save wrote rather than what it changed.** The threshold that refuses a message

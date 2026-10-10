@@ -460,13 +460,22 @@ namespace hMailServer.ControlPanel.Services
       }
 
       /// <summary>
-      /// Whether a message was held by the server-wide spam score: during the SMTP
-      /// conversation, which is the one hold that records the HELO name
-      /// (QuarantineStore::QuarantineFromSession), and never a rule's or the
-      /// sandbox's, whose reasons say so; on a server from before the HELO name was
-      /// kept (schema 6105), a score at or over the delete threshold. An allowed
+      /// Whether a message was held by the server-wide spam score: the hold during the
+      /// SMTP conversation (QuarantineStore::QuarantineFromSession), which records the
+      /// score that reached the server's delete threshold, at or over it. An allowed
       /// address does not stop such a hold - the server-wide score runs before the
       /// address is read - and an allowed domain does (Views/QuarantineListDialog).
+      ///
+      /// The HELO name says nothing of it: every hold records one, read from the
+      /// Received header this server wrote where the conversation did not give it
+      /// (QuarantineStore::HeloOfStoredCopy_). A block-list hold and an impersonation
+      /// hold record a score of 0, and a rule's and the sandbox's say so in their
+      /// reasons; an account's own threshold ("The score 25 reached the delete
+      /// threshold 10 configured for ...", LocalDelivery) holds at delivery, after the
+      /// address list, which then stops it, whatever the score - its domain may well
+      /// be allowed already. Allowing the domain of a block-list hold left the
+      /// address's block entry, and the next message was held again; an impersonation
+      /// hold's suggested the whole sending domain, gmail.com among them.
       /// </summary>
       public static bool HeldByServerScore(HeldMessage message, int? deleteThreshold)
       {
@@ -477,8 +486,9 @@ namespace hMailServer.ControlPanel.Services
          if (reason.StartsWith("Rule: ", StringComparison.Ordinal) || reason.StartsWith("Sandbox: ", StringComparison.Ordinal)) // no-loc: the server's own reason prefixes
             return false;
 
-         if ((message.Helo ?? "").Length > 0)
-            return true;
+         // An account's own threshold, held at delivery (LocalDelivery::ApplyAccountSpamOverrides_).
+         if (reason.StartsWith("The score ", StringComparison.Ordinal) && reason.Contains(" configured for ", StringComparison.Ordinal)) // no-loc: the server's own reason
+            return false;
 
          return deleteThreshold > 0 && message.Score >= deleteThreshold.Value;
       }
