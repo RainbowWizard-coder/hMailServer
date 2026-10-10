@@ -103,12 +103,12 @@ namespace hMailServer.ControlPanel.Views.Scaffold
 
          back_.Content = L("Back");
          back_.Appearance = Wpf.Ui.Controls.ControlAppearance.Secondary;
-         back_.Margin = new Thickness(0, 0, DesignTokens.Space.Sm, 0);
+         back_.Margin = new Thickness(0, 0, DesignTokens.Space.Sm, DesignTokens.Space.Xs);
          back_.Click += (s, e) => Back?.Invoke();
 
          next_.Content = L("Next");
          next_.Appearance = Wpf.Ui.Controls.ControlAppearance.Primary;
-         next_.Margin = new Thickness(0, 0, DesignTokens.Space.Sm, 0);
+         next_.Margin = new Thickness(0, 0, DesignTokens.Space.Sm, DesignTokens.Space.Xs);
          next_.Click += (s, e) => Next?.Invoke();
 
          // A button of its own rather than Next re-captioned: a control whose
@@ -116,12 +116,13 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          // announced by the old name. Only one of the two is ever visible.
          finish_.Content = L("Finish");
          finish_.Appearance = Wpf.Ui.Controls.ControlAppearance.Primary;
-         finish_.Margin = new Thickness(0, 0, DesignTokens.Space.Sm, 0);
+         finish_.Margin = new Thickness(0, 0, DesignTokens.Space.Sm, DesignTokens.Space.Xs);
          finish_.Visibility = Visibility.Collapsed;
          finish_.Click += (s, e) => Next?.Invoke();
 
          skip_.Content = L("Skip the tour");
          skip_.Appearance = Wpf.Ui.Controls.ControlAppearance.Transparent;
+         skip_.Margin = new Thickness(0, 0, 0, DesignTokens.Space.Xs);
          skip_.Click += (s, e) => Skip?.Invoke();
 
          var head = new Grid();
@@ -131,7 +132,11 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          Grid.SetColumn(position_, 1);
          head.Children.Add(position_);
 
-         var buttons = new StackPanel { Orientation = Orientation.Horizontal };
+         // A row that wraps: from the second step Back, Next and Skip the tour are
+         // wider than the card in German, and Rundgang überspringen ran off its right
+         // edge (found rendering the second step for F044). Each button keeps a small
+         // gap under it for the line it may wrap to.
+         var buttons = new WrapPanel { Orientation = Orientation.Horizontal };
          buttons.Children.Add(back_);
          buttons.Children.Add(next_);
          buttons.Children.Add(finish_);
@@ -144,7 +149,7 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          // the first step a run shows, where it is news.
          keys_.Text = KeysSentence;
          keys_.TextWrapping = TextWrapping.Wrap;
-         keys_.Margin = new Thickness(0, DesignTokens.Space.Sm, 0, 0);
+         keys_.Margin = new Thickness(0, DesignTokens.Space.Xs, 0, 0);
          keys_.SetResourceReference(StyleProperty, "TextCaptionTertiary");
 
          var body = new StackPanel();

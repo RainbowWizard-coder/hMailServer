@@ -3665,7 +3665,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   card and Escape ends the tour from inside it - and neither the card, its accessible name nor its first announcement
   said so: the card's help text says "Press F6 to reach the tour's buttons; while one of them has the keyboard,
   Escape ends the tour.", and the first step of a run shows the sentence as a tertiary line under its buttons and adds
-  it to what is announced. `SetupChecklistReadFailureTests` and `TourKeysHintTests` hold the two.
+  it to what is announced; and the card's buttons wrap, where from the second step "Rundgang überspringen" ran off
+  the card's right edge in German. `SetupChecklistReadFailureTests`, `TourKeysHintTests` and `TourCardButtonsTests`
+  hold them.
 
 ### Administration
 
