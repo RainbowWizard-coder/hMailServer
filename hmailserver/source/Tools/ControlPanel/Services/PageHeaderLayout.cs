@@ -33,5 +33,22 @@ namespace hMailServer.ControlPanel.Services
       /// </summary>
       public static bool ActionsGoUnder(double width, double actionsWidth, double titleWidth)
          => actionsWidth > 0 && width - actionsWidth < titleWidth;
+
+      /// <summary>
+      /// Whether a page's tour button says "Show me around" beside its light bulb,
+      /// or is the light bulb alone (the owner's decision of 9 October 2026; review
+      /// findings F024 and F081): the words while the actions with them fit beside
+      /// the title, the glyph alone where only that keeps the actions beside the
+      /// title, and the words again where the actions go under the subtitle and the
+      /// line there holds them.
+      /// </summary>
+      public static bool TourCaptionShows(double width, double actionsWithWords, double actionsWithGlyph, double titleWidth)
+      {
+         if (!ActionsGoUnder(width, actionsWithWords, titleWidth))
+            return true;
+         if (!ActionsGoUnder(width, actionsWithGlyph, titleWidth))
+            return false;
+         return actionsWithWords <= width;
+      }
    }
 }

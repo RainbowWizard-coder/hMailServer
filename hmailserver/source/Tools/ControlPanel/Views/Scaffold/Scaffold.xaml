@@ -68,10 +68,14 @@
                                  them: it teaches the page rather than changing
                                  anything on it. Collapsed on a page no tour
                                  visits - a help button that opens an apology is
-                                 worse than no help button. -->
+                                 worse than no help button. A light bulb, and
+                                 "Show me around" beside it where there is room
+                                 (PageHeader.MeasureOverride): the question mark is
+                                 the command bar's help pane alone (review finding
+                                 F024). -->
                             <ui:Button x:Name="PART_Help" Appearance="Transparent" Padding="8,6"
                                        Margin="0,0,8,0" Visibility="Collapsed"
-                                       Icon="{ui:SymbolIcon QuestionCircle24}" />
+                                       Icon="{ui:SymbolIcon Lightbulb24}" />
                             <ContentPresenter x:Name="PART_Actions" Content="{TemplateBinding Actions}" />
                         </StackPanel>
                     </Grid>

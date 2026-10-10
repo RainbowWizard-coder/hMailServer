@@ -104,12 +104,14 @@ namespace hMailServer.ControlPanel.Views
 
          // "Show me around" in the header's actions as well as in the notice
          // below, because the notice goes away for good once the walk is done
-         // and the entry point must not go with it.
+         // and the entry point must not go with it. The tour's light bulb, as on
+         // the pages a tour visits: the question mark is the help pane's (review
+         // finding F024).
          var showMe = new Wpf.Ui.Controls.Button
          {
             Content = L("Sho_w me around"),
             Appearance = Wpf.Ui.Controls.ControlAppearance.Secondary,
-            Icon = new Wpf.Ui.Controls.SymbolIcon(Wpf.Ui.Controls.SymbolRegular.QuestionCircle24)
+            Icon = new Wpf.Ui.Controls.SymbolIcon(Wpf.Ui.Controls.SymbolRegular.Lightbulb24)
          };
          System.Windows.Automation.AutomationProperties.SetAutomationId(showMe, "welcome-show-me");
          showMe.Click += (s, e) => StartWalk_();

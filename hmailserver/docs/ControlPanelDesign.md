@@ -300,8 +300,13 @@ execute theirs.
 **The ways in.** A tour is offered on the Welcome page (a button in the header and, until the walk has been
 finished, a notice above the intents), in the Ctrl+K palette as a row of its own above the page list, and by
 a help button in the header of any page a tour visits - which starts that tour at its first stop *on that
-page*, so the button teaches the page it is on. The Deck's is the `?` button in its header and the
-webmail's is *Show me around* in the account menu; both behave the same way.
+page*, so the button teaches the page it is on. In the Control Panel that button and the Welcome page's are a
+light bulb (`Lightbulb24`) with *Show me around* beside it, the light bulb alone where the header has no room
+for the words (`PageHeaderLayout.TourCaptionShows`); the question mark is the command bar's help pane alone,
+since both were the same glyph 250 pixels apart and did different things (review findings F024, F081; the
+owner's decision of 9 October 2026). Like the card, the header's button carries no Alt key: it is on
+whichever page a tour visits. The Deck's is the `?` button in its header and the webmail's is *Show me
+around* in the account menu; both behave the same way.
 
 ## Migrating a page
 

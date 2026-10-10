@@ -3568,6 +3568,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Domains page's alias and list cards keep 270 pixels each where they kept 280, so that they stay side by side at
   1280. `ShellGeometryTests` holds the widths, the rail beside the pane, the glyphs and the breadcrumb.
 
+- **Fixed: the page tour's button and the help pane's were one question-mark glyph, 250 pixels apart.** On a page a
+  tour visits - Domains, TCP/IP ports, SSL certificates and the Dashboard - the header's question mark started the
+  tour, the command bar's question mark opened the help pane, and Welcome's Show me around was the same glyph again;
+  only the tool tips told them apart. The tour's button is now a light bulb with "Show me around" beside it where the
+  header has room for the words, and the light bulb alone where only that keeps the page's actions beside its title,
+  as the owner decided on 9 October 2026; Welcome's is the light bulb too, and the question mark is the help pane's
+  alone. Like the tour's card, the header's button carries no Alt key, since it is on whichever page a tour visits
+  (review findings F024, F081; T3.3 work item 8). `TourGlyphTests` holds the glyphs and the rule for the words.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

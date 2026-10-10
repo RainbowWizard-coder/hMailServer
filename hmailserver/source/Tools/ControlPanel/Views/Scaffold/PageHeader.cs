@@ -163,15 +163,53 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          if (help == null)
             return;
 
-         // The words, not just a glyph: a question mark alone reaches a screen
-         // reader as nothing, and a page with two icon buttons in its header
-         // has to be able to say which is which.
+         // The words, not just a glyph: a glyph alone reaches a screen reader as
+         // nothing, and a page with two icon buttons in its header has to be able
+         // to say which is which. The glyph is a light bulb and the button says
+         // "Show me around" where the header has room (MeasureOverride): it was
+         // the question mark the command bar's help button is, 250 pixels away,
+         // which opens the help pane and not the tour (review findings F024 and
+         // F081; the owner's decision of 9 October 2026). No Alt key, as the tour's
+         // card has none: the button is on whichever page a tour visits, and a key
+         // it claimed would sooner or later be one that page already owns.
          string caption = L("Show me around this page");
          help.ToolTip = caption;
          AutomationProperties.SetName(help, caption);
          AutomationProperties.SetAutomationId(help, "page-help");
          help.Click += (s, e) => RaiseEvent(new RoutedEventArgs(ShowTourEvent, this));
+         ShowTourWords_(help, true);
          ApplyTourVisibility_();
+      }
+
+      /// <summary>The tour button with its words, "Show me around", or as its light bulb alone.</summary>
+      private static void ShowTourWords_(Wpf.Ui.Controls.Button help, bool words)
+      {
+         object content = words ? L("Show me around") : null;
+         if (!Equals(help.Content, content))
+            help.Content = content;
+      }
+
+      // Two buttons off the tree, as the tour's is with its words and without, so
+      // that the header can tell how wide each would be without changing the one
+      // it shows while it measures.
+      private Wpf.Ui.Controls.Button tourWithWords_;
+      private Wpf.Ui.Controls.Button tourGlyphOnly_;
+
+      /// <summary>How wide the tour button is with its words, or as its glyph alone, in the font it is drawn in.</summary>
+      private double TourButtonWidth_(Wpf.Ui.Controls.Button help, bool words)
+      {
+         ref Wpf.Ui.Controls.Button probe = ref words ? ref tourWithWords_ : ref tourGlyphOnly_;
+         probe ??= new Wpf.Ui.Controls.Button
+         {
+            Appearance = Wpf.Ui.Controls.ControlAppearance.Transparent,
+            Icon = new Wpf.Ui.Controls.SymbolIcon(Wpf.Ui.Controls.SymbolRegular.Lightbulb24),
+            Content = words ? L("Show me around") : null
+         };
+         probe.Padding = help.Padding;
+         probe.FontFamily = help.FontFamily;
+         probe.FontSize = help.FontSize;
+         probe.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+         return probe.DesiredSize.Width;
       }
 
       /// <summary>
@@ -188,8 +226,34 @@ namespace hMailServer.ControlPanel.Views.Scaffold
       {
          if (Part<FrameworkElement>("PART_ActionBar") is { } bar && !double.IsInfinity(constraint.Width))
          {
-            bar.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-            double actions = bar.DesiredSize.Width;
+            var infinite = new Size(double.PositiveInfinity, double.PositiveInfinity);
+            bar.Measure(infinite);
+            double actions = BesideWidth_(bar);
+            double title = TitleWidth_();
+
+            // The tour's words where the header has room for them, its light bulb
+            // alone where only that keeps the actions beside the title (the owner's
+            // decision of 9 October 2026), decided on the bar's width beside the
+            // title whichever place it has now, so that the decision does not turn
+            // with the place.
+            if (Part<Wpf.Ui.Controls.Button>("PART_Help") is { Visibility: Visibility.Visible } help)
+            {
+               // The rest of the bar, and the button's margin, which a DesiredSize counts.
+               double others = actions - help.DesiredSize.Width + help.Margin.Left + help.Margin.Right;
+               bool words = Services.PageHeaderLayout.TourCaptionShows(constraint.Width,
+                  others + TourButtonWidth_(help, true), others + TourButtonWidth_(help, false), title);
+               if (words != (help.Content != null))
+               {
+                  // The bar's width with the button as it now is, from the button
+                  // measured off the tree: measured again here, the bar answers with
+                  // the width it had until the layout reaches the button's words. The
+                  // next pass measures the button as it is, and decides the same,
+                  // since nothing it decides on has changed.
+                  ShowTourWords_(help, words);
+                  actions = others + TourButtonWidth_(help, words);
+               }
+            }
+
             bool under = Services.PageHeaderLayout.ActionsGoUnder(constraint.Width, actions, TitleWidth_());
 
             int row = under ? 2 : 0;
@@ -199,11 +263,26 @@ namespace hMailServer.ControlPanel.Views.Scaffold
                System.Windows.Controls.Grid.SetColumn(bar, under ? 0 : 1);
                System.Windows.Controls.Grid.SetColumnSpan(bar, under ? 2 : 1);
                bar.HorizontalAlignment = under ? HorizontalAlignment.Left : HorizontalAlignment.Right;
-               bar.Margin = under ? new Thickness(0, 12, 0, 0) : new Thickness(16, 6, 0, 0);
+               bar.Margin = under ? new Thickness(0, 12, 0, 0) : new Thickness(BesideGap, 6, 0, 0);
             }
          }
 
          return base.MeasureOverride(constraint);
+      }
+
+      /// <summary>The gap the actions keep from the title beside it.</summary>
+      private const double BesideGap = 16;
+
+      /// <summary>
+      /// The actions' width as they would stand beside the title, with the gap they
+      /// keep there, wherever they are now - none when there are none. Measured
+      /// under the subtitle, without that gap, they fitted beside the title by up
+      /// to sixteen pixels they then did not have, and went under again.
+      /// </summary>
+      private static double BesideWidth_(FrameworkElement bar)
+      {
+         double bare = bar.DesiredSize.Width - bar.Margin.Left - bar.Margin.Right;
+         return bare > 0 ? bare + BesideGap : 0;
       }
 
       /// <summary>The title's own width, whole, with its gap before the pill.</summary>
