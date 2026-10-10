@@ -3903,7 +3903,7 @@ L'expéditeur a été informé qu'il était accepté, donc rien ne réessaiera e
     <value>Débit de livraison</value>
   </data>
   <data name="Depends" xml:space="preserve">
-    <value>Selon</value>
+    <value>Sous condition</value>
   </data>
   <data name="Derived from the domain's configured key: selector &quot;{0}&quot;, private key file {1}." xml:space="preserve">
     <value>Dérivé de la clé configurée du domaine : sélecteur « {0} », fichier de clé privée {1}.</value>

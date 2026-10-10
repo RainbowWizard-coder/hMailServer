@@ -3903,7 +3903,7 @@ Afsenderen fik at vide, at den var accepteret, så intet forsøger igen, og der 
     <value>Leveringsgennemløb</value>
   </data>
   <data name="Depends" xml:space="preserve">
-    <value>Det afhænger</value>
+    <value>Betinget</value>
   </data>
   <data name="Derived from the domain's configured key: selector &quot;{0}&quot;, private key file {1}." xml:space="preserve">
     <value>Udledt af domænets konfigurerede nøgle: selector "{0}", privat nøglefil {1}.</value>

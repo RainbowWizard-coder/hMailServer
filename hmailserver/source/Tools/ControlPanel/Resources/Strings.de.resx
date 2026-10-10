@@ -3903,7 +3903,7 @@ Dem Absender wurde gesagt, sie sei angenommen, es wird also nichts wiederholt un
     <value>Zustelldurchsatz</value>
   </data>
   <data name="Depends" xml:space="preserve">
-    <value>Hängt ab</value>
+    <value>Bedingt</value>
   </data>
   <data name="Derived from the domain's configured key: selector &quot;{0}&quot;, private key file {1}." xml:space="preserve">
     <value>Abgeleitet vom konfigurierten Schlüssel der Domain: Selektor „{0}", private Schlüsseldatei {1}.</value>
