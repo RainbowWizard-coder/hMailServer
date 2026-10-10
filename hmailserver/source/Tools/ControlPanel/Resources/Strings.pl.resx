@@ -1233,6 +1233,24 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   <data name="Added to the message's spam score; 100, the default, refuses the message during the SMTP conversation." xml:space="preserve">
     <value>Dodawane do wyniku spamu wiadomości; domyślne 100 odrzuca wiadomość już w trakcie rozmowy SMTP.</value>
   </data>
+  <data name="Added {0} allow entries." xml:space="preserve">
+    <value>Dodano {0} wpisów zezwalających.</value>
+  </data>
+  <data name="Added {0} allow entries.|few" xml:space="preserve">
+    <value>Dodano {0} wpisy zezwalające.</value>
+  </data>
+  <data name="Added {0} allow entry." xml:space="preserve">
+    <value>Dodano {0} wpis zezwalający.</value>
+  </data>
+  <data name="Added {0} block entries." xml:space="preserve">
+    <value>Dodano {0} wpisów blokujących.</value>
+  </data>
+  <data name="Added {0} block entries.|few" xml:space="preserve">
+    <value>Dodano {0} wpisy blokujące.</value>
+  </data>
+  <data name="Added {0} block entry." xml:space="preserve">
+    <value>Dodano {0} wpis blokujący.</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Adres</value>
   </data>
@@ -1499,9 +1517,6 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   </data>
   <data name="Allowed signing algorithms (comma separated)" xml:space="preserve">
     <value>Dozwolone algorytmy podpisywania (rozdzielone przecinkami)</value>
-  </data>
-  <data name="Allowed. List entries: {0}. Messages released: {1}." xml:space="preserve">
-    <value>Dopuszczono. Wpisy na liście: {0}. Zwolnione wiadomości: {1}.</value>
   </data>
   <data name="Allowed: no greylisting and no refusal by score, though the checks still run. Blocked: refused at MAIL FROM." xml:space="preserve">
     <value>Dozwolona: bez greylistingu i bez odrzucenia według punktacji, choć kontrole nadal są wykonywane. Zablokowana: odrzucona przy MAIL FROM.</value>
@@ -2271,9 +2286,6 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   </data>
   <data name="Blocked senders entry" xml:space="preserve">
     <value>Zablokowany nadawca</value>
-  </data>
-  <data name="Blocked. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
-    <value>Zablokowano. Wpisy na liście: {0}. Usunięte wiadomości: {1}.</value>
   </data>
   <data name="Blocked: refused at MAIL FROM" xml:space="preserve">
     <value>Zablokowana: odrzucana przy MAIL FROM</value>
@@ -3854,6 +3866,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   </data>
   <data name="Delete _domain" xml:space="preserve">
     <value>Usuń _domenę</value>
+  </data>
+  <data name="Delete _expired messages…" xml:space="preserve">
+    <value>_Usuń wygasłe wiadomości…</value>
   </data>
   <data name="Delete _list" xml:space="preserve">
     <value>Usuń _listę dystrybucyjną</value>

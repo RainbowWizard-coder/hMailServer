@@ -1233,6 +1233,24 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Added to the message's spam score; 100, the default, refuses the message during the SMTP conversation." xml:space="preserve">
     <value>Přičte se ke skóre spamu zprávy; výchozích 100 zprávu odmítne už během konverzace SMTP.</value>
   </data>
+  <data name="Added {0} allow entries." xml:space="preserve">
+    <value>Přidáno {0} povolujících záznamů.</value>
+  </data>
+  <data name="Added {0} allow entries.|few" xml:space="preserve">
+    <value>Přidány {0} povolující záznamy.</value>
+  </data>
+  <data name="Added {0} allow entry." xml:space="preserve">
+    <value>Přidán {0} povolující záznam.</value>
+  </data>
+  <data name="Added {0} block entries." xml:space="preserve">
+    <value>Přidáno {0} blokujících záznamů.</value>
+  </data>
+  <data name="Added {0} block entries.|few" xml:space="preserve">
+    <value>Přidány {0} blokující záznamy.</value>
+  </data>
+  <data name="Added {0} block entry." xml:space="preserve">
+    <value>Přidán {0} blokující záznam.</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Adresa</value>
   </data>
@@ -1499,9 +1517,6 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   </data>
   <data name="Allowed signing algorithms (comma separated)" xml:space="preserve">
     <value>Povolené podpisové algoritmy (oddělené čárkami)</value>
-  </data>
-  <data name="Allowed. List entries: {0}. Messages released: {1}." xml:space="preserve">
-    <value>Povoleno. Záznamů na seznamu: {0}. Uvolněných zpráv: {1}.</value>
   </data>
   <data name="Allowed: no greylisting and no refusal by score, though the checks still run. Blocked: refused at MAIL FROM." xml:space="preserve">
     <value>Povolená: žádný greylisting a žádné odmítnutí podle skóre, i když kontroly dál běží. Blokovaná: odmítnuta při MAIL FROM.</value>
@@ -2271,9 +2286,6 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Blocked senders entry" xml:space="preserve">
     <value>Blokovaný odesílatel</value>
-  </data>
-  <data name="Blocked. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
-    <value>Zablokováno. Záznamů na seznamu: {0}. Odstraněných zpráv: {1}.</value>
   </data>
   <data name="Blocked: refused at MAIL FROM" xml:space="preserve">
     <value>Blokovaná: odmítnuto při MAIL FROM</value>
@@ -3854,6 +3866,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Delete _domain" xml:space="preserve">
     <value>Odstranit _doménu</value>
+  </data>
+  <data name="Delete _expired messages…" xml:space="preserve">
+    <value>Odstranit _prošlé zprávy…</value>
   </data>
   <data name="Delete _list" xml:space="preserve">
     <value>Odstranit distribuční _seznam</value>

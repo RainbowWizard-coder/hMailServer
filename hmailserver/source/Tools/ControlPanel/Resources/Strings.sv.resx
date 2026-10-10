@@ -1227,6 +1227,18 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Added to the message's spam score; 100, the default, refuses the message during the SMTP conversation." xml:space="preserve">
     <value>Läggs till meddelandets skräppostpoäng; standardvärdet 100 avvisar meddelandet under SMTP-samtalet.</value>
   </data>
+  <data name="Added {0} allow entries." xml:space="preserve">
+    <value>Lade till {0} tillåtande poster.</value>
+  </data>
+  <data name="Added {0} allow entry." xml:space="preserve">
+    <value>Lade till {0} tillåtande post.</value>
+  </data>
+  <data name="Added {0} block entries." xml:space="preserve">
+    <value>Lade till {0} blockerande poster.</value>
+  </data>
+  <data name="Added {0} block entry." xml:space="preserve">
+    <value>Lade till {0} blockerande post.</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Adress</value>
   </data>
@@ -1487,9 +1499,6 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   </data>
   <data name="Allowed signing algorithms (comma separated)" xml:space="preserve">
     <value>Tillåtna signeringsalgoritmer (kommaseparerade)</value>
-  </data>
-  <data name="Allowed. List entries: {0}. Messages released: {1}." xml:space="preserve">
-    <value>Tillåten. Listposter: {0}. Släppta meddelanden: {1}.</value>
   </data>
   <data name="Allowed: no greylisting and no refusal by score, though the checks still run. Blocked: refused at MAIL FROM." xml:space="preserve">
     <value>Tillåten: ingen gråstlistning och inget avvisande på poäng, fast kontrollerna körs ändå. Blockerad: avvisas vid MAIL FROM.</value>
@@ -2247,9 +2256,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Blocked senders entry" xml:space="preserve">
     <value>Blockerad avsändare</value>
-  </data>
-  <data name="Blocked. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
-    <value>Blockerad. Listposter: {0}. Borttagna meddelanden: {1}.</value>
   </data>
   <data name="Blocked: refused at MAIL FROM" xml:space="preserve">
     <value>Blockerad: avvisas vid MAIL FROM</value>
@@ -3830,6 +3836,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Delete _domain" xml:space="preserve">
     <value>Ta bort _domän</value>
+  </data>
+  <data name="Delete _expired messages…" xml:space="preserve">
+    <value>Ta bort _utgångna meddelanden…</value>
   </data>
   <data name="Delete _list" xml:space="preserve">
     <value>Ta bort distributions_lista</value>

@@ -1233,6 +1233,24 @@ Control Panel может читать файлы сообщений только
   <data name="Added to the message's spam score; 100, the default, refuses the message during the SMTP conversation." xml:space="preserve">
     <value>Прибавляется к баллу спама сообщения; значение по умолчанию 100 отклоняет сообщение ещё во время сеанса SMTP.</value>
   </data>
+  <data name="Added {0} allow entries." xml:space="preserve">
+    <value>Добавлено {0} разрешающих записей.</value>
+  </data>
+  <data name="Added {0} allow entries.|few" xml:space="preserve">
+    <value>Добавлены {0} разрешающие записи.</value>
+  </data>
+  <data name="Added {0} allow entry." xml:space="preserve">
+    <value>Добавлена {0} разрешающая запись.</value>
+  </data>
+  <data name="Added {0} block entries." xml:space="preserve">
+    <value>Добавлено {0} блокирующих записей.</value>
+  </data>
+  <data name="Added {0} block entries.|few" xml:space="preserve">
+    <value>Добавлены {0} блокирующие записи.</value>
+  </data>
+  <data name="Added {0} block entry." xml:space="preserve">
+    <value>Добавлена {0} блокирующая запись.</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Адрес</value>
   </data>
@@ -1499,9 +1517,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Allowed signing algorithms (comma separated)" xml:space="preserve">
     <value>Разрешённые алгоритмы подписи (через запятую)</value>
-  </data>
-  <data name="Allowed. List entries: {0}. Messages released: {1}." xml:space="preserve">
-    <value>Разрешено. Записей в списке: {0}. Выпущено сообщений: {1}.</value>
   </data>
   <data name="Allowed: no greylisting and no refusal by score, though the checks still run. Blocked: refused at MAIL FROM." xml:space="preserve">
     <value>Разрешён: без серых списков и без отказа по оценке, хотя проверки по-прежнему выполняются. Заблокирован: отказ на этапе MAIL FROM.</value>
@@ -2271,9 +2286,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Blocked senders entry" xml:space="preserve">
     <value>Заблокированный отправитель</value>
-  </data>
-  <data name="Blocked. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
-    <value>Заблокировано. Записей в списке: {0}. Удалено сообщений: {1}.</value>
   </data>
   <data name="Blocked: refused at MAIL FROM" xml:space="preserve">
     <value>Заблокирован: отказ на MAIL FROM</value>
@@ -3854,6 +3866,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Delete _domain" xml:space="preserve">
     <value>Удалить _домен</value>
+  </data>
+  <data name="Delete _expired messages…" xml:space="preserve">
+    <value>Удалить _просроченные сообщения…</value>
   </data>
   <data name="Delete _list" xml:space="preserve">
     <value>Удалить список _рассылки</value>

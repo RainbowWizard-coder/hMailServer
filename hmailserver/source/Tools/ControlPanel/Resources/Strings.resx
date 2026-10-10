@@ -1227,6 +1227,18 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Added to the message's spam score; 100, the default, refuses the message during the SMTP conversation." xml:space="preserve">
     <value>Added to the message's spam score; 100, the default, refuses the message during the SMTP conversation.</value>
   </data>
+  <data name="Added {0} allow entries." xml:space="preserve">
+    <value>Added {0} allow entries.</value>
+  </data>
+  <data name="Added {0} allow entry." xml:space="preserve">
+    <value>Added {0} allow entry.</value>
+  </data>
+  <data name="Added {0} block entries." xml:space="preserve">
+    <value>Added {0} block entries.</value>
+  </data>
+  <data name="Added {0} block entry." xml:space="preserve">
+    <value>Added {0} block entry.</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Address</value>
   </data>
@@ -1487,9 +1499,6 @@ The Control Panel can only read message files when it runs on the same machine a
   </data>
   <data name="Allowed signing algorithms (comma separated)" xml:space="preserve">
     <value>Allowed signing algorithms (comma separated)</value>
-  </data>
-  <data name="Allowed. List entries: {0}. Messages released: {1}." xml:space="preserve">
-    <value>Allowed. List entries: {0}. Messages released: {1}.</value>
   </data>
   <data name="Allowed: no greylisting and no refusal by score, though the checks still run. Blocked: refused at MAIL FROM." xml:space="preserve">
     <value>Allowed: no greylisting and no refusal by score, though the checks still run. Blocked: refused at MAIL FROM.</value>
@@ -2247,9 +2256,6 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   </data>
   <data name="Blocked senders entry" xml:space="preserve">
     <value>Blocked senders entry</value>
-  </data>
-  <data name="Blocked. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
-    <value>Blocked. List entries: {0}. Messages deleted: {1}.</value>
   </data>
   <data name="Blocked: refused at MAIL FROM" xml:space="preserve">
     <value>Blocked: refused at MAIL FROM</value>
@@ -3830,6 +3836,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   </data>
   <data name="Delete _domain" xml:space="preserve">
     <value>Delete _domain</value>
+  </data>
+  <data name="Delete _expired messages…" xml:space="preserve">
+    <value>Delete _expired messages…</value>
   </data>
   <data name="Delete _list" xml:space="preserve">
     <value>Delete _list</value>

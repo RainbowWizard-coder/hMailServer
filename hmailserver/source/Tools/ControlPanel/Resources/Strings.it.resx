@@ -1227,6 +1227,18 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   <data name="Added to the message's spam score; 100, the default, refuses the message during the SMTP conversation." xml:space="preserve">
     <value>Aggiunto al punteggio spam del messaggio; 100, il valore predefinito, rifiuta il messaggio durante la conversazione SMTP.</value>
   </data>
+  <data name="Added {0} allow entries." xml:space="preserve">
+    <value>Aggiunte {0} voci di autorizzazione.</value>
+  </data>
+  <data name="Added {0} allow entry." xml:space="preserve">
+    <value>Aggiunta {0} voce di autorizzazione.</value>
+  </data>
+  <data name="Added {0} block entries." xml:space="preserve">
+    <value>Aggiunte {0} voci di blocco.</value>
+  </data>
+  <data name="Added {0} block entry." xml:space="preserve">
+    <value>Aggiunta {0} voce di blocco.</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Indirizzo</value>
   </data>
@@ -1487,9 +1499,6 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   </data>
   <data name="Allowed signing algorithms (comma separated)" xml:space="preserve">
     <value>Algoritmi di firma consentiti (separati da virgole)</value>
-  </data>
-  <data name="Allowed. List entries: {0}. Messages released: {1}." xml:space="preserve">
-    <value>Consentito. Voci nell'elenco: {0}. Messaggi rilasciati: {1}.</value>
   </data>
   <data name="Allowed: no greylisting and no refusal by score, though the checks still run. Blocked: refused at MAIL FROM." xml:space="preserve">
     <value>Consentito: niente greylisting e nessun rifiuto in base al punteggio, anche se i controlli vengono comunque eseguiti. Bloccato: rifiutato a MAIL FROM.</value>
@@ -2247,9 +2256,6 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   </data>
   <data name="Blocked senders entry" xml:space="preserve">
     <value>Mittente bloccato</value>
-  </data>
-  <data name="Blocked. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
-    <value>Bloccato. Voci nell'elenco: {0}. Messaggi eliminati: {1}.</value>
   </data>
   <data name="Blocked: refused at MAIL FROM" xml:space="preserve">
     <value>Bloccato: rifiutato al MAIL FROM</value>
@@ -3830,6 +3836,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   </data>
   <data name="Delete _domain" xml:space="preserve">
     <value>Elimina _dominio</value>
+  </data>
+  <data name="Delete _expired messages…" xml:space="preserve">
+    <value>Elimina i messaggi _scaduti…</value>
   </data>
   <data name="Delete _list" xml:space="preserve">
     <value>Elimina _lista di distribuzione</value>

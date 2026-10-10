@@ -1227,6 +1227,18 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   <data name="Added to the message's spam score; 100, the default, refuses the message during the SMTP conversation." xml:space="preserve">
     <value>Ajouté au score de spam du message ; 100, la valeur par défaut, refuse le message pendant la conversation SMTP.</value>
   </data>
+  <data name="Added {0} allow entries." xml:space="preserve">
+    <value>{0} entrées d'autorisation ajoutées.</value>
+  </data>
+  <data name="Added {0} allow entry." xml:space="preserve">
+    <value>{0} entrée d'autorisation ajoutée.</value>
+  </data>
+  <data name="Added {0} block entries." xml:space="preserve">
+    <value>{0} entrées de blocage ajoutées.</value>
+  </data>
+  <data name="Added {0} block entry." xml:space="preserve">
+    <value>{0} entrée de blocage ajoutée.</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Adresse</value>
   </data>
@@ -1487,9 +1499,6 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   </data>
   <data name="Allowed signing algorithms (comma separated)" xml:space="preserve">
     <value>Algorithmes de signature autorisés (séparés par des virgules)</value>
-  </data>
-  <data name="Allowed. List entries: {0}. Messages released: {1}." xml:space="preserve">
-    <value>Autorisé. Entrées de liste : {0}. Messages libérés : {1}.</value>
   </data>
   <data name="Allowed: no greylisting and no refusal by score, though the checks still run. Blocked: refused at MAIL FROM." xml:space="preserve">
     <value>Autorisé : pas de liste grise ni de refus sur la note, même si les vérifications s'exécutent toujours. Bloqué : refusé à MAIL FROM.</value>
@@ -2247,9 +2256,6 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   </data>
   <data name="Blocked senders entry" xml:space="preserve">
     <value>Expéditeur bloqué</value>
-  </data>
-  <data name="Blocked. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
-    <value>Bloqué. Entrées de liste : {0}. Messages supprimés : {1}.</value>
   </data>
   <data name="Blocked: refused at MAIL FROM" xml:space="preserve">
     <value>Bloqué : refusé au MAIL FROM</value>
@@ -3830,6 +3836,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   </data>
   <data name="Delete _domain" xml:space="preserve">
     <value>Supprimer le _domaine</value>
+  </data>
+  <data name="Delete _expired messages…" xml:space="preserve">
+    <value>Supprimer les messages _expirés…</value>
   </data>
   <data name="Delete _list" xml:space="preserve">
     <value>Supprimer la _liste de diffusion</value>

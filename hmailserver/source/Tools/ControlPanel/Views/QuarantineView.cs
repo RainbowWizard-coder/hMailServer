@@ -1168,8 +1168,13 @@ namespace hMailServer.ControlPanel.Views
          {
             "release" => Plural(done, "Released {0} message to its recipients.", "Released {0} messages to their recipients."),
             "delete" => Plural(done, "Deleted {0} message.", "Deleted {0} messages."),
-            "allow" => F("Allowed. List entries: {0}. Messages released: {1}.", entries, done),
-            _ => F("Blocked. List entries: {0}. Messages deleted: {1}.", entries, done)
+            // In the voice of the two above and counted as they are, where these
+            // said "Allowed. List entries: 1. Messages released: 1." (review
+            // finding F319).
+            "allow" => Sentences(Plural(entries, "Added {0} allow entry.", "Added {0} allow entries."),
+               Plural(done, "Released {0} message to its recipients.", "Released {0} messages to their recipients.")),
+            _ => Sentences(Plural(entries, "Added {0} block entry.", "Added {0} block entries."),
+               Plural(done, "Deleted {0} message.", "Deleted {0} messages."))
          };
 
          if (failed == 0)
@@ -1492,7 +1497,9 @@ namespace hMailServer.ControlPanel.Views
          filters.Children.Add(groupLabel);
          filters.Children.Add(grouping_);
          search_.Filters = filters;
-         removeExpired_ = MakeButton(L("Remove _expired"), ControlAppearance.Secondary, (_, _) => SweepExpired());
+         // Named by what it does, as the setting it acts on - Delete quarantined
+         // messages after - is, where it said Remove expired (review finding F319).
+         removeExpired_ = MakeButton(L("Delete _expired messages…"), ControlAppearance.Secondary, (_, _) => SweepExpired());
          ButtonStyles.DangerText(removeExpired_);
          search_.Actions = removeExpired_;
 

@@ -1237,6 +1237,18 @@
   <data name="Added to the message's spam score; 100, the default, refuses the message during the SMTP conversation." xml:space="preserve">
     <value>メッセージのスパムスコアに加算されます。既定の 100 では SMTP のやり取りの間にメッセージを拒否します。</value>
   </data>
+  <data name="Added {0} allow entries." xml:space="preserve">
+    <value>許可エントリを {0} 件追加しました。</value>
+  </data>
+  <data name="Added {0} allow entry." xml:space="preserve">
+    <value>許可エントリを {0} 件追加しました。</value>
+  </data>
+  <data name="Added {0} block entries." xml:space="preserve">
+    <value>ブロック エントリを {0} 件追加しました。</value>
+  </data>
+  <data name="Added {0} block entry." xml:space="preserve">
+    <value>ブロック エントリを {0} 件追加しました。</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>アドレス</value>
   </data>
@@ -1497,9 +1509,6 @@
   </data>
   <data name="Allowed signing algorithms (comma separated)" xml:space="preserve">
     <value>許可する署名アルゴリズム (コンマ区切り)</value>
-  </data>
-  <data name="Allowed. List entries: {0}. Messages released: {1}." xml:space="preserve">
-    <value>許可しました。エントリ数: {0}。解放したメッセージ: {1}。</value>
   </data>
   <data name="Allowed: no greylisting and no refusal by score, though the checks still run. Blocked: refused at MAIL FROM." xml:space="preserve">
     <value>許可: グレイリスティングもスコアによる拒否も行いません (チェック自体は実行されます)。ブロック: MAIL FROM の時点で拒否します。</value>
@@ -2257,9 +2266,6 @@
   </data>
   <data name="Blocked senders entry" xml:space="preserve">
     <value>ブロックされた送信者</value>
-  </data>
-  <data name="Blocked. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
-    <value>ブロックしました。エントリ数: {0}。削除したメッセージ: {1}。</value>
   </data>
   <data name="Blocked: refused at MAIL FROM" xml:space="preserve">
     <value>ブロック: MAIL FROM で拒否</value>
@@ -3840,6 +3846,9 @@
   </data>
   <data name="Delete _domain" xml:space="preserve">
     <value>ドメインを削除(_D)</value>
+  </data>
+  <data name="Delete _expired messages…" xml:space="preserve">
+    <value>期限切れのメッセージを削除(_E)…</value>
   </data>
   <data name="Delete _list" xml:space="preserve">
     <value>配布リストを削除(_L)</value>

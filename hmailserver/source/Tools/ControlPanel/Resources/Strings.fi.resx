@@ -1227,6 +1227,18 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Added to the message's spam score; 100, the default, refuses the message during the SMTP conversation." xml:space="preserve">
     <value>Lisätään viestin roskapostipisteisiin; oletusarvo 100 hylkää viestin jo SMTP-keskustelun aikana.</value>
   </data>
+  <data name="Added {0} allow entries." xml:space="preserve">
+    <value>Lisättiin {0} sallintamerkintää.</value>
+  </data>
+  <data name="Added {0} allow entry." xml:space="preserve">
+    <value>Lisättiin {0} sallintamerkintä.</value>
+  </data>
+  <data name="Added {0} block entries." xml:space="preserve">
+    <value>Lisättiin {0} estomerkintää.</value>
+  </data>
+  <data name="Added {0} block entry." xml:space="preserve">
+    <value>Lisättiin {0} estomerkintä.</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Osoite</value>
   </data>
@@ -1487,9 +1499,6 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   </data>
   <data name="Allowed signing algorithms (comma separated)" xml:space="preserve">
     <value>Sallitut allekirjoitusalgoritmit (pilkuin erotettuina)</value>
-  </data>
-  <data name="Allowed. List entries: {0}. Messages released: {1}." xml:space="preserve">
-    <value>Sallittu. Listamerkintöjä: {0}. Vapautettuja viestejä: {1}.</value>
   </data>
   <data name="Allowed: no greylisting and no refusal by score, though the checks still run. Blocked: refused at MAIL FROM." xml:space="preserve">
     <value>Sallittu: ei harmaalistausta eikä hylkäystä pistemäärän perusteella, vaikka tarkistukset yhä ajetaan. Estetty: hylätään MAIL FROM -vaiheessa.</value>
@@ -2247,9 +2256,6 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Blocked senders entry" xml:space="preserve">
     <value>Estetty lähettäjä</value>
-  </data>
-  <data name="Blocked. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
-    <value>Estetty. Listamerkintöjä: {0}. Poistettuja viestejä: {1}.</value>
   </data>
   <data name="Blocked: refused at MAIL FROM" xml:space="preserve">
     <value>Estetty: hylätään MAIL FROM -vaiheessa</value>
@@ -3830,6 +3836,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Delete _domain" xml:space="preserve">
     <value>Poista _verkkotunnus</value>
+  </data>
+  <data name="Delete _expired messages…" xml:space="preserve">
+    <value>Poista _vanhentuneet viestit…</value>
   </data>
   <data name="Delete _list" xml:space="preserve">
     <value>Poista jakelu_lista</value>

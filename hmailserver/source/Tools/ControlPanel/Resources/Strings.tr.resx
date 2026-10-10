@@ -1227,6 +1227,18 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Added to the message's spam score; 100, the default, refuses the message during the SMTP conversation." xml:space="preserve">
     <value>İletinin spam puanına eklenir; varsayılan 100, iletiyi SMTP görüşmesi sırasında reddeder.</value>
   </data>
+  <data name="Added {0} allow entries." xml:space="preserve">
+    <value>{0} izin kaydı eklendi.</value>
+  </data>
+  <data name="Added {0} allow entry." xml:space="preserve">
+    <value>{0} izin kaydı eklendi.</value>
+  </data>
+  <data name="Added {0} block entries." xml:space="preserve">
+    <value>{0} engelleme kaydı eklendi.</value>
+  </data>
+  <data name="Added {0} block entry." xml:space="preserve">
+    <value>{0} engelleme kaydı eklendi.</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Adres</value>
   </data>
@@ -1487,9 +1499,6 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   </data>
   <data name="Allowed signing algorithms (comma separated)" xml:space="preserve">
     <value>İzin verilen imzalama algoritmaları (virgülle ayrılmış)</value>
-  </data>
-  <data name="Allowed. List entries: {0}. Messages released: {1}." xml:space="preserve">
-    <value>İzin verildi. Liste kaydı: {0}. Serbest bırakılan ileti: {1}.</value>
   </data>
   <data name="Allowed: no greylisting and no refusal by score, though the checks still run. Blocked: refused at MAIL FROM." xml:space="preserve">
     <value>İzin verilen: denetimler yine çalışsa da greylisting yok ve puana göre ret yok. Engellenen: MAIL FROM'da reddedilir.</value>
@@ -2247,9 +2256,6 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Blocked senders entry" xml:space="preserve">
     <value>Engellenen gönderen</value>
-  </data>
-  <data name="Blocked. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
-    <value>Engellendi. Liste kaydı: {0}. Silinen ileti: {1}.</value>
   </data>
   <data name="Blocked: refused at MAIL FROM" xml:space="preserve">
     <value>Engellenen: MAIL FROM’da reddedilir</value>
@@ -3830,6 +3836,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Delete _domain" xml:space="preserve">
     <value>_Etki alanını sil</value>
+  </data>
+  <data name="Delete _expired messages…" xml:space="preserve">
+    <value>Süresi _dolmuş iletileri sil…</value>
   </data>
   <data name="Delete _list" xml:space="preserve">
     <value>Dağıtım _listesini sil</value>

@@ -1227,6 +1227,18 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
   <data name="Added to the message's spam score; 100, the default, refuses the message during the SMTP conversation." xml:space="preserve">
     <value>Se suma a la puntuación de spam del mensaje; 100, el valor predeterminado, rechaza el mensaje durante la conversación SMTP.</value>
   </data>
+  <data name="Added {0} allow entries." xml:space="preserve">
+    <value>Se añadieron {0} entradas de permiso.</value>
+  </data>
+  <data name="Added {0} allow entry." xml:space="preserve">
+    <value>Se añadió {0} entrada de permiso.</value>
+  </data>
+  <data name="Added {0} block entries." xml:space="preserve">
+    <value>Se añadieron {0} entradas de bloqueo.</value>
+  </data>
+  <data name="Added {0} block entry." xml:space="preserve">
+    <value>Se añadió {0} entrada de bloqueo.</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Dirección</value>
   </data>
@@ -1487,9 +1499,6 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
   </data>
   <data name="Allowed signing algorithms (comma separated)" xml:space="preserve">
     <value>Algoritmos de firma permitidos (separados por comas)</value>
-  </data>
-  <data name="Allowed. List entries: {0}. Messages released: {1}." xml:space="preserve">
-    <value>Permitido. Entradas de la lista: {0}. Mensajes liberados: {1}.</value>
   </data>
   <data name="Allowed: no greylisting and no refusal by score, though the checks still run. Blocked: refused at MAIL FROM." xml:space="preserve">
     <value>Permitido: sin greylisting y sin rechazo por puntuación, aunque las comprobaciones siguen ejecutándose. Bloqueado: rechazado en MAIL FROM.</value>
@@ -2247,9 +2256,6 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Blocked senders entry" xml:space="preserve">
     <value>Remitente bloqueado</value>
-  </data>
-  <data name="Blocked. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
-    <value>Bloqueado. Entradas de la lista: {0}. Mensajes eliminados: {1}.</value>
   </data>
   <data name="Blocked: refused at MAIL FROM" xml:space="preserve">
     <value>Bloqueado: rechazado en MAIL FROM</value>
@@ -3830,6 +3836,9 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Delete _domain" xml:space="preserve">
     <value>Borrar _dominio</value>
+  </data>
+  <data name="Delete _expired messages…" xml:space="preserve">
+    <value>Eliminar los mensajes _caducados…</value>
   </data>
   <data name="Delete _list" xml:space="preserve">
     <value>Borrar _lista de distribución</value>

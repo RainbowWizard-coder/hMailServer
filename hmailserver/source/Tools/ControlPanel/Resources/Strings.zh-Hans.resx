@@ -1227,6 +1227,18 @@
   <data name="Added to the message's spam score; 100, the default, refuses the message during the SMTP conversation." xml:space="preserve">
     <value>计入邮件的垃圾邮件分数；默认值 100 会在 SMTP 会话期间拒收邮件。</value>
   </data>
+  <data name="Added {0} allow entries." xml:space="preserve">
+    <value>已添加 {0} 个允许条目。</value>
+  </data>
+  <data name="Added {0} allow entry." xml:space="preserve">
+    <value>已添加 {0} 个允许条目。</value>
+  </data>
+  <data name="Added {0} block entries." xml:space="preserve">
+    <value>已添加 {0} 个阻止条目。</value>
+  </data>
+  <data name="Added {0} block entry." xml:space="preserve">
+    <value>已添加 {0} 个阻止条目。</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>地址</value>
   </data>
@@ -1487,9 +1499,6 @@
   </data>
   <data name="Allowed signing algorithms (comma separated)" xml:space="preserve">
     <value>允许的签名算法（以逗号分隔）</value>
-  </data>
-  <data name="Allowed. List entries: {0}. Messages released: {1}." xml:space="preserve">
-    <value>已允许。名单条目数：{0}。已放行邮件数：{1}。</value>
   </data>
   <data name="Allowed: no greylisting and no refusal by score, though the checks still run. Blocked: refused at MAIL FROM." xml:space="preserve">
     <value>允许：不做灰名单处理，也不按分数拒绝，但检查仍会运行。拦截：在 MAIL FROM 时拒绝。</value>
@@ -2247,9 +2256,6 @@
   </data>
   <data name="Blocked senders entry" xml:space="preserve">
     <value>已拦截的发件人</value>
-  </data>
-  <data name="Blocked. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
-    <value>已拦截。名单条目数：{0}。已删除邮件数：{1}。</value>
   </data>
   <data name="Blocked: refused at MAIL FROM" xml:space="preserve">
     <value>拦截：在 MAIL FROM 时拒绝</value>
@@ -3830,6 +3836,9 @@
   </data>
   <data name="Delete _domain" xml:space="preserve">
     <value>删除域(_D)</value>
+  </data>
+  <data name="Delete _expired messages…" xml:space="preserve">
+    <value>删除过期邮件(_E)…</value>
   </data>
   <data name="Delete _list" xml:space="preserve">
     <value>删除分发列表(_L)</value>

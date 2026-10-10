@@ -1233,6 +1233,24 @@
   <data name="Added to the message's spam score; 100, the default, refuses the message during the SMTP conversation." xml:space="preserve">
     <value>Додається до балу спаму повідомлення; типове значення 100 відхиляє повідомлення ще під час сеансу SMTP.</value>
   </data>
+  <data name="Added {0} allow entries." xml:space="preserve">
+    <value>Додано {0} дозвільних записів.</value>
+  </data>
+  <data name="Added {0} allow entries.|few" xml:space="preserve">
+    <value>Додано {0} дозвільні записи.</value>
+  </data>
+  <data name="Added {0} allow entry." xml:space="preserve">
+    <value>Додано {0} дозвільний запис.</value>
+  </data>
+  <data name="Added {0} block entries." xml:space="preserve">
+    <value>Додано {0} блокувальних записів.</value>
+  </data>
+  <data name="Added {0} block entries.|few" xml:space="preserve">
+    <value>Додано {0} блокувальні записи.</value>
+  </data>
+  <data name="Added {0} block entry." xml:space="preserve">
+    <value>Додано {0} блокувальний запис.</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Адреса</value>
   </data>
@@ -1499,9 +1517,6 @@
   </data>
   <data name="Allowed signing algorithms (comma separated)" xml:space="preserve">
     <value>Дозволені алгоритми підписування (через кому)</value>
-  </data>
-  <data name="Allowed. List entries: {0}. Messages released: {1}." xml:space="preserve">
-    <value>Дозволено. Записів у списку: {0}. Випущено повідомлень: {1}.</value>
   </data>
   <data name="Allowed: no greylisting and no refusal by score, though the checks still run. Blocked: refused at MAIL FROM." xml:space="preserve">
     <value>Дозволений: без сірого списку й без відмови за оцінкою, хоча перевірки все одно виконуються. Заблокований: відмова на етапі MAIL FROM.</value>
@@ -2271,9 +2286,6 @@
   </data>
   <data name="Blocked senders entry" xml:space="preserve">
     <value>Заблокований відправник</value>
-  </data>
-  <data name="Blocked. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
-    <value>Заблоковано. Записів у списку: {0}. Видалено повідомлень: {1}.</value>
   </data>
   <data name="Blocked: refused at MAIL FROM" xml:space="preserve">
     <value>Заблокований: відмова на MAIL FROM</value>
@@ -3854,6 +3866,9 @@
   </data>
   <data name="Delete _domain" xml:space="preserve">
     <value>Видалити _домен</value>
+  </data>
+  <data name="Delete _expired messages…" xml:space="preserve">
+    <value>Видалити _прострочені повідомлення…</value>
   </data>
   <data name="Delete _list" xml:space="preserve">
     <value>Видалити список _розсилки</value>

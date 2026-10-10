@@ -1227,6 +1227,18 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Added to the message's spam score; 100, the default, refuses the message during the SMTP conversation." xml:space="preserve">
     <value>Legges til meldingens spampoengsum; standardverdien 100 avviser meldingen under SMTP-samtalen.</value>
   </data>
+  <data name="Added {0} allow entries." xml:space="preserve">
+    <value>La til {0} tillatelsesoppføringer.</value>
+  </data>
+  <data name="Added {0} allow entry." xml:space="preserve">
+    <value>La til {0} tillatelsesoppføring.</value>
+  </data>
+  <data name="Added {0} block entries." xml:space="preserve">
+    <value>La til {0} blokkeringsoppføringer.</value>
+  </data>
+  <data name="Added {0} block entry." xml:space="preserve">
+    <value>La til {0} blokkeringsoppføring.</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Adresse</value>
   </data>
@@ -1487,9 +1499,6 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   </data>
   <data name="Allowed signing algorithms (comma separated)" xml:space="preserve">
     <value>Tillatte signeringsalgoritmer (kommaseparert)</value>
-  </data>
-  <data name="Allowed. List entries: {0}. Messages released: {1}." xml:space="preserve">
-    <value>Tillatt. Listeoppføringer: {0}. Frigitte meldinger: {1}.</value>
   </data>
   <data name="Allowed: no greylisting and no refusal by score, though the checks still run. Blocked: refused at MAIL FROM." xml:space="preserve">
     <value>Tillatt: ingen grålisting og ingen avvisning etter poeng, selv om kontrollene fortsatt kjører. Blokkert: avvist ved MAIL FROM.</value>
@@ -2247,9 +2256,6 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   </data>
   <data name="Blocked senders entry" xml:space="preserve">
     <value>Blokkert avsender</value>
-  </data>
-  <data name="Blocked. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
-    <value>Blokkert. Listeoppføringer: {0}. Slettede meldinger: {1}.</value>
   </data>
   <data name="Blocked: refused at MAIL FROM" xml:space="preserve">
     <value>Blokkert: avvist ved MAIL FROM</value>
@@ -3830,6 +3836,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   </data>
   <data name="Delete _domain" xml:space="preserve">
     <value>Slett _domene</value>
+  </data>
+  <data name="Delete _expired messages…" xml:space="preserve">
+    <value>Slett _utløpte meldinger…</value>
   </data>
   <data name="Delete _list" xml:space="preserve">
     <value>Slett distribusjons_liste</value>

@@ -3305,8 +3305,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   that counted; Open log folder is in the page's header, where it was a button in the last card, and that card says
   where the folder is; and the event scripts' COM allow-list is captioned "COM objects a script may create", its
   format the blurb's first sentence, and warns while it is "*", the shipped value that lets a script create any object
-  (F313). `DnsRecordsCopyTests`, `RulePartTextTests`, `ProtocolsAndDeliveryCopyTests`,
-  `CertificatesAndAccessCopyTests`, `SpamAndVirusCopyTests` and `MonitoringCopyTests` hold it.
+  (F313). Quarantine: allowing or blocking a sender says what it did as releasing and deleting do, "Added 1 allow
+  entry. Released 1 message to its recipients.", where it said "Allowed. List entries: 1. Messages released: 1."; the
+  sweep is Delete expired messages…, named as its setting, Delete quarantined messages after, is, where it was Remove
+  expired; and the digest's address is captioned Release link address with "Such as https://mail.example.com. Leave
+  empty to send no digest." under it, where the caption was a sentence with its rule in brackets (F319).
+  `DnsRecordsCopyTests`, `RulePartTextTests`, `ProtocolsAndDeliveryCopyTests`, `CertificatesAndAccessCopyTests`,
+  `SpamAndVirusCopyTests`, `MonitoringCopyTests` and `QuarantineCopyTests` hold it.
 
 ### Administration
 

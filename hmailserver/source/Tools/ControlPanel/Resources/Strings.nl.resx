@@ -1227,6 +1227,18 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Added to the message's spam score; 100, the default, refuses the message during the SMTP conversation." xml:space="preserve">
     <value>Wordt bij de spamscore van het bericht opgeteld; 100, de standaard, weigert het bericht tijdens het SMTP-gesprek.</value>
   </data>
+  <data name="Added {0} allow entries." xml:space="preserve">
+    <value>{0} toestemmingsvermeldingen toegevoegd.</value>
+  </data>
+  <data name="Added {0} allow entry." xml:space="preserve">
+    <value>{0} toestemmingsvermelding toegevoegd.</value>
+  </data>
+  <data name="Added {0} block entries." xml:space="preserve">
+    <value>{0} blokkeringsvermeldingen toegevoegd.</value>
+  </data>
+  <data name="Added {0} block entry." xml:space="preserve">
+    <value>{0} blokkeringsvermelding toegevoegd.</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Adres</value>
   </data>
@@ -1487,9 +1499,6 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   </data>
   <data name="Allowed signing algorithms (comma separated)" xml:space="preserve">
     <value>Toegestane ondertekeningsalgoritmen (door komma's gescheiden)</value>
-  </data>
-  <data name="Allowed. List entries: {0}. Messages released: {1}." xml:space="preserve">
-    <value>Toegestaan. Lijstitems: {0}. Berichten vrijgegeven: {1}.</value>
   </data>
   <data name="Allowed: no greylisting and no refusal by score, though the checks still run. Blocked: refused at MAIL FROM." xml:space="preserve">
     <value>Toegestaan: geen greylisting en geen weigering op score, al lopen de controles nog wel. Geblokkeerd: geweigerd bij MAIL FROM.</value>
@@ -2247,9 +2256,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Blocked senders entry" xml:space="preserve">
     <value>Geblokkeerde afzender</value>
-  </data>
-  <data name="Blocked. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
-    <value>Geblokkeerd. Lijstitems: {0}. Berichten verwijderd: {1}.</value>
   </data>
   <data name="Blocked: refused at MAIL FROM" xml:space="preserve">
     <value>Geblokkeerd: geweigerd bij MAIL FROM</value>
@@ -3830,6 +3836,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Delete _domain" xml:space="preserve">
     <value>_Domein verwijderen</value>
+  </data>
+  <data name="Delete _expired messages…" xml:space="preserve">
+    <value>_Verlopen berichten verwijderen…</value>
   </data>
   <data name="Delete _list" xml:space="preserve">
     <value>Distributielijst _verwijderen</value>

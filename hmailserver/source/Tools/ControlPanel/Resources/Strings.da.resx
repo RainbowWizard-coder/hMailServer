@@ -1227,6 +1227,18 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Added to the message's spam score; 100, the default, refuses the message during the SMTP conversation." xml:space="preserve">
     <value>Lægges til meddelelsens spamscore; standardværdien 100 afviser meddelelsen under SMTP-samtalen.</value>
   </data>
+  <data name="Added {0} allow entries." xml:space="preserve">
+    <value>Tilføjede {0} tilladelsesposter.</value>
+  </data>
+  <data name="Added {0} allow entry." xml:space="preserve">
+    <value>Tilføjede {0} tilladelsespost.</value>
+  </data>
+  <data name="Added {0} block entries." xml:space="preserve">
+    <value>Tilføjede {0} blokeringsposter.</value>
+  </data>
+  <data name="Added {0} block entry." xml:space="preserve">
+    <value>Tilføjede {0} blokeringspost.</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Adresse</value>
   </data>
@@ -1487,9 +1499,6 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   </data>
   <data name="Allowed signing algorithms (comma separated)" xml:space="preserve">
     <value>Tilladte signeringsalgoritmer (kommasepareret)</value>
-  </data>
-  <data name="Allowed. List entries: {0}. Messages released: {1}." xml:space="preserve">
-    <value>Tilladt. Listeposter: {0}. Frigivne meddelelser: {1}.</value>
   </data>
   <data name="Allowed: no greylisting and no refusal by score, though the checks still run. Blocked: refused at MAIL FROM." xml:space="preserve">
     <value>Tilladt: ingen greylisting og ingen afvisning efter score, selvom kontrollerne stadig kører. Blokeret: afvist ved MAIL FROM.</value>
@@ -2247,9 +2256,6 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   </data>
   <data name="Blocked senders entry" xml:space="preserve">
     <value>Blokeret afsender</value>
-  </data>
-  <data name="Blocked. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
-    <value>Blokeret. Listeposter: {0}. Slettede meddelelser: {1}.</value>
   </data>
   <data name="Blocked: refused at MAIL FROM" xml:space="preserve">
     <value>Blokeret: afvises ved MAIL FROM</value>
@@ -3830,6 +3836,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   </data>
   <data name="Delete _domain" xml:space="preserve">
     <value>Slet _domæne</value>
+  </data>
+  <data name="Delete _expired messages…" xml:space="preserve">
+    <value>Slet _udløbne meddelelser…</value>
   </data>
   <data name="Delete _list" xml:space="preserve">
     <value>Slet distributions_liste</value>
