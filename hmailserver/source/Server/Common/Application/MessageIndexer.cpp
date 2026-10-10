@@ -77,9 +77,14 @@ namespace HM
       // From StopServers to the next StartServers the database manager may be
       // gone - a Reinitialize closes it after StopServers and makes a new one
       // before StartServers - and the stop has waited for the indexer already.
-      // An indexer started meanwhile, by a setting saved over COM, would make its
-      // first statement through an empty pointer. The setting is saved all the
-      // same (Configuration::SetMessageIndexing), and StartServers reads it.
+      // An indexer started meanwhile, by the setting turned on over COM or the
+      // REST API, would make its first statement through an empty pointer. So it
+      // is left to StartServers, which starts the indexer when the setting is on:
+      // Configuration::SetMessageIndexing saves the setting before it calls this,
+      // so that a setting saved before StartServers reads it is read there, and
+      // one saved after finds the state Starting or Running here. A setting saved
+      // while the database is closed is not saved: its save goes through the same
+      // empty database manager, as any setting's does then, and never gets here.
       const int state = ServerStatus::Instance()->GetState();
       if (state == ServerStatus::StateStopping || state == ServerStatus::StateStopped)
       {

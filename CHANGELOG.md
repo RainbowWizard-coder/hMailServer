@@ -453,8 +453,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   found the thread still ending, took it for the running indexer and started none. The stop now waits for the
   thread to end - at most the statement or the message it is in, since a batch's messages, the sweeps' slices and
   the pauses are where it stops - telling the service controller meanwhile; a start after it begins a new thread;
-  and no indexer is started while the servers are stopped, from a reinitialise's stop to its start, the setting
-  being kept for the start. `MessageIndexerTester` (`TestInternals` on Windows, `business-object-tests` on Linux)
+  and no indexer is started while the servers are stopped, from a reinitialise's stop to its start, the start of
+  the servers starting it from its setting - which is now saved before the indexer is started or stopped, where a
+  save that came after the start of the servers had read it left the indexer stopped with the setting on, and a
+  save refused for a setting the environment manages had started or stopped the indexer all the same.
+  `MessageIndexerTester` (`TestInternals` on Windows, `business-object-tests` on Linux)
   runs the indexer's thread over a stand-in pass that holds no interruption point for 300 ms: with the stop and
   the start as they were, the pass made a statement after the stop had returned, and a start straight after a
   stop began no indexer. Found by the batch's Alpine suite: the teardown of

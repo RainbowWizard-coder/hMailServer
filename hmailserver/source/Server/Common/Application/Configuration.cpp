@@ -1936,15 +1936,26 @@ namespace HM
       return GetSettings()->GetBool(PROPERTY_MESSAGE_INDEXING);
    }
 
-   void 
+   void
    Configuration::SetMessageIndexing(bool enable)
    {
+      // Saved first, then acted on. MessageIndexer::Start starts nothing while the
+      // servers are stopping or stopped - from a Reinitialize's StopServers to its
+      // StartServers - and StartServers starts the indexer from this setting, so a
+      // setting turned on then has to be saved before StartServers reads it, or
+      // found by a Start that comes after StartServers has moved the state to
+      // Starting. Saved after the Start, as it was until 10 October 2026, a save
+      // that landed after StartServers had read the setting left the indexer
+      // stopped, with the setting on, until the next start of the servers. And a
+      // save that is refused - a setting the environment manages throws before
+      // anything is written (PropertySet::SetBool) - now starts and stops nothing,
+      // where the indexer had been started or stopped already.
+      GetSettings()->SetBool(PROPERTY_MESSAGE_INDEXING, enable);
+
       if (enable)
          MessageIndexer::Instance()->Start();
       else
          MessageIndexer::Instance()->Stop();
-
-      GetSettings()->SetBool(PROPERTY_MESSAGE_INDEXING, enable);
    }
 
    bool

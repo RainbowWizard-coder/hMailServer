@@ -22,7 +22,8 @@ namespace HM
       // The indexer's thread, unless one runs already. Not while the servers
       // are stopping or stopped: from StopServers to the next StartServers -
       // across a Reinitialize, the database manager closed and made again -
-      // the setting is kept and StartServers starts the indexer.
+      // StartServers starts the indexer when the setting is on, and
+      // Configuration::SetMessageIndexing saves the setting before it calls this.
       void Start();
 
       // Asks the thread to stop and waits until it has ended, so that nothing
