@@ -5864,8 +5864,8 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Host names for the certificate (comma separated)" xml:space="preserve">
     <value>Názvy hostitelů pro certifikát (oddělené čárkou)</value>
   </data>
-  <data name="Host/Name:  {0}" xml:space="preserve">
-    <value>Hostitel/Název:  {0}</value>
+  <data name="Host/Name: {0}" xml:space="preserve">
+    <value>Hostitel/Název: {0}</value>
   </data>
   <data name="Hosts that use OAuth2 (comma separated; empty = none)" xml:space="preserve">
     <value>Hostitelé používající OAuth2 (oddělené čárkami; prázdné = žádný)</value>
@@ -14645,8 +14645,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Type the user name the password belongs to." xml:space="preserve">
     <value>Zadejte uživatelské jméno, ke kterému heslo patří.</value>
   </data>
-  <data name="Type:       TXT" xml:space="preserve">
-    <value>Typ:       TXT</value>
+  <data name="Type: TXT" xml:space="preserve">
+    <value>Typ: TXT</value>
   </data>
   <data name="UDP - no delivery guarantee, truncated at 1,024 bytes" xml:space="preserve">
     <value>UDP - bez záruky doručení, zkráceno na 1 024 bajtů</value>
@@ -14810,8 +14810,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Validity window for the signatures this server makes (seconds; 0 = no expiry)" xml:space="preserve">
     <value>Okno platnosti podpisů, které tento server vytváří (sekundy; 0 = bez vypršení)</value>
   </data>
-  <data name="Value:      {0}" xml:space="preserve">
-    <value>Hodnota:      {0}</value>
+  <data name="Value: {0}" xml:space="preserve">
+    <value>Hodnota: {0}</value>
   </data>
   <data name="Verdict address (GET)" xml:space="preserve">
     <value>Adresa pro verdikt (GET)</value>

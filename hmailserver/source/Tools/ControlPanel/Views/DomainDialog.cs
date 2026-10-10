@@ -314,9 +314,13 @@ namespace hMailServer.ControlPanel.Views
             dkimKeyFile_.Text = save.FileName;
             dkimOn_.IsChecked = true;
             dkimDnsValue_ = result.DnsTxtValue;
-            dkimDns_.Text = F("Host/Name:  {0}", result.DnsHost) + Environment.NewLine +
-                            L("Type:       TXT") + Environment.NewLine +
-                            F("Value:      {0}", result.DnsTxtValue);
+            // One line a field, one space after each colon: the three were padded
+            // with spaces to line their values up, which no translation kept - the
+            // words differ in length in every language, and a CJK character is two
+            // columns wide (review finding F299).
+            dkimDns_.Text = F("Host/Name: {0}", result.DnsHost) + Environment.NewLine +
+                            L("Type: TXT") + Environment.NewLine +
+                            F("Value: {0}", result.DnsTxtValue);
             dkimDnsPanel_.Visibility = Visibility.Visible;
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
@@ -1431,8 +1435,7 @@ namespace hMailServer.ControlPanel.Views
          TextWrapping = TextWrapping.Wrap,
          FontSize = Typography.Mono,
          // The DKIM record and the DNS values are data, set in the monospaced face
-         // (review finding F304), which also lines up "Host/Name:", "Type:" and
-         // "Value:" as their padding means them to.
+         // (review finding F304).
          FontFamily = new System.Windows.Media.FontFamily(Typography.MonoFontFamily),
          MinHeight = minHeight,
          Padding = new Thickness(DesignTokens.Space.Sm)

@@ -5864,8 +5864,8 @@ Control Panel может читать файлы сообщений только
   <data name="Host names for the certificate (comma separated)" xml:space="preserve">
     <value>Имена узлов для сертификата (через запятую)</value>
   </data>
-  <data name="Host/Name:  {0}" xml:space="preserve">
-    <value>Узел/имя:  {0}</value>
+  <data name="Host/Name: {0}" xml:space="preserve">
+    <value>Узел/имя: {0}</value>
   </data>
   <data name="Hosts that use OAuth2 (comma separated; empty = none)" xml:space="preserve">
     <value>Узлы, использующие OAuth2 (через запятую; пусто = ни одного)</value>
@@ -14645,8 +14645,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Type the user name the password belongs to." xml:space="preserve">
     <value>Введите имя пользователя, которому принадлежит пароль.</value>
   </data>
-  <data name="Type:       TXT" xml:space="preserve">
-    <value>Тип:       TXT</value>
+  <data name="Type: TXT" xml:space="preserve">
+    <value>Тип: TXT</value>
   </data>
   <data name="UDP - no delivery guarantee, truncated at 1,024 bytes" xml:space="preserve">
     <value>UDP - без гарантии доставки, обрезается до 1 024 байт</value>
@@ -14810,8 +14810,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Validity window for the signatures this server makes (seconds; 0 = no expiry)" xml:space="preserve">
     <value>Окно действительности подписей, которые создаёт этот сервер (секунды; 0 = без истечения)</value>
   </data>
-  <data name="Value:      {0}" xml:space="preserve">
-    <value>Значение:      {0}</value>
+  <data name="Value: {0}" xml:space="preserve">
+    <value>Значение: {0}</value>
   </data>
   <data name="Verdict address (GET)" xml:space="preserve">
     <value>Адрес вердикта (GET)</value>

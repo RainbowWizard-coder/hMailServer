@@ -5788,8 +5788,8 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Host names for the certificate (comma separated)" xml:space="preserve">
     <value>Nomi host per il certificato (separati da virgole)</value>
   </data>
-  <data name="Host/Name:  {0}" xml:space="preserve">
-    <value>Host/Nome:  {0}</value>
+  <data name="Host/Name: {0}" xml:space="preserve">
+    <value>Host/Nome: {0}</value>
   </data>
   <data name="Hosts that use OAuth2 (comma separated; empty = none)" xml:space="preserve">
     <value>Host che usano OAuth2 (separati da virgole; vuoto = nessuno)</value>
@@ -14464,8 +14464,8 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="Type the user name the password belongs to." xml:space="preserve">
     <value>Digitare il nome utente a cui appartiene la password.</value>
   </data>
-  <data name="Type:       TXT" xml:space="preserve">
-    <value>Tipo:       TXT</value>
+  <data name="Type: TXT" xml:space="preserve">
+    <value>Tipo: TXT</value>
   </data>
   <data name="UDP - no delivery guarantee, truncated at 1,024 bytes" xml:space="preserve">
     <value>UDP - nessuna garanzia di consegna, troncato a 1.024 byte</value>
@@ -14626,8 +14626,8 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="Validity window for the signatures this server makes (seconds; 0 = no expiry)" xml:space="preserve">
     <value>Finestra di validità delle firme prodotte da questo server (secondi; 0 = nessuna scadenza)</value>
   </data>
-  <data name="Value:      {0}" xml:space="preserve">
-    <value>Valore:     {0}</value>
+  <data name="Value: {0}" xml:space="preserve">
+    <value>Valore: {0}</value>
   </data>
   <data name="Verdict address (GET)" xml:space="preserve">
     <value>Indirizzo del verdetto (GET)</value>

@@ -5788,8 +5788,8 @@
   <data name="Host names for the certificate (comma separated)" xml:space="preserve">
     <value>证书的主机名（以逗号分隔）</value>
   </data>
-  <data name="Host/Name:  {0}" xml:space="preserve">
-    <value>主机/名称：  {0}</value>
+  <data name="Host/Name: {0}" xml:space="preserve">
+    <value>主机/名称：{0}</value>
   </data>
   <data name="Hosts that use OAuth2 (comma separated; empty = none)" xml:space="preserve">
     <value>使用 OAuth2 的主机（以逗号分隔；留空 = 无）</value>
@@ -14464,8 +14464,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Type the user name the password belongs to." xml:space="preserve">
     <value>输入该密码所属的用户名。</value>
   </data>
-  <data name="Type:       TXT" xml:space="preserve">
-    <value>类型:       TXT</value>
+  <data name="Type: TXT" xml:space="preserve">
+    <value>类型：TXT</value>
   </data>
   <data name="UDP - no delivery guarantee, truncated at 1,024 bytes" xml:space="preserve">
     <value>UDP - 不保证送达，在 1,024 字节处截断</value>
@@ -14626,8 +14626,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Validity window for the signatures this server makes (seconds; 0 = no expiry)" xml:space="preserve">
     <value>本服务器生成的签名的有效窗口（秒；0 = 不过期）</value>
   </data>
-  <data name="Value:      {0}" xml:space="preserve">
-    <value>值:      {0}</value>
+  <data name="Value: {0}" xml:space="preserve">
+    <value>值：{0}</value>
   </data>
   <data name="Verdict address (GET)" xml:space="preserve">
     <value>判定地址（GET）</value>

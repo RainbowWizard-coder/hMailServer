@@ -5788,8 +5788,8 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Host names for the certificate (comma separated)" xml:space="preserve">
     <value>Hostnamen für das Zertifikat (kommagetrennt)</value>
   </data>
-  <data name="Host/Name:  {0}" xml:space="preserve">
-    <value>Host/Name:  {0}</value>
+  <data name="Host/Name: {0}" xml:space="preserve">
+    <value>Host/Name: {0}</value>
   </data>
   <data name="Hosts that use OAuth2 (comma separated; empty = none)" xml:space="preserve">
     <value>Hosts, die OAuth2 verwenden (kommagetrennt; leer = keiner)</value>
@@ -14464,8 +14464,8 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="Type the user name the password belongs to." xml:space="preserve">
     <value>Geben Sie den Benutzernamen ein, zu dem das Passwort gehört.</value>
   </data>
-  <data name="Type:       TXT" xml:space="preserve">
-    <value>Typ:       TXT</value>
+  <data name="Type: TXT" xml:space="preserve">
+    <value>Typ: TXT</value>
   </data>
   <data name="UDP - no delivery guarantee, truncated at 1,024 bytes" xml:space="preserve">
     <value>UDP - keine Zustellgarantie, bei 1.024 Byte gekürzt</value>
@@ -14626,8 +14626,8 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="Validity window for the signatures this server makes (seconds; 0 = no expiry)" xml:space="preserve">
     <value>Gültigkeitsfenster für die Signaturen, die dieser Server erzeugt (Sekunden; 0 = kein Ablauf)</value>
   </data>
-  <data name="Value:      {0}" xml:space="preserve">
-    <value>Wert:      {0}</value>
+  <data name="Value: {0}" xml:space="preserve">
+    <value>Wert: {0}</value>
   </data>
   <data name="Verdict address (GET)" xml:space="preserve">
     <value>Urteilsadresse (GET)</value>

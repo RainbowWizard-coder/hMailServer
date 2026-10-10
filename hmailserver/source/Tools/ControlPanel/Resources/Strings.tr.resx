@@ -5788,8 +5788,8 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Host names for the certificate (comma separated)" xml:space="preserve">
     <value>Sertifika için ana bilgisayar adları (virgülle ayrılmış)</value>
   </data>
-  <data name="Host/Name:  {0}" xml:space="preserve">
-    <value>Ana bilgisayar/Ad:  {0}</value>
+  <data name="Host/Name: {0}" xml:space="preserve">
+    <value>Ana bilgisayar/Ad: {0}</value>
   </data>
   <data name="Hosts that use OAuth2 (comma separated; empty = none)" xml:space="preserve">
     <value>OAuth2 kullanan ana bilgisayarlar (virgülle ayrılmış; boş = hiçbiri)</value>
@@ -14464,8 +14464,8 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="Type the user name the password belongs to." xml:space="preserve">
     <value>Parolanın ait olduğu kullanıcı adını yazın.</value>
   </data>
-  <data name="Type:       TXT" xml:space="preserve">
-    <value>Tür:       TXT</value>
+  <data name="Type: TXT" xml:space="preserve">
+    <value>Tür: TXT</value>
   </data>
   <data name="UDP - no delivery guarantee, truncated at 1,024 bytes" xml:space="preserve">
     <value>UDP - teslim garantisi yok, 1.024 baytta kırpılır</value>
@@ -14626,8 +14626,8 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="Validity window for the signatures this server makes (seconds; 0 = no expiry)" xml:space="preserve">
     <value>Bu sunucunun ürettiği imzalar için geçerlilik penceresi (saniye; 0 = süre sonu yok)</value>
   </data>
-  <data name="Value:      {0}" xml:space="preserve">
-    <value>Değer:      {0}</value>
+  <data name="Value: {0}" xml:space="preserve">
+    <value>Değer: {0}</value>
   </data>
   <data name="Verdict address (GET)" xml:space="preserve">
     <value>Karar adresi (GET)</value>

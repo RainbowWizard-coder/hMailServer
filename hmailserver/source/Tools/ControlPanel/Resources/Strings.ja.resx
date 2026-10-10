@@ -5798,8 +5798,8 @@
   <data name="Host names for the certificate (comma separated)" xml:space="preserve">
     <value>証明書のホスト名 (コンマ区切り)</value>
   </data>
-  <data name="Host/Name:  {0}" xml:space="preserve">
-    <value>ホスト/名前:  {0}</value>
+  <data name="Host/Name: {0}" xml:space="preserve">
+    <value>ホスト/名前: {0}</value>
   </data>
   <data name="Hosts that use OAuth2 (comma separated; empty = none)" xml:space="preserve">
     <value>OAuth2 を使うホスト (カンマ区切り、空 = なし)</value>
@@ -14474,8 +14474,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Type the user name the password belongs to." xml:space="preserve">
     <value>パスワードが属するユーザー名を入力してください。</value>
   </data>
-  <data name="Type:       TXT" xml:space="preserve">
-    <value>種類:       TXT</value>
+  <data name="Type: TXT" xml:space="preserve">
+    <value>種類: TXT</value>
   </data>
   <data name="UDP - no delivery guarantee, truncated at 1,024 bytes" xml:space="preserve">
     <value>UDP - 配送保証なし、1,024 バイトで切り詰め</value>
@@ -14636,8 +14636,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Validity window for the signatures this server makes (seconds; 0 = no expiry)" xml:space="preserve">
     <value>このサーバーが生成する署名の有効期間 (秒、0 = 期限なし)</value>
   </data>
-  <data name="Value:      {0}" xml:space="preserve">
-    <value>値:      {0}</value>
+  <data name="Value: {0}" xml:space="preserve">
+    <value>値: {0}</value>
   </data>
   <data name="Verdict address (GET)" xml:space="preserve">
     <value>判定アドレス (GET)</value>

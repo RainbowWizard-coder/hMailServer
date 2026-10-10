@@ -5864,8 +5864,8 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Host names for the certificate (comma separated)" xml:space="preserve">
     <value>Nazwy hostów dla certyfikatu (rozdzielone przecinkami)</value>
   </data>
-  <data name="Host/Name:  {0}" xml:space="preserve">
-    <value>Host/Nazwa:  {0}</value>
+  <data name="Host/Name: {0}" xml:space="preserve">
+    <value>Host/Nazwa: {0}</value>
   </data>
   <data name="Hosts that use OAuth2 (comma separated; empty = none)" xml:space="preserve">
     <value>Hosty używające OAuth2 (rozdzielone przecinkami; puste = żaden)</value>
@@ -14645,8 +14645,8 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="Type the user name the password belongs to." xml:space="preserve">
     <value>Wpisz nazwę użytkownika, do którego należy hasło.</value>
   </data>
-  <data name="Type:       TXT" xml:space="preserve">
-    <value>Typ:       TXT</value>
+  <data name="Type: TXT" xml:space="preserve">
+    <value>Typ: TXT</value>
   </data>
   <data name="UDP - no delivery guarantee, truncated at 1,024 bytes" xml:space="preserve">
     <value>UDP - bez gwarancji dostarczenia, obcinane do 1 024 bajtów</value>
@@ -14810,8 +14810,8 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="Validity window for the signatures this server makes (seconds; 0 = no expiry)" xml:space="preserve">
     <value>Okno ważności podpisów tworzonych przez ten serwer (sekundy; 0 = bez wygasania)</value>
   </data>
-  <data name="Value:      {0}" xml:space="preserve">
-    <value>Wartość:      {0}</value>
+  <data name="Value: {0}" xml:space="preserve">
+    <value>Wartość: {0}</value>
   </data>
   <data name="Verdict address (GET)" xml:space="preserve">
     <value>Adres werdyktu (GET)</value>

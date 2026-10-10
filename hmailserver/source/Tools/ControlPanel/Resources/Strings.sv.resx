@@ -5788,8 +5788,8 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Host names for the certificate (comma separated)" xml:space="preserve">
     <value>Värdnamn för certifikatet (kommaseparerade)</value>
   </data>
-  <data name="Host/Name:  {0}" xml:space="preserve">
-    <value>Värd/Namn:  {0}</value>
+  <data name="Host/Name: {0}" xml:space="preserve">
+    <value>Värd/Namn: {0}</value>
   </data>
   <data name="Hosts that use OAuth2 (comma separated; empty = none)" xml:space="preserve">
     <value>Värdar som använder OAuth2 (kommaseparerade; tomt = ingen)</value>
@@ -14464,8 +14464,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Type the user name the password belongs to." xml:space="preserve">
     <value>Skriv in användarnamnet som lösenordet hör till.</value>
   </data>
-  <data name="Type:       TXT" xml:space="preserve">
-    <value>Typ:        TXT</value>
+  <data name="Type: TXT" xml:space="preserve">
+    <value>Typ: TXT</value>
   </data>
   <data name="UDP - no delivery guarantee, truncated at 1,024 bytes" xml:space="preserve">
     <value>UDP - ingen leveransgaranti, kapas vid 1 024 byte</value>
@@ -14626,8 +14626,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Validity window for the signatures this server makes (seconds; 0 = no expiry)" xml:space="preserve">
     <value>Giltighetsfönster för signaturerna som servern skapar (sekunder; 0 = ingen utgångstid)</value>
   </data>
-  <data name="Value:      {0}" xml:space="preserve">
-    <value>Värde:      {0}</value>
+  <data name="Value: {0}" xml:space="preserve">
+    <value>Värde: {0}</value>
   </data>
   <data name="Verdict address (GET)" xml:space="preserve">
     <value>Domsadress (GET)</value>

@@ -3406,13 +3406,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   literal text (p=..., https://host/...). The two "...within (minutes)" captions of Auto-ban are worded whole
   ("Failures counted within (minutes)", "Failures for a name counted within (minutes)"), "two, four, six...
   seconds" says "and so on", the generated password's toast reads "copied to the clipboard; reveal it with the eye
-  icon", texts padded with spaces for an alignment the layout never kept ("Version {0}  -  .NET {1}") have single
-  spaces, and the one date format written in lower case is "YYYY-MM-DD HH:MM:SS" as the others are. Each change is
-  made in the seventeen translations, and their own dashes follow the same rule: the hyphen, but for Russian and
-  Ukrainian (the em dash) and Czech (the en dash), whose typography and catalogues write a dash of their own, one
-  kind to a text, and a range written "1-14". `build/check-catalogues.py` holds the English to no em or en dash and
-  three dots only for literal text, and each translation to its catalogue's dash and to three dots only where its
-  English has them; `docs/ControlPanelDesign.md` states the rule.
+  icon", texts padded with spaces for an alignment the layout never kept ("Version {0}  -  .NET {1}", and the
+  domain dialog's DKIM record, "Type:       TXT" under "Host/Name:  {0}", which lined up in no translation) have
+  single spaces, and the one date format written in lower case is "YYYY-MM-DD HH:MM:SS" as the others are. Each
+  change is made in the seventeen translations, and their own dashes follow the same rule: the hyphen, but for
+  Russian and Ukrainian (the em dash) and Czech (the en dash), whose typography and catalogues write a dash of their
+  own, one kind to a text, and a range written "1-14". `build/check-catalogues.py` holds the English to no em or en
+  dash and three dots only for literal text, each translation to its catalogue's dash and to three dots only where
+  its English has them, and every text to no padding; `docs/ControlPanelDesign.md` states the rule.
 
 - **Fixed: cipher lists, LDAP names, log lines, the bearer header and paths were set in the UI face, and monospaced
   text came in three sizes.** The SSL/TLS page's cipher list, TLS 1.3 suites and key exchange groups and Directory

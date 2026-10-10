@@ -5788,8 +5788,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Host names for the certificate (comma separated)" xml:space="preserve">
     <value>Nomes de host para o certificado (separados por vírgula)</value>
   </data>
-  <data name="Host/Name:  {0}" xml:space="preserve">
-    <value>Host/Nome:  {0}</value>
+  <data name="Host/Name: {0}" xml:space="preserve">
+    <value>Host/Nome: {0}</value>
   </data>
   <data name="Hosts that use OAuth2 (comma separated; empty = none)" xml:space="preserve">
     <value>Hosts que usam OAuth2 (separados por vírgula; vazio = nenhum)</value>
@@ -14464,8 +14464,8 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="Type the user name the password belongs to." xml:space="preserve">
     <value>Digite o nome de usuário ao qual a senha pertence.</value>
   </data>
-  <data name="Type:       TXT" xml:space="preserve">
-    <value>Tipo:       TXT</value>
+  <data name="Type: TXT" xml:space="preserve">
+    <value>Tipo: TXT</value>
   </data>
   <data name="UDP - no delivery guarantee, truncated at 1,024 bytes" xml:space="preserve">
     <value>UDP - sem garantia de entrega, truncado em 1.024 bytes</value>
@@ -14626,8 +14626,8 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="Validity window for the signatures this server makes (seconds; 0 = no expiry)" xml:space="preserve">
     <value>Janela de validade das assinaturas que este servidor produz (segundos; 0 = sem expiração)</value>
   </data>
-  <data name="Value:      {0}" xml:space="preserve">
-    <value>Valor:      {0}</value>
+  <data name="Value: {0}" xml:space="preserve">
+    <value>Valor: {0}</value>
   </data>
   <data name="Verdict address (GET)" xml:space="preserve">
     <value>Endereço de veredito (GET)</value>

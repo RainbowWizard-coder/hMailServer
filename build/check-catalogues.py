@@ -59,6 +59,15 @@ catalogue, or against what the server does at run time:
             quote, „Prüfen" beside „Sicherung jetzt starten“ (review finding
             F038).
 
+  punctuation
+            One dash, one ellipsis and no padding (review findings F037, F299):
+            the English writes the spaced hyphen, the ellipsis character, and
+            three dots only for omitted literal text; a translation writes its
+            catalogue's dash (OWN_DASH), a range with the hyphen, and three
+            dots only where its English has them; and no text pads itself with
+            spaces to line up with the next (PADDING) - "Type:       TXT"
+            under "Host/Name:  {0}" lined up in no translation.
+
 The Czech, Polish, Russian and Ukrainian plural forms ("<English>|few", which
 Loc.Plural reads for counts such as 2 to 4) are held to the English they stand in for, by the
 same rules.
@@ -268,10 +277,23 @@ EM, EN, ELLIPSIS = "\u2014", "\u2013", "\u2026"
 OWN_DASH = {"ru": EM, "uk": EM, "cs": EN}
 LITERAL_DOTS = re.compile(r"(?:[=/_]|Bearer |; )\.\.\.")
 RANGE_DASH = re.compile(r"(?<=[\d}])[\u2013\u2014](?=[\d{])")
+# A text padded with spaces to line up with the next - a run of them after a colon,
+# or before a dash or a bracket: "Type:       TXT" under "Host/Name:  {0}", "Version
+# {0}  -  .NET {1}", "{0}  (not subscribed)" (review finding F299). No translation
+# kept the alignment, its words being longer or shorter and a CJK character two
+# columns wide; the layout aligns, and a text has one space there. Indentation after
+# a line break, a list's "1.  " and the palette's spaced-out key hints are not padding.
+PADDING = re.compile(r"(?<=[:\uff1a]) {2,}(?=\S)|(?<=\S) {2,}(?=[-(\u2013\u2014])")
+PADDING_FINDING = "spaces padding it to line up (%r); one space, and let the layout align"
+
+
+def padding_findings(text):
+   """The runs of spaces a text uses to line itself up with another."""
+   return [PADDING_FINDING % text[max(0, m.start() - 8):m.end() + 4] for m in PADDING.finditer(text)][:1]
 
 
 def english_punctuation_findings(text):
-   """The dashes and three dots an English text should not have."""
+   """The dashes, three dots and padding an English text should not have."""
    findings = []
    for char, name in ((EM, "em"), (EN, "en")):
       if char in text:
@@ -281,6 +303,7 @@ def english_punctuation_findings(text):
          findings.append("three dots; a caption that opens a dialog, progress text and the rest of a list end in "
                          "the ellipsis character, and three dots stand only for omitted literal text (p=...)")
          break
+   findings += padding_findings(text)
    return findings
 
 
@@ -300,6 +323,7 @@ def dash_findings(tag, source, target):
       findings.append("both the hyphen and the %s dash as dashes in one text; use one" % ("em" if own == EM else "en"))
    if "..." in target and "..." not in source:
       findings.append("three dots where the English has none; the ellipsis character is " + ELLIPSIS)
+   findings += padding_findings(target)
    return findings
 
 
@@ -497,6 +521,15 @@ def self_test():
       "Publish it (v=STSv1; id=...) - or wait.": False,
       "Send it as Authorization: Bearer hmapi_...": False,
       "Trust anchor override (tag alg digesttype hex; ...)": False,
+      "Type:       TXT": True,
+      "Host/Name:  {0}": True,
+      "Version {0}  -  .NET {1}": True,
+      "{0}  (not subscribed)": True,
+      "Type: TXT": False,
+      "Could not read the list: ": False,
+      "The file\r\n   {0}\r\ncould not be loaded.": False,
+      "1.  Scan this QR code with an authenticator app.": False,
+      "↑↓ move    Enter open    Esc close": False,
    }
    for text, expected in english_cases.items():
       found = bool(english_punctuation_findings(text))
@@ -519,6 +552,10 @@ def self_test():
       ("de", "Applying" + ELLIPSIS, "Wird angewendet..."): True,
       ("de", "Applying" + ELLIPSIS, "Wird angewendet" + ELLIPSIS): False,
       ("de", "Address (https://host/...)", "Adresse (https://host/...)"): False,
+      ("fr", "Value: {0}", "Valeur :    {0}"): True,
+      ("fr", "Value: {0}", "Valeur : {0}"): False,
+      ("zh-Hans", "Host/Name: {0}", "主机/名称：  {0}"): True,
+      ("zh-Hans", "Host/Name: {0}", "主机/名称：{0}"): False,
    }
    for (tag, source, value), expected in translation_cases.items():
       found = bool(dash_findings(tag, source, value))

@@ -5788,8 +5788,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Host names for the certificate (comma separated)" xml:space="preserve">
     <value>Hostnamen voor het certificaat (door komma's gescheiden)</value>
   </data>
-  <data name="Host/Name:  {0}" xml:space="preserve">
-    <value>Host/Naam:  {0}</value>
+  <data name="Host/Name: {0}" xml:space="preserve">
+    <value>Host/Naam: {0}</value>
   </data>
   <data name="Hosts that use OAuth2 (comma separated; empty = none)" xml:space="preserve">
     <value>Hosts die OAuth2 gebruiken (door komma's gescheiden; leeg = geen)</value>
@@ -14464,8 +14464,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="Type the user name the password belongs to." xml:space="preserve">
     <value>Typ de gebruikersnaam waar het wachtwoord bij hoort.</value>
   </data>
-  <data name="Type:       TXT" xml:space="preserve">
-    <value>Type:       TXT</value>
+  <data name="Type: TXT" xml:space="preserve">
+    <value>Type: TXT</value>
   </data>
   <data name="UDP - no delivery guarantee, truncated at 1,024 bytes" xml:space="preserve">
     <value>UDP - geen afleveringsgarantie, afgekapt op 1.024 bytes</value>
@@ -14626,8 +14626,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="Validity window for the signatures this server makes (seconds; 0 = no expiry)" xml:space="preserve">
     <value>Geldigheidsvenster voor de handtekeningen die deze server maakt (seconden; 0 = geen vervaldatum)</value>
   </data>
-  <data name="Value:      {0}" xml:space="preserve">
-    <value>Waarde:      {0}</value>
+  <data name="Value: {0}" xml:space="preserve">
+    <value>Waarde: {0}</value>
   </data>
   <data name="Verdict address (GET)" xml:space="preserve">
     <value>Oordeeladres (GET)</value>

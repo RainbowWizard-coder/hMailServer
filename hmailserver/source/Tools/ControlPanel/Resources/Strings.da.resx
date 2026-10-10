@@ -5788,8 +5788,8 @@ Ingen post røres - indekset er udledt af den - men indtil genopbygningen har in
   <data name="Host names for the certificate (comma separated)" xml:space="preserve">
     <value>Værtsnavne til certifikatet (kommasepareret)</value>
   </data>
-  <data name="Host/Name:  {0}" xml:space="preserve">
-    <value>Vært/navn:  {0}</value>
+  <data name="Host/Name: {0}" xml:space="preserve">
+    <value>Vært/navn: {0}</value>
   </data>
   <data name="Hosts that use OAuth2 (comma separated; empty = none)" xml:space="preserve">
     <value>Værter, der bruger OAuth2 (kommasepareret; tomt = ingen)</value>
@@ -14464,8 +14464,8 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="Type the user name the password belongs to." xml:space="preserve">
     <value>Skriv det brugernavn, adgangskoden hører til.</value>
   </data>
-  <data name="Type:       TXT" xml:space="preserve">
-    <value>Type:       TXT</value>
+  <data name="Type: TXT" xml:space="preserve">
+    <value>Type: TXT</value>
   </data>
   <data name="UDP - no delivery guarantee, truncated at 1,024 bytes" xml:space="preserve">
     <value>UDP - ingen leveringsgaranti, afkortet ved 1.024 byte</value>
@@ -14626,8 +14626,8 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="Validity window for the signatures this server makes (seconds; 0 = no expiry)" xml:space="preserve">
     <value>Gyldighedsvindue for de signaturer, denne server laver (sekunder; 0 = intet udløb)</value>
   </data>
-  <data name="Value:      {0}" xml:space="preserve">
-    <value>Værdi:      {0}</value>
+  <data name="Value: {0}" xml:space="preserve">
+    <value>Værdi: {0}</value>
   </data>
   <data name="Verdict address (GET)" xml:space="preserve">
     <value>Domsadresse (GET)</value>
