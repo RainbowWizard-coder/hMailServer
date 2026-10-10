@@ -3567,8 +3567,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   (`Views/Scaffold/BreadcrumbTrailPanel`), and the Related links keep twelve pixels from it, where "Certificates
   (ACME)" went onto a second line at 760 pixels and "Transport security" ran into "Related:" (review findings F021,
   F022, F023, F047; T3.3 work item 7). Beside the wider sidebar the Domains page's alias and list cards keep 270
-  pixels each where they kept 280, so that they stay side by side at 1280. `ShellGeometryTests` holds the widths, the
-  rail beside the pane, the glyphs and the breadcrumb.
+  pixels each where they kept 280, so that they stay side by side at 1280, and the audit trail's grid scrolls sideways
+  where it had cut its Detail column to a letter, Detail floored at 120 pixels and the columns before it at their
+  words. `ShellGeometryTests` holds the widths, the rail beside the pane, the glyphs, the breadcrumb and the audit
+  trail's floors.
 
 - **Fixed: the page tour's button and the help pane's were one question-mark glyph, 250 pixels apart.** On a page a
   tour visits - Domains, TCP/IP ports, SSL certificates and the Dashboard - the header's question mark started the

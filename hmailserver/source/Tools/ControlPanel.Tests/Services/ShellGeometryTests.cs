@@ -295,6 +295,30 @@ namespace hMailServer.ControlPanel.Tests.Services
          }
       }
 
+      /// <summary>
+      /// A page the wider sidebar narrowed keeps what it would have cut to nothing:
+      /// the audit trail's Detail, a star column with no floor, went from about 45
+      /// pixels to 17 at 1280 - its header "D..." and its cells a letter - so it is
+      /// floored at 120 and the grid scrolls sideways, keeping its upright bar; and
+      /// the columns before it are floored at their words as each page of the trail
+      /// is shown, since with Detail floored a grid narrowed after it was laid out
+      /// wider took what Detail lacked from them and cut 24 of their cells at 1280.
+      /// </summary>
+      [Fact]
+      public void TheAuditTrail_BesideTheWiderSidebar_ScrollsSidewaysRatherThanCutDetailToALetter()
+      {
+         string page = ConfirmationPatternTests.ReadControlPanelFile(System.IO.Path.Join("Views", "AuditTrailView.cs"));
+         Match floor = Regex.Match(page, @"detail_?\.MinWidth = (?:Math\.Max\()?(\d+)");
+         Assert.True(floor.Success, "The audit trail's Detail column has no floor.");
+         Assert.True(int.Parse(floor.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture) >= 120, "The audit trail's Detail column is floored under 120 pixels.");
+         Assert.Contains("ScrollViewer.SetVerticalScrollBarVisibility(rows_, ScrollBarVisibility.Visible);", page, StringComparison.Ordinal);
+         string reload = WithheldRowTests.MemberText(page, "private void Reload()");
+         Assert.True(reload != null, "AuditTrailView.Reload is gone.");
+         Assert.Contains("GridStyles.FloorAtTheirWords(rows_, shown, detail_);", reload, StringComparison.Ordinal);
+         Assert.True(reload.IndexOf("rows_.ItemsSource = shown;", StringComparison.Ordinal) < reload.IndexOf("GridStyles.FloorAtTheirWords(", StringComparison.Ordinal),
+            "The audit trail floors its columns before the rows they are floored at are shown.");
+      }
+
       /// <summary>A glyph's family: its name without the size and without the qualifier after the first word - "ShieldKeyhole24" is a Shield.</summary>
       private static string Family_(string icon)
       {
