@@ -845,8 +845,14 @@ namespace hMailServer.ControlPanel.Views
             settings = ServerSession.Current.Application.Settings;
             antiSpam = settings.AntiSpam;
 
+            var answers = new List<SenderCheckResult>();
             foreach (SenderListGuideRow list in SenderListGuide.Rows)
-               checkResults_.Children.Add(CheckRow_(Check_((object)antiSpam, list.Page, address, ip)));
+               answers.Add(Check_((object)antiSpam, list.Page, address, ip));
+
+            // Each list was asked on its own; the rows say what the server does with
+            // the sender, where a list it meets first keeps a later one from being read.
+            foreach (SenderCheckResult answer in SenderCheck.ApplyPrecedence(answers))
+               checkResults_.Children.Add(CheckRow_(answer));
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -948,15 +954,7 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>One list's answer as a row: a pill saying what the list does, the list's page, and the sentence.</summary>
       private static FrameworkElement CheckRow_(SenderCheckResult result)
       {
-         (StatusLevel level, string word) = result.Outcome switch
-         {
-            SenderCheckOutcome.Matches when result.Blocks => (StatusLevel.Warning, L("Stops it")),
-            SenderCheckOutcome.Matches => (StatusLevel.Good, L("Lets it through")),
-            SenderCheckOutcome.MatchesIf => (StatusLevel.Information, L("Depends")),
-            SenderCheckOutcome.NotRead => (StatusLevel.Critical, L("Not read")),
-            SenderCheckOutcome.NotChecked => (StatusLevel.Normal, L("Not checked")),
-            _ => (StatusLevel.Normal, L("No match"))
-         };
+         (StatusLevel level, string word) = SenderCheck.Pill(result);
 
          // The pills as wide as the widest of them, in every row (the results panel is
          // the size scope), and the list's page over its sentence beside them, so that

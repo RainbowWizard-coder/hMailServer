@@ -1221,6 +1221,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Adds the server's score." xml:space="preserve">
     <value>Lägger till serverns poäng.</value>
   </data>
+  <data name="Adds to the score" xml:space="preserve">
+    <value>Lägger till poäng</value>
+  </data>
   <data name="Administer" xml:space="preserve">
     <value>Administrera</value>
   </data>
@@ -7477,6 +7480,12 @@ Inget som redan finns där tas bort.</value>
   <data name="Not connected" xml:space="preserve">
     <value>Inte ansluten</value>
   </data>
+  <data name="Not consulted: the allowed domain is never greylisted." xml:space="preserve">
+    <value>Används inte: den tillåtna domänen gråstlistas aldrig.</value>
+  </data>
+  <data name="Not consulted: the spam exemption covers this sender, so the server checks neither its domain nor its score, and does not greylist it." xml:space="preserve">
+    <value>Används inte: skräppostundantaget täcker den här avsändaren, så servern kontrollerar varken dess domän eller dess poäng och gråstlistar den inte.</value>
+  </data>
   <data name="Not found" xml:space="preserve">
     <value>Hittades inte</value>
   </data>
@@ -7494,6 +7503,12 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="Not published" xml:space="preserve">
     <value>Inte publicerad</value>
+  </data>
+  <data name="Not reached" xml:space="preserve">
+    <value>Nås inte</value>
+  </data>
+  <data name="Not reached: the message is refused at MAIL FROM." xml:space="preserve">
+    <value>Nås inte: meddelandet avvisas vid MAIL FROM.</value>
   </data>
   <data name="Not read" xml:space="preserve">
     <value>Inte läst</value>
@@ -11715,6 +11730,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>Administratörens lösenord backas upp av en engångskod.</value>
+  </data>
+  <data name="The allowed domain means the score cannot refuse or quarantine the message, though it can still mark it as spam." xml:space="preserve">
+    <value>Eftersom domänen är tillåten kan poängen inte avvisa meddelandet eller lägga det i karantän, men den kan fortfarande markera det som skräppost.</value>
   </data>
   <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
     <value>Alternativet till bearer-token, för skrapare som bara talar HTTP Basic. Användarnamnet och lösenordet måste BÅDA vara satta: med bara ett av dem loggar servern en varning vid start och beter sig som om inget av dem vore satt.</value>

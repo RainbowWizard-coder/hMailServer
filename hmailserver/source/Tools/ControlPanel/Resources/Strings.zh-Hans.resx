@@ -1221,6 +1221,9 @@
   <data name="Adds the server's score." xml:space="preserve">
     <value>加上该服务器的分数。</value>
   </data>
+  <data name="Adds to the score" xml:space="preserve">
+    <value>计入分数</value>
+  </data>
   <data name="Administer" xml:space="preserve">
     <value>管理</value>
   </data>
@@ -7477,6 +7480,12 @@
   <data name="Not connected" xml:space="preserve">
     <value>未连接</value>
   </data>
+  <data name="Not consulted: the allowed domain is never greylisted." xml:space="preserve">
+    <value>不会查询：允许的域从不进行灰名单处理。</value>
+  </data>
+  <data name="Not consulted: the spam exemption covers this sender, so the server checks neither its domain nor its score, and does not greylist it." xml:space="preserve">
+    <value>不会查询：反垃圾邮件豁免涵盖此发件人，因此服务器既不检查其域，也不计算其分数，也不对其做灰名单处理。</value>
+  </data>
   <data name="Not found" xml:space="preserve">
     <value>未找到</value>
   </data>
@@ -7494,6 +7503,12 @@
   </data>
   <data name="Not published" xml:space="preserve">
     <value>未发布</value>
+  </data>
+  <data name="Not reached" xml:space="preserve">
+    <value>不会查询</value>
+  </data>
+  <data name="Not reached: the message is refused at MAIL FROM." xml:space="preserve">
+    <value>不会查询：邮件在 MAIL FROM 时被拒绝。</value>
   </data>
   <data name="Not read" xml:space="preserve">
     <value>未读取</value>
@@ -11715,6 +11730,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>管理员密码有一次性代码保护。</value>
+  </data>
+  <data name="The allowed domain means the score cannot refuse or quarantine the message, though it can still mark it as spam." xml:space="preserve">
+    <value>由于该域已被允许，分数不能拒绝邮件或将其放入隔离区，但仍可将其标记为垃圾邮件。</value>
   </data>
   <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
     <value>持有者令牌的替代方案，供只支持 HTTP Basic 的抓取器使用。用户名和密码必须同时设置: 只设置其一时，服务器会在启动时记录一条警告，并当作两者都未设置来处理。</value>

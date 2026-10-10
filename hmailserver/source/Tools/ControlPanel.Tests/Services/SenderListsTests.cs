@@ -238,6 +238,151 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.EndsWith("the link went", failed.Text, StringComparison.Ordinal);
       }
 
+      // ---- the order the server reads the lists in ---------------------------------
+
+      /// <summary>
+      /// The lists of the overview's own render: the office network 10.0.0.0 -
+      /// 10.255.255.255 is a spam exemption, mass-mail.example a blocked domain (or an
+      /// allowed one) and a blocked sender of score 100, one address at mass-mail.example
+      /// is on the allow and block list, and one provider's address is a greylisting
+      /// exemption. Every answer is the list's own, asked on its own, in the guide's order.
+      /// </summary>
+      private static List<SenderCheckResult> Answers_(string address, string ip, string domainAction = "black")
+      {
+         var now = new DateTime(2026, 10, 10, 12, 0, 0);
+         return new List<SenderCheckResult>
+         {
+            SenderCheck.SpamExemptions(new[] { new SenderCheck.SpamExemption("10.0.0.0", "10.255.255.255", "*", "The office network") }, address, ip),
+            SenderCheck.DomainPolicy("{\"items\":[{\"pattern\":\"mass-mail.example\",\"match_on\":\"both\",\"action\":\"" + domainAction + "\"}]}", address),
+            SenderCheck.BlockedSenders(new[] { new SenderCheck.BlockedSender("mass-mail.example", 100) }, address),
+            SenderCheck.AskedOfTheNetwork("dnsbl"),
+            SenderCheck.GreylistingExemptions(new[] { "203.0.113.25" }, ip),
+            SenderCheck.GreylistingBypass(new[] { new SenderCheck.BypassEntry(".mass-mail.example", SenderCheck.MatchEnvelope, false, false, false) }, address),
+            SenderCheck.AskedOfTheNetwork("surbl"),
+            SenderCheck.SenderList(new[] { new SenderCheck.SenderListEntry("spammer@mass-mail.example", true, false, DateTime.MinValue, "") }, address, now)
+         };
+      }
+
+      private static SenderCheckResult At_(IReadOnlyList<SenderCheckResult> answers, string page) => answers.Single(answer => answer.Page == page);
+
+      /// <summary>
+      /// news@mass-mail.example from 10.1.2.3, as the render had it: the exemption read
+      /// "Lets it through" above "Stops it" on the blocked domain, refused at MAIL FROM,
+      /// and on the blocked senders, adding 100 to the score, where the server accepts
+      /// the message with no check at all. A spam exemption sets the session's spam
+      /// protection to none (SMTPConnection::InitializeSpamProtectionType_), so the domain
+      /// policy is not consulted (CheckDomainPolicy_) and no spam test or greylisting runs
+      /// (GetDoSpamProtection_); the allow and block list still applies at delivery.
+      /// </summary>
+      [Fact]
+      public void ASpamExemptionKeepsTheServerFromEveryListButTheAllowAndBlockList()
+      {
+         List<SenderCheckResult> asked = Answers_("news@mass-mail.example", "10.1.2.3");
+         Assert.Equal(SenderCheckOutcome.Matches, At_(asked, "domainpolicylist").Outcome);
+         Assert.True(At_(asked, "domainpolicylist").Blocks);
+         Assert.True(At_(asked, "blockedsenders").Blocks);
+
+         IReadOnlyList<SenderCheckResult> answers = SenderCheck.ApplyPrecedence(asked);
+         Assert.Equal(SenderListGuide.Rows.Select(row => row.Page), answers.Select(answer => answer.Page));
+         Assert.Equal(SenderCheckOutcome.Matches, At_(answers, "spamwhitelist").Outcome);
+         Assert.Equal("Lets it through", SenderCheck.Pill(At_(answers, "spamwhitelist")).Word);
+         foreach (string page in new[] { "domainpolicylist", "blockedsenders", "dnsbl", "greylistwhitelist", "greylistbypass", "surbl" })
+         {
+            SenderCheckResult answer = At_(answers, page);
+            Assert.Equal(SenderCheckOutcome.NotReached, answer.Outcome);
+            Assert.False(answer.Blocks);
+            Assert.Equal((StatusLevel.Normal, "Not reached"), SenderCheck.Pill(answer));
+            Assert.StartsWith("Not consulted: the spam exemption covers this sender", answer.Text, StringComparison.Ordinal);
+         }
+
+         // The allow and block list is read at delivery whatever the exemption says.
+         Assert.Same(asked[7], At_(answers, "senderlist"));
+         Assert.DoesNotContain(answers, answer => SenderCheck.Pill(answer).Word == "Stops it");
+
+         // And when the list blocks the address, it is still the list that says so.
+         IReadOnlyList<SenderCheckResult> spammer = SenderCheck.ApplyPrecedence(Answers_("spammer@mass-mail.example", "10.1.2.3"));
+         Assert.Equal("Stops it", SenderCheck.Pill(At_(spammer, "senderlist")).Word);
+      }
+
+      /// <summary>
+      /// The same sender from outside the office network: the blocked domain refuses it at
+      /// MAIL FROM (CheckDomainPolicy_), so no list after it is read - the blocked senders,
+      /// the greylisting lists and the allow and block list among them.
+      /// </summary>
+      [Fact]
+      public void ABlockedDomainIsRefusedBeforeAnyLaterList()
+      {
+         IReadOnlyList<SenderCheckResult> answers = SenderCheck.ApplyPrecedence(Answers_("news@mass-mail.example", "192.0.2.7"));
+         Assert.Equal(SenderCheckOutcome.NoMatch, At_(answers, "spamwhitelist").Outcome);
+         Assert.Equal((StatusLevel.Warning, "Stops it"), SenderCheck.Pill(At_(answers, "domainpolicylist")));
+         Assert.Contains("refused at MAIL FROM", At_(answers, "domainpolicylist").Text, StringComparison.Ordinal);
+         foreach (string page in new[] { "blockedsenders", "dnsbl", "greylistwhitelist", "greylistbypass", "surbl", "senderlist" })
+         {
+            Assert.Equal(SenderCheckOutcome.NotReached, At_(answers, page).Outcome);
+            Assert.Equal("Not reached: the message is refused at MAIL FROM.", At_(answers, page).Text);
+         }
+      }
+
+      /// <summary>
+      /// The same sender with its domain allowed: an allowed domain is never greylisted
+      /// (the RCPT TO gate reads DomainPolicyWhite_), and no score refuses or quarantines
+      /// it (DoSpamProtection_), though the tests run - so the blocked sender adds 100 to
+      /// the score, which can mark the message as spam and no longer stops it.
+      /// </summary>
+      [Fact]
+      public void AnAllowedDomainIsNeverGreylistedAndNoScoreRefusesIt()
+      {
+         List<SenderCheckResult> asked = Answers_("news@mass-mail.example", "203.0.113.25", "white");
+         Assert.Equal(SenderCheckOutcome.Matches, At_(asked, "greylistwhitelist").Outcome);
+         Assert.Equal(SenderCheckOutcome.Matches, At_(asked, "greylistbypass").Outcome);
+
+         IReadOnlyList<SenderCheckResult> answers = SenderCheck.ApplyPrecedence(asked);
+         Assert.Equal((StatusLevel.Good, "Lets it through"), SenderCheck.Pill(At_(answers, "domainpolicylist")));
+         foreach (string page in new[] { "greylistwhitelist", "greylistbypass" })
+         {
+            Assert.Equal(SenderCheckOutcome.NotReached, At_(answers, page).Outcome);
+            Assert.Equal("Not consulted: the allowed domain is never greylisted.", At_(answers, page).Text);
+         }
+
+         SenderCheckResult blocked = At_(answers, "blockedsenders");
+         Assert.Equal(SenderCheckOutcome.AddsToScore, blocked.Outcome);
+         Assert.False(blocked.Blocks);
+         Assert.Equal((StatusLevel.Warning, "Adds to the score"), SenderCheck.Pill(blocked));
+         Assert.Equal("The entry mass-mail.example matches, adding 100 to the score. The allowed domain means the score cannot refuse or quarantine the message, though it can still mark it as spam.", blocked.Text);
+
+         // The lists the allowed domain does not touch answer as they did.
+         Assert.Same(asked[0], At_(answers, "spamwhitelist"));
+         Assert.Same(asked[3], At_(answers, "dnsbl"));
+         Assert.Same(asked[6], At_(answers, "surbl"));
+         Assert.Same(asked[7], At_(answers, "senderlist"));
+      }
+
+      /// <summary>
+      /// Nothing that decides - no exemption, no listed domain - and each list says what
+      /// it says; an exemption that covers the sender only on a condition not asked about
+      /// decides nothing yet either, and the domain's block then holds for the rest.
+      /// </summary>
+      [Fact]
+      public void WhereNoListDecidesEachAnswersForItself()
+      {
+         List<SenderCheckResult> asked = Answers_("someone@example.org", "192.0.2.7");
+         Assert.True(asked.SequenceEqual(SenderCheck.ApplyPrecedence(asked)), "An answer changed where no list decides.");
+
+         IReadOnlyList<SenderCheckResult> addressOnly = SenderCheck.ApplyPrecedence(Answers_("news@mass-mail.example", ""));
+         Assert.Equal(SenderCheckOutcome.MatchesIf, At_(addressOnly, "spamwhitelist").Outcome);
+         Assert.Equal(SenderCheckOutcome.Matches, At_(addressOnly, "domainpolicylist").Outcome);
+         Assert.Equal(SenderCheckOutcome.NotReached, At_(addressOnly, "blockedsenders").Outcome);
+      }
+
+      [Fact]
+      public void EveryAnswerHasItsPill()
+      {
+         Assert.Equal((StatusLevel.Normal, "No match"), SenderCheck.Pill(SenderCheck.BlockedSenders(Array.Empty<SenderCheck.BlockedSender>(), "a@example.test")));
+         Assert.Equal((StatusLevel.Normal, "Not checked"), SenderCheck.Pill(SenderCheck.AskedOfTheNetwork("dnsbl")));
+         Assert.Equal((StatusLevel.Critical, "Not read"), SenderCheck.Pill(SenderCheck.NotRead("senderlist", "the link went")));
+         Assert.Equal((StatusLevel.Information, "Depends"), SenderCheck.Pill(SenderCheck.SpamExemptions(new[] { new SenderCheck.SpamExemption("10.0.0.0", "10.0.0.255", "*", "") }, "a@example.test", "")));
+      }
+
       /// <summary>
       /// The overview draws the guide in place of "The lists behind the checks", and
       /// the check card asks each list in the guide's order, a list that cannot be
@@ -251,7 +396,10 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("Section(L(\"Which list do I need?\")", view, StringComparison.Ordinal);
          Assert.Contains("foreach (SenderListGuideRow list in SenderListGuide.Rows)", view, StringComparison.Ordinal);
          Assert.Contains("Section(L(\"Check a sender\")", view, StringComparison.Ordinal);
-         Assert.Contains("checkResults_.Children.Add(CheckRow_(Check_((object)antiSpam, list.Page, address, ip)));", view, StringComparison.Ordinal);
+         Assert.Contains("answers.Add(Check_((object)antiSpam, list.Page, address, ip));", view, StringComparison.Ordinal);
+         // The rows are the answers as the server acts on them, each with the pill its outcome has.
+         Assert.Contains("foreach (SenderCheckResult answer in SenderCheck.ApplyPrecedence(answers))", view, StringComparison.Ordinal);
+         Assert.Contains("(StatusLevel level, string word) = SenderCheck.Pill(result);", view, StringComparison.Ordinal);
          Assert.Contains("return SenderCheck.NotRead(page, ServerSession.DescribeComError(ex));", view, StringComparison.Ordinal);
          Assert.Contains("FormSubmit.Bind(form, checkButton_, checkAddress_, checkIp_);", view, StringComparison.Ordinal);
          Assert.Contains("body_.Children.Add(CheckCard_());", view, StringComparison.Ordinal);

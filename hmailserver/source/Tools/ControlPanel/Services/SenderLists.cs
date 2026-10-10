@@ -103,7 +103,21 @@ namespace hMailServer.ControlPanel.Services
       NotChecked,
 
       /// <summary>The list could not be read from the server.</summary>
-      NotRead
+      NotRead,
+
+      /// <summary>
+      /// An entry matches and adds its score, and the score cannot refuse the message:
+      /// the allowed and blocked domains allow the sender's domain, which lifts every
+      /// refusal by score (<see cref="SenderCheck.ApplyPrecedence"/>).
+      /// </summary>
+      AddsToScore,
+
+      /// <summary>
+      /// The server does not consult the list for this sender, because a list it meets
+      /// first has decided: a spam exemption that covers it, or its domain allowed or
+      /// blocked (<see cref="SenderCheck.ApplyPrecedence"/>).
+      /// </summary>
+      NotReached
    }
 
    /// <summary>One list's answer: the outcome, the entry that decided it, and the sentence that says it.</summary>
@@ -147,13 +161,122 @@ namespace hMailServer.ControlPanel.Services
    /// name and every name under it; an exact entry beats a suffix, a longer pattern
    /// a shorter one, and a block a tie). The HELO name is not asked, so entries
    /// matched against it alone are not checked, and the DNS block lists and SURBL
-   /// are asked of the network when mail arrives, not here.
+   /// are asked of the network when mail arrives, not here. Each list is asked on its
+   /// own; <see cref="ApplyPrecedence"/> then makes the answers the server's, where a
+   /// list it reads first keeps it from reading a later one.
    /// </summary>
    public static class SenderCheck
    {
       /// <summary>A list that could not be read: the reason last, as a failure's sentence ends.</summary>
       public static SenderCheckResult NotRead(string page, string why)
          => new SenderCheckResult(page, SenderCheckOutcome.NotRead, F("Could not read the list: {0}", why));
+
+      /// <summary>
+      /// The answers as the server acts on them: each list was asked on its own, and the
+      /// server reads them in order, where a list it meets first can decide that a later
+      /// one is never consulted - which the answers asked one by one did not say, so a
+      /// sender a spam exemption covers read "Lets it through" on its exemption and
+      /// "Stops it" on its blocked domain and on the blocked senders below it, while the
+      /// server accepts its mail with no check at all. In the server's order:
+      /// <list type="number">
+      /// <item>A spam exemption that covers the sender makes the session one the spam
+      /// protection skips (SMTPConnection::InitializeSpamProtectionType_ sets SPNone):
+      /// the allowed and blocked domains are not consulted (CheckDomainPolicy_ returns at
+      /// once), and no spam test - the blocked senders, the DNS block lists, SURBL - nor
+      /// greylisting runs (GetDoSpamProtection_ is false). The allow and block list still
+      /// applies, at delivery.</item>
+      /// <item>A blocked domain is refused at MAIL FROM (CheckDomainPolicy_), before any
+      /// later list is read.</item>
+      /// <item>An allowed domain is never greylisted (the RCPT TO gate reads
+      /// DomainPolicyWhite_) and no score refuses or quarantines it (DoSpamProtection_),
+      /// though the tests still run: a blocked sender's score still counts, towards
+      /// marking it as spam.</item>
+      /// </list>
+      /// <paramref name="inGuideOrder"/> holds one answer a list, in
+      /// <see cref="SenderListGuide.Rows"/>' order.
+      /// </summary>
+      public static IReadOnlyList<SenderCheckResult> ApplyPrecedence(IReadOnlyList<SenderCheckResult> inGuideOrder)
+      {
+         if (inGuideOrder == null)
+            return Array.Empty<SenderCheckResult>();
+
+         var results = inGuideOrder.ToList();
+
+         SenderCheckResult exemption = Answer_(results, "spamwhitelist"); // no-loc: page keys
+         if (exemption?.Outcome == SenderCheckOutcome.Matches)
+         {
+            string skipped = L("Not consulted: the spam exemption covers this sender, so the server checks neither its domain nor its score, and does not greylist it.");
+            for (int at = 0; at < results.Count; at++)
+            {
+               if (SkippedForAnExemption_.Contains(results[at].Page))
+                  results[at] = new SenderCheckResult(results[at].Page, SenderCheckOutcome.NotReached, skipped);
+            }
+            return results;
+         }
+
+         int domainAt = results.FindIndex(result => result.Page == "domainpolicylist"); // no-loc
+         SenderCheckResult domain = domainAt < 0 ? null : results[domainAt];
+         if (domain?.Outcome != SenderCheckOutcome.Matches)
+            return results;
+
+         if (domain.Blocks)
+         {
+            string refused = L("Not reached: the message is refused at MAIL FROM.");
+            for (int at = domainAt + 1; at < results.Count; at++)
+               results[at] = new SenderCheckResult(results[at].Page, SenderCheckOutcome.NotReached, refused);
+            return results;
+         }
+
+         string neverGreylisted = L("Not consulted: the allowed domain is never greylisted.");
+         for (int at = 0; at < results.Count; at++)
+         {
+            SenderCheckResult result = results[at];
+            if (result.Page == "greylistwhitelist" || result.Page == "greylistbypass") // no-loc
+               results[at] = new SenderCheckResult(result.Page, SenderCheckOutcome.NotReached, neverGreylisted);
+            else if (result.Page == "blockedsenders" && result.Outcome == SenderCheckOutcome.Matches && result.Blocks) // no-loc
+               results[at] = new SenderCheckResult(result.Page, SenderCheckOutcome.AddsToScore,
+                  Sentences(result.Text, L("The allowed domain means the score cannot refuse or quarantine the message, though it can still mark it as spam.")));
+         }
+
+         return results;
+      }
+
+      // The lists a spam exemption keeps the server from reading: every one but itself
+      // and the allow and block list, which delivery reads.
+      private static readonly HashSet<string> SkippedForAnExemption_ = new HashSet<string>(StringComparer.Ordinal)
+      {
+         "domainpolicylist", "blockedsenders", "dnsbl", "greylistwhitelist", "greylistbypass", "surbl" // no-loc: page keys
+      };
+
+      private static SenderCheckResult Answer_(IReadOnlyList<SenderCheckResult> results, string page)
+         => results.FirstOrDefault(result => result.Page == page);
+
+      /// <summary>
+      /// The pill a list's answer is drawn with: its level and its word. A match that
+      /// stops the sender is a warning, one that lets it through good, one on a
+      /// condition information, a list that could not be read critical, and the rest -
+      /// no match, not checked, not reached - say nothing by their colour.
+      /// </summary>
+      public static (StatusLevel Level, string Word) Pill(SenderCheckResult result)
+      {
+         switch (result?.Outcome)
+         {
+            case SenderCheckOutcome.Matches:
+               return result.Blocks ? (StatusLevel.Warning, L("Stops it")) : (StatusLevel.Good, L("Lets it through"));
+            case SenderCheckOutcome.AddsToScore:
+               return (StatusLevel.Warning, L("Adds to the score"));
+            case SenderCheckOutcome.MatchesIf:
+               return (StatusLevel.Information, L("Depends"));
+            case SenderCheckOutcome.NotRead:
+               return (StatusLevel.Critical, L("Not read"));
+            case SenderCheckOutcome.NotChecked:
+               return (StatusLevel.Normal, L("Not checked"));
+            case SenderCheckOutcome.NotReached:
+               return (StatusLevel.Normal, L("Not reached"));
+            default:
+               return (StatusLevel.Normal, L("No match"));
+         }
+      }
 
       /// <summary>The DNS block lists and SURBL, which are asked of the network as mail arrives.</summary>
       public static SenderCheckResult AskedOfTheNetwork(string page)

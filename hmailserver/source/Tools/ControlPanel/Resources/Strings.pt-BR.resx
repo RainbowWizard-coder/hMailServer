@@ -1221,6 +1221,9 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="Adds the server's score." xml:space="preserve">
     <value>Soma a pontuação do servidor.</value>
   </data>
+  <data name="Adds to the score" xml:space="preserve">
+    <value>Soma à pontuação</value>
+  </data>
   <data name="Administer" xml:space="preserve">
     <value>Administrar</value>
   </data>
@@ -7477,6 +7480,12 @@ Nada do que já está lá é removido.</value>
   <data name="Not connected" xml:space="preserve">
     <value>Não conectado</value>
   </data>
+  <data name="Not consulted: the allowed domain is never greylisted." xml:space="preserve">
+    <value>Não consultada: o domínio permitido nunca passa por greylisting.</value>
+  </data>
+  <data name="Not consulted: the spam exemption covers this sender, so the server checks neither its domain nor its score, and does not greylist it." xml:space="preserve">
+    <value>Não consultada: a exceção antispam cobre este remetente, então o servidor não verifica nem o domínio nem a pontuação dele e não o submete a greylisting.</value>
+  </data>
   <data name="Not found" xml:space="preserve">
     <value>Não encontrado</value>
   </data>
@@ -7494,6 +7503,12 @@ Nada do que já está lá é removido.</value>
   </data>
   <data name="Not published" xml:space="preserve">
     <value>Não publicado</value>
+  </data>
+  <data name="Not reached" xml:space="preserve">
+    <value>Não alcançada</value>
+  </data>
+  <data name="Not reached: the message is refused at MAIL FROM." xml:space="preserve">
+    <value>Não alcançada: a mensagem é recusada no MAIL FROM.</value>
   </data>
   <data name="Not read" xml:space="preserve">
     <value>Não lido</value>
@@ -11715,6 +11730,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>A senha do administrador é respaldada por um código de uso único.</value>
+  </data>
+  <data name="The allowed domain means the score cannot refuse or quarantine the message, though it can still mark it as spam." xml:space="preserve">
+    <value>Como o domínio é permitido, a pontuação não pode recusar a mensagem nem colocá-la na quarentena, mas ainda pode marcá-la como spam.</value>
   </data>
   <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
     <value>A alternativa ao token portador, para coletores que só falam HTTP Basic. O nome de usuário e a senha precisam AMBOS estar definidos: com apenas um deles, o servidor registra um aviso na inicialização e se comporta como se nenhum estivesse definido.</value>

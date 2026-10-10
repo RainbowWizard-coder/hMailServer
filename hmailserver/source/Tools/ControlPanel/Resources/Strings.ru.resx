@@ -1227,6 +1227,9 @@ Control Panel может читать файлы сообщений только
   <data name="Adds the server's score." xml:space="preserve">
     <value>Добавляет оценку сервера.</value>
   </data>
+  <data name="Adds to the score" xml:space="preserve">
+    <value>Добавляет к оценке</value>
+  </data>
   <data name="Administer" xml:space="preserve">
     <value>Администрирование</value>
   </data>
@@ -7559,6 +7562,12 @@ Control Panel может читать файлы сообщений только
   <data name="Not connected" xml:space="preserve">
     <value>Не подключено</value>
   </data>
+  <data name="Not consulted: the allowed domain is never greylisted." xml:space="preserve">
+    <value>Не используется: разрешённый домен никогда не попадает в серый список.</value>
+  </data>
+  <data name="Not consulted: the spam exemption covers this sender, so the server checks neither its domain nor its score, and does not greylist it." xml:space="preserve">
+    <value>Не используется: на этого отправителя распространяется исключение антиспама, поэтому сервер не проверяет ни его домен, ни оценку и не применяет к нему серый список.</value>
+  </data>
   <data name="Not found" xml:space="preserve">
     <value>Не найдено</value>
   </data>
@@ -7576,6 +7585,12 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Not published" xml:space="preserve">
     <value>Не опубликовано</value>
+  </data>
+  <data name="Not reached" xml:space="preserve">
+    <value>Не доходит</value>
+  </data>
+  <data name="Not reached: the message is refused at MAIL FROM." xml:space="preserve">
+    <value>Не доходит: письмо отклоняется на этапе MAIL FROM.</value>
   </data>
   <data name="Not read" xml:space="preserve">
     <value>Не прочитано</value>
@@ -11845,6 +11860,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>Пароль администратора подкреплён одноразовым кодом.</value>
+  </data>
+  <data name="The allowed domain means the score cannot refuse or quarantine the message, though it can still mark it as spam." xml:space="preserve">
+    <value>Поскольку домен разрешён, оценка не может отклонить письмо или отправить его в карантин, но всё ещё может пометить его как спам.</value>
   </data>
   <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
     <value>Замена токену-носителю для сборщиков, умеющих только HTTP Basic. Имя пользователя и пароль должны быть заданы ОБА: имея только одно из двух, сервер записывает при запуске предупреждение и ведёт себя так, будто не задано ни то ни другое.</value>

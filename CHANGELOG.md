@@ -2229,13 +2229,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   overview's "The lists behind the checks" is now "Which list do I need?": one row for each list, in the order a
   message meets them, with when the server reads it, what it is matched against and what a match does, its page and
   its count. Under it, "Check a sender" takes an address, a connecting IP address or both and says what each list
-  does with them - stops it, lets it through, depends on a condition (an IP range, an SPF, DKIM or DMARC pass), no
-  match, or not checked - by the rules the server matches each list by: the exemptions' IP ranges and address
-  wildcards, an entry with an @ as one exact address and one without as a domain with its subdomains, the most
-  specific entry of the allow and block list and a block on a tie, an expired entry skipped, the greylisting
-  exemptions' wildcards, and an exact domain over a .suffix. The DNS block lists and SURBL are asked of the network as
-  mail arrives and are not checked here, nor are entries matched against the HELO name alone; a list that cannot be
-  read says so while the others answer (review finding F269).
+  does with them - stops it, lets it through, adds to the score, depends on a condition (an IP range, an SPF, DKIM or
+  DMARC pass), no match, not checked, or not reached - by the rules the server matches each list by: the exemptions'
+  IP ranges and address wildcards, an entry with an @ as one exact address and one without as a domain with its
+  subdomains, the most specific entry of the allow and block list and a block on a tie, an expired entry skipped, the
+  greylisting exemptions' wildcards, and an exact domain over a .suffix. The answers are the server's, in the order it
+  reads the lists: a spam exemption that covers the sender keeps the server from every other list but the allow and
+  block list, which delivery still reads; a blocked domain is refused at MAIL FROM, before any later list; and an
+  allowed domain is never greylisted, nor refused or quarantined by its score, so a blocked sender's entry adds to the
+  score without stopping it. The DNS block lists and SURBL are asked of the network as mail arrives and are not
+  checked here, nor are entries matched against the HELO name alone; a list that cannot be read says so while the
+  others answer (review finding F269).
 
 ### Administration
 

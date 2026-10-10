@@ -1221,6 +1221,9 @@ Das Control Panel kann Nachrichtendateien nur lesen, wenn es auf demselben Rechn
   <data name="Adds the server's score." xml:space="preserve">
     <value>Fügt die Bewertung des Servers hinzu.</value>
   </data>
+  <data name="Adds to the score" xml:space="preserve">
+    <value>Erhöht die Bewertung</value>
+  </data>
   <data name="Administer" xml:space="preserve">
     <value>Verwalten</value>
   </data>
@@ -7477,6 +7480,12 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="Not connected" xml:space="preserve">
     <value>Nicht verbunden</value>
   </data>
+  <data name="Not consulted: the allowed domain is never greylisted." xml:space="preserve">
+    <value>Nicht herangezogen: die zugelassene Domain wird nie gegreylistet.</value>
+  </data>
+  <data name="Not consulted: the spam exemption covers this sender, so the server checks neither its domain nor its score, and does not greylist it." xml:space="preserve">
+    <value>Nicht herangezogen: die Spam-Ausnahme deckt diesen Absender ab, daher prüft der Server weder seine Domain noch seine Bewertung und greylistet ihn nicht.</value>
+  </data>
   <data name="Not found" xml:space="preserve">
     <value>Nicht gefunden</value>
   </data>
@@ -7494,6 +7503,12 @@ Nichts, was schon dort ist, wird entfernt.</value>
   </data>
   <data name="Not published" xml:space="preserve">
     <value>Nicht veröffentlicht</value>
+  </data>
+  <data name="Not reached" xml:space="preserve">
+    <value>Nicht erreicht</value>
+  </data>
+  <data name="Not reached: the message is refused at MAIL FROM." xml:space="preserve">
+    <value>Nicht erreicht: die Nachricht wird bei MAIL FROM abgelehnt.</value>
   </data>
   <data name="Not read" xml:space="preserve">
     <value>Nicht gelesen</value>
@@ -11715,6 +11730,9 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>Das Administratorpasswort ist durch einen Einmalcode abgesichert.</value>
+  </data>
+  <data name="The allowed domain means the score cannot refuse or quarantine the message, though it can still mark it as spam." xml:space="preserve">
+    <value>Weil die Domain zugelassen ist, kann die Bewertung die Nachricht weder ablehnen noch in Quarantäne stellen, sie aber weiterhin als Spam markieren.</value>
   </data>
   <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
     <value>Die Alternative zum Bearer-Token, für Scraper, die nur HTTP Basic sprechen. Benutzername und Passwort müssen BEIDE gesetzt sein: Mit nur einem davon protokolliert der Server beim Start eine Warnung und verhält sich, als wäre keines gesetzt.</value>

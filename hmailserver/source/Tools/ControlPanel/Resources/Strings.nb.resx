@@ -1221,6 +1221,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Adds the server's score." xml:space="preserve">
     <value>Legger til serverens poengsum.</value>
   </data>
+  <data name="Adds to the score" xml:space="preserve">
+    <value>Legger til poeng</value>
+  </data>
   <data name="Administer" xml:space="preserve">
     <value>Administrere</value>
   </data>
@@ -7477,6 +7480,12 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Not connected" xml:space="preserve">
     <value>Ikke tilkoblet</value>
   </data>
+  <data name="Not consulted: the allowed domain is never greylisted." xml:space="preserve">
+    <value>Ikke brukt: det tillatte domenet grålistes aldri.</value>
+  </data>
+  <data name="Not consulted: the spam exemption covers this sender, so the server checks neither its domain nor its score, and does not greylist it." xml:space="preserve">
+    <value>Ikke brukt: spamunntaket dekker denne avsenderen, så serveren kontrollerer verken domenet eller poengsummen og grålister den ikke.</value>
+  </data>
   <data name="Not found" xml:space="preserve">
     <value>Ikke funnet</value>
   </data>
@@ -7494,6 +7503,12 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="Not published" xml:space="preserve">
     <value>Ikke publisert</value>
+  </data>
+  <data name="Not reached" xml:space="preserve">
+    <value>Nås ikke</value>
+  </data>
+  <data name="Not reached: the message is refused at MAIL FROM." xml:space="preserve">
+    <value>Nås ikke: meldingen avvises ved MAIL FROM.</value>
   </data>
   <data name="Not read" xml:space="preserve">
     <value>Ikke lest</value>
@@ -11715,6 +11730,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   </data>
   <data name="The administrator's password is backed by a one-time code." xml:space="preserve">
     <value>Administratorens passord er sikret med en engangskode.</value>
+  </data>
+  <data name="The allowed domain means the score cannot refuse or quarantine the message, though it can still mark it as spam." xml:space="preserve">
+    <value>Fordi domenet er tillatt, kan poengsummen ikke avvise meldingen eller sette den i karantene, men den kan fortsatt merke den som spam.</value>
   </data>
   <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
     <value>Alternativet til bearer-tokenet, for innsamlere som bare snakker HTTP Basic. Brukernavnet og passordet må BEGGE være satt: med bare ett av dem logger serveren en advarsel ved oppstart og oppfører seg som om ingen av dem var satt.</value>
