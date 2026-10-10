@@ -3141,9 +3141,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   number as "(error 5921)", "error HM5113", "the server logs error 5113" or "the server reports HM5508" say "server
   error" before it, "(server error 5921)", "server error 5113", the TCP/IP ports grid's Security column is Connection
   security, and three captions lose the colon at their end (the public folder's name, the code the second factor asks
-  for, the DKIM record). `GlossaryTests` holds the English to the glossary - a server error's number in any of those
+  for, the DKIM record). The SSL certificates and SSL/TLS pages keep their titles until the page names are decided
+  again, as Delivery of e-mail does, and the glossary says so beside its TLS for prose, which every other text already
+  says. `GlossaryTests` holds the English to the glossary - a server error's number in any of those
   forms, Windows' own error 1069 apart - the smart host to its name on its tab, in the search index and wherever a
-  text sends the reader to it, the Brazilian catalogue to login, and every caption to no colon.
+  text sends the reader to it, SSL to the two pages' titles and OpenSSL, the Brazilian catalogue to login, and every
+  caption to no colon.
 
 - **Fixed: the dialogs' captions carried their whole explanation in brackets, which a screen reader heard as the field's
   name.** "Address (changing it renames the mailbox; it must stay in this domain)", "Delete

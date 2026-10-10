@@ -169,6 +169,22 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(offenders.Count == 0, "These use a word the glossary replaces:\n" + string.Join("\n", offenders));
       }
 
+      /// <summary>
+      /// TLS in prose: the glossary's row keeps SSL for the two pages that carry it in their
+      /// titles until the page names are decided again - SSL certificates, with the certificates
+      /// it lists and a port's SSL certificate box, and SSL/TLS, which is also the connection
+      /// security that encrypts from the first byte - and for OpenSSL's name (review finding F301).
+      /// </summary>
+      [Fact]
+      public void NoEnglishText_SaysSslButThePagesTitlesAndOpenSsl()
+      {
+         var allowed = new Regex(@"OpenSSL|SSL/TLS|SSL certificates?", RegexOptions.IgnoreCase);
+         List<string> offenders = EnglishTexts().Where(text => Regex.IsMatch(allowed.Replace(text.Replace("_", "", StringComparison.Ordinal), ""), @"\bSSL")).ToList();
+         Assert.True(offenders.Count == 0, "TLS in prose; SSL names the two pages alone:\n" + string.Join("\n", offenders));
+         Assert.Equal("SSL certificates", hMailServer.ControlPanel.Services.NavigationMap.Find("certs").Title);
+         Assert.Contains("TLS certificate", hMailServer.ControlPanel.Services.NavigationMap.Find("certs").Aliases);
+      }
+
       [Fact]
       public void TheTcpIpPortsGrid_NamesItsColumnConnectionSecurity()
       {

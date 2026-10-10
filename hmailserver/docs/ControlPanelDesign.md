@@ -200,6 +200,7 @@ One name for one thing, in every text the Control Panel shows, so that a reader 
 | **Could not ...** | Couldn't ... | Whole words in every message. |
 | **client ID**, **key ID** | client id, key id | |
 | **connection security** | security | The setting a port, a route, a domain's relay and the directory share, and the TCP/IP ports grid's column. |
+| **TLS** in prose | SSL | The *SSL certificates* and *SSL/TLS* pages keep their titles until the page names are decided again, as *Delivery of e-mail* does, and the texts that name them, the certificates the first lists and a port's *SSL certificate* box say their titles; *SSL/TLS* is also the connection security that encrypts from the first byte, and OpenSSL is a name. |
 
 A field's caption ends with no colon: the row's layout already says that the editor below belongs to it.
 
