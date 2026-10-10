@@ -266,7 +266,19 @@ namespace hMailServer.ControlPanel.Services
          ["slow"] = "performance",
          ["sluggish"] = "performance",
          ["latency"] = "performance",
-         ["throughput"] = "performance"
+         ["throughput"] = "performance",
+
+         // The American spelling of a word the Control Panel writes the British
+         // way (review finding F298), so that a search typed either way finds the
+         // setting: "honor dane" finds Honour recipient DANE/TLSA records.
+         ["behavior"] = "behaviour",
+         ["honor"] = "honour",
+         ["organization"] = "organisation",
+         ["organizational"] = "organisational",
+         ["prioritize"] = "prioritise",
+         ["finalization"] = "finalisation",
+         ["authorization"] = "authorisation",
+         ["reinitialize"] = "reinitialise"
       };
 
       /// <summary>

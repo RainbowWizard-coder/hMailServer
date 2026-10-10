@@ -148,7 +148,7 @@ namespace hMailServer.ControlPanel.Views
             (L("\"done spam-protection\", then silence"), L("Message modifications: the spam headers, the signature, the List-* headers, or the write of the modified message back to disk.")),
             (L("script/save slow"), L("An OnAcceptMessage event script, or the database.")),
             (L("Nothing between 354 and silence"), L("A version older than 6.2.17; upgrade, because that is the version that added these lines.")),
-            (L("451 4.3.1 replies"), L("Acceptance exceeded the message finalization deadline (240 s by default): the sender retries rather than waiting for ever, the error entry names the deadline, and the stage timings above it name what consumed the time.")),
+            (L("451 4.3.1 replies"), L("Acceptance exceeded the message finalisation deadline (240 s by default): the sender retries rather than waiting for ever, the error entry names the deadline, and the stage timings above it name what consumed the time.")),
          }));
 
          var links = new WrapPanel { Margin = new Thickness(0, 10, 0, 0) };
@@ -201,7 +201,7 @@ namespace hMailServer.ControlPanel.Views
 
          content.Children.Add(Table(new[]
          {
-            (L("Message finalization deadline (240)"), L("The whole accept pipeline; then the sender gets a 451. 0 = no time limit.")),
+            (L("Message finalisation deadline (240)"), L("The whole accept pipeline; then the sender gets a 451. 0 = no time limit.")),
             (L("SpamAssassin maximum timeout (90)"), L("SpamAssassin: idle timeout, and a session ceiling of this plus 30 s. 0 does not mean no time limit.")),
             (L("ClamAV maximum timeout (90)"), L("ClamAV: idle timeout per socket operation. 0 does not mean no time limit.")),
             (L("DNS query timeout (10)"), L("A single DNS query. 0 = no time limit.")),

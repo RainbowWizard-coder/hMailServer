@@ -76,6 +76,9 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("mailbox", "account")]
       [InlineData("email", "mail")]
       [InlineData("prometheus", "monitoring")]
+      [InlineData("honor", "honour")]
+      [InlineData("organization", "organisation")]
+      [InlineData("reinitialize", "reinitialise")]
       [InlineData("spam", "spam")]
       [InlineData("nonsenseword", "nonsenseword")]
       public void Canonical_FoldsSynonymsOntoOneWord(string word, string canonical)

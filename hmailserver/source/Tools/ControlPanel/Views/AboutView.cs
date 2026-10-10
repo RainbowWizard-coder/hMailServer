@@ -60,7 +60,7 @@ namespace hMailServer.ControlPanel.Views
          dev.Children.Add(Text("Christopher Holloway", "TextSubtitle", new Thickness(0, 0, 0, 2))); // no-loc
          dev.Children.Add(Text("Progressive Robot Ltd", "TextBodyStrong", new Thickness(0, 0, 0, 12))); // no-loc
 
-         dev.Children.Add(Text(L("Progressive Robot Ltd is a software engineering company that builds and modernizes production software — taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling."),
+         dev.Children.Add(Text(L("Progressive Robot Ltd is a software engineering company that builds and modernises production software — taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling."),
             "TextBody", new Thickness(0, 0, 0, 12)));
          dev.Children.Add(Text(L("The hMailServer 6.x line is one such effort. The original open-source mail server has been rebuilt on a current toolchain (Visual Studio 2026 / MSVC v145 and .NET 10), re-armed with modern cryptography (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) and the transport-security standards expected of a mail server today (DANE + DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT and ACME / Let's Encrypt). It has been hardened against protocol and denial-of-service defects, given Sieve / ManageSieve filtering, health and OpenTelemetry observability, broad MySQL / MariaDB / MS SQL / PostgreSQL support, and this modern Fluent-design Control Panel in place of the legacy administrator."),
             "TextBody", new Thickness(0, 0, 0, 12)));

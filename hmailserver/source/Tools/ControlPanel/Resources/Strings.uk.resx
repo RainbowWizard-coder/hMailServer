@@ -879,7 +879,7 @@
   <data name="Accept the XCLIENT command (Postfix)" xml:space="preserve">
     <value>Приймати команду XCLIENT (Postfix)</value>
   </data>
-  <data name="Acceptance exceeded the message finalization deadline (240 s by default): the sender retries rather than waiting for ever, the error entry names the deadline, and the stage timings above it name what consumed the time." xml:space="preserve">
+  <data name="Acceptance exceeded the message finalisation deadline (240 s by default): the sender retries rather than waiting for ever, the error entry names the deadline, and the stage timings above it name what consumed the time." xml:space="preserve">
     <value>Приймання перевищило граничний час завершення обробки повідомлення (типово 240 с): відправник повторює спробу, замість чекати вічно, запис про помилку називає граничний час, а показники етапів над ним показують, що саме забрало час.</value>
   </data>
   <data name="Accepting" xml:space="preserve">
@@ -5366,13 +5366,13 @@
   <data name="Filter lines: an address, any words, or session=42" xml:space="preserve">
     <value>Фільтр рядків: адреса, будь-які слова або session=42</value>
   </data>
-  <data name="Find organizational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
+  <data name="Find organisational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
     <value>Знаходити організаційні домени обходом дерева DNS (RFC 9989)</value>
   </data>
   <data name="Finding the user's directory entry" xml:space="preserve">
     <value>Пошук запису користувача в каталозі</value>
   </data>
-  <data name="Finds the organizational domain for DMARC relaxed alignment by asking DNS (RFC 9989) rather than the compiled Public Suffix List; the list is still used when DNS cannot answer. Up to eight queries per domain, cached for five minutes." xml:space="preserve">
+  <data name="Finds the organisational domain for DMARC relaxed alignment by asking DNS (RFC 9989) rather than the compiled Public Suffix List; the list is still used when DNS cannot answer. Up to eight queries per domain, cached for five minutes." xml:space="preserve">
     <value>Знаходить організаційний домен для послабленого вирівнювання DMARC запитами до DNS (RFC 9989) замість вкомпільованого Public Suffix List; список і далі використовується, коли DNS не може відповісти. До восьми запитів на домен, кешується на п'ять хвилин.</value>
   </data>
   <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included." xml:space="preserve">
@@ -5603,7 +5603,7 @@
   <data name="Go to the search box of this page" xml:space="preserve">
     <value>Перейти до поля пошуку на цій сторінці</value>
   </data>
-  <data name="Google authorization endpoint" xml:space="preserve">
+  <data name="Google authorisation endpoint" xml:space="preserve">
     <value>Кінцева точка авторизації Google</value>
   </data>
   <data name="Google client ID" xml:space="preserve">
@@ -5819,10 +5819,10 @@
   <data name="Honeypot - offer AUTH; refuse it and ban the address" xml:space="preserve">
     <value>Пастка — пропонувати AUTH; відхиляти його й блокувати адресу</value>
   </data>
-  <data name="Honor recipient DANE/TLSA records when sending" xml:space="preserve">
+  <data name="Honour recipient DANE/TLSA records when sending" xml:space="preserve">
     <value>Враховувати записи DANE/TLSA отримувача при надсиланні</value>
   </data>
-  <data name="Honor recipient MTA-STS policies when sending" xml:space="preserve">
+  <data name="Honour recipient MTA-STS policies when sending" xml:space="preserve">
     <value>Враховувати політики MTA-STS отримувача при надсиланні</value>
   </data>
   <data name="Host" xml:space="preserve">
@@ -5912,7 +5912,7 @@
   <data name="How long that window lasts. Four hours by default." xml:space="preserve">
     <value>Скільки триває це вікно. Типово чотири години.</value>
   </data>
-  <data name="How long the server will go on finalizing an accepted message before answering 451 and asking the sender to retry, rather than holding the connection open indefinitely." xml:space="preserve">
+  <data name="How long the server will go on finalising an accepted message before answering 451 and asking the sender to retry, rather than holding the connection open indefinitely." xml:space="preserve">
     <value>Як довго сервер продовжуватиме фіналізацію прийнятого повідомлення, перш ніж відповість 451 і попросить відправника повторити спробу, замість того щоб тримати з'єднання відкритим нескінченно.</value>
   </data>
   <data name="How long to wait (seconds)" xml:space="preserve">
@@ -7059,7 +7059,7 @@
   <data name="Matching Active Directory accounts. Select one." xml:space="preserve">
     <value>Відповідні облікові записи Active Directory. Виберіть один.</value>
   </data>
-  <data name="Matching the authorization endpoint." xml:space="preserve">
+  <data name="Matching the authorisation endpoint." xml:space="preserve">
     <value>Відповідна кінцевій точці авторизації.</value>
   </data>
   <data name="MaxMind country database (.mmdb)" xml:space="preserve">
@@ -7193,8 +7193,14 @@
   <data name="Message archiving" xml:space="preserve">
     <value>Архівування повідомлень</value>
   </data>
-  <data name="Message finalization deadline (240)" xml:space="preserve">
+  <data name="Message finalisation deadline (240)" xml:space="preserve">
     <value>Граничний час завершення обробки повідомлення (240)</value>
+  </data>
+  <data name="Message finalisation deadline (seconds; 0 = no deadline)" xml:space="preserve">
+    <value>Граничний час завершення обробки повідомлення (секунд; 0 = без обмеження)</value>
+  </data>
+  <data name="Message finalisation deadline (seconds; 0 = no time limit)" xml:space="preserve">
+    <value>Граничний час завершення обробки повідомлення (секунди; 0 = без обмеження часу)</value>
   </data>
   <data name="Message finalization deadline (seconds; 0 = no time limit)" xml:space="preserve">
     <value>Граничний час завершення обробки повідомлення (секунди; 0 = без обмеження часу)</value>
@@ -7331,7 +7337,7 @@
   <data name="Microsoft application (client) ID" xml:space="preserve">
     <value>Ідентифікатор застосунку (клієнта) Microsoft</value>
   </data>
-  <data name="Microsoft authorization endpoint" xml:space="preserve">
+  <data name="Microsoft authorisation endpoint" xml:space="preserve">
     <value>Кінцева точка авторизації Microsoft</value>
   </data>
   <data name="Microsoft client secret (leave empty to keep current)" xml:space="preserve">
@@ -8885,10 +8891,10 @@
   <data name="Or enter this key by hand:" xml:space="preserve">
     <value>Або введіть цей ключ вручну:</value>
   </data>
-  <data name="Organization name in DMARC reports" xml:space="preserve">
+  <data name="Organisation name in DMARC reports" xml:space="preserve">
     <value>Назва організації у звітах DMARC</value>
   </data>
-  <data name="Organization name in TLS reports" xml:space="preserve">
+  <data name="Organisation name in TLS reports" xml:space="preserve">
     <value>Назва організації у звітах TLS</value>
   </data>
   <data name="Origins passkeys may be used at (comma separated)" xml:space="preserve">
@@ -8917,6 +8923,9 @@
   </data>
   <data name="Outbound TLS" xml:space="preserve">
     <value>Вихідний TLS</value>
+  </data>
+  <data name="Outbound delivery behaviour, retries and smart-host relaying." xml:space="preserve">
+    <value>Поведінка вихідної доставки, повторні спроби та ретрансляція через смарт-хост.</value>
   </data>
   <data name="Outbound delivery security (after MX lookup)" xml:space="preserve">
     <value>Безпека вихідної доставки (після пошуку MX)</value>
@@ -9346,7 +9355,7 @@
   <data name="Pri_ority" xml:space="preserve">
     <value>_Пріоритет</value>
   </data>
-  <data name="Prioritize ChaCha20-Poly1305 when the client prefers it (needs TLS 1.2 or 1.3)" xml:space="preserve">
+  <data name="Prioritise ChaCha20-Poly1305 when the client prefers it (needs TLS 1.2 or 1.3)" xml:space="preserve">
     <value>Надавати пріоритет ChaCha20-Poly1305, коли клієнт віддає йому перевагу (потрібен TLS 1.2 або 1.3)</value>
   </data>
   <data name="Priority" xml:space="preserve">
@@ -9376,7 +9385,7 @@
   <data name="Program to run when an address is banned or unbanned (empty = none)" xml:space="preserve">
     <value>Програма, що запускається, коли адресу забанено або розбанено (порожньо = немає)</value>
   </data>
-  <data name="Progressive Robot Ltd is a software engineering company that builds and modernizes production software — taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling." xml:space="preserve">
+  <data name="Progressive Robot Ltd is a software engineering company that builds and modernises production software — taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling." xml:space="preserve">
     <value>Progressive Robot Ltd — компанія з розробки програмного забезпечення, яка створює та модернізує робоче програмне забезпечення: бере зрілі системи з реального світу й доводить їх до сучасних стандартів безпеки, надійності та інструментарію.</value>
   </data>
   <data name="Prometheus metrics (/metrics), OpenTelemetry export of traces, metrics and logs (one endpoint per signal, each off until set), a slow-query log, and JSON-structured log output for log aggregators (on the Logging page)." xml:space="preserve">

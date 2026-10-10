@@ -2082,7 +2082,7 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Validates recipient TLSA records with in-process DNSSEC and blocks delivery over forged chains (RFC 7672)."),
                   Settings =
                   {
-                     new BoolSetting { Key = "DaneEnforcementEnabled", Default = true, Label = L("Honor recipient DANE/TLSA records when sending") },
+                     new BoolSetting { Key = "DaneEnforcementEnabled", Default = true, Label = L("Honour recipient DANE/TLSA records when sending") },
                      new BoolSetting { Key = "DnssecValidationEnabled", Default = true, Label = L("Validate DNSSEC for DANE and SPF/DKIM/DMARC lookups") },
                      new TextSetting { Key = "DnssecTrustAnchors", Label = L("Trust anchor override (tag alg digesttype hex; ...)"), Placeholder = L("Leave empty for the built-in root anchors") }
                   }
@@ -2094,7 +2094,7 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Discovers and enforces recipient MTA-STS policies before delivering over TLS (RFC 8461). To publish a policy for your own domains, see the Web services & autoconfiguration page."),
                   Settings =
                   {
-                     new BoolSetting { Key = "MtaStsEnabled", Default = true, Label = L("Honor recipient MTA-STS policies when sending") }
+                     new BoolSetting { Key = "MtaStsEnabled", Default = true, Label = L("Honour recipient MTA-STS policies when sending") }
                   }
                });
                cards_.Add(new CardDef
@@ -2297,7 +2297,7 @@ namespace hMailServer.ControlPanel.Views
                      // on one page are ambiguous to anyone who cannot see which
                      // card they are in, and AccessibleNamesTests fails on it.
                      new TextSetting { Key = "TlsRptFromAddress", Label = L("TLS report sender address (empty = off)"), Placeholder = "tlsrpt@yourdomain.com" },
-                     new TextSetting { Key = "TlsRptOrganizationName", Default = "hMailServer", Label = L("Organization name in TLS reports") }
+                     new TextSetting { Key = "TlsRptOrganizationName", Default = "hMailServer", Label = L("Organisation name in TLS reports") }
                   }
                });
                // The same shape as TLS reporting above and deliberately beside it:
@@ -2313,7 +2313,7 @@ namespace hMailServer.ControlPanel.Views
                   Settings =
                   {
                      new TextSetting { Key = "DmarcRptFromAddress", Label = L("DMARC report sender address (empty = off)"), Placeholder = "dmarc@yourdomain.com" },
-                     new TextSetting { Key = "DmarcRptOrganizationName", Default = "hMailServer", Label = L("Organization name in DMARC reports") }
+                     new TextSetting { Key = "DmarcRptOrganizationName", Default = "hMailServer", Label = L("Organisation name in DMARC reports") }
                   }
                });
                break;
@@ -2769,8 +2769,8 @@ namespace hMailServer.ControlPanel.Views
                      {
                         Key = "FinalizationTimeout", Minimum = 0,
                         Default = "240",
-                        Label = L("Message finalization deadline (seconds; 0 = no time limit)"),
-                        Blurb = L("How long the server will go on finalizing an accepted message before answering 451 and asking the sender to retry, rather than holding the connection open indefinitely.")
+                        Label = L("Message finalisation deadline (seconds; 0 = no time limit)"),
+                        Blurb = L("How long the server will go on finalising an accepted message before answering 451 and asking the sender to retry, rather than holding the connection open indefinitely.")
                      },
                      new NumberSetting { Key = "DNSQueryTimeout", Minimum = 0, Maximum = 86400, Default = "10", Label = L("DNS query timeout (seconds; 0 = no time limit)") },
                      new NumberSetting { Key = "ClientSessionCeiling", Minimum = 0, Default = "1800", Label = L("Absolute lifetime of one client session (seconds; 0 = no time limit)") },

@@ -3212,6 +3212,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `EmphasisCapitalsTests` holds the English and every catalogue to no word in capitals but a name - a protocol, a
   command, a record type, a unit, the rule editor's operators and its IF and THEN.
 
+- **Fixed: the Control Panel spelt some of its English the American way, beside the British of the same pages.** The
+  Delivery of e-mail subtitle said "behavior", Transport security "Honor recipient DANE/TLSA records" and "Honor
+  recipient MTA-STS policies", "Organization name in TLS reports" and in DMARC reports, Anti-spam "Find organizational
+  domains by DNS tree walk", SSL/TLS "Prioritize ChaCha20-Poly1305", Hardening and the stalled-mail guide "Message
+  finalization deadline", Webmail's import "Google authorization endpoint", and About "modernizes", where the same
+  pages say behaviour, honour, organisation and synchronisation (review finding F298). Each is now British -
+  behaviour, Honour, Organisation, organisational, Prioritise, finalisation, authorisation, modernises - re-keyed in
+  all seventeen catalogues with their translations unchanged, and the settings search index with them; the server's
+  own names (the setting keys, the HTTP header Authorization:) keep their spelling, and Ctrl+K finds a setting typed
+  either way ("honor dane", "organization name"). `BritishSpellingTests` reads every English text for an American
+  form.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

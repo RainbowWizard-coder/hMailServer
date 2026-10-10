@@ -873,7 +873,7 @@
   <data name="Accept the XCLIENT command (Postfix)" xml:space="preserve">
     <value>Aceitar o comando XCLIENT (Postfix)</value>
   </data>
-  <data name="Acceptance exceeded the message finalization deadline (240 s by default): the sender retries rather than waiting for ever, the error entry names the deadline, and the stage timings above it name what consumed the time." xml:space="preserve">
+  <data name="Acceptance exceeded the message finalisation deadline (240 s by default): the sender retries rather than waiting for ever, the error entry names the deadline, and the stage timings above it name what consumed the time." xml:space="preserve">
     <value>A aceitação excedeu o prazo de finalização da mensagem (240 s por padrão): o remetente tenta de novo em vez de esperar para sempre, a entrada de erro nomeia o prazo, e os tempos de etapa acima nomeiam o que consumiu o tempo.</value>
   </data>
   <data name="Accepting" xml:space="preserve">
@@ -5296,13 +5296,13 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Filter lines: an address, any words, or session=42" xml:space="preserve">
     <value>Filtrar linhas: um endereço, quaisquer palavras ou session=42</value>
   </data>
-  <data name="Find organizational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
+  <data name="Find organisational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
     <value>Descobrir domínios organizacionais percorrendo a árvore do DNS (RFC 9989)</value>
   </data>
   <data name="Finding the user's directory entry" xml:space="preserve">
     <value>Localizar a entrada do usuário no diretório</value>
   </data>
-  <data name="Finds the organizational domain for DMARC relaxed alignment by asking DNS (RFC 9989) rather than the compiled Public Suffix List; the list is still used when DNS cannot answer. Up to eight queries per domain, cached for five minutes." xml:space="preserve">
+  <data name="Finds the organisational domain for DMARC relaxed alignment by asking DNS (RFC 9989) rather than the compiled Public Suffix List; the list is still used when DNS cannot answer. Up to eight queries per domain, cached for five minutes." xml:space="preserve">
     <value>Descobre o domínio organizacional para o alinhamento relaxado do DMARC consultando o DNS (RFC 9989) em vez da Public Suffix List compilada; a lista ainda é usada quando o DNS não consegue responder. Até oito consultas por domínio, com cache de cinco minutos.</value>
   </data>
   <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included." xml:space="preserve">
@@ -5533,7 +5533,7 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Go to the search box of this page" xml:space="preserve">
     <value>Ir para a caixa de pesquisa desta página</value>
   </data>
-  <data name="Google authorization endpoint" xml:space="preserve">
+  <data name="Google authorisation endpoint" xml:space="preserve">
     <value>Endpoint de autorização do Google</value>
   </data>
   <data name="Google client ID" xml:space="preserve">
@@ -5749,10 +5749,10 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Honeypot - offer AUTH; refuse it and ban the address" xml:space="preserve">
     <value>Isca - oferecer AUTH; recusá-lo e banir o endereço</value>
   </data>
-  <data name="Honor recipient DANE/TLSA records when sending" xml:space="preserve">
+  <data name="Honour recipient DANE/TLSA records when sending" xml:space="preserve">
     <value>Respeitar os registros DANE/TLSA do destinatário ao enviar</value>
   </data>
-  <data name="Honor recipient MTA-STS policies when sending" xml:space="preserve">
+  <data name="Honour recipient MTA-STS policies when sending" xml:space="preserve">
     <value>Respeitar as políticas MTA-STS do destinatário ao enviar</value>
   </data>
   <data name="Host" xml:space="preserve">
@@ -5842,7 +5842,7 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="How long that window lasts. Four hours by default." xml:space="preserve">
     <value>Quanto tempo essa janela dura. Quatro horas por padrão.</value>
   </data>
-  <data name="How long the server will go on finalizing an accepted message before answering 451 and asking the sender to retry, rather than holding the connection open indefinitely." xml:space="preserve">
+  <data name="How long the server will go on finalising an accepted message before answering 451 and asking the sender to retry, rather than holding the connection open indefinitely." xml:space="preserve">
     <value>Por quanto tempo o servidor continuará finalizando uma mensagem aceita antes de responder 451 e pedir ao remetente que tente de novo, em vez de manter a conexão aberta indefinidamente.</value>
   </data>
   <data name="How long to wait (seconds)" xml:space="preserve">
@@ -6983,7 +6983,7 @@ Cada inscrição Web Push feita com o par atual para de funcionar na hora, e cad
   <data name="Matching Active Directory accounts. Select one." xml:space="preserve">
     <value>Contas correspondentes do Active Directory. Selecione uma.</value>
   </data>
-  <data name="Matching the authorization endpoint." xml:space="preserve">
+  <data name="Matching the authorisation endpoint." xml:space="preserve">
     <value>Combinando com o endpoint de autorização.</value>
   </data>
   <data name="MaxMind country database (.mmdb)" xml:space="preserve">
@@ -7117,8 +7117,14 @@ Nada do que já está lá é removido.</value>
   <data name="Message archiving" xml:space="preserve">
     <value>Arquivamento de mensagens</value>
   </data>
-  <data name="Message finalization deadline (240)" xml:space="preserve">
+  <data name="Message finalisation deadline (240)" xml:space="preserve">
     <value>Prazo de finalização da mensagem (240)</value>
+  </data>
+  <data name="Message finalisation deadline (seconds; 0 = no deadline)" xml:space="preserve">
+    <value>Prazo de finalização da mensagem (segundos; 0 = sem prazo)</value>
+  </data>
+  <data name="Message finalisation deadline (seconds; 0 = no time limit)" xml:space="preserve">
+    <value>Prazo de finalização da mensagem (segundos; 0 = sem limite de tempo)</value>
   </data>
   <data name="Message finalization deadline (seconds; 0 = no time limit)" xml:space="preserve">
     <value>Prazo de finalização da mensagem (segundos; 0 = sem limite de tempo)</value>
@@ -7255,7 +7261,7 @@ Nada do que já está lá é removido.</value>
   <data name="Microsoft application (client) ID" xml:space="preserve">
     <value>ID do aplicativo (cliente) da Microsoft</value>
   </data>
-  <data name="Microsoft authorization endpoint" xml:space="preserve">
+  <data name="Microsoft authorisation endpoint" xml:space="preserve">
     <value>Endpoint de autorização da Microsoft</value>
   </data>
   <data name="Microsoft client secret (leave empty to keep current)" xml:space="preserve">
@@ -8791,10 +8797,10 @@ Nada do que já está lá é removido.</value>
   <data name="Or enter this key by hand:" xml:space="preserve">
     <value>Ou digite esta chave manualmente:</value>
   </data>
-  <data name="Organization name in DMARC reports" xml:space="preserve">
+  <data name="Organisation name in DMARC reports" xml:space="preserve">
     <value>Nome da organização nos relatórios DMARC</value>
   </data>
-  <data name="Organization name in TLS reports" xml:space="preserve">
+  <data name="Organisation name in TLS reports" xml:space="preserve">
     <value>Nome da organização nos relatórios TLS</value>
   </data>
   <data name="Origins passkeys may be used at (comma separated)" xml:space="preserve">
@@ -8823,6 +8829,9 @@ Nada do que já está lá é removido.</value>
   </data>
   <data name="Outbound TLS" xml:space="preserve">
     <value>TLS de saída</value>
+  </data>
+  <data name="Outbound delivery behaviour, retries and smart-host relaying." xml:space="preserve">
+    <value>Comportamento da entrega de saída, novas tentativas e relay por smart host.</value>
   </data>
   <data name="Outbound delivery security (after MX lookup)" xml:space="preserve">
     <value>Segurança da entrega de saída (após a consulta de MX)</value>
@@ -9252,7 +9261,7 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   <data name="Pri_ority" xml:space="preserve">
     <value>_Prioridade</value>
   </data>
-  <data name="Prioritize ChaCha20-Poly1305 when the client prefers it (needs TLS 1.2 or 1.3)" xml:space="preserve">
+  <data name="Prioritise ChaCha20-Poly1305 when the client prefers it (needs TLS 1.2 or 1.3)" xml:space="preserve">
     <value>Priorizar ChaCha20-Poly1305 quando o cliente preferir (requer TLS 1.2 ou 1.3)</value>
   </data>
   <data name="Priority" xml:space="preserve">
@@ -9282,7 +9291,7 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   <data name="Program to run when an address is banned or unbanned (empty = none)" xml:space="preserve">
     <value>Programa a executar quando um endereço é banido ou desbanido (vazio = nenhum)</value>
   </data>
-  <data name="Progressive Robot Ltd is a software engineering company that builds and modernizes production software — taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling." xml:space="preserve">
+  <data name="Progressive Robot Ltd is a software engineering company that builds and modernises production software — taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling." xml:space="preserve">
     <value>A Progressive Robot Ltd é uma empresa de engenharia de software que constrói e moderniza software de produção — pega sistemas maduros, do mundo real, e os traz aos padrões atuais de segurança, confiabilidade e ferramental.</value>
   </data>
   <data name="Prometheus metrics (/metrics), OpenTelemetry export of traces, metrics and logs (one endpoint per signal, each off until set), a slow-query log, and JSON-structured log output for log aggregators (on the Logging page)." xml:space="preserve">

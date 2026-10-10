@@ -873,7 +873,7 @@
   <data name="Accept the XCLIENT command (Postfix)" xml:space="preserve">
     <value>接受 XCLIENT 命令（Postfix）</value>
   </data>
-  <data name="Acceptance exceeded the message finalization deadline (240 s by default): the sender retries rather than waiting for ever, the error entry names the deadline, and the stage timings above it name what consumed the time." xml:space="preserve">
+  <data name="Acceptance exceeded the message finalisation deadline (240 s by default): the sender retries rather than waiting for ever, the error entry names the deadline, and the stage timings above it name what consumed the time." xml:space="preserve">
     <value>接收阶段超过了邮件最终处理期限（默认 240 秒）：发件方会重试而不是一直等下去，错误条目会指明该期限，其上方的阶段耗时则说明时间消耗在了何处。</value>
   </data>
   <data name="Accepting" xml:space="preserve">
@@ -5296,13 +5296,13 @@
   <data name="Filter lines: an address, any words, or session=42" xml:space="preserve">
     <value>筛选行：地址、任意字词或 session=42</value>
   </data>
-  <data name="Find organizational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
+  <data name="Find organisational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
     <value>通过 DNS 树遍历查找组织域（RFC 9989）</value>
   </data>
   <data name="Finding the user's directory entry" xml:space="preserve">
     <value>查找用户的目录条目</value>
   </data>
-  <data name="Finds the organizational domain for DMARC relaxed alignment by asking DNS (RFC 9989) rather than the compiled Public Suffix List; the list is still used when DNS cannot answer. Up to eight queries per domain, cached for five minutes." xml:space="preserve">
+  <data name="Finds the organisational domain for DMARC relaxed alignment by asking DNS (RFC 9989) rather than the compiled Public Suffix List; the list is still used when DNS cannot answer. Up to eight queries per domain, cached for five minutes." xml:space="preserve">
     <value>通过查询 DNS（RFC 9989）而不是编译进来的公共后缀列表，为 DMARC 宽松对齐查找组织域；DNS 无法应答时仍会使用该列表。每个域最多八次查询，缓存五分钟。</value>
   </data>
   <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included." xml:space="preserve">
@@ -5533,7 +5533,7 @@
   <data name="Go to the search box of this page" xml:space="preserve">
     <value>转到此页面的搜索框</value>
   </data>
-  <data name="Google authorization endpoint" xml:space="preserve">
+  <data name="Google authorisation endpoint" xml:space="preserve">
     <value>Google 授权端点</value>
   </data>
   <data name="Google client ID" xml:space="preserve">
@@ -5749,10 +5749,10 @@
   <data name="Honeypot - offer AUTH; refuse it and ban the address" xml:space="preserve">
     <value>蜜罐 - 提供 AUTH；拒绝并封禁该地址</value>
   </data>
-  <data name="Honor recipient DANE/TLSA records when sending" xml:space="preserve">
+  <data name="Honour recipient DANE/TLSA records when sending" xml:space="preserve">
     <value>发送时遵循收件方的 DANE/TLSA 记录</value>
   </data>
-  <data name="Honor recipient MTA-STS policies when sending" xml:space="preserve">
+  <data name="Honour recipient MTA-STS policies when sending" xml:space="preserve">
     <value>发送时遵循收件方的 MTA-STS 策略</value>
   </data>
   <data name="Host" xml:space="preserve">
@@ -5842,7 +5842,7 @@
   <data name="How long that window lasts. Four hours by default." xml:space="preserve">
     <value>该窗口持续多久。默认四小时。</value>
   </data>
-  <data name="How long the server will go on finalizing an accepted message before answering 451 and asking the sender to retry, rather than holding the connection open indefinitely." xml:space="preserve">
+  <data name="How long the server will go on finalising an accepted message before answering 451 and asking the sender to retry, rather than holding the connection open indefinitely." xml:space="preserve">
     <value>服务器对已接受的邮件持续进行最终处理多久之后才应答 451 并要求发件方重试，而不是无限期保持连接打开。</value>
   </data>
   <data name="How long to wait (seconds)" xml:space="preserve">
@@ -6983,7 +6983,7 @@
   <data name="Matching Active Directory accounts. Select one." xml:space="preserve">
     <value>匹配的 Active Directory 账户。请选择一个。</value>
   </data>
-  <data name="Matching the authorization endpoint." xml:space="preserve">
+  <data name="Matching the authorisation endpoint." xml:space="preserve">
     <value>与授权端点相匹配的端点。</value>
   </data>
   <data name="MaxMind country database (.mmdb)" xml:space="preserve">
@@ -7117,8 +7117,14 @@
   <data name="Message archiving" xml:space="preserve">
     <value>邮件存档</value>
   </data>
-  <data name="Message finalization deadline (240)" xml:space="preserve">
+  <data name="Message finalisation deadline (240)" xml:space="preserve">
     <value>邮件最终处理期限（240）</value>
+  </data>
+  <data name="Message finalisation deadline (seconds; 0 = no deadline)" xml:space="preserve">
+    <value>邮件最终处理期限（秒；0 = 无期限）</value>
+  </data>
+  <data name="Message finalisation deadline (seconds; 0 = no time limit)" xml:space="preserve">
+    <value>邮件最终处理期限（秒；0 = 无时间限制）</value>
   </data>
   <data name="Message finalization deadline (seconds; 0 = no time limit)" xml:space="preserve">
     <value>邮件最终处理期限（秒；0 = 无时间限制）</value>
@@ -7255,7 +7261,7 @@
   <data name="Microsoft application (client) ID" xml:space="preserve">
     <value>Microsoft 应用程序（客户端）ID</value>
   </data>
-  <data name="Microsoft authorization endpoint" xml:space="preserve">
+  <data name="Microsoft authorisation endpoint" xml:space="preserve">
     <value>Microsoft 授权端点</value>
   </data>
   <data name="Microsoft client secret (leave empty to keep current)" xml:space="preserve">
@@ -8791,10 +8797,10 @@
   <data name="Or enter this key by hand:" xml:space="preserve">
     <value>或者手动输入此密钥：</value>
   </data>
-  <data name="Organization name in DMARC reports" xml:space="preserve">
+  <data name="Organisation name in DMARC reports" xml:space="preserve">
     <value>DMARC 报告中的组织名称</value>
   </data>
-  <data name="Organization name in TLS reports" xml:space="preserve">
+  <data name="Organisation name in TLS reports" xml:space="preserve">
     <value>TLS 报告中的组织名称</value>
   </data>
   <data name="Origins passkeys may be used at (comma separated)" xml:space="preserve">
@@ -8823,6 +8829,9 @@
   </data>
   <data name="Outbound TLS" xml:space="preserve">
     <value>发送 TLS</value>
+  </data>
+  <data name="Outbound delivery behaviour, retries and smart-host relaying." xml:space="preserve">
+    <value>出站投递行为、重试和智能主机中继。</value>
   </data>
   <data name="Outbound delivery security (after MX lookup)" xml:space="preserve">
     <value>出站投递安全（MX 查询之后）</value>
@@ -9252,7 +9261,7 @@
   <data name="Pri_ority" xml:space="preserve">
     <value>优先级(_O)</value>
   </data>
-  <data name="Prioritize ChaCha20-Poly1305 when the client prefers it (needs TLS 1.2 or 1.3)" xml:space="preserve">
+  <data name="Prioritise ChaCha20-Poly1305 when the client prefers it (needs TLS 1.2 or 1.3)" xml:space="preserve">
     <value>当客户端偏好 ChaCha20-Poly1305 时优先使用它（需要 TLS 1.2 或 1.3）</value>
   </data>
   <data name="Priority" xml:space="preserve">
@@ -9282,7 +9291,7 @@
   <data name="Program to run when an address is banned or unbanned (empty = none)" xml:space="preserve">
     <value>封禁或解封地址时运行的程序（留空 = 无）</value>
   </data>
-  <data name="Progressive Robot Ltd is a software engineering company that builds and modernizes production software — taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling." xml:space="preserve">
+  <data name="Progressive Robot Ltd is a software engineering company that builds and modernises production software — taking mature, real-world systems and bringing them up to current standards of security, reliability and tooling." xml:space="preserve">
     <value>Progressive Robot Ltd 是一家构建并现代化生产软件的软件工程公司 — 接手成熟的、真实世界中的系统，并把它们提升到当前的安全、可靠性和工具链标准。</value>
   </data>
   <data name="Prometheus metrics (/metrics), OpenTelemetry export of traces, metrics and logs (one endpoint per signal, each off until set), a slow-query log, and JSON-structured log output for log aggregators (on the Logging page)." xml:space="preserve">

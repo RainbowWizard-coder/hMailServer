@@ -2799,8 +2799,8 @@ namespace hMailServer.ControlPanel.Views
          auth.Settings.Add(new IniBool
          {
             Path = "DmarcTreeWalkEnabled",
-            Label = L("Find organizational domains by DNS tree walk (RFC 9989)"),
-            Blurb = L("Finds the organizational domain for DMARC relaxed alignment by asking DNS (RFC 9989) rather than the compiled Public Suffix List; the list is still used when DNS cannot answer. Up to eight queries per domain, cached for five minutes."),
+            Label = L("Find organisational domains by DNS tree walk (RFC 9989)"),
+            Blurb = L("Finds the organisational domain for DMARC relaxed alignment by asking DNS (RFC 9989) rather than the compiled Public Suffix List; the list is still used when DNS cannot answer. Up to eight queries per domain, cached for five minutes."),
             IniStore = iniStore_
          });
          auth.Settings.Add(new IniNumber
@@ -3302,7 +3302,7 @@ namespace hMailServer.ControlPanel.Views
             IniStore = iniStore_
          });
          var preferServer = new ComBool { Path = "TlsOptionPreferServerCiphersEnabled", Label = L("Prefer server cipher order") };
-         var chacha = new ComBool { Path = "TlsOptionPrioritizeChaChaEnabled", Label = L("Prioritize ChaCha20-Poly1305 when the client prefers it (needs TLS 1.2 or 1.3)") };
+         var chacha = new ComBool { Path = "TlsOptionPrioritizeChaChaEnabled", Label = L("Prioritise ChaCha20-Poly1305 when the client prefers it (needs TLS 1.2 or 1.3)") };
          // Labelled "TLS 1.2 and below" rather than just "Cipher list", because that is
          // what it governs and the old label implied otherwise. OpenSSL keeps the TLS
          // 1.3 suites in a separate list that SSL_CTX_set_cipher_list does not touch, so
@@ -5255,7 +5255,7 @@ namespace hMailServer.ControlPanel.Views
          import.Settings.Add(new RestText
          {
             Path = "ImportOAuthGoogleAuthorizeUrl",
-            Label = L("Google authorization endpoint"),
+            Label = L("Google authorisation endpoint"),
             Key = "import_oauth_google_authorize_url",
             Blurb = L("Google's public one by default.")
          });
@@ -5282,7 +5282,7 @@ namespace hMailServer.ControlPanel.Views
          import.Settings.Add(new RestText
          {
             Path = "ImportOAuthMsAuthorizeUrl",
-            Label = L("Microsoft authorization endpoint"),
+            Label = L("Microsoft authorisation endpoint"),
             Key = "import_oauth_microsoft_authorize_url",
             Blurb = L("The common one by default; a tenant's own or a national cloud's otherwise.")
          });
@@ -5291,7 +5291,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "ImportOAuthMsTokenUrl",
             Label = L("Microsoft token endpoint"),
             Key = "import_oauth_microsoft_token_url",
-            Blurb = L("Matching the authorization endpoint.")
+            Blurb = L("Matching the authorisation endpoint.")
          });
          Tab(L("Import")).Cards.Add(import);
       }

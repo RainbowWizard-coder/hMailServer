@@ -413,7 +413,7 @@ Public Suffix List, a file of every registry's delegation rules compiled in and
 refreshed at build time. DMARCbis (RFC 9989) replaced it with a walk up the DNS
 asking each level whether it is an organizational boundary, so a domain owner
 can state where their boundary is instead of petitioning a list. Turning *Find
-organizational domains by DNS tree walk (RFC 9989)* (`DmarcTreeWalkEnabled`, on)
+organisational domains by DNS tree walk (RFC 9989)* (`DmarcTreeWalkEnabled`, on)
 off falls back to the compiled list, which is also what happens for any single
 lookup the walk cannot complete because DNS was unavailable: a resolver outage
 must not quietly turn relaxed alignment into strict. The walk costs up to eight
