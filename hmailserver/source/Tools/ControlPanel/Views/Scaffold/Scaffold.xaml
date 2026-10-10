@@ -363,6 +363,15 @@
                         <Trigger Property="Error" Value="{x:Null}">
                             <Setter TargetName="PART_ErrorRow" Property="Visibility" Value="Collapsed" />
                         </Trigger>
+                        <!-- A row that cannot be used reads as one: its caption, its
+                             Applies line and its hint take the disabled text colour
+                             its editor takes, where a row dimmed by its switch kept
+                             them at full contrast over the greyed box (F197, F106). -->
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="PART_Label" Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+                            <Setter TargetName="PART_Applies" Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+                            <Setter TargetName="PART_Hint" Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+                        </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>

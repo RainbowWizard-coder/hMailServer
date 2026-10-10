@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using hMailServer.ControlPanel.Services;
 using Xunit;
 
@@ -126,6 +127,35 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(asks > 0 && writesAll > asks, "FeatureSettingsView.Save_ no longer asks every row before it writes.");
       }
 
+      /// <summary>
+      /// A row dimmed by its switch reads as dimmed: the field row's template gives its
+      /// caption, its Applies line and its hint the disabled text colour while the row is
+      /// disabled, where they stayed at full contrast over a greyed box - the ACME
+      /// settings under their switch, an account's expiry date under an auto-reply that
+      /// does not stop (found re-checking 827bf5403). Read from the template, so that a
+      /// rewrite of it keeps the trigger.
+      /// </summary>
+      [Fact]
+      public void ADisabledRow_DimsItsCaptionAppliesAndHint()
+      {
+         XNamespace wpf = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
+         XDocument scaffold = XDocument.Load(ControlPanelFile_(Path.Join("Views", "Scaffold", "Scaffold.xaml")));
+         XElement style = scaffold.Descendants(wpf + "Style").SingleOrDefault(s => (string)s.Attribute("TargetType") == "{x:Type scaffold:FieldRow}");
+         Assert.True(style != null, "Scaffold.xaml has no FieldRow style.");
+         XElement disabled = style.Descendants(wpf + "ControlTemplate.Triggers").Elements(wpf + "Trigger")
+            .SingleOrDefault(trigger => (string)trigger.Attribute("Property") == "IsEnabled" && (string)trigger.Attribute("Value") == "False");
+         Assert.True(disabled != null, "The FieldRow template no longer dims a disabled row.");
+         foreach (string part in new[] { "PART_Label", "PART_Applies", "PART_Hint" })
+         {
+            Assert.True(style.Descendants().Any(e => (string)e.Attribute(XName.Get("Name", "http://schemas.microsoft.com/winfx/2006/xaml")) == part),
+               "The FieldRow template has no " + part + ".");
+            Assert.Contains(disabled.Elements(wpf + "Setter"), setter =>
+               (string)setter.Attribute("TargetName") == part
+               && (string)setter.Attribute("Property") == "Foreground"
+               && (string)setter.Attribute("Value") == "{DynamicResource TextFillColorDisabledBrush}");
+         }
+      }
+
       [Fact]
       public void TheRowsFollow_NotTheirEditors_AndEveryTickAndFillIsFollowed()
       {
@@ -214,6 +244,18 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(start >= 0, "FeatureSettingsView." + name + " is gone.");
          int end = source.IndexOf("private class ", start + 1, StringComparison.Ordinal);
          return end > start ? source[start..end] : source[start..];
+      }
+
+      private static string ControlPanelFile_(string relative)
+      {
+         for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory != null; directory = directory.Parent)
+         {
+            string candidate = Path.Join(directory.FullName, "ControlPanel", relative);
+            if (File.Exists(candidate))
+               return candidate;
+         }
+
+         throw new FileNotFoundException("ControlPanel/" + relative.Replace('\\', '/') + " could not be found from the test binaries.");
       }
 
       private static string View_(string name)
