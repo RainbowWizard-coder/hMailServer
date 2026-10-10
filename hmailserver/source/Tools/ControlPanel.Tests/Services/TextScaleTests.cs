@@ -449,6 +449,20 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("FloorColumns_(rows);", ranges, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// The message trace's addresses, which share the width, end in an ellipsis and are
+      /// whole in their tool tips: at 150 per cent "jane.doe@partner.example.net" was cut to
+      /// "jane.doe@partner.example.r" with nothing to say so.
+      /// </summary>
+      [Fact]
+      public void TheMessageTracesAddresses_EndInAnEllipsis()
+      {
+         string columns = WithheldRowTests.MemberText(Read("Views", "MessageTraceView.cs"), "private void BuildColumns()");
+         Assert.True(columns != null, "MessageTraceView.BuildColumns is gone.");
+         foreach (string header in new[] { "Sender", "Recipient" })
+            Assert.Matches(@"list_\.Columns\.Add\(GridStyles\.Trimmed\(new DataGridTextColumn\s*\{\s*Header = L\(""" + header + @"""\)", columns);
+      }
+
       /// <summary>A token's size at 100 per cent, as Tokens.xaml holds it.</summary>
       internal static string TokenSize(string key)
       {

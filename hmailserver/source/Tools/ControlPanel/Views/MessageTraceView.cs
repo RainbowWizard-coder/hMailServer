@@ -615,19 +615,22 @@ namespace hMailServer.ControlPanel.Views
             Width = DataGridLength.Auto
          });
 
-         list_.Columns.Add(new DataGridTextColumn
+         // Each address that is wider than its share ends in an ellipsis and is whole in
+         // its cell's tool tip: at 150 per cent text "jane.doe@partner.example.net" was
+         // cut to "jane.doe@partner.example.r" with nothing to say so (review finding F317).
+         list_.Columns.Add(GridStyles.Trimmed(new DataGridTextColumn
          {
             Header = L("Sender"),
             Binding = new System.Windows.Data.Binding(nameof(TraceRow.Sender)),
             Width = new DataGridLength(1, DataGridLengthUnitType.Star)
-         });
+         }));
 
-         list_.Columns.Add(new DataGridTextColumn
+         list_.Columns.Add(GridStyles.Trimmed(new DataGridTextColumn
          {
             Header = L("Recipient"),
             Binding = new System.Windows.Data.Binding(nameof(TraceRow.Recipient)),
             Width = new DataGridLength(1, DataGridLengthUnitType.Star)
-         });
+         }));
 
          // The status as a word with the mark of its level - "OK 250", "Deferred
          // 451", "Refused 550" - where it was the bare code, right-aligned like a
