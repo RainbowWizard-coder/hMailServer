@@ -23,6 +23,11 @@
    table (IPGlobalProperties, which asks the IP Helper API, as netstat does),
    and from netstat -ano itself when that has nothing either.
 
+   Get-NetTCPConnection is asked as a job, waited for $TcpListenersCimSeconds
+   (15) at most: a provider that does not answer at all, rather than answering
+   nothing, is passed over the same way, and holds no caller - the gate's minute
+   for clamd among them - for longer than that.
+
    Get-TcpListeners returns an object with three properties:
      Ports    a HashSet[int] of the listening ports (empty when no source listed
               any, so that every port then reads as closed)
@@ -32,9 +37,27 @@
    Windows PowerShell 5.1 and PowerShell 7 alike.
 #>
 
+$TcpListenersCimSeconds = 15
+
 function Read-TcpListenersFromCim {
     $all = @()
-    try { $all = @(Get-NetTCPConnection -ErrorAction SilentlyContinue) } catch { $all = @() }
+    $job = $null
+    $script:TcpListenersCimTimedOut = $false
+    try {
+        $job = Get-NetTCPConnection -AsJob -ErrorAction Stop
+        if (Wait-Job $job -Timeout $TcpListenersCimSeconds) {
+            $all = @(Receive-Job $job -ErrorAction SilentlyContinue)
+        } else {
+            $script:TcpListenersCimTimedOut = $true
+        }
+    } catch {
+        $all = @()
+    } finally {
+        if ($null -ne $job) {
+            Stop-Job $job -ErrorAction SilentlyContinue
+            Remove-Job $job -Force -ErrorAction SilentlyContinue
+        }
+    }
     if ($all.Count -eq 0) { return $null }
     $ports = [System.Collections.Generic.HashSet[int]]::new()
     foreach ($connection in $all) {
@@ -73,7 +96,11 @@ function Get-TcpListeners {
     $source = 'Get-NetTCPConnection'
     $why = ''
     if ($null -eq $ports) {
-        $why = 'Get-NetTCPConnection returned no TCP endpoint at all - its CIM provider, MSFT_NetTCPConnection, is not answering'
+        if ($script:TcpListenersCimTimedOut) {
+            $why = "Get-NetTCPConnection did not answer within $TcpListenersCimSeconds s - its CIM provider, MSFT_NetTCPConnection, is not answering"
+        } else {
+            $why = 'Get-NetTCPConnection returned no TCP endpoint at all - its CIM provider, MSFT_NetTCPConnection, is not answering'
+        }
         $ports = Read-TcpListenersFromDotNet
         $source = '.NET (IPGlobalProperties.GetActiveTcpListeners)'
     }

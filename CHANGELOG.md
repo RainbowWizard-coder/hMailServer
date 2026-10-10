@@ -4647,22 +4647,24 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   and waited 25 seconds for nothing. It now reads the ports with `build/ci/tcp-listeners.ps1`, the readers the
   pre-flight was given that day moved out of `build/preflight-tests.ps1` so that the two share them -
   `Get-NetTCPConnection`, then .NET's `IPGlobalProperties` when that lists no TCP endpoint at all, then
-  `netstat -ano` - says which it read, and after starting the task waits for 3310 a minute at most, in five-second
-  looks, where it slept 25 seconds whatever happened. The file is under `build/ci` because the job runs the commit's
-  `build/ci` alone (ContinuousIntegration.md, "The Windows gate").
+  `netstat -ano` - says which it read, and after starting the task waits for 3310 a minute by the clock, a look
+  every five seconds, where it slept 25 seconds whatever happened. `Get-NetTCPConnection` is asked as a job and
+  waited for 15 seconds at most, so that a provider that does not answer at all is passed over too and holds neither
+  the gate nor the pre-flight. The file is under `build/ci` because the job runs the commit's `build/ci` alone
+  (ContinuousIntegration.md, "The Windows gate").
 - **Every image the CI files and the build scripts pin by digest is asked of its registry every day, and a pin gone
   fails the pipeline, named.** GitLab's registry stops serving a digest of its analyzers within days of the tag moving
   on, and a job whose image is gone fails at its pull, only when it runs: `container_scanning`'s, which runs in a
   release tag's pipeline alone, answered 404 on 10 October 2026 and nothing had shown it. The new
-  `build/check-image-pins.py` reads every `name[:tag]@sha256:<digest>` in `.gitlab-ci.yml`, `.gitlab/ci/`, `build/`
-  and the tree's Dockerfiles and Compose files, and asks each registry for the digest as a runner does, without
-  credentials (a `HEAD` of the manifest, with the anonymous token the registry's challenge names): a 404, a refusal
-  or another digest fails it with every file and line that names the pin, and a registry that cannot be asked after
-  three tries is exit 2. The `image-pins` job runs its self-test, against a registry it serves on the loopback, and
-  the check in the pipeline of Renovate's daily schedule; `build/check-release-chain.py` holds the job to that, not
+  `build/check-image-pins.py` reads every `name[:tag]@sha256:<digest>` in `.gitlab-ci.yml`, `.gitlab/ci/`, `build/` and
+  the tree's Dockerfiles and Compose files, and asks each registry for the digest as a runner does, without credentials
+  (a `HEAD` of the manifest, with the anonymous token the registry's challenge names): a 404, a refusal or another
+  digest fails it with every file and line that names the pin, and a registry that cannot be asked after three tries is
+  exit 2, the pins after it on that registry and any left after the check's ten minutes named as not asked, so that the
+  job ends within its fifteen. The `image-pins` job runs its self-test, against a registry it serves on the loopback,
+  and the check in the pipeline of Renovate's daily schedule; `build/check-release-chain.py` holds the job to that, not
   `allow_failure`, and RELEASE.md runs the check before a tag; `checkers` runs the self-test alone. On 10 October it
-  found 59 pins in 118 places, and
-  `container_scanning`'s gone (ContinuousIntegration.md, "Image pins").
+  found 59 pins in 118 places, and `container_scanning`'s gone (ContinuousIntegration.md, "Image pins").
 - **`container_scanning` and `container_scanning_arm64` scan each platform's pushed image with Trivy, in
   `dependency-scan`'s own image by its digest, where they ran GitLab's Container Scanning analyzer by a digest GitLab
   stops serving within days.** The analyzer's digest taken on 5 October 2026 answered 404 by 10 October, and the

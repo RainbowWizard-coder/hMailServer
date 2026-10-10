@@ -1673,13 +1673,15 @@ runner clones nothing, and the job does the following itself:
    4. It removes the old test assembly and builds the tests (`build-tests.ps1`,
       exit 6). A test assembly more than 30 minutes old is refused as stale
       (exit 7).
-   5. It starts clamd if nothing listens on 3310, and waits a minute at most
-      for it, then runs `preflight-tests.ps1 -Clean` (exit 2). Both read the
-      listening ports with `build/ci/tcp-listeners.ps1`: from
-      `Get-NetTCPConnection`, or, when that returns no TCP endpoint at all, from
-      .NET's `IPGlobalProperties` or `netstat -ano`, and say which. On server1,
-      from 9 October 2026, the CIM provider behind `Get-NetTCPConnection`
-      answered nothing while every listener was there.
+   5. It starts clamd if nothing listens on 3310, and waits for it a minute
+      by the clock, a look every five seconds, then runs
+      `preflight-tests.ps1 -Clean` (exit 2). Both read the listening ports
+      with `build/ci/tcp-listeners.ps1`: from `Get-NetTCPConnection`, asked as
+      a job and waited for 15 seconds at most, or, when that returns no TCP
+      endpoint at all or does not answer in time, from .NET's
+      `IPGlobalProperties` or `netstat -ano`, and say which. On server1, from
+      9 October 2026, the CIM provider behind `Get-NetTCPConnection` answered
+      nothing while every listener was there.
    6. It restarts the service and watches the idle server for two minutes of
       error logs (exit 9).
    7. It runs `run-tests.ps1`: the whole suite in one run, or the subset that
@@ -3481,7 +3483,14 @@ anonymous token the registry's challenge names. A 404, a refusal to that token,
 or an answer naming another digest is a pin gone, and fails the check (exit 1),
 naming the pin and each file and line that names it. A network error, a 429 or a
 5xx is asked again, 5 and then 20 seconds later, and after the third time is a
-registry that could not be asked (exit 2), which the job retries. It downloads
+registry that could not be asked (exit 2), which the job retries: the pins after
+it on that registry are not asked, and none is asked once the check's ten
+minutes have passed, nor asked again when the next try would begin after them,
+so that a registry that does not answer ends the check with exit 2 and every pin
+it could not ask named, within the job's fifteen minutes - with Docker Hub's
+address made one that never answers, on 10 October 2026, it ended in 99
+seconds, its first Docker Hub pin asked three times and the other 33 named as
+not asked, where asking each three times would have taken over an hour. It downloads
 nothing, and Docker Hub does not count a `HEAD` against its pull limit. On 10
 October 2026 it found 59 pins in 118 places in 37 seconds, and one gone,
 `container_scanning`'s, which answered 404 ([Security

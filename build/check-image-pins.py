@@ -34,7 +34,10 @@ and by hand before a release tag (RELEASE.md). Exit codes: 0 every pin resolves;
 registry does not have a pin's digest (404, or a refusal - 401 or 403 - with its own
 anonymous token, which a repository that is gone or private gives), or answers it with
 another digest; 2 a registry could not be asked - the network, a 429 or a 5xx, three
-times - and nothing was said to be gone, or the check was asked wrongly. Docker Hub
+times - and nothing was said to be gone, or the check was asked wrongly. Once a registry
+could not be asked, the pins after it on that registry are not asked, and none is asked
+after the check's deadline (DEADLINE, ten minutes, below the job's timeout): each such
+pin is named, with the places that name it, as one that could not be asked. Docker Hub
 does not count a HEAD against its pull limit.
 
   python build/check-image-pins.py             ask every registry
@@ -76,6 +79,12 @@ ACCEPT = ", ".join(["application/vnd.oci.image.index.v1+json", "application/vnd.
 TRIES = 3
 WAIT = (5, 20)
 TIMEOUT = 30
+# How long the check asks at most, in seconds: below the image-pins job's timeout (15
+# minutes), so that a registry that does not answer ends the check with exit 2 and the
+# pins it could not ask named, not the job with GitLab's job_execution_timeout. A pin
+# is not asked once the deadline has passed, nor asked again once the next try would
+# begin after it; one try - a HEAD, the token, a HEAD - can still take 3 x TIMEOUT.
+DEADLINE = 600
 # The registries' own hosts, for the self-test to point at the loopback.
 ENDPOINT = {}
 
@@ -214,8 +223,9 @@ def ask_once(reference):
     raise Transient("%s answered %d" % (host, status))
 
 
-def ask(reference, sleep=time.sleep):
-    """("ok"|"gone"|"unknown", what), asking up to TRIES times when the answer is no answer."""
+def ask(reference, sleep=time.sleep, give_up_at=None, clock=time.monotonic):
+    """("ok"|"gone"|"unknown", what), asking up to TRIES times when the answer is no answer,
+    and not again when the next try would begin after give_up_at (clock's time)."""
     why = ""
     for attempt in range(TRIES):
         try:
@@ -223,15 +233,30 @@ def ask(reference, sleep=time.sleep):
         except Transient as e:
             why = str(e)
             if attempt + 1 < TRIES:
-                sleep(WAIT[min(attempt, len(WAIT) - 1)])
+                wait = WAIT[min(attempt, len(WAIT) - 1)]
+                if give_up_at is not None and clock() + wait >= give_up_at:
+                    return "unknown", "%s (asked %d time(s); the check's deadline came before the next)" % (why, attempt + 1)
+                sleep(wait)
     return "unknown", "%s (asked %d times)" % (why, TRIES)
 
 
-def check(pins, say=print, sleep=time.sleep):
-    """Ask every pin; say what each answered; the exit code."""
+def check(pins, say=print, sleep=time.sleep, clock=time.monotonic, deadline=DEADLINE):
+    """Ask every pin, within deadline seconds; say what each answered; the exit code. Once
+    a registry could not be asked, the pins after it on the same registry are not asked,
+    and none is asked once the deadline has passed: each is then "could not be asked"."""
     gone, unknown = [], []
+    give_up_at = clock() + deadline
+    unreachable = {}
     for reference in sorted(pins):
-        state, what = ask(reference, sleep)
+        host = locate(reference)[0]
+        if host in unreachable:
+            state, what = "unknown", "not asked: %s could not be asked for %s" % (host, unreachable[host])
+        elif clock() >= give_up_at:
+            state, what = "unknown", "not asked: the check's %d-second deadline had passed" % deadline
+        else:
+            state, what = ask(reference, sleep, give_up_at, clock)
+            if state == "unknown":
+                unreachable[host] = reference
         if state == "ok":
             say("ok       %s" % reference)
             continue
@@ -248,9 +273,13 @@ def check(pins, say=print, sleep=time.sleep):
             say("  %s (%s)" % (reference, ", ".join(pins[reference])))
         say("Re-take the digest, or the project's copy of the image, in each place named (ContinuousIntegration.md, "
             "\"Image pins\").")
+        if unknown:
+            say("And %d pin(s) could not be asked, which a run after this one asks again." % len(unknown))
         return 1
     if unknown:
-        say("Not every registry could be asked; nothing was said to be gone.")
+        say("Not every registry could be asked; nothing was said to be gone. Not asked, or asked without an answer:")
+        for reference in unknown:
+            say("  %s (%s)" % (reference, ", ".join(pins[reference])))
         return 2
     return 0
 
@@ -408,6 +437,37 @@ def self_test(root=ROOT):
         expect(code == 1, "gone outweighs could-not-ask: %s" % code)
         said = []
         expect(check({"alpine:3.24@" + one: ["a.yml:1"]}, said.append, nap) == 0, "every pin resolves: exit 0 (%s)" % said)
+        # A registry that could not be asked is not asked again for the pins after it, which
+        # are named as not asked; another registry still is. e/g would answer 404 - gone,
+        # exit 1 - if it were asked.
+        del FakeRegistry.asked[:]
+        said = []
+        code = check({"alpine:3.24@" + one: ["a.yml:1"], "registry.example/e/f@" + one: ["d.yml:4"],
+                      "registry.example/e/g@" + one: ["f.yml:6"]}, said.append, nap)
+        text = "\n".join(said)
+        expect(code == 2 and "ok       alpine:3.24@" + one in text and not any("/e/g/" in p for p in FakeRegistry.asked)
+               and "not asked: registry.example could not be asked for registry.example/e/f@" + one in text
+               and "  registry.example/e/g@%s (f.yml:6)" % one in text,
+               "the pins after an unanswering registry's first are not asked, and named: %s\n%s" % (code, text))
+        # The deadline: no try begins after it - here the next would, so the pin is given up
+        # after one sleep - and no pin is asked once it has passed. a/b would answer with
+        # another digest - gone, exit 1 - if it were asked.
+        now = [0]
+        slept = []
+        state, what = ask("registry.example/e/f@" + one, lambda s: (slept.append(s), now.__setitem__(0, now[0] + s)), 10,
+                          lambda: now[0])
+        expect(state == "unknown" and slept == [5] and "deadline" in what, "no try begins after the deadline: %s %s %s"
+               % (state, what, slept))
+        del FakeRegistry.asked[:]
+        times = [0, 0, 700]
+        said = []
+        code = check({"alpine:3.24@" + one: ["a.yml:1"], "registry.example/a/b@" + two: ["b.yml:2"],
+                      "registry.example/c/d@" + one: ["c.yml:3"]}, said.append, nap,
+                     lambda: times.pop(0) if len(times) > 1 else times[0], 600)
+        text = "\n".join(said)
+        expect(code == 2 and "ok       alpine:3.24@" + one in text and text.count("the check's 600-second deadline had passed") == 2
+               and len(FakeRegistry.asked) == 2 and all("/library/alpine/" in p for p in FakeRegistry.asked),
+               "no pin is asked once the deadline has passed, and each is named: %s %s\n%s" % (code, FakeRegistry.asked, text))
         # Nothing reached anything but the loopback: no request left without the fake's host.
         expect(all(p.startswith("/v2/") for p in FakeRegistry.asked), "only manifests were asked for: %s" % FakeRegistry.asked)
     finally:

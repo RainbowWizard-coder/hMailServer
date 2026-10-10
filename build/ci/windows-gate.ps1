@@ -277,12 +277,14 @@ if ($listeners.Ports.Contains(3310)) {
 } else {
    "  nothing listens on 3310: starting the clamd task"
    schtasks /run /tn clamd | Out-Null
-   $waited = 0
+   # The minute is the clock's, not a count of the sleeps: each look also reads the ports,
+   # which can take seconds (Get-TcpListeners bounds the CIM read itself).
+   $clock = [System.Diagnostics.Stopwatch]::StartNew()
    do {
       Start-Sleep 5
-      $waited += 5
       $listening = (Get-TcpListeners).Ports.Contains(3310)
-   } until ($listening -or $waited -ge 60)
+   } until ($listening -or $clock.Elapsed.TotalSeconds -ge 60)
+   $waited = [int]$clock.Elapsed.TotalSeconds
    if ($listening) { "  clamd is listening on 3310 after $waited s" } else { "  clamd is not listening on 3310 after $waited s" }
 }
 
