@@ -18,7 +18,7 @@
         </Grid.RowDefinitions>
 
         <scaffold:PageHeader PageKey="ports"
-                             Subtitle="{loc:L 'The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one.'s open ports, not from the configuration, so it shows what is actually happening rather than what was asked for.'}">
+                             Subtitle="{loc:L 'The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one.'}">
             <!-- The list page pattern (docs/ControlPanelDesign.md, List pages): the
                  count beside the title and Refresh in the header, the list's own
                  verbs in the toolbar above it (review finding F288). -->

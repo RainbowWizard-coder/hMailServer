@@ -69,7 +69,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          // The buttons that wrap under the password go under the strength line, not over it.
          string wrap = WithheldRowTests.MemberText(code, "private void AccountForm_SizeChanged(object sender, SizeChangedEventArgs e)");
-         Assert.Contains("Grid.SetRow(AccountButtons, beside ? 1 : 3);", wrap, StringComparison.Ordinal);
+         Assert.Contains("Grid.SetRow(AccountButtonsLine, beside ? 1 : 3);", wrap, StringComparison.Ordinal);
       }
 
       private static string CodeBehind() => ReadControlPanelFile(Path.Join("Views", "DomainsView.xaml.cs"));

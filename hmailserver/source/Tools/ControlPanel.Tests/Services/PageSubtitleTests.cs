@@ -31,7 +31,6 @@ namespace hMailServer.ControlPanel.Tests.Services
       // it would say going to the page's help.
       private static readonly Dictionary<string, string> LongerForNow = new(StringComparer.Ordinal)
       {
-         ["Sending organisations decided about by their domain"] = "the domain white and black list, whose subtitle T2.11 item 15 (F266) rewrites with the notice under it",
          ["What this server does when it talks to a named remote domain"] = "Remote domains, whose first sentence alone is three lines and wants new words",
          ["Messages the server would otherwise have refused"] = "the quarantine",
          ["Creates and updates mailboxes to match an LDAP directory"] = "directory synchronisation",

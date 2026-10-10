@@ -116,9 +116,10 @@ namespace hMailServer.ControlPanel.Tests.Services
       [Fact]
       public void ThePagesASubjectIsLookedForOnLinkToIt()
       {
-         // Among the first three, which are what the breadcrumb's Related bar draws
-         // (MainWindow.UpdateBreadcrumb): Delivery of e-mail's link to Rules was its
-         // fourth and was never drawn.
+         // Among the first three: a page's partners come first, as the breadcrumb's
+         // Related bar draws them first wherever there is room and lists them first
+         // in its drop-down (RelatedLinksFit); Delivery of e-mail's link to Rules was
+         // its fourth, when the bar drew three.
          Assert.Contains("delivery", NavigationMap.Find("rules").SeeAlso.Take(3));
          Assert.Contains("rules", NavigationMap.Find("delivery").SeeAlso.Take(3));
          Assert.Contains("hardening", NavigationMap.Find("relays").SeeAlso.Take(3));

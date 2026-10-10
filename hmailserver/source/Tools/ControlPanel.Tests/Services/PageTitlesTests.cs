@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using hMailServer.ControlPanel.Services;
 using Xunit;
 
@@ -171,7 +172,12 @@ namespace hMailServer.ControlPanel.Tests.Services
             Assert.DoesNotMatch("^\\s*Subtitle\\s*=", spec.Groups["rest"].Value);
          }
 
-         Assert.Contains("<scaffold:PageHeader PageKey=\"routes\" />", ReadControlPanelFile(Path.Join("Views", "RoutesView.xaml")), StringComparison.Ordinal);
+         // Routes names its key and sets no subtitle: its description is shown. The
+         // header holds its count and Refresh (the list page pattern, F288).
+         XElement routes = XDocument.Parse(ReadControlPanelFile(Path.Join("Views", "RoutesView.xaml"))).Root
+            .Descendants().Single(e => e.Name.LocalName == "PageHeader");
+         Assert.Equal("routes", (string)routes.Attribute("PageKey"));
+         Assert.Null(routes.Attribute("Subtitle"));
 
          string domains = ReadControlPanelFile(Path.Join("Views", "DomainsView.xaml"));
          Assert.Contains("The domains this server hosts, with their accounts, aliases and distribution lists.", domains, StringComparison.Ordinal);

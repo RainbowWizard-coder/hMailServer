@@ -81,7 +81,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void DirectoryAuthentication_SaysAPortOrATimeoutItRefuses_OnTheBoxToo()
       {
          string page = Read("LdapSettingsView.cs");
-         Assert.Contains("content.Children.Add(portRow_ = LabelledBox_(L(\"_Port (Port)\"), port_, \"ldap-port\",", page, StringComparison.Ordinal);
+         Assert.Contains("content.Children.Add(portRow_ = LabelledBox_(L(\"_Port\"), port_, \"ldap-port\",", page, StringComparison.Ordinal);
          Assert.Contains("content.Children.Add(timeoutRow_ = LabelledBox_(L(\"Time_out in seconds (TimeoutSeconds)\"), timeout_, \"ldap-timeout\",", page, StringComparison.Ordinal);
 
          // In the notice under the header, as every refused save on the settings
@@ -89,8 +89,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("DialogFields.ClearErrors(portRow_, timeoutRow_);", page, StringComparison.Ordinal);
          Assert.Contains("DialogFields.ShowError(portRow_, L(\"Enter a port from 1 to 65535, or leave the box empty for the automatic port.\"));", page, StringComparison.Ordinal);
          Assert.Contains("DialogFields.ShowError(timeoutRow_, L(\"Enter a whole number of seconds from 1 to 90.\"));", page, StringComparison.Ordinal);
-         Assert.Contains("saveState_.Refuse(portError);", page, StringComparison.Ordinal);
-         Assert.Contains("saveState_.Refuse(timeoutError);", page, StringComparison.Ordinal);
+         Assert.Contains("saveState_.Refuse(portError, () => !TryPort_(out _, out _, out _));", page, StringComparison.Ordinal);
+         Assert.Contains("saveState_.Refuse(timeoutError, () => !TryTimeout_(out _, out _, out _));", page, StringComparison.Ordinal);
       }
 
       // ---- helpers -------------------------------------------------------------------------

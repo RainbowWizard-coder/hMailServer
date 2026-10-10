@@ -105,8 +105,9 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          Assert.True(problems.Count == 0, string.Join("\n", problems));
 
-         // The Groups page: embedded for the chrome it draws itself, not a dialog's tab.
-         Assert.Contains("editor_ = new CollectionEditorView(spec, embedded: true);", specs, StringComparison.Ordinal);
+         // The Groups page: the editor in its page mode, as every other list page
+         // (review finding F112), so that Add is the page's Primary.
+         Assert.Contains("editor_ = new CollectionEditorView(spec);", specs, StringComparison.Ordinal);
          Assert.Single(Regex.Matches(specs, @"new CollectionEditorView\("));
       }
 

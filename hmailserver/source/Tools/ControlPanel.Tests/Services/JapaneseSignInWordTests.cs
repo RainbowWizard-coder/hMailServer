@@ -34,13 +34,24 @@ namespace hMailServer.ControlPanel.Tests.Services
          List<string> signIn = japanese.Keys.Where(key => SignIn.IsMatch(key)).ToList();
          Assert.True(signIn.Count > 50, "Only " + signIn.Count + " texts say sign in; the pattern no longer reads them.");
 
+         // Windows logon is the name of what Windows does (LogonUser), not this
+         // product's word for signing in: a text that says both, as Directory
+         // authentication's question before a save does - "go on signing in through
+         // Windows logon" - says Windows ログオン for the one and サインイン for the other.
          List<string> found = signIn
-            .Where(key => japanese[key].Contains("ログイン", StringComparison.Ordinal) || japanese[key].Contains("ログオン", StringComparison.Ordinal))
+            .Where(key => SaysLogInOrLogOn_(key, japanese[key]))
             .Select(key => key + " = " + japanese[key])
             .ToList();
          Assert.True(found.Count == 0, "Sign in is サインイン in Japanese:" + Environment.NewLine + string.Join(Environment.NewLine, found));
 
          Assert.Equal("最終サインイン", japanese["Last sign-in"]);
+      }
+
+      private static bool SaysLogInOrLogOn_(string english, string japanese)
+      {
+         if (english.Contains("Windows logon", StringComparison.Ordinal))
+            japanese = japanese.Replace("Windows ログオン", "", StringComparison.Ordinal);
+         return japanese.Contains("ログイン", StringComparison.Ordinal) || japanese.Contains("ログオン", StringComparison.Ordinal);
       }
 
       private static Dictionary<string, string> ReadResx(string file)

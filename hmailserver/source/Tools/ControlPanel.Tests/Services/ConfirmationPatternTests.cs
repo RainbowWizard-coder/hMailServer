@@ -321,7 +321,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       private static readonly Dictionary<string, string[]> VerbOfTheAct_ = new(StringComparer.Ordinal)
       {
          ["Re_move"] = new[] { "remove", "odebr", "fjern", "entfern", "quit", "poist", "retir", "rimuov", "削除", "fjern", "verwijder", "usu", "remov", "убра", "ta bort", "kaldır", "вилуч", "移除" },
-         ["_Remove stored passphrase"] = new[] { "remove", "odstran", "fjern", "entfern", "quit", "poist", "retir", "rimuov", "削除", "fjern", "verwijder", "usu", "remov", "убра", "ta bort", "kaldır", "вилуч", "移除" },
+         ["Re_move stored passphrase"] = new[] { "remove", "odstran", "fjern", "entfern", "quit", "poist", "retir", "rimuov", "削除", "fjern", "verwijder", "usu", "remov", "убра", "ta bort", "kaldır", "вилуч", "移除" },
          ["_Remove message"] = new[] { "remove", "odebr", "fjern", "entfern", "quit", "poist", "retir", "rimuov", "削除", "fjern", "verwijder", "usu", "remov", "удал", "ta bort", "kaldır", "вилуч", "移除" },
          ["Re_move the sample domain"] = new[] { "remove", "odstran", "fjern", "entfern", "elimin", "poist", "supprim", "rimuov", "削除", "fjern", "verwijder", "usu", "remov", "удал", "ta bort", "kaldır", "вилуч", "移除" },
          ["_Take the role away"] = new[] { "take", "odebr", "fjern", "entfern", "quit", "poist", "retir", "togli", "取り消", "fjern", "verwijder", "odbierz|odebra", "remov", "сня", "ta bort", "kaldır", "зня", "收回" },
