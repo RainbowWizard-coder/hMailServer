@@ -62,9 +62,57 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("Reject sign-ins using a weaker stored hash than")]
       [InlineData("Server-wide smart host")]
       [InlineData("Smart host")]
+      [InlineData("Smart host name (empty = direct delivery)")]
+      [InlineData("The smart host requires authentication")]
+      [InlineData("OAuth2 for the smart host (Microsoft 365)")]
+      [InlineData("Outbound delivery, retries and the smart host.")]
       public void TheSettingsSay_TheGlossarysWord(string caption)
       {
          Assert.Contains(caption, EnglishTexts());
+      }
+
+      /// <summary>
+      /// The server-wide smart host is the smart host wherever it is named: on its tab, in the
+      /// settings search index's rows for that tab, in the page's subtitle and map description
+      /// and in every text that sends the reader to it on the Delivery of e-mail page - where the
+      /// tab called it the smart host in its card's title, a relay host and a relay in its
+      /// captions and the OAuth2 card, and smart-host relaying in the subtitle. A domain's own
+      /// relay host and a route are relays to a host of their own, and a palette search for the
+      /// old names still finds the page.
+      /// </summary>
+      [Fact]
+      public void TheServerWideSmartHost_IsNeverCalledARelay()
+      {
+         var relay = new Regex(@"\brelay(?:s|ed|ing|er)?\b", RegexOptions.IgnoreCase);
+         string Relay(string text) => relay.IsMatch(text.Replace("a domain's relay host", "", StringComparison.Ordinal)) ? text : null;
+         var offenders = new List<string>();
+
+         List<hMailServer.ControlPanel.Services.SettingEntry> tab = hMailServer.ControlPanel.Services.SettingsSearchIndex.Entries
+            .Where(entry => entry.Page == "delivery" && entry.Tab == "Smart host").ToList();
+         Assert.True(tab.Count >= 12, "The search index holds " + tab.Count + " settings on the Smart host tab.");
+         offenders.AddRange(tab.Select(entry => Relay(entry.Label + " / " + entry.Card)).Where(text => text != null).Select(text => "search index: " + text));
+
+         string source = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", "ServerSettingsView.xaml.cs"));
+         int start = source.IndexOf("var relay = Card(L(\"Server-wide smart host\")", StringComparison.Ordinal);
+         int end = source.LastIndexOf("Tab(L(\"Smart host\")).Cards.Add(", StringComparison.Ordinal);
+         Assert.True(start > 0 && end > start, "The Smart host tab's cards are no longer where this test looks for them.");
+         var literal = new Regex(@"\bL\(""((?:[^""\\]|\\.)*)""\)");
+         offenders.AddRange(literal.Matches(source[start..end]).Select(m => Relay(m.Groups[1].Value)).Where(text => text != null).Select(text => "Smart host tab: " + text));
+         int delivery = source.IndexOf("Header.PageKey = \"delivery\";", StringComparison.Ordinal);
+         Match subtitle = new Regex(@"Header\.Subtitle = L\(""((?:[^""\\]|\\.)*)""\);").Match(source, delivery);
+         if (delivery < 0 || !subtitle.Success || Relay(subtitle.Groups[1].Value) != null)
+            offenders.Add("subtitle: " + subtitle.Groups[1].Value);
+
+         hMailServer.ControlPanel.Services.NavNode page = hMailServer.ControlPanel.Services.NavigationMap.Find("delivery");
+         if (Relay(page.Purpose) != null)
+            offenders.Add("navigation map: " + page.Purpose);
+
+         offenders.AddRange(EnglishTexts().Where(text => text.Contains("on the Delivery of e-mail page", StringComparison.Ordinal))
+            .Select(Relay).Where(text => text != null).Select(text => "names the page: " + text));
+
+         Assert.True(offenders.Count == 0, "The server-wide host is the smart host:\n" + string.Join("\n", offenders));
+         Assert.Contains("SMTP relayer", page.Aliases);
+         Assert.Contains("Relay host", page.Aliases);
       }
 
       [Fact]

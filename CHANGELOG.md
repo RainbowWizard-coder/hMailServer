@@ -3129,12 +3129,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   "Sign-in tarpit" and "Delay per failed sign-in (seconds; 0 = off)", and Japanese says サインイン and Brazilian Portuguese
   login wherever the English says sign in. The glossary the review asked for is a section of
   docs/ControlPanelDesign.md, Words, and applied in one pass: the Delivery of e-mail page's Relayer tab and its SMTP
-  relayer (smart host) card are Smart host and Server-wide smart host, as the domain dialog's relay host, its hint and
-  the stored-secrets note say; e-mail is mail in prose and email address for the field ("Email" in the Active
-  Directory picker); Couldn't is Could not, client id and key id are client ID and key ID, three server errors gain
-  their "server", the TCP/IP ports grid's Security column is Connection security, and three captions lose the colon at
-  their end (the public folder's name, the code the second factor asks for, the DKIM record). `GlossaryTests` holds
-  the English to the glossary, the Brazilian catalogue to login, and every caption to no colon.
+  relayer (smart host) card are Smart host and Server-wide smart host, and the tab's captions and OAuth2 card, the
+  page's subtitle and description and the Routes page's empty state say smart host as well - "Smart host name (empty =
+  direct delivery)", "The smart host requires authentication", "OAuth2 for the smart host (Microsoft 365)", "Outbound
+  delivery, retries and the smart host." - where they said relay host, relay and smart-host relaying, as the domain
+  dialog's relay host, its hint and the stored-secrets note say, and the palette still finds the page by SMTP relayer
+  and Relay host; e-mail is mail in prose and email address for the field ("Email" in the Active Directory picker);
+  Couldn't is Could not, client id and key id are client ID and key ID, three server errors gain their "server", the
+  TCP/IP ports grid's Security column is Connection security, and three captions lose the colon at their end (the
+  public folder's name, the code the second factor asks for, the DKIM record). `GlossaryTests` holds the English to
+  the glossary, the smart host to its name on its tab, in the search index and wherever a text sends the reader to
+  it, the Brazilian catalogue to login, and every caption to no colon.
 
 - **Fixed: the domain and account dialogs' captions carried their whole explanation in brackets, which a screen reader
   heard as the field's name.** "Address (changing it renames the mailbox; it must stay in this domain)", "Delete

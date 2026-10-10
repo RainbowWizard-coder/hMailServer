@@ -108,7 +108,7 @@ namespace hMailServer.ControlPanel.Views
       /// (Services/ListSearchState).
       /// </summary>
       private void ShowListState_() => ListSearchState.Show(RouteGrid, SearchBar.SearchText, CountPill,
-         n => Plural(n, "{0} route", "{0} routes"), EmptyStatus, L("No routes, so every domain's mail is delivered the usual way: to its MX hosts, or through the relay set on the Delivery of e-mail page."));
+         n => Plural(n, "{0} route", "{0} routes"), EmptyStatus, L("No routes, so every domain's mail is delivered the usual way: to its MX hosts, or through the smart host set on the Delivery of e-mail page."));
 
       /// <summary>The empty list's action: the keyboard in the add form's Domain box, the next thing to fill in.</summary>
       private void AddRouteAction_Click(object sender, RoutedEventArgs e)

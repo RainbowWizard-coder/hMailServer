@@ -705,11 +705,17 @@
   <data name="A single DNS query. 0 = no time limit." xml:space="preserve">
     <value>Una sola consulta DNS. 0 = sin límite de tiempo.</value>
   </data>
+  <data name="A smart host, retry intervals, bounce handling and what happens to local mail." xml:space="preserve">
+    <value>Un smart host, intervalos de reintento, tratamiento de rebotes y qué ocurre con el correo local.</value>
+  </data>
   <data name="A spam trap is an address in one of your domains that nobody uses, so whoever writes to it is sending spam. These settings say what happens to a server that does. The trap addresses are declared per domain in the Control Deck; until a domain has one, nothing here does anything." xml:space="preserve">
     <value>Una trampa de spam es una dirección de uno de sus dominios que nadie usa, así que quien escribe a ella está enviando spam. Estos ajustes dicen qué le pasa a un servidor que lo hace. Las direcciones trampa se declaran por dominio en el Control Deck; mientras un dominio no tenga ninguna, nada de aquí tiene efecto.</value>
   </data>
   <data name="A successful sign-in clears the name's counters, and attempts made while it is locked are not counted - so an attacker cannot hold a mailbox locked indefinitely with a trickle of guesses." xml:space="preserve">
     <value>Un inicio de sesión correcto borra los contadores del nombre, y los intentos hechos mientras está bloqueado no se cuentan - así que un atacante no puede mantener un buzón bloqueado indefinidamente con un goteo de intentos.</value>
+  </data>
+  <data name="A token presented to the wrong host is a leaked token." xml:space="preserve">
+    <value>Un token presentado al host equivocado es un token filtrado.</value>
   </data>
   <data name="A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt." xml:space="preserve">
     <value>Un triplete que reintenta demasiado pronto tantas veces recibe 550 en lugar de 451 durante el bloqueo de abajo, que es lo que detiene a un remitente que martillea el mismo mensaje cada pocos segundos. Un bucle de reintentos mal configurado queda varado hasta que pasa el bloqueo, tras lo cual el triplete empieza de nuevo como primer intento.</value>
@@ -5761,6 +5767,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Host/Name:  {0}" xml:space="preserve">
     <value>Host/Nombre:  {0}</value>
   </data>
+  <data name="Hosts that use OAuth2 (comma separated; empty = none)" xml:space="preserve">
+    <value>Hosts que usan OAuth2 (separados por comas; vacío = ninguno)</value>
+  </data>
   <data name="Hour the digest is sent (UTC, 0 to 23)" xml:space="preserve">
     <value>Hora a la que se envía el resumen (UTC, 0 a 23)</value>
   </data>
@@ -7216,8 +7225,8 @@ No se elimina nada de lo que ya está.</value>
   <data name="Metrics port (0 = off)" xml:space="preserve">
     <value>Puerto de métricas (0 = desactivado)</value>
   </data>
-  <data name="Microsoft 365 turns Basic authentication for SMTP AUTH off at the end of December 2026. When the relay host below is listed here, hMailServer authenticates with an OAuth2 bearer token (XOAUTH2) instead of the password - fetched from your tenant's token endpoint with the client credentials of an app registration that has the SMTP.SendAsApp permission. The user name above stays: it is the mailbox being relayed as." xml:space="preserve">
-    <value>Microsoft 365 desactiva la autenticación básica para SMTP AUTH a finales de diciembre de 2026. Cuando el host de relé de abajo aparece aquí, hMailServer se autentica con un token de portador OAuth2 (XOAUTH2) en vez de con la contraseña - obtenido del punto de token de su inquilino con las credenciales de cliente de un registro de aplicación que tiene el permiso SMTP.SendAsApp. El nombre de usuario de arriba se mantiene: es el buzón como el que se retransmite.</value>
+  <data name="Microsoft 365 turns Basic authentication for SMTP AUTH off at the end of December 2026. When the smart host above is listed here, hMailServer authenticates with an OAuth2 bearer token (XOAUTH2) instead of the password - fetched from your tenant's token endpoint with the client credentials of an app registration that has the SMTP.SendAsApp permission. The user name above stays: it is the mailbox the mail is sent as." xml:space="preserve">
+    <value>Microsoft 365 desactiva la autenticación básica para SMTP AUTH a finales de diciembre de 2026. Cuando el smart host de arriba aparece aquí, hMailServer se autentica con un token de portador OAuth2 (XOAUTH2) en vez de con la contraseña - obtenido del punto de token de su inquilino con las credenciales de cliente de un registro de aplicación que tiene el permiso SMTP.SendAsApp. El nombre de usuario de arriba se mantiene: es el buzón en cuyo nombre se envía el correo.</value>
   </data>
   <data name="Microsoft application (client) ID" xml:space="preserve">
     <value>ID de aplicación (cliente) de Microsoft</value>
@@ -7921,8 +7930,8 @@ No se elimina nada de lo que ya está.</value>
   <data name="No rotation is scheduled. Rotate now to start one." xml:space="preserve">
     <value>No hay ninguna rotación programada. Use «Rotar ahora» para iniciar una.</value>
   </data>
-  <data name="No routes, so every domain's mail is delivered the usual way: to its MX hosts, or through the relay set on the Delivery of e-mail page." xml:space="preserve">
-    <value>No hay rutas, así que el correo de cada dominio se entrega de la forma habitual: a sus hosts MX, o a través del relé configurado en la página Entrega de correo.</value>
+  <data name="No routes, so every domain's mail is delivered the usual way: to its MX hosts, or through the smart host set on the Delivery of e-mail page." xml:space="preserve">
+    <value>No hay rutas, así que el correo de cada dominio se entrega de la forma habitual: a sus hosts MX, o a través del smart host configurado en la página Entrega de correo.</value>
   </data>
   <data name="No rua= is included because {0} has no postmaster address configured, and this page will not invent a mailbox. Without rua= the policy still applies, but nobody sends you reports - add &quot;; rua=mailto:&lt;a mailbox you read&gt;&quot; when you have one." xml:space="preserve">
     <value>No se incluye rua= porque {0} no tiene ninguna dirección de postmaster configurada, y esta página no va a inventarse un buzón. Sin rua= la política se sigue aplicando, pero nadie le envía informes - añada "; rua=mailto:&lt;a mailbox you read&gt;" cuando tenga uno.</value>
@@ -8236,8 +8245,8 @@ No se elimina nada de lo que ya está.</value>
   <data name="OAuth2 / external identity provider" xml:space="preserve">
     <value>OAuth2 / proveedor de identidad externo</value>
   </data>
-  <data name="OAuth2 for the relay (Microsoft 365)" xml:space="preserve">
-    <value>OAuth2 para el relé (Microsoft 365)</value>
+  <data name="OAuth2 for the smart host (Microsoft 365)" xml:space="preserve">
+    <value>OAuth2 para el smart host (Microsoft 365)</value>
   </data>
   <data name="OAuth2 is enabled, the key material its allowed algorithms need is in place, and both the issuer and the audience are checked - so a token has to have been minted by your provider for this server specifically." xml:space="preserve">
     <value>OAuth2 está activado, el material de claves que necesitan sus algoritmos permitidos está en su sitio, y se comprueban tanto el emisor como la audiencia - así que un token tiene que haber sido emitido por su proveedor específicamente para este servidor.</value>
@@ -8539,9 +8548,6 @@ No se elimina nada de lo que ya está.</value>
   <data name="Only archive mail for these domains (comma separated; empty = every message)" xml:space="preserve">
     <value>Archivar correo solo de estos dominios (separados por comas; vacío = todos los mensajes)</value>
   </data>
-  <data name="Only destinations named here get a bearer token; every other relay keeps password authentication. This is deliberate - a token presented to the wrong relay is a leaked token." xml:space="preserve">
-    <value>Solo los destinos nombrados aquí reciben un token de portador; el resto de relés mantiene la autenticación por contraseña. Es deliberado: un token presentado al relé equivocado es un token filtrado.</value>
-  </data>
   <data name="Only domains with an Active Directory domain name set are listed - that field is what links a mail domain to a directory. The first time, bring one domain over at a time." xml:space="preserve">
     <value>Solo se listan los dominios que tienen definido un nombre de dominio de Active Directory - ese campo es lo que vincula un dominio de correo con un directorio. La primera vez, traiga un dominio cada vez.</value>
   </data>
@@ -8559,6 +8565,9 @@ No se elimina nada de lo que ya está.</value>
   </data>
   <data name="Only the first {0} characters are shown." xml:space="preserve">
     <value>Solo se muestran los primeros {0} caracteres.</value>
+  </data>
+  <data name="Only the hosts named here get a bearer token, whether the smart host, a route's host or a domain's relay host; every other host keeps password authentication." xml:space="preserve">
+    <value>Solo los hosts nombrados aquí reciben un token de portador, ya sea el smart host, el host de una ruta o el host de relé de un dominio; el resto de hosts mantiene la autenticación por contraseña.</value>
   </data>
   <data name="Only this computer may connect, so no password crosses a network." xml:space="preserve">
     <value>Solo este equipo puede conectarse, así que ninguna contraseña cruza una red.</value>
@@ -8791,11 +8800,11 @@ No se elimina nada de lo que ya está.</value>
   <data name="Outbound TLS" xml:space="preserve">
     <value>TLS saliente</value>
   </data>
-  <data name="Outbound delivery behavior, retries and smart-host relaying." xml:space="preserve">
-    <value>Comportamiento de la entrega saliente, reintentos y retransmisión por smart host.</value>
-  </data>
   <data name="Outbound delivery security (after MX lookup)" xml:space="preserve">
     <value>Seguridad de la entrega saliente (tras la búsqueda MX)</value>
+  </data>
+  <data name="Outbound delivery, retries and the smart host." xml:space="preserve">
+    <value>Entrega saliente, reintentos y el smart host.</value>
   </data>
   <data name="Outbound delivery, retries and throttling. Keeping forwarded mail SPF-aligned (SRS) and bounce tagging (BATV) are on the Transport security page." xml:space="preserve">
     <value>Entrega saliente, reintentos y limitación de velocidad. Mantener el correo reenviado alineado con SPF (SRS) y el etiquetado de rebotes (BATV) están en la página Seguridad de transporte.</value>
@@ -9859,20 +9868,8 @@ Ejecute esto si los clientes informan de mensajes que aparecen con un UID equivo
   <data name="Relay" xml:space="preserve">
     <value>Relé</value>
   </data>
-  <data name="Relay host name (empty = direct delivery)" xml:space="preserve">
-    <value>Nombre de host del relé (vacío = entrega directa)</value>
-  </data>
-  <data name="Relay hosts that use OAuth2 (comma separated; empty = none)" xml:space="preserve">
-    <value>Hosts de relé que usan OAuth2 (separados por comas; vacío = ninguno)</value>
-  </data>
   <data name="Relay port" xml:space="preserve">
     <value>Puerto del relé</value>
-  </data>
-  <data name="Relay requires authentication" xml:space="preserve">
-    <value>El relé requiere autenticación</value>
-  </data>
-  <data name="Relaying to an upstream server, retry intervals, bounce handling and what happens to local mail." xml:space="preserve">
-    <value>Retransmisión a un servidor superior, intervalos de reintento, tratamiento de rebotes y qué ocurre con el correo local.</value>
   </data>
   <data name="Release" xml:space="preserve">
     <value>Liberar</value>
@@ -11847,6 +11844,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Smart host" xml:space="preserve">
     <value>Smart host</value>
   </data>
+  <data name="Smart host name (empty = direct delivery)" xml:space="preserve">
+    <value>Nombre del smart host (vacío = entrega directa)</value>
+  </data>
   <data name="Soft" xml:space="preserve">
     <value>Temporal</value>
   </data>
@@ -13791,6 +13791,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="The size of the whole message, attachments included: 1048576 bytes is 1 MB." xml:space="preserve">
     <value>El tamaño del mensaje completo, con los adjuntos: 1048576 bytes son 1 MB.</value>
+  </data>
+  <data name="The smart host requires authentication" xml:space="preserve">
+    <value>El smart host requiere autenticación</value>
   </data>
   <data name="The smart host, its port and credentials, and the retry schedule for delivery." xml:space="preserve">
     <value>El smart host, su puerto y credenciales, y la planificación de reintentos de la entrega.</value>

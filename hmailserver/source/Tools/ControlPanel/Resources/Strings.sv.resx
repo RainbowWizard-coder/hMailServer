@@ -705,11 +705,17 @@
   <data name="A single DNS query. 0 = no time limit." xml:space="preserve">
     <value>En enskild DNS-fråga. 0 = ingen tidsgräns.</value>
   </data>
+  <data name="A smart host, retry intervals, bounce handling and what happens to local mail." xml:space="preserve">
+    <value>En smart värd, intervall mellan försök, hantering av studsmeddelanden och vad som händer med lokal post.</value>
+  </data>
   <data name="A spam trap is an address in one of your domains that nobody uses, so whoever writes to it is sending spam. These settings say what happens to a server that does. The trap addresses are declared per domain in the Control Deck; until a domain has one, nothing here does anything." xml:space="preserve">
     <value>En skräppostfälla är en adress i en av dina domäner som ingen använder, så den som skriver till den skickar skräppost. De här inställningarna säger vad som händer med en server som gör det. Fälladresserna anges per domän i Control Deck; tills en domän har en gör inget här något.</value>
   </data>
   <data name="A successful sign-in clears the name's counters, and attempts made while it is locked are not counted - so an attacker cannot hold a mailbox locked indefinitely with a trickle of guesses." xml:space="preserve">
     <value>En lyckad inloggning nollställer namnets räknare, och försök som görs medan det är låst räknas inte - så en angripare kan inte hålla en brevlåda låst i all oändlighet med en droppande ström av gissningar.</value>
+  </data>
+  <data name="A token presented to the wrong host is a leaked token." xml:space="preserve">
+    <value>En token som visas för fel värd är en läckt token.</value>
   </data>
   <data name="A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt." xml:space="preserve">
     <value>En triplett som försöker igen för tidigt så här många gånger besvaras med 550 i stället för 451 under låset nedan, vilket är det som stoppar en avsändare som hamrar samma meddelande med några sekunders mellanrum. En felkonfigurerad omförsöksslinga blir strandad tills låset går ut, varefter tripletten börjar om som ett första försök.</value>
@@ -5761,6 +5767,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Host/Name:  {0}" xml:space="preserve">
     <value>Värd/Namn:  {0}</value>
   </data>
+  <data name="Hosts that use OAuth2 (comma separated; empty = none)" xml:space="preserve">
+    <value>Värdar som använder OAuth2 (kommaseparerade; tomt = ingen)</value>
+  </data>
   <data name="Hour the digest is sent (UTC, 0 to 23)" xml:space="preserve">
     <value>Timme då sammanfattningen skickas (UTC, 0 till 23)</value>
   </data>
@@ -7216,8 +7225,8 @@ Inget som redan finns där tas bort.</value>
   <data name="Metrics port (0 = off)" xml:space="preserve">
     <value>Mätvärdesport (0 = av)</value>
   </data>
-  <data name="Microsoft 365 turns Basic authentication for SMTP AUTH off at the end of December 2026. When the relay host below is listed here, hMailServer authenticates with an OAuth2 bearer token (XOAUTH2) instead of the password - fetched from your tenant's token endpoint with the client credentials of an app registration that has the SMTP.SendAsApp permission. The user name above stays: it is the mailbox being relayed as." xml:space="preserve">
-    <value>Microsoft 365 stänger av Basic-autentisering för SMTP AUTH i slutet av december 2026. När relävärden nedan listas här autentiserar hMailServer med en OAuth2 bearer-token (XOAUTH2) i stället för lösenordet - hämtad från din tenants tokenslutpunkt med klientuppgifterna för en appregistrering som har behörigheten SMTP.SendAsApp. Användarnamnet ovan står kvar: det är brevlådan som reläas som.</value>
+  <data name="Microsoft 365 turns Basic authentication for SMTP AUTH off at the end of December 2026. When the smart host above is listed here, hMailServer authenticates with an OAuth2 bearer token (XOAUTH2) instead of the password - fetched from your tenant's token endpoint with the client credentials of an app registration that has the SMTP.SendAsApp permission. The user name above stays: it is the mailbox the mail is sent as." xml:space="preserve">
+    <value>Microsoft 365 stänger av Basic-autentisering för SMTP AUTH i slutet av december 2026. När den smarta värden ovan listas här autentiserar hMailServer med en OAuth2 bearer-token (XOAUTH2) i stället för lösenordet - hämtad från din tenants tokenslutpunkt med klientuppgifterna för en appregistrering som har behörigheten SMTP.SendAsApp. Användarnamnet ovan står kvar: det är brevlådan som posten skickas som.</value>
   </data>
   <data name="Microsoft application (client) ID" xml:space="preserve">
     <value>Microsofts program-ID (klient-ID)</value>
@@ -7921,8 +7930,8 @@ Inget som redan finns där tas bort.</value>
   <data name="No rotation is scheduled. Rotate now to start one." xml:space="preserve">
     <value>Ingen rotation är schemalagd. Starta en med ”Rotera nu”.</value>
   </data>
-  <data name="No routes, so every domain's mail is delivered the usual way: to its MX hosts, or through the relay set on the Delivery of e-mail page." xml:space="preserve">
-    <value>Inga rutter, så varje domäns e-post levereras på vanligt sätt: till dess MX-värdar, eller via reläet som ställs in på sidan Leverans av e-post.</value>
+  <data name="No routes, so every domain's mail is delivered the usual way: to its MX hosts, or through the smart host set on the Delivery of e-mail page." xml:space="preserve">
+    <value>Inga rutter, så varje domäns e-post levereras på vanligt sätt: till dess MX-värdar, eller via den smarta värden som ställs in på sidan Leverans av e-post.</value>
   </data>
   <data name="No rua= is included because {0} has no postmaster address configured, and this page will not invent a mailbox. Without rua= the policy still applies, but nobody sends you reports - add &quot;; rua=mailto:&lt;a mailbox you read&gt;&quot; when you have one." xml:space="preserve">
     <value>Ingen rua= tas med eftersom {0} inte har någon postmaster-adress konfigurerad, och den här sidan hittar inte på en brevlåda. Utan rua= gäller policyn fortfarande, men ingen skickar dig rapporter - lägg till "; rua=mailto:&lt;en brevlåda du läser&gt;" när du har en.</value>
@@ -8236,8 +8245,8 @@ Inget som redan finns där tas bort.</value>
   <data name="OAuth2 / external identity provider" xml:space="preserve">
     <value>OAuth2 / extern identitetsleverantör</value>
   </data>
-  <data name="OAuth2 for the relay (Microsoft 365)" xml:space="preserve">
-    <value>OAuth2 för relät (Microsoft 365)</value>
+  <data name="OAuth2 for the smart host (Microsoft 365)" xml:space="preserve">
+    <value>OAuth2 för den smarta värden (Microsoft 365)</value>
   </data>
   <data name="OAuth2 is enabled, the key material its allowed algorithms need is in place, and both the issuer and the audience are checked - so a token has to have been minted by your provider for this server specifically." xml:space="preserve">
     <value>OAuth2 är aktiverat, nyckelmaterialet dess tillåtna algoritmer behöver finns på plats, och både utfärdaren och målgruppen kontrolleras - så en token måste ha präglats av din leverantör för just den här servern.</value>
@@ -8539,9 +8548,6 @@ Inget som redan finns där tas bort.</value>
   <data name="Only archive mail for these domains (comma separated; empty = every message)" xml:space="preserve">
     <value>Arkivera bara post för de här domänerna (kommaseparerade; tomt = varje meddelande)</value>
   </data>
-  <data name="Only destinations named here get a bearer token; every other relay keeps password authentication. This is deliberate - a token presented to the wrong relay is a leaked token." xml:space="preserve">
-    <value>Bara mål som namnges här får en bearer-token; varje annat relä behåller lösenordsautentisering. Detta är avsiktligt - en token som visas för fel relä är en läckt token.</value>
-  </data>
   <data name="Only domains with an Active Directory domain name set are listed - that field is what links a mail domain to a directory. The first time, bring one domain over at a time." xml:space="preserve">
     <value>Bara domäner med ett Active Directory-domännamn satt listas - det fältet är vad som kopplar en e-postdomän till en katalog. Ta över en domän i taget första gången.</value>
   </data>
@@ -8559,6 +8565,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="Only the first {0} characters are shown." xml:space="preserve">
     <value>Endast de första {0} tecknen visas.</value>
+  </data>
+  <data name="Only the hosts named here get a bearer token, whether the smart host, a route's host or a domain's relay host; every other host keeps password authentication." xml:space="preserve">
+    <value>Bara värdarna som namnges här får en bearer-token, vare sig det är den smarta värden, en rutts värd eller en domäns relävärd; varje annan värd behåller lösenordsautentisering.</value>
   </data>
   <data name="Only this computer may connect, so no password crosses a network." xml:space="preserve">
     <value>Bara den här datorn får ansluta, så inget lösenord färdas över ett nätverk.</value>
@@ -8791,11 +8800,11 @@ Inget som redan finns där tas bort.</value>
   <data name="Outbound TLS" xml:space="preserve">
     <value>Utgående TLS</value>
   </data>
-  <data name="Outbound delivery behavior, retries and smart-host relaying." xml:space="preserve">
-    <value>Utgående leveransbeteende, omförsök och relä via smart värd.</value>
-  </data>
   <data name="Outbound delivery security (after MX lookup)" xml:space="preserve">
     <value>Säkerhet för utgående leverans (efter MX-uppslagning)</value>
+  </data>
+  <data name="Outbound delivery, retries and the smart host." xml:space="preserve">
+    <value>Utgående leverans, omförsök och smart värd.</value>
   </data>
   <data name="Outbound delivery, retries and throttling. Keeping forwarded mail SPF-aligned (SRS) and bounce tagging (BATV) are on the Transport security page." xml:space="preserve">
     <value>Utgående leverans, omförsök och strypning. Att hålla vidarebefordrad post SPF-justerad (SRS) och studsmärkning (BATV) finns på sidan Transportsäkerhet.</value>
@@ -9859,20 +9868,8 @@ Kör detta om klienter rapporterar meddelanden som dyker upp under fel UID, elle
   <data name="Relay" xml:space="preserve">
     <value>Relä</value>
   </data>
-  <data name="Relay host name (empty = direct delivery)" xml:space="preserve">
-    <value>Relävärdens namn (tomt = direkt leverans)</value>
-  </data>
-  <data name="Relay hosts that use OAuth2 (comma separated; empty = none)" xml:space="preserve">
-    <value>Relävärdar som använder OAuth2 (kommaseparerade; tomt = ingen)</value>
-  </data>
   <data name="Relay port" xml:space="preserve">
     <value>Reläport</value>
-  </data>
-  <data name="Relay requires authentication" xml:space="preserve">
-    <value>Relät kräver autentisering</value>
-  </data>
-  <data name="Relaying to an upstream server, retry intervals, bounce handling and what happens to local mail." xml:space="preserve">
-    <value>Relä till en uppströmsserver, intervall mellan försök, hantering av studsmeddelanden och vad som händer med lokal post.</value>
   </data>
   <data name="Release" xml:space="preserve">
     <value>Släpp</value>
@@ -11847,6 +11844,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Smart host" xml:space="preserve">
     <value>Smart värd</value>
   </data>
+  <data name="Smart host name (empty = direct delivery)" xml:space="preserve">
+    <value>Namn på smart värd (tomt = direkt leverans)</value>
+  </data>
   <data name="Soft" xml:space="preserve">
     <value>Mjuk</value>
   </data>
@@ -13791,6 +13791,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="The size of the whole message, attachments included: 1048576 bytes is 1 MB." xml:space="preserve">
     <value>Storleken på hela meddelandet, bilagor inräknade: 1048576 byte är 1 MB.</value>
+  </data>
+  <data name="The smart host requires authentication" xml:space="preserve">
+    <value>Den smarta värden kräver autentisering</value>
   </data>
   <data name="The smart host, its port and credentials, and the retry schedule for delivery." xml:space="preserve">
     <value>Smartvärden, dess port och inloggningsuppgifter, och omförsöksschemat för leverans.</value>

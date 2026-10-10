@@ -705,11 +705,17 @@
   <data name="A single DNS query. 0 = no time limit." xml:space="preserve">
     <value>单次 DNS 查询。0 = 无时间限制。</value>
   </data>
+  <data name="A smart host, retry intervals, bounce handling and what happens to local mail." xml:space="preserve">
+    <value>智能主机、重试间隔、退信处理，以及本地邮件的处理方式。</value>
+  </data>
   <data name="A spam trap is an address in one of your domains that nobody uses, so whoever writes to it is sending spam. These settings say what happens to a server that does. The trap addresses are declared per domain in the Control Deck; until a domain has one, nothing here does anything." xml:space="preserve">
     <value>垃圾邮件陷阱是你某个域中无人使用的地址，因此向它写信的人就是在发送垃圾邮件。这些设置决定这样做的服务器会遭遇什么。陷阱地址在 Control Deck 中按域声明；在域还没有任何陷阱地址时，这里的设置都不起作用。</value>
   </data>
   <data name="A successful sign-in clears the name's counters, and attempts made while it is locked are not counted - so an attacker cannot hold a mailbox locked indefinitely with a trickle of guesses." xml:space="preserve">
     <value>一次成功登录会清除该名称的计数器，而锁定期间的尝试不计入计数 - 因此攻击者无法靠涓滴式的猜测把一个邮箱无限期地锁住。</value>
+  </data>
+  <data name="A token presented to the wrong host is a leaked token." xml:space="preserve">
+    <value>出示给错误主机的令牌就是泄露的令牌。</value>
   </data>
   <data name="A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt." xml:space="preserve">
     <value>过早重试达到这么多次的三元组，在下方锁定期间会收到 550 而不是 451，这正是阻止发件人每隔几秒反复投递同一封邮件的办法。配置错误的重试循环会被困住直到锁定结束，之后三元组作为首次尝试重新开始。</value>
@@ -5761,6 +5767,9 @@
   <data name="Host/Name:  {0}" xml:space="preserve">
     <value>主机/名称：  {0}</value>
   </data>
+  <data name="Hosts that use OAuth2 (comma separated; empty = none)" xml:space="preserve">
+    <value>使用 OAuth2 的主机（以逗号分隔；留空 = 无）</value>
+  </data>
   <data name="Hour the digest is sent (UTC, 0 to 23)" xml:space="preserve">
     <value>发送摘要的时间（UTC，0 到 23）</value>
   </data>
@@ -7216,8 +7225,8 @@
   <data name="Metrics port (0 = off)" xml:space="preserve">
     <value>指标端口（0 = 关闭）</value>
   </data>
-  <data name="Microsoft 365 turns Basic authentication for SMTP AUTH off at the end of December 2026. When the relay host below is listed here, hMailServer authenticates with an OAuth2 bearer token (XOAUTH2) instead of the password - fetched from your tenant's token endpoint with the client credentials of an app registration that has the SMTP.SendAsApp permission. The user name above stays: it is the mailbox being relayed as." xml:space="preserve">
-    <value>Microsoft 365 将于 2026 年 12 月底关闭 SMTP AUTH 的 Basic 身份验证。当下面的中继主机列在此处时，hMailServer 会用 OAuth2 持有者令牌（XOAUTH2）而不是密码进行身份验证 - 令牌通过具有 SMTP.SendAsApp 权限的应用注册的客户端凭据从您租户的令牌端点获取。上面的用户名保持不变：它是被中继的邮箱身份。</value>
+  <data name="Microsoft 365 turns Basic authentication for SMTP AUTH off at the end of December 2026. When the smart host above is listed here, hMailServer authenticates with an OAuth2 bearer token (XOAUTH2) instead of the password - fetched from your tenant's token endpoint with the client credentials of an app registration that has the SMTP.SendAsApp permission. The user name above stays: it is the mailbox the mail is sent as." xml:space="preserve">
+    <value>Microsoft 365 将于 2026 年 12 月底关闭 SMTP AUTH 的 Basic 身份验证。当上面的智能主机列在此处时，hMailServer 会用 OAuth2 持有者令牌（XOAUTH2）而不是密码进行身份验证 - 令牌通过具有 SMTP.SendAsApp 权限的应用注册的客户端凭据从您租户的令牌端点获取。上面的用户名保持不变：它是发送邮件所用的邮箱身份。</value>
   </data>
   <data name="Microsoft application (client) ID" xml:space="preserve">
     <value>Microsoft 应用程序（客户端）ID</value>
@@ -7921,8 +7930,8 @@
   <data name="No rotation is scheduled. Rotate now to start one." xml:space="preserve">
     <value>没有计划中的轮换。点击“立即轮换”开始一次。</value>
   </data>
-  <data name="No routes, so every domain's mail is delivered the usual way: to its MX hosts, or through the relay set on the Delivery of e-mail page." xml:space="preserve">
-    <value>没有路由，因此每个域的邮件按常规方式投递：投递到其 MX 主机，或经由“电子邮件投递”页面上设置的中继。</value>
+  <data name="No routes, so every domain's mail is delivered the usual way: to its MX hosts, or through the smart host set on the Delivery of e-mail page." xml:space="preserve">
+    <value>没有路由，因此每个域的邮件按常规方式投递：投递到其 MX 主机，或经由“电子邮件投递”页面上设置的智能主机。</value>
   </data>
   <data name="No rua= is included because {0} has no postmaster address configured, and this page will not invent a mailbox. Without rua= the policy still applies, but nobody sends you reports - add &quot;; rua=mailto:&lt;a mailbox you read&gt;&quot; when you have one." xml:space="preserve">
     <value>未包含 rua=，因为 {0} 没有配置 postmaster 地址，而本页不会凭空捏造一个邮箱。没有 rua= 策略仍然生效，只是没有人向您发送报告 - 等您有了邮箱，请加上 "; rua=mailto:&lt;a mailbox you read&gt;"。</value>
@@ -8236,8 +8245,8 @@
   <data name="OAuth2 / external identity provider" xml:space="preserve">
     <value>OAuth2 / 外部身份提供方</value>
   </data>
-  <data name="OAuth2 for the relay (Microsoft 365)" xml:space="preserve">
-    <value>用于中继的 OAuth2（Microsoft 365）</value>
+  <data name="OAuth2 for the smart host (Microsoft 365)" xml:space="preserve">
+    <value>用于智能主机的 OAuth2（Microsoft 365）</value>
   </data>
   <data name="OAuth2 is enabled, the key material its allowed algorithms need is in place, and both the issuer and the audience are checked - so a token has to have been minted by your provider for this server specifically." xml:space="preserve">
     <value>OAuth2 已启用，其允许的算法所需的密钥材料已就绪，并且颁发者和受众都会被检查 - 因此令牌必须是由您的提供方专门为本服务器铸造的。</value>
@@ -8539,9 +8548,6 @@
   <data name="Only archive mail for these domains (comma separated; empty = every message)" xml:space="preserve">
     <value>只存档这些域的邮件（以逗号分隔；留空 = 每封邮件）</value>
   </data>
-  <data name="Only destinations named here get a bearer token; every other relay keeps password authentication. This is deliberate - a token presented to the wrong relay is a leaked token." xml:space="preserve">
-    <value>只有列在此处的目标才会获得持有者令牌；其他所有中继保持密码身份验证。这是有意的 - 出示给错误中继的令牌就是泄露的令牌。</value>
-  </data>
   <data name="Only domains with an Active Directory domain name set are listed - that field is what links a mail domain to a directory. The first time, bring one domain over at a time." xml:space="preserve">
     <value>只列出设置了 Active Directory 域名的域 - 正是该字段把邮件域与目录关联起来。第一次做时，请一次只迁移一个域。</value>
   </data>
@@ -8559,6 +8565,9 @@
   </data>
   <data name="Only the first {0} characters are shown." xml:space="preserve">
     <value>只显示前 {0} 个字符。</value>
+  </data>
+  <data name="Only the hosts named here get a bearer token, whether the smart host, a route's host or a domain's relay host; every other host keeps password authentication." xml:space="preserve">
+    <value>只有列在此处的主机才会获得持有者令牌，无论是智能主机、路由的主机还是域的中继主机；其他所有主机保持密码身份验证。</value>
   </data>
   <data name="Only this computer may connect, so no password crosses a network." xml:space="preserve">
     <value>只有本计算机可以连接，因此没有密码会穿过网络。</value>
@@ -8791,11 +8800,11 @@
   <data name="Outbound TLS" xml:space="preserve">
     <value>发送 TLS</value>
   </data>
-  <data name="Outbound delivery behavior, retries and smart-host relaying." xml:space="preserve">
-    <value>出站投递行为、重试和智能主机中继。</value>
-  </data>
   <data name="Outbound delivery security (after MX lookup)" xml:space="preserve">
     <value>出站投递安全（MX 查询之后）</value>
+  </data>
+  <data name="Outbound delivery, retries and the smart host." xml:space="preserve">
+    <value>出站投递、重试和智能主机。</value>
   </data>
   <data name="Outbound delivery, retries and throttling. Keeping forwarded mail SPF-aligned (SRS) and bounce tagging (BATV) are on the Transport security page." xml:space="preserve">
     <value>出站投递、重试和限速。让转发邮件保持 SPF 对齐（SRS）和退信标记（BATV）在“传输安全”页。</value>
@@ -9859,20 +9868,8 @@
   <data name="Relay" xml:space="preserve">
     <value>中继</value>
   </data>
-  <data name="Relay host name (empty = direct delivery)" xml:space="preserve">
-    <value>中继主机名（留空 = 直接投递）</value>
-  </data>
-  <data name="Relay hosts that use OAuth2 (comma separated; empty = none)" xml:space="preserve">
-    <value>使用 OAuth2 的中继主机（以逗号分隔；留空 = 无）</value>
-  </data>
   <data name="Relay port" xml:space="preserve">
     <value>中继端口</value>
-  </data>
-  <data name="Relay requires authentication" xml:space="preserve">
-    <value>中继需要身份验证</value>
-  </data>
-  <data name="Relaying to an upstream server, retry intervals, bounce handling and what happens to local mail." xml:space="preserve">
-    <value>中继到上游服务器、重试间隔、退信处理，以及本地邮件的处理方式。</value>
   </data>
   <data name="Release" xml:space="preserve">
     <value>放行</value>
@@ -11847,6 +11844,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Smart host" xml:space="preserve">
     <value>智能主机</value>
   </data>
+  <data name="Smart host name (empty = direct delivery)" xml:space="preserve">
+    <value>智能主机名（留空 = 直接投递）</value>
+  </data>
   <data name="Soft" xml:space="preserve">
     <value>软退信</value>
   </data>
@@ -13791,6 +13791,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The size of the whole message, attachments included: 1048576 bytes is 1 MB." xml:space="preserve">
     <value>整封邮件（含附件）的大小：1048576 字节为 1 MB。</value>
+  </data>
+  <data name="The smart host requires authentication" xml:space="preserve">
+    <value>智能主机需要身份验证</value>
   </data>
   <data name="The smart host, its port and credentials, and the retry schedule for delivery." xml:space="preserve">
     <value>智能主机、其端口和凭据，以及投递的重试计划。</value>

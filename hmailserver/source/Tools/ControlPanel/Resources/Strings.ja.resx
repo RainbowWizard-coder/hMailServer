@@ -705,11 +705,17 @@
   <data name="A single DNS query. 0 = no time limit." xml:space="preserve">
     <value>1 回の DNS クエリに対する制限です。0 = 時間制限なし。</value>
   </data>
+  <data name="A smart host, retry intervals, bounce handling and what happens to local mail." xml:space="preserve">
+    <value>スマート ホスト、再試行間隔、バウンスの処理、そしてローカル メールの扱い。</value>
+  </data>
   <data name="A spam trap is an address in one of your domains that nobody uses, so whoever writes to it is sending spam. These settings say what happens to a server that does. The trap addresses are declared per domain in the Control Deck; until a domain has one, nothing here does anything." xml:space="preserve">
     <value>スパム トラップとは、自分のドメインにある誰も使っていないアドレスで、そこに送ってくる相手はスパムを送っています。これらの設定は、そうしたサーバーに何が起こるかを決めます。トラップ アドレスは Control Deck でドメインごとに宣言します。ドメインに 1 つもない間は、ここの設定は何も働きません。</value>
   </data>
   <data name="A successful sign-in clears the name's counters, and attempts made while it is locked are not counted - so an attacker cannot hold a mailbox locked indefinitely with a trickle of guesses." xml:space="preserve">
     <value>サインインに成功すると、その名前のカウンターは消去されます。またロックされている間の試行は数えられません。そのため攻撃者が、少しずつ推測を続けてメールボックスを無期限にロックし続けることはできません。</value>
+  </data>
+  <data name="A token presented to the wrong host is a leaked token." xml:space="preserve">
+    <value>誤ったホストに提示されたトークンは、漏洩したトークンです。</value>
   </data>
   <data name="A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt." xml:space="preserve">
     <value>これだけの回数、早すぎる再試行をしたトリプレットは、下のロックの間 451 ではなく 550 で応答され、数秒おきに同じメッセージを叩き続ける送信者はこれで止まります。設定を誤った再試行ループはロックが解けるまで立ち往生し、その後トリプレットは最初の試行としてやり直します。</value>
@@ -5761,6 +5767,9 @@
   <data name="Host/Name:  {0}" xml:space="preserve">
     <value>ホスト/名前:  {0}</value>
   </data>
+  <data name="Hosts that use OAuth2 (comma separated; empty = none)" xml:space="preserve">
+    <value>OAuth2 を使うホスト (カンマ区切り、空 = なし)</value>
+  </data>
   <data name="Hour the digest is sent (UTC, 0 to 23)" xml:space="preserve">
     <value>ダイジェストを送る時刻 (UTC、0 から 23)</value>
   </data>
@@ -7216,8 +7225,8 @@
   <data name="Metrics port (0 = off)" xml:space="preserve">
     <value>メトリクス ポート (0 = 無効)</value>
   </data>
-  <data name="Microsoft 365 turns Basic authentication for SMTP AUTH off at the end of December 2026. When the relay host below is listed here, hMailServer authenticates with an OAuth2 bearer token (XOAUTH2) instead of the password - fetched from your tenant's token endpoint with the client credentials of an app registration that has the SMTP.SendAsApp permission. The user name above stays: it is the mailbox being relayed as." xml:space="preserve">
-    <value>Microsoft 365 は 2026 年 12 月末に SMTP AUTH の基本認証をオフにします。下のリレー ホストがここに列挙されている場合、hMailServer はパスワードの代わりに OAuth2 ベアラー トークン (XOAUTH2) で認証します。トークンは、SMTP.SendAsApp 権限を持つアプリ登録のクライアント資格情報を使ってテナントのトークン エンドポイントから取得されます。上のユーザー名はそのままです。これはリレー元となるメールボックスです。</value>
+  <data name="Microsoft 365 turns Basic authentication for SMTP AUTH off at the end of December 2026. When the smart host above is listed here, hMailServer authenticates with an OAuth2 bearer token (XOAUTH2) instead of the password - fetched from your tenant's token endpoint with the client credentials of an app registration that has the SMTP.SendAsApp permission. The user name above stays: it is the mailbox the mail is sent as." xml:space="preserve">
+    <value>Microsoft 365 は 2026 年 12 月末に SMTP AUTH の基本認証をオフにします。上のスマート ホストがここに列挙されている場合、hMailServer はパスワードの代わりに OAuth2 ベアラー トークン (XOAUTH2) で認証します。トークンは、SMTP.SendAsApp 権限を持つアプリ登録のクライアント資格情報を使ってテナントのトークン エンドポイントから取得されます。上のユーザー名はそのままです。これはメールの送信元となるメールボックスです。</value>
   </data>
   <data name="Microsoft application (client) ID" xml:space="preserve">
     <value>Microsoft のアプリケーション (クライアント) ID</value>
@@ -7921,8 +7930,8 @@
   <data name="No rotation is scheduled. Rotate now to start one." xml:space="preserve">
     <value>ローテーションは予定されていません。「今すぐローテーション」で開始します。</value>
   </data>
-  <data name="No routes, so every domain's mail is delivered the usual way: to its MX hosts, or through the relay set on the Delivery of e-mail page." xml:space="preserve">
-    <value>ルートがないため、各ドメインのメールは通常どおり配信されます。MX ホストへ直接、または [メール配信] ページで設定したリレー経由です。</value>
+  <data name="No routes, so every domain's mail is delivered the usual way: to its MX hosts, or through the smart host set on the Delivery of e-mail page." xml:space="preserve">
+    <value>ルートがないため、各ドメインのメールは通常どおり配信されます。MX ホストへ直接、または [メール配信] ページで設定したスマート ホスト経由です。</value>
   </data>
   <data name="No rua= is included because {0} has no postmaster address configured, and this page will not invent a mailbox. Without rua= the policy still applies, but nobody sends you reports - add &quot;; rua=mailto:&lt;a mailbox you read&gt;&quot; when you have one." xml:space="preserve">
     <value>{0} に postmaster アドレスが設定されておらず、このページはメールボックスをでっち上げないため、rua= は含まれていません。rua= がなくてもポリシーは適用されますが、誰もレポートを送ってきません。用意できたら "; rua=mailto:&lt;読んでいるメールボックス&gt;" を追加してください。</value>
@@ -8236,8 +8245,8 @@
   <data name="OAuth2 / external identity provider" xml:space="preserve">
     <value>OAuth2 / 外部 ID プロバイダー</value>
   </data>
-  <data name="OAuth2 for the relay (Microsoft 365)" xml:space="preserve">
-    <value>リレー用の OAuth2 (Microsoft 365)</value>
+  <data name="OAuth2 for the smart host (Microsoft 365)" xml:space="preserve">
+    <value>スマート ホスト用の OAuth2 (Microsoft 365)</value>
   </data>
   <data name="OAuth2 is enabled, the key material its allowed algorithms need is in place, and both the issuer and the audience are checked - so a token has to have been minted by your provider for this server specifically." xml:space="preserve">
     <value>OAuth2 は有効で、許可されたアルゴリズムが必要とする鍵素材がそろっており、発行者とオーディエンスの両方が確認されます。そのため、トークンはあなたのプロバイダーがこのサーバー専用に発行したものでなければなりません。</value>
@@ -8539,9 +8548,6 @@
   <data name="Only archive mail for these domains (comma separated; empty = every message)" xml:space="preserve">
     <value>これらのドメインのメールのみアーカイブする (カンマ区切り、空 = すべてのメッセージ)</value>
   </data>
-  <data name="Only destinations named here get a bearer token; every other relay keeps password authentication. This is deliberate - a token presented to the wrong relay is a leaked token." xml:space="preserve">
-    <value>ベアラー トークンが渡されるのは、ここに指定した宛先だけです。それ以外のリレーはパスワード認証のままです。これは意図的なものです。誤ったリレーに提示されたトークンは、漏洩したトークンだからです。</value>
-  </data>
   <data name="Only domains with an Active Directory domain name set are listed - that field is what links a mail domain to a directory. The first time, bring one domain over at a time." xml:space="preserve">
     <value>一覧に表示されるのは、Active Directory ドメイン名が設定されているドメインだけです。そのフィールドこそが、メール ドメインとディレクトリを結び付けるものです。初めて行う場合は、ドメインを 1 つずつ移してください。</value>
   </data>
@@ -8559,6 +8565,9 @@
   </data>
   <data name="Only the first {0} characters are shown." xml:space="preserve">
     <value>最初の {0} 文字だけが表示されます。</value>
+  </data>
+  <data name="Only the hosts named here get a bearer token, whether the smart host, a route's host or a domain's relay host; every other host keeps password authentication." xml:space="preserve">
+    <value>ベアラー トークンが渡されるのは、ここに指定したホスト (スマート ホスト、ルートのホスト、ドメインのリレー ホスト) だけで、それ以外のホストはパスワード認証のままです。</value>
   </data>
   <data name="Only this computer may connect, so no password crosses a network." xml:space="preserve">
     <value>接続できるのはこのコンピューターだけなので、パスワードがネットワークを通ることはありません。</value>
@@ -8791,11 +8800,11 @@
   <data name="Outbound TLS" xml:space="preserve">
     <value>送信時の TLS</value>
   </data>
-  <data name="Outbound delivery behavior, retries and smart-host relaying." xml:space="preserve">
-    <value>送信配信の動作、再試行、スマート ホスト経由のリレー。</value>
-  </data>
   <data name="Outbound delivery security (after MX lookup)" xml:space="preserve">
     <value>送信配信のセキュリティ (MX 参照の後)</value>
+  </data>
+  <data name="Outbound delivery, retries and the smart host." xml:space="preserve">
+    <value>送信配信、再試行、スマート ホスト。</value>
   </data>
   <data name="Outbound delivery, retries and throttling. Keeping forwarded mail SPF-aligned (SRS) and bounce tagging (BATV) are on the Transport security page." xml:space="preserve">
     <value>送信配信、再試行、スロットリング。転送メールの SPF アライメントを保つ SRS と、バウンスへのタグ付け (BATV) は「トランスポート セキュリティ」ページにあります。</value>
@@ -9859,20 +9868,8 @@
   <data name="Relay" xml:space="preserve">
     <value>リレー</value>
   </data>
-  <data name="Relay host name (empty = direct delivery)" xml:space="preserve">
-    <value>リレー ホスト名 (空 = 直接配信)</value>
-  </data>
-  <data name="Relay hosts that use OAuth2 (comma separated; empty = none)" xml:space="preserve">
-    <value>OAuth2 を使うリレー ホスト (カンマ区切り、空 = なし)</value>
-  </data>
   <data name="Relay port" xml:space="preserve">
     <value>リレー ポート</value>
-  </data>
-  <data name="Relay requires authentication" xml:space="preserve">
-    <value>リレーに認証が必要</value>
-  </data>
-  <data name="Relaying to an upstream server, retry intervals, bounce handling and what happens to local mail." xml:space="preserve">
-    <value>上流サーバーへのリレー、再試行間隔、バウンスの処理、そしてローカル メールの扱い。</value>
   </data>
   <data name="Release" xml:space="preserve">
     <value>解放</value>
@@ -11847,6 +11844,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Smart host" xml:space="preserve">
     <value>スマート ホスト</value>
   </data>
+  <data name="Smart host name (empty = direct delivery)" xml:space="preserve">
+    <value>スマート ホスト名 (空 = 直接配信)</value>
+  </data>
   <data name="Soft" xml:space="preserve">
     <value>ソフト</value>
   </data>
@@ -13791,6 +13791,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The size of the whole message, attachments included: 1048576 bytes is 1 MB." xml:space="preserve">
     <value>添付ファイルを含むメッセージ全体のサイズです。1048576 バイトが 1 MB です。</value>
+  </data>
+  <data name="The smart host requires authentication" xml:space="preserve">
+    <value>スマート ホストに認証が必要</value>
   </data>
   <data name="The smart host, its port and credentials, and the retry schedule for delivery." xml:space="preserve">
     <value>スマート ホスト、そのポートと資格情報、配信の再試行スケジュール。</value>

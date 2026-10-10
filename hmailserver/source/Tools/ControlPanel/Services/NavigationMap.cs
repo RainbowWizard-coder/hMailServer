@@ -587,8 +587,8 @@ namespace hMailServer.ControlPanel.Services
                "Delivery|Routing|Transport|SMTP|Relay|Mail flow",
 
                Page("delivery", N("Delivery of e-mail"),
-                  N("Relaying to an upstream server, retry intervals, bounce handling and what happens to local mail."),
-                  aliases: "SMTP relayer|Smarthost|Send through my ISP|Retries|Bounce|Non-delivery report|Deliver local to local|Rule loop limit|Sensitive content|Account-number pattern",
+                  N("A smart host, retry intervals, bounce handling and what happens to local mail."),
+                  aliases: "SMTP relayer|Relay host|Smarthost|Send through my ISP|Retries|Bounce|Non-delivery report|Deliver local to local|Rule loop limit|Sensitive content|Account-number pattern",
                   // Partners first, as the breadcrumb's Related bar draws them first
                   // wherever there is room: the Rules page, whose limits are on this
                   // page's Rules tab, among the first three.

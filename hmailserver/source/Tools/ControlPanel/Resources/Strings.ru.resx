@@ -711,11 +711,17 @@
   <data name="A single DNS query. 0 = no time limit." xml:space="preserve">
     <value>Один запрос DNS. 0 = без ограничения времени.</value>
   </data>
+  <data name="A smart host, retry intervals, bounce handling and what happens to local mail." xml:space="preserve">
+    <value>Смарт-хост, интервалы повторных попыток, обработка возвратов и то, что происходит с локальной почтой.</value>
+  </data>
   <data name="A spam trap is an address in one of your domains that nobody uses, so whoever writes to it is sending spam. These settings say what happens to a server that does. The trap addresses are declared per domain in the Control Deck; until a domain has one, nothing here does anything." xml:space="preserve">
     <value>Ловушка для спама — это адрес в одном из ваших доменов, которым никто не пользуется, поэтому тот, кто пишет на него, рассылает спам. Эти параметры определяют, что происходит с сервером, который так поступает. Адреса ловушек объявляются для каждого домена в Control Deck; пока у домена их нет, ничто здесь не действует.</value>
   </data>
   <data name="A successful sign-in clears the name's counters, and attempts made while it is locked are not counted - so an attacker cannot hold a mailbox locked indefinitely with a trickle of guesses." xml:space="preserve">
     <value>Успешный вход сбрасывает счётчики для этого имени, а попытки, сделанные во время блокировки, не учитываются, — поэтому злоумышленник не сможет держать почтовый ящик заблокированным бесконечно, подбирая пароли по капле.</value>
+  </data>
+  <data name="A token presented to the wrong host is a leaked token." xml:space="preserve">
+    <value>Токен, предъявленный не тому узлу, — это утёкший токен.</value>
   </data>
   <data name="A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt." xml:space="preserve">
     <value>Триплет, повторивший попытку слишком рано столько раз, получает 550 вместо 451 на время блокировки ниже - именно это останавливает отправителя, долбящего одним и тем же сообщением каждые несколько секунд. Неверно настроенный цикл повторов застревает, пока блокировка не истечёт, после чего триплет начинает заново как первая попытка.</value>
@@ -5831,6 +5837,9 @@ Control Panel может читать файлы сообщений только
   <data name="Host/Name:  {0}" xml:space="preserve">
     <value>Узел/имя:  {0}</value>
   </data>
+  <data name="Hosts that use OAuth2 (comma separated; empty = none)" xml:space="preserve">
+    <value>Узлы, использующие OAuth2 (через запятую; пусто = ни одного)</value>
+  </data>
   <data name="Hour the digest is sent (UTC, 0 to 23)" xml:space="preserve">
     <value>Час отправки сводки (UTC, от 0 до 23)</value>
   </data>
@@ -7292,8 +7301,8 @@ Control Panel может читать файлы сообщений только
   <data name="Metrics port (0 = off)" xml:space="preserve">
     <value>Порт метрик (0 = выключено)</value>
   </data>
-  <data name="Microsoft 365 turns Basic authentication for SMTP AUTH off at the end of December 2026. When the relay host below is listed here, hMailServer authenticates with an OAuth2 bearer token (XOAUTH2) instead of the password - fetched from your tenant's token endpoint with the client credentials of an app registration that has the SMTP.SendAsApp permission. The user name above stays: it is the mailbox being relayed as." xml:space="preserve">
-    <value>Microsoft 365 отключает базовую аутентификацию для SMTP AUTH в конце декабря 2026 года. Когда указанный ниже узел ретрансляции перечислен здесь, hMailServer аутентифицируется токеном OAuth2 bearer (XOAUTH2) вместо пароля: токен запрашивается у конечной точки токенов вашего клиента (tenant) по учётным данным приложения, зарегистрированного с разрешением SMTP.SendAsApp. Имя пользователя выше остаётся: это тот почтовый ящик, от имени которого выполняется ретрансляция.</value>
+  <data name="Microsoft 365 turns Basic authentication for SMTP AUTH off at the end of December 2026. When the smart host above is listed here, hMailServer authenticates with an OAuth2 bearer token (XOAUTH2) instead of the password - fetched from your tenant's token endpoint with the client credentials of an app registration that has the SMTP.SendAsApp permission. The user name above stays: it is the mailbox the mail is sent as." xml:space="preserve">
+    <value>Microsoft 365 отключает базовую аутентификацию для SMTP AUTH в конце декабря 2026 года. Когда указанный выше смарт-хост перечислен здесь, hMailServer аутентифицируется токеном OAuth2 bearer (XOAUTH2) вместо пароля: токен запрашивается у конечной точки токенов вашего клиента (tenant) по учётным данным приложения, зарегистрированного с разрешением SMTP.SendAsApp. Имя пользователя выше остаётся: это тот почтовый ящик, от имени которого отправляется почта.</value>
   </data>
   <data name="Microsoft application (client) ID" xml:space="preserve">
     <value>Идентификатор приложения (клиента) Microsoft</value>
@@ -8000,8 +8009,8 @@ Control Panel может читать файлы сообщений только
   <data name="No rotation is scheduled. Rotate now to start one." xml:space="preserve">
     <value>Ротация не запланирована. Запустите её кнопкой «Выполнить ротацию сейчас».</value>
   </data>
-  <data name="No routes, so every domain's mail is delivered the usual way: to its MX hosts, or through the relay set on the Delivery of e-mail page." xml:space="preserve">
-    <value>Нет маршрутов, поэтому почта каждого домена доставляется обычным путём: на его MX-узлы или через ретранслятор, заданный на странице «Доставка почты».</value>
+  <data name="No routes, so every domain's mail is delivered the usual way: to its MX hosts, or through the smart host set on the Delivery of e-mail page." xml:space="preserve">
+    <value>Нет маршрутов, поэтому почта каждого домена доставляется обычным путём: на его MX-узлы или через смарт-хост, заданный на странице «Доставка почты».</value>
   </data>
   <data name="No rua= is included because {0} has no postmaster address configured, and this page will not invent a mailbox. Without rua= the policy still applies, but nobody sends you reports - add &quot;; rua=mailto:&lt;a mailbox you read&gt;&quot; when you have one." xml:space="preserve">
     <value>Тег rua= не включён, потому что для {0} не настроен адрес postmaster, а придумывать почтовый ящик эта страница не станет. Без rua= политика всё равно действует, но отчёты вам никто не присылает — добавьте «; rua=mailto:&lt;a mailbox you read&gt;», когда ящик появится.</value>
@@ -8330,8 +8339,8 @@ Control Panel может читать файлы сообщений только
   <data name="OAuth2 / external identity provider" xml:space="preserve">
     <value>OAuth2 / внешний поставщик удостоверений</value>
   </data>
-  <data name="OAuth2 for the relay (Microsoft 365)" xml:space="preserve">
-    <value>OAuth2 для ретрансляции (Microsoft 365)</value>
+  <data name="OAuth2 for the smart host (Microsoft 365)" xml:space="preserve">
+    <value>OAuth2 для смарт-хоста (Microsoft 365)</value>
   </data>
   <data name="OAuth2 is enabled, the key material its allowed algorithms need is in place, and both the issuer and the audience are checked - so a token has to have been minted by your provider for this server specifically." xml:space="preserve">
     <value>OAuth2 включён, ключевой материал, нужный его разрешённым алгоритмам, на месте, а издатель и аудитория оба проверяются, поэтому токен должен быть выпущен вашим поставщиком именно для этого сервера.</value>
@@ -8633,9 +8642,6 @@ Control Panel может читать файлы сообщений только
   <data name="Only archive mail for these domains (comma separated; empty = every message)" xml:space="preserve">
     <value>Архивировать почту только для этих доменов (через запятую; пусто = каждое сообщение)</value>
   </data>
-  <data name="Only destinations named here get a bearer token; every other relay keeps password authentication. This is deliberate - a token presented to the wrong relay is a leaked token." xml:space="preserve">
-    <value>Токен-носитель получают только перечисленные здесь адресаты; все остальные ретрансляторы продолжают использовать аутентификацию по паролю. Так сделано намеренно: токен, предъявленный не тому ретранслятору, — это утёкший токен.</value>
-  </data>
   <data name="Only domains with an Active Directory domain name set are listed - that field is what links a mail domain to a directory. The first time, bring one domain over at a time." xml:space="preserve">
     <value>Здесь перечислены только домены, у которых задано имя домена Active Directory: именно это поле связывает почтовый домен с каталогом. В первый раз переносите по одному домену за раз.</value>
   </data>
@@ -8653,6 +8659,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Only the first {0} characters are shown." xml:space="preserve">
     <value>Показаны только первые {0} символов.</value>
+  </data>
+  <data name="Only the hosts named here get a bearer token, whether the smart host, a route's host or a domain's relay host; every other host keeps password authentication." xml:space="preserve">
+    <value>Токен-носитель получают только перечисленные здесь узлы, будь то смарт-хост, узел маршрута или узел ретрансляции домена; все остальные узлы продолжают использовать аутентификацию по паролю.</value>
   </data>
   <data name="Only this computer may connect, so no password crosses a network." xml:space="preserve">
     <value>Подключаться может только этот компьютер, поэтому ни один пароль не передаётся по сети.</value>
@@ -8885,11 +8894,11 @@ Control Panel может читать файлы сообщений только
   <data name="Outbound TLS" xml:space="preserve">
     <value>Исходящий TLS</value>
   </data>
-  <data name="Outbound delivery behavior, retries and smart-host relaying." xml:space="preserve">
-    <value>Поведение исходящей доставки, повторные попытки и ретрансляция через промежуточный узел.</value>
-  </data>
   <data name="Outbound delivery security (after MX lookup)" xml:space="preserve">
     <value>Безопасность исходящей доставки (после поиска MX)</value>
+  </data>
+  <data name="Outbound delivery, retries and the smart host." xml:space="preserve">
+    <value>Исходящая доставка, повторные попытки и смарт-хост.</value>
   </data>
   <data name="Outbound delivery, retries and throttling. Keeping forwarded mail SPF-aligned (SRS) and bounce tagging (BATV) are on the Transport security page." xml:space="preserve">
     <value>Исходящая доставка, повторные попытки и ограничение скорости. Сохранение выравнивания SPF для пересылаемой почты (SRS) и пометка возвратных сообщений (BATV) находятся на странице «Транспортная безопасность».</value>
@@ -9956,20 +9965,8 @@ Control Panel может читать файлы сообщений только
   <data name="Relay" xml:space="preserve">
     <value>Ретрансляция</value>
   </data>
-  <data name="Relay host name (empty = direct delivery)" xml:space="preserve">
-    <value>Имя узла ретранслятора (пусто = прямая доставка)</value>
-  </data>
-  <data name="Relay hosts that use OAuth2 (comma separated; empty = none)" xml:space="preserve">
-    <value>Ретрансляторы, использующие OAuth2 (через запятую; пусто = ни одного)</value>
-  </data>
   <data name="Relay port" xml:space="preserve">
     <value>Порт ретранслятора</value>
-  </data>
-  <data name="Relay requires authentication" xml:space="preserve">
-    <value>Ретранслятор требует аутентификации</value>
-  </data>
-  <data name="Relaying to an upstream server, retry intervals, bounce handling and what happens to local mail." xml:space="preserve">
-    <value>Ретрансляция на вышестоящий сервер, интервалы повторных попыток, обработка возвратов и то, что происходит с локальной почтой.</value>
   </data>
   <data name="Release" xml:space="preserve">
     <value>Выпустить</value>
@@ -11989,6 +11986,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Smart host" xml:space="preserve">
     <value>Смарт-хост</value>
   </data>
+  <data name="Smart host name (empty = direct delivery)" xml:space="preserve">
+    <value>Имя смарт-хоста (пусто = прямая доставка)</value>
+  </data>
   <data name="Soft" xml:space="preserve">
     <value>Временные</value>
   </data>
@@ -13969,6 +13969,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The size of the whole message, attachments included: 1048576 bytes is 1 MB." xml:space="preserve">
     <value>Размер всего сообщения вместе с вложениями: 1 МБ равен 1048576 байтам.</value>
+  </data>
+  <data name="The smart host requires authentication" xml:space="preserve">
+    <value>Смарт-хост требует аутентификации</value>
   </data>
   <data name="The smart host, its port and credentials, and the retry schedule for delivery." xml:space="preserve">
     <value>Смарт-хост, его порт и учётные данные, а также расписание повторных попыток доставки.</value>

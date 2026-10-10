@@ -2308,7 +2308,7 @@ namespace hMailServer.ControlPanel.Views
       private void BuildDelivery()
       {
          Header.PageKey = "delivery";
-         Header.Subtitle = L("Outbound delivery behavior, retries and smart-host relaying.");
+         Header.Subtitle = L("Outbound delivery, retries and the smart host.");
 
          var del = Card(L("Delivery of e-mail"),
             L("Outbound delivery, retries and throttling. Keeping forwarded mail SPF-aligned (SRS) and bounce tagging (BATV) are on the Transport security page."));
@@ -2457,23 +2457,23 @@ namespace hMailServer.ControlPanel.Views
 
          var relay = Card(L("Server-wide smart host"),
             L("Route all outbound mail through another SMTP server instead of delivering directly. For failover, separate several hosts with a vertical bar: the next host is tried when one cannot be reached (all hosts share the port, security and credentials below)."));
-         relay.Settings.Add(new ComText { Path = "SMTPRelayer", Label = L("Relay host name (empty = direct delivery)") });
+         relay.Settings.Add(new ComText { Path = "SMTPRelayer", Label = L("Smart host name (empty = direct delivery)") });
          relay.Settings.Add(new ComText { Path = "SMTPRelayerPort", Label = L("Port"), Numeric = true });
          relay.Settings.Add(new ComCombo { Path = "SMTPRelayerConnectionSecurity", Label = L("Connection security"), Options = ConnSecurity });
-         relay.Settings.Add(new ComBool { Path = "SMTPRelayerRequiresAuthentication", Label = L("Relay requires authentication") });
+         relay.Settings.Add(new ComBool { Path = "SMTPRelayerRequiresAuthentication", Label = L("The smart host requires authentication") });
          relay.Settings.Add(new ComText { Path = "SMTPRelayerUsername", Label = L("User name") });
          relay.Settings.Add(new ComPassword { Path = "SetSMTPRelayerPassword", MethodName = "SetSMTPRelayerPassword", Label = L("Password (leave empty to keep current)") });
          Tab(L("Smart host")).Cards.Add(relay);
 
-         var oauth = Card(L("OAuth2 for the relay (Microsoft 365)"),
-            L("Microsoft 365 turns Basic authentication for SMTP AUTH off at the end of December 2026. When the relay host below is listed here, hMailServer authenticates with an OAuth2 bearer token (XOAUTH2) instead of the password - fetched from your tenant's token endpoint with the client credentials of an app registration that has the SMTP.SendAsApp permission. The user name above stays: it is the mailbox being relayed as."));
+         var oauth = Card(L("OAuth2 for the smart host (Microsoft 365)"),
+            L("Microsoft 365 turns Basic authentication for SMTP AUTH off at the end of December 2026. When the smart host above is listed here, hMailServer authenticates with an OAuth2 bearer token (XOAUTH2) instead of the password - fetched from your tenant's token endpoint with the client credentials of an app registration that has the SMTP.SendAsApp permission. The user name above stays: it is the mailbox the mail is sent as."));
          oauth.Settings.Add(new IniText
          {
             Path = "OutboundOAuth2Hosts",
-            Label = L("Relay hosts that use OAuth2 (comma separated; empty = none)"),
+            Label = L("Hosts that use OAuth2 (comma separated; empty = none)"),
             Default = "smtp.office365.com",
             Placeholder = "smtp.office365.com",
-            Blurb = L("Only destinations named here get a bearer token; every other relay keeps password authentication. This is deliberate - a token presented to the wrong relay is a leaked token."),
+            Blurb = Sentences(L("Only the hosts named here get a bearer token, whether the smart host, a route's host or a domain's relay host; every other host keeps password authentication."), L("A token presented to the wrong host is a leaked token.")),
             IniStore = iniStore_
          });
          oauth.Settings.Add(new IniText

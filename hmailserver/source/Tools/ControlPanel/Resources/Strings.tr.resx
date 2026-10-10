@@ -705,11 +705,17 @@
   <data name="A single DNS query. 0 = no time limit." xml:space="preserve">
     <value>Tek bir DNS sorgusu. 0 = süre sınırı yok.</value>
   </data>
+  <data name="A smart host, retry intervals, bounce handling and what happens to local mail." xml:space="preserve">
+    <value>Akıllı ana bilgisayar, yeniden deneme aralıkları, geri dönme işleme ve yerel postaya ne olacağı.</value>
+  </data>
   <data name="A spam trap is an address in one of your domains that nobody uses, so whoever writes to it is sending spam. These settings say what happens to a server that does. The trap addresses are declared per domain in the Control Deck; until a domain has one, nothing here does anything." xml:space="preserve">
     <value>Spam tuzağı, etki alanlarınızdan birinde kimsenin kullanmadığı bir adrestir; ona yazan spam gönderiyordur. Bu ayarlar, bunu yapan bir sunucuya ne olacağını belirler. Tuzak adresleri her etki alanı için Control Deck'te bildirilir; bir etki alanında hiç yokken buradaki hiçbir şey etkili olmaz.</value>
   </data>
   <data name="A successful sign-in clears the name's counters, and attempts made while it is locked are not counted - so an attacker cannot hold a mailbox locked indefinitely with a trickle of guesses." xml:space="preserve">
     <value>Başarılı bir oturum açma, adın sayaçlarını sıfırlar ve kilitliyken yapılan denemeler sayılmaz - böylece bir saldırgan, damla damla denemelerle bir posta kutusunu süresiz kilitli tutamaz.</value>
+  </data>
+  <data name="A token presented to the wrong host is a leaked token." xml:space="preserve">
+    <value>Yanlış ana bilgisayara sunulan bir belirteç, sızmış bir belirteçtir.</value>
   </data>
   <data name="A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt." xml:space="preserve">
     <value>Bu kadar kez çok erken yeniden deneyen bir üçlü, aşağıdaki kilit süresince 451 yerine 550 ile yanıtlanır; aynı iletiyi birkaç saniyede bir vuran göndereni durduran budur. Yanlış yapılandırılmış bir yeniden deneme döngüsü kilit geçene kadar takılı kalır, sonra üçlü ilk deneme olarak baştan başlar.</value>
@@ -5761,6 +5767,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Host/Name:  {0}" xml:space="preserve">
     <value>Ana bilgisayar/Ad:  {0}</value>
   </data>
+  <data name="Hosts that use OAuth2 (comma separated; empty = none)" xml:space="preserve">
+    <value>OAuth2 kullanan ana bilgisayarlar (virgülle ayrılmış; boş = hiçbiri)</value>
+  </data>
   <data name="Hour the digest is sent (UTC, 0 to 23)" xml:space="preserve">
     <value>Özetin gönderildiği saat (UTC, 0 ile 23 arası)</value>
   </data>
@@ -7216,8 +7225,8 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Metrics port (0 = off)" xml:space="preserve">
     <value>Ölçüm portu (0 = kapalı)</value>
   </data>
-  <data name="Microsoft 365 turns Basic authentication for SMTP AUTH off at the end of December 2026. When the relay host below is listed here, hMailServer authenticates with an OAuth2 bearer token (XOAUTH2) instead of the password - fetched from your tenant's token endpoint with the client credentials of an app registration that has the SMTP.SendAsApp permission. The user name above stays: it is the mailbox being relayed as." xml:space="preserve">
-    <value>Microsoft 365, SMTP AUTH için Basic kimlik doğrulamasını Aralık 2026 sonunda kapatıyor. Aşağıdaki aktarma ana bilgisayarı burada listelendiğinde hMailServer parola yerine bir OAuth2 taşıyıcı belirteciyle (XOAUTH2) kimlik doğrulaması yapar - belirteç, SMTP.SendAsApp iznine sahip bir uygulama kaydının istemci kimlik bilgileriyle kiracınızın belirteç uç noktasından alınır. Yukarıdaki kullanıcı adı kalır: aktarmanın adına yapıldığı posta kutusu odur.</value>
+  <data name="Microsoft 365 turns Basic authentication for SMTP AUTH off at the end of December 2026. When the smart host above is listed here, hMailServer authenticates with an OAuth2 bearer token (XOAUTH2) instead of the password - fetched from your tenant's token endpoint with the client credentials of an app registration that has the SMTP.SendAsApp permission. The user name above stays: it is the mailbox the mail is sent as." xml:space="preserve">
+    <value>Microsoft 365, SMTP AUTH için Basic kimlik doğrulamasını Aralık 2026 sonunda kapatıyor. Yukarıdaki akıllı ana bilgisayar burada listelendiğinde hMailServer parola yerine bir OAuth2 taşıyıcı belirteciyle (XOAUTH2) kimlik doğrulaması yapar - belirteç, SMTP.SendAsApp iznine sahip bir uygulama kaydının istemci kimlik bilgileriyle kiracınızın belirteç uç noktasından alınır. Yukarıdaki kullanıcı adı kalır: postanın adına gönderildiği posta kutusu odur.</value>
   </data>
   <data name="Microsoft application (client) ID" xml:space="preserve">
     <value>Microsoft uygulama (istemci) kimliği</value>
@@ -7921,8 +7930,8 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="No rotation is scheduled. Rotate now to start one." xml:space="preserve">
     <value>Planlanmış bir döndürme yok. Başlatmak için “Şimdi döndür”ü kullanın.</value>
   </data>
-  <data name="No routes, so every domain's mail is delivered the usual way: to its MX hosts, or through the relay set on the Delivery of e-mail page." xml:space="preserve">
-    <value>Rota yok; bu nedenle her etki alanının postası olağan yoldan teslim edilir: MX ana bilgisayarlarına ya da E-posta teslimi sayfasında ayarlanan aktarıcı üzerinden.</value>
+  <data name="No routes, so every domain's mail is delivered the usual way: to its MX hosts, or through the smart host set on the Delivery of e-mail page." xml:space="preserve">
+    <value>Rota yok; bu nedenle her etki alanının postası olağan yoldan teslim edilir: MX ana bilgisayarlarına ya da E-posta teslimi sayfasında ayarlanan akıllı ana bilgisayar üzerinden.</value>
   </data>
   <data name="No rua= is included because {0} has no postmaster address configured, and this page will not invent a mailbox. Without rua= the policy still applies, but nobody sends you reports - add &quot;; rua=mailto:&lt;a mailbox you read&gt;&quot; when you have one." xml:space="preserve">
     <value>rua= dâhil edilmedi, çünkü {0} için yapılandırılmış bir postmaster adresi yok ve bu sayfa bir posta kutusu uydurmaz. rua= olmadan ilke yine uygulanır, ama kimse size rapor göndermez - bir posta kutunuz olduğunda "; rua=mailto:&lt;a mailbox you read&gt;" ekleyin.</value>
@@ -8236,8 +8245,8 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="OAuth2 / external identity provider" xml:space="preserve">
     <value>OAuth2 / dış kimlik sağlayıcısı</value>
   </data>
-  <data name="OAuth2 for the relay (Microsoft 365)" xml:space="preserve">
-    <value>Aktarma için OAuth2 (Microsoft 365)</value>
+  <data name="OAuth2 for the smart host (Microsoft 365)" xml:space="preserve">
+    <value>Akıllı ana bilgisayar için OAuth2 (Microsoft 365)</value>
   </data>
   <data name="OAuth2 is enabled, the key material its allowed algorithms need is in place, and both the issuer and the audience are checked - so a token has to have been minted by your provider for this server specifically." xml:space="preserve">
     <value>OAuth2 etkin, izin verilen algoritmalarının gerektirdiği anahtar malzemesi yerinde ve hem veren hem hedef kitle denetleniyor - bu yüzden bir belirtecin sağlayıcınız tarafından özellikle bu sunucu için basılmış olması gerekir.</value>
@@ -8539,9 +8548,6 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Only archive mail for these domains (comma separated; empty = every message)" xml:space="preserve">
     <value>Yalnızca şu etki alanlarının postasını arşivle (virgülle ayrılmış; boş = her ileti)</value>
   </data>
-  <data name="Only destinations named here get a bearer token; every other relay keeps password authentication. This is deliberate - a token presented to the wrong relay is a leaked token." xml:space="preserve">
-    <value>Yalnızca burada adlandırılan hedefler taşıyıcı belirteç alır; diğer her aktarma parola kimlik doğrulamasını sürdürür. Bu bilinçli bir tercihtir - yanlış aktarmaya sunulan bir belirteç, sızmış bir belirteçtir.</value>
-  </data>
   <data name="Only domains with an Active Directory domain name set are listed - that field is what links a mail domain to a directory. The first time, bring one domain over at a time." xml:space="preserve">
     <value>Yalnızca Active Directory etki alanı adı ayarlanmış etki alanları listelenir - bir posta etki alanını bir dizine bağlayan alan odur. İlk seferinde etki alanlarını teker teker geçirin.</value>
   </data>
@@ -8559,6 +8565,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Only the first {0} characters are shown." xml:space="preserve">
     <value>Yalnızca ilk {0} karakter gösteriliyor.</value>
+  </data>
+  <data name="Only the hosts named here get a bearer token, whether the smart host, a route's host or a domain's relay host; every other host keeps password authentication." xml:space="preserve">
+    <value>İster akıllı ana bilgisayar, ister bir rotanın ana bilgisayarı, ister bir etki alanının aktarma ana bilgisayarı olsun, yalnızca burada adlandırılan ana bilgisayarlar taşıyıcı belirteç alır; diğer her ana bilgisayar parola kimlik doğrulamasını sürdürür.</value>
   </data>
   <data name="Only this computer may connect, so no password crosses a network." xml:space="preserve">
     <value>Yalnızca bu bilgisayar bağlanabilir, bu yüzden hiçbir parola bir ağdan geçmez.</value>
@@ -8791,11 +8800,11 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Outbound TLS" xml:space="preserve">
     <value>Giden TLS</value>
   </data>
-  <data name="Outbound delivery behavior, retries and smart-host relaying." xml:space="preserve">
-    <value>Giden teslim davranışı, yeniden denemeler ve akıllı ana bilgisayar üzerinden aktarma.</value>
-  </data>
   <data name="Outbound delivery security (after MX lookup)" xml:space="preserve">
     <value>Giden teslim güvenliği (MX aramasından sonra)</value>
+  </data>
+  <data name="Outbound delivery, retries and the smart host." xml:space="preserve">
+    <value>Giden teslim, yeniden denemeler ve akıllı ana bilgisayar.</value>
   </data>
   <data name="Outbound delivery, retries and throttling. Keeping forwarded mail SPF-aligned (SRS) and bounce tagging (BATV) are on the Transport security page." xml:space="preserve">
     <value>Giden teslim, yeniden denemeler ve kısıtlama. İletilen postayı SPF ile hizalı tutmak (SRS) ve geri dönme etiketleme (BATV) Taşıma güvenliği sayfasındadır.</value>
@@ -9859,20 +9868,8 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   <data name="Relay" xml:space="preserve">
     <value>Aktarma</value>
   </data>
-  <data name="Relay host name (empty = direct delivery)" xml:space="preserve">
-    <value>Aktarma ana bilgisayar adı (boş = doğrudan teslim)</value>
-  </data>
-  <data name="Relay hosts that use OAuth2 (comma separated; empty = none)" xml:space="preserve">
-    <value>OAuth2 kullanan aktarma ana bilgisayarları (virgülle ayrılmış; boş = hiçbiri)</value>
-  </data>
   <data name="Relay port" xml:space="preserve">
     <value>Aktarma portu</value>
-  </data>
-  <data name="Relay requires authentication" xml:space="preserve">
-    <value>Aktarma kimlik doğrulaması gerektirir</value>
-  </data>
-  <data name="Relaying to an upstream server, retry intervals, bounce handling and what happens to local mail." xml:space="preserve">
-    <value>Bir üst sunucuya aktarma, yeniden deneme aralıkları, geri dönme işleme ve yerel postaya ne olacağı.</value>
   </data>
   <data name="Release" xml:space="preserve">
     <value>Serbest bırak</value>
@@ -11847,6 +11844,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Smart host" xml:space="preserve">
     <value>Akıllı ana bilgisayar</value>
   </data>
+  <data name="Smart host name (empty = direct delivery)" xml:space="preserve">
+    <value>Akıllı ana bilgisayar adı (boş = doğrudan teslim)</value>
+  </data>
   <data name="Soft" xml:space="preserve">
     <value>Geçici</value>
   </data>
@@ -13791,6 +13791,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="The size of the whole message, attachments included: 1048576 bytes is 1 MB." xml:space="preserve">
     <value>Ekler dahil iletinin tamamının boyutu; 1 MB, 1048576 bayttır.</value>
+  </data>
+  <data name="The smart host requires authentication" xml:space="preserve">
+    <value>Akıllı ana bilgisayar kimlik doğrulaması gerektirir</value>
   </data>
   <data name="The smart host, its port and credentials, and the retry schedule for delivery." xml:space="preserve">
     <value>Akıllı ana bilgisayar, portu ve kimlik bilgileri ile teslimat için yeniden deneme zamanlaması.</value>
