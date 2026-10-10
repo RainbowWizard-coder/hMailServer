@@ -61,8 +61,17 @@ namespace hMailServer.ControlPanel.Services
          if (rest.StartsWith("AUTH on a delivery port", StringComparison.Ordinal)) // no-loc: the server's words
             return L("A sign-in attempt on a port that takes no password");
 
+         // A run of failed sign-ins is named for the user name it guessed at, made unique
+         // by the server where a ban of that name exists already (AccountLogon's
+         // GetIPRangeName_: " (1)" to " (10)", then " (Z" and nine random characters,
+         // then a GUID in braces) - a counter the reader has no use for, so the cause is
+         // the user name alone.
+         rest = UniqueSuffix_.Replace(rest, "");
          return rest.Length == 0 ? "" : F("Failed sign-ins as {0}", rest);
       }
+
+      private static readonly System.Text.RegularExpressions.Regex UniqueSuffix_ =
+         new(@" (?:\((?:[0-9]{1,2}|Z[^()\s]{1,9})\)|\{[0-9A-Fa-f-]{36}\})$", System.Text.RegularExpressions.RegexOptions.CultureInvariant); // no-loc: the server's suffixes
 
       /// <summary>
       /// When the ban ends, as its Ends cell says it: "23 min from now" where the

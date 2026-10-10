@@ -39,7 +39,11 @@ namespace hMailServer.ControlPanel.Tests.Services
 
       [Theory]
       [InlineData("Auto-ban: jane@example.com", "Failed sign-ins as jane@example.com")]
-      [InlineData("Auto-ban: jane@example.com (2)", "Failed sign-ins as jane@example.com (2)")]
+      // The server's suffixes that make a second ban's name unique are a counter, not a cause.
+      [InlineData("Auto-ban: jane@example.com (2)", "Failed sign-ins as jane@example.com")]
+      [InlineData("Auto-ban: jane@example.com (10)", "Failed sign-ins as jane@example.com")]
+      [InlineData("Auto-ban: jane@example.com (Zab12CD34e)", "Failed sign-ins as jane@example.com")]
+      [InlineData("Auto-ban: jane@example.com {0F8FAD5B-D9CB-469F-A165-70867728950E}", "Failed sign-ins as jane@example.com")]
       [InlineData("Auto-ban: spam trap nobody@example.com", "Mail to the spam trap nobody@example.com")]
       [InlineData("Auto-ban: multi-recipient null sender 198.51.100.7", "Mail from an empty sender to several recipients")]
       [InlineData("Auto-ban: AUTH on a delivery port 198.51.100.7", "A sign-in attempt on a port that takes no password")]
