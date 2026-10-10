@@ -66,12 +66,10 @@ command -v trivy > /dev/null || fail 2 "trivy is not on PATH: this runs in the a
 rm -rf "$OUT"
 mkdir -p "$OUT"
 trivy --version
-quiet="--skip-version-check --disable-telemetry --no-progress"
 database=""
 for repository in $DATABASES; do
   echo "\$ trivy image --download-db-only --db-repository $repository"
-  # shellcheck disable=SC2086
-  if trivy image --download-db-only --db-repository "$repository" $quiet; then
+  if trivy image --download-db-only --db-repository "$repository" --skip-version-check --disable-telemetry --no-progress; then
     database=$repository
     break
   fi
@@ -81,9 +79,8 @@ done
 
 report="$OUT/trivy-$arch.json"
 echo "scanning the linux/$arch image, $image, with the database from $database"
-# shellcheck disable=SC2086
 trivy image --skip-db-update --scanners vuln --platform "linux/$arch" --format json --output "$report" \
-  --timeout 20m $quiet "$image" || fail 1 "Trivy could not scan $image"
+  --timeout 20m --skip-version-check --disable-telemetry --no-progress "$image" || fail 1 "Trivy could not scan $image"
 [ -s "$report" ] || fail 1 "Trivy wrote no report for $image"
 grep -qF "sha256:$digest" "$report" || fail 1 "$report does not name the digest of $image: it is not this image's report"
 trivy convert --format template --template @/contrib/gitlab.tpl --output "$OUT/gl-container-scanning-report.json" "$report" \
