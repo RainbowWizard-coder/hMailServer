@@ -3408,6 +3408,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Counting external accounts…" xml:space="preserve">
     <value>Počítání externích účtů…</value>
   </data>
+  <data name="Counting the domains that have trap addresses…" xml:space="preserve">
+    <value>Počítání domén, které mají adresy pastí…</value>
+  </data>
   <data name="Countries" xml:space="preserve">
     <value>Země</value>
   </data>

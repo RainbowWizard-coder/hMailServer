@@ -3384,6 +3384,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Counting external accounts…" xml:space="preserve">
     <value>Conteggio degli account esterni…</value>
   </data>
+  <data name="Counting the domains that have trap addresses…" xml:space="preserve">
+    <value>Conteggio dei domini che hanno indirizzi trappola…</value>
+  </data>
   <data name="Countries" xml:space="preserve">
     <value>Paesi</value>
   </data>

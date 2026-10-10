@@ -3408,6 +3408,9 @@ Control Panel может читать файлы сообщений только
   <data name="Counting external accounts…" xml:space="preserve">
     <value>Подсчёт внешних учётных записей…</value>
   </data>
+  <data name="Counting the domains that have trap addresses…" xml:space="preserve">
+    <value>Подсчёт доменов, у которых есть адреса-ловушки…</value>
+  </data>
   <data name="Countries" xml:space="preserve">
     <value>Страны</value>
   </data>

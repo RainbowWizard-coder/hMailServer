@@ -45,6 +45,42 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal("Saved 2 changes. 1 setting could not be written.", partial);
       }
 
+      /// <summary>
+      /// Alt+S presses Save changes without moving the keyboard - a button's access
+      /// key clicks it where it is - and a NumberBox takes its text as its value only
+      /// as the keyboard leaves it or Enter is pressed, so a refuse threshold typed
+      /// and saved with Alt+S wrote the number the box held before and the sentence
+      /// after the save said "no setting had changed" (seen in the renders of the
+      /// threshold check, review finding F263). Ctrl+S moves the keyboard to the
+      /// button first (PageCommands.Press); the save itself now takes each row's
+      /// typed number first, whatever pressed it.
+      /// </summary>
+      [Fact]
+      public void ASave_TakesANumberTypedAndNotYetTakenIn_BeforeItReadsTheEditors()
+      {
+         string page = ReadControlPanelFile(Path.Join("Views", "ServerSettingsView.xaml.cs"));
+         string save = WithheldRowTests.MemberText(page, "private bool Save_()");
+         Assert.True(save != null, "ServerSettingsView.Save_ is gone.");
+         int commit = save.IndexOf("typedIn.CommitTyped();", StringComparison.Ordinal);
+         int refused = save.IndexOf("if (thresholdProblem_ != null)", StringComparison.Ordinal);
+         int changed = save.IndexOf("var changed = new List<string>();", StringComparison.Ordinal);
+         Assert.True(commit >= 0 && refused > commit && changed > commit, "Save_ does not take the typed numbers before it checks and reads the editors.");
+
+         // Both number rows - ComText, with RestNumber under it, and IniNumber, with
+         // SectionIniNumber - take their box's typed number, within its bounds.
+         Assert.Equal(2, page.Split("public override void CommitTyped() => CommitTypedNumber(number_);").Length - 1);
+         string helper = WithheldRowTests.MemberText(page, "protected static void CommitTypedNumber(Wpf.Ui.Controls.NumberBox box)");
+         Assert.True(helper != null, "ServerSettingsView.ComSetting.CommitTypedNumber is gone.");
+         Assert.Contains("System.Globalization.CultureInfo.CurrentCulture, out double typed))", helper, StringComparison.Ordinal);
+         Assert.Contains("box.Value = Math.Max(box.Minimum, Math.Min(box.Maximum, typed));", helper, StringComparison.Ordinal);
+
+         // A box nobody typed in is left as it is, a value outside its bounds that
+         // the server holds with it: clamped, every save changed it unasked.
+         int same = helper.IndexOf("if (box.Value == typed)", StringComparison.Ordinal);
+         int clamp = helper.IndexOf("box.Value = Math.Max(", StringComparison.Ordinal);
+         Assert.True(same >= 0 && clamp > same, "CommitTypedNumber clamps a box nobody typed in.");
+      }
+
       [Theory]
       [InlineData(5, 20, false, null)]
       [InlineData(5, 5, true, null)]
@@ -85,6 +121,13 @@ namespace hMailServer.ControlPanel.Tests.Services
          int write = save.IndexOf("setting.Write(owner, property);", StringComparison.Ordinal);
          Assert.True(refused >= 0 && write > refused, "Save_ writes before it looks at the thresholds' check.");
 
+         // The refusal's notice asks for what is marked below, and goes once the pair
+         // is put right, where it stayed over a pair with nothing marked.
+         Assert.Contains("ShowNotice_(thresholdRefusal_, StatusLevel.Critical);", save, StringComparison.Ordinal);
+         Assert.Contains("if (thresholdProblem_ == null && thresholdRefusal_ != null)", check, StringComparison.Ordinal);
+         Assert.Contains("string.Equals(StatusNotice.Text, thresholdRefusal_, StringComparison.Ordinal))", check, StringComparison.Ordinal);
+         Assert.Contains("ShowNotice_(null, StatusLevel.Normal);", check, StringComparison.Ordinal);
+
          // The sentence after a save names what it changed.
          Assert.Contains("ServerSettingsPageStatus.SavedChangesSentence(changed, failed, DateTime.Now.ToLongTimeString(), waiting)", save, StringComparison.Ordinal);
          Assert.Contains("Changed_(setting)", save, StringComparison.Ordinal);
@@ -124,6 +167,16 @@ namespace hMailServer.ControlPanel.Tests.Services
          string page = ReadControlPanelFile(Path.Join("Views", "ServerSettingsView.xaml.cs"));
          Assert.Contains("L(\"No domain has a trap address yet, so these settings do nothing.\")", page, StringComparison.Ordinal);
          Assert.Contains("if (!string.IsNullOrWhiteSpace((string)domain.SpamTraps))", page, StringComparison.Ordinal);
+
+         // One call per domain, so off the UI thread once the card is built, the
+         // notice saying so meanwhile: on it, every opening of the page waited for
+         // the walk (review finding F265's shape).
+         string build = WithheldRowTests.MemberText(page, "private sealed class SpamTrapCountRow : ComSetting, INotPersisted");
+         Assert.True(build != null, "ServerSettingsView.SpamTrapCountRow is gone.");
+         Assert.Contains("Text = L(\"Counting the domains that have trap addresses…\")", build, StringComparison.Ordinal);
+         Assert.Contains("CountThenSay_(notice);", build, StringComparison.Ordinal);
+         Assert.Contains("withTraps = await System.Threading.Tasks.Task.Run(DomainsWithTraps_);", build, StringComparison.Ordinal);
+         Assert.DoesNotContain("int? withTraps = DomainsWithTraps_();", build, StringComparison.Ordinal);
       }
 
       private static string AntiSpam_()

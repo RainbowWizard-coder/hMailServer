@@ -339,6 +339,38 @@ namespace hMailServer.ControlPanel.Views
          protected const double NumberWidth = 180;
 
          /// <summary>
+         /// Takes what was typed into the row's editor, and not yet taken as its
+         /// value, as its value - before a save reads the editors (Save_). Nothing
+         /// for a row whose editor takes every keystroke as it comes.
+         /// </summary>
+         public virtual void CommitTyped()
+         {
+         }
+
+         /// <summary>
+         /// Takes a number typed into <paramref name="box"/>, and not yet taken as its
+         /// value, as its value, within the box's bounds. A NumberBox takes its text
+         /// as its value when it loses the keyboard or Enter is pressed, and Alt+S
+         /// presses Save changes with the keyboard still in the box: the save wrote
+         /// the number the box held before and said that no setting had changed.
+         /// Text that is no number is left to the box, and so is a box whose text is
+         /// its value: one nobody typed in keeps a value outside its bounds that the
+         /// server holds, as a save left it before.
+         /// </summary>
+         protected static void CommitTypedNumber(Wpf.Ui.Controls.NumberBox box)
+         {
+            if (box == null || box.IsReadOnly || !double.TryParse((box.Text ?? "").Trim(), System.Globalization.NumberStyles.Number,
+                  System.Globalization.CultureInfo.CurrentCulture, out double typed))
+               return;
+
+            typed = Math.Round(typed);
+            if (box.Value == typed)
+               return;
+
+            box.Value = Math.Max(box.Minimum, Math.Min(box.Maximum, typed));
+         }
+
+         /// <summary>
          /// The up/down box the four numeric row types share, described, watched
          /// and sized. <paramref name="fallback"/> is what is shown when the value
          /// is not a number at all, which for an INI row is its documented default
@@ -574,6 +606,9 @@ namespace hMailServer.ControlPanel.Views
             else if (box_ != null)
                box_.Text = text ?? "";
          }
+
+         public override void CommitTyped() => CommitTypedNumber(number_);
+
          protected override FrameworkElement BuildEditor(object value)
          {
             object shown = value;
@@ -733,6 +768,8 @@ namespace hMailServer.ControlPanel.Views
          private string loaded_;
 
          public override object ReadEditor() => (long)(number_?.Value ?? Default);
+
+         public override void CommitTyped() => CommitTypedNumber(number_);
 
          /// <summary>Persists to hMailServer.ini when changed. Save_Click calls this
          /// instead of the COM write path.</summary>
@@ -1341,8 +1378,11 @@ namespace hMailServer.ControlPanel.Views
       /// Whether any domain has a spam trap, which the trap settings do nothing
       /// without: a Warning while none has, where the card said so in its last
       /// sentence alone, and how many have one otherwise (review finding F263). The
-      /// traps are each domain's, read as the card is built - one call per domain.
-      /// Writes nothing.
+      /// traps are each domain's, one call per domain, so they are counted off the
+      /// UI thread once the card is built, the notice saying so meanwhile: on the
+      /// UI thread a server of many domains held every opening of the page for as
+      /// long as the walk took, as the account walk held the virus scanning
+      /// overview (review finding F265). Writes nothing.
       /// </summary>
       private sealed class SpamTrapCountRow : ComSetting, INotPersisted
       {
@@ -1352,10 +1392,35 @@ namespace hMailServer.ControlPanel.Views
 
          protected override FrameworkElement BuildEditor(object value)
          {
-            var notice = new Scaffold.InlineNotice { Margin = new Thickness(0) };
+            var notice = new Scaffold.InlineNotice
+            {
+               Margin = new Thickness(0),
+               Level = StatusLevel.Normal,
+               Text = L("Counting the domains that have trap addresses…")
+            };
             System.Windows.Automation.AutomationProperties.SetAutomationId(notice, "antispam-trap-domains");
+            CountThenSay_(notice);
+            return notice;
+         }
 
-            int? withTraps = DomainsWithTraps_();
+         /// <summary>
+         /// Counts the domains with a trap on the thread pool and says what it found
+         /// in <paramref name="notice"/>, on the UI thread. A page read again
+         /// meanwhile has built a notice of its own; this one, no longer shown, is
+         /// filled all the same and changes nothing.
+         /// </summary>
+         private static async void CountThenSay_(Scaffold.InlineNotice notice)
+         {
+            int? withTraps;
+            try
+            {
+               withTraps = await System.Threading.Tasks.Task.Run(DomainsWithTraps_);
+            }
+            catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+            {
+               withTraps = null;
+            }
+
             if (withTraps == null)
             {
                notice.Level = StatusLevel.Warning;
@@ -1371,8 +1436,6 @@ namespace hMailServer.ControlPanel.Views
                notice.Level = StatusLevel.Normal;
                notice.Text = Plural(withTraps.Value, "{0} domain has trap addresses.", "{0} domains have trap addresses.");
             }
-
-            return notice;
          }
 
          /// <summary>How many of the server's domains declare a spam trap; null when they could not be read.</summary>
@@ -1856,6 +1919,10 @@ namespace hMailServer.ControlPanel.Views
       // What the anti-spam thresholds' check refuses, while it refuses something: a
       // save then writes nothing and says so (WireThresholdCheck_, Save_).
       private string thresholdProblem_;
+
+      // The sentence a save refused with while the pair was refused, which goes once
+      // the pair is put right: it asks for what is marked below, and nothing is then.
+      private string thresholdRefusal_;
 
       // What each editor held once the page settled after it was read, or after the
       // last save, so that a save says what it changed rather than how many rows it
@@ -6444,6 +6511,7 @@ namespace hMailServer.ControlPanel.Views
       private void WireThresholdCheck_(ComText mark, ComText refuse, FollowingNoticeRow notice)
       {
          thresholdProblem_ = null;
+         thresholdRefusal_ = null;
 
          // The warning's row, collapsed until the check has something to say - and for
          // good where the thresholds could not be read, which leaves nothing to check.
@@ -6468,6 +6536,14 @@ namespace hMailServer.ControlPanel.Views
             thresholdProblem_ = SpamPipeline.ThresholdProblem(markAt, refuseAt);
             if (refuseBox.Parent is Scaffold.FieldRow row)
                row.Error = thresholdProblem_;
+
+            // A save's refusal asked for what is marked below; with nothing marked, it goes.
+            if (thresholdProblem_ == null && thresholdRefusal_ != null)
+            {
+               if (StatusNotice.Visibility == Visibility.Visible && string.Equals(StatusNotice.Text, thresholdRefusal_, StringComparison.Ordinal))
+                  ShowNotice_(null, StatusLevel.Normal);
+               thresholdRefusal_ = null;
+            }
 
             string warning = SpamPipeline.ThresholdWarning(markAt, refuseAt);
             notice.Notice.Text = warning;
@@ -6700,11 +6776,17 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private bool Save_()
       {
+         // A number typed in and not yet the box's value - Alt+S presses Save with
+         // the keyboard still in the box - is saved as typed (ComSetting.CommitTyped).
+         foreach (ComSetting typedIn in tabs_.SelectMany(tab => tab.Cards).SelectMany(card => card.Settings))
+            typedIn.CommitTyped();
+
          // A pair of thresholds that contradict each other is refused on its field,
          // and nothing is written while it is (WireThresholdCheck_).
          if (thresholdProblem_ != null)
          {
-            ShowNotice_(L("Nothing was saved: correct what is marked below, then save again."), StatusLevel.Critical);
+            thresholdRefusal_ = L("Nothing was saved: correct what is marked below, then save again.");
+            ShowNotice_(thresholdRefusal_, StatusLevel.Critical);
             return false;
          }
 

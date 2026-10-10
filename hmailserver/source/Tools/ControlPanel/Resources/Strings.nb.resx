@@ -3384,6 +3384,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Counting external accounts…" xml:space="preserve">
     <value>Teller eksterne kontoer…</value>
   </data>
+  <data name="Counting the domains that have trap addresses…" xml:space="preserve">
+    <value>Teller domenene som har felleadresser…</value>
+  </data>
   <data name="Countries" xml:space="preserve">
     <value>Land</value>
   </data>

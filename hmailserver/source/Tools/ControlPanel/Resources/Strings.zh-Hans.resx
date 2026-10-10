@@ -3384,6 +3384,9 @@
   <data name="Counting external accounts…" xml:space="preserve">
     <value>正在统计外部账户…</value>
   </data>
+  <data name="Counting the domains that have trap addresses…" xml:space="preserve">
+    <value>正在统计设置了陷阱地址的域…</value>
+  </data>
   <data name="Countries" xml:space="preserve">
     <value>国家</value>
   </data>
