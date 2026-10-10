@@ -464,7 +464,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   stop for ever while the service controller is told that it is progressing. Such a stop then leaves the database
   open, since the thread may still be using it, and ends the process at once, the thread with it, where closing
   the database freed the connection the thread's statement was on and the process went on through the destructors
-  of its statics with the thread still running. A start after a stop begins a new
+  of its statics with the thread still running. It does the same when the stop of one of the server's work queues
+  has given up on a thread, after its ten seconds and five more - a delivery, a script, an external account's fetch
+  or a lookup held by a database or a host that has stopped answering - in that stop or an earlier one, where the
+  database was closed under that thread too (in every version). On Linux, with another session's lock holding the
+  external fetch manager's first statement and the indexer idle, a SIGTERM closed the database under the statement
+  16 seconds later on PostgreSQL 18 and MariaDB 13; now the database is left open and the process ends then. A
+  reinitialise still closes the database whatever a work queue's stop left running, as it always has, and opens it
+  again. A start after a stop begins a new
   thread, and no indexer is started while the servers are stopped, from a reinitialise's stop to its start, the
   start of the servers starting it from its setting - which is now saved before the indexer is started or stopped,
   where a save that came after the start of the servers had read it left the indexer stopped with the setting on,
@@ -4581,7 +4588,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Windows and `business-object-tests` on Linux. `business-object-tests` also makes the stop before the process
   ends: once it has begun, a reinitialise and a stop are refused, and it waits for a reinitialise that holds the
   lock - a reinitialise queued behind that one being refused too. Without the refusal the queued reinitialise ran,
-  and with the stop going straight on it returned while the lock was held. `business-object-tests` now writes each
+  and with the stop going straight on it returned while the lock was held. And with a work queue's thread held in a
+  task past its queue's stop, the stop answers that a thread is left, which leaves the database open, and once the
+  thread has ended it answers that none is; with the database closed whatever the queues left, as before, or the
+  queue not counted, the test fails. `business-object-tests` now writes each
   result out as it comes, so that a test after a failure that never returns leaves the failure in the output.
 
 ### Documentation

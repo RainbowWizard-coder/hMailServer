@@ -58,6 +58,7 @@
 
 #include "../Threading/WorkQueueManager.h"
 #include "../Threading/WorkQueue.h"
+#include "../Threading/Task.h"
 #include "../Tracking/NotificationServer.h"
 #include "SessionManager.h"
 #include "EnvironmentSettings.h"
@@ -494,14 +495,16 @@ namespace HM
    Application::ExitInstance()
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
-   // Do uninitialization.
+   // Do uninitialization: a reinitialise's, and a command-line verb's before its
+   // process ends. False, as it always was; no caller reads it.
    //---------------------------------------------------------------------------()
    {
-      return ExitInstance_(true);
+      ExitInstance_(StopToStartAgain, true);
+      return false;
    }
 
    bool
-   Application::ExitInstance_(bool closeDatabase)
+   Application::ExitInstance_(StopPurpose purpose, bool indexerEnded)
    {
       initialized_ = false;
 
@@ -530,6 +533,20 @@ namespace HM
       }
       backupManager.reset();
 
+      // Before the process ends, a thread the stop gave up on may be using the
+      // database: the message indexer's, still in a statement after its minute,
+      // or one of a work queue's after its ten seconds and five more - a
+      // delivery, a script, a lookup in a database or a host that has stopped
+      // answering - the queues removed above among them. Closed under it, as
+      // until 10 October 2026, the close freed the connection the statement was
+      // on (PQfinish, mysql_close) while the call was still in it, and a
+      // statement after it went through the manager reset here. The process ends
+      // straight after this, the thread with it, and its end closes the
+      // connections (ShutDown). A reinitialise closes the database whatever is
+      // left, as it always has: it opens it again at once, and the process goes
+      // on.
+      const int queuesWithThreadsLeft = WorkQueue::GetQueuesWithThreadsLeft();
+      const bool closeDatabase = purpose != StopBeforeExit || (indexerEnded && queuesWithThreadsLeft == 0);
       if (closeDatabase)
       {
          LOG_DEBUG("Application::ExitInstance - Closing database connection...");
@@ -537,22 +554,25 @@ namespace HM
       }
       else
       {
-         // A thread ShutDown gave up on - the message indexer's, in a statement -
-         // may be using the database: closed under it, as until 10 October 2026,
-         // the close freed the connection the statement was on (PQfinish,
-         // mysql_close) while the call was still in it, and a statement after it
-         // went through the manager reset here. The process ends straight after
-         // this, the thread with it, and its end closes the connections
-         // (ShutDown).
-         LOG_APPLICATION("The database connections are left open: a thread the stop gave up on may be using them, and the process ends now.");
+         String which;
+         if (!indexerEnded)
+            which = _T("the message indexer's thread, still in a statement");
+
+         if (queuesWithThreadsLeft > 0)
+         {
+            if (!which.IsEmpty())
+               which += _T(", and ");
+            which += Formatter::Format(_T("a thread of {0} work queue(s), which the stop gave up on"), queuesWithThreadsLeft);
+         }
+
+         LOG_APPLICATION(Formatter::Format(_T("The database connections are left open: {0}, may be using them, and the process ends now."), which));
       }
 
       MimeEnvironment::SetAutoFolding(false);
 
       OutOfMemoryHandler::Terminate();
- 
-      return 0;
-    
+
+      return closeDatabase;
    }
 
    void
@@ -1631,9 +1651,8 @@ namespace HM
          held.Taken();
       }
 
-      const bool ended = StopServers_(StopBeforeExit);
-      ExitInstance_(ended);
-      return ended;
+      const bool indexerEnded = StopServers_(StopBeforeExit);
+      return ExitInstance_(StopBeforeExit, indexerEnded);
    }
 
    String
@@ -1915,11 +1934,12 @@ namespace HM
       // without end while the service controller was told it was progressing. The
       // stop now goes on and answers false: ShutDown leaves the database open, the
       // thread's connection with it, and the process ends at once, the thread
-      // with it, as a work queue's thread that has not left in ten seconds does
-      // (WorkQueue::Stop). Until 10 October 2026 this comment said the process's
-      // end cut the statement, but the database was closed under the thread
-      // first, and the process ended through the destructors of statics with the
-      // thread still running.
+      // with it - as it does when a work queue's stop above has given up on one of
+      // its threads (ExitInstance_, WorkQueue::GetQueuesWithThreadsLeft). Until 10
+      // October 2026 this comment said the process's end cut the statement, but
+      // the database was closed under the thread first, and the process ended
+      // through the destructors of statics with the thread still running; and so
+      // it was under a work queue's thread that a stop had given up on.
       const bool indexerEnded = MessageIndexer::Instance()->Stop(progress, purpose == StopBeforeExit ? IndexerWaitBeforeExitSeconds : 0);
 
       ServerStatus::Instance()->SetState(ServerStatus::StateStopped);
@@ -2331,6 +2351,9 @@ namespace HM
 
          TestTheStopBeforeExitWaitsForOneUnderWay_();
          application.shutting_down_ = false;
+
+         TestAWorkQueuesThreadLeftKeepsTheDatabaseOpen_();
+         application.shutting_down_ = false;
       }
       catch (...)
       {
@@ -2601,5 +2624,84 @@ namespace HM
 
       if (!queuedAnswer->Contains(_T("the server is stopping")))
          throw std::logic_error("ServersLockTester: a reinitialise asked while the stop before the process ends waited was not refused: queued behind the one under way, it would have started the servers again in a process that was ending.");
+   }
+
+   void
+   ServersLockTester::TestAWorkQueuesThreadLeftKeepsTheDatabaseOpen_()
+   {
+      Application &application = *Application::Instance();
+      std::shared_ptr<ServersLockAnswers> answers = std::make_shared<ServersLockAnswers>();
+
+      // A task that makes no interruption point until the test lets it go - a
+      // delivery, a script or a lookup in a database or a host that has stopped
+      // answering - so that its queue's stop gives up on it.
+      class HeldTask : public Task
+      {
+      public:
+         explicit HeldTask(const std::shared_ptr<ServersLockAnswers> &answers) :
+            Task("ServersLockTester's held task"),
+            answers_(answers)
+         {
+         }
+
+      protected:
+         void DoWork() override
+         {
+            answers_->Set([this]() { answers_->began = true; });
+            answers_->WaitFor(std::chrono::seconds(120), [this]() { return answers_->let_go; });
+         }
+
+      private:
+         std::shared_ptr<ServersLockAnswers> answers_;
+      };
+
+      const int before = WorkQueue::GetQueuesWithThreadsLeft();
+      int left = before;
+      bool ended = true;
+      {
+         WorkQueue queue(1, "ServersLockTester's queue");
+
+         // The task let go of before the queue goes, however this scope ends,
+         // so that the queue's destructor joins its thread.
+         struct LetGo
+         {
+            std::shared_ptr<ServersLockAnswers> answers;
+            ~LetGo() { answers->Set([this]() { answers->let_go = true; }); }
+         } letGo{answers};
+
+         queue.Start();
+         queue.AddTask(std::make_shared<HeldTask>(answers));
+
+         if (!answers->WaitFor(ServersLockWait, [&answers]() { return answers->began; }))
+            throw std::logic_error("ServersLockTester: the work queue's thread began no task within a minute.");
+
+         // Ten seconds, and it gives up.
+         queue.Stop();
+         left = WorkQueue::GetQueuesWithThreadsLeft();
+
+         ended = application.ShutDown();
+         application.shutting_down_ = false;
+      }
+
+      const int after = WorkQueue::GetQueuesWithThreadsLeft();
+
+      if (left != before + 1)
+         throw std::logic_error("ServersLockTester: a work queue whose stop gave up on a thread still running was not counted as having one left (WorkQueue::GetQueuesWithThreadsLeft).");
+
+      if (ended)
+         throw std::logic_error("ServersLockTester: the stop before the process ends answered that no thread was left running while a work queue's stop had given up on one, and closed the database under it, as it did until 10 October 2026.");
+
+      if (after != before)
+         throw std::logic_error("ServersLockTester: a work queue whose thread had ended by the time the queue went was still counted as having one left.");
+
+      // With no thread left, the database is closed again.
+      if (after == 0)
+      {
+         const bool endedAfter = application.ShutDown();
+         application.shutting_down_ = false;
+
+         if (!endedAfter)
+            throw std::logic_error("ServersLockTester: the stop before the process ends answered that a thread was left running once the work queue's thread had ended.");
+      }
    }
 }

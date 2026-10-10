@@ -43,6 +43,7 @@ namespace HM
       worker_thread_count_(0),
       live_worker_count_(0),
       stopping_(false),
+      threads_left_(false),
       max_simultaneous_(0),
       queue_name_ (sQueueName)
    {
@@ -105,12 +106,30 @@ namespace HM
       DispatchBlockingTasks_();
    }
 
+   std::atomic<int> WorkQueue::queues_with_threads_left_(0);
+
+   int
+   WorkQueue::GetQueuesWithThreadsLeft()
+   {
+      return queues_with_threads_left_.load();
+   }
+
+   void
+   WorkQueue::SetThreadsLeft_(bool left)
+   {
+      if (threads_left_.exchange(left) != left)
+         queues_with_threads_left_ += left ? 1 : -1;
+   }
+
    WorkQueue::~WorkQueue(void)
    {
       try
       {
          if (workerThreads_.empty())
+         {
+            SetThreadsLeft_(false);
             return;
+         }
 
          // Stop() gave up on these, and they are still inside io_context_.run() -
          // on an io_context that is a member of this object and is about to be
@@ -122,7 +141,15 @@ namespace HM
          io_context_.stop();
 
          if (JoinWorkers_(5000))
+         {
+            SetThreadsLeft_(false);
             return;
+         }
+
+         // Still running, on what is about to be freed: counted for the rest of
+         // the process (GetQueuesWithThreadsLeft), whether or not a Stop gave up
+         // on them first.
+         SetThreadsLeft_(true);
 
          // The cast names FormatArgument's unsigned __int64 constructor, which is the
          // one a size_t binds to exactly on Windows. On a 64-bit POSIX build size_t is
@@ -898,9 +925,15 @@ namespace HM
 
       if (JoinWorkers_(10000))
       {
+         // Those an earlier Stop gave up on among them.
+         SetThreadsLeft_(false);
+
          LOG_DEBUG(Formatter::Format("All threads are joined in queue {0}.", queue_name_));
          return;
       }
+
+      // Until a later Stop or the destructor joins them (GetQueuesWithThreadsLeft).
+      SetThreadsLeft_(true);
 
       // Application level rather than an error record: a worker still inside a
       // wedged external dependency - a scanner, a script, a database that has

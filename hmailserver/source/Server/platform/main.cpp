@@ -2371,12 +2371,12 @@ int main(int argc, char *argv[])
 
    HM::Logger::Instance()->LogApplication(_T("Stopped."));
 
-   // A thread the stop gave up on - the indexer's, in a statement, or the
-   // reinitialise waiting for it - would run on through the destructors of
-   // statics that returning from main runs, with the database it may be using
-   // left open for it: the process ends here instead, which ends the thread and
-   // closes the connections. What the log and standard output hold is flushed
-   // first.
+   // A thread the stop gave up on - the indexer's, in a statement, a work
+   // queue's, or the reinitialise waiting for the indexer - would run on through
+   // the destructors of statics that returning from main runs, with the database
+   // it may be using left open for it: the process ends here instead, which ends
+   // the thread and closes the connections. What the log and standard output
+   // hold is flushed first.
    if (!ended)
    {
       (void) std::fflush(nullptr);

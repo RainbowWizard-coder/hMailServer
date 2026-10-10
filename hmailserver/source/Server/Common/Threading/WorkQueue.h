@@ -60,6 +60,16 @@ namespace HM
 
       void Stop();
 
+      // How many queues have a thread that a stop gave up on, as far as is
+      // known still running: counted when Stop gives up after its ten seconds,
+      // or the destructor after its five more, and no longer once a later Stop
+      // or the destructor has joined it. Read by the stop before the process
+      // ends (Application::ShutDown): such a thread may be in a statement - a
+      // delivery, a script, a lookup in a database or a host that has stopped
+      // answering - and the database closed under it frees the connection the
+      // statement is on, as it did until 10 October 2026.
+      static int GetQueuesWithThreadsLeft();
+
       const String &GetName() const;
 
       // Whether WorkQueueHealthTask should report this queue's threads as stalled
@@ -178,6 +188,15 @@ namespace HM
       // handed to this queue can never run, so AddTask says so rather than
       // accepting it and dropping it in silence.
       std::atomic<bool> stopping_;
+
+      // This queue is counted in GetQueuesWithThreadsLeft.
+      std::atomic<bool> threads_left_;
+
+      // Counted once per queue (threads_left_), and only ever changed with it.
+      static std::atomic<int> queues_with_threads_left_;
+
+      // Counts this queue in GetQueuesWithThreadsLeft, or no longer.
+      void SetThreadsLeft_(bool left);
 
       unsigned int max_simultaneous_;
 

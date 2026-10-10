@@ -2122,11 +2122,12 @@ TerminateServer()
       ReportServiceStatus(SERVICE_STOPPED, 0);
    }
 
-   // A thread the stop gave up on - the indexer's, in a statement, or a
-   // reinitialise waiting for it - would run on through the destructors of
-   // statics as the process ends, with the database it may be using left open
-   // for it: the process ends here instead, once the service controller has
-   // been told, which ends the thread and closes the connections.
+   // A thread the stop gave up on - the indexer's, in a statement, a work
+   // queue's, or a reinitialise waiting for the indexer - would run on through
+   // the destructors of statics as the process ends, with the database it may
+   // be using left open for it: the process ends here instead, once the
+   // service controller has been told, which ends the thread and closes the
+   // connections.
    if (!ended)
    {
       fflush(nullptr);

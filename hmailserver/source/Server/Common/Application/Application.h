@@ -126,12 +126,14 @@ namespace HM
       // reinitialise then stops short, leaving the rest to this.
       //
       // Answers false when a thread was left running - the indexer's, still in
-      // a statement, or the stop or start this waited for - in which case the
-      // database is left open, since that thread may be using it: the caller
-      // then ends the process at once, without the destructors of statics,
-      // which the thread may be using too (TerminateProcess, _Exit). Until 10
-      // October 2026 the database was closed under such a thread, and the
-      // process ended through the destructors.
+      // a statement; one of a work queue's that the queue's stop gave up on
+      // after its ten seconds and five more (WorkQueue::Stop), in this stop or
+      // an earlier one; or the stop or start this waited for - in which case
+      // the database is left open, since that thread may be using it: the
+      // caller then ends the process at once, without the destructors of
+      // statics, which the thread may be using too (TerminateProcess, _Exit).
+      // Until 10 October 2026 the database was closed under such a thread, and
+      // the process ended through the destructors.
       bool ShutDown();
 
       void SubmitPendingEmail();
@@ -266,9 +268,12 @@ namespace HM
          boost::unique_lock<boost::timed_mutex> &lock_;
       };
 
-      // ExitInstance, the database closed only when closeDatabase is set: not
-      // when a thread ShutDown gave up on may be using it.
-      bool ExitInstance_(bool closeDatabase);
+      // ExitInstance. Before the process ends (ShutDown) the database is closed
+      // only when no thread the stop gave up on may be using it - the message
+      // indexer's (indexerEnded false), or a work queue's
+      // (WorkQueue::GetQueuesWithThreadsLeft), the queues this removes among
+      // them - and this answers whether it was. A reinitialise's closes it.
+      bool ExitInstance_(StopPurpose purpose, bool indexerEnded);
 
       // The stop's progress callback, copied under its lock: TerminateServer
       // sets it on the service controller's thread while a stop on another -
@@ -422,9 +427,11 @@ namespace HM
    // the message indexer's own thread while another holds the mutex - by an
    // OnError script the indexer runs - is refused at once, where the holder may
    // be waiting for that thread to end; once the stop before the process ends
-   // (ShutDown) has begun every one is refused; and that stop waits for one
-   // under way. Until 10 October 2026 no test drove the mutex: the indexer's
-   // test (MessageIndexerTester) took one of its own.
+   // (ShutDown) has begun every one is refused; that stop waits for one under
+   // way; and it leaves the database open, and answers so, while a thread a
+   // work queue's stop gave up on is still running. Until 10 October 2026 no
+   // test drove the mutex: the indexer's test (MessageIndexerTester) took one
+   // of its own.
    //
    // Test lets go of whatever it takes at once and starts and stops nothing,
    // the indexer it asks on being a stand-in with no database, so that it runs
@@ -443,5 +450,6 @@ namespace HM
       void TestAskedOnTheIndexersThreadWhileAStopWaits_();
       void TestRefusedOnceTheStopBeforeExitHasBegun_();
       void TestTheStopBeforeExitWaitsForOneUnderWay_();
+      void TestAWorkQueuesThreadLeftKeepsTheDatabaseOpen_();
    };
 }
