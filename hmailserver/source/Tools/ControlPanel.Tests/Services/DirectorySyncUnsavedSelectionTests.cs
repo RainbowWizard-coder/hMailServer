@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using hMailServer.ControlPanel.Services;
 using Xunit;
 
 namespace hMailServer.ControlPanel.Tests.Services
@@ -57,6 +58,15 @@ namespace hMailServer.ControlPanel.Tests.Services
             Assert.True(follow.Contains(step, StringComparison.Ordinal), "FollowSelection_ no longer does " + step);
       }
 
+      /// <summary>
+      /// And previews it once the server has read it (found re-checking 729eeb5b1): the
+      /// server reads the [LDAP] section again only two seconds after it last looked,
+      /// which every directory sign-in does, so a preview started milliseconds after the
+      /// save ran on the selection before it, while the page recorded the preview as one
+      /// of the options it reads from the file and enabled Apply. A preview waits, the
+      /// card busy, until two and a half seconds after the last save of either directory
+      /// page, and reads what it is of after the wait.
+      /// </summary>
       [Fact]
       public void SaveAndPreview_PreviewsOnlyWhatItSaved()
       {
@@ -64,6 +74,41 @@ namespace hMailServer.ControlPanel.Tests.Services
          int save = both.IndexOf("if (!Save_())", StringComparison.Ordinal);
          int run = both.IndexOf("await RunAsync_(false);", StringComparison.Ordinal);
          Assert.True(save > 0 && run > save, "Save and preview no longer saves first and previews only after a save that worked.");
+
+         string written = Member("private bool Save_()");
+         int flush = written.IndexOf("ProfileApi.Flush(store_.IniPath);", StringComparison.Ordinal);
+         int noted = written.IndexOf("LdapReread.Saved();", StringComparison.Ordinal);
+         int refused = written.IndexOf("catch (Exception ex)", StringComparison.Ordinal);
+         Assert.True(flush > 0 && noted > flush && refused > noted, "Directory synchronisation's save no longer notes a save that worked, after the flush.");
+         Assert.Contains("LdapReread.Saved();", File.ReadAllText(ControlPanelFile_(Path.Join("Views", "LdapSettingsView.cs"))), StringComparison.Ordinal);
+
+         string runs = Member("private async Task RunAsync_(bool apply)");
+         int busy = runs.IndexOf("running_ = true;", StringComparison.Ordinal);
+         int waits = runs.IndexOf("while ((wait = LdapReread.Wait()) > TimeSpan.Zero)", StringComparison.Ordinal);
+         int delay = runs.IndexOf("await Task.Delay(wait);", StringComparison.Ordinal);
+         int reads = runs.IndexOf("string options = CurrentOptions_();", StringComparison.Ordinal);
+         int calls = runs.IndexOf("await Task.Run(() => Invoke_(domain, apply, disableMissing));", StringComparison.Ordinal);
+         Assert.True(busy >= 0 && waits > busy && delay > waits && reads > delay && calls > reads,
+            "A preview no longer waits, the card busy, for the server to read the last save before it reads its options and runs.");
+         Assert.Contains("if (!apply)", runs[busy..waits], StringComparison.Ordinal);
+      }
+
+      [Theory]
+      [InlineData(null, 10_000L, 0)]        // nothing saved
+      [InlineData(10_000L, 10_000L, 2500)]  // saved this instant
+      [InlineData(10_000L, 10_400L, 2100)]
+      [InlineData(10_000L, 12_499L, 1)]
+      [InlineData(10_000L, 12_500L, 0)]     // the server has read it
+      [InlineData(10_000L, 60_000L, 0)]
+      [InlineData(10_000L, 9_000L, 2500)]   // never more than the window
+      public void APreview_WaitsForTheServerToReadTheLastSave(long? savedAt, long now, int milliseconds)
+         => Assert.Equal(TimeSpan.FromMilliseconds(milliseconds), LdapReread.Wait(savedAt, now));
+
+      [Fact]
+      public void TheWait_IsTheServersRecheckWindow_AndAMargin()
+      {
+         // LdapSettings.cpp: static const time_t kSettingsRecheckSeconds = 2;
+         Assert.Equal(TimeSpan.FromMilliseconds(2500), LdapReread.AfterSave);
       }
 
       [Fact]

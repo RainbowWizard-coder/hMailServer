@@ -911,6 +911,9 @@ namespace hMailServer.ControlPanel.Views
 
             IniWrite_("TimeoutSeconds", (hasTimeout ? timeoutSeconds : 10).ToString());
             IniWrite_("FallbackToWindowsLogon", fallback_.IsChecked is true ? "1" : "0");
+
+            // A directory synchronisation preview waits until the server has read it (F121).
+            LdapReread.Saved();
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {

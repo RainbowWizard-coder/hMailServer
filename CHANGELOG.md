@@ -1973,7 +1973,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   and not saved showed the old filter, and Apply then applied it. While the search filter, the three attributes or the
   maximum entries differ from what was read or saved, Preview and Apply are disabled and the run card says so at its
   top, with Save and preview, which saves the selection and then previews it - and previews nothing when the save is
-  refused. The schedule, which a run does not read, does not count.
+  refused. A preview within two and a half seconds of a save on either directory page - Save and preview's own, or
+  Preview pressed just after Save - waits, the card saying "Reading the directory...", until the server has read what
+  was saved, which it does two seconds after it last looked: it previewed the selection before the save, and Apply was
+  then enabled for the new one. The schedule, which a run does not read, does not count.
 
 - **Fixed: the hMailServer.ini settings pages wrote whatever was typed into a number, the MTA-STS policy mode was free
   text and the DNS override took anything.** The ports, timeouts, cache lifetimes, sizes and work factors on Transport

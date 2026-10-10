@@ -135,12 +135,14 @@
        directory authentication is saved switched on with what it needs missing (F130);
        and the range an hMailServer.ini page holds a number to, and the address it
        holds the DNS override to (F220); and the time of day typed beside a date
-       picker, the IP range's expiry (F197). -->
+       picker, the IP range's expiry (F197); and how long a directory
+       synchronisation preview waits for the server to read a save (F121). -->
   <ItemGroup>
     <Compile Include="..\ControlPanel\Services\RuleCriterionInput.cs" />
     <Compile Include="..\ControlPanel\Services\LdapIncompleteSave.cs" />
     <Compile Include="..\ControlPanel\Services\SettingNumberRange.cs" />
     <Compile Include="..\ControlPanel\Services\TimeOfDayText.cs" />
+    <Compile Include="..\ControlPanel\Services\LdapReread.cs" />
   </ItemGroup>
 
   <!-- The operator documentation, embedded straight from the repository as

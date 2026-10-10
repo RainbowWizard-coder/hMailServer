@@ -621,6 +621,9 @@ namespace hMailServer.ControlPanel.Views
             // Flush the cache the API keeps, so the value is on disk before the server
             // next compares the file's write time.
             ProfileApi.Flush(store_.IniPath);
+
+            // Which the server does within two seconds: a preview waits for it.
+            LdapReread.Saved();
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -916,10 +919,6 @@ namespace hMailServer.ControlPanel.Views
 
       private async Task RunAsync_(bool apply)
       {
-         string domain = domainChoice_.SelectedIndex <= 0 ? "" : (string)domainChoice_.SelectedItem;
-         bool disableMissing = disableMissing_.IsChecked is true;
-         string options = CurrentOptions_();
-
          running_ = true;
          previewButton_.IsEnabled = false;
          applyButton_.IsEnabled = false;
@@ -930,6 +929,26 @@ namespace hMailServer.ControlPanel.Views
 
          try
          {
+            // A preview straight after a save - Save and preview, or Preview pressed a
+            // moment after Save - waits, the card busy, until the server has read what
+            // was saved: it reads the [LDAP] section again only two seconds after it
+            // last looked, which every directory sign-in does, so a preview at once ran
+            // on the selection before the save while the page recorded it as one of the
+            // saved options and enabled Apply (review finding F121, Services/LdapReread).
+            // Again if a save is made while it waits. An apply needs no wait: it follows
+            // a preview of the options in force, and any save since refuses it.
+            if (!apply)
+            {
+               TimeSpan wait;
+               while ((wait = LdapReread.Wait()) > TimeSpan.Zero)
+                  await Task.Delay(wait);
+            }
+
+            // What the run is of, read as it starts, after the wait.
+            string domain = domainChoice_.SelectedIndex <= 0 ? "" : (string)domainChoice_.SelectedItem;
+            bool disableMissing = disableMissing_.IsChecked is true;
+            string options = CurrentOptions_();
+
             // Off the UI thread: a directory read is a network round trip per page, and
             // a large directory takes long enough that a frozen window would look like
             // a hang.
