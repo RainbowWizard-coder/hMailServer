@@ -14,6 +14,7 @@ using Typography = hMailServer.ControlPanel.Services.Typography;
 using Path = System.Windows.Shapes.Path;
 using Card = hMailServer.ControlPanel.Views.Scaffold.Card;
 using EmptyState = hMailServer.ControlPanel.Views.Scaffold.EmptyState;
+using FormColumnPanel = hMailServer.ControlPanel.Views.Scaffold.FormColumnPanel;
 using FieldRow = hMailServer.ControlPanel.Views.Scaffold.FieldRow;
 using InlineNotice = hMailServer.ControlPanel.Views.Scaffold.InlineNotice;
 using PageHeader = hMailServer.ControlPanel.Views.Scaffold.PageHeader;
@@ -99,7 +100,9 @@ namespace hMailServer.ControlPanel.Views
             Actions = actions
          });
 
-         var cards = new StackPanel { Margin = new Thickness(0, 0, 12, 0), MaxWidth = 860, HorizontalAlignment = HorizontalAlignment.Left };
+         // The form's column, as on the settings pages (FormColumnPanel; review
+         // finding F295: the page's cards were 860 pixels, a hundred wider than theirs).
+         var cards = new FormColumnPanel { Margin = new Thickness(0, 0, 12, 0), MaxWidth = DesignTokens.FormWidth, HorizontalAlignment = HorizontalAlignment.Left };
 
          cards.Children.Add(BuildSummaryCard_());
          newKeyCard_ = BuildNewKeyCard_();
@@ -707,7 +710,7 @@ namespace hMailServer.ControlPanel.Views
 
          dlg.Frame(L("Create a REST API key"), panel, ok, cancel,
             L("The key is shown once, when it is created, and never again. It is live immediately - the server re-reads its key store on every request."),
-            width: 560);
+            width: DesignTokens.Dialog.WideWidth);
 
          // Room for a field's message: a press refuses one field, and the longest
          // message - the expiry's, the source restriction's - wraps to two lines.

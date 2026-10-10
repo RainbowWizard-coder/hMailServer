@@ -26,7 +26,9 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>
       /// The spacing scale, in device-independent pixels. Every margin, padding
       /// and gap in the scaffold is one of these six; a page that needs a seventh
-      /// is a page whose layout has gone wrong.
+      /// is a page whose layout has gone wrong. XAML takes it through the named
+      /// Thickness tokens of Tokens.xaml (AppPagePadding, AppCardGap...), and
+      /// build/check-spacing.py fails a margin or a padding written off it.
       /// </summary>
       public static class Space
       {
@@ -97,10 +99,37 @@ namespace hMailServer.ControlPanel.Services
       public static class Dialog
       {
          public const double MinWidth = 360;
+
+         /// <summary>A one-field prompt and a code prompt.</summary>
+         public const double NarrowWidth = 420;
+
+         /// <summary>A message box, a form of a few fields: most dialogs.</summary>
          public const double DefaultWidth = 520;
+
+         /// <summary>A dialog with a table or a wide row of controls - the keyboard shortcuts, the quarantine's lists.</summary>
+         public const double WideWidth = 640;
+
+         /// <summary>A dialog whose body is a grid of columns or a message's source.</summary>
+         public const double WidestWidth = 760;
+
          public const double MaxWidth = 900;
          public const double MaxHeightFraction = 0.9;
+
+         /// <summary>
+         /// The widths a dialog takes, narrowest first (review finding F295: each dialog
+         /// named a number of its own - 400, 460, 480, 560, 600, 620, 680). The domain and
+         /// account dialogs are sized to their tab strips (DialogLayout), and the IP range
+         /// and route dialogs to theirs (DialogFields.WidthForTabs).
+         /// </summary>
+         public static IReadOnlyList<double> Widths { get; } = new[] { NarrowWidth, DefaultWidth, WideWidth, WidestWidth };
       }
+
+      /// <summary>
+      /// The compact inset of a card that holds a list or a grid (AppListCardPadding):
+      /// the rows carry their own ten pixels, so the card's 24 would put them twice as
+      /// far in. Such a card's padding was 4, 6, 8, 10 or 12, page by page (F295).
+      /// </summary>
+      public const double ListCardPadding = Space.Sm;
 
       /// <summary>
       /// The widest a form is laid out, whatever the window does. A settings
@@ -110,6 +139,16 @@ namespace hMailServer.ControlPanel.Services
       /// the same value before it was a token.
       /// </summary>
       public const double FormWidth = 760;
+
+      /// <summary>
+      /// The widest an overview is laid out - a page of tiles, tables and findings
+      /// that edits nothing: the spam, virus and transport encryption overviews, DNS
+      /// records, External setup and Welcome. A page's column is one of the two
+      /// widths, this or the form width (review finding F295: the columns were 680,
+      /// 760, 860, 880, 980 and 1000 pixels, page by page, so that the cards' right
+      /// edge moved from page to page).
+      /// </summary>
+      public const double OverviewWidth = 1000;
 
       /// <summary>
       /// How far a check box's caption starts in from the box's left edge: the box,

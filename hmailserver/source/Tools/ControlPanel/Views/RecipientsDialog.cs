@@ -149,7 +149,7 @@ namespace hMailServer.ControlPanel.Views
          var closeButton = new Wpf.Ui.Controls.Button { Content = L("Close"), Appearance = Wpf.Ui.Controls.ControlAppearance.Primary, MinWidth = 88 };
          closeButton.Click += (s, e) => Close();
 
-         UseFrame(F("Members of {0}", listAddress), body, null, closeButton, width: 520);
+         UseFrame(F("Members of {0}", listAddress), body, null, closeButton, width: DesignTokens.Dialog.DefaultWidth);
          Loaded += (s, e) => Reload();
       }
 

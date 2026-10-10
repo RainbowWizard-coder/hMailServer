@@ -556,7 +556,7 @@ namespace hMailServer.ControlPanel.Views
          var host = new Grid();
          host.Children.Add(list_);
          host.Children.Add(empty_);
-         var card = new Card { Padding = new Thickness(8), Content = host };
+         var card = new Card { Padding = new Thickness(DesignTokens.ListCardPadding), Content = host };
          parts.Children.Add(FillPanel.Filling(card, FillPanel.ListCardFloor));
 
          // Whether the selected event can be followed - a refusal at RCPT has no

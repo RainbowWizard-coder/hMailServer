@@ -151,7 +151,7 @@ namespace hMailServer.ControlPanel.Views
          // Headed by the window's title, the kind and then the name, where the
          // heading was the bare name and the kind only in a title the frame does
          // not show (review finding F293).
-         UseFrame(Title, body, null, close, width: 520);
+         UseFrame(Title, body, null, close, width: DesignTokens.Dialog.DefaultWidth);
          list_.MouseDoubleClick += (s, e) => { if (list_.SelectedIndex >= 0) AddOrEdit(ids_[list_.SelectedIndex]); };
          Loaded += (s, e) => Reload();
       }
@@ -552,7 +552,7 @@ namespace hMailServer.ControlPanel.Views
          var cancel = new Wpf.Ui.Controls.Button { Content = L("Cancel"), MinWidth = 88 };
          cancel.Click += (s, e) => Close();
 
-         UseFrame(L("Access-control entry"), body, ok, cancel, width: 520);
+         UseFrame(L("Access-control entry"), body, ok, cancel, width: DesignTokens.Dialog.DefaultWidth);
 
          // Room for the account or group box's message, while the box is shown:
          // an entry for Anyone has nothing to refuse, and the dialog shrinks with

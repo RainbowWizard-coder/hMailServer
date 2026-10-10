@@ -152,7 +152,7 @@ namespace hMailServer.ControlPanel.Views
          var cancel = new Button { Content = L("Cancel"), MinWidth = 88 };
          cancel.Click += (_, _) => Close();
 
-         UseFrame(Title, panel, ok, cancel, width: 460);
+         UseFrame(Title, panel, ok, cancel, width: DesignTokens.Dialog.DefaultWidth);
 
          // Room under the fields for the messages a press can bring - one for each
          // required field, or the one a refusal of the server says - so that Add
@@ -204,7 +204,7 @@ namespace hMailServer.ControlPanel.Views
          {
             case CollectionEditorView.FieldKind.Bool:
                {
-                  // The caption wraps: the dialog is 460 wide, and a caption that says
+                  // The caption wraps: the dialog is 520 wide, and a caption that says
                   // what the option does ("Deliver each message to the accounts its
                   // headers name (a mailbox shared by several people)") was cut off at
                   // its edge. AccessText keeps the access key a string caption had.

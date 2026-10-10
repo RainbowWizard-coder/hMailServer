@@ -426,7 +426,7 @@ namespace hMailServer.ControlPanel.Views
          // its header row alone. Embedded in a dialog's tab, whose height the
          // dialog fixes, the FillPanel is measured at the tab's height and
          // shares it out the same way.
-         var card = new Card { Padding = new Thickness(6) };
+         var card = new Card { Padding = new Thickness(DesignTokens.ListCardPadding) };
          FillPanel parts;
          if (embedded_)
          {

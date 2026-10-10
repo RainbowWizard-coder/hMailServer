@@ -82,7 +82,7 @@ namespace hMailServer.ControlPanel.Views
          // not show (review finding F293).
          UseFrame(Title, body, move_, cancel,
             L("The mailbox, its messages and everything keyed on the account go with it: its rules, filters, folders and their permissions, application passwords, second factor, contacts, calendars, preferences, password history, sender lists, group memberships and its role."),
-            width: 560);
+            width: DesignTokens.Dialog.WideWidth);
 
          // Room for the new address's message, so that Move and Cancel stay where they are.
          KeepRoomForFieldErrors(1, newAddressRow_);

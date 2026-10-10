@@ -3638,7 +3638,9 @@ namespace hMailServer.ControlPanel.Views
          if (tabPanels_.TryGetValue(card.Tab, out StackPanel panel))
             return panel;
 
-         panel = new StackPanel
+         // As wide as the form width allows whatever its cards hold, so that the cards of
+         // every tab end at one edge (FormColumnPanel; review finding F295).
+         panel = new FormColumnPanel
          {
             MaxWidth = DesignTokens.FormWidth,
             HorizontalAlignment = HorizontalAlignment.Left,

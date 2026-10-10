@@ -334,7 +334,7 @@ namespace hMailServer.ControlPanel.Views
 
             dialog.Frame(L("Add a name to the never-ban list"), body, ok, cancel,
                L("An address is spared only when one of its reverse names is covered and also resolves back to the address, since anybody who holds an address can write its reverse name. It applies to the next ban."),
-               width: 520);
+               width: DesignTokens.Dialog.DefaultWidth);
             // A refusal of the name, typed or the server's, is said under its box
             // without moving Add and Cancel.
             dialog.KeepRoomForFieldErrors();

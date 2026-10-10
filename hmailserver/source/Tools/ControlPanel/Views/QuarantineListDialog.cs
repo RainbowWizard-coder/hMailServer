@@ -151,7 +151,7 @@ namespace hMailServer.ControlPanel.Views
 
          UseFrame(heading, body, primary_, cancel,
             description: L("Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is."),
-            width: 620);
+            width: DesignTokens.Dialog.WideWidth);
 
          // A block deletes: Enter declines, as it does for every delete on the
          // Quarantine page.

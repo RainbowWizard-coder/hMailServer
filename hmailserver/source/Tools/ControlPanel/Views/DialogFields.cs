@@ -459,7 +459,7 @@ namespace hMailServer.ControlPanel.Views
          var cancel = new Wpf.Ui.Controls.Button { Content = L("Cancel"), MinWidth = 88 };
          cancel.Click += (s, e) => dialog.Close();
 
-         dialog.Frame(title, Field(caption, box), ok, cancel, width: 420);
+         dialog.Frame(title, Field(caption, box), ok, cancel, width: DesignTokens.Dialog.NarrowWidth);
          box.Loaded += (s, e) => box.SelectAll();
          return dialog.ShowDialog() == true ? result : null;
       }

@@ -100,7 +100,7 @@ namespace hMailServer.ControlPanel.Views
 
       public WelcomeView()
       {
-         var panel = new StackPanel { MaxWidth = 980, HorizontalAlignment = HorizontalAlignment.Left };
+         var panel = new StackPanel { MaxWidth = DesignTokens.OverviewWidth, HorizontalAlignment = HorizontalAlignment.Left };
 
          // "Show me around" in the header's actions as well as in the notice
          // below, because the notice goes away for good once the walk is done

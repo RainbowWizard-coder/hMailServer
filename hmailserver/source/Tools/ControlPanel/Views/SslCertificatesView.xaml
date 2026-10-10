@@ -64,7 +64,7 @@
              the selected row, the other certificates and the column headers all
              vanished while the arrow keys still changed the selection unseen,
              and the only way back to the list was a taller window. -->
-        <!-- The bar is drawn over the content, so the right padding (AppSpaceMd)
+        <!-- The bar is drawn over the content, so the right padding (DesignTokens.Space.Md)
              keeps the cards, the notices and the toolbar's last button clear of it. -->
         <ScrollViewer x:Name="PageScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled" Focusable="False" Padding="0,0,12,0">
@@ -101,7 +101,7 @@
              grid, its sentence and the action that leads to ACME, raises the
              card's floor where it needs more than the rows (review finding
              F207; at a fixed 187 the action was cut off in a short window). -->
-        <scaffold:Card scaffold:FillPanel.Fill="True" Padding="8">
+        <scaffold:Card scaffold:FillPanel.Fill="True" Padding="{StaticResource AppListCardPadding}">
             <Grid>
                 <!-- Row virtualization is off: the status cells are built in code at
                      Loaded time (the badge needs theme-following brushes a XAML

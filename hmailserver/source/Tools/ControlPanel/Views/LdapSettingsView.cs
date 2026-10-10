@@ -20,6 +20,7 @@ using Typography = hMailServer.ControlPanel.Services.Typography;
 using Path = System.Windows.Shapes.Path;
 using Card = hMailServer.ControlPanel.Views.Scaffold.Card;
 using FieldRow = hMailServer.ControlPanel.Views.Scaffold.FieldRow;
+using FormColumnPanel = hMailServer.ControlPanel.Views.Scaffold.FormColumnPanel;
 using InlineNotice = hMailServer.ControlPanel.Views.Scaffold.InlineNotice;
 using PageHeader = hMailServer.ControlPanel.Views.Scaffold.PageHeader;
 using StatusPill = hMailServer.ControlPanel.Views.Scaffold.StatusPill;
@@ -174,7 +175,8 @@ namespace hMailServer.ControlPanel.Views
             Actions = BuildActions_()
          });
 
-         var cards = new StackPanel { MaxWidth = 760, HorizontalAlignment = HorizontalAlignment.Left };
+         // The form's column (FormColumnPanel), at the form width every settings page has.
+         var cards = new FormColumnPanel { MaxWidth = DesignTokens.FormWidth, HorizontalAlignment = HorizontalAlignment.Left };
          System.Windows.Automation.AutomationProperties.SetAutomationId(statusNotice_, "ldap-status");
          cards.Children.Add(statusNotice_);
          pathText_.TextWrapping = TextWrapping.Wrap;

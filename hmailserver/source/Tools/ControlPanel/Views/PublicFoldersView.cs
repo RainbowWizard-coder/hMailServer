@@ -116,7 +116,7 @@ namespace hMailServer.ControlPanel.Views
          var host = new Grid();
          host.Children.Add(list_);
          host.Children.Add(empty_);
-         var card = new Card { Padding = new Thickness(8), Content = host };
+         var card = new Card { Padding = new Thickness(DesignTokens.ListCardPadding), Content = host };
          Grid.SetRow(card, 3);
          root.Children.Add(card);
 

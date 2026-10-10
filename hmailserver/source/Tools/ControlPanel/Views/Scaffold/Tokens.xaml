@@ -15,17 +15,21 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
 
-    <!-- Spacing scale: 4, 8, 12, 16, 24, 32. -->
-    <sys:Double x:Key="AppSpaceXs">4</sys:Double>
-    <sys:Double x:Key="AppSpaceSm">8</sys:Double>
-    <sys:Double x:Key="AppSpaceMd">12</sys:Double>
-    <sys:Double x:Key="AppSpaceLg">16</sys:Double>
-    <sys:Double x:Key="AppSpaceXl">24</sys:Double>
-    <sys:Double x:Key="AppSpaceXxl">32</sys:Double>
+    <!-- The spacing scale is 4, 8, 12, 16, 24 and 32 (DesignTokens.Space), and XAML
+         takes it through the margins and paddings below, a Margin and a Padding being
+         Thicknesses: the six steps were declared here as numbers too, which a Margin
+         or a Padding cannot take, and nothing took them (review finding F295).
+         build/check-spacing.py fails a margin or a padding written off the scale. -->
 
-    <!-- The scale applied: the margins and paddings a page uses by name. -->
-    <Thickness x:Key="AppPagePadding">24,20,24,24</Thickness>
-    <Thickness x:Key="AppCardPadding">20,16</Thickness>
+    <!-- The scale applied: the margins and paddings a page uses by name. A page's
+         padding and a card's are the Control Deck's, 24 and 16 by 24, where they were
+         on a seventh step, 20 (F295). -->
+    <Thickness x:Key="AppPagePadding">24</Thickness>
+    <Thickness x:Key="AppCardPadding">24,16</Thickness>
+    <!-- The compact inset of a card that holds a list or a grid, whose rows have their own. -->
+    <Thickness x:Key="AppListCardPadding">8</Thickness>
+    <!-- A dialog's inset round its heading, body and footer (DialogFrame). -->
+    <Thickness x:Key="AppDialogPadding">24</Thickness>
     <Thickness x:Key="AppHeaderGap">0,0,0,16</Thickness>
     <Thickness x:Key="AppCardGap">0,0,0,12</Thickness>
     <Thickness x:Key="AppFieldGap">0,0,0,12</Thickness>

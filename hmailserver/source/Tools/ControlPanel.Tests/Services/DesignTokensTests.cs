@@ -621,12 +621,15 @@ namespace hMailServer.ControlPanel.Tests.Services
             return match.Groups[1].Value;
          }
 
-         Assert.Equal(DesignTokens.Space.Xs.ToString(), Value("AppSpaceXs"));
-         Assert.Equal(DesignTokens.Space.Sm.ToString(), Value("AppSpaceSm"));
-         Assert.Equal(DesignTokens.Space.Md.ToString(), Value("AppSpaceMd"));
-         Assert.Equal(DesignTokens.Space.Lg.ToString(), Value("AppSpaceLg"));
-         Assert.Equal(DesignTokens.Space.Xl.ToString(), Value("AppSpaceXl"));
-         Assert.Equal(DesignTokens.Space.Xxl.ToString(), Value("AppSpaceXxl"));
+         // The spacing scale is C# alone (DesignTokens.Space): XAML takes it through the
+         // Thickness tokens, which SpacingScaleTests holds to it.
+         Assert.Equal(DesignTokens.ListCardPadding.ToString(), Value("AppListCardPadding"));
+         Assert.Equal(DesignTokens.CheckBoxCaptionInset + ",0,0,0", Value("AppCheckBoxIndent"));
+         Assert.Equal(DesignTokens.IconSize.Small.ToString(), Value("AppIconSizeSm"));
+         Assert.Equal(DesignTokens.IconSize.Medium.ToString(), Value("AppIconSizeMd"));
+         Assert.Equal(DesignTokens.IconSize.Large.ToString(), Value("AppIconSizeLg"));
+         Assert.Equal(DesignTokens.IconSize.Hero.ToString(), Value("AppIconSizeXl"));
+         Assert.Equal(DesignTokens.FormWidth.ToString(), Value("AppFormWidth"));
          Assert.Equal(DesignTokens.Radius.Control.ToString(), Value("AppControlCornerRadius"));
          Assert.Equal(DesignTokens.Radius.Card.ToString(), Value("AppCardCornerRadius"));
          Assert.Equal(DesignTokens.Radius.Pill.ToString(), Value("AppPillCornerRadius"));

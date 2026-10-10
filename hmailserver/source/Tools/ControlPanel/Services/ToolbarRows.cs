@@ -25,7 +25,7 @@ namespace hMailServer.ControlPanel.Services
    /// </summary>
    public static class ToolbarRows
    {
-      /// <summary>The gap the toolbar keeps between its parts (AppSpaceMd), and between its two rows.</summary>
+      /// <summary>The gap the toolbar keeps between its parts (DesignTokens.Space.Md), and between its two rows.</summary>
       public const double Gap = DesignTokens.Space.Md;
 
       /// <summary>

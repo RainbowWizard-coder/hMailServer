@@ -397,7 +397,7 @@ namespace hMailServer.ControlPanel.Views
             }
 
             // Every message box is the same width; the height follows the text.
-            DialogFrame frame = UseFrame(null, body, primary, cancel, null, 480);
+            DialogFrame frame = UseFrame(null, body, primary, cancel, null, DesignTokens.Dialog.DefaultWidth);
             AutomationProperties.SetName(frame, caption);
 
             // The frame gave Enter to the primary and Escape to Cancel; the

@@ -268,7 +268,7 @@ namespace hMailServer.ControlPanel.Views
          create.Children.Add(createButton);
          root.Children.Add(create);
 
-         var card = new Card { Padding = new Thickness(8) };
+         var card = new Card { Padding = new Thickness(DesignTokens.ListCardPadding) };
          BuildColumns();
 
          card.Content = list_;

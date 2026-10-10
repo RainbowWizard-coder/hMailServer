@@ -68,7 +68,7 @@ namespace hMailServer.ControlPanel.Views
 
       public TlsOverviewView()
       {
-         var page = new StackPanel { MaxWidth = 1000, HorizontalAlignment = HorizontalAlignment.Left };
+         var page = new StackPanel { MaxWidth = DesignTokens.OverviewWidth, HorizontalAlignment = HorizontalAlignment.Left };
 
          var refresh = new Wpf.Ui.Controls.Button { Content = L("_Refresh") };
          ControlHelp.Explain(refresh, L("Re-read the transport security configuration from the server"));

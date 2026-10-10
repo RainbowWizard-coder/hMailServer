@@ -3524,6 +3524,23 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   and icons take four sizes, 16, 20, 24 and 40 (`AppIconSizeSm` to `AppIconSizeXl`). `FocusRingAndButtonsTests` holds
   each.
 
+- **Fixed: the Control Panel's spacing was off its own scale, its list cards, dialogs and page columns each named a
+  size of their own, and a settings page's cards ended at a different edge on every tab.** A page's padding
+  (24,20,24,24) and a card's (20,16) stood on a seventh step, 20, and a dialog's inset was 24,20; the scale's six
+  steps were declared in XAML, where no margin could take them and none did; a card's description and footer and a
+  settings section's gaps were 10 and 2 pixels; a card holding a list or a grid was padded 4, 6, 8, 10 or 12 by page;
+  every dialog named a width - 400, 460, 480, 520, 560, 600, 620, 680, 760; a page's column was 680, 760, 860, 880,
+  980 or 1000 pixels; a settings panel was as wide as its widest card, so that the cards' right edges ran from 526 to
+  761 pixels tab by tab; and four App.xaml styles had no use (review finding F295). A page's padding and a card's are
+  the Control Deck's now, 24 and 16 by 24, a dialog's inset 24, the scaffold's gaps on the scale; a list card takes
+  `AppListCardPadding` (8), a dialog one of four widths, 420, 520, 640 or 760 (`DesignTokens.Dialog`), and a page's
+  column the form width, 760, or the overviews', 1000 (`DesignTokens.OverviewWidth`); every card of a settings page
+  and of each of its tabs, and of Server sendout, Diagnosing stalled mail, REST API keys and About, ends at the form
+  width's edge (`FormColumnPanel`); the dead styles are gone; and `build/check-spacing.py`, which the checkers job
+  runs, fails a margin or a padding written off the scale, its baseline the optical nudges and the rest the tree held,
+  which may only shrink. `SpacingScaleTests` and `FormColumnTests` hold the tokens, the scaffold, the dialogs, the
+  list cards and the pages' columns.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

@@ -48,7 +48,9 @@ namespace hMailServer.ControlPanel.Views
 
       public AboutView()
       {
-         var panel = new StackPanel { MaxWidth = 880, HorizontalAlignment = HorizontalAlignment.Left };
+         // The form's column, as wide as the form width whatever its cards hold
+         // (FormColumnPanel; review finding F295: the page was 880 pixels).
+         var panel = new FormColumnPanel { MaxWidth = DesignTokens.FormWidth, HorizontalAlignment = HorizontalAlignment.Left };
 
          panel.Children.Add(new PageHeader { PageKey = "about" });
 

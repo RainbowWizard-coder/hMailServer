@@ -61,7 +61,7 @@ namespace hMailServer.ControlPanel.Views
          var close = new Wpf.Ui.Controls.Button { Content = L("Close"), Appearance = Wpf.Ui.Controls.ControlAppearance.Primary, MinWidth = 88 };
          close.Click += (s, e) => Close();
 
-         DialogFrame frame = UseFrame(L("Message source"), body, close, null, description: filePath, width: 760);
+         DialogFrame frame = UseFrame(L("Message source"), body, close, null, description: filePath, width: DesignTokens.Dialog.WidestWidth);
          close.IsCancel = true;
          frame.Footer = copy;
       }

@@ -140,7 +140,7 @@ namespace hMailServer.ControlPanel.Views
          // is the rule grammar's keyword, not prose - the pair to RuleCriteria-
          // Dialog's "IF", both echoing RulesView's editor panes. The description
          // under it names the rule (review finding F227), once Load has read it.
-         frame_ = UseFrame(L("THEN"), body, save, cancel, width: 520);
+         frame_ = UseFrame(L("THEN"), body, save, cancel, width: DesignTokens.Dialog.DefaultWidth);
          Loaded += (s, e) => Load();
       }
 

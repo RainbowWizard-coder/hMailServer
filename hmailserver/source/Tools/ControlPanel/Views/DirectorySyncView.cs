@@ -14,6 +14,7 @@ using hMailServer.ControlPanel.Services;
 using Typography = hMailServer.ControlPanel.Services.Typography;
 using Card = hMailServer.ControlPanel.Views.Scaffold.Card;
 using FieldRow = hMailServer.ControlPanel.Views.Scaffold.FieldRow;
+using FormColumnPanel = hMailServer.ControlPanel.Views.Scaffold.FormColumnPanel;
 using InlineNotice = hMailServer.ControlPanel.Views.Scaffold.InlineNotice;
 using PageHeader = hMailServer.ControlPanel.Views.Scaffold.PageHeader;
 using StatusPill = hMailServer.ControlPanel.Views.Scaffold.StatusPill;
@@ -179,12 +180,12 @@ namespace hMailServer.ControlPanel.Views
          // The form width every settings page has (AppFormWidth, 760), as
          // Directory authentication's cards have it; at 860 these were a hundred
          // pixels wider than the cards beside them in the group (F131).
-         var cards = new StackPanel { HorizontalAlignment = HorizontalAlignment.Left };
+         var cards = new FormColumnPanel { HorizontalAlignment = HorizontalAlignment.Left };
          cards.SetResourceReference(MaxWidthProperty, "AppFormWidth");
          System.Windows.Automation.AutomationProperties.SetAutomationId(statusNotice_, "dirsync-status");
          cards.Children.Add(statusNotice_);
          pathText_.TextWrapping = TextWrapping.Wrap;
-         pathText_.MaxWidth = 760;
+         pathText_.MaxWidth = DesignTokens.FormWidth;
          pathText_.HorizontalAlignment = HorizontalAlignment.Left;
          pathText_.SetResourceReference(StyleProperty, "TextCaptionTertiary");
          pathText_.SetResourceReference(MarginProperty, "AppCardGap");

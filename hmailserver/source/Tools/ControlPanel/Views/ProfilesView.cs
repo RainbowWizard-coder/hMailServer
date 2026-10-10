@@ -631,7 +631,7 @@ namespace hMailServer.ControlPanel.Views
          bottom.Children.Add(steps_);
          body.Children.Add(bottom);
 
-         var card = new Card { Padding = new Thickness(8), Content = body };
+         var card = new Card { Padding = new Thickness(DesignTokens.ListCardPadding), Content = body };
          parts.Children.Add(FillPanel.Filling(card, 0));
 
          Content = root;

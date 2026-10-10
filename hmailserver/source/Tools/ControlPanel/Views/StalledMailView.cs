@@ -50,8 +50,9 @@ namespace hMailServer.ControlPanel.Views
       public StalledMailView()
       {
          // The form's width, the settings pages' column: at 980 pixels each step's
-         // paragraph ran to about 180 characters a line (review finding F251).
-         var panel = new StackPanel { MaxWidth = DesignTokens.FormWidth, HorizontalAlignment = HorizontalAlignment.Left };
+         // paragraph ran to about 180 characters a line (review finding F251); and as
+         // wide as that whatever its cards hold (FormColumnPanel, F295).
+         var panel = new FormColumnPanel { MaxWidth = DesignTokens.FormWidth, HorizontalAlignment = HorizontalAlignment.Left };
 
          panel.Children.Add(new PageHeader
          {

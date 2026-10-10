@@ -64,7 +64,7 @@
              failure. Collapsed until there is something to say. -->
         <scaffold:InlineNotice x:Name="Notice" Grid.Row="2" Visibility="Collapsed" />
 
-        <scaffold:Card Grid.Row="3" Padding="8">
+        <scaffold:Card Grid.Row="3" Padding="{StaticResource AppListCardPadding}">
             <Grid>
                 <!-- Several rows can be chosen, and Remove and Deliver now act on them all.
                      The ID is a name more than a number, so it is left-aligned and narrow;

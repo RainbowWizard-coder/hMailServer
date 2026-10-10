@@ -143,7 +143,7 @@ namespace hMailServer.ControlPanel.Views
          listHost.Children.Add(rows);
          listHost.Children.Add(empty_);
          EmptyStateUnderHeaders.Keep(empty_, relays_);
-         var listCard = new Card { Padding = new Thickness(8), Content = listHost };
+         var listCard = new Card { Padding = new Thickness(DesignTokens.ListCardPadding), Content = listHost };
          listCard.SetResourceReference(MarginProperty, "AppCardGap");
          parts.Children.Add(FillPanel.Filling(listCard, 0));
 
@@ -610,7 +610,9 @@ namespace hMailServer.ControlPanel.Views
 
       public SendoutView()
       {
-         var panel = new StackPanel { MaxWidth = 680, HorizontalAlignment = HorizontalAlignment.Left };
+         // The form's column, as on the settings pages (FormColumnPanel; review finding
+         // F295: the form was as wide as its widest box, within 680 pixels).
+         var panel = new FormColumnPanel { MaxWidth = DesignTokens.FormWidth, HorizontalAlignment = HorizontalAlignment.Left };
 
          panel.Children.Add(new PageHeader
          {

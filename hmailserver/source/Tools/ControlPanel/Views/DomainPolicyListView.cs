@@ -439,7 +439,7 @@ namespace hMailServer.ControlPanel.Views
          // rows would be, never drawn across the headers' line.
          EmptyStateUnderHeaders.Keep(empty_, entries_);
 
-         var listCard = new Card { Padding = new Thickness(8), Content = host };
+         var listCard = new Card { Padding = new Thickness(DesignTokens.ListCardPadding), Content = host };
          parts.Children.Add(FillPanel.Filling(listCard, 0));
 
          Content = root;
@@ -645,7 +645,7 @@ namespace hMailServer.ControlPanel.Views
 
          dialog.Frame(L("Allow or block a domain"), body, ok, cancel,
             L("The entry applies to the next session from that domain. It is consulted for unauthenticated inbound sessions of an IP range that runs the spam tests, and never to override authentication."),
-            width: 520);
+            width: DesignTokens.Dialog.DefaultWidth);
          // A refusal of the domain, typed or the server's, is said under its box
          // without moving Add and Cancel.
          dialog.KeepRoomForFieldErrors();

@@ -5703,9 +5703,11 @@ namespace hMailServer.ControlPanel.Views
          {
             // Cap the settings form to a readable column instead of letting cards
             // stretch the full window width (which left short, left-aligned inputs
-            // floating in empty space). The right inset is the room the tab's own
-            // scroll bar takes, so that no note runs underneath it.
-            var panel = new StackPanel
+            // floating in empty space), and as wide as that column whatever its cards
+            // hold, so that every card of every tab ends at one edge (FormColumnPanel;
+            // review finding F295). The right inset is the room the tab's own scroll
+            // bar takes, so that no note runs underneath it.
+            var panel = new Scaffold.FormColumnPanel
             {
                MaxWidth = DesignTokens.FormWidth,
                HorizontalAlignment = HorizontalAlignment.Left,

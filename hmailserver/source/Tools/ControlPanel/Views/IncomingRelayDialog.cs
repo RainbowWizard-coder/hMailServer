@@ -112,7 +112,7 @@ namespace hMailServer.ControlPanel.Views
 
          dialog.Frame(L("Edit incoming relay"), body, save, cancel,
             L("Mail that arrives from these addresses is judged by the address before them, so a gateway's own address is not scored or banned as the sender's."),
-            width: 460);
+            width: DesignTokens.Dialog.DefaultWidth);
          // Room for the three boxes' messages, which one press can say together,
          // so that Save and Cancel stay where they were pressed (review finding F213).
          dialog.KeepRoomForFieldErrors(3);

@@ -190,42 +190,15 @@
                 <Setter Property="Padding" Value="{DynamicResource AppCardPadding}" />
             </Style>
 
-            <Style x:Key="PageTitle" TargetType="TextBlock">
-                <!-- A page title is the page's level-1 heading: screen readers navigate by headings, and without this a page has none. -->
-                <Setter Property="AutomationProperties.HeadingLevel" Value="Level1" />
-                <Setter Property="FontSize" Value="28" />
-                <Setter Property="FontWeight" Value="SemiBold" />
-                <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
-                <Setter Property="Margin" Value="0,0,0,4" />
-            </Style>
-
-            <Style x:Key="PageSubtitle" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="14" />
-                <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
-                <Setter Property="Margin" Value="0,0,0,18" />
-                <Setter Property="TextWrapping" Value="Wrap" />
-            </Style>
+            <!-- PageTitle, PageSubtitle, StatusLabel and StatusValue, kept for the
+                 pages before the scaffold, are gone with the last of those pages: every
+                 page's title is its PageHeader's (review finding F295). -->
 
             <Style x:Key="KpiValue" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="28" />
                 <Setter Property="FontWeight" Value="SemiBold" />
                 <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
                 <Setter Property="VerticalAlignment" Value="Top" />
-            </Style>
-
-            <Style x:Key="StatusLabel" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="12" />
-                <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
-                <Setter Property="Margin" Value="0,0,16,8" />
-                <Setter Property="VerticalAlignment" Value="Center" />
-            </Style>
-
-            <Style x:Key="StatusValue" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="14" />
-                <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
-                <Setter Property="Margin" Value="0,0,0,8" />
-                <Setter Property="TextWrapping" Value="Wrap" />
-                <Setter Property="VerticalAlignment" Value="Center" />
             </Style>
 
             <!-- A KPI's label at the ramp's Caption size, where it was 11, below

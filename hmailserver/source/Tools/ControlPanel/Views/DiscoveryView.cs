@@ -505,7 +505,7 @@ namespace hMailServer.ControlPanel.Views
          host.Children.Add(empty_);
          host.Children.Add(reading_);
          EmptyStateUnderHeaders.Keep(empty_, cases_);
-         var casesCard = new Card { Padding = new Thickness(8), Content = host };
+         var casesCard = new Card { Padding = new Thickness(DesignTokens.ListCardPadding), Content = host };
          parts.Children.Add(FillPanel.Filling(casesCard, 0));
 
          lines_.Columns.Add(Text_(L("When"), nameof(LineRow.When), DataGridLength.Auto));

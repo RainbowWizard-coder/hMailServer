@@ -32,7 +32,10 @@
                 </scaffold:PageHeader.Actions>
             </scaffold:PageHeader>
 
-            <StackPanel MaxWidth="760" HorizontalAlignment="Left">
+            <!-- The form's column: as wide as AppFormWidth allows whatever its cards
+                 hold, so that every card of the page shares one right edge (review
+                 finding F295); a StackPanel aligned left was as wide as its widest card. -->
+            <scaffold:FormColumnPanel MaxWidth="{StaticResource AppFormWidth}" HorizontalAlignment="Left">
                 <scaffold:InlineNotice x:Name="StatusNotice" Visibility="Collapsed" />
                 <TextBlock x:Name="PathText" Style="{StaticResource TextCaptionTertiary}" Margin="{StaticResource AppCardGap}" />
                 <!-- The Updates page's own card, under the page's notice and its file
@@ -91,7 +94,7 @@
                     </scaffold:Card.Footer>
                 </scaffold:Card>
                 <StackPanel x:Name="CardsPanel" />
-            </StackPanel>
+            </scaffold:FormColumnPanel>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

@@ -38,7 +38,7 @@
              was a grid's star row between rows sized to their content, which in
              the narrowest window (760 by 520) left no grid at all between the
              toolbar and the listener warning. -->
-        <!-- The bar is drawn over the content, so the right padding (AppSpaceMd)
+        <!-- The bar is drawn over the content, so the right padding (DesignTokens.Space.Md)
              keeps the cards, the notices and the toolbar's last button clear of it. -->
         <ScrollViewer x:Name="PageScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled" Focusable="False" Padding="0,0,12,0">
@@ -72,7 +72,7 @@
 
         <!-- The floor: three rows on the grid's own FillPanel and the empty
              state laid over them, as the IP ranges page's list card. -->
-        <scaffold:Card scaffold:FillPanel.Fill="True" Padding="8">
+        <scaffold:Card scaffold:FillPanel.Fill="True" Padding="{StaticResource AppListCardPadding}">
             <Grid>
                 <scaffold:FillPanel>
                 <DataGrid x:Name="PortGrid" scaffold:FillPanel.Fill="True" MinHeight="143" AutoGenerateColumns="False" IsReadOnly="True"

@@ -62,7 +62,7 @@ namespace hMailServer.ControlPanel.Views
          var close = new Wpf.Ui.Controls.Button { Content = L("Close"), Appearance = Wpf.Ui.Controls.ControlAppearance.Primary, MinWidth = 88 };
          close.Click += (s, e) => Close();
 
-         UseFrame(L("Keyboard shortcuts"), table, close, null, width: 600);
+         UseFrame(L("Keyboard shortcuts"), table, close, null, width: DesignTokens.Dialog.WideWidth);
       }
    }
 }

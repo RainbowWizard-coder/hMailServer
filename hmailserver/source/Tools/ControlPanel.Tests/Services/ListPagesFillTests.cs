@@ -160,7 +160,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
       /// <summary>
       /// The page's scroll bar is drawn over the content, so the scroll viewer keeps
-      /// 12 pixels (AppSpaceMd) clear of it on the right: without them its thumb lay
+      /// 12 pixels (DesignTokens.Space.Md) clear of it on the right: without them its thumb lay
       /// over the right edge of the cards, the notices and the toolbar's last button
       /// wherever a page scrolled - the SSL certificates page with a certificate
       /// selected in a 1280 by 800 window, and every page in the smallest one.

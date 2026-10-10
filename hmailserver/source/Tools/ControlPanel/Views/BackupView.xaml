@@ -14,7 +14,8 @@
     local:AccessKeyScope.ByCard="True">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="{StaticResource AppPagePadding}">
-        <StackPanel MaxWidth="760" HorizontalAlignment="Left">
+        <!-- The form's column, as on every settings page (FormColumnPanel, F295). -->
+        <scaffold:FormColumnPanel MaxWidth="{StaticResource AppFormWidth}" HorizontalAlignment="Left">
             <scaffold:PageHeader x:Name="Header" PageKey="backup"
                                  Subtitle="{loc:L 'Back up domains, messages and settings to a folder; restore from a previous backup.'}" />
 
@@ -268,6 +269,6 @@
                     </StackPanel>
                 </scaffold:Card.Footer>
             </scaffold:Card>
-        </StackPanel>
+        </scaffold:FormColumnPanel>
     </ScrollViewer>
 </UserControl>

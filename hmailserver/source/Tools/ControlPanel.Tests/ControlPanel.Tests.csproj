@@ -102,6 +102,10 @@
     <!-- And whether parts laid side by side keep their minimum widths, below which
          the domains and rules pages put them one above the other. -->
     <Compile Include="..\ControlPanel\Services\SideBySide.cs" />
+    <!-- And the width of a page's column of cards: as wide as it is allowed, whatever
+         its cards hold, so that every card of a page ends at one edge (review finding
+         F295; Views/Scaffold/FormColumnPanel). -->
+    <Compile Include="..\ControlPanel\Services\FormColumn.cs" />
     <!-- And where a setting found by search is scrolled to: a third of the way down,
          with room for its ring and what follows it (Views/SettingReveal). -->
     <Compile Include="..\ControlPanel\Services\RevealOffset.cs" />

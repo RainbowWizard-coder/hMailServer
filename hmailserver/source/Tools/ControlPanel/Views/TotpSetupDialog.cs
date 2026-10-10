@@ -97,7 +97,7 @@ namespace hMailServer.ControlPanel.Views
          // Titled by what it does, and for which factor, as the Two-factor tab's
          // button that opens it is (review finding F241): it was "Two-factor
          // authentication", the code prompts' title too. RefreshState sets it.
-         frame_ = UseFrame(SetUpHeading_, body, action_, close_, width: 560);
+         frame_ = UseFrame(SetUpHeading_, body, action_, close_, width: DesignTokens.Dialog.WideWidth);
 
          // Room for the code's message, which wraps to two lines at this width
          // ("... Make sure your authenticator app is set up with the new key."),

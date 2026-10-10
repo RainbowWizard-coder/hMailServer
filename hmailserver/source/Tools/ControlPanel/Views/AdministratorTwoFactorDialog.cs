@@ -121,7 +121,7 @@ namespace hMailServer.ControlPanel.Views
             code_.CaretIndex = code_.Text.Length;
          });
 
-         UseFrame(L("Second factor on the administrator credential"), body, action_, close_, width: 560);
+         UseFrame(L("Second factor on the administrator credential"), body, action_, close_, width: DesignTokens.Dialog.WideWidth);
 
          // Room for the code's message, two lines at this width ("... then try the
          // current code."), while the code box is shown: enrolled, or after an

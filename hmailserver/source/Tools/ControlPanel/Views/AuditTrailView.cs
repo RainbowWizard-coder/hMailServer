@@ -580,7 +580,7 @@ namespace hMailServer.ControlPanel.Views
          host.Children.Add(rows_);
          host.Children.Add(empty_);
          host.Children.Add(walking_);
-         var card = new Card { Padding = new Thickness(8), Content = host };
+         var card = new Card { Padding = new Thickness(DesignTokens.ListCardPadding), Content = host };
          parts.Children.Add(FillPanel.Filling(card, FillPanel.ListCardFloor));
 
          // The pages, under the list: Newer, where the page is, Older.

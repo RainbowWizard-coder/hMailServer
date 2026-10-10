@@ -106,7 +106,7 @@
             </scaffold:Toolbar.Actions>
         </scaffold:Toolbar>
 
-        <scaffold:Card scaffold:FillPanel.Fill="True" MinHeight="157" Padding="4">
+        <scaffold:Card scaffold:FillPanel.Fill="True" MinHeight="165" Padding="{StaticResource AppListCardPadding}">
             <Grid>
                 <ListBox x:Name="LogList" Background="Transparent" BorderThickness="0" SelectionMode="Extended"
                          FontFamily="Cascadia Mono, Consolas" FontSize="{StaticResource AppFontSizeMono}"

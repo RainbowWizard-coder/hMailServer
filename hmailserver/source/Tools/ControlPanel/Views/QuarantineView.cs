@@ -1563,7 +1563,7 @@ namespace hMailServer.ControlPanel.Views
          // and in a 760 by 520 window the glyph was drawn across its line.
          EmptyStateUnderHeaders.Keep(empty_, list_);
 
-         var card = new Card { Padding = new Thickness(8), Content = host };
+         var card = new Card { Padding = new Thickness(DesignTokens.ListCardPadding), Content = host };
          parts.Children.Add(FillPanel.Filling(card, 0));
 
          // Why the selected message was held, which was the row's tool tip alone

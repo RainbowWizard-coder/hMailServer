@@ -61,7 +61,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void ThePage_IsTheFormsWidth_AndItsParagraphsBodyText()
       {
          string code = Source_();
-         Assert.Contains("var panel = new StackPanel { MaxWidth = DesignTokens.FormWidth, HorizontalAlignment = HorizontalAlignment.Left };", code, StringComparison.Ordinal);
+         Assert.Contains("var panel = new FormColumnPanel { MaxWidth = DesignTokens.FormWidth, HorizontalAlignment = HorizontalAlignment.Left };", code, StringComparison.Ordinal);
          Assert.DoesNotContain("MaxWidth = 980", code, StringComparison.Ordinal);
 
          string section = WithheldRowTests.MemberText(code, "private static Card Section(string heading, string intro)");

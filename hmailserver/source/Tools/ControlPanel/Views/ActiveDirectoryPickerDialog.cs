@@ -109,7 +109,7 @@ namespace hMailServer.ControlPanel.Views
          cancel.Click += (s, e) => { DialogResult = false; Close(); };
 
          UseFrame(multiSelect ? L("Select Active Directory accounts") : L("Select an Active Directory account"),
-            body, okButton_, cancel, width: 680);
+            body, okButton_, cancel, width: DesignTokens.Dialog.WidestWidth);
          okButton_.IsDefault = false;
 
          // After the frame's own handler, which lands on the domain list: the

@@ -128,7 +128,7 @@ namespace hMailServer.ControlPanel.Views
          // not show (review finding F293).
          UseFrame(Title, body, null, close,
             L("A group exists so that several accounts can be given the same rights at once - grant the group access to a public folder under Public folders, and every account listed here gets that access. An empty group grants nothing to anyone."),
-            width: 520);
+            width: DesignTokens.Dialog.DefaultWidth);
          Loaded += (s, e) => Reload();
       }
 
@@ -480,7 +480,7 @@ namespace hMailServer.ControlPanel.Views
                GridKeys.Press(ok);
          };
 
-         dialog.Frame(heading, body, ok, cancel, width: 480);
+         dialog.Frame(heading, body, ok, cancel, width: DesignTokens.Dialog.DefaultWidth);
          dialog.Loaded += (s, e) => search.Focus();
          return dialog;
       }

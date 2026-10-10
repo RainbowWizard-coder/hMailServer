@@ -126,11 +126,11 @@
                             <TextBlock x:Name="PART_Title" Text="{TemplateBinding Title}"
                                        Style="{StaticResource TextBodyStrong}" Margin="0,0,0,4" />
                             <TextBlock x:Name="PART_Description" Grid.Row="1" Text="{TemplateBinding Description}"
-                                       Style="{StaticResource TextCaption}" Margin="0,0,0,10" />
+                                       Style="{StaticResource TextCaption}" Margin="0,0,0,12" />
                             <ContentPresenter Grid.Row="2"
                                               HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                            <Border x:Name="PART_Footer" Grid.Row="3" Margin="0,12,0,0" Padding="0,10,0,0"
+                            <Border x:Name="PART_Footer" Grid.Row="3" Margin="0,12,0,0" Padding="0,12,0,0"
                                     BorderThickness="0,1,0,0" BorderBrush="{DynamicResource AppDividerBrush}">
                                 <ContentPresenter Content="{TemplateBinding Footer}" />
                             </Border>
@@ -419,8 +419,8 @@
                                    Style="{StaticResource TextBodyStrong}" />
                         <TextBlock x:Name="PART_Description" Text="{TemplateBinding Description}"
                                    Style="{StaticResource TextCaption}" MaxWidth="720" HorizontalAlignment="Left"
-                                   Margin="0,2,0,0" />
-                        <ContentPresenter Margin="0,10,0,0"
+                                   Margin="0,4,0,0" />
+                        <ContentPresenter Margin="0,12,0,0"
                                           HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
                     </StackPanel>
                     <ControlTemplate.Triggers>
@@ -440,7 +440,7 @@
     <Style TargetType="{x:Type scaffold:DialogFrame}">
         <Setter Property="Focusable" Value="False" />
         <Setter Property="IsTabStop" Value="False" />
-        <Setter Property="Padding" Value="24,20,24,20" />
+        <Setter Property="Padding" Value="{StaticResource AppDialogPadding}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type scaffold:DialogFrame}">

@@ -149,7 +149,7 @@ namespace hMailServer.ControlPanel.Views
          // Headed by the window's title, the kind and then the name, where the
          // heading was the bare name and the kind only in a title the frame does
          // not show (review finding F293).
-         UseFrame(Title, body, save, cancel, width: 520);
+         UseFrame(Title, body, save, cancel, width: DesignTokens.Dialog.DefaultWidth);
          KeepRoomForFieldErrors(3);
          Loaded += (s, e) => Load();
       }

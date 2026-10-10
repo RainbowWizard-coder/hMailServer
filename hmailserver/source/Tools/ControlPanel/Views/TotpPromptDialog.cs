@@ -68,7 +68,7 @@ namespace hMailServer.ControlPanel.Views
 
          UseFrame(heading,
             DialogFields.Field(L("6-digit _code from your authenticator app"), code_),
-            ok, cancel, description, width: 400);
+            ok, cancel, description, width: DesignTokens.Dialog.NarrowWidth);
       }
    }
 }

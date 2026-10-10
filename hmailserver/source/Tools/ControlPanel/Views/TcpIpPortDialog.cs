@@ -155,7 +155,7 @@ namespace hMailServer.ControlPanel.Views
          cancel.Click += (s, e) => Close();
 
          UpdateClientCertificateRows();
-         frame_ = UseFrame(L("TCP/IP port"), body, save, cancel, width: 520);
+         frame_ = UseFrame(L("TCP/IP port"), body, save, cancel, width: DesignTokens.Dialog.DefaultWidth);
 
          // Room for the port's or the certificate's message, where the dialog is
          // not at its cap; a press refuses one of them at a time.
