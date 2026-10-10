@@ -16,7 +16,9 @@ Three checks, all driven off the server's own source rather than a list kept by
 hand:
 
   coverage  Every key `IniFileSettings` reads from [Settings] is named somewhere
-            in the Control Panel's source. EXEMPT below is the list of keys that
+            in the Control Panel's source, or, edited through a COM property of
+            another name (COM_BACKED below), has an editor whose Path is that
+            property. EXEMPT below is the list of keys that
             deliberately have no editor, each with the reason; anything else
             missing fails.
 
@@ -146,6 +148,15 @@ OUTSIDE = {
    "SendingLimitsOverrides": "A free-form section: one line per address, so it has no fixed key set.",
 }
 
+# A [Settings] key the Control Panel edits through a COM property of another name,
+# and that property: the editor is found by its Path, since the card names the
+# setting by its caption and not by its key. Each entry is held to a key the
+# server still reads.
+COM_BACKED = {
+   "SmtpTarpitCount": "AntiSpam.TarpitCount",
+   "SmtpTarpitDelaySeconds": "AntiSpam.TarpitDelay",
+}
+
 READ = re.compile(r'ReadIniSetting(String|Integer)_\s*\(')
 # The three password work factors are read through a helper that bounds them,
 # which is the one reader that does not name its section: the section is
@@ -250,6 +261,15 @@ def reads_of(source):
       found[("Settings", match.group(1))] = ("integer", "0")
 
    return found, unreadable
+
+
+def reachable(key, panel):
+   """Whether the Control Panel's text has an editor for <key>: it names the key, or,
+   for a key in COM_BACKED, an editor's Path is its COM property."""
+   if re.search(r"\b%s\b" % re.escape(key), panel):
+      return True
+   prop = COM_BACKED.get(key)
+   return prop is not None and re.search(r'Path\s*=\s*"%s"' % re.escape(prop), panel) is not None
 
 
 def control_panel_text():
@@ -393,6 +413,14 @@ def self_test():
          failures.append("  self-test: `%s` was refused without saying what the three marks mean" % line)
       elif expected in ("has no levels mark", "not one of server, domain or account") and LEVELS_SENTENCE not in problem:
          failures.append("  self-test: `%s` was refused without saying what the three levels mean" % line)
+   # A COM-backed key is found by its editor's Path and by nothing that only mentions
+   # the property; a key that is neither named nor COM-backed is not found.
+   if not reachable("SmtpTarpitCount", 'new ComText { Path = "AntiSpam.TarpitCount", Label = L("Recipients") }'):
+      failures.append("  self-test: a COM-backed key was not found by its editor's Path")
+   if reachable("SmtpTarpitCount", "// AntiSpam.TarpitCount is the recipient tarpit"):
+      failures.append("  self-test: a COM-backed key was found by a mention of its property, with no editor")
+   if reachable("MaxSubmissionsPerIPPerMinute", 'new ComText { Path = "AntiSpam.TarpitCount" }'):
+      failures.append("  self-test: a key that is neither named nor COM-backed was found")
    return failures
 
 
@@ -674,14 +702,17 @@ def main():
       return 1
 
    panel = control_panel_text()
-   # A key counts as reachable when the Control Panel names it anywhere: as the
-   # key of an INI-backed editor, or in the help text beside a COM-backed one.
-   # Several settings are stored in the INI but edited through a COM property
-   # under a different name - the recipient tarpit is SmtpTarpitCount in the file
-   # and AntiSpam.TarpitCount on the object - and the card that edits those says
-   # so in its own words. Requiring the quoted key would call those missing.
-   missing = [key for key in settings
-              if key not in EXEMPT and not re.search(r"\b%s\b" % re.escape(key), panel)]
+   # A key counts as reachable when the Control Panel names it anywhere - as the
+   # key of an INI-backed editor - or, for a key edited through a COM property of
+   # another name, when an editor's Path is that property (COM_BACKED). The
+   # recipient tarpit is SmtpTarpitCount in the file and AntiSpam.TarpitCount on
+   # the object; its card named the key in its help text until the Control Panel
+   # stopped naming settings by key where they have a caption (review finding
+   # F020), and requiring the quoted key would call it missing.
+   missing = [key for key in settings if key not in EXEMPT and not reachable(key, panel)]
+   stale = sorted(key for key in COM_BACKED if key not in settings)
+   for key in stale:
+      print("  COM_BACKED names [Settings] %s, which the server no longer reads" % key)
 
    # Anything reading the INI directly, other than IniFileSettings itself.
    direct = {}
@@ -707,7 +738,7 @@ def main():
       print("  [%s] is read outside IniFileSettings, so the settings store never "
             "sees it: %s" % (section, ", ".join(sorted(files))))
 
-   problems = len(missing) + len(frozen) + len(direct)
+   problems = len(missing) + len(frozen) + len(direct) + len(stale)
    if problems:
       print("FAIL: %d problem(s) with the settings the server reads from hMailServer.INI" % problems)
       return 1
