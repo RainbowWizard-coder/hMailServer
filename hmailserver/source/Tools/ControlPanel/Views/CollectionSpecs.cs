@@ -530,7 +530,7 @@ namespace hMailServer.ControlPanel.Views
          // at 150 - have to fit them, or the grid scrolls sideways by the
          // difference, under a bar, at the only width the dialog has.
          Fields = SenderListFields(200)
-      }, embedded: true);
+      }, embedded: true, onDialogTab: true);
 
       /// <summary>Domain-name aliases for one domain (embedded in the Domain editor).</summary>
       public static CollectionEditorView DomainAliases(string domainName) => new(new CollectionSpec
@@ -558,7 +558,7 @@ namespace hMailServer.ControlPanel.Views
             // The example stays in the dialog's caption; the column is headed by the name alone.
             new FieldSpec { Prop = "AliasName", Label = L("Alias domain name (e.g. example.net)"), GridLabel = L("Alias domain"), Default = "" }
          }
-      }, embedded: true);
+      }, embedded: true, onDialogTab: true);
 
       /// <summary>External POP3 download (fetch) accounts for one account.</summary>
       public static CollectionEditorView FetchAccounts(string domainName, string address) => new(new CollectionSpec
@@ -645,7 +645,7 @@ namespace hMailServer.ControlPanel.Views
             // collection: every folder, verbatim, flags and dates kept, nothing delivered.
             new FieldSpec { Prop = "MirrorFolders", Label = L("Mirror every folder (IMAP only: a migration, verbatim, with flags and dates)"), Kind = FieldKind.Bool, ShowInGrid = false, Default = false }
          }
-      }, embedded: true);
+      }, embedded: true, onDialogTab: true);
 
       /// <summary>Account-level rules (enable/disable and delete; criteria/actions are not edited here).</summary>
       public static CollectionEditorView AccountRules(string domainName, string address) => new(new CollectionSpec
@@ -675,7 +675,7 @@ namespace hMailServer.ControlPanel.Views
             new FieldSpec { Prop = "Active", Label = L("Active"), Kind = FieldKind.Bool, GridWidth = 70, Default = true },
             new FieldSpec { Prop = "Name", Label = L("Rule name"), Default = "" }
          }
-      }, embedded: true);
+      }, embedded: true, onDialogTab: true);
    }
 
    /// <summary>

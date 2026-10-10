@@ -20,16 +20,19 @@ namespace hMailServer.ControlPanel.Tests.Services
    {
       private const string Sentence = "Changes here are saved as you make them, not with the dialog's Save, so Cancel does not undo them.";
 
+      // How a factory in CollectionSpecs.cs that builds an editor for a dialog's tab ends.
+      internal const string DialogTabEnd = "}, embedded: true, onDialogTab: true);";
+
       [Fact]
       public void EveryListBuiltForADialog_SaysItSavesAsYouGo()
       {
          string specs = SaveStateModelTests.ReadControlPanelFile("Views/CollectionSpecs.cs");
 
          // Each factory that builds an editor for a dialog's tab ends its spec with
-         // "}, embedded: true);"; the page that embeds one of its own (the Groups page)
-         // builds it another way and is not a dialog.
+         // "}, embedded: true, onDialogTab: true);"; the page that embeds one of its
+         // own (the Groups page) builds it another way and is not a dialog.
          int count = 0;
-         int end = specs.IndexOf("}, embedded: true);", StringComparison.Ordinal);
+         int end = specs.IndexOf(DialogTabEnd, StringComparison.Ordinal);
          while (end >= 0)
          {
             int start = specs.LastIndexOf("=> new(new CollectionSpec", end, StringComparison.Ordinal);
@@ -38,7 +41,7 @@ namespace hMailServer.ControlPanel.Tests.Services
             string name = Regex.Match(specs.Substring(0, start), @"public static CollectionEditorView (\w+)\([^)]*\)\s*$").Groups[1].Value;
             Assert.True(factory.Contains("SavesAsMadeInDialog = true", StringComparison.Ordinal), name + " is built for a dialog's tab and does not say it saves as you go.");
             count++;
-            end = specs.IndexOf("}, embedded: true);", end + 1, StringComparison.Ordinal);
+            end = specs.IndexOf(DialogTabEnd, end + 1, StringComparison.Ordinal);
          }
 
          Assert.Equal(4, count);

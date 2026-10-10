@@ -223,6 +223,7 @@ namespace hMailServer.ControlPanel.Views
 
       private readonly CollectionSpec spec_;
       private readonly bool embedded_;
+      private readonly bool onDialogTab_;
       private readonly DataGrid grid_ = new();
       private readonly ObservableCollection<Row> rows_ = new();
 
@@ -265,12 +266,19 @@ namespace hMailServer.ControlPanel.Views
       /// is dropped so the editor can be hosted inside a dialog tab. Only a
       /// compact one-line hint is shown above the grid.
       /// </param>
-      public CollectionEditorView(CollectionSpec spec, bool embedded)
+      /// <param name="onDialogTab">
+      /// When true the editor is a tab of a dialog with a Save, and draws its Add
+      /// as a Secondary button, the dialog's Save being its one Primary button.
+      /// Apart from <paramref name="embedded"/>: the Groups page hosts the editor
+      /// without its chrome, and on that page Add is the Primary button.
+      /// </param>
+      public CollectionEditorView(CollectionSpec spec, bool embedded, bool onDialogTab = false)
       {
          spec_ = spec;
          embedded_ = embedded;
          if (spec.PageKey != null)
             spec.Title = L(NavigationMap.TitleOf(spec.PageKey));
+         onDialogTab_ = onDialogTab;
          Build();
       }
 
@@ -350,7 +358,7 @@ namespace hMailServer.ControlPanel.Views
             // is a Secondary one: the dialog's Save is the Primary there, and a blue
             // Add beside it made two buttons that each looked like the way out of
             // the dialog (review finding F195).
-            addButton_ = MakeButton(L("_Add"), embedded_ ? ControlAppearance.Secondary : ControlAppearance.Primary, (_, _) => OpenDialog(null));
+            addButton_ = MakeButton(L("_Add"), onDialogTab_ ? ControlAppearance.Secondary : ControlAppearance.Primary, (_, _) => OpenDialog(null));
             actions.Children.Add(addButton_);
          }
          // Edit and Delete act on the selected row, so they are enabled only

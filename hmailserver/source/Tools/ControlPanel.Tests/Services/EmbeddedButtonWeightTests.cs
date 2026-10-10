@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -48,7 +49,59 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void TheListEditorsAdd_IsPrimaryOnAPageAndSecondaryOnADialogsTab()
       {
          string source = ReadView("CollectionEditorView.cs");
-         Assert.Contains("addButton_ = MakeButton(L(\"_Add\"), embedded_ ? ControlAppearance.Secondary : ControlAppearance.Primary,", source, StringComparison.Ordinal);
+         Assert.Contains("addButton_ = MakeButton(L(\"_Add\"), onDialogTab_ ? ControlAppearance.Secondary : ControlAppearance.Primary,", source, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// Add's weight is the dialog's tab's, not the editor's embedded form's: the
+      /// Groups page hosts the editor embedded, without its chrome, and drew its Add
+      /// as Secondary when the weight followed that, leaving the page no Primary
+      /// button. The four factories built for a dialog's tab say so, every editor a
+      /// dialog builds is one of them, no page's is, and the Groups page's does not.
+      /// </summary>
+      [Fact]
+      public void OnlyTheEditorsBuiltForADialogsTab_DrawTheirAddAsSecondary()
+      {
+         string specs = ReadView("CollectionSpecs.cs");
+         var forDialogTab = new HashSet<string>(StringComparer.Ordinal);
+         MatchCollection factories = Regex.Matches(specs, @"public static \w+ (\w+)\([^)]*\)\s*=>");
+         for (int i = 0; i < factories.Count; i++)
+         {
+            int end = i + 1 < factories.Count ? factories[i + 1].Index : specs.Length;
+            if (specs.Substring(factories[i].Index, end - factories[i].Index).Contains(SavedAsMadeNoteTests.DialogTabEnd, StringComparison.Ordinal))
+               forDialogTab.Add(factories[i].Groups[1].Value);
+         }
+
+         Assert.Equal(new[] { "AccountRules", "DomainAliases", "DomainSenderList", "FetchAccounts" }, forDialogTab.OrderBy(n => n, StringComparer.Ordinal));
+
+         var problems = new List<string>();
+         int tabs = 0;
+         foreach (string dialog in Directory.GetFiles(ViewsDirectory(), "*Dialog.cs"))
+         {
+            foreach (Match call in Regex.Matches(File.ReadAllText(dialog), @"CollectionSpecs\.(\w+)\("))
+            {
+               tabs++;
+               if (!forDialogTab.Contains(call.Groups[1].Value))
+                  problems.Add(Path.GetFileName(dialog) + " puts CollectionSpecs." + call.Groups[1].Value + " on a tab, and it is not built for a dialog's tab.");
+            }
+         }
+
+         Assert.True(tabs >= 3, "The domain and account dialogs no longer build their list tabs from CollectionSpecs as this test reads them.");
+
+         string window = SaveStateModelTests.ReadControlPanelFile("MainWindow.xaml.cs");
+         MatchCollection pages = Regex.Matches(window, @"pageFactories_\[""\w+""\]\s*=\s*\(\)\s*=>\s*CollectionSpecs\.(\w+)\(");
+         Assert.True(pages.Count > 5, "MainWindow no longer makes its list pages from CollectionSpecs as this test reads it.");
+         foreach (Match page in pages)
+         {
+            if (forDialogTab.Contains(page.Groups[1].Value))
+               problems.Add("The page CollectionSpecs." + page.Groups[1].Value + " makes is built as a dialog's tab, so its Add is not Primary.");
+         }
+
+         Assert.True(problems.Count == 0, string.Join("\n", problems));
+
+         // The Groups page: embedded for the chrome it draws itself, not a dialog's tab.
+         Assert.Contains("editor_ = new CollectionEditorView(spec, embedded: true);", specs, StringComparison.Ordinal);
+         Assert.Single(Regex.Matches(specs, @"new CollectionEditorView\("));
       }
 
       [Fact]
@@ -71,17 +124,20 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       private static string ReadView(string file)
+         => File.ReadAllText(Path.Join(ViewsDirectory(), file)).Replace("\r\n", "\n");
+
+      private static string ViewsDirectory()
       {
          var directory = new DirectoryInfo(AppContext.BaseDirectory);
          while (directory != null)
          {
-            string candidate = Path.Join(directory.FullName, "ControlPanel", "Views", file);
-            if (File.Exists(candidate))
-               return File.ReadAllText(candidate).Replace("\r\n", "\n");
+            string candidate = Path.Join(directory.FullName, "ControlPanel", "Views");
+            if (File.Exists(Path.Join(candidate, "CollectionEditorView.cs")))
+               return candidate;
             directory = directory.Parent;
          }
 
-         Assert.Fail("ControlPanel/Views/" + file + " could not be found from the test binaries.");
+         Assert.Fail("ControlPanel/Views could not be found from the test binaries.");
          return null;
       }
    }
