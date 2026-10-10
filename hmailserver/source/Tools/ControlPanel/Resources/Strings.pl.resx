@@ -3714,6 +3714,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Defaults to {0} days, which is what the API itself uses when a request does not name one. A key with no expiry is the property that makes the administrator password dangerous, so there is no &quot;never&quot; option." xml:space="preserve">
     <value>Domyślnie {0} dni, czyli tyle, ile przyjmuje samo API, gdy żądanie nie podaje żadnej wartości. Klucz bez terminu wygaśnięcia to właśnie ta cecha, która czyni hasło administratora niebezpiecznym, więc opcji „nigdy” tu nie ma.</value>
   </data>
+  <data name="Deferred {0}" xml:space="preserve">
+    <value>Odroczono {0}</value>
+  </data>
   <data name="Del" xml:space="preserve">
     <value>Del</value>
   </data>
@@ -4670,8 +4673,8 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Enter a whole number." xml:space="preserve">
     <value>Należy podać liczbę całkowitą.</value>
   </data>
-  <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
-    <value>Wpisz adres i wyszukaj. Śledzenie nie rejestruje niczego, dopóki śledzenie wiadomości nie zostanie włączone na stronie Rejestrowanie w dzienniku – domyślnie jest wyłączone, ponieważ zapisuje, kto z kim koresponduje.</value>
+  <data name="Enter an address and press Search to see every event of the mail it sent or received." xml:space="preserve">
+    <value>Wpisz adres i naciśnij Szukaj, aby zobaczyć każde zdarzenie poczty, którą wysłał lub odebrał.</value>
   </data>
   <data name="Enter an hour from 0 to 23." xml:space="preserve">
     <value>Należy podać godzinę od 0 do 23.</value>
@@ -4837,6 +4840,18 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="Events a minute for a subscription with no limit of its own (1 to 100000)" xml:space="preserve">
     <value>Zdarzenia na minutę dla subskrypcji bez własnego limitu (od 1 do 100000)</value>
+  </data>
+  <data name="Events are kept with no time limit." xml:space="preserve">
+    <value>Zdarzenia są przechowywane bez limitu czasu.</value>
+  </data>
+  <data name="Events are kept {0} day." xml:space="preserve">
+    <value>Zdarzenia są przechowywane przez {0} dzień.</value>
+  </data>
+  <data name="Events are kept {0} days." xml:space="preserve">
+    <value>Zdarzenia są przechowywane przez {0} dni.</value>
+  </data>
+  <data name="Events are kept {0} days.|few" xml:space="preserve">
+    <value>Zdarzenia są przechowywane przez {0} dni.</value>
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>Każde logowanie LDAP zostanie odrzucone: niezabezpieczony LDAP z prostym bindem wysyłałby hasła jawnym tekstem, a AllowUnprotectedPassword jest wyłączone.</value>
@@ -6920,6 +6935,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Message trace" xml:space="preserve">
     <value>Śledzenie wiadomości</value>
   </data>
+  <data name="Message tracing is off - nothing is being recorded." xml:space="preserve">
+    <value>Śledzenie wiadomości jest wyłączone - nic nie jest rejestrowane.</value>
+  </data>
   <data name="Message {0} cannot be followed here: the trace records queue ids only up to {1}. Search for its sender or a recipient instead." xml:space="preserve">
     <value>Nie można tu śledzić wiadomości {0}: śledzenie zapisuje identyfikatory kolejki tylko do {1}. Zamiast tego wyszukaj jej nadawcę lub odbiorcę.</value>
   </data>
@@ -8023,6 +8041,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   </data>
   <data name="OK" xml:space="preserve">
     <value>OK</value>
+  </data>
+  <data name="OK {0}" xml:space="preserve">
+    <value>OK {0}</value>
   </data>
   <data name="O_pen {0}" xml:space="preserve">
     <value>O_twórz {0}</value>
@@ -9505,6 +9526,9 @@ Warto to uruchomić, gdy klienty zgłaszają wiadomości pojawiające się pod n
   </data>
   <data name="Refused while delivering" xml:space="preserve">
     <value>Odrzucony podczas doręczania</value>
+  </data>
+  <data name="Refused {0}" xml:space="preserve">
+    <value>Odrzucono {0}</value>
   </data>
   <data name="Refused: {0}" xml:space="preserve">
     <value>Odrzucono: {0}</value>
@@ -14933,6 +14957,12 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="_Archive in the backup destination (name or path)" xml:space="preserve">
     <value>_Archiwum w miejscu docelowym kopii zapasowej (nazwa lub ścieżka)</value>
   </data>
+  <data name="_Back to results for {0}" xml:space="preserve">
+    <value>_Powrót do wyników dla {0}</value>
+  </data>
+  <data name="_Back to the results" xml:space="preserve">
+    <value>_Powrót do wyników</value>
+  </data>
   <data name="_Bind address (0.0.0.0)" xml:space="preserve">
     <value>_Adres powiązania (0.0.0.0)</value>
   </data>
@@ -15366,7 +15396,7 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
     <value>_Otwórz Ustawienia antywirusowe</value>
   </data>
   <data name="_Open Logging" xml:space="preserve">
-    <value>_Otwórz Rejestrowanie w dzienniku</value>
+    <value>O_twórz Rejestrowanie w dzienniku</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>Otwórz _raport</value>

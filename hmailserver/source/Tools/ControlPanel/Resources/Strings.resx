@@ -3690,6 +3690,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Defaults to {0} days, which is what the API itself uses when a request does not name one. A key with no expiry is the property that makes the administrator password dangerous, so there is no &quot;never&quot; option." xml:space="preserve">
     <value>Defaults to {0} days, which is what the API itself uses when a request does not name one. A key with no expiry is the property that makes the administrator password dangerous, so there is no "never" option.</value>
   </data>
+  <data name="Deferred {0}" xml:space="preserve">
+    <value>Deferred {0}</value>
+  </data>
   <data name="Del" xml:space="preserve">
     <value>Del</value>
   </data>
@@ -4618,8 +4621,8 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Enter a whole number." xml:space="preserve">
     <value>Enter a whole number.</value>
   </data>
-  <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
-    <value>Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom.</value>
+  <data name="Enter an address and press Search to see every event of the mail it sent or received." xml:space="preserve">
+    <value>Enter an address and press Search to see every event of the mail it sent or received.</value>
   </data>
   <data name="Enter an hour from 0 to 23." xml:space="preserve">
     <value>Enter an hour from 0 to 23.</value>
@@ -4782,6 +4785,15 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Events a minute for a subscription with no limit of its own (1 to 100000)" xml:space="preserve">
     <value>Events a minute for a subscription with no limit of its own (1 to 100000)</value>
+  </data>
+  <data name="Events are kept with no time limit." xml:space="preserve">
+    <value>Events are kept with no time limit.</value>
+  </data>
+  <data name="Events are kept {0} day." xml:space="preserve">
+    <value>Events are kept {0} day.</value>
+  </data>
+  <data name="Events are kept {0} days." xml:space="preserve">
+    <value>Events are kept {0} days.</value>
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off.</value>
@@ -6844,6 +6856,9 @@ Nothing already there is removed.</value>
   <data name="Message trace" xml:space="preserve">
     <value>Message trace</value>
   </data>
+  <data name="Message tracing is off - nothing is being recorded." xml:space="preserve">
+    <value>Message tracing is off - nothing is being recorded.</value>
+  </data>
   <data name="Message {0} cannot be followed here: the trace records queue ids only up to {1}. Search for its sender or a recipient instead." xml:space="preserve">
     <value>Message {0} cannot be followed here: the trace records queue ids only up to {1}. Search for its sender or a recipient instead.</value>
   </data>
@@ -7926,6 +7941,9 @@ Nothing already there is removed.</value>
   </data>
   <data name="OK" xml:space="preserve">
     <value>OK</value>
+  </data>
+  <data name="OK {0}" xml:space="preserve">
+    <value>OK {0}</value>
   </data>
   <data name="O_pen {0}" xml:space="preserve">
     <value>O_pen {0}</value>
@@ -9408,6 +9426,9 @@ Run this if clients report messages appearing under the wrong UID, or after rest
   </data>
   <data name="Refused while delivering" xml:space="preserve">
     <value>Refused while delivering</value>
+  </data>
+  <data name="Refused {0}" xml:space="preserve">
+    <value>Refused {0}</value>
   </data>
   <data name="Refused: {0}" xml:space="preserve">
     <value>Refused: {0}</value>
@@ -14748,6 +14769,12 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="_Archive in the backup destination (name or path)" xml:space="preserve">
     <value>_Archive in the backup destination (name or path)</value>
+  </data>
+  <data name="_Back to results for {0}" xml:space="preserve">
+    <value>_Back to results for {0}</value>
+  </data>
+  <data name="_Back to the results" xml:space="preserve">
+    <value>_Back to the results</value>
   </data>
   <data name="_Bind address (0.0.0.0)" xml:space="preserve">
     <value>_Bind address (0.0.0.0)</value>

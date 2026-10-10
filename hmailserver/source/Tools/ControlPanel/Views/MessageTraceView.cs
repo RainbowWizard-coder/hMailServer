@@ -27,7 +27,7 @@ namespace hMailServer.ControlPanel.Views
    /// and no time-series, because nobody comes here to browse - they come with an
    /// address and a complaint.
    /// </summary>
-   public class MessageTraceView : UserControl, IRefreshablePage
+   public class MessageTraceView : UserControl, IPageLifecycle, IRefreshablePage
    {
       // The last search, an address or a followed message, which Refresh and F5
       // run again.
@@ -77,13 +77,71 @@ namespace hMailServer.ControlPanel.Views
       // hMailServer.ini otherwise, for Remove expired: 0 keeps every event.
       private readonly IniFeatureStore iniStore_ = new();
       private Button removeExpired_;
-      private readonly EmptyState empty_ = new() { Icon = Wpf.Ui.Controls.SymbolRegular.DocumentSearch24, Visibility = Visibility.Collapsed };
+
+      // What the page shows before the first search: what to do, in the grid's
+      // place, where an Information notice said it over a blank grid of headers
+      // whatever the setting was (review finding F253).
+      private readonly EmptyState empty_ = new() { Icon = Wpf.Ui.Controls.SymbolRegular.DocumentSearch24 };
+
+      // Whether the trace records anything: a Warning with the page that turns it
+      // on while MessageTraceEnabled is off, and how long events are kept while it
+      // is on, read as the page opens (ShowTracingState_).
+      private readonly InlineNotice tracingOff_ = new() { Level = StatusLevel.Warning, Visibility = Visibility.Collapsed };
+      private readonly TextBlock keptFor_ = new() { Visibility = Visibility.Collapsed, TextWrapping = TextWrapping.Wrap };
+
+      // The results a followed message was opened from, which Back to results puts
+      // back as they were, the selected event with them: following one replaced the
+      // address's results with no way back but searching again.
+      private Button back_;
+      private object backCaption_;
+      private System.Collections.Generic.List<TraceRow> resultRows_;
+      private int resultSelected_ = -1;
+      private string resultsFor_;
+      private bool following_;
 
       public MessageTraceView()
       {
          Build();
-         Loaded += (_, _) => ShowSweepState_(RetentionDays_());
-         Status_(StatusLevel.Information, L("Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom."));
+         empty_.Text = L("Enter an address and press Search to see every event of the mail it sent or received.");
+      }
+
+      /// <summary>
+      /// Whether message tracing is on and how long its events are kept, read as the
+      /// page opens: a setting changed on the Logging page since is said here when the
+      /// page is next opened.
+      /// </summary>
+      public void OnEnter()
+      {
+         ShowTracingState_();
+         ShowSweepState_(RetentionDays_());
+      }
+
+      public void OnLeave()
+      {
+      }
+
+      /// <summary>
+      /// Off - nothing is recorded - says so as a Warning with the Logging page that
+      /// turns it on; on, a caption says how long events are kept. Neither while the
+      /// setting could not be read at all, which is no fact about the server.
+      /// </summary>
+      private void ShowTracingState_()
+      {
+         iniStore_.ForgetFallback();
+         string enabled = iniStore_.Read("MessageTraceEnabled", "0").Trim();
+         bool unknown = iniStore_.FallbackCause != null && !iniStore_.IsAvailable;
+
+         tracingOff_.Visibility = !unknown && enabled != "1" ? Visibility.Visible : Visibility.Collapsed;
+         keptFor_.Text = MessageTraceStatus.KeptFor(RetentionDays_());
+         keptFor_.Visibility = !unknown && enabled == "1" ? Visibility.Visible : Visibility.Collapsed;
+      }
+
+      private static Wpf.Ui.Controls.Button OpenLogging_()
+      {
+         var button = new Wpf.Ui.Controls.Button { Content = L("_Open Logging") };
+         System.Windows.Automation.AutomationProperties.SetAutomationId(button, "messagetrace-open-logging");
+         button.Click += (_, _) => (Application.Current?.MainWindow as MainWindow)?.NavigateTo("logging");
+         return button;
       }
 
       private dynamic OpenTrace()
@@ -150,6 +208,11 @@ namespace hMailServer.ControlPanel.Views
          public string Recipient { get; init; }
          public int StatusCode { get; init; }
 
+         /// <summary>The status as its word and its code, "Deferred 451", and the level its mark is drawn at (Services/MessageTraceStatus).</summary>
+         public string StatusText => MessageTraceStatus.TextOf(StatusCode);
+         public StatusLevel StatusLevel => MessageTraceStatus.LevelOf(StatusCode);
+         public Visibility StatusShown => StatusText.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
+
          /// <summary>
          /// 0 means the event happened before a queue entry existed - a refusal at
          /// RCPT - so there is nothing to follow and no story to open.
@@ -164,7 +227,7 @@ namespace hMailServer.ControlPanel.Views
          // with their columns' names.
          public override string ToString() => RowSpeech.Of(OccurredTime, EventName,
             RowSpeech.Labelled(L("Sender"), Sender), RowSpeech.Labelled(L("Recipient"), Recipient),
-            RowSpeech.Labelled(L("Status"), StatusCode.ToString(System.Globalization.CultureInfo.CurrentCulture)));
+            RowSpeech.Labelled(L("Status"), StatusText));
       }
 
       /// <summary>What the last search said, at its level.</summary>
@@ -192,6 +255,10 @@ namespace hMailServer.ControlPanel.Views
       {
          Remember_(() => Search_(address));
          count_.Visibility = Visibility.Collapsed;
+         following_ = false;
+         resultRows_ = null;
+         resultsFor_ = address;
+         back_.Visibility = Visibility.Collapsed;
          try
          {
             dynamic trace = OpenTrace();
@@ -261,6 +328,15 @@ namespace hMailServer.ControlPanel.Views
       {
          Remember_(() => Follow_(queueId));
          count_.Visibility = Visibility.Collapsed;
+
+         // The results the message is followed from, kept for Back to results; a
+         // message followed from a followed message goes back to the same results.
+         if (!following_ && list_.ItemsSource is System.Collections.Generic.List<TraceRow> results)
+         {
+            resultRows_ = results;
+            resultSelected_ = list_.SelectedIndex;
+         }
+
          try
          {
             dynamic trace = OpenTrace();
@@ -269,6 +345,8 @@ namespace hMailServer.ControlPanel.Views
                trace.SearchByQueueID(queueId);
                Fill(trace, L("No events for that message."));
                Status_(StatusLevel.Information, F("Every event for queue id {0}, oldest first.", queueId));
+               following_ = true;
+               ShowBack_();
             }
             finally
             {
@@ -279,6 +357,52 @@ namespace hMailServer.ControlPanel.Views
          {
             Status_(StatusLevel.Critical, ServerSession.DescribeComError(ex));
          }
+      }
+
+      /// <summary>Back to results shows whose results it goes back to, while a message is followed from them.</summary>
+      private void ShowBack_()
+      {
+         if (resultRows_ == null)
+         {
+            back_.Visibility = Visibility.Collapsed;
+            return;
+         }
+
+         // The address goes into an access-key caption: its own underscores are doubled,
+         // so that "j_doe@example.com" is shown as it is and B stays the key.
+         back_.Content = string.IsNullOrEmpty(resultsFor_)
+            ? backCaption_
+            : F("_Back to results for {0}", resultsFor_.Replace("_", "__"));
+         back_.Visibility = Visibility.Visible;
+      }
+
+      /// <summary>
+      /// The address's results again, as they were when a message was followed from
+      /// them, the event it was followed from selected; Refresh then runs the search
+      /// again.
+      /// </summary>
+      private void BackToResults_()
+      {
+         if (resultRows_ == null)
+            return;
+
+         string address = resultsFor_;
+         list_.ItemsSource = resultRows_;
+         StatusText.Show(empty_, null, resultRows_.Count, null, L("No events for that address. Either nothing has happened to it, or the trace was switched off at the time - it records only while message tracing is on (Logging page)."));
+         count_.Text = Plural(resultRows_.Count, "{0} event", "{0} events");
+         count_.Visibility = Visibility.Visible;
+         status_.Visibility = Visibility.Collapsed;
+         Remember_(() => Search_(address));
+         following_ = false;
+         back_.Visibility = Visibility.Collapsed;
+
+         if (resultSelected_ >= 0 && resultSelected_ < resultRows_.Count)
+         {
+            list_.SelectedIndex = resultSelected_;
+            list_.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, new Action(() => GridKeys.FocusSelectedRow(list_)));
+         }
+
+         resultRows_ = null;
       }
 
       /// <summary>MessageTraceRetentionDays; 30, the server's default, when it cannot be read or parsed.</summary>
@@ -381,12 +505,24 @@ namespace hMailServer.ControlPanel.Views
 
          var filters = new StackPanel { Orientation = Orientation.Horizontal };
          filters.Children.Add(MakeButton(L("_Search"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => Search()));
+
+         // While a message is followed: back to the results it was followed from,
+         // in words, as every toolbar button is (docs/ControlPanelDesign.md, List pages).
+         back_ = MakeButton(L("_Back to the results"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => BackToResults_());
+         backCaption_ = back_.Content;
+         back_.Visibility = Visibility.Collapsed;
+         System.Windows.Automation.AutomationProperties.SetAutomationId(back_, "messagetrace-back");
+         filters.Children.Add(back_);
          toolbar_.Filters = filters;
 
          var actions = new StackPanel { Orientation = Orientation.Horizontal };
          var follow = MakeButton(L("_Follow this message"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => FollowSelected());
          actions.Children.Add(follow);
          hMailServer.ControlPanel.Services.SelectionGate.Bind(list_, follow);
+
+         // Enter, F2 and a double-click on an event follow its message, as its
+         // button does (Views/GridKeys), where they did nothing.
+         GridKeys.Wire(list_, follow, null, null);
          removeExpired_ = MakeButton(L("Remove _expired"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => SweepExpired());
          ButtonStyles.DangerText(removeExpired_);
          actions.Children.Add(removeExpired_);
@@ -400,6 +536,18 @@ namespace hMailServer.ControlPanel.Views
          Grid.SetRow(scroll, 1);
          root.Children.Add(scroll);
          parts.Children.Add(toolbar_);
+
+         // Whether anything is recorded, under the toolbar: a Warning while tracing
+         // is off, the retention while it is on.
+         tracingOff_.Text = L("Message tracing is off - nothing is being recorded.");
+         tracingOff_.Content = OpenLogging_();
+         tracingOff_.SetResourceReference(MarginProperty, "AppCardGap");
+         System.Windows.Automation.AutomationProperties.SetAutomationId(tracingOff_, "messagetrace-off");
+         parts.Children.Add(tracingOff_);
+         keptFor_.SetResourceReference(StyleProperty, "TextCaption");
+         keptFor_.Margin = new Thickness(0, 0, 0, 8);
+         System.Windows.Automation.AutomationProperties.SetAutomationId(keptFor_, "messagetrace-kept");
+         parts.Children.Add(keptFor_);
          parts.Children.Add(status_);
 
          BuildColumns();
@@ -465,14 +613,21 @@ namespace hMailServer.ControlPanel.Views
             Width = new DataGridLength(1, DataGridLengthUnitType.Star)
          });
 
-         var status = new DataGridTextColumn
+         // The status as a word with the mark of its level - "OK 250", "Deferred
+         // 451", "Refused 550" - where it was the bare code, right-aligned like a
+         // count (review finding F253). Sorted by the code.
+         var pill = new FrameworkElementFactory(typeof(StatusPill));
+         pill.SetBinding(StatusPill.LevelProperty, new System.Windows.Data.Binding(nameof(TraceRow.StatusLevel)));
+         pill.SetBinding(StatusPill.TextProperty, new System.Windows.Data.Binding(nameof(TraceRow.StatusText)));
+         pill.SetBinding(VisibilityProperty, new System.Windows.Data.Binding(nameof(TraceRow.StatusShown)));
+         pill.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Left);
+         list_.Columns.Add(new DataGridTemplateColumn
          {
             Header = L("Status"),
-            Binding = new System.Windows.Data.Binding(nameof(TraceRow.StatusCode)),
+            CellTemplate = new DataTemplate { VisualTree = pill },
+            SortMemberPath = nameof(TraceRow.StatusCode),
             Width = DataGridLength.Auto
-         };
-         GridStyles.Number(status);
-         list_.Columns.Add(status);
+         });
 
          // The tip that used to live on each ListBoxItem. It says whether a row can
          // be followed at all, which is not otherwise visible - a refusal at RCPT

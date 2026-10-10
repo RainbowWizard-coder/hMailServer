@@ -34,6 +34,12 @@
     <Compile Include="..\ControlPanel\Services\LiveLogFiles.cs" />
   </ItemGroup>
 
+  <!-- The Message trace page's status words - "OK 250", "Deferred 451", "Refused
+       550" at their levels - and how long its events are kept. -->
+  <ItemGroup>
+    <Compile Include="..\ControlPanel\Services\MessageTraceStatus.cs" />
+  </ItemGroup>
+
   <!-- Server status's start time as the server's, and its uptime, worked out only
        where the server's clock is this computer's, in catalogued units. -->
   <ItemGroup>

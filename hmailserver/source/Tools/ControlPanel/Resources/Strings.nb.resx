@@ -3690,6 +3690,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Defaults to {0} days, which is what the API itself uses when a request does not name one. A key with no expiry is the property that makes the administrator password dangerous, so there is no &quot;never&quot; option." xml:space="preserve">
     <value>Standard er {0} dager, som er det API-et selv bruker når en forespørsel ikke oppgir noe. En nøkkel uten utløp er egenskapen som gjør administratorpassordet farlig, så det finnes ikke noe "aldri"-alternativ.</value>
   </data>
+  <data name="Deferred {0}" xml:space="preserve">
+    <value>Utsatt {0}</value>
+  </data>
   <data name="Del" xml:space="preserve">
     <value>Del</value>
   </data>
@@ -4618,8 +4621,8 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Enter a whole number." xml:space="preserve">
     <value>Skriv inn et heltall.</value>
   </data>
-  <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
-    <value>Skriv inn en adresse og søk. Sporingen registrerer ingenting før meldingssporing slås på på siden Logging – den er av som standard fordi den lagrer hvem som korresponderer med hvem.</value>
+  <data name="Enter an address and press Search to see every event of the mail it sent or received." xml:space="preserve">
+    <value>Skriv inn en adresse og trykk Søk for å se hver hendelse for posten den har sendt eller mottatt.</value>
   </data>
   <data name="Enter an hour from 0 to 23." xml:space="preserve">
     <value>Skriv inn en time fra 0 til 23.</value>
@@ -4782,6 +4785,15 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Events a minute for a subscription with no limit of its own (1 to 100000)" xml:space="preserve">
     <value>Hendelser per minutt for et abonnement uten egen grense (1 til 100000)</value>
+  </data>
+  <data name="Events are kept with no time limit." xml:space="preserve">
+    <value>Hendelser beholdes uten tidsgrense.</value>
+  </data>
+  <data name="Events are kept {0} day." xml:space="preserve">
+    <value>Hendelser beholdes i {0} dag.</value>
+  </data>
+  <data name="Events are kept {0} days." xml:space="preserve">
+    <value>Hendelser beholdes i {0} dager.</value>
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>Hver LDAP-pålogging vil bli avvist: ubeskyttet LDAP med simple bind ville sendt passord i klartekst, og AllowUnprotectedPassword er av.</value>
@@ -6844,6 +6856,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Message trace" xml:space="preserve">
     <value>Meldingssporing</value>
   </data>
+  <data name="Message tracing is off - nothing is being recorded." xml:space="preserve">
+    <value>Meldingssporing er av - ingenting blir registrert.</value>
+  </data>
   <data name="Message {0} cannot be followed here: the trace records queue ids only up to {1}. Search for its sender or a recipient instead." xml:space="preserve">
     <value>Melding {0} kan ikke følges her: sporingen registrerer bare kø-id-er opp til {1}. Søk i stedet etter avsenderen eller en mottaker.</value>
   </data>
@@ -7926,6 +7941,9 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="OK" xml:space="preserve">
     <value>OK</value>
+  </data>
+  <data name="OK {0}" xml:space="preserve">
+    <value>OK {0}</value>
   </data>
   <data name="O_pen {0}" xml:space="preserve">
     <value>Å_pne {0}</value>
@@ -9408,6 +9426,9 @@ Kjør dette hvis klienter melder om meldinger som dukker opp under feil UID, ell
   </data>
   <data name="Refused while delivering" xml:space="preserve">
     <value>Avvist under levering</value>
+  </data>
+  <data name="Refused {0}" xml:space="preserve">
+    <value>Avvist {0}</value>
   </data>
   <data name="Refused: {0}" xml:space="preserve">
     <value>Avvist: {0}</value>
@@ -14748,6 +14769,12 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="_Archive in the backup destination (name or path)" xml:space="preserve">
     <value>Arkiv i sikkerhetskopimålet (_navn eller sti)</value>
+  </data>
+  <data name="_Back to results for {0}" xml:space="preserve">
+    <value>_Tilbake til resultatene for {0}</value>
+  </data>
+  <data name="_Back to the results" xml:space="preserve">
+    <value>_Tilbake til resultatene</value>
   </data>
   <data name="_Bind address (0.0.0.0)" xml:space="preserve">
     <value>_Bindingsadresse (0.0.0.0)</value>

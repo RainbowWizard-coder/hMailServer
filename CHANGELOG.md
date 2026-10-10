@@ -2906,6 +2906,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   header in the narrowest window, the log floored at three lines' height, where its empty state's sentence was cut to
   its glyph. `LiveLogFilesTests` holds the line types, the filter and the page's wiring.
 
+- **Fixed: the Message trace page never said whether tracing was on, following a message threw the search's results
+  away, and its Status column was a bare reply code.** The same Information notice - that the trace records nothing
+  until message tracing is switched on - stood above a blank grid whatever the setting; "Follow this message" replaced
+  the address's results with no way back, and Enter and a double-click did nothing; and Status read 250, 451 or 550,
+  right-aligned like a count (review finding F253). The page now reads MessageTraceEnabled and the retention as it
+  opens: while tracing is off a Warning says "Message tracing is off - nothing is being recorded." with Open Logging,
+  and while it is on a caption says how long events are kept ("Events are kept 30 days."). Before the first search the
+  list's place says to enter an address and press Search. A message followed from the results offers Back to results
+  for the address, which puts the results back as they were with the event it was followed from selected; Enter, F2
+  and a double-click on an event follow its message, as its button does. A status is a pill of its word and level -
+  "OK 250", "Deferred 451", "Refused 550" - sorted by the code. `MessageTraceStatusTests` holds the words and the
+  page's wiring.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

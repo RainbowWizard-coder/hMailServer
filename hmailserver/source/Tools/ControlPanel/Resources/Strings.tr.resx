@@ -3690,6 +3690,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Defaults to {0} days, which is what the API itself uses when a request does not name one. A key with no expiry is the property that makes the administrator password dangerous, so there is no &quot;never&quot; option." xml:space="preserve">
     <value>Varsayılan {0} gündür; bir istek belirtmediğinde API'nin kendisi de bunu kullanır. Süresi dolmayan bir anahtar, yönetici parolasını tehlikeli kılan özelliktir; bu yüzden "asla" seçeneği yoktur.</value>
   </data>
+  <data name="Deferred {0}" xml:space="preserve">
+    <value>Ertelendi {0}</value>
+  </data>
   <data name="Del" xml:space="preserve">
     <value>Del</value>
   </data>
@@ -4618,8 +4621,8 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Enter a whole number." xml:space="preserve">
     <value>Bir tam sayı girin.</value>
   </data>
-  <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
-    <value>Bir adres girin ve arayın. İzleme, Günlükleme sayfasında ileti izleme açılana kadar hiçbir şey kaydetmez – kimin kiminle yazıştığını sakladığı için varsayılan olarak kapalıdır.</value>
+  <data name="Enter an address and press Search to see every event of the mail it sent or received." xml:space="preserve">
+    <value>Bir adres girip Ara'ya basın; gönderdiği veya aldığı postanın her olayını görürsünüz.</value>
   </data>
   <data name="Enter an hour from 0 to 23." xml:space="preserve">
     <value>0 ile 23 arasında bir saat girin.</value>
@@ -4782,6 +4785,15 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Events a minute for a subscription with no limit of its own (1 to 100000)" xml:space="preserve">
     <value>Kendi sınırı olmayan bir abonelik için dakikadaki olay sayısı (1 ile 100000 arası)</value>
+  </data>
+  <data name="Events are kept with no time limit." xml:space="preserve">
+    <value>Olaylar süre sınırı olmadan saklanır.</value>
+  </data>
+  <data name="Events are kept {0} day." xml:space="preserve">
+    <value>Olaylar {0} gün saklanır.</value>
+  </data>
+  <data name="Events are kept {0} days." xml:space="preserve">
+    <value>Olaylar {0} gün saklanır.</value>
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>Her LDAP oturum açması reddedilecek: basit bind ile korumasız LDAP parolaları düz metin olarak gönderirdi ve AllowUnprotectedPassword kapalı.</value>
@@ -6844,6 +6856,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Message trace" xml:space="preserve">
     <value>İleti izleme</value>
   </data>
+  <data name="Message tracing is off - nothing is being recorded." xml:space="preserve">
+    <value>İleti izleme kapalı - hiçbir şey kaydedilmiyor.</value>
+  </data>
   <data name="Message {0} cannot be followed here: the trace records queue ids only up to {1}. Search for its sender or a recipient instead." xml:space="preserve">
     <value>{0} iletisi burada izlenemez: izleme, kuyruk kimliklerini yalnızca {1} değerine kadar kaydeder. Bunun yerine gönderenini ya da bir alıcısını arayın.</value>
   </data>
@@ -7926,6 +7941,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="OK" xml:space="preserve">
     <value>Tamam</value>
+  </data>
+  <data name="OK {0}" xml:space="preserve">
+    <value>Tamam {0}</value>
   </data>
   <data name="O_pen {0}" xml:space="preserve">
     <value>{0} sayfasını a_ç</value>
@@ -9408,6 +9426,9 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   </data>
   <data name="Refused while delivering" xml:space="preserve">
     <value>Teslim sırasında reddedildi</value>
+  </data>
+  <data name="Refused {0}" xml:space="preserve">
+    <value>Reddedildi {0}</value>
   </data>
   <data name="Refused: {0}" xml:space="preserve">
     <value>Reddedildi: {0}</value>
@@ -14749,6 +14770,12 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="_Archive in the backup destination (name or path)" xml:space="preserve">
     <value>Yedekleme hedefindeki arşiv (_ad veya yol)</value>
   </data>
+  <data name="_Back to results for {0}" xml:space="preserve">
+    <value>_Sonuçlara dön: {0}</value>
+  </data>
+  <data name="_Back to the results" xml:space="preserve">
+    <value>_Sonuçlara dön</value>
+  </data>
   <data name="_Bind address (0.0.0.0)" xml:space="preserve">
     <value>_Bağlama adresi (0.0.0.0)</value>
   </data>
@@ -15182,7 +15209,7 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
     <value>Virüsten koruma ayarlarını _aç</value>
   </data>
   <data name="_Open Logging" xml:space="preserve">
-    <value>Günlüklemeyi _aç</value>
+    <value>Günlük_lemeyi aç</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>Raporu _aç</value>

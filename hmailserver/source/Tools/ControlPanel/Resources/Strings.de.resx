@@ -3690,6 +3690,9 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Defaults to {0} days, which is what the API itself uses when a request does not name one. A key with no expiry is the property that makes the administrator password dangerous, so there is no &quot;never&quot; option." xml:space="preserve">
     <value>Vorgabe {0} Tage, was die API selbst verwendet, wenn eine Anfrage keinen nennt. Ein Schlüssel ohne Ablauf ist die Eigenschaft, die das Administratorpasswort gefährlich macht, es gibt also keine Option „nie".</value>
   </data>
+  <data name="Deferred {0}" xml:space="preserve">
+    <value>Aufgeschoben {0}</value>
+  </data>
   <data name="Del" xml:space="preserve">
     <value>Entf</value>
   </data>
@@ -4618,8 +4621,8 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Enter a whole number." xml:space="preserve">
     <value>Geben Sie eine ganze Zahl ein.</value>
   </data>
-  <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
-    <value>Geben Sie eine Adresse ein und suchen Sie. Der Trace zeichnet nichts auf, bis die Nachrichtenverfolgung auf der Seite Protokollierung eingeschaltet wird – sie ist standardmäßig aus, weil sie speichert, wer mit wem korrespondiert.</value>
+  <data name="Enter an address and press Search to see every event of the mail it sent or received." xml:space="preserve">
+    <value>Geben Sie eine Adresse ein und drücken Sie Suchen, um jedes Ereignis der Post zu sehen, die sie gesendet oder empfangen hat.</value>
   </data>
   <data name="Enter an hour from 0 to 23." xml:space="preserve">
     <value>Geben Sie eine Stunde von 0 bis 23 ein.</value>
@@ -4782,6 +4785,15 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   </data>
   <data name="Events a minute for a subscription with no limit of its own (1 to 100000)" xml:space="preserve">
     <value>Ereignisse pro Minute für ein Abonnement ohne eigene Grenze (1 bis 100000)</value>
+  </data>
+  <data name="Events are kept with no time limit." xml:space="preserve">
+    <value>Ereignisse werden ohne Zeitlimit aufbewahrt.</value>
+  </data>
+  <data name="Events are kept {0} day." xml:space="preserve">
+    <value>Ereignisse werden {0} Tag aufbewahrt.</value>
+  </data>
+  <data name="Events are kept {0} days." xml:space="preserve">
+    <value>Ereignisse werden {0} Tage aufbewahrt.</value>
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>Jede LDAP-Anmeldung wird abgelehnt: ungeschütztes LDAP mit einfachem Bind würde Passwörter im Klartext senden, und AllowUnprotectedPassword ist aus.</value>
@@ -6844,6 +6856,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="Message trace" xml:space="preserve">
     <value>Nachrichten-Trace</value>
   </data>
+  <data name="Message tracing is off - nothing is being recorded." xml:space="preserve">
+    <value>Die Nachrichtenverfolgung ist aus - es wird nichts aufgezeichnet.</value>
+  </data>
   <data name="Message {0} cannot be followed here: the trace records queue ids only up to {1}. Search for its sender or a recipient instead." xml:space="preserve">
     <value>Nachricht {0} kann hier nicht verfolgt werden: Der Trace erfasst Warteschlangen-IDs nur bis {1}. Suchen Sie stattdessen nach ihrem Absender oder einem Empfänger.</value>
   </data>
@@ -7926,6 +7941,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   </data>
   <data name="OK" xml:space="preserve">
     <value>OK</value>
+  </data>
+  <data name="OK {0}" xml:space="preserve">
+    <value>OK {0}</value>
   </data>
   <data name="O_pen {0}" xml:space="preserve">
     <value>{0} ö_ffnen</value>
@@ -9408,6 +9426,9 @@ Führen Sie dies aus, wenn Clients melden, dass Nachrichten unter der falschen U
   </data>
   <data name="Refused while delivering" xml:space="preserve">
     <value>Bei der Zustellung abgelehnt</value>
+  </data>
+  <data name="Refused {0}" xml:space="preserve">
+    <value>Abgewiesen {0}</value>
   </data>
   <data name="Refused: {0}" xml:space="preserve">
     <value>Abgelehnt: {0}</value>
@@ -14748,6 +14769,12 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="_Archive in the backup destination (name or path)" xml:space="preserve">
     <value>Archiv im Sicherungsziel (_Name oder Pfad)</value>
+  </data>
+  <data name="_Back to results for {0}" xml:space="preserve">
+    <value>_Zurück zu den Ergebnissen für {0}</value>
+  </data>
+  <data name="_Back to the results" xml:space="preserve">
+    <value>_Zurück zu den Ergebnissen</value>
   </data>
   <data name="_Bind address (0.0.0.0)" xml:space="preserve">
     <value>_Bindeadresse (0.0.0.0)</value>

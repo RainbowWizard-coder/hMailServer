@@ -3690,6 +3690,9 @@
   <data name="Defaults to {0} days, which is what the API itself uses when a request does not name one. A key with no expiry is the property that makes the administrator password dangerous, so there is no &quot;never&quot; option." xml:space="preserve">
     <value>既定は {0} 日で、リクエストで指定がない場合に API 自身が使う値です。有効期限のないキーこそが管理者パスワードを危険にしている性質なので、「無期限」という選択肢はありません。</value>
   </data>
+  <data name="Deferred {0}" xml:space="preserve">
+    <value>延期 {0}</value>
+  </data>
   <data name="Del" xml:space="preserve">
     <value>Del</value>
   </data>
@@ -4618,8 +4621,8 @@
   <data name="Enter a whole number." xml:space="preserve">
     <value>整数を入力してください。</value>
   </data>
-  <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
-    <value>アドレスを入力して検索してください。メッセージ トレースはログ ページでオンにするまで何も記録しません。誰と誰がやり取りしたかを保存するため、既定ではオフになっています。</value>
+  <data name="Enter an address and press Search to see every event of the mail it sent or received." xml:space="preserve">
+    <value>アドレスを入力して [検索] を押すと、そのアドレスが送受信したメールのすべてのイベントが表示されます。</value>
   </data>
   <data name="Enter an hour from 0 to 23." xml:space="preserve">
     <value>0 から 23 までの時刻を入力してください。</value>
@@ -4782,6 +4785,15 @@
   </data>
   <data name="Events a minute for a subscription with no limit of its own (1 to 100000)" xml:space="preserve">
     <value>独自の上限を持たない購読の 1 分あたりのイベント数 (1 から 100000)</value>
+  </data>
+  <data name="Events are kept with no time limit." xml:space="preserve">
+    <value>イベントは期限なしで保持されます。</value>
+  </data>
+  <data name="Events are kept {0} day." xml:space="preserve">
+    <value>イベントは {0} 日間保持されます。</value>
+  </data>
+  <data name="Events are kept {0} days." xml:space="preserve">
+    <value>イベントは {0} 日間保持されます。</value>
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>すべての LDAP ログオンが拒否されます: 保護されていない LDAP でのシンプル バインドはパスワードを平文で送信することになり、AllowUnprotectedPassword がオフだからです。</value>
@@ -6844,6 +6856,9 @@
   <data name="Message trace" xml:space="preserve">
     <value>メッセージ トレース</value>
   </data>
+  <data name="Message tracing is off - nothing is being recorded." xml:space="preserve">
+    <value>メッセージ トレースはオフです - 何も記録されていません。</value>
+  </data>
   <data name="Message {0} cannot be followed here: the trace records queue ids only up to {1}. Search for its sender or a recipient instead." xml:space="preserve">
     <value>メッセージ {0} はここでは追跡できません: トレースが記録するキュー ID は {1} までです。代わりに送信者か受信者で検索してください。</value>
   </data>
@@ -7926,6 +7941,9 @@
   </data>
   <data name="OK" xml:space="preserve">
     <value>OK</value>
+  </data>
+  <data name="OK {0}" xml:space="preserve">
+    <value>OK {0}</value>
   </data>
   <data name="O_pen {0}" xml:space="preserve">
     <value>{0} を開く(_P)</value>
@@ -9408,6 +9426,9 @@
   </data>
   <data name="Refused while delivering" xml:space="preserve">
     <value>配信中に拒否</value>
+  </data>
+  <data name="Refused {0}" xml:space="preserve">
+    <value>拒否 {0}</value>
   </data>
   <data name="Refused: {0}" xml:space="preserve">
     <value>拒否されました: {0}</value>
@@ -14748,6 +14769,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Archive in the backup destination (name or path)" xml:space="preserve">
     <value>バックアップ先のアーカイブ (名前またはパス)(_A)</value>
+  </data>
+  <data name="_Back to results for {0}" xml:space="preserve">
+    <value>{0} の結果に戻る(_B)</value>
+  </data>
+  <data name="_Back to the results" xml:space="preserve">
+    <value>結果に戻る(_B)</value>
   </data>
   <data name="_Bind address (0.0.0.0)" xml:space="preserve">
     <value>バインド アドレス (0.0.0.0)(_B)</value>

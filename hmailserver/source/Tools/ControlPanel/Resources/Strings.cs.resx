@@ -3714,6 +3714,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Defaults to {0} days, which is what the API itself uses when a request does not name one. A key with no expiry is the property that makes the administrator password dangerous, so there is no &quot;never&quot; option." xml:space="preserve">
     <value>Výchozí je {0} dní, což je hodnota, kterou samo API použije, když ji požadavek neuvede. Klíč bez vypršení platnosti je právě ta vlastnost, kvůli které je heslo správce nebezpečné, takže volba „nikdy“ zde není.</value>
   </data>
+  <data name="Deferred {0}" xml:space="preserve">
+    <value>Odloženo {0}</value>
+  </data>
   <data name="Del" xml:space="preserve">
     <value>Del</value>
   </data>
@@ -4670,8 +4673,8 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Enter a whole number." xml:space="preserve">
     <value>Zadejte celé číslo.</value>
   </data>
-  <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
-    <value>Zadejte adresu a vyhledejte. Trasování nezaznamenává vůbec nic, dokud není trasování zpráv zapnuto na stránce Logování – ve výchozím nastavení je vypnuto, protože ukládá, kdo si s kým dopisuje.</value>
+  <data name="Enter an address and press Search to see every event of the mail it sent or received." xml:space="preserve">
+    <value>Zadejte adresu a stiskněte Hledat: uvidíte každou událost pošty, kterou odeslala nebo přijala.</value>
   </data>
   <data name="Enter an hour from 0 to 23." xml:space="preserve">
     <value>Zadejte hodinu od 0 do 23.</value>
@@ -4837,6 +4840,18 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Events a minute for a subscription with no limit of its own (1 to 100000)" xml:space="preserve">
     <value>Události za minutu pro odběr bez vlastního limitu (1 až 100000)</value>
+  </data>
+  <data name="Events are kept with no time limit." xml:space="preserve">
+    <value>Události se uchovávají bez časového omezení.</value>
+  </data>
+  <data name="Events are kept {0} day." xml:space="preserve">
+    <value>Události se uchovávají {0} den.</value>
+  </data>
+  <data name="Events are kept {0} days." xml:space="preserve">
+    <value>Události se uchovávají {0} dní.</value>
+  </data>
+  <data name="Events are kept {0} days.|few" xml:space="preserve">
+    <value>Události se uchovávají {0} dny.</value>
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>Každé přihlášení přes LDAP bude odmítnuto: nechráněný LDAP s jednoduchým bindem by posílal hesla v otevřeném textu a AllowUnprotectedPassword je vypnuté.</value>
@@ -6920,6 +6935,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Message trace" xml:space="preserve">
     <value>Trasování zpráv</value>
   </data>
+  <data name="Message tracing is off - nothing is being recorded." xml:space="preserve">
+    <value>Trasování zpráv je vypnuté - nic se nezaznamenává.</value>
+  </data>
   <data name="Message {0} cannot be followed here: the trace records queue ids only up to {1}. Search for its sender or a recipient instead." xml:space="preserve">
     <value>Zprávu {0} zde nelze sledovat: trasování zaznamenává id fronty jen do {1}. Vyhledejte místo toho jejího odesílatele nebo příjemce.</value>
   </data>
@@ -8023,6 +8041,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="OK" xml:space="preserve">
     <value>OK</value>
+  </data>
+  <data name="OK {0}" xml:space="preserve">
+    <value>OK {0}</value>
   </data>
   <data name="O_pen {0}" xml:space="preserve">
     <value>Ote_vřít {0}</value>
@@ -9505,6 +9526,9 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
   </data>
   <data name="Refused while delivering" xml:space="preserve">
     <value>Odmítnuto při doručování</value>
+  </data>
+  <data name="Refused {0}" xml:space="preserve">
+    <value>Odmítnuto {0}</value>
   </data>
   <data name="Refused: {0}" xml:space="preserve">
     <value>Odmítnuto: {0}</value>
@@ -14932,6 +14956,12 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Archive in the backup destination (name or path)" xml:space="preserve">
     <value>Archiv v cíli zálohy (_název nebo cesta)</value>
+  </data>
+  <data name="_Back to results for {0}" xml:space="preserve">
+    <value>_Zpět na výsledky pro {0}</value>
+  </data>
+  <data name="_Back to the results" xml:space="preserve">
+    <value>_Zpět na výsledky</value>
   </data>
   <data name="_Bind address (0.0.0.0)" xml:space="preserve">
     <value>_Adresa pro navázání (0.0.0.0)</value>

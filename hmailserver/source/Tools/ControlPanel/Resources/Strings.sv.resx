@@ -3690,6 +3690,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Defaults to {0} days, which is what the API itself uses when a request does not name one. A key with no expiry is the property that makes the administrator password dangerous, so there is no &quot;never&quot; option." xml:space="preserve">
     <value>Standard {0} dagar, vilket är vad API:et självt använder när en begäran inte anger något. En nyckel utan utgångstid är den egenskap som gör administratörslösenordet farligt, så det finns inget alternativ "aldrig".</value>
   </data>
+  <data name="Deferred {0}" xml:space="preserve">
+    <value>Uppskjutet {0}</value>
+  </data>
   <data name="Del" xml:space="preserve">
     <value>Del</value>
   </data>
@@ -4618,8 +4621,8 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Enter a whole number." xml:space="preserve">
     <value>Ange ett heltal.</value>
   </data>
-  <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
-    <value>Ange en adress och sök. Spårningen registrerar ingenting förrän meddelandespårning slås på på sidan Loggning – den är av som standard eftersom den lagrar vem som brevväxlar med vem.</value>
+  <data name="Enter an address and press Search to see every event of the mail it sent or received." xml:space="preserve">
+    <value>Ange en adress och tryck på Sök för att se varje händelse för den post den har skickat eller tagit emot.</value>
   </data>
   <data name="Enter an hour from 0 to 23." xml:space="preserve">
     <value>Ange en timme från 0 till 23.</value>
@@ -4782,6 +4785,15 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Events a minute for a subscription with no limit of its own (1 to 100000)" xml:space="preserve">
     <value>Händelser per minut för en prenumeration utan egen gräns (1 till 100000)</value>
+  </data>
+  <data name="Events are kept with no time limit." xml:space="preserve">
+    <value>Händelser sparas utan tidsgräns.</value>
+  </data>
+  <data name="Events are kept {0} day." xml:space="preserve">
+    <value>Händelser sparas i {0} dag.</value>
+  </data>
+  <data name="Events are kept {0} days." xml:space="preserve">
+    <value>Händelser sparas i {0} dagar.</value>
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>Varje LDAP-inloggning avvisas: oskyddad LDAP med en enkel bindning skulle skicka lösenord i klartext, och AllowUnprotectedPassword är av.</value>
@@ -6844,6 +6856,9 @@ Inget som redan finns där tas bort.</value>
   <data name="Message trace" xml:space="preserve">
     <value>Meddelandespårning</value>
   </data>
+  <data name="Message tracing is off - nothing is being recorded." xml:space="preserve">
+    <value>Meddelandespårning är av - ingenting registreras.</value>
+  </data>
   <data name="Message {0} cannot be followed here: the trace records queue ids only up to {1}. Search for its sender or a recipient instead." xml:space="preserve">
     <value>Meddelande {0} kan inte följas här: spårningen registrerar kö-id bara upp till {1}. Sök i stället efter dess avsändare eller en mottagare.</value>
   </data>
@@ -7926,6 +7941,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="OK" xml:space="preserve">
     <value>OK</value>
+  </data>
+  <data name="OK {0}" xml:space="preserve">
+    <value>OK {0}</value>
   </data>
   <data name="O_pen {0}" xml:space="preserve">
     <value>Ö_ppna {0}</value>
@@ -9408,6 +9426,9 @@ Kör detta om klienter rapporterar meddelanden som dyker upp under fel UID, elle
   </data>
   <data name="Refused while delivering" xml:space="preserve">
     <value>Avvisad under leverans</value>
+  </data>
+  <data name="Refused {0}" xml:space="preserve">
+    <value>Avvisat {0}</value>
   </data>
   <data name="Refused: {0}" xml:space="preserve">
     <value>Avvisad: {0}</value>
@@ -14748,6 +14769,12 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="_Archive in the backup destination (name or path)" xml:space="preserve">
     <value>Arkiv i säkerhetskopians mål (_namn eller sökväg)</value>
+  </data>
+  <data name="_Back to results for {0}" xml:space="preserve">
+    <value>_Tillbaka till resultaten för {0}</value>
+  </data>
+  <data name="_Back to the results" xml:space="preserve">
+    <value>_Tillbaka till resultaten</value>
   </data>
   <data name="_Bind address (0.0.0.0)" xml:space="preserve">
     <value>_Bindningsadress (0.0.0.0)</value>

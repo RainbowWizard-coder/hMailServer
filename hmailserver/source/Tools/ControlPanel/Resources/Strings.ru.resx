@@ -3714,6 +3714,9 @@ Control Panel может читать файлы сообщений только
   <data name="Defaults to {0} days, which is what the API itself uses when a request does not name one. A key with no expiry is the property that makes the administrator password dangerous, so there is no &quot;never&quot; option." xml:space="preserve">
     <value>По умолчанию {0} дн. — именно столько использует сам API, когда запрос срок не называет. Ключ без срока действия — то самое свойство, которое делает пароль администратора опасным, поэтому варианта «никогда» здесь нет.</value>
   </data>
+  <data name="Deferred {0}" xml:space="preserve">
+    <value>Отложено {0}</value>
+  </data>
   <data name="Del" xml:space="preserve">
     <value>Del</value>
   </data>
@@ -4670,8 +4673,8 @@ Control Panel может читать файлы сообщений только
   <data name="Enter a whole number." xml:space="preserve">
     <value>Введите целое число.</value>
   </data>
-  <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
-    <value>Введите адрес и выполните поиск. Трассировка ничего не записывает, пока трассировка сообщений не будет включена на странице «Журналирование», – по умолчанию она выключена, потому что сохраняет, кто с кем переписывается.</value>
+  <data name="Enter an address and press Search to see every event of the mail it sent or received." xml:space="preserve">
+    <value>Введите адрес и нажмите «Поиск», чтобы увидеть каждое событие почты, которую он отправил или получил.</value>
   </data>
   <data name="Enter an hour from 0 to 23." xml:space="preserve">
     <value>Введите час от 0 до 23.</value>
@@ -4837,6 +4840,18 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Events a minute for a subscription with no limit of its own (1 to 100000)" xml:space="preserve">
     <value>Событий в минуту для подписки без собственного ограничения (от 1 до 100000)</value>
+  </data>
+  <data name="Events are kept with no time limit." xml:space="preserve">
+    <value>События хранятся без ограничения срока.</value>
+  </data>
+  <data name="Events are kept {0} day." xml:space="preserve">
+    <value>События хранятся {0} день.</value>
+  </data>
+  <data name="Events are kept {0} days." xml:space="preserve">
+    <value>События хранятся {0} дней.</value>
+  </data>
+  <data name="Events are kept {0} days.|few" xml:space="preserve">
+    <value>События хранятся {0} дня.</value>
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>Каждый вход через LDAP будет отклонён: незащищённый LDAP с простой привязкой отправлял бы пароли открытым текстом, а AllowUnprotectedPassword выключен.</value>
@@ -6920,6 +6935,9 @@ Control Panel может читать файлы сообщений только
   <data name="Message trace" xml:space="preserve">
     <value>Трассировка сообщений</value>
   </data>
+  <data name="Message tracing is off - nothing is being recorded." xml:space="preserve">
+    <value>Трассировка сообщений выключена - ничего не записывается.</value>
+  </data>
   <data name="Message {0} cannot be followed here: the trace records queue ids only up to {1}. Search for its sender or a recipient instead." xml:space="preserve">
     <value>Сообщение {0} здесь нельзя проследить: трассировка записывает идентификаторы очереди только до {1}. Вместо этого найдите его отправителя или получателя.</value>
   </data>
@@ -8023,6 +8041,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="OK" xml:space="preserve">
     <value>ОК</value>
+  </data>
+  <data name="OK {0}" xml:space="preserve">
+    <value>OK {0}</value>
   </data>
   <data name="O_pen {0}" xml:space="preserve">
     <value>Отк_рыть «{0}»</value>
@@ -9505,6 +9526,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Refused while delivering" xml:space="preserve">
     <value>Отклонено при доставке</value>
+  </data>
+  <data name="Refused {0}" xml:space="preserve">
+    <value>Отклонено {0}</value>
   </data>
   <data name="Refused: {0}" xml:space="preserve">
     <value>Отклонено: {0}</value>
@@ -14932,6 +14956,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Archive in the backup destination (name or path)" xml:space="preserve">
     <value>Архив в месте назначения резервных копий (_имя или путь)</value>
+  </data>
+  <data name="_Back to results for {0}" xml:space="preserve">
+    <value>_Назад к результатам для {0}</value>
+  </data>
+  <data name="_Back to the results" xml:space="preserve">
+    <value>_Назад к результатам</value>
   </data>
   <data name="_Bind address (0.0.0.0)" xml:space="preserve">
     <value>_Адрес привязки (0.0.0.0)</value>

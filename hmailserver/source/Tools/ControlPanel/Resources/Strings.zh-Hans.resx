@@ -3690,6 +3690,9 @@
   <data name="Defaults to {0} days, which is what the API itself uses when a request does not name one. A key with no expiry is the property that makes the administrator password dangerous, so there is no &quot;never&quot; option." xml:space="preserve">
     <value>默认为 {0} 天，这也是 API 本身在请求未指定时使用的值。没有到期时间的密钥正是让管理员密码变得危险的那个特性，因此没有“永不”选项。</value>
   </data>
+  <data name="Deferred {0}" xml:space="preserve">
+    <value>延迟 {0}</value>
+  </data>
   <data name="Del" xml:space="preserve">
     <value>Del</value>
   </data>
@@ -4618,8 +4621,8 @@
   <data name="Enter a whole number." xml:space="preserve">
     <value>请输入整数。</value>
   </data>
-  <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
-    <value>输入地址并搜索。在“日志记录”页面开启邮件跟踪之前，跟踪不会记录任何内容 - 它默认关闭，因为它会存储谁与谁通信。</value>
+  <data name="Enter an address and press Search to see every event of the mail it sent or received." xml:space="preserve">
+    <value>输入一个地址并按“搜索”，即可查看它发出或收到的邮件的每个事件。</value>
   </data>
   <data name="Enter an hour from 0 to 23." xml:space="preserve">
     <value>请输入 0 到 23 之间的小时。</value>
@@ -4782,6 +4785,15 @@
   </data>
   <data name="Events a minute for a subscription with no limit of its own (1 to 100000)" xml:space="preserve">
     <value>没有自己限制的订阅每分钟的事件数（1 到 100000）</value>
+  </data>
+  <data name="Events are kept with no time limit." xml:space="preserve">
+    <value>事件没有保留期限。</value>
+  </data>
+  <data name="Events are kept {0} day." xml:space="preserve">
+    <value>事件保留 {0} 天。</value>
+  </data>
+  <data name="Events are kept {0} days." xml:space="preserve">
+    <value>事件保留 {0} 天。</value>
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>所有 LDAP 登录都将被拒绝：未受保护的 LDAP 配合简单绑定会以明文发送密码，而 AllowUnprotectedPassword 已关闭。</value>
@@ -6844,6 +6856,9 @@
   <data name="Message trace" xml:space="preserve">
     <value>邮件跟踪</value>
   </data>
+  <data name="Message tracing is off - nothing is being recorded." xml:space="preserve">
+    <value>邮件跟踪已关闭 - 没有记录任何内容。</value>
+  </data>
   <data name="Message {0} cannot be followed here: the trace records queue ids only up to {1}. Search for its sender or a recipient instead." xml:space="preserve">
     <value>无法在此跟踪邮件 {0}：跟踪只记录不超过 {1} 的队列 id。请改为搜索其发件人或收件人。</value>
   </data>
@@ -7926,6 +7941,9 @@
   </data>
   <data name="OK" xml:space="preserve">
     <value>正常</value>
+  </data>
+  <data name="OK {0}" xml:space="preserve">
+    <value>成功 {0}</value>
   </data>
   <data name="O_pen {0}" xml:space="preserve">
     <value>打开{0}(_P)</value>
@@ -9408,6 +9426,9 @@
   </data>
   <data name="Refused while delivering" xml:space="preserve">
     <value>投递时被拒绝</value>
+  </data>
+  <data name="Refused {0}" xml:space="preserve">
+    <value>拒绝 {0}</value>
   </data>
   <data name="Refused: {0}" xml:space="preserve">
     <value>已拒绝：{0}</value>
@@ -14748,6 +14769,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="_Archive in the backup destination (name or path)" xml:space="preserve">
     <value>备份目标中的存档 (名称或路径)(_A)</value>
+  </data>
+  <data name="_Back to results for {0}" xml:space="preserve">
+    <value>返回 {0} 的结果(_B)</value>
+  </data>
+  <data name="_Back to the results" xml:space="preserve">
+    <value>返回结果(_B)</value>
   </data>
   <data name="_Bind address (0.0.0.0)" xml:space="preserve">
     <value>绑定地址（0.0.0.0）(_B)</value>

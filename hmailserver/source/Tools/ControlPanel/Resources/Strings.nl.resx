@@ -3690,6 +3690,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Defaults to {0} days, which is what the API itself uses when a request does not name one. A key with no expiry is the property that makes the administrator password dangerous, so there is no &quot;never&quot; option." xml:space="preserve">
     <value>Standaard {0} dagen, wat de API zelf gebruikt wanneer een aanvraag er geen noemt. Een sleutel zonder vervaldatum is precies de eigenschap die het beheerderswachtwoord gevaarlijk maakt, dus er is geen optie "nooit".</value>
   </data>
+  <data name="Deferred {0}" xml:space="preserve">
+    <value>Uitgesteld {0}</value>
+  </data>
   <data name="Del" xml:space="preserve">
     <value>Del</value>
   </data>
@@ -4618,8 +4621,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Enter a whole number." xml:space="preserve">
     <value>Voer een geheel getal in.</value>
   </data>
-  <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
-    <value>Voer een adres in en zoek. De tracering legt niets vast totdat berichttracering wordt ingeschakeld op de pagina Logboekregistratie – standaard staat deze uit omdat ze opslaat wie met wie correspondeert.</value>
+  <data name="Enter an address and press Search to see every event of the mail it sent or received." xml:space="preserve">
+    <value>Voer een adres in en druk op Zoeken om elke gebeurtenis te zien van de mail die het heeft verzonden of ontvangen.</value>
   </data>
   <data name="Enter an hour from 0 to 23." xml:space="preserve">
     <value>Voer een uur van 0 tot 23 in.</value>
@@ -4782,6 +4785,15 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Events a minute for a subscription with no limit of its own (1 to 100000)" xml:space="preserve">
     <value>Gebeurtenissen per minuut voor een abonnement zonder eigen limiet (1 tot 100000)</value>
+  </data>
+  <data name="Events are kept with no time limit." xml:space="preserve">
+    <value>Gebeurtenissen worden zonder tijdslimiet bewaard.</value>
+  </data>
+  <data name="Events are kept {0} day." xml:space="preserve">
+    <value>Gebeurtenissen worden {0} dag bewaard.</value>
+  </data>
+  <data name="Events are kept {0} days." xml:space="preserve">
+    <value>Gebeurtenissen worden {0} dagen bewaard.</value>
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>Elke LDAP-aanmelding wordt geweigerd: onbeschermd LDAP met een simple bind zou wachtwoorden in klare tekst versturen, en AllowUnprotectedPassword staat uit.</value>
@@ -6844,6 +6856,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Message trace" xml:space="preserve">
     <value>Berichttracering</value>
   </data>
+  <data name="Message tracing is off - nothing is being recorded." xml:space="preserve">
+    <value>Berichttracering staat uit - er wordt niets vastgelegd.</value>
+  </data>
   <data name="Message {0} cannot be followed here: the trace records queue ids only up to {1}. Search for its sender or a recipient instead." xml:space="preserve">
     <value>Bericht {0} kan hier niet worden gevolgd: de tracering legt wachtrij-id's alleen vast tot {1}. Zoek in plaats daarvan op de afzender of een ontvanger.</value>
   </data>
@@ -7926,6 +7941,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="OK" xml:space="preserve">
     <value>OK</value>
+  </data>
+  <data name="OK {0}" xml:space="preserve">
+    <value>OK {0}</value>
   </data>
   <data name="O_pen {0}" xml:space="preserve">
     <value>{0} o_penen</value>
@@ -9408,6 +9426,9 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   </data>
   <data name="Refused while delivering" xml:space="preserve">
     <value>Geweigerd tijdens aflevering</value>
+  </data>
+  <data name="Refused {0}" xml:space="preserve">
+    <value>Geweigerd {0}</value>
   </data>
   <data name="Refused: {0}" xml:space="preserve">
     <value>Geweigerd: {0}</value>
@@ -14748,6 +14769,12 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="_Archive in the backup destination (name or path)" xml:space="preserve">
     <value>Archief in de back-upbestemming (_naam of pad)</value>
+  </data>
+  <data name="_Back to results for {0}" xml:space="preserve">
+    <value>_Terug naar de resultaten voor {0}</value>
+  </data>
+  <data name="_Back to the results" xml:space="preserve">
+    <value>_Terug naar de resultaten</value>
   </data>
   <data name="_Bind address (0.0.0.0)" xml:space="preserve">
     <value>_Bindadres (0.0.0.0)</value>

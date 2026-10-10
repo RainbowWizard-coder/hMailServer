@@ -3714,6 +3714,9 @@
   <data name="Defaults to {0} days, which is what the API itself uses when a request does not name one. A key with no expiry is the property that makes the administrator password dangerous, so there is no &quot;never&quot; option." xml:space="preserve">
     <value>Типово {0} днів — саме стільки використовує сам API, коли запит не називає значення. Саме відсутність терміну дії робить пароль адміністратора небезпечним, тому варіанта «ніколи» тут немає.</value>
   </data>
+  <data name="Deferred {0}" xml:space="preserve">
+    <value>Відкладено {0}</value>
+  </data>
   <data name="Del" xml:space="preserve">
     <value>Del</value>
   </data>
@@ -4670,8 +4673,8 @@
   <data name="Enter a whole number." xml:space="preserve">
     <value>Введіть ціле число.</value>
   </data>
-  <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
-    <value>Введіть адресу та виконайте пошук. Трасування нічого не записує, доки трасування повідомлень не буде ввімкнено на сторінці «Журналювання», – типово воно вимкнене, бо зберігає, хто з ким листується.</value>
+  <data name="Enter an address and press Search to see every event of the mail it sent or received." xml:space="preserve">
+    <value>Введіть адресу й натисніть «Пошук», щоб побачити кожну подію пошти, яку вона надіслала або отримала.</value>
   </data>
   <data name="Enter an hour from 0 to 23." xml:space="preserve">
     <value>Введіть годину від 0 до 23.</value>
@@ -4837,6 +4840,18 @@
   </data>
   <data name="Events a minute for a subscription with no limit of its own (1 to 100000)" xml:space="preserve">
     <value>Подій за хвилину для підписки без власного обмеження (від 1 до 100000)</value>
+  </data>
+  <data name="Events are kept with no time limit." xml:space="preserve">
+    <value>Події зберігаються без обмеження строку.</value>
+  </data>
+  <data name="Events are kept {0} day." xml:space="preserve">
+    <value>Події зберігаються {0} день.</value>
+  </data>
+  <data name="Events are kept {0} days." xml:space="preserve">
+    <value>Події зберігаються {0} днів.</value>
+  </data>
+  <data name="Events are kept {0} days.|few" xml:space="preserve">
+    <value>Події зберігаються {0} дні.</value>
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>Кожен вхід через LDAP буде відхилено: незахищений LDAP із простою прив'язкою надсилав би паролі відкритим текстом, а AllowUnprotectedPassword вимкнено.</value>
@@ -6920,6 +6935,9 @@
   <data name="Message trace" xml:space="preserve">
     <value>Трасування повідомлень</value>
   </data>
+  <data name="Message tracing is off - nothing is being recorded." xml:space="preserve">
+    <value>Трасування повідомлень вимкнено - нічого не записується.</value>
+  </data>
   <data name="Message {0} cannot be followed here: the trace records queue ids only up to {1}. Search for its sender or a recipient instead." xml:space="preserve">
     <value>Повідомлення {0} тут не можна простежити: трасування записує ідентифікатори черги лише до {1}. Натомість знайдіть його відправника або отримувача.</value>
   </data>
@@ -8023,6 +8041,9 @@
   </data>
   <data name="OK" xml:space="preserve">
     <value>OK</value>
+  </data>
+  <data name="OK {0}" xml:space="preserve">
+    <value>OK {0}</value>
   </data>
   <data name="O_pen {0}" xml:space="preserve">
     <value>Відкр_ити «{0}»</value>
@@ -9505,6 +9526,9 @@
   </data>
   <data name="Refused while delivering" xml:space="preserve">
     <value>Відхилено під час доставки</value>
+  </data>
+  <data name="Refused {0}" xml:space="preserve">
+    <value>Відхилено {0}</value>
   </data>
   <data name="Refused: {0}" xml:space="preserve">
     <value>Відхилено: {0}</value>
@@ -14932,6 +14956,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Archive in the backup destination (name or path)" xml:space="preserve">
     <value>Архів у місці призначення резервних копій (_ім'я або шлях)</value>
+  </data>
+  <data name="_Back to results for {0}" xml:space="preserve">
+    <value>Наза_д до результатів для {0}</value>
+  </data>
+  <data name="_Back to the results" xml:space="preserve">
+    <value>Наза_д до результатів</value>
   </data>
   <data name="_Bind address (0.0.0.0)" xml:space="preserve">
     <value>_Адреса прив’язки (0.0.0.0)</value>

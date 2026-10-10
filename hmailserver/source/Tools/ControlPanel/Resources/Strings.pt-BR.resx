@@ -3690,6 +3690,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Defaults to {0} days, which is what the API itself uses when a request does not name one. A key with no expiry is the property that makes the administrator password dangerous, so there is no &quot;never&quot; option." xml:space="preserve">
     <value>O padrão é {0} dias, que é o que a própria API usa quando uma requisição não indica um. Uma chave sem validade é a propriedade que torna a senha de administrador perigosa, então não existe a opção "nunca".</value>
   </data>
+  <data name="Deferred {0}" xml:space="preserve">
+    <value>Adiado {0}</value>
+  </data>
   <data name="Del" xml:space="preserve">
     <value>Del</value>
   </data>
@@ -4618,8 +4621,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Enter a whole number." xml:space="preserve">
     <value>Informe um número inteiro.</value>
   </data>
-  <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
-    <value>Digite um endereço e pesquise. O rastreamento não registra nada até que o rastreamento de mensagens seja ativado na página Registro em log – está desativado por padrão porque armazena quem se corresponde com quem.</value>
+  <data name="Enter an address and press Search to see every event of the mail it sent or received." xml:space="preserve">
+    <value>Digite um endereço e pressione Buscar para ver cada evento do e-mail que ele enviou ou recebeu.</value>
   </data>
   <data name="Enter an hour from 0 to 23." xml:space="preserve">
     <value>Informe uma hora de 0 a 23.</value>
@@ -4782,6 +4785,15 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   </data>
   <data name="Events a minute for a subscription with no limit of its own (1 to 100000)" xml:space="preserve">
     <value>Eventos por minuto para uma inscrição sem limite próprio (1 a 100000)</value>
+  </data>
+  <data name="Events are kept with no time limit." xml:space="preserve">
+    <value>Os eventos são mantidos sem limite de tempo.</value>
+  </data>
+  <data name="Events are kept {0} day." xml:space="preserve">
+    <value>Os eventos são mantidos por {0} dia.</value>
+  </data>
+  <data name="Events are kept {0} days." xml:space="preserve">
+    <value>Os eventos são mantidos por {0} dias.</value>
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>Todo logon LDAP será recusado: LDAP desprotegido com um bind simples enviaria as senhas em texto claro, e AllowUnprotectedPassword está desligado.</value>
@@ -6844,6 +6856,9 @@ Nada do que já está lá é removido.</value>
   <data name="Message trace" xml:space="preserve">
     <value>Rastreamento de mensagens</value>
   </data>
+  <data name="Message tracing is off - nothing is being recorded." xml:space="preserve">
+    <value>O rastreamento de mensagens está desligado - nada está sendo registrado.</value>
+  </data>
   <data name="Message {0} cannot be followed here: the trace records queue ids only up to {1}. Search for its sender or a recipient instead." xml:space="preserve">
     <value>A mensagem {0} não pode ser acompanhada aqui: o rastreamento registra ids de fila só até {1}. Pesquise o remetente dela ou um destinatário.</value>
   </data>
@@ -7926,6 +7941,9 @@ Nada do que já está lá é removido.</value>
   </data>
   <data name="OK" xml:space="preserve">
     <value>OK</value>
+  </data>
+  <data name="OK {0}" xml:space="preserve">
+    <value>OK {0}</value>
   </data>
   <data name="O_pen {0}" xml:space="preserve">
     <value>A_brir {0}</value>
@@ -9408,6 +9426,9 @@ Execute isto se os clientes relatarem mensagens aparecendo com o UID errado, ou 
   </data>
   <data name="Refused while delivering" xml:space="preserve">
     <value>Recusado durante a entrega</value>
+  </data>
+  <data name="Refused {0}" xml:space="preserve">
+    <value>Recusado {0}</value>
   </data>
   <data name="Refused: {0}" xml:space="preserve">
     <value>Recusado: {0}</value>
@@ -14749,6 +14770,12 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="_Archive in the backup destination (name or path)" xml:space="preserve">
     <value>Arquivo no destino do backup (_nome ou caminho)</value>
   </data>
+  <data name="_Back to results for {0}" xml:space="preserve">
+    <value>_Voltar aos resultados de {0}</value>
+  </data>
+  <data name="_Back to the results" xml:space="preserve">
+    <value>_Voltar aos resultados</value>
+  </data>
   <data name="_Bind address (0.0.0.0)" xml:space="preserve">
     <value>Endereço de _vínculo (0.0.0.0)</value>
   </data>
@@ -15182,7 +15209,7 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
     <value>_Abrir Configurações de antivírus</value>
   </data>
   <data name="_Open Logging" xml:space="preserve">
-    <value>_Abrir Registro em log</value>
+    <value>Abrir Regis_tro em log</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>_Abrir relatório</value>

@@ -3690,6 +3690,9 @@ Los detalles completos se escribieron en:
   <data name="Defaults to {0} days, which is what the API itself uses when a request does not name one. A key with no expiry is the property that makes the administrator password dangerous, so there is no &quot;never&quot; option." xml:space="preserve">
     <value>Por defecto {0} días, que es lo que usa la propia API cuando una petición no indica ninguno. Una clave sin caducidad es la propiedad que hace peligrosa la contraseña de administrador, así que no hay opción "nunca".</value>
   </data>
+  <data name="Deferred {0}" xml:space="preserve">
+    <value>Aplazado {0}</value>
+  </data>
   <data name="Del" xml:space="preserve">
     <value>Supr</value>
   </data>
@@ -4618,8 +4621,8 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Enter a whole number." xml:space="preserve">
     <value>Introduzca un número entero.</value>
   </data>
-  <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
-    <value>Introduzca una dirección y busque. La traza no registra nada hasta que se active el rastreo de mensajes en la página Registro; está desactivado de forma predeterminada porque almacena quién se escribe con quién.</value>
+  <data name="Enter an address and press Search to see every event of the mail it sent or received." xml:space="preserve">
+    <value>Escriba una dirección y pulse Buscar para ver cada evento del correo que envió o recibió.</value>
   </data>
   <data name="Enter an hour from 0 to 23." xml:space="preserve">
     <value>Introduzca una hora de 0 a 23.</value>
@@ -4782,6 +4785,15 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   </data>
   <data name="Events a minute for a subscription with no limit of its own (1 to 100000)" xml:space="preserve">
     <value>Eventos por minuto para una suscripción sin límite propio (1 a 100000)</value>
+  </data>
+  <data name="Events are kept with no time limit." xml:space="preserve">
+    <value>Los eventos se conservan sin límite de tiempo.</value>
+  </data>
+  <data name="Events are kept {0} day." xml:space="preserve">
+    <value>Los eventos se conservan {0} día.</value>
+  </data>
+  <data name="Events are kept {0} days." xml:space="preserve">
+    <value>Los eventos se conservan {0} días.</value>
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>Todo inicio de sesión LDAP se rechazará: un LDAP sin proteger con bind simple enviaría las contraseñas en claro, y AllowUnprotectedPassword está desactivado.</value>
@@ -6844,6 +6856,9 @@ No se elimina nada de lo que ya está.</value>
   <data name="Message trace" xml:space="preserve">
     <value>Traza de mensajes</value>
   </data>
+  <data name="Message tracing is off - nothing is being recorded." xml:space="preserve">
+    <value>El rastreo de mensajes está desactivado: no se registra nada.</value>
+  </data>
   <data name="Message {0} cannot be followed here: the trace records queue ids only up to {1}. Search for its sender or a recipient instead." xml:space="preserve">
     <value>El mensaje {0} no se puede seguir aquí: la traza solo registra id. de cola hasta {1}. Busque en su lugar su remitente o un destinatario.</value>
   </data>
@@ -7926,6 +7941,9 @@ No se elimina nada de lo que ya está.</value>
   </data>
   <data name="OK" xml:space="preserve">
     <value>OK</value>
+  </data>
+  <data name="OK {0}" xml:space="preserve">
+    <value>OK {0}</value>
   </data>
   <data name="O_pen {0}" xml:space="preserve">
     <value>A_brir {0}</value>
@@ -9408,6 +9426,9 @@ Ejecute esto si los clientes informan de mensajes que aparecen con un UID equivo
   </data>
   <data name="Refused while delivering" xml:space="preserve">
     <value>Rechazada durante la entrega</value>
+  </data>
+  <data name="Refused {0}" xml:space="preserve">
+    <value>Rechazado {0}</value>
   </data>
   <data name="Refused: {0}" xml:space="preserve">
     <value>Rechazado: {0}</value>
@@ -14748,6 +14769,12 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="_Archive in the backup destination (name or path)" xml:space="preserve">
     <value>Archivo en el destino de copia de seguridad (_nombre o ruta)</value>
+  </data>
+  <data name="_Back to results for {0}" xml:space="preserve">
+    <value>_Volver a los resultados de {0}</value>
+  </data>
+  <data name="_Back to the results" xml:space="preserve">
+    <value>_Volver a los resultados</value>
   </data>
   <data name="_Bind address (0.0.0.0)" xml:space="preserve">
     <value>_Dirección de enlace (0.0.0.0)</value>
