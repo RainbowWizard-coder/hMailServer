@@ -784,8 +784,9 @@ into a commit. Three things stand in the way, as GitLab's push protection is not
   of them the hooks refuse the commit or the push, because a scan that did not run has not said anything is
   clean. `python build/scan-secrets.py --range master..HEAD` scans a branch by hand. The hooks, the landing's
   scan and the job read every path under a directory named `build`, `bin`, `obj`, `target` or `packages` too,
-  this tree's `build/` among them, which GitLab's own rules leave out: they run GitLab's rules with the project's
-  global allowlist, `.gitlab/secret-detection-allowlist.toml`
+  this tree's `build/` among them, which GitLab's own rules leave out: they run GitLab's rules but for the two
+  entries of their global allowlist that leave those directories out, as `build/ci/secret-detection-rules.sh`
+  derives them from GitLab's own
   ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#what-the-secret-scans-read)).
 * **`.gitignore`** leaves out the usual key and credential files (`*.pem`, `*.key`, `*.pfx`, `*.p12`, `*.jks`,
   SSH private keys, `.env`, `.netrc`, `.npmrc`, `.pypirc`, `credentials.json`), but for the directories of the

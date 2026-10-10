@@ -4684,20 +4684,22 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   hooks' and the landing's scan, took GitLab's rules whole, and their global allowlist left out those directories:
   368 files of the tree - the CI scripts, the git hooks, the lab, the fixtures and their builders, and
   `snap/local/bin/` - and a made-up token committed under `build/` passed both on 9 October 2026. Both now run
-  GitLab's rules with the project's own global allowlist in place of theirs, `.gitlab/secret-detection-allowlist.toml`:
-  GitLab's table but those entries (`node_modules` and `bower_components` stay out). The new
-  `build/ci/secret-detection-rules.sh` makes the rules in the analyzer's image - the job puts them where the analyzer
-  reads them, since a custom ruleset is GitLab Ultimate's and gitleaks' `[extend]` takes no allowlist away, and
-  `scan-secrets.py` runs its own tree's copy before gitleaks, so that no code of the commits it scans runs - and
-  refuses when the image's allowlist is not the one the project's
-  replaces, by its hash, so that new rules that change what GitLab leaves out are read first. Over every branch and
+  GitLab's rules but for those two entries of their allowlist (`node_modules` and `bower_components`, which shared
+  one with `packages`, stay out), derived in the analyzer's image from GitLab's own file by the new
+  `build/ci/secret-detection-rules.sh`, which takes nothing from the tree, so that no committed file can widen what
+  the scans leave out: the job puts the rules where the analyzer reads them, since a custom ruleset is GitLab
+  Ultimate's and gitleaks' `[extend]` takes no allowlist away, and `scan-secrets.py` runs its own tree's copy of the
+  script before gitleaks, never the scanned range's. The script refuses when GitLab's table does not hash to the one
+  it was written for, so that new rules that change what GitLab leaves out are read first, and when either entry it
+  changes is not on exactly one line of the table; it is one of the gates' own files (`build/land-via-mr.py`'s
+  `GATE_FILES`), which a batch changes only with `--gates-read`. Over every branch and
   tag on GitLab (2,873 commits) and `master`'s tree the widened rules found everything GitLab's had and five more, none
   a secret - the OpenPGP fixtures' two test keys and three lines that test a text for a key's armour header - which
-  `.gitleaksignore` names, with four of its directory-scan lines that later edits had moved. The allowlist is the
-  owner's in `.gitlab/CODEOWNERS`, and the landing's scan prints the lines a range changes in it.
-  `build/check-release-chain.py` fails when the job does not make and use the rules, when the tree carries a
-  `.gitlab/secret-detection-ruleset.toml`, and when the allowlist is not the owner's; `scan-secrets.py`'s self-test runs
-  the script over fixtures and reads the tree's allowlist (ContinuousIntegration.md, "What the secret scans read").
+  `.gitleaksignore` names, with four of its directory-scan lines that later edits had moved. The landing's scan prints
+  the lines a range changes in the script. `build/check-release-chain.py` fails when the job does not make and use the
+  rules, when the tree carries a `.gitlab/secret-detection-ruleset.toml`, and when the landing's `GATE_FILES` leave the
+  script out; `scan-secrets.py`'s self-test runs the script over fixtures, refusals and all, and reads what it makes as
+  gitleaks does (ContinuousIntegration.md, "What the secret scans read").
 
 ### Documentation
 

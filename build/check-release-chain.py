@@ -145,11 +145,10 @@ refuses it. This checker holds them to each other. It fails when:
   * linux-fuzz does not keep fuzz-results/ as its artifact, whatever the result,
     for Developers only (a reproducer may be an exploit), or another job claims it;
   * secret_detection lets a finding pass: it must be allow_failure: false and read
-    its report after the analyzer, which exits 0 whatever it finds, and put GitLab's
-    rules with the project's allowlist (.gitlab/secret-detection-allowlist.toml,
-    build/ci/secret-detection-rules.sh) in place of /gitleaks.toml before it, since
-    GitLab's own leaves out every path under a directory named build, bin, obj,
-    target or packages; or runs another
+    its report after the analyzer, which exits 0 whatever it finds, and put the
+    rules build/ci/secret-detection-rules.sh derives from GitLab's in place of
+    /gitleaks.toml before it, since GitLab's own leave out every path under a
+    directory named build, bin, obj, target or packages; or runs another
     image than the analyzer as the project's registry holds it, on the one line
     build/scan-secrets.py reads (image: mirror/secrets:<version>-<the digest's first
     twelve hex digits>@<digest>, build/ci/mirror-secrets.sh);
@@ -588,14 +587,15 @@ SCANNED = ["static-analysis", "semgrep", "dependency-scan", "semgrep-sast"]
 # (since 6.3.6), and are therefore never allow_failure.
 BLOCKING_SCANS = ["static-analysis", "semgrep"]
 # The files a change to which is the owner's alone to accept.
-OWNED = ["/.gitlab/security-exceptions.yml", "/.gitleaksignore", "/.gitlab/secret-detection-allowlist.toml"]
-# What secret_detection runs before its analyzer: GitLab's rules with the project's global
-# allowlist in place of theirs, put where the analyzer reads them (build/ci/
-# secret-detection-rules.sh, which build/scan-secrets.py runs the same way). GitLab's own
-# allowlist leaves out every path under a directory named build, bin, obj, target or
-# packages.
-SECRET_RULES_STEP = ("    - sh build/ci/secret-detection-rules.sh /gitleaks.toml .gitlab/secret-detection-allowlist.toml "
-                     "/tmp/hm-gitleaks.toml\n    - cp /tmp/hm-gitleaks.toml /gitleaks.toml\n    - /analyzer run\n")
+OWNED = ["/.gitlab/security-exceptions.yml", "/.gitleaksignore"]
+# What secret_detection runs before its analyzer: GitLab's rules, but for the entries of
+# their global allowlist that leave out every path under a directory named build, bin,
+# obj, target or packages, derived from the image's own file and put where the analyzer
+# reads them (build/ci/secret-detection-rules.sh, which build/scan-secrets.py runs the same
+# way). It takes nothing from the tree: no committed file can widen what the scans leave
+# out.
+SECRET_RULES_STEP = ("    - sh build/ci/secret-detection-rules.sh /gitleaks.toml /tmp/hm-gitleaks.toml\n"
+                     "    - cp /tmp/hm-gitleaks.toml /gitleaks.toml\n    - /analyzer run\n")
 # The change gates (.gitlab/ci/mr-checks.yml), which every change passes before it
 # lands (OpenSSF Baseline OSPS-VM-05.03 and 06.02), and the scan whose report the first
 # reads: each in a merge request's pipeline and in a protected batch* branch's, which is
@@ -680,8 +680,9 @@ BATCH_COMPARE = ('- if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMM
 # which its documents_only tells as .own-runners' paths: *not-docs-only does.
 LANDING_REQUIRED = {"GATE_JOBS": sorted(CHANGE_GATES) + [GATE_SCAN, "checkers"], "SOURCE_SCAN_JOBS": BLOCKING_SCANS}
 # The scripts build/land-via-mr.py runs before it pushes a batch - the sign-off check and
-# the secret scan - which its GATE_FILES must name with the CI files the gates run in.
-LANDING_RUNS = ("build/sign-off.py", "build/scan-secrets.py")
+# the secret scan, and the script that makes the scan's rules, which secret_detection runs
+# too - which its GATE_FILES must name with the CI files the gates run in.
+LANDING_RUNS = ("build/sign-off.py", "build/scan-secrets.py", "build/ci/secret-detection-rules.sh")
 LANDING_DOCUMENTS = "documents_only"
 # Paths beside the tree's own on which documents_only and the CI files must agree: a
 # document at the root and under a dot-directory, which start no scan, and one under
@@ -2388,13 +2389,14 @@ def check(texts, chain, feed):
     if not os.path.isfile(os.path.join(ROOT, ".gitleaksignore")):
         problems.append(".gitleaksignore is missing: the findings read and found not to be secrets would fail secret_detection")
     if SECRET_RULES_STEP not in detection:
-        problems.append("secret_detection does not put GitLab's rules with the project's allowlist in place of /gitleaks.toml "
-                        "right before /analyzer run (%s): GitLab's own allowlist leaves out every path under a directory "
-                        "named build, bin, obj, target or packages, this tree's build/ among them"
+        problems.append("secret_detection does not put the rules build/ci/secret-detection-rules.sh derives from GitLab's "
+                        "in place of /gitleaks.toml right before /analyzer run (%s): GitLab's own allowlist leaves out "
+                        "every path under a directory named build, bin, obj, target or packages, this tree's build/ among "
+                        "them"
                         % " then ".join(l.strip()[2:] for l in SECRET_RULES_STEP.strip().split("\n")))
-    for path in (os.path.join(".gitlab", "secret-detection-allowlist.toml"), os.path.join("build", "ci", "secret-detection-rules.sh")):
-        if not os.path.isfile(os.path.join(ROOT, path)):
-            problems.append("%s is missing: secret_detection and build/scan-secrets.py make their rules from it" % path)
+    if not os.path.isfile(os.path.join(ROOT, "build", "ci", "secret-detection-rules.sh")):
+        problems.append("build/ci/secret-detection-rules.sh is missing: secret_detection and build/scan-secrets.py make "
+                        "their rules with it")
 
     found, said = change_gate_problems(texts, jobs, security_jobs, chain.security_gate)
     problems.extend(found)
@@ -4448,6 +4450,8 @@ def self_test(chain, feed):
              "GATE_FILES leave out .gitlab/ci/no-github.yml"),
             ("GATE_FILES", tuple(f for f in files_held if f != "build/scan-secrets.py"),
              "GATE_FILES leave out build/scan-secrets.py"),
+            ("GATE_FILES", tuple(f for f in files_held if f != "build/ci/secret-detection-rules.sh"),
+             "GATE_FILES leave out build/ci/secret-detection-rules.sh"),
             ("GATE_FILES", tuple(f for f in files_held if f != "build/ci/semgrep.sh"),
              "GATE_FILES leave out build/ci/semgrep.sh"),
             ("GATE_FILES", tuple(f for f in files_held if f != "build/ci/static-analysis.sh"),
@@ -4675,15 +4679,13 @@ def self_test(chain, feed):
            "does not give /.gitlab/security-exceptions.yml to @Progressiverobot")
     broken("the secret scan's ignore list shared", "codeowners", "/.gitleaksignore                   @Progressiverobot",
            "/.gitleaksignore                   @Progressiverobot @zainulabidin1990", "does not give /.gitleaksignore")
-    broken("the secret scans' allowlist shared", "codeowners", "/.gitlab/secret-detection-allowlist.toml @Progressiverobot",
-           "/.gitlab/secret-detection-allowlist.toml @Progressiverobot @zainulabidin1990",
-           "does not give /.gitlab/secret-detection-allowlist.toml")
     broken("secret_detection with GitLab's allowlist again", "security", SECRET_RULES_STEP, "    - /analyzer run\n",
-           "secret_detection does not put GitLab's rules with the project's allowlist")
+           "secret_detection does not put the rules build/ci/secret-detection-rules.sh derives")
     broken("the rules made and not put where the analyzer reads them", "security", "    - cp /tmp/hm-gitleaks.toml /gitleaks.toml\n",
-           "", "secret_detection does not put GitLab's rules with the project's allowlist")
-    broken("the rules made with another allowlist", "security", " .gitlab/secret-detection-allowlist.toml /tmp/hm-gitleaks.toml",
-           " /tmp/allowlist.toml /tmp/hm-gitleaks.toml", "secret_detection does not put GitLab's rules with the project's allowlist")
+           "", "secret_detection does not put the rules build/ci/secret-detection-rules.sh derives")
+    broken("the rules made with a table of the tree's", "security", " /gitleaks.toml /tmp/hm-gitleaks.toml\n",
+           " /gitleaks.toml .gitlab/secret-detection-allowlist.toml /tmp/hm-gitleaks.toml\n",
+           "secret_detection does not put the rules build/ci/secret-detection-rules.sh derives")
     broken("signing in a child pipeline", "ci", "  script:\n    - sh build/ci/release-sign.sh", "  trigger:\n    include: child.yml\n  script:\n    - sh build/ci/release-sign.sh", "release-sign is a trigger")
 
     # The files 6.3.6 adds: gathered with their builds' tests, none escaping on a tag.

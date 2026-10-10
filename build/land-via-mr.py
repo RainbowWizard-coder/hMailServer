@@ -23,8 +23,9 @@ refusal:
      and how their jobs run - .gitlab-ci.yml, whose workflow, defaults and includes
      every job takes, and the files under .gitlab/ci/ the jobs are in or take a part
      from; this script and check-release-chain.py; sign-off.py and scan-secrets.py,
-     which this runs; and the source scans' scripts, static-analysis.sh and
-     semgrep.sh) needs --gates-read REASON, saying a person read that change whole
+     which this runs, and secret-detection-rules.sh, which makes both secret scans'
+     rules; and the source scans' scripts, static-analysis.sh and semgrep.sh) needs
+     --gates-read REASON, saying a person read that change whole
      (exit 9 without it). Nothing is pushed until all of this holds.
   2. The branch is pushed. batch* is a protected branch, so its pipeline runs
      the whole gate on the project's own runners (docs/ContinuousIntegration.md);
@@ -178,7 +179,8 @@ BASE_COPY_NONE = "The base has no %s: the change's copy alone judges it."
 # what holds the jobs to it - the gates' code; .gitlab-ci.yml, whose workflow rules,
 # defaults and includes every job takes; the files the gate jobs are in or take a part
 # from (mr-checks.yml, gitlab-security.yml, no-github.yml's .no-github); this script and
-# check-release-chain.py; the two scripts this runs before anything is pushed; and the
+# check-release-chain.py; the two scripts this runs before anything is pushed, and the
+# script that makes the secret scans' rules, which decides what both of them read; and the
 # source scans' scripts, static-analysis.sh and semgrep.sh, whose lines outside their
 # marks (which security-gate.py holds as a narrowing) still say how the job ends and
 # what it hands security-findings.py. A batch that changes one is judged by the base's
@@ -189,8 +191,8 @@ BASE_COPY_NONE = "The base has no %s: the change's copy alone judges it."
 # SCAN_SCRIPTS.
 GATE_FILES = GATE_CODE + (".gitlab-ci.yml", ".gitlab/ci/mr-checks.yml", ".gitlab/ci/gitlab-security.yml",
                           ".gitlab/ci/no-github.yml", "build/land-via-mr.py", "build/check-release-chain.py",
-                          "build/sign-off.py", "build/scan-secrets.py", "build/ci/static-analysis.sh",
-                          "build/ci/semgrep.sh")
+                          "build/sign-off.py", "build/scan-secrets.py", "build/ci/secret-detection-rules.sh",
+                          "build/ci/static-analysis.sh", "build/ci/semgrep.sh")
 # A pipeline's jobs are read a page at a time; a batch's has more than a hundred.
 JOBS_PER_PAGE = 100
 MOST_JOB_PAGES = 50

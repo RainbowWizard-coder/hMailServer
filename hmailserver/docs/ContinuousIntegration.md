@@ -89,7 +89,7 @@ The other tables on this page name runners the same way.
 | `semgrep-sast` | test | linix | every change - a merge request, and a protected `batch*` branch - `master`, and a `v*` tag | GitLab's own SAST template: its Semgrep analyzer and rules over the C, C++, C#, Python and JavaScript - less what lies under a `build`, `dist`, `vendor` or `node_modules` directory, which the analyzer's template leaves out, so not the scripts under `build/` - with no baseline, in the project's copy of the analyzer's image; not `allow_failure`, and it keeps Semgrep's SARIF beside its report (`.gitlab/ci/gitlab-security.yml`) |
 | `semgrep-sast-gate` | test | linix | every change: a merge request, and a protected `batch*` branch | `semgrep-sast`'s report read by the release's rule, for the files the change touches from its base, or every file when it alters the scan: a Critical or High finding that `.gitlab/security-exceptions.yml`, as the base has it, does not accept fails it, and so does a baseline that grows or loses a reason, a suppression comment added, a narrowing of what a scan reads that does not land alone, a source file put out of the scan's reach, a changed file a rule gave up on, and a report that is not this pipeline's or that the tree commits (`build/ci/security-gate.py --merge-request auto`; [Change checks](#change-checks)) |
 | `mr-dependency-check` | check | linix | every change: a merge request, and a protected `batch*` branch | Every NuGet and PyPI version the change adds, looked up in OSV's own export of its ecosystem's advisories, and every native or vendored library pin it moves, asked of OSV by its upstream tag: a malicious package, or a Critical or High advisory, that neither the base's exceptions nor its VEX document accepts fails it (`build/ci/mr-dependency-check.py --base auto`) |
-| `secret_detection` | test | linix | `master`, a merge request, and the schedule described `security` | GitLab's own secret-detection template: a key, token or password in the commits the pipeline brings, or in the whole history for the `security` schedule - with GitLab's rules but the project's own global allowlist, so the scripts under `build/` too, which GitLab's leaves out ([What the secret scans read](#what-the-secret-scans-read)) - in the project's copy of the analyzer's image; a finding `.gitleaksignore` does not name fails it (`.gitlab/ci/gitlab-security.yml`) |
+| `secret_detection` | test | linix | `master`, a merge request, and the schedule described `security` | GitLab's own secret-detection template: a key, token or password in the commits the pipeline brings, or in the whole history for the `security` schedule - with GitLab's rules but for the two entries of their allowlist that leave out `build/` and the like, so the scripts under `build/` too ([What the secret scans read](#what-the-secret-scans-read)) - in the project's copy of the analyzer's image; a finding `.gitleaksignore` does not name fails it (`.gitlab/ci/gitlab-security.yml`) |
 | `windows-installer` | release | bench150 | a `v*` tag, after `windows-gate` | The x64 Windows installer, unsigned, built in the bench's checkout (`build/ci/windows-installer.ps1`; [The release](#the-release)); the ARM64 one is `windows-packages-arm64`'s ([PackagesWindows.md](PackagesWindows.md)) |
 | `release` | release | linix | a `v*` tag, started by hand | Checks the tag, the version stamp and the release settings, reads the four security scans' reports (`build/ci/security-gate.py`), collects the sixty files a release carries before the two installers' SBOMs, the PowerShell module's two unsigned among them (eight in 6.3.5), and counts what GitLab and Pages will take of it (`build/ci/release-chain.py collect`) |
 | `release-authenticode` | release | bench150 | a `v*` tag, after `release` | The two installers, x64 and ARM64, and the PowerShell module's manifest and script, Authenticode-signed through Azure Artifact Signing with the job's ID token (`build/ci/windows-authenticode.ps1`) |
@@ -836,9 +836,8 @@ and what the new gitleaks logs read; and the whole history is scanned in both
 images and the two reports compared. `mirror-secrets.sh`'s header says the same.
 New rules (`SECRET_DETECTION_RULES_VERSION`) may change GitLab's global
 allowlist: then `build/ci/secret-detection-rules.sh` refuses, and both scans
-with it, until `.gitlab/secret-detection-allowlist.toml` is brought up to date -
-GitLab's new table but the `build`, `bin`, `obj`, `target` and `packages`
-entries - with the new table's hash on its `# replaces sha256:` line ([What the
+with it, until the script is brought up to date with GitLab's new table - the
+two entries it changes, and `GITLAB_TABLE`, the new table's hash ([What the
 secret scans read](#what-the-secret-scans-read)).
 
 **Re-pinning `semgrep-sast`'s analyzer.** A new analyzer is a new Semgrep, and
@@ -863,7 +862,7 @@ but the project's copy, named by its digest on one `image:` line, with the
 digest's first twelve hex digits in its tag, or does not put the rules
 `build/ci/secret-detection-rules.sh` makes in place of `/gitleaks.toml` right
 before the analyzer, when the tree carries a `.gitlab/secret-detection-ruleset.toml`,
-or when `.gitlab/CODEOWNERS` does not give the allowlist to the owner alone; when `semgrep-sast` has no rule for a
+or when `build/land-via-mr.py`'s `GATE_FILES` leave the script out; when `semgrep-sast` has no rule for a
 protected `batch*` branch, reads `SAST_DISABLED`, runs any image but the
 project's copy named by its digest, does not take `.gate-retry`, is
 `allow_failure`, does not remove `gl-sast-report.json` and `semgrep.sarif`
@@ -4047,28 +4046,30 @@ fixtures and their builders - or `snap/local/bin/`, 368 files of the tree then.
 On 9 October 2026 a made-up GitLab token committed under `build/` passed both
 scans, where one at the root of the tree failed both.
 
-Both now run GitLab's rules with the project's own global allowlist in place of
-GitLab's, `.gitlab/secret-detection-allowlist.toml`: GitLab's entries but those
-two, with `node_modules` and `bower_components`, which shared an entry with
-`packages`, kept out as GitLab has them. `build/ci/secret-detection-rules.sh`
-makes the rules in the analyzer's image: GitLab's file up to its `[[allowlists]]`
-line, then the project's table. `secret_detection` runs it before the analyzer
+Both now run GitLab's rules but for those two entries: the
+`(?:target|build|bin|obj)` entry is taken out, and `packages` out of the
+`(?:node_modules|bower_components|packages)` one, so that `node_modules` and
+`bower_components` stay out as GitLab has them. `build/ci/secret-detection-rules.sh`
+derives the rules in the analyzer's image from GitLab's own file, and changes
+nothing else of it; it takes nothing from the tree, so that no committed file can
+widen what the scans leave out. `secret_detection` runs it before the analyzer
 and puts what it writes in place of `/gitleaks.toml`, which the analyzer reads;
 it runs as root in its image, and the file is replaced in the job's own
 container. GitLab's custom ruleset, which could name another file, is not read
 on the Free tier (the analyzer loads `.gitlab/secret-detection-ruleset.toml` only
 when `GITLAB_FEATURES` names `sast_custom_rulesets`), and gitleaks' `[extend]`
 adds a file's allowlists to its base's and takes none away, so neither could do
-it. `scan-secrets.py` runs the same script in the same image before gitleaks,
-with its own tree's copy of the script, so that no code of the commits it reads
-runs in the scan, and the table as the range's tip has it, as it takes
-`.gitleaksignore`. The table records
-the hash of the GitLab table it replaces, from GitLab's `[[allowlists]]` line to
-the end of the file, and the script refuses, and both scans with it, when the
-image's does not hash to it: a rules version that changes what GitLab leaves out
-is read, and the table brought up to date, before either scan takes it. The
-table is the owner's, as `.gitleaksignore` is (`.gitlab/CODEOWNERS`), and the
-landing's scan prints the lines a range changes in it or in the script.
+it. `scan-secrets.py` runs the same script in the same image before gitleaks:
+its own tree's copy of the script, never the scanned range's. The script names
+the hash of the GitLab table it was written for (`GITLAB_TABLE`), from GitLab's
+`[[allowlists]]` line to the end of the file, and refuses, and both scans with
+it, when the image's does not hash to it - a rules version that changes what
+GitLab leaves out is read, and the script brought up to date, before either
+scan takes it - and when either entry it changes is not on exactly one line of
+the table. A change to the script changes what both scans read, so it is one of
+the gates' own files (`build/land-via-mr.py`'s `GATE_FILES`): a batch that
+changes it lands only with `--gates-read`, a person's word that the change was
+read, and the landing's scan prints the lines a range changes in it.
 
 Read over every branch and tag of the project on GitLab on 10 October 2026
 (2,873 commits, `master` at 74aed9ab8) and over `master`'s tree, in the image

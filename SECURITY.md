@@ -796,9 +796,9 @@ machine against the release's commit and the same gate over their reports before
   out of a `git add` (the test fixtures' directories apart). After the push, the `secret_detection` job scans the
   commits a push to `master` or a merge request brings (not a push to another branch without a merge request)
   and fails the pipeline on a finding that
-  `.gitleaksignore` does not name. Both that job and `scan-secrets.py` run GitLab's rules with the project's own
-  global allowlist, which reads every path under a directory named `build`, `bin`, `obj`, `target` or `packages`
-  that GitLab's leaves out, this tree's `build/` among them, since 10 October 2026
+  `.gitleaksignore` does not name. Both that job and `scan-secrets.py` run GitLab's rules but for the two entries
+  of their global allowlist that left out every path under a directory named `build`, `bin`, `obj`, `target` or
+  `packages`, this tree's `build/` among them: since 10 October 2026 both read those paths
   ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#what-the-secret-scans-read)).
   It has run in `master`'s pipelines since 27 September 2026: 2886389460 failed on
   twenty-four vetted test fixtures, which `.gitleaksignore` has named since, and 2892849251, on 29 September, passed. The
