@@ -28,7 +28,8 @@
                  verbs in the toolbar above it (review finding F288). -->
             <scaffold:PageHeader.Status>
                 <scaffold:StatusPill x:Name="CountPill" Level="Normal" Visibility="Collapsed"
-                                     AutomationProperties.AutomationId="list-count" />
+                                     AutomationProperties.AutomationId="list-count"
+                                     AutomationProperties.LiveSetting="Polite" />
             </scaffold:PageHeader.Status>
             <scaffold:PageHeader.Actions>
                 <ui:Button x:Name="RefreshButton" Content="{loc:L '_Refresh'}" Click="Refresh_Click" />

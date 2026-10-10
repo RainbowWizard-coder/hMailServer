@@ -60,6 +60,27 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("IsVisibleChanged +=", source, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// A pill is a live region where a page makes it one - a list page's count
+      /// beside its title (ListPagePatternTests) - and then announces itself as a
+      /// notice does, as its text or level changes and as it comes into view: the
+      /// list pages' counts were Information notices, which said themselves, until
+      /// the list page pattern moved them into pills that said nothing, so that a
+      /// search's result count reached a sighted administrator alone (WCAG 2.2
+      /// SC 4.1.3; review finding F288). A pill is never a live region by itself:
+      /// the shell's and a grid's cells' stay quiet, and queue nothing.
+      /// </summary>
+      [Fact]
+      public void AStatusPill_ThatIsALiveRegion_AnnouncesItself()
+      {
+         string source = ReadControlPanelFile(Path.Join("Views", "Scaffold", "StatusPill.cs"));
+         Assert.Contains("Announce.Request(pill)", source, StringComparison.Ordinal);
+         Assert.Contains("IsVisibleChanged +=", source, StringComparison.Ordinal);
+         Assert.Contains("Announce.Request(this)", source, StringComparison.Ordinal);
+         Assert.Contains("AutomationProperties.GetLiveSetting(this) != AutomationLiveSetting.Off", source, StringComparison.Ordinal);
+         Assert.DoesNotContain("SetLiveSetting(this", source, StringComparison.Ordinal);
+      }
+
       [Fact]
       public void AFieldsError_IsAnnounced_AsItIsSet()
       {

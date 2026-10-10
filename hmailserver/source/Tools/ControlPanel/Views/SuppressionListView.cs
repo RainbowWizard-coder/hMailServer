@@ -442,6 +442,9 @@ namespace hMailServer.ControlPanel.Views
             button.Margin = new Thickness(button.Margin.Left, 2, button.Margin.Right, 2);
          toolbar_.Actions = actions;
 
+         // The count is a polite live region, so that a screen reader hears it as
+         // it changes, as the notice it replaced was heard (Scaffold/StatusPill).
+         AutomationProperties.SetLiveSetting(count_, AutomationLiveSetting.Polite);
          root.Children.Add(new PageHeader
          {
             PageKey = "suppressions",

@@ -14,7 +14,8 @@ namespace hMailServer.ControlPanel.Tests.Services
 {
    /// <summary>
    /// One list page pattern (review finding F288; docs/ControlPanelDesign.md, List
-   /// pages): the count as a Normal pill beside the title, Refresh in the header,
+   /// pages): the count as a Normal pill beside the title, a polite live region
+   /// that a screen reader hears as it changes, Refresh in the header,
    /// the list's verbs in the toolbar over it with the Primary last, words and no
    /// glyphs on those buttons, and never a count in an Information notice, a
    /// caption under the list or the subtitle. The pages used four action layouts
@@ -31,7 +32,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          "RoutesView.xaml", "TcpIpPortsView.xaml", "IPRangesView.xaml", "SslCertificatesView.xaml", "RulesView.xaml", "QueueView.xaml"
       };
 
-      /// <summary>The XAML list pages: the count pill beside the title and Refresh in the header.</summary>
+      /// <summary>The XAML list pages: the count pill beside the title, a polite live region, and Refresh in the header.</summary>
       [Theory]
       [MemberData(nameof(XamlListPages))]
       public void AXamlListPage_HasTheCountAndRefreshInItsHeader(string file)
@@ -43,6 +44,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          XElement pill = status.Element(Scaffold + "StatusPill");
          Assert.True(pill != null && (string)pill.Attribute(X + "Name") == "CountPill" && (string)pill.Attribute("Level") == "Normal",
             file + ": the count is not a Normal StatusPill named CountPill.");
+         Assert.True((string)pill.Attribute("AutomationProperties.LiveSetting") == "Polite",
+            file + ": the count is not a polite live region, so a screen reader never hears it change.");
 
          XElement actions = header.Element(Scaffold + "PageHeader.Actions");
          Assert.True(actions != null && actions.Descendants(Ui + "Button").Any(b => (string)b.Attribute("Content") == "{loc:L '_Refresh'}"),
@@ -80,7 +83,13 @@ namespace hMailServer.ControlPanel.Tests.Services
          { "PublicFoldersView.cs", "header_.Status = count_;" },
       };
 
-      /// <summary>The code-built list pages put their count beside the title, as a Normal pill.</summary>
+      /// <summary>
+      /// The code-built list pages put their count beside the title, as a Normal
+      /// pill, and make it a polite live region: the suppression list's, the
+      /// quarantine's, the message trace's and the audit trail's counts were
+      /// Information notices, which announced themselves, and a pill is silent
+      /// unless it is one (Scaffold/StatusPill; WCAG 2.2 SC 4.1.3).
+      /// </summary>
       [Theory]
       [MemberData(nameof(CodeListPages))]
       public void ACodeListPage_HasItsCountBesideTheTitle(string file, string status)
@@ -88,6 +97,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          string code = ReadControlPanelFile(Path.Join("Views", file));
          Assert.Contains(status, code, StringComparison.Ordinal);
          Assert.Matches(new Regex(@"(count_|countBadge_) = new\(\) \{ Level = StatusLevel\.Normal"), code);
+         Assert.Matches(new Regex(@"AutomationProperties\.SetLiveSetting\((count_|countBadge_), (System\.Windows\.Automation\.)?AutomationLiveSetting\.Polite\);"), code);
       }
 
       /// <summary>

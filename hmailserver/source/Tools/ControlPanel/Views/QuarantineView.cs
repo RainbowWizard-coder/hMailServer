@@ -1373,6 +1373,9 @@ namespace hMailServer.ControlPanel.Views
          ButtonStyles.DangerText(removeExpired_);
          search_.Actions = removeExpired_;
 
+         // The count is a polite live region, so that a screen reader hears it as
+         // it changes, as the notice it replaced was heard (Scaffold/StatusPill).
+         AutomationProperties.SetLiveSetting(count_, AutomationLiveSetting.Polite);
          root.Children.Add(new PageHeader
          {
             Status = count_,

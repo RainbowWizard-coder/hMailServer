@@ -339,6 +339,11 @@ namespace hMailServer.ControlPanel.Views
          var refresh = MakeButton(L("_Refresh"), ControlAppearance.Secondary, (_, _) => Reload());
          if (embedded_)
             actions.Children.Add(refresh);
+
+         // The count is a polite live region, so that a screen reader hears it as
+         // it changes - "Shown: 2 of 40" as the search is typed in - and not only
+         // a sighted reader (Scaffold/StatusPill).
+         System.Windows.Automation.AutomationProperties.SetLiveSetting(countBadge_, System.Windows.Automation.AutomationLiveSetting.Polite);
          if (spec_.CanAdd)
          {
             addButton_ = MakeButton(L("_Add"), ControlAppearance.Primary, (_, _) => OpenDialog(null));

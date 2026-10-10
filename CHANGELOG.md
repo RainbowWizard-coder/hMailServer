@@ -2385,16 +2385,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   public folders."), the subtitle ("4 messages waiting for delivery.", "4 rules of the server") or an Information
   notice ("3 addresses listed.", "5 messages held.", "Entries that match the search: 1 of 4."). Every list page now
   has one shape (docs/ControlPanelDesign.md, List pages): the count beside the title as a grey pill - "4 routes",
-  "Active: 2 of 3", "Shown: 2 of 40", "1 to 100 of 1284" - and Refresh in the header; the search, the filters and the
-  list's verbs in the toolbar over the list - the selected entry's Edit or Properties, then Delete, then Add…, the
-  Primary, at the right edge - in words without glyphs; and one way to add on each page, the toolbar's Add… or the
-  form under the list. The toolbar puts its actions on a row of their own under the search where the widest of them
-  does not fit beside it, and its filters under the search where the two do not fit side by side, so that the
-  suppression list's Remove and Add…, which had moved to the header because beside its domain box they were not drawn
-  in the narrowest window, are in its toolbar again; the quarantine's Group by is a filter beside its search and
-  Remove expired is in its toolbar, where all four were in the header and squeezed its title. Five captions moved
-  their Alt key to leave R to Refresh - Deliver lo_cal → remote, Add a ro_ute, Rem_ove criterion, Re_move stored
-  passphrase and Proto_col - and thirty-five translated captions moved theirs in their own language.
+  "Active: 2 of 3", "Shown: 2 of 40", "1 to 100 of 1284" - that a screen reader hears as it changes, as it heard the
+  notices, and Refresh in the header; the search, the filters and the list's verbs in the toolbar over the list - the
+  selected entry's Edit or Properties, then Delete, then Add…, the Primary, at the right edge - in words without
+  glyphs; and one way to add on each page, the toolbar's Add… or the form under the list. The toolbar puts its actions
+  on a row of their own under the search where the widest of them does not fit beside it, and its filters under the
+  search where the two do not fit side by side, so that the suppression list's Remove and Add…, which had moved to the
+  header because beside its domain box they were not drawn in the narrowest window, are in its toolbar again; the
+  quarantine's Group by is a filter beside its search and Remove expired is in its toolbar, where all four were in the
+  header and squeezed its title. Five captions moved their Alt key to leave R to Refresh - Deliver lo_cal → remote,
+  Add a ro_ute, Rem_ove criterion, Re_move stored passphrase and Proto_col - and thirty-five translated captions moved
+  theirs in their own language.
 
 - **Fixed: the Primary button came first on some pages, in the middle on others and last on the rest.** The REST API
   keys page put Create a key… before Refresh, the event scripts Save & reload before Check syntax and Reload from

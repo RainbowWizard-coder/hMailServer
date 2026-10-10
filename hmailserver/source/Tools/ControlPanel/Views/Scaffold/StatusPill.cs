@@ -19,6 +19,17 @@ namespace hMailServer.ControlPanel.Views.Scaffold
    /// accessible name leads with the severity word, so "Warning: Backlog" is
    /// heard where "Backlog" is seen beside a triangle.
    ///
+   /// A pill that says a list's count - a list page's, beside its title - is a
+   /// polite live region (<c>AutomationProperties.LiveSetting="Polite"</c>) and
+   /// announces itself through <see cref="Announce"/> as its text or level
+   /// changes and as it comes into view, as a notice does (InlineNotice): "Shown:
+   /// 2 of 40" as a search is typed in, "101 to 200 of 1284" after a page step
+   /// (WCAG 2.2 success criterion 4.1.3, Status Messages, whose own example is a
+   /// search's result count). The counts were Information notices, which said
+   /// themselves, until the list page pattern moved them here (review finding
+   /// F288). A pill that is no live region - the setting's default, Off - asks for
+   /// nothing, so the shell's pill and a grid's cells are as they were.
+   ///
    /// <code>
    /// &lt;scaffold:StatusPill Level="Good" Text="{loc:L 'Connected'}" /&gt;
    /// </code>
@@ -28,6 +39,17 @@ namespace hMailServer.ControlPanel.Views.Scaffold
       static StatusPill()
       {
          DefaultStyleKeyProperty.OverrideMetadata(typeof(StatusPill), new FrameworkPropertyMetadata(typeof(StatusPill)));
+      }
+
+      public StatusPill()
+      {
+         // A live region's pill filled in while it was collapsed is announced as
+         // it is shown; one that changes while it is on screen, as it changes.
+         IsVisibleChanged += (s, e) =>
+         {
+            if ((bool)e.NewValue && IsLive_())
+               Announce.Request(this);
+         };
       }
 
       public static readonly DependencyProperty LevelProperty = DependencyProperty.Register(
@@ -64,7 +86,18 @@ namespace hMailServer.ControlPanel.Views.Scaffold
       }
 
       private static void OnPresentationChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-         => ((StatusPill)d).Apply_();
+      {
+         var pill = (StatusPill)d;
+         pill.Apply_();
+         if (pill.IsLive_())
+            Announce.Request(pill);
+      }
+
+      // Whether the pill has something to say as a live region. Asked before a
+      // request is queued, so that the pills that are none - a grid's, many at
+      // once as its rows come into view - queue nothing.
+      private bool IsLive_()
+         => !string.IsNullOrEmpty(Text) && AutomationProperties.GetLiveSetting(this) != AutomationLiveSetting.Off;
 
       /// <summary>
       /// Paints the level into the template's parts: the level's fill behind,

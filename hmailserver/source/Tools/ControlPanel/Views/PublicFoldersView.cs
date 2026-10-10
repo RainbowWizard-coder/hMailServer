@@ -78,6 +78,9 @@ namespace hMailServer.ControlPanel.Views
          foreach (FrameworkElement button in actions.Children)
             button.Margin = new Thickness(button.Margin.Left, 2, button.Margin.Right, 2);
          search_.Actions = actions;
+         // The count is a polite live region, so that a screen reader hears it as
+         // it changes, as the notice it replaced was heard (Scaffold/StatusPill).
+         System.Windows.Automation.AutomationProperties.SetLiveSetting(count_, System.Windows.Automation.AutomationLiveSetting.Polite);
          header_.Status = count_;
          header_.Actions = MakeButton(L("_Refresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload());
          root.Children.Add(header_);

@@ -319,6 +319,9 @@ namespace hMailServer.ControlPanel.Views
          root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
          root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
 
+         // The count is a polite live region, so that a screen reader hears it as
+         // it changes, as the notice it replaced was heard (Scaffold/StatusPill).
+         System.Windows.Automation.AutomationProperties.SetLiveSetting(count_, System.Windows.Automation.AutomationLiveSetting.Polite);
          root.Children.Add(new PageHeader
          {
             Status = count_,

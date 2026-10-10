@@ -31,7 +31,8 @@
                              Subtitle="{loc:L 'Messages waiting for delivery.'}">
             <scaffold:PageHeader.Status>
                 <scaffold:StatusPill x:Name="CountPill" Level="Normal" Visibility="Collapsed"
-                                     AutomationProperties.AutomationId="list-count" />
+                                     AutomationProperties.AutomationId="list-count"
+                                     AutomationProperties.LiveSetting="Polite" />
             </scaffold:PageHeader.Status>
             <scaffold:PageHeader.Actions>
                 <ui:Button Content="{loc:L '_Refresh'}" Click="Refresh_Click" />
