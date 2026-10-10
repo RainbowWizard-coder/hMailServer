@@ -3204,6 +3204,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Could not read the accounts: " xml:space="preserve">
     <value>Nie udało się odczytać kont: </value>
   </data>
+  <data name="Could not read the aliases: " xml:space="preserve">
+    <value>Nie udało się odczytać aliasów: </value>
+  </data>
   <data name="Could not read the audit trail: " xml:space="preserve">
     <value>Nie udało się odczytać dziennika audytu: </value>
   </data>
@@ -3221,6 +3224,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Nie udało się odczytać raportu spójności: {0}</value>
+  </data>
+  <data name="Could not read the distribution lists: " xml:space="preserve">
+    <value>Nie udało się odczytać list dystrybucyjnych: </value>
   </data>
   <data name="Could not read the domains: " xml:space="preserve">
     <value>Nie udało się odczytać domen: </value>
@@ -3422,12 +3428,6 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   </data>
   <data name="Couldn't determine the executable from the command." xml:space="preserve">
     <value>Nie udało się ustalić programu wykonywalnego na podstawie polecenia.</value>
-  </data>
-  <data name="Couldn't load aliases: " xml:space="preserve">
-    <value>Nie udało się wczytać aliasów: </value>
-  </data>
-  <data name="Couldn't load distribution lists: " xml:space="preserve">
-    <value>Nie udało się wczytać list dystrybucyjnych: </value>
   </data>
   <data name="Count a full mailbox as a hard bounce" xml:space="preserve">
     <value>Licz pełną skrzynkę jako trwały zwrot</value>

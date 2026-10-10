@@ -3075,6 +3075,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the boxes' line whatever a box's hint adds under it. `RoleWordsTests` holds the purposes to the scripts' own words
   and to every catalogue, the domains as shown and as sent, and the page's words and form.
 
+- **Fixed: the Domains & accounts page said two failures as "Couldn't load ...", and its Create account said a lost
+  link as the runtime's text.** The aliases' and distribution lists' read failures began "Couldn't load aliases: " and
+  "Couldn't load distribution lists: " beside "Could not read the domains: " and "Could not read the accounts: "; they
+  now say "Could not read the aliases: " and "Could not read the distribution lists: ". Create account gave the
+  server's reason through the catalogue but showed a lost link as "The RPC server is unavailable. (0x800706BA)", where
+  the page's other handlers said the link but the server's words untranslated; every failure on the Domains and Public
+  folders pages now gives its reason through `ServerSession.DescribeComError`, which says a sentence of the server's
+  own that the catalogue holds - a breached password, a breach check that could not run - in the reader's language, on
+  every page that says a failure. `DomainsFailureWordsTests` holds the prefixes, the handlers and DescribeComError's
+  catalogue.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

@@ -3180,6 +3180,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Could not read the accounts: " xml:space="preserve">
     <value>Impossibile leggere gli account: </value>
   </data>
+  <data name="Could not read the aliases: " xml:space="preserve">
+    <value>Impossibile leggere gli alias: </value>
+  </data>
   <data name="Could not read the audit trail: " xml:space="preserve">
     <value>Impossibile leggere il registro di audit: </value>
   </data>
@@ -3197,6 +3200,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Impossibile leggere il rapporto di coerenza: {0}</value>
+  </data>
+  <data name="Could not read the distribution lists: " xml:space="preserve">
+    <value>Impossibile leggere le liste di distribuzione: </value>
   </data>
   <data name="Could not read the domains: " xml:space="preserve">
     <value>Impossibile leggere i domini: </value>
@@ -3398,12 +3404,6 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   </data>
   <data name="Couldn't determine the executable from the command." xml:space="preserve">
     <value>Impossibile determinare l'eseguibile a partire dal comando.</value>
-  </data>
-  <data name="Couldn't load aliases: " xml:space="preserve">
-    <value>Impossibile caricare gli alias: </value>
-  </data>
-  <data name="Couldn't load distribution lists: " xml:space="preserve">
-    <value>Impossibile caricare le liste di distribuzione: </value>
   </data>
   <data name="Count a full mailbox as a hard bounce" xml:space="preserve">
     <value>Conta una casella piena come rimbalzo permanente</value>

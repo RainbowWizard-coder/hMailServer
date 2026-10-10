@@ -3180,6 +3180,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Could not read the accounts: " xml:space="preserve">
     <value>Kunne ikke lese kontoene: </value>
   </data>
+  <data name="Could not read the aliases: " xml:space="preserve">
+    <value>Kunne ikke lese aliasene: </value>
+  </data>
   <data name="Could not read the audit trail: " xml:space="preserve">
     <value>Kunne ikke lese revisjonsloggen: </value>
   </data>
@@ -3197,6 +3200,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Kunne ikke lese konsistensrapporten: {0}</value>
+  </data>
+  <data name="Could not read the distribution lists: " xml:space="preserve">
+    <value>Kunne ikke lese distribusjonslistene: </value>
   </data>
   <data name="Could not read the domains: " xml:space="preserve">
     <value>Kunne ikke lese domenene: </value>
@@ -3398,12 +3404,6 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   </data>
   <data name="Couldn't determine the executable from the command." xml:space="preserve">
     <value>Kunne ikke fastslå den kjørbare filen ut fra kommandoen.</value>
-  </data>
-  <data name="Couldn't load aliases: " xml:space="preserve">
-    <value>Kunne ikke laste aliaser: </value>
-  </data>
-  <data name="Couldn't load distribution lists: " xml:space="preserve">
-    <value>Kunne ikke laste distribusjonslister: </value>
   </data>
   <data name="Count a full mailbox as a hard bounce" xml:space="preserve">
     <value>Tell en full postboks som en hard returmelding</value>

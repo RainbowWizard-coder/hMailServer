@@ -3180,6 +3180,9 @@
   <data name="Could not read the accounts: " xml:space="preserve">
     <value>无法读取账户： </value>
   </data>
+  <data name="Could not read the aliases: " xml:space="preserve">
+    <value>无法读取别名： </value>
+  </data>
   <data name="Could not read the audit trail: " xml:space="preserve">
     <value>无法读取审计记录： </value>
   </data>
@@ -3197,6 +3200,9 @@
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>无法读取一致性报告：{0}</value>
+  </data>
+  <data name="Could not read the distribution lists: " xml:space="preserve">
+    <value>无法读取分发列表： </value>
   </data>
   <data name="Could not read the domains: " xml:space="preserve">
     <value>无法读取域： </value>
@@ -3398,12 +3404,6 @@
   </data>
   <data name="Couldn't determine the executable from the command." xml:space="preserve">
     <value>无法从该命令中确定可执行文件。</value>
-  </data>
-  <data name="Couldn't load aliases: " xml:space="preserve">
-    <value>无法加载别名： </value>
-  </data>
-  <data name="Couldn't load distribution lists: " xml:space="preserve">
-    <value>无法加载分发列表： </value>
   </data>
   <data name="Count a full mailbox as a hard bounce" xml:space="preserve">
     <value>将邮箱已满计为硬退信</value>

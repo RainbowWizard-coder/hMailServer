@@ -3180,6 +3180,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Could not read the accounts: " xml:space="preserve">
     <value>Impossible de lire les comptes : </value>
   </data>
+  <data name="Could not read the aliases: " xml:space="preserve">
+    <value>Impossible de lire les alias : </value>
+  </data>
   <data name="Could not read the audit trail: " xml:space="preserve">
     <value>Impossible de lire le journal d'audit : </value>
   </data>
@@ -3197,6 +3200,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Impossible de lire le rapport de cohérence : {0}</value>
+  </data>
+  <data name="Could not read the distribution lists: " xml:space="preserve">
+    <value>Impossible de lire les listes de diffusion : </value>
   </data>
   <data name="Could not read the domains: " xml:space="preserve">
     <value>Impossible de lire les domaines : </value>
@@ -3398,12 +3404,6 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   </data>
   <data name="Couldn't determine the executable from the command." xml:space="preserve">
     <value>Impossible de déterminer l'exécutable à partir de la commande.</value>
-  </data>
-  <data name="Couldn't load aliases: " xml:space="preserve">
-    <value>Impossible de charger les alias : </value>
-  </data>
-  <data name="Couldn't load distribution lists: " xml:space="preserve">
-    <value>Impossible de charger les listes de diffusion : </value>
   </data>
   <data name="Count a full mailbox as a hard bounce" xml:space="preserve">
     <value>Compter une boîte pleine comme un rebond définitif</value>

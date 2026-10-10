@@ -3180,6 +3180,9 @@
   <data name="Could not read the accounts: " xml:space="preserve">
     <value>アカウントを読み取れませんでした: </value>
   </data>
+  <data name="Could not read the aliases: " xml:space="preserve">
+    <value>エイリアスを読み取れませんでした: </value>
+  </data>
   <data name="Could not read the audit trail: " xml:space="preserve">
     <value>監査ログを読み取れませんでした: </value>
   </data>
@@ -3197,6 +3200,9 @@
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>整合性レポートを読み取れませんでした: {0}</value>
+  </data>
+  <data name="Could not read the distribution lists: " xml:space="preserve">
+    <value>配布リストを読み取れませんでした: </value>
   </data>
   <data name="Could not read the domains: " xml:space="preserve">
     <value>ドメインを読み取れませんでした: </value>
@@ -3398,12 +3404,6 @@
   </data>
   <data name="Couldn't determine the executable from the command." xml:space="preserve">
     <value>コマンドから実行ファイルを特定できませんでした。</value>
-  </data>
-  <data name="Couldn't load aliases: " xml:space="preserve">
-    <value>エイリアスを読み込めませんでした: </value>
-  </data>
-  <data name="Couldn't load distribution lists: " xml:space="preserve">
-    <value>配布リストを読み込めませんでした: </value>
   </data>
   <data name="Count a full mailbox as a hard bounce" xml:space="preserve">
     <value>満杯のメールボックスをハード バウンスとして数える</value>

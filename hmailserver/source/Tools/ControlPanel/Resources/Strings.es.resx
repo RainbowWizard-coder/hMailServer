@@ -3180,6 +3180,9 @@ Los detalles completos se escribieron en:
   <data name="Could not read the accounts: " xml:space="preserve">
     <value>No se pudieron leer las cuentas: </value>
   </data>
+  <data name="Could not read the aliases: " xml:space="preserve">
+    <value>No se pudieron leer los alias: </value>
+  </data>
   <data name="Could not read the audit trail: " xml:space="preserve">
     <value>No se pudo leer el registro de auditoría: </value>
   </data>
@@ -3197,6 +3200,9 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>No se pudo leer el informe de consistencia: {0}</value>
+  </data>
+  <data name="Could not read the distribution lists: " xml:space="preserve">
+    <value>No se pudieron leer las listas de distribución: </value>
   </data>
   <data name="Could not read the domains: " xml:space="preserve">
     <value>No se pudieron leer los dominios: </value>
@@ -3398,12 +3404,6 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Couldn't determine the executable from the command." xml:space="preserve">
     <value>No se pudo determinar el ejecutable a partir del comando.</value>
-  </data>
-  <data name="Couldn't load aliases: " xml:space="preserve">
-    <value>No se pudieron cargar los alias: </value>
-  </data>
-  <data name="Couldn't load distribution lists: " xml:space="preserve">
-    <value>No se pudieron cargar las listas de distribución: </value>
   </data>
   <data name="Count a full mailbox as a hard bounce" xml:space="preserve">
     <value>Contar un buzón lleno como rebote permanente</value>

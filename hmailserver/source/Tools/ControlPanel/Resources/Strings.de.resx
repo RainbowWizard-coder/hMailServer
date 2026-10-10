@@ -3180,6 +3180,9 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Could not read the accounts: " xml:space="preserve">
     <value>Die Konten konnten nicht gelesen werden: </value>
   </data>
+  <data name="Could not read the aliases: " xml:space="preserve">
+    <value>Die Aliase konnten nicht gelesen werden: </value>
+  </data>
   <data name="Could not read the audit trail: " xml:space="preserve">
     <value>Das Prüfprotokoll konnte nicht gelesen werden: </value>
   </data>
@@ -3197,6 +3200,9 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Der Konsistenzbericht konnte nicht gelesen werden: {0}</value>
+  </data>
+  <data name="Could not read the distribution lists: " xml:space="preserve">
+    <value>Die Verteilerlisten konnten nicht gelesen werden: </value>
   </data>
   <data name="Could not read the domains: " xml:space="preserve">
     <value>Die Domains konnten nicht gelesen werden: </value>
@@ -3398,12 +3404,6 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   </data>
   <data name="Couldn't determine the executable from the command." xml:space="preserve">
     <value>Die ausführbare Datei konnte aus dem Befehl nicht ermittelt werden.</value>
-  </data>
-  <data name="Couldn't load aliases: " xml:space="preserve">
-    <value>Aliase konnten nicht geladen werden: </value>
-  </data>
-  <data name="Couldn't load distribution lists: " xml:space="preserve">
-    <value>Verteilerlisten konnten nicht geladen werden: </value>
   </data>
   <data name="Count a full mailbox as a hard bounce" xml:space="preserve">
     <value>Ein volles Postfach als harte Unzustellbarkeit zählen</value>

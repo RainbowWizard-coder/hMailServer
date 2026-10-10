@@ -309,7 +309,7 @@ namespace hMailServer.ControlPanel.Views
          AddAliasForm.IsEnabled = DomainList.SelectedItem != null;
          SetListStatus(AliasStatus, rows.Count, error,
             DomainList.SelectedItem == null ? L("Select a domain to see its aliases.") : L("No aliases for this domain."),
-            L("Couldn't load aliases: "));
+            L("Could not read the aliases: "));
       }
 
       /// <summary>
@@ -360,7 +360,7 @@ namespace hMailServer.ControlPanel.Views
          AddListForm.IsEnabled = DomainList.SelectedItem != null;
          SetListStatus(DistStatus, rows.Count, error,
             DomainList.SelectedItem == null ? L("Select a domain to see its distribution lists.") : L("No distribution lists for this domain."),
-            L("Couldn't load distribution lists: "));
+            L("Could not read the distribution lists: "));
       }
 
       // Shows a centered empty/error placeholder over a list when it has no rows.
@@ -839,7 +839,10 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not create the account: {0}", L(ServerSentences.MessageOf(ex))), L("Control Panel"));
+            // The server's reason in the reader's language where the catalogue has
+            // it - a breached password - and a lost link said as one, as every other
+            // handler on the page says them (review finding F093).
+            MessageBox.Show(F("Could not create the account: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
             return;
          }
          finally

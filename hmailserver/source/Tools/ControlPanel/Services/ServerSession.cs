@@ -901,8 +901,14 @@ namespace hMailServer.ControlPanel.Services
          // A failure that is not the server's own words - an answer this Control
          // Panel could not parse, a member an older server does not have - is said
          // as what it is, with the runtime's text kept in brackets, and not as the
-         // bare text of a parser or a binder.
-         return ComErrorText.NotTheServersWords(ex, msg) ?? msg;
+         // bare text of a parser or a binder. The server's own words are said in
+         // the reader's language where the catalogue holds them (Services/
+         // ServerSentences: a breached password, a breach check that could not
+         // run), as the account dialog's save said them and no other failure did:
+         // Create account on the Domains page translated them but said a lost link
+         // as the runtime's text, and the other handlers the reverse (review
+         // finding F093). Anything else comes back as the server wrote it.
+         return ComErrorText.NotTheServersWords(ex, msg) ?? L(msg);
       }
    }
 }

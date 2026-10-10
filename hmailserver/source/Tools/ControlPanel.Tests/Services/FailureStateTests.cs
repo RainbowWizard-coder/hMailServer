@@ -225,7 +225,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          string session = ReadControlPanelFile(Path.Join("Services", "ServerSession.cs"));
          string describe = WithheldRowTests.MemberText(session, "public static string DescribeComError(Exception ex)");
-         Assert.Contains("return ComErrorText.NotTheServersWords(ex, msg) ?? msg;", describe, StringComparison.Ordinal);
+         // The server's own words through the catalogue, since review finding F093.
+         Assert.Contains("return ComErrorText.NotTheServersWords(ex, msg) ?? L(msg);", describe, StringComparison.Ordinal);
 
          string failure = ReadControlPanelFile(Path.Join("Services", "ReadFailure.cs"));
          Assert.Contains("notice.ToolTip = ComErrorText.TechnicalDetail(why);", failure, StringComparison.Ordinal);

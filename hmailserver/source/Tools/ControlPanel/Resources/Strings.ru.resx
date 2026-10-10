@@ -3204,6 +3204,9 @@ Control Panel может читать файлы сообщений только
   <data name="Could not read the accounts: " xml:space="preserve">
     <value>Не удалось прочитать учётные записи: </value>
   </data>
+  <data name="Could not read the aliases: " xml:space="preserve">
+    <value>Не удалось прочитать псевдонимы: </value>
+  </data>
   <data name="Could not read the audit trail: " xml:space="preserve">
     <value>Не удалось прочитать журнал аудита: </value>
   </data>
@@ -3221,6 +3224,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Не удалось прочитать отчёт о проверке целостности: {0}</value>
+  </data>
+  <data name="Could not read the distribution lists: " xml:space="preserve">
+    <value>Не удалось прочитать списки рассылки: </value>
   </data>
   <data name="Could not read the domains: " xml:space="preserve">
     <value>Не удалось прочитать домены: </value>
@@ -3422,12 +3428,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Couldn't determine the executable from the command." xml:space="preserve">
     <value>Не удалось определить исполняемый файл по этой команде.</value>
-  </data>
-  <data name="Couldn't load aliases: " xml:space="preserve">
-    <value>Не удалось загрузить псевдонимы: </value>
-  </data>
-  <data name="Couldn't load distribution lists: " xml:space="preserve">
-    <value>Не удалось загрузить списки рассылки: </value>
   </data>
   <data name="Count a full mailbox as a hard bounce" xml:space="preserve">
     <value>Считать переполненный ящик постоянным отказом</value>
