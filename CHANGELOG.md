@@ -3224,6 +3224,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   either way ("honor dane", "organization name"). `BritishSpellingTests` reads every English text for an American
   form.
 
+- **Fixed: the Japanese Control Panel said one thing in several words, spaced sixteen access keys apart from their
+  captions and mixed full-width parentheses into half-width ones.** A key was キー on the REST API keys page and 鍵 for a
+  DKIM or TLS key (251 times); an auto-ban was 自動ブロック in the page's title and its settings, 自動 BAN, BAN, 禁止 and 遮断 in
+  their text; one paragraph of the sender lists said 差出人 and 送信者, 迷惑メール and スパム; the Logging page and its tab were ログ,
+  a log; Server status's Started said 開始済み, "begun"; the TLS overview's Opportunistic said 日和見的; and a route's target
+  host was 宛先 beside 送信先 for its port (review finding F302). The catalogue now has a style note at its head, and
+  follows it: キー for every key (公開キー, 秘密キー, キー ファイル); 自動 BAN for the feature and its page and BAN for a ban; 送信者 for
+  the sender, with 差出人 kept for the From header, and スパム; ログ設定, 開始日時, 日和見暗号化 and 送信先 SMTP ホスト; half-width parentheses
+  throughout; and a caption's key suffix written against it, サンプルドメインを作成(_D), as the 531 others are - in the Chinese
+  catalogue too, which had the same sixteen. Every text that names the two renamed pages names them by their new
+  titles. `JapaneseStyleTests` holds the note, and `build/check-mnemonics.py` refuses a space before a Japanese or
+  Chinese key's suffix, its self-test with a catalogue made to break it.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

@@ -90,6 +90,11 @@ What is checked
     captions join the scope of every one of those pages - the classes
     MainWindow.xaml.cs's pageFactories_ make, in each of their files - as a
     shared helper's do. The pending bar's two carry no key.
+  * The Japanese and Chinese catalogues write a caption's key as a suffix,
+    "サンプルドメインを作成(_D)", against the caption as every other one is:
+    sixteen captions in each had a space before it, "... (_D)", beside 531
+    without (review finding F302). A value with white space before such a
+    suffix is reported, whether or not it is a caption this check reads.
 
 Usage: python3 build/check-mnemonics.py [--list]
 Exit status 0 when every caption is covered and every scope is collision-free.
@@ -724,6 +729,32 @@ def one_key_per_caption(captions):
     return problems
 
 
+# The catalogues that write a caption's key as a suffix, "(_X)" after the caption.
+SUFFIX_TAGS = ("ja", "zh-Hans")
+SPACED_SUFFIX = re.compile(r"\s\(_[^\s)]\)")
+RESX_DATA = re.compile(r'<data name="([^"]*)" xml:space="preserve">\s*<value>(.*?)</value>', re.S)
+
+
+def suffix_problems(resources=None):
+    """Every value of a suffix catalogue with white space before its "(_X)"."""
+    import html
+    resources = resources or os.path.join(ROOT, "Resources")
+    problems = []
+    for tag in SUFFIX_TAGS:
+        path = os.path.join(resources, f"Strings.{tag}.resx")
+        if not os.path.exists(path):
+            continue
+        with open(path, encoding="utf-8-sig") as handle:
+            raw = handle.read()
+        for m in RESX_DATA.finditer(raw):
+            value = html.unescape(m.group(2))
+            if SPACED_SUFFIX.search(value):
+                line = raw.count("\n", 0, m.start()) + 1
+                problems.append(f"Resources/Strings.{tag}.resx:{line}: [{tag}] a space before the key's suffix in \"{value}\""
+                                f" (translation of \"{html.unescape(m.group(1))}\"); write it against the caption, as \"...(_X)\"")
+    return problems
+
+
 def self_test():
     """The rules against pages made to pass and to fail them, each a defect the
     Control Panel shipped (review findings F071 and F287): a field's caption with
@@ -864,6 +895,15 @@ def self_test():
                [p for p in settings("header", "A_dd address…", "_Save ban", "Auto-ban")[1] if "Save ban" in p], True)
         expect("A_dd address…, _Lift ban, _Add name… and the header on one tab",
                settings("fixed", "A_dd address…", "_Lift ban", "Auto-ban")[1], False)
+        # a CJK key suffix with a space before it (F302), and one written against the caption
+        resources = os.path.join(root, "Resources")
+        os.makedirs(resources)
+        row = '  <data name="{0}" xml:space="preserve">\n    <value>{1}</value>\n  </data>\n'
+        page(os.path.join("Resources", "Strings.ja.resx"), "<root>\n" + row.format("Make a sample _domain", "サンプルドメインを作成 (_D)")
+             + row.format("Re_move the sample domain", "サンプルドメインを削除(_M)") + "</root>\n")
+        spaced = suffix_problems(resources)
+        expect("a ja suffix with a space before it", [p for p in spaced if "サンプルドメインを作成" in p], True)
+        expect("a ja suffix against its caption", [p for p in spaced if "サンプルドメインを削除" in p], False)
 
     print("self-test: " + ("FAIL" if failures else "OK"))
     return 1 if failures else 0
@@ -908,6 +948,8 @@ def main():
     problems += collisions(all_captions + placed)
     problems += one_key_per_caption(all_captions)
     problems += language_problems(all_captions + placed)
+    # the CJK catalogues' key suffix written against its caption
+    problems += suffix_problems()
     # read-only rows: no key, in English or in any catalogue
     read_only = [c for path in files if path.endswith(".cs") for c in read_only_captions(path)]
     problems += read_only_problems(read_only)

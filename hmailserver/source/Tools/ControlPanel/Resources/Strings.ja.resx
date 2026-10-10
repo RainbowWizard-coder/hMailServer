@@ -5,7 +5,17 @@
   SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <root>
-  <!-- 日本語: the 日本語 catalogue. Keys are the English text; values are the translation. Each caption's Alt key (the letter after _) is chosen for 日本語 and checked by build/check-mnemonics.py. -->
+  <!-- 日本語: the 日本語 catalogue. Keys are the English text; values are the translation. Each caption's Alt key (the letter after _) is chosen for 日本語 and checked by build/check-mnemonics.py.
+
+  Style note (review finding F302; ControlPanel.Tests' JapaneseStyleTests holds it):
+  - The key's suffix is written against the caption, 作成(_D), never 作成 (_D); before a trailing … or :, and before a parenthesis that follows the caption: 保護対象者(_P) (...).
+  - Parentheses are half-width, ( ), with a space outside them where the text goes on; the corner brackets 「 」 quote a caption or a page, [ ] name a page or a button.
+  - Katakana words are spaced as Windows' Japanese spaces them: キー ファイル, ベアラー トークン, ログ ファイル.
+  - A key, cryptographic, API or keyboard, is キー (公開キー, 秘密キー, キー ペア), never 鍵.
+  - The sender is 送信者; 差出人 is the From header alone. Spam is スパム; 迷惑メール is only the name of a mail client's own button.
+  - An auto-ban is 自動 BAN, a ban BAN, to ban BAN する; the Auto-ban page is 自動 BAN. ブロック is a block, as in a block list.
+  - Logging (the page and its tab) is ログ設定; ログ alone is a log. Started (when the service started) is 開始日時. Opportunistic encryption is 日和見暗号化. A route's target host is the 送信先.
+  - A page named in a sentence is called by its own title in this catalogue (build/check-catalogues.py holds it). -->
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
   </resheader>
@@ -34,7 +44,7 @@
     <value>「ドメイン内の全員が送信できる」とは、送信者アドレスがこのサーバーでホストしているドメインのものであることを意味します。リストが認証も必須にしていない限り、外部の人間でもこれを詐称できます。サインインした人だけにリストを限定する必要がある場合は、下のチェックボックスをオンにしてください。</value>
   </data>
   <data name="'Protect stored secrets with Windows DPAPI' on the Server limits &amp; expert settings page is off, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed." xml:space="preserve">
-    <value>[サーバーの制限と上級者向け設定] ページの「保存されたシークレットを Windows DPAPI で保護する」がオフのため、アカウントの第二要素と [Settings] のシークレットは書かれたまま保存され、保存シークレットの鍵は必要ありません。</value>
+    <value>[サーバーの制限と上級者向け設定] ページの「保存されたシークレットを Windows DPAPI で保護する」がオフのため、アカウントの第二要素と [Settings] のシークレットは書かれたまま保存され、保存シークレットのキーは必要ありません。</value>
   </data>
   <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
     <value>「理由を付けて拒否する」の場合、RCPT での送信には理由を付けて応答し、それ以外 (エイリアス、転送、予約送信) は配信状態通知で送信者に返します。すでにキューにあるアドレス宛てのメールは、次の配信試行時にリストと照合されます。「配信して記録だけする」は、リストが実際に動く前に何をするかを確かめる安全な方法です。</value>
@@ -46,7 +56,7 @@
     <value>'{0}' はドメイン名ではありません。ドメインをコンマ区切りで指定するか、この欄を空のままにして、このキーがすべてのドメインに対して働くようにしてください。</value>
   </data>
   <data name="(The private key file could not be read from this machine, so the record value cannot be derived here. Run this page on the server itself, or use the domain's DKIM tab.)" xml:space="preserve">
-    <value>(秘密鍵ファイルをこのコンピューターから読み取れなかったため、レコードの値をここで導き出せません。このページをサーバー自身の上で開くか、ドメインの DKIM タブを使用してください。)</value>
+    <value>(秘密キー ファイルをこのコンピューターから読み取れなかったため、レコードの値をここで導き出せません。このページをサーバー自身の上で開くか、ドメインの DKIM タブを使用してください。)</value>
   </data>
   <data name="(account #{0})" xml:space="preserve">
     <value>(アカウント #{0})</value>
@@ -118,7 +128,7 @@
     <value>既定は 0 です。苦情はすべて記録されて数えられますが、誰もリストに載りません。まず実際の記録をいくつか読んでください。その後の通常の値は 1 です。</value>
   </data>
   <data name="0 disables auto-ban entirely, even with the box above ticked." xml:space="preserve">
-    <value>0 を指定すると、上のチェックボックスがオンでも自動ブロックは完全に無効になります。</value>
+    <value>0 を指定すると、上のチェックボックスがオンでも自動 BANは完全に無効になります。</value>
   </data>
   <data name="0 emits no expiry at all, which is the safe default: an expiry is a promise about mail already in flight, and a window shorter than the delay a retry, a greylist or a mailing list adds costs the message its DKIM pass and its DMARC alignment at the far end. 604,800 is a week, the usual choice for a sender who wants one. A signing timestamp is always sent regardless of this value." xml:space="preserve">
     <value>0 を指定すると有効期限をまったく付けません。これが安全な既定値です。有効期限は、すでに送信途上にあるメールについての約束であり、再試行・グレイリスティング・メーリング リストが加える遅延より短い期間を指定すると、そのメッセージは受信側で DKIM の検証に失敗し、DMARC のアライメントも失われます。604,800 は 1 週間で、有効期限を付けたい送信者が通常選ぶ値です。署名のタイムスタンプは、この値にかかわらず常に送られます。</value>
@@ -139,7 +149,7 @@
     <value>0 はアーカイブを決して削除しないことを意味します。保持処理は、このフォルダーへのバックアップが行われるたびに (スケジュールによるものも、「今すぐバックアップを開始」で手動実行したものも) サーバー上で実行され、新しいアーカイブが書き込まれて読み取り可能であることが確認された後にのみ動作します。そのため、失敗したバックアップが何かを削除することはありません。最新のアーカイブは決して削除されず、経過日数による制限は常に最新の 2 件を残し、数えられるのはこのサーバー自身の HMBackup アーカイブだけです。フォルダー内のほかのファイルには一切手を触れません。</value>
   </data>
   <data name="0 means the connection is dropped but no range is created, so the address is not actually banned." xml:space="preserve">
-    <value>0 は、接続は切断されるものの IP 範囲は作成されないことを意味し、そのアドレスは実際にはブロックされません。</value>
+    <value>0 は、接続は切断されるものの IP 範囲は作成されないことを意味し、そのアドレスは実際には BAN されません。</value>
   </data>
   <data name="0 switches the schedule off, which is the default and is what every existing installation stays at. Values between 1 and 14 are treated as 15, and anything over a week as a week. This one needs a service restart: the task is registered when the server starts." xml:space="preserve">
     <value>0 はスケジュールを無効にします。これが既定値であり、既存のインストールはすべてこの値のままです。1 から 14 までの値は 15 として扱われ、1 週間を超える値は 1 週間として扱われます。この設定にはサービスの再起動が必要です。タスクはサーバーの起動時に登録されるためです。</value>
@@ -361,7 +371,7 @@
     <value>既定は 86,400 です。0 はすぐに配信するか、まったく配信しないかです。</value>
   </data>
   <data name="90 by default. A ban or a block a hit made is not removed with its record." xml:space="preserve">
-    <value>既定は 90 です。ヒットによるブロックは、その記録と一緒には削除されません。</value>
+    <value>既定は 90 です。ヒットによる BAN やブロックは、その記録と一緒には削除されません。</value>
   </data>
   <data name="; database folder {0}" xml:space="preserve">
     <value>、データベース フォルダー {0}</value>
@@ -418,7 +428,7 @@
     <value>各ログ項目のコピーを RFC 5424 形式で syslog コレクター (rsyslog、syslog-ng、SIEM) に送ります。ログファイルの代わりではなく、それと並行して送ります。Linux でコレクターを指定しない場合、systemd 配下で動作するサーバーは journal に書き込み、journalctl で読めます。</value>
   </data>
   <data name="A credential is set but the listener has no TLS, so the credential crosses the network in clear text on every scrape and can be replayed by anyone on the path. Set the certificate and key files, or bind to 127.0.0.1. The server still starts - it logs this same warning." xml:space="preserve">
-    <value>資格情報は設定されていますが、リスナーに TLS がありません。そのため資格情報はスクレイプのたびに平文でネットワークを流れ、経路上の誰でも再生できます。証明書ファイルと鍵ファイルを設定するか、127.0.0.1 にバインドしてください。サーバーはそれでも起動し、これと同じ警告をログに記録します。</value>
+    <value>資格情報は設定されていますが、リスナーに TLS がありません。そのため資格情報はスクレイプのたびに平文でネットワークを流れ、経路上の誰でも再生できます。証明書ファイルとキー ファイルを設定するか、127.0.0.1 にバインドしてください。サーバーはそれでも起動し、これと同じ警告をログに記録します。</value>
   </data>
   <data name="A criterion of the rule “{0}”." xml:space="preserve">
     <value>ルール「{0}」の条件です。</value>
@@ -484,7 +494,7 @@
     <value>キーが公開されるのは、「ウェブメール」ページのサーバーのスイッチと、ドメインのダイアログのドメインのスイッチもオンのときだけです。</value>
   </data>
   <data name="A key rotation is staged (selector &quot;{0}&quot;). The staged record and the promote step are managed from the domain's DKIM tab, which gates promotion on its own DNS check; it is deliberately not repeated here." xml:space="preserve">
-    <value>鍵のローテーションが準備されています (セレクター「{0}」)。準備中のレコードと昇格の手順はドメインの DKIM タブで管理し、そこでは独自の DNS チェックに合格するまで昇格できません。ここでは意図的に同じ操作を用意していません。</value>
+    <value>キーのローテーションが準備されています (セレクター「{0}」)。準備中のレコードと昇格の手順はドメインの DKIM タブで管理し、そこでは独自の DNS チェックに合格するまで昇格できません。ここでは意図的に同じ操作を用意していません。</value>
   </data>
   <data name="A key with a domain list is also refused the delivery-queue endpoints, because the queue is server-wide and cannot be filtered by domain." xml:space="preserve">
     <value>ドメイン リストを持つキーは、配信キューのエンドポイントも利用できません。キューはサーバー全体のものであり、ドメインで絞り込めないためです。</value>
@@ -559,7 +569,7 @@
     <value>新しいキー ペアを作成しました。公開キーは {0} です。上に表示するにはページを開き直してください。</value>
   </data>
   <data name="A new key was generated and staged. Publish its record." xml:space="preserve">
-    <value>新しい鍵を生成して準備しました。そのレコードを公開してください。</value>
+    <value>新しいキーを生成して準備しました。そのレコードを公開してください。</value>
   </data>
   <data name="A new photo has been chosen; it is saved with the account." xml:space="preserve">
     <value>新しい写真が選ばれました。アカウントと一緒に保存されます。</value>
@@ -586,7 +596,7 @@
     <value>この証明書のパスフレーズは保存されています。ここに表示されることはなく、新しいものを保存すると置き換えられます。それが正しいパスフレーズかどうかは、サーバーが鍵を読み込んだときにはじめて分かります。次回の再起動後に、アプリケーションのエラー ログを確認してください。</value>
   </data>
   <data name="A passphrase is stored, but the key file is not encrypted, so it is never used. Harmless - it simply does nothing." xml:space="preserve">
-    <value>パスフレーズは保存されていますが、鍵ファイルは暗号化されていないため、使用されることはありません。害はなく、単に何も起こりません。</value>
+    <value>パスフレーズは保存されていますが、キー ファイルは暗号化されていないため、使用されることはありません。害はなく、単に何も起こりません。</value>
   </data>
   <data name="A password is stored - leave blank to keep it" xml:space="preserve">
     <value>パスワードは保存済みです - そのままにする場合は空欄のままにしてください</value>
@@ -766,7 +776,7 @@
     <value>ACME は無効です (既定値)。そのため外部に必要なものはありません。</value>
   </data>
   <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Automatic certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
-    <value>ACME は有効ですが「更新をまたいで秘密鍵を再利用する」がオフになっているため、証明書を更新するたびに新しい秘密鍵が生成されます。'3 1 1' の TLSA レコードを公開している場合、それらは次回の更新で機能しなくなります。[自動証明書 (ACME)] ページでこれをもう一度オンにする (既定値) か、更新のたびに TLSA レコードを更新してください。</value>
+    <value>ACME は有効ですが「更新をまたいで秘密キーを再利用する」がオフになっているため、証明書を更新するたびに新しい秘密キーが生成されます。'3 1 1' の TLSA レコードを公開している場合、それらは次回の更新で機能しなくなります。[自動証明書 (ACME)] ページでこれをもう一度オンにする (既定値) か、更新のたびに TLSA レコードを更新してください。</value>
   </data>
   <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
     <value>ACME は有効ですが [自動証明書 (ACME)] ページの「証明書のホスト名」が空のため、証明書は一度も要求されません。クライアントは 'No domains configured' をログに記録して停止します。そこに証明書に含めるホスト名を列挙してください (例: mail.yourdomain.com、mta-sts.yourdomain.com)。</value>
@@ -811,13 +821,13 @@
     <value>ARC シールの付与は無効です (既定値)。そのため外部に必要なものはありません。</value>
   </data>
   <data name="ARC sealing is on and at least one active domain has a DKIM selector and key to seal with. The DNS side is covered by the DKIM item above - the seal verifies against the same TXT record." xml:space="preserve">
-    <value>ARC シールの付与は有効で、シールに使う DKIM のセレクターと鍵を持つ有効なドメインが少なくとも 1 つあります。DNS 側は上の DKIM の項目でカバーされています。シールは同じ TXT レコードで検証されるためです。</value>
+    <value>ARC シールの付与は有効で、シールに使う DKIM のセレクターとキーを持つ有効なドメインが少なくとも 1 つあります。DNS 側は上の DKIM の項目でカバーされています。シールは同じ TXT レコードで検証されるためです。</value>
   </data>
   <data name="ARC sealing is on, but no active domain has DKIM signing with a selector and key file configured, so forwarded mail is silently not sealed at all." xml:space="preserve">
-    <value>ARC シールの付与は有効ですが、セレクターと鍵ファイルを設定した DKIM 署名を持つ有効なドメインが 1 つもないため、転送メールには何も告げられないままシールがまったく付きません。</value>
+    <value>ARC シールの付与は有効ですが、セレクターとキー ファイルを設定した DKIM 署名を持つ有効なドメインが 1 つもないため、転送メールには何も告げられないままシールがまったく付きません。</value>
   </data>
   <data name="ARC sealing of forwarded mail - needs a domain DKIM key" xml:space="preserve">
-    <value>転送メールへの ARC シールの付与 - ドメインの DKIM 鍵が必要です</value>
+    <value>転送メールへの ARC シールの付与 - ドメインの DKIM キーが必要です</value>
   </data>
   <data name="AUTH is normally offered on every SMTP port. List the local TCP ports where it should not be, for example a port 25 that only accepts inbound mail from other servers." xml:space="preserve">
     <value>AUTH は通常、すべての SMTP ポートで提供されます。提供すべきでないローカルの TCP ポートを列挙してください。たとえば、ほかのサーバーからの受信メールだけを受け付けるポート 25 などです。</value>
@@ -856,7 +866,7 @@
     <value>rsa-sha1 を使用する DKIM 署名を受け入れる</value>
   </data>
   <data name="Accept OAuth2 / OpenID Connect bearer tokens (XOAUTH2) from an external identity provider for IMAP, POP3 and SMTP submission, validated against the issuer's signing key. The mailbox named by the token still has to exist as a local account." xml:space="preserve">
-    <value>IMAP、POP3、SMTP サブミッションについて、外部の ID プロバイダーが発行した OAuth2 / OpenID Connect のベアラー トークン (XOAUTH2) を受け入れ、発行者の署名鍵で検証します。トークンが指すメールボックスは、それでもローカルのアカウントとして存在している必要があります。</value>
+    <value>IMAP、POP3、SMTP サブミッションについて、外部の ID プロバイダーが発行した OAuth2 / OpenID Connect のベアラー トークン (XOAUTH2) を受け入れ、発行者の署名キーで検証します。トークンが指すメールボックスは、それでもローカルのアカウントとして存在している必要があります。</value>
   </data>
   <data name="Accept OAuth2 bearer tokens (XOAUTH2)" xml:space="preserve">
     <value>OAuth2 のベアラー トークン (XOAUTH2) を受け入れる</value>
@@ -1180,7 +1190,7 @@
     <value>アドレスまたは IP 範囲をスパム対策の除外に追加します。</value>
   </data>
   <data name="Add the certificate and key, then attach it to the ports that should present it." xml:space="preserve">
-    <value>証明書と鍵を追加し、それを提示すべきポートに割り当てます。</value>
+    <value>証明書とキーを追加し、それを提示すべきポートに割り当てます。</value>
   </data>
   <data name="Add the domain first; accounts, aliases and lists all hang off it." xml:space="preserve">
     <value>最初にドメインを追加してください。アカウント、エイリアス、リストはすべてドメインにぶら下がります。</value>
@@ -1261,7 +1271,7 @@
     <value>すべてのアカウントが望む、または望まないアドレスとドメイン。各アカウント自身の一覧とそのドメインの一覧より後に参照されます。</value>
   </data>
   <data name="Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted." xml:space="preserve">
-    <value>すべてのアカウントが望む、または望まないアドレスとドメイン全体。許可した差出人のメールは迷惑メールの判定を通過し、ブロックした差出人のメールは検疫が有効なら検疫に保留され、そうでなければ迷惑メールとして印が付きます。削除されることはありません。</value>
+    <value>すべてのアカウントが望む、または望まないアドレスとドメイン全体。許可した送信者のメールはスパムの判定を通過し、ブロックした送信者のメールは検疫が有効なら検疫に保留され、そうでなければスパムとして印が付きます。削除されることはありません。</value>
   </data>
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>{0} のアカウントが望む、または望まないアドレスとドメイン全体。アカウント自身の一覧の後、サーバーの一覧の前に参照されます。</value>
@@ -1285,7 +1295,7 @@
     <value>加算</value>
   </data>
   <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The Setup checklist page checks your domains for this." xml:space="preserve">
-    <value>転送メールに ARC シールを付けて、下流のサーバーが元の認証結果を信頼できるようにします (RFC 8617)。シールの付与は転送元ドメインの DKIM セレクターと秘密鍵を借りるため、DKIM 署名を設定したホスト済みドメインが少なくとも 1 つ必要です。それがないと、スイッチは有効と表示されるのに何もシールされず、その旨はデバッグ ログの 1 行にしか現れません。「セットアップ チェックリスト」ページが、この点についてドメインを確認します。</value>
+    <value>転送メールに ARC シールを付けて、下流のサーバーが元の認証結果を信頼できるようにします (RFC 8617)。シールの付与は転送元ドメインの DKIM セレクターと秘密キーを借りるため、DKIM 署名を設定したホスト済みドメインが少なくとも 1 つ必要です。それがないと、スイッチは有効と表示されるのに何もシールされず、その旨はデバッグ ログの 1 行にしか現れません。「セットアップ チェックリスト」ページが、この点についてドメインを確認します。</value>
   </data>
   <data name="Adds the entry's score; the default of 100 refuses the message." xml:space="preserve">
     <value>エントリのスコアを加算します。既定値の 100 ではメッセージが拒否されます。</value>
@@ -1324,7 +1334,7 @@
     <value>管理者ロール</value>
   </data>
   <data name="Administrator's _note" xml:space="preserve">
-    <value>管理者のメモ (_F)</value>
+    <value>管理者のメモ(_F)</value>
   </data>
   <data name="Advanced" xml:space="preserve">
     <value>詳細設定</value>
@@ -1510,7 +1520,7 @@
     <value>SNMPv2c にも応答する</value>
   </data>
   <data name="Also ban the connecting address for a while" xml:space="preserve">
-    <value>接続元アドレスもしばらく遮断する</value>
+    <value>接続元アドレスもしばらく BAN する</value>
   </data>
   <data name="Also block a banned address in the operating system's firewall" xml:space="preserve">
     <value>BAN したアドレスを OS のファイアウォールでもブロックする</value>
@@ -1970,10 +1980,10 @@
     <value>受信メールの認証結果</value>
   </data>
   <data name="Auto-ban" xml:space="preserve">
-    <value>自動ブロック</value>
+    <value>自動 BAN</value>
   </data>
   <data name="Auto-ban IP ranges" xml:space="preserve">
-    <value>自動ブロックの IP 範囲</value>
+    <value>自動 BAN の IP 範囲</value>
   </data>
   <data name="Auto-ban by address, the per-name lockout, and the sign-in tarpit that makes each guess cost seconds." xml:space="preserve">
     <value>アドレス単位の自動ブロック、名前単位のロックアウト、そして 1 回の推測ごとに数秒のコストを課すサインイン タールピット。</value>
@@ -2123,7 +2133,7 @@
     <value>バックアップは {0} に保存されます。</value>
   </data>
   <data name="Ban duration (minutes)" xml:space="preserve">
-    <value>ブロック期間 (分)</value>
+    <value>BAN 期間 (分)</value>
   </data>
   <data name="Ban for (hours, 1 to 8,760)" xml:space="preserve">
     <value>遮断時間 (時間、1 から 8,760)</value>
@@ -2132,7 +2142,7 @@
     <value>送信元アドレスをブロックする期間 (分、最大 525,600、0 = ブロックしない)</value>
   </data>
   <data name="Banned now" xml:space="preserve">
-    <value>現在のブロック</value>
+    <value>現在の BAN</value>
   </data>
   <data name="Base address for the link in a message that expires" xml:space="preserve">
     <value>期限付きメッセージ内のリンクのベース アドレス</value>
@@ -2312,7 +2322,7 @@
     <value>証明書ファイルを参照</value>
   </data>
   <data name="Browse for the private key file" xml:space="preserve">
-    <value>秘密鍵ファイルを参照</value>
+    <value>秘密キー ファイルを参照</value>
   </data>
   <data name="Browser sessions" xml:space="preserve">
     <value>ブラウザーのセッション</value>
@@ -2366,7 +2376,7 @@
     <value>アドレスを確認(_H)…</value>
   </data>
   <data name="C_hoose a photo..." xml:space="preserve">
-    <value>写真を選ぶ... (_G)</value>
+    <value>写真を選ぶ...(_G)</value>
   </data>
   <data name="Cache" xml:space="preserve">
     <value>キャッシュ</value>
@@ -2387,10 +2397,10 @@
     <value>キャンセル</value>
   </data>
   <data name="Cancel the ne_xt key…" xml:space="preserve">
-    <value>次の鍵を取り消す(_X)…</value>
+    <value>次のキーを取り消す(_X)…</value>
   </data>
   <data name="Cancel the next key of {0}? The staged selector is removed, a key file the rotation generated for it is deleted, and signing does not change." xml:space="preserve">
-    <value>{0} の次の鍵を取り消しますか？準備中のセレクターは削除され、ローテーションがそのために生成した鍵ファイルは削除されます。署名は変わりません。</value>
+    <value>{0} の次のキーを取り消しますか？準備中のセレクターは削除され、ローテーションがそのために生成したキー ファイルは削除されます。署名は変わりません。</value>
   </data>
   <data name="Cancelled" xml:space="preserve">
     <value>キャンセル済み</value>
@@ -2402,7 +2412,7 @@
     <value>確認できません</value>
   </data>
   <data name="Cannot check this key type" xml:space="preserve">
-    <value>この鍵の種類は確認できません</value>
+    <value>このキーの種類は確認できません</value>
   </data>
   <data name="Cannot check while encrypted" xml:space="preserve">
     <value>暗号化されている間は確認できません</value>
@@ -2486,7 +2496,7 @@
     <value>このサーバーが配信時に行う接続では証明書は検証されません。これはサーバー間のメールでは通常の設定です。インターネット上の SMTP 証明書の大半は検証に失敗し、メールが止まってしまうからです。ただし、送信 TLS が守ってくれるのは受動的な盗聴者に対してだけで、経路上に割り込むものには対抗できません。特定の宛先についてそれ以上を得る手段が DANE と MTA-STS です。</value>
   </data>
   <data name="Certificates available for TLS ports, with what this machine can verify about each: the files, the expiry date, and whether the key belongs to the certificate. With ACME enabled, Let's Encrypt certificates appear here automatically." xml:space="preserve">
-    <value>TLS ポートで使用できる証明書と、それぞれについてこのコンピューターが検証できる事項: ファイル、有効期限、鍵が証明書のものかどうか。ACME を有効にすると、Let's Encrypt の証明書は自動的にここに表示されます。</value>
+    <value>TLS ポートで使用できる証明書と、それぞれについてこのコンピューターが検証できる事項: ファイル、有効期限、キーが証明書のものかどうか。ACME を有効にすると、Let's Encrypt の証明書は自動的にここに表示されます。</value>
   </data>
   <data name="Certificates held" xml:space="preserve">
     <value>保存されている証明書</value>
@@ -2672,7 +2682,7 @@
     <value>上の一覧からアーカイブを選ぶか、サーバー上のアーカイブのパスを入力します。その内容が、下でチェックしたカテゴリの現在のデータを置き換えます。</value>
   </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
-    <value>少なくとも 1 日先の有効期限を選択してください。今日期限が切れる鍵は、作成した当日の途中で動作しなくなります。</value>
+    <value>少なくとも 1 日先の有効期限を選択してください。今日期限が切れるキーは、作成した当日の途中で動作しなくなります。</value>
   </data>
   <data name="Choose it for a port on the TCP/IP ports page to use it." xml:space="preserve">
     <value>使うには、TCP/IP ポートページでポートにこの証明書を選んでください。</value>
@@ -2705,7 +2715,7 @@
     <value>暗号リスト: TLS 1.2 以前は OpenSSL の既定値。TLS 1.3 には独自の別リストがあります。</value>
   </data>
   <data name="Cipher list: the AEAD-ONLY preset — forward-secret AEAD suites only, with every CBC-mode suite and static-RSA key exchange excluded. This governs TLS 1.2 and below; TLS 1.3 has its own list and is AEAD by construction." xml:space="preserve">
-    <value>暗号リスト: AEAD-ONLY プリセット — 前方秘匿性のある AEAD スイートのみで、CBC モードのスイートと静的 RSA 鍵交換はすべて除外されます。これは TLS 1.2 以前を対象とします。TLS 1.3 には独自のリストがあり、構造上 AEAD です。</value>
+    <value>暗号リスト: AEAD-ONLY プリセット — 前方秘匿性のある AEAD スイートのみで、CBC モードのスイートと静的 RSA キー交換はすべて除外されます。これは TLS 1.2 以前を対象とします。TLS 1.3 には独自のリストがあり、構造上 AEAD です。</value>
   </data>
   <data name="Ciphers" xml:space="preserve">
     <value>暗号</value>
@@ -3161,10 +3171,10 @@
     <value>エクスポートできませんでした: {0}</value>
   </data>
   <data name="Could not generate and store the DKIM key: {0}" xml:space="preserve">
-    <value>DKIM 鍵を生成して保存できませんでした: {0}</value>
+    <value>DKIM キーを生成して保存できませんでした: {0}</value>
   </data>
   <data name="Could not generate the DKIM key: {0}" xml:space="preserve">
-    <value>DKIM 鍵を生成できませんでした: {0}</value>
+    <value>DKIM キーを生成できませんでした: {0}</value>
   </data>
   <data name="Could not lift the ban: {0}" xml:space="preserve">
     <value>ブロックを解除できませんでした: {0}</value>
@@ -3277,7 +3287,7 @@
     <value>ジャーナリング ルールを読み取れませんでした: </value>
   </data>
   <data name="Could not read the key rotation: {0}" xml:space="preserve">
-    <value>鍵のローテーションを読み取れませんでした: {0}</value>
+    <value>キーのローテーションを読み取れませんでした: {0}</value>
   </data>
   <data name="Could not read the list: " xml:space="preserve">
     <value>リストを読み取れませんでした: </value>
@@ -3577,7 +3587,7 @@
     <value>Ctrl キーか Shift キーを押しながらクリックすると複数のアカウントを選べます。Enter で選んだアカウントを追加します。</value>
   </data>
   <data name="Current key" xml:space="preserve">
-    <value>現在の鍵</value>
+    <value>現在のキー</value>
   </data>
   <data name="Custom" xml:space="preserve">
     <value>カスタム</value>
@@ -3607,13 +3617,13 @@
     <value>DKIM</value>
   </data>
   <data name="DKIM - the public key receivers verify {0}'s signatures against" xml:space="preserve">
-    <value>DKIM - 受信側が {0} の署名を検証するための公開鍵</value>
+    <value>DKIM - 受信側が {0} の署名を検証するための公開キー</value>
   </data>
   <data name="DKIM failure score" xml:space="preserve">
     <value>DKIM 失敗スコア</value>
   </data>
   <data name="DKIM is half-configured: the private key file is missing, so there is no record to derive. Complete the pair on the domain's DKIM tab." xml:space="preserve">
-    <value>DKIM の設定が中途半端です: 秘密鍵ファイルがないため、導き出せるレコードがありません。ドメインの DKIM タブでペアをそろえてください。</value>
+    <value>DKIM の設定が中途半端です: 秘密キー ファイルがないため、導き出せるレコードがありません。ドメインの DKIM タブでペアをそろえてください。</value>
   </data>
   <data name="DKIM is half-configured: the selector is missing, so there is no record to derive. Complete the pair on the domain's DKIM tab." xml:space="preserve">
     <value>DKIM の設定が中途半端です: セレクターがないため、導き出せるレコードがありません。ドメインの DKIM タブでペアをそろえてください。</value>
@@ -3625,10 +3635,10 @@
     <value>DKIM 署名のタイムスタンプ</value>
   </data>
   <data name="DKIM signing - publish each domain's public key in DNS" xml:space="preserve">
-    <value>DKIM 署名 - 各ドメインの公開鍵を DNS に公開する</value>
+    <value>DKIM 署名 - 各ドメインの公開キーを DNS に公開する</value>
   </data>
   <data name="DKIM signing is configured per domain, with the key and selector you publish in DNS." xml:space="preserve">
-    <value>DKIM 署名はドメインごとに設定し、鍵とセレクターを DNS に公開します。</value>
+    <value>DKIM 署名はドメインごとに設定し、キーとセレクターを DNS に公開します。</value>
   </data>
   <data name="DKIM verification" xml:space="preserve">
     <value>DKIM 検証</value>
@@ -3679,7 +3689,7 @@
     <value>DNS リゾルバー</value>
   </data>
   <data name="D_epartment" xml:space="preserve">
-    <value>部署 (_B)</value>
+    <value>部署(_B)</value>
   </data>
   <data name="D_omain" xml:space="preserve">
     <value>ドメイン(_O)</value>
@@ -3724,7 +3734,7 @@
     <value>各メッセージの日付を、ダウンロードした時刻ではなく Received ヘッダーから付ける</value>
   </data>
   <data name="Date this key stops working" xml:space="preserve">
-    <value>この鍵が動作しなくなる日付</value>
+    <value>このキーが動作しなくなる日付</value>
   </data>
   <data name="Days a complaint is kept (up to 3,650; 0 = for ever)" xml:space="preserve">
     <value>苦情を保持する日数 (最大 3,650、0 = 無期限)</value>
@@ -4149,7 +4159,7 @@
     <value>条件付き</value>
   </data>
   <data name="Derived from the domain's configured key: selector &quot;{0}&quot;, private key file {1}." xml:space="preserve">
-    <value>ドメインに設定されている鍵から導き出されました: セレクター "{0}"、秘密鍵ファイル {1}。</value>
+    <value>ドメインに設定されているキーから導き出されました: セレクター "{0}"、秘密キー ファイル {1}。</value>
   </data>
   <data name="Description" xml:space="preserve">
     <value>説明</value>
@@ -4628,7 +4638,7 @@
     <value>添付ファイルのブロックを有効にする (リストはブロックされた添付ファイル ページで管理)</value>
   </data>
   <data name="Enable auto-ban" xml:space="preserve">
-    <value>自動ブロックを有効にする</value>
+    <value>自動 BAN を有効にする</value>
   </data>
   <data name="Enable caching" xml:space="preserve">
     <value>キャッシュを有効にする</value>
@@ -4658,7 +4668,7 @@
     <value>有効ですが設定されていません: 検索ベースが空です。ユーザー DN テンプレートのない簡易バインドは、その下を検索します。</value>
   </data>
   <data name="Enabled once &quot;Check&quot; has confirmed the published record carries this key's public key." xml:space="preserve">
-    <value>「確認」で、公開されているレコードにこの鍵の公開鍵が含まれることを確認すると有効になります。</value>
+    <value>「確認」で、公開されているレコードにこのキーの公開キーが含まれることを確認すると有効になります。</value>
   </data>
   <data name="Encode each member in the bounce address (_VERP)" xml:space="preserve">
     <value>各メンバーをバウンスアドレスに符号化する (_VERP)</value>
@@ -4676,10 +4686,10 @@
     <value>暗号化 - STARTTLS の成立が必要。証明書は判定しない</value>
   </data>
   <data name="Encrypted key" xml:space="preserve">
-    <value>暗号化された鍵</value>
+    <value>暗号化されたキー</value>
   </data>
   <data name="Encrypted key, no passphrase" xml:space="preserve">
-    <value>暗号化された鍵、パスフレーズなし</value>
+    <value>暗号化されたキー、パスフレーズなし</value>
   </data>
   <data name="Encryption" xml:space="preserve">
     <value>暗号化</value>
@@ -4841,7 +4851,7 @@
     <value>証明書ファイルのパスを入力するか、ボックスの横の「…」ボタンでファイルを選んでください。</value>
   </data>
   <data name="Enter the path of the private key file, or choose the file with the … button beside the box." xml:space="preserve">
-    <value>秘密鍵ファイルのパスを入力するか、ボックスの横の「…」ボタンでファイルを選んでください。</value>
+    <value>秘密キー ファイルのパスを入力するか、ボックスの横の「…」ボタンでファイルを選んでください。</value>
   </data>
   <data name="Enter the scanner command first." xml:space="preserve">
     <value>先にスキャナーのコマンドを入力してください。</value>
@@ -4886,7 +4896,7 @@
     <value>痕跡を消去(_T)...</value>
   </data>
   <data name="Erase every stored trace of {0}? Quarantine entries, trace rows, greylisting, list memberships, aliases, the address-book entries, certificates, keys and memories other accounts keep of it, the messages outside any mailbox that name it - held for review (discarded for every recipient), expiring or password-protected - the archive tree and the log lines that name the address. What a legal hold covers is left in place. This cannot be undone." xml:space="preserve">
-    <value>{0} の保存されたあらゆる痕跡を消去しますか? 隔離エントリ、追跡行、グレイリスト、リストのメンバーシップ、エイリアス、他のアカウントが保持するそのアドレスのアドレス帳項目・証明書・鍵・記憶、そのアドレスを含むメールボックス外のメッセージ (確認のため保留中のもの - すべての受信者について破棄 -、期限付きのもの、パスワードで保護されたもの)、アーカイブツリー、そのアドレスを含むログ行。法的保全の対象はそのまま残ります。元に戻せません。</value>
+    <value>{0} の保存されたあらゆる痕跡を消去しますか? 隔離エントリ、追跡行、グレイリスト、リストのメンバーシップ、エイリアス、他のアカウントが保持するそのアドレスのアドレス帳項目・証明書・ キー・記憶、そのアドレスを含むメールボックス外のメッセージ (確認のため保留中のもの - すべての受信者について破棄 -、期限付きのもの、パスワードで保護されたもの)、アーカイブツリー、そのアドレスを含むログ行。法的保全の対象はそのまま残ります。元に戻せません。</value>
   </data>
   <data name="Erase traces" xml:space="preserve">
     <value>痕跡を消去</value>
@@ -4994,7 +5004,7 @@
     <value>メール クライアントが接続するすべてのリスナーは、パスワードを受け付ける前に暗号化を必須にします。</value>
   </data>
   <data name="Every listener with TLS loads a certificate and its private key at startup; an encrypted key without its passphrase does not load, and the listener never starts." xml:space="preserve">
-    <value>TLS を持つすべてのリスナーは、起動時に証明書とその秘密鍵を読み込みます。暗号化された鍵はパスフレーズがないと読み込めず、リスナーは起動しません。</value>
+    <value>TLS を持つすべてのリスナーは、起動時に証明書とその秘密キーを読み込みます。暗号化されたキーはパスフレーズがないと読み込めず、リスナーは起動しません。</value>
   </data>
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>ローカルの各受信者のコピーは、アーカイブ フォルダー内の同じファイルの別名になるため、10 個のメールボックス宛てのメッセージのコストは 10 コピーではなく 1 コピーで済みます。NTFS のアーカイブ フォルダーが必要です。リンクを作成できない場合、サーバーはファイルをコピーし、その旨を SMTP ログに記録します。</value>
@@ -5009,7 +5019,7 @@
     <value>この範囲のすべてのマシンが、サインインせずにこのサーバー経由で任意のアドレスへメールを中継できます。自分のネットワーク上のプリンターやアプリケーションには適していますが、そうでなければ [ローカルから外部へ] と [外部から外部へ] の [SMTP 認証後のみ] をオンにしてください。</value>
   </data>
   <data name="Every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
-    <value>このアカウントに配信されるすべてのメッセージは、フィルターの後にアカウント自身の OpenPGP 鍵で暗号化され、このサーバーはそのメールを読むことも、検索も、エクスポートも、復旧もできません。オフにできるのは本人だけで、ウェブメールから行います。ここからはできません。</value>
+    <value>このアカウントに配信されるすべてのメッセージは、フィルターの後にアカウント自身の OpenPGP キーで暗号化され、このサーバーはそのメールを読むことも、検索も、エクスポートも、復旧もできません。オフにできるのは本人だけで、ウェブメールから行います。ここからはできません。</value>
   </data>
   <data name="Every message goes through {0} scanner in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
     <value>すべてのメッセージは {0} 件のスキャナーを順に通過し、それぞれにメッセージ全体について、次に各添付ファイルについて個別に問い合わせます。徹底的ですが無料ではありません。スキャンは送信者が "250 OK" を待っている間に行われます。</value>
@@ -5306,7 +5316,7 @@
     <value>DMARC の緩やかなアライメントに使う組織ドメインを、コンパイル済みの Public Suffix List ではなく DNS に問い合わせて (RFC 9989) 求め、DNS が応答できないときは引き続きリストを使います。ドメインあたり最大 8 回のクエリで、5 分間キャッシュされます。</value>
   </data>
   <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included." xml:space="preserve">
-    <value>リストにメッセージが送られるたびに、サーバーのアカウントの中から残りのメンバーを見つけます。誰も手作業でリストを保守する必要はありません。メンバーが宛先だけのリストでは空欄のままにします。domain はこのドメインのすべての有効なアカウント、domain:other.example はこのサーバーが持つ別のドメイン、pattern:sales-*@example.com はワイルドカードに一致する宛先（* は任意の長さの文字列、? は 1 文字）、everyone はサーバー上のすべての有効なアカウントです。無効なアカウントが含まれることはありません。</value>
+    <value>リストにメッセージが送られるたびに、サーバーのアカウントの中から残りのメンバーを見つけます。誰も手作業でリストを保守する必要はありません。メンバーが宛先だけのリストでは空欄のままにします。domain はこのドメインのすべての有効なアカウント、domain:other.example はこのサーバーが持つ別のドメイン、pattern:sales-*@example.com はワイルドカードに一致する宛先 (* は任意の長さの文字列、? は 1 文字)、everyone はサーバー上のすべての有効なアカウントです。無効なアカウントが含まれることはありません。</value>
   </data>
   <data name="Finish" xml:space="preserve">
     <value>完了</value>
@@ -5381,7 +5391,7 @@
     <value>誰と誰がやり取りしているかの記録については、永久に保持するのは既定ではなく決断であるべきです。だからこそ 0 は既定値ではなく選択肢として提供されています。</value>
   </data>
   <data name="For each certificate whose key file is an encrypted PEM, set the certificate's private key password on the SSL certificates page (the passphrase was set by whoever created the key, so only you can supply it) - or replace the file with an unencrypted key." xml:space="preserve">
-    <value>鍵ファイルが暗号化された PEM である各証明書について、SSL 証明書ページで証明書の秘密鍵パスワードを設定してください (パスフレーズは鍵を作成した人が決めたものなので、あなただけが提供できます)。または、ファイルを暗号化されていない鍵に置き換えてください。</value>
+    <value>キー ファイルが暗号化された PEM である各証明書について、SSL 証明書ページで証明書の秘密キー パスワードを設定してください (パスフレーズはキーを作成した人が決めたものなので、あなただけが提供できます)。または、ファイルを暗号化されていないキーに置き換えてください。</value>
   </data>
   <data name="For example 03:00, Sun 03:00 or Sat,Sun 02:00-05:00." xml:space="preserve">
     <value>例: 03:00、Sun 03:00、Sat,Sun 02:00-05:00。</value>
@@ -5489,7 +5499,7 @@
     <value>生成</value>
   </data>
   <data name="Generate a DKIM key pair for {0}" xml:space="preserve">
-    <value>{0} の DKIM 鍵ペアを生成</value>
+    <value>{0} の DKIM キー ペアを生成</value>
   </data>
   <data name="Generate a random value for {0}" xml:space="preserve">
     <value>生成 ({0} のランダムな値)</value>
@@ -5504,7 +5514,7 @@
     <value>生成されたパスワードをクリップボードにコピーしました。目のアイコンで表示できます。</value>
   </data>
   <data name="Give at least one active domain a DKIM selector and key file, and publish that domain's DKIM TXT record - the receiving server verifies the seal against the same record DKIM signing uses." xml:space="preserve">
-    <value>少なくとも 1 つの有効なドメインに DKIM のセレクターと鍵ファイルを設定し、そのドメインの DKIM TXT レコードを公開してください。受信側サーバーは、DKIM 署名が使うのと同じレコードでシールを検証します。</value>
+    <value>少なくとも 1 つの有効なドメインに DKIM のセレクターとキー ファイルを設定し、そのドメインの DKIM TXT レコードを公開してください。受信側サーバーは、DKIM 署名が使うのと同じレコードでシールを検証します。</value>
   </data>
   <data name="Give it a name first - it is what you will recognise this credential by when you come to revoke it." xml:space="preserve">
     <value>先に名前を付けてください。失効させるときに、この資格情報を見分ける手掛かりになります。</value>
@@ -5549,7 +5559,7 @@
     <value>既定は Google の公開エンドポイントです。</value>
   </data>
   <data name="Graceful shutdown behaviour for unattended / clustered operation. (Log retention is on the Logging page.)" xml:space="preserve">
-    <value>無人運用やクラスター運用向けの正常なシャットダウン動作。(ログの保持はログ ページにあります。)</value>
+    <value>無人運用やクラスター運用向けの正常なシャットダウン動作。(ログの保持はログ設定ページにあります。)</value>
   </data>
   <data name="Grant access…" xml:space="preserve">
     <value>アクセスを許可…</value>
@@ -5747,7 +5757,7 @@
     <value>ハニーポット</value>
   </data>
   <data name="Honeypot - offer AUTH; refuse it and ban the address" xml:space="preserve">
-    <value>ハニーポット - AUTH を提示し、拒否してアドレスを禁止する</value>
+    <value>ハニーポット - AUTH を提示し、拒否してアドレスを BAN する</value>
   </data>
   <data name="Honour recipient DANE/TLSA records when sending" xml:space="preserve">
     <value>送信時に受信者の DANE/TLSA レコードを尊重する</value>
@@ -5807,7 +5817,7 @@
     <value>ハウスキーピング、チューニング、そしてまだほかに適切な置き場所のない設定。</value>
   </data>
   <data name="How a key is used" xml:space="preserve">
-    <value>鍵の使われ方</value>
+    <value>キーの使われ方</value>
   </data>
   <data name="How a request names the bucket (S3)" xml:space="preserve">
     <value>要求でのバケットの指定方法 (S3)</value>
@@ -5822,7 +5832,7 @@
     <value>接続がアイドルのまま閉じられるまでの時間。プロトコルごとに秒単位です。「サーバー」は hMailServer がメール クライアントや別のメール サーバーからの接続を受け付ける側、「クライアント」は hMailServer がメールを配信するため、または外部の POP3 アカウントからメールを取り込むために外へ接続する側です。実効タイムアウトはサーバーの負荷に応じて最小値と最大値の間で変動するため、忙しいサーバーはアイドル接続をより早く切断します。</value>
   </data>
   <data name="How long a counted failure is kept, rather than a sliding window: a housekeeping pass running once a minute deletes failure records older than this - and only while auto-ban is enabled." xml:space="preserve">
-    <value>数えられた失敗を保持する期間です。スライディング ウィンドウではなく、1 分に 1 回実行されるハウスキーピングが、これより古い失敗レコードを削除します。自動ブロックが有効な間だけ実行されます。</value>
+    <value>数えられた失敗を保持する期間です。スライディング ウィンドウではなく、1 分に 1 回実行されるハウスキーピングが、これより古い失敗レコードを削除します。自動 BAN が有効な間だけ実行されます。</value>
   </data>
   <data name="How long a session stays resumable, for cached sessions and tickets alike. It bounds how long a leaked resumption secret stays useful: a ticket recorded off the wire, or a session read out of a memory dump, stops working once it expires." xml:space="preserve">
     <value>セッションが再開可能なままでいる期間です。キャッシュされたセッションとチケットの両方に適用されます。漏えいした再開シークレットが使える期間を制限します。通信路から記録されたチケットや、メモリ ダンプから読み取られたセッションは、期限が切れれば機能しなくなります。</value>
@@ -6029,7 +6039,7 @@
     <value>サインインによる Gmail と Outlook.com からのインポート</value>
   </data>
   <data name="In a DNSSEC-signed zone, publish a TLSA record (usually usage 3, selector 1, matching type 1 - '3 1 1' with the SHA-256 of your certificate's public key) at _25._tcp.&lt;mx-host&gt; for each MX host. Verify with: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer cannot publish DNS records or sign your zone, and this panel has no TLSA lookup to check them with." xml:space="preserve">
-    <value>DNSSEC で署名されたゾーンで、各 MX ホストについて _25._tcp.&lt;mx-host&gt; に TLSA レコード (通常は usage 3、selector 1、matching type 1 - 証明書の公開鍵の SHA-256 を使った '3 1 1') を公開してください。確認するには: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;。hMailServer は DNS レコードを公開することもゾーンに署名することもできず、このパネルにはそれらを確認する TLSA 参照機能もありません。</value>
+    <value>DNSSEC で署名されたゾーンで、各 MX ホストについて _25._tcp.&lt;mx-host&gt; に TLSA レコード (通常は usage 3、selector 1、matching type 1 - 証明書の公開キーの SHA-256 を使った '3 1 1') を公開してください。確認するには: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;。hMailServer は DNS レコードを公開することもゾーンに署名することもできず、このパネルにはそれらを確認する TLSA 参照機能もありません。</value>
   </data>
   <data name="In a row" xml:space="preserve">
     <value>連続</value>
@@ -6208,7 +6218,7 @@
     <value>クライアント ID とともにプロバイダーから発行されます</value>
   </data>
   <data name="Issued certificates are stored in Data\ACME and assigned to TLS ports without a restart. Key reuse keeps published DANE TLSA records valid across renewals." xml:space="preserve">
-    <value>発行された証明書は Data\ACME に保存され、再起動なしで TLS ポートに割り当てられます。鍵の再利用により、公開済みの DANE TLSA レコードは更新をまたいで有効なままです。</value>
+    <value>発行された証明書は Data\ACME に保存され、再起動なしで TLS ポートに割り当てられます。キーの再利用により、公開済みの DANE TLSA レコードは更新をまたいで有効なままです。</value>
   </data>
   <data name="Issuer (empty = no single sign-on)" xml:space="preserve">
     <value>発行者 (空 = シングル サインオンなし)</value>
@@ -6259,7 +6269,7 @@
     <value>ジャーナリング ルール</value>
   </data>
   <data name="Ke_y passphrase (only for an encrypted key)" xml:space="preserve">
-    <value>鍵のパスフレーズ (暗号化された鍵の場合のみ)(_Y)</value>
+    <value>キーのパスフレーズ (暗号化されたキーの場合のみ)(_Y)</value>
   </data>
   <data name="Keep" xml:space="preserve">
     <value>維持</value>
@@ -6280,7 +6290,7 @@
     <value>メトリクス履歴を保持する期間 (日、0 = 記録しない)</value>
   </data>
   <data name="Keep p=none until you know your own mail passes. Editing this to p=quarantine or p=reject before then tells every receiver to junk or bounce your own legitimate mail." xml:space="preserve">
-    <value>自分のメールが合格すると分かるまで p=none のままにしてください。それより前に p=quarantine や p=reject に変更すると、すべての受信側に、あなた自身の正当なメールを迷惑メール扱いまたはバウンスするよう指示することになります。</value>
+    <value>自分のメールが合格すると分かるまで p=none のままにしてください。それより前に p=quarantine や p=reject に変更すると、すべての受信側に、あなた自身の正当なメールをスパム扱いまたはバウンスするよう指示することになります。</value>
   </data>
   <data name="Keep seen/unseen state" xml:space="preserve">
     <value>既読/未読の状態を保持する</value>
@@ -6313,34 +6323,34 @@
     <value>エントリーと一緒に保存され、次にリストを読む人のためのものです。</value>
   </data>
   <data name="Key exchange groups, in order of preference (empty = the classical fallback secp384r1:x25519:secp256r1)" xml:space="preserve">
-    <value>鍵交換グループ、優先度の高い順 (空 = 従来方式のフォールバック secp384r1:x25519:secp256r1)</value>
+    <value>キー交換グループ、優先度の高い順 (空 = 従来方式のフォールバック secp384r1:x25519:secp256r1)</value>
   </data>
   <data name="Key file present" xml:space="preserve">
-    <value>鍵ファイルあり</value>
+    <value>キー ファイルあり</value>
   </data>
   <data name="Key file: {0}" xml:space="preserve">
-    <value>鍵ファイル: {0}</value>
+    <value>キー ファイル: {0}</value>
   </data>
   <data name="Key matches certificate" xml:space="preserve">
-    <value>鍵は証明書と一致</value>
+    <value>キーは証明書と一致</value>
   </data>
   <data name="Key material is present for the algorithms allowed, and both the issuer and the audience are checked, so a token has to have been minted by your provider for this server specifically. The mailbox it names still has to exist as a local account - a valid token for an address this server does not host is refused." xml:space="preserve">
-    <value>許可されたアルゴリズムの鍵素材があり、発行者とオーディエンスの両方が確認されるため、トークンはあなたのプロバイダーがこのサーバー専用に発行したものでなければなりません。トークンが指すメールボックスは、それでもローカル アカウントとして存在する必要があります。このサーバーがホストしていないアドレスの有効なトークンは拒否されます。</value>
+    <value>許可されたアルゴリズムのキー素材があり、発行者とオーディエンスの両方が確認されるため、トークンはあなたのプロバイダーがこのサーバー専用に発行したものでなければなりません。トークンが指すメールボックスは、それでもローカル アカウントとして存在する必要があります。このサーバーがホストしていないアドレスの有効なトークンは拒否されます。</value>
   </data>
   <data name="Key prefix (empty = none)" xml:space="preserve">
     <value>キーのプレフィックス (空 = なし)</value>
   </data>
   <data name="Key rotation" xml:space="preserve">
-    <value>鍵のローテーション</value>
+    <value>キーのローテーション</value>
   </data>
   <data name="Key si_ze" xml:space="preserve">
-    <value>鍵のサイズ(_Z)</value>
+    <value>キーのサイズ(_Z)</value>
   </data>
   <data name="Key store" xml:space="preserve">
     <value>キー ストア</value>
   </data>
   <data name="Key unreadable" xml:space="preserve">
-    <value>鍵を読み取れません</value>
+    <value>キーを読み取れません</value>
   </data>
   <data name="Keyboard shortcuts" xml:space="preserve">
     <value>キーボード ショートカット</value>
@@ -6436,7 +6446,7 @@
     <value>ホストを空のままにすると、ドメインは何も指定しません: この設定が存在する前とまったく同じように、サーバー全体のスマート ホストが適用されます。ルートは依然としてどちらにも優先します。ルートは宛先についての宣言だからです。</value>
   </data>
   <data name="Leave this account _out of the directory" xml:space="preserve">
-    <value>このアカウントをディレクトリに載せない (_I)</value>
+    <value>このアカウントをディレクトリに載せない(_I)</value>
   </data>
   <data name="Left Edge" xml:space="preserve">
     <value>左端</value>
@@ -6592,7 +6602,7 @@
     <value>LocalSystem。このコンピューターで最も強い権限を持つアカウントです</value>
   </data>
   <data name="Localhost is currently banned in the IP ranges." xml:space="preserve">
-    <value>localhost は現在 IP 範囲でブロックされています。</value>
+    <value>localhost は現在 IP 範囲で BAN されています。</value>
   </data>
   <data name="Location" xml:space="preserve">
     <value>場所</value>
@@ -6637,7 +6647,7 @@
     <value>ログの保持</value>
   </data>
   <data name="Logging" xml:space="preserve">
-    <value>ログ</value>
+    <value>ログ設定</value>
   </data>
   <data name="Logging enabled" xml:space="preserve">
     <value>ログ記録を有効にする</value>
@@ -6814,7 +6824,7 @@
     <value>{0} のメール サーバー (このサーバーが試す順):</value>
   </data>
   <data name="Mail that arrives from these addresses is judged by the address before them, so a gateway's own address is not scored or banned as the sender's." xml:space="preserve">
-    <value>これらのアドレスから届くメールは、その手前のアドレスで判定されます。ゲートウェイ自身のアドレスが送信者のアドレスとして採点されたりブロックされたりすることはありません。</value>
+    <value>これらのアドレスから届くメールは、その手前のアドレスで判定されます。ゲートウェイ自身のアドレスが送信者のアドレスとして採点されたり BAN されたりすることはありません。</value>
   </data>
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>ディスクの残量不足、作業キューの停止、期限切れ間近の証明書、失敗したバックアップなど、注意が必要なときに管理者に送るメール。どの状態を監視するかは Control Deck のアラート ルールで設定します。下の 2 つのアドレスを両方設定するまで何も送られません。</value>
@@ -6924,7 +6934,7 @@
 現在のペアで行われた Web Push の購読はすべてすぐに機能しなくなり、全員が通知を許可し直す必要があります。秘密キーがコピーされたおそれがある場合に行ってください。</value>
   </data>
   <data name="Make a sample _domain" xml:space="preserve">
-    <value>サンプルドメインを作成 (_D)</value>
+    <value>サンプルドメインを作成(_D)</value>
   </data>
   <data name="Makes {0} with three mailboxes, a distribution list, a rule and some delivered mail, so that every page has something in it. Remove it before this server takes real mail." xml:space="preserve">
     <value>{0} を、3 つのメールボックス、配布リスト、ルール、いくつかの配信済みメールとともに作成し、どのページにも何かが表示されるようにします。このサーバーが実際のメールを受け取る前にサンプルを削除してください。</value>
@@ -7089,7 +7099,7 @@
     <value>{0} のメンバー</value>
   </data>
   <data name="Membership _query (empty = the recipients alone)" xml:space="preserve">
-    <value>メンバークエリ（空欄 = 宛先のみ） (_Q)</value>
+    <value>メンバークエリ (空欄 = 宛先のみ)(_Q)</value>
   </data>
   <data name="Membership — only list members can send" xml:space="preserve">
     <value>メンバーシップ — リストのメンバーのみ送信できる</value>
@@ -7370,7 +7380,7 @@
     <value>{0} の移動または名前の変更</value>
   </data>
   <data name="Move signing for {0} to the next key now?" xml:space="preserve">
-    <value>{0} の署名を今すぐ次の鍵に切り替えますか？</value>
+    <value>{0} の署名を今すぐ次のキーに切り替えますか？</value>
   </data>
   <data name="Move the message file to SpamAssassin instead of copying it" xml:space="preserve">
     <value>メッセージ ファイルをコピーする代わりに SpamAssassin に移動する</value>
@@ -7511,7 +7521,7 @@
     <value>次の十年</value>
   </data>
   <data name="Next key" xml:space="preserve">
-    <value>次の鍵</value>
+    <value>次のキー</value>
   </data>
   <data name="Next month" xml:space="preserve">
     <value>次の月</value>
@@ -7577,7 +7587,7 @@
     <value>ポート 25 に SMTP リスナーがないため、パスワードを受け付ける配送ポートはありません。</value>
   </data>
   <data name="No SSL certificates are configured, so there are no key files to check." xml:space="preserve">
-    <value>SSL 証明書が設定されていないため、確認する鍵ファイルがありません。</value>
+    <value>SSL 証明書が設定されていないため、確認するキー ファイルがありません。</value>
   </data>
   <data name="No SURBL servers, so the links in a message body are not looked up in any list." xml:space="preserve">
     <value>SURBL サーバーがないため、メッセージ本文のリンクはどのリストでも照会されません。</value>
@@ -7784,7 +7794,7 @@
     <value>今日はエラーが記録されていません。{1} に {0} はありません。</value>
   </data>
   <data name="No events for that address. Either nothing has happened to it, or the trace was switched off at the time - it records only while message tracing is on (Logging page)." xml:space="preserve">
-    <value>そのアドレスのイベントはありません。何も起きていないか、当時トレースがオフだったかのどちらかです。メッセージ トレースがオンの間だけ記録されます (ログ ページ)。</value>
+    <value>そのアドレスのイベントはありません。何も起きていないか、当時トレースがオフだったかのどちらかです。メッセージ トレースがオンの間だけ記録されます (ログ設定ページ)。</value>
   </data>
   <data name="No events for that message." xml:space="preserve">
     <value>そのメッセージのイベントはありません。</value>
@@ -7937,7 +7947,7 @@
     <value>ポートがないため、次回の起動または再初期化以降、サーバーは SMTP、POP3、IMAP の接続を一切受け付けません。</value>
   </data>
   <data name="No private key file is configured, so this certificate cannot be used by any TLS port." xml:space="preserve">
-    <value>秘密鍵ファイルが設定されていないため、この証明書はどの TLS ポートでも使えません。</value>
+    <value>秘密キー ファイルが設定されていないため、この証明書はどの TLS ポートでも使えません。</value>
   </data>
   <data name="No problems found" xml:space="preserve">
     <value>問題は見つかりません</value>
@@ -7997,7 +8007,7 @@
     <value>シグネチャ データベース フォルダーが設定されていません。</value>
   </data>
   <data name="No stored-secrets key has been made, so an account's second factor and the [Settings] secrets are stored as written. Make one on the server with {0}, then export it." xml:space="preserve">
-    <value>保存シークレットの鍵が作成されていないため、アカウントの第二要素と [Settings] のシークレットは書かれたまま保存されています。サーバー上で {0} を使って作成し、その後エクスポートしてください。</value>
+    <value>保存シークレットのキーが作成されていないため、アカウントの第二要素と [Settings] のシークレットは書かれたまま保存されています。サーバー上で {0} を使って作成し、その後エクスポートしてください。</value>
   </data>
   <data name="No syntax errors reported." xml:space="preserve">
     <value>構文エラーは報告されていません。</value>
@@ -8234,7 +8244,7 @@
     <value>削除できるほど古いものはありませんでした。ウィンドウは [スパム対策の設定] ページ (検疫されたメッセージを削除するまでの日数) で設定します。0 は「削除しない」を意味します。</value>
   </data>
   <data name="Nothing was old enough to remove. The window is set on the Logging page (Delete trace events after), and 0 means never." xml:space="preserve">
-    <value>削除できるほど古いものはありませんでした。ウィンドウは [ログ] ページ (トレース イベントを削除するまでの日数) で設定します。0 は「削除しない」を意味します。</value>
+    <value>削除できるほど古いものはありませんでした。ウィンドウは [ログ設定] ページ (トレース イベントを削除するまでの日数) で設定します。0 は「削除しない」を意味します。</value>
   </data>
   <data name="Nothing was read." xml:space="preserve">
     <value>何も読み取られませんでした。</value>
@@ -8270,7 +8280,7 @@
     <value>配信再試行の回数</value>
   </data>
   <data name="OAuth2 / XOAUTH2 - the identity provider's key material must be installed" xml:space="preserve">
-    <value>OAuth2 / XOAUTH2 - ID プロバイダーの鍵素材をインストールする必要があります</value>
+    <value>OAuth2 / XOAUTH2 - ID プロバイダーのキー素材をインストールする必要があります</value>
   </data>
   <data name="OAuth2 / external identity provider" xml:space="preserve">
     <value>OAuth2 / 外部 ID プロバイダー</value>
@@ -8279,13 +8289,13 @@
     <value>スマート ホスト用の OAuth2 (Microsoft 365)</value>
   </data>
   <data name="OAuth2 is enabled, the key material its allowed algorithms need is in place, and both the issuer and the audience are checked - so a token has to have been minted by your provider for this server specifically." xml:space="preserve">
-    <value>OAuth2 は有効で、許可されたアルゴリズムが必要とする鍵素材がそろっており、発行者とオーディエンスの両方が確認されます。そのため、トークンはあなたのプロバイダーがこのサーバー専用に発行したものでなければなりません。</value>
+    <value>OAuth2 は有効で、許可されたアルゴリズムが必要とするキー素材がそろっており、発行者とオーディエンスの両方が確認されます。そのため、トークンはあなたのプロバイダーがこのサーバー専用に発行したものでなければなりません。</value>
   </data>
   <data name="OAuth2 is off (the default), so no identity provider or key material is required." xml:space="preserve">
-    <value>OAuth2 は無効 (既定値) のため、ID プロバイダーも鍵素材も不要です。</value>
+    <value>OAuth2 は無効 (既定値) のため、ID プロバイダーもキー素材も不要です。</value>
   </data>
   <data name="OAuth2 is on and allows RS256, but 'RSA/EC public key file' on the Authentication page is empty - every RS256 token fails signature verification, so no client can sign in with a token. Install the identity provider's public key as a PEM file and choose it there." xml:space="preserve">
-    <value>OAuth2 は有効で RS256 を許可していますが、[認証] ページの「RSA/EC 公開鍵ファイル」が空です。すべての RS256 トークンが署名検証に失敗するため、どのクライアントもトークンでサインインできません。ID プロバイダーの公開鍵を PEM ファイルとしてインストールし、そこでそれを選択してください。</value>
+    <value>OAuth2 は有効で RS256 を許可していますが、[認証] ページの「RSA/EC 公開キー ファイル」が空です。すべての RS256 トークンが署名検証に失敗するため、どのクライアントもトークンでサインインできません。ID プロバイダーの公開キーを PEM ファイルとしてインストールし、そこでそれを選択してください。</value>
   </data>
   <data name="OAuth2 is switched on but no client can sign in with a token, because it is missing {0}. Signature verification cannot run at all, so every token is rejected and the log records only a failed sign-in - which reads as &quot;the password is wrong&quot; rather than as a configuration gap." xml:space="preserve">
     <value>OAuth2 はオンになっていますが、{0} がないため、どのクライアントもトークンでサインインできません。署名検証をまったく実行できないため、すべてのトークンが拒否され、ログにはサインインの失敗しか記録されません。それは設定の不備ではなく「パスワードが違う」と読めてしまいます。</value>
@@ -8312,10 +8322,10 @@
     <value>オフ</value>
   </data>
   <data name="Off - do not offer AUTH; refuse it and ban the address" xml:space="preserve">
-    <value>オフ - AUTH を提示せず、拒否してアドレスを禁止する</value>
+    <value>オフ - AUTH を提示せず、拒否してアドレスを BAN する</value>
   </data>
   <data name="Off and Honeypot refuse AUTH and ban the address that sends it, Honeypot going on offering it as bait; mail clients sign in on 587, not on port 25." xml:space="preserve">
-    <value>[オフ] と [ハニーポット] は AUTH を拒否して送ってきたアドレスを禁止し ([ハニーポット] はおとりとして AUTH を提示し続けます)、メール クライアントはポート 25 ではなく 587 でサインインします。</value>
+    <value>[オフ] と [ハニーポット] は AUTH を拒否して送ってきたアドレスを BAN し ([ハニーポット] はおとりとして AUTH を提示し続けます)、メール クライアントはポート 25 ではなく 587 でサインインします。</value>
   </data>
   <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
     <value>既定ではオフです。メッセージごとに数キロバイトの語テーブルと、すでに配信済みのすべてのメッセージに対するバックフィル パスというコストがかかるためで、これは管理者の決定であり、アップグレードが決めることではありません。結果はオンでもオフでも同一です。インデックスは、部分文字列スキャンが読み取るべきメッセージを絞り込むだけです。メッセージ インデックス (上) が有効である必要があり、これ単独では何もインデックス化しません。</value>
@@ -8411,7 +8421,7 @@
     <value>パスキーを提供する</value>
   </data>
   <data name="Offi_ce" xml:space="preserve">
-    <value>オフィス (_E)</value>
+    <value>オフィス(_E)</value>
   </data>
   <data name="On" xml:space="preserve">
     <value>オン</value>
@@ -8483,10 +8493,10 @@
     <value>TCP/IP ポート ページで、サブミッションポート (587) に SSL 証明書 ページの証明書を使った STARTTLS を設定するか、暗黙の TLS を使うポート 465 を追加します。</value>
   </data>
   <data name="On the TCP/IP ports page, open the SMTP port 25 and set its SMTP authentication to Honeypot or Off, then reinitialise. Mail clients that still sign in on 25 are refused and banned from then on, so move them to 587 first." xml:space="preserve">
-    <value>[TCP/IP ポート] ページで SMTP ポート 25 を開き、SMTP 認証を [ハニーポット] または [オフ] にしてから再初期化してください。その後もポート 25 でサインインするメール クライアントは拒否され禁止されるため、先に 587 に移してください。</value>
+    <value>[TCP/IP ポート] ページで SMTP ポート 25 を開き、SMTP 認証を [ハニーポット] または [オフ] にしてから再初期化してください。その後もポート 25 でサインインするメール クライアントは拒否され BAN されるため、先に 587 に移してください。</value>
   </data>
   <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
-    <value>サーバー上で、Bin フォルダーの管理者として実行したコマンド プロンプトから: hMailServer.exe --create-stored-secrets-key で鍵を作成し、hMailServer.exe --export-stored-secrets-key FILE でエクスポートします。そのファイルはデータベースのバックアップと一緒に、ただし別の場所に保管してください。</value>
+    <value>サーバー上で、Bin フォルダーの管理者として実行したコマンド プロンプトから: hMailServer.exe --create-stored-secrets-key でキーを作成し、hMailServer.exe --export-stored-secrets-key FILE でエクスポートします。そのファイルはデータベースのバックアップと一緒に、ただし別の場所に保管してください。</value>
   </data>
   <data name="On, a check that could not be completed is answered 451 4.4.3, so the sender tries again when DNS works, and the temperror score above is not used. Off, a temperror is accepted and scored; a sender from an allowed domain is never deferred." xml:space="preserve">
     <value>オンにすると、完了できなかったチェックには 451 4.4.3 で応答して DNS が復旧してから送信者に再試行させ、上の temperror スコアは使いません。オフでは temperror は受け入れられてスコア付けされ、許可するドメインの送信者は決して保留されません。</value>
@@ -8591,7 +8601,7 @@
     <value>HS* アルゴリズムの場合にのみ必要</value>
   </data>
   <data name="Only needed when the key file is encrypted: with an encrypted key and no passphrase, the key does not load (server error 6170) and every TLS port using this certificate does not start - inbound mail on those ports stops. The passphrase is a secret: it is stored protected on the server and never displayed here again, and saving a new one replaces whatever was stored before." xml:space="preserve">
-    <value>鍵ファイルが暗号化されている場合にのみ必要です。鍵が暗号化されていてパスフレーズがないと、鍵は読み込まれず (サーバー エラー 6170)、この証明書を使うすべての TLS ポートが起動しません。それらのポートでの受信メールは止まります。パスフレーズはシークレットです。サーバー上で保護された状態で保存され、ここに再び表示されることはありません。新しいものを保存すると、以前保存されていたものが置き換えられます。</value>
+    <value>キー ファイルが暗号化されている場合にのみ必要です。キーが暗号化されていてパスフレーズがないと、キーは読み込まれず (サーバー エラー 6170)、この証明書を使うすべての TLS ポートが起動しません。それらのポートでの受信メールは止まります。パスフレーズはシークレットです。サーバー上で保護された状態で保存され、ここに再び表示されることはありません。新しいものを保存すると、以前保存されていたものが置き換えられます。</value>
   </data>
   <data name="Only the first {0} characters are shown." xml:space="preserve">
     <value>最初の {0} 文字だけが表示されます。</value>
@@ -8630,7 +8640,7 @@
     <value>「ドメイン」を開く — ドメインの追加はそこで行います</value>
   </data>
   <data name="Open Domains, where the DKIM selector and key file are configured" xml:space="preserve">
-    <value>「ドメイン」を開く — DKIM のセレクターと鍵ファイルはそこで設定します</value>
+    <value>「ドメイン」を開く — DKIM のセレクターとキー ファイルはそこで設定します</value>
   </data>
   <data name="Open Domains..." xml:space="preserve">
     <value>「ドメイン」を開く...</value>
@@ -8648,13 +8658,13 @@
     <value>「ライブ ログ」を開く...</value>
   </data>
   <data name="Open Logging settings" xml:space="preserve">
-    <value>「ログ」の設定を開く</value>
+    <value>「ログ設定」を開く</value>
   </data>
   <data name="Open Protocols, whose SMTP tab has the Host name" xml:space="preserve">
     <value>「プロトコル」を開く — ホスト名は SMTP タブにあります</value>
   </data>
   <data name="Open SSL certificates, which owns the certificate and key file paths" xml:space="preserve">
-    <value>「SSL 証明書」を開く — 証明書と鍵ファイルのパスはそこにあります</value>
+    <value>「SSL 証明書」を開く — 証明書とキー ファイルのパスはそこにあります</value>
   </data>
   <data name="Open SSL/TLS, which owns the protocol versions and cipher lists" xml:space="preserve">
     <value>「SSL/TLS」を開く — プロトコルのバージョンと暗号リストはそこにあります</value>
@@ -8687,7 +8697,7 @@
     <value>Control Deck を開く(_D)</value>
   </data>
   <data name="Open the SMTP port 25 and set its SMTP authentication to Honeypot or Off: AUTH there is refused without the password being looked at, and the address that sent it is banned." xml:space="preserve">
-    <value>SMTP ポート 25 を開き、SMTP 認証を [ハニーポット] または [オフ] にします。そこでの AUTH はパスワードを見ずに拒否され、送ったアドレスは禁止されます。</value>
+    <value>SMTP ポート 25 を開き、SMTP 認証を [ハニーポット] または [オフ] にします。そこでの AUTH はパスワードを見ずに拒否され、送ったアドレスは BAN されます。</value>
   </data>
   <data name="Open the delivery queue" xml:space="preserve">
     <value>配信キューを開く</value>
@@ -8735,7 +8745,7 @@
     <value>OpenPGP</value>
   </data>
   <data name="OpenPGP - to the partner's public key" xml:space="preserve">
-    <value>OpenPGP - パートナーの公開鍵で</value>
+    <value>OpenPGP - パートナーの公開キーで</value>
   </data>
   <data name="OpenPGP in the webmail - keys, signing, encrypting and decrypting, all in the browser - and publishing and looking up keys." xml:space="preserve">
     <value>ウェブメールでの OpenPGP (キー、署名、暗号化、復号をすべてブラウザー内で) と、キーの公開と検索。</value>
@@ -8780,7 +8790,7 @@
     <value>運用性</value>
   </data>
   <data name="Opportunistic" xml:space="preserve">
-    <value>日和見的</value>
+    <value>日和見暗号化</value>
   </data>
   <data name="Optional" xml:space="preserve">
     <value>省略可</value>
@@ -8846,7 +8856,7 @@
     <value>送信 Webhook</value>
   </data>
   <data name="Outbound webhooks post events to the receivers subscribed in the Control Deck or over the REST API. A subscription that names no domain covers every domain, and switching this off takes the domain out of all of them. The server's own switch is on the Logging page." xml:space="preserve">
-    <value>送信 Webhook は、Control Deck または REST API で購読した受信先にイベントを送ります。ドメインを指定しない購読はすべてのドメインを対象にし、これをオフにするとそのドメインはすべての購読から外れます。サーバー自体のスイッチは「ログ」ページにあります。</value>
+    <value>送信 Webhook は、Control Deck または REST API で購読した受信先にイベントを送ります。ドメインを指定しない購読はすべてのドメインを対象にし、これをオフにするとそのドメインはすべての購読から外れます。サーバー自体のスイッチは「ログ設定」ページにあります。</value>
   </data>
   <data name="Outside senders get nothing, or the domain's text when its override is on." xml:space="preserve">
     <value>外部の送信者には何も送らず、ドメインの上書きがオンならドメインの本文を送ります。</value>
@@ -8873,16 +8883,16 @@
     <value>PEM ファイル (*.pem;*.crt;*.key)|*.pem;*.crt;*.key|すべてのファイル (*.*)|*.*</value>
   </data>
   <data name="PEM key files (*.pem)|*.pem|All files (*.*)|*.*" xml:space="preserve">
-    <value>PEM 鍵ファイル (*.pem)|*.pem|すべてのファイル (*.*)|*.*</value>
+    <value>PEM キー ファイル (*.pem)|*.pem|すべてのファイル (*.*)|*.*</value>
   </data>
   <data name="PEM/certificate files (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|All files (*.*)|*.*" xml:space="preserve">
     <value>PEM/証明書ファイル (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|すべてのファイル (*.*)|*.*</value>
   </data>
   <data name="PEM/key files (*.pem;*.crt;*.cer;*.key;*.pub)|*.pem;*.crt;*.cer;*.key;*.pub|All files (*.*)|*.*" xml:space="preserve">
-    <value>PEM/鍵ファイル (*.pem;*.crt;*.cer;*.key;*.pub)|*.pem;*.crt;*.cer;*.key;*.pub|すべてのファイル (*.*)|*.*</value>
+    <value>PEM/キー ファイル (*.pem;*.crt;*.cer;*.key;*.pub)|*.pem;*.crt;*.cer;*.key;*.pub|すべてのファイル (*.*)|*.*</value>
   </data>
   <data name="PEM/key files (*.pem;*.key)|*.pem;*.key|All files (*.*)|*.*" xml:space="preserve">
-    <value>PEM/鍵ファイル (*.pem;*.key)|*.pem;*.key|すべてのファイル (*.*)|*.*</value>
+    <value>PEM/キー ファイル (*.pem;*.key)|*.pem;*.key|すべてのファイル (*.*)|*.*</value>
   </data>
   <data name="POP3" xml:space="preserve">
     <value>POP3</value>
@@ -8993,7 +9003,7 @@
     <value>パスフレーズは保存済みです</value>
   </data>
   <data name="Passphrase stored, key not encrypted" xml:space="preserve">
-    <value>パスフレーズは保存済みですが、鍵は暗号化されていません</value>
+    <value>パスフレーズは保存済みですが、キーは暗号化されていません</value>
   </data>
   <data name="Passphrase, _if the archive is encrypted" xml:space="preserve">
     <value>アーカイブが暗号化されている場合のパスフレーズ(_I)</value>
@@ -9038,7 +9048,7 @@
     <value>証明書を貼り付けます。プロバイダーがキーを切り替えている間は 2 つ貼り付けます。二度と表示されません。下の行に何が保存されているかが示されます。</value>
   </data>
   <data name="Path to the issuer's public key" xml:space="preserve">
-    <value>発行者の公開鍵のパス</value>
+    <value>発行者の公開キーのパス</value>
   </data>
   <data name="Path: https://endpoint/bucket/key" xml:space="preserve">
     <value>パス: https://endpoint/bucket/key</value>
@@ -9166,7 +9176,7 @@
     <value>http-01 チャレンジ用のポート</value>
   </data>
   <data name="Port {0} does not offer AUTH: it is listed in 'Do not offer AUTH on these local TCP ports' on the Authentication page, and an AUTH sent there is refused without a ban." xml:space="preserve">
-    <value>ポート {0} は AUTH を提示しません。[認証] ページの「これらのローカル TCP ポートでは AUTH を提供しない」に含まれており、そこに送られた AUTH は禁止なしで拒否されます。</value>
+    <value>ポート {0} は AUTH を提示しません。[認証] ページの「これらのローカル TCP ポートでは AUTH を提供しない」に含まれており、そこに送られた AUTH はBAN されずに拒否されます。</value>
   </data>
   <data name="Port {0} is set to TLS but has no certificate, so TLS cannot start." xml:space="preserve">
     <value>ポート {0} は TLS に設定されていますが証明書がないため、TLS を開始できません。</value>
@@ -9181,13 +9191,13 @@
     <value>ポート {0} はまだ AUTH を受け付けています。他のサーバーがメールを配送するポートであり、そこで試されるパスワードは推測です。SMTP 認証を [ハニーポット] または [オフ] にし、メール クライアントは 587 でサインインさせてください。</value>
   </data>
   <data name="Port {0} takes no password, but 'Ban duration' on the Auto-ban page is 0, so an address that sends AUTH there is refused and not banned." xml:space="preserve">
-    <value>ポート {0} はパスワードを受け付けませんが、[自動ブロック] ページの「ブロック期間」が 0 のため、そこに AUTH を送ったアドレスは拒否されるだけで禁止されません。</value>
+    <value>ポート {0} はパスワードを受け付けませんが、[自動 BAN] ページの「BAN 期間」が 0 のため、そこに AUTH を送ったアドレスは拒否されるだけで BAN されません。</value>
   </data>
   <data name="Port {0} takes no password: EHLO does not offer AUTH there, and an address that sends one anyway is refused and banned." xml:space="preserve">
-    <value>ポート {0} はパスワードを受け付けません。EHLO はそこで AUTH を提示せず、それでも AUTH を送ったアドレスは拒否され禁止されます。</value>
+    <value>ポート {0} はパスワードを受け付けません。EHLO はそこで AUTH を提示せず、それでも AUTH を送ったアドレスは拒否され BAN されます。</value>
   </data>
   <data name="Port {0} takes no password: EHLO offers AUTH there as bait, and an address that sends one is refused and banned." xml:space="preserve">
-    <value>ポート {0} はパスワードを受け付けません。EHLO はそこでおとりとして AUTH を提示し、AUTH を送ったアドレスは拒否され禁止されます。</value>
+    <value>ポート {0} はパスワードを受け付けません。EHLO はそこでおとりとして AUTH を提示し、AUTH を送ったアドレスは拒否され BAN されます。</value>
   </data>
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>ポート {0} は TLS なしでサブミッションを受け付けているため、パスワードとメールが平文でネットワークを流れます。</value>
@@ -9268,16 +9278,16 @@
     <value>優先度</value>
   </data>
   <data name="Private _key passphrase" xml:space="preserve">
-    <value>秘密鍵のパスフレーズ(_K)</value>
+    <value>秘密キーのパスフレーズ(_K)</value>
   </data>
   <data name="Private key" xml:space="preserve">
-    <value>秘密鍵</value>
+    <value>秘密キー</value>
   </data>
   <data name="Private key _file (PEM)" xml:space="preserve">
-    <value>秘密鍵ファイル (PEM)(_F)</value>
+    <value>秘密キー ファイル (PEM)(_F)</value>
   </data>
   <data name="Private key file" xml:space="preserve">
-    <value>秘密鍵ファイル</value>
+    <value>秘密キー ファイル</value>
   </data>
   <data name="Produce or obtain a CA (for example with OpenSSL or your PKI), save the CA certificate, with any intermediate ones, as a PEM bundle on the server, point the port's CA file at it, and issue a client certificate from that CA to every client that must connect. hMailServer verifies against the bundle but cannot create the CA or the client certificates." xml:space="preserve">
     <value>CA を作成するか入手し (たとえば OpenSSL や自社の PKI で)、CA 証明書を (中間証明書があればそれも含めて) PEM バンドルとしてサーバーに保存し、ポートの CA ファイルをそれに向け、接続が必要なすべてのクライアントにその CA からクライアント証明書を発行してください。hMailServer はバンドルに対して検証を行いますが、CA やクライアント証明書を作成することはできません。</value>
@@ -9295,7 +9305,7 @@
     <value>Progressive Robot Ltd は、実運用ソフトウェアの構築と近代化を手がけるソフトウェア エンジニアリング企業です。成熟した実世界のシステムを引き受け、セキュリティ、信頼性、ツール群を現在の水準へ引き上げます。</value>
   </data>
   <data name="Prometheus metrics (/metrics), OpenTelemetry export of traces, metrics and logs (one endpoint per signal, each off until set), a slow-query log, and JSON-structured log output for log aggregators (on the Logging page)." xml:space="preserve">
-    <value>Prometheus メトリクス (/metrics)、トレース・メトリクス・ログの OpenTelemetry エクスポート (シグナルごとに 1 つのエンドポイントで、設定するまではいずれも無効)、スロー クエリ ログ、そしてログ集約ツール向けの JSON 構造化ログ出力 (「ログ」ページ)。</value>
+    <value>Prometheus メトリクス (/metrics)、トレース・メトリクス・ログの OpenTelemetry エクスポート (シグナルごとに 1 つのエンドポイントで、設定するまではいずれも無効)、スロー クエリ ログ、そしてログ集約ツール向けの JSON 構造化ログ出力 (「ログ設定」ページ)。</value>
   </data>
   <data name="Prometheus metrics, health endpoints and the REST API are enabled here." xml:space="preserve">
     <value>Prometheus メトリクス、ヘルス エンドポイント、REST API はここで有効にします。</value>
@@ -9379,7 +9389,7 @@
     <value>公開済みですが、不完全です</value>
   </data>
   <data name="Published, but wrong key" xml:space="preserve">
-    <value>公開済みですが、鍵が誤っています</value>
+    <value>公開済みですが、キーが誤っています</value>
   </data>
   <data name="Published, differs from the suggestion" xml:space="preserve">
     <value>公開済みですが、提案とは異なります</value>
@@ -9481,7 +9491,7 @@
     <value>REST リスナーの設定…</value>
   </data>
   <data name="RSA/EC public key file (PEM, for RS*/ES* tokens)" xml:space="preserve">
-    <value>RSA/EC 公開鍵ファイル (PEM。RS*/ES* トークン用)</value>
+    <value>RSA/EC 公開キー ファイル (PEM。RS*/ES* トークン用)</value>
   </data>
   <data name="R_emote domain" xml:space="preserve">
     <value>リモート ドメイン(_E)</value>
@@ -9526,7 +9536,7 @@
     <value>ドメインとサーバーの構成を再読み込みする</value>
   </data>
   <data name="Re-read the key store from disk" xml:space="preserve">
-    <value>鍵ストアをディスクから再読み込みする</value>
+    <value>キー ストアをディスクから再読み込みする</value>
   </data>
   <data name="Re-read the o_utcome" xml:space="preserve">
     <value>結果を再読み込み(_U)</value>
@@ -9562,7 +9572,7 @@
     <value>ルールを削除(_M)</value>
   </data>
   <data name="Re_move the sample domain" xml:space="preserve">
-    <value>サンプルドメインを削除 (_M)</value>
+    <value>サンプルドメインを削除(_M)</value>
   </data>
   <data name="Re_voke / restore" xml:space="preserve">
     <value>取り消し / 復元(_V)</value>
@@ -9839,13 +9849,13 @@
     <value>ゲートウェイを受信リレーとして登録し、そのアドレスがクライアントとして扱われないようにします。</value>
   </data>
   <data name="Register this server as an application with the identity provider, download the provider's public signing key as a PEM file, and choose it as 'RSA/EC public key file' on the Authentication page (or set 'Shared HMAC secret' there for HS256). Set 'Expected token issuer' and 'Expected audience' to the values the provider puts in its tokens, or validation will reject them." xml:space="preserve">
-    <value>このサーバーを ID プロバイダーにアプリケーションとして登録し、プロバイダーの公開署名鍵を PEM ファイルとしてダウンロードして、[認証] ページの「RSA/EC 公開鍵ファイル」でそれを選択してください (HS256 の場合は同じページで「共有 HMAC シークレット」を設定します)。「期待するトークン発行者」と「期待するオーディエンス」には、プロバイダーがトークンに入れる値を設定してください。そうしないと、検証で拒否されます。</value>
+    <value>このサーバーを ID プロバイダーにアプリケーションとして登録し、プロバイダーの公開署名キーを PEM ファイルとしてダウンロードして、[認証] ページの「RSA/EC 公開キー ファイル」でそれを選択してください (HS256 の場合は同じページで「共有 HMAC シークレット」を設定します)。「期待するトークン発行者」と「期待するオーディエンス」には、プロバイダーがトークンに入れる値を設定してください。そうしないと、検証で拒否されます。</value>
   </data>
   <data name="Registered in Microsoft Entra with the delegated IMAP.AccessAsUser.All and offline_access permissions, and personal Microsoft accounts allowed for Outlook.com." xml:space="preserve">
     <value>Microsoft Entra に登録し、委任されたアクセス許可 IMAP.AccessAsUser.All と offline_access を付け、Outlook.com 用に個人用 Microsoft アカウントを許可したもの。</value>
   </data>
   <data name="Registers the service as LocalSystem again, which installing a live update from the server or writing firewall rules for the auto-ban needs. The service keeps its old account until it is restarted." xml:space="preserve">
-    <value>サービスを再び LocalSystem として登録します。サーバーからのライブ アップデートのインストールや、自動禁止のためのファイアウォール規則の書き込みにはこれが必要です。サービスは再起動されるまで以前のアカウントのままです。</value>
+    <value>サービスを再び LocalSystem として登録します。サーバーからのライブ アップデートのインストールや、自動 BAN のためのファイアウォール規則の書き込みにはこれが必要です。サービスは再起動されるまで以前のアカウントのままです。</value>
   </data>
   <data name="Reinitialise _now" xml:space="preserve">
     <value>今すぐ再初期化(_N)</value>
@@ -9953,7 +9963,7 @@
     <value>アドレスを削除(_V)</value>
   </data>
   <data name="Remo_ve the photo" xml:space="preserve">
-    <value>写真を削除 (_H)</value>
+    <value>写真を削除(_H)</value>
   </data>
   <data name="Remote domains" xml:space="preserve">
     <value>リモートドメイン</value>
@@ -10007,10 +10017,10 @@
     <value>選択したアカウントをこのグループから削除する</value>
   </data>
   <data name="Remove the stored passphrase for '{0}'? If the key file is encrypted, the key will stop loading at the next restart (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
-    <value>'{0}' の保存済みパスフレーズを削除しますか? 鍵ファイルが暗号化されている場合、次回の再起動で鍵は読み込まれなくなり (サーバー エラー 6170)、この証明書を使う TLS ポートは起動しません。</value>
+    <value>'{0}' の保存済みパスフレーズを削除しますか? キー ファイルが暗号化されている場合、次回の再起動でキーは読み込まれなくなり (サーバー エラー 6170)、この証明書を使う TLS ポートは起動しません。</value>
   </data>
   <data name="Remove the stored private key passphrase from the selected certificate" xml:space="preserve">
-    <value>選択した証明書から、保存済みの秘密鍵パスフレーズを削除する</value>
+    <value>選択した証明書から、保存済みの秘密キー パスフレーズを削除する</value>
   </data>
   <data name="Remove the stored secret when saving" xml:space="preserve">
     <value>保存時に、保存済みのシークレットを削除する</value>
@@ -10204,7 +10214,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>必須です。バインド先となる Active Directory のドメイン コントローラー、またはほかの LDAP サーバーです。LDAPS ではその名前がサーバーの証明書と一致している必要があるため、IP アドレスではなく DNS 名を使用してください。</value>
   </data>
   <data name="Required: while this is empty, ARC never offsets anything, because anyone can seal a valid chain with their own key. Name the exact domains whose seals you trust (the d= of their ARC-Seal), separated by commas, semicolons or spaces." xml:space="preserve">
-    <value>必須です。これが空の間、誰でも自分の鍵で有効なチェーンにシールできるため、ARC は何も相殺しません。シールを信頼するドメイン (その ARC-Seal の d=) を、カンマ、セミコロン、または空白で区切って正確に指定してください。</value>
+    <value>必須です。これが空の間、誰でも自分のキーで有効なチェーンにシールできるため、ARC は何も相殺しません。シールを信頼するドメイン (その ARC-Seal の d=) を、カンマ、セミコロン、または空白で区切って正確に指定してください。</value>
   </data>
   <data name="Requires 'Prefer server cipher order' and TLS 1.2 or 1.3 to be enabled." xml:space="preserve">
     <value>「サーバーの暗号順序を優先する」と、TLS 1.2 または 1.3 が有効になっている必要があります。</value>
@@ -10333,19 +10343,19 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>廃止予定 {0}</value>
   </data>
   <data name="Retire the old ke_y now…" xml:space="preserve">
-    <value>古い鍵を今すぐ廃止(_Y)…</value>
+    <value>古いキーを今すぐ廃止(_Y)…</value>
   </data>
   <data name="Retire the old selector of {0} now? Its TXT record may then be removed, and a key file the rotation generated is deleted." xml:space="preserve">
-    <value>{0} の古いセレクターを今すぐ廃止しますか？その後、その TXT レコードは削除でき、ローテーションが生成した鍵ファイルは削除されます。</value>
+    <value>{0} の古いセレクターを今すぐ廃止しますか？その後、その TXT レコードは削除でき、ローテーションが生成したキー ファイルは削除されます。</value>
   </data>
   <data name="Retired key" xml:space="preserve">
-    <value>廃止した鍵</value>
+    <value>廃止したキー</value>
   </data>
   <data name="Retired {0}" xml:space="preserve">
     <value>廃止 {0}</value>
   </data>
   <data name="Retiring key" xml:space="preserve">
-    <value>廃止中の鍵</value>
+    <value>廃止中のキー</value>
   </data>
   <data name="Retr_y through Windows logon when the directory is unavailable" xml:space="preserve">
     <value>ディレクトリが利用できないときに Windows ログオンで再試行する(_Y)</value>
@@ -10366,7 +10376,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>再利用と有効期限</value>
   </data>
   <data name="Reuse the private key across renewals (keeps DANE TLSA records valid)" xml:space="preserve">
-    <value>更新をまたいで秘密鍵を再利用する (DANE TLSA レコードを有効に保ちます)</value>
+    <value>更新をまたいで秘密キーを再利用する (DANE TLSA レコードを有効に保ちます)</value>
   </data>
   <data name="Reverse DNS (PTR) and the HELO name - set by whoever owns your IP address" xml:space="preserve">
     <value>逆引き DNS (PTR) と HELO 名 - IP アドレスの所有者が設定します</value>
@@ -10417,7 +10427,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>今すぐローテーション</value>
   </data>
   <data name="Rotate the _key on a schedule" xml:space="preserve">
-    <value>スケジュールに従って鍵をローテーション(_K)</value>
+    <value>スケジュールに従ってキーをローテーション(_K)</value>
   </data>
   <data name="Rotate the session-ticket key every (seconds; 0 = OpenSSL's single key)" xml:space="preserve">
     <value>セッション チケットの鍵をローテーションする間隔 (秒、0 = OpenSSL の単一の鍵)</value>
@@ -10630,7 +10640,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>SPF softfail のスコア (0 = スコア付けしない)</value>
   </data>
   <data name="SPF tells receivers which servers may send this domain's mail; without it the mail is more likely to be refused or filed as spam." xml:space="preserve">
-    <value>SPF はこのドメインのメールを送信してよいサーバーを受信側に伝えます。なければメールは拒否されたり迷惑メールに振り分けられたりしやすくなります。</value>
+    <value>SPF はこのドメインのメールを送信してよいサーバーを受信側に伝えます。なければメールは拒否されたりスパムに振り分けられたりしやすくなります。</value>
   </data>
   <data name="SPF temperror score (0 = not scored)" xml:space="preserve">
     <value>SPF temperror のスコア (0 = スコア付けしない)</value>
@@ -10723,7 +10733,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>スケジュールを保存(_H)</value>
   </data>
   <data name="Save the DKIM private key" xml:space="preserve">
-    <value>DKIM 秘密鍵を保存</value>
+    <value>DKIM 秘密キーを保存</value>
   </data>
   <data name="Save the LDAP settings to hMailServer.ini" xml:space="preserve">
     <value>LDAP 設定を hMailServer.ini に保存</value>
@@ -10756,7 +10766,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>{0} の権限を保存しますか? 保存すると、この範囲の誰もがサインインせずにこのサーバー経由で任意のアドレスへメールを中継できるようになります。これはオープン リレーです。</value>
   </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
-    <value>選択した証明書の秘密鍵パスフレーズを保存</value>
+    <value>選択した証明書の秘密キー パスフレーズを保存</value>
   </data>
   <data name="Save the selection to hMailServer.ini, then show what a synchronisation would do with it" xml:space="preserve">
     <value>選択内容を hMailServer.ini に保存してから、同期がそれで何を行うかを表示</value>
@@ -11002,10 +11012,10 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>セレクター(_L)</value>
   </data>
   <data name="Seal forwarded messages with the domain's DKIM key" xml:space="preserve">
-    <value>転送するメッセージをドメインの DKIM 鍵でシールする</value>
+    <value>転送するメッセージをドメインの DKIM キーでシールする</value>
   </data>
   <data name="Seals mail this server forwards so the next hop can still trust the original authentication results; the seal is made with a hosted domain's DKIM key." xml:space="preserve">
-    <value>このサーバーが転送するメールにシールを付け、次のホップが元の認証結果を引き続き信頼できるようにします。シールはホストされているドメインの DKIM 鍵で作られます。</value>
+    <value>このサーバーが転送するメールにシールを付け、次のホップが元の認証結果を引き続き信頼できるようにします。シールはホストされているドメインの DKIM キーで作られます。</value>
   </data>
   <data name="Search" xml:space="preserve">
     <value>検索</value>
@@ -11242,7 +11252,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>新しい鍵のセレクター (空 = 今日の日付)</value>
   </data>
   <data name="Selector name for the new DKIM key" xml:space="preserve">
-    <value>新しい DKIM 鍵のセレクター名</value>
+    <value>新しい DKIM キーのセレクター名</value>
   </data>
   <data name="Self-service portal" xml:space="preserve">
     <value>セルフサービス ポータル</value>
@@ -11329,7 +11339,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>送信者ドメイン</value>
   </data>
   <data name="Sender name, as recipients see it" xml:space="preserve">
-    <value>受信者に表示される差出人名</value>
+    <value>受信者に表示される送信者名</value>
   </data>
   <data name="Senders and IP ranges that bypass spam protection entirely." xml:space="preserve">
     <value>スパム対策を完全にバイパスする送信者と IP 範囲。</value>
@@ -11536,7 +11546,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>環境で設定</value>
   </data>
   <data name="Set by the environment, from a file" xml:space="preserve">
-    <value>環境で設定（ファイルから）</value>
+    <value>環境で設定 (ファイルから)</value>
   </data>
   <data name="Set by this server's environment, which stores them again at every start, so a change made here is refused: {0}. Change the variable and restart to change one." xml:space="preserve">
     <value>このサーバーの環境で設定されており、起動のたびに再び保存されるため、ここでの変更は拒否されます: {0}。変更するには、変数を変更して再起動してください。</value>
@@ -11563,7 +11573,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>Web サービスと自動設定ページで HTTPS ポートを設定し (RFC 8461 はポリシーを HTTPS で提供することを要求します)、リスナーに mta-sts.&lt;domain&gt; をカバーする証明書を与え、次に各ドメインについて、このサーバーを指す mta-sts.&lt;domain&gt; の A/AAAA (または CNAME) レコードと、_mta-sts.&lt;domain&gt; の TXT レコード (v=STSv1; id=...) を公開してください。このページは TXT レコードを確認します。アドレス レコードと証明書の名前のカバー範囲はここからは確認できません。</value>
   </data>
   <data name="Set the auto-ban threshold and how long the lockout lasts." xml:space="preserve">
-    <value>自動ブロックのしきい値とロックアウトの継続時間を設定します。</value>
+    <value>自動 BAN のしきい値とロックアウトの継続時間を設定します。</value>
   </data>
   <data name="Set the connection security on each listener, then require it for authentication." xml:space="preserve">
     <value>各リスナーで接続セキュリティを設定し、認証にそれを必須にします。</value>
@@ -11581,7 +11591,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>サーバーが問い合わせるリゾルバーと、応答を DNSSEC 検証するかどうかを設定します。</value>
   </data>
   <data name="Set the resumption lifetime and ticket-key rotation, which bound how long a captured resumption secret stays useful." xml:space="preserve">
-    <value>再開の有効期間とチケット鍵のローテーションを設定します。これらは、捕捉された再開シークレットが有用であり続ける期間を制限します。</value>
+    <value>再開の有効期間とチケット キーのローテーションを設定します。これらは、捕捉された再開シークレットが有用であり続ける期間を制限します。</value>
   </data>
   <data name="Set the smart host, and its credentials if the provider needs them." xml:space="preserve">
     <value>スマート ホストと、プロバイダーが必要とする場合はその資格情報を設定します。</value>
@@ -11818,7 +11828,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>署名は現在オンです。</value>
   </data>
   <data name="Signing moved to the next key." xml:space="preserve">
-    <value>署名を次の鍵に切り替えました。</value>
+    <value>署名を次のキーに切り替えました。</value>
   </data>
   <data name="Signs outgoing mail so receivers can verify it really came from your domain; without the DNS record every signature fails verification." xml:space="preserve">
     <value>送信メールに署名し、受信者が本当にあなたのドメインから来たものだと検証できるようにします。DNS レコードがなければ、すべての署名は検証に失敗します。</value>
@@ -12016,7 +12026,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>StartTLS - 389 で接続し、何かを送信する前に TLS にアップグレード</value>
   </data>
   <data name="Started" xml:space="preserve">
-    <value>開始済み</value>
+    <value>開始日時</value>
   </data>
   <data name="Starting" xml:space="preserve">
     <value>開始中</value>
@@ -12253,7 +12263,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>TLS 1.3 には独自のスイート リスト、独自の名前、独自の設定方法があるため、上の暗号スイート リストはこれを制限しません。コロン区切りで、優先度の高い順に、RFC 8446 の名前 (TLSAES_256_GCM_SHA384、TLS_CHACHA20_POLY1305_SHA256、TLS_AES_128_GCM_SHA256、TLS_AES_128_CCM_SHA256、TLS_AES_128_CCM_8_SHA256) を使います。OpenSSL の暗号スイート リスト名ではありません。OpenSSL の既定を保つには空のままにしてください。このビルドが認識しない名前はリスト全体を失敗させるのではなく、スキップして報告されます。(_A)</value>
   </data>
   <data name="TLS 1.3 is off. It is faster to negotiate than 1.2 and removes the older key exchanges outright; there is rarely a reason to leave it off." xml:space="preserve">
-    <value>TLS 1.3 がオフです。1.2 よりネゴシエーションが速く、古い鍵交換を完全に排除します。オフのままにする理由はほとんどありません。</value>
+    <value>TLS 1.3 がオフです。1.2 よりネゴシエーションが速く、古いキー交換を完全に排除します。オフのままにする理由はほとんどありません。</value>
   </data>
   <data name="TLS certificate file (PEM, optional)" xml:space="preserve">
     <value>TLS 証明書ファイル (PEM、省略可)</value>
@@ -12274,13 +12284,13 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>サブミッションポートの TLS - メールクライアントが送信に使うポート</value>
   </data>
   <data name="TLS private key file (PEM, optional)" xml:space="preserve">
-    <value>TLS 秘密鍵ファイル (PEM、省略可)</value>
+    <value>TLS 秘密キー ファイル (PEM、省略可)</value>
   </data>
   <data name="TLS private key file for the metrics listener (PEM)" xml:space="preserve">
-    <value>メトリクス リスナー用の TLS 秘密鍵ファイル (PEM)</value>
+    <value>メトリクス リスナー用の TLS 秘密キー ファイル (PEM)</value>
   </data>
   <data name="TLS private keys - a passphrase-protected key needs its passphrase configured" xml:space="preserve">
-    <value>TLS 秘密鍵 - パスフレーズで保護された鍵にはパスフレーズの設定が必要です</value>
+    <value>TLS 秘密キー - パスフレーズで保護されたキーにはパスフレーズの設定が必要です</value>
   </data>
   <data name="TLS report sender address (empty = off)" xml:space="preserve">
     <value>TLS レポートの送信者アドレス (空 = 無効)</value>
@@ -12292,7 +12302,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>TLS レポート (TLS-RPT) - 送信を始めるには送信者アドレスを設定してください</value>
   </data>
   <data name="TLS session tickets, session cache size, resumption lifetime and ticket-key rotation" xml:space="preserve">
-    <value>TLS セッション チケット、セッション キャッシュ サイズ、再開の有効期間、チケット鍵のローテーション</value>
+    <value>TLS セッション チケット、セッション キャッシュ サイズ、再開の有効期間、チケット キーのローテーション</value>
   </data>
   <data name="TLS-RPT" xml:space="preserve">
     <value>TLS-RPT</value>
@@ -12352,7 +12362,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>外部からの初回の連絡を読み手に知らせる(_F)</value>
   </data>
   <data name="Tells sending servers they must use TLS when delivering to your domains, closing the downgrade hole in opportunistic TLS." xml:space="preserve">
-    <value>送信側サーバーに、あなたのドメインへの配信時には TLS を使わなければならないと伝え、日和見的 TLS のダウングレードの穴を塞ぎます。</value>
+    <value>送信側サーバーに、あなたのドメインへの配信時には TLS を使わなければならないと伝え、日和見暗号化のダウングレードの穴を塞ぎます。</value>
   </data>
   <data name="Template appended. If you already have an OnAcceptMessage handler, merge the two into a single Sub before saving." xml:space="preserve">
     <value>テンプレートを追加しました。既に OnAcceptMessage ハンドラーがある場合は、保存する前に 2 つを 1 つの Sub にマージしてください。</value>
@@ -12424,7 +12434,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>「{0}」はここで終わりです。いつでもやり直せます。</value>
   </data>
   <data name="That key's id is not in the form this store uses, so its section cannot be identified. Remove it by hand from {0}." xml:space="preserve">
-    <value>その鍵の ID はこのストアが使う形式ではないため、そのセクションを特定できません。{0} から手動で削除してください。</value>
+    <value>そのキーの ID はこのストアが使う形式ではないため、そのセクションを特定できません。{0} から手動で削除してください。</value>
   </data>
   <data name="That scan was {0}, although the check runs hourly: the server has not scanned since, so the store may have changed." xml:space="preserve">
     <value>そのスキャンは {0} のものです。チェックは毎時実行されるはずですが、サーバーはそれ以降スキャンしていないため、ストアが変わっている可能性があります。</value>
@@ -12520,7 +12530,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>REST API に接続できませんでした: {0}</value>
   </data>
   <data name="The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs a TLS certificate file and its private key file on the API &amp; monitoring page, or an ACME certificate issued to this server." xml:space="preserve">
-    <value>REST API は動作していません。暗号化なしの HTTP は 127.0.0.1 または ::1 でのみ提供され、{0} で待ち受けるには「API と監視」ページの TLS 証明書ファイルとその秘密鍵ファイル、またはこのサーバーに発行された ACME 証明書が必要です。</value>
+    <value>REST API は動作していません。暗号化なしの HTTP は 127.0.0.1 または ::1 でのみ提供され、{0} で待ち受けるには「API と監視」ページの TLS 証明書ファイルとその秘密キー ファイル、またはこのサーバーに発行された ACME 証明書が必要です。</value>
   </data>
   <data name="The REST API is not running: listening on {0} needs a certificate, set on the API &amp; monitoring page." xml:space="preserve">
     <value>REST API は動作していません: {0} で待ち受けるには証明書が必要で、「API と監視」ページで設定します。</value>
@@ -12553,7 +12563,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>外部の監視システムが読み取る REST API、Prometheus メトリクス、ヘルス エンドポイント、Windows イベント ログ、ManageSieve のリスナー、および停止中のサービスがセッションを待つ時間。</value>
   </data>
   <data name="The RSA/EC public key file {0} does not exist on this machine, so RS256 tokens cannot be verified." xml:space="preserve">
-    <value>RSA/EC 公開鍵ファイル {0} がこのコンピューターに存在しないため、RS256 トークンを検証できません。</value>
+    <value>RSA/EC 公開キー ファイル {0} がこのコンピューターに存在しないため、RS256 トークンを検証できません。</value>
   </data>
   <data name="The SNMP agent, alerts, outbound webhooks and the audit trail" xml:space="preserve">
     <value>SNMP エージェント、アラート、送信 Webhook、監査ログ</value>
@@ -12844,7 +12854,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>その証明書はもう存在しません。この一覧を読み取った後に削除されました。</value>
   </data>
   <data name="The certificate's public key could not be exported for comparison." xml:space="preserve">
-    <value>比較のために証明書の公開鍵をエクスポートできませんでした。</value>
+    <value>比較のために証明書の公開キーをエクスポートできませんでした。</value>
   </data>
   <data name="The certificates could not be read." xml:space="preserve">
     <value>証明書を読み取れませんでした。</value>
@@ -12945,10 +12955,10 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>データベース宛先は初回使用時にテーブルを作成し、非同期に挿入するため、ログの書き込みがメール セッションをブロックすることはありません。データベースに到達できない場合、エントリは代わりにログ ファイルに書き込まれ、サーバーはアプリケーション ログでその旨を報告します。何も破棄されません。</value>
   </data>
   <data name="The database's record of its stored-secrets key could not be read, so whether this server holds the database's key cannot be told." xml:space="preserve">
-    <value>データベースが記録している保存シークレットの鍵を読み取れなかったため、このサーバーがデータベースの鍵を持っているかどうか判断できません。</value>
+    <value>データベースが記録している保存シークレットのキーを読み取れなかったため、このサーバーがデータベースのキーを持っているかどうか判断できません。</value>
   </data>
   <data name="The database's second factors and [Settings] secrets are sealed under the stored-secrets key {0}, which this server does not hold, so they do not open here. Import it on the server from one that holds it: {1}." xml:space="preserve">
-    <value>データベースの第二要素と [Settings] のシークレットは保存シークレットの鍵 {0} で封印されていますが、このサーバーはその鍵を持っていないため、ここでは開けません。鍵を持っているサーバーからこのサーバーにインポートしてください: {1}。</value>
+    <value>データベースの第二要素と [Settings] のシークレットは保存シークレットのキー {0} で封印されていますが、このサーバーはそのキーを持っていないため、ここでは開けません。キーを持っているサーバーからこのサーバーにインポートしてください: {1}。</value>
   </data>
   <data name="The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it." xml:space="preserve">
     <value>データベース: 接続プールに言及するエラーを確認してください。プールの期限が切れると、受信者の検索は 550 ではなく 451 4.3.2 を返すため、バックアップでロックされたデータベースはメールをバウンスさせるのではなく延期します。</value>
@@ -12990,7 +13000,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>ヘルプ ペインに表示されるドキュメントはサーバー自身のコピーです。これは同じページが Wiki 上のどこにあるかを示し、ドキュメント名が付加されます。既定ではプロジェクトの GitLab Wiki です。</value>
   </data>
   <data name="The domain has no signing key yet." xml:space="preserve">
-    <value>このドメインにはまだ署名鍵がありません。</value>
+    <value>このドメインにはまだ署名キーがありません。</value>
   </data>
   <data name="The domain is inactive, so the schedule starts no rotation." xml:space="preserve">
     <value>ドメインが無効なため、スケジュールによるローテーションは開始されません。</value>
@@ -13142,7 +13152,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>グループ メンバーを読み取れませんでした: </value>
   </data>
   <data name="The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark." xml:space="preserve">
-    <value>このサーバーが TLS 鍵の合意に使うグループを、OpenSSL のリスト形式で指定します。出荷時の設定では、2 つのポスト量子ハイブリッドを先に提示し、どちらも持たない相手には X25519 と NIST 曲線にフォールバックするため、古いクライアントにとっては何も変わりません。空のリスト、OpenSSL が拒否するリスト、あるいは有効なグループが 1 つも残らないリストは適用されません。サーバーはそれをログに記録し、従来方式のフォールバックを使うため、ここでの誤りが TLS を停止させることはありません。ただし、ハイブリッドは黙って放棄されます。空欄ではなく出荷時のリストを表示しているのはそのためです。手探りで変更するのではなく、スキャンの結果に照らして変更してください。</value>
+    <value>このサーバーが TLS キーの合意に使うグループを、OpenSSL のリスト形式で指定します。出荷時の設定では、2 つのポスト量子ハイブリッドを先に提示し、どちらも持たない相手には X25519 と NIST 曲線にフォールバックするため、古いクライアントにとっては何も変わりません。空のリスト、OpenSSL が拒否するリスト、あるいは有効なグループが 1 つも残らないリストは適用されません。サーバーはそれをログに記録し、従来方式のフォールバックを使うため、ここでの誤りが TLS を停止させることはありません。ただし、ハイブリッドは黙って放棄されます。空欄ではなく出荷時のリストを表示しているのはそのためです。手探りで変更するのではなく、スキャンの結果に照らして変更してください。</value>
   </data>
   <data name="The guided path: which half, which log lines, and the setting that bounds each stage." xml:space="preserve">
     <value>ガイド付きの手順: どちらの半分か、どのログ行か、各ステージを制限する設定はどれか。</value>
@@ -13205,40 +13215,40 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>この項目はもう存在しません。</value>
   </data>
   <data name="The key an account's second factor and the [Settings] secrets are sealed under in the database. It exists on the server alone, so a copy has to be exported and kept with the database backups." xml:space="preserve">
-    <value>アカウントの第二要素と [Settings] のシークレットをデータベース内で封印する鍵です。サーバー上にしか存在しないため、コピーをエクスポートしてデータベースのバックアップと一緒に保管する必要があります。</value>
+    <value>アカウントの第二要素と [Settings] のシークレットをデータベース内で封印するキーです。サーバー上にしか存在しないため、コピーをエクスポートしてデータベースのバックアップと一緒に保管する必要があります。</value>
   </data>
   <data name="The key file could not be checked from this machine." xml:space="preserve">
-    <value>鍵ファイルをこのコンピューターから確認できませんでした。</value>
+    <value>キー ファイルをこのコンピューターから確認できませんでした。</value>
   </data>
   <data name="The key file could not be read from this machine, so the record value cannot be shown here; the domain's DKIM tab showed it when the key was made." xml:space="preserve">
-    <value>鍵ファイルをこのコンピューターから読み取れなかったため、レコードの値をここに表示できません。この値は、鍵を作成したときにドメインの DKIM タブに表示されています。</value>
+    <value>キー ファイルをこのコンピューターから読み取れなかったため、レコードの値をここに表示できません。この値は、キーを作成したときにドメインの DKIM タブに表示されています。</value>
   </data>
   <data name="The key file exists and is a plain (unencrypted) PEM, so no passphrase is needed." xml:space="preserve">
-    <value>鍵ファイルは存在し、暗号化されていない通常の PEM なので、パスフレーズは不要です。</value>
+    <value>キー ファイルは存在し、暗号化されていない通常の PEM なので、パスフレーズは不要です。</value>
   </data>
   <data name="The key file exists but could not be read from this panel ({0}), so whether it is encrypted is unknown." xml:space="preserve">
-    <value>鍵ファイルは存在しますが、このパネルから読み取れなかったため ({0})、暗号化されているかどうかは不明です。</value>
+    <value>キー ファイルは存在しますが、このパネルから読み取れなかったため ({0})、暗号化されているかどうかは不明です。</value>
   </data>
   <data name="The key file exists on disk." xml:space="preserve">
-    <value>鍵ファイルはディスク上に存在します。</value>
+    <value>キー ファイルはディスク上に存在します。</value>
   </data>
   <data name="The key file is encrypted and no passphrase is stored, so the key will not load (server error 6170) and every TLS port using this certificate will not start - inbound mail on those ports stops. Enter the passphrase below, or replace the file with an unencrypted key." xml:space="preserve">
-    <value>鍵ファイルは暗号化されていますが、パスフレーズが保存されていないため、鍵は読み込まれず (サーバー エラー 6170)、この証明書を使うすべての TLS ポートが起動しません。それらのポートでの受信メールは止まります。下にパスフレーズを入力するか、ファイルを暗号化されていない鍵に置き換えてください。</value>
+    <value>キー ファイルは暗号化されていますが、パスフレーズが保存されていないため、キーは読み込まれず (サーバー エラー 6170)、この証明書を使うすべての TLS ポートが起動しません。それらのポートでの受信メールは止まります。下にパスフレーズを入力するか、ファイルを暗号化されていないキーに置き換えてください。</value>
   </data>
   <data name="The key file is not encrypted, so no passphrase is needed and none is stored." xml:space="preserve">
-    <value>鍵ファイルは暗号化されていないため、パスフレーズは不要で、何も保存されていません。</value>
+    <value>キー ファイルは暗号化されていないため、パスフレーズは不要で、何も保存されていません。</value>
   </data>
   <data name="The key file is passphrase-protected (an encrypted PEM). It only loads if the matching passphrase is stored on this certificate." xml:space="preserve">
-    <value>鍵ファイルはパスフレーズで保護されています (暗号化された PEM)。一致するパスフレーズがこの証明書に保存されている場合にのみ読み込まれます。</value>
+    <value>キー ファイルはパスフレーズで保護されています (暗号化された PEM)。一致するパスフレーズがこの証明書に保存されている場合にのみ読み込まれます。</value>
   </data>
   <data name="The key file was kept: {0}" xml:space="preserve">
-    <value>鍵ファイルは残しました: {0}</value>
+    <value>キー ファイルは残しました: {0}</value>
   </data>
   <data name="The key held" xml:space="preserve">
-    <value>保存済みの鍵</value>
+    <value>保存済みのキー</value>
   </data>
   <data name="The key is encrypted and this panel deliberately does not decrypt it, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
-    <value>鍵は暗号化されており、このパネルは意図的に復号しないため、証明書と一致するかどうかはサーバーがペアを読み込んだときにのみ証明されます。</value>
+    <value>キーは暗号化されており、このパネルは意図的に復号しないため、証明書と一致するかどうかはサーバーがペアを読み込んだときにのみ証明されます。</value>
   </data>
   <data name="The key is shown once, when it is created, and never again. It is live immediately - the server re-reads its key store on every request." xml:space="preserve">
     <value>キーは作成時に 1 回だけ表示され、二度と表示されません。すぐに有効になります。サーバーはリクエストのたびにキー ストアを再読み込みします。</value>
@@ -13370,13 +13380,13 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>新しい API キー (1 回だけ表示)</value>
   </data>
   <data name="The new key's file could not be read." xml:space="preserve">
-    <value>新しい鍵のファイルを読み取れませんでした。</value>
+    <value>新しいキーのファイルを読み取れませんでした。</value>
   </data>
   <data name="The new key's record has not been checked yet." xml:space="preserve">
-    <value>新しい鍵のレコードはまだ確認されていません。</value>
+    <value>新しいキーのレコードはまだ確認されていません。</value>
   </data>
   <data name="The new key's record was not found. Publish it." xml:space="preserve">
-    <value>新しい鍵のレコードが見つかりません。公開してください。</value>
+    <value>新しいキーのレコードが見つかりません。公開してください。</value>
   </data>
   <data name="The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way." xml:space="preserve">
     <value>新しいレコードは、まだ伝播期間全体を通じて解決できていません。それでも署名を切り替えますか？リゾルバーが追いついていない受信側では、追いつくまで新しい署名の検証に失敗します。レコード自体は解決できる必要があります。どちらの場合も、サーバーは最初にレコードを確認します。</value>
@@ -13385,7 +13395,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>新しいスケジュールは、hMailServer サービスを再起動したときにだけ有効になります。今すぐサービスを再起動しますか? サービスが停止して再開する間、サーバーに接続しているクライアントはすべて切断されます。</value>
   </data>
   <data name="The next key was cancelled." xml:space="preserve">
-    <value>次の鍵を取り消しました。</value>
+    <value>次のキーを取り消しました。</value>
   </data>
   <data name="The next message from this domain to the address is refused, dropped or delivered and recorded, as the bounce settings say. Mail already queued to it meets the list on its next delivery attempt." xml:space="preserve">
     <value>このドメインからそのアドレスへの次のメッセージは、バウンスの設定に従って、拒否、削除、または配信して記録されます。すでにキューにあるそのアドレス宛てのメールは、次の配信試行時にリストと照合されます。</value>
@@ -13460,18 +13470,18 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>各プロトコルが待ち受けるポート、そのバインド アドレス、接続セキュリティ。変更はサーバーを再初期化したときに有効になり、それまで一覧の上の通知が再初期化を提案します。</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
-    <value>秘密鍵はこの証明書のものではありません。公開鍵が異なります。このペアは読み込まれず (サーバー エラー 5113)、この証明書を使うすべての TLS ポートが起動に失敗します。このエントリを、この証明書と共に生成された鍵ファイルに向けてください。</value>
+    <value>秘密キーはこの証明書のものではありません。公開キーが異なります。このペアは読み込まれず (サーバー エラー 5113)、この証明書を使うすべての TLS ポートが起動に失敗します。このエントリを、この証明書と共に生成されたキー ファイルに向けてください。</value>
   </data>
   <data name="The private key file does not exist on this machine ({0}). Every TLS port using this certificate will fail to start (server error 5113) - mail on those ports stops." xml:space="preserve">
     <value>秘密鍵ファイルがこのコンピューターに存在しません ({0})。この証明書を使うすべての TLS ポートが起動に失敗し (サーバー エラー 5113)、それらのポートでのメールは止まります。</value>
   </data>
   <data name="The private key file is encrypted (passphrase-protected) and no passphrase was entered. The certificate will be added, but its key will not load (server error 6170) and the TLS ports using it will not start until the passphrase is saved.&#10;&#10;Add it anyway?" xml:space="preserve">
-    <value>秘密鍵ファイルは暗号化されています (パスフレーズで保護) が、パスフレーズが入力されていません。証明書は追加されますが、鍵は読み込まれず (サーバー エラー 6170)、パスフレーズが保存されるまで、それを使う TLS ポートは起動しません。
+    <value>秘密キー ファイルは暗号化されています (パスフレーズで保護) が、パスフレーズが入力されていません。証明書は追加されますが、キーは読み込まれず (サーバー エラー 6170)、パスフレーズが保存されるまで、それを使う TLS ポートは起動しません。
 
 それでも追加しますか?</value>
   </data>
   <data name="The private key's public half is identical to the certificate's public key - the pair belongs together." xml:space="preserve">
-    <value>秘密鍵の公開部分は証明書の公開鍵と同一です。このペアは対応しています。</value>
+    <value>秘密キーの公開部分は証明書の公開キーと同一です。このペアは対応しています。</value>
   </data>
   <data name="The profile" xml:space="preserve">
     <value>プロファイル</value>
@@ -13489,7 +13499,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>公開コーパスは https://api.pwnedpasswords.com/range/ です。独自のミラーを運用している組織はここに指定します。5 文字はパスの末尾に追加されるか、{prefix} と書かれた位置に挿入されます。暗号化されていない http は localhost、127.0.0.1、::1 に対してのみ受け付けます。</value>
   </data>
   <data name="The published record does not carry the new key. Correct it." xml:space="preserve">
-    <value>公開されたレコードに新しい鍵が含まれていません。修正してください。</value>
+    <value>公開されたレコードに新しいキーが含まれていません。修正してください。</value>
   </data>
   <data name="The query string the Azure portal gives, beginning sv=. Stored protected and never shown again." xml:space="preserve">
     <value>Azure ポータルが発行する、sv= で始まるクエリ文字列。保護して保存され、二度と表示されません。</value>
@@ -13501,7 +13511,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>{0} のレコードは p={1} を含んでいますが、これは受信側が認識するポリシー (none、quarantine、reject) ではありません。公開内容: {2}</value>
   </data>
   <data name="The record at {0} carries this key's public key." xml:space="preserve">
-    <value>{0} のレコードには、この鍵の公開鍵が含まれています。</value>
+    <value>{0} のレコードには、このキーの公開キーが含まれています。</value>
   </data>
   <data name="The record at {0} has no id= tag, which RFC 8461 requires - senders may never notice policy updates. Published: {1}" xml:space="preserve">
     <value>{0} のレコードには RFC 8461 が要求する id= タグがありません。送信者がポリシーの更新に気づかない可能性があります。公開内容: {1}</value>
@@ -13561,10 +13571,10 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>再試行の回数と間隔、そしてそれらを使い切ったときに何が起きるかはここにあります。</value>
   </data>
   <data name="The reverse lookup of {0} was not answered, so the list cannot spare it now. Try again, or add the address to 'Never auto-ban these addresses' on the Auto-ban page." xml:space="preserve">
-    <value>{0} の逆引きに応答がなかったため、リストは今このアドレスを免除できません。再試行するか、[自動ブロック] ページの「これらのアドレスは決して自動 BAN しない」にアドレスを追加してください。</value>
+    <value>{0} の逆引きに応答がなかったため、リストは今このアドレスを免除できません。再試行するか、[自動 BAN] ページの「これらのアドレスは決して自動 BAN しない」にアドレスを追加してください。</value>
   </data>
   <data name="The reverse name {0} is an address or a public suffix, which the list never matches. Add the address to 'Never auto-ban these addresses' on the Auto-ban page instead." xml:space="preserve">
-    <value>逆引き名 {0} はアドレスまたはパブリックサフィックスであり、リストは決して照合しません。代わりに、[自動ブロック] ページの「これらのアドレスは決して自動 BAN しない」にアドレスを追加してください。</value>
+    <value>逆引き名 {0} はアドレスまたはパブリックサフィックスであり、リストは決して照合しません。代わりに、[自動 BAN] ページの「これらのアドレスは決して自動 BAN しない」にアドレスを追加してください。</value>
   </data>
   <data name="The rotation refused: {0}" xml:space="preserve">
     <value>ローテーションが拒否しました: {0}</value>
@@ -13606,7 +13616,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>スケジュールと保持期間はサーバー上の hMailServer.ini に保存されます。</value>
   </data>
   <data name="The schedule is saved with the domain. The buttons below act at once. While the rotation manages the domain, the selector and key file above are the rotation's to change." xml:space="preserve">
-    <value>スケジュールはドメインと一緒に保存されます。下のボタンはすぐに実行されます。ローテーションがこのドメインを管理している間、上のセレクターと鍵ファイルを変更するのはローテーションです。</value>
+    <value>スケジュールはドメインと一緒に保存されます。下のボタンはすぐに実行されます。ローテーションがこのドメインを管理している間、上のセレクターとキー ファイルを変更するのはローテーションです。</value>
   </data>
   <data name="The score is added up across both phases. The server stops testing within a phase as soon as the running total reaches {0} - the higher of the two thresholds - so a check late in the order may never run." xml:space="preserve">
     <value>スコアは両方のフェーズにわたって加算されます。サーバーは、累計が {0} (2 つのしきい値のうち高い方) に達した時点でそのフェーズ内のテストを停止するため、順序の後ろにあるチェックは実行されないことがあります。</value>
@@ -13675,7 +13685,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>サーバーが 30 秒以内に実行中を報告しませんでした。何をしているかは [サーバーの状態] ページで確認できます。</value>
   </data>
   <data name="The server did not report the key rotation." xml:space="preserve">
-    <value>サーバーは鍵のローテーションを報告しませんでした。</value>
+    <value>サーバーはキーのローテーションを報告しませんでした。</value>
   </data>
   <data name="The server did not report this figure." xml:space="preserve">
     <value>サーバーはこの数値を報告しませんでした。</value>
@@ -13693,7 +13703,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>サーバーは {0} のメール サーバーを見つけられませんでした。そのため、このサーバーからそのドメインに送るメールは、現時点では配信できません。</value>
   </data>
   <data name="The server generates the next key, shows the TXT record to publish, checks it from its own resolver, and moves signing to it only once the record has resolved for the whole propagation period. The old selector is kept for the retention period and then retired." xml:space="preserve">
-    <value>サーバーが次の鍵を生成し、公開する TXT レコードを表示し、自身のリゾルバーでそれを確認し、伝播期間全体を通じてレコードが解決できた場合にのみ署名をその鍵に切り替えます。古いセレクターは保持期間のあいだ残され、その後廃止されます。</value>
+    <value>サーバーが次のキーを生成し、公開する TXT レコードを表示し、自身のリゾルバーでそれを確認し、伝播期間全体を通じてレコードが解決できた場合にのみ署名をそのキーに切り替えます。古いセレクターは保持期間のあいだ残され、その後廃止されます。</value>
   </data>
   <data name="The server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
     <value>サーバーにこの設定または操作がありません - このコントロール パネルより古いサーバーの可能性があります ({0})</value>
@@ -13786,7 +13796,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>サーバーのホスト名を読み取れなかったため、提案はドメインの MX ホスト ("mx") のみを許可します。</value>
   </data>
   <data name="The server's key rotation has a next key, selector &quot;{0}&quot;. Publish its record as well; signing moves to it once the record has resolved for the propagation period, and the domain's DKIM tab shows the rest." xml:space="preserve">
-    <value>サーバーの鍵のローテーションには次の鍵 (セレクター「{0}」) があります。そのレコードも公開してください。伝播期間を通じてレコードが解決できると署名はその鍵に切り替わります。残りはドメインの DKIM タブに表示されます。</value>
+    <value>サーバーのキーのローテーションには次のキー (セレクター「{0}」) があります。そのレコードも公開してください。伝播期間を通じてレコードが解決できると署名はそのキーに切り替わります。残りはドメインの DKIM タブに表示されます。</value>
   </data>
   <data name="The service account cannot be read: {0}" xml:space="preserve">
     <value>サービス アカウントを読み取れません: {0}</value>
@@ -13829,7 +13839,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>出荷時の設定を保持しました。プロファイルは適用されていません。</value>
   </data>
   <data name="The single value AEAD-ONLY (case-insensitive) is a named preset rather than an OpenSSL cipher string: forward-secret AEAD suites only (ECDHE or DHE with AES-GCM or ChaCha20-Poly1305), excluding every CBC-mode suite - the Lucky13 padding-oracle family - and static-RSA key exchange. The cost: TLS 1.2 clients that only speak CBC suites cannot connect, and TLS 1.0/1.1 are left with no usable cipher at all, so do not enable those protocols alongside it. TLS 1.3 is unaffected - its suites are AEAD by construction and are configured separately below. A misspelled preset name is rejected and reported, not silently ignored." xml:space="preserve">
-    <value>単一の値 AEAD-ONLY (大文字小文字を区別しない) は OpenSSL の暗号スイート文字列ではなく、名前付きプリセットです。前方秘匿性のある AEAD スイートのみ (AES-GCM または ChaCha20-Poly1305 を使う ECDHE または DHE) で、すべての CBC モード スイート (Lucky13 パディング オラクル系) と静的 RSA 鍵交換を除外します。代償として、CBC スイートしか話せない TLS 1.2 クライアントは接続できず、TLS 1.0/1.1 には使える暗号がまったく残らないため、これらのプロトコルを同時に有効にしないでください。TLS 1.3 は影響を受けません。そのスイートは構造上 AEAD であり、下で別途設定します。プリセット名のスペル ミスは黙って無視されず、拒否されて報告されます。</value>
+    <value>単一の値 AEAD-ONLY (大文字小文字を区別しない) は OpenSSL の暗号スイート文字列ではなく、名前付きプリセットです。前方秘匿性のある AEAD スイートのみ (AES-GCM または ChaCha20-Poly1305 を使う ECDHE または DHE) で、すべての CBC モード スイート (Lucky13 パディング オラクル系) と静的 RSA キー交換を除外します。代償として、CBC スイートしか話せない TLS 1.2 クライアントは接続できず、TLS 1.0/1.1 には使える暗号がまったく残らないため、これらのプロトコルを同時に有効にしないでください。TLS 1.3 は影響を受けません。そのスイートは構造上 AEAD であり、下で別途設定します。プリセット名のスペル ミスは黙って無視されず、拒否されて報告されます。</value>
   </data>
   <data name="The size limit could not be read." xml:space="preserve">
     <value>サイズ上限を読み取れませんでした。</value>
@@ -13856,16 +13866,16 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>{0} の保存されていたパスフレーズを削除しました。</value>
   </data>
   <data name="The stored-secrets key - what the database's secrets are sealed under" xml:space="preserve">
-    <value>保存シークレットの鍵 - データベースのシークレットを封印するもの</value>
+    <value>保存シークレットのキー - データベースのシークレットを封印するもの</value>
   </data>
   <data name="The stored-secrets key {0} has never been exported. Export it on the server with {1} and keep the file with the database backups: a database restored without it opens no second factor and no [Settings] secret." xml:space="preserve">
-    <value>保存シークレットの鍵 {0} は一度もエクスポートされていません。サーバー上で {1} を使ってエクスポートし、そのファイルをデータベースのバックアップと一緒に保管してください。これがないまま復元したデータベースでは、第二要素も [Settings] のシークレットも開けません。</value>
+    <value>保存シークレットのキー {0} は一度もエクスポートされていません。サーバー上で {1} を使ってエクスポートし、そのファイルをデータベースのバックアップと一緒に保管してください。これがないまま復元したデータベースでは、第二要素も [Settings] のシークレットも開けません。</value>
   </data>
   <data name="The stored-secrets key {0} was exported on {1}; keep that file with the database backups." xml:space="preserve">
-    <value>保存シークレットの鍵 {0} は {1} にエクスポートされました。そのファイルをデータベースのバックアップと一緒に保管してください。</value>
+    <value>保存シークレットのキー {0} は {1} にエクスポートされました。そのファイルをデータベースのバックアップと一緒に保管してください。</value>
   </data>
   <data name="The subject tag breaks any DKIM signature the sender made over their subject, exactly as the anti-spam subject prefix does. The header does not, so prefer the header where the reader can show it." xml:space="preserve">
-    <value>件名のタグは、迷惑メール対策の件名プレフィックスと同じく、送信者が自分の件名に対して作成した DKIM 署名を壊します。ヘッダーは壊しませんので、読み手が表示できる場合はヘッダーを選んでください。</value>
+    <value>件名のタグは、スパム対策の件名プレフィックスと同じく、送信者が自分の件名に対して作成した DKIM 署名を壊します。ヘッダーは壊しませんので、読み手が表示できる場合はヘッダーを選んでください。</value>
   </data>
   <data name="The tag text must be 100 characters or fewer." xml:space="preserve">
     <value>タグの文字列は 100 文字以内にしてください。</value>
@@ -13940,7 +13950,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>戻す先のバージョン</value>
   </data>
   <data name="The web services listener has an HTTPS port but no certificate ('TLS certificate file' is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set 'TLS certificate file' and 'TLS private key file' on the Web services &amp; autoconfiguration page, or turn on ACME on the Automatic certificates (ACME) page." xml:space="preserve">
-    <value>Web サービスのリスナーには HTTPS ポートがありますが証明書がないため (「TLS 証明書ファイル」が空で ACME がオフ)、HTTPS リスナーは起動せず、ポリシーは依然として取得できません。[Web サービスと自動設定] ページで「TLS 証明書ファイル」と「TLS 秘密鍵ファイル」を設定するか、[自動証明書 (ACME)] ページで ACME を有効にしてください。</value>
+    <value>Web サービスのリスナーには HTTPS ポートがありますが証明書がないため (「TLS 証明書ファイル」が空で ACME がオフ)、HTTPS リスナーは起動せず、ポリシーは依然として取得できません。[Web サービスと自動設定] ページで「TLS 証明書ファイル」と「TLS 秘密キー ファイル」を設定するか、[自動証明書 (ACME)] ページで ACME を有効にしてください。</value>
   </data>
   <data name="The web services settings could not be read: {0}" xml:space="preserve">
     <value>Web サービスの設定を読み取れませんでした: {0}</value>
@@ -14048,7 +14058,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>このコントロールパネルはリモート サーバーに接続しており、証明書ファイルはそのマシンのディスク上にあります。このコンピューターからは読み取れないため、それについて何も検証されていません。これは "OK" ではなく "不明" です。サーバー自体で、またはそのセットアップ チェックリスト ページから確認してください。</value>
   </data>
   <data name="This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its Setup checklist page." xml:space="preserve">
-    <value>このコントロールパネルはリモート サーバーに接続しており、鍵ファイルはそのマシンのディスク上にあります。このコンピューターからは読み取れないため、それについて何も検証されていません。これは "OK" ではなく "不明" です。サーバー自体で、またはそのセットアップ チェックリスト ページから確認してください。</value>
+    <value>このコントロールパネルはリモート サーバーに接続しており、キー ファイルはそのマシンのディスク上にあります。このコンピューターからは読み取れないため、それについて何も検証されていません。これは "OK" ではなく "不明" です。サーバー自体で、またはそのセットアップ チェックリスト ページから確認してください。</value>
   </data>
   <data name="This Control Panel is connected to another machine, so the archives in the destination cannot be listed from here. Name the archive in the cards below as the destination lists it." xml:space="preserve">
     <value>このコントロールパネルは別のコンピューターに接続しているため、ここから保存先のアーカイブを一覧表示できません。下のカードには、保存先に表示されるとおりのアーカイブ名を入力してください。</value>
@@ -14114,7 +14124,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>このキーは変更と削除ができます。有効期限 {0}。</value>
   </data>
   <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the Key passphrase box before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
-    <value>この鍵ファイルは暗号化されています (パスフレーズで保護)。追加する前に「鍵のパスフレーズ」ボックスにパスフレーズを入力してください。そうしないと鍵は読み込まれず (サーバー エラー 6170)、この証明書を使う TLS ポートは起動しません。</value>
+    <value>このキー ファイルは暗号化されています (パスフレーズで保護)。追加する前に「キーのパスフレーズ」ボックスにパスフレーズを入力してください。そうしないとキーは読み込まれず (サーバー エラー 6170)、この証明書を使う TLS ポートは起動しません。</value>
   </data>
   <data name="This mailbox cannot be moved at the moment: {0}" xml:space="preserve">
     <value>このメールボックスは現在移動できません: {0}</value>
@@ -14126,7 +14136,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>このページはかつて、行き場のないすべての hMailServer.ini 値を集めていました。つまり、値が何をするかではなく、どこに保存されているかで分類されていたのです。値がどこに保存されているかは、知る必要がまったくない唯一の事柄です。これらはそれぞれ、今は自身の機能の他の設定と一緒に置かれています。何も削除されておらず、値も変わっていません。編集するページが変わっただけです。</value>
   </data>
   <data name="This panel can compare RSA and ECDSA keys; this key parses as neither, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
-    <value>このパネルは RSA と ECDSA の鍵を比較できますが、この鍵はどちらとしても解析できないため、証明書と一致するかどうかはサーバーがペアを読み込んだときにのみ証明されます。</value>
+    <value>このパネルは RSA と ECDSA のキーを比較できますが、このキーはどちらとしても解析できないため、証明書と一致するかどうかはサーバーがペアを読み込んだときにのみ証明されます。</value>
   </data>
   <data name="This password appears in a published data breach, so it would be among the first tried against this account. Choose a different one." xml:space="preserve">
     <value>このパスワードは公開されたデータ漏えいに含まれているため、このアカウントに対して真っ先に試されるパスワードの一つです。別のパスワードを選んでください。</value>
@@ -14150,7 +14160,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>このサーバーはドメインテーブルを読めなかったため、サンプルがあるかどうかを答えられません。読めるようになるまで何も提示されません。</value>
   </data>
   <data name="This server does not rotate DKIM keys; it is older than this Control Panel." xml:space="preserve">
-    <value>このサーバーは DKIM 鍵をローテーションしません。このコントロールパネルより古いサーバーです。</value>
+    <value>このサーバーは DKIM キーをローテーションしません。このコントロールパネルより古いサーバーです。</value>
   </data>
   <data name="This server has no setting levels: it is older than schema 6088, and every setting here is the server's or the domain's own field." xml:space="preserve">
     <value>このサーバーには設定レベルがありません。スキーマ 6088 より古く、ここにある設定はすべてサーバーまたはドメイン自身のフィールドです。</value>
@@ -14324,7 +14334,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>トレースのみ。ここで設定されたコレクターはスパンを受け取り、それ以外は受け取りません。メトリクスとログには下にそれぞれのエンドポイントがあり、設定されるまでオフです。Prometheus メトリクスは上のポートで、メトリクス エンドポイントがプッシュするのと同じカウンターであり、別の集計ではありません。</value>
   </data>
   <data name="Transparency log's public key for a private Sigstore (PEM; empty = the public Rekor key)" xml:space="preserve">
-    <value>プライベート Sigstore 用の透明性ログの公開鍵 (PEM、空 = 公開の Rekor 鍵)</value>
+    <value>プライベート Sigstore 用の透明性ログの公開キー (PEM、空 = 公開の Rekor キー)</value>
   </data>
   <data name="Transport encryption overview" xml:space="preserve">
     <value>トランスポート暗号化の概要</value>
@@ -14402,7 +14412,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>無効化</value>
   </data>
   <data name="Turning this off stops session tickets on every TLS version: TLS 1.2 and older clients fall back to the server-side session cache, which never leaves this process, and TLS 1.3 clients are sent no ticket at all. For an administrator whose policy is that nothing derived from a long-lived key ever goes on the wire. The only cost is resumption efficiency - every client can still connect with a full handshake." xml:space="preserve">
-    <value>これをオフにすると、すべての TLS バージョンでセッション チケットが停止します。TLS 1.2 以前のクライアントは、このプロセスから決して出ないサーバー側セッション キャッシュにフォールバックし、TLS 1.3 クライアントにはチケットがまったく送られません。長期の鍵から派生したものは何もネットワークに流さない、というポリシーの管理者向けです。唯一の代償は再開の効率で、どのクライアントもフル ハンドシェイクで接続できます。</value>
+    <value>これをオフにすると、すべての TLS バージョンでセッション チケットが停止します。TLS 1.2 以前のクライアントは、このプロセスから決して出ないサーバー側セッション キャッシュにフォールバックし、TLS 1.3 クライアントにはチケットがまったく送られません。長期のキーから派生したものは何もネットワークに流さない、というポリシーの管理者向けです。唯一の代償は再開の効率で、どのクライアントもフル ハンドシェイクで接続できます。</value>
   </data>
   <data name="Turns a filter or a check off" xml:space="preserve">
     <value>フィルターまたはチェックをオフにする</value>
@@ -14852,7 +14862,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>送るもの(_S)</value>
   </data>
   <data name="What is published at {0} does not carry this key's public key, so every signature made with this key fails verification. Waiting will not fix this - correct the published value to match the one above." xml:space="preserve">
-    <value>{0} に TXT レコードはありますが、この鍵の公開鍵を含むものがないため、この鍵で作られたすべての署名が検証に失敗します。待っても解決しません。公開されている値を上の値と一致するよう修正してください。</value>
+    <value>{0} に TXT レコードはありますが、このキーの公開キーを含むものがないため、このキーで作られたすべての署名が検証に失敗します。待っても解決しません。公開されている値を上の値と一致するよう修正してください。</value>
   </data>
   <data name="What is sent" xml:space="preserve">
     <value>送るもの</value>
@@ -14930,7 +14940,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>書き込まれる内容をサーバーから読み取れませんでした: {0}</value>
   </data>
   <data name="Whatever the server would do anyway - including MTA-STS and DANE" xml:space="preserve">
-    <value>サーバーが本来行う動作のまま（MTA-STS と DANE を含む）</value>
+    <value>サーバーが本来行う動作のまま (MTA-STS と DANE を含む)</value>
   </data>
   <data name="Whatever your directory accepts for a simple bind: a UPN (svc-mail@example.local), DOMAIN\name, or a full DN. Left empty, the server searches anonymously - which usually fails against Active Directory, with a reported reason that names this setting." xml:space="preserve">
     <value>ディレクトリが簡易バインドで受け入れるもの: UPN (svc-mail@example.local)、DOMAIN\name、または完全な DN。空のままにすると、サーバーは匿名で検索します。これは通常 Active Directory に対して失敗し、この設定を名指しする理由が報告されます。</value>
@@ -15047,13 +15057,13 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>新しいメールを圧縮して保存し、他のメッセージと共有する大きな添付ファイルを一度だけ保存するかどうか。クライアントには、どのメッセージも届いたとおりに見えます。オフにすると、新しいメールは届いたまま保存され、保存済みのメッセージは引き続き読めます。hmailserver --compress-store は保存済みのメッセージを書き直し、--decompress は元に戻します。</value>
   </data>
   <data name="Whether the key file needs one cannot be checked from here. If it is encrypted, it will not load without a passphrase (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
-    <value>鍵ファイルにパスフレーズが必要かどうかはここから確認できません。暗号化されている場合、パスフレーズなしでは読み込まれず (サーバー エラー 6170)、この証明書を使う TLS ポートは起動しません。</value>
+    <value>キー ファイルにパスフレーズが必要かどうかはここから確認できません。暗号化されている場合、パスフレーズなしでは読み込まれず (サーバー エラー 6170)、この証明書を使う TLS ポートは起動しません。</value>
   </data>
   <data name="Whether this port is being listened on could not be determined from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>このポートが待ち受けされているかどうかをここから判断できませんでした。サーバー自体でコントロールパネルを開いて確認してください。</value>
   </data>
   <data name="Which TLS versions and ciphers this server negotiates, for its own listeners and for the connections it makes when delivering. Certificates are on the SSL certificates page; DANE and MTA-STS are on Transport security; brute-force lockout is on Auto-ban." xml:space="preserve">
-    <value>このサーバーが自身のリスナーと配信時に行う接続でネゴシエートする TLS バージョンと暗号スイート。証明書は SSL 証明書ページ、DANE と MTA-STS はトランスポート セキュリティ ページ、ブルート フォースのロックアウトは自動ブロック ページにあります。</value>
+    <value>このサーバーが自身のリスナーと配信時に行う接続でネゴシエートする TLS バージョンと暗号スイート。証明書は SSL 証明書ページ、DANE と MTA-STS はトランスポート セキュリティ ページ、ブルート フォースのロックアウトは自動 BAN ページにあります。</value>
   </data>
   <data name="Which TLS versions and ciphers this server will negotiate, and whether it verifies the certificate of the server it delivers to." xml:space="preserve">
     <value>このサーバーがネゴシエートする TLS バージョンと暗号スイート、および配信先サーバーの証明書を検証するかどうか。</value>
@@ -15137,7 +15147,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>誰が接続でき、誰が認証でき、誰かが試行し続けたときに何が起きるか。</value>
   </data>
   <data name="Who may sign in to an account of this domain, by the country a MaxMind database places the address in: on every protocol, after the server's own policies for connecting, which are on the Auto-ban page with the database file. Nothing is judged until that file is set. A refused sign-in gets the ordinary wrong-password answer and is not counted against the account or the address." xml:space="preserve">
-    <value>このドメインのアカウントにサインインできる人を、MaxMind データベースがアドレスを割り当てた国で決めます。すべてのプロトコルで、サーバー自身の接続ポリシーの後に適用されます。それらはデータベース ファイルと一緒に「自動ブロック」ページにあります。そのファイルを設定するまで何も判定されません。拒否されたサインインには通常のパスワード誤りの応答が返り、アカウントにもアドレスにも数えられません。</value>
+    <value>このドメインのアカウントにサインインできる人を、MaxMind データベースがアドレスを割り当てた国で決めます。すべてのプロトコルで、サーバー自身の接続ポリシーの後に適用されます。それらはデータベース ファイルと一緒に「自動 BAN」ページにあります。そのファイルを設定するまで何も判定されません。拒否されたサインインには通常のパスワード誤りの応答が返り、アカウントにもアドレスにも数えられません。</value>
   </data>
   <data name="Who to ask about this server: one line of printable ASCII, up to 255 characters." xml:space="preserve">
     <value>このサーバーについての問い合わせ先: 印刷可能な ASCII で最大 255 文字の 1 行。</value>
@@ -15422,7 +15432,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>参照(_B)…</value>
   </data>
   <data name="_Cancel the next key" xml:space="preserve">
-    <value>次の鍵を取り消す(_C)</value>
+    <value>次のキーを取り消す(_C)</value>
   </data>
   <data name="_Certificate file (PEM)" xml:space="preserve">
     <value>証明書ファイル (PEM)(_C)</value>
@@ -15641,7 +15651,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>生成(_G)</value>
   </data>
   <data name="_Generate key pair…" xml:space="preserve">
-    <value>鍵ペアを生成(_G)…</value>
+    <value>キー ペアを生成(_G)…</value>
   </data>
   <data name="_Generate strong password" xml:space="preserve">
     <value>強力なパスワードを生成(_G)</value>
@@ -15695,13 +15705,13 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>バックアップなしでインストール(_I)</value>
   </data>
   <data name="_Job title" xml:space="preserve">
-    <value>役職 (_A)</value>
+    <value>役職(_A)</value>
   </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>元のメッセージを残す(_K)</value>
   </data>
   <data name="_Keep the next key" xml:space="preserve">
-    <value>次の鍵を保持(_K)</value>
+    <value>次のキーを保持(_K)</value>
   </data>
   <data name="_Keep the old address as an alias" xml:space="preserve">
     <value>古いアドレスをエイリアスとして残す(_K)</value>
@@ -15776,7 +15786,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>再試行の間隔 (分)(_M)</value>
   </data>
   <data name="_Mobile" xml:space="preserve">
-    <value>携帯電話 (_D)</value>
+    <value>携帯電話(_D)</value>
   </data>
   <data name="_Moderator (empty = no moderation)" xml:space="preserve">
     <value>モデレーター (空 = モデレーションなし)(_M)</value>
@@ -15854,7 +15864,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>権限(_P)</value>
   </data>
   <data name="_Plain-text disclaimer" xml:space="preserve">
-    <value>免責事項（プレーンテキスト）(_P)</value>
+    <value>プレーンテキストの免責事項(_P)</value>
   </data>
   <data name="_Plain-text signature" xml:space="preserve">
     <value>プレーン テキスト署名(_P)</value>
@@ -15878,7 +15888,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>優先度(_P)</value>
   </data>
   <data name="_Private key file" xml:space="preserve">
-    <value>秘密鍵ファイル(_P)</value>
+    <value>秘密キー ファイル(_P)</value>
   </data>
   <data name="_Propagation period (hours, 1 to 720)" xml:space="preserve">
     <value>伝播期間 (時間、1 から 720)(_P)</value>
@@ -16046,7 +16056,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>ロールを取り消す(_T)</value>
   </data>
   <data name="_Target SMTP host" xml:space="preserve">
-    <value>宛先 SMTP ホスト(_T)</value>
+    <value>送信先 SMTP ホスト(_T)</value>
   </data>
   <data name="_Test connection" xml:space="preserve">
     <value>接続をテスト(_T)</value>
@@ -16115,7 +16125,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>このリストに送信できる相手(_W)</value>
   </data>
   <data name="_Work telephone" xml:space="preserve">
-    <value>勤務先電話番号 (_C)</value>
+    <value>勤務先電話番号(_C)</value>
   </data>
   <data name="_Wrap lines" xml:space="preserve">
     <value>行を折り返す(_W)</value>
@@ -16175,7 +16185,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>このサーバーでは別の管理者による更新のインストールが進行中です</value>
   </data>
   <data name="any algorithm this server can verify - it implements RS256, ES256 and HS256 only, and &quot;{0}&quot; names none of them, so every token is refused whatever key material is installed" xml:space="preserve">
-    <value>このサーバーが検証できるアルゴリズムのいずれか。実装しているのは RS256、ES256、HS256 のみで、"{0}" はそのどれでもないため、どのような鍵素材をインストールしてもすべてのトークンが拒否されます</value>
+    <value>このサーバーが検証できるアルゴリズムのいずれか。実装しているのは RS256、ES256、HS256 のみで、"{0}" はそのどれでもないため、どのようなキー素材をインストールしてもすべてのトークンが拒否されます</value>
   </data>
   <data name="any source address" xml:space="preserve">
     <value>任意の送信元アドレス</value>
@@ -16728,7 +16738,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>送信メールが送れない</value>
   </data>
   <data name="p=none is the right starting point, not an oversight: it makes receivers check and report but deliver as normal. A stricter policy (quarantine or reject) tells every receiver to junk or refuse mail that fails alignment - and until reports show your own mail passing SPF or DKIM, the mail that fails will include yours. Tighten only after the reports say it is safe." xml:space="preserve">
-    <value>p=none は見落としではなく、正しい出発点です。受信側にチェックとレポートをさせつつ、配信は通常どおり行わせます。より厳しいポリシー (quarantine または reject) は、アライメントに失敗したメールを迷惑メール扱いにするか拒否するよう、すべての受信側に指示します。そして、自分のメールが SPF または DKIM に合格しているとレポートが示すまでは、失敗するメールには自分のメールも含まれます。レポートが安全だと示してから、初めて厳しくしてください。</value>
+    <value>p=none は見落としではなく、正しい出発点です。受信側にチェックとレポートをさせつつ、配信は通常どおり行わせます。より厳しいポリシー (quarantine または reject) は、アライメントに失敗したメールをスパム扱いにするか拒否するよう、すべての受信側に指示します。そして、自分のメールが SPF または DKIM に合格しているとレポートが示すまでは、失敗するメールには自分のメールも含まれます。レポートが安全だと示してから、初めて厳しくしてください。</value>
   </data>
   <data name="pattern" xml:space="preserve">
     <value>パターン</value>
@@ -16956,7 +16966,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>発行者 (iss) は確認されません</value>
   </data>
   <data name="the issuer's public key file, which RS256 and ES256 tokens are verified against" xml:space="preserve">
-    <value>発行者の公開鍵ファイル。RS256 と ES256 のトークンはこれで検証されます</value>
+    <value>発行者の公開キー ファイル。RS256 と ES256 のトークンはこれで検証されます</value>
   </data>
   <data name="the password" xml:space="preserve">
     <value>パスワード</value>
@@ -16974,7 +16984,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>確認後にインストール先のアクセス許可が変更されました。どれが変わったかを見るには、もう一度「更新をインストール」をクリックしてください</value>
   </data>
   <data name="the private key" xml:space="preserve">
-    <value>秘密鍵</value>
+    <value>秘密キー</value>
   </data>
   <data name="the program Windows was asked to run is not the one the hMailServer service is registered with, or was given something it does not take" xml:space="preserve">
     <value>Windows に実行を求めたプログラムが hMailServer サービスの登録先のプログラムではないか、受け付けない内容が渡されました</value>
@@ -17427,7 +17437,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>{0} には postmaster アドレスが設定されておらず、このページが勝手にメールボックスを作り出すことはありません。レポートを受け取るべきアドレスを入力してください。入力されるまで、コピーできるレコードはありません。</value>
   </data>
   <data name="{0} has no reverse name, so no pattern can spare it. Add the address to 'Never auto-ban these addresses' on the Auto-ban page instead." xml:space="preserve">
-    <value>{0} には逆引き名がないため、どのパターンでも免除できません。代わりに、[自動ブロック] ページの「これらのアドレスは決して自動 BAN しない」にアドレスを追加してください。</value>
+    <value>{0} には逆引き名がないため、どのパターンでも免除できません。代わりに、[自動 BAN] ページの「これらのアドレスは決して自動 BAN しない」にアドレスを追加してください。</value>
   </data>
   <data name="{0} have expired and are refused" xml:space="preserve">
     <value>{0} 件は期限切れで、拒否されます</value>
@@ -17970,13 +17980,13 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>{0}: {1} の TXT レコード</value>
   </data>
   <data name="{0}: a TXT record exists at {1}, but it could not be compared with the staged secondary key from this panel. Confirm the value before promoting." xml:space="preserve">
-    <value>{0}: {1} に TXT レコードは存在しますが、このパネルからはステージングされた副次鍵と照合できませんでした。昇格する前に値を確認してください。</value>
+    <value>{0}: {1} に TXT レコードは存在しますが、このパネルからはステージングされた副次キーと照合できませんでした。昇格する前に値を確認してください。</value>
   </data>
   <data name="{0}: a TXT record exists at {1}, but whether it carries the right public key could not be verified - the private key file was not readable from this panel." xml:space="preserve">
-    <value>{0}: {1} に TXT レコードは存在しますが、正しい公開鍵を含んでいるかどうかは検証できませんでした。秘密鍵ファイルをこのパネルから読み取れなかったためです。</value>
+    <value>{0}: {1} に TXT レコードは存在しますが、正しい公開キーを含んでいるかどうかは検証できませんでした。秘密キー ファイルをこのパネルから読み取れなかったためです。</value>
   </data>
   <data name="{0}: a secondary key is staged for rotation. Checking DNS for the TXT record {1}…" xml:space="preserve">
-    <value>{0}: ローテーション用に副次鍵がステージングされています。TXT レコード {1} を DNS で確認しています…</value>
+    <value>{0}: ローテーション用に副次キーがステージングされています。TXT レコード {1} を DNS で確認しています…</value>
   </data>
   <data name="{0}: checking DNS for the {1} TXT record…" xml:space="preserve">
     <value>{0}: {1} の TXT レコードを DNS で確認しています…</value>
@@ -17997,7 +18007,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>{0}: {1} に TXT レコードが見つからなかったため、受信側はこのドメインの署名を検証できず、そのメールを偽造と見なす可能性があります。DNS ホストでこのレコードを公開してください。今公開したばかりなら、伝播を待ってから「更新」を押してください。</value>
   </data>
   <data name="{0}: no private key file is set, so this certificate cannot be used by any listener." xml:space="preserve">
-    <value>{0}: 秘密鍵ファイルが設定されていないため、この証明書はどのリスナーでも使用できません。</value>
+    <value>{0}: 秘密キー ファイルが設定されていないため、この証明書はどのリスナーでも使用できません。</value>
   </data>
   <data name="{0}: no {1} record at {2}." xml:space="preserve">
     <value>{0}: {2} に {1} レコードがありません。</value>
@@ -18009,10 +18019,10 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>{0}: SMTP 認証後のみ</value>
   </data>
   <data name="{0}: selector '{1}' and key file are set. {2} Checking DNS for the TXT record {3}…" xml:space="preserve">
-    <value>{0}: セレクター '{1}' と鍵ファイルが設定されています。{2} TXT レコード {3} を DNS で確認しています…</value>
+    <value>{0}: セレクター '{1}' とキー ファイルが設定されています。{2} TXT レコード {3} を DNS で確認しています…</value>
   </data>
   <data name="{0}: signing is on but the private key file is not set, so every message goes out unsigned (server error 5305). Set both on the domain, then publish the DNS record." xml:space="preserve">
-    <value>{0}: 署名はオンですが秘密鍵ファイルが設定されていないため、すべてのメッセージが署名されずに送信されます (サーバー エラー 5305)。ドメインで両方を設定してから、DNS レコードを公開してください。</value>
+    <value>{0}: 署名はオンですが秘密キー ファイルが設定されていないため、すべてのメッセージが署名されずに送信されます (サーバー エラー 5305)。ドメインで両方を設定してから、DNS レコードを公開してください。</value>
   </data>
   <data name="{0}: signing is on but the selector is not set, so every message goes out unsigned (server error 5305). Set both on the domain, then publish the DNS record." xml:space="preserve">
     <value>{0}: 署名はオンですがセレクターが設定されていないため、すべてのメッセージが署名されずに送信されます (サーバー エラー 5305)。ドメインで両方を設定してから、DNS レコードを公開してください。</value>
@@ -18036,31 +18046,31 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>{0}: {1} の DNS 参照に失敗しました — {2} これは、レコードが存在するかどうかについては何も示しません。このコンピューターの DNS リゾルバーを確認してから「更新」を押してください。</value>
   </data>
   <data name="{0}: the TXT record at {1} is published and carries this key's public key." xml:space="preserve">
-    <value>{0}: {1} の TXT レコードは公開されており、この鍵の公開鍵を含んでいます。</value>
+    <value>{0}: {1} の TXT レコードは公開されており、このキーの公開キーを含んでいます。</value>
   </data>
   <data name="{0}: the key file cannot be inspected because {1}" xml:space="preserve">
-    <value>{0}: 鍵ファイルを調べられません。理由: {1}</value>
+    <value>{0}: キー ファイルを調べられません。理由: {1}</value>
   </data>
   <data name="{0}: the key file exists but could not be read from this panel, so whether it is encrypted is unknown." xml:space="preserve">
-    <value>{0}: 鍵ファイルは存在しますが、このパネルからは読み取れなかったため、暗号化されているかどうかは不明です。</value>
+    <value>{0}: キー ファイルは存在しますが、このパネルからは読み取れなかったため、暗号化されているかどうかは不明です。</value>
   </data>
   <data name="{0}: the key file is an encrypted PEM but no passphrase is configured, so the key will not load (server error 6170) and every port using this certificate will not start. Set the private key password on the certificate." xml:space="preserve">
-    <value>{0}: 鍵ファイルは暗号化された PEM ですがパスフレーズが設定されていないため、鍵は読み込まれず (サーバー エラー 6170)、この証明書を使うすべてのポートが起動しません。証明書に秘密鍵のパスワードを設定してください。</value>
+    <value>{0}: キー ファイルは暗号化された PEM ですがパスフレーズが設定されていないため、キーは読み込まれず (サーバー エラー 6170)、この証明書を使うすべてのポートが起動しません。証明書に秘密キーのパスワードを設定してください。</value>
   </data>
   <data name="{0}: the key file is encrypted and a passphrase is configured. Whether it is the right passphrase is only proven when the server loads the key - check the error log for server error 6170 after a restart." xml:space="preserve">
     <value>{0}: 鍵ファイルは暗号化されており、パスフレーズも設定されています。それが正しいパスフレーズかどうかは、サーバーが鍵を読み込んだときに初めて証明されます。再起動後にエラー ログでサーバー エラー 6170 を確認してください。</value>
   </data>
   <data name="{0}: the key file is encrypted, but whether a passphrase is configured could not be read (this requires the server-administrator account)." xml:space="preserve">
-    <value>{0}: 鍵ファイルは暗号化されていますが、パスフレーズが設定されているかどうかは読み取れませんでした (これにはサーバー管理者アカウントが必要です)。</value>
+    <value>{0}: キー ファイルは暗号化されていますが、パスフレーズが設定されているかどうかは読み取れませんでした (これにはサーバー管理者アカウントが必要です)。</value>
   </data>
   <data name="{0}: the key file is not encrypted, so no passphrase is needed." xml:space="preserve">
-    <value>{0}: 鍵ファイルは暗号化されていないため、パスフレーズは不要です。</value>
+    <value>{0}: キー ファイルは暗号化されていないため、パスフレーズは不要です。</value>
   </data>
   <data name="{0}: the key file {1} does not exist on this machine, so every port using this certificate will fail to start." xml:space="preserve">
-    <value>{0}: 鍵ファイル {1} がこのコンピューターに存在しないため、この証明書を使うすべてのポートが起動に失敗します。</value>
+    <value>{0}: キー ファイル {1} がこのコンピューターに存在しないため、この証明書を使うすべてのポートが起動に失敗します。</value>
   </data>
   <data name="{0}: the key file {1} does not exist on this machine, so signing fails and mail goes out unsigned. Restore the file or generate a new key, then publish the matching DNS record." xml:space="preserve">
-    <value>{0}: 鍵ファイル {1} がこのコンピューターに存在しないため、署名は失敗し、メールは署名されずに送信されます。ファイルを復元するか新しい鍵を生成してから、対応する DNS レコードを公開してください。</value>
+    <value>{0}: キー ファイル {1} がこのコンピューターに存在しないため、署名は失敗し、メールは署名されずに送信されます。ファイルを復元するか新しいキーを生成してから、対応する DNS レコードを公開してください。</value>
   </data>
   <data name="{0}: the lookup for {2} failed, which says nothing about the {1} record." xml:space="preserve">
     <value>{0}: {2} の検索に失敗しました。{1} レコードについては何も分かりません。</value>
@@ -18072,7 +18082,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>{0}: このポートにはクライアント証明書のポリシーが設定されていますが、SSL/TLS も STARTTLS もないため、ハンドシェイクが一度も行われず、ポリシーは何も検証しません。ポートで接続のセキュリティを有効にするか、ポリシーをオフに設定してください。</value>
   </data>
   <data name="{0}: the rotation record at {1} is published and matches the staged secondary key. Promote whenever it has propagated everywhere." xml:space="preserve">
-    <value>{0}: {1} のローテーション用レコードは公開されており、ステージングされた副次鍵と一致しています。どこにも伝播したら、いつでも昇格できます。</value>
+    <value>{0}: {1} のローテーション用レコードは公開されており、ステージングされた副次キーと一致しています。どこにも伝播したら、いつでも昇格できます。</value>
   </data>
   <data name="{0}: the secondary key is staged but no TXT record exists at {1} yet. Publish it and let it propagate before promoting the secondary key, or mail will sign with a key the world cannot look up." xml:space="preserve">
     <value>{0}: 副次鍵はステージングされていますが、{1} にはまだ TXT レコードがありません。副次鍵を昇格する前にレコードを公開し、伝播させてください。そうしないと、世界から参照できない鍵でメールに署名することになります。</value>
@@ -18087,10 +18097,10 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>{0}: {2} の {1} レコードは検索されませんでした。</value>
   </data>
   <data name="{0}: what is published at {1} does not carry this key's public key, so signatures fail verification. Fix the record's value - waiting for propagation will not help." xml:space="preserve">
-    <value>{0}: {1} に TXT レコードはありますが、この鍵の公開鍵を含むものが 1 つもないため、署名は検証に失敗します。レコードの値を修正してください。伝播を待っても解決しません。</value>
+    <value>{0}: {1} に TXT レコードはありますが、このキーの公開キーを含むものが 1 つもないため、署名は検証に失敗します。レコードの値を修正してください。伝播を待っても解決しません。</value>
   </data>
   <data name="{0}: what is published at {1} does not match the staged secondary key. Fix the value before promoting - waiting will not help." xml:space="preserve">
-    <value>{0}: {1} に TXT レコードはありますが、ステージングされた副次鍵と一致するものが 1 つもありません。昇格する前に値を修正してください。待っても解決しません。</value>
+    <value>{0}: {1} に TXT レコードはありますが、ステージングされた副次キーと一致するものが 1 つもありません。昇格する前に値を修正してください。待っても解決しません。</value>
   </data>
   <data name="{0}: {1}" xml:space="preserve">
     <value>{0}: {1}</value>

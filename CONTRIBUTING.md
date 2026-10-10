@@ -688,6 +688,10 @@ And, for any new setting:
   text, and adds none where it has none; `check-catalogues.py` holds the literals, page names and numbers a
   translation must keep. The English text is the key, so changing an English caption is a new key in all
   eighteen catalogues.
+* A catalogue's style note, where it has one, is the comment at its head: the Japanese one says キー for a key,
+  送信者 for the sender, スパム, 自動 BAN, half-width parentheses and the key's suffix written against its caption
+  (`JapaneseStyleTests` holds it, and `check-mnemonics.py` refuses a space before a Japanese or Chinese key's
+  suffix). The English is British: behaviour, honour, organisation, reinitialise (`BritishSpellingTests`).
 * Every `[Settings]` key the server reads has an editor or a recorded reason for none (`check-ini-coverage.py`), so does
   every database setting (`check-db-settings-coverage.py`), and folder-access decisions stay in `ACLManager`
   (`check-authz-choke-point.py`).

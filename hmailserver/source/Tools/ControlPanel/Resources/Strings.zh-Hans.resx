@@ -1324,7 +1324,7 @@
     <value>管理员角色</value>
   </data>
   <data name="Administrator's _note" xml:space="preserve">
-    <value>管理员备注 (_F)</value>
+    <value>管理员备注(_F)</value>
   </data>
   <data name="Advanced" xml:space="preserve">
     <value>高级</value>
@@ -2366,7 +2366,7 @@
     <value>检查地址(_H)…</value>
   </data>
   <data name="C_hoose a photo..." xml:space="preserve">
-    <value>选择照片... (_G)</value>
+    <value>选择照片...(_G)</value>
   </data>
   <data name="Cache" xml:space="preserve">
     <value>缓存</value>
@@ -3679,7 +3679,7 @@
     <value>DNS 解析器</value>
   </data>
   <data name="D_epartment" xml:space="preserve">
-    <value>部门 (_B)</value>
+    <value>部门(_B)</value>
   </data>
   <data name="D_omain" xml:space="preserve">
     <value>域(_O)</value>
@@ -6436,7 +6436,7 @@
     <value>主机留空则该域不表态：应用服务器范围的智能主机，与此设置出现之前完全一样。路由仍然优先于两者，因为路由是关于目标的声明。</value>
   </data>
   <data name="Leave this account _out of the directory" xml:space="preserve">
-    <value>不要把此帐户列入通讯录 (_I)</value>
+    <value>不要把此帐户列入通讯录(_I)</value>
   </data>
   <data name="Left Edge" xml:space="preserve">
     <value>左边缘</value>
@@ -6924,7 +6924,7 @@
 使用当前密钥对建立的每个 Web Push 订阅都会立即失效，每个人都必须重新允许通知。当私钥可能已被复制时再这样做。</value>
   </data>
   <data name="Make a sample _domain" xml:space="preserve">
-    <value>创建样例域 (_D)</value>
+    <value>创建样例域(_D)</value>
   </data>
   <data name="Makes {0} with three mailboxes, a distribution list, a rule and some delivered mail, so that every page has something in it. Remove it before this server takes real mail." xml:space="preserve">
     <value>创建 {0}，带三个邮箱、一个通讯组列表、一条规则和一些已投递的邮件，让每个页面里都有内容。请在此服务器接收真实邮件之前移除样例。</value>
@@ -7089,7 +7089,7 @@
     <value>{0} 的成员</value>
   </data>
   <data name="Membership _query (empty = the recipients alone)" xml:space="preserve">
-    <value>成员查询（留空 = 仅收件人） (_Q)</value>
+    <value>成员查询（留空 = 仅收件人）(_Q)</value>
   </data>
   <data name="Membership — only list members can send" xml:space="preserve">
     <value>成员资格 — 只有列表成员可以发信</value>
@@ -8411,7 +8411,7 @@
     <value>提供通行密钥</value>
   </data>
   <data name="Offi_ce" xml:space="preserve">
-    <value>办公地点 (_E)</value>
+    <value>办公地点(_E)</value>
   </data>
   <data name="On" xml:space="preserve">
     <value>打开</value>
@@ -9562,7 +9562,7 @@
     <value>移除规则(_M)</value>
   </data>
   <data name="Re_move the sample domain" xml:space="preserve">
-    <value>移除样例域 (_M)</value>
+    <value>移除样例域(_M)</value>
   </data>
   <data name="Re_voke / restore" xml:space="preserve">
     <value>吊销 / 恢复(_V)</value>
@@ -9953,7 +9953,7 @@
     <value>删除地址(_V)</value>
   </data>
   <data name="Remo_ve the photo" xml:space="preserve">
-    <value>移除照片 (_H)</value>
+    <value>移除照片(_H)</value>
   </data>
   <data name="Remote domains" xml:space="preserve">
     <value>远程域</value>
@@ -15695,7 +15695,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
     <value>不备份直接安装(_I)</value>
   </data>
   <data name="_Job title" xml:space="preserve">
-    <value>职务 (_A)</value>
+    <value>职务(_A)</value>
   </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>保留原始邮件(_K)</value>
@@ -15776,7 +15776,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
     <value>重试之间的分钟数(_M)</value>
   </data>
   <data name="_Mobile" xml:space="preserve">
-    <value>手机 (_D)</value>
+    <value>手机(_D)</value>
   </data>
   <data name="_Moderator (empty = no moderation)" xml:space="preserve">
     <value>审核人(_M)（留空 = 不审核）</value>
@@ -16115,7 +16115,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
     <value>谁可以向此列表发信(_W)</value>
   </data>
   <data name="_Work telephone" xml:space="preserve">
-    <value>工作电话 (_C)</value>
+    <value>工作电话(_C)</value>
   </data>
   <data name="_Wrap lines" xml:space="preserve">
     <value>自动换行(_W)</value>
