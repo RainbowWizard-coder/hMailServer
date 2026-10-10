@@ -137,7 +137,7 @@ namespace hMailServer.ControlPanel.Services
             return;
 
          Apply(now);
-         Toast.Info(F("Windows text size is now {0} %. Pages already open keep the rest of their text at the old size until the Control Panel is restarted.",
+         Toast.Info(F("Windows text size is now {0}%. Pages already open keep the rest of their text at the old size until the Control Panel is restarted.",
             (int)Math.Round(now * 100)), L("Text size"));
       }
    }

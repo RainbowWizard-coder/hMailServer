@@ -15313,8 +15313,8 @@ It will keep trying as you use the application.</value>
   <data name="Windows service account - a least-privilege account needs granting outside hMailServer" xml:space="preserve">
     <value>Windows service account - a least-privilege account needs granting outside hMailServer</value>
   </data>
-  <data name="Windows text size is now {0} %. Pages already open keep the rest of their text at the old size until the Control Panel is restarted." xml:space="preserve">
-    <value>Windows text size is now {0} %. Pages already open keep the rest of their text at the old size until the Control Panel is restarted.</value>
+  <data name="Windows text size is now {0}%. Pages already open keep the rest of their text at the old size until the Control Panel is restarted." xml:space="preserve">
+    <value>Windows text size is now {0}%. Pages already open keep the rest of their text at the old size until the Control Panel is restarted.</value>
   </data>
   <data name="Windows' permission" xml:space="preserve">
     <value>Windows' permission</value>

@@ -15313,7 +15313,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Windows service account - a least-privilege account needs granting outside hMailServer" xml:space="preserve">
     <value>Windows 服务账户 - 最小权限账户需要在 hMailServer 之外授予权限</value>
   </data>
-  <data name="Windows text size is now {0} %. Pages already open keep the rest of their text at the old size until the Control Panel is restarted." xml:space="preserve">
+  <data name="Windows text size is now {0}%. Pages already open keep the rest of their text at the old size until the Control Panel is restarted." xml:space="preserve">
     <value>Windows 文本大小现在为 {0}%。已打开的页面中其余文本将保持原来的大小，直到重新启动控制面板。</value>
   </data>
   <data name="Windows' permission" xml:space="preserve">

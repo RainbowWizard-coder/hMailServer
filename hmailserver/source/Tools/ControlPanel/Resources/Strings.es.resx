@@ -15313,7 +15313,7 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="Windows service account - a least-privilege account needs granting outside hMailServer" xml:space="preserve">
     <value>Cuenta de servicio de Windows - una cuenta de privilegio mínimo necesita que se le concedan permisos fuera de hMailServer</value>
   </data>
-  <data name="Windows text size is now {0} %. Pages already open keep the rest of their text at the old size until the Control Panel is restarted." xml:space="preserve">
+  <data name="Windows text size is now {0}%. Pages already open keep the rest of their text at the old size until the Control Panel is restarted." xml:space="preserve">
     <value>El tamaño del texto de Windows es ahora {0} %. Las páginas ya abiertas mantienen el resto de su texto en el tamaño anterior hasta que se reinicie el Control Panel.</value>
   </data>
   <data name="Windows' permission" xml:space="preserve">

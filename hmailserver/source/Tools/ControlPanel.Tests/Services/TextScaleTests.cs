@@ -98,6 +98,22 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
+      /// The toast that says the text size changed writes the percentage as every other
+      /// English text does, "{0}%", where it wrote "{0} %"; a language that spaces it does
+      /// so in its own catalogue.
+      /// </summary>
+      [Fact]
+      public void TheToast_WritesThePercentageAsEnglishDoes()
+      {
+         Assert.Contains("F(\"Windows text size is now {0}%. Pages already open", Read("Services", "TextScale.cs"), StringComparison.Ordinal);
+         foreach (XElement data in XDocument.Parse(Read("Resources", "Strings.resx")).Root.Elements("data"))
+         {
+            string key = (string)data.Attribute("name");
+            Assert.False(Regex.IsMatch(key, @"\} %"), "English spaces a percentage: " + key);
+         }
+      }
+
+      /// <summary>
       /// The text sizes of the shared styles and the converted pages are the ramp's tokens
       /// taken by DynamicResource, which TextScale sets: a number, or a token taken by
       /// StaticResource, is a size the text size never reaches. An icon keeps its number.

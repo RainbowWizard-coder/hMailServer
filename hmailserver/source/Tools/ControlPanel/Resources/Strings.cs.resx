@@ -15506,7 +15506,7 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Windows service account - a least-privilege account needs granting outside hMailServer" xml:space="preserve">
     <value>Servisní účet Windows - účtu s nejnižšími oprávněními je třeba udělit práva mimo hMailServer</value>
   </data>
-  <data name="Windows text size is now {0} %. Pages already open keep the rest of their text at the old size until the Control Panel is restarted." xml:space="preserve">
+  <data name="Windows text size is now {0}%. Pages already open keep the rest of their text at the old size until the Control Panel is restarted." xml:space="preserve">
     <value>Velikost textu ve Windows je nyní {0} %. Už otevřené stránky si zbytek textu ponechají ve staré velikosti, dokud se Control Panel nerestartuje.</value>
   </data>
   <data name="Windows' permission" xml:space="preserve">
