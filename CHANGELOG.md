@@ -3753,6 +3753,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   The empty quarantine's glyph was made a neutral inbox by the failed-read work and stays so. `StateMarksTests` holds
   the mark, the greyed name, the pill and the glyph.
 
+- **Fixed: timestamps came in several forms and never said whose clock they were read by.** The delivery queue showed
+  the server's raw "2026-10-08 02:36:53", the audit trail and the eDiscovery page Unix times as this computer's
+  local time in the same fixed form, and the REST API keys "7 January 2027 10:00". Every date now goes through one
+  helper, `Services/ServerTimeText`, which the account dialog's last sign-in, Server status's start, the quarantine's
+  held times, the allowed and blocked domains' Added and the backup list's dates use as well: the reader's short date
+  and time, with "(server time)" in the column's header or after the value and the whole time in a cell's tool tip.
+  In a session on the server's own computer the queue says how long ago a message was created and how soon it is
+  tried again ("3 h ago", "in 12 min", "As soon as possible" for the server's 1901 date), and in one from another
+  computer the dates under "Created (server time)" and "Next try (server time)"; both columns sort by the time. The
+  audit trail's When and the eDiscovery page's Opened and When are in this computer's time with the seconds, headed
+  "(server time)" in a session on the server and "(this computer's time)" in one from elsewhere, and sort by the
+  time; the API keys say "Expires 07/01/2027 10:00 (server time)." `ServerTimeTextTests` holds every form, the
+  pages' use of the helper and that none of them writes a date in a form of its own again.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

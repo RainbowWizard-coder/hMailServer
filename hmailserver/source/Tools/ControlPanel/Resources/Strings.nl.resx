@@ -1843,6 +1843,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Arriving" xml:space="preserve">
     <value>Inkomend</value>
   </data>
+  <data name="As soon as possible" xml:space="preserve">
+    <value>Zo snel mogelijk</value>
+  </data>
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>Een sleutelserver vragen wanneer hun domein geen sleutel heeft</value>
   </data>
@@ -3554,6 +3557,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Created &quot;{0}&quot;. Enter it in the client as that account's password." xml:space="preserve">
     <value>"{0}" aangemaakt. Voer het in de client in als het wachtwoord van dat account.</value>
+  </data>
+  <data name="Created (server time)" xml:space="preserve">
+    <value>Aangemaakt (servertijd)</value>
   </data>
   <data name="Created {0}" xml:space="preserve">
     <value>Aangemaakt {0}</value>
@@ -7600,6 +7606,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Next try in {0}" xml:space="preserve">
     <value>Volgende poging over {0}</value>
   </data>
+  <data name="Next try (server time)" xml:space="preserve">
+    <value>Volgende poging (servertijd)</value>
+  </data>
   <data name="Next year" xml:space="preserve">
     <value>Volgend jaar</value>
   </data>
@@ -8844,6 +8853,12 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="Opened" xml:space="preserve">
     <value>Geopend</value>
+  </data>
+  <data name="Opened (server time)" xml:space="preserve">
+    <value>Geopend (servertijd)</value>
+  </data>
+  <data name="Opened (this computer's time)" xml:space="preserve">
+    <value>Geopend (tijd van deze computer)</value>
   </data>
   <data name="Opened by" xml:space="preserve">
     <value>Geopend door</value>
@@ -15028,8 +15043,11 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="Whatever your directory accepts for a simple bind: a UPN (svc-mail@example.local), DOMAIN\name, or a full DN. Left empty, the server searches anonymously - which usually fails against Active Directory, with a reported reason that names this setting." xml:space="preserve">
     <value>Wat uw directory ook accepteert voor een simple bind: een UPN (svc-mail@example.local), DOMAIN\name of een volledige DN. Leeg gelaten zoekt de server anoniem - wat tegen Active Directory meestal mislukt, met een gemelde reden die deze instelling noemt.</value>
   </data>
-  <data name="When" xml:space="preserve">
-    <value>Wanneer</value>
+  <data name="When (server time)" xml:space="preserve">
+    <value>Wanneer (servertijd)</value>
+  </data>
+  <data name="When (this computer's time)" xml:space="preserve">
+    <value>Wanneer (tijd van deze computer)</value>
   </data>
   <data name="When a DKIM signature was made, and when it stops being one a verifier should honour (RFC 6376 3.5)." xml:space="preserve">
     <value>Wanneer een DKIM-handtekening is gemaakt, en wanneer die ophoudt er een te zijn die een verifieerder zou moeten honoreren (RFC 6376 3.5).</value>
@@ -16571,6 +16589,15 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="in {0}" xml:space="preserve">
     <value>in {0}</value>
   </data>
+  <data name="in {0} d" xml:space="preserve">
+    <value>over {0} d</value>
+  </data>
+  <data name="in {0} h" xml:space="preserve">
+    <value>over {0} u</value>
+  </data>
+  <data name="in {0} min" xml:space="preserve">
+    <value>over {0} min</value>
+  </data>
   <data name="install a certificate" xml:space="preserve">
     <value>een certificaat installeren</value>
   </data>
@@ -16777,6 +16804,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="nothing is cached - either nothing has been looked up since the counters were reset, or the lookups that happened found nothing to cache." xml:space="preserve">
     <value>er staat niets in de cache - er is niets opgezocht sinds de tellers zijn gereset, of de opzoekingen die wél plaatsvonden leverden niets op om te cachen.</value>
+  </data>
+  <data name="now" xml:space="preserve">
+    <value>nu</value>
   </data>
   <data name="only from {0}" xml:space="preserve">
     <value>alleen van {0}</value>

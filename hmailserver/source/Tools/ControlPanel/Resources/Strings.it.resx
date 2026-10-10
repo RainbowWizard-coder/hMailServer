@@ -1843,6 +1843,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Arriving" xml:space="preserve">
     <value>In arrivo</value>
   </data>
+  <data name="As soon as possible" xml:space="preserve">
+    <value>Appena possibile</value>
+  </data>
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>Chiedere a un keyserver quando il loro dominio non ha una chiave</value>
   </data>
@@ -3554,6 +3557,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   </data>
   <data name="Created &quot;{0}&quot;. Enter it in the client as that account's password." xml:space="preserve">
     <value>Creata "{0}". Inseriscila nel client come password di quell'account.</value>
+  </data>
+  <data name="Created (server time)" xml:space="preserve">
+    <value>Creato (ora del server)</value>
   </data>
   <data name="Created {0}" xml:space="preserve">
     <value>Creata {0}</value>
@@ -7600,6 +7606,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Next try in {0}" xml:space="preserve">
     <value>Prossimo tentativo tra {0}</value>
   </data>
+  <data name="Next try (server time)" xml:space="preserve">
+    <value>Prossimo tentativo (ora del server)</value>
+  </data>
   <data name="Next year" xml:space="preserve">
     <value>Anno successivo</value>
   </data>
@@ -8844,6 +8853,12 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="Opened" xml:space="preserve">
     <value>Aperto il</value>
+  </data>
+  <data name="Opened (server time)" xml:space="preserve">
+    <value>Aperto (ora del server)</value>
+  </data>
+  <data name="Opened (this computer's time)" xml:space="preserve">
+    <value>Aperto (ora di questo computer)</value>
   </data>
   <data name="Opened by" xml:space="preserve">
     <value>Aperto da</value>
@@ -15028,8 +15043,11 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="Whatever your directory accepts for a simple bind: a UPN (svc-mail@example.local), DOMAIN\name, or a full DN. Left empty, the server searches anonymously - which usually fails against Active Directory, with a reported reason that names this setting." xml:space="preserve">
     <value>Qualunque cosa la propria directory accetti per un bind semplice: un UPN (svc-mail@example.local), DOMAIN\name, o un DN completo. Lasciato vuoto, il server cerca in modo anonimo - cosa che di solito fallisce con Active Directory, con un motivo riportato che nomina questa impostazione.</value>
   </data>
-  <data name="When" xml:space="preserve">
-    <value>Quando</value>
+  <data name="When (server time)" xml:space="preserve">
+    <value>Quando (ora del server)</value>
+  </data>
+  <data name="When (this computer's time)" xml:space="preserve">
+    <value>Quando (ora di questo computer)</value>
   </data>
   <data name="When a DKIM signature was made, and when it stops being one a verifier should honour (RFC 6376 3.5)." xml:space="preserve">
     <value>Quando è stata creata una firma DKIM, e quando smette di essere una firma che un verificatore dovrebbe onorare (RFC 6376 3.5).</value>
@@ -16571,6 +16589,15 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="in {0}" xml:space="preserve">
     <value>in {0}</value>
   </data>
+  <data name="in {0} d" xml:space="preserve">
+    <value>tra {0} g</value>
+  </data>
+  <data name="in {0} h" xml:space="preserve">
+    <value>tra {0} h</value>
+  </data>
+  <data name="in {0} min" xml:space="preserve">
+    <value>tra {0} min</value>
+  </data>
   <data name="install a certificate" xml:space="preserve">
     <value>installare un certificato</value>
   </data>
@@ -16777,6 +16804,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="nothing is cached - either nothing has been looked up since the counters were reset, or the lookups that happened found nothing to cache." xml:space="preserve">
     <value>non c'è nulla in cache - o non è stata cercata alcuna voce da quando i contatori sono stati azzerati, oppure le ricerche avvenute non hanno trovato nulla da mettere in cache.</value>
+  </data>
+  <data name="now" xml:space="preserve">
+    <value>ora</value>
   </data>
   <data name="only from {0}" xml:space="preserve">
     <value>solo da {0}</value>

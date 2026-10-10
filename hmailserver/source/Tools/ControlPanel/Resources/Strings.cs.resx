@@ -1864,6 +1864,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Arriving" xml:space="preserve">
     <value>Příchozí</value>
   </data>
+  <data name="As soon as possible" xml:space="preserve">
+    <value>Co nejdříve</value>
+  </data>
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>Zeptat se serveru klíčů, když jejich doména nemá klíč</value>
   </data>
@@ -3587,6 +3590,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Created &quot;{0}&quot;. Enter it in the client as that account's password." xml:space="preserve">
     <value>Vytvořeno „{0}“. Zadejte to v klientovi jako heslo daného účtu.</value>
+  </data>
+  <data name="Created (server time)" xml:space="preserve">
+    <value>Vytvořeno (čas serveru)</value>
   </data>
   <data name="Created {0}" xml:space="preserve">
     <value>Vytvořeno {0}</value>
@@ -7691,6 +7697,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Next try in {0}" xml:space="preserve">
     <value>Další pokus za {0}</value>
   </data>
+  <data name="Next try (server time)" xml:space="preserve">
+    <value>Další pokus (čas serveru)</value>
+  </data>
   <data name="Next year" xml:space="preserve">
     <value>Další rok</value>
   </data>
@@ -8953,6 +8962,12 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Opened" xml:space="preserve">
     <value>Otevřeno</value>
+  </data>
+  <data name="Opened (server time)" xml:space="preserve">
+    <value>Otevřeno (čas serveru)</value>
+  </data>
+  <data name="Opened (this computer's time)" xml:space="preserve">
+    <value>Otevřeno (čas tohoto počítače)</value>
   </data>
   <data name="Opened by" xml:space="preserve">
     <value>Otevřel(a)</value>
@@ -15221,8 +15236,11 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Whatever your directory accepts for a simple bind: a UPN (svc-mail@example.local), DOMAIN\name, or a full DN. Left empty, the server searches anonymously - which usually fails against Active Directory, with a reported reason that names this setting." xml:space="preserve">
     <value>Cokoli váš adresář přijme pro jednoduchý bind: UPN (svc-mail@example.local), DOMAIN\name nebo úplné DN. Ponecháno prázdné, server hledá anonymně - což proti Active Directory obvykle selže, s nahlášeným důvodem, který toto nastavení pojmenuje.</value>
   </data>
-  <data name="When" xml:space="preserve">
-    <value>Kdy</value>
+  <data name="When (server time)" xml:space="preserve">
+    <value>Kdy (čas serveru)</value>
+  </data>
+  <data name="When (this computer's time)" xml:space="preserve">
+    <value>Kdy (čas tohoto počítače)</value>
   </data>
   <data name="When a DKIM signature was made, and when it stops being one a verifier should honour (RFC 6376 3.5)." xml:space="preserve">
     <value>Kdy byl podpis DKIM vytvořen a kdy přestává být tím, který by ověřovatel měl uznávat (RFC 6376 3.5).</value>
@@ -16767,6 +16785,15 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="in {0}" xml:space="preserve">
     <value>v sekci {0}</value>
   </data>
+  <data name="in {0} d" xml:space="preserve">
+    <value>za {0} dny</value>
+  </data>
+  <data name="in {0} h" xml:space="preserve">
+    <value>za {0} h</value>
+  </data>
+  <data name="in {0} min" xml:space="preserve">
+    <value>za {0} min</value>
+  </data>
   <data name="install a certificate" xml:space="preserve">
     <value>nainstalovat certifikát</value>
   </data>
@@ -16982,6 +17009,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="nothing is cached - either nothing has been looked up since the counters were reset, or the lookups that happened found nothing to cache." xml:space="preserve">
     <value>v cache nic není – buď se od vynulování čítačů nic nevyhledávalo, nebo proběhlá vyhledání nenašla nic, co by šlo uložit do cache.</value>
+  </data>
+  <data name="now" xml:space="preserve">
+    <value>nyní</value>
   </data>
   <data name="only from {0}" xml:space="preserve">
     <value>pouze z {0}</value>

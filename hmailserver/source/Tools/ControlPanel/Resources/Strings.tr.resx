@@ -1843,6 +1843,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Arriving" xml:space="preserve">
     <value>Gelen</value>
   </data>
+  <data name="As soon as possible" xml:space="preserve">
+    <value>Mümkün olan en kısa sürede</value>
+  </data>
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>Etki alanlarında anahtar yoksa bir anahtar sunucusuna sor</value>
   </data>
@@ -3554,6 +3557,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Created &quot;{0}&quot;. Enter it in the client as that account's password." xml:space="preserve">
     <value>"{0}" oluşturuldu. İstemcide o hesabın parolası olarak girin.</value>
+  </data>
+  <data name="Created (server time)" xml:space="preserve">
+    <value>Oluşturuldu (sunucu saati)</value>
   </data>
   <data name="Created {0}" xml:space="preserve">
     <value>Oluşturuldu {0}</value>
@@ -7600,6 +7606,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Next try in {0}" xml:space="preserve">
     <value>Sonraki deneme {0} sonra</value>
   </data>
+  <data name="Next try (server time)" xml:space="preserve">
+    <value>Sonraki deneme (sunucu saati)</value>
+  </data>
   <data name="Next year" xml:space="preserve">
     <value>Sonraki yıl</value>
   </data>
@@ -8844,6 +8853,12 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Opened" xml:space="preserve">
     <value>Açılış</value>
+  </data>
+  <data name="Opened (server time)" xml:space="preserve">
+    <value>Açılış (sunucu saati)</value>
+  </data>
+  <data name="Opened (this computer's time)" xml:space="preserve">
+    <value>Açılış (bu bilgisayarın saati)</value>
   </data>
   <data name="Opened by" xml:space="preserve">
     <value>Açan</value>
@@ -15028,8 +15043,11 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="Whatever your directory accepts for a simple bind: a UPN (svc-mail@example.local), DOMAIN\name, or a full DN. Left empty, the server searches anonymously - which usually fails against Active Directory, with a reported reason that names this setting." xml:space="preserve">
     <value>Dizininizin basit bağlama için kabul ettiği her şey: bir UPN (svc-mail@example.local), DOMAIN\name veya tam bir DN. Boş bırakılırsa sunucu anonim arar - bu, Active Directory'ye karşı genellikle başarısız olur ve bildirilen neden bu ayarı adlandırır.</value>
   </data>
-  <data name="When" xml:space="preserve">
-    <value>Ne zaman</value>
+  <data name="When (server time)" xml:space="preserve">
+    <value>Ne zaman (sunucu saati)</value>
+  </data>
+  <data name="When (this computer's time)" xml:space="preserve">
+    <value>Ne zaman (bu bilgisayarın saati)</value>
   </data>
   <data name="When a DKIM signature was made, and when it stops being one a verifier should honour (RFC 6376 3.5)." xml:space="preserve">
     <value>Bir DKIM imzasının ne zaman yapıldığı ve bir doğrulayıcının onurlandırması gereken bir imza olmaktan ne zaman çıktığı (RFC 6376 3.5).</value>
@@ -16571,6 +16589,15 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="in {0}" xml:space="preserve">
     <value>{0} bölümünde</value>
   </data>
+  <data name="in {0} d" xml:space="preserve">
+    <value>{0} gün sonra</value>
+  </data>
+  <data name="in {0} h" xml:space="preserve">
+    <value>{0} sa sonra</value>
+  </data>
+  <data name="in {0} min" xml:space="preserve">
+    <value>{0} dk sonra</value>
+  </data>
   <data name="install a certificate" xml:space="preserve">
     <value>sertifika yükle</value>
   </data>
@@ -16777,6 +16804,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="nothing is cached - either nothing has been looked up since the counters were reset, or the lookups that happened found nothing to cache." xml:space="preserve">
     <value>hiçbir şey önbellekte değil - ya sayaçlar sıfırlandığından beri hiçbir şey aranmadı ya da yapılan aramalar önbelleğe alınacak bir şey bulmadı.</value>
+  </data>
+  <data name="now" xml:space="preserve">
+    <value>şimdi</value>
   </data>
   <data name="only from {0}" xml:space="preserve">
     <value>yalnızca {0} adresinden</value>

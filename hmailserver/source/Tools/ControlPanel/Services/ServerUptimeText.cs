@@ -32,7 +32,7 @@ namespace hMailServer.ControlPanel.Services
       public static string Started(string startTime)
       {
          if (ParseStart(startTime) is DateTime started)
-            return F("{0} (server time)", started.ToString("g", CultureInfo.CurrentCulture));
+            return ServerTimeText.Marked(started);
 
          return string.IsNullOrWhiteSpace(startTime) ? "-" : startTime;
       }

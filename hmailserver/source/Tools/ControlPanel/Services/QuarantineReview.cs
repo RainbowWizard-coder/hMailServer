@@ -271,7 +271,7 @@ namespace hMailServer.ControlPanel.Services
          if (held == DateTime.MinValue)
             return createdTime ?? "";
 
-         return agesFrom is DateTime now ? AgeWords.Short(now - held) : held.ToString("g", CultureInfo.CurrentCulture);
+         return agesFrom is DateTime now ? AgeWords.Short(now - held) : ServerTimeText.Cell(held);
       }
 
       /// <summary>
@@ -284,7 +284,7 @@ namespace hMailServer.ControlPanel.Services
          if (held == DateTime.MinValue)
             return createdTime ?? "";
 
-         string time = F("{0} (server time)", held.ToString("G", CultureInfo.CurrentCulture));
+         string time = ServerTimeText.Full(held);
          return agesFrom is DateTime now ? AgeWords.Ago(now - held) + Environment.NewLine + time : time;
       }
 

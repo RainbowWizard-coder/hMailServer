@@ -1864,6 +1864,9 @@ Control Panel может читать файлы сообщений только
   <data name="Arriving" xml:space="preserve">
     <value>Входящая</value>
   </data>
+  <data name="As soon as possible" xml:space="preserve">
+    <value>Как можно скорее</value>
+  </data>
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>Спрашивать сервер ключей, когда у их домена нет ключа</value>
   </data>
@@ -3587,6 +3590,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Created &quot;{0}&quot;. Enter it in the client as that account's password." xml:space="preserve">
     <value>Создано: «{0}». Введите это в клиенте как пароль этой учётной записи.</value>
+  </data>
+  <data name="Created (server time)" xml:space="preserve">
+    <value>Создано (время сервера)</value>
   </data>
   <data name="Created {0}" xml:space="preserve">
     <value>Создан {0}</value>
@@ -7691,6 +7697,9 @@ Control Panel может читать файлы сообщений только
   <data name="Next try in {0}" xml:space="preserve">
     <value>Следующая попытка через {0}</value>
   </data>
+  <data name="Next try (server time)" xml:space="preserve">
+    <value>Следующая попытка (время сервера)</value>
+  </data>
   <data name="Next year" xml:space="preserve">
     <value>Следующий год</value>
   </data>
@@ -8953,6 +8962,12 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Opened" xml:space="preserve">
     <value>Дата открытия</value>
+  </data>
+  <data name="Opened (server time)" xml:space="preserve">
+    <value>Дата открытия (время сервера)</value>
+  </data>
+  <data name="Opened (this computer's time)" xml:space="preserve">
+    <value>Дата открытия (время этого компьютера)</value>
   </data>
   <data name="Opened by" xml:space="preserve">
     <value>Кто открыл</value>
@@ -15221,8 +15236,11 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Whatever your directory accepts for a simple bind: a UPN (svc-mail@example.local), DOMAIN\name, or a full DN. Left empty, the server searches anonymously - which usually fails against Active Directory, with a reported reason that names this setting." xml:space="preserve">
     <value>Всё, что ваш каталог принимает для простой привязки: UPN (svc-mail@example.local), DOMAIN\name или полное DN. Если оставить пустым, сервер ищет анонимно - что обычно не удаётся против Active Directory, с сообщённой причиной, называющей этот параметр.</value>
   </data>
-  <data name="When" xml:space="preserve">
-    <value>Когда</value>
+  <data name="When (server time)" xml:space="preserve">
+    <value>Когда (время сервера)</value>
+  </data>
+  <data name="When (this computer's time)" xml:space="preserve">
+    <value>Когда (время этого компьютера)</value>
   </data>
   <data name="When a DKIM signature was made, and when it stops being one a verifier should honour (RFC 6376 3.5)." xml:space="preserve">
     <value>Когда подпись DKIM была создана и когда она перестаёт быть той, которую проверяющему следует признавать (RFC 6376 3.5).</value>
@@ -16767,6 +16785,15 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="in {0}" xml:space="preserve">
     <value>в разделе {0}</value>
   </data>
+  <data name="in {0} d" xml:space="preserve">
+    <value>через {0} дн.</value>
+  </data>
+  <data name="in {0} h" xml:space="preserve">
+    <value>через {0} ч</value>
+  </data>
+  <data name="in {0} min" xml:space="preserve">
+    <value>через {0} мин</value>
+  </data>
   <data name="install a certificate" xml:space="preserve">
     <value>установить сертификат</value>
   </data>
@@ -16982,6 +17009,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="nothing is cached - either nothing has been looked up since the counters were reset, or the lookups that happened found nothing to cache." xml:space="preserve">
     <value>в кэше ничего нет — либо с момента сброса счётчиков ничего не искалось, либо выполненные поиски не нашли ничего, что стоило бы кэшировать.</value>
+  </data>
+  <data name="now" xml:space="preserve">
+    <value>сейчас</value>
   </data>
   <data name="only from {0}" xml:space="preserve">
     <value>только от {0}</value>

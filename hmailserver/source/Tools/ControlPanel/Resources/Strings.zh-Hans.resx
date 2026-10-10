@@ -1843,6 +1843,9 @@
   <data name="Arriving" xml:space="preserve">
     <value>收到的</value>
   </data>
+  <data name="As soon as possible" xml:space="preserve">
+    <value>尽快</value>
+  </data>
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>当对方的域没有密钥时询问密钥服务器</value>
   </data>
@@ -3554,6 +3557,9 @@
   </data>
   <data name="Created &quot;{0}&quot;. Enter it in the client as that account's password." xml:space="preserve">
     <value>已创建 "{0}"。请在客户端中把它作为该账户的密码输入。</value>
+  </data>
+  <data name="Created (server time)" xml:space="preserve">
+    <value>创建时间（服务器时间）</value>
   </data>
   <data name="Created {0}" xml:space="preserve">
     <value>创建于 {0}</value>
@@ -7600,6 +7606,9 @@
   <data name="Next try in {0}" xml:space="preserve">
     <value>下次尝试在 {0}后</value>
   </data>
+  <data name="Next try (server time)" xml:space="preserve">
+    <value>下次尝试（服务器时间）</value>
+  </data>
   <data name="Next year" xml:space="preserve">
     <value>下一年</value>
   </data>
@@ -8844,6 +8853,12 @@
   </data>
   <data name="Opened" xml:space="preserve">
     <value>新建时间</value>
+  </data>
+  <data name="Opened (server time)" xml:space="preserve">
+    <value>新建时间（服务器时间）</value>
+  </data>
+  <data name="Opened (this computer's time)" xml:space="preserve">
+    <value>新建时间（此计算机时间）</value>
   </data>
   <data name="Opened by" xml:space="preserve">
     <value>新建人</value>
@@ -15028,8 +15043,11 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Whatever your directory accepts for a simple bind: a UPN (svc-mail@example.local), DOMAIN\name, or a full DN. Left empty, the server searches anonymously - which usually fails against Active Directory, with a reported reason that names this setting." xml:space="preserve">
     <value>您的目录在简单绑定时接受的任何形式: UPN (svc-mail@example.local)、DOMAIN\name，或完整的 DN。留空时服务器会匿名搜索 - 这对 Active Directory 通常会失败，并报告一个指明此设置的原因。</value>
   </data>
-  <data name="When" xml:space="preserve">
-    <value>时间</value>
+  <data name="When (server time)" xml:space="preserve">
+    <value>时间（服务器时间）</value>
+  </data>
+  <data name="When (this computer's time)" xml:space="preserve">
+    <value>时间（此计算机时间）</value>
   </data>
   <data name="When a DKIM signature was made, and when it stops being one a verifier should honour (RFC 6376 3.5)." xml:space="preserve">
     <value>DKIM 签名何时生成，以及何时不再是验证者应当认可的签名 (RFC 6376 3.5)。</value>
@@ -16571,6 +16589,15 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="in {0}" xml:space="preserve">
     <value>位于 {0}</value>
   </data>
+  <data name="in {0} d" xml:space="preserve">
+    <value>{0} 天后</value>
+  </data>
+  <data name="in {0} h" xml:space="preserve">
+    <value>{0} 小时后</value>
+  </data>
+  <data name="in {0} min" xml:space="preserve">
+    <value>{0} 分钟后</value>
+  </data>
   <data name="install a certificate" xml:space="preserve">
     <value>安装证书</value>
   </data>
@@ -16777,6 +16804,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="nothing is cached - either nothing has been looked up since the counters were reset, or the lookups that happened found nothing to cache." xml:space="preserve">
     <value>没有任何缓存内容 - 要么自计数器重置以来没有查找过任何东西，要么发生过的查找没有找到可缓存的内容。</value>
+  </data>
+  <data name="now" xml:space="preserve">
+    <value>现在</value>
   </data>
   <data name="only from {0}" xml:space="preserve">
     <value>仅来自 {0}</value>

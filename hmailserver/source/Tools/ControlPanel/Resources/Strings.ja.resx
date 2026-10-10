@@ -1853,6 +1853,9 @@
   <data name="Arriving" xml:space="preserve">
     <value>受信</value>
   </data>
+  <data name="As soon as possible" xml:space="preserve">
+    <value>できるだけ早く</value>
+  </data>
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>相手のドメインにキーがない場合はキーサーバーに問い合わせる</value>
   </data>
@@ -3564,6 +3567,9 @@
   </data>
   <data name="Created &quot;{0}&quot;. Enter it in the client as that account's password." xml:space="preserve">
     <value>"{0}" を作成しました。クライアントでそのアカウントのパスワードとして入力してください。</value>
+  </data>
+  <data name="Created (server time)" xml:space="preserve">
+    <value>作成日時 (サーバー時刻)</value>
   </data>
   <data name="Created {0}" xml:space="preserve">
     <value>作成 {0}</value>
@@ -7610,6 +7616,9 @@
   <data name="Next try in {0}" xml:space="preserve">
     <value>次の試行まで {0}</value>
   </data>
+  <data name="Next try (server time)" xml:space="preserve">
+    <value>次の試行 (サーバー時刻)</value>
+  </data>
   <data name="Next year" xml:space="preserve">
     <value>次の年</value>
   </data>
@@ -8854,6 +8863,12 @@
   </data>
   <data name="Opened" xml:space="preserve">
     <value>開始日時</value>
+  </data>
+  <data name="Opened (server time)" xml:space="preserve">
+    <value>開始日時 (サーバー時刻)</value>
+  </data>
+  <data name="Opened (this computer's time)" xml:space="preserve">
+    <value>開始日時 (このコンピューターの時刻)</value>
   </data>
   <data name="Opened by" xml:space="preserve">
     <value>開始者</value>
@@ -15038,8 +15053,11 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Whatever your directory accepts for a simple bind: a UPN (svc-mail@example.local), DOMAIN\name, or a full DN. Left empty, the server searches anonymously - which usually fails against Active Directory, with a reported reason that names this setting." xml:space="preserve">
     <value>ディレクトリが簡易バインドで受け入れるもの: UPN (svc-mail@example.local)、DOMAIN\name、または完全な DN。空のままにすると、サーバーは匿名で検索します。これは通常 Active Directory に対して失敗し、この設定を名指しする理由が報告されます。</value>
   </data>
-  <data name="When" xml:space="preserve">
-    <value>日時</value>
+  <data name="When (server time)" xml:space="preserve">
+    <value>日時 (サーバー時刻)</value>
+  </data>
+  <data name="When (this computer's time)" xml:space="preserve">
+    <value>日時 (このコンピューターの時刻)</value>
   </data>
   <data name="When a DKIM signature was made, and when it stops being one a verifier should honour (RFC 6376 3.5)." xml:space="preserve">
     <value>DKIM 署名がいつ作成され、いつ検証者が尊重すべき署名ではなくなるか (RFC 6376 3.5)。</value>
@@ -16581,6 +16599,15 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="in {0}" xml:space="preserve">
     <value>{0} 内</value>
   </data>
+  <data name="in {0} d" xml:space="preserve">
+    <value>{0} 日後</value>
+  </data>
+  <data name="in {0} h" xml:space="preserve">
+    <value>{0} 時間後</value>
+  </data>
+  <data name="in {0} min" xml:space="preserve">
+    <value>{0} 分後</value>
+  </data>
   <data name="install a certificate" xml:space="preserve">
     <value>証明書をインストールする</value>
   </data>
@@ -16787,6 +16814,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="nothing is cached - either nothing has been looked up since the counters were reset, or the lookups that happened found nothing to cache." xml:space="preserve">
     <value>何もキャッシュされていません。カウンターをリセットしてから何も参照されていないか、行われた参照でキャッシュすべきものが見つからなかったかのいずれかです。</value>
+  </data>
+  <data name="now" xml:space="preserve">
+    <value>今</value>
   </data>
   <data name="only from {0}" xml:space="preserve">
     <value>{0} からのみ</value>

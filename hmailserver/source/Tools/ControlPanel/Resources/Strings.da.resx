@@ -1843,6 +1843,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Arriving" xml:space="preserve">
     <value>Indgående</value>
   </data>
+  <data name="As soon as possible" xml:space="preserve">
+    <value>Så snart som muligt</value>
+  </data>
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>Spørg en nøgleserver, når deres domæne ikke har nogen nøgle</value>
   </data>
@@ -3554,6 +3557,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   </data>
   <data name="Created &quot;{0}&quot;. Enter it in the client as that account's password." xml:space="preserve">
     <value>Oprettede "{0}". Indtast den i klienten som den kontos adgangskode.</value>
+  </data>
+  <data name="Created (server time)" xml:space="preserve">
+    <value>Oprettet (servertid)</value>
   </data>
   <data name="Created {0}" xml:space="preserve">
     <value>Oprettet {0}</value>
@@ -7600,6 +7606,9 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Next try in {0}" xml:space="preserve">
     <value>Næste forsøg om {0}</value>
   </data>
+  <data name="Next try (server time)" xml:space="preserve">
+    <value>Næste forsøg (servertid)</value>
+  </data>
   <data name="Next year" xml:space="preserve">
     <value>Næste år</value>
   </data>
@@ -8844,6 +8853,12 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="Opened" xml:space="preserve">
     <value>Åbnet</value>
+  </data>
+  <data name="Opened (server time)" xml:space="preserve">
+    <value>Åbnet (servertid)</value>
+  </data>
+  <data name="Opened (this computer's time)" xml:space="preserve">
+    <value>Åbnet (denne computers tid)</value>
   </data>
   <data name="Opened by" xml:space="preserve">
     <value>Åbnet af</value>
@@ -15028,8 +15043,11 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="Whatever your directory accepts for a simple bind: a UPN (svc-mail@example.local), DOMAIN\name, or a full DN. Left empty, the server searches anonymously - which usually fails against Active Directory, with a reported reason that names this setting." xml:space="preserve">
     <value>Hvad end dit katalog accepterer til en simpel binding: et UPN (svc-mail@example.local), DOMAIN\name eller et fuldt DN. Efterlades det tomt, søger serveren anonymt - hvilket som regel fejler mod Active Directory, med en rapporteret grund, der nævner denne indstilling.</value>
   </data>
-  <data name="When" xml:space="preserve">
-    <value>Hvornår</value>
+  <data name="When (server time)" xml:space="preserve">
+    <value>Hvornår (servertid)</value>
+  </data>
+  <data name="When (this computer's time)" xml:space="preserve">
+    <value>Hvornår (denne computers tid)</value>
   </data>
   <data name="When a DKIM signature was made, and when it stops being one a verifier should honour (RFC 6376 3.5)." xml:space="preserve">
     <value>Hvornår en DKIM-signatur blev lavet, og hvornår den holder op med at være en, en verificerer bør respektere (RFC 6376 3.5).</value>
@@ -16571,6 +16589,15 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="in {0}" xml:space="preserve">
     <value>i {0}</value>
   </data>
+  <data name="in {0} d" xml:space="preserve">
+    <value>om {0} d.</value>
+  </data>
+  <data name="in {0} h" xml:space="preserve">
+    <value>om {0} t.</value>
+  </data>
+  <data name="in {0} min" xml:space="preserve">
+    <value>om {0} min.</value>
+  </data>
   <data name="install a certificate" xml:space="preserve">
     <value>installér et certifikat</value>
   </data>
@@ -16777,6 +16804,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="nothing is cached - either nothing has been looked up since the counters were reset, or the lookups that happened found nothing to cache." xml:space="preserve">
     <value>intet er cachet - enten er intet slået op, siden tællerne blev nulstillet, eller også fandt de opslag, der skete, intet at cache.</value>
+  </data>
+  <data name="now" xml:space="preserve">
+    <value>nu</value>
   </data>
   <data name="only from {0}" xml:space="preserve">
     <value>kun fra {0}</value>

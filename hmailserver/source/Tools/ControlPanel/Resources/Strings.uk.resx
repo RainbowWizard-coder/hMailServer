@@ -1864,6 +1864,9 @@
   <data name="Arriving" xml:space="preserve">
     <value>Вхідна</value>
   </data>
+  <data name="As soon as possible" xml:space="preserve">
+    <value>Якнайшвидше</value>
+  </data>
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>Питати сервер ключів, коли їхній домен не має ключа</value>
   </data>
@@ -3587,6 +3590,9 @@
   </data>
   <data name="Created &quot;{0}&quot;. Enter it in the client as that account's password." xml:space="preserve">
     <value>Створено «{0}». Введіть це значення в клієнті як пароль цього облікового запису.</value>
+  </data>
+  <data name="Created (server time)" xml:space="preserve">
+    <value>Створено (час сервера)</value>
   </data>
   <data name="Created {0}" xml:space="preserve">
     <value>Створено {0}</value>
@@ -7691,6 +7697,9 @@
   <data name="Next try in {0}" xml:space="preserve">
     <value>Наступна спроба через {0}</value>
   </data>
+  <data name="Next try (server time)" xml:space="preserve">
+    <value>Наступна спроба (час сервера)</value>
+  </data>
   <data name="Next year" xml:space="preserve">
     <value>Наступний рік</value>
   </data>
@@ -8953,6 +8962,12 @@
   </data>
   <data name="Opened" xml:space="preserve">
     <value>Дата відкриття</value>
+  </data>
+  <data name="Opened (server time)" xml:space="preserve">
+    <value>Дата відкриття (час сервера)</value>
+  </data>
+  <data name="Opened (this computer's time)" xml:space="preserve">
+    <value>Дата відкриття (час цього комп’ютера)</value>
   </data>
   <data name="Opened by" xml:space="preserve">
     <value>Хто відкрив</value>
@@ -15221,8 +15236,11 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Whatever your directory accepts for a simple bind: a UPN (svc-mail@example.local), DOMAIN\name, or a full DN. Left empty, the server searches anonymously - which usually fails against Active Directory, with a reported reason that names this setting." xml:space="preserve">
     <value>Будь-що, що ваш каталог приймає для простої прив'язки: UPN (svc-mail@example.local), DOMAIN\name або повне DN. Якщо залишити порожнім, сервер шукає анонімно - що зазвичай не вдається проти Active Directory, з повідомленою причиною, що називає цей параметр.</value>
   </data>
-  <data name="When" xml:space="preserve">
-    <value>Коли</value>
+  <data name="When (server time)" xml:space="preserve">
+    <value>Коли (час сервера)</value>
+  </data>
+  <data name="When (this computer's time)" xml:space="preserve">
+    <value>Коли (час цього комп’ютера)</value>
   </data>
   <data name="When a DKIM signature was made, and when it stops being one a verifier should honour (RFC 6376 3.5)." xml:space="preserve">
     <value>Коли підпис DKIM було створено і коли він перестає бути тим, який перевіряльник має визнавати (RFC 6376 3.5).</value>
@@ -16767,6 +16785,15 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="in {0}" xml:space="preserve">
     <value>у розділі {0}</value>
   </data>
+  <data name="in {0} d" xml:space="preserve">
+    <value>через {0} дн.</value>
+  </data>
+  <data name="in {0} h" xml:space="preserve">
+    <value>через {0} год</value>
+  </data>
+  <data name="in {0} min" xml:space="preserve">
+    <value>через {0} хв</value>
+  </data>
   <data name="install a certificate" xml:space="preserve">
     <value>установити сертифікат</value>
   </data>
@@ -16982,6 +17009,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="nothing is cached - either nothing has been looked up since the counters were reset, or the lookups that happened found nothing to cache." xml:space="preserve">
     <value>у кеші немає нічого — або від скидання лічильників нічого не шукали, або ті пошуки, що були, не знайшли чого кешувати.</value>
+  </data>
+  <data name="now" xml:space="preserve">
+    <value>зараз</value>
   </data>
   <data name="only from {0}" xml:space="preserve">
     <value>лише від {0}</value>

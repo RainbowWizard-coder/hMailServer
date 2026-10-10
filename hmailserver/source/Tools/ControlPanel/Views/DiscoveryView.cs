@@ -271,6 +271,8 @@ namespace hMailServer.ControlPanel.Views
          loaded_ = cases ?? Array.Empty<DiscoveryCase>();
          audit_ = audit ?? new List<AuditRow>();
          auditComplete_ = auditNote == null;
+         openedColumn_.Header = OpenedHeader_();
+         whenColumn_.Header = AuditTrailView.WhenHeader();
          cases_.ItemsSource = loaded_.Select(CaseRow_).ToList();
 
          StatusText.Show(empty_, null, loaded_.Count, null,
@@ -356,6 +358,9 @@ namespace hMailServer.ControlPanel.Views
          public string Description { get; init; }
          public string State { get; init; }
          public string Opened { get; init; }
+
+         // The Unix times, to sort Opened and When by: their cells are in the reader's format.
+         public long OpenedTime { get; init; }
          public string OpenedBy { get; init; }
          public long Searches { get; init; }
          public long LiveHolds { get; init; }
@@ -373,6 +378,7 @@ namespace hMailServer.ControlPanel.Views
       private sealed class LineRow
       {
          public string When { get; init; }
+         public long Time { get; init; }
          public string Who { get; init; }
          public string Interface { get; init; }
          public string Object { get; init; }
@@ -383,8 +389,10 @@ namespace hMailServer.ControlPanel.Views
          public override string ToString() => RowSpeech.Of(When, Who, Action, Object, Detail);
       }
 
+      // In the reader's short date and long time, this computer's clock, which the
+      // columns' headers name, as the audit trail's are (review finding F321).
       private static string When_(long seconds)
-         => seconds > 0 ? DateTimeOffset.FromUnixTimeSeconds(seconds).ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") : "—"; // no-loc
+         => ServerTimeText.FromUnix(seconds) is DateTime when ? ServerTimeText.CellWithSeconds(when) : "—"; // no-loc
 
       private static CaseRow CaseRow_(DiscoveryCase c) => new()
       {
@@ -393,15 +401,24 @@ namespace hMailServer.ControlPanel.Views
          Description = c.Description,
          State = StateWord_(c.State),
          Opened = When_(c.Created),
+         OpenedTime = c.Created,
          OpenedBy = c.CreatedBy,
          Searches = c.SearchCount,
          LiveHolds = c.LiveHolds,
          Exports = c.ExportCount
       };
 
+      private DataGridTextColumn openedColumn_;
+      private DataGridTextColumn whenColumn_;
+
+      /// <summary>The Opened column's header, naming the clock its times are shown in, as the audit trail's When does.</summary>
+      private static string OpenedHeader_()
+         => ServerSession.IsLocalSession ? L("Opened (server time)") : L("Opened (this computer's time)");
+
       private static LineRow LineRow_(AuditRow row) => new()
       {
          When = When_(row.Time),
+         Time = row.Time,
          Who = row.Actor,
          Interface = row.Interface,
          Object = ObjectWord_(row.ObjectType),
@@ -481,7 +498,9 @@ namespace hMailServer.ControlPanel.Views
          // the smallest window, "Co" for Contoso dispute under a header cut to "N...".
          cases_.Columns.Add(Shared_(L("Name"), nameof(CaseRow.Name), 160));
          cases_.Columns.Add(Text_(L("State"), nameof(CaseRow.State), DataGridLength.Auto));
-         cases_.Columns.Add(Text_(L("Opened"), nameof(CaseRow.Opened), DataGridLength.Auto));
+         openedColumn_ = Text_(OpenedHeader_(), nameof(CaseRow.Opened), DataGridLength.Auto);
+         openedColumn_.SortMemberPath = nameof(CaseRow.OpenedTime);
+         cases_.Columns.Add(openedColumn_);
          cases_.Columns.Add(Text_(L("Opened by"), nameof(CaseRow.OpenedBy), DataGridLength.Auto));
          // The counts right-aligned, as every count in a grid is (GridStyles.Number):
          // they were left-aligned text (review finding F291).
@@ -508,7 +527,9 @@ namespace hMailServer.ControlPanel.Views
          var casesCard = new Card { Padding = new Thickness(DesignTokens.ListCardPadding), Content = host };
          parts.Children.Add(FillPanel.Filling(casesCard, 0));
 
-         lines_.Columns.Add(Text_(L("When"), nameof(LineRow.When), DataGridLength.Auto));
+         whenColumn_ = Text_(AuditTrailView.WhenHeader(), nameof(LineRow.When), DataGridLength.Auto);
+         whenColumn_.SortMemberPath = nameof(LineRow.Time);
+         lines_.Columns.Add(whenColumn_);
          lines_.Columns.Add(Text_(L("Who"), nameof(LineRow.Who), DataGridLength.Auto));
          lines_.Columns.Add(Text_(L("Interface"), nameof(LineRow.Interface), DataGridLength.Auto));
          lines_.Columns.Add(Text_(L("Object"), nameof(LineRow.Object), DataGridLength.Auto));

@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -409,19 +408,19 @@ namespace hMailServer.ControlPanel.Views
             // without needing to assert which of us is right.
             state = key.ExpiresAt == null
                ? L("This page reads an expiry only in the form YYYY-MM-DD HH:MM:SS, so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement.")
-               : F("Since {0}, every request it makes is refused.", key.ExpiresAt.Value.ToString("d MMMM yyyy HH:mm", CultureInfo.CurrentCulture)); // no-loc
+               : F("Since {0}, every request it makes is refused.", ServerTimeText.Marked(key.ExpiresAt.Value));
          }
          else if (!key.ReadOnly)
          {
             level = StatusLevel.Warning;
             pill = L("Full authority");
-            state = F("This key can change and delete things. Expires {0}.", key.ExpiresAt.Value.ToString("d MMMM yyyy HH:mm", CultureInfo.CurrentCulture)); // no-loc
+            state = F("This key can change and delete things. Expires {0}.", ServerTimeText.Marked(key.ExpiresAt.Value));
          }
          else
          {
             level = StatusLevel.Good;
             pill = L("Read-only");
-            state = F("Expires {0}.", key.ExpiresAt.Value.ToString("d MMMM yyyy HH:mm", CultureInfo.CurrentCulture)); // no-loc
+            state = F("Expires {0}.", ServerTimeText.Marked(key.ExpiresAt.Value));
          }
 
          // A grid and not a horizontal stack: a stack measures the sentence with
@@ -522,7 +521,7 @@ namespace hMailServer.ControlPanel.Views
          }
 
          newKeyLabel_.Text = F("{0} - {1}, expires {2}", request.Label, request.Full ? L("Full authority") : L("Read-only"),
-                             request.Expires.ToString("d MMMM yyyy HH:mm", CultureInfo.CurrentCulture)); // no-loc // no-loc
+                             ServerTimeText.Marked(request.Expires));
          newKeyToken_.Text = result.Token;
          newKeyCard_.Visibility = Visibility.Visible;
          newKeyCard_.BringIntoView();

@@ -42,12 +42,7 @@ namespace hMailServer.ControlPanel.Services
       /// </summary>
       public static string Added(string created)
       {
-         if (string.IsNullOrWhiteSpace(created))
-            return "";
-
-         return DateTime.TryParseExact(created.Trim(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime at) // no-loc: the server's format
-            ? at.ToString("g", CultureInfo.CurrentCulture)
-            : created.Trim();
+         return string.IsNullOrWhiteSpace(created) ? "" : ServerTimeText.Cell(created);
       }
 
       /// <summary>The Matched on list's value for the server's word: 0 the envelope sender's domain, 1 the HELO name, 2 either.</summary>

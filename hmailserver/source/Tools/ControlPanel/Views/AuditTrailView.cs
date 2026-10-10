@@ -52,9 +52,6 @@ namespace hMailServer.ControlPanel.Views
 
       private const int PageSize = 100;
 
-      // The time as the grid shows it, and as its column is measured (WidestTime_).
-      private const string WhenFormat = "yyyy-MM-dd HH:mm:ss"; // no-loc: a format
-
       // The columns of words, each with the floor its header sets and its value on a
       // row, floored at the widest of their rows on the page shown (FloorShared_), and
       // the most such a floor is.
@@ -156,6 +153,8 @@ namespace hMailServer.ControlPanel.Views
             }
 
             total_ = report.Total;
+            whenColumn_.Header = WhenHeader();
+            FloorWhen_();
             Show_(report.Entries);
             GatePutBack_();
 
@@ -361,6 +360,9 @@ namespace hMailServer.ControlPanel.Views
          public AuditRow Row { get; init; }
          public long Id { get; init; }
          public string When { get; init; }
+
+         // The Unix time, to sort When by: its cells are in the reader's format now.
+         public long Time { get; init; }
          public string Who { get; init; }
          public string Interface { get; init; }
          public string From { get; init; }
@@ -393,7 +395,11 @@ namespace hMailServer.ControlPanel.Views
             {
                Row = row,
                Id = row.Id,
-               When = row.Time > 0 ? DateTimeOffset.FromUnixTimeSeconds(row.Time).ToLocalTime().ToString(WhenFormat) : "",
+               // In the reader's short date and long time, this computer's clock,
+               // which the column's header names (review finding F321): the cells
+               // were the fixed yyyy-MM-dd HH:mm:ss with no clock named.
+               When = ServerTimeText.FromUnix(row.Time) is DateTime when ? ServerTimeText.CellWithSeconds(when) : "",
+               Time = row.Time,
                Who = row.Actor,
                // The server's tokens in the reader's words - "REST API", "Role
                // assignment", "Password reset" - where the page showed "rest",
@@ -544,13 +550,13 @@ namespace hMailServer.ControlPanel.Views
          // columns sized to their words left it about 60 ("60 -> 1…") (review
          // finding F254). Where the floors do not fit, the grid scrolls sideways
          // rather than cut who made a change and what it was made to.
-         DataGridTextColumn when = Text_(L("When"), nameof(RowView.When), DataGridLength.Auto);
+         whenColumn_ = Text_(WhenHeader(), nameof(RowView.When), DataGridLength.Auto);
+         whenColumn_.SortMemberPath = nameof(RowView.Time);
          // Floored where they are fixed as well: below the floors of the shared
          // columns a grid takes the shortfall from its fixed columns, down to 20
          // pixels, and in the narrowest window the time and the address were gone.
-         when.Width = Math.Ceiling(Math.Max(GridStyles.HeaderWidth(L("When")), GridStyles.CellWidth(WidestTime_())));
-         when.MinWidth = when.Width.Value;
-         rows_.Columns.Add(when);
+         FloorWhen_();
+         rows_.Columns.Add(whenColumn_);
          rows_.Columns.Add(Shared_(L("Who"), nameof(RowView.Who), row => row.Who));
          rows_.Columns.Add(Shared_(L("Interface"), nameof(RowView.Interface), row => row.Interface));
          rows_.Columns.Add(Shared_(L("From"), nameof(RowView.From), row => row.From, DataGridLength.Auto));
@@ -635,11 +641,32 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
-      /// The widest time the column can show: the format's, each digit the widest digit of
-      /// the cell's font, whose digits are not all one width (AuditTrailReport.WidestDigits).
+      /// The widest time the column can show: ServerTimeText's, each digit the widest digit
+      /// of the cell's font, whose digits are not all one width (AuditTrailReport.WidestDigits).
       /// </summary>
       private static string WidestTime_()
-         => AuditTrailReport.WidestDigits(new DateTime(2026, 10, 10, 10, 10, 10).ToString(WhenFormat), text => GridStyles.CellWidth(text));
+         => AuditTrailReport.WidestDigits(ServerTimeText.CellWithSeconds(new DateTime(2026, 10, 10, 10, 10, 10)), text => GridStyles.CellWidth(text));
+
+      /// <summary>
+      /// The When column at the width of its words, its header (which names the clock)
+      /// or the widest time, whichever is wider, and never narrower: below the floors
+      /// of the shared columns a grid takes the shortfall from its fixed columns.
+      /// </summary>
+      private void FloorWhen_()
+      {
+         whenColumn_.Width = Math.Ceiling(Math.Max(GridStyles.HeaderWidth((string)whenColumn_.Header), GridStyles.CellWidth(WidestTime_())));
+         whenColumn_.MinWidth = whenColumn_.Width.Value;
+      }
+
+      private DataGridTextColumn whenColumn_;
+
+      /// <summary>
+      /// The When column's header, which names the clock its times are shown in: this
+      /// computer's local time, which in a session on this computer is the server's
+      /// (ServerTimeText.FromUnix).
+      /// </summary>
+      internal static string WhenHeader()
+         => ServerSession.IsLocalSession ? L("When (server time)") : L("When (this computer's time)");
 
       private static Button MakeButton(string text, Wpf.Ui.Controls.ControlAppearance appearance, RoutedEventHandler onClick)
       {

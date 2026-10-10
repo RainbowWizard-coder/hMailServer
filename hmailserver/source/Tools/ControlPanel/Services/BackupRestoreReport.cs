@@ -30,7 +30,7 @@ namespace hMailServer.ControlPanel.Services
       public sealed record Archive(string Name, string Path, DateTime Taken, long Size)
       {
          /// <summary>When it was taken, in the reader's own date format; the name carries the server's local time.</summary>
-         public string TakenText => Taken.ToString("g", CultureInfo.CurrentCulture);
+         public string TakenText => ServerTimeText.Cell(Taken);
 
          /// <summary>Its size in megabytes, to one place, in the reader's own number format.</summary>
          public string SizeText => Megabytes(Size);
@@ -262,13 +262,7 @@ namespace hMailServer.ControlPanel.Services
       /// A date the server writes as "yyyy-MM-dd HH:mm:ss" in its own local time, in
       /// the reader's format; anything else as it came.
       /// </summary>
-      public static string LocalDate(string serverDate)
-      {
-         string text = (serverDate ?? "").Trim();
-         return DateTime.TryParseExact(text, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsed)
-            ? parsed.ToString("g", CultureInfo.CurrentCulture)
-            : text;
-      }
+      public static string LocalDate(string serverDate) => ServerTimeText.Cell(serverDate);
 
       private static string Text_(JsonElement element, string name)
          => element.TryGetProperty(name, out JsonElement value) && value.ValueKind == JsonValueKind.String ? value.GetString() ?? "" : "";

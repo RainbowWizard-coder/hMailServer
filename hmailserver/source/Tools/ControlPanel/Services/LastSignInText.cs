@@ -39,7 +39,7 @@ namespace hMailServer.ControlPanel.Services
          };
 
          if (when is DateTime signedIn && signedIn >= Earliest)
-            return F("{0} (server time)", signedIn.ToString("g", CultureInfo.CurrentCulture));
+            return ServerTimeText.Marked(signedIn);
 
          // A text the server wrote in some other form is its own words, shown as they are.
          if (when is null && lastLogonTime is string other && !string.IsNullOrWhiteSpace(other))

@@ -1843,6 +1843,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Arriving" xml:space="preserve">
     <value>Inkommande</value>
   </data>
+  <data name="As soon as possible" xml:space="preserve">
+    <value>Så snart som möjligt</value>
+  </data>
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>Fråga en nyckelserver när deras domän saknar nyckel</value>
   </data>
@@ -3554,6 +3557,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Created &quot;{0}&quot;. Enter it in the client as that account's password." xml:space="preserve">
     <value>Skapade "{0}". Ange det i klienten som kontots lösenord.</value>
+  </data>
+  <data name="Created (server time)" xml:space="preserve">
+    <value>Skapad (servertid)</value>
   </data>
   <data name="Created {0}" xml:space="preserve">
     <value>Skapad {0}</value>
@@ -7600,6 +7606,9 @@ Inget som redan finns där tas bort.</value>
   <data name="Next try in {0}" xml:space="preserve">
     <value>Nästa försök om {0}</value>
   </data>
+  <data name="Next try (server time)" xml:space="preserve">
+    <value>Nästa försök (servertid)</value>
+  </data>
   <data name="Next year" xml:space="preserve">
     <value>Nästa år</value>
   </data>
@@ -8844,6 +8853,12 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="Opened" xml:space="preserve">
     <value>Öppnat</value>
+  </data>
+  <data name="Opened (server time)" xml:space="preserve">
+    <value>Öppnat (servertid)</value>
+  </data>
+  <data name="Opened (this computer's time)" xml:space="preserve">
+    <value>Öppnat (den här datorns tid)</value>
   </data>
   <data name="Opened by" xml:space="preserve">
     <value>Öppnat av</value>
@@ -15028,8 +15043,11 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Whatever your directory accepts for a simple bind: a UPN (svc-mail@example.local), DOMAIN\name, or a full DN. Left empty, the server searches anonymously - which usually fails against Active Directory, with a reported reason that names this setting." xml:space="preserve">
     <value>Vad din katalog än godtar för en enkel bindning: ett UPN (svc-mail@example.local), DOMÄN\namn, eller ett fullständigt DN. Lämnat tomt söker servern anonymt - vilket oftast misslyckas mot Active Directory, med en rapporterad orsak som namnger den här inställningen.</value>
   </data>
-  <data name="When" xml:space="preserve">
-    <value>När</value>
+  <data name="When (server time)" xml:space="preserve">
+    <value>När (servertid)</value>
+  </data>
+  <data name="When (this computer's time)" xml:space="preserve">
+    <value>När (den här datorns tid)</value>
   </data>
   <data name="When a DKIM signature was made, and when it stops being one a verifier should honour (RFC 6376 3.5)." xml:space="preserve">
     <value>När en DKIM-signatur gjordes, och när den slutar vara en som en verifierare bör respektera (RFC 6376 3.5).</value>
@@ -16571,6 +16589,15 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="in {0}" xml:space="preserve">
     <value>i {0}</value>
   </data>
+  <data name="in {0} d" xml:space="preserve">
+    <value>om {0} d</value>
+  </data>
+  <data name="in {0} h" xml:space="preserve">
+    <value>om {0} tim</value>
+  </data>
+  <data name="in {0} min" xml:space="preserve">
+    <value>om {0} min</value>
+  </data>
   <data name="install a certificate" xml:space="preserve">
     <value>installera ett certifikat</value>
   </data>
@@ -16777,6 +16804,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="nothing is cached - either nothing has been looked up since the counters were reset, or the lookups that happened found nothing to cache." xml:space="preserve">
     <value>inget är cachat - antingen har inget slagits upp sedan räknarna nollställdes, eller så hittade uppslagningarna som gjordes inget att cacha.</value>
+  </data>
+  <data name="now" xml:space="preserve">
+    <value>nu</value>
   </data>
   <data name="only from {0}" xml:space="preserve">
     <value>bara från {0}</value>

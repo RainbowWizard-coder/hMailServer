@@ -1843,6 +1843,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Arriving" xml:space="preserve">
     <value>Saapuva</value>
   </data>
+  <data name="As soon as possible" xml:space="preserve">
+    <value>Mahdollisimman pian</value>
+  </data>
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>Kysy avainpalvelimelta, kun heidän verkkotunnuksellaan ei ole avainta</value>
   </data>
@@ -3554,6 +3557,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Created &quot;{0}&quot;. Enter it in the client as that account's password." xml:space="preserve">
     <value>Luotiin "{0}". Anna se asiakkaassa kyseisen tilin salasanana.</value>
+  </data>
+  <data name="Created (server time)" xml:space="preserve">
+    <value>Luotu (palvelimen aikaa)</value>
   </data>
   <data name="Created {0}" xml:space="preserve">
     <value>Luotu {0}</value>
@@ -7600,6 +7606,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Next try in {0}" xml:space="preserve">
     <value>Seuraava yritys {0} kuluttua</value>
   </data>
+  <data name="Next try (server time)" xml:space="preserve">
+    <value>Seuraava yritys (palvelimen aikaa)</value>
+  </data>
   <data name="Next year" xml:space="preserve">
     <value>Seuraava vuosi</value>
   </data>
@@ -8844,6 +8853,12 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="Opened" xml:space="preserve">
     <value>Avattu</value>
+  </data>
+  <data name="Opened (server time)" xml:space="preserve">
+    <value>Avattu (palvelimen aikaa)</value>
+  </data>
+  <data name="Opened (this computer's time)" xml:space="preserve">
+    <value>Avattu (tämän tietokoneen aikaa)</value>
   </data>
   <data name="Opened by" xml:space="preserve">
     <value>Avaaja</value>
@@ -15028,8 +15043,11 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="Whatever your directory accepts for a simple bind: a UPN (svc-mail@example.local), DOMAIN\name, or a full DN. Left empty, the server searches anonymously - which usually fails against Active Directory, with a reported reason that names this setting." xml:space="preserve">
     <value>Mitä tahansa hakemistosi hyväksyy yksinkertaiseen sidontaan: UPN (svc-mail@example.local), DOMAIN\name tai täydellinen DN. Tyhjäksi jätettynä palvelin hakee anonyymisti - mikä yleensä epäonnistuu Active Directorya vastaan raportoidulla syyllä, joka nimeää tämän asetuksen.</value>
   </data>
-  <data name="When" xml:space="preserve">
-    <value>Milloin</value>
+  <data name="When (server time)" xml:space="preserve">
+    <value>Milloin (palvelimen aikaa)</value>
+  </data>
+  <data name="When (this computer's time)" xml:space="preserve">
+    <value>Milloin (tämän tietokoneen aikaa)</value>
   </data>
   <data name="When a DKIM signature was made, and when it stops being one a verifier should honour (RFC 6376 3.5)." xml:space="preserve">
     <value>Milloin DKIM-allekirjoitus tehtiin ja milloin se lakkaa olemasta sellainen, jota tarkistajan pitäisi kunnioittaa (RFC 6376 3.5).</value>
@@ -16571,6 +16589,15 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="in {0}" xml:space="preserve">
     <value>kohdassa {0}</value>
   </data>
+  <data name="in {0} d" xml:space="preserve">
+    <value>{0} pv kuluttua</value>
+  </data>
+  <data name="in {0} h" xml:space="preserve">
+    <value>{0} h kuluttua</value>
+  </data>
+  <data name="in {0} min" xml:space="preserve">
+    <value>{0} min kuluttua</value>
+  </data>
   <data name="install a certificate" xml:space="preserve">
     <value>asenna varmenne</value>
   </data>
@@ -16777,6 +16804,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="nothing is cached - either nothing has been looked up since the counters were reset, or the lookups that happened found nothing to cache." xml:space="preserve">
     <value>mitään ei ole välimuistissa - joko mitään ei ole haettu laskurien nollauksen jälkeen, tai tehdyt haut eivät löytäneet mitään välimuistiin tallennettavaa.</value>
+  </data>
+  <data name="now" xml:space="preserve">
+    <value>nyt</value>
   </data>
   <data name="only from {0}" xml:space="preserve">
     <value>vain kohteesta {0}</value>

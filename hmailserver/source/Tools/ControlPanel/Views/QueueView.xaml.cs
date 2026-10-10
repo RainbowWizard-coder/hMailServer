@@ -19,7 +19,15 @@ namespace hMailServer.ControlPanel.Views
       public class QueueRow
       {
          public string Id { get; set; }
+
+         // The two times as ServerTimeText shows them (review finding F321): how long
+         // ago and how soon in a session on this computer, the reader's short date and
+         // time under a "(server time)" header in one from another, the whole time
+         // marked as the server's in each cell's tool tip, and the time itself to sort
+         // by, where the cells were the server's raw "2026-10-08 02:36:53".
          public string Created { get; set; }
+         public string CreatedTip { get; set; }
+         public DateTime? CreatedAt { get; set; }
          public string From { get; set; }
          public string Recipients { get; set; }
          public string Tries { get; set; }
@@ -232,6 +240,14 @@ namespace hMailServer.ControlPanel.Views
             DateTime now = DateTime.Now;
 
             var rows = new List<QueueRow>();
+
+            // How long ago only where the server's clock is this computer's; the
+            // header says whose clock the dates are otherwise (review finding F321).
+            // The State column says the wait to the next try in its own words.
+            DateTime? localNow = sameClock ? now : null;
+            CreatedColumn.Header = localNow == null ? L("Created (server time)") : L("Created");
+            CreatedColumn.MinWidth = Math.Max(110, GridStyles.HeaderWidth((string)CreatedColumn.Header));
+
             // Tab-separated: id, created, from, recipients, next try, file, locked, tries
             foreach (string[] columns in snap.QueueRows
                                             .Select(line => line.Split('\t'))
@@ -243,7 +259,9 @@ namespace hMailServer.ControlPanel.Views
                rows.Add(new QueueRow
                {
                   Id = columns[0],
-                  Created = columns[1],
+                  Created = ServerTimeText.GridCell(columns[1], localNow),
+                  CreatedTip = ServerTimeText.GridTip(columns[1]),
+                  CreatedAt = ServerTimeText.Parse(columns[1]),
                   From = string.IsNullOrWhiteSpace(columns[2]) ? "<>" : columns[2],
                   Recipients = columns[3],
                   File = columns[5],

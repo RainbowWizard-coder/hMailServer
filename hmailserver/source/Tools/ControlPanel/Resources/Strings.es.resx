@@ -1843,6 +1843,9 @@ Los detalles completos se escribieron en:
   <data name="Arriving" xml:space="preserve">
     <value>Entrante</value>
   </data>
+  <data name="As soon as possible" xml:space="preserve">
+    <value>Lo antes posible</value>
+  </data>
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>Preguntar a un servidor de claves cuando su dominio no tiene clave</value>
   </data>
@@ -3554,6 +3557,9 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Created &quot;{0}&quot;. Enter it in the client as that account's password." xml:space="preserve">
     <value>Se creó "{0}". Introdúzcalo en el cliente como contraseña de esa cuenta.</value>
+  </data>
+  <data name="Created (server time)" xml:space="preserve">
+    <value>Creado (hora del servidor)</value>
   </data>
   <data name="Created {0}" xml:space="preserve">
     <value>Creada {0}</value>
@@ -7600,6 +7606,9 @@ No se elimina nada de lo que ya está.</value>
   <data name="Next try in {0}" xml:space="preserve">
     <value>Siguiente intento dentro de {0}</value>
   </data>
+  <data name="Next try (server time)" xml:space="preserve">
+    <value>Siguiente intento (hora del servidor)</value>
+  </data>
   <data name="Next year" xml:space="preserve">
     <value>Año siguiente</value>
   </data>
@@ -8844,6 +8853,12 @@ No se elimina nada de lo que ya está.</value>
   </data>
   <data name="Opened" xml:space="preserve">
     <value>Abierto el</value>
+  </data>
+  <data name="Opened (server time)" xml:space="preserve">
+    <value>Abierto (hora del servidor)</value>
+  </data>
+  <data name="Opened (this computer's time)" xml:space="preserve">
+    <value>Abierto (hora de este equipo)</value>
   </data>
   <data name="Opened by" xml:space="preserve">
     <value>Abierto por</value>
@@ -15028,8 +15043,11 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="Whatever your directory accepts for a simple bind: a UPN (svc-mail@example.local), DOMAIN\name, or a full DN. Left empty, the server searches anonymously - which usually fails against Active Directory, with a reported reason that names this setting." xml:space="preserve">
     <value>Lo que su directorio acepte para un bind simple: un UPN (svc-mail@example.local), DOMAIN\name, o un DN completo. Si se deja vacío, el servidor busca de forma anónima - lo que normalmente falla contra Active Directory, con un motivo informado que nombra este ajuste.</value>
   </data>
-  <data name="When" xml:space="preserve">
-    <value>Cuándo</value>
+  <data name="When (server time)" xml:space="preserve">
+    <value>Cuándo (hora del servidor)</value>
+  </data>
+  <data name="When (this computer's time)" xml:space="preserve">
+    <value>Cuándo (hora de este equipo)</value>
   </data>
   <data name="When a DKIM signature was made, and when it stops being one a verifier should honour (RFC 6376 3.5)." xml:space="preserve">
     <value>Cuándo se hizo una firma DKIM, y cuándo deja de ser una que un verificador deba respetar (RFC 6376 3.5).</value>
@@ -16571,6 +16589,15 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="in {0}" xml:space="preserve">
     <value>en {0}</value>
   </data>
+  <data name="in {0} d" xml:space="preserve">
+    <value>en {0} d</value>
+  </data>
+  <data name="in {0} h" xml:space="preserve">
+    <value>en {0} h</value>
+  </data>
+  <data name="in {0} min" xml:space="preserve">
+    <value>en {0} min</value>
+  </data>
   <data name="install a certificate" xml:space="preserve">
     <value>instalar un certificado</value>
   </data>
@@ -16777,6 +16804,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="nothing is cached - either nothing has been looked up since the counters were reset, or the lookups that happened found nothing to cache." xml:space="preserve">
     <value>no hay nada en caché - o no se ha buscado nada desde que se reiniciaron los contadores, o las búsquedas que hubo no encontraron nada que almacenar.</value>
+  </data>
+  <data name="now" xml:space="preserve">
+    <value>ahora</value>
   </data>
   <data name="only from {0}" xml:space="preserve">
     <value>solo desde {0}</value>
