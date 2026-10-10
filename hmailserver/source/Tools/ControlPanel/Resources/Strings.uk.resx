@@ -1237,7 +1237,7 @@
     <value>_Адреса для додавання</value>
   </data>
   <data name="Address to add as a member" xml:space="preserve">
-    <value>Адреса, яку додати як учасника</value>
+    <value>Адреса нового учасника</value>
   </data>
   <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
     <value>Адреса, домен або URL (https://host/...)</value>

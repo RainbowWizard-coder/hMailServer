@@ -1237,7 +1237,7 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
     <value>_Adresa k přidání</value>
   </data>
   <data name="Address to add as a member" xml:space="preserve">
-    <value>Adresa, kterou přidat jako člena</value>
+    <value>Adresa nového člena</value>
   </data>
   <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
     <value>Adresa, doména nebo URL (https://host/...)</value>

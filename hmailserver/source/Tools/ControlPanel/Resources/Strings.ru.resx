@@ -1237,7 +1237,7 @@ Control Panel может читать файлы сообщений только
     <value>_Адрес для добавления</value>
   </data>
   <data name="Address to add as a member" xml:space="preserve">
-    <value>Адрес, который добавить как участника</value>
+    <value>Адрес нового участника</value>
   </data>
   <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
     <value>Адрес, домен или URL (https://host/...)</value>

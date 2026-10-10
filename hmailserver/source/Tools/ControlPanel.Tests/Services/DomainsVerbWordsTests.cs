@@ -131,6 +131,24 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
+      /// The members box's caption names the box in a noun phrase, as the dialogs'
+      /// captions do: Russian, Ukrainian and Czech said it in a relative clause on a
+      /// bare infinitive - "Адрес, который добавить как участника", "Адреса, яку
+      /// додати як учасника", "Adresa, kterou přidat jako člena" - which none of the
+      /// three writes, where the caption it replaced read "Адрес электронной почты
+      /// для добавления в список".
+      /// </summary>
+      [Theory]
+      [InlineData("ru", "Адрес нового участника")]
+      [InlineData("uk", "Адреса нового учасника")]
+      [InlineData("cs", "Adresa nového člena")]
+      public void TheMembersBoxCaption_IsANounPhrase(string tag, string expected)
+      {
+         Dictionary<string, string> catalogue = ReadResx(Path.Join(ResourcesDirectory(), "Strings." + tag + ".resx"));
+         Assert.Equal(expected, catalogue["Address to add as a member"]);
+      }
+
+      /// <summary>
       /// The page's own help says the verbs the page shows: DomainsAndAccounts.md,
       /// which the help pane opens for the page and the server embeds, still told its
       /// reader to press Properties on a domain's row and the gear on a list's once
