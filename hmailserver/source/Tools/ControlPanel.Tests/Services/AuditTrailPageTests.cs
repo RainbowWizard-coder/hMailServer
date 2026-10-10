@@ -154,6 +154,54 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       [Fact]
+      public void TheTimesSample_IsItsFormatInTheWidestDigit()
+      {
+         // A font whose 3 is widest and whose 1 is narrowest, as the window's are not one width.
+         static double Measure(string text) => text.Length * (text[0] == '3' ? 9.0 : text[0] == '1' ? 5.0 : 7.0);
+
+         Assert.Equal("3333-33-33 33:33:33", AuditTrailReport.WidestDigits("2026-10-10 00:00:00", Measure));
+         // Whatever the culture puts between them is kept.
+         Assert.Equal("3333-33-33 33.33.33", AuditTrailReport.WidestDigits("2026-10-10 10.10.10", Measure));
+         Assert.Equal("", AuditTrailReport.WidestDigits(null, Measure));
+      }
+
+      [Fact]
+      public void AColumnOfWords_IsFlooredAtItsWidestWord_NoNarrowerThanItsHeader_NoWiderThanTheCap()
+      {
+         Assert.Equal(132, AuditTrailReport.WordsFloor(60, new[] { 95.0, 131.2, 70.0 }, 180));
+         Assert.Equal(180, AuditTrailReport.WordsFloor(60, new[] { 95.0, 260.0 }, 180));
+         Assert.Equal(60, AuditTrailReport.WordsFloor(60, new[] { 40.0 }, 180));
+         // No rows: the header's.
+         Assert.Equal(60, AuditTrailReport.WordsFloor(60, Array.Empty<double>(), 180));
+      }
+
+      [Fact]
+      public void TheColumns_AreFlooredAtTheirWordsOnThePage_AndTheTimeAtItsWidest()
+      {
+         string code = ReadControlPanelFile(Path.Join("Views", "AuditTrailView.cs"));
+
+         // The time measured in its widest digit, where "2026-10-10 00:00:00" - ones and
+         // noughts - measured narrower than 23:56:48 and cut it.
+         Assert.Contains("GridStyles.CellWidth(WidestTime_())", code, StringComparison.Ordinal);
+         Assert.Contains("AuditTrailReport.WidestDigits(new DateTime(2026, 10, 10, 10, 10, 10).ToString(WhenFormat), text => GridStyles.CellWidth(text))", code, StringComparison.Ordinal);
+         Assert.Contains(".ToLocalTime().ToString(WhenFormat)", code, StringComparison.Ordinal);
+         Assert.DoesNotContain("\"2026-10-10 00:00:00\"", code, StringComparison.Ordinal);
+
+         // Every column of words floored at its words on the page shown, where they
+         // were floored at 90 and cut at 1280 in every language; Detail keeps its floor.
+         foreach (string column in new[] { "Who", "Interface", "From", "Object", "Name", "Action" })
+            Assert.Contains("rows_.Columns.Add(Shared_(L(\"" + column + "\"), nameof(RowView." + column + "), row => row." + column, code, StringComparison.Ordinal);
+         Assert.DoesNotContain("Math.Max(90,", code, StringComparison.Ordinal);
+         Assert.Contains("column.MinWidth = AuditTrailReport.WordsFloor(header, rows.Select(row => GridStyles.CellWidth(value(row))), SharedFloorCap);", code, StringComparison.Ordinal);
+         Assert.DoesNotContain("rows_.ItemsSource = Present_(", code, StringComparison.Ordinal);
+         string show = WithheldRowTests.MemberText(code, "private void Show_(IReadOnlyList<AuditRow> rows)");
+         Assert.True(show != null, "AuditTrailView.Show_ is gone.");
+         Assert.True(show.IndexOf("FloorShared_(shown);", StringComparison.Ordinal) < show.IndexOf("rows_.ItemsSource = shown;", StringComparison.Ordinal),
+            "The columns are floored after the rows are in the grid.");
+         Assert.Contains("detail.MinWidth = 200;", code, StringComparison.Ordinal);
+      }
+
+      [Fact]
       public void ThePagersSteps_HandTheKeyboardOn_BeforeOneIsDisabled()
       {
          string code = ReadControlPanelFile(Path.Join("Views", "AuditTrailView.cs")).Replace("\r\n", "\n");

@@ -218,6 +218,54 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>The server's arrow between a setting's old and new value.</summary>
       public const string ChangeArrow = " -> "; // no-loc: the server's own separator
 
+      // ---- the grid's widths (review finding F254) -----------------------------------
+
+      /// <summary>
+      /// A time as wide as any its format shows: every digit of <paramref name="formatted"/>
+      /// the digit <paramref name="measure"/> finds widest. The window's font draws its
+      /// digits at widths of their own, so that the column measured from
+      /// "2026-10-10 00:00:00" cut "2026-10-09 23:56:48" to "2026-10-09 23:56:…".
+      /// </summary>
+      public static string WidestDigits(string formatted, Func<string, double> measure)
+      {
+         char widest = '0';
+         double most = double.MinValue;
+         for (char digit = '0'; digit <= '9'; digit++)
+         {
+            // Ten of each, so that a width rounded to the pixel still tells them apart.
+            double width = measure(new string(digit, 10));
+            if (width > most)
+            {
+               most = width;
+               widest = digit;
+            }
+         }
+
+         char[] sample = (formatted ?? "").ToCharArray();
+         for (int i = 0; i < sample.Length; i++)
+         {
+            if (sample[i] >= '0' && sample[i] <= '9')
+               sample[i] = widest;
+         }
+
+         return new string(sample);
+      }
+
+      /// <summary>
+      /// The floor of a column of words: the widest of its words on the page shown, no
+      /// narrower than its header and no wider than <paramref name="cap"/>, past which a
+      /// word ends in an ellipsis and its tool tip says it whole. Floored at 90 pixels, the
+      /// audit trail's five columns of words cut "Administrator", "Control Panel" and the
+      /// name of the setting that changed at 1280 by 800, in every language.
+      /// </summary>
+      public static double WordsFloor(double header, IEnumerable<double> words, double cap)
+      {
+         double widest = 0;
+         foreach (double width in words ?? Array.Empty<double>())
+            widest = Math.Max(widest, width);
+         return Math.Max(header, Math.Min(cap, Math.Ceiling(widest)));
+      }
+
       /// <summary>
       /// A row's detail as the page shows it: the server's arrow between two values
       /// drawn as one, "60 → 120", where it read "60 -&gt;".

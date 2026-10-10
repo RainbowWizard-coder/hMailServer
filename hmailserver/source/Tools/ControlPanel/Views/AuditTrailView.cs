@@ -51,6 +51,16 @@ namespace hMailServer.ControlPanel.Views
       private readonly StatusPill count_ = new() { Level = StatusLevel.Normal, Visibility = Visibility.Collapsed };
 
       private const int PageSize = 100;
+
+      // The time as the grid shows it, and as its column is measured (WidestTime_).
+      private const string WhenFormat = "yyyy-MM-dd HH:mm:ss"; // no-loc: a format
+
+      // The columns of words, each with the floor its header sets and its value on a
+      // row, floored at the widest of their rows on the page shown (FloorShared_), and
+      // the most such a floor is.
+      private readonly List<(DataGridTextColumn Column, double Header, Func<RowView, string> Value)> shared_ = new();
+      private const double SharedFloorCap = 180;
+
       private int offset_;
       private int total_;
 
@@ -146,7 +156,7 @@ namespace hMailServer.ControlPanel.Views
             }
 
             total_ = report.Total;
-            rows_.ItemsSource = Present_(report.Entries);
+            Show_(report.Entries);
             GatePutBack_();
 
             StatusText.Show(empty_, null, report.Total, null,
@@ -246,7 +256,7 @@ namespace hMailServer.ControlPanel.Views
             offset_ = 0;
 
          List<AuditRow> page = matches.Skip(offset_).Take(PageSize).ToList();
-         rows_.ItemsSource = Present_(page);
+         Show_(page);
          GatePutBack_();
 
          StatusText.Show(empty_, null, total_, null,
@@ -366,6 +376,14 @@ namespace hMailServer.ControlPanel.Views
          public override string ToString() => RowSpeech.Of(When, Who, Action, Object, Name);
       }
 
+      /// <summary>The rows into the grid, each column of words floored at them first (FloorShared_).</summary>
+      private void Show_(IReadOnlyList<AuditRow> rows)
+      {
+         List<RowView> shown = Present_(rows);
+         FloorShared_(shown);
+         rows_.ItemsSource = shown;
+      }
+
       private static List<RowView> Present_(IReadOnlyList<AuditRow> rows)
       {
          var result = new List<RowView>(rows.Count);
@@ -375,7 +393,7 @@ namespace hMailServer.ControlPanel.Views
             {
                Row = row,
                Id = row.Id,
-               When = row.Time > 0 ? DateTimeOffset.FromUnixTimeSeconds(row.Time).ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") : "",
+               When = row.Time > 0 ? DateTimeOffset.FromUnixTimeSeconds(row.Time).ToLocalTime().ToString(WhenFormat) : "",
                Who = row.Actor,
                // The server's tokens in the reader's words - "REST API", "Role
                // assignment", "Password reset" - where the page showed "rest",
@@ -520,30 +538,34 @@ namespace hMailServer.ControlPanel.Views
          parts.Children.Add(status_);
 
          // The time at the width of its words, which are always as long; the
-         // columns of words share what is left, each floored where a word of it
-         // reads whole, and what changed - the column a reader comes for - takes
-         // twice a share and never under 200 pixels, where the columns sized to
-         // their words left it about 60 ("60 -> 1…") (review finding F254).
+         // columns of words share what is left, each floored at the widest of its
+         // words on the page (FloorShared_), and what changed - the column a reader
+         // comes for - takes twice a share and never under 200 pixels, where the
+         // columns sized to their words left it about 60 ("60 -> 1…") (review
+         // finding F254). Where the floors do not fit, the grid scrolls sideways
+         // rather than cut who made a change and what it was made to.
          DataGridTextColumn when = Text_(L("When"), nameof(RowView.When), DataGridLength.Auto);
          // Floored where they are fixed as well: below the floors of the shared
          // columns a grid takes the shortfall from its fixed columns, down to 20
-         // pixels, and in the narrowest window the time and the address were gone;
-         // the grid scrolls sideways instead.
-         when.Width = Math.Ceiling(Math.Max(GridStyles.HeaderWidth(L("When")), GridStyles.CellWidth("2026-10-10 00:00:00"))); // no-loc: the widest time
+         // pixels, and in the narrowest window the time and the address were gone.
+         when.Width = Math.Ceiling(Math.Max(GridStyles.HeaderWidth(L("When")), GridStyles.CellWidth(WidestTime_())));
          when.MinWidth = when.Width.Value;
          rows_.Columns.Add(when);
-         rows_.Columns.Add(Shared_(L("Who"), nameof(RowView.Who)));
-         rows_.Columns.Add(Shared_(L("Interface"), nameof(RowView.Interface)));
-         DataGridTextColumn from = Text_(L("From"), nameof(RowView.From), DataGridLength.Auto);
-         from.MinWidth = Math.Ceiling(Math.Max(GridStyles.HeaderWidth(L("From")), GridStyles.CellWidth("255.255.255.255"))); // no-loc: the widest IPv4 address
-         rows_.Columns.Add(from);
-         rows_.Columns.Add(Shared_(L("Object"), nameof(RowView.Object)));
-         rows_.Columns.Add(Shared_(L("Name"), nameof(RowView.Name)));
-         rows_.Columns.Add(Shared_(L("Action"), nameof(RowView.Action)));
+         rows_.Columns.Add(Shared_(L("Who"), nameof(RowView.Who), row => row.Who));
+         rows_.Columns.Add(Shared_(L("Interface"), nameof(RowView.Interface), row => row.Interface));
+         rows_.Columns.Add(Shared_(L("From"), nameof(RowView.From), row => row.From, DataGridLength.Auto));
+         rows_.Columns.Add(Shared_(L("Object"), nameof(RowView.Object), row => row.Object));
+         rows_.Columns.Add(Shared_(L("Name"), nameof(RowView.Name), row => row.Name));
+         rows_.Columns.Add(Shared_(L("Action"), nameof(RowView.Action), row => row.Action));
 
          DataGridTextColumn detail = Text_(L("Detail"), nameof(RowView.Detail), new DataGridLength(2, DataGridLengthUnitType.Star));
          detail.MinWidth = 200;
          rows_.Columns.Add(detail);
+
+         // A grid whose columns keep their widths and scroll sideways keeps its upright
+         // bar, so that the two bars cannot take turns for ever where the rows fit only
+         // without the sideways one (docs/ControlPanelDesign.md, Grids).
+         ScrollViewer.SetVerticalScrollBarVisibility(rows_, ScrollBarVisibility.Visible);
 
          // The whole detail on the row's tip: a long value is cut in the column.
          var rowStyle = new Style(typeof(DataGridRow));
@@ -584,13 +606,40 @@ namespace hMailServer.ControlPanel.Views
       private static DataGridTextColumn Text_(string header, string path, DataGridLength width)
          => GridStyles.Trimmed(new DataGridTextColumn { Header = header, Binding = new System.Windows.Data.Binding(path), Width = width });
 
-      /// <summary>A column of words that shares the width: a star, floored at its header and at 90 pixels.</summary>
-      private static DataGridTextColumn Shared_(string header, string path)
+      /// <summary>
+      /// A column of words that shares the width - a star, or the address's Auto - floored
+      /// at its header until the page's rows floor it at their widest (FloorShared_).
+      /// </summary>
+      private DataGridTextColumn Shared_(string header, string path, Func<RowView, string> value, DataGridLength? width = null)
       {
-         DataGridTextColumn column = Text_(header, path, new DataGridLength(1, DataGridLengthUnitType.Star));
-         column.MinWidth = Math.Max(90, Math.Ceiling(GridStyles.HeaderWidth(header)));
+         DataGridTextColumn column = Text_(header, path, width ?? new DataGridLength(1, DataGridLengthUnitType.Star));
+         double floor = Math.Ceiling(GridStyles.HeaderWidth(header));
+         column.MinWidth = floor;
+         shared_.Add((column, floor, value));
          return column;
       }
+
+      /// <summary>
+      /// Each column of words floored at the widest of its words on the page shown, and
+      /// no further than <see cref="SharedFloorCap"/>, where a longer one ends in an
+      /// ellipsis and says itself in a tool tip: floored at 90 pixels, the five stars
+      /// shared what was left at 1280 by 800 and cut what the page itself shows in every
+      /// language - "Administr…", "Control Pa…", "AutoBan…", "user03@e…", the name of
+      /// the setting a put-back decision needs - where sized to their words they had
+      /// read whole (review finding F254).
+      /// </summary>
+      private void FloorShared_(IReadOnlyList<RowView> rows)
+      {
+         foreach ((DataGridTextColumn column, double header, Func<RowView, string> value) in shared_)
+            column.MinWidth = AuditTrailReport.WordsFloor(header, rows.Select(row => GridStyles.CellWidth(value(row))), SharedFloorCap);
+      }
+
+      /// <summary>
+      /// The widest time the column can show: the format's, each digit the widest digit of
+      /// the cell's font, whose digits are not all one width (AuditTrailReport.WidestDigits).
+      /// </summary>
+      private static string WidestTime_()
+         => AuditTrailReport.WidestDigits(new DateTime(2026, 10, 10, 10, 10, 10).ToString(WhenFormat), text => GridStyles.CellWidth(text));
 
       private static Button MakeButton(string text, Wpf.Ui.Controls.ControlAppearance appearance, RoutedEventHandler onClick)
       {

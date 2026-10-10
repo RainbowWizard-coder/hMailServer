@@ -2932,11 +2932,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   that way, and one pressed from the keyboard onto the first or the last page hands the keyboard to the other. The
   interfaces, the objects and the actions are the reader's words - "Control Panel or script" for COM, "REST API",
   "Control Deck", "Role assignment", "Password reset" - and a token the page does not know is shown readable ("Mailbox
-  key forfeited"). The time and the address keep their widths, the columns of words share the rest, and Detail takes
-  twice a share and never less than 200 pixels, its arrow drawn as one ("60 → 120"). The search looks in who, what,
-  how and the detail of every change: the trail is read whole off the window's thread the first time, a thousand rows
-  a call, and each word typed in after is looked for in it. `AuditTrailPageTests` holds the words, the search and the
-  page's wiring.
+  key forfeited"). The time keeps the width of its widest digits, each column of words is floored at the widest of its
+  words on the page, up to 180 pixels, and Detail takes twice a share and never less than 200 pixels, its arrow drawn
+  as one ("60 → 120"); where they do not fit the grid scrolls sideways, rather than cut who made a change and what it
+  was made to. The search looks in who, what, how and the detail of every change: the trail is read whole off the
+  window's thread the first time, a thousand rows a call, and each word typed in after is looked for in it.
+  `AuditTrailPageTests` holds the words, the search and the page's wiring.
 
 - **Fixed: the quarantine's allow and block icons differed only by colour, its header's four icons acted with nothing
   checked, and a group's row showed neither the pointer nor the keyboard inside it.** Each row, group and the header
