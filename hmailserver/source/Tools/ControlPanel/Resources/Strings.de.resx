@@ -7007,6 +7007,9 @@ Jedes Web-Push-Abonnement unter dem jetzigen Paar funktioniert sofort nicht mehr
   <data name="Match any criterion (OR)" xml:space="preserve">
     <value>Irgendein Kriterium erfüllen (ODER)</value>
   </data>
+  <data name="Match {0} of {1} - press Enter for the next." xml:space="preserve">
+    <value>Treffer {0} von {1} - drücken Sie Enter für den nächsten.</value>
+  </data>
   <data name="Matched on" xml:space="preserve">
     <value>Abgeglichen mit</value>
   </data>
@@ -7923,6 +7926,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   </data>
   <data name="No match" xml:space="preserve">
     <value>Kein Treffer</value>
+  </data>
+  <data name="No match for &quot;{0}&quot; in this document." xml:space="preserve">
+    <value>Keine Treffer für „{0}“ in diesem Dokument.</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>Keine passenden Konten in {0}.</value>

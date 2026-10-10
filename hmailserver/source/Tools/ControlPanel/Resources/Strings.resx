@@ -7007,6 +7007,9 @@ Every Web Push subscription made under the present pair stops working at once, a
   <data name="Match any criterion (OR)" xml:space="preserve">
     <value>Match any criterion (OR)</value>
   </data>
+  <data name="Match {0} of {1} - press Enter for the next." xml:space="preserve">
+    <value>Match {0} of {1} - press Enter for the next.</value>
+  </data>
   <data name="Matched on" xml:space="preserve">
     <value>Matched on</value>
   </data>
@@ -7923,6 +7926,9 @@ Nothing already there is removed.</value>
   </data>
   <data name="No match" xml:space="preserve">
     <value>No match</value>
+  </data>
+  <data name="No match for &quot;{0}&quot; in this document." xml:space="preserve">
+    <value>No match for "{0}" in this document.</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>No matching accounts in {0}.</value>

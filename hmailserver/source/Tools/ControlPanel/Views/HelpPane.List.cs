@@ -42,14 +42,6 @@ namespace hMailServer.ControlPanel.Views
       private readonly Stack<(string Doc, string NoGuide)> back_ = new();
       private Button backButton_;
 
-      // What the list's search found, under its box: "3 documents contain "DNSSEC"."
-      // or "No document contains "qqzz".", where the list narrowed as each key was
-      // typed and nothing told a screen reader how far, as the other lists'
-      // searches do (review finding F315). A polite live region named by its text,
-      // shown only while the list shows and its search holds two characters or
-      // more; four pixels under the box, which keeps eight under it.
-      private readonly TextBlock listStatus_ = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, -DesignTokens.Space.Xs, 0, DesignTokens.Space.Sm), Visibility = Visibility.Collapsed };
-
       // Each document's title and text, read once: the list's search reads every
       // one of them as each character is typed.
       private static readonly Dictionary<string, string> titles_ = new(StringComparer.OrdinalIgnoreCase);
@@ -69,18 +61,6 @@ namespace hMailServer.ControlPanel.Views
          AutomationProperties.SetAutomationId(backButton_, "help-back");
          backButton_.Click += (s, e) => Back_();
          return backButton_;
-      }
-
-      /// <summary>The search box with the list's search result under it, the pane's second row.</summary>
-      private FrameworkElement SearchWithListStatus_()
-      {
-         listStatus_.SetResourceReference(StyleProperty, "TextCaption");
-         AutomationProperties.SetAutomationId(listStatus_, "help-list-result");
-         AutomationProperties.SetLiveSetting(listStatus_, AutomationLiveSetting.Polite);
-         var block = new StackPanel();
-         block.Children.Add(search_);
-         block.Children.Add(listStatus_);
-         return block;
       }
 
       /// <summary>What the pane shows, as Back keeps it.</summary>
@@ -167,10 +147,7 @@ namespace hMailServer.ControlPanel.Views
       private void SearchChanged_()
       {
          if (shown_ != null)
-         {
-            ShowListStatus_(null);
             Find_(false);
-         }
          else
             FilterList_();
       }
@@ -206,14 +183,16 @@ namespace hMailServer.ControlPanel.Views
 
       /// <summary>
       /// The list again, narrowed to what the search holds, under the page's own
-      /// words when it has no guide, and the line under the box saying how many
-      /// documents hold the words.
+      /// words when it has no guide, and the line under the box (ShowFindStatus_, a
+      /// polite live region) saying how many documents hold the words, where the
+      /// list narrowed as each key was typed and nothing told a screen reader how far
+      /// (review finding F315).
       /// </summary>
       private void FilterList_()
       {
          List<Block> intro = noGuideFor_ != null ? NoGuideIntro_(NavigationMap.Find(noGuideFor_)) : null;
          ShowFromTheTop_(DocumentList_(intro));
-         ShowListStatus_(ListResult_(search_.Text.Trim()));
+         ShowFindStatus_(ListResult_(search_.Text.Trim()));
       }
 
       /// <summary>What the list's search found, or null while it holds too little to narrow the list.</summary>
@@ -226,15 +205,6 @@ namespace hMailServer.ControlPanel.Views
          return found == 0
             ? F("No document contains \"{0}\".", term)
             : PluralF(found, "{0} document contains \"{1}\".", "{0} documents contain \"{1}\".", found, term);
-      }
-
-      /// <summary>The line under the search box: the list's result, said to a screen reader as it changes, or nothing.</summary>
-      private void ShowListStatus_(string text)
-      {
-         listStatus_.Text = text ?? "";
-         listStatus_.Visibility = string.IsNullOrEmpty(text) ? Visibility.Collapsed : Visibility.Visible;
-         if (!string.IsNullOrEmpty(text))
-            Announce.Request(listStatus_);
       }
 
       /// <summary>What the pane says above the list for a page with no guide: its purpose, and that no guide covers it.</summary>
@@ -254,7 +224,7 @@ namespace hMailServer.ControlPanel.Views
       /// heading, then its documents by title and file name, each title a link that
       /// opens it here - only the documents the search holds while it holds two
       /// characters or more. Where none does, the line under the box says so, as it
-      /// says how many do (ShowListStatus_), and the list is empty.
+      /// says how many do (ShowFindStatus_), and the list is empty.
       /// </summary>
       private void AddDocumentSections_(FlowDocument document)
       {

@@ -7007,6 +7007,9 @@ Elk Web Push-abonnement onder het huidige paar werkt meteen niet meer, en iedere
   <data name="Match any criterion (OR)" xml:space="preserve">
     <value>Aan een willekeurig criterium voldoen (OR)</value>
   </data>
+  <data name="Match {0} of {1} - press Enter for the next." xml:space="preserve">
+    <value>Overeenkomst {0} van {1} - druk op Enter voor de volgende.</value>
+  </data>
   <data name="Matched on" xml:space="preserve">
     <value>Vergeleken met</value>
   </data>
@@ -7923,6 +7926,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="No match" xml:space="preserve">
     <value>Geen overeenkomst</value>
+  </data>
+  <data name="No match for &quot;{0}&quot; in this document." xml:space="preserve">
+    <value>Geen overeenkomst voor "{0}" in dit document.</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>Geen overeenkomende accounts in {0}.</value>

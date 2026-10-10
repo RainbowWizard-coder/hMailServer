@@ -7007,6 +7007,9 @@ Varje Web Push-prenumeration under det nuvarande paret slutar fungera direkt, oc
   <data name="Match any criterion (OR)" xml:space="preserve">
     <value>Matcha något kriterium (ELLER)</value>
   </data>
+  <data name="Match {0} of {1} - press Enter for the next." xml:space="preserve">
+    <value>Träff {0} av {1} - tryck på Enter för att gå till nästa.</value>
+  </data>
   <data name="Matched on" xml:space="preserve">
     <value>Matchas mot</value>
   </data>
@@ -7923,6 +7926,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="No match" xml:space="preserve">
     <value>Ingen träff</value>
+  </data>
+  <data name="No match for &quot;{0}&quot; in this document." xml:space="preserve">
+    <value>Ingen träff på ”{0}” i det här dokumentet.</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>Inga matchande konton i {0}.</value>

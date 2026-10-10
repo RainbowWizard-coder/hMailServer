@@ -7007,6 +7007,9 @@
   <data name="Match any criterion (OR)" xml:space="preserve">
     <value>匹配任一条件（OR）</value>
   </data>
+  <data name="Match {0} of {1} - press Enter for the next." xml:space="preserve">
+    <value>第 {0} 个匹配，共 {1} 个 - 按 Enter 转到下一个。</value>
+  </data>
   <data name="Matched on" xml:space="preserve">
     <value>匹配依据</value>
   </data>
@@ -7923,6 +7926,9 @@
   </data>
   <data name="No match" xml:space="preserve">
     <value>无匹配</value>
+  </data>
+  <data name="No match for &quot;{0}&quot; in this document." xml:space="preserve">
+    <value>此文档中没有与“{0}”匹配的内容。</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>{0} 中没有匹配的账户。</value>

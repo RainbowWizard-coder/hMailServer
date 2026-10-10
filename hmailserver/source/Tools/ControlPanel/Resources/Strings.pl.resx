@@ -7095,6 +7095,9 @@ Każda subskrypcja Web Push utworzona z obecną parą natychmiast przestaje dzia
   <data name="Match any criterion (OR)" xml:space="preserve">
     <value>Dopasuj dowolne kryterium (OR)</value>
   </data>
+  <data name="Match {0} of {1} - press Enter for the next." xml:space="preserve">
+    <value>Wynik {0} z {1} - naciśnij Enter, aby przejść do następnego.</value>
+  </data>
   <data name="Matched on" xml:space="preserve">
     <value>Porównywane z</value>
   </data>
@@ -8014,6 +8017,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   </data>
   <data name="No match" xml:space="preserve">
     <value>Brak dopasowania</value>
+  </data>
+  <data name="No match for &quot;{0}&quot; in this document." xml:space="preserve">
+    <value>Brak wyników dla „{0}” w tym dokumencie.</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>Brak pasujących kont w {0}.</value>

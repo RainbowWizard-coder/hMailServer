@@ -7007,6 +7007,9 @@ Ogni iscrizione Web Push fatta con la coppia attuale smette subito di funzionare
   <data name="Match any criterion (OR)" xml:space="preserve">
     <value>Soddisfare un qualsiasi criterio (OR)</value>
   </data>
+  <data name="Match {0} of {1} - press Enter for the next." xml:space="preserve">
+    <value>Corrispondenza {0} di {1} - premi Invio per la successiva.</value>
+  </data>
   <data name="Matched on" xml:space="preserve">
     <value>Confrontato con</value>
   </data>
@@ -7923,6 +7926,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="No match" xml:space="preserve">
     <value>Nessuna corrispondenza</value>
+  </data>
+  <data name="No match for &quot;{0}&quot; in this document." xml:space="preserve">
+    <value>Nessuna corrispondenza per "{0}" in questo documento.</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>Nessun account corrispondente in {0}.</value>

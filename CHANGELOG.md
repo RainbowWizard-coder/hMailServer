@@ -3577,6 +3577,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   alone. Like the tour's card, the header's button carries no Alt key, since it is on whichever page a tour visits
   (review findings F024, F081; T3.3 work item 8). `TourGlyphTests` holds the glyphs and the rule for the words.
 
+- **Fixed: the help pane's All documentation could be pressed on its own list, its heading links were too small a
+  target, and a search that matched nothing said nothing.** With the list of every document showing, the pane's only
+  button was All documentation, which rebuilt the same list; the links to a document's headings were 12-pixel words
+  with two pixels above and below, about 20 pixels tall where WCAG 2.5.8 asks for 24; and a search term that matched
+  nothing left the pane as it was. All documentation is now disabled while the list is what the pane shows - on its
+  own and under a page that no guide covers - and enabled again with a document, the keyboard going to the search when
+  it was pressed from the keyboard; each heading link is 24 pixels tall at least; and a line under the search box
+  says "Match 2 of 5 - press Enter for the next." or "No match for "qqzz" in this document.", which a screen reader
+  hears as it changes (review finding F027; T3.3 work item 9). `HelpPaneControlsTests` holds the three. Two new
+  strings in all seventeen languages.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

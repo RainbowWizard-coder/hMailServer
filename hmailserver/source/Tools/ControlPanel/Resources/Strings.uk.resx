@@ -7095,6 +7095,9 @@
   <data name="Match any criterion (OR)" xml:space="preserve">
     <value>Відповідає будь-який критерій (OR)</value>
   </data>
+  <data name="Match {0} of {1} - press Enter for the next." xml:space="preserve">
+    <value>Збіг {0} з {1} - натисніть Enter, щоб перейти до наступного.</value>
+  </data>
   <data name="Matched on" xml:space="preserve">
     <value>Зіставляти з</value>
   </data>
@@ -8014,6 +8017,9 @@
   </data>
   <data name="No match" xml:space="preserve">
     <value>Немає збігу</value>
+  </data>
+  <data name="No match for &quot;{0}&quot; in this document." xml:space="preserve">
+    <value>У цьому документі немає збігів із «{0}».</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>У {0} немає відповідних облікових записів.</value>

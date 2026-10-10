@@ -7095,6 +7095,9 @@ Control Panel может читать файлы сообщений только
   <data name="Match any criterion (OR)" xml:space="preserve">
     <value>Соответствие любому критерию (ИЛИ)</value>
   </data>
+  <data name="Match {0} of {1} - press Enter for the next." xml:space="preserve">
+    <value>Совпадение {0} из {1} - нажмите Enter, чтобы перейти к следующему.</value>
+  </data>
   <data name="Matched on" xml:space="preserve">
     <value>Сопоставлять с</value>
   </data>
@@ -8014,6 +8017,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="No match" xml:space="preserve">
     <value>Нет совпадения</value>
+  </data>
+  <data name="No match for &quot;{0}&quot; in this document." xml:space="preserve">
+    <value>В этом документе нет совпадений с «{0}».</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>В {0} нет подходящих учётных записей.</value>

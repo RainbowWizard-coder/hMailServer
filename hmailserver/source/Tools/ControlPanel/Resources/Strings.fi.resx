@@ -7007,6 +7007,9 @@ Jokainen nykyisellä parilla tehty Web Push -tilaus lakkaa toimimasta heti, ja j
   <data name="Match any criterion (OR)" xml:space="preserve">
     <value>Täsmää mihin tahansa ehtoon (TAI)</value>
   </data>
+  <data name="Match {0} of {1} - press Enter for the next." xml:space="preserve">
+    <value>Osuma {0}/{1} - siirry seuraavaan painamalla Enter.</value>
+  </data>
   <data name="Matched on" xml:space="preserve">
     <value>Täsmäys</value>
   </data>
@@ -7923,6 +7926,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="No match" xml:space="preserve">
     <value>Ei osumaa</value>
+  </data>
+  <data name="No match for &quot;{0}&quot; in this document." xml:space="preserve">
+    <value>Tästä asiakirjasta ei löytynyt merkkijonoa "{0}".</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>Ei täsmääviä tilejä kohteessa {0}.</value>

@@ -7007,6 +7007,9 @@ Cada inscrição Web Push feita com o par atual para de funcionar na hora, e cad
   <data name="Match any criterion (OR)" xml:space="preserve">
     <value>Corresponder a qualquer critério (OR)</value>
   </data>
+  <data name="Match {0} of {1} - press Enter for the next." xml:space="preserve">
+    <value>Ocorrência {0} de {1} - pressione Enter para ir à próxima.</value>
+  </data>
   <data name="Matched on" xml:space="preserve">
     <value>Comparado com</value>
   </data>
@@ -7923,6 +7926,9 @@ Nada do que já está lá é removido.</value>
   </data>
   <data name="No match" xml:space="preserve">
     <value>Sem correspondência</value>
+  </data>
+  <data name="No match for &quot;{0}&quot; in this document." xml:space="preserve">
+    <value>Nenhuma ocorrência de "{0}" neste documento.</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>Nenhuma conta correspondente em {0}.</value>

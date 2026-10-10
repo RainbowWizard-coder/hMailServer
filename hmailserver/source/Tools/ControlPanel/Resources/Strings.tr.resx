@@ -7007,6 +7007,9 @@ Geçerli çiftle yapılan her Web Push aboneliği hemen çalışmayı bırakır 
   <data name="Match any criterion (OR)" xml:space="preserve">
     <value>Herhangi bir ölçütle eşleş (OR)</value>
   </data>
+  <data name="Match {0} of {1} - press Enter for the next." xml:space="preserve">
+    <value>Eşleşme {0}/{1} - sonrakine geçmek için Enter tuşuna basın.</value>
+  </data>
   <data name="Matched on" xml:space="preserve">
     <value>Eşleştirme</value>
   </data>
@@ -7923,6 +7926,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="No match" xml:space="preserve">
     <value>Eşleşme yok</value>
+  </data>
+  <data name="No match for &quot;{0}&quot; in this document." xml:space="preserve">
+    <value>Bu belgede "{0}" için eşleşme yok.</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>{0} içinde eşleşen hesap yok.</value>

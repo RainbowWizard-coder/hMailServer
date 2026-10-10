@@ -7007,6 +7007,9 @@ Cada suscripción de Web Push hecha con el par actual deja de funcionar al momen
   <data name="Match any criterion (OR)" xml:space="preserve">
     <value>Cumplir cualquier criterio (OR)</value>
   </data>
+  <data name="Match {0} of {1} - press Enter for the next." xml:space="preserve">
+    <value>Coincidencia {0} de {1} - pulse Intro para ir a la siguiente.</value>
+  </data>
   <data name="Matched on" xml:space="preserve">
     <value>Comparar con</value>
   </data>
@@ -7923,6 +7926,9 @@ No se elimina nada de lo que ya está.</value>
   </data>
   <data name="No match" xml:space="preserve">
     <value>Sin coincidencia</value>
+  </data>
+  <data name="No match for &quot;{0}&quot; in this document." xml:space="preserve">
+    <value>No hay coincidencias para «{0}» en este documento.</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>No hay cuentas coincidentes en {0}.</value>

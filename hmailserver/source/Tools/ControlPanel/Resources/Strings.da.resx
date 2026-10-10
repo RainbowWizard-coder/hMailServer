@@ -7007,6 +7007,9 @@ Hvert Web Push-abonnement under det nuværende par holder straks op med at virke
   <data name="Match any criterion (OR)" xml:space="preserve">
     <value>Match et hvilket som helst kriterium (OR)</value>
   </data>
+  <data name="Match {0} of {1} - press Enter for the next." xml:space="preserve">
+    <value>Forekomst {0} af {1} - tryk på Enter for at gå til den næste.</value>
+  </data>
   <data name="Matched on" xml:space="preserve">
     <value>Sammenlignes med</value>
   </data>
@@ -7923,6 +7926,9 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="No match" xml:space="preserve">
     <value>Intet match</value>
+  </data>
+  <data name="No match for &quot;{0}&quot; in this document." xml:space="preserve">
+    <value>Ingen forekomst af "{0}" i dette dokument.</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>Ingen matchende konti i {0}.</value>

@@ -40,6 +40,13 @@ namespace hMailServer.ControlPanel.Views
    {
       private readonly TextBlock title_ = new TextBlock { FontSize = Typography.Body, FontWeight = FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center };
       private readonly TextBox search_ = new TextBox { FontSize = Typography.Control, ClearButtonEnabled = true, Margin = new Thickness(0, 8, 0, 8) };
+
+      // What the search found, under its box: "Match 2 of 5 - press Enter for the next."
+      // or "No match for "qqzz" in this document.", where a term that matched
+      // nothing left the pane as it was and said nothing (review finding F027). A
+      // polite live region named by its text, so that a screen reader hears it
+      // as it changes. Four pixels under the box, which keeps eight under it.
+      private readonly TextBlock findStatus_ = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, -DesignTokens.Space.Xs, 0, DesignTokens.Space.Sm), Visibility = Visibility.Collapsed };
       private readonly StackPanel headings_ = new StackPanel();
       private readonly ScrollViewer headingsScroll_ = new ScrollViewer { MaxHeight = 190, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
       private readonly FlowDocumentScrollViewer viewer_ = new FlowDocumentScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, IsToolBarVisible = false, Padding = new Thickness(0, 0, 8, 0) };
@@ -132,9 +139,14 @@ namespace hMailServer.ControlPanel.Views
                e.Handled = true;
             }
          };
-         FrameworkElement searchRow = SearchWithListStatus_();
-         Grid.SetRow(searchRow, 1);
-         root.Children.Add(searchRow);
+         findStatus_.SetResourceReference(StyleProperty, "TextCaption");
+         AutomationProperties.SetAutomationId(findStatus_, "help-search-result");
+         AutomationProperties.SetLiveSetting(findStatus_, AutomationLiveSetting.Polite);
+         var searchBlock = new StackPanel();
+         searchBlock.Children.Add(search_);
+         searchBlock.Children.Add(findStatus_);
+         Grid.SetRow(searchBlock, 1);
+         root.Children.Add(searchBlock);
 
          // The document's other headings, each a link that scrolls to it.
          headingsScroll_.Content = headings_;
@@ -167,7 +179,16 @@ namespace hMailServer.ControlPanel.Views
          foot.Children.Add(wikiButton_);
          allButton_ = new Button { Content = L("_All documentation"), Appearance = ControlAppearance.Secondary };
          AutomationProperties.SetAutomationId(allButton_, "help-all");
-         allButton_.Click += (s, e) => GoTo_(ShowAll);
+         // Pressed, it shows the list and cannot be pressed again there
+         // (ShowAll): the keyboard goes to the search over the list rather than
+         // being left on a button that has just been disabled.
+         allButton_.Click += (s, e) =>
+         {
+            bool hadKeyboard = allButton_.IsKeyboardFocused;
+            GoTo_(ShowAll);
+            if (hadKeyboard)
+               search_.Focus();
+         };
          foot.Children.Add(allButton_);
          Grid.SetRow(foot, 4);
          root.Children.Add(foot);
@@ -226,6 +247,8 @@ namespace hMailServer.ControlPanel.Views
          search_.Text = "";
          title_.Text = page == null ? L("Help") : L(page.Title);
          UpdateWikiLink_();
+         // Every document is listed below already.
+         allButton_.IsEnabled = false;
 
          List<Block> intro = NoGuideIntro_(page);
          ShowFromTheTop_(DocumentList_(intro));
@@ -240,6 +263,7 @@ namespace hMailServer.ControlPanel.Views
       public void ShowDocument(string name, string heading)
       {
          noGuideFor_ = null;
+         allButton_.IsEnabled = true;
          string spelled = HelpPages.Find(name);
          if (spelled == null)
          {
@@ -292,6 +316,9 @@ namespace hMailServer.ControlPanel.Views
          search_.Text = "";
          title_.Text = L("All documentation");
          UpdateWikiLink_();
+         // The list is what the button shows: pressed again it rebuilt the same
+         // list (review finding F027). A document opened from it enables it again.
+         allButton_.IsEnabled = false;
          ShowFromTheTop_(DocumentList_(null));
       }
 
@@ -322,12 +349,16 @@ namespace hMailServer.ControlPanel.Views
       private FrameworkElement HeadingLink_(MdHeading heading)
       {
          string label = MarkdownBlocks.PlainText(heading.Text);
+         // 24 pixels tall at least, the target WCAG 2.5.8 asks for: with two
+         // pixels above and below its 12-pixel words a link was about 20 (review
+         // finding F027).
          var button = new Button
          {
             Content = label,
             Appearance = ControlAppearance.Transparent,
             FontSize = Typography.Caption,
-            Padding = new Thickness(heading.Level == 2 ? 14 : 4, 2, 4, 2),
+            Padding = new Thickness(heading.Level == 2 ? 14 : 4, 4, 4, 4),
+            MinHeight = 24,
             HorizontalAlignment = HorizontalAlignment.Left,
             HorizontalContentAlignment = HorizontalAlignment.Left,
             Cursor = Cursors.Hand
@@ -521,11 +552,17 @@ namespace hMailServer.ControlPanel.Views
       private void Find_(bool next)
       {
          if (viewer_.Document == null)
+         {
+            ShowFindStatus_(null);
             return;
+         }
 
          string term = search_.Text.Trim();
          if (term.Length < 2)
+         {
+            ShowFindStatus_(null);
             return;
+         }
 
          TextPointer from = next && viewer_.Selection != null && !viewer_.Selection.IsEmpty
             ? viewer_.Selection.End
@@ -533,10 +570,34 @@ namespace hMailServer.ControlPanel.Views
 
          TextRange hit = FindText_(from, term) ?? (next ? FindText_(viewer_.Document.ContentStart, term) : null);
          if (hit == null)
+         {
+            ShowFindStatus_(F("No match for \"{0}\" in this document.", term));
             return;
+         }
 
          viewer_.Selection?.Select(hit.Start, hit.End);
          (hit.Start.Parent as FrameworkContentElement)?.BringIntoView();
+
+         // Which of the document's matches this is, counted the way Find_ moves
+         // through them: from the top, one run at a time.
+         int total = 0;
+         int at = 0;
+         for (TextRange match = FindText_(viewer_.Document.ContentStart, term); match != null; match = FindText_(match.End, term))
+         {
+            total++;
+            if (at == 0 && match.Start.CompareTo(hit.Start) >= 0)
+               at = total;
+         }
+         ShowFindStatus_(F("Match {0} of {1} - press Enter for the next.", Math.Max(at, 1), Math.Max(total, 1)));
+      }
+
+      /// <summary>The line under the search box: what it found, or nothing while there is no term to find.</summary>
+      private void ShowFindStatus_(string text)
+      {
+         findStatus_.Text = text ?? "";
+         findStatus_.Visibility = string.IsNullOrEmpty(text) ? Visibility.Collapsed : Visibility.Visible;
+         if (!string.IsNullOrEmpty(text))
+            Announce.Request(findStatus_);
       }
 
       private static TextRange FindText_(TextPointer from, string term)

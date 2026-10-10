@@ -7007,6 +7007,9 @@ Chaque abonnement Web Push fait avec la paire actuelle cesse aussitôt de foncti
   <data name="Match any criterion (OR)" xml:space="preserve">
     <value>Correspondre à n'importe quel critère (OU)</value>
   </data>
+  <data name="Match {0} of {1} - press Enter for the next." xml:space="preserve">
+    <value>Correspondance {0} sur {1} - appuyez sur Entrée pour passer à la suivante.</value>
+  </data>
   <data name="Matched on" xml:space="preserve">
     <value>Comparé à</value>
   </data>
@@ -7923,6 +7926,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   </data>
   <data name="No match" xml:space="preserve">
     <value>Aucune correspondance</value>
+  </data>
+  <data name="No match for &quot;{0}&quot; in this document." xml:space="preserve">
+    <value>Aucune correspondance pour « {0} » dans ce document.</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>Aucun compte correspondant dans {0}.</value>
