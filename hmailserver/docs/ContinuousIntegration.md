@@ -112,6 +112,7 @@ The other tables on this page name runners the same way.
 | `psgallery-publish` | release | linix | `master`, started by hand | The release's `HmailServer` module to the PowerShell Gallery; says "not configured" and passes until `PSGALLERY_API_KEY` is set, and refuses a module with no Authenticode signature, which the release does not make yet |
 | `installer-smoke` | release | linix | a `batch*` branch or a `v*` tag, started by hand | A placeholder. It fails with a sentence saying that the installer smoke test runs from the VMware host ([The installer smoke test](#the-installer-smoke-test)) |
 | `renovate` | check | linix | the schedule described `renovate`, and nothing else | Renovate's dependency updates ([Dependency updates](#dependency-updates)) |
+| `image-pins` | check | linix | the schedule described `renovate`, and nothing else | Every image the CI files and the build scripts pin by digest, asked of its registry as a runner asks it; a pin the registry no longer serves fails the pipeline, named with every place that names it (`build/check-image-pins.py`; [Image pins](#image-pins)) |
 | `forge-export` | check | linix | the pipeline schedule for `master` whose description is `export`, and nothing else | The issues, merge requests, labels, milestones, boards and releases as JSON and the wiki as a git bundle, and GitLab's project export when its token is set: what a push mirror does not carry, kept on linix and as an artifact for Developers only (`.gitlab/ci/forge-export.yml`, `build/ci/forge-export.py`; [Mirroring.md](Mirroring.md)) |
 | `scorecard` | check | linix | the schedule described `scorecard`, and nothing else | OpenSSF Scorecard 5.5.0 from cache.nixos.org over the project, its result kept for `package-repos` to publish with a badge; says "not configured" and passes until the owner's `GITLAB_AUTH_TOKEN` exists (`.gitlab/ci/scorecard.yml`, `build/ci/scorecard.sh`; [OpenSSF Scorecard](#openssf-scorecard)) |
 
@@ -158,7 +159,7 @@ Which pipeline runs what
 | any other tag | none | |
 | the schedule described `fuzz`, on `master` | the schedule's | `linux-fuzz` alone ([The fuzz schedule](#the-fuzz-schedule)) |
 | the schedule described `coverage`, on `master` | the schedule's | `linux-coverage` alone ([The coverage schedule](#the-coverage-schedule)) |
-| the schedule described `renovate`, on `master` | the schedule's | `renovate` alone ([Dependency updates](#dependency-updates)) |
+| the schedule described `renovate`, on `master` | the schedule's | `renovate`, and `image-pins` beside it ([Dependency updates](#dependency-updates), [Image pins](#image-pins)) |
 | the schedule described `security`, on `master`, run once by hand | the schedule's | `secret_detection` alone, over the whole history ([Security scanning](#security-scanning)) |
 | the schedule described `export`, on `master` | the schedule's | `forge-export` alone ([Mirroring.md](Mirroring.md)) |
 | the schedule described `scorecard`, on `master`, weekly | the schedule's | `scorecard`, then `pages` and `package-repos`, which publish its result ([OpenSSF Scorecard](#openssf-scorecard)) |
@@ -1850,6 +1851,7 @@ pinned by digest where the CI file names it.
 | `linux-build`, `linux-build-gcc`, `linux-suite`, `linux-cross`, `linux-sanitize`, `linux-db-upgrade-*`, `linux-sbom`, `linux-repro`, `linux-fuzz` | `registry.gitlab.com/hmailserver/hmailserver/ci-linux`, by digest (built on linix) | Ubuntu's packages; the .NET SDK and PowerShell from Microsoft's SDK image; Syft 1.52.0 from `anchore/syft` on Docker Hub ([The image](#the-image)) |
 | `semgrep-sast` | `registry.gitlab.com/hmailserver/hmailserver/mirror/semgrep`, by digest: GitLab's `security-products/semgrep` 6.26.1, copied digest for digest ([Change checks](#change-checks)) | the analyzer, Semgrep and GitLab's rules, all in the image |
 | `secret_detection` | `registry.gitlab.com/hmailserver/hmailserver/mirror/secrets`, by digest: GitLab's `security-products/secrets` 7.40.0, copied digest for digest ([Change checks](#change-checks)) | the analyzer, gitleaks 8.30.1 and GitLab's rules 0.25.1, all in the image; `build/scan-secrets.py` takes the same image |
+| `image-pins` | `python:3.14-slim-trixie` (Docker Hub) | Python's own library alone; it asks each pin's own registry for its manifest, and downloads nothing |
 | `semgrep-sast-gate`, `mr-dependency-check` | `python:3.14-slim-trixie` (Docker Hub) | git from Debian's archive; OSV's export from Google Cloud Storage (`osv-vulnerabilities.storage.googleapis.com`) and OSV's API (`api.osv.dev`); the checkers are the standard library's Python |
 | `scorecard` | `nixos/nix:2.35.2` (Docker Hub) | OpenSSF Scorecard 5.5.0 and its closure from `cache.nixos.org`, by its Nix store path and pinned NAR hash, each path checked against the signature of the `cache.nixos.org-1` key the image trusts ([OpenSSF Scorecard](#openssf-scorecard)) |
 | `linux-db-upgrade-*` services | `postgres:18`, `mariadb:13` (Docker Hub) | the database servers |
@@ -3443,6 +3445,44 @@ images. The debug log lists the updates before the rules are applied; the update
 kept were counted by applying `renovate.json`'s rules to that list, which gave
 Renovate's own count and order ("N flattened updates found") for both files.
 
+### Image pins
+
+Renovate moves a pin to a newer digest; it does not say when the digest a pin
+names has gone. GitLab's registry stops serving a digest of its analyzers within
+days of the tag moving on - `semgrep-sast`'s of 26 September 2026 by 5 October,
+`secret_detection`'s of 5 October by 7 October, `container_scanning`'s of 5
+October by 10 October - and a job whose image is gone fails at its pull
+(`runner_configuration_error`), whatever it was for, and only when it runs:
+`container_scanning` runs in a release tag's pipeline alone, and is allowed to
+fail. `build/check-image-pins.py` finds such a pin before a job needs it.
+
+It reads every image named by digest (`name[:tag]@sha256:<digest>`) in
+`.gitlab-ci.yml`, the files under `.gitlab/ci/`, every file under `build/`, and
+every Dockerfile, `*.Dockerfile`, Containerfile and Compose file of the tree -
+an `image:` line, a `FROM`, a shell default such as `${VAR:-name@sha256:...}`, a
+string in a script - and not the documents, which record digests as they were.
+It asks each pin's registry for the digest as a runner asks it, without
+credentials: a `HEAD` of `/v2/<repository>/manifests/<digest>`, with the
+anonymous token the registry's challenge names. A 404, a refusal to that token,
+or an answer naming another digest is a pin gone, and fails the check (exit 1),
+naming the pin and each file and line that names it. A network error, a 429 or a
+5xx is asked again, 5 and then 20 seconds later, and after the third time is a
+registry that could not be asked (exit 2), which the job retries. It downloads
+nothing, and Docker Hub does not count a `HEAD` against its pull limit. On 10
+October 2026 it found 59 pins in 118 places in 37 seconds, and one gone,
+`container_scanning`'s, which answered 404 ([Security
+scanning](#security-scanning)).
+
+The `image-pins` job runs it daily, on linix or server2, in the pipeline of the
+schedule described `renovate`, the pipeline about the pins, beside `renovate` and
+needing nothing of it: its self-test first, against a registry it serves on the
+loopback, then the check, and a pin gone fails that pipeline. It needs the
+network, so it is not one of the checkers, which run its self-test alone. `python3 build/check-image-pins.py
+--list` prints the pins and where each is named, asking nothing, and RELEASE.md
+has the check run before a release tag. `build/check-release-chain.py` fails
+when the job is missing, runs in another pipeline, leaves out the self-test or
+the check, or is `allow_failure`.
+
 How long each job takes
 -----------------------
 
@@ -3496,6 +3536,7 @@ measured times after the first pipelines.
 | `container-image` | under a minute by hand | 30 min | Both tarballs imported, the index made and checked, and pushed to a registry standing in for GitLab's on linix on 29 September 2026; the push to `registry.gitlab.com` adds the upload of about 170 MB, and the job the download of both tarballs |
 | `container-image-sign`, `container_scanning`, `container_scanning_arm64` | not measured | 15 and 30 min | None has run in a pipeline. The analyzer's scan of Ubuntu 24.04 on linix, by hand, finished within two minutes of its start, its image's download included; its scan of each platform's image of 6.3.5, by digest, took 6 s once its image was there |
 | `renovate` | 2 to 5 min | 1 h | The dry runs of 25 September 2026 on linix: 5 s for the advisory database, 9 s to install the .NET SDK, 1 to 1.5 min for Renovate. The first run also pulls its image, about 450 MB |
+| `image-pins` | under a minute | 15 min | 37 s from the laptop on 10 October 2026, for 59 pins in 118 places; the self-test about a second |
 
 The runners' own `maximum_timeout` is four hours. GitLab lets a job's
 `timeout:` exceed the project's default of one hour, but not exceed its

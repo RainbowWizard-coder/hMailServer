@@ -89,7 +89,10 @@ pipeline passed, the change checks in it (SECURITY.md, "Every change";
    (step 11): the pipeline builds it, in bench150's checkout, and refuses to if
    that checkout has a change of its own to a tracked file, or a file git does
    not track where a build would take it in (`build/ci/windows-installer.ps1`
-   says which).
+   says which). Before the tag, `python3 build/check-image-pins.py` finds every
+   image the CI files pin in its registry, and exits 0: a job whose image is gone
+   fails at its pull, in the tag's pipeline as anywhere
+   (`hmailserver/docs/ContinuousIntegration.md`, "Image pins").
 2. **Tag the release on `master`**, annotated and signed with the owner's key,
    once the commit is on GitLab's `master` - where the release commit, with the
    version stamp and the notes, gets through its batch's merge request

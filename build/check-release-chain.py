@@ -128,6 +128,11 @@ refuses it. This checker holds them to each other. It fails when:
     others; or a rule of those files still names
     HM_PIPELINE or RUN_RENOVATE, the variables that chose them before, which the
     project would refuse on a schedule - one way in;
+  * the image pins are not asked of their registries: the image-pins job must run
+    build/check-image-pins.py's self-test and the check in the pipeline of the
+    schedule described "renovate" on a protected ref, and may not be allow_failure,
+    so that a digest a registry no longer serves fails that pipeline, daily, and not
+    first the job that pulls it;
   * the jobs on the project's own runners do not skip a push that changes
     documentation alone, or skip one that changes anything else: the rules:changes
     paths of .own-runners (which db-matrix shares) are matched against every file
@@ -467,6 +472,7 @@ EXEMPT = {
     "linux-fuzz": ('$CI_PIPELINE_SOURCE == "schedule" && $CI_PIPELINE_SCHEDULE_DESCRIPTION == "fuzz" &&', "only the fuzz schedule"),
     "linux-coverage": ('$CI_PIPELINE_SOURCE == "schedule" && $CI_PIPELINE_SCHEDULE_DESCRIPTION == "coverage" &&', "only the coverage schedule"),
     "renovate": ('$CI_PIPELINE_SOURCE == "schedule" && $CI_PIPELINE_SCHEDULE_DESCRIPTION == "renovate" &&', "only Renovate's schedule"),
+    "image-pins": ('$CI_PIPELINE_SOURCE == "schedule" && $CI_PIPELINE_SCHEDULE_DESCRIPTION == "renovate" &&', "only Renovate's schedule"),
     "sign-off": ('$CI_COMMIT_BRANCH =~ /^batch/ && $CI_COMMIT_REF_PROTECTED == "true"', "only a merge request or a batch* branch"),
     "installer-smoke": ("($CI_COMMIT_TAG =~ /^v/ || $CI_COMMIT_BRANCH =~ /^batch/)", "only a v* tag or a batch* branch"),
 }
@@ -2124,6 +2130,28 @@ def check(texts, chain, feed):
         if not refused or '$CI_PIPELINE_SCHEDULE_DESCRIPTION == "%s"' % description not in refused.group(1):
             problems.append("pages would run in the pipeline of the schedule described \"%s\" too, which is %s's alone: "
                             "it refuses a schedule of that description, when: never" % (description, job))
+    # The pins asked of their registries, daily, in Renovate's schedule's pipeline: a
+    # digest a registry no longer serves fails that pipeline, and not first the job that
+    # pulls it, a release's among them (build/check-image-pins.py).
+    pins_job = jobs.get("image-pins", "")
+    if not pins_job:
+        problems.append("there is no image-pins job (.gitlab-ci.yml): a digest a registry no longer serves would be found "
+                        "only by the job that pulls it, a release tag's among them")
+    else:
+        if '$CI_PIPELINE_SOURCE == "schedule" && $CI_PIPELINE_SCHEDULE_DESCRIPTION == "renovate" && $CI_COMMIT_REF_PROTECTED == "true"' \
+                not in rules_text("image-pins", jobs):
+            problems.append("image-pins does not run in the pipeline of the schedule described \"renovate\" on a protected ref, "
+                            "daily, beside renovate")
+        if not re.search(r"^    - python3 build/check-image-pins\.py --self-test\s*$", pins_job, re.MULTILINE) or \
+                not re.search(r"^    - python3 build/check-image-pins\.py\s*$", pins_job, re.MULTILINE):
+            problems.append("image-pins does not run build/check-image-pins.py's self-test and then the check itself over the "
+                            "tree, each as a line of its script")
+        if re.search(r"^  allow_failure:", pins_job, re.MULTILINE):
+            problems.append("image-pins says allow_failure: a pin gone from its registry must fail the pipeline")
+        if not re.search(r"^  retry:\n    max: 2\n    when: !reference \[\.gate-retry, retry, when\]\n    exit_codes: \[2\]\n",
+                         pins_job + "\n", re.MULTILINE):
+            problems.append("image-pins is not retried twice on exit 2, a registry that could not be asked, and on "
+                            ".gate-retry's reasons alone: a retry on every failure would ask again about a pin that is gone")
     repos_job = blocks(texts["repos"]).get("package-repos", "")
     if REPOS_RULES not in repos_job or len(re.findall(r"^    - ", repos_job.split("  rules:\n", 1)[-1].split("\n  script:")[0], re.MULTILINE)) != 1:
         problems.append("package-repos's rules are not pages' alone (%s): it would deploy the site in a pipeline "
@@ -3786,6 +3814,20 @@ def self_test(chain, feed):
     # The schedules.
     broken("the fuzz job chosen by a variable again", "ci", '$CI_PIPELINE_SOURCE == "schedule" && $CI_PIPELINE_SCHEDULE_DESCRIPTION == "fuzz" &&',
            '$CI_PIPELINE_SOURCE == "schedule" && $HM_PIPELINE == "fuzz" &&', "linux-fuzz does not run for the schedule described \"fuzz\"")
+    broken("the image pins not asked", "ci", "\nimage-pins:\n", "\nimage-pins-off:\n", "there is no image-pins job")
+    broken("the image pins asked in every schedule's pipeline", "ci",
+           '  rules:\n    - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_PIPELINE_SCHEDULE_DESCRIPTION == "renovate" && '
+           '$CI_COMMIT_REF_PROTECTED == "true"\n  retry:\n',
+           '  rules:\n    - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_PIPELINE_SCHEDULE_DESCRIPTION != "fuzz" && '
+           '$CI_COMMIT_REF_PROTECTED == "true"\n  retry:\n',
+           "image-pins does not run in the pipeline of the schedule described")
+    broken("the image pins' check left out", "ci", "    - python3 build/check-image-pins.py\n\n",
+           "    - python3 build/check-image-pins.py --list\n\n", "image-pins does not run build/check-image-pins.py")
+    broken("a pin gone let pass", "ci", "image-pins:\n  extends: .no-github\n",
+           "image-pins:\n  extends: .no-github\n  allow_failure: true\n", "image-pins says allow_failure")
+    broken("the image pins retried on every failure", "ci", "    when: !reference [.gate-retry, retry, when]\n    exit_codes: [2]\n  script:\n"
+           "    - python3 build/check-image-pins.py --self-test\n",
+           "    exit_codes: [2]\n  script:\n    - python3 build/check-image-pins.py --self-test\n", "image-pins is not retried twice on exit 2")
     broken("Renovate chosen by a variable as well", "ci", '$CI_PIPELINE_SCHEDULE_DESCRIPTION == "renovate" && $CI_COMMIT_REF_PROTECTED',
            '$CI_PIPELINE_SCHEDULE_DESCRIPTION == "renovate" && $RUN_RENOVATE == "1" && $CI_COMMIT_REF_PROTECTED', "still reads $RUN_RENOVATE")
     broken("an old route back in a refusal", "security", '    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"',

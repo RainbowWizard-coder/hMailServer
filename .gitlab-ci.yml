@@ -249,7 +249,8 @@ variables:
   PYTHONDONTWRITEBYTECODE: "1"
 
 # Every scheduled pipeline runs one job, chosen by the schedule's description
-# ($CI_PIPELINE_SCHEDULE_DESCRIPTION): "fuzz" linux-fuzz, "coverage" linux-coverage, "renovate" renovate,
+# ($CI_PIPELINE_SCHEDULE_DESCRIPTION): "fuzz" linux-fuzz, "coverage" linux-coverage, "renovate" renovate
+# with image-pins beside it,
 # "export" forge-export (.gitlab/ci/forge-export.yml), "security" secret_detection,
 # "scorecard" scorecard (.gitlab/ci/scorecard.yml) with pages and package-repos, which
 # publish its result,
@@ -326,6 +327,9 @@ checkers:
           # hmctl's half alone, below; this image has no pwsh, and cli-powershell
           # (.gitlab/ci/cli-packages.yml) runs the PowerShell module's half.
           build/check-cli.py) continue ;;
+          # Asks every pinned image's registry: the image-pins job's, in Renovate's
+          # schedule's pipeline. Its self-test, which asks only the loopback, is below.
+          build/check-image-pins.py) continue ;;
         esac
         check python3 "$script"
       done
@@ -380,6 +384,9 @@ checkers:
       # The secret scan the hooks and the landing run, without a scanner: what it
       # reads, what it asks the scanner, and that it refuses when there is none.
       check python3 build/scan-secrets.py --self-test
+      # The image pins' check, against a registry it serves on the loopback: what it
+      # reads, how it asks, and what a gone or unanswered pin makes of the exit code.
+      check python3 build/check-image-pins.py --self-test
       # Token-Permissions against CI files made to pass it and made to break it: a
       # protected-ref clause inside an OR, rules it could misread, a template's token.
       check python3 build/ci/repo-hygiene.py --self-test
@@ -1646,6 +1653,35 @@ renovate:
     access: developer
     paths:
       - renovate-log.ndjson
+
+# Every image the CI files and the build scripts name by digest, asked of its registry
+# without credentials, as a runner asks it (build/check-image-pins.py): GitLab's
+# registry stops serving a digest of its analyzers within days of their tags moving on,
+# and a job whose image is gone fails at its pull, whatever it was for, and only when it
+# runs - container_scanning's of 5 October 2026 answered 404 on 10 October, in a job a
+# release tag's pipeline alone runs. Daily, in the pipeline of Renovate's schedule, the
+# one about the pins, beside renovate and needing nothing of it: a pin gone fails the
+# pipeline, named with every file and line that names it (exit 1), which is never
+# retried. A registry that could not be asked, three times, is exit 2, which is tried
+# again twice, as are GitLab's own failures the gates are retried on (.gate-retry,
+# .gitlab/ci/gitlab-security.yml). It needs the network, so it is not one of the
+# checkers, which run its self-test alone. Python's own library alone, in checkers'
+# image; .no-github keeps GitHub's hosts out, which no pin may name.
+image-pins:
+  extends: .no-github
+  stage: check
+  image: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
+  needs: []
+  timeout: 15 minutes
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_PIPELINE_SCHEDULE_DESCRIPTION == "renovate" && $CI_COMMIT_REF_PROTECTED == "true"
+  retry:
+    max: 2
+    when: !reference [.gate-retry, retry, when]
+    exit_codes: [2]
+  script:
+    - python3 build/check-image-pins.py --self-test
+    - python3 build/check-image-pins.py
 
 # ---------------------------------------------------------------- the release
 #

@@ -4651,6 +4651,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `netstat -ano` - says which it read, and after starting the task waits for 3310 a minute at most, in five-second
   looks, where it slept 25 seconds whatever happened. The file is under `build/ci` because the job runs the commit's
   `build/ci` alone (ContinuousIntegration.md, "The Windows gate").
+- **Every image the CI files and the build scripts pin by digest is asked of its registry every day, and a pin gone
+  fails the pipeline, named.** GitLab's registry stops serving a digest of its analyzers within days of the tag moving
+  on, and a job whose image is gone fails at its pull, only when it runs: `container_scanning`'s, which runs in a
+  release tag's pipeline alone, answered 404 on 10 October 2026 and nothing had shown it. The new
+  `build/check-image-pins.py` reads every `name[:tag]@sha256:<digest>` in `.gitlab-ci.yml`, `.gitlab/ci/`, `build/`
+  and the tree's Dockerfiles and Compose files, and asks each registry for the digest as a runner does, without
+  credentials (a `HEAD` of the manifest, with the anonymous token the registry's challenge names): a 404, a refusal
+  or another digest fails it with every file and line that names the pin, and a registry that cannot be asked after
+  three tries is exit 2. The `image-pins` job runs its self-test, against a registry it serves on the loopback, and
+  the check in the pipeline of Renovate's daily schedule; `build/check-release-chain.py` holds the job to that, not
+  `allow_failure`, and RELEASE.md runs the check before a tag; `checkers` runs the self-test alone. On 10 October it
+  found 59 pins in 118 places, and
+  `container_scanning`'s gone (ContinuousIntegration.md, "Image pins").
 
 ### Documentation
 
