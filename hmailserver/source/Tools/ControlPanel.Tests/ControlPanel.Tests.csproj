@@ -329,6 +329,10 @@
        finding F246). -->
   <ItemGroup>
     <Compile Include="..\ControlPanel\Services\ServerStateText.cs" />
+  <!-- The shell's sidebar width beside the help pane, and when the pane makes it the
+       rail (review findings F021 and F022). -->
+  <ItemGroup>
+    <Compile Include="..\ControlPanel\Services\ShellGeometry.cs" />
   </ItemGroup>
 
   <ItemGroup>

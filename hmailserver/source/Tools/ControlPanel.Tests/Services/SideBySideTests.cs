@@ -12,9 +12,9 @@ namespace hMailServer.ControlPanel.Tests.Services
    /// Parts laid side by side keep their minimum widths, or go one above the other
    /// (<see cref="SideBySide"/>). The widths are the pages' own: the domains page's
    /// columns share its width two to three and need 280 and 400 pixels, its alias
-   /// and list cards half each and 280, and the rules page's criteria and actions
+   /// and list cards half each and 270, and the rules page's criteria and actions
    /// half each and 340. The page is 512 pixels wide in the narrowest window
-   /// (760 by 520), 752 in a 1024 by 768 one and 952 in a 1280 by 800 one, and
+   /// (760 by 520), 728 in a 1024 by 768 one and 922 in a 1280 by 800 one, and
    /// the rules page in the account dialog's Rules tab 544.
    /// </summary>
    public class SideBySideTests
@@ -37,16 +37,17 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// The narrowest window's 512 pixels gave the alias and list cards 104 and 116
       /// side by side beside the domains column; in one column they would have 256 each,
       /// still short of a list row's three buttons and an address, so they go one
-      /// above the other. In a 1280 by 800 window the column is 571 wide and they
-      /// stay side by side.
+      /// above the other. In a 1280 by 800 window the column is 546 wide beside the
+      /// sidebar's 310 pixels and they stay side by side, 273 each.
       /// </summary>
       [Theory]
       [InlineData(232, false)]
       [InlineData(512, false)]
-      [InlineData(560, true)]
-      [InlineData(571, true)]
-      public void TheAliasAndListCards_AreSideBySide_WhereEachKeeps280(double width, bool sideBySide)
-         => Assert.Equal(sideBySide, SideBySide.Fits(width, Halves, new double[] { 280, 280 }));
+      [InlineData(539, false)]
+      [InlineData(540, true)]
+      [InlineData(546, true)]
+      public void TheAliasAndListCards_AreSideBySide_WhereEachKeeps270(double width, bool sideBySide)
+         => Assert.Equal(sideBySide, SideBySide.Fits(width, Halves, new double[] { 270, 270 }));
 
       [Theory]
       [InlineData(512, false)]

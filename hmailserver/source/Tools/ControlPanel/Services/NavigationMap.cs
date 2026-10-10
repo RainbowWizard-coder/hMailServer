@@ -91,9 +91,11 @@ namespace hMailServer.ControlPanel.Services
       /// it, and an unknown name renders no icon rather than failing - loudly
       /// in DEBUG builds, because Enum.TryParse failing silently is how a
       /// mistyped name once shipped one group bare among seven with glyphs.
-      /// Set on the top-level groups - a glyph on all fifty leaf pages would be
-      /// noise, and Windows 11's own settings surfaces put them on the
-      /// top level.
+      /// Set on the top-level groups and the three top-level pages - Welcome,
+      /// the Dashboard and About - so that every row of the rail is a glyph and
+      /// every top-level label starts at one edge; a glyph on all fifty pages
+      /// inside the groups would be noise, and Windows 11's own settings surfaces
+      /// put them on the top level.
       /// </summary>
       public string Icon { get; }
    }
@@ -465,9 +467,16 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>A page any signed-in credential may open.</summary>
       internal const string EveryCredential = "";
 
+      /// <summary>
+      /// A page; <paramref name="icon"/> is for the three at the top level alone -
+      /// Welcome, the Dashboard and About - whose rows sit beside the groups': with
+      /// no glyph they were letters in the rail, the translated initial (W, D, A in
+      /// English, other letters in German and Japanese), and their labels started
+      /// at a third left edge in the tree, left of the groups' (review finding F023).
+      /// </summary>
       private static NavNode Page(string key, string title, string purpose, string aliases = "", string seeAlso = "",
-         string needs = ServerAdministration)
-         => new NavNode(key, title, purpose, Split(aliases), Split(seeAlso), Array.Empty<NavNode>(), null, needs);
+         string needs = ServerAdministration, string icon = null)
+         => new NavNode(key, title, purpose, Split(aliases), Split(seeAlso), Array.Empty<NavNode>(), icon, needs);
 
       private static NavNode Group(string title, string purpose, string aliases, params NavNode[] children)
          => new NavNode(null, title, purpose, Split(aliases), Array.Empty<string>(), children);
@@ -504,12 +513,14 @@ namespace hMailServer.ControlPanel.Services
                N("Start here: jump straight to a common task, or describe what you want to do in the search."),
                aliases: "Home|Start|Getting started|Quick actions|First steps",
                seeAlso: "dashboard",
-               needs: EveryCredential),
+               needs: EveryCredential,
+               icon: "Home24"),
 
             Page("dashboard", N("Dashboard"),
                N("Live counters and charts for processed mail, spam, viruses and sessions."),
                aliases: "Overview|Charts|Graphs|Statistics|Counters|Throughput",
-               seeAlso: "status|queue"),
+               seeAlso: "status|queue",
+               icon: "DataUsage24"),
 
             // First after the dashboard, because it is what a new server needs
             // first: the checklist that says what is done and what is next, the
@@ -849,7 +860,7 @@ namespace hMailServer.ControlPanel.Services
                   aliases: "Attachment blocking|Block exe|File extensions|Strip attachments|Dangerous files|Zip",
                   seeAlso: "virusoverview|antivirus")),
 
-            Group("ShieldKeyhole24", N("Sign-in & access"),
+            Group("PersonLock24", N("Sign-in & access"),
                N("Who may connect, who may authenticate, and what happens when someone keeps trying."),
                "Access & abuse protection|Security|Access control|Authentication|Abuse|Brute force|Who can connect",
 
@@ -1088,7 +1099,8 @@ namespace hMailServer.ControlPanel.Services
             Page("about", N("About"),
                N("Version, build, licence and where to get support."),
                aliases: "Version|Build|Licence|License|Support|Credits|Copyright",
-               needs: EveryCredential)
+               needs: EveryCredential,
+               icon: "Info24")
          };
       }
    }

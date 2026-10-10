@@ -17,14 +17,16 @@ namespace hMailServer.ControlPanel.Views
       // The page's columns and cards keep a width below which what they hold runs
       // off their right edges: the domains column 280 pixels (its card 268, room
       // for a name beside Edit and Delete), the column of accounts, aliases
-      // and lists 400, an alias or list card 280, and the new account's password
+      // and lists 400, an alias or list card 270, and the new account's password
       // box 120 beside Generate and Create account. In the narrowest window
       // (760 by 520) the two columns were 268 and 232 pixels wide: Create account
       // ran off its card, and the alias and list cards, 104 and 116 pixels side by
-      // side, had boxes 0 and 13 pixels wide.
+      // side, had boxes 0 and 13 pixels wide. An alias or list card was 280 until
+      // the sidebar became 310 pixels at 1280 (T3.3 work item 7): the column left
+      // the two 273 each there, and at 280 they went one above the other.
       private const double DomainColumnMinWidth = 280;
       private const double DetailColumnMinWidth = 400;
-      private const double ListCardMinWidth = 280;
+      private const double ListCardMinWidth = 270;
       private const double PasswordMinWidth = 120;
       private static readonly double[] ColumnWeights = { 2, 3 };
       private static readonly double[] ColumnMinWidths = { DomainColumnMinWidth, DetailColumnMinWidth };

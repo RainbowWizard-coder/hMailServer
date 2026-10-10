@@ -44,9 +44,10 @@ namespace hMailServer.ControlPanel
       /// <summary>
       /// True while the window is too narrow for the tree, so that expanding the
       /// sidebar on a group is not possible and the group's pages open in the
-      /// flyout instead.
+      /// flyout instead - and while the help pane makes the sidebar the rail
+      /// (MainWindow.Geometry.cs), where an expansion would squeeze the page.
       /// </summary>
-      private bool TooNarrowForTree_ => ActualWidth < DesignTokens.Shell.CollapseSidebarBelow;
+      private bool TooNarrowForTree_ => ActualWidth < DesignTokens.Shell.CollapseSidebarBelow || RailForHelp_();
 
       /// <summary>
       /// Opens the flyout for <paramref name="group"/> beside <paramref name="anchor"/>,

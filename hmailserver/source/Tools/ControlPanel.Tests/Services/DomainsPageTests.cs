@@ -238,7 +238,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(cards != null && cards.Contains("ListCards.Columns = sideBySide ? 2 : 1;", StringComparison.Ordinal),
             "The alias and list cards no longer go one above the other where they would be too narrow side by side.");
 
-         foreach (string minimum in new[] { "DomainColumnMinWidth = 280", "DetailColumnMinWidth = 400", "ListCardMinWidth = 280", "PasswordMinWidth = 120" })
+         foreach (string minimum in new[] { "DomainColumnMinWidth = 280", "DetailColumnMinWidth = 400", "ListCardMinWidth = 270", "PasswordMinWidth = 120" })
             Assert.Contains("private const double " + minimum + ";", code, StringComparison.Ordinal);
       }
 

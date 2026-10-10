@@ -157,12 +157,15 @@
                      It ellipsizes now rather than clipping, and the full name is
                      always in the tool tip - but an ellipsis on a permanent
                      navigation label is a smaller defect, not the absence of one,
-                     so the pane also gets the width to hold it. The star fraction is
-                     what binds at ordinary window sizes; MaxWidth only stops the
+                     so the pane also gets the width to hold it. The share of the
+                     window is what binds at ordinary window sizes - 0.32 beside the
+                     page's 1, 310 pixels at 1280, in pixels set by ApplySidebar_
+                     (Services/ShellGeometry) so that the help pane takes its width
+                     from the page and not from the tree; MaxWidth only stops the
                      pane running away on a very wide monitor, and MinWidth is what
                      protects the content area on a narrow one. Collapsed to the
                      rail, all three become AppRailWidth - see ApplySidebar_. -->
-                <ColumnDefinition x:Name="SidebarColumn" Width="0.28*" MinWidth="200" MaxWidth="320" />
+                <ColumnDefinition x:Name="SidebarColumn" Width="0.32*" MinWidth="200" MaxWidth="320" />
                 <ColumnDefinition Width="*" />
                 <!-- The help pane's column: nothing until the pane is opened, then
                      the width the administrator last left it at (OpenHelp_). -->
@@ -339,10 +342,18 @@
                                     </ui:Button.Icon>
                                 </ui:Button>
                             </StackPanel>
-                            <WrapPanel x:Name="BreadcrumbHost" Grid.Column="1" Orientation="Horizontal"
+                            <!-- One line, never two: the trail's parts from the left and the
+                                 page's name last, given what is left and cut short with an
+                                 ellipsis, whole in its tool tip (UpdateBreadcrumb). A
+                                 WrapPanel put "Certificates (ACME)" on a line of its own in
+                                 the narrowest window, and the bar grew by a line (review
+                                 finding F047). -->
+                            <DockPanel x:Name="BreadcrumbHost" Grid.Column="1" LastChildFill="True"
                                        VerticalAlignment="Center"
                                        AutomationProperties.AutomationId="breadcrumb" />
-                            <WrapPanel x:Name="RelatedHost" Grid.Column="2" Orientation="Horizontal"
+                            <!-- Twelve pixels (AppSpaceMd) from the trail, which ran into
+                                 "Related:" on Transport security at 760. -->
+                            <WrapPanel x:Name="RelatedHost" Grid.Column="2" Orientation="Horizontal" Margin="12,0,0,0"
                                        VerticalAlignment="Center" HorizontalAlignment="Right"
                                        AutomationProperties.AutomationId="breadcrumb-related" />
                         </Grid>

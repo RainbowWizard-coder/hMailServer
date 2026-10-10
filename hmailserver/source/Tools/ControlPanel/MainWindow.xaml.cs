@@ -104,6 +104,7 @@ namespace hMailServer.ControlPanel
          LoadSidebarPreference_();
          LoadHelpPreference_();
          HelpPanel.CloseRequested += (s, e) => CloseHelp_();
+         WireShellGeometry_();
 
          // Before sign-in the navigation and the search cannot be used, and are
          // not shown: the sidebar and the search field follow whether they can be
@@ -594,7 +595,9 @@ namespace hMailServer.ControlPanel
       /// </summary>
       private void ApplySidebar_()
       {
-         bool rail = sidebarCollapsedByUser_ || ActualWidth < DesignTokens.Shell.CollapseSidebarBelow;
+         // The rail as well while the help pane would leave the page too narrow
+         // beside the tree (MainWindow.Geometry.cs), and not recorded as a choice.
+         bool rail = sidebarCollapsedByUser_ || ActualWidth < DesignTokens.Shell.CollapseSidebarBelow || RailForHelp_();
 
          // The sidebar is shown while it can be used. Before sign-in, and after a
          // second factor that was refused, the tree is disabled, and then the
@@ -608,7 +611,11 @@ namespace hMailServer.ControlPanel
          bool shown = NavTree.IsEnabled;
 
          if (rail == railShowing_ && shown == sidebarShown_ && IsLoaded)
+         {
+            // The tree's width follows the window's, whatever the help pane does.
+            SizeSidebar_();
             return;
+         }
 
          railShowing_ = rail;
          sidebarShown_ = shown;
@@ -631,9 +638,12 @@ namespace hMailServer.ControlPanel
          }
          else
          {
+            // A share of the window in pixels, not a star column beside the page:
+            // as a star the help pane took its width from the tree as well as the
+            // page and cut three group names (review findings F021, F022).
             SidebarColumn.MaxWidth = DesignTokens.Shell.SidebarMaxWidth;
             SidebarColumn.MinWidth = DesignTokens.Shell.SidebarMinWidth;
-            SidebarColumn.Width = new GridLength(0.28, GridUnitType.Star);
+            SidebarColumn.Width = new GridLength(ShellGeometry.SidebarWidth(BodyWidth_));
          }
 
          NavTree.Visibility = rail ? Visibility.Collapsed : Visibility.Visible;
@@ -670,6 +680,10 @@ namespace hMailServer.ControlPanel
          // narrow window the rail is showing whatever was chosen, and a click
          // there must open the sidebar, not record a collapse nobody can see.
          sidebarCollapsedByUser_ = !railShowing_;
+
+         // An expansion beside the help pane keeps the tree there until the pane
+         // closes, where the pane had made the sidebar the rail.
+         treeBesideHelpChosen_ = !sidebarCollapsedByUser_;
 
          if (!sidebarCollapsedByUser_ && ActualWidth < DesignTokens.Shell.CollapseSidebarBelow
              && WindowState == WindowState.Normal)
@@ -868,12 +882,17 @@ namespace hMailServer.ControlPanel
 
             if (index == trail.Count - 1)
             {
+               // Last, so that the bar's DockPanel gives it the width the trail
+               // leaves, and cut short there rather than put on a line of its own
+               // (review finding F047); whole in its tool tip.
                var here = new TextBlock
                {
                   Text = L(node.Title),
                   FontSize = Typography.Label,
                   FontWeight = FontWeights.SemiBold,
-                  VerticalAlignment = VerticalAlignment.Center
+                  VerticalAlignment = VerticalAlignment.Center,
+                  TextTrimming = TextTrimming.CharacterEllipsis,
+                  ToolTip = L(node.Title)
                };
                here.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorPrimaryBrush");
                System.Windows.Automation.AutomationProperties.SetAutomationId(here, "breadcrumb-page");
@@ -902,9 +921,12 @@ namespace hMailServer.ControlPanel
       /// </summary>
       private FrameworkElement GroupSegment(NavNode group)
       {
+         // Its words cut short with an ellipsis where the bar leaves the trail less
+         // than its width - beside the help pane in the narrowest window - rather
+         // than clipped mid-word: the bar's DockPanel measures it in the width left.
          var button = new Wpf.Ui.Controls.Button
          {
-            Content = L(group.Title),
+            Content = new TextBlock { Text = L(group.Title), TextTrimming = TextTrimming.CharacterEllipsis },
             FontSize = Typography.Label,
             Padding = new Thickness(4, 2, 4, 2),
             Cursor = System.Windows.Input.Cursors.Hand,
@@ -1779,6 +1801,9 @@ namespace hMailServer.ControlPanel
          HelpColumn.Width = new GridLength(Math.Max(260, Math.Min(760, helpWidth_)));
          HelpSplitter.Visibility = Visibility.Visible;
          HelpPanel.Visibility = Visibility.Visible;
+         // The pane's width comes from the page alone, and where that leaves the page
+         // too narrow the sidebar is the rail until the pane closes.
+         HelpPaneMoved_(true);
          ShowHelpForPage_();
          SaveHelpPreference_();
       }
@@ -1795,6 +1820,7 @@ namespace hMailServer.ControlPanel
          HelpColumn.Width = new GridLength(0);
          HelpSplitter.Visibility = Visibility.Collapsed;
          HelpPanel.Visibility = Visibility.Collapsed;
+         HelpPaneMoved_(true);
          SaveHelpPreference_();
          HelpButton.Focus();
       }
