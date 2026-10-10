@@ -1632,9 +1632,6 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="An entry is changed in place over the REST API; until it can be used from here, delete the entry and add it again instead." xml:space="preserve">
     <value>Een vermelding wordt ter plekke gewijzigd via de REST-API; zolang die van hieruit niet bruikbaar is, verwijdert u de vermelding in plaats daarvan en voegt u haar opnieuw toe.</value>
   </data>
-  <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
-    <value>Een gebeurtenisscript draait binnen de server met de rechten van het serviceaccount, dus wat het mag instantiëren is een beveiligingsbeslissing en geen kwestie van gemak. Zoals geleverd is dit *, wat elk object toestaat, zodat een upgrade nooit een script breekt dat een installatie al draait - het is de instelling om in te perken, niet de veilige toestand. Noem alleen wat een script van u werkelijk nodig heeft - een bestandssysteemobject voor scripting, een HTTP-client - en al het andere wordt geweigerd, met de naam van het object in het foutenlogboek; leeg weigert alles behalve de eigen objecten van hMailServer.</value>
-  </data>
   <data name="An external scanner process. 0 = no time limit." xml:space="preserve">
     <value>Een extern scannerproces. 0 = geen tijdslimiet.</value>
   </data>
@@ -1704,6 +1701,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Anti-virus settings: test ClamAV" xml:space="preserve">
     <value>Antivirusinstellingen: ClamAV testen</value>
+  </data>
+  <data name="Any COM object may be created by an event script, as shipped. Name only the objects your scripts need." xml:space="preserve">
+    <value>Een gebeurtenisscript mag elk COM-object aanmaken, zoals geleverd. Noem alleen de objecten die uw scripts nodig hebben.</value>
   </data>
   <data name="Anyone" xml:space="preserve">
     <value>Iedereen</value>
@@ -2352,6 +2352,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="CC" xml:space="preserve">
     <value>CC</value>
+  </data>
+  <data name="COM objects a script may create" xml:space="preserve">
+    <value>COM-objecten die een script mag aanmaken</value>
   </data>
   <data name="COM objects a script may create (comma separated; * = any, empty = only hMailServer's own)" xml:space="preserve">
     <value>COM-objecten die een script mag aanmaken (door komma's gescheiden; * = alle, leeg = alleen die van hMailServer zelf)</value>
@@ -4127,9 +4130,6 @@ De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert 
   <data name="Delivery queue" xml:space="preserve">
     <value>Bezorgwachtrij</value>
   </data>
-  <data name="Delivery retriggered for message {0}." xml:space="preserve">
-    <value>Bezorging opnieuw gestart voor bericht {0}.</value>
-  </data>
   <data name="Delivery retriggered for {0} message." xml:space="preserve">
     <value>Bezorging opnieuw gestart voor {0} bericht.</value>
   </data>
@@ -4260,9 +4260,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Discovers and enforces recipient MTA-STS policies before delivering over TLS (RFC 8461). To publish a policy for your own domains, see the Web services &amp; autoconfiguration page." xml:space="preserve">
     <value>Zoekt het MTA-STS-beleid van de ontvanger op en dwingt het af voordat er over TLS wordt bezorgd (RFC 8461). Zie de pagina Webservices en autoconfiguratie om een beleid voor uw eigen domeinen te publiceren.</value>
-  </data>
-  <data name="Discovery" xml:space="preserve">
-    <value>eDiscovery</value>
   </data>
   <data name="Discovery case" xml:space="preserve">
     <value>eDiscovery-zaak</value>
@@ -5479,6 +5476,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Full authority" xml:space="preserve">
     <value>Volledige bevoegdheid</value>
   </data>
+  <data name="Full detail" xml:space="preserve">
+    <value>Volledig detail</value>
+  </data>
   <data name="Full re-index interval (minutes)" xml:space="preserve">
     <value>Interval voor volledige herindexering (minuten)</value>
   </data>
@@ -6255,7 +6255,7 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="JWK Set URL (empty = the key file only)" xml:space="preserve">
     <value>JWK Set-URL (leeg = alleen het sleutelbestand)</value>
   </data>
-  <data name="Journaling and dual delivery" xml:space="preserve">
+  <data name="Journaling &amp; dual delivery" xml:space="preserve">
     <value>Journaling en dubbele bezorging</value>
   </data>
   <data name="Journaling rule" xml:space="preserve">
@@ -6629,9 +6629,6 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="Log files" xml:space="preserve">
     <value>Logbestanden</value>
-  </data>
-  <data name="Log folder" xml:space="preserve">
-    <value>Logmap</value>
   </data>
   <data name="Log level" xml:space="preserve">
     <value>Logniveau</value>
@@ -7188,6 +7185,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="Message {0} removed." xml:space="preserve">
     <value>Bericht {0} verwijderd.</value>
+  </data>
+  <data name="Message {0} will be tried again now." xml:space="preserve">
+    <value>Bericht {0} wordt nu opnieuw geprobeerd.</value>
   </data>
   <data name="Message-store consistency" xml:space="preserve">
     <value>Consistentie van de berichtopslag</value>
@@ -8674,11 +8674,11 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Open TCP/IP ports, which owns the per-listener security setting" xml:space="preserve">
     <value>TCP/IP-poorten openen, waar de beveiligingsinstelling per listener is ondergebracht</value>
   </data>
+  <data name="Open _log folder" xml:space="preserve">
+    <value>_Logboekmap openen</value>
+  </data>
   <data name="Open an issue with: the log from the 354 (or from the delivery attempt) onwards, including the stage timing lines; the ERROR_hmailserver_&lt;date&gt;.log for the same window; which scanners and event scripts are enabled; and whether the message eventually arrives, arrives twice, or never arrives." xml:space="preserve">
     <value>Open een issue met daarin: het logboek vanaf de 354 (of vanaf de bezorgpoging), inclusief de regels met fasetijden; de ERROR_hmailserver_&lt;date&gt;.log voor hetzelfde venster; welke scanners en gebeurtenisscripts zijn ingeschakeld; en of het bericht uiteindelijk aankomt, twee keer aankomt of nooit aankomt.</value>
-  </data>
-  <data name="Open log folder" xml:space="preserve">
-    <value>Logboekmap openen</value>
   </data>
   <data name="Open on the _wiki" xml:space="preserve">
     <value>Openen op de _wiki</value>
@@ -9294,6 +9294,9 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Profile to scan as (empty = spamd's global configuration)" xml:space="preserve">
     <value>Profiel om als te scannen (leeg = de globale configuratie van spamd)</value>
   </data>
+  <data name="ProgIDs or CLSIDs, separated by commas. An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
+    <value>ProgID's of CLSID's, gescheiden door komma's. Een gebeurtenisscript draait binnen de server met de rechten van het serviceaccount, dus wat het mag instantiëren is een beveiligingsbeslissing en geen kwestie van gemak. Zoals geleverd is dit *, wat elk object toestaat, zodat een upgrade nooit een script breekt dat een installatie al draait - het is de instelling om in te perken, niet de veilige toestand. Noem alleen wat een script van u werkelijk nodig heeft - een bestandssysteemobject voor scripting, een HTTP-client - en al het andere wordt geweigerd, met de naam van het object in het foutenlogboek; leeg weigert alles behalve de eigen objecten van hMailServer.</value>
+  </data>
   <data name="ProgIDs or CLSIDs." xml:space="preserve">
     <value>ProgIDs of CLSIDs.</value>
   </data>
@@ -9468,11 +9471,14 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Querying MX records for {0}..." xml:space="preserve">
     <value>MX-records voor {0} worden opgevraagd...</value>
   </data>
-  <data name="Queue id {0} - select and choose &quot;Follow this message&quot;." xml:space="preserve">
+  <data name="Queue ID {0} - select and choose &quot;Follow this message&quot;." xml:space="preserve">
     <value>Wachtrij-id {0} - selecteer het en kies "Dit bericht volgen".</value>
   </data>
   <data name="Quick early retries before the normal schedule (0 = off)" xml:space="preserve">
     <value>Snelle vroege nieuwe pogingen vóór het normale schema (0 = uit)</value>
+  </data>
+  <data name="Quieter" xml:space="preserve">
+    <value>Stiller</value>
   </data>
   <data name="REST API" xml:space="preserve">
     <value>REST-API</value>
@@ -11454,8 +11460,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Server status" xml:space="preserve">
     <value>Serverstatus</value>
   </data>
-  <data name="Server status (who is connected)" xml:space="preserve">
-    <value>Serverstatus (wie er verbonden is)</value>
+  <data name="Server status (session counts)" xml:space="preserve">
+    <value>Serverstatus (aantal sessies)</value>
   </data>
   <data name="Server status lists the live sessions for each protocol." xml:space="preserve">
     <value>Serverstatus somt de actieve sessies per protocol op.</value>
@@ -15016,8 +15022,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="Where the search starts, e.g. DC=example,DC=local. Required in search mode - that is, when the bind method is Simple and no DN template is set." xml:space="preserve">
     <value>Waar het zoeken begint, bijv. DC=example,DC=local. Vereist in de zoekmodus - dat wil zeggen, wanneer de bindmethode Simple is en er geen DN-sjabloon is ingesteld.</value>
   </data>
-  <data name="Where the server writes the logs configured above." xml:space="preserve">
-    <value>Waar de server de hierboven ingestelde logboeken naartoe schrijft.</value>
+  <data name="Where the server writes the logs configured above: {0}" xml:space="preserve">
+    <value>Waar de server de hierboven ingestelde logboeken naartoe schrijft: {0}</value>
   </data>
   <data name="Where this server is: one line of printable ASCII, up to 255 characters." xml:space="preserve">
     <value>Waar deze server staat: één regel afdrukbaar ASCII, tot 255 tekens.</value>
@@ -15474,6 +15480,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="_Copy DNS value" xml:space="preserve">
     <value>_DNS-waarde kopiëren</value>
+  </data>
+  <data name="_Copy results" xml:space="preserve">
+    <value>Resultaten _kopiëren</value>
   </data>
   <data name="_Country policy at sign-in (empty = off)" xml:space="preserve">
     <value>_Landenbeleid bij aanmelden (leeg = uit)</value>
@@ -16326,6 +16335,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="e.g. {0}" xml:space="preserve">
     <value>bijv. {0}</value>
+  </data>
+  <data name="eDiscovery" xml:space="preserve">
+    <value>eDiscovery</value>
   </data>
   <data name="enforce - senders that honour MTA-STS deliver only over valid TLS to the hosts listed" xml:space="preserve">
     <value>enforce - afzenders die MTA-STS volgen, bezorgen alleen via geldige TLS bij de vermelde hosts</value>

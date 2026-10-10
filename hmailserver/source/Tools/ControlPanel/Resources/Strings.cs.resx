@@ -1644,9 +1644,6 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="An entry is changed in place over the REST API; until it can be used from here, delete the entry and add it again instead." xml:space="preserve">
     <value>Položka se mění na místě přes REST API; dokud ho odsud nelze použít, položku místo toho smažte a přidejte znovu.</value>
   </data>
-  <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
-    <value>Skript události běží uvnitř serveru s právy účtu služby, takže to, jaké objekty smí vytvářet, je bezpečnostní rozhodnutí, ne otázka pohodlí. V dodaném stavu je zde *, což povoluje libovolný objekt, aby aktualizace nikdy nerozbila skript, který instalace už spouští – je to nastavení, které je třeba zúžit, ne bezpečný stav. Uveďte jen to, co některý váš skript skutečně potřebuje – skriptovací objekt souborového systému, klienta HTTP – a vše ostatní bude odmítnuto se jménem objektu v protokolu chyb; prázdné odmítá vše kromě vlastních objektů hMailServeru.</value>
-  </data>
   <data name="An external scanner process. 0 = no time limit." xml:space="preserve">
     <value>Externí proces skeneru. 0 = bez časového limitu.</value>
   </data>
@@ -1716,6 +1713,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Anti-virus settings: test ClamAV" xml:space="preserve">
     <value>Nastavení antiviru: otestovat ClamAV</value>
+  </data>
+  <data name="Any COM object may be created by an event script, as shipped. Name only the objects your scripts need." xml:space="preserve">
+    <value>Událostní skript může vytvořit jakýkoli objekt COM, tak jako po dodání. Uveďte jen objekty, které vaše skripty potřebují.</value>
   </data>
   <data name="Anyone" xml:space="preserve">
     <value>Kdokoli</value>
@@ -2376,6 +2376,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="CC" xml:space="preserve">
     <value>Kopie</value>
+  </data>
+  <data name="COM objects a script may create" xml:space="preserve">
+    <value>Objekty COM, které smí skript vytvářet</value>
   </data>
   <data name="COM objects a script may create (comma separated; * = any, empty = only hMailServer's own)" xml:space="preserve">
     <value>Objekty COM, které smí skript vytvářet (oddělené čárkami; * = libovolné, prázdné = jen vlastní objekty hMailServeru)</value>
@@ -4176,9 +4179,6 @@ Odesílateli bylo řečeno, že byla přijata, takže nic ji nezopakuje a jiná 
   <data name="Delivery queue" xml:space="preserve">
     <value>Doručovací fronta</value>
   </data>
-  <data name="Delivery retriggered for message {0}." xml:space="preserve">
-    <value>Doručení zprávy {0} znovu spuštěno.</value>
-  </data>
   <data name="Delivery retriggered for {0} message." xml:space="preserve">
     <value>Doručení znovu spuštěno pro {0} zprávu.</value>
   </data>
@@ -4312,9 +4312,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Discovers and enforces recipient MTA-STS policies before delivering over TLS (RFC 8461). To publish a policy for your own domains, see the Web services &amp; autoconfiguration page." xml:space="preserve">
     <value>Zjišťuje a vynucuje politiky MTA-STS příjemců před doručením přes TLS (RFC 8461). Chcete-li publikovat politiku pro vlastní domény, viz stránka Webové služby a autokonfigurace.</value>
-  </data>
-  <data name="Discovery" xml:space="preserve">
-    <value>eDiscovery</value>
   </data>
   <data name="Discovery case" xml:space="preserve">
     <value>Případ eDiscovery</value>
@@ -5549,6 +5546,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Full authority" xml:space="preserve">
     <value>Plná pravomoc</value>
   </data>
+  <data name="Full detail" xml:space="preserve">
+    <value>Plné podrobnosti</value>
+  </data>
   <data name="Full re-index interval (minutes)" xml:space="preserve">
     <value>Interval úplné reindexace (minuty)</value>
   </data>
@@ -6325,7 +6325,7 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="JWK Set URL (empty = the key file only)" xml:space="preserve">
     <value>URL sady JWK (prázdné = pouze soubor klíče)</value>
   </data>
-  <data name="Journaling and dual delivery" xml:space="preserve">
+  <data name="Journaling &amp; dual delivery" xml:space="preserve">
     <value>Žurnálování a dvojí doručení</value>
   </data>
   <data name="Journaling rule" xml:space="preserve">
@@ -6699,9 +6699,6 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="Log files" xml:space="preserve">
     <value>Soubory logu</value>
-  </data>
-  <data name="Log folder" xml:space="preserve">
-    <value>Složka s logy</value>
   </data>
   <data name="Log level" xml:space="preserve">
     <value>Úroveň logování</value>
@@ -7264,6 +7261,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Message {0} removed." xml:space="preserve">
     <value>Zpráva {0} byla odstraněna.</value>
+  </data>
+  <data name="Message {0} will be tried again now." xml:space="preserve">
+    <value>Doručení zprávy {0} se nyní zkusí znovu.</value>
   </data>
   <data name="Message-store consistency" xml:space="preserve">
     <value>Konzistence úložiště zpráv</value>
@@ -8768,11 +8768,11 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Open TCP/IP ports, which owns the per-listener security setting" xml:space="preserve">
     <value>Otevřít Porty TCP/IP, kde se spravuje nastavení zabezpečení jednotlivých listenerů</value>
   </data>
+  <data name="Open _log folder" xml:space="preserve">
+    <value>_Otevřít složku logů</value>
+  </data>
   <data name="Open an issue with: the log from the 354 (or from the delivery attempt) onwards, including the stage timing lines; the ERROR_hmailserver_&lt;date&gt;.log for the same window; which scanners and event scripts are enabled; and whether the message eventually arrives, arrives twice, or never arrives." xml:space="preserve">
     <value>Založte issue s: logem od 354 (nebo od pokusu o doručení) dále včetně řádků s časováním jednotlivých fází; souborem ERROR_hmailserver_&lt;date&gt;.log za stejné okno; informací, které skenery a skripty událostí jsou zapnuté; a tím, zda zpráva nakonec dorazí, dorazí dvakrát, nebo nedorazí nikdy.</value>
-  </data>
-  <data name="Open log folder" xml:space="preserve">
-    <value>Otevřít složku logů</value>
   </data>
   <data name="Open on the _wiki" xml:space="preserve">
     <value>Otevřít na _wiki</value>
@@ -9388,6 +9388,9 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Profile to scan as (empty = spamd's global configuration)" xml:space="preserve">
     <value>Profil, pod kterým skenovat (prázdné = globální konfigurace spamd)</value>
   </data>
+  <data name="ProgIDs or CLSIDs, separated by commas. An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
+    <value>ProgID nebo CLSID oddělené čárkami. Skript události běží uvnitř serveru s právy účtu služby, takže to, jaké objekty smí vytvářet, je bezpečnostní rozhodnutí, ne otázka pohodlí. V dodaném stavu je zde *, což povoluje libovolný objekt, aby aktualizace nikdy nerozbila skript, který instalace už spouští – je to nastavení, které je třeba zúžit, ne bezpečný stav. Uveďte jen to, co některý váš skript skutečně potřebuje – skriptovací objekt souborového systému, klienta HTTP – a vše ostatní bude odmítnuto se jménem objektu v protokolu chyb; prázdné odmítá vše kromě vlastních objektů hMailServeru.</value>
+  </data>
   <data name="ProgIDs or CLSIDs." xml:space="preserve">
     <value>ProgIDs nebo CLSIDs.</value>
   </data>
@@ -9562,11 +9565,14 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Querying MX records for {0}..." xml:space="preserve">
     <value>Vyhledávají se MX záznamy domény {0}...</value>
   </data>
-  <data name="Queue id {0} - select and choose &quot;Follow this message&quot;." xml:space="preserve">
+  <data name="Queue ID {0} - select and choose &quot;Follow this message&quot;." xml:space="preserve">
     <value>ID ve frontě {0} – vyberte a zvolte „Sledovat tuto zprávu“.</value>
   </data>
   <data name="Quick early retries before the normal schedule (0 = off)" xml:space="preserve">
     <value>Rychlé časné opakované pokusy před běžným plánem (0 = vypnuto)</value>
+  </data>
+  <data name="Quieter" xml:space="preserve">
+    <value>Tišší</value>
   </data>
   <data name="REST API" xml:space="preserve">
     <value>REST API</value>
@@ -11593,8 +11599,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Server status" xml:space="preserve">
     <value>Stav serveru</value>
   </data>
-  <data name="Server status (who is connected)" xml:space="preserve">
-    <value>Stav serveru (kdo je připojen)</value>
+  <data name="Server status (session counts)" xml:space="preserve">
+    <value>Stav serveru (počty relací)</value>
   </data>
   <data name="Server status lists the live sessions for each protocol." xml:space="preserve">
     <value>Stav serveru vypisuje živé relace pro každý protokol.</value>
@@ -15194,8 +15200,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Where the search starts, e.g. DC=example,DC=local. Required in search mode - that is, when the bind method is Simple and no DN template is set." xml:space="preserve">
     <value>Kde hledání začíná, např. DC=example,DC=local. Vyžadováno v režimu hledání - tedy když je metoda bind Simple a není nastavena šablona DN.</value>
   </data>
-  <data name="Where the server writes the logs configured above." xml:space="preserve">
-    <value>Kam server zapisuje logy nakonfigurované výše.</value>
+  <data name="Where the server writes the logs configured above: {0}" xml:space="preserve">
+    <value>Kam server zapisuje logy nakonfigurované výše: {0}</value>
   </data>
   <data name="Where this server is: one line of printable ASCII, up to 255 characters." xml:space="preserve">
     <value>Kde tento server stojí: jeden řádek tisknutelného ASCII, nejvýše 255 znaků.</value>
@@ -15655,6 +15661,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Copy DNS value" xml:space="preserve">
     <value>_Kopírovat hodnotu DNS</value>
+  </data>
+  <data name="_Copy results" xml:space="preserve">
+    <value>_Kopírovat výsledky</value>
   </data>
   <data name="_Country policy at sign-in (empty = off)" xml:space="preserve">
     <value>_Zásada zemí při přihlášení (prázdné = vypnuto)</value>
@@ -16507,6 +16516,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="e.g. {0}" xml:space="preserve">
     <value>např. {0}</value>
+  </data>
+  <data name="eDiscovery" xml:space="preserve">
+    <value>eDiscovery</value>
   </data>
   <data name="enforce - senders that honour MTA-STS deliver only over valid TLS to the hosts listed" xml:space="preserve">
     <value>enforce - odesílatelé, kteří MTA-STS dodržují, doručují jen přes platné TLS na uvedené hostitele</value>

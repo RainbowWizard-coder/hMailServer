@@ -168,7 +168,7 @@ namespace hMailServer.ControlPanel.Views
             L("Look for \"Task SMTP-accept session=42 ip=... waited 8 seconds for a thread in work queue Asynchronous task queue\" and, when it is severe, \"All 15 threads in work queue Asynchronous task queue have been busy for at least 120 seconds, so no further task on this queue can start\". That means every worker is occupied and messages are queuing behind them: one slow dependency does this to the whole server, which is why a single wedged scanner used to look like the server had stopped responding. The task names say which sessions are stuck; the stage timings say what they are stuck on."));
          var content = (StackPanel)card.Content;
          var links = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };
-         links.Children.Add(Link(L("Server status (who is connected)"), "status"));
+         links.Children.Add(Link(L("Server status (session counts)"), "status"));
          links.Children.Add(Link(L("Threads and the stall threshold"), "hardening"));
          content.Children.Add(links);
          return card;

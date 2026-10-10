@@ -988,9 +988,10 @@ namespace hMailServer.ControlPanel.Services
 
                // Beside the audit trail, because both answer a compliance
                // question: who changed what, and where a copy of the mail goes.
-               Page("journaling", N("Journaling and dual delivery"),
+               // "&" as the other titles join their two subjects (review finding F313).
+               Page("journaling", N("Journaling & dual delivery"),
                   N("A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself."),
-                  aliases: "Journaling|Journal|Dual delivery|Compliance archive|Copy every message|Send a copy elsewhere|Archive to another system|Migration copy|Envelope report|Blind copy to an archive",
+                  aliases: "Journaling and dual delivery|Journaling|Journal|Dual delivery|Compliance archive|Copy every message|Send a copy elsewhere|Archive to another system|Migration copy|Envelope report|Blind copy to an archive",
                   seeAlso: "audit|messagetrace",
                   needs: "administer_server"),
 
@@ -998,9 +999,11 @@ namespace hMailServer.ControlPanel.Services
                // Read over the REST API, since discovery has no COM surface; the
                // cases are opened, searched, held and exported in the Deck. The
                // permission is the discovery reader's, so an auditor sees it.
-               Page("discovery", N("Discovery"),
+               // Titled eDiscovery, the word its own subtitle and every catalogue
+               // use; "Discovery" is an alias (review finding F313).
+               Page("discovery", N("eDiscovery"),
                   N("The eDiscovery cases, read-only: each case's searches, holds and exports, and every line the audit trail holds for it. A case is opened, searched, held and exported in the Control Deck."),
-                  aliases: "eDiscovery|Legal hold|Litigation hold|Case|Custodian|Preserve mail|Search every mailbox|Export for a lawyer|Discovery search",
+                  aliases: "Discovery|Legal hold|Litigation hold|Case|Custodian|Preserve mail|Search every mailbox|Export for a lawyer|Discovery search",
                   seeAlso: "audit|journaling",
                   needs: "view_discovery"),
 

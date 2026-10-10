@@ -3293,9 +3293,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   what it does, "Skip greylisting when the connecting address is an A or MX host of the sender's domain", and the
   bypass list says Matched on and HELO name as the overview does; the virus overview's subtitle says "a message found
   to be infected" where it was "condemned", and its card is Attachment blocking; and a settings button's failure names
-  the button, "Test ClamAV connection did not work: ...", where every one said "Test failed" (F312).
-  `DnsRecordsCopyTests`, `RulePartTextTests`, `ProtocolsAndDeliveryCopyTests`, `CertificatesAndAccessCopyTests` and
-  `SpamAndVirusCopyTests` hold it.
+  the button, "Test ClamAV connection did not work: ...", where every one said "Test failed" (F312). Monitoring and
+  maintenance: the message trace says "Queue ID", as the queue's grid is headed, and a retried message is "Message 12
+  will be tried again now.", where it was "Delivery retriggered for message 12."; Discovery is titled eDiscovery, as
+  its subtitle and every catalogue call it, and Journaling and dual delivery is Journaling & dual delivery, as the
+  other titles join their two subjects, each found by its old title too; Diagnostics and MX query say Copy results
+  where they said Copy; Stalled mail's link is "Server status (session counts)", what that page shows, where it said
+  "who is connected"; the message source dialog shows the file's path as its description and opens with the keyboard
+  in the source, where the path was a box of its own that took the focus; Logging's log level is a choice of its two
+  values that differ, Full detail and Quieter, where it was a spinner from 1 to 9 whose caption explained the one step
+  that counted; Open log folder is in the page's header, where it was a button in the last card, and that card says
+  where the folder is; and the event scripts' COM allow-list is captioned "COM objects a script may create", its
+  format the blurb's first sentence, and warns while it is "*", the shipped value that lets a script create any object
+  (F313). `DnsRecordsCopyTests`, `RulePartTextTests`, `ProtocolsAndDeliveryCopyTests`,
+  `CertificatesAndAccessCopyTests`, `SpamAndVirusCopyTests` and `MonitoringCopyTests` hold it.
 
 ### Administration
 

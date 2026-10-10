@@ -1632,9 +1632,6 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="An entry is changed in place over the REST API; until it can be used from here, delete the entry and add it again instead." xml:space="preserve">
     <value>Merkintä muutetaan paikallaan REST API:n kautta; kunnes sitä voi käyttää täältä, poista merkintä ja lisää se sen sijaan uudelleen.</value>
   </data>
-  <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
-    <value>Tapahtumakomentosarja ajetaan palvelimen sisällä palvelutilin oikeuksilla, joten se, minkä objektien ilmentymiä se saa luoda, on turvallisuuspäätös eikä mukavuuskysymys. Toimitettuna tässä on *, joka sallii minkä tahansa objektin, jotta päivitys ei koskaan riko komentosarjaa, jota asennus jo ajaa - tämä on asetus, jota kuuluu kaventaa, ei turvallinen tila. Nimeä vain se, mitä oma komentosarjasi todella tarvitsee - komentosarjojen tiedostojärjestelmäobjekti, HTTP-asiakas - niin kaikki muu torjutaan ja objektin nimi kirjataan virhelokiin; tyhjä torjuu kaiken hMailServerin omia objekteja lukuun ottamatta.</value>
-  </data>
   <data name="An external scanner process. 0 = no time limit." xml:space="preserve">
     <value>Ulkoinen tarkistinprosessi. 0 = ei aikarajaa.</value>
   </data>
@@ -1704,6 +1701,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Anti-virus settings: test ClamAV" xml:space="preserve">
     <value>Virustorjunnan asetukset: testaa ClamAV</value>
+  </data>
+  <data name="Any COM object may be created by an event script, as shipped. Name only the objects your scripts need." xml:space="preserve">
+    <value>Tapahtumakomentosarja voi luoda minkä tahansa COM-objektin, kuten toimitettaessa. Nimeä vain objektit, joita komentosarjasi tarvitsevat.</value>
   </data>
   <data name="Anyone" xml:space="preserve">
     <value>Kuka tahansa</value>
@@ -2352,6 +2352,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="CC" xml:space="preserve">
     <value>CC</value>
+  </data>
+  <data name="COM objects a script may create" xml:space="preserve">
+    <value>COM-objektit, joita komentosarja saa luoda</value>
   </data>
   <data name="COM objects a script may create (comma separated; * = any, empty = only hMailServer's own)" xml:space="preserve">
     <value>COM-objektit, joita komentosarja saa luoda (pilkuin eroteltuina; * = mikä tahansa, tyhjä = vain hMailServerin omat)</value>
@@ -4127,9 +4130,6 @@ Lähettäjälle kerrottiin, että se hyväksyttiin, joten mikään ei yritä uud
   <data name="Delivery queue" xml:space="preserve">
     <value>Toimitusjono</value>
   </data>
-  <data name="Delivery retriggered for message {0}." xml:space="preserve">
-    <value>Viestin {0} toimitus käynnistetty uudelleen.</value>
-  </data>
   <data name="Delivery retriggered for {0} message." xml:space="preserve">
     <value>Toimitus käynnistetty uudelleen {0} viestille.</value>
   </data>
@@ -4260,9 +4260,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Discovers and enforces recipient MTA-STS policies before delivering over TLS (RFC 8461). To publish a policy for your own domains, see the Web services &amp; autoconfiguration page." xml:space="preserve">
     <value>Selvittää ja pakottaa vastaanottajien MTA-STS-käytännöt ennen toimitusta TLS:n yli (RFC 8461). Julkaistaksesi käytännön omille verkkotunnuksillesi katso Verkkopalvelut ja automaattinen määritys -sivu.</value>
-  </data>
-  <data name="Discovery" xml:space="preserve">
-    <value>eDiscovery</value>
   </data>
   <data name="Discovery case" xml:space="preserve">
     <value>eDiscovery-tapaus</value>
@@ -5479,6 +5476,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Full authority" xml:space="preserve">
     <value>Täydet oikeudet</value>
   </data>
+  <data name="Full detail" xml:space="preserve">
+    <value>Täydet yksityiskohdat</value>
+  </data>
   <data name="Full re-index interval (minutes)" xml:space="preserve">
     <value>Täyden uudelleenindeksoinnin väli (minuuttia)</value>
   </data>
@@ -6255,7 +6255,7 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="JWK Set URL (empty = the key file only)" xml:space="preserve">
     <value>JWK Set -URL (tyhjä = vain avaintiedosto)</value>
   </data>
-  <data name="Journaling and dual delivery" xml:space="preserve">
+  <data name="Journaling &amp; dual delivery" xml:space="preserve">
     <value>Journalointi ja kaksoistoimitus</value>
   </data>
   <data name="Journaling rule" xml:space="preserve">
@@ -6629,9 +6629,6 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="Log files" xml:space="preserve">
     <value>Lokitiedostot</value>
-  </data>
-  <data name="Log folder" xml:space="preserve">
-    <value>Lokikansio</value>
   </data>
   <data name="Log level" xml:space="preserve">
     <value>Lokitaso</value>
@@ -7188,6 +7185,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="Message {0} removed." xml:space="preserve">
     <value>Viesti {0} poistettu.</value>
+  </data>
+  <data name="Message {0} will be tried again now." xml:space="preserve">
+    <value>Viestin {0} toimitusta yritetään nyt uudelleen.</value>
   </data>
   <data name="Message-store consistency" xml:space="preserve">
     <value>Viestisäilön eheys</value>
@@ -8674,11 +8674,11 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Open TCP/IP ports, which owns the per-listener security setting" xml:space="preserve">
     <value>Avaa TCP/IP-portit, joka omistaa kuuntelijakohtaisen suojausasetuksen</value>
   </data>
+  <data name="Open _log folder" xml:space="preserve">
+    <value>_Avaa lokikansio</value>
+  </data>
   <data name="Open an issue with: the log from the 354 (or from the delivery attempt) onwards, including the stage timing lines; the ERROR_hmailserver_&lt;date&gt;.log for the same window; which scanners and event scripts are enabled; and whether the message eventually arrives, arrives twice, or never arrives." xml:space="preserve">
     <value>Avaa ongelmailmoitus, jossa on: loki 354:stä (tai toimitusyrityksestä) eteenpäin, vaiheiden ajoitusrivit mukaan lukien; saman aikaikkunan ERROR_hmailserver_&lt;date&gt;.log; mitkä tarkistimet ja tapahtumakomentosarjat ovat käytössä; ja saapuuko viesti lopulta, saapuuko se kahdesti vai ei koskaan.</value>
-  </data>
-  <data name="Open log folder" xml:space="preserve">
-    <value>Avaa lokikansio</value>
   </data>
   <data name="Open on the _wiki" xml:space="preserve">
     <value>Avaa _wikissä</value>
@@ -9294,6 +9294,9 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Profile to scan as (empty = spamd's global configuration)" xml:space="preserve">
     <value>Profiili, jona skannataan (tyhjä = spamd:n yleinen määritys)</value>
   </data>
+  <data name="ProgIDs or CLSIDs, separated by commas. An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
+    <value>ProgID- tai CLSID-tunnukset pilkuilla erotettuina. Tapahtumakomentosarja ajetaan palvelimen sisällä palvelutilin oikeuksilla, joten se, minkä objektien ilmentymiä se saa luoda, on turvallisuuspäätös eikä mukavuuskysymys. Toimitettuna tässä on *, joka sallii minkä tahansa objektin, jotta päivitys ei koskaan riko komentosarjaa, jota asennus jo ajaa - tämä on asetus, jota kuuluu kaventaa, ei turvallinen tila. Nimeä vain se, mitä oma komentosarjasi todella tarvitsee - komentosarjojen tiedostojärjestelmäobjekti, HTTP-asiakas - niin kaikki muu torjutaan ja objektin nimi kirjataan virhelokiin; tyhjä torjuu kaiken hMailServerin omia objekteja lukuun ottamatta.</value>
+  </data>
   <data name="ProgIDs or CLSIDs." xml:space="preserve">
     <value>ProgIDs tai CLSIDs.</value>
   </data>
@@ -9468,11 +9471,14 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Querying MX records for {0}..." xml:space="preserve">
     <value>Kysytään MX-tietueita kohteelle {0}...</value>
   </data>
-  <data name="Queue id {0} - select and choose &quot;Follow this message&quot;." xml:space="preserve">
+  <data name="Queue ID {0} - select and choose &quot;Follow this message&quot;." xml:space="preserve">
     <value>Jonotunnus {0} - valitse ja valitse "Seuraa tätä viestiä".</value>
   </data>
   <data name="Quick early retries before the normal schedule (0 = off)" xml:space="preserve">
     <value>Nopeat varhaiset uudelleenyritykset ennen normaalia aikataulua (0 = pois)</value>
+  </data>
+  <data name="Quieter" xml:space="preserve">
+    <value>Hiljaisempi</value>
   </data>
   <data name="REST API" xml:space="preserve">
     <value>REST API</value>
@@ -11454,8 +11460,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Server status" xml:space="preserve">
     <value>Palvelimen tila</value>
   </data>
-  <data name="Server status (who is connected)" xml:space="preserve">
-    <value>Palvelimen tila (kuka on yhteydessä)</value>
+  <data name="Server status (session counts)" xml:space="preserve">
+    <value>Palvelimen tila (istuntojen määrät)</value>
   </data>
   <data name="Server status lists the live sessions for each protocol." xml:space="preserve">
     <value>Palvelimen tila luettelee kunkin protokollan aktiiviset istunnot.</value>
@@ -15016,8 +15022,8 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="Where the search starts, e.g. DC=example,DC=local. Required in search mode - that is, when the bind method is Simple and no DN template is set." xml:space="preserve">
     <value>Mistä haku alkaa, esim. DC=example,DC=local. Pakollinen hakutilassa - eli kun sidontatapa on Simple eikä DN-mallia ole asetettu.</value>
   </data>
-  <data name="Where the server writes the logs configured above." xml:space="preserve">
-    <value>Minne palvelin kirjoittaa yllä määritetyt lokit.</value>
+  <data name="Where the server writes the logs configured above: {0}" xml:space="preserve">
+    <value>Minne palvelin kirjoittaa yllä määritetyt lokit: {0}</value>
   </data>
   <data name="Where this server is: one line of printable ASCII, up to 255 characters." xml:space="preserve">
     <value>Missä tämä palvelin sijaitsee: yksi rivi tulostettavaa ASCIIta, enintään 255 merkkiä.</value>
@@ -15474,6 +15480,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="_Copy DNS value" xml:space="preserve">
     <value>_Kopioi DNS-arvo</value>
+  </data>
+  <data name="_Copy results" xml:space="preserve">
+    <value>K_opioi tulokset</value>
   </data>
   <data name="_Country policy at sign-in (empty = off)" xml:space="preserve">
     <value>_Maakäytäntö kirjautuessa (tyhjä = pois)</value>
@@ -16326,6 +16335,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="e.g. {0}" xml:space="preserve">
     <value>esim. {0}</value>
+  </data>
+  <data name="eDiscovery" xml:space="preserve">
+    <value>eDiscovery</value>
   </data>
   <data name="enforce - senders that honour MTA-STS deliver only over valid TLS to the hosts listed" xml:space="preserve">
     <value>enforce - MTA-STS:ää noudattavat lähettäjät toimittavat vain kelvollisen TLS:n kautta luetelluille koneille</value>

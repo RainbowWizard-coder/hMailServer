@@ -460,7 +460,7 @@ its holds and its exports - is not recorded: none of it is the mail.
   Open and Close. The form asks for custodians, words, dates, an attachment's
   name and type and the scope; an attachment's least size (`min_kb`) is asked
   over REST.
-* **The Control Panel**'s **Discovery** page reads the cases and their lines on
+* **The Control Panel**'s **eDiscovery** page reads the cases and their lines on
   the audit trail over the REST listener - `GET /api/v1/discovery/cases` and
   `GET /api/v1/audit` - with the name and password it signed in with, and
   changes nothing; the work is the Deck's. It needs the listener on

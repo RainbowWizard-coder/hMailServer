@@ -1632,9 +1632,6 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="An entry is changed in place over the REST API; until it can be used from here, delete the entry and add it again instead." xml:space="preserve">
     <value>En post ändras på plats via REST-API:t; tills det kan användas härifrån, ta i stället bort posten och lägg till den igen.</value>
   </data>
-  <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
-    <value>Ett händelseskript körs inne i servern med tjänstekontots rättigheter, så vad det får instansiera är ett säkerhetsbeslut snarare än en bekvämlighet. Som levererat är detta *, vilket tillåter alla objekt, så att en uppgradering aldrig förstör ett skript som en installation redan kör - det är inställningen att snäva in, inte det säkra tillståndet. Namnge bara det som ett av dina skript faktiskt behöver - ett filsystemsobjekt för skript, en HTTP-klient - så avvisas allt annat med objektets namn i felloggen; tomt avvisar allt utöver hMailServers egna objekt.</value>
-  </data>
   <data name="An external scanner process. 0 = no time limit." xml:space="preserve">
     <value>En extern skannerprocess. 0 = ingen tidsgräns.</value>
   </data>
@@ -1704,6 +1701,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Anti-virus settings: test ClamAV" xml:space="preserve">
     <value>Antivirusinställningar: testa ClamAV</value>
+  </data>
+  <data name="Any COM object may be created by an event script, as shipped. Name only the objects your scripts need." xml:space="preserve">
+    <value>Ett händelseskript kan skapa vilket COM-objekt som helst, som levererat. Ange bara de objekt dina skript behöver.</value>
   </data>
   <data name="Anyone" xml:space="preserve">
     <value>Vem som helst</value>
@@ -2352,6 +2352,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="CC" xml:space="preserve">
     <value>Kopia</value>
+  </data>
+  <data name="COM objects a script may create" xml:space="preserve">
+    <value>COM-objekt ett skript får skapa</value>
   </data>
   <data name="COM objects a script may create (comma separated; * = any, empty = only hMailServer's own)" xml:space="preserve">
     <value>COM-objekt ett skript får skapa (kommaseparerade; * = alla, tomt = bara hMailServers egna)</value>
@@ -4127,9 +4130,6 @@ Avsändaren fick veta att det accepterades, så inget kommer att försöka igen 
   <data name="Delivery queue" xml:space="preserve">
     <value>Leveranskö</value>
   </data>
-  <data name="Delivery retriggered for message {0}." xml:space="preserve">
-    <value>Leveransen startades om för meddelande {0}.</value>
-  </data>
   <data name="Delivery retriggered for {0} message." xml:space="preserve">
     <value>Leveransen startades om för {0} meddelande.</value>
   </data>
@@ -4260,9 +4260,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Discovers and enforces recipient MTA-STS policies before delivering over TLS (RFC 8461). To publish a policy for your own domains, see the Web services &amp; autoconfiguration page." xml:space="preserve">
     <value>Upptäcker och upprätthåller mottagarnas MTA-STS-policyer innan leverans över TLS (RFC 8461). För att publicera en policy för dina egna domäner, se sidan Webbtjänster &amp; automatisk konfiguration.</value>
-  </data>
-  <data name="Discovery" xml:space="preserve">
-    <value>eDiscovery</value>
   </data>
   <data name="Discovery case" xml:space="preserve">
     <value>eDiscovery-ärende</value>
@@ -5479,6 +5476,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Full authority" xml:space="preserve">
     <value>Full behörighet</value>
   </data>
+  <data name="Full detail" xml:space="preserve">
+    <value>Full detalj</value>
+  </data>
   <data name="Full re-index interval (minutes)" xml:space="preserve">
     <value>Intervall för fullständig omindexering (minuter)</value>
   </data>
@@ -6255,8 +6255,8 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="JWK Set URL (empty = the key file only)" xml:space="preserve">
     <value>JWK Set-URL (tomt = bara nyckelfilen)</value>
   </data>
-  <data name="Journaling and dual delivery" xml:space="preserve">
-    <value>Journalföring och dubbel leverans</value>
+  <data name="Journaling &amp; dual delivery" xml:space="preserve">
+    <value>Journalföring &amp; dubbel leverans</value>
   </data>
   <data name="Journaling rule" xml:space="preserve">
     <value>Journalföringsregel</value>
@@ -6629,9 +6629,6 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="Log files" xml:space="preserve">
     <value>Loggfiler</value>
-  </data>
-  <data name="Log folder" xml:space="preserve">
-    <value>Loggmapp</value>
   </data>
   <data name="Log level" xml:space="preserve">
     <value>Loggnivå</value>
@@ -7188,6 +7185,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="Message {0} removed." xml:space="preserve">
     <value>Meddelande {0} borttaget.</value>
+  </data>
+  <data name="Message {0} will be tried again now." xml:space="preserve">
+    <value>Meddelande {0} försöks levereras igen nu.</value>
   </data>
   <data name="Message-store consistency" xml:space="preserve">
     <value>Meddelandelagrets konsistens</value>
@@ -8674,11 +8674,11 @@ Inget som redan finns där tas bort.</value>
   <data name="Open TCP/IP ports, which owns the per-listener security setting" xml:space="preserve">
     <value>Öppna TCP/IP-portar, som äger säkerhetsinställningen per lyssnare</value>
   </data>
+  <data name="Open _log folder" xml:space="preserve">
+    <value>Öppna _loggmappen</value>
+  </data>
   <data name="Open an issue with: the log from the 354 (or from the delivery attempt) onwards, including the stage timing lines; the ERROR_hmailserver_&lt;date&gt;.log for the same window; which scanners and event scripts are enabled; and whether the message eventually arrives, arrives twice, or never arrives." xml:space="preserve">
     <value>Öppna ett ärende med: loggen från 354 (eller från leveransförsöket) och framåt, inklusive stegtidsraderna; ERROR_hmailserver_&lt;date&gt;.log för samma fönster; vilka skannrar och händelseskript som är aktiverade; och om meddelandet till slut kommer fram, kommer fram två gånger, eller aldrig kommer fram.</value>
-  </data>
-  <data name="Open log folder" xml:space="preserve">
-    <value>Öppna loggmappen</value>
   </data>
   <data name="Open on the _wiki" xml:space="preserve">
     <value>Öppna på _wikin</value>
@@ -9294,6 +9294,9 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="Profile to scan as (empty = spamd's global configuration)" xml:space="preserve">
     <value>Profil att skanna som (tomt = spamds globala konfiguration)</value>
   </data>
+  <data name="ProgIDs or CLSIDs, separated by commas. An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
+    <value>ProgID:n eller CLSID:n åtskilda med kommatecken. Ett händelseskript körs inne i servern med tjänstekontots rättigheter, så vad det får instansiera är ett säkerhetsbeslut snarare än en bekvämlighet. Som levererat är detta *, vilket tillåter alla objekt, så att en uppgradering aldrig förstör ett skript som en installation redan kör - det är inställningen att snäva in, inte det säkra tillståndet. Namnge bara det som ett av dina skript faktiskt behöver - ett filsystemsobjekt för skript, en HTTP-klient - så avvisas allt annat med objektets namn i felloggen; tomt avvisar allt utöver hMailServers egna objekt.</value>
+  </data>
   <data name="ProgIDs or CLSIDs." xml:space="preserve">
     <value>ProgIDs eller CLSIDs.</value>
   </data>
@@ -9468,11 +9471,14 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="Querying MX records for {0}..." xml:space="preserve">
     <value>Frågar efter MX-poster för {0}...</value>
   </data>
-  <data name="Queue id {0} - select and choose &quot;Follow this message&quot;." xml:space="preserve">
+  <data name="Queue ID {0} - select and choose &quot;Follow this message&quot;." xml:space="preserve">
     <value>Kö-id {0} - markera och välj "Följ det här meddelandet".</value>
   </data>
   <data name="Quick early retries before the normal schedule (0 = off)" xml:space="preserve">
     <value>Snabba tidiga omförsök före det normala schemat (0 = av)</value>
+  </data>
+  <data name="Quieter" xml:space="preserve">
+    <value>Tystare</value>
   </data>
   <data name="REST API" xml:space="preserve">
     <value>REST API</value>
@@ -11454,8 +11460,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Server status" xml:space="preserve">
     <value>Serverstatus</value>
   </data>
-  <data name="Server status (who is connected)" xml:space="preserve">
-    <value>Serverstatus (vem som är ansluten)</value>
+  <data name="Server status (session counts)" xml:space="preserve">
+    <value>Serverstatus (antal sessioner)</value>
   </data>
   <data name="Server status lists the live sessions for each protocol." xml:space="preserve">
     <value>Serverstatus listar de pågående sessionerna för varje protokoll.</value>
@@ -15016,8 +15022,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Where the search starts, e.g. DC=example,DC=local. Required in search mode - that is, when the bind method is Simple and no DN template is set." xml:space="preserve">
     <value>Var sökningen börjar, t.ex. DC=example,DC=local. Krävs i sökläge - det vill säga när bindningsmetoden är Enkel och ingen DN-mall är satt.</value>
   </data>
-  <data name="Where the server writes the logs configured above." xml:space="preserve">
-    <value>Var servern skriver loggarna som konfigurerats ovan.</value>
+  <data name="Where the server writes the logs configured above: {0}" xml:space="preserve">
+    <value>Var servern skriver loggarna som konfigurerats ovan: {0}</value>
   </data>
   <data name="Where this server is: one line of printable ASCII, up to 255 characters." xml:space="preserve">
     <value>Var servern står: en rad med utskrivbar ASCII, upp till 255 tecken.</value>
@@ -15474,6 +15480,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="_Copy DNS value" xml:space="preserve">
     <value>_Kopiera DNS-värde</value>
+  </data>
+  <data name="_Copy results" xml:space="preserve">
+    <value>_Kopiera resultaten</value>
   </data>
   <data name="_Country policy at sign-in (empty = off)" xml:space="preserve">
     <value>_Landspolicy vid inloggning (tomt = av)</value>
@@ -16326,6 +16335,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="e.g. {0}" xml:space="preserve">
     <value>t.ex. {0}</value>
+  </data>
+  <data name="eDiscovery" xml:space="preserve">
+    <value>eDiscovery</value>
   </data>
   <data name="enforce - senders that honour MTA-STS deliver only over valid TLS to the hosts listed" xml:space="preserve">
     <value>enforce - avsändare som följer MTA-STS levererar bara över giltig TLS till de angivna värdarna</value>

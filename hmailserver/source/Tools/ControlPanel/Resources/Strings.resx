@@ -1632,9 +1632,6 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="An entry is changed in place over the REST API; until it can be used from here, delete the entry and add it again instead." xml:space="preserve">
     <value>An entry is changed in place over the REST API; until it can be used from here, delete the entry and add it again instead.</value>
   </data>
-  <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
-    <value>An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects.</value>
-  </data>
   <data name="An external scanner process. 0 = no time limit." xml:space="preserve">
     <value>An external scanner process. 0 = no time limit.</value>
   </data>
@@ -1704,6 +1701,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   </data>
   <data name="Anti-virus settings: test ClamAV" xml:space="preserve">
     <value>Anti-virus settings: test ClamAV</value>
+  </data>
+  <data name="Any COM object may be created by an event script, as shipped. Name only the objects your scripts need." xml:space="preserve">
+    <value>Any COM object may be created by an event script, as shipped. Name only the objects your scripts need.</value>
   </data>
   <data name="Anyone" xml:space="preserve">
     <value>Anyone</value>
@@ -2352,6 +2352,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   </data>
   <data name="CC" xml:space="preserve">
     <value>CC</value>
+  </data>
+  <data name="COM objects a script may create" xml:space="preserve">
+    <value>COM objects a script may create</value>
   </data>
   <data name="COM objects a script may create (comma separated; * = any, empty = only hMailServer's own)" xml:space="preserve">
     <value>COM objects a script may create (comma separated; * = any, empty = only hMailServer's own)</value>
@@ -4127,9 +4130,6 @@ The sender was told it was accepted, so nothing will retry and there is no other
   <data name="Delivery queue" xml:space="preserve">
     <value>Delivery queue</value>
   </data>
-  <data name="Delivery retriggered for message {0}." xml:space="preserve">
-    <value>Delivery retriggered for message {0}.</value>
-  </data>
   <data name="Delivery retriggered for {0} message." xml:space="preserve">
     <value>Delivery retriggered for {0} message.</value>
   </data>
@@ -4260,9 +4260,6 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Discovers and enforces recipient MTA-STS policies before delivering over TLS (RFC 8461). To publish a policy for your own domains, see the Web services &amp; autoconfiguration page." xml:space="preserve">
     <value>Discovers and enforces recipient MTA-STS policies before delivering over TLS (RFC 8461). To publish a policy for your own domains, see the Web services &amp; autoconfiguration page.</value>
-  </data>
-  <data name="Discovery" xml:space="preserve">
-    <value>Discovery</value>
   </data>
   <data name="Discovery case" xml:space="preserve">
     <value>Discovery case</value>
@@ -5479,6 +5476,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Full authority" xml:space="preserve">
     <value>Full authority</value>
   </data>
+  <data name="Full detail" xml:space="preserve">
+    <value>Full detail</value>
+  </data>
   <data name="Full re-index interval (minutes)" xml:space="preserve">
     <value>Full re-index interval (minutes)</value>
   </data>
@@ -6255,8 +6255,8 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="JWK Set URL (empty = the key file only)" xml:space="preserve">
     <value>JWK Set URL (empty = the key file only)</value>
   </data>
-  <data name="Journaling and dual delivery" xml:space="preserve">
-    <value>Journaling and dual delivery</value>
+  <data name="Journaling &amp; dual delivery" xml:space="preserve">
+    <value>Journaling &amp; dual delivery</value>
   </data>
   <data name="Journaling rule" xml:space="preserve">
     <value>Journaling rule</value>
@@ -6629,9 +6629,6 @@ The verified installer is handed to the update helper: the service stops, the ne
   </data>
   <data name="Log files" xml:space="preserve">
     <value>Log files</value>
-  </data>
-  <data name="Log folder" xml:space="preserve">
-    <value>Log folder</value>
   </data>
   <data name="Log level" xml:space="preserve">
     <value>Log level</value>
@@ -7188,6 +7185,9 @@ Nothing already there is removed.</value>
   </data>
   <data name="Message {0} removed." xml:space="preserve">
     <value>Message {0} removed.</value>
+  </data>
+  <data name="Message {0} will be tried again now." xml:space="preserve">
+    <value>Message {0} will be tried again now.</value>
   </data>
   <data name="Message-store consistency" xml:space="preserve">
     <value>Message-store consistency</value>
@@ -8674,11 +8674,11 @@ Nothing already there is removed.</value>
   <data name="Open TCP/IP ports, which owns the per-listener security setting" xml:space="preserve">
     <value>Open TCP/IP ports, which owns the per-listener security setting</value>
   </data>
+  <data name="Open _log folder" xml:space="preserve">
+    <value>Open _log folder</value>
+  </data>
   <data name="Open an issue with: the log from the 354 (or from the delivery attempt) onwards, including the stage timing lines; the ERROR_hmailserver_&lt;date&gt;.log for the same window; which scanners and event scripts are enabled; and whether the message eventually arrives, arrives twice, or never arrives." xml:space="preserve">
     <value>Open an issue with: the log from the 354 (or from the delivery attempt) onwards, including the stage timing lines; the ERROR_hmailserver_&lt;date&gt;.log for the same window; which scanners and event scripts are enabled; and whether the message eventually arrives, arrives twice, or never arrives.</value>
-  </data>
-  <data name="Open log folder" xml:space="preserve">
-    <value>Open log folder</value>
   </data>
   <data name="Open on the _wiki" xml:space="preserve">
     <value>Open on the _wiki</value>
@@ -9294,6 +9294,9 @@ No new connections will be accepted and no mail will be delivered until it is re
   <data name="Profile to scan as (empty = spamd's global configuration)" xml:space="preserve">
     <value>Profile to scan as (empty = spamd's global configuration)</value>
   </data>
+  <data name="ProgIDs or CLSIDs, separated by commas. An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
+    <value>ProgIDs or CLSIDs, separated by commas. An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects.</value>
+  </data>
   <data name="ProgIDs or CLSIDs." xml:space="preserve">
     <value>ProgIDs or CLSIDs.</value>
   </data>
@@ -9468,11 +9471,14 @@ No new connections will be accepted and no mail will be delivered until it is re
   <data name="Querying MX records for {0}..." xml:space="preserve">
     <value>Querying MX records for {0}...</value>
   </data>
-  <data name="Queue id {0} - select and choose &quot;Follow this message&quot;." xml:space="preserve">
-    <value>Queue id {0} - select and choose "Follow this message".</value>
+  <data name="Queue ID {0} - select and choose &quot;Follow this message&quot;." xml:space="preserve">
+    <value>Queue ID {0} - select and choose "Follow this message".</value>
   </data>
   <data name="Quick early retries before the normal schedule (0 = off)" xml:space="preserve">
     <value>Quick early retries before the normal schedule (0 = off)</value>
+  </data>
+  <data name="Quieter" xml:space="preserve">
+    <value>Quieter</value>
   </data>
   <data name="REST API" xml:space="preserve">
     <value>REST API</value>
@@ -11454,8 +11460,8 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Server status" xml:space="preserve">
     <value>Server status</value>
   </data>
-  <data name="Server status (who is connected)" xml:space="preserve">
-    <value>Server status (who is connected)</value>
+  <data name="Server status (session counts)" xml:space="preserve">
+    <value>Server status (session counts)</value>
   </data>
   <data name="Server status lists the live sessions for each protocol." xml:space="preserve">
     <value>Server status lists the live sessions for each protocol.</value>
@@ -15016,8 +15022,8 @@ It will keep trying as you use the application.</value>
   <data name="Where the search starts, e.g. DC=example,DC=local. Required in search mode - that is, when the bind method is Simple and no DN template is set." xml:space="preserve">
     <value>Where the search starts, e.g. DC=example,DC=local. Required in search mode - that is, when the bind method is Simple and no DN template is set.</value>
   </data>
-  <data name="Where the server writes the logs configured above." xml:space="preserve">
-    <value>Where the server writes the logs configured above.</value>
+  <data name="Where the server writes the logs configured above: {0}" xml:space="preserve">
+    <value>Where the server writes the logs configured above: {0}</value>
   </data>
   <data name="Where this server is: one line of printable ASCII, up to 255 characters." xml:space="preserve">
     <value>Where this server is: one line of printable ASCII, up to 255 characters.</value>
@@ -15474,6 +15480,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="_Copy DNS value" xml:space="preserve">
     <value>_Copy DNS value</value>
+  </data>
+  <data name="_Copy results" xml:space="preserve">
+    <value>_Copy results</value>
   </data>
   <data name="_Country policy at sign-in (empty = off)" xml:space="preserve">
     <value>_Country policy at sign-in (empty = off)</value>
@@ -16326,6 +16335,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="e.g. {0}" xml:space="preserve">
     <value>e.g. {0}</value>
+  </data>
+  <data name="eDiscovery" xml:space="preserve">
+    <value>eDiscovery</value>
   </data>
   <data name="enforce - senders that honour MTA-STS deliver only over valid TLS to the hosts listed" xml:space="preserve">
     <value>enforce - senders that honour MTA-STS deliver only over valid TLS to the hosts listed</value>

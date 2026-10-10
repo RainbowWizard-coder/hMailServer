@@ -845,6 +845,9 @@ namespace hMailServer.ControlPanel.Views
 
          private TextBox box_;
 
+         /// <summary>The setting's box, once the page has built it.</summary>
+         public TextBox Box => box_;
+
          public override bool WantsInitialValue => false;
 
          protected override FrameworkElement BuildEditor(object value)
@@ -3885,11 +3888,16 @@ namespace hMailServer.ControlPanel.Views
          // an admin dealing with log volume should not have to find three pages.
          var detail = Card(L("Log detail"),
             L("How much detail each entry carries. Lowering the level is the other half of controlling log volume."));
-         detail.Settings.Add(new IniNumber
+         // The level's two meaningful values by name, where it was a spinner from
+         // 1 to 9 with one step that counted (review finding F313). A level the
+         // server holds that is neither is offered as itself (ChoiceOptions), so
+         // the page writes back what it read.
+         detail.Settings.Add(new IniChoice
          {
             Path = "LogLevel",
             Label = L("Log level"),
             Default = 9,
+            Options = new[] { (9, L("Full detail")), (2, L("Quieter")) },
             Blurb = L("There is only one step, at 2. From 3 upwards (the default is 9) every enabled category is logged in full. At 2 or lower the server drops IMAP FETCH and STATUS responses from the log and shortens lines longer than the limit below to their first and last characters. Turning on Debug messages above restores full detail whatever the level."),
             IniStore = iniStore_
          });
@@ -3956,20 +3964,24 @@ namespace hMailServer.ControlPanel.Views
             ? iniStore_.GetLogFolder()
             : null;
 
+         // The folder in the header, where the page's first question - where are
+         // these files? - is answered without scrolling, and not in its last card
+         // (review finding F313); the card says where it is.
          var logFiles = Card(L("Log files"),
-            L("Where the server writes the logs configured above."));
-
-         logFiles.Settings.Add(new ComAction
-         {
-            Label = L("Log folder"),
-            ButtonText = L("Open log folder"),
-            Blurb = string.IsNullOrWhiteSpace(logFolder)
+            string.IsNullOrWhiteSpace(logFolder)
                ? L("Read from [Directories] LogFolder in hMailServer.ini, which is not readable from this machine - the Control Panel is running somewhere other than the server.")
-               : logFolder,
-            Outcome = () => OpenLogFolder(logFolder)
-         });
-
+               : F("Where the server writes the logs configured above: {0}", logFolder));
          logging.Cards.Add(logFiles);
+
+         var openFolder = new Wpf.Ui.Controls.Button { Content = L("Open _log folder"), Margin = new Thickness(0, 0, DesignTokens.Space.Sm, 0) };
+         System.Windows.Automation.AutomationProperties.SetAutomationId(openFolder, "settings-open-log-folder");
+         openFolder.Click += (s, e) =>
+         {
+            (StatusLevel level, string text) outcome = OpenLogFolder(logFolder);
+            if (outcome.level != StatusLevel.Good)
+               ShowNotice_(outcome.text, outcome.level);
+         };
+         HeaderActions.Children.Insert(0, openFolder);
 
          // The audit trail (docs/AlertsAndAuditTrail.md): read on the Audit trail
          // page, switched and kept here. Kept by the server with no COM property.
@@ -4190,6 +4202,34 @@ namespace hMailServer.ControlPanel.Views
             Blurb = L("Where this server is: one line of printable ASCII, up to 255 characters.")
          });
          Tab(L("SNMP")).Cards.Add(snmp);
+      }
+
+      /// <summary>
+      /// A Warning under the COM allow-list while it is "*", which lets an event
+      /// script create any object with the service account's rights - the
+      /// shipped value, so that upgrading breaks no script, and the one to narrow
+      /// (review finding F313: a "*" raised nothing). It follows the box as it is
+      /// edited.
+      /// </summary>
+      private static void WireAnyObjectWarning_(IniText setting)
+      {
+         TextBox box = setting.Box;
+         FrameworkElement row = box;
+         while (row != null && row is not Scaffold.FieldRow)
+            row = row.Parent as FrameworkElement;
+         if (box == null || row?.Parent is not Panel fields)
+            return;
+
+         var warning = new Scaffold.InlineNotice
+         {
+            Level = StatusLevel.Warning,
+            Text = L("Any COM object may be created by an event script, as shipped. Name only the objects your scripts need."),
+            Margin = new Thickness(0, 0, 0, DesignTokens.Space.Md)
+         };
+         fields.Children.Insert(fields.Children.IndexOf(row) + 1, warning);
+         void Follow() => warning.Visibility = (box.Text ?? "").Trim() == "*" ? Visibility.Visible : Visibility.Collapsed;
+         box.TextChanged += (s, e) => Follow();
+         Follow();
       }
 
       /// <summary>
@@ -4696,17 +4736,19 @@ namespace hMailServer.ControlPanel.Views
          var script = Card(L("Scripting engine"), L("Runs event scripts (OnAcceptMessage, OnDeliveryStart...) from the Events folder; the script itself is edited on the Event scripts page. The engine reloads when you save."));
          script.Settings.Add(new ComBool { Path = "Scripting.Enabled", Label = L("Enable server-side event scripts") });
          script.Settings.Add(new ComText { Path = "Scripting.Language", Label = L("Language (VBScript, JScript or JavaScript)") });
-         script.Settings.Add(new IniText
+         var allowedObjects = new IniText
          {
             Path = "ScriptAllowedObjects",
-            Label = L("COM objects a script may create (comma separated; * = any, empty = only hMailServer's own)"),
-            Blurb = Sentences(L("ProgIDs or CLSIDs."), L("An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects.")),
+            Label = L("COM objects a script may create"),
+            Blurb = L("ProgIDs or CLSIDs, separated by commas. An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects."),
             // Absent means "*", so that a key appearing in an upgrade cannot break
             // scripts an installation already runs; the editor shows that, because
             // a blank here saved back would mean "none" and break them itself.
             Default = "*",
             IniStore = iniStore_
-         });
+         };
+         script.Settings.Add(allowedObjects);
+         afterBuildUi_ = () => WireAnyObjectWarning_(allowedObjects);
          Tab(L("Scripting")).Cards.Add(script);
 
          // Migrations from another server and PST imports (docs/Migration.md): the

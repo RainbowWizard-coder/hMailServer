@@ -41,7 +41,7 @@
                                      AutomationProperties.AutomationId="settings-state" />
             </scaffold:PageHeader.Status>
             <scaffold:PageHeader.Actions>
-                <StackPanel Orientation="Horizontal">
+                <StackPanel x:Name="HeaderActions" Orientation="Horizontal">
                     <ui:Button Content="{loc:L '_Reload'}" Margin="0,0,8,0" Click="Reload_Click"
                                AutomationProperties.AutomationId="settings-reload" />
                     <ui:Button x:Name="SaveButton" Content="{loc:L '_Save changes'}" Appearance="Primary"

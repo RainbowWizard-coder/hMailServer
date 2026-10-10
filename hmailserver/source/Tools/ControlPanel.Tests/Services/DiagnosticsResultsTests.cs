@@ -102,7 +102,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(start > 0 && end > start, "MxQueryView is gone.");
          string view = code.Substring(start, end - start);
 
-         Assert.Contains("new() { Content = L(\"_Copy\"), Margin = new Thickness(8, 0, 0, 0), IsEnabled = false }", view, StringComparison.Ordinal);
+         Assert.Contains("new() { Content = L(\"_Copy results\"), Margin = new Thickness(8, 0, 0, 0), IsEnabled = false }", view, StringComparison.Ordinal);
          string run = WithheldRowTests.MemberText(view, "private async Task RunQuery()");
          Assert.True(run != null, "MxQueryView.RunQuery is gone.");
          Assert.Contains("Say_(StatusLevel.Warning, F(\"The server found no mail servers for {0}", run, StringComparison.Ordinal);

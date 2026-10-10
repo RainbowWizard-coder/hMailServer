@@ -15,9 +15,12 @@ namespace hMailServer.ControlPanel.Views
    /// <summary>
    /// Read-only viewer for a queued message's raw source (headers + body), read
    /// straight from the .eml file on disk like hMailServer Administrator does.
-   /// On the standard frame, keeping its reading layout: the path above, the
-   /// source in a monospaced box with a fixed reading height, Copy at the
-   /// footer's left, Close taking Enter and Escape both.
+   /// On the standard frame, keeping its reading layout: the path as the
+   /// frame's description, the source in a monospaced box with a fixed reading
+   /// height that the keyboard starts in, Copy at the footer's left, Close taking
+   /// Enter and Escape both. The path was a box of its own, the first field, so
+   /// the dialog opened with the keyboard in it, scrolled to its tail (review
+   /// finding F313).
    /// </summary>
    public class MessageViewerDialog : FluentDialogWindow
    {
@@ -32,15 +35,6 @@ namespace hMailServer.ControlPanel.Views
          Title = L("Message source");
 
          var body = new StackPanel();
-
-         var pathBox = new Wpf.Ui.Controls.TextBox
-         {
-            Text = filePath ?? "",
-            IsReadOnly = true,
-            Margin = new Thickness(0, 0, 0, DesignTokens.Space.Md)
-         };
-         pathBox.SetResourceReference(FontSizeProperty, "AppFontSizeCaption");
-         body.Children.Add(pathBox);
 
          var content = new Wpf.Ui.Controls.TextBox
          {
@@ -67,7 +61,7 @@ namespace hMailServer.ControlPanel.Views
          var close = new Wpf.Ui.Controls.Button { Content = L("Close"), Appearance = Wpf.Ui.Controls.ControlAppearance.Primary, MinWidth = 88 };
          close.Click += (s, e) => Close();
 
-         DialogFrame frame = UseFrame(L("Message source"), body, close, null, width: 760);
+         DialogFrame frame = UseFrame(L("Message source"), body, close, null, description: filePath, width: 760);
          close.IsCancel = true;
          frame.Footer = copy;
       }

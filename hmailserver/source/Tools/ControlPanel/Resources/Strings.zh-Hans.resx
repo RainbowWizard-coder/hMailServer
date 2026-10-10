@@ -1632,9 +1632,6 @@
   <data name="An entry is changed in place over the REST API; until it can be used from here, delete the entry and add it again instead." xml:space="preserve">
     <value>条目通过 REST API 就地更改；在能从这里使用 REST API 之前，请改为删除该条目后重新添加。</value>
   </data>
-  <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
-    <value>事件脚本在服务器内部以服务账户的权限运行，因此它可以实例化什么是一项安全决定，而不是一件图方便的事。出厂设置为 *，即允许任何对象，这样升级永远不会弄坏某个安装环境已经在运行的脚本 - 这是一个应当收窄的设置，而不是安全状态。只写下您的脚本确实需要的东西 - 一个脚本文件系统对象、一个 HTTP 客户端 - 其余一切都会被拒绝，并把对象的名称记入错误日志；留空则拒绝 hMailServer 自己的对象以外的一切。</value>
-  </data>
   <data name="An external scanner process. 0 = no time limit." xml:space="preserve">
     <value>一个外部扫描器进程。0 = 无时间限制。</value>
   </data>
@@ -1704,6 +1701,9 @@
   </data>
   <data name="Anti-virus settings: test ClamAV" xml:space="preserve">
     <value>反病毒设置：测试 ClamAV</value>
+  </data>
+  <data name="Any COM object may be created by an event script, as shipped. Name only the objects your scripts need." xml:space="preserve">
+    <value>按出厂设置，事件脚本可以创建任何 COM 对象。请只列出您的脚本需要的对象。</value>
   </data>
   <data name="Anyone" xml:space="preserve">
     <value>任何人</value>
@@ -2352,6 +2352,9 @@
   </data>
   <data name="CC" xml:space="preserve">
     <value>抄送</value>
+  </data>
+  <data name="COM objects a script may create" xml:space="preserve">
+    <value>脚本可以创建的 COM 对象</value>
   </data>
   <data name="COM objects a script may create (comma separated; * = any, empty = only hMailServer's own)" xml:space="preserve">
     <value>脚本可以创建的 COM 对象（以逗号分隔；* = 任意，留空 = 仅 hMailServer 自己的）</value>
@@ -4127,9 +4130,6 @@
   <data name="Delivery queue" xml:space="preserve">
     <value>投递队列</value>
   </data>
-  <data name="Delivery retriggered for message {0}." xml:space="preserve">
-    <value>已重新触发邮件 {0} 的投递。</value>
-  </data>
   <data name="Delivery retriggered for {0} message." xml:space="preserve">
     <value>已重新触发 {0} 封邮件的投递。</value>
   </data>
@@ -4260,9 +4260,6 @@
   </data>
   <data name="Discovers and enforces recipient MTA-STS policies before delivering over TLS (RFC 8461). To publish a policy for your own domains, see the Web services &amp; autoconfiguration page." xml:space="preserve">
     <value>在通过 TLS 投递之前发现并强制执行收件方的 MTA-STS 策略（RFC 8461）。要为您自己的域发布策略，请参阅“Web 服务和自动配置”页。</value>
-  </data>
-  <data name="Discovery" xml:space="preserve">
-    <value>电子取证</value>
   </data>
   <data name="Discovery case" xml:space="preserve">
     <value>电子取证案件</value>
@@ -5479,6 +5476,9 @@
   <data name="Full authority" xml:space="preserve">
     <value>完全权限</value>
   </data>
+  <data name="Full detail" xml:space="preserve">
+    <value>完整详细信息</value>
+  </data>
   <data name="Full re-index interval (minutes)" xml:space="preserve">
     <value>完整重新索引间隔（分钟）</value>
   </data>
@@ -6255,7 +6255,7 @@
   <data name="JWK Set URL (empty = the key file only)" xml:space="preserve">
     <value>JWK 集 URL（留空 = 仅使用密钥文件）</value>
   </data>
-  <data name="Journaling and dual delivery" xml:space="preserve">
+  <data name="Journaling &amp; dual delivery" xml:space="preserve">
     <value>日志归档与双重投递</value>
   </data>
   <data name="Journaling rule" xml:space="preserve">
@@ -6629,9 +6629,6 @@
   </data>
   <data name="Log files" xml:space="preserve">
     <value>日志文件</value>
-  </data>
-  <data name="Log folder" xml:space="preserve">
-    <value>日志文件夹</value>
   </data>
   <data name="Log level" xml:space="preserve">
     <value>日志级别</value>
@@ -7188,6 +7185,9 @@
   </data>
   <data name="Message {0} removed." xml:space="preserve">
     <value>邮件 {0} 已移除。</value>
+  </data>
+  <data name="Message {0} will be tried again now." xml:space="preserve">
+    <value>邮件 {0} 将立即重新尝试投递。</value>
   </data>
   <data name="Message-store consistency" xml:space="preserve">
     <value>邮件存储一致性</value>
@@ -8674,11 +8674,11 @@
   <data name="Open TCP/IP ports, which owns the per-listener security setting" xml:space="preserve">
     <value>打开“TCP/IP 端口”，它拥有按监听器的安全设置</value>
   </data>
+  <data name="Open _log folder" xml:space="preserve">
+    <value>打开日志文件夹(_L)</value>
+  </data>
   <data name="Open an issue with: the log from the 354 (or from the delivery attempt) onwards, including the stage timing lines; the ERROR_hmailserver_&lt;date&gt;.log for the same window; which scanners and event scripts are enabled; and whether the message eventually arrives, arrives twice, or never arrives." xml:space="preserve">
     <value>提交问题时请附上：从 354（或从投递尝试）开始的日志，包括阶段耗时行；同一时间段的 ERROR_hmailserver_&lt;date&gt;.log；启用了哪些扫描器和事件脚本；以及邮件最终是到达了、到达了两次，还是从未到达。</value>
-  </data>
-  <data name="Open log folder" xml:space="preserve">
-    <value>打开日志文件夹</value>
   </data>
   <data name="Open on the _wiki" xml:space="preserve">
     <value>在 Wiki 中打开(_W)</value>
@@ -9294,6 +9294,9 @@
   <data name="Profile to scan as (empty = spamd's global configuration)" xml:space="preserve">
     <value>扫描时所用的配置文件（留空 = spamd 的全局配置）</value>
   </data>
+  <data name="ProgIDs or CLSIDs, separated by commas. An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
+    <value>ProgID 或 CLSID，以逗号分隔。事件脚本在服务器内部以服务账户的权限运行，因此它可以实例化什么是一项安全决定，而不是一件图方便的事。出厂设置为 *，即允许任何对象，这样升级永远不会弄坏某个安装环境已经在运行的脚本 - 这是一个应当收窄的设置，而不是安全状态。只写下您的脚本确实需要的东西 - 一个脚本文件系统对象、一个 HTTP 客户端 - 其余一切都会被拒绝，并把对象的名称记入错误日志；留空则拒绝 hMailServer 自己的对象以外的一切。</value>
+  </data>
   <data name="ProgIDs or CLSIDs." xml:space="preserve">
     <value>ProgIDs 或 CLSIDs。</value>
   </data>
@@ -9468,11 +9471,14 @@
   <data name="Querying MX records for {0}..." xml:space="preserve">
     <value>正在查询 {0} 的 MX 记录...</value>
   </data>
-  <data name="Queue id {0} - select and choose &quot;Follow this message&quot;." xml:space="preserve">
-    <value>队列 id {0} - 选中后选择“跟踪此邮件”。</value>
+  <data name="Queue ID {0} - select and choose &quot;Follow this message&quot;." xml:space="preserve">
+    <value>队列 ID {0} - 选中后选择“跟踪此邮件”。</value>
   </data>
   <data name="Quick early retries before the normal schedule (0 = off)" xml:space="preserve">
     <value>在正常计划之前的快速早期重试（0 = 关闭）</value>
+  </data>
+  <data name="Quieter" xml:space="preserve">
+    <value>更安静</value>
   </data>
   <data name="REST API" xml:space="preserve">
     <value>REST API</value>
@@ -11454,8 +11460,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Server status" xml:space="preserve">
     <value>服务器状态</value>
   </data>
-  <data name="Server status (who is connected)" xml:space="preserve">
-    <value>服务器状态 (谁已连接)</value>
+  <data name="Server status (session counts)" xml:space="preserve">
+    <value>服务器状态 (会话数)</value>
   </data>
   <data name="Server status lists the live sessions for each protocol." xml:space="preserve">
     <value>服务器状态列出每种协议的实时会话。</value>
@@ -15016,8 +15022,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Where the search starts, e.g. DC=example,DC=local. Required in search mode - that is, when the bind method is Simple and no DN template is set." xml:space="preserve">
     <value>搜索从哪里开始，例如 DC=example,DC=local。搜索模式下必填 - 也就是绑定方法为 Simple 且未设置 DN 模板时。</value>
   </data>
-  <data name="Where the server writes the logs configured above." xml:space="preserve">
-    <value>服务器把上面配置的日志写到哪里。</value>
+  <data name="Where the server writes the logs configured above: {0}" xml:space="preserve">
+    <value>服务器把上面配置的日志写到哪里：{0}</value>
   </data>
   <data name="Where this server is: one line of printable ASCII, up to 255 characters." xml:space="preserve">
     <value>本服务器所在的位置：一行可打印 ASCII，最多 255 个字符。</value>
@@ -15474,6 +15480,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="_Copy DNS value" xml:space="preserve">
     <value>复制 DNS 值(_C)</value>
+  </data>
+  <data name="_Copy results" xml:space="preserve">
+    <value>复制结果(_C)</value>
   </data>
   <data name="_Country policy at sign-in (empty = off)" xml:space="preserve">
     <value>登录时的国家策略（空 = 关闭）(_C)</value>
@@ -16326,6 +16335,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="e.g. {0}" xml:space="preserve">
     <value>例如 {0}</value>
+  </data>
+  <data name="eDiscovery" xml:space="preserve">
+    <value>电子取证</value>
   </data>
   <data name="enforce - senders that honour MTA-STS deliver only over valid TLS to the hosts listed" xml:space="preserve">
     <value>enforce - 遵守 MTA-STS 的发件方只通过有效的 TLS 投递到列出的主机</value>

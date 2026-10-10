@@ -1632,9 +1632,6 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="An entry is changed in place over the REST API; until it can be used from here, delete the entry and add it again instead." xml:space="preserve">
     <value>Uma entrada é alterada no lugar pela API REST; até que ela possa ser usada daqui, exclua a entrada e adicione-a de novo.</value>
   </data>
-  <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
-    <value>Um script de evento roda dentro do servidor com os direitos da conta de serviço, então o que ele pode instanciar é uma decisão de segurança, e não uma conveniência. Como distribuído, isto é *, que permite qualquer objeto, para que uma atualização nunca quebre um script que uma instalação já executa - é a configuração a restringir, não o estado seguro. Nomeie apenas o que algum script seu realmente precisa - um objeto de sistema de arquivos de script, um cliente HTTP - e todo o resto é recusado, com o nome do objeto no log de erros; vazio recusa tudo além dos objetos do próprio hMailServer.</value>
-  </data>
   <data name="An external scanner process. 0 = no time limit." xml:space="preserve">
     <value>Um processo de verificação externo. 0 = sem limite de tempo.</value>
   </data>
@@ -1704,6 +1701,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   </data>
   <data name="Anti-virus settings: test ClamAV" xml:space="preserve">
     <value>Configurações de antivírus: testar o ClamAV</value>
+  </data>
+  <data name="Any COM object may be created by an event script, as shipped. Name only the objects your scripts need." xml:space="preserve">
+    <value>Um script de eventos pode criar qualquer objeto COM, como distribuído. Indique só os objetos de que seus scripts precisam.</value>
   </data>
   <data name="Anyone" xml:space="preserve">
     <value>Qualquer um</value>
@@ -2352,6 +2352,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   </data>
   <data name="CC" xml:space="preserve">
     <value>CC</value>
+  </data>
+  <data name="COM objects a script may create" xml:space="preserve">
+    <value>Objetos COM que um script pode criar</value>
   </data>
   <data name="COM objects a script may create (comma separated; * = any, empty = only hMailServer's own)" xml:space="preserve">
     <value>Objetos COM que um script pode criar (separados por vírgula; * = qualquer um, vazio = só os do próprio hMailServer)</value>
@@ -4127,9 +4130,6 @@ O remetente foi informado de que ela foi aceita, então nada tentará de novo e 
   <data name="Delivery queue" xml:space="preserve">
     <value>Fila de entrega</value>
   </data>
-  <data name="Delivery retriggered for message {0}." xml:space="preserve">
-    <value>Entrega disparada novamente para a mensagem {0}.</value>
-  </data>
   <data name="Delivery retriggered for {0} message." xml:space="preserve">
     <value>Entrega disparada novamente para {0} mensagem.</value>
   </data>
@@ -4260,9 +4260,6 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   </data>
   <data name="Discovers and enforces recipient MTA-STS policies before delivering over TLS (RFC 8461). To publish a policy for your own domains, see the Web services &amp; autoconfiguration page." xml:space="preserve">
     <value>Descobre e aplica as políticas MTA-STS dos destinatários antes de entregar por TLS (RFC 8461). Para publicar uma política para seus próprios domínios, veja a página Serviços web e autoconfiguração.</value>
-  </data>
-  <data name="Discovery" xml:space="preserve">
-    <value>eDiscovery</value>
   </data>
   <data name="Discovery case" xml:space="preserve">
     <value>Caso de eDiscovery</value>
@@ -5479,6 +5476,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Full authority" xml:space="preserve">
     <value>Autoridade total</value>
   </data>
+  <data name="Full detail" xml:space="preserve">
+    <value>Detalhe completo</value>
+  </data>
   <data name="Full re-index interval (minutes)" xml:space="preserve">
     <value>Intervalo de reindexação completa (minutos)</value>
   </data>
@@ -6255,7 +6255,7 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   <data name="JWK Set URL (empty = the key file only)" xml:space="preserve">
     <value>URL do JWK Set (vazio = somente o arquivo de chave)</value>
   </data>
-  <data name="Journaling and dual delivery" xml:space="preserve">
+  <data name="Journaling &amp; dual delivery" xml:space="preserve">
     <value>Registro de correio e entrega dupla</value>
   </data>
   <data name="Journaling rule" xml:space="preserve">
@@ -6629,9 +6629,6 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   </data>
   <data name="Log files" xml:space="preserve">
     <value>Arquivos de log</value>
-  </data>
-  <data name="Log folder" xml:space="preserve">
-    <value>Pasta de logs</value>
   </data>
   <data name="Log level" xml:space="preserve">
     <value>Nível de log</value>
@@ -7188,6 +7185,9 @@ Nada do que já está lá é removido.</value>
   </data>
   <data name="Message {0} removed." xml:space="preserve">
     <value>Mensagem {0} removida.</value>
+  </data>
+  <data name="Message {0} will be tried again now." xml:space="preserve">
+    <value>A mensagem {0} será tentada de novo agora.</value>
   </data>
   <data name="Message-store consistency" xml:space="preserve">
     <value>Consistência do armazenamento de mensagens</value>
@@ -8674,11 +8674,11 @@ Nada do que já está lá é removido.</value>
   <data name="Open TCP/IP ports, which owns the per-listener security setting" xml:space="preserve">
     <value>Abrir Portas TCP/IP, que é onde fica a configuração de segurança por ouvinte</value>
   </data>
+  <data name="Open _log folder" xml:space="preserve">
+    <value>_Abrir a pasta de logs</value>
+  </data>
   <data name="Open an issue with: the log from the 354 (or from the delivery attempt) onwards, including the stage timing lines; the ERROR_hmailserver_&lt;date&gt;.log for the same window; which scanners and event scripts are enabled; and whether the message eventually arrives, arrives twice, or never arrives." xml:space="preserve">
     <value>Abra uma issue com: o log a partir do 354 (ou a partir da tentativa de entrega), incluindo as linhas de tempo de cada etapa; o ERROR_hmailserver_&lt;date&gt;.log da mesma janela; quais verificadores e scripts de evento estão ativados; e se a mensagem acaba chegando, chega duas vezes ou nunca chega.</value>
-  </data>
-  <data name="Open log folder" xml:space="preserve">
-    <value>Abrir a pasta de logs</value>
   </data>
   <data name="Open on the _wiki" xml:space="preserve">
     <value>Abrir na _wiki</value>
@@ -9294,6 +9294,9 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   <data name="Profile to scan as (empty = spamd's global configuration)" xml:space="preserve">
     <value>Perfil com o qual verificar (vazio = configuração global do spamd)</value>
   </data>
+  <data name="ProgIDs or CLSIDs, separated by commas. An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
+    <value>ProgIDs ou CLSIDs, separados por vírgulas. Um script de evento roda dentro do servidor com os direitos da conta de serviço, então o que ele pode instanciar é uma decisão de segurança, e não uma conveniência. Como distribuído, isto é *, que permite qualquer objeto, para que uma atualização nunca quebre um script que uma instalação já executa - é a configuração a restringir, não o estado seguro. Nomeie apenas o que algum script seu realmente precisa - um objeto de sistema de arquivos de script, um cliente HTTP - e todo o resto é recusado, com o nome do objeto no log de erros; vazio recusa tudo além dos objetos do próprio hMailServer.</value>
+  </data>
   <data name="ProgIDs or CLSIDs." xml:space="preserve">
     <value>ProgIDs ou CLSIDs.</value>
   </data>
@@ -9468,11 +9471,14 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   <data name="Querying MX records for {0}..." xml:space="preserve">
     <value>Consultando os registros MX de {0}...</value>
   </data>
-  <data name="Queue id {0} - select and choose &quot;Follow this message&quot;." xml:space="preserve">
+  <data name="Queue ID {0} - select and choose &quot;Follow this message&quot;." xml:space="preserve">
     <value>ID de fila {0} - selecione e escolha "Seguir esta mensagem".</value>
   </data>
   <data name="Quick early retries before the normal schedule (0 = off)" xml:space="preserve">
     <value>Novas tentativas rápidas e antecipadas antes do agendamento normal (0 = desligado)</value>
+  </data>
+  <data name="Quieter" xml:space="preserve">
+    <value>Mais silencioso</value>
   </data>
   <data name="REST API" xml:space="preserve">
     <value>API REST</value>
@@ -11454,8 +11460,8 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Server status" xml:space="preserve">
     <value>Status do servidor</value>
   </data>
-  <data name="Server status (who is connected)" xml:space="preserve">
-    <value>Status do servidor (quem está conectado)</value>
+  <data name="Server status (session counts)" xml:space="preserve">
+    <value>Status do servidor (contagem de sessões)</value>
   </data>
   <data name="Server status lists the live sessions for each protocol." xml:space="preserve">
     <value>O status do servidor lista as sessões ativas de cada protocolo.</value>
@@ -15016,8 +15022,8 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="Where the search starts, e.g. DC=example,DC=local. Required in search mode - that is, when the bind method is Simple and no DN template is set." xml:space="preserve">
     <value>Onde a busca começa, ex.: DC=example,DC=local. Obrigatório no modo de busca - isto é, quando o método de vínculo é Simple e nenhum modelo de DN está definido.</value>
   </data>
-  <data name="Where the server writes the logs configured above." xml:space="preserve">
-    <value>Onde o servidor grava os logs configurados acima.</value>
+  <data name="Where the server writes the logs configured above: {0}" xml:space="preserve">
+    <value>Onde o servidor grava os logs configurados acima: {0}</value>
   </data>
   <data name="Where this server is: one line of printable ASCII, up to 255 characters." xml:space="preserve">
     <value>Onde este servidor fica: uma linha de ASCII imprimível, até 255 caracteres.</value>
@@ -15474,6 +15480,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="_Copy DNS value" xml:space="preserve">
     <value>_Copiar valor DNS</value>
+  </data>
+  <data name="_Copy results" xml:space="preserve">
+    <value>C_opiar os resultados</value>
   </data>
   <data name="_Country policy at sign-in (empty = off)" xml:space="preserve">
     <value>Política de _país no login (vazio = desligada)</value>
@@ -16326,6 +16335,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="e.g. {0}" xml:space="preserve">
     <value>ex.: {0}</value>
+  </data>
+  <data name="eDiscovery" xml:space="preserve">
+    <value>eDiscovery</value>
   </data>
   <data name="enforce - senders that honour MTA-STS deliver only over valid TLS to the hosts listed" xml:space="preserve">
     <value>enforce - remetentes que respeitam o MTA-STS só entregam por TLS válido aos hosts listados</value>

@@ -221,7 +221,7 @@ namespace hMailServer.ControlPanel.Views
 
          public string FollowHint => QueueId == 0
             ? L("Refused before the message was queued, so there is no message to follow.")
-            : F("Queue id {0} - select and choose \"Follow this message\".", QueueId);
+            : F("Queue ID {0} - select and choose \"Follow this message\".", QueueId);
 
          // The time and the event, then the sender, the recipient and the status
          // with their columns' names.

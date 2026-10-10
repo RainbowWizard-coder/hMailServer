@@ -148,7 +148,7 @@ message in the mailbox twice and archives nothing anywhere.
 * **The Control Deck** - the *Journaling* view: every rule with whose mail, which
   way, what is sent and where it goes, a switch on each row, and a form to add
   one.
-* **The Control Panel** - the *Journaling and dual delivery* page, over three
+* **The Control Panel** - the *Journaling & dual delivery* page, over three
   `Utilities` methods (`GetJournalRules`, `SaveJournalRule`, `DeleteJournalRule`).
 * **hmctl** - `hmctl journalrule list|create|update|delete`, and
   `Get-HmJournalRule`, `New-HmJournalRule`, `Set-HmJournalRule`,

@@ -93,7 +93,7 @@ namespace hMailServer.ControlPanel.Services
       public static string Retried(IReadOnlyList<string> ids)
       {
          if (ids.Count == 1)
-            return F("Delivery retriggered for message {0}.", ids[0]);
+            return F("Message {0} will be tried again now.", ids[0]);
 
          return Plural(ids.Count, "Delivery retriggered for {0} message.", "Delivery retriggered for {0} messages.");
       }

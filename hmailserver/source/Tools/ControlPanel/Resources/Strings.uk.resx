@@ -1644,9 +1644,6 @@
   <data name="An entry is changed in place over the REST API; until it can be used from here, delete the entry and add it again instead." xml:space="preserve">
     <value>Запис змінюється на місці через REST API; доки його не можна використати звідси, натомість видаліть запис і додайте його знову.</value>
   </data>
-  <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
-    <value>Скрипт подій виконується всередині сервера з правами облікового запису служби, тому те, які об'єкти йому дозволено створювати, — це рішення щодо безпеки, а не питання зручності. У постаченому вигляді тут стоїть *, що дозволяє будь-який об'єкт, щоб оновлення ніколи не зламало скрипт, який інсталяція вже виконує, — це параметр, який слід звужувати, а не безпечний стан. Називайте лише те, що справді потрібне якомусь із ваших скриптів, — об'єкт файлової системи для скриптів, HTTP-клієнт, — а все інше відхиляється із записом імені об'єкта в журнал помилок; порожньо відхиляє все, крім власних об'єктів hMailServer.</value>
-  </data>
   <data name="An external scanner process. 0 = no time limit." xml:space="preserve">
     <value>Процес зовнішнього сканера. 0 = без обмеження часу.</value>
   </data>
@@ -1716,6 +1713,9 @@
   </data>
   <data name="Anti-virus settings: test ClamAV" xml:space="preserve">
     <value>Параметри захисту від вірусів: перевірити ClamAV</value>
+  </data>
+  <data name="Any COM object may be created by an event script, as shipped. Name only the objects your scripts need." xml:space="preserve">
+    <value>Скрипт подій може створити будь-який об’єкт COM, як у постачанні. Укажіть лише об’єкти, потрібні вашим скриптам.</value>
   </data>
   <data name="Anyone" xml:space="preserve">
     <value>Будь-хто</value>
@@ -2376,6 +2376,9 @@
   </data>
   <data name="CC" xml:space="preserve">
     <value>Копія</value>
+  </data>
+  <data name="COM objects a script may create" xml:space="preserve">
+    <value>Об'єкти COM, які може створювати скрипт</value>
   </data>
   <data name="COM objects a script may create (comma separated; * = any, empty = only hMailServer's own)" xml:space="preserve">
     <value>Об'єкти COM, які може створювати скрипт (через кому; * = будь-які, порожньо = лише власні об'єкти hMailServer)</value>
@@ -4176,9 +4179,6 @@
   <data name="Delivery queue" xml:space="preserve">
     <value>Черга доставки</value>
   </data>
-  <data name="Delivery retriggered for message {0}." xml:space="preserve">
-    <value>Доставку повідомлення {0} перезапущено.</value>
-  </data>
   <data name="Delivery retriggered for {0} message." xml:space="preserve">
     <value>Доставку перезапущено для {0} повідомлення.</value>
   </data>
@@ -4312,9 +4312,6 @@
   </data>
   <data name="Discovers and enforces recipient MTA-STS policies before delivering over TLS (RFC 8461). To publish a policy for your own domains, see the Web services &amp; autoconfiguration page." xml:space="preserve">
     <value>Виявляє та застосовує політики MTA-STS отримувачів перед доставкою через TLS (RFC 8461). Щоб опублікувати політику для власних доменів, див. сторінку «Вебслужби та автоконфігурація».</value>
-  </data>
-  <data name="Discovery" xml:space="preserve">
-    <value>eDiscovery</value>
   </data>
   <data name="Discovery case" xml:space="preserve">
     <value>Справа eDiscovery</value>
@@ -5549,6 +5546,9 @@
   <data name="Full authority" xml:space="preserve">
     <value>Повні права</value>
   </data>
+  <data name="Full detail" xml:space="preserve">
+    <value>Повна деталізація</value>
+  </data>
   <data name="Full re-index interval (minutes)" xml:space="preserve">
     <value>Інтервал повного переіндексування (хвилини)</value>
   </data>
@@ -6325,7 +6325,7 @@
   <data name="JWK Set URL (empty = the key file only)" xml:space="preserve">
     <value>URL-адреса JWK Set (порожньо = лише файл ключа)</value>
   </data>
-  <data name="Journaling and dual delivery" xml:space="preserve">
+  <data name="Journaling &amp; dual delivery" xml:space="preserve">
     <value>Журналювання та подвійна доставка</value>
   </data>
   <data name="Journaling rule" xml:space="preserve">
@@ -6699,9 +6699,6 @@
   </data>
   <data name="Log files" xml:space="preserve">
     <value>Файли журналів</value>
-  </data>
-  <data name="Log folder" xml:space="preserve">
-    <value>Папка журналів</value>
   </data>
   <data name="Log level" xml:space="preserve">
     <value>Рівень журналу</value>
@@ -7264,6 +7261,9 @@
   </data>
   <data name="Message {0} removed." xml:space="preserve">
     <value>Повідомлення {0} вилучено.</value>
+  </data>
+  <data name="Message {0} will be tried again now." xml:space="preserve">
+    <value>Доставку повідомлення {0} буде повторено зараз.</value>
   </data>
   <data name="Message-store consistency" xml:space="preserve">
     <value>Цілісність сховища повідомлень</value>
@@ -8768,11 +8768,11 @@
   <data name="Open TCP/IP ports, which owns the per-listener security setting" xml:space="preserve">
     <value>Відкрити «Порти TCP/IP», де задається параметр безпеки для кожного слухача</value>
   </data>
+  <data name="Open _log folder" xml:space="preserve">
+    <value>_Відкрити папку журналів</value>
+  </data>
   <data name="Open an issue with: the log from the 354 (or from the delivery attempt) onwards, including the stage timing lines; the ERROR_hmailserver_&lt;date&gt;.log for the same window; which scanners and event scripts are enabled; and whether the message eventually arrives, arrives twice, or never arrives." xml:space="preserve">
     <value>Створіть звернення з такими даними: журнал від 354 (або від спроби доставки) і далі, включно з рядками таймінгів етапів; ERROR_hmailserver_&lt;date&gt;.log за той самий проміжок; які сканери та скрипти подій увімкнено; і чи повідомлення зрештою надходить, надходить двічі або не надходить ніколи.</value>
-  </data>
-  <data name="Open log folder" xml:space="preserve">
-    <value>Відкрити папку журналів</value>
   </data>
   <data name="Open on the _wiki" xml:space="preserve">
     <value>Відкрити у _вікі</value>
@@ -9388,6 +9388,9 @@
   <data name="Profile to scan as (empty = spamd's global configuration)" xml:space="preserve">
     <value>Профіль, від імені якого сканувати (порожньо = глобальна конфігурація spamd)</value>
   </data>
+  <data name="ProgIDs or CLSIDs, separated by commas. An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
+    <value>ProgID або CLSID через кому. Скрипт подій виконується всередині сервера з правами облікового запису служби, тому те, які об'єкти йому дозволено створювати, — це рішення щодо безпеки, а не питання зручності. У постаченому вигляді тут стоїть *, що дозволяє будь-який об'єкт, щоб оновлення ніколи не зламало скрипт, який інсталяція вже виконує, — це параметр, який слід звужувати, а не безпечний стан. Називайте лише те, що справді потрібне якомусь із ваших скриптів, — об'єкт файлової системи для скриптів, HTTP-клієнт, — а все інше відхиляється із записом імені об'єкта в журнал помилок; порожньо відхиляє все, крім власних об'єктів hMailServer.</value>
+  </data>
   <data name="ProgIDs or CLSIDs." xml:space="preserve">
     <value>ProgIDs або CLSIDs.</value>
   </data>
@@ -9562,11 +9565,14 @@
   <data name="Querying MX records for {0}..." xml:space="preserve">
     <value>Запит MX-записів для {0}...</value>
   </data>
-  <data name="Queue id {0} - select and choose &quot;Follow this message&quot;." xml:space="preserve">
+  <data name="Queue ID {0} - select and choose &quot;Follow this message&quot;." xml:space="preserve">
     <value>Ідентифікатор черги {0} — виберіть і оберіть «Стежити за цим повідомленням».</value>
   </data>
   <data name="Quick early retries before the normal schedule (0 = off)" xml:space="preserve">
     <value>Швидкі ранні повторні спроби перед звичайним розкладом (0 = вимкнено)</value>
+  </data>
+  <data name="Quieter" xml:space="preserve">
+    <value>Тихіше</value>
   </data>
   <data name="REST API" xml:space="preserve">
     <value>REST API</value>
@@ -11593,8 +11599,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Server status" xml:space="preserve">
     <value>Стан сервера</value>
   </data>
-  <data name="Server status (who is connected)" xml:space="preserve">
-    <value>Стан сервера (хто під'єднаний)</value>
+  <data name="Server status (session counts)" xml:space="preserve">
+    <value>Стан сервера (кількість сеансів)</value>
   </data>
   <data name="Server status lists the live sessions for each protocol." xml:space="preserve">
     <value>Стан сервера перелічує активні сесії для кожного протоколу.</value>
@@ -15194,8 +15200,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Where the search starts, e.g. DC=example,DC=local. Required in search mode - that is, when the bind method is Simple and no DN template is set." xml:space="preserve">
     <value>Звідки починається пошук, наприклад DC=example,DC=local. Обов'язковий у режимі пошуку - тобто коли метод прив'язки Simple і шаблон DN не задано.</value>
   </data>
-  <data name="Where the server writes the logs configured above." xml:space="preserve">
-    <value>Куди сервер пише журнали, налаштовані вище.</value>
+  <data name="Where the server writes the logs configured above: {0}" xml:space="preserve">
+    <value>Куди сервер пише журнали, налаштовані вище: {0}</value>
   </data>
   <data name="Where this server is: one line of printable ASCII, up to 255 characters." xml:space="preserve">
     <value>Де розташовано цей сервер: один рядок друкованих символів ASCII, до 255 символів.</value>
@@ -15655,6 +15661,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Copy DNS value" xml:space="preserve">
     <value>_Копіювати значення DNS</value>
+  </data>
+  <data name="_Copy results" xml:space="preserve">
+    <value>_Копіювати результати</value>
   </data>
   <data name="_Country policy at sign-in (empty = off)" xml:space="preserve">
     <value>_Політика країн під час входу (порожньо = вимкнено)</value>
@@ -16507,6 +16516,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="e.g. {0}" xml:space="preserve">
     <value>наприклад, {0}</value>
+  </data>
+  <data name="eDiscovery" xml:space="preserve">
+    <value>eDiscovery</value>
   </data>
   <data name="enforce - senders that honour MTA-STS deliver only over valid TLS to the hosts listed" xml:space="preserve">
     <value>enforce - відправники, які дотримуються MTA-STS, доставляють лише через дійсний TLS на перелічені вузли</value>

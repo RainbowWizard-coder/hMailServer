@@ -414,7 +414,7 @@ namespace hMailServer.ControlPanel.Views
          Margin = new Thickness(4, 2, 4, 0)
       };
       private readonly Wpf.Ui.Controls.Button run_ = new() { Content = L("_Query"), Appearance = Wpf.Ui.Controls.ControlAppearance.Primary };
-      private readonly Wpf.Ui.Controls.Button copy_ = new() { Content = L("_Copy"), Margin = new Thickness(8, 0, 0, 0), IsEnabled = false };
+      private readonly Wpf.Ui.Controls.Button copy_ = new() { Content = L("_Copy results"), Margin = new Thickness(8, 0, 0, 0), IsEnabled = false };
 
       public MxQueryView()
       {
@@ -807,7 +807,7 @@ namespace hMailServer.ControlPanel.Views
          Margin = new Thickness(4, 2, 4, 0)
       };
       private readonly Wpf.Ui.Controls.Button run_ = new() { Content = L("Run _diagnostics"), Appearance = Wpf.Ui.Controls.ControlAppearance.Primary };
-      private readonly Wpf.Ui.Controls.Button copy_ = new() { Content = L("_Copy"), Margin = new Thickness(8, 0, 0, 0), IsEnabled = false };
+      private readonly Wpf.Ui.Controls.Button copy_ = new() { Content = L("_Copy results"), Margin = new Thickness(8, 0, 0, 0), IsEnabled = false };
 
       // What Copy takes: the summary and each check as text, in the reader's language.
       private string copyText_ = "";
