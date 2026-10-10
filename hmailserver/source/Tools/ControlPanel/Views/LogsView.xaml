@@ -19,6 +19,13 @@
 
         <scaffold:PageHeader x:Name="Header" PageKey="logs"
                              Subtitle="{loc:L 'The server log as it is written, read from the log folder on this computer.'}">
+            <!-- How many lines the page holds, and how many of them the filter and
+                 the type boxes leave on screen (review finding F250). Not a live
+                 region: it changes with every line the server writes. -->
+            <scaffold:PageHeader.Status>
+                <scaffold:StatusPill x:Name="LineCount" Level="Normal" Visibility="Collapsed"
+                                     AutomationProperties.AutomationId="logs-count" />
+            </scaffold:PageHeader.Status>
             <scaffold:PageHeader.Actions>
                 <StackPanel Orientation="Horizontal">
                     <!-- Which of the server's logs: the day's, its errors, the script
@@ -60,7 +67,46 @@
              with a style of its own the list took the system's row, whose blue
              selection put the dark lines at 3.8 to 3.9:1, and its grey one, once
              the list lost the keyboard, at 2.9 to 3.0:1. -->
-        <scaffold:Card Grid.Row="1" Padding="4">
+        <!-- The lines narrowed to what is being followed: the words typed in - an
+             address, a host, session=42 - and the line types, each box drawn in its
+             lines' colour so that the boxes are the colours' legend, and the long
+             lines wrapped or scrolled sideways (review finding F250). Only Pause and
+             Clear view were here, over a screenful of lines a second. -->
+        <!-- The routes page's shape: the log takes the height the toolbar leaves in
+             the window, down to a floor of three lines' card, and below that the page
+             scrolls, so that in the narrowest window (760 by 520) the toolbar's second
+             row does not leave the log and what its empty states say a sliver. The bar
+             is drawn over the content; the right padding keeps the toolbar clear of it. -->
+        <ScrollViewer x:Name="PageScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled" Focusable="False" Padding="0,0,12,0">
+        <scaffold:FillPanel ViewportHeight="{Binding ViewportHeight, ElementName=PageScroll}">
+
+        <scaffold:Toolbar x:Name="LineFilter" Margin="{StaticResource AppCardGap}"
+                          SearchPlaceholder="{loc:L 'Filter lines: an address, any words, or session=42'}"
+                          SearchTextChanged="LineFilter_SearchTextChanged">
+            <scaffold:Toolbar.Filters>
+                <WrapPanel x:Name="TypeBoxes" Orientation="Horizontal" VerticalAlignment="Center">
+                    <CheckBox x:Name="ShowSmtp" MinWidth="0" Content="{loc:L '_SMTP'}" IsChecked="True" Tag="Smtp" Click="TypeBox_Click"
+                              Foreground="{DynamicResource LogSmtpBrush}" Margin="0,2,12,2" AutomationProperties.AutomationId="logs-type-smtp" />
+                    <CheckBox x:Name="ShowImap" MinWidth="0" Content="{loc:L '_IMAP'}" IsChecked="True" Tag="Imap" Click="TypeBox_Click"
+                              Foreground="{DynamicResource LogImapBrush}" Margin="0,2,12,2" AutomationProperties.AutomationId="logs-type-imap" />
+                    <CheckBox x:Name="ShowPop3" MinWidth="0" Content="{loc:L 'POP_3'}" IsChecked="True" Tag="Pop3" Click="TypeBox_Click"
+                              Foreground="{DynamicResource LogPop3Brush}" Margin="0,2,12,2" AutomationProperties.AutomationId="logs-type-pop3" />
+                    <CheckBox x:Name="ShowApplication" MinWidth="0" Content="{loc:L '_Application'}" IsChecked="True" Tag="Application" Click="TypeBox_Click"
+                              Foreground="{DynamicResource LogAppBrush}" Margin="0,2,12,2" AutomationProperties.AutomationId="logs-type-application" />
+                    <CheckBox x:Name="ShowDebug" MinWidth="0" Content="{loc:L '_Debug'}" IsChecked="True" Tag="Debug" Click="TypeBox_Click"
+                              Foreground="{DynamicResource LogDefaultBrush}" Margin="0,2,12,2" AutomationProperties.AutomationId="logs-type-debug" />
+                    <CheckBox x:Name="ShowErrors" MinWidth="0" Content="{loc:L 'E_rrors'}" IsChecked="True" Tag="Error" Click="TypeBox_Click"
+                              Foreground="{DynamicResource LogErrorBrush}" Margin="0,2,12,2" AutomationProperties.AutomationId="logs-type-errors" />
+                </WrapPanel>
+            </scaffold:Toolbar.Filters>
+            <scaffold:Toolbar.Actions>
+                <CheckBox x:Name="WrapLines" Content="{loc:L '_Wrap lines'}" Click="WrapLines_Click" Margin="0,2,0,2"
+                          AutomationProperties.AutomationId="logs-wrap" />
+            </scaffold:Toolbar.Actions>
+        </scaffold:Toolbar>
+
+        <scaffold:Card scaffold:FillPanel.Fill="True" MinHeight="157" Padding="4">
             <Grid>
                 <ListBox x:Name="LogList" Background="Transparent" BorderThickness="0" SelectionMode="Extended"
                          FontFamily="Cascadia Mono, Consolas" FontSize="12"
@@ -84,7 +130,7 @@
                                     <ColumnDefinition Width="Auto" SharedSizeGroup="LogType" />
                                     <ColumnDefinition Width="Auto" SharedSizeGroup="LogThread" />
                                     <ColumnDefinition Width="Auto" SharedSizeGroup="LogSession" />
-                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="{Binding Time}" Foreground="{Binding Brush}" Margin="0,0,12,0"
                                            LineHeight="17" LineStackingStrategy="BlockLineHeight" />
@@ -94,15 +140,28 @@
                                            LineHeight="17" LineStackingStrategy="BlockLineHeight" />
                                 <TextBlock Grid.Column="3" Text="{Binding Session}" Foreground="{Binding Brush}" Margin="0,0,12,0" TextAlignment="Right"
                                            LineHeight="17" LineStackingStrategy="BlockLineHeight" />
-                                <TextBlock Grid.Column="4" Text="{Binding Message}" Foreground="{Binding Brush}" TextWrapping="NoWrap"
+                                <TextBlock x:Name="MessageText" Grid.Column="4" Text="{Binding Message}" Foreground="{Binding Brush}" TextWrapping="NoWrap"
                                            LineHeight="17" LineStackingStrategy="BlockLineHeight" />
                             </Grid>
+                            <!-- Wrap lines: the text folds at the list's width, which the
+                                 list then keeps to (LogsView.WrapLines_Click). -->
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource AncestorType=ListBox}}" Value="wrap">
+                                    <Setter TargetName="MessageText" Property="TextWrapping" Value="Wrap" />
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
                 <scaffold:EmptyState x:Name="Problem" Icon="DocumentBulletList24" Visibility="Collapsed"
                                      AutomationProperties.AutomationId="logs-problem" />
+                <!-- Lines read that the filter and the type boxes all hide: said over
+                     the list, which goes on following the log under it. -->
+                <scaffold:EmptyState x:Name="NoMatch" Icon="Filter24" Visibility="Collapsed"
+                                     AutomationProperties.AutomationId="logs-no-match" />
             </Grid>
         </scaffold:Card>
+        </scaffold:FillPanel>
+        </ScrollViewer>
     </Grid>
 </UserControl>

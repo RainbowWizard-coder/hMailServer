@@ -4328,6 +4328,9 @@ Control Panel может читать файлы сообщений только
   <data name="E-mail every account on the server at once - for maintenance announcements." xml:space="preserve">
     <value>Отправить письмо сразу всем учётным записям на сервере — для объявлений об обслуживании.</value>
   </data>
+  <data name="E_rrors" xml:space="preserve">
+    <value>Оши_бки</value>
+  </data>
   <data name="E_xternal ID (the identity provider's ID for this person; empty = none)" xml:space="preserve">
     <value>_Внешний идентификатор (идентификатор этого человека у поставщика удостоверений; пусто = нет)</value>
   </data>
@@ -5179,6 +5182,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Filled in from the certificate when you choose its file, while this box is empty." xml:space="preserve">
     <value>Заполняется из сертификата, когда вы выбираете его файл, пока это поле пусто.</value>
+  </data>
+  <data name="Filter lines: an address, any words, or session=42" xml:space="preserve">
+    <value>Фильтр строк: адрес, любые слова или session=42</value>
   </data>
   <data name="Find organizational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
     <value>Определять организационные домены обходом дерева DNS (RFC 9989)</value>
@@ -7754,6 +7760,12 @@ Control Panel может читать файлы сообщений только
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one.|few" xml:space="preserve">
     <value>Ни один из {0} диапазонов IP не требует TLS перед аутентификацией, поэтому пароль открытым текстом принимается везде, где его допускает порт.</value>
   </data>
+  <data name="None of the {0} lines read matches the filter and the line types ticked." xml:space="preserve">
+    <value>Ни одна из {0} прочитанных строк не подходит под фильтр и отмеченные типы строк.</value>
+  </data>
+  <data name="None of the {0} lines read matches the filter and the line types ticked.|few" xml:space="preserve">
+    <value>Ни одна из {0} прочитанных строк не подходит под фильтр и отмеченные типы строк.</value>
+  </data>
   <data name="None of the {0} most recent held messages has &quot;{1}&quot; in its sender, recipients, subject or reason. The server lists no more than those." xml:space="preserve">
     <value>Ни в одном из последних задержанных сообщений (всего: {0}) нет «{1}» в отправителе, получателях, теме или причине. Больше сервер не перечисляет.</value>
   </data>
@@ -8629,6 +8641,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="POP3 sessions" xml:space="preserve">
     <value>Сеансы POP3</value>
+  </data>
+  <data name="POP_3" xml:space="preserve">
+    <value>POP_3</value>
   </data>
   <data name="PTR / HELO checks…" xml:space="preserve">
     <value>Проверки PTR / HELO…</value>
@@ -13514,6 +13529,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The {0} IP range does not require TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>{0} диапазон IP не требует TLS перед аутентификацией, поэтому пароль открытым текстом принимается везде, где его допускает порт.</value>
   </data>
+  <data name="The {0} line read does not match the filter and the line types ticked." xml:space="preserve">
+    <value>Прочитанная {0} строка не подходит под фильтр и отмеченные типы строк.</value>
+  </data>
   <data name="The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it changed, or discard the previous settings to keep what it wrote, then apply it again." xml:space="preserve">
     <value>Профиль {0} не удалось применить полностью {1}: часть его параметров не записана. Верните то, что он изменил, или отбросьте прежние параметры, чтобы оставить записанное, а затем примените профиль снова.</value>
   </data>
@@ -14900,6 +14918,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Append a disclaimer to mail leaving the organisation" xml:space="preserve">
     <value>_Добавлять оговорку к почте, уходящей из организации</value>
   </data>
+  <data name="_Application" xml:space="preserve">
+    <value>П_риложение</value>
+  </data>
   <data name="_Apply" xml:space="preserve">
     <value>П_рименить</value>
   </data>
@@ -14989,6 +15010,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Current administrator password" xml:space="preserve">
     <value>_Текущий пароль администратора</value>
+  </data>
+  <data name="_Debug" xml:space="preserve">
+    <value>От_ладка</value>
   </data>
   <data name="_Delete" xml:space="preserve">
     <value>_Удалить</value>
@@ -15184,6 +15208,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_I have copied it" xml:space="preserve">
     <value>_Значение скопировано</value>
+  </data>
+  <data name="_IMAP" xml:space="preserve">
+    <value>_IMAP</value>
   </data>
   <data name="_IMAP folder (e.g. INBOX.Archive)" xml:space="preserve">
     <value>Папка _IMAP (например, INBOX.Archive)</value>
@@ -15509,6 +15536,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Route" xml:space="preserve">
     <value>_Маршрут</value>
   </data>
+  <data name="_SMTP" xml:space="preserve">
+    <value>_SMTP</value>
+  </data>
   <data name="_Save" xml:space="preserve">
     <value>_Сохранить</value>
   </data>
@@ -15628,6 +15658,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Work telephone" xml:space="preserve">
     <value>Рабочий телефон (_C)</value>
+  </data>
+  <data name="_Wrap lines" xml:space="preserve">
+    <value>Переносить _строки</value>
   </data>
   <data name="a digit" xml:space="preserve">
     <value>цифра</value>
@@ -17138,6 +17171,15 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} latest {1}" xml:space="preserve">
     <value>{0}: последнее {1}</value>
+  </data>
+  <data name="{0} line" xml:space="preserve">
+    <value>{0} строка</value>
+  </data>
+  <data name="{0} lines" xml:space="preserve">
+    <value>{0} строк</value>
+  </data>
+  <data name="{0} lines|few" xml:space="preserve">
+    <value>{0} строки</value>
   </data>
   <data name="{0} list entries" xml:space="preserve">
     <value>Записей списка: {0}</value>

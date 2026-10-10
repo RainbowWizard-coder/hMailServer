@@ -128,6 +128,90 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("store.ReadBool(\"SepSvcLogs\", false)", code, StringComparison.Ordinal);
       }
 
+      // ---- what a line is about, and the filter (review finding F250) --------------------
+
+      [Theory]
+      [InlineData("\"SMTPD\"\t13252\t41\t\"2026-10-08 14:02:03.123\"\t\"203.0.113.5\"\t\"SENT: 220 mail.example.com ESMTP\"", LiveLogLineKind.Smtp)]
+      [InlineData("\"SMTPC\"\t13252\t42\t\"2026-10-08 14:02:03.123\"\t\"198.51.100.7\"\t\"RECEIVED: 250 OK\"", LiveLogLineKind.Smtp)]
+      [InlineData("\"IMAPD\"\t13252\t43\t\"2026-10-08 14:02:03.123\"\t\"203.0.113.5\"\t\"SENT: * OK IMAPrev1\"", LiveLogLineKind.Imap)]
+      [InlineData("\"POP3D\"\t13252\t44\t\"2026-10-08 14:02:03.123\"\t\"203.0.113.5\"\t\"SENT: +OK POP3\"", LiveLogLineKind.Pop3)]
+      [InlineData("\"POP3C\"\t13252\t45\t\"2026-10-08 14:02:03.123\"\t\"198.51.100.9\"\t\"RECEIVED: +OK\"", LiveLogLineKind.Pop3)]
+      [InlineData("\"APPLICATION\"\t13252\t\"2026-10-08 14:02:03.123\"\t\"hMailServer: Delivery task started.\"", LiveLogLineKind.Application)]
+      [InlineData("\"DEBUG\"\t13252\t\"2026-10-08 14:02:03.123\"\t\"Creating session 41\"", LiveLogLineKind.Debug)]
+      [InlineData("\"ERROR\"\t13252\t\"2026-10-08 14:02:03.123\"\t\"Severity: 3 (Medium), Code: HM5155\"", LiveLogLineKind.Error)]
+      [InlineData("\"APPLICATION\"\t13252\t\"2026-10-08 14:02:03.123\"\t\"Severity: 2 (High), Code: HM4229\"", LiveLogLineKind.Error)]
+      [InlineData("\"TCPIP\"\t13252\t\"2026-10-08 14:02:03.123\"\t\"TCP - 203.0.113.5 connected to 0.0.0.0:25.\"", LiveLogLineKind.Other)]
+      [InlineData("{\"type\":\"IMAPD\",\"thread\":13252,\"text\":\"SENT: * OK\"}", LiveLogLineKind.Imap)]
+      [InlineData("Backup started at 14:02", LiveLogLineKind.Other)]
+      public void ALine_IsOfItsType_TheServerAndTheClientOfAProtocolAlike(string line, LiveLogLineKind expected)
+         => Assert.Equal(expected, LiveLogFiles.KindOf(line, LiveLogFiles.Split(line, LiveLogKind.Everything)));
+
+      [Fact]
+      public void TheFilter_KeepsTheLinesThatHoldEveryWord_AndSessionNamesTheSessionExactly()
+      {
+         const string line = "\"SMTPD\"\t13252\t42\t\"2026-10-08 14:02:03.123\"\t\"203.0.113.5\"\t\"RECEIVED: MAIL FROM:<Jane@Example.com>\"";
+
+         Assert.True(LiveLogFiles.MatchesFilter("", line, "42"));
+         Assert.True(LiveLogFiles.MatchesFilter("   ", line, "42"));
+         Assert.True(LiveLogFiles.MatchesFilter("jane@example.com", line, "42"));
+         Assert.True(LiveLogFiles.MatchesFilter("MAIL  jane", line, "42"));
+         Assert.False(LiveLogFiles.MatchesFilter("MAIL bob", line, "42"));
+
+         // session=42 is the session, not every line with a 42 in its time or thread.
+         Assert.True(LiveLogFiles.MatchesFilter("session=42", line, "42"));
+         Assert.True(LiveLogFiles.MatchesFilter("Session=42 jane", line, "42"));
+         Assert.False(LiveLogFiles.MatchesFilter("session=4", line, "42"));
+         Assert.False(LiveLogFiles.MatchesFilter("session=42", line, ""));
+         Assert.True(LiveLogFiles.MatchesFilter("42", line, "7"));
+      }
+
+      /// <summary>
+      /// The page narrows the lines to what is being followed: a filter over them, a
+      /// box per line type drawn in that type's colour - the colours' legend - a way
+      /// to wrap the long lines, the count of the lines shown beside the title, and
+      /// the newest line clear of the sideways scroll bar. Only Pause and Clear view
+      /// were there (review finding F250).
+      /// </summary>
+      [Fact]
+      public void ThePage_FiltersTheLines_ByWordsAndByType_AndCountsTheLinesShown()
+      {
+         string code = ReadControlPanelFile(Path.Join("Views", "LogsView.xaml.cs"));
+         string xaml = ReadControlPanelFile(Path.Join("Views", "LogsView.xaml"));
+
+         Assert.Contains("<scaffold:Toolbar x:Name=\"LineFilter\"", xaml, StringComparison.Ordinal);
+         Assert.Contains("SearchTextChanged=\"LineFilter_SearchTextChanged\"", xaml, StringComparison.Ordinal);
+
+         // A box per type, each in its lines' colour, so that the boxes are the legend.
+         foreach ((string caption, string kind, string brush) in new[]
+         {
+            ("_SMTP", "Smtp", "LogSmtpBrush"), ("_IMAP", "Imap", "LogImapBrush"), ("POP_3", "Pop3", "LogPop3Brush"),
+            ("_Application", "Application", "LogAppBrush"), ("_Debug", "Debug", "LogDefaultBrush"), ("E_rrors", "Error", "LogErrorBrush")
+         })
+         {
+            Assert.Contains("Content=\"{loc:L '" + caption + "'}\" IsChecked=\"True\" Tag=\"" + kind + "\" Click=\"TypeBox_Click\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Foreground=\"{DynamicResource " + brush + "}\"", xaml, StringComparison.Ordinal);
+            Assert.True(Enum.TryParse(kind, out LiveLogLineKind _), kind + " is no line kind.");
+         }
+
+         // The lines are a view of those held, filtered as they arrive.
+         Assert.Contains("shown_.Filter = line => Shows_((LogLine)line);", code, StringComparison.Ordinal);
+         Assert.Contains("LogList.ItemsSource = shown_;", code, StringComparison.Ordinal);
+         Assert.Contains("!hidden_.Contains(line.Kind) && LiveLogFiles.MatchesFilter(filter_, line.Text, line.Session)", code, StringComparison.Ordinal);
+         Assert.Contains("Kind = kind,", code, StringComparison.Ordinal);
+         Assert.Contains("Brush = BrushOf(kind),", code, StringComparison.Ordinal);
+
+         // Wrap lines folds the text at the list's width and stops the sideways scrolling.
+         Assert.Contains("Content=\"{loc:L '_Wrap lines'}\"", xaml, StringComparison.Ordinal);
+         Assert.Contains("<Setter TargetName=\"MessageText\" Property=\"TextWrapping\" Value=\"Wrap\" />", xaml, StringComparison.Ordinal);
+         Assert.Contains("ScrollViewer.SetHorizontalScrollBarVisibility(LogList, wrap ? ScrollBarVisibility.Disabled : ScrollBarVisibility.Auto);", code, StringComparison.Ordinal);
+
+         // The count beside the title, and the newest line kept clear of the sideways bar.
+         Assert.Contains("<scaffold:StatusPill x:Name=\"LineCount\" Level=\"Normal\"", xaml, StringComparison.Ordinal);
+         Assert.DoesNotContain("LiveSetting", xaml.Substring(xaml.IndexOf("x:Name=\"LineCount\"", StringComparison.Ordinal), 200), StringComparison.Ordinal);
+         Assert.Contains("F(\"Shown: {0} of {1}\", shown, total)", code, StringComparison.Ordinal);
+         Assert.Contains("scroller.ComputedHorizontalScrollBarVisibility == Visibility.Visible ? DesignTokens.Space.Md : 0", code, StringComparison.Ordinal);
+      }
+
       // ---- whether a log may be read ---------------------------------------------------
 
       [Fact]

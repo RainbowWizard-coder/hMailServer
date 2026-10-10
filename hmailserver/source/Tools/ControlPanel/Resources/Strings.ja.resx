@@ -4276,6 +4276,9 @@
   <data name="E-mail every account on the server at once - for maintenance announcements." xml:space="preserve">
     <value>サーバー上のすべてのアカウントに一度にメールを送ります。メンテナンスの告知向けです。</value>
   </data>
+  <data name="E_rrors" xml:space="preserve">
+    <value>エラー(_R)</value>
+  </data>
   <data name="E_xternal ID (the identity provider's ID for this person; empty = none)" xml:space="preserve">
     <value>外部 ID (ID プロバイダーでのこの人の ID。空 = なし)(_X)</value>
   </data>
@@ -5109,6 +5112,9 @@
   </data>
   <data name="Filled in from the certificate when you choose its file, while this box is empty." xml:space="preserve">
     <value>このボックスが空のときは、証明書のファイルを選ぶと証明書から入力されます。</value>
+  </data>
+  <data name="Filter lines: an address, any words, or session=42" xml:space="preserve">
+    <value>行を絞り込む: アドレス、任意の語、または session=42</value>
   </data>
   <data name="Find organizational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
     <value>DNS ツリー ウォークで組織ドメインを検出する (RFC 9989)</value>
@@ -7666,6 +7672,9 @@
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>{0} 件の IP 範囲のいずれも認証前に TLS を必須としていないため、ポートが許可する場所では平文のパスワードが受け入れられます。</value>
   </data>
+  <data name="None of the {0} lines read matches the filter and the line types ticked." xml:space="preserve">
+    <value>読み込んだ {0} 行のどれもフィルターとチェックした行の種類に一致しません。</value>
+  </data>
   <data name="None of the {0} most recent held messages has &quot;{1}&quot; in its sender, recipients, subject or reason. The server lists no more than those." xml:space="preserve">
     <value>最新の保留中メッセージ {0} 件のうち、送信者、受信者、件名、理由に「{1}」を含むものはありません。サーバーはそれ以上を一覧表示しません。</value>
   </data>
@@ -8535,6 +8544,9 @@
   </data>
   <data name="POP3 sessions" xml:space="preserve">
     <value>POP3 セッション</value>
+  </data>
+  <data name="POP_3" xml:space="preserve">
+    <value>POP3(_3)</value>
   </data>
   <data name="PTR / HELO checks…" xml:space="preserve">
     <value>PTR / HELO のチェック…</value>
@@ -13342,6 +13354,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The {0} IP range does not require TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>{0} 件の IP 範囲のいずれも認証前に TLS を必須としていないため、ポートが許可する場所では平文のパスワードが受け入れられます。</value>
   </data>
+  <data name="The {0} line read does not match the filter and the line types ticked." xml:space="preserve">
+    <value>読み込んだ {0} 行はフィルターとチェックした行の種類に一致しません。</value>
+  </data>
   <data name="The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it changed, or discard the previous settings to keep what it wrote, then apply it again." xml:space="preserve">
     <value>プロファイル {0} を {1} に完全には適用できませんでした: 一部の設定が書き込まれていません。変更したものを元に戻すか、以前の設定を破棄して書き込まれたものを保持してから、もう一度適用してください。</value>
   </data>
@@ -14719,6 +14734,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Append a disclaimer to mail leaving the organisation" xml:space="preserve">
     <value>組織外へ出るメールに免責事項を付け加える(_A)</value>
   </data>
+  <data name="_Application" xml:space="preserve">
+    <value>アプリケーション(_A)</value>
+  </data>
   <data name="_Apply" xml:space="preserve">
     <value>適用(_A)</value>
   </data>
@@ -14808,6 +14826,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Current administrator password" xml:space="preserve">
     <value>現在の管理者パスワード(_C)</value>
+  </data>
+  <data name="_Debug" xml:space="preserve">
+    <value>デバッグ(_D)</value>
   </data>
   <data name="_Delete" xml:space="preserve">
     <value>削除(_D)</value>
@@ -15003,6 +15024,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_I have copied it" xml:space="preserve">
     <value>コピーしました(_I)</value>
+  </data>
+  <data name="_IMAP" xml:space="preserve">
+    <value>IMAP(_I)</value>
   </data>
   <data name="_IMAP folder (e.g. INBOX.Archive)" xml:space="preserve">
     <value>IMAP フォルダー (例: INBOX.Archive)(_I)</value>
@@ -15328,6 +15352,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Route" xml:space="preserve">
     <value>ルート(_R)</value>
   </data>
+  <data name="_SMTP" xml:space="preserve">
+    <value>SMTP(_S)</value>
+  </data>
   <data name="_Save" xml:space="preserve">
     <value>保存(_S)</value>
   </data>
@@ -15447,6 +15474,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Work telephone" xml:space="preserve">
     <value>勤務先電話番号 (_C)</value>
+  </data>
+  <data name="_Wrap lines" xml:space="preserve">
+    <value>行を折り返す(_W)</value>
   </data>
   <data name="a digit" xml:space="preserve">
     <value>数字</value>
@@ -16849,6 +16879,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} latest {1}" xml:space="preserve">
     <value>{0}: 最新 {1}</value>
+  </data>
+  <data name="{0} line" xml:space="preserve">
+    <value>{0} 行</value>
+  </data>
+  <data name="{0} lines" xml:space="preserve">
+    <value>{0} 行</value>
   </data>
   <data name="{0} list entries" xml:space="preserve">
     <value>一覧のエントリ {0} 件</value>

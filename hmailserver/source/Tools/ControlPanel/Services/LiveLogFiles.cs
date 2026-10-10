@@ -51,6 +51,23 @@ namespace hMailServer.ControlPanel.Services
    }
 
    /// <summary>
+   /// What a line of the log is about, which decides its colour and which of the Live
+   /// logs page's type boxes shows or hides it (LiveLogFiles.KindOf). A line of no
+   /// type the boxes name - a TCP/IP line, a script's event, the backup log's - is
+   /// Other: it takes the default colour and no box hides it.
+   /// </summary>
+   public enum LiveLogLineKind
+   {
+      Other,
+      Smtp,
+      Imap,
+      Pop3,
+      Application,
+      Debug,
+      Error
+   }
+
+   /// <summary>
    /// Which file the Live logs page reads and how one of its lines is shown, without the
    /// window (Views/LogsView draws what this decides), so that LiveLogFilesTests can hold
    /// both. Review finding F249: the page took the newest file matching hmailserver_*.log,
@@ -267,5 +284,78 @@ namespace hMailServer.ControlPanel.Services
       // names the day; anything else as it was written.
       private static string Time_(string stamp, bool dropDate)
          => dropDate && stamp.Length > 11 && stamp[10] == ' ' && stamp[4] == '-' && stamp[7] == '-' ? stamp.Substring(11) : stamp;
+
+      /// <summary>
+      /// What <paramref name="line"/>, split as <paramref name="parts"/>, is about: an
+      /// error - an ERROR line, or one that says Severity 1 or 2 - whatever its type;
+      /// otherwise its type, the server and the client of a protocol alike (SMTPD and
+      /// SMTPC, POP3D and POP3C), so that a line's colour is its type box's. A line
+      /// split into no type - the JSON format - is read for the type the server quotes
+      /// in it.
+      /// </summary>
+      public static LiveLogLineKind KindOf(string line, Parts parts)
+      {
+         line ??= "";
+         if (line.Contains(Quoted_("ERROR"), StringComparison.Ordinal) || line.Contains("Severity: 1", StringComparison.Ordinal) || line.Contains("Severity: 2", StringComparison.Ordinal))
+            return LiveLogLineKind.Error;
+
+         string type = parts?.Type ?? "";
+         if (type.Length > 0)
+            return KindOfType_(type);
+
+         foreach (string known in new[] { "SMTPD", "SMTPC", "IMAPD", "POP3D", "POP3C", "APPLICATION", "DEBUG" }) // no-loc: the server's own line types
+         {
+            if (line.Contains(Quoted_(known), StringComparison.Ordinal))
+               return KindOfType_(known);
+         }
+
+         return LiveLogLineKind.Other;
+      }
+
+      private static LiveLogLineKind KindOfType_(string type) => type.ToUpperInvariant() switch
+      {
+         "SMTPD" or "SMTPC" => LiveLogLineKind.Smtp, // no-loc: the server's own line types
+         "IMAPD" => LiveLogLineKind.Imap, // no-loc
+         "POP3D" or "POP3C" => LiveLogLineKind.Pop3, // no-loc
+         "APPLICATION" => LiveLogLineKind.Application, // no-loc
+         "DEBUG" => LiveLogLineKind.Debug, // no-loc
+         "ERROR" => LiveLogLineKind.Error, // no-loc
+         _ => LiveLogLineKind.Other
+      };
+
+      private static string Quoted_(string type) => Quote + type + Quote;
+
+      /// <summary>
+      /// Whether a line the Live logs page holds is shown under the filter typed in
+      /// over it: every word of <paramref name="query"/> is in the line, whatever its
+      /// case - an address, a host, a word of the text - and a word written
+      /// <c>session=42</c> is the line's session, exactly, where "42" alone is in
+      /// the times and the thread numbers of every other line. An empty query shows
+      /// every line.
+      /// </summary>
+      public static bool MatchesFilter(string query, string line, string session)
+      {
+         if (string.IsNullOrWhiteSpace(query))
+            return true;
+
+         line ??= "";
+         foreach (string word in query.Split((char[])null, StringSplitOptions.RemoveEmptyEntries))
+         {
+            if (word.StartsWith(SessionWord, StringComparison.OrdinalIgnoreCase) && word.Length > SessionWord.Length)
+            {
+               if (!string.Equals(word.Substring(SessionWord.Length), session ?? "", StringComparison.Ordinal))
+                  return false;
+            }
+            else if (!line.Contains(word, StringComparison.OrdinalIgnoreCase))
+            {
+               return false;
+            }
+         }
+
+         return true;
+      }
+
+      /// <summary>The word that names a session in the filter, "session=42": the server's own name for the column, kept in every language.</summary>
+      public const string SessionWord = "session="; // no-loc: typed back, as the placeholder shows it
    }
 }

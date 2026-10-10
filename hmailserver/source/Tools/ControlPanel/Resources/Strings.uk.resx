@@ -4328,6 +4328,9 @@
   <data name="E-mail every account on the server at once - for maintenance announcements." xml:space="preserve">
     <value>Надіслати лист усім обліковим записам на сервері одразу - для оголошень про обслуговування.</value>
   </data>
+  <data name="E_rrors" xml:space="preserve">
+    <value>Помил_ки</value>
+  </data>
   <data name="E_xternal ID (the identity provider's ID for this person; empty = none)" xml:space="preserve">
     <value>Зовнішній _ідентифікатор (ідентифікатор цієї людини в постачальника ідентичності; порожньо = немає)</value>
   </data>
@@ -5179,6 +5182,9 @@
   </data>
   <data name="Filled in from the certificate when you choose its file, while this box is empty." xml:space="preserve">
     <value>Заповнюється із сертифіката, коли ви вибираєте його файл, доки це поле порожнє.</value>
+  </data>
+  <data name="Filter lines: an address, any words, or session=42" xml:space="preserve">
+    <value>Фільтр рядків: адреса, будь-які слова або session=42</value>
   </data>
   <data name="Find organizational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
     <value>Знаходити організаційні домени обходом дерева DNS (RFC 9989)</value>
@@ -7754,6 +7760,12 @@
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one.|few" xml:space="preserve">
     <value>Жоден із {0} діапазонів IP не вимагає TLS перед автентифікацією, тому пароль відкритим текстом приймається всюди, де його дозволяє порт.</value>
   </data>
+  <data name="None of the {0} lines read matches the filter and the line types ticked." xml:space="preserve">
+    <value>Жоден із {0} прочитаних рядків не відповідає фільтру й позначеним типам рядків.</value>
+  </data>
+  <data name="None of the {0} lines read matches the filter and the line types ticked.|few" xml:space="preserve">
+    <value>Жоден із {0} прочитаних рядків не відповідає фільтру й позначеним типам рядків.</value>
+  </data>
   <data name="None of the {0} most recent held messages has &quot;{1}&quot; in its sender, recipients, subject or reason. The server lists no more than those." xml:space="preserve">
     <value>Жодне з найновіших утриманих повідомлень (усього: {0}) не містить «{1}» у відправнику, одержувачах, темі чи причині. Більше сервер не перелічує.</value>
   </data>
@@ -8629,6 +8641,9 @@
   </data>
   <data name="POP3 sessions" xml:space="preserve">
     <value>Сеанси POP3</value>
+  </data>
+  <data name="POP_3" xml:space="preserve">
+    <value>POP_3</value>
   </data>
   <data name="PTR / HELO checks…" xml:space="preserve">
     <value>Перевірки PTR / HELO…</value>
@@ -13514,6 +13529,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The {0} IP range does not require TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>{0} діапазон IP не вимагає TLS перед автентифікацією, тому пароль відкритим текстом приймається всюди, де його дозволяє порт.</value>
   </data>
+  <data name="The {0} line read does not match the filter and the line types ticked." xml:space="preserve">
+    <value>Прочитаний {0} рядок не відповідає фільтру й позначеним типам рядків.</value>
+  </data>
   <data name="The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it changed, or discard the previous settings to keep what it wrote, then apply it again." xml:space="preserve">
     <value>Профіль {0} не вдалося застосувати повністю {1}: частину його параметрів не записано. Поверніть те, що він змінив, або відкиньте попередні параметри, щоб залишити записане, а потім застосуйте профіль знову.</value>
   </data>
@@ -14900,6 +14918,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_Append a disclaimer to mail leaving the organisation" xml:space="preserve">
     <value>_Додавати застереження до пошти, що виходить з організації</value>
   </data>
+  <data name="_Application" xml:space="preserve">
+    <value>_Програма</value>
+  </data>
   <data name="_Apply" xml:space="preserve">
     <value>_Застосувати</value>
   </data>
@@ -14989,6 +15010,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Current administrator password" xml:space="preserve">
     <value>_Поточний пароль адміністратора</value>
+  </data>
+  <data name="_Debug" xml:space="preserve">
+    <value>_Налагодження</value>
   </data>
   <data name="_Delete" xml:space="preserve">
     <value>В_идалити</value>
@@ -15184,6 +15208,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_I have copied it" xml:space="preserve">
     <value>_Готово, скопійовано</value>
+  </data>
+  <data name="_IMAP" xml:space="preserve">
+    <value>_IMAP</value>
   </data>
   <data name="_IMAP folder (e.g. INBOX.Archive)" xml:space="preserve">
     <value>Папка _IMAP (наприклад, INBOX.Archive)</value>
@@ -15509,6 +15536,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_Route" xml:space="preserve">
     <value>М_аршрут</value>
   </data>
+  <data name="_SMTP" xml:space="preserve">
+    <value>_SMTP</value>
+  </data>
   <data name="_Save" xml:space="preserve">
     <value>_Зберегти</value>
   </data>
@@ -15628,6 +15658,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Work telephone" xml:space="preserve">
     <value>Робочий телефон (_C)</value>
+  </data>
+  <data name="_Wrap lines" xml:space="preserve">
+    <value>Перено_сити рядки</value>
   </data>
   <data name="a digit" xml:space="preserve">
     <value>цифра</value>
@@ -17138,6 +17171,15 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} latest {1}" xml:space="preserve">
     <value>{0}: останнє {1}</value>
+  </data>
+  <data name="{0} line" xml:space="preserve">
+    <value>{0} рядок</value>
+  </data>
+  <data name="{0} lines" xml:space="preserve">
+    <value>{0} рядків</value>
+  </data>
+  <data name="{0} lines|few" xml:space="preserve">
+    <value>{0} рядки</value>
   </data>
   <data name="{0} list entries" xml:space="preserve">
     <value>Записів списку: {0}</value>

@@ -4276,6 +4276,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="E-mail every account on the server at once - for maintenance announcements." xml:space="preserve">
     <value>Enviar un correo a todas las cuentas del servidor a la vez - para avisos de mantenimiento.</value>
   </data>
+  <data name="E_rrors" xml:space="preserve">
+    <value>_Errores</value>
+  </data>
   <data name="E_xternal ID (the identity provider's ID for this person; empty = none)" xml:space="preserve">
     <value>ID e_xterno (el ID de esta persona en el proveedor de identidad; vacío = ninguno)</value>
   </data>
@@ -5109,6 +5112,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   </data>
   <data name="Filled in from the certificate when you choose its file, while this box is empty." xml:space="preserve">
     <value>Se rellena a partir del certificado al elegir su archivo, mientras este cuadro esté vacío.</value>
+  </data>
+  <data name="Filter lines: an address, any words, or session=42" xml:space="preserve">
+    <value>Filtrar líneas: una dirección, cualquier palabra o session=42</value>
   </data>
   <data name="Find organizational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
     <value>Encontrar los dominios organizativos recorriendo el árbol DNS (RFC 9989)</value>
@@ -7666,6 +7672,9 @@ No se elimina nada de lo que ya está.</value>
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>Ninguno de los {0} rangos de IP exige TLS antes de la autenticación, así que se acepta una contraseña en claro allí donde un puerto la permita.</value>
   </data>
+  <data name="None of the {0} lines read matches the filter and the line types ticked." xml:space="preserve">
+    <value>Se han leído {0} líneas y ninguna coincide con el filtro ni con los tipos de línea marcados.</value>
+  </data>
   <data name="None of the {0} most recent held messages has &quot;{1}&quot; in its sender, recipients, subject or reason. The server lists no more than those." xml:space="preserve">
     <value>Ninguno de los {0} mensajes retenidos más recientes contiene «{1}» en el remitente, los destinatarios, el asunto o el motivo. El servidor no lista más que esos.</value>
   </data>
@@ -8535,6 +8544,9 @@ No se elimina nada de lo que ya está.</value>
   </data>
   <data name="POP3 sessions" xml:space="preserve">
     <value>Sesiones POP3</value>
+  </data>
+  <data name="POP_3" xml:space="preserve">
+    <value>POP_3</value>
   </data>
   <data name="PTR / HELO checks…" xml:space="preserve">
     <value>Comprobaciones PTR / HELO…</value>
@@ -13342,6 +13354,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="The {0} IP range does not require TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>El {0} rango de IP no exige TLS antes de la autenticación, así que se acepta una contraseña en claro allí donde un puerto la permita.</value>
   </data>
+  <data name="The {0} line read does not match the filter and the line types ticked." xml:space="preserve">
+    <value>Se ha leído {0} línea y no coincide con el filtro ni con los tipos de línea marcados.</value>
+  </data>
   <data name="The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it changed, or discard the previous settings to keep what it wrote, then apply it again." xml:space="preserve">
     <value>El perfil {0} no pudo aplicarse por completo el {1}: algunos de sus ajustes no se escribieron. Restaure lo que cambió, o descarte los ajustes anteriores para conservar lo que escribió, y luego vuelva a aplicarlo.</value>
   </data>
@@ -14719,6 +14734,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="_Append a disclaimer to mail leaving the organisation" xml:space="preserve">
     <value>_Añadir un descargo de responsabilidad al correo que sale de la organización</value>
   </data>
+  <data name="_Application" xml:space="preserve">
+    <value>Apli_cación</value>
+  </data>
   <data name="_Apply" xml:space="preserve">
     <value>_Aplicar</value>
   </data>
@@ -14808,6 +14826,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="_Current administrator password" xml:space="preserve">
     <value>Contraseña de administrador _actual</value>
+  </data>
+  <data name="_Debug" xml:space="preserve">
+    <value>_Depuración</value>
   </data>
   <data name="_Delete" xml:space="preserve">
     <value>_Borrar</value>
@@ -15003,6 +15024,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="_I have copied it" xml:space="preserve">
     <value>_Ya lo he copiado</value>
+  </data>
+  <data name="_IMAP" xml:space="preserve">
+    <value>_IMAP</value>
   </data>
   <data name="_IMAP folder (e.g. INBOX.Archive)" xml:space="preserve">
     <value>Carpeta _IMAP (p. ej. INBOX.Archive)</value>
@@ -15328,6 +15352,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="_Route" xml:space="preserve">
     <value>_Ruta</value>
   </data>
+  <data name="_SMTP" xml:space="preserve">
+    <value>_SMTP</value>
+  </data>
   <data name="_Save" xml:space="preserve">
     <value>_Guardar</value>
   </data>
@@ -15447,6 +15474,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="_Work telephone" xml:space="preserve">
     <value>_Teléfono del trabajo</value>
+  </data>
+  <data name="_Wrap lines" xml:space="preserve">
+    <value>A_justar líneas</value>
   </data>
   <data name="a digit" xml:space="preserve">
     <value>un dígito</value>
@@ -16849,6 +16879,12 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="{0} latest {1}" xml:space="preserve">
     <value>{0}: último {1}</value>
+  </data>
+  <data name="{0} line" xml:space="preserve">
+    <value>{0} línea</value>
+  </data>
+  <data name="{0} lines" xml:space="preserve">
+    <value>{0} líneas</value>
   </data>
   <data name="{0} list entries" xml:space="preserve">
     <value>{0} entradas de la lista</value>

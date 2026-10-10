@@ -6,10 +6,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -33,6 +35,9 @@ namespace hMailServer.ControlPanel.Views
          public string Thread { get; set; } = "";
          public string Session { get; set; } = "";
          public string Message { get; set; } = "";
+
+         /// <summary>What the line is about, which its colour and the type boxes go by (LiveLogFiles.KindOf).</summary>
+         public LiveLogLineKind Kind { get; set; }
 
          // The log is a ListBox with an ItemTemplate, so a ListBoxItem's accessible
          // name falls back to ToString() on the bound object rather than the text
@@ -63,6 +68,14 @@ namespace hMailServer.ControlPanel.Views
       private readonly List<string> waiting_ = new();
       private DateTime pausedAt_;
 
+      // The lines on screen: those the filter's words and the type boxes leave
+      // (review finding F250). The list shows this view of lines_, so that a line
+      // read while the filter is in force is judged as it arrives and the filter
+      // taken away shows every line held.
+      private readonly ICollectionView shown_;
+      private string filter_ = "";
+      private readonly HashSet<LiveLogLineKind> hidden_ = new();
+
       // Theme-aware, shared brush instances. Because each line holds a reference
       // to one of these, recolouring on a theme switch updates every visible
       // line live (see Services.ThemeTokens).
@@ -76,7 +89,14 @@ namespace hMailServer.ControlPanel.Views
       public LogsView()
       {
          InitializeComponent();
-         LogList.ItemsSource = lines_;
+         shown_ = CollectionViewSource.GetDefaultView(lines_);
+         shown_.Filter = line => Shows_((LogLine)line);
+         LogList.ItemsSource = shown_;
+         lines_.CollectionChanged += (_, _) => SayCount_();
+
+         // The newest line clear of the sideways scroll bar, which WPF-UI draws over
+         // the list's last line (review finding F250).
+         LogList.Loaded += (_, _) => KeepLastLineClear_();
 
          // Copying the log (issue #48): Ctrl+C, and Copy on the list's menu, take the
          // selected lines. The lines are the list's rows, so they are chosen the way
@@ -256,6 +276,7 @@ namespace hMailServer.ControlPanel.Views
          Problem.Action = offerLogging ? OpenLogging_() : null;
          Problem.Visibility = Visibility.Visible;
          LogList.Visibility = Visibility.Collapsed;
+         SayCount_();
       }
 
       private void Streaming_()
@@ -264,6 +285,7 @@ namespace hMailServer.ControlPanel.Views
          Problem.Action = null;
          LogList.Visibility = Visibility.Visible;
          SayState_();
+         SayCount_();
       }
 
       private static Wpf.Ui.Controls.Button OpenLogging_()
@@ -417,10 +439,12 @@ namespace hMailServer.ControlPanel.Views
       private LogLine Line_(string line)
       {
          LiveLogFiles.Parts parts = LiveLogFiles.Split(line, kind_);
+         LiveLogLineKind kind = LiveLogFiles.KindOf(line, parts);
          return new LogLine
          {
             Text = line,
-            Brush = Classify(line),
+            Kind = kind,
+            Brush = BrushOf(kind),
             Time = parts.Time,
             Type = parts.Type,
             Thread = parts.Thread,
@@ -429,20 +453,135 @@ namespace hMailServer.ControlPanel.Views
          };
       }
 
-      private static Brush Classify(string line)
+      /// <summary>
+      /// A line's colour, its type box's: the server's and the client's lines of a
+      /// protocol alike, where the SMTP client's and the POP3 client's lines were the
+      /// default colour beside the green and amber of the servers' - with the boxes as
+      /// the legend, one colour for one box.
+      /// </summary>
+      private static Brush BrushOf(LiveLogLineKind kind) => kind switch
       {
-         if (line.Contains("\"ERROR\"") || line.Contains("Severity: 1") || line.Contains("Severity: 2"))
-            return ErrorBrush;
-         if (line.StartsWith("\"SMTPD\"") || line.Contains("\"SMTPD\""))
-            return SmtpBrush;
-         if (line.Contains("\"IMAPD\""))
-            return ImapBrush;
-         if (line.Contains("\"POP3D\""))
-            return Pop3Brush;
-         if (line.Contains("\"APPLICATION\""))
-            return AppBrush;
-         return DefaultBrush;
+         LiveLogLineKind.Error => ErrorBrush,
+         LiveLogLineKind.Smtp => SmtpBrush,
+         LiveLogLineKind.Imap => ImapBrush,
+         LiveLogLineKind.Pop3 => Pop3Brush,
+         LiveLogLineKind.Application => AppBrush,
+         _ => DefaultBrush
+      };
+
+      /// <summary>Whether a line held is on screen: its type's box ticked, and every word of the filter in it.</summary>
+      private bool Shows_(LogLine line)
+         => line != null && !hidden_.Contains(line.Kind) && LiveLogFiles.MatchesFilter(filter_, line.Text, line.Session);
+
+      private void LineFilter_SearchTextChanged(object sender, EventArgs e)
+      {
+         filter_ = LineFilter.SearchText?.Trim() ?? "";
+         Refilter_();
       }
+
+      private void TypeBox_Click(object sender, RoutedEventArgs e)
+      {
+         if (sender is not CheckBox { Tag: string tag } box || !Enum.TryParse(tag, out LiveLogLineKind kind))
+            return;
+
+         if (box.IsChecked == true)
+            hidden_.Remove(kind);
+         else
+            hidden_.Add(kind);
+         Refilter_();
+      }
+
+      /// <summary>The filter applied again, the view kept at the newest line where it was there.</summary>
+      private void Refilter_()
+      {
+         ScrollViewer scroller = Scroller_();
+         bool atEnd = scroller == null || LiveLogTail.IsAtEnd(scroller.VerticalOffset, scroller.ScrollableHeight);
+         shown_.Refresh();
+         SayCount_();
+         if (atEnd && LogList.Items.Count > 0)
+            LogList.ScrollIntoView(LogList.Items[LogList.Items.Count - 1]);
+      }
+
+      /// <summary>
+      /// The count beside the title - every line held, or, while the filter or a type
+      /// box hides some, how many of them are on screen - and, where the filter hides
+      /// every line read, a sentence in the list's place that says so.
+      /// </summary>
+      private void SayCount_()
+      {
+         int total = lines_.Count;
+         int shown = LogList.Items.Count;
+         bool filtering = filter_.Length > 0 || hidden_.Count > 0;
+
+         if (Problem.Visibility == Visibility.Visible || (total == 0 && !filtering))
+         {
+            LineCount.Visibility = Visibility.Collapsed;
+            NoMatch.Visibility = Visibility.Collapsed;
+            return;
+         }
+
+         LineCount.Text = filtering ? F("Shown: {0} of {1}", shown, total) : Plural(total, "{0} line", "{0} lines");
+         LineCount.Visibility = Visibility.Visible;
+
+         if (filtering && shown == 0 && total > 0)
+         {
+            NoMatch.Text = Plural(total, "The {0} line read does not match the filter and the line types ticked.", "None of the {0} lines read matches the filter and the line types ticked.");
+            NoMatch.Visibility = Visibility.Visible;
+         }
+         else
+         {
+            NoMatch.Visibility = Visibility.Collapsed;
+         }
+      }
+
+      /// <summary>
+      /// Wrap lines: a long line folds at the list's width and the list does not
+      /// scroll sideways; unticked, each line is one line and the list scrolls
+      /// sideways to the end of the longest, as it did (review finding F250).
+      /// </summary>
+      private void WrapLines_Click(object sender, RoutedEventArgs e)
+      {
+         bool wrap = WrapLines.IsChecked == true;
+         LogList.Tag = wrap ? "wrap" : null; // no-loc: the item template's trigger value
+         ScrollViewer.SetHorizontalScrollBarVisibility(LogList, wrap ? ScrollBarVisibility.Disabled : ScrollBarVisibility.Auto);
+         KeepLastLineClear_();
+      }
+
+      /// <summary>
+      /// Keeps the list's content clear of its sideways scroll bar while the bar is
+      /// there: WPF-UI draws the bar over the content, and over the newest line,
+      /// the one the page is for. The list's scroller takes the bar's height as its
+      /// bottom padding while it shows the bar, and none while it does not
+      /// (Services/ScrollBarInset keeps a dialog's content clear of the upright one).
+      /// </summary>
+      private void KeepLastLineClear_()
+      {
+         if (Scroller_() is not ScrollViewer scroller)
+            return;
+
+         void Apply()
+         {
+            double bottom = scroller.ComputedHorizontalScrollBarVisibility == Visibility.Visible ? DesignTokens.Space.Md : 0;
+            Thickness padding = scroller.Padding;
+            if (padding.Bottom != bottom)
+               scroller.Padding = new Thickness(padding.Left, padding.Top, padding.Right, bottom);
+         }
+
+         if (!ReferenceEquals(insetScroller_, scroller))
+         {
+            insetScroller_ = scroller;
+            scroller.ScrollChanged += (_, args) =>
+            {
+               if (ReferenceEquals(args.OriginalSource, scroller))
+                  Apply();
+            };
+         }
+
+         Apply();
+      }
+
+      // The scroller KeepLastLineClear_ watches: a template applied again makes a new one.
+      private ScrollViewer insetScroller_;
 
       private void Pause_Click(object sender, RoutedEventArgs e)
       {
@@ -466,7 +605,11 @@ namespace hMailServer.ControlPanel.Views
 
       // The view only: the file is the server's and is not changed (the button's
       // tool tip says so).
-      private void Clear_Click(object sender, RoutedEventArgs e) => lines_.Clear();
+      private void Clear_Click(object sender, RoutedEventArgs e)
+      {
+         lines_.Clear();
+         SayCount_();
+      }
 
       /// <summary>
       /// The selected lines as the log has them: in the log's order, whatever order

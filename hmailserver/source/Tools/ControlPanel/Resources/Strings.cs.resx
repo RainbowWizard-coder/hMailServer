@@ -4328,6 +4328,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="E-mail every account on the server at once - for maintenance announcements." xml:space="preserve">
     <value>Poslat e-mail každému účtu na serveru najednou - pro oznámení o údržbě.</value>
   </data>
+  <data name="E_rrors" xml:space="preserve">
+    <value>_Chyby</value>
+  </data>
   <data name="E_xternal ID (the identity provider's ID for this person; empty = none)" xml:space="preserve">
     <value>E_xterní ID (ID této osoby u poskytovatele identity; prázdné = žádné)</value>
   </data>
@@ -5179,6 +5182,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Filled in from the certificate when you choose its file, while this box is empty." xml:space="preserve">
     <value>Když vyberete soubor certifikátu a toto pole je prázdné, vyplní se z certifikátu.</value>
+  </data>
+  <data name="Filter lines: an address, any words, or session=42" xml:space="preserve">
+    <value>Filtrovat řádky: adresa, libovolná slova nebo session=42</value>
   </data>
   <data name="Find organizational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
     <value>Hledat organizační domény procházením stromu DNS (RFC 9989)</value>
@@ -7754,6 +7760,12 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one.|few" xml:space="preserve">
     <value>Ani jeden z {0} IP rozsahů nevyžaduje TLS před ověřením, takže heslo v otevřeném textu se přijme všude, kde je port povolí.</value>
   </data>
+  <data name="None of the {0} lines read matches the filter and the line types ticked." xml:space="preserve">
+    <value>Žádný z {0} načtených řádků neodpovídá filtru a zaškrtnutým typům řádků.</value>
+  </data>
+  <data name="None of the {0} lines read matches the filter and the line types ticked.|few" xml:space="preserve">
+    <value>Žádný z {0} načtených řádků neodpovídá filtru a zaškrtnutým typům řádků.</value>
+  </data>
   <data name="None of the {0} most recent held messages has &quot;{1}&quot; in its sender, recipients, subject or reason. The server lists no more than those." xml:space="preserve">
     <value>Žádná z nejnovějších zadržených zpráv (celkem {0}) nemá „{1}“ v odesílateli, příjemcích, předmětu ani v důvodu. Server jich víc nevypisuje.</value>
   </data>
@@ -8629,6 +8641,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="POP3 sessions" xml:space="preserve">
     <value>Relace POP3</value>
+  </data>
+  <data name="POP_3" xml:space="preserve">
+    <value>POP_3</value>
   </data>
   <data name="PTR / HELO checks…" xml:space="preserve">
     <value>Kontroly PTR / HELO…</value>
@@ -13514,6 +13529,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="The {0} IP range does not require TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>Jediný IP rozsah ({0}) nevyžaduje TLS před ověřením, takže heslo v otevřeném textu se přijme všude, kde je port povolí.</value>
   </data>
+  <data name="The {0} line read does not match the filter and the line types ticked." xml:space="preserve">
+    <value>Načtený {0} řádek neodpovídá filtru a zaškrtnutým typům řádků.</value>
+  </data>
   <data name="The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it changed, or discard the previous settings to keep what it wrote, then apply it again." xml:space="preserve">
     <value>Profil {0} se {1} nepodařilo použít celý: některá jeho nastavení nebyla zapsána. Vraťte, co změnil, nebo zahoďte předchozí nastavení, abyste ponechali, co zapsal, a pak jej použijte znovu.</value>
   </data>
@@ -14900,6 +14918,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Append a disclaimer to mail leaving the organisation" xml:space="preserve">
     <value>Připojit _doložku k poště odcházející z organizace</value>
   </data>
+  <data name="_Application" xml:space="preserve">
+    <value>_Aplikace</value>
+  </data>
   <data name="_Apply" xml:space="preserve">
     <value>_Použít</value>
   </data>
@@ -14989,6 +15010,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Current administrator password" xml:space="preserve">
     <value>_Současné heslo správce</value>
+  </data>
+  <data name="_Debug" xml:space="preserve">
+    <value>La_dění</value>
   </data>
   <data name="_Delete" xml:space="preserve">
     <value>_Smazat</value>
@@ -15184,6 +15208,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_I have copied it" xml:space="preserve">
     <value>Zkopíroval(_a) jsem jej</value>
+  </data>
+  <data name="_IMAP" xml:space="preserve">
+    <value>_IMAP</value>
   </data>
   <data name="_IMAP folder (e.g. INBOX.Archive)" xml:space="preserve">
     <value>_IMAP složka (např. INBOX.Archive)</value>
@@ -15509,6 +15536,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Route" xml:space="preserve">
     <value>_Trasa</value>
   </data>
+  <data name="_SMTP" xml:space="preserve">
+    <value>_SMTP</value>
+  </data>
   <data name="_Save" xml:space="preserve">
     <value>_Uložit</value>
   </data>
@@ -15628,6 +15658,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Work telephone" xml:space="preserve">
     <value>_Telefon do práce</value>
+  </data>
+  <data name="_Wrap lines" xml:space="preserve">
+    <value>Zala_movat řádky</value>
   </data>
   <data name="a digit" xml:space="preserve">
     <value>číslice</value>
@@ -17138,6 +17171,15 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} latest {1}" xml:space="preserve">
     <value>{0}: poslední {1}</value>
+  </data>
+  <data name="{0} line" xml:space="preserve">
+    <value>{0} řádek</value>
+  </data>
+  <data name="{0} lines" xml:space="preserve">
+    <value>{0} řádků</value>
+  </data>
+  <data name="{0} lines|few" xml:space="preserve">
+    <value>{0} řádky</value>
   </data>
   <data name="{0} list entries" xml:space="preserve">
     <value>Položky seznamu: {0}</value>

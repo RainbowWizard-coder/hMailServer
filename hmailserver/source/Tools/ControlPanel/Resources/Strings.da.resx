@@ -4276,6 +4276,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="E-mail every account on the server at once - for maintenance announcements." xml:space="preserve">
     <value>Send e-mail til hver konto på serveren på én gang - til vedligeholdelsesmeddelelser.</value>
   </data>
+  <data name="E_rrors" xml:space="preserve">
+    <value>_Fejl</value>
+  </data>
   <data name="E_xternal ID (the identity provider's ID for this person; empty = none)" xml:space="preserve">
     <value>_Ekstern id (personens id hos identitetsudbyderen; tom = ingen)</value>
   </data>
@@ -5109,6 +5112,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Filled in from the certificate when you choose its file, while this box is empty." xml:space="preserve">
     <value>Udfyldes fra certifikatet, når du vælger dets fil, mens dette felt er tomt.</value>
+  </data>
+  <data name="Filter lines: an address, any words, or session=42" xml:space="preserve">
+    <value>Filtrér linjer: en adresse, vilkårlige ord eller session=42</value>
   </data>
   <data name="Find organizational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
     <value>Find organisatoriske domæner ved gennemgang af DNS-træet (RFC 9989)</value>
@@ -7666,6 +7672,9 @@ Intet, der allerede er der, fjernes.</value>
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>Intet af de {0} IP-intervaller kræver TLS før godkendelse, så en adgangskode i klartekst accepteres overalt, hvor en port tillader en.</value>
   </data>
+  <data name="None of the {0} lines read matches the filter and the line types ticked." xml:space="preserve">
+    <value>Ingen af de {0} indlæste linjer passer til filteret og de afkrydsede linjetyper.</value>
+  </data>
   <data name="None of the {0} most recent held messages has &quot;{1}&quot; in its sender, recipients, subject or reason. The server lists no more than those." xml:space="preserve">
     <value>Ingen af de {0} seneste tilbageholdte meddelelser har "{1}" i afsender, modtagere, emne eller årsag. Serveren viser ikke flere end dem.</value>
   </data>
@@ -8535,6 +8544,9 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="POP3 sessions" xml:space="preserve">
     <value>POP3-sessioner</value>
+  </data>
+  <data name="POP_3" xml:space="preserve">
+    <value>POP_3</value>
   </data>
   <data name="PTR / HELO checks…" xml:space="preserve">
     <value>PTR-/HELO-kontroller…</value>
@@ -13342,6 +13354,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="The {0} IP range does not require TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>Det {0} IP-interval kræver ikke TLS før godkendelse, så en adgangskode i klartekst accepteres overalt, hvor en port tillader en.</value>
   </data>
+  <data name="The {0} line read does not match the filter and the line types ticked." xml:space="preserve">
+    <value>Den {0} indlæste linje passer ikke til filteret og de afkrydsede linjetyper.</value>
+  </data>
   <data name="The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it changed, or discard the previous settings to keep what it wrote, then apply it again." xml:space="preserve">
     <value>Profilen {0} kunne ikke anvendes fuldt ud {1}: nogle af dens indstillinger blev ikke skrevet. Sæt det tilbage, den ændrede, eller kassér de tidligere indstillinger for at beholde det, den skrev, og anvend den så igen.</value>
   </data>
@@ -14719,6 +14734,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="_Append a disclaimer to mail leaving the organisation" xml:space="preserve">
     <value>_Tilføj en ansvarsfraskrivelse til post, der forlader organisationen</value>
   </data>
+  <data name="_Application" xml:space="preserve">
+    <value>_Applikation</value>
+  </data>
   <data name="_Apply" xml:space="preserve">
     <value>_Anvend</value>
   </data>
@@ -14808,6 +14826,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="_Current administrator password" xml:space="preserve">
     <value>_Nuværende administratoradgangskode</value>
+  </data>
+  <data name="_Debug" xml:space="preserve">
+    <value>_Debug</value>
   </data>
   <data name="_Delete" xml:space="preserve">
     <value>_Slet</value>
@@ -15003,6 +15024,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="_I have copied it" xml:space="preserve">
     <value>_Jeg har kopieret den</value>
+  </data>
+  <data name="_IMAP" xml:space="preserve">
+    <value>_IMAP</value>
   </data>
   <data name="_IMAP folder (e.g. INBOX.Archive)" xml:space="preserve">
     <value>_IMAP-mappe (f.eks. INBOX.Archive)</value>
@@ -15328,6 +15352,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="_Route" xml:space="preserve">
     <value>_Rute</value>
   </data>
+  <data name="_SMTP" xml:space="preserve">
+    <value>_SMTP</value>
+  </data>
   <data name="_Save" xml:space="preserve">
     <value>_Gem</value>
   </data>
@@ -15447,6 +15474,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="_Work telephone" xml:space="preserve">
     <value>A_rbejdstelefon</value>
+  </data>
+  <data name="_Wrap lines" xml:space="preserve">
+    <value>_Ombryd linjer</value>
   </data>
   <data name="a digit" xml:space="preserve">
     <value>et ciffer</value>
@@ -16849,6 +16879,12 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="{0} latest {1}" xml:space="preserve">
     <value>{0}: seneste {1}</value>
+  </data>
+  <data name="{0} line" xml:space="preserve">
+    <value>{0} linje</value>
+  </data>
+  <data name="{0} lines" xml:space="preserve">
+    <value>{0} linjer</value>
   </data>
   <data name="{0} list entries" xml:space="preserve">
     <value>{0} listeposter</value>

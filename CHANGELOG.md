@@ -2892,6 +2892,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   on every tab where a settings page places a row of its own. `NeverBanAddressListTests` holds the server's reading
   of an entry, what each row covers, the refusals and the page's row, and `AccessKeysTests` the tab's keys.
 
+- **Fixed: Live logs had no way to narrow a busy log to the message being followed, no legend for its colours, and the
+  sideways scroll bar covered the newest line.** The page offered Pause and Clear view over a screenful of lines a
+  second (review finding F250). It now has a filter over the lines - every word typed in must be in a line, an
+  address, a host or any word of the text, and session=42 names a session exactly, where 42 alone is in the times and
+  thread numbers of every other line - and a box for each line type, SMTP, IMAP, POP3, Application, Debug and Errors,
+  each drawn in its lines' colour so that the boxes are the colours' legend; a line of a type no box names (a TCP/IP
+  line, a script's event) is always shown. The SMTP and POP3 clients' lines take their protocol's colour, where they
+  were the default colour beside the servers' green and amber. Wrap lines folds a long line at the log's width instead
+  of scrolling sideways; the count beside the title says how many lines are held, or "Shown: 8 of 461" while the
+  filter or a box hides some, and a filter that hides every line says so in the log's place; the log keeps its newest
+  line clear of the sideways scroll bar, which WPF-UI draws over it; and the toolbar and the log scroll under the
+  header in the narrowest window, the log floored at three lines' height, where its empty state's sentence was cut to
+  its glyph. `LiveLogFilesTests` holds the line types, the filter and the page's wiring.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
