@@ -11922,8 +11922,8 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="SpamAssassin" xml:space="preserve">
     <value>SpamAssassin</value>
   </data>
-  <data name="SpamAssassin is on with no host set, so every message is accepted without a verdict and the server reports HM5508 each time." xml:space="preserve">
-    <value>SpamAssassin est activé sans hôte défini : chaque message est donc accepté sans verdict et le serveur signale HM5508 à chaque fois.</value>
+  <data name="SpamAssassin is on with no host set, so every message is accepted without a verdict and raises server error 5508." xml:space="preserve">
+    <value>SpamAssassin est activé sans hôte défini : chaque message est donc accepté sans verdict et déclenche l'erreur serveur 5508.</value>
   </data>
   <data name="SpamAssassin maximum timeout (90)" xml:space="preserve">
     <value>Délai d'expiration maximal de SpamAssassin (90)</value>
@@ -12225,8 +12225,8 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="TLS from the first byte. Nothing on this port is ever sent unencrypted." xml:space="preserve">
     <value>TLS dès le premier octet. Rien n'est jamais envoyé non chiffré sur ce port.</value>
   </data>
-  <data name="TLS is configured with no certificate assigned, so this listener fails to start and nothing can connect to this port at all. The server log records this as error HM5113 on every start." xml:space="preserve">
-    <value>TLS est configuré sans aucun certificat attribué : cet écouteur ne démarre donc pas et rien ne peut se connecter à ce port. Le journal du serveur note cela comme l'erreur HM5113 à chaque démarrage.</value>
+  <data name="TLS is configured with no certificate assigned, so this listener fails to start and nothing can connect to this port at all. The server log records this as server error 5113 on every start." xml:space="preserve">
+    <value>TLS est configuré sans aucun certificat attribué : cet écouteur ne démarre donc pas et rien ne peut se connecter à ce port. Le journal du serveur note cela comme l'erreur serveur 5113 à chaque démarrage.</value>
   </data>
   <data name="TLS on the submission port - the port mail clients send through" xml:space="preserve">
     <value>TLS sur le port de soumission - le port par lequel les clients de messagerie envoient</value>
@@ -12765,8 +12765,8 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>Le certificat et la clé doivent tous deux être définis pour servir HTTPS ; avec un seul des deux, TLS n'est pas activé et le serveur le consigne. Contrairement à l'écouteur de l'API REST, il n'y a pas ici de repli sur le certificat ACME. Si TLS est configuré mais ne peut pas être préparé (un fichier illisible, une clé qui ne correspond pas), les sondes de santé restent en HTTP simple et /metrics répond 503 plutôt que de servir l'exposition en clair.</value>
   </data>
-  <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
-    <value>Le certificat a expiré le {0}. Le serveur le charge encore et ses ports démarrent toujours (il signale l'erreur 5991 dans le journal des applications), mais chaque client et chaque serveur de messagerie qui vérifie la date refuse de se connecter - ce qui, aujourd'hui, est presque le cas de tous. Remplacez le certificat.</value>
+  <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
+    <value>Le certificat a expiré le {0}. Le serveur le charge encore et ses ports démarrent toujours (il signale l'erreur serveur 5991 dans le journal des applications), mais chaque client et chaque serveur de messagerie qui vérifie la date refuse de se connecter - ce qui, aujourd'hui, est presque le cas de tous. Remplacez le certificat.</value>
   </data>
   <data name="The certificate expires on {0}, in less than a day. Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
     <value>Le certificat expire le {0}, dans moins d'un jour. Renouvelez-le maintenant : une fois expiré, les ports continuent d'écouter, mais les clients qui vérifient la date refusent de se connecter.</value>
@@ -12777,8 +12777,8 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="The certificate expires on {0}, in {1} days. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
     <value>Le certificat expire le {0}, dans {1} jours. Renouvelez-le avant : une fois expiré, les ports continuent d'écouter, mais les clients qui vérifient la date refusent de se connecter.</value>
   </data>
-  <data name="The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (the server logs error 5113) - mail on those ports stops." xml:space="preserve">
-    <value>Le fichier de certificat n'existe pas sur cette machine ({0}). Chaque port TLS configuré pour utiliser ce certificat échouera à démarrer (le serveur consigne l'erreur 5113) - le courrier sur ces ports s'arrête.</value>
+  <data name="The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (server error 5113) - mail on those ports stops." xml:space="preserve">
+    <value>Le fichier de certificat n'existe pas sur cette machine ({0}). Chaque port TLS configuré pour utiliser ce certificat échouera à démarrer (erreur serveur 5113) - le courrier sur ces ports s'arrête.</value>
   </data>
   <data name="The certificate file exists but could not be read from this panel ({0}), so nothing about it is verified." xml:space="preserve">
     <value>Le fichier de certificat existe mais n'a pas pu être lu depuis ce Control Panel ({0}), rien à son sujet n'est donc vérifié.</value>
@@ -13417,8 +13417,8 @@ n'a pas pu être chargé. Le message a probablement été livré et n'est plus d
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>La clé privée n'appartient pas à ce certificat : leurs clés publiques diffèrent. La paire ne se chargera pas (erreur serveur 5113) et chaque port TLS utilisant ce certificat ne démarrera pas. Faites pointer cette entrée vers le fichier de clé qui a été généré avec ce certificat.</value>
   </data>
-  <data name="The private key file does not exist on this machine ({0}). Every TLS port using this certificate will fail to start (the server logs error 5113) - mail on those ports stops." xml:space="preserve">
-    <value>Le fichier de clé privée n'existe pas sur cette machine ({0}). Chaque port TLS utilisant ce certificat ne démarrera pas (le serveur consigne l'erreur 5113) - le courrier sur ces ports s'arrête.</value>
+  <data name="The private key file does not exist on this machine ({0}). Every TLS port using this certificate will fail to start (server error 5113) - mail on those ports stops." xml:space="preserve">
+    <value>Le fichier de clé privée n'existe pas sur cette machine ({0}). Chaque port TLS utilisant ce certificat ne démarrera pas (erreur serveur 5113) - le courrier sur ces ports s'arrête.</value>
   </data>
   <data name="The private key file is encrypted (passphrase-protected) and no passphrase was entered. The certificate will be added, but its key will not load (server error 6170) and the TLS ports using it will not start until the passphrase is saved.&#10;&#10;Add it anyway?" xml:space="preserve">
     <value>Le fichier de clé privée est chiffré (protégé par une phrase secrète) et aucune phrase secrète n'a été saisie. Le certificat sera ajouté, mais sa clé ne se chargera pas (erreur serveur 6170) et les ports TLS qui l'utilisent ne démarreront pas tant que la phrase secrète n'est pas enregistrée.
@@ -18002,8 +18002,8 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="{0}: the key file is an encrypted PEM but no passphrase is configured, so the key will not load (server error 6170) and every port using this certificate will not start. Set the private key password on the certificate." xml:space="preserve">
     <value>{0} : le fichier de clé est un PEM chiffré mais aucune phrase secrète n'est configurée, la clé ne se chargera donc pas (erreur serveur 6170) et aucun port utilisant ce certificat ne démarrera. Définissez le mot de passe de clé privée sur le certificat.</value>
   </data>
-  <data name="{0}: the key file is encrypted and a passphrase is configured. Whether it is the right passphrase is only proven when the server loads the key - check the error log for error 6170 after a restart." xml:space="preserve">
-    <value>{0} : le fichier de clé est chiffré et une phrase secrète est configurée. Qu'il s'agisse de la bonne phrase secrète n'est prouvé que lorsque le serveur charge la clé - cherchez l'erreur 6170 dans le journal d'erreurs après un redémarrage.</value>
+  <data name="{0}: the key file is encrypted and a passphrase is configured. Whether it is the right passphrase is only proven when the server loads the key - check the error log for server error 6170 after a restart." xml:space="preserve">
+    <value>{0} : le fichier de clé est chiffré et une phrase secrète est configurée. Qu'il s'agisse de la bonne phrase secrète n'est prouvé que lorsque le serveur charge la clé - cherchez l'erreur serveur 6170 dans le journal d'erreurs après un redémarrage.</value>
   </data>
   <data name="{0}: the key file is encrypted, but whether a passphrase is configured could not be read (this requires the server-administrator account)." xml:space="preserve">
     <value>{0} : le fichier de clé est chiffré, mais on n'a pas pu lire si une phrase secrète est configurée (cela nécessite le compte d'administrateur du serveur).</value>

@@ -3135,11 +3135,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   delivery, retries and the smart host." - where they said relay host, relay and smart-host relaying, as the domain
   dialog's relay host, its hint and the stored-secrets note say, and the palette still finds the page by SMTP relayer
   and Relay host; e-mail is mail in prose and email address for the field ("Email" in the Active Directory picker);
-  Couldn't is Could not, client id and key id are client ID and key ID, three server errors gain their "server", the
-  TCP/IP ports grid's Security column is Connection security, and three captions lose the colon at their end (the
-  public folder's name, the code the second factor asks for, the DKIM record). `GlossaryTests` holds the English to
-  the glossary, the smart host to its name on its tab, in the search index and wherever a text sends the reader to
-  it, the Brazilian catalogue to login, and every caption to no colon.
+  Couldn't is Could not, client id and key id are client ID and key ID, the nine texts that wrote a server error's
+  number as "(error 5921)", "error HM5113", "the server logs error 5113" or "the server reports HM5508" say "server
+  error" before it, "(server error 5921)", "server error 5113", the TCP/IP ports grid's Security column is Connection
+  security, and three captions lose the colon at their end (the public folder's name, the code the second factor asks
+  for, the DKIM record). `GlossaryTests` holds the English to the glossary - a server error's number in any of those
+  forms, Windows' own error 1069 apart - the smart host to its name on its tab, in the search index and wherever a
+  text sends the reader to it, the Brazilian catalogue to login, and every caption to no colon.
 
 - **Fixed: the domain and account dialogs' captions carried their whole explanation in brackets, which a screen reader
   heard as the field's name.** "Address (changing it renames the mailbox; it must stay in this domain)", "Delete

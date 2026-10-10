@@ -20,7 +20,8 @@ namespace hMailServer.ControlPanel.Tests.Services
    /// "Minimum seconds between logins" and "log on with their domain password" - eight
    /// forms across the catalogue; the Delivery of e-mail page called its smart host a
    /// relayer, a relay and a smart host; and one message said Couldn't, two said "client
-   /// id" and "key id", three wrote a server error's number without the server.
+   /// id" and "key id", and nine wrote a server error's number without the server -
+   /// "(error 5921)", "error HM5113", "the server reports HM5508".
    /// </summary>
    public class GlossaryTests
    {
@@ -145,7 +146,8 @@ namespace hMailServer.ControlPanel.Tests.Services
             (new Regex(@"\bCouldn't\b"), "Could not"),
             (new Regex(@"\b(?:client|key) id\b"), "client ID, key ID"),
             (new Regex(@"\brelayer\b", RegexOptions.IgnoreCase), "smart host"),
-            (new Regex(@"(?<!server )\(error \d{4}"), "server error NNNN"),
+            (new Regex(@"(?<!server )\berror (?:HM)?\d{4}\b"), "server error NNNN"),
+            (new Regex(@"\bHM\d{4}\b"), "server error NNNN"),
             (new Regex(@"hMailServer\.INI"), "hMailServer.ini"),
             // e-mail in prose and for the field; the page keeps its title until the page
             // names are decided again, and the texts that name it say its title
@@ -155,9 +157,11 @@ namespace hMailServer.ControlPanel.Tests.Services
          var offenders = new List<string>();
          foreach (string text in EnglishTexts())
          {
+            // Windows' own error number, for a service that cannot log on, is not the server's.
+            string judged = text.Replace("reports error 1069 in the Windows event log", "", StringComparison.Ordinal);
             foreach ((Regex pattern, string say) in rules)
             {
-               if (pattern.IsMatch(text) && !IsARuleActionName_(text))
+               if (pattern.IsMatch(judged) && !IsARuleActionName_(text))
                   offenders.Add(say + ": " + text);
             }
          }

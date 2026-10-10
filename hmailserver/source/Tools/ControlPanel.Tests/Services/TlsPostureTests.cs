@@ -168,7 +168,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          Assert.Equal(StatusLevel.Critical, verdict.Level);
          Assert.Equal("Will not start", verdict.Word);
-         Assert.Contains("HM5113", verdict.Detail);
+         Assert.Contains("server error 5113", verdict.Detail);
 
          Assert.Null(TlsPosture.Verdict(config));
          Assert.True(HasNote(config, StatusLevel.Critical, "does not come up"));

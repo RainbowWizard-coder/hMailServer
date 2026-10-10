@@ -11922,8 +11922,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="SpamAssassin" xml:space="preserve">
     <value>SpamAssassin</value>
   </data>
-  <data name="SpamAssassin is on with no host set, so every message is accepted without a verdict and the server reports HM5508 each time." xml:space="preserve">
-    <value>SpamAssassin är på utan någon värd satt, så varje meddelande accepteras utan utlåtande och servern rapporterar HM5508 varje gång.</value>
+  <data name="SpamAssassin is on with no host set, so every message is accepted without a verdict and raises server error 5508." xml:space="preserve">
+    <value>SpamAssassin är på utan någon värd satt, så varje meddelande accepteras utan utlåtande och ger serverfel 5508.</value>
   </data>
   <data name="SpamAssassin maximum timeout (90)" xml:space="preserve">
     <value>Maximal tidsgräns för SpamAssassin (90)</value>
@@ -12225,8 +12225,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="TLS from the first byte. Nothing on this port is ever sent unencrypted." xml:space="preserve">
     <value>TLS från första byten. Inget på den här porten skickas någonsin okrypterat.</value>
   </data>
-  <data name="TLS is configured with no certificate assigned, so this listener fails to start and nothing can connect to this port at all. The server log records this as error HM5113 on every start." xml:space="preserve">
-    <value>TLS är konfigurerat utan något certifikat tilldelat, så den här lyssnaren misslyckas att starta och inget kan ansluta till den här porten alls. Serverloggen registrerar detta som fel HM5113 vid varje start.</value>
+  <data name="TLS is configured with no certificate assigned, so this listener fails to start and nothing can connect to this port at all. The server log records this as server error 5113 on every start." xml:space="preserve">
+    <value>TLS är konfigurerat utan något certifikat tilldelat, så den här lyssnaren misslyckas att starta och inget kan ansluta till den här porten alls. Serverloggen registrerar detta som serverfel 5113 vid varje start.</value>
   </data>
   <data name="TLS on the submission port - the port mail clients send through" xml:space="preserve">
     <value>TLS på inlämningsporten - porten e-postklienter skickar genom</value>
@@ -12765,8 +12765,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>Certifikat och nyckel måste båda vara satta för att servera HTTPS; med bara ett av dem är TLS inte aktiverat och servern loggar det. Till skillnad från REST API-lyssnaren finns här ingen reserv i ACME-certifikatet. Om TLS är konfigurerat men inte kan förberedas (en oläsbar fil, en nyckel som inte matchar) stannar hälsokontrollerna på vanlig HTTP och /metrics svarar 503 i stället för att servera utdata i klartext.</value>
   </data>
-  <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
-    <value>Certifikatet gick ut {0}. Servern läser fortfarande in det och dess portar startar fortfarande (den rapporterar fel 5991 i programloggen), men varje klient och e-postserver som kontrollerar datumet vägrar ansluta - vilket i dag är nästan alla. Byt ut certifikatet.</value>
+  <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
+    <value>Certifikatet gick ut {0}. Servern läser fortfarande in det och dess portar startar fortfarande (den rapporterar serverfel 5991 i programloggen), men varje klient och e-postserver som kontrollerar datumet vägrar ansluta - vilket i dag är nästan alla. Byt ut certifikatet.</value>
   </data>
   <data name="The certificate expires on {0}, in less than a day. Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
     <value>Certifikatet går ut {0}, om mindre än en dag. Förnya det nu: när det gått ut fortsätter portarna lyssna, men klienter som kontrollerar datumet vägrar ansluta.</value>
@@ -12777,8 +12777,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="The certificate expires on {0}, in {1} days. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
     <value>Certifikatet går ut {0}, om {1} dagar. Förnya det dessförinnan: när det gått ut fortsätter portarna lyssna, men klienter som kontrollerar datumet vägrar ansluta.</value>
   </data>
-  <data name="The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (the server logs error 5113) - mail on those ports stops." xml:space="preserve">
-    <value>Certifikatfilen finns inte på den här datorn ({0}). Varje TLS-port konfigurerad att använda det här certifikatet kommer att misslyckas att starta (servern loggar fel 5113) - post på de portarna stannar.</value>
+  <data name="The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (server error 5113) - mail on those ports stops." xml:space="preserve">
+    <value>Certifikatfilen finns inte på den här datorn ({0}). Varje TLS-port konfigurerad att använda det här certifikatet kommer att misslyckas att starta (serverfel 5113) - post på de portarna stannar.</value>
   </data>
   <data name="The certificate file exists but could not be read from this panel ({0}), so nothing about it is verified." xml:space="preserve">
     <value>Certifikatfilen finns men kunde inte läsas från den här panelen ({0}), så inget om den är verifierat.</value>
@@ -13417,8 +13417,8 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>Den privata nyckeln hör inte till det här certifikatet: deras publika nycklar skiljer sig. Paret läses inte in (serverfel 5113) och varje TLS-port som använder det här certifikatet kommer att misslyckas att starta. Peka den här posten på nyckelfilen som genererades med det här certifikatet.</value>
   </data>
-  <data name="The private key file does not exist on this machine ({0}). Every TLS port using this certificate will fail to start (the server logs error 5113) - mail on those ports stops." xml:space="preserve">
-    <value>Den privata nyckelfilen finns inte på den här datorn ({0}). Varje TLS-port som använder det här certifikatet kommer att misslyckas att starta (servern loggar fel 5113) - post på de portarna stannar.</value>
+  <data name="The private key file does not exist on this machine ({0}). Every TLS port using this certificate will fail to start (server error 5113) - mail on those ports stops." xml:space="preserve">
+    <value>Den privata nyckelfilen finns inte på den här datorn ({0}). Varje TLS-port som använder det här certifikatet kommer att misslyckas att starta (serverfel 5113) - post på de portarna stannar.</value>
   </data>
   <data name="The private key file is encrypted (passphrase-protected) and no passphrase was entered. The certificate will be added, but its key will not load (server error 6170) and the TLS ports using it will not start until the passphrase is saved.&#10;&#10;Add it anyway?" xml:space="preserve">
     <value>Den privata nyckelfilen är krypterad (skyddad med lösenfras) och ingen lösenfras angavs. Certifikatet läggs till, men dess nyckel läses inte in (serverfel 6170) och TLS-portarna som använder det startar inte förrän lösenfrasen har sparats.
@@ -18002,8 +18002,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0}: the key file is an encrypted PEM but no passphrase is configured, so the key will not load (server error 6170) and every port using this certificate will not start. Set the private key password on the certificate." xml:space="preserve">
     <value>{0}: nyckelfilen är en krypterad PEM men ingen lösenfras är konfigurerad, så nyckeln läses inte in (serverfel 6170) och varje port som använder det här certifikatet startar inte. Sätt lösenordet för den privata nyckeln på certifikatet.</value>
   </data>
-  <data name="{0}: the key file is encrypted and a passphrase is configured. Whether it is the right passphrase is only proven when the server loads the key - check the error log for error 6170 after a restart." xml:space="preserve">
-    <value>{0}: nyckelfilen är krypterad och en lösenfras är konfigurerad. Om det är rätt lösenfras bevisas först när servern läser in nyckeln - leta i felloggen efter fel 6170 efter en omstart.</value>
+  <data name="{0}: the key file is encrypted and a passphrase is configured. Whether it is the right passphrase is only proven when the server loads the key - check the error log for server error 6170 after a restart." xml:space="preserve">
+    <value>{0}: nyckelfilen är krypterad och en lösenfras är konfigurerad. Om det är rätt lösenfras bevisas först när servern läser in nyckeln - leta i felloggen efter serverfel 6170 efter en omstart.</value>
   </data>
   <data name="{0}: the key file is encrypted, but whether a passphrase is configured could not be read (this requires the server-administrator account)." xml:space="preserve">
     <value>{0}: nyckelfilen är krypterad, men om en lösenfras är konfigurerad kunde inte läsas (detta kräver serveradministratörskontot).</value>

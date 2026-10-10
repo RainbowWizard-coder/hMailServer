@@ -12064,8 +12064,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="SpamAssassin" xml:space="preserve">
     <value>SpamAssassin</value>
   </data>
-  <data name="SpamAssassin is on with no host set, so every message is accepted without a verdict and the server reports HM5508 each time." xml:space="preserve">
-    <value>SpamAssassin je zapnutý, ale není nastaven žádný hostitel, takže je každá zpráva přijata bez verdiktu a server pokaždé nahlásí HM5508.</value>
+  <data name="SpamAssassin is on with no host set, so every message is accepted without a verdict and raises server error 5508." xml:space="preserve">
+    <value>SpamAssassin je zapnutý, ale není nastaven žádný hostitel, takže je každá zpráva přijata bez verdiktu a vyvolá chybu serveru 5508.</value>
   </data>
   <data name="SpamAssassin maximum timeout (90)" xml:space="preserve">
     <value>Maximální časový limit SpamAssassinu (90)</value>
@@ -12370,8 +12370,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="TLS from the first byte. Nothing on this port is ever sent unencrypted." xml:space="preserve">
     <value>TLS od prvního bajtu. Na tomto portu se nikdy nic neodesílá nešifrovaně.</value>
   </data>
-  <data name="TLS is configured with no certificate assigned, so this listener fails to start and nothing can connect to this port at all. The server log records this as error HM5113 on every start." xml:space="preserve">
-    <value>TLS je nastaveno, ale není přiřazen žádný certifikát, takže se tento listener nespustí a k tomuto portu se nedá vůbec připojit. Log serveru to při každém startu zaznamená jako chybu HM5113.</value>
+  <data name="TLS is configured with no certificate assigned, so this listener fails to start and nothing can connect to this port at all. The server log records this as server error 5113 on every start." xml:space="preserve">
+    <value>TLS je nastaveno, ale není přiřazen žádný certifikát, takže se tento listener nespustí a k tomuto portu se nedá vůbec připojit. Log serveru to při každém startu zaznamená jako chybu serveru 5113.</value>
   </data>
   <data name="TLS on the submission port - the port mail clients send through" xml:space="preserve">
     <value>TLS na portu pro odesílání - port, přes který odesílají poštovní klienti</value>
@@ -12922,8 +12922,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>Aby se poskytovalo HTTPS, musí být nastaven certifikát I klíč; jen s jedním z nich se TLS nezapne a server to zapíše do logu. Na rozdíl od listeneru REST API se zde nepoužije jako záloha certifikát z ACME. Pokud je TLS nakonfigurováno, ale nelze je připravit (nečitelný soubor, klíč, který neodpovídá), zůstanou zdravotní sondy na nešifrovaném HTTP a /metrics odpovídá 503, místo aby výstup poskytoval v otevřeném textu.</value>
   </data>
-  <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
-    <value>Platnost certifikátu vypršela {0}. Server jej stále načítá a jeho porty se stále spouštějí (zapíše do logu aplikace chybu 5991), ale každý klient a poštovní server, který kontroluje datum, se odmítne připojit – a to dnes dělají téměř všichni. Certifikát vyměňte.</value>
+  <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
+    <value>Platnost certifikátu vypršela {0}. Server jej stále načítá a jeho porty se stále spouštějí (zapíše do logu aplikace chybu serveru 5991), ale každý klient a poštovní server, který kontroluje datum, se odmítne připojit – a to dnes dělají téměř všichni. Certifikát vyměňte.</value>
   </data>
   <data name="The certificate expires on {0}, in less than a day. Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
     <value>Platnost certifikátu vyprší {0}, za méně než den. Obnovte jej hned: po vypršení platnosti porty naslouchají dál, ale klienti, kteří kontrolují datum, se odmítnou připojit.</value>
@@ -12937,8 +12937,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="The certificate expires on {0}, in {1} days. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect.|few" xml:space="preserve">
     <value>Platnost certifikátu vyprší {0}, za {1} dny. Obnovte jej dříve: po vypršení platnosti porty naslouchají dál, ale klienti, kteří kontrolují datum, se odmítnou připojit.</value>
   </data>
-  <data name="The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (the server logs error 5113) - mail on those ports stops." xml:space="preserve">
-    <value>Soubor certifikátu na tomto počítači neexistuje ({0}). Každý TLS port nastavený k použití tohoto certifikátu se nespustí (server zapíše do logu chybu 5113) – pošta na těchto portech se zastaví.</value>
+  <data name="The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (server error 5113) - mail on those ports stops." xml:space="preserve">
+    <value>Soubor certifikátu na tomto počítači neexistuje ({0}). Každý TLS port nastavený k použití tohoto certifikátu se nespustí (chyba serveru 5113) – pošta na těchto portech se zastaví.</value>
   </data>
   <data name="The certificate file exists but could not be read from this panel ({0}), so nothing about it is verified." xml:space="preserve">
     <value>Soubor certifikátu existuje, ale z tohoto panelu ho nešlo přečíst ({0}), takže o něm není nic ověřeno.</value>
@@ -13595,8 +13595,8 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>Soukromý klíč nepatří k tomuto certifikátu: jejich veřejné klíče se liší. Dvojice se nenačte (chyba serveru 5113) a žádný port TLS používající tento certifikát se nespustí. Nasměrujte tuto položku na soubor klíče, který byl vygenerován s tímto certifikátem.</value>
   </data>
-  <data name="The private key file does not exist on this machine ({0}). Every TLS port using this certificate will fail to start (the server logs error 5113) - mail on those ports stops." xml:space="preserve">
-    <value>Soubor soukromého klíče na tomto počítači neexistuje ({0}). Žádný port TLS používající tento certifikát se nespustí (server loguje chybu 5113) - pošta na těchto portech se zastaví.</value>
+  <data name="The private key file does not exist on this machine ({0}). Every TLS port using this certificate will fail to start (server error 5113) - mail on those ports stops." xml:space="preserve">
+    <value>Soubor soukromého klíče na tomto počítači neexistuje ({0}). Žádný port TLS používající tento certifikát se nespustí (chyba serveru 5113) - pošta na těchto portech se zastaví.</value>
   </data>
   <data name="The private key file is encrypted (passphrase-protected) and no passphrase was entered. The certificate will be added, but its key will not load (server error 6170) and the TLS ports using it will not start until the passphrase is saved.&#10;&#10;Add it anyway?" xml:space="preserve">
     <value>Soubor soukromého klíče je šifrovaný (chráněný přístupovým heslem) a žádné přístupové heslo nebylo zadáno. Certifikát bude přidán, ale jeho klíč se nenačte (chyba serveru 6170) a porty TLS, které ho používají, se nespustí, dokud se přístupové heslo neuloží.
@@ -18435,8 +18435,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0}: the key file is an encrypted PEM but no passphrase is configured, so the key will not load (server error 6170) and every port using this certificate will not start. Set the private key password on the certificate." xml:space="preserve">
     <value>{0}: soubor klíče je šifrovaný PEM, ale není nastaveno žádné přístupové heslo, takže se klíč nenačte (chyba serveru 6170) a žádný port používající tento certifikát se nespustí. Nastavte u certifikátu heslo soukromého klíče.</value>
   </data>
-  <data name="{0}: the key file is encrypted and a passphrase is configured. Whether it is the right passphrase is only proven when the server loads the key - check the error log for error 6170 after a restart." xml:space="preserve">
-    <value>{0}: soubor klíče je šifrovaný a přístupové heslo je nastaveno. Zda je to správné přístupové heslo, se prokáže teprve tehdy, když server klíč načte – po restartu zkontrolujte chybový log na chybu 6170.</value>
+  <data name="{0}: the key file is encrypted and a passphrase is configured. Whether it is the right passphrase is only proven when the server loads the key - check the error log for server error 6170 after a restart." xml:space="preserve">
+    <value>{0}: soubor klíče je šifrovaný a přístupové heslo je nastaveno. Zda je to správné přístupové heslo, se prokáže teprve tehdy, když server klíč načte – po restartu zkontrolujte chybový log na chybu serveru 6170.</value>
   </data>
   <data name="{0}: the key file is encrypted, but whether a passphrase is configured could not be read (this requires the server-administrator account)." xml:space="preserve">
     <value>{0}: soubor klíče je šifrovaný, ale nešlo přečíst, zda je nastaveno přístupové heslo (vyžaduje to účet správce serveru).</value>

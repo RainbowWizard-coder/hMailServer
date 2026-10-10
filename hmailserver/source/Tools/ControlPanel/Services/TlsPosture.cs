@@ -274,7 +274,7 @@ namespace hMailServer.ControlPanel.Services
          if (WantsTls(listener.Security) && string.IsNullOrWhiteSpace(listener.CertificateName))
          {
             return new TlsListenerVerdict(listener, TlsListenerState.WillNotStart, StatusLevel.Critical, L("Will not start"),
-               L("TLS is configured with no certificate assigned, so this listener fails to start and nothing can connect to this port at all. The server log records this as error HM5113 on every start."));
+               L("TLS is configured with no certificate assigned, so this listener fails to start and nothing can connect to this port at all. The server log records this as server error 5113 on every start."));
          }
 
          // Every TLS listener shares one set of enabled protocol versions. With none

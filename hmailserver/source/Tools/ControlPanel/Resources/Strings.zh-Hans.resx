@@ -11922,8 +11922,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="SpamAssassin" xml:space="preserve">
     <value>SpamAssassin</value>
   </data>
-  <data name="SpamAssassin is on with no host set, so every message is accepted without a verdict and the server reports HM5508 each time." xml:space="preserve">
-    <value>SpamAssassin 已开启但未设置主机，因此每封邮件都在没有判定的情况下被接受，服务器每次都报告 HM5508。</value>
+  <data name="SpamAssassin is on with no host set, so every message is accepted without a verdict and raises server error 5508." xml:space="preserve">
+    <value>SpamAssassin 已开启但未设置主机，因此每封邮件都在没有判定的情况下被接受，并且每封都会引发服务器错误 5508。</value>
   </data>
   <data name="SpamAssassin maximum timeout (90)" xml:space="preserve">
     <value>SpamAssassin 最大超时（90）</value>
@@ -12225,8 +12225,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="TLS from the first byte. Nothing on this port is ever sent unencrypted." xml:space="preserve">
     <value>从第一个字节起就是 TLS。此端口上没有任何内容会以未加密方式发送。</value>
   </data>
-  <data name="TLS is configured with no certificate assigned, so this listener fails to start and nothing can connect to this port at all. The server log records this as error HM5113 on every start." xml:space="preserve">
-    <value>TLS 已配置但未分配证书，因此此监听器无法启动，也没有任何东西能连接到此端口。服务器日志在每次启动时把这记录为错误 HM5113。</value>
+  <data name="TLS is configured with no certificate assigned, so this listener fails to start and nothing can connect to this port at all. The server log records this as server error 5113 on every start." xml:space="preserve">
+    <value>TLS 已配置但未分配证书，因此此监听器无法启动，也没有任何东西能连接到此端口。服务器日志在每次启动时把这记录为服务器错误 5113。</value>
   </data>
   <data name="TLS on the submission port - the port mail clients send through" xml:space="preserve">
     <value>提交端口上的 TLS - 邮件客户端用来发送的端口</value>
@@ -12765,8 +12765,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>要提供 HTTPS，证书和密钥必须同时设置；只设置其中之一时不会启用 TLS，服务器会记录这一点。与 REST API 监听器不同，此处不会回退到 ACME 证书。如果配置了 TLS 但无法准备就绪（文件不可读、密钥不匹配），健康探测将保持在纯 HTTP 上，而 /metrics 会应答 503，而不是以明文提供指标输出。</value>
   </data>
-  <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
-    <value>证书已于 {0} 到期。服务器仍会加载它，其端口也仍会启动 (它在应用程序日志中报告错误 5991)，但每个检查日期的客户端和邮件服务器都会拒绝连接 - 如今这几乎是所有客户端。请更换证书。</value>
+  <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
+    <value>证书已于 {0} 到期。服务器仍会加载它，其端口也仍会启动 (它在应用程序日志中报告服务器错误 5991)，但每个检查日期的客户端和邮件服务器都会拒绝连接 - 如今这几乎是所有客户端。请更换证书。</value>
   </data>
   <data name="The certificate expires on {0}, in less than a day. Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
     <value>证书将于 {0} 到期，距今不到一天。请立即续期: 一旦到期，端口仍会继续监听，但检查日期的客户端会拒绝连接。</value>
@@ -12777,8 +12777,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The certificate expires on {0}, in {1} days. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
     <value>证书将于 {0} 到期，距今 {1} 天。请在此之前续期: 一旦到期，端口仍会继续监听，但检查日期的客户端会拒绝连接。</value>
   </data>
-  <data name="The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (the server logs error 5113) - mail on those ports stops." xml:space="preserve">
-    <value>证书文件在本机上不存在 ({0})。配置为使用此证书的每个 TLS 端口都将无法启动 (服务器记录错误 5113) - 这些端口上的邮件会停止。</value>
+  <data name="The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (server error 5113) - mail on those ports stops." xml:space="preserve">
+    <value>证书文件在本机上不存在 ({0})。配置为使用此证书的每个 TLS 端口都将无法启动 (服务器错误 5113) - 这些端口上的邮件会停止。</value>
   </data>
   <data name="The certificate file exists but could not be read from this panel ({0}), so nothing about it is verified." xml:space="preserve">
     <value>证书文件存在，但无法从此面板读取 ({0})，因此未对其做任何验证。</value>
@@ -13417,8 +13417,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>私钥不属于此证书: 它们的公钥不同。这一对不会加载 (服务器错误 5113)，使用此证书的每个 TLS 端口都将无法启动。请将此条目指向与此证书一起生成的密钥文件。</value>
   </data>
-  <data name="The private key file does not exist on this machine ({0}). Every TLS port using this certificate will fail to start (the server logs error 5113) - mail on those ports stops." xml:space="preserve">
-    <value>私钥文件在本机上不存在 ({0})。使用此证书的每个 TLS 端口都将无法启动 (服务器记录错误 5113) - 这些端口上的邮件会停止。</value>
+  <data name="The private key file does not exist on this machine ({0}). Every TLS port using this certificate will fail to start (server error 5113) - mail on those ports stops." xml:space="preserve">
+    <value>私钥文件在本机上不存在 ({0})。使用此证书的每个 TLS 端口都将无法启动 (服务器错误 5113) - 这些端口上的邮件会停止。</value>
   </data>
   <data name="The private key file is encrypted (passphrase-protected) and no passphrase was entered. The certificate will be added, but its key will not load (server error 6170) and the TLS ports using it will not start until the passphrase is saved.&#10;&#10;Add it anyway?" xml:space="preserve">
     <value>私钥文件已加密 (受密码短语保护)，且未输入密码短语。证书会被添加，但其密钥不会加载 (服务器错误 6170)，使用它的 TLS 端口在保存密码短语之前不会启动。
@@ -18002,8 +18002,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0}: the key file is an encrypted PEM but no passphrase is configured, so the key will not load (server error 6170) and every port using this certificate will not start. Set the private key password on the certificate." xml:space="preserve">
     <value>{0}：密钥文件是加密的 PEM，但没有配置密码短语，因此该密钥无法加载（服务器错误 6170），每一个使用此证书的端口都将无法启动。请在证书上设置私钥密码。</value>
   </data>
-  <data name="{0}: the key file is encrypted and a passphrase is configured. Whether it is the right passphrase is only proven when the server loads the key - check the error log for error 6170 after a restart." xml:space="preserve">
-    <value>{0}：密钥文件已加密，并且已配置密码短语。它是否是正确的密码短语，只有在服务器加载该密钥时才能证实 - 请在重启后检查错误日志中是否有错误 6170。</value>
+  <data name="{0}: the key file is encrypted and a passphrase is configured. Whether it is the right passphrase is only proven when the server loads the key - check the error log for server error 6170 after a restart." xml:space="preserve">
+    <value>{0}：密钥文件已加密，并且已配置密码短语。它是否是正确的密码短语，只有在服务器加载该密钥时才能证实 - 请在重启后检查错误日志中是否有服务器错误 6170。</value>
   </data>
   <data name="{0}: the key file is encrypted, but whether a passphrase is configured could not be read (this requires the server-administrator account)." xml:space="preserve">
     <value>{0}：密钥文件已加密，但无法读取是否配置了密码短语（这需要服务器管理员账户）。</value>

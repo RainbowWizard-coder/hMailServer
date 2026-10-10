@@ -11922,8 +11922,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="SpamAssassin" xml:space="preserve">
     <value>SpamAssassin</value>
   </data>
-  <data name="SpamAssassin is on with no host set, so every message is accepted without a verdict and the server reports HM5508 each time." xml:space="preserve">
-    <value>SpamAssassin はホスト未設定のままオンになっているため、すべてのメッセージが判定なしで受け入れられ、サーバーは毎回 HM5508 を報告します。</value>
+  <data name="SpamAssassin is on with no host set, so every message is accepted without a verdict and raises server error 5508." xml:space="preserve">
+    <value>SpamAssassin はホスト未設定のままオンになっているため、すべてのメッセージが判定なしで受け入れられ、そのたびにサーバー エラー 5508 が発生します。</value>
   </data>
   <data name="SpamAssassin maximum timeout (90)" xml:space="preserve">
     <value>SpamAssassin の最大タイムアウト (90)</value>
@@ -12225,8 +12225,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="TLS from the first byte. Nothing on this port is ever sent unencrypted." xml:space="preserve">
     <value>最初のバイトから TLS。このポートで暗号化されずに送られるものはありません。</value>
   </data>
-  <data name="TLS is configured with no certificate assigned, so this listener fails to start and nothing can connect to this port at all. The server log records this as error HM5113 on every start." xml:space="preserve">
-    <value>証明書が割り当てられないまま TLS が設定されているため、このリスナーは起動に失敗し、このポートには何も接続できません。サーバー ログは起動のたびにこれをエラー HM5113 として記録します。</value>
+  <data name="TLS is configured with no certificate assigned, so this listener fails to start and nothing can connect to this port at all. The server log records this as server error 5113 on every start." xml:space="preserve">
+    <value>証明書が割り当てられないまま TLS が設定されているため、このリスナーは起動に失敗し、このポートには何も接続できません。サーバー ログは起動のたびにこれをサーバー エラー 5113 として記録します。</value>
   </data>
   <data name="TLS on the submission port - the port mail clients send through" xml:space="preserve">
     <value>サブミッションポートの TLS - メールクライアントが送信に使うポート</value>
@@ -12765,8 +12765,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>HTTPS を提供するには証明書と鍵の両方を設定する必要があります。片方だけでは TLS は有効にならず、サーバーはその旨をログに記録します。REST API リスナーとは異なり、ここでは ACME 証明書へのフォールバックはありません。TLS が設定されていても準備できない場合 (読み取れないファイル、一致しない鍵)、ヘルス プローブは平文の HTTP のままとなり、/metrics は平文でエクスポジションを返す代わりに 503 を返します。</value>
   </data>
-  <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
-    <value>証明書は {0} に期限切れになりました。サーバーはまだそれを読み込み、ポートも起動します (アプリケーション ログにエラー 5991 を報告します) が、日付を確認するすべてのクライアントとメール サーバーは接続を拒否します。今日ではほぼすべてがそうです。証明書を交換してください。</value>
+  <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
+    <value>証明書は {0} に期限切れになりました。サーバーはまだそれを読み込み、ポートも起動します (アプリケーション ログにサーバー エラー 5991 を報告します) が、日付を確認するすべてのクライアントとメール サーバーは接続を拒否します。今日ではほぼすべてがそうです。証明書を交換してください。</value>
   </data>
   <data name="The certificate expires on {0}, in less than a day. Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
     <value>証明書は {0} に期限切れになります (1 日以内)。今すぐ更新してください。期限切れになってもポートは待ち受けを続けますが、日付を確認するクライアントは接続を拒否します。</value>
@@ -12777,8 +12777,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The certificate expires on {0}, in {1} days. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
     <value>証明書は {0} に期限切れになります (あと {1} 日)。それまでに更新してください。期限切れになってもポートは待ち受けを続けますが、日付を確認するクライアントは接続を拒否します。</value>
   </data>
-  <data name="The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (the server logs error 5113) - mail on those ports stops." xml:space="preserve">
-    <value>証明書ファイルがこのコンピューターに存在しません ({0})。この証明書を使うよう設定されたすべての TLS ポートが起動に失敗し (サーバーはエラー 5113 を記録します)、それらのポートでのメールは止まります。</value>
+  <data name="The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (server error 5113) - mail on those ports stops." xml:space="preserve">
+    <value>証明書ファイルがこのコンピューターに存在しません ({0})。この証明書を使うよう設定されたすべての TLS ポートが起動に失敗し (サーバー エラー 5113)、それらのポートでのメールは止まります。</value>
   </data>
   <data name="The certificate file exists but could not be read from this panel ({0}), so nothing about it is verified." xml:space="preserve">
     <value>証明書ファイルは存在しますが、このパネルから読み取れなかったため ({0})、その内容は何も検証されていません。</value>
@@ -13417,8 +13417,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>秘密鍵はこの証明書のものではありません。公開鍵が異なります。このペアは読み込まれず (サーバー エラー 5113)、この証明書を使うすべての TLS ポートが起動に失敗します。このエントリを、この証明書と共に生成された鍵ファイルに向けてください。</value>
   </data>
-  <data name="The private key file does not exist on this machine ({0}). Every TLS port using this certificate will fail to start (the server logs error 5113) - mail on those ports stops." xml:space="preserve">
-    <value>秘密鍵ファイルがこのコンピューターに存在しません ({0})。この証明書を使うすべての TLS ポートが起動に失敗し (サーバーはエラー 5113 を記録します)、それらのポートでのメールは止まります。</value>
+  <data name="The private key file does not exist on this machine ({0}). Every TLS port using this certificate will fail to start (server error 5113) - mail on those ports stops." xml:space="preserve">
+    <value>秘密鍵ファイルがこのコンピューターに存在しません ({0})。この証明書を使うすべての TLS ポートが起動に失敗し (サーバー エラー 5113)、それらのポートでのメールは止まります。</value>
   </data>
   <data name="The private key file is encrypted (passphrase-protected) and no passphrase was entered. The certificate will be added, but its key will not load (server error 6170) and the TLS ports using it will not start until the passphrase is saved.&#10;&#10;Add it anyway?" xml:space="preserve">
     <value>秘密鍵ファイルは暗号化されています (パスフレーズで保護) が、パスフレーズが入力されていません。証明書は追加されますが、鍵は読み込まれず (サーバー エラー 6170)、パスフレーズが保存されるまで、それを使う TLS ポートは起動しません。
@@ -18002,8 +18002,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0}: the key file is an encrypted PEM but no passphrase is configured, so the key will not load (server error 6170) and every port using this certificate will not start. Set the private key password on the certificate." xml:space="preserve">
     <value>{0}: 鍵ファイルは暗号化された PEM ですがパスフレーズが設定されていないため、鍵は読み込まれず (サーバー エラー 6170)、この証明書を使うすべてのポートが起動しません。証明書に秘密鍵のパスワードを設定してください。</value>
   </data>
-  <data name="{0}: the key file is encrypted and a passphrase is configured. Whether it is the right passphrase is only proven when the server loads the key - check the error log for error 6170 after a restart." xml:space="preserve">
-    <value>{0}: 鍵ファイルは暗号化されており、パスフレーズも設定されています。それが正しいパスフレーズかどうかは、サーバーが鍵を読み込んだときに初めて証明されます。再起動後にエラー ログでエラー 6170 を確認してください。</value>
+  <data name="{0}: the key file is encrypted and a passphrase is configured. Whether it is the right passphrase is only proven when the server loads the key - check the error log for server error 6170 after a restart." xml:space="preserve">
+    <value>{0}: 鍵ファイルは暗号化されており、パスフレーズも設定されています。それが正しいパスフレーズかどうかは、サーバーが鍵を読み込んだときに初めて証明されます。再起動後にエラー ログでサーバー エラー 6170 を確認してください。</value>
   </data>
   <data name="{0}: the key file is encrypted, but whether a passphrase is configured could not be read (this requires the server-administrator account)." xml:space="preserve">
     <value>{0}: 鍵ファイルは暗号化されていますが、パスフレーズが設定されているかどうかは読み取れませんでした (これにはサーバー管理者アカウントが必要です)。</value>

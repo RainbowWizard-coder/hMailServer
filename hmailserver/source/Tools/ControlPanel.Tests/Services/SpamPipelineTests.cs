@@ -305,7 +305,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          config.SpamAssassinHost = "";
 
          Assert.Contains(SpamPipeline.Notes(config),
-            n => n.Level == StatusLevel.Warning && n.Text.Contains("HM5508", StringComparison.Ordinal));
+            n => n.Level == StatusLevel.Warning && n.Text.Contains("server error 5508", StringComparison.Ordinal));
       }
 
       /// <summary>

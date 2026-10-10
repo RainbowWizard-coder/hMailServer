@@ -1500,7 +1500,7 @@ namespace hMailServer.ControlPanel.Services
                         F("{0}: the key file is encrypted, but whether a passphrase is configured could not be read (this requires the server-administrator account).", label));
                   else if (passwordSet)
                      item.Add(SetupItemState.Done,
-                        F("{0}: the key file is encrypted and a passphrase is configured. Whether it is the right passphrase is only proven when the server loads the key - check the error log for error 6170 after a restart.", label));
+                        F("{0}: the key file is encrypted and a passphrase is configured. Whether it is the right passphrase is only proven when the server loads the key - check the error log for server error 6170 after a restart.", label));
                   else
                      item.Add(SetupItemState.ActionNeeded,
                         F("{0}: the key file is an encrypted PEM but no passphrase is configured, so the key will not load (server error 6170) and every port using this certificate will not start. Set the private key password on the certificate.", label));

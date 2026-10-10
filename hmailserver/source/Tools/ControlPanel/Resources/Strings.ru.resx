@@ -12064,8 +12064,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="SpamAssassin" xml:space="preserve">
     <value>SpamAssassin</value>
   </data>
-  <data name="SpamAssassin is on with no host set, so every message is accepted without a verdict and the server reports HM5508 each time." xml:space="preserve">
-    <value>SpamAssassin включён, но узел не задан, поэтому каждое сообщение принимается без вердикта, а сервер каждый раз сообщает HM5508.</value>
+  <data name="SpamAssassin is on with no host set, so every message is accepted without a verdict and raises server error 5508." xml:space="preserve">
+    <value>SpamAssassin включён, но узел не задан, поэтому каждое сообщение принимается без вердикта и вызывает ошибку сервера 5508.</value>
   </data>
   <data name="SpamAssassin maximum timeout (90)" xml:space="preserve">
     <value>Максимальный тайм-аут SpamAssassin (90)</value>
@@ -12370,8 +12370,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="TLS from the first byte. Nothing on this port is ever sent unencrypted." xml:space="preserve">
     <value>TLS с первого байта. На этом порту ничто и никогда не передаётся незашифрованным.</value>
   </data>
-  <data name="TLS is configured with no certificate assigned, so this listener fails to start and nothing can connect to this port at all. The server log records this as error HM5113 on every start." xml:space="preserve">
-    <value>TLS настроен, но сертификат не назначен, поэтому этот прослушиватель не запускается и подключиться к этому порту вообще невозможно. Журнал сервера записывает это как ошибку HM5113 при каждом запуске.</value>
+  <data name="TLS is configured with no certificate assigned, so this listener fails to start and nothing can connect to this port at all. The server log records this as server error 5113 on every start." xml:space="preserve">
+    <value>TLS настроен, но сертификат не назначен, поэтому этот прослушиватель не запускается и подключиться к этому порту вообще невозможно. Журнал сервера записывает это как ошибку сервера 5113 при каждом запуске.</value>
   </data>
   <data name="TLS on the submission port - the port mail clients send through" xml:space="preserve">
     <value>TLS на порту отправки - порт, через который отправляют почтовые клиенты</value>
@@ -12922,8 +12922,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>Чтобы отдавать HTTPS, должны быть заданы И сертификат, И ключ; если задано только одно из двух, TLS не включается, и сервер записывает это в журнал. В отличие от прослушивателя REST API, здесь нет запасного варианта с сертификатом ACME. Если TLS настроен, но подготовить его не удаётся (файл не читается, ключ не соответствует сертификату), проверки работоспособности остаются на обычном HTTP, а /metrics отвечает 503, вместо того чтобы отдавать выдачу в открытом виде.</value>
   </data>
-  <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
-    <value>Срок действия сертификата истёк {0}. Сервер по-прежнему загружает его, и его порты по-прежнему запускаются (в журнале приложений он сообщает об ошибке 5991), но каждый клиент и каждый почтовый сервер, проверяющий дату, отказывается подключаться, — а сегодня это почти все они. Замените сертификат.</value>
+  <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
+    <value>Срок действия сертификата истёк {0}. Сервер по-прежнему загружает его, и его порты по-прежнему запускаются (в журнале приложений он сообщает об ошибке сервера 5991), но каждый клиент и каждый почтовый сервер, проверяющий дату, отказывается подключаться, — а сегодня это почти все они. Замените сертификат.</value>
   </data>
   <data name="The certificate expires on {0}, in less than a day. Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
     <value>Срок действия сертификата истекает {0}, менее чем через сутки. Обновите его сейчас: после истечения срока порты продолжают слушать, но клиенты, проверяющие дату, отказываются подключаться.</value>
@@ -12937,8 +12937,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The certificate expires on {0}, in {1} days. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect.|few" xml:space="preserve">
     <value>Срок действия сертификата истекает {0}, через {1} дн. Обновите его до этого момента: после истечения срока порты продолжают слушать, но клиенты, проверяющие дату, отказываются подключаться.</value>
   </data>
-  <data name="The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (the server logs error 5113) - mail on those ports stops." xml:space="preserve">
-    <value>Файла сертификата на этом компьютере не существует ({0}). Каждый порт TLS, настроенный на использование этого сертификата, не запустится (сервер записывает в журнал ошибку 5113) — почта на этих портах прекращается.</value>
+  <data name="The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (server error 5113) - mail on those ports stops." xml:space="preserve">
+    <value>Файла сертификата на этом компьютере не существует ({0}). Каждый порт TLS, настроенный на использование этого сертификата, не запустится (ошибка сервера 5113) — почта на этих портах прекращается.</value>
   </data>
   <data name="The certificate file exists but could not be read from this panel ({0}), so nothing about it is verified." xml:space="preserve">
     <value>Файл сертификата существует, но из этой панели его не удалось прочитать ({0}), поэтому ничего о нём не проверено.</value>
@@ -13595,8 +13595,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>Закрытый ключ не принадлежит этому сертификату: их открытые ключи различаются. Пара не загрузится (ошибка сервера 5113), и ни один порт TLS, использующий этот сертификат, не запустится. Укажите в этой записи файл ключа, который был сгенерирован вместе с этим сертификатом.</value>
   </data>
-  <data name="The private key file does not exist on this machine ({0}). Every TLS port using this certificate will fail to start (the server logs error 5113) - mail on those ports stops." xml:space="preserve">
-    <value>Файл закрытого ключа не существует на этой машине ({0}). Ни один порт TLS, использующий этот сертификат, не запустится (сервер пишет в журнал ошибку 5113) - почта на этих портах остановится.</value>
+  <data name="The private key file does not exist on this machine ({0}). Every TLS port using this certificate will fail to start (server error 5113) - mail on those ports stops." xml:space="preserve">
+    <value>Файл закрытого ключа не существует на этой машине ({0}). Ни один порт TLS, использующий этот сертификат, не запустится (ошибка сервера 5113) - почта на этих портах остановится.</value>
   </data>
   <data name="The private key file is encrypted (passphrase-protected) and no passphrase was entered. The certificate will be added, but its key will not load (server error 6170) and the TLS ports using it will not start until the passphrase is saved.&#10;&#10;Add it anyway?" xml:space="preserve">
     <value>Файл закрытого ключа зашифрован (защищён парольной фразой), а парольная фраза не введена. Сертификат будет добавлен, но его ключ не загрузится (ошибка сервера 6170), и порты TLS, использующие его, не запустятся, пока парольная фраза не будет сохранена.
@@ -18435,8 +18435,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0}: the key file is an encrypted PEM but no passphrase is configured, so the key will not load (server error 6170) and every port using this certificate will not start. Set the private key password on the certificate." xml:space="preserve">
     <value>{0}: файл ключа — зашифрованный PEM, но парольная фраза не настроена, поэтому ключ не загрузится (ошибка сервера 6170) и ни один порт, использующий этот сертификат, не запустится. Задайте на сертификате пароль закрытого ключа.</value>
   </data>
-  <data name="{0}: the key file is encrypted and a passphrase is configured. Whether it is the right passphrase is only proven when the server loads the key - check the error log for error 6170 after a restart." xml:space="preserve">
-    <value>{0}: файл ключа зашифрован, и парольная фраза настроена. Правильна ли она, выясняется только тогда, когда сервер загружает ключ, — после перезапуска проверьте журнал ошибок на ошибку 6170.</value>
+  <data name="{0}: the key file is encrypted and a passphrase is configured. Whether it is the right passphrase is only proven when the server loads the key - check the error log for server error 6170 after a restart." xml:space="preserve">
+    <value>{0}: файл ключа зашифрован, и парольная фраза настроена. Правильна ли она, выясняется только тогда, когда сервер загружает ключ, — после перезапуска проверьте журнал ошибок на ошибку сервера 6170.</value>
   </data>
   <data name="{0}: the key file is encrypted, but whether a passphrase is configured could not be read (this requires the server-administrator account)." xml:space="preserve">
     <value>{0}: файл ключа зашифрован, но прочитать, настроена ли парольная фраза, не удалось (для этого нужна учётная запись администратора сервера).</value>

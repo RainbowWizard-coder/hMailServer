@@ -192,7 +192,7 @@ namespace hMailServer.ControlPanel.Services
          if (!File.Exists(path))
          {
             health.CertificateFile = new CertificateFinding(StatusLevel.Critical, L("File missing"),
-               F("The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (the server logs error 5113) - mail on those ports stops.", path));
+               F("The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (server error 5113) - mail on those ports stops.", path));
             return null;
          }
 
@@ -238,7 +238,7 @@ namespace hMailServer.ControlPanel.Services
                daysAgo == 0
                   ? F("Expired on {0} (less than a day ago)", date)
                   : PluralF(daysAgo, "Expired on {0} ({1} day ago)", "Expired on {0} ({1} days ago)", date, daysAgo),
-               F("The certificate expired on {0}. The server still loads it and its ports still start (it reports error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate.", date));
+               F("The certificate expired on {0}. The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate.", date));
          }
          else if (certificate.NotBefore > now)
          {
@@ -293,7 +293,7 @@ namespace hMailServer.ControlPanel.Services
          if (!File.Exists(path))
          {
             health.PrivateKeyFile = new CertificateFinding(StatusLevel.Critical, L("File missing"),
-               F("The private key file does not exist on this machine ({0}). Every TLS port using this certificate will fail to start (the server logs error 5113) - mail on those ports stops.", path));
+               F("The private key file does not exist on this machine ({0}). Every TLS port using this certificate will fail to start (server error 5113) - mail on those ports stops.", path));
             return null;
          }
 

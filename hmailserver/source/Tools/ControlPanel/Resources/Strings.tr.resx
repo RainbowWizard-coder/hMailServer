@@ -11922,8 +11922,8 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="SpamAssassin" xml:space="preserve">
     <value>SpamAssassin</value>
   </data>
-  <data name="SpamAssassin is on with no host set, so every message is accepted without a verdict and the server reports HM5508 each time." xml:space="preserve">
-    <value>SpamAssassin ana bilgisayar ayarlanmadan açık, bu yüzden her ileti karar verilmeden kabul ediliyor ve sunucu her seferinde HM5508 bildiriyor.</value>
+  <data name="SpamAssassin is on with no host set, so every message is accepted without a verdict and raises server error 5508." xml:space="preserve">
+    <value>SpamAssassin ana bilgisayar ayarlanmadan açık, bu yüzden her ileti karar verilmeden kabul ediliyor ve sunucu hatası 5508'e yol açıyor.</value>
   </data>
   <data name="SpamAssassin maximum timeout (90)" xml:space="preserve">
     <value>SpamAssassin en büyük zaman aşımı (90)</value>
@@ -12225,8 +12225,8 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="TLS from the first byte. Nothing on this port is ever sent unencrypted." xml:space="preserve">
     <value>İlk bayttan itibaren TLS. Bu porttaki hiçbir şey asla şifrelenmeden gönderilmez.</value>
   </data>
-  <data name="TLS is configured with no certificate assigned, so this listener fails to start and nothing can connect to this port at all. The server log records this as error HM5113 on every start." xml:space="preserve">
-    <value>TLS bir sertifika atanmadan yapılandırılmış, bu yüzden bu dinleyici başlatılamıyor ve bu porta hiçbir şey bağlanamıyor. Sunucu günlüğü bunu her başlangıçta HM5113 hatası olarak kaydeder.</value>
+  <data name="TLS is configured with no certificate assigned, so this listener fails to start and nothing can connect to this port at all. The server log records this as server error 5113 on every start." xml:space="preserve">
+    <value>TLS bir sertifika atanmadan yapılandırılmış, bu yüzden bu dinleyici başlatılamıyor ve bu porta hiçbir şey bağlanamıyor. Sunucu günlüğü bunu her başlangıçta sunucu hatası 5113 olarak kaydeder.</value>
   </data>
   <data name="TLS on the submission port - the port mail clients send through" xml:space="preserve">
     <value>Gönderim bağlantı noktasında TLS - posta istemcilerinin gönderdiği bağlantı noktası</value>
@@ -12765,8 +12765,8 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>HTTPS sunmak için sertifika ve anahtarın ikisi de ayarlanmalıdır; yalnızca biriyle TLS etkin değildir ve sunucu bunu günlüğe yazar. REST API dinleyicisinden farklı olarak burada ACME sertifikasına geri dönüş yoktur. TLS yapılandırılmış ama hazırlanamıyorsa (okunamayan bir dosya, eşleşmeyen bir anahtar), sağlık yoklamaları düz HTTP'de kalır ve /metrics, çıktıyı açıkta sunmak yerine 503 yanıtı verir.</value>
   </data>
-  <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
-    <value>Sertifikanın süresi {0} tarihinde doldu. Sunucu onu hâlâ yüklüyor ve portları hâlâ başlıyor (uygulama günlüğünde 5991 hatası bildiriyor), ancak tarihi denetleyen her istemci ve posta sunucusu bağlanmayı reddediyor - ki bugün bu neredeyse hepsi demek. Sertifikayı değiştirin.</value>
+  <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
+    <value>Sertifikanın süresi {0} tarihinde doldu. Sunucu onu hâlâ yüklüyor ve portları hâlâ başlıyor (uygulama günlüğünde sunucu hatası 5991 bildiriyor), ancak tarihi denetleyen her istemci ve posta sunucusu bağlanmayı reddediyor - ki bugün bu neredeyse hepsi demek. Sertifikayı değiştirin.</value>
   </data>
   <data name="The certificate expires on {0}, in less than a day. Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
     <value>Sertifikanın süresi {0} tarihinde, bir günden kısa süre içinde doluyor. Hemen yenileyin: süresi dolduğunda portlar dinlemeye devam eder, ancak tarihi denetleyen istemciler bağlanmayı reddeder.</value>
@@ -12777,8 +12777,8 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="The certificate expires on {0}, in {1} days. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
     <value>Sertifikanın süresi {0} tarihinde, {1} gün sonra doluyor. Ondan önce yenileyin: süresi dolduğunda portlar dinlemeye devam eder, ancak tarihi denetleyen istemciler bağlanmayı reddeder.</value>
   </data>
-  <data name="The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (the server logs error 5113) - mail on those ports stops." xml:space="preserve">
-    <value>Sertifika dosyası bu makinede yok ({0}). Bu sertifikayı kullanacak şekilde yapılandırılmış her TLS portu başlatılamayacak (sunucu 5113 hatasını günlüğe yazar) - bu portlardaki posta durur.</value>
+  <data name="The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (server error 5113) - mail on those ports stops." xml:space="preserve">
+    <value>Sertifika dosyası bu makinede yok ({0}). Bu sertifikayı kullanacak şekilde yapılandırılmış her TLS portu başlatılamayacak (sunucu hatası 5113) - bu portlardaki posta durur.</value>
   </data>
   <data name="The certificate file exists but could not be read from this panel ({0}), so nothing about it is verified." xml:space="preserve">
     <value>Sertifika dosyası var, ancak bu panelden okunamadı ({0}); bu yüzden hakkında hiçbir şey doğrulanmadı.</value>
@@ -13417,8 +13417,8 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>Özel anahtar bu sertifikaya ait değil: ortak anahtarları farklı. Çift yüklenmez (sunucu hatası 5113) ve bu sertifikayı kullanan her TLS portu başlatılamaz. Bu girdiyi, bu sertifikayla birlikte üretilen anahtar dosyasına yönlendirin.</value>
   </data>
-  <data name="The private key file does not exist on this machine ({0}). Every TLS port using this certificate will fail to start (the server logs error 5113) - mail on those ports stops." xml:space="preserve">
-    <value>Özel anahtar dosyası bu makinede yok ({0}). Bu sertifikayı kullanan her TLS portu başlatılamaz (sunucu 5113 hatasını günlüğe yazar) - bu portlardaki posta durur.</value>
+  <data name="The private key file does not exist on this machine ({0}). Every TLS port using this certificate will fail to start (server error 5113) - mail on those ports stops." xml:space="preserve">
+    <value>Özel anahtar dosyası bu makinede yok ({0}). Bu sertifikayı kullanan her TLS portu başlatılamaz (sunucu hatası 5113) - bu portlardaki posta durur.</value>
   </data>
   <data name="The private key file is encrypted (passphrase-protected) and no passphrase was entered. The certificate will be added, but its key will not load (server error 6170) and the TLS ports using it will not start until the passphrase is saved.&#10;&#10;Add it anyway?" xml:space="preserve">
     <value>Özel anahtar dosyası şifreli (parola ifadesiyle korunuyor) ve parola ifadesi girilmedi. Sertifika eklenecek, ancak anahtarı yüklenmeyecek (sunucu hatası 6170) ve onu kullanan TLS portları parola ifadesi kaydedilene kadar başlamayacak.
@@ -18002,8 +18002,8 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0}: the key file is an encrypted PEM but no passphrase is configured, so the key will not load (server error 6170) and every port using this certificate will not start. Set the private key password on the certificate." xml:space="preserve">
     <value>{0}: anahtar dosyası şifreli bir PEM ama parola ifadesi yapılandırılmamış; bu yüzden anahtar yüklenmeyecek (sunucu hatası 6170) ve bu sertifikayı kullanan her port başlamayacak. Sertifikada özel anahtar parolasını ayarlayın.</value>
   </data>
-  <data name="{0}: the key file is encrypted and a passphrase is configured. Whether it is the right passphrase is only proven when the server loads the key - check the error log for error 6170 after a restart." xml:space="preserve">
-    <value>{0}: anahtar dosyası şifreli ve bir parola ifadesi yapılandırılmış. Doğru parola ifadesi olup olmadığı ancak sunucu anahtarı yüklediğinde kanıtlanır - yeniden başlatmadan sonra hata günlüğünde 6170 hatasına bakın.</value>
+  <data name="{0}: the key file is encrypted and a passphrase is configured. Whether it is the right passphrase is only proven when the server loads the key - check the error log for server error 6170 after a restart." xml:space="preserve">
+    <value>{0}: anahtar dosyası şifreli ve bir parola ifadesi yapılandırılmış. Doğru parola ifadesi olup olmadığı ancak sunucu anahtarı yüklediğinde kanıtlanır - yeniden başlatmadan sonra hata günlüğünde sunucu hatası 6170'i arayın.</value>
   </data>
   <data name="{0}: the key file is encrypted, but whether a passphrase is configured could not be read (this requires the server-administrator account)." xml:space="preserve">
     <value>{0}: anahtar dosyası şifreli, ama bir parola ifadesinin yapılandırılıp yapılandırılmadığı okunamadı (bunun için sunucu yöneticisi hesabı gerekir).</value>

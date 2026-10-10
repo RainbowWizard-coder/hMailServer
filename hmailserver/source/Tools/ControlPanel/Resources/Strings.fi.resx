@@ -11922,8 +11922,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="SpamAssassin" xml:space="preserve">
     <value>SpamAssassin</value>
   </data>
-  <data name="SpamAssassin is on with no host set, so every message is accepted without a verdict and the server reports HM5508 each time." xml:space="preserve">
-    <value>SpamAssassin on käytössä ilman asetettua konetta, joten jokainen viesti hyväksytään ilman tuomiota ja palvelin raportoi HM5508 joka kerta.</value>
+  <data name="SpamAssassin is on with no host set, so every message is accepted without a verdict and raises server error 5508." xml:space="preserve">
+    <value>SpamAssassin on käytössä ilman asetettua konetta, joten jokainen viesti hyväksytään ilman tuomiota ja aiheuttaa palvelinvirheen 5508.</value>
   </data>
   <data name="SpamAssassin maximum timeout (90)" xml:space="preserve">
     <value>SpamAssassinin enimmäisaikakatkaisu (90)</value>
@@ -12225,8 +12225,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="TLS from the first byte. Nothing on this port is ever sent unencrypted." xml:space="preserve">
     <value>TLS ensimmäisestä tavusta alkaen. Mitään tässä portissa ei koskaan lähetetä salaamattomana.</value>
   </data>
-  <data name="TLS is configured with no certificate assigned, so this listener fails to start and nothing can connect to this port at all. The server log records this as error HM5113 on every start." xml:space="preserve">
-    <value>TLS on määritetty ilman varmennetta, joten tämä kuuntelija ei käynnisty eikä tähän porttiin voi yhdistää lainkaan. Palvelimen loki kirjaa tämän virheenä HM5113 jokaisella käynnistyksellä.</value>
+  <data name="TLS is configured with no certificate assigned, so this listener fails to start and nothing can connect to this port at all. The server log records this as server error 5113 on every start." xml:space="preserve">
+    <value>TLS on määritetty ilman varmennetta, joten tämä kuuntelija ei käynnisty eikä tähän porttiin voi yhdistää lainkaan. Palvelimen loki kirjaa tämän palvelinvirheenä 5113 jokaisella käynnistyksellä.</value>
   </data>
   <data name="TLS on the submission port - the port mail clients send through" xml:space="preserve">
     <value>TLS lähetysportissa - portti, jonka kautta sähköpostiohjelmat lähettävät</value>
@@ -12765,8 +12765,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>Sekä varmenteen että avaimen on oltava asetettuina HTTPS:n tarjoamiseksi; vain toisella niistä TLS ei ole käytössä, ja palvelin kirjaa sen lokiin. Toisin kuin REST-rajapinnan kuuntelijalla, täällä ei ole varamenettelyä ACME-varmenteeseen. Jos TLS on määritetty, mutta sitä ei voi valmistella (lukukelvoton tiedosto, avain, joka ei täsmää), kuntotarkistukset pysyvät tavallisessa HTTP:ssä ja /metrics vastaa 503 sen sijaan, että tarjoaisi tiedot selväkielisinä.</value>
   </data>
-  <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
-    <value>Varmenne vanheni {0}. Palvelin lataa sen yhä ja sen portit käynnistyvät yhä (se raportoi virheen 5991 sovelluslokissa), mutta jokainen päivämäärän tarkistava asiakas ja postipalvelin kieltäytyy yhdistämästä - ja nykyään se on lähes kaikki. Vaihda varmenne.</value>
+  <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
+    <value>Varmenne vanheni {0}. Palvelin lataa sen yhä ja sen portit käynnistyvät yhä (se raportoi palvelinvirheen 5991 sovelluslokissa), mutta jokainen päivämäärän tarkistava asiakas ja postipalvelin kieltäytyy yhdistämästä - ja nykyään se on lähes kaikki. Vaihda varmenne.</value>
   </data>
   <data name="The certificate expires on {0}, in less than a day. Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
     <value>Varmenne vanhenee {0}, alle vuorokauden kuluttua. Uusi se nyt: vanhettuaan portit kuuntelevat yhä, mutta päivämäärän tarkistavat asiakkaat kieltäytyvät yhdistämästä.</value>
@@ -12777,8 +12777,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="The certificate expires on {0}, in {1} days. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
     <value>Varmenne vanhenee {0}, {1} päivän kuluttua. Uusi se ennen sitä: vanhettuaan portit kuuntelevat yhä, mutta päivämäärän tarkistavat asiakkaat kieltäytyvät yhdistämästä.</value>
   </data>
-  <data name="The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (the server logs error 5113) - mail on those ports stops." xml:space="preserve">
-    <value>Varmennetiedostoa ei ole tällä koneella ({0}). Yksikään tätä varmennetta käyttämään määritetty TLS-portti ei käynnisty (palvelin kirjaa virheen 5113) - posti näissä porteissa pysähtyy.</value>
+  <data name="The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (server error 5113) - mail on those ports stops." xml:space="preserve">
+    <value>Varmennetiedostoa ei ole tällä koneella ({0}). Yksikään tätä varmennetta käyttämään määritetty TLS-portti ei käynnisty (palvelinvirhe 5113) - posti näissä porteissa pysähtyy.</value>
   </data>
   <data name="The certificate file exists but could not be read from this panel ({0}), so nothing about it is verified." xml:space="preserve">
     <value>Varmennetiedosto on olemassa, mutta sitä ei voitu lukea tästä paneelista ({0}), joten siitä ei ole varmistettu mitään.</value>
@@ -13417,8 +13417,8 @@ ei voitu ladata. Viesti on todennäköisesti toimitettu eikä ole enää jonossa
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>Yksityinen avain ei kuulu tähän varmenteeseen: niiden julkiset avaimet eroavat. Pari ei lataudu (palvelinvirhe 5113), eikä yksikään tätä varmennetta käyttävä TLS-portti käynnisty. Osoita tämä merkintä avaintiedostoon, joka luotiin tämän varmenteen kanssa.</value>
   </data>
-  <data name="The private key file does not exist on this machine ({0}). Every TLS port using this certificate will fail to start (the server logs error 5113) - mail on those ports stops." xml:space="preserve">
-    <value>Yksityisen avaimen tiedostoa ei ole tällä koneella ({0}). Yksikään tätä varmennetta käyttävä TLS-portti ei käynnisty (palvelin kirjaa virheen 5113) - posti näissä porteissa pysähtyy.</value>
+  <data name="The private key file does not exist on this machine ({0}). Every TLS port using this certificate will fail to start (server error 5113) - mail on those ports stops." xml:space="preserve">
+    <value>Yksityisen avaimen tiedostoa ei ole tällä koneella ({0}). Yksikään tätä varmennetta käyttävä TLS-portti ei käynnisty (palvelinvirhe 5113) - posti näissä porteissa pysähtyy.</value>
   </data>
   <data name="The private key file is encrypted (passphrase-protected) and no passphrase was entered. The certificate will be added, but its key will not load (server error 6170) and the TLS ports using it will not start until the passphrase is saved.&#10;&#10;Add it anyway?" xml:space="preserve">
     <value>Yksityisen avaimen tiedosto on salattu (tunnuslauseella suojattu), eikä tunnuslausetta annettu. Varmenne lisätään, mutta sen avain ei lataudu (palvelinvirhe 6170), eivätkä sitä käyttävät TLS-portit käynnisty, ennen kuin tunnuslause on tallennettu.
@@ -18002,8 +18002,8 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0}: the key file is an encrypted PEM but no passphrase is configured, so the key will not load (server error 6170) and every port using this certificate will not start. Set the private key password on the certificate." xml:space="preserve">
     <value>{0}: avaintiedosto on salattu PEM, mutta tunnuslausetta ei ole määritetty, joten avain ei lataudu (palvelinvirhe 6170) eikä yksikään tätä varmennetta käyttävä portti käynnisty. Aseta varmenteelle yksityisen avaimen salasana.</value>
   </data>
-  <data name="{0}: the key file is encrypted and a passphrase is configured. Whether it is the right passphrase is only proven when the server loads the key - check the error log for error 6170 after a restart." xml:space="preserve">
-    <value>{0}: avaintiedosto on salattu ja tunnuslause on määritetty. Onko se oikea tunnuslause, todistetaan vasta, kun palvelin lataa avaimen - tarkista virhelokista virhe 6170 uudelleenkäynnistyksen jälkeen.</value>
+  <data name="{0}: the key file is encrypted and a passphrase is configured. Whether it is the right passphrase is only proven when the server loads the key - check the error log for server error 6170 after a restart." xml:space="preserve">
+    <value>{0}: avaintiedosto on salattu ja tunnuslause on määritetty. Onko se oikea tunnuslause, todistetaan vasta, kun palvelin lataa avaimen - tarkista virhelokista palvelinvirhe 6170 uudelleenkäynnistyksen jälkeen.</value>
   </data>
   <data name="{0}: the key file is encrypted, but whether a passphrase is configured could not be read (this requires the server-administrator account)." xml:space="preserve">
     <value>{0}: avaintiedosto on salattu, mutta sitä, onko tunnuslause määritetty, ei voitu lukea (tämä vaatii palvelimen järjestelmänvalvojan tilin).</value>

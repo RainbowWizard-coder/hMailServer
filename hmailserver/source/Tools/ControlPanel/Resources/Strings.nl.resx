@@ -11922,8 +11922,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="SpamAssassin" xml:space="preserve">
     <value>SpamAssassin</value>
   </data>
-  <data name="SpamAssassin is on with no host set, so every message is accepted without a verdict and the server reports HM5508 each time." xml:space="preserve">
-    <value>SpamAssassin staat aan zonder ingestelde host, dus elk bericht wordt zonder oordeel geaccepteerd en de server meldt telkens HM5508.</value>
+  <data name="SpamAssassin is on with no host set, so every message is accepted without a verdict and raises server error 5508." xml:space="preserve">
+    <value>SpamAssassin staat aan zonder ingestelde host, dus elk bericht wordt zonder oordeel geaccepteerd en geeft serverfout 5508.</value>
   </data>
   <data name="SpamAssassin maximum timeout (90)" xml:space="preserve">
     <value>Maximale time-out van SpamAssassin (90)</value>
@@ -12225,8 +12225,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="TLS from the first byte. Nothing on this port is ever sent unencrypted." xml:space="preserve">
     <value>TLS vanaf de eerste byte. Op deze poort wordt nooit iets onversleuteld verzonden.</value>
   </data>
-  <data name="TLS is configured with no certificate assigned, so this listener fails to start and nothing can connect to this port at all. The server log records this as error HM5113 on every start." xml:space="preserve">
-    <value>TLS is geconfigureerd zonder toegewezen certificaat, dus deze listener start niet en er kan helemaal niets verbinden met deze poort. Het serverlogboek legt dit bij elke start vast als fout HM5113.</value>
+  <data name="TLS is configured with no certificate assigned, so this listener fails to start and nothing can connect to this port at all. The server log records this as server error 5113 on every start." xml:space="preserve">
+    <value>TLS is geconfigureerd zonder toegewezen certificaat, dus deze listener start niet en er kan helemaal niets verbinden met deze poort. Het serverlogboek legt dit bij elke start vast als serverfout 5113.</value>
   </data>
   <data name="TLS on the submission port - the port mail clients send through" xml:space="preserve">
     <value>TLS op de submission-poort - de poort waarover mailprogramma's verzenden</value>
@@ -12765,8 +12765,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>Certificaat en sleutel moeten beide zijn ingesteld om HTTPS te kunnen serveren; met slechts één van beide wordt TLS niet ingeschakeld en legt de server dat vast. Anders dan bij de listener van de REST-API is er hier geen terugval op het ACME-certificaat. Is TLS geconfigureerd maar kan het niet worden voorbereid (een onleesbaar bestand, een sleutel die niet past), dan blijven de gezondheidscontroles op gewone HTTP en antwoordt /metrics met 503 in plaats van de expositie in klare tekst te serveren.</value>
   </data>
-  <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
-    <value>Het certificaat is verlopen op {0}. De server laadt het nog steeds en zijn poorten starten nog steeds (hij meldt fout 5991 in het toepassingslogboek), maar elke client en mailserver die de datum controleert weigert te verbinden - en dat zijn er tegenwoordig bijna allemaal. Vervang het certificaat.</value>
+  <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports server error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
+    <value>Het certificaat is verlopen op {0}. De server laadt het nog steeds en zijn poorten starten nog steeds (hij meldt serverfout 5991 in het toepassingslogboek), maar elke client en mailserver die de datum controleert weigert te verbinden - en dat zijn er tegenwoordig bijna allemaal. Vervang het certificaat.</value>
   </data>
   <data name="The certificate expires on {0}, in less than a day. Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
     <value>Het certificaat verloopt op {0}, binnen een dag. Vernieuw het nu: zodra het verloopt blijven de poorten luisteren, maar clients die de datum controleren weigeren te verbinden.</value>
@@ -12777,8 +12777,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="The certificate expires on {0}, in {1} days. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
     <value>Het certificaat verloopt op {0}, over {1} dagen. Vernieuw het vóór die tijd: zodra het verloopt blijven de poorten luisteren, maar clients die de datum controleren weigeren te verbinden.</value>
   </data>
-  <data name="The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (the server logs error 5113) - mail on those ports stops." xml:space="preserve">
-    <value>Het certificaatbestand bestaat niet op deze machine ({0}). Elke TLS-poort die is geconfigureerd om dit certificaat te gebruiken zal niet starten (de server logt fout 5113) - mail op die poorten stopt.</value>
+  <data name="The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (server error 5113) - mail on those ports stops." xml:space="preserve">
+    <value>Het certificaatbestand bestaat niet op deze machine ({0}). Elke TLS-poort die is geconfigureerd om dit certificaat te gebruiken zal niet starten (serverfout 5113) - mail op die poorten stopt.</value>
   </data>
   <data name="The certificate file exists but could not be read from this panel ({0}), so nothing about it is verified." xml:space="preserve">
     <value>Het certificaatbestand bestaat, maar kon niet vanuit dit paneel worden gelezen ({0}), dus er is niets aan geverifieerd.</value>
@@ -13417,8 +13417,8 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>De privésleutel hoort niet bij dit certificaat: hun openbare sleutels verschillen. Het paar laadt niet (serverfout 5113) en elke TLS-poort die dit certificaat gebruikt, start niet. Laat deze vermelding wijzen naar het sleutelbestand dat samen met dit certificaat is gegenereerd.</value>
   </data>
-  <data name="The private key file does not exist on this machine ({0}). Every TLS port using this certificate will fail to start (the server logs error 5113) - mail on those ports stops." xml:space="preserve">
-    <value>Het privésleutelbestand bestaat niet op deze machine ({0}). Elke TLS-poort die dit certificaat gebruikt, start niet (de server logt fout 5113) - mail op die poorten stopt.</value>
+  <data name="The private key file does not exist on this machine ({0}). Every TLS port using this certificate will fail to start (server error 5113) - mail on those ports stops." xml:space="preserve">
+    <value>Het privésleutelbestand bestaat niet op deze machine ({0}). Elke TLS-poort die dit certificaat gebruikt, start niet (serverfout 5113) - mail op die poorten stopt.</value>
   </data>
   <data name="The private key file is encrypted (passphrase-protected) and no passphrase was entered. The certificate will be added, but its key will not load (server error 6170) and the TLS ports using it will not start until the passphrase is saved.&#10;&#10;Add it anyway?" xml:space="preserve">
     <value>Het privésleutelbestand is versleuteld (beveiligd met een wachtwoordzin) en er is geen wachtwoordzin ingevoerd. Het certificaat wordt toegevoegd, maar de sleutel laadt niet (serverfout 6170) en de TLS-poorten die het gebruiken, starten pas wanneer de wachtwoordzin is opgeslagen.
@@ -18002,8 +18002,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0}: the key file is an encrypted PEM but no passphrase is configured, so the key will not load (server error 6170) and every port using this certificate will not start. Set the private key password on the certificate." xml:space="preserve">
     <value>{0}: het sleutelbestand is een versleutelde PEM maar er is geen wachtwoordzin geconfigureerd, dus de sleutel laadt niet (serverfout 6170) en elke poort die dit certificaat gebruikt, start niet. Stel het privésleutelwachtwoord in op het certificaat.</value>
   </data>
-  <data name="{0}: the key file is encrypted and a passphrase is configured. Whether it is the right passphrase is only proven when the server loads the key - check the error log for error 6170 after a restart." xml:space="preserve">
-    <value>{0}: het sleutelbestand is versleuteld en er is een wachtwoordzin geconfigureerd. Of het de juiste wachtwoordzin is, blijkt pas wanneer de server de sleutel laadt - controleer na een herstart het foutenlogboek op fout 6170.</value>
+  <data name="{0}: the key file is encrypted and a passphrase is configured. Whether it is the right passphrase is only proven when the server loads the key - check the error log for server error 6170 after a restart." xml:space="preserve">
+    <value>{0}: het sleutelbestand is versleuteld en er is een wachtwoordzin geconfigureerd. Of het de juiste wachtwoordzin is, blijkt pas wanneer de server de sleutel laadt - controleer na een herstart het foutenlogboek op serverfout 6170.</value>
   </data>
   <data name="{0}: the key file is encrypted, but whether a passphrase is configured could not be read (this requires the server-administrator account)." xml:space="preserve">
     <value>{0}: het sleutelbestand is versleuteld, maar of er een wachtwoordzin is geconfigureerd kon niet worden gelezen (hiervoor is het serverbeheerdersaccount nodig).</value>

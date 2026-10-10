@@ -721,7 +721,7 @@ namespace hMailServer.ControlPanel.Services
          if (spamAssassin && config.SpamAssassinEnabled && string.IsNullOrWhiteSpace(config.SpamAssassinHost))
          {
             notes.Add(new SpamPipelineNote(StatusLevel.Warning,
-               L("SpamAssassin is on with no host set, so every message is accepted without a verdict and the server reports HM5508 each time.")));
+               L("SpamAssassin is on with no host set, so every message is accepted without a verdict and raises server error 5508.")));
          }
 
          if (marks && config.WasRead(nameof(config.AddSpamHeader), nameof(config.AddReasonHeader), nameof(config.PrependSubject))
