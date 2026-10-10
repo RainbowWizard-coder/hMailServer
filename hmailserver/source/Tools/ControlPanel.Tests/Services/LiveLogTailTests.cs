@@ -395,7 +395,14 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(add > atEnd, "Whether the end was in view is asked after the new lines are added, when it never is.");
          Assert.True(trim > add && follows > trim && back > follows, "Poll no longer trims, then follows or holds, through LiveLogTail.");
          Assert.Contains("scroller.ScrollToVerticalOffset(back);", poll);
-         Assert.Contains("LogList.ScrollIntoView(LogList.Items[LogList.Items.Count - 1]);", poll);
+
+         // The end followed by the list's own scroller, which leaves the page where it is:
+         // the list's ScrollIntoView scrolled the page's scroller too (review finding F250).
+         Assert.Contains("FollowEnd_();", poll);
+         Assert.DoesNotContain("LogList.ScrollIntoView(", code);
+         string follow = WithheldRowTests.MemberText(code, "private void FollowEnd_()");
+         Assert.True(follow != null, "LogsView.FollowEnd_ is gone.");
+         Assert.Contains("scroller.ScrollToBottom();", follow);
       }
 
       private static void Append(Stream log, string text)
