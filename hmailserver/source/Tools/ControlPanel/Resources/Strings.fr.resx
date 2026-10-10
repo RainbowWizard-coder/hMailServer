@@ -786,9 +786,6 @@
   <data name="AWStats-compatible log" xml:space="preserve">
     <value>Journal compatible AWStats</value>
   </data>
-  <data name="A_ccount to add" xml:space="preserve">
-    <value>_Compte à ajouter</value>
-  </data>
   <data name="A_ction" xml:space="preserve">
     <value>Ac_tion</value>
   </data>
@@ -908,6 +905,9 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   </data>
   <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted. An alias or a distribution list of this domain that reaches outside is yours, and a restricted account may write to it." xml:space="preserve">
     <value>Les comptes de ce domaine ne peuvent échanger du courrier qu'avec les domaines nommés ici et avec personne d'autre : un expéditeur extérieur hors d'un domaine nommé est refusé au RCPT TO, et un compte d'ici ne peut envoyer qu'aux domaines nommés, à son propre domaine et au postmaster. Les autres domaines hébergés par ce serveur comptent comme extérieurs s'ils ne sont pas nommés. Les rapports de non-remise passent toujours. Chaque compte suit ceci sauf si sa propre fenêtre dit restreint ou exempté ; vide signifie que le domaine n'est pas restreint. Un alias ou une liste de distribution de ce domaine qui atteint l'extérieur vous appartient, et un compte restreint peut lui écrire.</value>
+  </data>
+  <data name="Accounts that are not members" xml:space="preserve">
+    <value>Comptes qui ne sont pas membres</value>
   </data>
   <data name="Accounts: {0}." xml:space="preserve">
     <value>Comptes : {0}.</value>
@@ -1038,8 +1038,8 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   <data name="Add ac_tion…" xml:space="preserve">
     <value>Ajouter une ac_tion…</value>
   </data>
-  <data name="Add account to group" xml:space="preserve">
-    <value>Ajouter un compte au groupe</value>
+  <data name="Add accounts to {0}" xml:space="preserve">
+    <value>Ajouter des comptes à {0}</value>
   </data>
   <data name="Add action" xml:space="preserve">
     <value>Ajouter une action</value>
@@ -3375,6 +3375,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Ctrl+S" xml:space="preserve">
     <value>Ctrl+S</value>
   </data>
+  <data name="Ctrl+click or Shift+click chooses several accounts; Enter adds the accounts chosen." xml:space="preserve">
+    <value>Ctrl+clic ou Maj+clic choisit plusieurs comptes ; Entrée ajoute les comptes choisis.</value>
+  </data>
   <data name="Current key" xml:space="preserve">
     <value>Clé actuelle</value>
   </data>
@@ -4668,6 +4671,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>Chaque connexion LDAP sera refusée : un LDAP non protégé avec un bind simple enverrait les mots de passe en clair, et AllowUnprotectedPassword est désactivé.</value>
+  </data>
+  <data name="Every account on this server is a member of this group already." xml:space="preserve">
+    <value>Tous les comptes de ce serveur sont déjà membres de ce groupe.</value>
   </data>
   <data name="Every active account and enabled list of a domain, shown to the people of that domain: in the webmail, in address completion, and as a read-only CardDAV address book. It never crosses a domain." xml:space="preserve">
     <value>Chaque compte actif et chaque liste activée d'un domaine, montrés aux utilisateurs de ce domaine : dans le webmail, dans la complétion des adresses et comme carnet d'adresses CardDAV en lecture seule. Il ne franchit jamais un domaine.</value>
@@ -7089,6 +7095,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   </data>
   <data name="No account has been added in any domain." xml:space="preserve">
     <value>Aucun compte n'a été ajouté dans aucun domaine.</value>
+  </data>
+  <data name="No account that is not a member has &quot;{0}&quot; in its address." xml:space="preserve">
+    <value>Aucun compte non membre ne contient « {0} » dans son adresse.</value>
   </data>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>Aucun compte dans ce domaine pour l'instant.</value>
@@ -11833,6 +11842,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Le compte cesse d'envoyer avant de cesser de recevoir : le propriétaire voit le refus dans son propre client, avec la raison, tandis que le courrier qui lui est destiné arrive encore jusqu'à la limite et à la tolérance au-delà. Chaque domaine peut fixer la sienne. S'applique aussitôt.</value>
   </data>
+  <data name="The accounts chosen are members of this group already." xml:space="preserve">
+    <value>Les comptes choisis sont déjà membres de ce groupe.</value>
+  </data>
   <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
     <value>L'adresse est bannie comme une série d'échecs de connexion en bannit une, par une plage IP à expiration, mais jamais une adresse de « Ne jamais bannir automatiquement ces adresses » sur la page Bannissement automatique ni un relais entrant. Désactivé par défaut, et sans effet tant que le refus ci-dessus est désactivé.</value>
   </data>
@@ -14699,6 +14711,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="_Field" xml:space="preserve">
     <value>_Champ</value>
   </data>
+  <data name="_Find an account" xml:space="preserve">
+    <value>Rec_hercher un compte</value>
+  </data>
   <data name="_First name" xml:space="preserve">
     <value>_Prénom</value>
   </data>
@@ -16266,17 +16281,26 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="{0} Until {1}." xml:space="preserve">
     <value>{0} Jusqu'au {1}.</value>
   </data>
+  <data name="{0} account added to the group." xml:space="preserve">
+    <value>{0} compte ajouté au groupe.</value>
+  </data>
   <data name="{0} account found." xml:space="preserve">
     <value>{0} compte trouvé.</value>
   </data>
   <data name="{0} account is a member." xml:space="preserve">
     <value>{0} compte est membre.</value>
   </data>
+  <data name="{0} accounts added to the group." xml:space="preserve">
+    <value>{0} comptes ajoutés au groupe.</value>
+  </data>
   <data name="{0} accounts are members." xml:space="preserve">
     <value>{0} comptes sont membres.</value>
   </data>
   <data name="{0} accounts found." xml:space="preserve">
     <value>{0} comptes trouvés.</value>
+  </data>
+  <data name="{0} added to the group." xml:space="preserve">
+    <value>Ajouté au groupe : {0}.</value>
   </data>
   <data name="{0} added." xml:space="preserve">
     <value>Ajouté : {0}.</value>

@@ -786,9 +786,6 @@
   <data name="AWStats-compatible log" xml:space="preserve">
     <value>AWStats 兼容日志</value>
   </data>
-  <data name="A_ccount to add" xml:space="preserve">
-    <value>要添加的账户(_C)</value>
-  </data>
   <data name="A_ction" xml:space="preserve">
     <value>操作(_C)</value>
   </data>
@@ -908,6 +905,9 @@
   </data>
   <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted. An alias or a distribution list of this domain that reaches outside is yours, and a restricted account may write to it." xml:space="preserve">
     <value>此域的账户只能与此处指定的域收发邮件：不在指定域中的外部发件人会在 RCPT TO 时被拒绝，此处的账户只能发送到指定的域、自己的域和 postmaster。此服务器托管的其他域除非指定，否则视为外部。退信始终可以送达。每个账户都遵循此设置，除非其自身的对话框设为受限或豁免；留空表示此域不受限制。此域中通向外部的别名或分发列表由您掌管，受限账户可以向其发送。</value>
+  </data>
+  <data name="Accounts that are not members" xml:space="preserve">
+    <value>不是成员的账户</value>
   </data>
   <data name="Accounts: {0}." xml:space="preserve">
     <value>账户：{0} 个。</value>
@@ -1038,8 +1038,8 @@
   <data name="Add ac_tion…" xml:space="preserve">
     <value>添加操作(_T)…</value>
   </data>
-  <data name="Add account to group" xml:space="preserve">
-    <value>把账户添加到组</value>
+  <data name="Add accounts to {0}" xml:space="preserve">
+    <value>向 {0} 添加账户</value>
   </data>
   <data name="Add action" xml:space="preserve">
     <value>添加操作</value>
@@ -3375,6 +3375,9 @@
   <data name="Ctrl+S" xml:space="preserve">
     <value>Ctrl+S</value>
   </data>
+  <data name="Ctrl+click or Shift+click chooses several accounts; Enter adds the accounts chosen." xml:space="preserve">
+    <value>按住 Ctrl 或 Shift 单击可选择多个账户；按 Enter 添加所选账户。</value>
+  </data>
   <data name="Current key" xml:space="preserve">
     <value>当前密钥</value>
   </data>
@@ -4668,6 +4671,9 @@
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>所有 LDAP 登录都将被拒绝：未受保护的 LDAP 配合简单绑定会以明文发送密码，而 AllowUnprotectedPassword 已关闭。</value>
+  </data>
+  <data name="Every account on this server is a member of this group already." xml:space="preserve">
+    <value>此服务器上的所有账户都已是此组的成员。</value>
   </data>
   <data name="Every active account and enabled list of a domain, shown to the people of that domain: in the webmail, in address completion, and as a read-only CardDAV address book. It never crosses a domain." xml:space="preserve">
     <value>向域的用户显示该域的每个活动账户和每个已启用的列表：在网页邮箱中、在地址自动完成中，以及作为只读的 CardDAV 通讯录。绝不会超出该域。</value>
@@ -7089,6 +7095,9 @@
   </data>
   <data name="No account has been added in any domain." xml:space="preserve">
     <value>任何域中都没有添加账户。</value>
+  </data>
+  <data name="No account that is not a member has &quot;{0}&quot; in its address." xml:space="preserve">
+    <value>没有地址中包含“{0}”且不是成员的账户。</value>
   </data>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>此域中还没有账户。</value>
@@ -11833,6 +11842,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>账户先停止发送，再停止接收：所有者在自己的客户端中看到带原因的拒绝，而发给他的邮件在限额及其宽限之内仍会送达。每个域可各自设置。立即生效。</value>
   </data>
+  <data name="The accounts chosen are members of this group already." xml:space="preserve">
+    <value>所选账户已是此组的成员。</value>
+  </data>
   <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
     <value>该地址会像连续登录失败那样被一个会过期的 IP 范围封禁，但“自动封禁”页上“永不自动封禁这些地址”中的地址和入站中继永远不会被封禁。默认关闭，上面的拒绝关闭时不起任何作用。</value>
   </data>
@@ -14699,6 +14711,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Field" xml:space="preserve">
     <value>字段(_F)</value>
   </data>
+  <data name="_Find an account" xml:space="preserve">
+    <value>查找账户(_F)</value>
+  </data>
   <data name="_First name" xml:space="preserve">
     <value>名(_F)</value>
   </data>
@@ -16266,17 +16281,26 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} Until {1}." xml:space="preserve">
     <value>{0} 直到 {1}。</value>
   </data>
+  <data name="{0} account added to the group." xml:space="preserve">
+    <value>已向组中添加 {0} 个账户。</value>
+  </data>
   <data name="{0} account found." xml:space="preserve">
     <value>找到 {0} 个账户。</value>
   </data>
   <data name="{0} account is a member." xml:space="preserve">
     <value>有 {0} 个账户是成员。</value>
   </data>
+  <data name="{0} accounts added to the group." xml:space="preserve">
+    <value>已向组中添加 {0} 个账户。</value>
+  </data>
   <data name="{0} accounts are members." xml:space="preserve">
     <value>有 {0} 个账户是成员。</value>
   </data>
   <data name="{0} accounts found." xml:space="preserve">
     <value>找到 {0} 个账户。</value>
+  </data>
+  <data name="{0} added to the group." xml:space="preserve">
+    <value>已将 {0} 添加到组中。</value>
   </data>
   <data name="{0} added." xml:space="preserve">
     <value>已添加 {0}。</value>

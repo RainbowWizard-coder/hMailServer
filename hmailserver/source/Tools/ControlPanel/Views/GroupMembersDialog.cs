@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
@@ -48,6 +49,9 @@ namespace hMailServer.ControlPanel.Views
 
       /// <summary>Member row database ids, parallel to <see cref="list_"/>.</summary>
       private readonly List<int> memberIds_ = new();
+
+      /// <summary>Each member's account id, parallel to <see cref="list_"/>: the accounts the picker leaves out.</summary>
+      private readonly List<int> memberAccountIds_ = new();
 
       private readonly TextBlock status_ = DialogFields.Note("");
       private readonly InlineNotice notice_ = DialogFields.Notice();
@@ -134,6 +138,7 @@ namespace hMailServer.ControlPanel.Views
       {
          list_.Items.Clear();
          memberIds_.Clear();
+         memberAccountIds_.Clear();
          status_.Text = "";
          empty_.Visibility = Visibility.Collapsed;
 
@@ -165,10 +170,12 @@ namespace hMailServer.ControlPanel.Views
                   label = null;
                }
 
+               int accountId = (int)member.AccountID;
                if (string.IsNullOrWhiteSpace(label))
-                  label = F("(account {0} no longer exists)", (int)member.AccountID);
+                  label = F("(account {0} no longer exists)", accountId);
 
                memberIds_.Add(memberId);
+               memberAccountIds_.Add(accountId);
                list_.Items.Add(label);
             }
 
@@ -186,10 +193,10 @@ namespace hMailServer.ControlPanel.Views
          }
       }
 
-      /// <summary>Every account on the server, as "address" strings, for the picker.</summary>
-      private List<string> ReadAllAccountAddresses()
+      /// <summary>Every account on the server, by its id and address, for the picker.</summary>
+      private static List<GroupMemberCandidates.Account> ReadAllAccounts()
       {
-         var addresses = new List<string>();
+         var accounts = new List<GroupMemberCandidates.Account>();
 
          // Every object read here is a fresh COM identity handed out by the server,
          // so each is released as soon as it has been read, innermost first - the
@@ -203,20 +210,20 @@ namespace hMailServer.ControlPanel.Views
             for (int d = 0; d < domainCount; d++)
             {
                dynamic domain = null;
-               dynamic accounts = null;
+               dynamic domainAccounts = null;
                try
                {
                   domain = domains[d];
-                  accounts = domain.Accounts;
-                  int accountCount = (int)accounts.Count;
+                  domainAccounts = domain.Accounts;
+                  int accountCount = (int)domainAccounts.Count;
 
                   for (int a = 0; a < accountCount; a++)
                   {
                      dynamic account = null;
                      try
                      {
-                        account = accounts[a];
-                        addresses.Add((string)account.Address);
+                        account = domainAccounts[a];
+                        accounts.Add(new GroupMemberCandidates.Account((int)account.ID, (string)account.Address));
                      }
                      finally
                      {
@@ -226,7 +233,7 @@ namespace hMailServer.ControlPanel.Views
                }
                finally
                {
-                  ServerSession.Release((object)accounts);
+                  ServerSession.Release((object)domainAccounts);
                   ServerSession.Release((object)domain);
                }
             }
@@ -236,57 +243,84 @@ namespace hMailServer.ControlPanel.Views
             ServerSession.Release((object)domains);
          }
 
-         addresses.Sort(StringComparer.OrdinalIgnoreCase);
-         return addresses;
+         return accounts;
       }
 
+      /// <summary>
+      /// Add account…: a list under a search box of the accounts that are not
+      /// members yet, several of which can be chosen and added at once (review
+      /// finding F203), where a drop-down of every address on the server - the
+      /// members among them - could not be typed in and added one account at a time.
+      /// The accounts added are said by address, and the first of them is selected.
+      /// </summary>
       private void AddMember()
       {
          notice_.Hide();
+         var added = new List<string>();
          try
          {
-            List<string> candidates = ReadAllAccountAddresses();
+            List<GroupMemberCandidates.Account> everyAccount = ReadAllAccounts();
+            IReadOnlyList<GroupMemberCandidates.Account> candidates = GroupMemberCandidates.NotMembers(everyAccount, memberAccountIds_);
 
             if (candidates.Count == 0)
             {
-               notice_.Show(StatusLevel.Information, L("There are no accounts on this server to add."));
+               notice_.Show(StatusLevel.Information, everyAccount.Count == 0
+                  ? L("There are no accounts on this server to add.")
+                  : GroupMemberCandidates.EveryAccountIsAMember);
                return;
             }
 
-            string address = PickAccountDialog.Pick(this, candidates);
-            if (string.IsNullOrWhiteSpace(address))
+            List<GroupMemberCandidates.Account> chosen = PickAccountDialog.Pick(this, groupName_, candidates);
+            if (chosen.Count == 0)
                return;
-
-            dynamic account = ServerSession.Current.Application.Domains.ItemByAddress[address].Accounts.ItemByAddress[address];
 
             dynamic group = OpenGroup();
             dynamic members = group.Members;
 
-            // Already a member? Adding a duplicate row would grant nothing extra and
-            // leave two rows to remove later, so it is refused with an explanation
-            // rather than silently ignored.
+            // The members as the server has them now: an account another session made
+            // a member since the list was read is not given a second row, which would
+            // grant nothing more and leave two rows to remove.
+            var present = new HashSet<int>();
             int existing = (int)members.Count;
-            int accountId = (int)account.ID;
-
             for (int i = 0; i < existing; i++)
+               present.Add((int)members[i].AccountID);
+
+            foreach (GroupMemberCandidates.Account account in chosen)
             {
-               if ((int)members[i].AccountID == accountId)
-               {
-                  notice_.Show(StatusLevel.Warning, F("{0} is already a member of this group.", address));
-                  return;
-               }
+               if (!present.Add(account.Id))
+                  continue;
+
+               // Add() already stamps the group id from the collection it belongs to,
+               // so only the account and the Save are needed here.
+               dynamic member = members.Add();
+               member.AccountID = account.Id;
+               member.Save();
+               ServerSession.Release((object)member);
+               added.Add(account.Address);
             }
 
-            // Add() already stamps the group id from the collection it belongs to, so
-            // only the account and the Save are needed here.
-            dynamic member = members.Add();
-            member.AccountID = accountId;
-            member.Save();
-
             Reload();
+            if (added.Count == 0)
+            {
+               notice_.Show(StatusLevel.Information, chosen.Count == 1
+                  ? F("{0} is already a member of this group.", chosen[0].Address)
+                  : L("The accounts chosen are members of this group already."));
+               return;
+            }
+
+            notice_.Show(StatusLevel.Good, GroupMemberCandidates.Added(added));
+            int first = list_.Items.IndexOf(added[0]);
+            if (first >= 0)
+            {
+               list_.SelectedIndex = first;
+               list_.ScrollIntoView(list_.Items[first]);
+            }
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
+            // The accounts added before the failure are on the list, read again.
+            if (added.Count > 0)
+               Reload();
             notice_.Show(StatusLevel.Critical, F("The account could not be added to the group: {0}", ServerSession.DescribeComError(ex)));
          }
       }
@@ -320,24 +354,59 @@ namespace hMailServer.ControlPanel.Views
    }
 
    /// <summary>
-   /// Picks one address from a list. A list rather than a free-text box because a
-   /// group member is stored as an account id: a typed address that does not exist
-   /// cannot be stored at all, so offering a text box would only produce an error
-   /// after the fact.
+   /// Picks accounts to add from a list under a search box (review finding F203). A
+   /// list rather than a free-text box because a group member is stored as an
+   /// account id: a typed address that does not exist cannot be stored at all, so
+   /// a text box would only produce an error after the fact. The list holds the
+   /// accounts that are not members yet (GroupMemberCandidates), filtered as the
+   /// search is typed in; several can be chosen with Ctrl and Shift, and Enter adds
+   /// them - in the search box, the one account it leaves when it leaves one. It was
+   /// a drop-down of every address on the server that could not be typed in.
    /// </summary>
    internal static class PickAccountDialog
    {
-      public static string Pick(Window owner, List<string> addresses)
+      public static List<GroupMemberCandidates.Account> Pick(Window owner, string groupName, IReadOnlyList<GroupMemberCandidates.Account> accounts)
       {
-         var dialog = new FramedDialog { Owner = owner, Title = L("Add account to group") };
+         var result = new List<GroupMemberCandidates.Account>();
+         FramedDialog dialog = Build(owner, groupName, accounts, result);
+         return dialog.ShowDialog() == true ? result : new List<GroupMemberCandidates.Account>();
+      }
 
-         var combo = new ComboBox { IsEditable = false };
-         foreach (string address in addresses)
-            combo.Items.Add(address);
-         combo.SelectedIndex = 0;
-         AutomationProperties.SetAutomationId(combo, "group-members-pick");
+      /// <summary>The picker, made but not shown; <paramref name="result"/> takes the accounts Add adds.</summary>
+      internal static FramedDialog Build(Window owner, string groupName, IReadOnlyList<GroupMemberCandidates.Account> accounts, List<GroupMemberCandidates.Account> result)
+      {
+         string heading = F("Add accounts to {0}", groupName ?? "");
+         var dialog = new FramedDialog { Owner = owner, Title = heading };
+         var shown = new List<GroupMemberCandidates.Account>(accounts ?? Array.Empty<GroupMemberCandidates.Account>());
 
-         string result = null;
+         var search = new Wpf.Ui.Controls.TextBox();
+         AutomationProperties.SetAutomationId(search, "group-members-pick-search");
+
+         // On a card with the compact inset, as the member list is.
+         var list = new ListBox
+         {
+            SelectionMode = SelectionMode.Extended,
+            Height = 240,
+            BorderThickness = new Thickness(0),
+            Background = System.Windows.Media.Brushes.Transparent,
+            ItemsSource = shown
+         };
+         AutomationProperties.SetName(list, L("Accounts that are not members"));
+         AutomationProperties.SetAutomationId(list, "group-members-pick");
+         var empty = new EmptyState { Icon = Wpf.Ui.Controls.SymbolRegular.Search24, Padding = new Thickness(12), Visibility = Visibility.Collapsed };
+         var listHost = new Grid();
+         listHost.Children.Add(list);
+         listHost.Children.Add(empty);
+
+         var body = new StackPanel();
+         body.Children.Add(DialogFields.Field(L("_Find an account"), search));
+         body.Children.Add(new Card
+         {
+            Padding = new Thickness(DesignTokens.Space.Sm),
+            Margin = new Thickness(0, 0, 0, DesignTokens.Space.Sm),
+            Content = listHost
+         });
+         body.Children.Add(DialogFields.Note(L("Ctrl+click or Shift+click chooses several accounts; Enter adds the accounts chosen.")));
 
          var ok = new Wpf.Ui.Controls.Button
          {
@@ -345,13 +414,70 @@ namespace hMailServer.ControlPanel.Views
             Appearance = Wpf.Ui.Controls.ControlAppearance.Primary,
             MinWidth = 88
          };
-         ok.Click += (s, e) => { result = combo.SelectedItem as string; dialog.DialogResult = true; dialog.Close(); };
+         AutomationProperties.SetAutomationId(ok, "group-members-pick-add");
+         SelectionGate.Bind(list, ok);
+         ok.Click += (s, e) =>
+         {
+            result.AddRange(list.SelectedItems.OfType<GroupMemberCandidates.Account>());
+            if (result.Count == 0)
+               return;
+            dialog.DialogResult = true;
+            dialog.Close();
+         };
 
          var cancel = new Wpf.Ui.Controls.Button { Content = L("Cancel"), MinWidth = 88 };
          cancel.Click += (s, e) => dialog.Close();
 
-         dialog.Frame(L("Add account to group"), DialogFields.Field(L("A_ccount to add"), combo), ok, cancel, width: 420);
-         return dialog.ShowDialog() == true ? result : null;
+         // The search filters as it is typed in; where it hides every account the
+         // list's place says so. A choice the search hides is no longer chosen, so
+         // that Add adds only accounts that can be seen.
+         search.TextChanged += (s, e) =>
+         {
+            string query = search.Text?.Trim() ?? "";
+            ListSearch.Apply(list, query, item => (item as GroupMemberCandidates.Account)?.Address ?? "");
+            foreach (GroupMemberCandidates.Account hidden in list.SelectedItems.OfType<GroupMemberCandidates.Account>().Where(a => !ListSearch.Contains(a.Address, query)).ToList())
+               list.SelectedItems.Remove(hidden);
+            bool none = query.Length > 0 && !shown.Any(a => ListSearch.Contains(a.Address, query));
+            empty.Text = none ? GroupMemberCandidates.NoneMatches(query) : "";
+            empty.Visibility = none ? Visibility.Visible : Visibility.Collapsed;
+         };
+
+         // Enter in the search box adds what is chosen, or the one account the
+         // search leaves; Down goes to the list. Enter on the list adds what is
+         // chosen, and a double-click on an account adds it.
+         search.PreviewKeyDown += (s, e) =>
+         {
+            if (e.Key == System.Windows.Input.Key.Down && list.Items.Count > 0)
+            {
+               if (list.SelectedItem == null)
+                  list.SelectedIndex = 0;
+               GridKeys.FocusSelectedRow(list);
+               e.Handled = true;
+            }
+            else if (e.Key == System.Windows.Input.Key.Enter)
+            {
+               if (list.SelectedItems.Count == 0 && list.Items.Count == 1)
+                  list.SelectedIndex = 0;
+               GridKeys.Press(ok);
+               e.Handled = true;
+            }
+         };
+         list.PreviewKeyDown += (s, e) =>
+         {
+            if (e.Key != System.Windows.Input.Key.Enter || list.SelectedItems.Count == 0)
+               return;
+            GridKeys.Press(ok);
+            e.Handled = true;
+         };
+         list.MouseDoubleClick += (s, e) =>
+         {
+            if (GridKeys.RowAt(list, e.OriginalSource as DependencyObject) != null)
+               GridKeys.Press(ok);
+         };
+
+         dialog.Frame(heading, body, ok, cancel, width: 480);
+         dialog.Loaded += (s, e) => search.Focus();
+         return dialog;
       }
    }
 }

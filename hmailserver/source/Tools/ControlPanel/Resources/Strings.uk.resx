@@ -792,9 +792,6 @@
   <data name="AWStats-compatible log" xml:space="preserve">
     <value>Журнал, сумісний з AWStats</value>
   </data>
-  <data name="A_ccount to add" xml:space="preserve">
-    <value>Обліковий _запис для додавання</value>
-  </data>
   <data name="A_ction" xml:space="preserve">
     <value>Ді_я</value>
   </data>
@@ -914,6 +911,9 @@
   </data>
   <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted. An alias or a distribution list of this domain that reaches outside is yours, and a restricted account may write to it." xml:space="preserve">
     <value>Облікові записи цього домену можуть листуватися лише з переліченими тут доменами: зовнішній відправник не з указаного домену відхиляється на RCPT TO, а обліковий запис звідси може писати лише в указані домени, у свій домен і постмастеру. Інші домени, розміщені на цьому сервері, вважаються зовнішніми, якщо їх не вказано. Звіти про недоставлення проходять завжди. Кожен обліковий запис дотримується цього, якщо у його власному діалозі не вибрано обмежено або виняток; порожньо означає, що домен не обмежений. Псевдонім або список розсилки цього домену, що веде назовні, - ваш, і обмежений обліковий запис може писати на нього.</value>
+  </data>
+  <data name="Accounts that are not members" xml:space="preserve">
+    <value>Облікові записи, які не є учасниками</value>
   </data>
   <data name="Accounts: {0}." xml:space="preserve">
     <value>Облікових записів: {0}.</value>
@@ -1044,8 +1044,8 @@
   <data name="Add ac_tion…" xml:space="preserve">
     <value>Д_одати дію…</value>
   </data>
-  <data name="Add account to group" xml:space="preserve">
-    <value>Додати обліковий запис до групи</value>
+  <data name="Add accounts to {0}" xml:space="preserve">
+    <value>Додати облікові записи до групи {0}</value>
   </data>
   <data name="Add action" xml:space="preserve">
     <value>Додати дію</value>
@@ -3399,6 +3399,9 @@
   <data name="Ctrl+S" xml:space="preserve">
     <value>Ctrl+S</value>
   </data>
+  <data name="Ctrl+click or Shift+click chooses several accounts; Enter adds the accounts chosen." xml:space="preserve">
+    <value>Ctrl+клацання або Shift+клацання вибирає кілька облікових записів; Enter додає вибрані.</value>
+  </data>
   <data name="Current key" xml:space="preserve">
     <value>Поточний ключ</value>
   </data>
@@ -4717,6 +4720,9 @@
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>Кожен вхід через LDAP буде відхилено: незахищений LDAP із простою прив'язкою надсилав би паролі відкритим текстом, а AllowUnprotectedPassword вимкнено.</value>
+  </data>
+  <data name="Every account on this server is a member of this group already." xml:space="preserve">
+    <value>Усі облікові записи цього сервера вже є учасниками цієї групи.</value>
   </data>
   <data name="Every active account and enabled list of a domain, shown to the people of that domain: in the webmail, in address completion, and as a read-only CardDAV address book. It never crosses a domain." xml:space="preserve">
     <value>Кожен активний обліковий запис і кожен увімкнений список домену, показані людям цього домену: у вебпошті, під час автодоповнення адрес і як адресна книга CardDAV лише для читання. Ніколи не виходить за межі домену.</value>
@@ -7162,6 +7168,9 @@
   </data>
   <data name="No account has been added in any domain." xml:space="preserve">
     <value>У жодному домені не додано облікового запису.</value>
+  </data>
+  <data name="No account that is not a member has &quot;{0}&quot; in its address." xml:space="preserve">
+    <value>Жоден обліковий запис, який не є учасником, не містить «{0}» в адресі.</value>
   </data>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>У цьому домені ще немає облікових записів.</value>
@@ -11963,6 +11972,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Обліковий запис перестає надсилати раніше, ніж отримувати: власник бачить відмову у своєму клієнті з причиною, а пошта йому й далі надходить до ліміту та запасу понад нього. Кожен домен може задати свій. Діє одразу.</value>
   </data>
+  <data name="The accounts chosen are members of this group already." xml:space="preserve">
+    <value>Вибрані облікові записи вже є учасниками цієї групи.</value>
+  </data>
   <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
     <value>Адресу блокують так само, як після серії невдалих входів, діапазоном IP зі строком дії, але ніколи не адресу з «Ніколи не банити автоматично ці адреси» на сторінці «Автоблокування» і не вхідний ретранслятор. Типово вимкнено, і нічого не робить, доки відмову вище вимкнено.</value>
   </data>
@@ -14871,6 +14883,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_Field" xml:space="preserve">
     <value>_Поле</value>
   </data>
+  <data name="_Find an account" xml:space="preserve">
+    <value>_Знайти обліковий запис</value>
+  </data>
   <data name="_First name" xml:space="preserve">
     <value>_Ім’я</value>
   </data>
@@ -16477,11 +16492,20 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} Until {1}." xml:space="preserve">
     <value>{0} До {1}.</value>
   </data>
+  <data name="{0} account added to the group." xml:space="preserve">
+    <value>До групи додано {0} обліковий запис.</value>
+  </data>
   <data name="{0} account found." xml:space="preserve">
     <value>Знайдено {0} обліковий запис.</value>
   </data>
   <data name="{0} account is a member." xml:space="preserve">
     <value>Учасником є {0} обліковий запис.</value>
+  </data>
+  <data name="{0} accounts added to the group." xml:space="preserve">
+    <value>До групи додано {0} облікових записів.</value>
+  </data>
+  <data name="{0} accounts added to the group.|few" xml:space="preserve">
+    <value>До групи додано {0} облікові записи.</value>
   </data>
   <data name="{0} accounts are members." xml:space="preserve">
     <value>Учасниками є {0} облікових записів.</value>
@@ -16495,6 +16519,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} accounts found.|few" xml:space="preserve">
     <value>Знайдено {0} облікові записи.</value>
   </data>
+  <data name="{0} added to the group." xml:space="preserve">
+    <value>Додано до групи: {0}.</value>
+  </data>
   <data name="{0} added." xml:space="preserve">
     <value>Додано: {0}.</value>
   </data>
@@ -16507,14 +16534,14 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} addresses" xml:space="preserve">
     <value>{0} адрес</value>
   </data>
-  <data name="{0} addresses|few" xml:space="preserve">
-    <value>{0} адреси</value>
-  </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>Адрес у списку: {0}, показано {1} найновіших. Скористайтеся пошуком, щоб звузити список.</value>
   </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them.|few" xml:space="preserve">
     <value>Адрес у списку: {0}, показано {1} найновіших. Скористайтеся пошуком, щоб звузити список.</value>
+  </data>
+  <data name="{0} addresses|few" xml:space="preserve">
+    <value>{0} адреси</value>
   </data>
   <data name="{0} aliases" xml:space="preserve">
     <value>Псевдонімів: {0}</value>
@@ -16663,14 +16690,14 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} events" xml:space="preserve">
     <value>{0} подій</value>
   </data>
-  <data name="{0} events|few" xml:space="preserve">
-    <value>{0} події</value>
-  </data>
   <data name="{0} events past the retention window were removed." xml:space="preserve">
     <value>Вилучено {0} подій поза вікном зберігання.</value>
   </data>
   <data name="{0} events past the retention window were removed.|few" xml:space="preserve">
     <value>Вилучено {0} події поза вікном зберігання.</value>
+  </data>
+  <data name="{0} events|few" xml:space="preserve">
+    <value>{0} події</value>
   </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>У {0} зовнішнього облікового запису збирання POP3 антивірус вимкнено, тому зібрана ним пошта доставляється без сканування, хай що тут задано. Перемикач на обліковому записі збирання, а не на цій сторінці.</value>
@@ -16843,9 +16870,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} messages" xml:space="preserve">
     <value>{0} повідомлень</value>
   </data>
-  <data name="{0} messages|few" xml:space="preserve">
-    <value>{0} повідомлення</value>
-  </data>
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
     <value>Для {0} повідомлень не можна створити запис; вони залишаться там, де є. Перша причина: {1}</value>
   </data>
@@ -16863,6 +16887,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} messages reference a file that is missing on disk.|few" xml:space="preserve">
     <value>{0} повідомлення посилаються на файл, якого немає на диску.</value>
+  </data>
+  <data name="{0} messages|few" xml:space="preserve">
+    <value>{0} повідомлення</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} хв</value>

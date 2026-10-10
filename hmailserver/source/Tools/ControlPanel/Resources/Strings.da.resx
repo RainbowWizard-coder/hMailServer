@@ -786,9 +786,6 @@
   <data name="AWStats-compatible log" xml:space="preserve">
     <value>AWStats-kompatibel log</value>
   </data>
-  <data name="A_ccount to add" xml:space="preserve">
-    <value>_Konto, der skal tilføjes</value>
-  </data>
   <data name="A_ction" xml:space="preserve">
     <value>_Handling</value>
   </data>
@@ -908,6 +905,9 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   </data>
   <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted. An alias or a distribution list of this domain that reaches outside is yours, and a restricted account may write to it." xml:space="preserve">
     <value>Konti i dette domæne må udveksle post med de domæner, der er navngivet her, og ingen andre: en ekstern afsender uden for et navngivet domæne afvises ved RCPT TO, og en konto her må kun sende til de navngivne domæner, sit eget domæne og postmasteren. Andre domæner, som denne server hoster, regnes som eksterne, medmindre de er navngivet. Returposter kommer altid igennem. Hver konto følger dette, medmindre dens egen dialog siger begrænset eller undtaget; tomt betyder, at domænet ikke er begrænset. Et alias eller en distributionsliste i dette domæne, der når ud, er dit, og en begrænset konto må skrive til det.</value>
+  </data>
+  <data name="Accounts that are not members" xml:space="preserve">
+    <value>Konti, der ikke er medlemmer</value>
   </data>
   <data name="Accounts: {0}." xml:space="preserve">
     <value>Konti: {0}.</value>
@@ -1038,8 +1038,8 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Add ac_tion…" xml:space="preserve">
     <value>Tilføj _handling…</value>
   </data>
-  <data name="Add account to group" xml:space="preserve">
-    <value>Tilføj konto til gruppe</value>
+  <data name="Add accounts to {0}" xml:space="preserve">
+    <value>Tilføj konti til {0}</value>
   </data>
   <data name="Add action" xml:space="preserve">
     <value>Tilføj handling</value>
@@ -3375,6 +3375,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Ctrl+S" xml:space="preserve">
     <value>Ctrl+S</value>
   </data>
+  <data name="Ctrl+click or Shift+click chooses several accounts; Enter adds the accounts chosen." xml:space="preserve">
+    <value>Ctrl+klik eller Skift+klik vælger flere konti; Enter tilføjer de valgte konti.</value>
+  </data>
   <data name="Current key" xml:space="preserve">
     <value>Aktuel nøgle</value>
   </data>
@@ -4668,6 +4671,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>Hver LDAP-pålogning vil blive afvist: ubeskyttet LDAP med en simpel binding ville sende adgangskoder i klartekst, og AllowUnprotectedPassword er slået fra.</value>
+  </data>
+  <data name="Every account on this server is a member of this group already." xml:space="preserve">
+    <value>Alle konti på denne server er allerede medlemmer af denne gruppe.</value>
   </data>
   <data name="Every active account and enabled list of a domain, shown to the people of that domain: in the webmail, in address completion, and as a read-only CardDAV address book. It never crosses a domain." xml:space="preserve">
     <value>Hver aktiv konto og hver aktiveret liste i et domæne, vist for domænets folk: i webmailen, ved udfyldning af adresser og som en skrivebeskyttet CardDAV-adressebog. Den krydser aldrig et domæne.</value>
@@ -7089,6 +7095,9 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="No account has been added in any domain." xml:space="preserve">
     <value>Der er ikke tilføjet en konto i noget domæne.</value>
+  </data>
+  <data name="No account that is not a member has &quot;{0}&quot; in its address." xml:space="preserve">
+    <value>Ingen konto, der ikke er medlem, har "{0}" i adressen.</value>
   </data>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>Der er endnu ingen konti i dette domæne.</value>
@@ -11833,6 +11842,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Kontoen holder op med at sende, før den holder op med at modtage: ejeren ser afvisningen i sit eget program, med årsagen, mens post til vedkommende stadig ankommer op til grænsen og margenen forbi den. Hvert domæne kan sætte sin egen. Gælder straks.</value>
   </data>
+  <data name="The accounts chosen are members of this group already." xml:space="preserve">
+    <value>De valgte konti er allerede medlemmer af denne gruppe.</value>
+  </data>
   <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
     <value>Adressen udelukkes, som en stribe mislykkede logins udelukker en, med et udløbende IP-område, men aldrig en adresse i 'Udeluk aldrig disse adresser automatisk' på siden Automatisk blokering eller et indgående relæ. Fra som standard, og gør intet, så længe afvisningen ovenfor er fra.</value>
   </data>
@@ -14699,6 +14711,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="_Field" xml:space="preserve">
     <value>_Felt</value>
   </data>
+  <data name="_Find an account" xml:space="preserve">
+    <value>_Find en konto</value>
+  </data>
   <data name="_First name" xml:space="preserve">
     <value>_Fornavn</value>
   </data>
@@ -16266,17 +16281,26 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="{0} Until {1}." xml:space="preserve">
     <value>{0} Indtil {1}.</value>
   </data>
+  <data name="{0} account added to the group." xml:space="preserve">
+    <value>{0} konto er føjet til gruppen.</value>
+  </data>
   <data name="{0} account found." xml:space="preserve">
     <value>{0} konto fundet.</value>
   </data>
   <data name="{0} account is a member." xml:space="preserve">
     <value>{0} konto er medlem.</value>
   </data>
+  <data name="{0} accounts added to the group." xml:space="preserve">
+    <value>{0} konti er føjet til gruppen.</value>
+  </data>
   <data name="{0} accounts are members." xml:space="preserve">
     <value>{0} konti er medlemmer.</value>
   </data>
   <data name="{0} accounts found." xml:space="preserve">
     <value>{0} konti fundet.</value>
+  </data>
+  <data name="{0} added to the group." xml:space="preserve">
+    <value>{0} er føjet til gruppen.</value>
   </data>
   <data name="{0} added." xml:space="preserve">
     <value>{0} er tilføjet.</value>

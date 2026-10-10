@@ -267,6 +267,10 @@
        (review finding F242). -->
   <ItemGroup>
     <Compile Include="..\ControlPanel\Services\ConfigurationWarning.cs" />
+  <!-- The accounts the group members dialog offers to add, and what it says after an
+       add (review finding F203). -->
+  <ItemGroup>
+    <Compile Include="..\ControlPanel\Services\GroupMemberCandidates.cs" />
   </ItemGroup>
 
   <ItemGroup>

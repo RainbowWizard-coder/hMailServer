@@ -786,9 +786,6 @@
   <data name="AWStats-compatible log" xml:space="preserve">
     <value>AWStats-kompatibel logg</value>
   </data>
-  <data name="A_ccount to add" xml:space="preserve">
-    <value>_Konto att lägga till</value>
-  </data>
   <data name="A_ction" xml:space="preserve">
     <value>Å_tgärd</value>
   </data>
@@ -908,6 +905,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   </data>
   <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted. An alias or a distribution list of this domain that reaches outside is yours, and a restricted account may write to it." xml:space="preserve">
     <value>Konton i den här domänen får utbyta post med de domäner som namnges här och inga andra: en extern avsändare utanför en namngiven domän avvisas vid RCPT TO, och ett konto här får bara skicka till de namngivna domänerna, sin egen domän och postmastern. Andra domäner som den här servern hyser räknas som externa om de inte namnges. Studsar kommer alltid igenom. Varje konto följer detta om inte dess egen dialogruta säger begränsad eller undantagen; tomt betyder att domänen inte är begränsad. Ett alias eller en distributionslista i den här domänen som når ut är ditt, och ett begränsat konto får skriva till det.</value>
+  </data>
+  <data name="Accounts that are not members" xml:space="preserve">
+    <value>Konton som inte är medlemmar</value>
   </data>
   <data name="Accounts: {0}." xml:space="preserve">
     <value>Konton: {0}.</value>
@@ -1038,8 +1038,8 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Add ac_tion…" xml:space="preserve">
     <value>Lägg till åt_gärd…</value>
   </data>
-  <data name="Add account to group" xml:space="preserve">
-    <value>Lägg till konto i grupp</value>
+  <data name="Add accounts to {0}" xml:space="preserve">
+    <value>Lägg till konton i {0}</value>
   </data>
   <data name="Add action" xml:space="preserve">
     <value>Lägg till åtgärd</value>
@@ -3375,6 +3375,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Ctrl+S" xml:space="preserve">
     <value>Ctrl+S</value>
   </data>
+  <data name="Ctrl+click or Shift+click chooses several accounts; Enter adds the accounts chosen." xml:space="preserve">
+    <value>Ctrl+klick eller Skift+klick väljer flera konton; Enter lägger till de valda kontona.</value>
+  </data>
   <data name="Current key" xml:space="preserve">
     <value>Aktuell nyckel</value>
   </data>
@@ -4668,6 +4671,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>Varje LDAP-inloggning avvisas: oskyddad LDAP med en enkel bindning skulle skicka lösenord i klartext, och AllowUnprotectedPassword är av.</value>
+  </data>
+  <data name="Every account on this server is a member of this group already." xml:space="preserve">
+    <value>Alla konton på den här servern är redan medlemmar i den här gruppen.</value>
   </data>
   <data name="Every active account and enabled list of a domain, shown to the people of that domain: in the webmail, in address completion, and as a read-only CardDAV address book. It never crosses a domain." xml:space="preserve">
     <value>Varje aktivt konto och varje aktiverad lista i en domän, visade för domänens folk: i webbmejlen, vid komplettering av adresser och som en skrivskyddad CardDAV-adressbok. Den korsar aldrig en domän.</value>
@@ -7089,6 +7095,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="No account has been added in any domain." xml:space="preserve">
     <value>Inget konto har lagts till i någon domän.</value>
+  </data>
+  <data name="No account that is not a member has &quot;{0}&quot; in its address." xml:space="preserve">
+    <value>Inget konto som inte är medlem har ”{0}” i adressen.</value>
   </data>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>Inga konton i den här domänen än.</value>
@@ -11833,6 +11842,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Kontot slutar skicka innan det slutar ta emot: ägaren ser avslaget i sitt eget program, med orsaken, medan post till denne fortfarande kommer fram upp till gränsen och marginalen förbi den. Varje domän kan sätta sin egen. Gäller genast.</value>
   </data>
+  <data name="The accounts chosen are members of this group already." xml:space="preserve">
+    <value>De valda kontona är redan medlemmar i den här gruppen.</value>
+  </data>
   <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
     <value>Adressen spärras på samma sätt som en rad misslyckade inloggningar spärrar en, med ett IP-intervall som löper ut, men aldrig en adress i 'Stäng aldrig av dessa adresser automatiskt' på sidan Automatisk spärr eller ett inkommande relä. Av som standard, och gör inget så länge avvisningen ovan är av.</value>
   </data>
@@ -14699,6 +14711,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="_Field" xml:space="preserve">
     <value>_Fält</value>
   </data>
+  <data name="_Find an account" xml:space="preserve">
+    <value>_Hitta ett konto</value>
+  </data>
   <data name="_First name" xml:space="preserve">
     <value>_Förnamn</value>
   </data>
@@ -16266,17 +16281,26 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} Until {1}." xml:space="preserve">
     <value>{0} Till {1}.</value>
   </data>
+  <data name="{0} account added to the group." xml:space="preserve">
+    <value>{0} konto har lagts till i gruppen.</value>
+  </data>
   <data name="{0} account found." xml:space="preserve">
     <value>{0} konto hittat.</value>
   </data>
   <data name="{0} account is a member." xml:space="preserve">
     <value>{0} konto är medlem.</value>
   </data>
+  <data name="{0} accounts added to the group." xml:space="preserve">
+    <value>{0} konton har lagts till i gruppen.</value>
+  </data>
   <data name="{0} accounts are members." xml:space="preserve">
     <value>{0} konton är medlemmar.</value>
   </data>
   <data name="{0} accounts found." xml:space="preserve">
     <value>{0} konton hittade.</value>
+  </data>
+  <data name="{0} added to the group." xml:space="preserve">
+    <value>{0} har lagts till i gruppen.</value>
   </data>
   <data name="{0} added." xml:space="preserve">
     <value>{0} har lagts till.</value>

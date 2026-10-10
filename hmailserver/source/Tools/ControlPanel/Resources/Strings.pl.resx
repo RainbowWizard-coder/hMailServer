@@ -792,9 +792,6 @@
   <data name="AWStats-compatible log" xml:space="preserve">
     <value>Dziennik zgodny z AWStats</value>
   </data>
-  <data name="A_ccount to add" xml:space="preserve">
-    <value>_Konto do dodania</value>
-  </data>
   <data name="A_ction" xml:space="preserve">
     <value>Dzi_ałanie</value>
   </data>
@@ -914,6 +911,9 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   </data>
   <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted. An alias or a distribution list of this domain that reaches outside is yours, and a restricted account may write to it." xml:space="preserve">
     <value>Konta tej domeny mogą wymieniać pocztę z wymienionymi tu domenami i z nikim innym: nadawca z zewnątrz spoza wskazanej domeny jest odrzucany przy RCPT TO, a konto stąd może wysyłać tylko do wskazanych domen, do własnej domeny i do postmastera. Inne domeny obsługiwane przez ten serwer liczą się jako zewnętrzne, chyba że są wskazane. Zwroty zawsze przechodzą. Każde konto stosuje się do tego, chyba że jego własne okno mówi ograniczone lub wyjątek; puste oznacza, że domena nie jest ograniczona. Alias lub lista dystrybucyjna tej domeny sięgająca na zewnątrz należy do Ciebie i ograniczone konto może do niej pisać.</value>
+  </data>
+  <data name="Accounts that are not members" xml:space="preserve">
+    <value>Konta, które nie są członkami</value>
   </data>
   <data name="Accounts: {0}." xml:space="preserve">
     <value>Konta: {0}.</value>
@@ -1044,8 +1044,8 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   <data name="Add ac_tion…" xml:space="preserve">
     <value>Dodaj _akcję…</value>
   </data>
-  <data name="Add account to group" xml:space="preserve">
-    <value>Dodaj konto do grupy</value>
+  <data name="Add accounts to {0}" xml:space="preserve">
+    <value>Dodaj konta do grupy {0}</value>
   </data>
   <data name="Add action" xml:space="preserve">
     <value>Dodaj akcję</value>
@@ -3399,6 +3399,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Ctrl+S" xml:space="preserve">
     <value>Ctrl+S</value>
   </data>
+  <data name="Ctrl+click or Shift+click chooses several accounts; Enter adds the accounts chosen." xml:space="preserve">
+    <value>Ctrl+kliknięcie lub Shift+kliknięcie wybiera kilka kont; Enter dodaje wybrane konta.</value>
+  </data>
   <data name="Current key" xml:space="preserve">
     <value>Bieżący klucz</value>
   </data>
@@ -4717,6 +4720,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>Każde logowanie LDAP zostanie odrzucone: niezabezpieczony LDAP z prostym bindem wysyłałby hasła jawnym tekstem, a AllowUnprotectedPassword jest wyłączone.</value>
+  </data>
+  <data name="Every account on this server is a member of this group already." xml:space="preserve">
+    <value>Wszystkie konta na tym serwerze są już członkami tej grupy.</value>
   </data>
   <data name="Every active account and enabled list of a domain, shown to the people of that domain: in the webmail, in address completion, and as a read-only CardDAV address book. It never crosses a domain." xml:space="preserve">
     <value>Każde aktywne konto i każda włączona lista domeny, pokazywane ludziom tej domeny: w poczcie w przeglądarce, przy uzupełnianiu adresów i jako książka adresowa CardDAV tylko do odczytu. Nigdy nie przekracza granicy domeny.</value>
@@ -7162,6 +7168,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   </data>
   <data name="No account has been added in any domain." xml:space="preserve">
     <value>W żadnej domenie nie dodano konta.</value>
+  </data>
+  <data name="No account that is not a member has &quot;{0}&quot; in its address." xml:space="preserve">
+    <value>Żadne konto, które nie jest członkiem, nie zawiera „{0}” w adresie.</value>
   </data>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>W tej domenie nie ma jeszcze kont.</value>
@@ -11963,6 +11972,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Konto przestaje wysyłać, zanim przestanie odbierać: właściciel widzi odmowę we własnym programie, z powodem, a poczta do niego nadal dociera do limitu i marginesu poza nim. Każda domena może ustawić własny. Obowiązuje od razu.</value>
   </data>
+  <data name="The accounts chosen are members of this group already." xml:space="preserve">
+    <value>Wybrane konta są już członkami tej grupy.</value>
+  </data>
   <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
     <value>Adres jest blokowany tak, jak blokuje go seria nieudanych logowań, wygasającym zakresem IP, ale nigdy adres z „Nigdy nie blokuj automatycznie tych adresów” na stronie Automatyczna blokada ani przekaźnik przychodzący. Domyślnie wyłączone i nie robi nic, dopóki powyższe odrzucanie jest wyłączone.</value>
   </data>
@@ -14871,6 +14883,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="_Field" xml:space="preserve">
     <value>_Pole</value>
   </data>
+  <data name="_Find an account" xml:space="preserve">
+    <value>_Znajdź konto</value>
+  </data>
   <data name="_First name" xml:space="preserve">
     <value>_Imię</value>
   </data>
@@ -16477,11 +16492,20 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} Until {1}." xml:space="preserve">
     <value>{0} Do {1}.</value>
   </data>
+  <data name="{0} account added to the group." xml:space="preserve">
+    <value>Dodano {0} konto do grupy.</value>
+  </data>
   <data name="{0} account found." xml:space="preserve">
     <value>Znaleziono {0} konto.</value>
   </data>
   <data name="{0} account is a member." xml:space="preserve">
     <value>Członkiem jest {0} konto.</value>
+  </data>
+  <data name="{0} accounts added to the group." xml:space="preserve">
+    <value>Dodano {0} kont do grupy.</value>
+  </data>
+  <data name="{0} accounts added to the group.|few" xml:space="preserve">
+    <value>Dodano {0} konta do grupy.</value>
   </data>
   <data name="{0} accounts are members." xml:space="preserve">
     <value>Członkami jest {0} kont.</value>
@@ -16495,6 +16519,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} accounts found.|few" xml:space="preserve">
     <value>Znaleziono {0} konta.</value>
   </data>
+  <data name="{0} added to the group." xml:space="preserve">
+    <value>Dodano do grupy: {0}.</value>
+  </data>
   <data name="{0} added." xml:space="preserve">
     <value>Dodano: {0}.</value>
   </data>
@@ -16507,14 +16534,14 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} addresses" xml:space="preserve">
     <value>{0} adresów</value>
   </data>
-  <data name="{0} addresses|few" xml:space="preserve">
-    <value>{0} adresy</value>
-  </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>Adresów na liście: {0}, pokazano {1} najnowszych. Wyszukaj, aby zawęzić.</value>
   </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them.|few" xml:space="preserve">
     <value>Adresów na liście: {0}, pokazano {1} najnowszych. Wyszukaj, aby zawęzić.</value>
+  </data>
+  <data name="{0} addresses|few" xml:space="preserve">
+    <value>{0} adresy</value>
   </data>
   <data name="{0} aliases" xml:space="preserve">
     <value>Aliasy: {0}</value>
@@ -16663,14 +16690,14 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} events" xml:space="preserve">
     <value>{0} zdarzeń</value>
   </data>
-  <data name="{0} events|few" xml:space="preserve">
-    <value>{0} zdarzenia</value>
-  </data>
   <data name="{0} events past the retention window were removed." xml:space="preserve">
     <value>Usunięto {0} zdarzeń, które wykroczyły poza okno przechowywania.</value>
   </data>
   <data name="{0} events past the retention window were removed.|few" xml:space="preserve">
     <value>Usunięto {0} zdarzenia, które wykroczyły poza okno przechowywania.</value>
+  </data>
+  <data name="{0} events|few" xml:space="preserve">
+    <value>{0} zdarzenia</value>
   </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>Na {0} zewnętrznym koncie pobierania POP3 antywirus jest wyłączony, więc poczta pobierana przez to konto jest dostarczana bez skanowania, niezależnie od tego, co ustawiono tutaj. Przełącznik jest na koncie pobierania, a nie na tej stronie.</value>
@@ -16843,9 +16870,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} wiadomości</value>
   </data>
-  <data name="{0} messages|few" xml:space="preserve">
-    <value>{0} wiadomości</value>
-  </data>
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
     <value>Nie można ująć na liście {0} wiadomości; pozostaną tam, gdzie są. Pierwszy powód: {1}</value>
   </data>
@@ -16863,6 +16887,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} messages reference a file that is missing on disk.|few" xml:space="preserve">
     <value>{0} wiadomości odwołują się do pliku, którego brakuje na dysku.</value>
+  </data>
+  <data name="{0} messages|few" xml:space="preserve">
+    <value>{0} wiadomości</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} min</value>

@@ -2671,6 +2671,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   editor takes such a verb of a row from any page built on it (`CollectionEditorView.AddRowVerb`,
   `GridKeys.WireRename`). `GroupsPageVerbsTests` holds the verb, its place and the keys.
 
+- **Fixed: a group's Add account… was a drop-down of every account on the server, the members among them, that could
+  not be typed in.** With hundreds of mailboxes there was no way to find one but to scroll, an account picked that was
+  a member already was refused only after the pick, and accounts went in one at a time. Add account… now opens a list
+  under a search box of the accounts that are not members yet, filtered as the search is typed in; several can be
+  chosen with Ctrl and Shift, and Enter - in the search box, the one account the search leaves - or Add puts them in
+  the group, which says what it added ("dave@example.com added to the group.", "3 accounts added to the group.") and
+  selects the first of them in the member list. An account another session made a member meanwhile is not given a
+  second row; with every account a member already, the dialog says so in place of the list. `GroupMemberCandidatesTests`
+  holds the list, the words and the picker.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

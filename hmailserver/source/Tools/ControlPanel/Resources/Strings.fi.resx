@@ -786,9 +786,6 @@
   <data name="AWStats-compatible log" xml:space="preserve">
     <value>AWStats-yhteensopiva loki</value>
   </data>
-  <data name="A_ccount to add" xml:space="preserve">
-    <value>Lisättävä _tili</value>
-  </data>
   <data name="A_ction" xml:space="preserve">
     <value>T_oiminto</value>
   </data>
@@ -908,6 +905,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   </data>
   <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted. An alias or a distribution list of this domain that reaches outside is yours, and a restricted account may write to it." xml:space="preserve">
     <value>Tämän verkkotunnuksen tilit saavat vaihtaa postia vain tässä nimettyjen verkkotunnusten kanssa: ulkopuolinen lähettäjä, joka ei ole nimetyssä verkkotunnuksessa, hylätään RCPT TO -vaiheessa, ja täkäläinen tili saa lähettää vain nimettyihin verkkotunnuksiin, omaan verkkotunnukseensa ja postmasterille. Muut tämän palvelimen verkkotunnukset lasketaan ulkopuolisiksi, ellei niitä ole nimetty. Palautusilmoitukset pääsevät aina läpi. Jokainen tili noudattaa tätä, ellei sen oma ikkuna sano rajoitettu tai vapautettu; tyhjä tarkoittaa, ettei verkkotunnusta ole rajoitettu. Tämän verkkotunnuksen alias tai jakelulista, joka ulottuu ulos, on sinun, ja rajoitettu tili saa kirjoittaa siihen.</value>
+  </data>
+  <data name="Accounts that are not members" xml:space="preserve">
+    <value>Tilit, jotka eivät ole jäseniä</value>
   </data>
   <data name="Accounts: {0}." xml:space="preserve">
     <value>Tilejä: {0}.</value>
@@ -1038,8 +1038,8 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Add ac_tion…" xml:space="preserve">
     <value>Lisää _toiminto…</value>
   </data>
-  <data name="Add account to group" xml:space="preserve">
-    <value>Lisää tili ryhmään</value>
+  <data name="Add accounts to {0}" xml:space="preserve">
+    <value>Lisää tilejä ryhmään {0}</value>
   </data>
   <data name="Add action" xml:space="preserve">
     <value>Lisää toiminto</value>
@@ -3375,6 +3375,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Ctrl+S" xml:space="preserve">
     <value>Ctrl+S</value>
   </data>
+  <data name="Ctrl+click or Shift+click chooses several accounts; Enter adds the accounts chosen." xml:space="preserve">
+    <value>Ctrl+napsautus tai Vaihto+napsautus valitsee useita tilejä; Enter lisää valitut tilit.</value>
+  </data>
   <data name="Current key" xml:space="preserve">
     <value>Nykyinen avain</value>
   </data>
@@ -4668,6 +4671,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>Jokainen LDAP-kirjautuminen hylätään: suojaamaton LDAP yksinkertaisella sidonnalla lähettäisi salasanat selväkielisinä, ja AllowUnprotectedPassword on pois päältä.</value>
+  </data>
+  <data name="Every account on this server is a member of this group already." xml:space="preserve">
+    <value>Kaikki tämän palvelimen tilit ovat jo tämän ryhmän jäseniä.</value>
   </data>
   <data name="Every active account and enabled list of a domain, shown to the people of that domain: in the webmail, in address completion, and as a read-only CardDAV address book. It never crosses a domain." xml:space="preserve">
     <value>Verkkotunnuksen jokainen aktiivinen tili ja käytössä oleva lista näytetään verkkotunnuksen väelle: verkkopostissa, osoitteiden täydennyksessä ja vain luku -tilassa olevana CardDAV-osoitekirjana. Se ei koskaan ylitä verkkotunnuksen rajaa.</value>
@@ -7089,6 +7095,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="No account has been added in any domain." xml:space="preserve">
     <value>Yhteenkään verkkotunnukseen ei ole lisätty tiliä.</value>
+  </data>
+  <data name="No account that is not a member has &quot;{0}&quot; in its address." xml:space="preserve">
+    <value>Minkään tilin, joka ei ole jäsen, osoitteessa ei ole merkkijonoa "{0}".</value>
   </data>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>Tässä verkkotunnuksessa ei ole vielä tilejä.</value>
@@ -11833,6 +11842,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Tili lakkaa lähettämästä ennen kuin se lakkaa vastaanottamasta: omistaja näkee hylkäyksen omassa ohjelmassaan syineen, kun taas posti hänelle saapuu yhä rajaan ja sen ylittävään joustovaraan asti. Jokainen toimialue voi asettaa omansa. Voimassa heti.</value>
   </data>
+  <data name="The accounts chosen are members of this group already." xml:space="preserve">
+    <value>Valitut tilit ovat jo tämän ryhmän jäseniä.</value>
+  </data>
   <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
     <value>Osoite estetään samoin kuin sarja epäonnistuneita kirjautumisia estää, vanhenevalla IP-alueella, mutta ei koskaan osoitetta, joka on kohdassa 'Älä koskaan estä automaattisesti näitä osoitteita' sivulla Automaattinen esto, eikä saapuvaa välittäjää. Oletuksena pois, eikä se tee mitään, kun yllä oleva hylkäys on pois päältä.</value>
   </data>
@@ -14699,6 +14711,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="_Field" xml:space="preserve">
     <value>_Kenttä</value>
   </data>
+  <data name="_Find an account" xml:space="preserve">
+    <value>_Etsi tili</value>
+  </data>
   <data name="_First name" xml:space="preserve">
     <value>_Etunimi</value>
   </data>
@@ -16266,17 +16281,26 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} Until {1}." xml:space="preserve">
     <value>{0} {1} asti.</value>
   </data>
+  <data name="{0} account added to the group." xml:space="preserve">
+    <value>{0} tili lisätty ryhmään.</value>
+  </data>
   <data name="{0} account found." xml:space="preserve">
     <value>{0} tili löytyi.</value>
   </data>
   <data name="{0} account is a member." xml:space="preserve">
     <value>{0} tili on jäsenenä.</value>
   </data>
+  <data name="{0} accounts added to the group." xml:space="preserve">
+    <value>{0} tiliä lisätty ryhmään.</value>
+  </data>
   <data name="{0} accounts are members." xml:space="preserve">
     <value>{0} tiliä on jäseninä.</value>
   </data>
   <data name="{0} accounts found." xml:space="preserve">
     <value>{0} tiliä löytyi.</value>
+  </data>
+  <data name="{0} added to the group." xml:space="preserve">
+    <value>{0} lisätty ryhmään.</value>
   </data>
   <data name="{0} added." xml:space="preserve">
     <value>{0} lisätty.</value>

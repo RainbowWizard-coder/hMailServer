@@ -786,9 +786,6 @@
   <data name="AWStats-compatible log" xml:space="preserve">
     <value>AWStats-compatible log</value>
   </data>
-  <data name="A_ccount to add" xml:space="preserve">
-    <value>A_ccount to add</value>
-  </data>
   <data name="A_ction" xml:space="preserve">
     <value>A_ction</value>
   </data>
@@ -908,6 +905,9 @@ The Control Panel can only read message files when it runs on the same machine a
   </data>
   <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted. An alias or a distribution list of this domain that reaches outside is yours, and a restricted account may write to it." xml:space="preserve">
     <value>Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted. An alias or a distribution list of this domain that reaches outside is yours, and a restricted account may write to it.</value>
+  </data>
+  <data name="Accounts that are not members" xml:space="preserve">
+    <value>Accounts that are not members</value>
   </data>
   <data name="Accounts: {0}." xml:space="preserve">
     <value>Accounts: {0}.</value>
@@ -1038,8 +1038,8 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Add ac_tion…" xml:space="preserve">
     <value>Add ac_tion…</value>
   </data>
-  <data name="Add account to group" xml:space="preserve">
-    <value>Add account to group</value>
+  <data name="Add accounts to {0}" xml:space="preserve">
+    <value>Add accounts to {0}</value>
   </data>
   <data name="Add action" xml:space="preserve">
     <value>Add action</value>
@@ -3375,6 +3375,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Ctrl+S" xml:space="preserve">
     <value>Ctrl+S</value>
   </data>
+  <data name="Ctrl+click or Shift+click chooses several accounts; Enter adds the accounts chosen." xml:space="preserve">
+    <value>Ctrl+click or Shift+click chooses several accounts; Enter adds the accounts chosen.</value>
+  </data>
   <data name="Current key" xml:space="preserve">
     <value>Current key</value>
   </data>
@@ -4668,6 +4671,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off.</value>
+  </data>
+  <data name="Every account on this server is a member of this group already." xml:space="preserve">
+    <value>Every account on this server is a member of this group already.</value>
   </data>
   <data name="Every active account and enabled list of a domain, shown to the people of that domain: in the webmail, in address completion, and as a read-only CardDAV address book. It never crosses a domain." xml:space="preserve">
     <value>Every active account and enabled list of a domain, shown to the people of that domain: in the webmail, in address completion, and as a read-only CardDAV address book. It never crosses a domain.</value>
@@ -7089,6 +7095,9 @@ Nothing already there is removed.</value>
   </data>
   <data name="No account has been added in any domain." xml:space="preserve">
     <value>No account has been added in any domain.</value>
+  </data>
+  <data name="No account that is not a member has &quot;{0}&quot; in its address." xml:space="preserve">
+    <value>No account that is not a member has "{0}" in its address.</value>
   </data>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>No accounts in this domain yet.</value>
@@ -11833,6 +11842,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once.</value>
   </data>
+  <data name="The accounts chosen are members of this group already." xml:space="preserve">
+    <value>The accounts chosen are members of this group already.</value>
+  </data>
   <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
     <value>The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off.</value>
   </data>
@@ -14699,6 +14711,9 @@ It will keep trying as you use the application.</value>
   <data name="_Field" xml:space="preserve">
     <value>_Field</value>
   </data>
+  <data name="_Find an account" xml:space="preserve">
+    <value>_Find an account</value>
+  </data>
   <data name="_First name" xml:space="preserve">
     <value>_First name</value>
   </data>
@@ -16266,17 +16281,26 @@ It will keep trying as you use the application.</value>
   <data name="{0} Until {1}." xml:space="preserve">
     <value>{0} Until {1}.</value>
   </data>
+  <data name="{0} account added to the group." xml:space="preserve">
+    <value>{0} account added to the group.</value>
+  </data>
   <data name="{0} account found." xml:space="preserve">
     <value>{0} account found.</value>
   </data>
   <data name="{0} account is a member." xml:space="preserve">
     <value>{0} account is a member.</value>
   </data>
+  <data name="{0} accounts added to the group." xml:space="preserve">
+    <value>{0} accounts added to the group.</value>
+  </data>
   <data name="{0} accounts are members." xml:space="preserve">
     <value>{0} accounts are members.</value>
   </data>
   <data name="{0} accounts found." xml:space="preserve">
     <value>{0} accounts found.</value>
+  </data>
+  <data name="{0} added to the group." xml:space="preserve">
+    <value>{0} added to the group.</value>
   </data>
   <data name="{0} added." xml:space="preserve">
     <value>{0} added.</value>

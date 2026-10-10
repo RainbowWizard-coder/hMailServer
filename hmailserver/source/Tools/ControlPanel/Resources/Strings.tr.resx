@@ -786,9 +786,6 @@
   <data name="AWStats-compatible log" xml:space="preserve">
     <value>AWStats uyumlu günlük</value>
   </data>
-  <data name="A_ccount to add" xml:space="preserve">
-    <value>_Eklenecek hesap</value>
-  </data>
   <data name="A_ction" xml:space="preserve">
     <value>E_ylem</value>
   </data>
@@ -908,6 +905,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   </data>
   <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted. An alias or a distribution list of this domain that reaches outside is yours, and a restricted account may write to it." xml:space="preserve">
     <value>Bu etki alanındaki hesaplar yalnızca burada belirtilen etki alanlarıyla posta alışverişi yapabilir: belirtilen bir etki alanında olmayan dış gönderici RCPT TO aşamasında reddedilir ve buradaki bir hesap yalnızca belirtilen etki alanlarına, kendi etki alanına ve postmaster'a gönderebilir. Bu sunucunun barındırdığı diğer etki alanları, belirtilmedikçe dış sayılır. Geri dönen iletiler her zaman geçer. Her hesap, kendi iletişim kutusunda kısıtlı veya muaf denmedikçe buna uyar; boş bırakılırsa etki alanı kısıtlı değildir. Bu etki alanının dışarıya ulaşan bir takma adı veya dağıtım listesi sizindir ve kısıtlı bir hesap ona yazabilir.</value>
+  </data>
+  <data name="Accounts that are not members" xml:space="preserve">
+    <value>Üye olmayan hesaplar</value>
   </data>
   <data name="Accounts: {0}." xml:space="preserve">
     <value>Hesaplar: {0}.</value>
@@ -1038,8 +1038,8 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Add ac_tion…" xml:space="preserve">
     <value>Eyle_m ekle…</value>
   </data>
-  <data name="Add account to group" xml:space="preserve">
-    <value>Hesabı gruba ekle</value>
+  <data name="Add accounts to {0}" xml:space="preserve">
+    <value>{0} grubuna hesap ekle</value>
   </data>
   <data name="Add action" xml:space="preserve">
     <value>Eylem ekle</value>
@@ -3375,6 +3375,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Ctrl+S" xml:space="preserve">
     <value>Ctrl+S</value>
   </data>
+  <data name="Ctrl+click or Shift+click chooses several accounts; Enter adds the accounts chosen." xml:space="preserve">
+    <value>Ctrl+tıklama veya Shift+tıklama birden çok hesap seçer; Enter seçilen hesapları ekler.</value>
+  </data>
   <data name="Current key" xml:space="preserve">
     <value>Geçerli anahtar</value>
   </data>
@@ -4668,6 +4671,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>Her LDAP oturum açması reddedilecek: basit bind ile korumasız LDAP parolaları düz metin olarak gönderirdi ve AllowUnprotectedPassword kapalı.</value>
+  </data>
+  <data name="Every account on this server is a member of this group already." xml:space="preserve">
+    <value>Bu sunucudaki tüm hesaplar zaten bu grubun üyesi.</value>
   </data>
   <data name="Every active account and enabled list of a domain, shown to the people of that domain: in the webmail, in address completion, and as a read-only CardDAV address book. It never crosses a domain." xml:space="preserve">
     <value>Her etkin hesap ve bir etki alanının her etkin listesi, o etki alanının kişilerine gösterilir: web postasında, adres tamamlamada ve salt okunur bir CardDAV adres defteri olarak. Etki alanının dışına asla çıkmaz.</value>
@@ -7089,6 +7095,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="No account has been added in any domain." xml:space="preserve">
     <value>Hiçbir alan adına hesap eklenmedi.</value>
+  </data>
+  <data name="No account that is not a member has &quot;{0}&quot; in its address." xml:space="preserve">
+    <value>Adresinde "{0}" geçen, üye olmayan hesap yok.</value>
   </data>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>Bu etki alanında henüz hesap yok.</value>
@@ -11833,6 +11842,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Hesap almayı bırakmadan önce göndermeyi bırakır: sahibi reddi kendi istemcisinde nedeniyle görür, ona gelen posta ise sınıra ve onu aşan paya kadar gelmeye devam eder. Her alan kendi değerini belirleyebilir. Hemen geçerlidir.</value>
   </data>
+  <data name="The accounts chosen are members of this group already." xml:space="preserve">
+    <value>Seçilen hesaplar zaten bu grubun üyesi.</value>
+  </data>
   <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
     <value>Adres, bir dizi başarısız oturum açmanın yasakladığı gibi süresi dolan bir IP aralığıyla yasaklanır; ancak Otomatik yasaklama sayfasındaki 'Bu adresleri hiçbir zaman otomatik yasaklama' alanında bulunan bir adres veya gelen bir aktarıcı asla yasaklanmaz. Varsayılan olarak kapalıdır ve yukarıdaki ret kapalıyken hiçbir şey yapmaz.</value>
   </data>
@@ -14699,6 +14711,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="_Field" xml:space="preserve">
     <value>_Alan</value>
   </data>
+  <data name="_Find an account" xml:space="preserve">
+    <value>_Bir hesap bul</value>
+  </data>
   <data name="_First name" xml:space="preserve">
     <value>A_d</value>
   </data>
@@ -16266,17 +16281,26 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} Until {1}." xml:space="preserve">
     <value>{0} {1} tarihine kadar.</value>
   </data>
+  <data name="{0} account added to the group." xml:space="preserve">
+    <value>Gruba {0} hesap eklendi.</value>
+  </data>
   <data name="{0} account found." xml:space="preserve">
     <value>{0} hesap bulundu.</value>
   </data>
   <data name="{0} account is a member." xml:space="preserve">
     <value>{0} hesap üyedir.</value>
   </data>
+  <data name="{0} accounts added to the group." xml:space="preserve">
+    <value>Gruba {0} hesap eklendi.</value>
+  </data>
   <data name="{0} accounts are members." xml:space="preserve">
     <value>{0} hesap üyedir.</value>
   </data>
   <data name="{0} accounts found." xml:space="preserve">
     <value>{0} hesap bulundu.</value>
+  </data>
+  <data name="{0} added to the group." xml:space="preserve">
+    <value>{0} gruba eklendi.</value>
   </data>
   <data name="{0} added." xml:space="preserve">
     <value>{0} eklendi.</value>

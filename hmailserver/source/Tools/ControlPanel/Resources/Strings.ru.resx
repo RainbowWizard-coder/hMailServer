@@ -792,9 +792,6 @@
   <data name="AWStats-compatible log" xml:space="preserve">
     <value>Журнал, совместимый с AWStats</value>
   </data>
-  <data name="A_ccount to add" xml:space="preserve">
-    <value>_Учётная запись для добавления</value>
-  </data>
   <data name="A_ction" xml:space="preserve">
     <value>Де_йствие</value>
   </data>
@@ -914,6 +911,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted. An alias or a distribution list of this domain that reaches outside is yours, and a restricted account may write to it." xml:space="preserve">
     <value>Учётные записи этого домена могут переписываться только с перечисленными здесь доменами: внешний отправитель не из указанного домена отклоняется на RCPT TO, а учётная запись отсюда может писать только в указанные домены, в свой домен и постмастеру. Другие домены, размещённые на этом сервере, считаются внешними, если не указаны. Отчёты о недоставке проходят всегда. Каждая учётная запись следует этому, если в её собственном диалоге не выбрано ограничено или исключение; пусто означает, что домен не ограничен. Псевдоним или список рассылки этого домена, ведущий наружу, - ваш, и ограниченная учётная запись может писать на него.</value>
+  </data>
+  <data name="Accounts that are not members" xml:space="preserve">
+    <value>Учётные записи, не входящие в группу</value>
   </data>
   <data name="Accounts: {0}." xml:space="preserve">
     <value>Учётных записей: {0}.</value>
@@ -1044,8 +1044,8 @@ Control Panel может читать файлы сообщений только
   <data name="Add ac_tion…" xml:space="preserve">
     <value>Доб_авить действие…</value>
   </data>
-  <data name="Add account to group" xml:space="preserve">
-    <value>Добавить учётную запись в группу</value>
+  <data name="Add accounts to {0}" xml:space="preserve">
+    <value>Добавить учётные записи в группу {0}</value>
   </data>
   <data name="Add action" xml:space="preserve">
     <value>Добавить действие</value>
@@ -3399,6 +3399,9 @@ Control Panel может читать файлы сообщений только
   <data name="Ctrl+S" xml:space="preserve">
     <value>Ctrl+S</value>
   </data>
+  <data name="Ctrl+click or Shift+click chooses several accounts; Enter adds the accounts chosen." xml:space="preserve">
+    <value>Ctrl+щелчок или Shift+щелчок выбирает несколько учётных записей; Enter добавляет выбранные.</value>
+  </data>
   <data name="Current key" xml:space="preserve">
     <value>Текущий ключ</value>
   </data>
@@ -4717,6 +4720,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>Каждый вход через LDAP будет отклонён: незащищённый LDAP с простой привязкой отправлял бы пароли открытым текстом, а AllowUnprotectedPassword выключен.</value>
+  </data>
+  <data name="Every account on this server is a member of this group already." xml:space="preserve">
+    <value>Все учётные записи этого сервера уже входят в эту группу.</value>
   </data>
   <data name="Every active account and enabled list of a domain, shown to the people of that domain: in the webmail, in address completion, and as a read-only CardDAV address book. It never crosses a domain." xml:space="preserve">
     <value>Каждая активная учётная запись и каждый включённый список домена, показываемые людям этого домена: в веб-почте, при автодополнении адресов и как адресная книга CardDAV только для чтения. Никогда не выходит за пределы домена.</value>
@@ -7162,6 +7168,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="No account has been added in any domain." xml:space="preserve">
     <value>Ни в одном домене не добавлена учётная запись.</value>
+  </data>
+  <data name="No account that is not a member has &quot;{0}&quot; in its address." xml:space="preserve">
+    <value>Ни в одном адресе учётных записей, не входящих в группу, нет «{0}».</value>
   </data>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>В этом домене пока нет учётных записей.</value>
@@ -11963,6 +11972,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Учётная запись перестаёт отправлять раньше, чем получать: владелец видит отказ в своём клиенте с причиной, а почта ему по-прежнему приходит до лимита и запаса сверх него. Каждый домен может задать свой. Действует сразу.</value>
   </data>
+  <data name="The accounts chosen are members of this group already." xml:space="preserve">
+    <value>Выбранные учётные записи уже входят в эту группу.</value>
+  </data>
   <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
     <value>Адрес блокируется так же, как после серии неудачных входов, истекающим диапазоном IP, но никогда не адрес из «Никогда не банить автоматически эти адреса» на странице «Автоблокировка» и не входящий ретранслятор. По умолчанию выключено и ничего не делает, пока отказ выше выключен.</value>
   </data>
@@ -14871,6 +14883,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Field" xml:space="preserve">
     <value>_Поле</value>
   </data>
+  <data name="_Find an account" xml:space="preserve">
+    <value>_Найти учётную запись</value>
+  </data>
   <data name="_First name" xml:space="preserve">
     <value>_Имя</value>
   </data>
@@ -16477,11 +16492,20 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} Until {1}." xml:space="preserve">
     <value>{0} До {1}.</value>
   </data>
+  <data name="{0} account added to the group." xml:space="preserve">
+    <value>В группу добавлена {0} учётная запись.</value>
+  </data>
   <data name="{0} account found." xml:space="preserve">
     <value>Найдено учётных записей: {0}.</value>
   </data>
   <data name="{0} account is a member." xml:space="preserve">
     <value>В группу входит учётных записей: {0}.</value>
+  </data>
+  <data name="{0} accounts added to the group." xml:space="preserve">
+    <value>В группу добавлено {0} учётных записей.</value>
+  </data>
+  <data name="{0} accounts added to the group.|few" xml:space="preserve">
+    <value>В группу добавлены {0} учётные записи.</value>
   </data>
   <data name="{0} accounts are members." xml:space="preserve">
     <value>В группу входит учётных записей: {0}.</value>
@@ -16495,6 +16519,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} accounts found.|few" xml:space="preserve">
     <value>Найдено учётных записей: {0}.</value>
   </data>
+  <data name="{0} added to the group." xml:space="preserve">
+    <value>Добавлено в группу: {0}.</value>
+  </data>
   <data name="{0} added." xml:space="preserve">
     <value>Добавлено: {0}.</value>
   </data>
@@ -16507,14 +16534,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} addresses" xml:space="preserve">
     <value>{0} адресов</value>
   </data>
-  <data name="{0} addresses|few" xml:space="preserve">
-    <value>{0} адреса</value>
-  </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>Адресов в списке: {0}, показаны {1} последних. Воспользуйтесь поиском, чтобы сузить список.</value>
   </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them.|few" xml:space="preserve">
     <value>Адресов в списке: {0}, показаны {1} последних. Воспользуйтесь поиском, чтобы сузить список.</value>
+  </data>
+  <data name="{0} addresses|few" xml:space="preserve">
+    <value>{0} адреса</value>
   </data>
   <data name="{0} aliases" xml:space="preserve">
     <value>Псевдонимов: {0}</value>
@@ -16663,14 +16690,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} events" xml:space="preserve">
     <value>{0} событий</value>
   </data>
-  <data name="{0} events|few" xml:space="preserve">
-    <value>{0} события</value>
-  </data>
   <data name="{0} events past the retention window were removed." xml:space="preserve">
     <value>Удалено событий за пределами срока хранения: {0}.</value>
   </data>
   <data name="{0} events past the retention window were removed.|few" xml:space="preserve">
     <value>Удалено событий за пределами срока хранения: {0}.</value>
+  </data>
+  <data name="{0} events|few" xml:space="preserve">
+    <value>{0} события</value>
   </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>У {0} внешней учётной записи сбора POP3 антивирус выключен, поэтому собираемая ею почта доставляется без проверки, что бы здесь ни было задано. Переключатель находится на учётной записи сбора почты, а не на этой странице.</value>
@@ -16843,9 +16870,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} messages" xml:space="preserve">
     <value>{0} сообщений</value>
   </data>
-  <data name="{0} messages|few" xml:space="preserve">
-    <value>{0} сообщения</value>
-  </data>
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
     <value>Для {0} сообщений нельзя создать запись; они останутся там, где есть. Первая причина: {1}</value>
   </data>
@@ -16863,6 +16887,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} messages reference a file that is missing on disk.|few" xml:space="preserve">
     <value>Сообщений, ссылающихся на отсутствующий на диске файл: {0}.</value>
+  </data>
+  <data name="{0} messages|few" xml:space="preserve">
+    <value>{0} сообщения</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} мин</value>

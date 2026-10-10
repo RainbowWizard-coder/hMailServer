@@ -792,9 +792,6 @@
   <data name="AWStats-compatible log" xml:space="preserve">
     <value>Log kompatibilní s AWStats</value>
   </data>
-  <data name="A_ccount to add" xml:space="preserve">
-    <value>_Účet k přidání</value>
-  </data>
   <data name="A_ction" xml:space="preserve">
     <value>_Akce</value>
   </data>
@@ -914,6 +911,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   </data>
   <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted. An alias or a distribution list of this domain that reaches outside is yours, and a restricted account may write to it." xml:space="preserve">
     <value>Účty této domény si mohou vyměňovat poštu se zde vyjmenovanými doménami a s nikým jiným: vnější odesílatel mimo vyjmenovanou doménu je odmítnut při RCPT TO a účet zde smí posílat jen do vyjmenovaných domén, do vlastní domény a postmasterovi. Ostatní domény hostované tímto serverem se počítají jako vnější, pokud nejsou vyjmenovány. Nedoručenky vždy projdou. Každý účet se tím řídí, pokud jeho vlastní dialog neříká omezeno nebo výjimka; prázdné znamená, že doména není omezena. Alias nebo distribuční seznam této domény, který vede ven, je váš a omezený účet na něj smí psát.</value>
+  </data>
+  <data name="Accounts that are not members" xml:space="preserve">
+    <value>Účty, které nejsou členy</value>
   </data>
   <data name="Accounts: {0}." xml:space="preserve">
     <value>Účty: {0}.</value>
@@ -1044,8 +1044,8 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Add ac_tion…" xml:space="preserve">
     <value>Přidat ak_ci…</value>
   </data>
-  <data name="Add account to group" xml:space="preserve">
-    <value>Přidat účet do skupiny</value>
+  <data name="Add accounts to {0}" xml:space="preserve">
+    <value>Přidat účty do skupiny {0}</value>
   </data>
   <data name="Add action" xml:space="preserve">
     <value>Přidat akci</value>
@@ -3399,6 +3399,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Ctrl+S" xml:space="preserve">
     <value>Ctrl+S</value>
   </data>
+  <data name="Ctrl+click or Shift+click chooses several accounts; Enter adds the accounts chosen." xml:space="preserve">
+    <value>Ctrl+kliknutím nebo Shift+kliknutím vyberete více účtů; klávesa Enter vybrané účty přidá.</value>
+  </data>
   <data name="Current key" xml:space="preserve">
     <value>Aktuální klíč</value>
   </data>
@@ -4717,6 +4720,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
     <value>Každé přihlášení přes LDAP bude odmítnuto: nechráněný LDAP s jednoduchým bindem by posílal hesla v otevřeném textu a AllowUnprotectedPassword je vypnuté.</value>
+  </data>
+  <data name="Every account on this server is a member of this group already." xml:space="preserve">
+    <value>Všechny účty na tomto serveru už jsou členy této skupiny.</value>
   </data>
   <data name="Every active account and enabled list of a domain, shown to the people of that domain: in the webmail, in address completion, and as a read-only CardDAV address book. It never crosses a domain." xml:space="preserve">
     <value>Každý aktivní účet a každý povolený seznam domény, zobrazené lidem té domény: ve webové poště, při doplňování adres a jako adresář CardDAV jen pro čtení. Nikdy nepřekročí hranici domény.</value>
@@ -7162,6 +7168,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="No account has been added in any domain." xml:space="preserve">
     <value>V žádné doméně nebyl přidán účet.</value>
+  </data>
+  <data name="No account that is not a member has &quot;{0}&quot; in its address." xml:space="preserve">
+    <value>Žádný účet, který není členem, nemá v adrese „{0}“.</value>
   </data>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>V této doméně zatím nejsou žádné účty.</value>
@@ -11963,6 +11972,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Účet přestane odesílat dřív, než přestane přijímat: majitel vidí odmítnutí ve vlastním programu i s důvodem, zatímco pošta pro něj dál přichází až do limitu a tolerance za ním. Každá doména může nastavit vlastní. Platí ihned.</value>
   </data>
+  <data name="The accounts chosen are members of this group already." xml:space="preserve">
+    <value>Vybrané účty už jsou členy této skupiny.</value>
+  </data>
   <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
     <value>Adresa se zakáže stejně jako po řadě neúspěšných přihlášení, rozsahem IP s vypršením, ale nikdy adresa v „Tyto adresy nikdy automaticky nezakazovat“ na stránce Auto-ban ani příchozí relay. Ve výchozím stavu vypnuto a nedělá nic, dokud je odmítání výše vypnuto.</value>
   </data>
@@ -14871,6 +14883,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Field" xml:space="preserve">
     <value>_Pole</value>
   </data>
+  <data name="_Find an account" xml:space="preserve">
+    <value>_Najít účet</value>
+  </data>
   <data name="_First name" xml:space="preserve">
     <value>_Jméno</value>
   </data>
@@ -16477,11 +16492,20 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} Until {1}." xml:space="preserve">
     <value>{0} Do {1}.</value>
   </data>
+  <data name="{0} account added to the group." xml:space="preserve">
+    <value>Do skupiny byl přidán {0} účet.</value>
+  </data>
   <data name="{0} account found." xml:space="preserve">
     <value>Nalezen {0} účet.</value>
   </data>
   <data name="{0} account is a member." xml:space="preserve">
     <value>Členem je {0} účet.</value>
+  </data>
+  <data name="{0} accounts added to the group." xml:space="preserve">
+    <value>Do skupiny bylo přidáno {0} účtů.</value>
+  </data>
+  <data name="{0} accounts added to the group.|few" xml:space="preserve">
+    <value>Do skupiny byly přidány {0} účty.</value>
   </data>
   <data name="{0} accounts are members." xml:space="preserve">
     <value>Členy je {0} účtů.</value>
@@ -16495,6 +16519,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} accounts found.|few" xml:space="preserve">
     <value>Nalezeny {0} účty.</value>
   </data>
+  <data name="{0} added to the group." xml:space="preserve">
+    <value>Přidáno do skupiny: {0}.</value>
+  </data>
   <data name="{0} added." xml:space="preserve">
     <value>Přidáno: {0}.</value>
   </data>
@@ -16507,14 +16534,14 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} addresses" xml:space="preserve">
     <value>{0} adres</value>
   </data>
-  <data name="{0} addresses|few" xml:space="preserve">
-    <value>{0} adresy</value>
-  </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>Na seznamu je {0} adres, zobrazeno {1} nejnovějších. Vyhledáváním je zúžíte.</value>
   </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them.|few" xml:space="preserve">
     <value>Na seznamu jsou {0} adresy, zobrazeno {1} nejnovějších. Vyhledáváním je zúžíte.</value>
+  </data>
+  <data name="{0} addresses|few" xml:space="preserve">
+    <value>{0} adresy</value>
   </data>
   <data name="{0} aliases" xml:space="preserve">
     <value>Aliasy: {0}</value>
@@ -16663,14 +16690,14 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} events" xml:space="preserve">
     <value>{0} událostí</value>
   </data>
-  <data name="{0} events|few" xml:space="preserve">
-    <value>{0} události</value>
-  </data>
   <data name="{0} events past the retention window were removed." xml:space="preserve">
     <value>Odstraněno {0} událostí za oknem uchovávání.</value>
   </data>
   <data name="{0} events past the retention window were removed.|few" xml:space="preserve">
     <value>Odstraněny {0} události za oknem uchovávání.</value>
+  </data>
+  <data name="{0} events|few" xml:space="preserve">
+    <value>{0} události</value>
   </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>U {0} externího účtu pro stahování POP3 je antivirus vypnutý, takže pošta, kterou vyzvedává, se doručuje neskenovaná bez ohledu na to, co je nastaveno zde. Přepínač je na účtu pro stahování, ne na této stránce.</value>
@@ -16843,9 +16870,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} zpráv</value>
   </data>
-  <data name="{0} messages|few" xml:space="preserve">
-    <value>{0} zprávy</value>
-  </data>
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
     <value>Pro {0} zpráv nelze zapsat záznam; zůstanou tam, kde jsou. První důvod: {1}</value>
   </data>
@@ -16863,6 +16887,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} messages reference a file that is missing on disk.|few" xml:space="preserve">
     <value>{0} zprávy odkazují na soubor, který na disku chybí.</value>
+  </data>
+  <data name="{0} messages|few" xml:space="preserve">
+    <value>{0} zprávy</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} min</value>
