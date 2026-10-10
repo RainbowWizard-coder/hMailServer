@@ -426,9 +426,10 @@ backup fails, because a rollback restores binaries, not the schema, and the back
 is what would. The Control Panel's Updates page has *Check for updates*, *Download
 update* and *Install update* for doing any of it by hand, beside the update policy,
 and shows the last update's outcome; Server status, the Dashboard and About say
-when a release is waiting. Starting an install from it closes the Control Panel: the
-installer replaces its files, and a silent installer stops at the first file it
-cannot.
+when a release is waiting, when an update step failed, and how the last update
+ended until the Updates page has shown it. Starting an install from it closes the
+Control Panel: the installer replaces its files, and a silent installer stops at
+the first file it cannot.
 
 **On Linux** the same four parts run with the package in the installer's place.
 The check looks for the artefact this server was installed from - the `.deb`
