@@ -107,13 +107,49 @@ namespace hMailServer.ControlPanel.Views
             return;
 
          FrameworkElement row = RowOf_(editor);
-         row.BringIntoView();
+         ScrollTo_(row);
 
          IInputElement target = editor.Focusable && editor.IsEnabled ? editor : FirstFocusable_(editor);
          if (target != null)
             Keyboard.Focus(target);
 
          Ring_(row);
+      }
+
+      /// <summary>
+      /// The row a third of the way down its scroll viewer's viewport, with room for the
+      /// ring and the start of what follows it (Services/RevealOffset), where
+      /// row.BringIntoView() scrolled as little as it could: a row below the fold ended at
+      /// the viewport's edge, its ring's lower edge cut off and the explanation under it out
+      /// of sight. The viewport is the scroll viewer's content presenter, inside its
+      /// padding. A row in no scroll viewer is brought into view with that room.
+      /// </summary>
+      private static void ScrollTo_(FrameworkElement row)
+      {
+         row.UpdateLayout();
+
+         // The nearest viewer that scrolls up and down: one that scrolls only sideways
+         // round part of a row is not the page's.
+         ScrollContentPresenter viewport = null;
+         for (DependencyObject at = VisualTreeHelper.GetParent(row); at != null && viewport == null; at = VisualTreeHelper.GetParent(at))
+         {
+            if (at is ScrollContentPresenter presenter && presenter.ScrollOwner != null &&
+                presenter.ScrollOwner.VerticalScrollBarVisibility != ScrollBarVisibility.Disabled)
+               viewport = presenter;
+         }
+
+         ScrollViewer scroll = viewport?.ScrollOwner;
+         if (scroll == null)
+         {
+            row.BringIntoView(new Rect(-Services.RevealOffset.Above, -Services.RevealOffset.Above,
+               row.ActualWidth + 2 * Services.RevealOffset.Above, row.ActualHeight + Services.RevealOffset.Above + Services.RevealOffset.Below));
+            return;
+         }
+
+         double top = row.TranslatePoint(new Point(0, 0), viewport).Y;
+         double? offset = Services.RevealOffset.For(scroll.VerticalOffset, scroll.ViewportHeight, scroll.ScrollableHeight, top, row.ActualHeight);
+         if (offset != null)
+            scroll.ScrollToVerticalOffset(offset.Value);
       }
 
       private static FrameworkElement RowOf_(FrameworkElement editor)

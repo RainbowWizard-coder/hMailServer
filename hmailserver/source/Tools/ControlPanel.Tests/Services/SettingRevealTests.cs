@@ -132,7 +132,9 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("public partial class FeatureSettingsView : IRevealSetting", ReadControlPanelFile(Path.Join("Views", "FeatureSettingsView.Reveal.cs")), StringComparison.Ordinal);
 
          string reveal = ReadControlPanelFile(Path.Join("Views", "SettingReveal.cs"));
-         Assert.Contains("row.BringIntoView();", reveal, StringComparison.Ordinal);
+         Assert.Contains("ScrollTo_(row);", reveal, StringComparison.Ordinal);
+         Assert.Contains("Services.RevealOffset.For(scroll.VerticalOffset, scroll.ViewportHeight, scroll.ScrollableHeight, top, row.ActualHeight)", reveal, StringComparison.Ordinal);
+         Assert.DoesNotContain("row.BringIntoView();", reveal, StringComparison.Ordinal);
          Assert.Contains("Keyboard.Focus(target);", reveal, StringComparison.Ordinal);
          Assert.Contains("AdornerLayer.GetAdornerLayer(target)", reveal, StringComparison.Ordinal);
          Assert.Contains("SystemParameters.ClientAreaAnimation", reveal, StringComparison.Ordinal);
@@ -185,6 +187,35 @@ namespace hMailServer.ControlPanel.Tests.Services
          }
 
          Assert.Equal(4, SettingsSearchIndex.Entries.Count(e => e.Page == "autoban" && e.Key == "CountryPolicy"));
+      }
+
+      /// <summary>
+      /// A revealed row is put a third of the way down its viewport, with room above it
+      /// for the ring and below it for the ring and the start of what follows, where
+      /// BringIntoView scrolled as little as it could: a row below the fold ended at the
+      /// viewport's edge, its ring cut there and what follows out of sight. A row in view
+      /// with that room stays where it is; a tall row goes as high as it must, never
+      /// nearer the top than the ring needs; the offset stays within what can be scrolled.
+      /// </summary>
+      [Theory]
+      [InlineData(100, 600, 1000, 200, 60, null)]      // in view, with room: left
+      [InlineData(213, 616, 1078, 580, 108, 587.67)]   // the Updates page's Unattended window, ending at 688 of 616: a third down
+      [InlineData(100, 600, 1000, 500, 60, 400.0)]       // in view, but its ring and what follows not: a third down
+      [InlineData(400, 600, 1000, -50, 60, 150.0)]       // above the view: a third down
+      [InlineData(100, 600, 1000, -350, 60, 0.0)]        // above the view near the top: as far as it goes
+      [InlineData(100, 600, 1000, 5, 60, 0.0)]           // its ring cut at the top: a third down, as far up as the page goes
+      [InlineData(100, 600, 1000, 700, 500, 760.0)]      // tall: as high as the room below it needs
+      [InlineData(100, 600, 1000, 700, 900, 794.0)]      // taller than the viewport: just under the top, the ring's top in view
+      [InlineData(321, 90, 630, 120, 79, 435.0)]         // a short window's tab, 90 high, and a row of 79: centred, the ring whole
+      [InlineData(250, 600, 300, 580, 60, 300.0)]        // near the end: as far as it scrolls
+      [InlineData(0, 0, 0, 10, 10, null)]              // no viewport yet
+      public void ARevealedRowIsAThirdDownWithRoomForItsRing(double offset, double viewport, double scrollable, double top, double height, double? expected)
+      {
+         double? actual = RevealOffset.For(offset, viewport, scrollable, top, height);
+         if (expected == null)
+            Assert.Null(actual);
+         else
+            Assert.Equal(expected.Value, actual.Value, 2);
       }
 
       private static string Unescape_(string literal) => literal.Replace("\\\"", "\"").Replace("\\\\", "\\");

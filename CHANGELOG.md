@@ -2222,12 +2222,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   marked.** The settings index carried a setting's label, key and page and nothing of where on the page it was, so
   "MaxMind country database" opened Auto-ban on its Auto-ban tab, three tabs from the setting, and its row said only
   "Opens Sign-in & access > Auto-ban". The index now records each setting's tab and card
-  (`build/generate-settings-index.ps1`), the row says "Sign-in & access > Auto-ban > Countries" - the tab on a page
-  of tabs, the card on a page of one scroll - and the page it opens shows the setting: the settings pages choose its
-  tab, scroll its row into view, put the keyboard in its editor and draw a ring round the row in the focus colour,
-  once, fading unless Windows has animations turned off and in the system highlight under High Contrast. A row that
-  shares its key with others on its page is shown by its label: Auto-ban's four country rows, one for each kind of
-  connection, open at IMAP, POP3 or the web as chosen, not all at SMTP (review finding F274).
+  (`build/generate-settings-index.ps1`), the row says "Sign-in & access > Auto-ban > Countries" - the tab on a page of
+  tabs, the card on a page of one scroll - and the page it opens shows the setting: the settings pages choose its tab,
+  scroll its row a third of the way down the page, with room for the ring and the start of what follows it (a row
+  already in view with that room stays where it is), put the keyboard in its editor and draw a ring round the row in
+  the focus colour, once, fading unless Windows has animations turned off and in the system highlight under High
+  Contrast. A row that shares its key with others on its page is shown by its label: Auto-ban's four country rows, one
+  for each kind of connection, open at IMAP, POP3 or the web as chosen, not all at SMTP (review finding F274).
 
 - **New: the spam filtering overview says which list to use, and checks a sender against every list.** Five lists
   let a sender through and three stop one - the spam exemptions, the allowed and blocked domains, the blocked senders,
