@@ -77,6 +77,7 @@ import functools
 import json
 import re
 import shutil
+import stat
 import subprocess
 import tempfile
 
@@ -572,20 +573,6 @@ def self_test():
     expect(findings_of("[]", 0, clean) == [], "a whole scan's log with nothing found is a clean scan")
     expect(len(findings_of('[{"RuleID": "x"}]', 1, partial)) == 1 and len(findings_of('[{"RuleID": "x"}]', 0)) == 1,
            "a finding is a finding whatever gitleaks exited with and logged")
-    if git(ROOT, "rev-parse", "--verify", "-q", "HEAD", check=False).returncode == 0:
-        # A scanner that would say the range is clean, as gitleaks does of a range git log
-        # refuses: the range must be refused before it is asked.
-        held_run = globals()["run_gitleaks"]
-        asked = []
-        globals()["run_gitleaks"] = lambda *a: asked.append(a) or (0, "[]", "")
-        try:
-            said = []
-            code = scan(ROOT, ("range", "1111111111111111111111111111111111111111..HEAD"), "gitleaks", say=said.append)
-            failures.append("a range whose base is not here is refused before any scanner runs: exit %s, %s" % (code, said))
-        except ScanError:
-            expect(not asked, "the scanner is not asked about a range git cannot list")
-        finally:
-            globals()["run_gitleaks"] = held_run
     leak = {"RuleID": "gitlab_personal_access_token", "Description": "GitLab personal access token", "StartLine": 2,
             "File": "", "Commit": "", "Fingerprint": "stdin:gitlab_personal_access_token:2", "Secret": "REDACTED"}
     shown = describe(leak, places)
@@ -627,26 +614,28 @@ def self_test():
 
     rules_self_test(expect)
 
-    # The scan hands the container this script's own rules script, whatever the scanned
-    # range's tip has: here a range whose tip's copy is not this one's.
-    if git(ROOT, "rev-parse", "--verify", "-q", "HEAD~1", check=False).returncode == 0:
-        held_run = globals()["run_docker"]
-        held_text_of = globals()["text_of"]
-        handed = []
-        globals()["run_docker"] = lambda *a: handed.append(a) or (0, "[]", "")
-        globals()["text_of"] = lambda repo, rev, path: ("#!/bin/sh\necho the range's own\n" if rev is not None and
-                                                         path == RULES_SCRIPT else held_text_of(repo, rev, path))
+    # The range scans, over a repository of the self-test's own (throwaway_range), so
+    # that each runs whatever the depth of this tree's checkout.
+    work = tempfile.mkdtemp(prefix="scan-secrets-range-")
+    try:
         try:
-            said = []
-            code = scan(ROOT, ("range", "HEAD~1..HEAD"), "docker", say=said.append)
-            own = held_text_of(ROOT, None, RULES_SCRIPT).replace("\r\n", "\n")
-            expect(code == 0 and handed and handed[0][-1] == own and own.strip() and "the range's own" not in handed[0][-1],
-                   "the container is given this script's own %s, not the range's: %s %s" % (RULES_SCRIPT, code, said))
+            repo = throwaway_range(work)
         except ScanError as e:
-            failures.append("a range scan with Docker stood in for: %s" % e)
-        finally:
-            globals()["run_docker"] = held_run
-            globals()["text_of"] = held_text_of
+            repo = None
+            failures.append("a repository of two commits is made for the range scans: %s" % e)
+        if repo:
+            range_self_test(repo, expect)
+    finally:
+        # git writes its objects read-only, which Windows does not delete as they are.
+        for base, _, names in os.walk(work):
+            for name in names:
+                try:
+                    os.chmod(os.path.join(base, name), stat.S_IREAD | stat.S_IWRITE)
+                except OSError:
+                    pass
+        shutil.rmtree(work, ignore_errors=True)
+    expect(not os.path.exists(work), "the range scans' repository is removed")
+
     # And over ssh: run_ssh, which binds the rules to remote_script where it calls it on
     # the line the semgrep baseline holds, gives the host the script.
     held_subprocess_run = subprocess.run
@@ -669,11 +658,6 @@ def self_test():
         expect(choose("auto") is None, "no Docker, no ssh host and no gitleaks is no scanner")
         os.environ["HM_SECRET_SCAN_SSH"] = "u@h:/g/.git"
         expect(choose("auto") == "ssh", "the ssh host when there is no Docker here")
-        out = []
-        os.environ.pop("HM_SECRET_SCAN_SSH", None)
-        if git(ROOT, "rev-parse", "--verify", "-q", "HEAD~1", check=False).returncode == 0:
-            code = scan(ROOT, ("range", "HEAD~1..HEAD"), "auto", say=out.append)
-            expect(code == 3 and any("no scanner" in l for l in out), "with no scanner the scan refuses, exit 3: %s %s" % (code, out))
     finally:
         shutil.which = held_which
         os.environ.clear()
@@ -683,6 +667,95 @@ def self_test():
         print("FAILED: " + failure)
     print("self-test: %d failure(s)" % len(failures))
     return 1 if failures else 0
+
+
+# throwaway_range's two commits: the secret_detection image each names, by digest, the
+# rules script each carries, and the .gitleaksignore line the tip adds.
+RANGE_IMAGES = ("registry.example/base/secrets:1.0.0-%s@sha256:%s" % ("3" * 12, "3" * 64),
+                "registry.example/tip/secrets:2.0.0-%s@sha256:%s" % ("4" * 12, "4" * 64))
+RANGE_RULES = ("#!/bin/sh\necho the base's rules\n", "#!/bin/sh\necho the range's own rules\n")
+RANGE_IGNORED = "%s:build/x.txt:gitlab_personal_access_token:1" % ("5" * 40)
+
+
+def throwaway_range(work):
+    """A repository of two commits, made in work for the self-test, whose HEAD~1..HEAD is a
+    range that changes what a scan could be made to take from it: each commit names an
+    image of its own for secret_detection and carries a rules script of its own, and the
+    tip adds a line to .gitleaksignore. The range scans read it, not this tree's history,
+    which the checkers job fetches one commit deep (GIT_DEPTH 1): there this tree has no
+    HEAD~1, and a test of its own range would be left out without a word. Made with git's
+    plumbing, so that no hook runs and nothing is signed. ScanError when git refuses."""
+    git(work, "init", "-q")
+    parent = None
+    for image, rules, ignore in ((RANGE_IMAGES[0], RANGE_RULES[0], "# the base's\n"),
+                                 (RANGE_IMAGES[1], RANGE_RULES[1], "# the base's\n%s\n" % RANGE_IGNORED)):
+        files = {SECURITY_YML: "secret_detection:\n  image: %s\n  needs: []\n" % image, RULES_SCRIPT: rules, IGNORE: ignore,
+                 "build/x.txt": "nothing to find\n"}
+        for path, text in sorted(files.items()):
+            blob = git(work, "hash-object", "-w", "--stdin", input=text.encode("utf-8")).stdout.decode("ascii").strip()
+            git(work, "update-index", "--add", "--cacheinfo", "100644,%s,%s" % (blob, path))
+        tree = git(work, "write-tree").stdout.decode("ascii").strip()
+        made = git(work, "-c", "user.name=scan-secrets self-test", "-c", "user.email=self-test@example.invalid",
+                   "-c", "commit.gpgsign=false", "commit-tree", "-m", "self-test", *(["-p", parent] if parent else []), tree)
+        parent = made.stdout.decode("ascii").strip()
+        git(work, "update-ref", "HEAD", parent)
+    return work
+
+
+def range_self_test(repo, expect):
+    """The range scans, over throwaway_range's repository, with the scanners stood in for."""
+    held = dict((name, globals()[name]) for name in ("run_gitleaks", "run_docker", "run_ssh"))
+    held_environ = dict(os.environ)
+    held_which = shutil.which
+    asked = []
+    try:
+        for name in held:
+            globals()[name] = (lambda engine: lambda *a: asked.append((engine,) + a) or (0, "[]", ""))(name[len("run_"):])
+        # A scanner that would say the range is clean, as gitleaks does of a range git log
+        # refuses: the range must be refused before it is asked.
+        try:
+            said = []
+            code = scan(repo, ("range", "1111111111111111111111111111111111111111..HEAD"), "gitleaks", say=said.append)
+            expect(False, "a range whose base is not here is refused before any scanner runs: exit %s, %s" % (code, said))
+        except ScanError:
+            expect(not asked, "the scanner is not asked about a range git cannot list")
+        # The container is handed this script's own rules script, whatever the range's tip
+        # carries, and the tip's .gitleaksignore; and the reader is shown the lines the range
+        # adds to the one and changes in the other.
+        own = rules_script()
+        os.environ["HM_SECRET_SCAN_SSH"] = "u@h:/g/.git"
+        for engine in ("docker", "ssh"):
+            del asked[:]
+            said = []
+            try:
+                code = scan(repo, ("range", "HEAD~1..HEAD"), engine, say=said.append)
+            except ScanError as e:
+                expect(False, "a range scan with %s stood in for: %s" % (engine, e))
+                continue
+            handed = asked[0] if len(asked) == 1 and asked[0][0] == engine else None
+            expect(code == 0 and handed is not None and own.strip() and handed[-1] == own and "the range's own" not in handed[-1],
+                   "with %s the container is given this script's own %s, not the range's: %s %s" % (engine, RULES_SCRIPT, code, said))
+            expect(handed is not None and RANGE_IGNORED in handed[-3],
+                   "with %s the container is given the range's tip's %s: %s" % (engine, IGNORE, handed and handed[-3]))
+            shown = "\n".join(said)
+            expect("adds 1 line(s) to %s" % IGNORE in shown and RANGE_IGNORED in shown
+                   and "changes 2 line(s) of %s" % RULES_SCRIPT in shown and "+echo the range's own rules" in shown,
+                   "with %s the reader is shown the line the range adds to %s and the lines it changes in %s: %s"
+                   % (engine, IGNORE, RULES_SCRIPT, shown))
+        # With no scanner the scan refuses, exit 3.
+        del asked[:]
+        os.environ.pop("HM_SECRET_SCAN_SSH", None)
+        os.environ.pop("HM_GITLEAKS", None)
+        shutil.which = lambda name: None
+        said = []
+        code = scan(repo, ("range", "HEAD~1..HEAD"), "auto", say=said.append)
+        expect(code == 3 and not asked and any("no scanner" in l for l in said),
+               "with no scanner the scan refuses, exit 3: %s %s" % (code, said))
+    finally:
+        globals().update(held)
+        shutil.which = held_which
+        os.environ.clear()
+        os.environ.update(held_environ)
 
 
 def rules_self_test(expect):

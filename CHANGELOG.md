@@ -4701,7 +4701,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the lines a range changes in the script. `build/check-release-chain.py` fails when the job does not make and use the
   rules, when the tree carries a `.gitlab/secret-detection-ruleset.toml`, and when the landing's `GATE_FILES` leave the
   script out; `scan-secrets.py`'s self-test runs the script over fixtures, refusals and all, and reads what it makes as
-  gitleaks does (ContinuousIntegration.md, "What the secret scans read").
+  gitleaks does, and scans a range of a repository it makes for the purpose, whose tip carries a rules script of its
+  own, so that it holds the container to the scan's own copy whatever the depth of the checkout it runs in - `checkers`
+  fetches one commit (ContinuousIntegration.md, "What the secret scans read").
 - **A directory-form line of `.gitleaksignore` that an edit has moved fails the change that moved it, not a later
   pipeline.** A pipeline that brings no range of commits, one started through the API, scans the checkout as files,
   and `.gitleaksignore` names what that scan finds as `<path>:<rule>:<line>`, tied to its finding by the line number
