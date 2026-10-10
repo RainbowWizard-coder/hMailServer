@@ -43,7 +43,7 @@ on the list, and each entry's row names its rights. The rights are IMAP's (RFC
 |---|---|
 | Lookup | See the folder in its folder list |
 | Read | Open the folder and read its messages |
-| Seen | Keep its own read and unread marks on the folder's messages |
+| Seen | Set or clear the read mark of the folder's messages, which opening a message also sets; without it, reading leaves the mark as it was. A message in a public folder has one read mark, the same for every account that opens the folder |
 | Flags | Set the other flags - flagged, answered, a keyword |
 | Insert | Copy or append a message into the folder |
 | Post | Post to the folder - IMAP's `p` right, which on an account's INBOX is also the right to send as that account ([SendAs.md](SendAs.md)) |
