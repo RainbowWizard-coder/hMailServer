@@ -1924,6 +1924,10 @@ namespace hMailServer.ControlPanel.Views
       // the pair is put right: it asks for what is marked below, and nothing is then.
       private string thresholdRefusal_;
 
+      // The field the refusal marks, the refuse threshold on General, which a refused
+      // save shows whatever tab it was made from (Save_).
+      private ComText thresholdField_;
+
       // What each editor held once the page settled after it was read, or after the
       // last save, so that a save says what it changed rather than how many rows it
       // wrote (review finding F263).
@@ -2966,7 +2970,7 @@ namespace hMailServer.ControlPanel.Views
             }
          });
          // Timeouts belong with the scanner they apply to: an admin whose mail is
-         // backing up looks at the SpamAssassin tab, not at a hardening page.
+         // backing up looks at the Content filters tab, not at a hardening page.
          sa.Settings.Add(new IniNumber { Path = "SAMinTimeout", Label = L("Minimum timeout (seconds)"), Default = 30, IniStore = iniStore_ });
          sa.Settings.Add(new IniNumber
          {
@@ -3166,7 +3170,7 @@ namespace hMailServer.ControlPanel.Views
             ButtonText = L("Test ClamAV connection"),
             Outcome = () => TestClamAv(clamHost.CurrentText, ParsePort(clamPort.CurrentText))
          });
-         // See the SpamAssassin tab: scanner timeouts live with their scanner.
+         // See Anti-spam's Content filters tab: scanner timeouts live with their scanner.
          clamav.Settings.Add(new IniNumber { Path = "ClamMinTimeout", Label = L("Minimum timeout (seconds)"), Default = 15, IniStore = iniStore_ });
          clamav.Settings.Add(new IniNumber
          {
@@ -6512,6 +6516,7 @@ namespace hMailServer.ControlPanel.Views
       {
          thresholdProblem_ = null;
          thresholdRefusal_ = null;
+         thresholdField_ = null;
 
          // The warning's row, collapsed until the check has something to say - and for
          // good where the thresholds could not be read, which leaves nothing to check.
@@ -6522,6 +6527,7 @@ namespace hMailServer.ControlPanel.Views
             return;
 
          Wpf.Ui.Controls.NumberBox markBox = mark.Number, refuseBox = refuse.Number;
+         thresholdField_ = refuse;
 
          // The box's words, which lead its value while it is typed in.
          static int ValueOf_(Wpf.Ui.Controls.NumberBox box)
@@ -6782,11 +6788,18 @@ namespace hMailServer.ControlPanel.Views
             typedIn.CommitTyped();
 
          // A pair of thresholds that contradict each other is refused on its field,
-         // and nothing is written while it is (WireThresholdCheck_).
+         // and nothing is written while it is (WireThresholdCheck_). The refusal is the
+         // page's, whichever tab the save was made from, so the page shows the field -
+         // General, scrolled to the refuse threshold, the keyboard in it and its row
+         // ringed, as a setting the Ctrl+K palette finds is shown (RevealSetting) -
+         // where a save from Content filters or Spam traps said "correct what is marked
+         // below" over a tab with nothing marked.
          if (thresholdProblem_ != null)
          {
             thresholdRefusal_ = L("Nothing was saved: correct what is marked below, then save again.");
             ShowNotice_(thresholdRefusal_, StatusLevel.Critical);
+            if (thresholdField_ != null)
+               RevealSetting(thresholdField_.Path, null);
             return false;
          }
 

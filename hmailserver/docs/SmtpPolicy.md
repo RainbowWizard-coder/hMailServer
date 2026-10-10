@@ -456,8 +456,8 @@ an administrator collecting evidence wants, and the disk is then the only limit.
 ### The external filter engine
 
 *Treat an unanswered check as spam* (`FilterHookFailClosed`, off) is the
-decision on the SpamAssassin tab worth thinking about. Off, an engine that stops
-answering lets spam through until somebody notices; on, it stops the mail
+decision on the Content filters tab worth thinking about. Off, an engine that
+stops answering lets spam through until somebody notices; on, it stops the mail
 instead, and a message deferred while nobody is watching is a message that
 eventually bounces. Off is the recoverable failure, which is why it is the
 default. *Do not send messages larger than* (`FilterHookMaxMessageSizeKB`,

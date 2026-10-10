@@ -128,6 +128,14 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("string.Equals(StatusNotice.Text, thresholdRefusal_, StringComparison.Ordinal))", check, StringComparison.Ordinal);
          Assert.Contains("ShowNotice_(null, StatusLevel.Normal);", check, StringComparison.Ordinal);
 
+         // The refusal is the page's, whichever tab the save was made from: the page shows
+         // the field it marks, as a setting the palette finds is shown, where a save from
+         // Content filters said "correct what is marked below" with nothing marked there.
+         Assert.Contains("thresholdField_ = refuse;", check, StringComparison.Ordinal);
+         int notice = save.IndexOf("ShowNotice_(thresholdRefusal_, StatusLevel.Critical);", StringComparison.Ordinal);
+         int reveal = save.IndexOf("RevealSetting(thresholdField_.Path, null);", StringComparison.Ordinal);
+         Assert.True(notice >= 0 && reveal > notice && reveal < write, "A refused save does not show the refuse threshold.");
+
          // The sentence after a save names what it changed.
          Assert.Contains("ServerSettingsPageStatus.SavedChangesSentence(changed, failed, DateTime.Now.ToLongTimeString(), waiting)", save, StringComparison.Ordinal);
          Assert.Contains("Changed_(setting)", save, StringComparison.Ordinal);
@@ -146,6 +154,13 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("Tab(L(\"Content filters\")).Cards.Add(sa);", code, StringComparison.Ordinal);
          Assert.Contains("Tab(L(\"Content filters\")).Cards.Add(hook);", code, StringComparison.Ordinal);
          Assert.DoesNotContain("Tab(L(\"SpamAssassin\"))", code, StringComparison.Ordinal);
+
+         // The documentation sends the reader to the tab by its name (SmtpPolicy.md, The
+         // external filter engine), where it sent them to a SpamAssassin tab no longer there.
+         string docs = Docs_();
+         foreach (string file in Directory.EnumerateFiles(docs, "*.md"))
+            Assert.False(File.ReadAllText(file).Contains("SpamAssassin tab", StringComparison.Ordinal), Path.GetFileName(file) + " names the SpamAssassin tab, which is Content filters.");
+         Assert.Contains("on the Content filters tab", File.ReadAllText(Path.Join(docs, "SmtpPolicy.md")), StringComparison.Ordinal);
 
          // Found by its old names and by rspamd, on its tab.
          foreach (string query in new[] { "rspamd", "Content filters" })
@@ -177,6 +192,19 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("CountThenSay_(notice);", build, StringComparison.Ordinal);
          Assert.Contains("withTraps = await System.Threading.Tasks.Task.Run(DomainsWithTraps_);", build, StringComparison.Ordinal);
          Assert.DoesNotContain("int? withTraps = DomainsWithTraps_();", build, StringComparison.Ordinal);
+      }
+
+      private static string Docs_()
+      {
+         for (var at = new DirectoryInfo(AppContext.BaseDirectory); at != null; at = at.Parent)
+         {
+            string candidate = Path.Join(at.FullName, "hmailserver", "docs");
+            if (Directory.Exists(candidate))
+               return candidate;
+         }
+
+         Assert.Fail("hmailserver/docs could not be found from the test binaries.");
+         return null;
       }
 
       private static string AntiSpam_()

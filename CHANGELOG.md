@@ -2985,15 +2985,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   threshold above 0 is marked on its field ("The refuse threshold must be above the mark threshold, 5: …") and a save
   writes nothing and says so, and a threshold at 0 is a Warning under the two saying what 0 means. The Quarantine card
   is second on General; the SpamAssassin tab is Content filters, holding SpamAssassin and the external filtering hook,
-  and the search finds it by rspamd, Content filters and both names of the threshold; the Spam traps tab says "No
-  domain has a trap address yet, so these settings do nothing." under its Control Deck button while no domain has one,
-  and how many have otherwise, the domains counted off the UI thread with "Counting the domains that have trap
-  addresses…" in its place meanwhile, so that a server of many domains does not hold the page as it opens. On every
-  settings page the sentence after a save names the setting it changed, or counts the changes ("Saved 3 changes at
-  14:20:00 - applied immediately."), or says no setting had changed; a number typed into a box is saved as typed when
-  Alt+S presses Save changes with the keyboard still in the box, where the box had not yet taken it in and the save
-  wrote the number it held before and said no setting had changed, and once the thresholds are put right the notice
-  that refused the save goes. `AntiSpamPageTests` holds the checks, the sentence and the page's wiring.
+  the search finds it by rspamd, Content filters and both names of the threshold, and the documentation names the tab
+  so; the Spam traps tab says "No domain has a trap address yet, so these settings do nothing." under its Control Deck
+  button while no domain has one, and how many have otherwise, the domains counted off the UI thread with "Counting
+  the domains that have trap addresses…" in its place meanwhile, so that a server of many domains does not hold the
+  page as it opens. On every settings page the sentence after a save names the setting it changed, or counts the
+  changes ("Saved 3 changes at 14:20:00 - applied immediately."), or says no setting had changed; a number typed into
+  a box is saved as typed when Alt+S presses Save changes with the keyboard still in the box, where the box had not
+  yet taken it in and the save wrote the number it held before and said no setting had changed; a save refused over
+  the thresholds, from whichever tab it is made, shows the refuse threshold on General - scrolled to, ringed and with
+  the keyboard in it - and once they are put right the notice that refused the save goes. `AntiSpamPageTests` holds
+  the checks, the sentence and the page's wiring.
 
 - **Fixed: the virus scanning overview froze while it counted every account's fetch accounts, cut its key pill in
   other languages, and said nothing of the sandbox.** The page read everything on the UI thread, the walk of up to
