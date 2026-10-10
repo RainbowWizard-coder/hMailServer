@@ -66,6 +66,31 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("Say_(StatusLevel.Critical, F(\"Could not delete the relay: {0}\", ServerSession.DescribeComError(ex)));", delete, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// After a delete, the row that took the deleted one's place among those the
+      /// search shows is selected: SelectedIndex counts the rows of the grid's
+      /// filtered view (ListSearch), and the same index into the whole list was a
+      /// row the search hid - of A, B, C and D with A and C shown, deleting A chose
+      /// B and selected nothing - or another than the one that took its place.
+      /// </summary>
+      [Fact]
+      public void DeleteSelected_SelectsTheNextRowTheSearchShows()
+      {
+         string page = Page();
+         Assert.Contains("ListSearch.Apply(relays_, toolbar_.SearchText);", WithheldRowTests.MemberText(page, "private void Reload()"), StringComparison.Ordinal);
+
+         string delete = WithheldRowTests.MemberText(page, "private void DeleteSelected()");
+         Assert.True(delete != null, "IncomingRelaysView.DeleteSelected is gone.");
+         Assert.Contains("int at = relays_.SelectedIndex;", delete, StringComparison.Ordinal);
+         int reload = delete.IndexOf("Reload();", StringComparison.Ordinal);
+         int next = delete.IndexOf("int next = ListOutcome.IndexAfterDelete(relays_.Items.Count, at);", StringComparison.Ordinal);
+         Assert.True(reload >= 0 && next > reload, "DeleteSelected does not find the next row in the view the read left.");
+         Assert.Contains("if (next >= 0 && relays_.Items[next] is IncomingRelayRow taken)", delete, StringComparison.Ordinal);
+         Assert.Contains("Select_(taken.Id);", delete, StringComparison.Ordinal);
+         Assert.DoesNotContain("rows[next]", delete, StringComparison.Ordinal);
+         Assert.DoesNotContain("IndexAfterDelete(rows.Count", delete, StringComparison.Ordinal);
+      }
+
       /// <summary>The toolbar holds the search and the row verbs; the header the count and Refresh.</summary>
       [Fact]
       public void TheToolbar_HoldsTheSearchAndTheRowVerbs()

@@ -370,13 +370,16 @@ namespace hMailServer.ControlPanel.Views
             ServerSession.Release(relays);
          }
 
+         // The row that took its place among those shown: SelectedIndex counts
+         // the rows the search leaves (ListSearch filters the grid's view), so
+         // the next is found in the view as well, never in the whole list, where
+         // the same index was a row the search hid and nothing was selected, or
+         // another than the one that took the deleted row's place (found
+         // re-checking 69a26ce17).
          Reload();
-         if (relays_.ItemsSource is List<IncomingRelayRow> rows)
-         {
-            int next = ListOutcome.IndexAfterDelete(rows.Count, at);
-            if (next >= 0)
-               Select_(rows[next].Id);
-         }
+         int next = ListOutcome.IndexAfterDelete(relays_.Items.Count, at);
+         if (next >= 0 && relays_.Items[next] is IncomingRelayRow taken)
+            Select_(taken.Id);
 
          Say_(StatusLevel.Good, ListOutcome.Deleted(row.Name));
       }

@@ -2535,9 +2535,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   search over the name and both addresses and the row's verbs, Edit… and Delete selected; the count is beside the
   title and Refresh in the header. Edit…, Enter, F2 and a double-click open the relay's dialog, which saves its three
   fields in place, says an empty box under it and the server's refusal above the fields; Delete selected deletes the
-  relay by its id. Each says what it did above the list ("Front-end spam filter saved.", "... deleted."), a refusal at
-  Critical there where it was a message box. `IncomingRelaysPageTests` holds the grid, the id, the delete, the toolbar
-  and the dialog.
+  relay by its id and selects the row that took its place among those the search shows. Each says what it did above
+  the list ("Front-end spam filter saved.", "... deleted."), a refusal at Critical there where it was a message box.
+  `IncomingRelaysPageTests` holds the grid, the id, the delete, the toolbar and the dialog.
 
 - **Fixed: the TCP/IP port dialog was taller than the smallest window, showed rows that did not apply, and never said
   which port it edited.** At 520 by 880 pixels it was taller than a 760 by 520 window, so its body scrolled behind
