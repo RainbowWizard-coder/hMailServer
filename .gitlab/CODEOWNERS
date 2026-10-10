@@ -43,6 +43,7 @@
 # secret scans take for not a secret: accepting a finding is the owner's.
 /.gitlab/security-exceptions.yml    @Progressiverobot
 /.gitleaksignore                   @Progressiverobot
+/.gitlab/secret-detection-allowlist.toml @Progressiverobot
 /SECURITY.md                        @Progressiverobot
 /renovate.json                      @Progressiverobot
 /hmailserver/docs/ThirdPartyBinaries.md   @Progressiverobot

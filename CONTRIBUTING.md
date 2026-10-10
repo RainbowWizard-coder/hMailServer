@@ -782,10 +782,11 @@ into a commit. Three things stand in the way, as GitLab's push protection is not
   the same; or `HM_SECRET_SCAN_SSH` pointing at a machine with Docker that sees your
   repository's git directory (`user@host:/path/to/.git`, with `HM_SECRET_SCAN_SSH_KEY` for the key). With none
   of them the hooks refuse the commit or the push, because a scan that did not run has not said anything is
-  clean. `python build/scan-secrets.py --range master..HEAD` scans a branch by hand. GitLab's rules leave out
-  every path under a directory named `build`, `bin`, `obj`, `target` or `packages`, this tree's `build/` among
-  them, so neither the hooks, the landing's scan nor the job reads a secret put there
-  ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#before-a-push-the-secret-scan)).
+  clean. `python build/scan-secrets.py --range master..HEAD` scans a branch by hand. The hooks, the landing's
+  scan and the job read every path under a directory named `build`, `bin`, `obj`, `target` or `packages` too,
+  this tree's `build/` among them, which GitLab's own rules leave out: they run GitLab's rules with the project's
+  global allowlist, `.gitlab/secret-detection-allowlist.toml`
+  ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#what-the-secret-scans-read)).
 * **`.gitignore`** leaves out the usual key and credential files (`*.pem`, `*.key`, `*.pfx`, `*.p12`, `*.jks`,
   SSH private keys, `.env`, `.netrc`, `.npmrc`, `.pypirc`, `credentials.json`), but for the directories of the
   test fixtures. Adding one elsewhere takes `git add -f`, which is the moment to ask whether it should be there.

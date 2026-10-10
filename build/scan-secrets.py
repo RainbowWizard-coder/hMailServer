@@ -17,7 +17,13 @@ It runs gitleaks - by preference the one in GitLab's secrets analyzer image, as 
 project's registry holds it (build/ci/mirror-secrets.sh) and the secret_detection job
 names it, by digest (read from .gitlab/ci/gitlab-security.yml, so the two never differ),
 with GitLab's rules (/gitleaks.toml in the image) and the repository's .gitleaksignore:
-the same scan the pipeline runs. Where it runs:
+the same scan the pipeline runs. The rules are GitLab's with the project's global
+allowlist in place of theirs (.gitlab/secret-detection-allowlist.toml), made in the
+image by build/ci/secret-detection-rules.sh as the job makes them, which refuses when
+the image's allowlist is not the one the project's replaces: GitLab's left out every
+path under a directory named build, bin, obj, target or packages, this tree's build/
+among them. The ignore file, the allowlist and the script are the range's tip's, as the
+pipeline would read them, or the working tree's for --staged. Where it runs:
 
   docker    Docker on this machine: the image, with the repository's git directory
             mounted read-only.
@@ -71,6 +77,13 @@ import tempfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECURITY_YML = ".gitlab/ci/gitlab-security.yml"
 IGNORE = ".gitleaksignore"
+# What the rules gitleaks runs with are made of, besides the image's /gitleaks.toml: the
+# project's global allowlist, and the script that puts it in place of GitLab's.
+ALLOWLIST = ".gitlab/secret-detection-allowlist.toml"
+RULES_SCRIPT = "build/ci/secret-detection-rules.sh"
+# The step that makes them in the container, before gitleaks; a refusal is exit 5, after
+# which there is no report, and the scan fails (findings_of).
+RULES_STEP = "sh /work/rules.sh /gitleaks.toml /work/allowlist /work/gitleaks.toml || exit 5; "
 # The image line of the secret_detection job, pinned by digest. Each line of the
 # job is matched one way only (indentation up to its first visible character, or
 # blanks), so a job without the line fails in time proportional to its length rather
@@ -165,6 +178,31 @@ def tip_of(log_opts):
     return first.split("..", 1)[1] if ".." in first else first
 
 
+def changed_rules_lines(repo, log_opts):
+    """The lines the range adds to or takes from the allowlist and the rules script, which
+    decide what the scan reads, for the reader to check."""
+    first = log_opts.split()[0]
+    if ".." not in first:
+        return []
+    base, tip = first.split("..", 1)
+    done = git(repo, "diff", "--no-color", "-U0", base, tip, "--", ALLOWLIST, RULES_SCRIPT, check=False)
+    return [l for l in done.stdout.decode("utf-8", "replace").split("\n")
+            if (l.startswith("+") or l.startswith("-")) and not l.startswith("+++") and not l.startswith("---") and l[1:].strip()]
+
+
+def rules_inputs(repo, rev):
+    """(the rules script, the allowlist) as rev has them - the working tree's for None - or,
+    for a commit from before they existed, as the working tree and this script's own tree
+    have them. ScanError when there are none."""
+    texts = []
+    for path in (RULES_SCRIPT, ALLOWLIST):
+        text = text_of(repo, rev, path) or text_of(repo, None, path) or text_of(ROOT, None, path)
+        if not text.strip():
+            raise ScanError("there is no %s, from which the scan's rules are made" % path)
+        texts.append(text.replace("\r\n", "\n"))
+    return tuple(texts)
+
+
 def added_ignore_lines(repo, log_opts):
     """The .gitleaksignore lines the range adds, for the reader to check."""
     first = log_opts.split()[0]
@@ -216,15 +254,17 @@ def gitleaks_arguments(mode, log_opts, ignore_path, report_path, config, repo_pa
 
 
 def container_script(mode, log_opts, tip, image, work):
-    """The shell a Docker host runs: the scan in the pinned image, the report printed after
-    a marker. The repository's git directory is /repo, read-only; work is /work."""
+    """The shell a Docker host runs: the rules made from the image's and the project's
+    allowlist, then the scan in the pinned image. The repository's git directory is /repo,
+    read-only; work is /work, which holds the ignore file, the stream, the rules script
+    and the allowlist."""
     quoted = lambda s: "'" + s.replace("'", "'\"'\"'") + "'"
-    inner = gitleaks_arguments(mode, log_opts, "/work/ignore", "/work/report.json", "/gitleaks.toml", "/repo")
+    inner = gitleaks_arguments(mode, log_opts, "/work/ignore", "/work/report.json", "/work/gitleaks.toml", "/repo")
     check = ""
     if mode == "git":
         check = "git -C /repo cat-file -e %s || { echo 'the scanned repository has no commit %s' >&2; exit 4; }; " % (
             quoted(tip + "^{commit}"), tip.replace("'", ""))
-    run = check + "exec gitleaks " + " ".join(quoted(a) for a in inner) + (" < /work/stream" if mode == "stdin" else "")
+    run = check + RULES_STEP + "exec gitleaks " + " ".join(quoted(a) for a in inner) + (" < /work/stream" if mode == "stdin" else "")
     return run
 
 
@@ -250,13 +290,12 @@ def work_directory():
     return private, work
 
 
-def run_docker(image, git_dir, mode, log_opts, tip, ignore_text, stream):
+def run_docker(image, git_dir, mode, log_opts, tip, ignore_text, stream, rules):
     private, work = work_directory()
     try:
-        with open(os.path.join(work, "ignore"), "w", encoding="utf-8", newline="\n") as f:
-            f.write(ignore_text)
-        with open(os.path.join(work, "stream"), "w", encoding="utf-8", newline="\n") as f:
-            f.write(stream or "")
+        for name, text in (("ignore", ignore_text), ("stream", stream or ""), ("rules.sh", rules[0]), ("allowlist", rules[1])):
+            with open(os.path.join(work, name), "w", encoding="utf-8", newline="\n") as f:
+                f.write(text)
         done = subprocess.run(docker_command(image, git_dir, work, container_script(mode, log_opts, tip, image, "/work")),
                               stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         report = None
@@ -272,7 +311,7 @@ def run_docker(image, git_dir, mode, log_opts, tip, ignore_text, stream):
 MARKER = "----- scan-secrets report -----"
 
 
-def remote_script(image, git_dir, mode, log_opts, tip, ignore_text, stream):
+def remote_script(image, git_dir, mode, log_opts, tip, ignore_text, stream, rules):
     blob = lambda s: base64.b64encode(s.encode("utf-8")).decode("ascii")
     script = container_script(mode, log_opts, tip, image, "/work")
     inner = " ".join("'" + a.replace("'", "'\"'\"'") + "'" for a in docker_command(image, git_dir, "$work", script))
@@ -287,6 +326,8 @@ def remote_script(image, git_dir, mode, log_opts, tip, ignore_text, stream):
         "mkdir \"$work\" || exit 2",
         "base64 -d > \"$work/ignore\" <<'IGNORE_EOF'", blob(ignore_text), "IGNORE_EOF",
         "base64 -d > \"$work/stream\" <<'STREAM_EOF'", blob(stream or ""), "STREAM_EOF",
+        "base64 -d > \"$work/rules.sh\" <<'RULES_EOF'", blob(rules[0]), "RULES_EOF",
+        "base64 -d > \"$work/allowlist\" <<'ALLOWLIST_EOF'", blob(rules[1]), "ALLOWLIST_EOF",
         "chmod 0777 \"$work\"",
         inner + " >&2",
         "code=$?",
@@ -296,7 +337,7 @@ def remote_script(image, git_dir, mode, log_opts, tip, ignore_text, stream):
         ""])
 
 
-def run_ssh(image, target, mode, log_opts, tip, ignore_text, stream):
+def run_ssh(image, target, mode, log_opts, tip, ignore_text, stream, rules):
     host, _, git_dir = target.rpartition(":")
     if not host or not git_dir.startswith("/"):
         raise ScanError("HM_SECRET_SCAN_SSH is %r: it is user@host:/path/to/the/repository/.git, the path at which that "
@@ -306,7 +347,7 @@ def run_ssh(image, target, mode, log_opts, tip, ignore_text, stream):
     if key:
         command += ["-i", os.path.expanduser(key)]
     command += [host, "sh -s"]
-    done = subprocess.run(command, input=remote_script(image, git_dir, mode, log_opts, tip, ignore_text, stream).encode("utf-8"),
+    done = subprocess.run(command, input=remote_script(image, git_dir, mode, log_opts, tip, ignore_text, stream, rules).encode("utf-8"),
                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out = done.stdout.decode("utf-8", "replace")
     report = out.split(MARKER, 1)[1].strip() if MARKER in out else None
@@ -412,12 +453,13 @@ def scan(repo, what, engine, say=print):
         return 3
     if chosen in ("docker", "ssh"):
         image = image_of(security)
+        rules = rules_inputs(repo, rev)
         git_dir = git(repo, "rev-parse", "--path-format=absolute", "--git-common-dir").stdout.decode("utf-8").strip()
         if chosen == "docker":
-            code, report, err = run_docker(image, git_dir, mode, log_opts, tip, ignore_text, stream)
+            code, report, err = run_docker(image, git_dir, mode, log_opts, tip, ignore_text, stream, rules)
         else:
-            code, report, err = run_ssh(image, os.environ.get("HM_SECRET_SCAN_SSH", ""), mode, log_opts, tip, ignore_text, stream)
-        how = "gitleaks in %s with GitLab's rules (%s)" % (image.split("@")[0], "Docker here" if chosen == "docker" else "Docker on " + os.environ["HM_SECRET_SCAN_SSH"].rpartition(":")[0])
+            code, report, err = run_ssh(image, os.environ.get("HM_SECRET_SCAN_SSH", ""), mode, log_opts, tip, ignore_text, stream, rules)
+        how = "gitleaks in %s with GitLab's rules and the project's allowlist (%s)" % (image.split("@")[0], "Docker here" if chosen == "docker" else "Docker on " + os.environ["HM_SECRET_SCAN_SSH"].rpartition(":")[0])
     else:
         code, report, err = run_gitleaks(repo, mode, log_opts, ignore_text, stream)
         how = "gitleaks on PATH with its own rules"
@@ -438,6 +480,12 @@ def scan(repo, what, engine, say=print):
             say("scan-secrets: the range adds %d line(s) to .gitleaksignore, each a finding no scan reports from now on "
                 "- read them:" % len(added))
             for line in added:
+                say("    " + line)
+        changed = changed_rules_lines(repo, log_opts)
+        if changed:
+            say("scan-secrets: the range changes %d line(s) of %s or %s, which decide what both scans read from now on "
+                "- read them:" % (len(changed), ALLOWLIST, RULES_SCRIPT))
+            for line in changed:
                 say("    " + line)
     if not findings:
         say("scan-secrets: %s scanned by %s - nothing found" % (subject, how))
@@ -543,11 +591,17 @@ def self_test():
            "a range's finding is shown with the fingerprint .gitleaksignore takes: %r" % shown)
 
     script = container_script("git", "%s..%s" % (a, b), b, "img", "/work")
-    expect("--gitleaks-ignore-path' '/work/ignore'" in script and "'--redact'" in script and "'/gitleaks.toml'" in script
-           and "cat-file -e '%s^{commit}'" % b in script, "the container runs gitleaks with GitLab's rules, the ignore file, redacted: %s" % script)
+    expect("--gitleaks-ignore-path' '/work/ignore'" in script and "'--redact'" in script and "'--config' '/work/gitleaks.toml'" in script
+           and "'/gitleaks.toml'" not in script and "cat-file -e '%s^{commit}'" % b in script,
+           "the container runs gitleaks with the rules made there, the ignore file, redacted: %s" % script)
+    expect(0 <= script.find(RULES_STEP) < script.find("exec gitleaks"), "the rules are made before gitleaks runs: %s" % script)
     script = container_script("stdin", "", "", "img", "/work")
-    expect(script.endswith("< /work/stream") and "--log-opts" not in script, "a staged scan reads the stream: %s" % script)
-    remote = remote_script("img", "/g/.git", "git", "%s..%s" % (a, b), b, "x", "")
+    expect(script.endswith("< /work/stream") and "--log-opts" not in script and RULES_STEP in script,
+           "a staged scan reads the stream, with the same rules: %s" % script)
+    remote = remote_script("img", "/g/.git", "git", "%s..%s" % (a, b), b, "x", "", ("#!/bin/sh\necho rules\n", "# replaces\n"))
+    for name, text in (("rules.sh", "#!/bin/sh\necho rules\n"), ("allowlist", "# replaces\n")):
+        expect(("base64 -d > \"$work/%s\"" % name) in remote and base64.b64encode(text.encode("utf-8")).decode("ascii") in remote,
+               "the ssh host is given the %s: %s" % (name, remote))
     expect("'--network' 'none'" in remote, "the scanner's container has no network")
     order = [remote.find(step) for step in ("private=$(mktemp -d) || exit 2", "trap 'rm -rf \"$private\"' EXIT",
                                              "work=\"$private/work\"", "mkdir \"$work\" || exit 2", "chmod 0777 \"$work\"")]
@@ -564,6 +618,24 @@ def self_test():
     finally:
         shutil.rmtree(private, ignore_errors=True)
     expect(not os.path.exists(private), "the private directory is removed")
+
+    rules_self_test(expect)
+
+    # The scan hands the container the tip's rules script and allowlist (the tree's own here).
+    if git(ROOT, "rev-parse", "--verify", "-q", "HEAD~1", check=False).returncode == 0:
+        held_run = globals()["run_docker"]
+        handed = []
+        globals()["run_docker"] = lambda *a: handed.append(a) or (0, "[]", "")
+        try:
+            said = []
+            code = scan(ROOT, ("range", "HEAD~1..HEAD"), "docker", say=said.append)
+            own = tuple((text_of(ROOT, "HEAD", p) or text_of(ROOT, None, p)).replace("\r\n", "\n") for p in (RULES_SCRIPT, ALLOWLIST))
+            expect(code == 0 and handed and handed[0][-1] == own and all(own),
+                   "the container is given the tip's %s and %s: %s %s" % (RULES_SCRIPT, ALLOWLIST, code, said))
+        except ScanError as e:
+            failures.append("a range scan with Docker stood in for: %s" % e)
+        finally:
+            globals()["run_docker"] = held_run
 
     held = dict(os.environ)
     held_which = shutil.which
@@ -588,6 +660,85 @@ def self_test():
         print("FAILED: " + failure)
     print("self-test: %d failure(s)" % len(failures))
     return 1 if failures else 0
+
+
+def rules_self_test(expect):
+    """build/ci/secret-detection-rules.sh over fixtures, where there is a sh to run it, and
+    the tree's allowlist read as gitleaks reads it."""
+    import hashlib
+    sh = shutil.which("sh")
+    script = os.path.join(ROOT, RULES_SCRIPT)
+    rules_part = ("# rule-set version: 0.0.1\n[[rules]]\nid = 'x'\nregex = '''x_[a-z]{8}'''\n\n"
+                  "[[rules]]\nid = 'y'\nregex = '''y_[a-z]{8}'''\n[[rules.allowlists]]\npaths = ['''z''']\n\n")
+    gitlab_table = ("[[allowlists]]\ndescription = \"global allow lists\"\npaths = [\n"
+                    "    '''(?:^|/)(?:node_modules|bower_components|packages)(?:/.*)?$''',\n"
+                    "    '''(?:^|/)(?:target|build|bin|obj)(?:/.*)?$''',\n]\n")
+    digest = hashlib.sha256(gitlab_table.encode("utf-8")).hexdigest()
+    ours = ("# the project's\n# replaces sha256:%s\n[[allowlists]]\npaths = [\n"
+            "    '''(?:^|/)(?:node_modules|bower_components)(?:/.*)?$''',\n]\n" % digest)
+    if sh and os.path.isfile(script):
+        work = tempfile.mkdtemp(prefix="scan-secrets-rules-")
+        try:
+            def run(gitlab, table):
+                for name, text in (("gitlab.toml", gitlab), ("table.toml", table)):
+                    with open(os.path.join(work, name), "w", encoding="utf-8", newline="") as f:
+                        f.write(text)
+                out = os.path.join(work, "out.toml")
+                if os.path.exists(out):
+                    os.remove(out)
+                done = subprocess.run([sh, script, os.path.join(work, "gitlab.toml"), os.path.join(work, "table.toml"), out],
+                                      stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                written = None
+                if os.path.isfile(out):
+                    with open(out, encoding="utf-8", newline="") as f:
+                        written = f.read()
+                return done.returncode, written, done.stderr.decode("utf-8", "replace")
+
+            code, written, err = run(rules_part + gitlab_table, ours)
+            expect(code == 0 and written == rules_part + ours, "GitLab's rules, then the project's table in place of "
+                   "GitLab's: %s %r %s" % (code, written, err))
+            code, written, err = run(rules_part + gitlab_table, ours.replace("\n", "\r\n"))
+            expect(code == 0 and written == rules_part + ours, "a table checked out CRLF is read without its CRs: %s %r" % (code, written))
+            moved = gitlab_table.replace("packages)", "packages|vendor)")
+            code, written, err = run(rules_part + moved, ours)
+            expect(code == 1 and written is None and hashlib.sha256(moved.encode("utf-8")).hexdigest() in err and digest in err,
+                   "a GitLab table the project's does not replace is refused, both hashes named, nothing written: %s %s" % (code, err))
+            code, written, err = run(rules_part + gitlab_table + gitlab_table, ours)
+            expect(code == 1 and written is None and "2 [[allowlists]]" in err, "two GitLab tables are refused: %s %s" % (code, err))
+            code, written, err = run(rules_part + gitlab_table, ours.replace("# replaces sha256:", "# was sha256:"))
+            expect(code == 1 and written is None, "a table that says what it replaces nowhere is refused: %s %s" % (code, err))
+            code, written, err = run(rules_part + gitlab_table, ours + "# replaces sha256:%s\n" % ("0" * 64))
+            expect(code == 1 and written is None, "a table that names two replaced tables is refused: %s %s" % (code, err))
+        finally:
+            shutil.rmtree(work, ignore_errors=True)
+    elif not sh:
+        print("note: no sh on PATH, so %s was not run over its fixtures here (the checkers job runs it)" % RULES_SCRIPT)
+    else:
+        expect(False, "%s is in the tree" % RULES_SCRIPT)
+
+    # The tree's allowlist, read as TOML: one global table, GitLab's but for the
+    # directories both scans now read.
+    text = text_of(ROOT, None, ALLOWLIST).replace("\r\n", "\n")
+    expect(len(re.findall(r"^# replaces sha256:[0-9a-f]{64}$", text, re.MULTILINE)) == 1,
+           "%s says once which GitLab table it replaces" % ALLOWLIST)
+    try:
+        import tomllib
+    except ImportError:
+        print("note: Python %s has no tomllib, so %s was not read as TOML here" % (sys.version.split()[0], ALLOWLIST))
+        return
+    try:
+        tables = tomllib.loads(text).get("allowlists", [])
+    except ValueError as e:
+        expect(False, "%s is TOML: %s" % (ALLOWLIST, e))
+        return
+    expect(len(tables) == 1 and tables[0].get("paths"), "%s holds one [[allowlists]] table, of paths" % ALLOWLIST)
+    paths = [re.compile(p) for t in tables for p in t.get("paths", [])]
+    left_out = lambda path: any(p.search(path) for p in paths)
+    for path in ("build/ci/linux-build.sh", "build/hooks/pre-push", "hmailserver/build/x.cpp", "bin/x.cfg", "a/obj/x.json",
+                 "target/x.properties", "packages/x.config", "hmailserver/test/packages/x.json", "snap/local/bin/x"):
+        expect(not left_out(path), "%s is read by both scans: no path of %s leaves it out" % (path, ALLOWLIST))
+    for path in ("node_modules/x/index.js", "web/bower_components/x.js", "docs/a.png", ".gitattributes"):
+        expect(left_out(path), "%s stays out, as GitLab's rules leave it out" % path)
 
 
 def main():

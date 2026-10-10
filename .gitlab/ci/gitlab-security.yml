@@ -19,7 +19,12 @@
 #                     scripts under build/ are read by the semgrep job alone, on a batch.
 #   secret_detection  GitLab's secrets analyzer over the commits a pipeline brings: a
 #                     key, token or password committed by mistake. Nothing on linix
-#                     looks for one.
+#                     looks for one. With GitLab's rules, but the project's own global
+#                     allowlist in place of theirs (.gitlab/secret-detection-
+#                     allowlist.toml): GitLab's, but for the entries that left out
+#                     every path under a directory named build, bin, obj, target or
+#                     packages - this tree's build/ among them, which no scan read
+#                     until 10 October 2026.
 #
 # Not included, and why:
 #
@@ -247,6 +252,14 @@ secret_detection:
         SECRET_DETECTION_HISTORIC_SCAN: "true"
     - !reference [.gitlab-security-rules, rules]
   script:
+    # GitLab's rules, with the project's global allowlist in place of theirs (the header
+    # says why), put where the analyzer reads them: it takes /gitleaks.toml whatever the
+    # tree says on the Free tier, where a custom ruleset is not read, and it runs as root
+    # in its image, so the file is replaced in the job's own container. The script
+    # refuses when GitLab's allowlist is not the one the project's replaces, and the job
+    # fails before anything is scanned (build/ci/secret-detection-rules.sh).
+    - sh build/ci/secret-detection-rules.sh /gitleaks.toml .gitlab/secret-detection-allowlist.toml /tmp/hm-gitleaks.toml
+    - cp /tmp/hm-gitleaks.toml /gitleaks.toml
     - /analyzer run
     # The analyzer exits 0 whatever it found: the report says. Its JSON is written on
     # one line, and an empty "vulnerabilities" list is a clean scan.

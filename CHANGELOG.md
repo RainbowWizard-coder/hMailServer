@@ -4558,9 +4558,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   1.3.2-r1 where it had r0; over `master`'s whole history the two images' gitleaks found the same.
   `build/check-release-chain.py` fails when the job names another image, or names it over two lines, which
   `scan-secrets.py` would not read, or by a tag that is not the digest's (ContinuousIntegration.md, "Change checks").
-  Neither scan reads a path under a directory named `build`, `bin`, `obj`, `target` or `packages`, which GitLab's rules
-  leave out, in the old image as in the new: not this tree's `build/` (ContinuousIntegration.md, "Before a push: the
-  secret scan").
+  Neither scan read a path under a directory named `build`, `bin`, `obj`, `target` or `packages`, which GitLab's rules
+  leave out, in the old image as in the new: not this tree's `build/`. Both do since (below).
 - **Every job of a pipeline for `master`, a `batch*` branch, a `v*` tag or a schedule runs on the project's own
   runners, and none on GitLab's shared runners.** The namespace's compute minutes ran out on 9 October 2026, and
   `batch46`'s pipeline could not start `semgrep-sast-gate` (`stuck_pending_no_matching_runners`, then
@@ -4675,6 +4674,24 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   and `build/check-release-chain.py` fails when the job names the analyzer by a tag alone, from the project's
   registry or over two lines, or `container_scanning_arm64` names an image of its own (ContinuousIntegration.md,
   "container_scanning's analyzer").
+- **Both secret scans read every path under a directory named `build`, `bin`, `obj`, `target` or `packages`, this
+  tree's `build/` among them, which GitLab's rules leave out.** `secret_detection` and `build/scan-secrets.py`, the
+  hooks' and the landing's scan, took GitLab's rules whole, and their global allowlist left out those directories:
+  368 files of the tree - the CI scripts, the git hooks, the lab, the fixtures and their builders, and
+  `snap/local/bin/` - and a made-up token committed under `build/` passed both on 9 October 2026. Both now run
+  GitLab's rules with the project's own global allowlist in place of theirs, `.gitlab/secret-detection-allowlist.toml`:
+  GitLab's table but those entries (`node_modules` and `bower_components` stay out). The new
+  `build/ci/secret-detection-rules.sh` makes the rules in the analyzer's image - the job puts them where the analyzer
+  reads them, since a custom ruleset is GitLab Ultimate's and gitleaks' `[extend]` takes no allowlist away, and
+  `scan-secrets.py` runs it before gitleaks - and refuses when the image's allowlist is not the one the project's
+  replaces, by its hash, so that new rules that change what GitLab leaves out are read first. Over every branch and
+  tag on GitLab (2,873 commits) and `master`'s tree the widened rules found everything GitLab's had and five more, none
+  a secret - the OpenPGP fixtures' two test keys and three lines that test a text for a key's armour header - which
+  `.gitleaksignore` names, with four of its directory-scan lines that later edits had moved. The allowlist is the
+  owner's in `.gitlab/CODEOWNERS`, and the landing's scan prints the lines a range changes in it.
+  `build/check-release-chain.py` fails when the job does not make and use the rules, when the tree carries a
+  `.gitlab/secret-detection-ruleset.toml`, and when the allowlist is not the owner's; `scan-secrets.py`'s self-test runs
+  the script over fixtures and reads the tree's allowlist (ContinuousIntegration.md, "What the secret scans read").
 
 ### Documentation
 

@@ -145,7 +145,11 @@ refuses it. This checker holds them to each other. It fails when:
   * linux-fuzz does not keep fuzz-results/ as its artifact, whatever the result,
     for Developers only (a reproducer may be an exploit), or another job claims it;
   * secret_detection lets a finding pass: it must be allow_failure: false and read
-    its report after the analyzer, which exits 0 whatever it finds; or runs another
+    its report after the analyzer, which exits 0 whatever it finds, and put GitLab's
+    rules with the project's allowlist (.gitlab/secret-detection-allowlist.toml,
+    build/ci/secret-detection-rules.sh) in place of /gitleaks.toml before it, since
+    GitLab's own leaves out every path under a directory named build, bin, obj,
+    target or packages; or runs another
     image than the analyzer as the project's registry holds it, on the one line
     build/scan-secrets.py reads (image: mirror/secrets:<version>-<the digest's first
     twelve hex digits>@<digest>, build/ci/mirror-secrets.sh);
@@ -176,7 +180,8 @@ refuses it. This checker holds them to each other. It fails when:
     set SAST_SEMGREP_EXCLUDED_PATHS, SAST_RULESET_GIT_REFERENCE,
     SAST_EXCLUDED_ANALYZERS or HM_TIDY_CHECKS, or SAST_EXCLUDED_PATHS but semgrep-sast's
     own, or define a variable GitLab gives (CI_*, GITLAB_*, but CI_DEBUG_SERVICES); the
-    tree may carry no .semgrepignore, no .gitlab/sast-ruleset.toml and no scan's
+    tree may carry no .semgrepignore, no .gitlab/sast-ruleset.toml, no
+    .gitlab/secret-detection-ruleset.toml and no scan's
     report; .gitlab-ci.yml's first workflow rule must leave a merge request without a
     pipeline of its own only when it comes from a protected batch* branch of this
     project, the branches the gates run for in a branch's pipeline;
@@ -581,7 +586,14 @@ SCANNED = ["static-analysis", "semgrep", "dependency-scan", "semgrep-sast"]
 # (since 6.3.6), and are therefore never allow_failure.
 BLOCKING_SCANS = ["static-analysis", "semgrep"]
 # The files a change to which is the owner's alone to accept.
-OWNED = ["/.gitlab/security-exceptions.yml", "/.gitleaksignore"]
+OWNED = ["/.gitlab/security-exceptions.yml", "/.gitleaksignore", "/.gitlab/secret-detection-allowlist.toml"]
+# What secret_detection runs before its analyzer: GitLab's rules with the project's global
+# allowlist in place of theirs, put where the analyzer reads them (build/ci/
+# secret-detection-rules.sh, which build/scan-secrets.py runs the same way). GitLab's own
+# allowlist leaves out every path under a directory named build, bin, obj, target or
+# packages.
+SECRET_RULES_STEP = ("    - sh build/ci/secret-detection-rules.sh /gitleaks.toml .gitlab/secret-detection-allowlist.toml "
+                     "/tmp/hm-gitleaks.toml\n    - cp /tmp/hm-gitleaks.toml /gitleaks.toml\n    - /analyzer run\n")
 # The change gates (.gitlab/ci/mr-checks.yml), which every change passes before it
 # lands (OpenSSF Baseline OSPS-VM-05.03 and 06.02), and the scan whose report the first
 # reads: each in a merge request's pipeline and in a protected batch* branch's, which is
@@ -613,6 +625,7 @@ SAST_NARROWING_VARIABLES = ("SAST_SEMGREP_EXCLUDED_PATHS", "SAST_RULESET_GIT_REF
 # What the tree may not carry: a .semgrepignore (GitLab's analyzer includes the root's,
 # Semgrep reads one in a directory), GitLab's custom ruleset, and a scan's report.
 NOT_IN_THE_TREE = re.compile(r"(?:^|/)\.semgrepignore[^/]*$|^\.gitlab/sast-ruleset\.toml$|^gl-sast-report\.json$|"
+                             r"^\.gitlab/secret-detection-ruleset\.toml$|"
                              r"^semgrep\.sarif$|^security/")
 # What GitLab may fail a gate's job for that is no answer of its own, retried (.gate-retry
 # in .gitlab/ci/gitlab-security.yml); and the gates' scripts' "could not read", exit 2.
@@ -2335,6 +2348,14 @@ def check(texts, chain, feed):
                         % (mirrored.group(1), mirrored.group(2)[:12]))
     if not os.path.isfile(os.path.join(ROOT, ".gitleaksignore")):
         problems.append(".gitleaksignore is missing: the findings read and found not to be secrets would fail secret_detection")
+    if SECRET_RULES_STEP not in detection:
+        problems.append("secret_detection does not put GitLab's rules with the project's allowlist in place of /gitleaks.toml "
+                        "right before /analyzer run (%s): GitLab's own allowlist leaves out every path under a directory "
+                        "named build, bin, obj, target or packages, this tree's build/ among them"
+                        % " then ".join(l.strip()[2:] for l in SECRET_RULES_STEP.strip().split("\n")))
+    for path in (os.path.join(".gitlab", "secret-detection-allowlist.toml"), os.path.join("build", "ci", "secret-detection-rules.sh")):
+        if not os.path.isfile(os.path.join(ROOT, path)):
+            problems.append("%s is missing: secret_detection and build/scan-secrets.py make their rules from it" % path)
 
     found, said = change_gate_problems(texts, jobs, security_jobs, chain.security_gate)
     problems.extend(found)
@@ -2403,8 +2424,9 @@ def sast_scope_problems(texts, security_jobs, gates_jobs, security_gate):
                         "and the gates read these to tell which pipeline this is and what a change's base is" % (path, name))
     carried = [f for f in texts.get("tree", []) if NOT_IN_THE_TREE.search(f)]
     if carried:
-        problems.append("the tree carries %s: a .semgrepignore or GitLab's custom ruleset narrows semgrep-sast, and a "
-                        "committed report stands in for one a scan did not write" % ", ".join(carried[:5]))
+        problems.append("the tree carries %s: a .semgrepignore or GitLab's custom ruleset narrows semgrep-sast, GitLab's "
+                        "secret-detection ruleset would stand in for the rules secret_detection makes (where GitLab "
+                        "reads one), and a committed report stands in for one a scan did not write" % ", ".join(carried[:5]))
     workflow = blocks(texts["ci"]).get("workflow", "")
     first = re.search(r"^  rules:[ \t]*\n    (- if: .*\n      when: never)", workflow + "\n", re.MULTILINE)
     if not first or first.group(1) != WORKFLOW_BATCH_RULE:
@@ -4270,6 +4292,7 @@ def self_test(chain, feed):
         broken("a CI file that defines %s" % name, "ci", '  PYTHONUTF8: "1"\n', '  PYTHONUTF8: "1"\n  %s: "x"\n' % name,
                ".gitlab-ci.yml defines %s, a variable GitLab gives" % name)
     for planted in (".semgrepignore", "hmailserver/source/.semgrepignore", ".semgrepignore.local", ".gitlab/sast-ruleset.toml",
+                    ".gitlab/secret-detection-ruleset.toml",
                     "gl-sast-report.json", "semgrep.sarif", "security/semgrep/gl-sast-semgrep.json"):
         found, _ = check(dict(texts, tree=list(texts["tree"]) + [planted]), chain, feed)
         if not any("the tree carries %s" % planted in p for p in found):
@@ -4584,6 +4607,15 @@ def self_test(chain, feed):
            "does not give /.gitlab/security-exceptions.yml to @Progressiverobot")
     broken("the secret scan's ignore list shared", "codeowners", "/.gitleaksignore                   @Progressiverobot",
            "/.gitleaksignore                   @Progressiverobot @zainulabidin1990", "does not give /.gitleaksignore")
+    broken("the secret scans' allowlist shared", "codeowners", "/.gitlab/secret-detection-allowlist.toml @Progressiverobot",
+           "/.gitlab/secret-detection-allowlist.toml @Progressiverobot @zainulabidin1990",
+           "does not give /.gitlab/secret-detection-allowlist.toml")
+    broken("secret_detection with GitLab's allowlist again", "security", SECRET_RULES_STEP, "    - /analyzer run\n",
+           "secret_detection does not put GitLab's rules with the project's allowlist")
+    broken("the rules made and not put where the analyzer reads them", "security", "    - cp /tmp/hm-gitleaks.toml /gitleaks.toml\n",
+           "", "secret_detection does not put GitLab's rules with the project's allowlist")
+    broken("the rules made with another allowlist", "security", " .gitlab/secret-detection-allowlist.toml /tmp/hm-gitleaks.toml",
+           " /tmp/allowlist.toml /tmp/hm-gitleaks.toml", "secret_detection does not put GitLab's rules with the project's allowlist")
     broken("signing in a child pipeline", "ci", "  script:\n    - sh build/ci/release-sign.sh", "  trigger:\n    include: child.yml\n  script:\n    - sh build/ci/release-sign.sh", "release-sign is a trigger")
 
     # The files 6.3.6 adds: gathered with their builds' tests, none escaping on a tag.

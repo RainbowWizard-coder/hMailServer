@@ -90,7 +90,7 @@ c19f5481847677b677d566cb17aea5ee5a6ef3a8:hmailserver/source/Server/Common/Util/H
 # before), and a move to another path changes it again. The landing's own scan
 # (build/scan-secrets.py) reads commits, never a directory, and is matched by the
 # lines above; these are the pipeline's alone.
-/builds/hmailserver/hmailserver/hmailserver/source/Server/Common/AntiSpam/DKIM/DkimRotationPlan.cpp:PKCS8 private key:729
+/builds/hmailserver/hmailserver/hmailserver/source/Server/Common/AntiSpam/DKIM/DkimRotationPlan.cpp:PKCS8 private key:728
 /builds/hmailserver/hmailserver/hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:PGP private key:1634
 /builds/hmailserver/hmailserver/hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:PGP private key:1647
 /builds/hmailserver/hmailserver/hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:PGP private key:1863
@@ -100,11 +100,11 @@ c19f5481847677b677d566cb17aea5ee5a6ef3a8:hmailserver/source/Server/Common/Util/H
 /builds/hmailserver/hmailserver/hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:SSH (EC) private key:1643
 /builds/hmailserver/hmailserver/hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:SSH (EC) private key:1646
 /builds/hmailserver/hmailserver/hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:SSH private key:1647
-/builds/hmailserver/hmailserver/hmailserver/source/Server/Common/Util/ObjectStoreSignature.cpp:AWS:529
+/builds/hmailserver/hmailserver/hmailserver/source/Server/Common/Util/ObjectStoreSignature.cpp:AWS:527
 /builds/hmailserver/hmailserver/hmailserver/source/Server/Common/Util/OpenPgpKey.cpp:PGP private key:1500
 /builds/hmailserver/hmailserver/hmailserver/source/Server/Common/Util/OpenPgpKey.cpp:PGP private key:899
 /builds/hmailserver/hmailserver/hmailserver/test/RegressionTests/API/RestApiOpenPgpKeys.cs:PGP private key:121
-/builds/hmailserver/hmailserver/hmailserver/test/RegressionTests/API/SamlSignIn.cs:PKCS8 private key:723
+/builds/hmailserver/hmailserver/hmailserver/test/RegressionTests/API/SamlSignIn.cs:PKCS8 private key:751
 /builds/hmailserver/hmailserver/hmailserver/test/RegressionTests/SMTP/GatewayEncryption.cs:PKCS8 private key:82
 /builds/hmailserver/hmailserver/hmailserver/test/RegressionTests/Security/TlsAcmeDeployment.cs:PKCS8 private key:52
 /builds/hmailserver/hmailserver/hmailserver/test/RegressionTests/Security/TlsCertificateValidity.cs:RSA private key:68
@@ -133,7 +133,46 @@ c19f5481847677b677d566cb17aea5ee5a6ef3a8:hmailserver/source/Server/Common/Util/H
 # 108d3850f (the image the job pins, on linix) at the same lines; one line of each form.
 # 1 October 2026: b42-surbl2 moved the two lines; the directory-scan entries follow them to
 # SURBL.cpp 1886 and Basics.cs 504 (the commit-keyed entries name the lines in their own commit).
+# 10 October 2026: SURBL.cpp's has moved on to 2625 (below).
 37324d9689e55e6d6c592436b7d25589c658a15d:hmailserver/source/Server/Common/AntiSpam/SURBL.cpp:Password in URL:1115
 37324d9689e55e6d6c592436b7d25589c658a15d:hmailserver/test/RegressionTests/AntiSpam/Basics.cs:Password in URL:500
-/builds/hmailserver/hmailserver/hmailserver/source/Server/Common/AntiSpam/SURBL.cpp:Password in URL:1886
+/builds/hmailserver/hmailserver/hmailserver/source/Server/Common/AntiSpam/SURBL.cpp:Password in URL:2625
 /builds/hmailserver/hmailserver/hmailserver/test/RegressionTests/AntiSpam/Basics.cs:Password in URL:504
+#
+# b53-ci, 10 October 2026: what both scans find now that they read every path under a
+# directory named build, bin, obj, target or packages, which GitLab's rules left out
+# (.gitlab/secret-detection-allowlist.toml). gitleaks in the image secret_detection pins,
+# with the rules both scans now make (build/ci/secret-detection-rules.sh), over every
+# branch and tag of the project on GitLab (2,873 commits, master at 74aed9ab8) and over
+# master's tree, found five, each read in its commit and none a secret - the five
+# ccbbfda19 named on 9 October:
+#
+#   - the secret keys of the OpenPGP fixtures' alice and bob (build/fixtures/openpgp,
+#     added in 2e748ceae): test keys made by build/make-openpgp-fixtures.sh for
+#     build/check-portal-openpgp.js, their passphrase printed in the README beside
+#     them, their addresses in the .test top-level domain, trusted by nothing;
+#   - three lines that test a text for a private key's armour header, and hold no key:
+#     build/ci/installer-smoke.ps1, which checks that the key file it was given begins
+#     "BEGIN PRIVATE KEY" and prints no more of it; build/generate-package-repos.py,
+#     which reads a signing key given inline when the text begins with the OpenPGP
+#     private key header; and build/deck-script-test.js, which puts a header, four A's
+#     and a footer in the Control Deck's key field to see the page refuse it.
+#
+# The analyzer's own whole-history scan names the three lines and not the two keys,
+# which .gitattributes marks binary, so that its git log shows no line of them; gitleaks
+# as scan-secrets.py runs it names all five. Each in both forms: the commit that added
+# it, and the line in master's tree for the directory scan of a pipeline started through
+# the API. The tree's scan, the same day, also found four of the directory entries above
+# moved by later edits of their files - DkimRotationPlan.cpp 729 to 728,
+# ObjectStoreSignature.cpp 529 to 527, SamlSignIn.cs 723 to 751 and SURBL.cpp 1886 to
+# 2625 - each read again, the same fixture at its new line.
+2e748ceae80fee444973ecc36becf4134d2e726a:build/fixtures/openpgp/alice.sec.asc:PGP private key:1
+2e748ceae80fee444973ecc36becf4134d2e726a:build/fixtures/openpgp/bob.sec.asc:PGP private key:1
+578ec47b7f9e18999553258e070d53e66be4dc99:build/ci/installer-smoke.ps1:PKCS8 private key:1338
+77ae713cdf9da2980b7ef736e27ca15cd2fdbd4a:build/generate-package-repos.py:PGP private key:351
+c893043d824e2965e3a52848f83104e8147bd288:build/deck-script-test.js:PGP private key:2412
+/builds/hmailserver/hmailserver/build/fixtures/openpgp/alice.sec.asc:PGP private key:1
+/builds/hmailserver/hmailserver/build/fixtures/openpgp/bob.sec.asc:PGP private key:1
+/builds/hmailserver/hmailserver/build/ci/installer-smoke.ps1:PKCS8 private key:1766
+/builds/hmailserver/hmailserver/build/generate-package-repos.py:PGP private key:375
+/builds/hmailserver/hmailserver/build/deck-script-test.js:PGP private key:5260
