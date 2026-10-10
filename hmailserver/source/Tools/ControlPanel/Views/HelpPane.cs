@@ -356,14 +356,18 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
-      /// Scrolls the document showing to a heading, or to its top when the heading
-      /// is not one of its own or none is named. The heading's block is brought into
-      /// view at Loaded priority, once the layout has run: asked at once, straight
-      /// after <see cref="ShowFromTheTop_"/>, it is not acted on, because the
-      /// viewer finds where a block is only in a document it has laid out - which
-      /// is why a page's heading was reached only when its document was already
-      /// showing. When another document has replaced it by then, that one is
-      /// left as it is.
+      /// Scrolls the document showing so that a heading is at the top of the pane,
+      /// or to the document's top when the heading is not one of its own or none is
+      /// named. It is done at Loaded priority, once the layout has run: asked
+      /// straight after <see cref="ShowFromTheTop_"/>, it would find nothing,
+      /// because the viewer knows where a block is only in a document it has laid
+      /// out - which is why a page's heading was reached only when its document was
+      /// already showing. The heading's line is put at the top by the ScrollViewer's
+      /// offset, not by the block's BringIntoView, which scrolls as little as shows
+      /// the block and so leaves a heading already on screen where it is: the
+      /// anti-spam page's Greylisting tab opened its document at the top with "What
+      /// greylisting does" halfway down. When another document has replaced this
+      /// one by then, that one is left as it is.
       /// </summary>
       private void ScrollToHeading_(string heading)
       {
@@ -380,10 +384,20 @@ namespace hMailServer.ControlPanel.Views
             if (!ReferenceEquals(viewer_.Document, document))
                return;
 
-            if (block != null)
-               block.BringIntoView();
+            ScrollViewer scroller = DocumentScroller_();
+            if (block == null)
+            {
+               scroller?.ScrollToHome();
+               return;
+            }
+
+            // Where the heading's first line is in the viewport, which the viewer
+            // scrolls itself: 0 at its top, negative above it.
+            Rect line = block.ContentStart.GetCharacterRect(LogicalDirection.Forward);
+            if (scroller != null && !line.IsEmpty)
+               scroller.ScrollToVerticalOffset(scroller.VerticalOffset + line.Top);
             else
-               DocumentScroller_()?.ScrollToHome();
+               block.BringIntoView();
          }));
       }
 

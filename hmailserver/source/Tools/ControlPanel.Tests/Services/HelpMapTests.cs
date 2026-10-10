@@ -218,8 +218,10 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// the document was given, both in vain: a page with no guide opened at the
       /// foot of the list of documents after a long document's heading, a tab's
       /// document part-way down. Every document now goes through ShowFromTheTop_,
-      /// which sets the ScrollViewer itself back, and the heading is brought into
-      /// view at Loaded priority, after the layout.
+      /// which sets the ScrollViewer itself back, and at Loaded priority, after the
+      /// layout, the heading's line is put at the top of the pane by the
+      /// ScrollViewer's offset - BringIntoView scrolls as little as shows the block,
+      /// which leaves a heading already on screen where it is.
       /// </summary>
       [Fact]
       public void ADocumentOpensAtItsTop_AndAtItsHeadingOnceLaidOut()
@@ -242,7 +244,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          string heading = WithheldRowTests.MemberText(pane, "private void ScrollToHeading_(string heading)");
          Assert.True(heading != null, "HelpPane no longer scrolls to a heading through ScrollToHeading_.");
          Assert.Contains("DispatcherPriority.Loaded", heading, StringComparison.Ordinal);
-         Assert.Contains("block.BringIntoView();", heading, StringComparison.Ordinal);
+         Assert.Contains("block.ContentStart.GetCharacterRect(LogicalDirection.Forward)", heading, StringComparison.Ordinal);
+         Assert.Contains("scroller.ScrollToVerticalOffset(scroller.VerticalOffset + line.Top);", heading, StringComparison.Ordinal);
          Assert.Contains("ReferenceEquals(viewer_.Document, document)", heading, StringComparison.Ordinal);
          Assert.DoesNotContain("FirstBlock", pane, StringComparison.Ordinal);
       }
