@@ -14,6 +14,19 @@ namespace hMailServer.ControlPanel.Services
    public static class PageHeaderLayout
    {
       /// <summary>
+      /// Below this height of the page, a page that pins its header and a tab strip
+      /// above its tabs (the settings pages ServerSettingsView builds) shows its
+      /// subtitle as the title's tool tip, so that the room is the settings' (review
+      /// finding F290): a 760 by 520 window gives a page some 395 pixels, and the
+      /// title, a two-line subtitle, a two-line notice and the strip took all but 140.
+      /// </summary>
+      public const double SubtitleInToolTipBelow = 600;
+
+      /// <summary>Whether a page this high shows its subtitle as the title's tool tip.</summary>
+      public static bool SubtitleInToolTip(double pageHeight)
+         => pageHeight > 0 && pageHeight < SubtitleInToolTipBelow;
+
+      /// <summary>
       /// Whether the actions go under the subtitle: when the header's width, less
       /// the actions' (with their gap), cannot hold the title whole. The subtitle no
       /// longer shares the title's column, so it is not measured against them.

@@ -48,6 +48,9 @@ namespace hMailServer.ControlPanel.Views.Scaffold
       public static readonly DependencyProperty PageKeyProperty = DependencyProperty.Register(
          nameof(PageKey), typeof(string), typeof(PageHeader), new PropertyMetadata(null, OnPageKeyChanged, NullWhenEmpty));
 
+      public static readonly DependencyProperty SubtitleInToolTipProperty = DependencyProperty.Register(
+         nameof(SubtitleInToolTip), typeof(bool), typeof(PageHeader), new PropertyMetadata(false));
+
       /// <summary>
       /// Raised by the help button. It bubbles to the shell, which is the only
       /// thing that knows how to run a tour; a scaffold component that reached
@@ -128,6 +131,19 @@ namespace hMailServer.ControlPanel.Views.Scaffold
       {
          get => (string)GetValue(PageKeyProperty);
          set => SetValue(PageKeyProperty, value);
+      }
+
+      /// <summary>
+      /// The subtitle as the title's tool tip rather than a line under it, for a page
+      /// that pins its header above content that scrolls, in a window too short for
+      /// both (Services/PageHeaderLayout.SubtitleInToolTip; review finding F290). It
+      /// stays the header's help text either way, so a screen reader hears it as
+      /// before.
+      /// </summary>
+      public bool SubtitleInToolTip
+      {
+         get => (bool)GetValue(SubtitleInToolTipProperty);
+         set => SetValue(SubtitleInToolTipProperty, value);
       }
 
       /// <summary>Raised when the reader presses the help button.</summary>

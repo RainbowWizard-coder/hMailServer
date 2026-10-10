@@ -49,9 +49,16 @@
             </scaffold:PageHeader.Actions>
         </scaffold:PageHeader>
 
-        <scaffold:InlineNotice x:Name="StatusNotice" Grid.Row="1" Visibility="Collapsed"
-                               Margin="{StaticResource AppCardGap}"
-                               AutomationProperties.AutomationId="settings-status" />
+        <!-- The notice starts here and moves into the tab on screen, above its
+             first card, as the tabs are built and chosen, so that it scrolls away
+             with the settings and the header and the strip stay pinned alone: at 760
+             by 520 the pinned title, subtitle, notice and strip left the settings
+             140 pixels (ServerSettingsView.PlaceNotice_, review finding F290). -->
+        <ContentControl x:Name="PageNoticeSlot" Grid.Row="1" Focusable="False" IsTabStop="False">
+            <scaffold:InlineNotice x:Name="StatusNotice" Visibility="Collapsed"
+                                   Margin="{StaticResource AppCardGap}"
+                                   AutomationProperties.AutomationId="settings-status" />
+        </ContentControl>
 
         <TabControl x:Name="SettingsTabs" Grid.Row="2" Background="Transparent" BorderThickness="0" Padding="0,8,0,0" />
     </Grid>

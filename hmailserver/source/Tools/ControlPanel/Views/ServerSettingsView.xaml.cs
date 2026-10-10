@@ -1800,6 +1800,38 @@ namespace hMailServer.ControlPanel.Views
          InitializeComponent();
          section_ = section;
          BuildDefinition();
+
+         // The page's notice goes with the tab on screen, and in a short window
+         // the subtitle is the title's tool tip (review finding F290). Only the
+         // strip's own changes: a list on a tab raises SelectionChanged too.
+         SettingsTabs.SelectionChanged += (s, e) =>
+         {
+            if (ReferenceEquals(e.OriginalSource, SettingsTabs))
+               PlaceNotice_();
+         };
+         SizeChanged += (s, e) => Header.SubtitleInToolTip = PageHeaderLayout.SubtitleInToolTip(e.NewSize.Height);
+      }
+
+      // One slot per tab, above its first card, that the page's notice is moved
+      // into with the tab on screen (PlaceNotice_).
+      private readonly List<ContentControl> tabNoticeSlots_ = new();
+
+      /// <summary>
+      /// Puts the page's notice above the first card of the tab on screen, where it
+      /// scrolls away with the settings, or in the slot under the header while there
+      /// is no tab (review finding F290). Under the header it stayed pinned with the
+      /// title, the subtitle and the strip, and at 760 by 520 the four left the
+      /// settings 140 pixels: a card heading and two lines of text on Auto-ban.
+      /// </summary>
+      private void PlaceNotice_()
+      {
+         int at = SettingsTabs.SelectedIndex;
+         ContentControl target = at >= 0 && at < tabNoticeSlots_.Count ? tabNoticeSlots_[at] : PageNoticeSlot;
+         if (ReferenceEquals(StatusNotice.Parent, target))
+            return;
+         if (StatusNotice.Parent is ContentControl from)
+            from.Content = null;
+         target.Content = StatusNotice;
       }
 
       public void OnEnter()
@@ -5310,6 +5342,9 @@ namespace hMailServer.ControlPanel.Views
 
       private void BuildUi()
       {
+         // The notice back under the header while the tabs that held it go.
+         tabNoticeSlots_.Clear();
+         PlaceNotice_();
          SettingsTabs.Items.Clear();
          diag_ = null;
          failedReads_ = 0;
@@ -5495,6 +5530,11 @@ namespace hMailServer.ControlPanel.Views
             if (tabRestProblem != null)
                panel.Children.Insert(0, RestTabNotice_(tabRestProblem));
 
+            // The page's notice, when this tab is on screen, above everything.
+            var noticeSlot = new ContentControl { Focusable = false, IsTabStop = false };
+            panel.Children.Insert(0, noticeSlot);
+            tabNoticeSlots_.Add(noticeSlot);
+
             var scroll = new ScrollViewer
             {
                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
@@ -5527,6 +5567,7 @@ namespace hMailServer.ControlPanel.Views
 
          if (SettingsTabs.Items.Count > 0)
             SettingsTabs.SelectedIndex = 0;
+         PlaceNotice_();
 
          // A page with one tab is a page, not a tab: the strip with a single
          // underlined header is hidden. Collapsing the item hides its header

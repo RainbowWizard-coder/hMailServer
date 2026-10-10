@@ -79,6 +79,15 @@
                         <Trigger Property="Subtitle" Value="{x:Null}">
                             <Setter TargetName="PART_Subtitle" Property="Visibility" Value="Collapsed" />
                         </Trigger>
+                        <!-- In a short window the subtitle is the title's tool tip, where
+                             a page pins its header above content that scrolls
+                             (PageHeader.SubtitleInToolTip, review finding F290); it
+                             stays the header's help text either way. -->
+                        <Trigger Property="SubtitleInToolTip" Value="True">
+                            <Setter TargetName="PART_Subtitle" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="PART_TitleRow" Property="ToolTip"
+                                    Value="{Binding Subtitle, RelativeSource={RelativeSource TemplatedParent}}" />
+                        </Trigger>
                         <Trigger Property="Status" Value="{x:Null}">
                             <Setter TargetName="PART_Status" Property="Visibility" Value="Collapsed" />
                         </Trigger>

@@ -2442,6 +2442,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   lines, each trimmed with its own tool tip: the alias, and under it in the secondary text "→" and the address it
   delivers to; a screen reader still hears both as one, and the list's floor holds three of the taller rows.
 
+- **Fixed: in a short window the settings pages left their settings a strip 140 pixels high.** On Auto-ban, SSL/TLS,
+  Administrative access, Logging, Performance and the other pages built the same way, the title, a two-line subtitle,
+  a two-line notice and the tab strip all stayed pinned while only the tab's content scrolled, so that at 760 by 520 a
+  tab showed one card heading and two lines of text. The page's notice now sits above the first card of the tab on
+  screen and scrolls away with it, moving with the tab chosen; below 600 pixels of page the subtitle is the title's
+  tool tip (and still the header's help text for a screen reader); the header and the tab strip stay pinned.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
