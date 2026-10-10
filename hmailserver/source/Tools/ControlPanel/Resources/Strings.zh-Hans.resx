@@ -2110,8 +2110,8 @@
   <data name="Body read chunk size (bytes)" xml:space="preserve">
     <value>正文读取块大小（字节）</value>
   </data>
-  <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox on the Deck's queue page or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
-    <value>两个地址都已设置。服务是否应答无法在这里判断：请从外部发送一封附有提交类型文件的邮件，然后在 Deck 队列页面的“等待沙箱判定”中查找它，或在应用程序日志中查找表明它已提交到沙箱的行。</value>
+  <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox in the Control Deck's delivery queue or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
+    <value>两个地址都已设置。服务是否应答无法在这里判断：请从外部发送一封附有提交类型文件的邮件，然后在 Control Deck 投递队列的“等待沙箱判定”中查找它，或在应用程序日志中查找表明它已提交到沙箱的行。</value>
   </data>
   <data name="Both overrides read the score this server recorded in the message, so they need 'Add X-hMailServer-Reason header' switched on, on the Anti-spam settings page. With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
     <value>这两个覆盖项读取的都是本服务器记录在邮件中的分数，因此它们需要在“反垃圾邮件设置”页上打开“添加 X-hMailServer-Reason 标头”。关闭它就不会记录任何分数，什么也无法证明，两个覆盖项都不会起作用 - 该账户保持服务器范围的行为。在这种情况下不信任文件中的值，因为没有什么能阻止发件人自己往里面放一个。</value>
@@ -8035,8 +8035,14 @@
   <data name="Open or close the help for this page" xml:space="preserve">
     <value>打开或关闭此页面的帮助</value>
   </data>
+  <data name="Open the Control Deck" xml:space="preserve">
+    <value>打开 Control Deck</value>
+  </data>
   <data name="Open the Control Panel on the server itself to change the account the service runs as or grant it its folders." xml:space="preserve">
     <value>请在服务器本机上打开控制面板，以更改服务运行所用的账户或授予其文件夹。</value>
+  </data>
+  <data name="Open the Control _Deck" xml:space="preserve">
+    <value>打开 Control Deck(_D)</value>
   </data>
   <data name="Open the SMTP port 25 and set its SMTP authentication to Honeypot or Off: AUTH there is refused without the password being looked at, and the address that sent it is banned." xml:space="preserve">
     <value>打开 SMTP 端口 25，将其 SMTP 身份验证设为“蜜罐”或“关闭”：那里的 AUTH 会在不查看密码的情况下被拒绝，发送它的地址会被封禁。</value>
@@ -8118,6 +8124,9 @@
   </data>
   <data name="Opens {0}" xml:space="preserve">
     <value>打开 {0}</value>
+  </data>
+  <data name="Opens {0} in the web browser." xml:space="preserve">
+    <value>在 Web 浏览器中打开 {0}。</value>
   </data>
   <data name="Opens {0}, the first page of this area." xml:space="preserve">
     <value>打开 {0}，即此区域的第一个页面。</value>
@@ -8787,8 +8796,8 @@
   <data name="REST API keys" xml:space="preserve">
     <value>REST API 密钥</value>
   </data>
-  <data name="REST administration API + Web Control Deck" xml:space="preserve">
-    <value>REST 管理 API + Web Control Deck</value>
+  <data name="REST administration API and the Control Deck" xml:space="preserve">
+    <value>REST 管理 API 与 Control Deck</value>
   </data>
   <data name="REST administration API, Prometheus metrics and remote script management. The public web services listener (autoconfiguration, MTA-STS hosting) is on the Web services &amp; autoconfiguration page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
     <value>REST 管理 API、Prometheus 指标和远程脚本管理。公共 Web 服务监听器（自动配置、MTA-STS 托管）在“Web 服务和自动配置”页；OAuth2 令牌身份验证在“身份验证”页。</value>
@@ -11530,6 +11539,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>Active Directory 用户名 (sAMAccountName) - 与账户“Windows 目录”选项卡中的值相同。可选: 留空时，测试在连接和服务凭据阶段之后停止。</value>
   </data>
+  <data name="The Control Deck is served by the REST API, which is off - give it a port on the API &amp; monitoring page." xml:space="preserve">
+    <value>Control Deck 由 REST API 提供，而 REST API 已关闭 - 请在“API 与监控”页面为它设置端口。</value>
+  </data>
   <data name="The Control Panel is connected to another host, so the account ITS service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>控制面板连接的是另一台主机，因此无法从此处读取该主机的服务所运行的账户。请在服务器本身上打开控制面板查看。</value>
   </data>
@@ -11602,11 +11614,17 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs a TLS certificate file and its private key file on the API &amp; monitoring page, or an ACME certificate issued to this server." xml:space="preserve">
     <value>REST API 未运行：它只在 127.0.0.1 或 ::1 上提供未加密的 HTTP，在 {0} 上监听需要在“API 与监控”页上设置 TLS 证书文件及其私钥文件，或为本服务器签发的 ACME 证书。</value>
   </data>
+  <data name="The REST API is not running: listening on {0} needs a certificate, set on the API &amp; monitoring page." xml:space="preserve">
+    <value>REST API 未运行：在 {0} 上监听需要证书，请在“API 与监控”页面设置。</value>
+  </data>
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>REST API 已关闭（其在“API 与监控”页上的端口为 {0}），而这些设置要通过它访问：服务器保存着它们，但没有任何 COM 属性携带它们。请在“API 与监控”页面上为 REST API 指定端口，重新初始化服务器，然后再次打开此页面。</value>
   </data>
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and this page reads the cases over it. Give it a port there, or read the cases in the Control Deck." xml:space="preserve">
     <value>REST API 已关闭（其在“API 与监控”页上的端口为 {0}），而此页面通过它读取案件。请在那里为它指定端口，或在 Control Deck 中查看案件。</value>
+  </data>
+  <data name="The REST API listens on {0} only, so the Control Deck opens only in a browser on the server itself." xml:space="preserve">
+    <value>REST API 只在 {0} 上监听，因此 Control Deck 只能在服务器本机的浏览器中打开。</value>
   </data>
   <data name="The REST API listens on {0} only, which a Control Panel on another machine cannot reach. Change these settings in the Control Deck on the server, or from a Control Panel running there." xml:space="preserve">
     <value>REST API 仅在 {0} 上监听，其他计算机上的控制面板无法访问。请在服务器上的 Control Deck 中，或从在那里运行的控制面板更改这些设置。</value>
@@ -13903,6 +13921,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Where new messages are stored" xml:space="preserve">
     <value>新邮件的存储位置</value>
+  </data>
+  <data name="Where the Control Deck is could not be read." xml:space="preserve">
+    <value>无法读取 Control Deck 的位置。</value>
   </data>
   <data name="Where the administrator is told, well before anything is refused. 1024 MB is roughly fifty more maximum-size messages." xml:space="preserve">
     <value>在任何邮件被拒绝之前很久，管理员会在什么时候得到通知。1024 MB 大约相当于再多五十封最大尺寸的邮件。</value>

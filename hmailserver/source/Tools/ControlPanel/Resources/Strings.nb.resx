@@ -2110,8 +2110,8 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Body read chunk size (bytes)" xml:space="preserve">
     <value>Leseblokkstørrelse for meldingskropp (byte)</value>
   </data>
-  <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox on the Deck's queue page or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
-    <value>Begge adressene er satt. Om tjenesten svarer, kan ikke avgjøres herfra: send en melding utenfra med en vedlagt fil av en innsendt type, og se etter den under Holdt tilbake for en sandkasse på Deckens køside eller etter en linje i programloggen om at den ble sendt til sandkassen.</value>
+  <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox in the Control Deck's delivery queue or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
+    <value>Begge adressene er satt. Om tjenesten svarer, kan ikke avgjøres herfra: send en melding utenfra med en vedlagt fil av en innsendt type, og se etter den under Holdt tilbake for en sandkasse i Control Deckens leveringskø eller etter en linje i programloggen om at den ble sendt til sandkassen.</value>
   </data>
   <data name="Both overrides read the score this server recorded in the message, so they need 'Add X-hMailServer-Reason header' switched on, on the Anti-spam settings page. With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
     <value>Begge overstyringene leser poengene denne serveren registrerte i meldingen, så de trenger at «Legg til X-hMailServer-Reason-header» er slått på, på siden Antispam-innstillinger. Med den av registreres ingen poeng, ingenting kan bevises, og ingen av overstyringene virker - kontoen beholder den serveromfattende oppførselen. Verdien i filen stoles ikke på i det tilfellet, fordi ingenting hindrer en AVSENDER i å legge en der.</value>
@@ -8035,8 +8035,14 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Open or close the help for this page" xml:space="preserve">
     <value>Åpne eller lukk hjelpen for denne siden</value>
   </data>
+  <data name="Open the Control Deck" xml:space="preserve">
+    <value>Åpne Control Deck</value>
+  </data>
   <data name="Open the Control Panel on the server itself to change the account the service runs as or grant it its folders." xml:space="preserve">
     <value>Åpne Control Panel på selve serveren for å bytte kontoen tjenesten kjører som, eller gi den mappene sine.</value>
+  </data>
+  <data name="Open the Control _Deck" xml:space="preserve">
+    <value>Åpne _Control Deck</value>
   </data>
   <data name="Open the SMTP port 25 and set its SMTP authentication to Honeypot or Off: AUTH there is refused without the password being looked at, and the address that sent it is banned." xml:space="preserve">
     <value>Åpne SMTP-port 25 og sett SMTP-autentiseringen til Honningkrukke eller Av: AUTH avvises der uten at passordet blir sett på, og adressen som sendte det, utestenges.</value>
@@ -8118,6 +8124,9 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="Opens {0}" xml:space="preserve">
     <value>Åpner {0}</value>
+  </data>
+  <data name="Opens {0} in the web browser." xml:space="preserve">
+    <value>Åpner {0} i nettleseren.</value>
   </data>
   <data name="Opens {0}, the first page of this area." xml:space="preserve">
     <value>Åpner {0}, den første siden i dette området.</value>
@@ -8787,8 +8796,8 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   <data name="REST API keys" xml:space="preserve">
     <value>REST API-nøkler</value>
   </data>
-  <data name="REST administration API + Web Control Deck" xml:space="preserve">
-    <value>REST-administrasjons-API + Web Control Deck</value>
+  <data name="REST administration API and the Control Deck" xml:space="preserve">
+    <value>REST-administrasjons-API og Control Deck</value>
   </data>
   <data name="REST administration API, Prometheus metrics and remote script management. The public web services listener (autoconfiguration, MTA-STS hosting) is on the Web services &amp; autoconfiguration page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
     <value>REST-administrasjons-API, Prometheus-metrikker og ekstern skriptadministrasjon. Den offentlige webtjenestelytteren (autokonfigurasjon, MTA-STS-vertskap) er på siden Webtjenester og autokonfigurasjon; OAuth2-tokenautentisering er på siden Autentisering.</value>
@@ -11530,6 +11539,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>Active Directory-brukernavnet (sAMAccountName) - den samme verdien som kontoens fane Windows-katalog inneholder. Valgfritt: står det tomt, stopper testen etter tilkoblings- og tjenestelegitimasjonstrinnene.</value>
   </data>
+  <data name="The Control Deck is served by the REST API, which is off - give it a port on the API &amp; monitoring page." xml:space="preserve">
+    <value>Control Deck leveres av REST-API-et, som er slått av - gi det en port på siden API og overvåking.</value>
+  </data>
   <data name="The Control Panel is connected to another host, so the account ITS service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>Control Panel er koblet til en annen vert, så kontoen DENS tjeneste kjører som, kan ikke leses herfra. Åpne Control Panel på selve serveren for å se den.</value>
   </data>
@@ -11602,11 +11614,17 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs a TLS certificate file and its private key file on the API &amp; monitoring page, or an ACME certificate issued to this server." xml:space="preserve">
     <value>REST-API-et kjører ikke: det leverer ukryptert HTTP bare på 127.0.0.1 eller ::1, og å lytte på {0} krever en TLS-sertifikatfil og tilhørende privatnøkkelfil på siden API og overvåking, eller et ACME-sertifikat utstedt til denne serveren.</value>
   </data>
+  <data name="The REST API is not running: listening on {0} needs a certificate, set on the API &amp; monitoring page." xml:space="preserve">
+    <value>REST-API-et kjører ikke: å lytte på {0} krever et sertifikat, som angis på siden API og overvåking.</value>
+  </data>
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>REST-API-et er slått av (porten på siden API og overvåking er {0}), og disse innstillingene nås gjennom det: serveren lagrer dem, men ingen COM-egenskap bærer dem. Gi REST-API-et en port på siden API og overvåking, initialiser serveren på nytt, og åpne denne siden igjen.</value>
   </data>
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and this page reads the cases over it. Give it a port there, or read the cases in the Control Deck." xml:space="preserve">
     <value>REST-API-et er slått av (porten på siden API og overvåking er {0}), og denne siden leser sakene gjennom det. Gi det en port der, eller les sakene i Control Deck.</value>
+  </data>
+  <data name="The REST API listens on {0} only, so the Control Deck opens only in a browser on the server itself." xml:space="preserve">
+    <value>REST-API-et lytter bare på {0}, så Control Deck kan bare åpnes i en nettleser på selve serveren.</value>
   </data>
   <data name="The REST API listens on {0} only, which a Control Panel on another machine cannot reach. Change these settings in the Control Deck on the server, or from a Control Panel running there." xml:space="preserve">
     <value>REST-API-et lytter bare på {0}, som et Control Panel på en annen maskin ikke kan nå. Endre disse innstillingene i Control Deck på serveren, eller fra et Control Panel som kjører der.</value>
@@ -13903,6 +13921,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="Where new messages are stored" xml:space="preserve">
     <value>Hvor nye meldinger lagres</value>
+  </data>
+  <data name="Where the Control Deck is could not be read." xml:space="preserve">
+    <value>Hvor Control Deck er, kunne ikke leses.</value>
   </data>
   <data name="Where the administrator is told, well before anything is refused. 1024 MB is roughly fifty more maximum-size messages." xml:space="preserve">
     <value>Hvor administratoren får beskjed, lenge før noe avvises. 1024 MB er omtrent femti meldinger til av maksimal størrelse.</value>

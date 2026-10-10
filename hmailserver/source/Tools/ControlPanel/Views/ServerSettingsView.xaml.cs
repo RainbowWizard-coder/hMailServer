@@ -1312,6 +1312,28 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
+      /// The Control Deck's button on a card whose settings are the server's half of
+      /// something the Deck holds the rest of - the alert rules, the webhook
+      /// subscriptions, the spam-trap addresses, a compromised account's held
+      /// messages, the migration jobs - and says so: those texts named the Deck with
+      /// no way to it (review finding F281; Views/ControlDeckLink). Writes nothing.
+      /// </summary>
+      private sealed class DeckLinkRow : ComSetting, INotPersisted
+      {
+         public override bool WantsInitialValue => false;
+
+         protected override bool CaptionOnRow => false;
+
+         protected override FrameworkElement BuildEditor(object value) => ControlDeckLink.Row(L("Open the Control Deck"));
+
+         public override object ReadEditor() => null;
+
+         public override void Write(object owner, string property)
+         {
+         }
+      }
+
+      /// <summary>
       /// A setting the server stores and never reads - see
       /// <see cref="SettingClaims"/> for how one is established, and
       /// WorkerThreadPriority for the one this exists for.
@@ -2805,6 +2827,7 @@ namespace hMailServer.ControlPanel.Views
          // COM and REST; nothing here does anything until a domain has one.
          var traps = Card(L("Spam traps"),
             L("A spam trap is an address in one of your domains that nobody uses, so whoever writes to it is sending spam. These settings say what happens to a server that does. The trap addresses are declared per domain in the Control Deck; until a domain has one, nothing here does anything."));
+         traps.Settings.Add(new DeckLinkRow());
          traps.Settings.Add(new ComText
          {
             Path = "SpamTrapBanMinutes",
@@ -3366,6 +3389,7 @@ namespace hMailServer.ControlPanel.Views
          // Kept by the server with no COM property.
          var compromise = Card(L("Compromised accounts"),
             L("Scores each account's submissions for the shape of a takeover: far more mail than its busiest hour, mostly to addresses it has never written to, at an hour it never sends, from a network it never used. Watch raises the account.compromised alert; enforce also holds the message for review, holds the account's other queued mail and locks the account until an administrator unlocks it. Held messages are reviewed in the Control Deck."));
+         compromise.Settings.Add(new DeckLinkRow());
          compromise.Settings.Add(new RestChoice
          {
             Path = "CompromiseDetectionMode",
@@ -3697,6 +3721,7 @@ namespace hMailServer.ControlPanel.Views
          // how many are the server's settings, kept with no COM property.
          var alerts = Card(L("Alerts"),
             L("Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set."));
+         alerts.Settings.Add(new DeckLinkRow());
          alerts.Settings.Add(new RestBool
          {
             Path = "AlertsEnabled",
@@ -3758,6 +3783,7 @@ namespace hMailServer.ControlPanel.Views
          // Deck's and the REST API's; these four are the server's.
          var webhooks = Card(L("Outbound webhooks"),
             L("Events - a message received, delivered, bounced or quarantined, an account locked - posted to the receivers subscribed in the Control Deck or over the REST API. Nothing is sent until a subscription exists."));
+         webhooks.Settings.Add(new DeckLinkRow());
          webhooks.Settings.Add(new ComBool
          {
             Path = "WebhooksEnabled",
@@ -4413,6 +4439,7 @@ namespace hMailServer.ControlPanel.Views
          // the server's. Kept with no COM property.
          var migration = Card(L("Migrations"),
             L("Mailbox migrations from another server, and imports of Outlook data files (PST). The jobs are started in the Control Deck or over the REST API."));
+         migration.Settings.Add(new DeckLinkRow());
          migration.Settings.Add(new RestNumber
          {
             Path = "MigrationConnectionsPerHost",

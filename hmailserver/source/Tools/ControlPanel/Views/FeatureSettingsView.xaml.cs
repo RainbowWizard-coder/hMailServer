@@ -1121,6 +1121,27 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
+      /// The Control Deck's button on the REST API's card, which says the Deck is
+      /// served at the listener's root (review finding F281; Views/ControlDeckLink).
+      /// It carries no Key: it edits nothing and the settings index has nothing to
+      /// find in it.
+      /// </summary>
+      private sealed class DeckLinkSetting : Setting
+      {
+         public override FrameworkElement CreateEditor(IniFeatureStore store)
+         {
+            // The gap a row of this page keeps below it, as the signpost rows do.
+            FrameworkElement row = ControlDeckLink.Row(L("Open the Control Deck"));
+            row.Margin = new Thickness(0, 0, 0, DesignTokens.Space.Md);
+            return row;
+         }
+
+         public override void Save(IniFeatureStore store)
+         {
+         }
+      }
+
+      /// <summary>
       /// A button on the Windows service account card that runs hMailServer.exe as
       /// an administrator, after the elevation prompt, and shows what it said
       /// (docs/ServiceAccount.md): Grant access, and the two moves. The account is
@@ -2301,10 +2322,11 @@ namespace hMailServer.ControlPanel.Views
                Header.Subtitle = L("REST administration API, Prometheus metrics and remote script management. The public web services listener (autoconfiguration, MTA-STS hosting) is on the Web services & autoconfiguration page; OAuth2 token authentication is on the Authentication page.");
                cards_.Add(new CardDef
                {
-                  Title = L("REST administration API + Web Control Deck"),
+                  Title = L("REST administration API and the Control Deck"),
                   Blurb = L("JSON API under /api/v1 plus the browser-based Control Deck at the listener root. Authenticated with the administrator password, or with a scoped API key - a key can be read-only, limited to named domains and source addresses, given an expiry and revoked on its own, none of which the administrator password can. Keys are managed on the REST API keys page. TLS is required unless the listener is bound to 127.0.0.1."),
                   Settings =
                   {
+                     new DeckLinkSetting(),
                      new ElsewhereSetting("apikeys", L("Creating and revoking API keys")),
                      new NumberSetting { Key = "RestApiPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("Port (0 = disabled)"), Placeholder = "8045" },
                      new TextSetting { Key = "RestApiBindAddress", Address = true, Default = "127.0.0.1", Label = L("Bind address") },

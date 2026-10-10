@@ -2110,8 +2110,8 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Body read chunk size (bytes)" xml:space="preserve">
     <value>Tamanho do bloco de leitura do corpo (bytes)</value>
   </data>
-  <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox on the Deck's queue page or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
-    <value>Os dois endereços estão definidos. Se o serviço responde não dá para saber daqui: envie de fora uma mensagem com um arquivo anexado de um tipo enviado e procure-a em Retidas para um sandbox na página da fila do Deck, ou procure no log do aplicativo uma linha dizendo que ela foi enviada ao sandbox.</value>
+  <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox in the Control Deck's delivery queue or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
+    <value>Os dois endereços estão definidos. Se o serviço responde não dá para saber daqui: envie de fora uma mensagem com um arquivo anexado de um tipo enviado e procure-a em Retidas para um sandbox na fila de entrega do Control Deck, ou procure no log do aplicativo uma linha dizendo que ela foi enviada ao sandbox.</value>
   </data>
   <data name="Both overrides read the score this server recorded in the message, so they need 'Add X-hMailServer-Reason header' switched on, on the Anti-spam settings page. With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
     <value>Ambas as substituições leem a pontuação que este servidor registrou na mensagem, então elas precisam de 'Adicionar cabeçalho X-hMailServer-Reason' ligado na página Configurações antispam. Com isso desligado, nenhuma pontuação é registrada, nada é comprovável e nenhuma das substituições age - a conta mantém o comportamento de todo o servidor. O valor no arquivo não é confiável nesse caso porque nada impede um REMETENTE de colocar um lá.</value>
@@ -8035,8 +8035,14 @@ Nada do que já está lá é removido.</value>
   <data name="Open or close the help for this page" xml:space="preserve">
     <value>Abrir ou fechar a ajuda desta página</value>
   </data>
+  <data name="Open the Control Deck" xml:space="preserve">
+    <value>Abrir o Control Deck</value>
+  </data>
   <data name="Open the Control Panel on the server itself to change the account the service runs as or grant it its folders." xml:space="preserve">
     <value>Abra o Control Panel no próprio servidor para mudar a conta do serviço ou conceder a ele suas pastas.</value>
+  </data>
+  <data name="Open the Control _Deck" xml:space="preserve">
+    <value>Abrir o Control _Deck</value>
   </data>
   <data name="Open the SMTP port 25 and set its SMTP authentication to Honeypot or Off: AUTH there is refused without the password being looked at, and the address that sent it is banned." xml:space="preserve">
     <value>Abra a porta SMTP 25 e defina a autenticação SMTP dela como Isca ou Desligado: o AUTH ali é recusado sem olhar a senha, e o endereço que o enviou é banido.</value>
@@ -8118,6 +8124,9 @@ Nada do que já está lá é removido.</value>
   </data>
   <data name="Opens {0}" xml:space="preserve">
     <value>Abre {0}</value>
+  </data>
+  <data name="Opens {0} in the web browser." xml:space="preserve">
+    <value>Abre {0} no navegador da Web.</value>
   </data>
   <data name="Opens {0}, the first page of this area." xml:space="preserve">
     <value>Abre {0}, a primeira página desta área.</value>
@@ -8787,8 +8796,8 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   <data name="REST API keys" xml:space="preserve">
     <value>Chaves da API REST</value>
   </data>
-  <data name="REST administration API + Web Control Deck" xml:space="preserve">
-    <value>API REST de administração + Web Control Deck</value>
+  <data name="REST administration API and the Control Deck" xml:space="preserve">
+    <value>API REST de administração e o Control Deck</value>
   </data>
   <data name="REST administration API, Prometheus metrics and remote script management. The public web services listener (autoconfiguration, MTA-STS hosting) is on the Web services &amp; autoconfiguration page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
     <value>API REST de administração, métricas do Prometheus e gerenciamento remoto de scripts. O ouvinte público de serviços web (autoconfiguração, hospedagem de MTA-STS) fica na página Serviços web e autoconfiguração; a autenticação por token OAuth2 fica na página Autenticação.</value>
@@ -11530,6 +11539,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>O nome de usuário do Active Directory (sAMAccountName) - o mesmo valor que a aba Diretório do Windows da conta contém. Opcional: deixado vazio, o teste para depois das etapas de conexão e de credencial de serviço.</value>
   </data>
+  <data name="The Control Deck is served by the REST API, which is off - give it a port on the API &amp; monitoring page." xml:space="preserve">
+    <value>O Control Deck é servido pela API REST, que está desligada - dê a ela uma porta na página API e monitoramento.</value>
+  </data>
   <data name="The Control Panel is connected to another host, so the account ITS service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>O Control Panel está conectado a outro host, então a conta com a qual o serviço DELE roda não pode ser lida daqui. Abra o Control Panel no próprio servidor para vê-la.</value>
   </data>
@@ -11602,11 +11614,17 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs a TLS certificate file and its private key file on the API &amp; monitoring page, or an ACME certificate issued to this server." xml:space="preserve">
     <value>A API REST não está em execução: ela serve HTTP sem criptografia apenas em 127.0.0.1 ou ::1, e escutar em {0} exige um arquivo de certificado TLS e o arquivo da chave privada dele na página API e monitoramento, ou um certificado ACME emitido para este servidor.</value>
   </data>
+  <data name="The REST API is not running: listening on {0} needs a certificate, set on the API &amp; monitoring page." xml:space="preserve">
+    <value>A API REST não está em execução: escutar em {0} exige um certificado, definido na página API e monitoramento.</value>
+  </data>
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>A API REST está desligada (sua porta na página API e monitoramento é {0}), e estas configurações são acessadas por ela: o servidor as guarda, mas nenhuma propriedade COM as carrega. Dê uma porta à API REST na página API e monitoramento, reinicialize o servidor e abra esta página de novo.</value>
   </data>
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and this page reads the cases over it. Give it a port there, or read the cases in the Control Deck." xml:space="preserve">
     <value>A API REST está desligada (sua porta na página API e monitoramento é {0}), e esta página lê os casos por meio dela. Dê a ela uma porta ali, ou leia os casos no Control Deck.</value>
+  </data>
+  <data name="The REST API listens on {0} only, so the Control Deck opens only in a browser on the server itself." xml:space="preserve">
+    <value>A API REST escuta apenas em {0}, então o Control Deck só abre em um navegador no próprio servidor.</value>
   </data>
   <data name="The REST API listens on {0} only, which a Control Panel on another machine cannot reach. Change these settings in the Control Deck on the server, or from a Control Panel running there." xml:space="preserve">
     <value>A API REST escuta só em {0}, que um Control Panel em outra máquina não alcança. Mude estas configurações no Control Deck no servidor, ou em um Control Panel rodando lá.</value>
@@ -13903,6 +13921,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="Where new messages are stored" xml:space="preserve">
     <value>Onde as mensagens novas são guardadas</value>
+  </data>
+  <data name="Where the Control Deck is could not be read." xml:space="preserve">
+    <value>Não foi possível ler onde está o Control Deck.</value>
   </data>
   <data name="Where the administrator is told, well before anything is refused. 1024 MB is roughly fifty more maximum-size messages." xml:space="preserve">
     <value>Onde o administrador é avisado, bem antes de qualquer coisa ser recusada. 1024 MB são cerca de mais cinquenta mensagens de tamanho máximo.</value>

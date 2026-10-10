@@ -2110,8 +2110,8 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Body read chunk size (bytes)" xml:space="preserve">
     <value>Blokgrootte bij het lezen van de berichttekst (bytes)</value>
   </data>
-  <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox on the Deck's queue page or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
-    <value>Beide adressen zijn ingesteld. Of de dienst antwoordt, is van hieruit niet te zeggen: stuur van buiten een bericht met een bijgevoegd bestand van een ingediend type en zoek het onder Vastgehouden voor een sandbox op de wachtrijpagina van de Deck, of zoek in het toepassingslogboek naar een regel dat het naar de sandbox is ingediend.</value>
+  <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox in the Control Deck's delivery queue or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
+    <value>Beide adressen zijn ingesteld. Of de dienst antwoordt, is van hieruit niet te zeggen: stuur van buiten een bericht met een bijgevoegd bestand van een ingediend type en zoek het onder Vastgehouden voor een sandbox in de bezorgwachtrij van de Control Deck, of zoek in het toepassingslogboek naar een regel dat het naar de sandbox is ingediend.</value>
   </data>
   <data name="Both overrides read the score this server recorded in the message, so they need 'Add X-hMailServer-Reason header' switched on, on the Anti-spam settings page. With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
     <value>Beide uitzonderingen lezen de score die deze server in het bericht heeft vastgelegd, dus ze vereisen dat 'X-hMailServer-Reason-header toevoegen' aanstaat op de pagina Antispaminstellingen. Staat dat uit, dan wordt er geen score vastgelegd, valt er niets te bewijzen en werkt geen van beide uitzonderingen - het account houdt het serverbrede gedrag. De waarde in het bestand wordt in dat geval niet vertrouwd, omdat niets een AFZENDER belet er zelf een in te zetten.</value>
@@ -8035,8 +8035,14 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Open or close the help for this page" xml:space="preserve">
     <value>De help bij deze pagina openen of sluiten</value>
   </data>
+  <data name="Open the Control Deck" xml:space="preserve">
+    <value>Control Deck openen</value>
+  </data>
   <data name="Open the Control Panel on the server itself to change the account the service runs as or grant it its folders." xml:space="preserve">
     <value>Open het Control Panel op de server zelf om het account van de service te wijzigen of hem zijn mappen te verlenen.</value>
+  </data>
+  <data name="Open the Control _Deck" xml:space="preserve">
+    <value>Control _Deck openen</value>
   </data>
   <data name="Open the SMTP port 25 and set its SMTP authentication to Honeypot or Off: AUTH there is refused without the password being looked at, and the address that sent it is banned." xml:space="preserve">
     <value>Open de SMTP-poort 25 en zet de SMTP-authenticatie op Honeypot of Uit: AUTH wordt daar geweigerd zonder naar het wachtwoord te kijken, en het adres dat het stuurde, wordt verbannen.</value>
@@ -8118,6 +8124,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="Opens {0}" xml:space="preserve">
     <value>Opent {0}</value>
+  </data>
+  <data name="Opens {0} in the web browser." xml:space="preserve">
+    <value>Opent {0} in de webbrowser.</value>
   </data>
   <data name="Opens {0}, the first page of this area." xml:space="preserve">
     <value>Opent {0}, de eerste pagina van dit gebied.</value>
@@ -8787,8 +8796,8 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="REST API keys" xml:space="preserve">
     <value>REST-API-sleutels</value>
   </data>
-  <data name="REST administration API + Web Control Deck" xml:space="preserve">
-    <value>REST-beheer-API + Web Control Deck</value>
+  <data name="REST administration API and the Control Deck" xml:space="preserve">
+    <value>REST-beheer-API en de Control Deck</value>
   </data>
   <data name="REST administration API, Prometheus metrics and remote script management. The public web services listener (autoconfiguration, MTA-STS hosting) is on the Web services &amp; autoconfiguration page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
     <value>REST-beheer-API, Prometheus-metrics en beheer van scripts op afstand. De openbare webserviceslistener (autoconfiguratie, MTA-STS-hosting) staat op de pagina Webservices en autoconfiguratie; OAuth2-tokenauthenticatie staat op de pagina Authenticatie.</value>
@@ -11530,6 +11539,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>De Active Directory-gebruikersnaam (sAMAccountName) - dezelfde waarde als op het tabblad Windows-directory van het account. Optioneel: leeg gelaten stopt de test na de fasen verbinding en servicereferentie.</value>
   </data>
+  <data name="The Control Deck is served by the REST API, which is off - give it a port on the API &amp; monitoring page." xml:space="preserve">
+    <value>De Control Deck wordt geleverd door de REST-API, die uit staat - geef die een poort op de pagina API en monitoring.</value>
+  </data>
   <data name="The Control Panel is connected to another host, so the account ITS service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>Het Control Panel is verbonden met een andere host, dus het account waaronder DIE service draait kan hiervandaan niet worden gelezen. Open het Control Panel op de server zelf om het te zien.</value>
   </data>
@@ -11602,11 +11614,17 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs a TLS certificate file and its private key file on the API &amp; monitoring page, or an ACME certificate issued to this server." xml:space="preserve">
     <value>De REST-API draait niet: hij levert gewone HTTP alleen op 127.0.0.1 of ::1, en luisteren op {0} vereist een TLS-certificaatbestand en het bijbehorende privésleutelbestand op de pagina API en monitoring, of een ACME-certificaat dat aan deze server is uitgegeven.</value>
   </data>
+  <data name="The REST API is not running: listening on {0} needs a certificate, set on the API &amp; monitoring page." xml:space="preserve">
+    <value>De REST-API draait niet: luisteren op {0} vraagt een certificaat, in te stellen op de pagina API en monitoring.</value>
+  </data>
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>De REST-API staat uit (de poort op de pagina API en monitoring is {0}), en deze instellingen worden erover bereikt: de server bewaart ze, maar geen COM-eigenschap draagt ze. Geef de REST-API een poort op de pagina API en monitoring, initialiseer de server opnieuw en open deze pagina opnieuw.</value>
   </data>
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and this page reads the cases over it. Give it a port there, or read the cases in the Control Deck." xml:space="preserve">
     <value>De REST-API staat uit (de poort op de pagina API en monitoring is {0}) en deze pagina leest de zaken erover. Geef hem daar een poort, of lees de zaken in het Control Deck.</value>
+  </data>
+  <data name="The REST API listens on {0} only, so the Control Deck opens only in a browser on the server itself." xml:space="preserve">
+    <value>De REST-API luistert alleen op {0}, dus de Control Deck opent alleen in een browser op de server zelf.</value>
   </data>
   <data name="The REST API listens on {0} only, which a Control Panel on another machine cannot reach. Change these settings in the Control Deck on the server, or from a Control Panel running there." xml:space="preserve">
     <value>De REST-API luistert alleen op {0}, wat een Control Panel op een andere machine niet kan bereiken. Wijzig deze instellingen in het Control Deck op de server, of vanuit een Control Panel dat daar draait.</value>
@@ -13903,6 +13921,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="Where new messages are stored" xml:space="preserve">
     <value>Waar nieuwe berichten worden opgeslagen</value>
+  </data>
+  <data name="Where the Control Deck is could not be read." xml:space="preserve">
+    <value>Waar de Control Deck is, kon niet worden gelezen.</value>
   </data>
   <data name="Where the administrator is told, well before anything is refused. 1024 MB is roughly fifty more maximum-size messages." xml:space="preserve">
     <value>Waar de beheerder het te horen krijgt, ruim voordat er iets wordt geweigerd. 1024 MB is ruwweg vijftig berichten van maximale grootte extra.</value>

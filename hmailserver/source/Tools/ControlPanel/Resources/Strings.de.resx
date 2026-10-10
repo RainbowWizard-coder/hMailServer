@@ -2110,8 +2110,8 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Body read chunk size (bytes)" xml:space="preserve">
     <value>Blockgröße beim Lesen des Nachrichtentexts (Bytes)</value>
   </data>
-  <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox on the Deck's queue page or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
-    <value>Beide Adressen sind gesetzt. Ob der Dienst antwortet, lässt sich von hier aus nicht sagen: Senden Sie von außen eine Nachricht mit einer angehängten Datei eines übermittelten Typs und suchen Sie sie unter Für eine Sandbox zurückgehalten auf der Warteschlangenseite des Decks oder im Anwendungsprotokoll nach einer Zeile, dass sie an die Sandbox übermittelt wurde.</value>
+  <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox in the Control Deck's delivery queue or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
+    <value>Beide Adressen sind gesetzt. Ob der Dienst antwortet, lässt sich von hier aus nicht sagen: Senden Sie von außen eine Nachricht mit einer angehängten Datei eines übermittelten Typs und suchen Sie sie unter Für eine Sandbox zurückgehalten in der Zustellungswarteschlange des Control Decks oder im Anwendungsprotokoll nach einer Zeile, dass sie an die Sandbox übermittelt wurde.</value>
   </data>
   <data name="Both overrides read the score this server recorded in the message, so they need 'Add X-hMailServer-Reason header' switched on, on the Anti-spam settings page. With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
     <value>Beide Ausnahmen lesen die Bewertung, die dieser Server in der Nachricht festgehalten hat, sie brauchen also 'X-hMailServer-Reason-Header hinzufügen' eingeschaltet, auf der Seite Anti-Spam-Einstellungen. Ist das aus, wird keine Bewertung festgehalten, nichts ist beweisbar, und keine der beiden Ausnahmen greift - das Konto behält das serverweite Verhalten. Dem Wert in der Datei wird in diesem Fall nicht getraut, weil nichts einen ABSENDER daran hindert, einen hineinzuschreiben.</value>
@@ -8035,8 +8035,14 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="Open or close the help for this page" xml:space="preserve">
     <value>Hilfe zu dieser Seite öffnen oder schließen</value>
   </data>
+  <data name="Open the Control Deck" xml:space="preserve">
+    <value>Control Deck öffnen</value>
+  </data>
   <data name="Open the Control Panel on the server itself to change the account the service runs as or grant it its folders." xml:space="preserve">
     <value>Öffnen Sie das Control Panel auf dem Server selbst, um das Konto des Dienstes zu ändern oder ihm seine Ordner zu erteilen.</value>
+  </data>
+  <data name="Open the Control _Deck" xml:space="preserve">
+    <value>Control _Deck öffnen</value>
   </data>
   <data name="Open the SMTP port 25 and set its SMTP authentication to Honeypot or Off: AUTH there is refused without the password being looked at, and the address that sent it is banned." xml:space="preserve">
     <value>Öffnen Sie den SMTP-Port 25 und stellen Sie seine SMTP-Authentifizierung auf Honeypot oder Aus: AUTH wird dort abgelehnt, ohne dass das Passwort angesehen wird, und die Adresse, die es gesendet hat, wird gebannt.</value>
@@ -8118,6 +8124,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   </data>
   <data name="Opens {0}" xml:space="preserve">
     <value>Öffnet {0}</value>
+  </data>
+  <data name="Opens {0} in the web browser." xml:space="preserve">
+    <value>Öffnet {0} im Webbrowser.</value>
   </data>
   <data name="Opens {0}, the first page of this area." xml:space="preserve">
     <value>Öffnet {0}, die erste Seite dieses Bereichs.</value>
@@ -8787,8 +8796,8 @@ Es werden keine neuen Verbindungen angenommen und keine Mail zugestellt, bis er 
   <data name="REST API keys" xml:space="preserve">
     <value>REST-API-Schlüssel</value>
   </data>
-  <data name="REST administration API + Web Control Deck" xml:space="preserve">
-    <value>REST-Administrations-API + Web Control Deck</value>
+  <data name="REST administration API and the Control Deck" xml:space="preserve">
+    <value>REST-Administrations-API und das Control Deck</value>
   </data>
   <data name="REST administration API, Prometheus metrics and remote script management. The public web services listener (autoconfiguration, MTA-STS hosting) is on the Web services &amp; autoconfiguration page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
     <value>REST-Administrations-API, Prometheus-Metriken und entfernte Skriptverwaltung. Der öffentliche Listener für Webdienste (Autokonfiguration, MTA-STS-Hosting) liegt auf der Seite Webdienste und Autokonfiguration; die OAuth2-Token-Authentifizierung liegt auf der Seite Authentifizierung.</value>
@@ -11530,6 +11539,9 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>Der Active-Directory-Benutzername (sAMAccountName) - derselbe Wert, den die Registerkarte Windows-Verzeichnis des Kontos enthält. Optional: Bleibt er leer, endet der Test nach den Stufen Verbindung und Dienstzugangsdaten.</value>
   </data>
+  <data name="The Control Deck is served by the REST API, which is off - give it a port on the API &amp; monitoring page." xml:space="preserve">
+    <value>Das Control Deck wird von der REST-API ausgeliefert, die ausgeschaltet ist - geben Sie ihr auf der Seite API und Überwachung einen Port.</value>
+  </data>
   <data name="The Control Panel is connected to another host, so the account ITS service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>Das Control Panel ist mit einem anderen Host verbunden, das Konto, unter dem DESSEN Dienst läuft, kann von hier aus also nicht gelesen werden. Öffnen Sie das Control Panel auf dem Server selbst, um es zu sehen.</value>
   </data>
@@ -11602,11 +11614,17 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs a TLS certificate file and its private key file on the API &amp; monitoring page, or an ACME certificate issued to this server." xml:space="preserve">
     <value>Die REST-API läuft nicht: Sie bedient reines HTTP nur auf 127.0.0.1 oder ::1, und das Lauschen auf {0} erfordert eine TLS-Zertifikatdatei und deren private Schlüsseldatei auf der Seite API und Überwachung oder ein für diesen Server ausgestelltes ACME-Zertifikat.</value>
   </data>
+  <data name="The REST API is not running: listening on {0} needs a certificate, set on the API &amp; monitoring page." xml:space="preserve">
+    <value>Die REST-API läuft nicht: Lauschen auf {0} braucht ein Zertifikat, das auf der Seite API und Überwachung gesetzt wird.</value>
+  </data>
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>Die REST-API ist aus (ihr Port auf der Seite API und Überwachung ist {0}), und diese Einstellungen werden über sie erreicht: Der Server hält sie, aber keine COM-Eigenschaft trägt sie. Geben Sie der REST-API auf der Seite API und Überwachung einen Port, initialisieren Sie den Server neu und öffnen Sie diese Seite erneut.</value>
   </data>
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and this page reads the cases over it. Give it a port there, or read the cases in the Control Deck." xml:space="preserve">
     <value>Die REST-API ist aus (ihr Port auf der Seite API und Überwachung ist {0}), und diese Seite liest die Fälle über sie. Geben Sie ihr dort einen Port, oder lesen Sie die Fälle im Control Deck.</value>
+  </data>
+  <data name="The REST API listens on {0} only, so the Control Deck opens only in a browser on the server itself." xml:space="preserve">
+    <value>Die REST-API lauscht nur auf {0}, daher öffnet sich das Control Deck nur in einem Browser auf dem Server selbst.</value>
   </data>
   <data name="The REST API listens on {0} only, which a Control Panel on another machine cannot reach. Change these settings in the Control Deck on the server, or from a Control Panel running there." xml:space="preserve">
     <value>Die REST-API lauscht nur auf {0}, was ein Control Panel auf einem anderen Rechner nicht erreichen kann. Ändern Sie diese Einstellungen im Control Deck auf dem Server oder mit einem Control Panel, das dort läuft.</value>
@@ -13903,6 +13921,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="Where new messages are stored" xml:space="preserve">
     <value>Wo neue Nachrichten gespeichert werden</value>
+  </data>
+  <data name="Where the Control Deck is could not be read." xml:space="preserve">
+    <value>Wo das Control Deck ist, ließ sich nicht lesen.</value>
   </data>
   <data name="Where the administrator is told, well before anything is refused. 1024 MB is roughly fifty more maximum-size messages." xml:space="preserve">
     <value>Wo der Administrator Bescheid bekommt, lange bevor etwas abgelehnt wird. 1024 MB sind ungefähr fünfzig weitere Nachrichten in maximaler Größe.</value>

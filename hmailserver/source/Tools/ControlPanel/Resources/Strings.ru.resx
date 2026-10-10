@@ -2134,8 +2134,8 @@ Control Panel может читать файлы сообщений только
   <data name="Body read chunk size (bytes)" xml:space="preserve">
     <value>Размер блока чтения тела письма (байты)</value>
   </data>
-  <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox on the Deck's queue page or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
-    <value>Оба адреса заданы. Отвечает ли служба, отсюда определить нельзя: отправьте извне сообщение с вложенным файлом отправляемого типа и найдите его в разделе «Задержано для песочницы» на странице очереди в Deck или найдите в журнале приложения строку о том, что оно отправлено в песочницу.</value>
+  <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox in the Control Deck's delivery queue or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
+    <value>Оба адреса заданы. Отвечает ли служба, отсюда определить нельзя: отправьте извне сообщение с вложенным файлом отправляемого типа и найдите его в разделе «Задержано для песочницы» в очереди доставки в Control Deck или найдите в журнале приложения строку о том, что оно отправлено в песочницу.</value>
   </data>
   <data name="Both overrides read the score this server recorded in the message, so they need 'Add X-hMailServer-Reason header' switched on, on the Anti-spam settings page. With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
     <value>Оба переопределения читают оценку, которую этот сервер записал в сообщение, поэтому им нужен включённый параметр «Добавлять заголовок X-hMailServer-Reason» на странице «Параметры антиспама». Если он выключен, оценка не записывается, доказать нечего и ни одно переопределение не действует — учётная запись сохраняет поведение, заданное для всего сервера. Значению в файле в этом случае не доверяют, потому что ничто не мешает ОТПРАВИТЕЛЮ вписать его туда самому.</value>
@@ -8123,8 +8123,14 @@ Control Panel может читать файлы сообщений только
   <data name="Open or close the help for this page" xml:space="preserve">
     <value>Открыть или закрыть справку по этой странице</value>
   </data>
+  <data name="Open the Control Deck" xml:space="preserve">
+    <value>Открыть Control Deck</value>
+  </data>
   <data name="Open the Control Panel on the server itself to change the account the service runs as or grant it its folders." xml:space="preserve">
     <value>Откройте Control Panel на самом сервере, чтобы сменить учётную запись службы или предоставить ей её папки.</value>
+  </data>
+  <data name="Open the Control _Deck" xml:space="preserve">
+    <value>_Открыть Control Deck</value>
   </data>
   <data name="Open the SMTP port 25 and set its SMTP authentication to Honeypot or Off: AUTH there is refused without the password being looked at, and the address that sent it is banned." xml:space="preserve">
     <value>Откройте SMTP-порт 25 и задайте для его аутентификации SMTP значение «Ловушка» или «Выкл.»: AUTH там отклоняется без проверки пароля, а отправивший его адрес блокируется.</value>
@@ -8206,6 +8212,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Opens {0}" xml:space="preserve">
     <value>Открывает {0}</value>
+  </data>
+  <data name="Opens {0} in the web browser." xml:space="preserve">
+    <value>Открывает {0} в веб-браузере.</value>
   </data>
   <data name="Opens {0}, the first page of this area." xml:space="preserve">
     <value>Открывает страницу «{0}», первую в этом разделе.</value>
@@ -8875,8 +8884,8 @@ Control Panel может читать файлы сообщений только
   <data name="REST API keys" xml:space="preserve">
     <value>Ключи REST API</value>
   </data>
-  <data name="REST administration API + Web Control Deck" xml:space="preserve">
-    <value>REST API администрирования + Web Control Deck</value>
+  <data name="REST administration API and the Control Deck" xml:space="preserve">
+    <value>REST API администрирования и Control Deck</value>
   </data>
   <data name="REST administration API, Prometheus metrics and remote script management. The public web services listener (autoconfiguration, MTA-STS hosting) is on the Web services &amp; autoconfiguration page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
     <value>REST API администрирования, метрики Prometheus и удалённое управление сценариями. Общедоступный прослушиватель веб-служб (автонастройка, размещение MTA-STS) находится на странице «Веб-службы и автоконфигурация»; аутентификация по токенам OAuth2 — на странице «Аутентификация».</value>
@@ -11660,6 +11669,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>Имя пользователя Active Directory (sAMAccountName) — то же значение, что хранится на вкладке «Каталог Windows» учётной записи. Необязательно: если оставить поле пустым, проверка остановится после этапов подключения и учётных данных службы.</value>
   </data>
+  <data name="The Control Deck is served by the REST API, which is off - give it a port on the API &amp; monitoring page." xml:space="preserve">
+    <value>Control Deck обслуживается REST API, который выключен - задайте ему порт на странице «API и мониторинг».</value>
+  </data>
   <data name="The Control Panel is connected to another host, so the account ITS service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>Control Panel подключён к другому узлу, поэтому учётную запись, от имени которой работает ЕГО служба, отсюда прочитать нельзя. Чтобы её увидеть, откройте Control Panel на самом сервере.</value>
   </data>
@@ -11732,11 +11744,17 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs a TLS certificate file and its private key file on the API &amp; monitoring page, or an ACME certificate issued to this server." xml:space="preserve">
     <value>REST API не запущен: обычный HTTP он обслуживает только на 127.0.0.1 или ::1, а для прослушивания на {0} нужны файл сертификата TLS и файл его закрытого ключа на странице «API и мониторинг» или сертификат ACME, выданный этому серверу.</value>
   </data>
+  <data name="The REST API is not running: listening on {0} needs a certificate, set on the API &amp; monitoring page." xml:space="preserve">
+    <value>REST API не работает: для прослушивания {0} нужен сертификат, который задаётся на странице «API и мониторинг».</value>
+  </data>
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>REST API выключен (его порт на странице «API и мониторинг» равен {0}), а эти параметры доступны через него: сервер их хранит, но ни одно свойство COM их не передаёт. Задайте REST API порт на странице «API и мониторинг», повторно инициализируйте сервер и снова откройте эту страницу.</value>
   </data>
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and this page reads the cases over it. Give it a port there, or read the cases in the Control Deck." xml:space="preserve">
     <value>REST API выключен (его порт на странице «API и мониторинг» равен {0}), а эта страница читает дела через него. Задайте ему там порт или читайте дела в Control Deck.</value>
+  </data>
+  <data name="The REST API listens on {0} only, so the Control Deck opens only in a browser on the server itself." xml:space="preserve">
+    <value>REST API прослушивает только {0}, поэтому Control Deck открывается только в браузере на самом сервере.</value>
   </data>
   <data name="The REST API listens on {0} only, which a Control Panel on another machine cannot reach. Change these settings in the Control Deck on the server, or from a Control Panel running there." xml:space="preserve">
     <value>REST API прослушивает только {0}, куда Control Panel на другом компьютере не дотянется. Измените эти параметры в Control Deck на сервере или из Control Panel, работающего там.</value>
@@ -14072,6 +14090,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Where new messages are stored" xml:space="preserve">
     <value>Где хранятся новые сообщения</value>
+  </data>
+  <data name="Where the Control Deck is could not be read." xml:space="preserve">
+    <value>Не удалось прочитать, где находится Control Deck.</value>
   </data>
   <data name="Where the administrator is told, well before anything is refused. 1024 MB is roughly fifty more maximum-size messages." xml:space="preserve">
     <value>Когда администратору сообщается, задолго до того, как что-то будет отклонено. 1024 МБ - это примерно пятьдесят сообщений максимального размера.</value>

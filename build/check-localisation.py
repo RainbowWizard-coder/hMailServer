@@ -175,6 +175,8 @@ LOCALISED = {
    "Services/PasswordGenerator.cs",
    "Services/SettingsSearchIndex.cs",
    "Views/StalledMailView.cs",
+   "Views/ControlDeckLink.cs",
+   "Services/ControlDeck.cs",
    "Views/ProfilesView.cs",
    "Views/UtilityViews.cs",
    "Views/TlsOverviewView.cs",

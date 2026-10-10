@@ -1894,7 +1894,7 @@ namespace hMailServer.ControlPanel.Services
          else
          {
             item.Add(SetupItemState.CannotTell,
-               L("Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox on the Deck's queue page or for a line saying it was submitted to the sandbox in the application log."));
+               L("Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox in the Control Deck's delivery queue or for a line saying it was submitted to the sandbox in the application log."));
          }
 
          item.AggregateFromFindings();

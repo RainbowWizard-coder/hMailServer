@@ -54,6 +54,9 @@
          and the body of a save. No WPF and no network, so the tests can pin the
          shape RestApiSettings.cpp answers and takes. -->
     <Compile Include="..\ControlPanel\Services\RestSettings.cs" />
+    <!-- Where the Control Deck is, and why it cannot be opened when it cannot
+         (review finding F281). Held by ControlDeckTests. -->
+    <Compile Include="..\ControlPanel\Services\ControlDeck.cs" />
     <!-- Settings search index: plain data plus a search function, no WPF, so the
          tests can verify it still matches the settings pages. -->
     <Compile Include="..\ControlPanel\Services\SettingsSearchIndex.cs" />

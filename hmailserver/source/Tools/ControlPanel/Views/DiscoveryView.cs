@@ -61,6 +61,10 @@ namespace hMailServer.ControlPanel.Views
       private readonly InlineNotice status_ = new() { Visibility = Visibility.Collapsed };
       private readonly EmptyState empty_ = new() { Icon = Wpf.Ui.Controls.SymbolRegular.DocumentSearch24, Visibility = Visibility.Collapsed };
 
+      // Where the cases are opened, searched, held and exported (review finding F281):
+      // read again with the cases, since the REST API may have been turned on since.
+      private readonly Wpf.Ui.Controls.Button deck_ = ControlDeckLink.Button(L("Open the Control _Deck"));
+
       private IReadOnlyList<DiscoveryCase> loaded_ = Array.Empty<DiscoveryCase>();
       private List<AuditRow> audit_ = new();
       private bool loading_;
@@ -106,6 +110,7 @@ namespace hMailServer.ControlPanel.Views
 
          loading_ = true;
          status_.Visibility = Visibility.Collapsed;
+         ControlDeckLink.Update(deck_);
          Uri endpoint = null;
 
          try
@@ -383,12 +388,13 @@ namespace hMailServer.ControlPanel.Views
          var refresh = new Wpf.Ui.Controls.Button { Content = L("_Refresh"), MinWidth = 110 };
          ControlHelp.Explain(refresh, L("Read the cases again"));
          refresh.Click += (_, _) => Reload_();
+         deck_.Margin = new Thickness(0, 0, 8, 0);
 
          root.Children.Add(new PageHeader
          {
             PageKey = "discovery",
             Subtitle = L("The eDiscovery cases, read-only: each case's searches, holds and exports, and every line the audit trail holds for it. A case is opened, searched, held and exported in the Control Deck."),
-            Actions = refresh
+            Actions = new StackPanel { Orientation = Orientation.Horizontal, Children = { deck_, refresh } }
          });
 
          // The IP ranges shape, with two lists: the cases and the selected case's

@@ -2299,6 +2299,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   where each step's paragraph ran to about 180 characters a line; and that paragraph is body text at the top of the
   step's card, where it was the card's description in 12-pixel caption text above tables and bullets of 14.
 
+- **Fixed: twenty-nine texts sent the reader to the Control Deck with no button and no address, and called it three
+  names.** A case is opened there, alert rules and webhook subscriptions are set there, trap addresses declared, held
+  messages reviewed and migration jobs started there, and only the REST API's card said what it is. An Open the
+  Control Deck button now stands beside them - in Discovery's header, as the first row of the Spam traps, Compromised
+  accounts, Alerts, Outbound webhooks and Migrations cards, and on the REST API's card - and opens the REST listener's
+  root, where the Deck is served, in the browser; its tool tip and its accessible help text give the address. While
+  the Deck cannot be opened from here the button is disabled and says why, beside it on a card: the REST API is off
+  ("give it a port on the API & monitoring page"), it listens on the loopback address and this Control Panel is on
+  another machine, or it cannot listen beyond this machine without a certificate. The Deck has no address for one of
+  its views, so each button opens the Deck itself (the owner's decision of 9 October 2026: deep links where it has
+  them). It is the Control Deck in every text: the REST API's card is REST administration API and the Control Deck,
+  where it said Web Control Deck, and the sandbox check sends the reader to the Control Deck's delivery queue, where it
+  said the Deck's queue page.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

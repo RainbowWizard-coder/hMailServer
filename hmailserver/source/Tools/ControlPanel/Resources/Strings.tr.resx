@@ -2110,8 +2110,8 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Body read chunk size (bytes)" xml:space="preserve">
     <value>Gövde okuma parçası boyutu (bayt)</value>
   </data>
-  <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox on the Deck's queue page or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
-    <value>Her iki adres de ayarlı. Hizmetin yanıt verip vermediği buradan anlaşılamaz: dışarıdan, gönderilen türde bir dosya eklenmiş bir ileti gönderin ve onu Deck'in kuyruk sayfasındaki Korumalı alan için bekletilenler bölümünde ya da uygulama günlüğünde korumalı alana gönderildiğini söyleyen bir satırda arayın.</value>
+  <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox in the Control Deck's delivery queue or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
+    <value>Her iki adres de ayarlı. Hizmetin yanıt verip vermediği buradan anlaşılamaz: dışarıdan, gönderilen türde bir dosya eklenmiş bir ileti gönderin ve onu Control Deck'in teslim kuyruğundaki Korumalı alan için bekletilenler bölümünde ya da uygulama günlüğünde korumalı alana gönderildiğini söyleyen bir satırda arayın.</value>
   </data>
   <data name="Both overrides read the score this server recorded in the message, so they need 'Add X-hMailServer-Reason header' switched on, on the Anti-spam settings page. With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
     <value>Her iki geçersiz kılma da bu sunucunun iletiye kaydettiği puanı okur; bu yüzden Spam önleme ayarları sayfasında 'X-hMailServer-Reason başlığı ekle' seçeneğinin açık olması gerekir. Kapalıyken hiçbir puan kaydedilmez, hiçbir şey kanıtlanamaz ve iki geçersiz kılma da işlemez - hesap sunucu geneli davranışı korur. Bu durumda dosyadaki değere güvenilmez, çünkü bir GÖNDERENİN oraya bir değer koymasını hiçbir şey engellemez.</value>
@@ -8035,8 +8035,14 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Open or close the help for this page" xml:space="preserve">
     <value>Bu sayfanın yardımını aç veya kapat</value>
   </data>
+  <data name="Open the Control Deck" xml:space="preserve">
+    <value>Control Deck'i aç</value>
+  </data>
   <data name="Open the Control Panel on the server itself to change the account the service runs as or grant it its folders." xml:space="preserve">
     <value>Hizmetin çalıştığı hesabı değiştirmek veya ona klasörlerini vermek için Denetim Masası'nı sunucunun kendisinde açın.</value>
+  </data>
+  <data name="Open the Control _Deck" xml:space="preserve">
+    <value>Control _Deck'i aç</value>
   </data>
   <data name="Open the SMTP port 25 and set its SMTP authentication to Honeypot or Off: AUTH there is refused without the password being looked at, and the address that sent it is banned." xml:space="preserve">
     <value>SMTP port 25'i açın ve SMTP kimlik doğrulamasını Bal küpü veya Kapalı yapın: oradaki AUTH parolaya bakılmadan reddedilir ve onu gönderen adres yasaklanır.</value>
@@ -8118,6 +8124,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Opens {0}" xml:space="preserve">
     <value>{0} açar</value>
+  </data>
+  <data name="Opens {0} in the web browser." xml:space="preserve">
+    <value>{0} adresini web tarayıcısında açar.</value>
   </data>
   <data name="Opens {0}, the first page of this area." xml:space="preserve">
     <value>Bu alanın ilk sayfası olan {0} sayfasını açar.</value>
@@ -8787,8 +8796,8 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   <data name="REST API keys" xml:space="preserve">
     <value>REST API anahtarları</value>
   </data>
-  <data name="REST administration API + Web Control Deck" xml:space="preserve">
-    <value>REST yönetim API'si + Web Control Deck</value>
+  <data name="REST administration API and the Control Deck" xml:space="preserve">
+    <value>REST yönetim API'si ve Control Deck</value>
   </data>
   <data name="REST administration API, Prometheus metrics and remote script management. The public web services listener (autoconfiguration, MTA-STS hosting) is on the Web services &amp; autoconfiguration page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
     <value>REST yönetim API'si, Prometheus ölçümleri ve uzaktan betik yönetimi. Genel web hizmetleri dinleyicisi (otomatik yapılandırma, MTA-STS barındırma) Web hizmetleri ve otomatik yapılandırma sayfasındadır; OAuth2 belirteç kimlik doğrulaması Kimlik doğrulama sayfasındadır.</value>
@@ -11530,6 +11539,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>Active Directory kullanıcı adı (sAMAccountName) - hesabın Windows dizini sekmesinin tuttuğu değerin aynısı. İsteğe bağlı: boş bırakılırsa sınama bağlantı ve hizmet kimlik bilgisi aşamalarından sonra durur.</value>
   </data>
+  <data name="The Control Deck is served by the REST API, which is off - give it a port on the API &amp; monitoring page." xml:space="preserve">
+    <value>Control Deck'i REST API sunar ve REST API kapalı - API ve izleme sayfasında ona bir bağlantı noktası verin.</value>
+  </data>
   <data name="The Control Panel is connected to another host, so the account ITS service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>Denetim Masası başka bir ana bilgisayara bağlı, bu yüzden O sunucunun hizmetinin çalıştığı hesap buradan okunamaz. Görmek için Denetim Masası'nı sunucunun kendisinde açın.</value>
   </data>
@@ -11602,11 +11614,17 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs a TLS certificate file and its private key file on the API &amp; monitoring page, or an ACME certificate issued to this server." xml:space="preserve">
     <value>REST API çalışmıyor: şifresiz HTTP'yi yalnızca 127.0.0.1 veya ::1 üzerinde sunar ve {0} üzerinde dinlemek için API ve izleme sayfasında bir TLS sertifika dosyası ile özel anahtar dosyası ya da bu sunucuya verilmiş bir ACME sertifikası gerekir.</value>
   </data>
+  <data name="The REST API is not running: listening on {0} needs a certificate, set on the API &amp; monitoring page." xml:space="preserve">
+    <value>REST API çalışmıyor: {0} üzerinde dinlemek için API ve izleme sayfasında ayarlanan bir sertifika gerekir.</value>
+  </data>
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>REST API kapalı (API ve izleme sayfasındaki portu {0}) ve bu ayarlara onun üzerinden ulaşılır: sunucu bunları tutar, ancak hiçbir COM özelliği bunları taşımaz. API ve izleme sayfasında REST API'ye bir bağlantı noktası verin, sunucuyu yeniden başlatın (Reinitialize) ve bu sayfayı yeniden açın.</value>
   </data>
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and this page reads the cases over it. Give it a port there, or read the cases in the Control Deck." xml:space="preserve">
     <value>REST API kapalı (API ve izleme sayfasındaki portu {0}) ve bu sayfa davaları onun üzerinden okur. Orada ona bir port verin ya da davaları Control Deck'te okuyun.</value>
+  </data>
+  <data name="The REST API listens on {0} only, so the Control Deck opens only in a browser on the server itself." xml:space="preserve">
+    <value>REST API yalnızca {0} üzerinde dinliyor; bu yüzden Control Deck yalnızca sunucunun kendisindeki bir tarayıcıda açılır.</value>
   </data>
   <data name="The REST API listens on {0} only, which a Control Panel on another machine cannot reach. Change these settings in the Control Deck on the server, or from a Control Panel running there." xml:space="preserve">
     <value>REST API yalnızca {0} üzerinde dinliyor; başka bir bilgisayardaki Control Panel oraya ulaşamaz. Bu ayarları sunucudaki Control Deck'te veya orada çalışan bir Control Panel'den değiştirin.</value>
@@ -13903,6 +13921,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="Where new messages are stored" xml:space="preserve">
     <value>Yeni iletilerin saklandığı yer</value>
+  </data>
+  <data name="Where the Control Deck is could not be read." xml:space="preserve">
+    <value>Control Deck'in nerede olduğu okunamadı.</value>
   </data>
   <data name="Where the administrator is told, well before anything is refused. 1024 MB is roughly fifty more maximum-size messages." xml:space="preserve">
     <value>Herhangi bir şey reddedilmeden çok önce yöneticiye nerede söylendiği. 1024 MB kabaca elli en büyük boyutlu ileti daha demektir.</value>

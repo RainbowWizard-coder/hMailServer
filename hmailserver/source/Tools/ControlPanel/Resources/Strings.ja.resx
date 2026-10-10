@@ -2110,8 +2110,8 @@
   <data name="Body read chunk size (bytes)" xml:space="preserve">
     <value>本文の読み取りチャンク サイズ (バイト)</value>
   </data>
-  <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox on the Deck's queue page or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
-    <value>両方のアドレスが設定されています。サービスが応答するかどうかはここからは判断できません。外部から送信対象の種類のファイルを添付したメッセージを送信し、Deck のキューページの「サンドボックス待ちで保留」でそれを探すか、アプリケーションログでサンドボックスに送信されたことを示す行を探してください。</value>
+  <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox in the Control Deck's delivery queue or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
+    <value>両方のアドレスが設定されています。サービスが応答するかどうかはここからは判断できません。外部から送信対象の種類のファイルを添付したメッセージを送信し、Control Deck の配信キューの「サンドボックス待ちで保留」でそれを探すか、アプリケーションログでサンドボックスに送信されたことを示す行を探してください。</value>
   </data>
   <data name="Both overrides read the score this server recorded in the message, so they need 'Add X-hMailServer-Reason header' switched on, on the Anti-spam settings page. With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
     <value>どちらの上書きも、このサーバーがメッセージに記録したスコアを読み取るため、[スパム対策の設定] ページの「X-hMailServer-Reason ヘッダーを追加する」をオンにしておく必要があります。オフの場合はスコアが記録されず、何も証明できず、どちらの上書きも働きません。アカウントはサーバー全体の動作のままです。その場合、ファイル内の値は信頼されません。送信者がそこに値を書き込むのを止めるものが何もないからです。</value>
@@ -8035,8 +8035,14 @@
   <data name="Open or close the help for this page" xml:space="preserve">
     <value>このページのヘルプを開く、または閉じる</value>
   </data>
+  <data name="Open the Control Deck" xml:space="preserve">
+    <value>Control Deck を開く</value>
+  </data>
   <data name="Open the Control Panel on the server itself to change the account the service runs as or grant it its folders." xml:space="preserve">
     <value>サービスが実行されるアカウントを変更したり、フォルダーを許可したりするには、サーバー上で Control Panel を開いてください。</value>
+  </data>
+  <data name="Open the Control _Deck" xml:space="preserve">
+    <value>Control Deck を開く(_D)</value>
   </data>
   <data name="Open the SMTP port 25 and set its SMTP authentication to Honeypot or Off: AUTH there is refused without the password being looked at, and the address that sent it is banned." xml:space="preserve">
     <value>SMTP ポート 25 を開き、SMTP 認証を [ハニーポット] または [オフ] にします。そこでの AUTH はパスワードを見ずに拒否され、送ったアドレスは禁止されます。</value>
@@ -8118,6 +8124,9 @@
   </data>
   <data name="Opens {0}" xml:space="preserve">
     <value>{0} を開きます</value>
+  </data>
+  <data name="Opens {0} in the web browser." xml:space="preserve">
+    <value>{0} を Web ブラウザーで開きます。</value>
   </data>
   <data name="Opens {0}, the first page of this area." xml:space="preserve">
     <value>この分野の最初のページ {0} を開きます。</value>
@@ -8787,8 +8796,8 @@
   <data name="REST API keys" xml:space="preserve">
     <value>REST API キー</value>
   </data>
-  <data name="REST administration API + Web Control Deck" xml:space="preserve">
-    <value>REST 管理 API + Web Control Deck</value>
+  <data name="REST administration API and the Control Deck" xml:space="preserve">
+    <value>REST 管理 API と Control Deck</value>
   </data>
   <data name="REST administration API, Prometheus metrics and remote script management. The public web services listener (autoconfiguration, MTA-STS hosting) is on the Web services &amp; autoconfiguration page; OAuth2 token authentication is on the Authentication page." xml:space="preserve">
     <value>REST 管理 API、Prometheus メトリクス、リモートのスクリプト管理。公開の Web サービス リスナー (自動設定、MTA-STS のホスティング) は「Web サービスと自動設定」ページに、OAuth2 トークン認証は「認証」ページにあります。</value>
@@ -11530,6 +11539,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
     <value>Active Directory のユーザー名 (sAMAccountName)。アカウントの [Windows ディレクトリ] タブにあるものと同じ値です。省略可: 空のままにすると、テストは接続とサービス資格情報のステージの後で停止します。</value>
   </data>
+  <data name="The Control Deck is served by the REST API, which is off - give it a port on the API &amp; monitoring page." xml:space="preserve">
+    <value>Control Deck は REST API が提供していますが、REST API はオフです - 「API と監視」ページでポートを設定してください。</value>
+  </data>
   <data name="The Control Panel is connected to another host, so the account ITS service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>コントロールパネルは別のホストに接続しているため、そのホストのサービスが実行されているアカウントをここから読み取ることはできません。サーバー自体でコントロールパネルを開いて確認してください。</value>
   </data>
@@ -11602,11 +11614,17 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs a TLS certificate file and its private key file on the API &amp; monitoring page, or an ACME certificate issued to this server." xml:space="preserve">
     <value>REST API は動作していません。暗号化なしの HTTP は 127.0.0.1 または ::1 でのみ提供され、{0} で待ち受けるには「API と監視」ページの TLS 証明書ファイルとその秘密鍵ファイル、またはこのサーバーに発行された ACME 証明書が必要です。</value>
   </data>
+  <data name="The REST API is not running: listening on {0} needs a certificate, set on the API &amp; monitoring page." xml:space="preserve">
+    <value>REST API は動作していません: {0} で待ち受けるには証明書が必要で、「API と監視」ページで設定します。</value>
+  </data>
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>REST API はオフ (「API と監視」ページでのポートは {0}) ですが、これらの設定は REST API 経由でしか扱えません。サーバーは値を保持していますが、COM プロパティはありません。「API と監視」ページで REST API にポートを割り当て、サーバーを再初期化してから、このページを開き直してください。</value>
   </data>
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and this page reads the cases over it. Give it a port there, or read the cases in the Control Deck." xml:space="preserve">
     <value>REST API はオフです (「API と監視」ページでのポートは {0})。このページはケースを REST API 経由で読み取ります。そのページでポートを割り当てるか、Control Deck でケースを確認してください。</value>
+  </data>
+  <data name="The REST API listens on {0} only, so the Control Deck opens only in a browser on the server itself." xml:space="preserve">
+    <value>REST API は {0} でのみ待ち受けているため、Control Deck はサーバー上のブラウザーでのみ開けます。</value>
   </data>
   <data name="The REST API listens on {0} only, which a Control Panel on another machine cannot reach. Change these settings in the Control Deck on the server, or from a Control Panel running there." xml:space="preserve">
     <value>REST API は {0} でのみ待ち受けており、別のマシン上のコントロール パネルからは到達できません。これらの設定は、サーバー上の Control Deck か、そこで動いているコントロール パネルから変更してください。</value>
@@ -13903,6 +13921,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Where new messages are stored" xml:space="preserve">
     <value>新しいメッセージの保存場所</value>
+  </data>
+  <data name="Where the Control Deck is could not be read." xml:space="preserve">
+    <value>Control Deck の場所を読み取れませんでした。</value>
   </data>
   <data name="Where the administrator is told, well before anything is refused. 1024 MB is roughly fifty more maximum-size messages." xml:space="preserve">
     <value>何かが拒否されるずっと前に、管理者に通知する時点。1024 MB は、最大サイズのメッセージおよそ 50 通分です。</value>

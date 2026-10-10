@@ -164,6 +164,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          ("ScriptsView.cs", "Could not write the script file", "a local script file"),
          ("ServerSettingsView.xaml.cs", "Could not open the folder", "Explorer on this machine"),
          ("StalledMailView.cs", "Could not open a browser", "a browser on this machine"),
+         ("ControlDeckLink.cs", "Could not open a browser", "a browser on this machine"),
          ("TotpSetupDialog.cs", "notice_.Show(StatusLevel.Critical, ex.Message);", "the Control Panel's own second factor, in the registry"),
          ("UtilityViews.cs", "Could not read the consistency report", "a local report file"),
          ("UtilityViews.cs", "Could not read {0}: {1}", "a local report file"),
