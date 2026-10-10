@@ -467,7 +467,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   destructors of its statics with the thread still running. It does the same while a connection is still in use, or a
   thread that the stop of one of the server's work queues has given up on, after its ten seconds and five more - a
   delivery, a script, an external account's fetch or a lookup held by a database or a host that has stopped answering -
-  still runs, where the database was closed under that thread too (in every version): a connection in use is closed
+  still runs, where the database was closed under that thread too (in every version) - on Linux, where it was
+  measured. On Windows such a stop does not get that far: the queue's teardown waits for the thread's task to end,
+  however long it takes, and the thread then goes on in the queue it has let go of, which faulted in the re-check's
+  run, the stop never finishing (in every version, and not changed here). Either way, a connection in use is closed
   once its caller hands it back, none is handed out after the close, and a thread that asks for one is answered that
   there is none. SQL Server Compact, the database of a default Windows installation, runs in the server's process and
   writes what was committed to its file every ten seconds, or when its last connection closes, and what a process that

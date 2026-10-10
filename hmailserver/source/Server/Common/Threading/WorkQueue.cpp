@@ -146,6 +146,20 @@ namespace HM
 
          // Still running, on what is about to be freed: counted until each ends
          // (GetThreadsLeft), whether or not a Stop gave up on it first.
+         //
+         // Open, in every version: on Windows the io_context's destructor, which
+         // runs as this one returns, waits for the task a thread is in to end -
+         // win_iocp_io_context::shutdown loops while work is outstanding - so that
+         // a stop of the servers sits here for as long as that task takes, the
+         // service controller told nothing, and the thread then goes on in the
+         // io_context and the queue that are gone. The re-check of 10 October 2026
+         // saw it: an OnClientConnect script held one of the I/O queue's threads
+         // for 40 seconds, the stop sat here, and when the script ended the thread
+         // faulted (0xC0000005) and reported it as HM6075 in "work queue ." - the
+         // name of the freed queue. On Linux the destructor does not wait, and the
+         // thread goes on in the freed queue at once. Ending it needs the
+         // io_context, and what the thread reads of this queue, to live as long as
+         // the threads do.
          CountThreadsLeft_();
 
          // The cast names FormatArgument's unsigned __int64 constructor, which is the
