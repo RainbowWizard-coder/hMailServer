@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using hMailServer.ControlPanel.Services;
 using Xunit;
 
@@ -49,27 +50,39 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// <summary>
       /// The OAuth2 card's fields follow its switch: greyed while tokens are not
       /// accepted, as the switch's note under it says, and back once it is ticked.
+      /// They follow it as every setting that counts only while a switch is on does
+      /// (Setting.DependsOn, review finding F197): DialogFields.EnabledBy disables
+      /// the row, so that its caption, its Applies line and its hint dim with its box
+      /// (Scaffold.xaml's FieldRow) and what else decides the editor - a key the
+      /// environment sets - keeps deciding it, and a value under a switch that is off
+      /// is not refused. A second way for this one card, its switch named on the card
+      /// and the editors greyed after the rows were, read each editor as disabled
+      /// under a switch that was off, kept that as all it was allowed, and never gave
+      /// the fields back once OAuth2 was ticked.
       /// </summary>
       [Fact]
       public void TheOAuth2Fields_FollowTheirSwitch()
       {
          string section = AuthenticationSection_();
-         Assert.Contains("EnabledByKey = \"OAuth2Enabled\"", section, StringComparison.Ordinal);
          Assert.Contains("Label = L(\"Accept OAuth2 bearer tokens (XOAUTH2)\"), Blurb = L(\"While this is off the server uses none of the settings below, so they cannot be changed until it is on.\")", section, StringComparison.Ordinal);
 
-         string code = ReadControlPanelFile(Path.Join("Views", "FeatureSettingsView.xaml.cs"));
-         string build = WithheldRowTests.MemberText(code, "private void BuildUi()");
-         Assert.True(build != null, "FeatureSettingsView.BuildUi is gone.");
-         Assert.Contains("WireEnabledBy_(card);", build, StringComparison.Ordinal);
-         Assert.Contains("editors_[setting] = editor;", build, StringComparison.Ordinal);
+         // Every setting of the card but the switch follows the switch.
+         int card = section.IndexOf("var oauth2 = new CardDef", StringComparison.Ordinal);
+         int end = card < 0 ? -1 : section.IndexOf("};", card, StringComparison.Ordinal);
+         Assert.True(card >= 0 && end > card, "The OAuth2 card is not where this test reads it.");
+         MatchCollection settings = Regex.Matches(section.Substring(card, end - card), @"new \w+Setting \{ Key = ""(\w+)""(?<follows>, DependsOn = OAuth2Switch)?");
+         Assert.True(settings.Count >= 15, "Only " + settings.Count + " of the OAuth2 card's settings are read.");
+         foreach (Match setting in settings)
+         {
+            bool isSwitch = setting.Groups[1].Value == "OAuth2Enabled";
+            Assert.True(setting.Groups["follows"].Success != isSwitch,
+               setting.Groups[1].Value + (isSwitch ? " follows itself." : " does not follow the OAuth2 switch."));
+         }
 
-         string wire = WithheldRowTests.MemberText(code, "private void WireEnabledBy_(CardDef card)");
-         Assert.True(wire != null, "FeatureSettingsView.WireEnabledBy_ is gone.");
-         // The editor, not the row, so the caption still says what the row holds; and
-         // a row the environment holds stays disabled whatever the switch says.
-         Assert.Contains("built is FieldRow row && row.Content is UIElement content ? content : built", wire, StringComparison.Ordinal);
-         Assert.Contains("editor.IsEnabled = allowed && on;", wire, StringComparison.Ordinal);
-         Assert.Contains("toggle.OnEditorChanged(Follow);", wire, StringComparison.Ordinal);
+         // One way to follow a switch, on the row.
+         string code = ReadControlPanelFile(Path.Join("Views", "FeatureSettingsView.xaml.cs"));
+         Assert.Contains("DialogFields.EnabledBy(master.Box, setting.Built);", code, StringComparison.Ordinal);
+         Assert.DoesNotContain("EnabledByKey", code, StringComparison.Ordinal);
       }
 
       /// <summary>
