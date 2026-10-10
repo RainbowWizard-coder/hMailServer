@@ -861,9 +861,11 @@ rewrites. To sign off without remembering the flag, `git config alias.cs "commit
    current `master`, your authorship and your `Signed-off-by` kept, or squashed into one commit of yours that keeps
    them - with other changes ready to land.
 7. **Landing.** A `batch*` branch lands through a merge request of its own, by fast-forward, so history stays
-   linear: `python3 build/land-via-mr.py batchN` checks that the batch is on top of `master`, adds no merge commit,
-   is signed off throughout and holds no possible secret (`build/scan-secrets.py` over every commit it adds, which
-   must run: see [Secrets](#secrets)), pushes it, opens the merge request, waits for the branch's pipeline, and
+   linear: `python3 build/land-via-mr.py batchN`, run from a checkout of `master`, checks that the batch is on top
+   of `master`, adds no merge commit, is signed off throughout and holds no possible secret (`build/scan-secrets.py`
+   over every commit it adds, which must run: see [Secrets](#secrets); the checkout's own copy of it and of its
+   rules script, so that none of the batch's code judges the batch), pushes it, opens the merge request, waits for
+   the branch's pipeline, and
    merges only when it passed, with each of its gate jobs - *semgrep-sast*, *semgrep-sast-gate*,
    *mr-dependency-check* and *checkers*, and *static-analysis* and *semgrep* unless the batch changes only Markdown
    at the root or under a dot-directory - succeeding itself, in a pipeline of this project whose gates each say in
@@ -872,7 +874,8 @@ rewrites. To sign off without remembering the flag, `git config alias.cs "commit
    the gates' code also needs each gate's log to say that `master`'s copy of its script passed it. A batch that
    changes the gates' own files (their scripts; `.gitlab-ci.yml` and the CI files their jobs are in or take a part
    from; the landing script, `build/check-release-chain.py`, `build/sign-off.py` and `build/scan-secrets.py`,
-   which the landing runs; and the source scans' scripts, `build/ci/static-analysis.sh` and `build/ci/semgrep.sh`)
+   which the landing runs, and `build/ci/secret-detection-rules.sh`, which makes both secret scans' rules; and the
+   source scans' scripts, `build/ci/static-analysis.sh` and `build/ci/semgrep.sh`)
    lands only with `--gates-read "<who read it, and what>"`, a person's word that the change
    was read whole, which is recorded (exit 9 without it). It never squashes. It
    records on the merge request, and in `land-via-mr.log` in the git directory, the pipeline and its gate jobs, the

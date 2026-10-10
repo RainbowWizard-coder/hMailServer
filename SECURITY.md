@@ -578,7 +578,8 @@ scanning".
     imports (`build/check-release-chain.py`, `PATH_GUARD`). A batch that changes the gates' own files - their code;
     `.gitlab-ci.yml`, whose workflow, defaults and includes every job takes; the CI files the gate jobs are in or take
     a part from (`mr-checks.yml`, `gitlab-security.yml`, `no-github.yml`); `land-via-mr.py` and
-    `check-release-chain.py`; `sign-off.py` and `scan-secrets.py`, which a landing runs; and the source scans' scripts,
+    `check-release-chain.py`; `sign-off.py` and `scan-secrets.py`, which a landing runs, and
+    `secret-detection-rules.sh`, which makes both secret scans' rules; and the source scans' scripts,
     `static-analysis.sh` and `semgrep.sh` - lands only with a person's word that the change was read whole
     (`--gates-read`), which the landing record keeps. No other CI file may define a job that holds a change (the
     gates, *semgrep-sast*, *static-analysis*, *semgrep*, *checkers*) or a template one reaches, since GitLab merges a
@@ -595,7 +596,7 @@ scanning".
   distribution supplies is not evaluated change by change: the build images of the per-distribution `.deb`, `.rpm`,
   Alpine (APK), Arch, Nix and snap packages, the libraries the AppImages carry, and the container image's base image.
   Those are pinned by digest or by lock and patched by their distributions; the CI image's packages are scanned by
-  *dependency-scan* on a batch and before a release, and the release's container image by GitLab's container scanning
+  *dependency-scan* on a batch and before a release, and the release's container image by Trivy (*container_scanning*)
   once it is pushed, which holds nothing.
 - **What the gates cannot hold**, said so that it is weighed. The gates hold against mistakes, not against a hostile
   change: a change's own CI files say which jobs run and what they run, and its own copies of the gate scripts run in

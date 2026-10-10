@@ -987,15 +987,19 @@ in to gitlab.com as a Maintainer. In order, and stopping at the first refusal:
    `sign-off` job runs); and the secret scan of every commit it adds
    (`build/scan-secrets.py`, [Before a push](#before-a-push-the-secret-scan))
    must run and find nothing: a possible secret, or no scanner to run it,
-   refuses (exit 8). A `batch*` branch's pipeline does not run
+   refuses (exit 8). The scan is the checkout's own `scan-secrets.py`, with
+   the checkout's rules script, so the landing runs from a checkout of
+   `master`, where none of the batch's code judges the batch ([What the
+   secret scans read](#what-the-secret-scans-read)). A `batch*` branch's pipeline does not run
    `secret_detection`, and its merge request runs no pipeline, so this is the
    scan that reads a batch before it is on GitLab. A batch that changes the
    gates' own files - `GATE_FILES`: the five gate scripts; `.gitlab-ci.yml`,
    whose workflow rules, defaults and includes every job takes; the CI files the
    gate jobs are in or take a part from, `mr-checks.yml`, `gitlab-security.yml`
    and `no-github.yml`; the landing script and `check-release-chain.py`;
-   `sign-off.py` and `scan-secrets.py`, which this step runs; and the source
-   scans' scripts, `static-analysis.sh` and `semgrep.sh` - needs
+   `sign-off.py` and `scan-secrets.py`, which this step runs, and
+   `secret-detection-rules.sh`, which makes both secret scans' rules; and the
+   source scans' scripts, `static-analysis.sh` and `semgrep.sh` - needs
    `--gates-read "<who read it, and what>"`, a person's word that the change was
    read whole: the base's copy of the gate scripts judges such a change too, but
    only a person reads an edit of the jobs. Without it the script refuses (exit
@@ -4070,6 +4074,19 @@ the table. A change to the script changes what both scans read, so it is one of
 the gates' own files (`build/land-via-mr.py`'s `GATE_FILES`): a batch that
 changes it lands only with `--gates-read`, a person's word that the change was
 read, and the landing's scan prints the lines a range changes in it.
+
+Whose copy of the script runs differs. `secret_detection` runs the pipeline's own
+commit's, as it runs every file of its CI, so in a merge request's pipeline the
+change's own copy makes the rules that scan it - which is why the script is a
+gate file. `scan-secrets.py` hands its container its own tree's copy, never the
+scanned range's, and `build/land-via-mr.py` runs `scan-secrets.py` from its own
+tree: so a landing run from a checkout of `master`, as a landing is, scans a
+batch with `master`'s scan and `master`'s rules, and no code of the batch runs in
+it, while one run from the batch's own worktree would have the batch's copies of
+both scripts judge the batch. On server2 on 10 October 2026 a commit that put a
+made-up token under `build/` and made the rules script leave every path out
+passed the job of its own pipeline, as it must, and failed the landing's scan run
+from the tree before it.
 
 Read over every branch and tag of the project on GitLab on 10 October 2026
 (2,873 commits, `master` at 74aed9ab8) and over `master`'s tree, in the image

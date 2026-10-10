@@ -14,9 +14,14 @@ refusal:
      commit it adds carries its author's Signed-off-by (build/sign-off.py, the
      same check the sign-off job runs; commits already in one of the project's
      v* release tags are left out), and the secret scan of those commits
-     (build/scan-secrets.py: gitleaks with GitLab's rules and the tip's
+     (build/scan-secrets.py: gitleaks with GitLab's rules but for the entries
+     of their allowlist that leave out build/ and the like, as
+     build/ci/secret-detection-rules.sh derives them, and the tip's
      .gitleaksignore, in Docker here or where HM_SECRET_SCAN_SSH points) finds
-     nothing and could run. A batch branch's pipeline does not run the
+     nothing and could run. The scan and its rules script are this checkout's
+     own, not the batch's: run from a checkout of master, as a landing is, no
+     code of the batch runs in it, where from the batch's own worktree the
+     batch's copies would judge the batch. A batch branch's pipeline does not run the
      secret_detection job and its merge request runs none, so this scan is the
      one that reads a batch before it is on GitLab. And a batch that changes the
      gates' own files (GATE_FILES: the gate scripts; the CI files that say whether

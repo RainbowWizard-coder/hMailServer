@@ -239,7 +239,8 @@ reviewed afterwards, on its merge request. A batch that changes the gates' own
 files - the change checks' scripts, `.gitlab-ci.yml` and the CI files their
 jobs are in or take a part from, the landing script,
 `build/check-release-chain.py`, the sign-off check and the secret scan the
-landing runs, and the source scans' scripts - lands only with
+landing runs and that scan's rules script, and the source scans' scripts -
+lands only with
 `--gates-read "<reason>"`, the
 word of the person who read that change whole, which the landing note records:
 a change to what judges every change is read by a person, not by the gates it
