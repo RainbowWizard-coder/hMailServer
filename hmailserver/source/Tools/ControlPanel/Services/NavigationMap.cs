@@ -912,7 +912,8 @@ namespace hMailServer.ControlPanel.Services
                Page("status", N("Server status"),
                   N("Which services are running, who is connected right now, and how long the server has been up."),
                   aliases: "Sessions|Connections|Uptime|Running|Service state|Live sessions",
-                  seeAlso: "queue|dashboard|logs"),
+                  // Updates, whose waiting release the page says in one line.
+                  seeAlso: "queue|dashboard|logs|updates"),
 
                Page("queue", N("Delivery queue"),
                   N("Messages still waiting to be delivered, why each is waiting, and when it will be retried."),
@@ -1017,7 +1018,8 @@ namespace hMailServer.ControlPanel.Services
                Page("backup", N("Backup & restore"),
                   N("Back up or restore the configuration, the domains and the messages."),
                   aliases: "Backup|Restore|Export|Import|Disaster recovery|Copy to another server|Migrate",
-                  seeAlso: "hardening|domains"),
+                  // The Updates page beside it, whose unattended apply backs up first.
+                  seeAlso: "hardening|domains|updates"),
 
                // Its own page since review finding F272: Check, Download and Install
                // were on Server status and the policy that drives them a card on API

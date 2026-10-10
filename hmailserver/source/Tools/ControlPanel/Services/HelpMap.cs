@@ -125,7 +125,11 @@ namespace hMailServer.ControlPanel.Services
             ["surbl"] = HelpTarget.NoGuide,
             ["dnsbl"] = HelpTarget.NoGuide,
             ["spamwhitelist"] = HelpTarget.NoGuide,
-            ["blockedsenders"] = HelpTarget.NoGuide,
+            // Blocked senders is in the sender lists' document since its subtitle's
+            // warning moved there - the list matches the address the sender claims,
+            // so it is no defence against spoofing - beside the table of how the
+            // lists differ, both under The list.
+            ["blockedsenders"] = new HelpTarget("SenderListsAndDigests.md", "The list"),
             ["senderlist"] = new HelpTarget("SenderListsAndDigests.md", "The list"),
             ["greylistwhitelist"] = new HelpTarget("Greylisting.md", "What greylisting does"),
             ["greylistbypass"] = new HelpTarget("Greylisting.md", "The bypass list (#284)"),
