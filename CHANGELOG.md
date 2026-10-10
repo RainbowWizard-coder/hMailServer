@@ -2803,13 +2803,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   editor was offered for a key that needs none; and the Name column was cut at 170 pixels while the paths, the same
   folder on every row, took the rest. The form is now two lines of two fields - the name and the passphrase, then the
   two files - with Add in its card's footer; choosing the certificate file fills in the name from the certificate's
-  subject while the box is empty; an added certificate is selected and the page says "mail.example.com added. Choose
-  it for a port on the TCP/IP ports page to use it." with Open TCP/IP ports; Remove stored passphrase can be pressed
-  while one is stored or the page cannot tell, and Save passphrase while its box holds one; for a key the page read as
-  unencrypted with none stored, the editor waits behind Set a passphrase anyway…; a saved or removed passphrase, and a
-  refusal, is said on the page where it was a message box; and every column of the grid is a share of its width over
-  a floor, the Name column's the largest, so that a name is whole at 1280 by 800, while the path columns show the
-  file's name, the whole path in the tool tip. `CertificatesAddFlowTests` holds the form, the name, the outcome, the
+  subject while the box is empty; an added certificate is selected and scrolled to, and the page says
+  "mail.example.com added. Choose it for a port on the TCP/IP ports page to use it." with Open TCP/IP ports; Remove
+  stored passphrase can be pressed while one is stored or the page cannot tell, and Save passphrase while its box
+  holds one; for a key the page read as unencrypted with none stored, the editor waits behind Set a passphrase
+  anyway…; a saved or removed passphrase, and a refusal, is said on the page where it was a message box; each
+  outcome is said in a notice above the list that is scrolled into view, since at 1280 by 800 the page scrolls to
+  reach Add and the passphrase; and every column of the grid is a share of its width over a floor, the Name column's
+  the largest, so that a name is whole at 1280 by 800, while the path columns show the file's name, the whole path
+  in the tool tip. `CertificatesAddFlowTests` holds the form, the name, the outcome and where it is said, the
   buttons and the columns.
 
 - **Fixed: the Automatic certificates (ACME) page put its issued certificate below the fold, and blamed the network

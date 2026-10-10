@@ -85,10 +85,48 @@ namespace hMailServer.ControlPanel.Tests.Services
          string add = Member(Read("SslCertificatesView.xaml.cs"), "private async void Add_Click(object sender, RoutedEventArgs e)");
          Assert.Contains("added = (int)cert.ID;", add, StringComparison.Ordinal);
          Assert.Contains("Reload(added, () => ShowOutcome_(StatusLevel.Good,", add, StringComparison.Ordinal);
+         Assert.Contains("CertGrid.ScrollIntoView(reselect);", Read("SslCertificatesView.xaml.cs"), StringComparison.Ordinal);
          Assert.Contains("ListOutcome.Added(name, DateTime.Now)", add, StringComparison.Ordinal);
          Assert.Contains("OpenPortsButton_()", add, StringComparison.Ordinal);
          Assert.DoesNotContain("MessageBox.Show(", add, StringComparison.Ordinal);
          Assert.Contains("NoticeActions.OpenPage(\"ports\"", Read("SslCertificatesView.xaml.cs"), StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// The outcome is said above the list and Add below it, so at 1280 by 800, where
+      /// the page scrolls to reach Add, the sentence and Open TCP/IP ports were out of
+      /// view - and a passphrase that could not be saved, which was a message box, with
+      /// them. Every outcome is scrolled into view once laid out, and every act's
+      /// outcome is said through it.
+      /// </summary>
+      [Fact]
+      public void TheOutcome_IsScrolledIntoView_WhereverTheActWasPressed()
+      {
+         string code = Read("SslCertificatesView.xaml.cs");
+         string show = Member(code, "private void ShowOutcome_(StatusLevel level, string text, UIElement action = null)");
+         int visible = show.IndexOf("OutcomeNotice.Visibility = Visibility.Visible;", StringComparison.Ordinal);
+         int into = show.IndexOf("Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, new Action(() =>", StringComparison.Ordinal);
+         Assert.True(visible >= 0 && into > visible, "ShowOutcome_ does not scroll the notice into view once it is shown and laid out.");
+         // The row the act selected first, in the grid the notice has shortened - whose
+         // ScrollIntoView scrolls the page too - and the notice once that is laid out.
+         string laidOut = show.Substring(into);
+         int row = laidOut.IndexOf("CertGrid.ScrollIntoView(CertGrid.SelectedItem);", StringComparison.Ordinal);
+         int notice = laidOut.IndexOf("Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new Action(() => OutcomeNotice.BringIntoView()));", StringComparison.Ordinal);
+         Assert.True(row > 0 && notice > row, "The grid is not scrolled to its row before the notice is brought into view.");
+
+         // The notice is the page's one place for an outcome: nothing else sets its text.
+         Assert.Single(System.Text.RegularExpressions.Regex.Matches(code, @"OutcomeNotice\.Text\s*="));
+         foreach (string act in new[]
+         {
+            "private void SavePassphrase_Click(object sender, RoutedEventArgs e)",
+            "private void ClearPassphrase_Click(object sender, RoutedEventArgs e)",
+            "private async void Add_Click(object sender, RoutedEventArgs e)"
+         })
+         {
+            string member = Member(code, act);
+            Assert.Contains("ShowOutcome_(StatusLevel.Critical,", member, StringComparison.Ordinal);
+            Assert.Contains("ShowOutcome_(StatusLevel.Good,", member, StringComparison.Ordinal);
+         }
       }
 
       [Fact]

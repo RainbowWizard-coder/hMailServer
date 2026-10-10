@@ -210,9 +210,14 @@ namespace hMailServer.ControlPanel.Views
 
          if (reselectId != 0)
          {
+            // Selected and scrolled to in the grid, and again once an outcome's notice
+            // has shortened it (ShowOutcome_).
             CertRow reselect = rows.FirstOrDefault(row => row.Id == reselectId);
             if (reselect != null)
+            {
                CertGrid.SelectedItem = reselect;
+               CertGrid.ScrollIntoView(reselect);
+            }
          }
 
          UpdateDetailsPane();
@@ -588,13 +593,32 @@ namespace hMailServer.ControlPanel.Views
          Reload((CertGrid.SelectedItem as CertRow)?.Id ?? 0);
       }
 
-      /// <summary>What the last act did, at its level, after the list it acted on was read again.</summary>
+      /// <summary>
+      /// What the last act did, at its level, after the list it acted on was read
+      /// again - scrolled into view once laid out, as a server settings page's notice
+      /// is: the notice is above the list, and Add and the passphrase's buttons are
+      /// below it, so that at 1280 by 800, where the page scrolls to reach Add, an
+      /// added certificate's sentence with Open TCP/IP ports, and "Could not save the
+      /// passphrase", which was a message box, were said out of sight (review finding
+      /// F236). Once laid out, so that the grid, which the notice shortens, knows where
+      /// the row it selected is - a certificate just added is the last row, and in
+      /// Japanese, whose rows are taller, it sat under the grid's edge - and then the
+      /// notice, once the grid's scroll is laid out: the grid's ScrollIntoView scrolls
+      /// the page to the row as well, and run after the notice's it took the notice out
+      /// of view again.
+      /// </summary>
       private void ShowOutcome_(StatusLevel level, string text, UIElement action = null)
       {
          OutcomeNotice.Level = level;
          OutcomeNotice.Text = text;
          OutcomeNotice.Content = action;
          OutcomeNotice.Visibility = Visibility.Visible;
+         Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, new Action(() =>
+         {
+            if (CertGrid.SelectedItem != null)
+               CertGrid.ScrollIntoView(CertGrid.SelectedItem);
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new Action(() => OutcomeNotice.BringIntoView()));
+         }));
       }
 
       /// <summary>
