@@ -79,7 +79,12 @@ namespace hMailServer.ControlPanel.Services
       /// </summary>
       public DateTime? ExpiresOn { get; set; }
 
-      /// <summary>A problem with the files themselves - missing, unreadable, mismatched pair. Null when there is none.</summary>
+      /// <summary>
+      /// A problem with the files themselves - missing, not a PEM certificate, a key that
+      /// does not match - in the SSL certificates page's sentence for it. Null when there
+      /// is none; an expiry is not one (<see cref="TlsPosture.TakeInspection"/>), since
+      /// the days say it.
+      /// </summary>
       public string Problem { get; set; }
 
       /// <summary>
@@ -635,6 +640,35 @@ namespace hMailServer.ControlPanel.Services
          certificate.ExpiresOn != null
             ? (certificate.ExpiresOn.Value.Date - today.Date).Days
             : certificate.DaysRemaining;
+
+      /// <summary>
+      /// A certificate's days, expiry date and problem from what CertificateInspector
+      /// found in its files, as the overview takes them. The problem is the first
+      /// finding that stops the certificate working - a certificate file not set,
+      /// missing or not a PEM certificate, a key file not set or missing, a key that
+      /// does not match - and not a finding that is fine, such as an encrypted key with
+      /// its passphrase stored. The certificate file's finding is Critical for an
+      /// expired certificate as well, and it is not the problem once the expiry was
+      /// read and is past: the row and the notes say an expiry in words of their own,
+      /// from the days. Taken as the problem, it put the certificates grid's long word
+      /// in the row's pill, "Expired on 2026-09-27 (13 days ago)" - an ISO date, cut
+      /// short in German - and that page's sentence beside it, so that the row's Has
+      /// expired was never shown (review finding F326).
+      /// </summary>
+      public static void TakeInspection(TlsCertificate certificate, CertificateHealth health)
+      {
+         certificate.DaysRemaining = health.DaysRemaining;
+         certificate.ExpiresOn = health.ExpiresOn;
+
+         // DaysRemaining is set only once the file has parsed, and is below 0 only
+         // past the expiry, so that the file's Critical finding is then the expiry.
+         CertificateFinding fileFinding = health.DaysRemaining < 0 ? null : health.CertificateFile;
+         CertificateFinding problem = new[] { fileFinding, health.PrivateKeyFile, health.Pair }
+            .FirstOrDefault(finding => finding != null && finding.Level == StatusLevel.Critical);
+
+         certificate.Problem = problem?.Detail;
+         certificate.ProblemWord = problem?.Word;
+      }
 
       /// <summary>
       /// What a certificate's row on the overview says, as a listener's row does (review

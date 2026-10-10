@@ -186,6 +186,12 @@
          StatusSemantics above precisely so that it does not. -->
     <Compile Include="..\ControlPanel\Services\VirusPipeline.cs" />
     <Compile Include="..\ControlPanel\Services\TlsPosture.cs" />
+    <!-- The SSL certificates page's reading of a certificate's files, which the
+         transport encryption overview's certificate rows are taken from
+         (TlsPosture.TakeInspection): a test writes a certificate and its key and
+         reads them as the page does. Plain file reads and parsing; whether the
+         session is local is LocalHostNames, compiled in below. -->
+    <Compile Include="..\ControlPanel\Services\CertificateInspector.cs" />
     <!-- The count beside the three overviews' titles, which says nothing where a
          value could not be read and no problem was found. -->
     <Compile Include="..\ControlPanel\Services\OverviewProblemCount.cs" />

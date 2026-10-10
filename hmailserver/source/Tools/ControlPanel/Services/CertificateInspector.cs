@@ -98,9 +98,11 @@ namespace hMailServer.ControlPanel.Services
       /// sitting at the server will type - the two immediately disagreed: the
       /// certificate page would have gone on saying "not readable from this
       /// machine" while looking straight at the files. One implementation, so
-      /// there is nothing to drift.
+      /// there is nothing to drift: LocalHostNames, which ServerSession.IsLocalHost
+      /// is too, so that this file carries no COM and the tests compile it in, to
+      /// read a certificate as the transport encryption overview does.
       /// </summary>
-      public static bool SessionIsLocal(string host) => ServerSession.IsLocalHost(host);
+      public static bool SessionIsLocal(string host) => LocalHostNames.IsLocal(host);
 
       /// <summary>
       /// Inspects one certificate entry. Never throws; every failure becomes a

@@ -207,20 +207,10 @@ namespace hMailServer.ControlPanel.Views
 
                   if (config.CertificateFilesReadable)
                   {
-                     CertificateHealth health = CertificateInspector.Inspect(
+                     TlsPosture.TakeInspection(entry, CertificateInspector.Inspect(
                         (string)certificate.CertificateFile,
                         (string)certificate.PrivateKeyFile,
-                        true);
-
-                     entry.DaysRemaining = health.DaysRemaining;
-                     entry.ExpiresOn = health.ExpiresOn;
-
-                     // Only the findings that stop the certificate working. An
-                     // encrypted key with a passphrase configured, for instance, is
-                     // fine and must not be reported here as a problem.
-                     CertificateFinding problem = FirstProblem(health);
-                     entry.Problem = problem?.Detail;
-                     entry.ProblemWord = problem?.Word;
+                        true));
                   }
 
                   config.Certificates.Add(entry);
@@ -242,10 +232,6 @@ namespace hMailServer.ControlPanel.Views
             ServerSession.Release((object)certificates);
          }
       }
-
-      private static CertificateFinding FirstProblem(CertificateHealth health)
-         => new[] { health.CertificateFile, health.PrivateKeyFile, health.Pair }
-            .FirstOrDefault(finding => finding != null && finding.Level == StatusLevel.Critical);
 
       private void ReadListeners(TlsPostureConfig config, dynamic settings)
       {
