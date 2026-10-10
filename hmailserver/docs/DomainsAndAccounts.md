@@ -11,10 +11,10 @@ The page has four cards. The **domains** of the server on the left, with a searc
 and a form to add one; on the right, the **accounts** of the domain selected, with
 a search and a form to add one; and under them that domain's **aliases** and its
 **distribution lists**, each with a form to add one. Every row carries its own
-buttons: one that opens its dialog - *Properties* on a domain, *Edit* on an
-account, the gear on a list, beside the list's *Members* - and one in red that
-deletes it after asking; an alias has no dialog. From the keyboard, Enter opens
-the selected row's dialog, Delete deletes it after asking, and Shift+F10 opens the
+buttons: one that opens its dialog - *Edit* on a domain or an account, the
+pencil on a list, beside the list's *Members* - and one in red that deletes it
+after asking; an alias has no dialog. From the keyboard, Enter opens the
+selected row's dialog, Delete deletes it after asking, and Shift+F10 opens the
 same verbs as a menu.
 
 Adding a domain
@@ -79,7 +79,7 @@ Both are addresses of the domain that are not mailboxes.
 * **A distribution list** delivers to several. Give the **List address** and
   press **Add list**, then add its members with the *Members* button on its row -
   addresses typed one at a time, or picked from Active Directory. The list's
-  dialog (the gear on its row) says who may send to it - anyone, its members, the
+  dialog (the pencil on its row) says who may send to it - anyone, its members, the
   domain's own addresses or announcements only - with an optional moderator and
   bounce address, and can find the rest of its members itself by a **membership
   query**, so that a list such as `everyone@` needs nobody to keep it up to date
@@ -93,7 +93,7 @@ dialog, not an alias of the page.
 The domain's dialog
 -------------------
 
-*Properties* on a domain's row. Everything in it applies to that domain alone.
+*Edit* on a domain's row. Everything in it applies to that domain alone.
 
 | Tab | What it holds |
 |---|---|

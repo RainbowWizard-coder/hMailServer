@@ -130,6 +130,40 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("F(\"Remove the member {0} from this list?\", address)", dialog, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// The page's own help says the verbs the page shows: DomainsAndAccounts.md,
+      /// which the help pane opens for the page and the server embeds, still told its
+      /// reader to press Properties on a domain's row and the gear on a list's once
+      /// the rows said Edit and the list's glyph was a pencil.
+      /// </summary>
+      [Fact]
+      public void ThePagesHelp_SaysTheRowsVerbs()
+      {
+         HelpTarget target = HelpMap.For("domains");
+         Assert.Equal("DomainsAndAccounts.md", target.Doc);
+         string text = Regex.Replace(File.ReadAllText(Path.Join(DocsDirectory(), target.Doc)), @"\s+", " ");
+         Assert.Contains("one that opens its dialog - *Edit* on a domain or an account, the pencil on a list, beside the list's *Members*", text, StringComparison.Ordinal);
+         Assert.Contains("The list's dialog (the pencil on its row)", text, StringComparison.Ordinal);
+         Assert.Contains("*Edit* on a domain's row.", text, StringComparison.Ordinal);
+         Assert.DoesNotContain("*Properties*", text, StringComparison.Ordinal);
+         Assert.DoesNotMatch(new Regex(@"\b(?:gear|cog)\b", RegexOptions.IgnoreCase), text);
+      }
+
+      private static string DocsDirectory()
+      {
+         var directory = new DirectoryInfo(AppContext.BaseDirectory);
+         while (directory != null)
+         {
+            string candidate = Path.Join(directory.FullName, "ControlPanel", "App.xaml.cs");
+            if (File.Exists(candidate))
+               return Path.GetFullPath(Path.Join(directory.FullName, "ControlPanel", "..", "..", "..", "docs"));
+            directory = directory.Parent;
+         }
+
+         Assert.Fail("ControlPanel/App.xaml.cs could not be found from the test binaries.");
+         return null;
+      }
+
       private static Dictionary<string, string> ReadResx(string path)
       {
          var result = new Dictionary<string, string>(StringComparer.Ordinal);

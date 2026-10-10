@@ -3054,12 +3054,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   row it was on. Every row that opens an editor now says Edit - the domain and account rows' word, the list row's glyph
   a pencil where it was a cog, the rows' menus Edit… - and each button is named for its row, "Edit domain example.com",
   "Edit account ...", "Edit distribution list ...", the name starting with the button's word in every language. The
-  members dialog says member throughout: its heading "Members of everyone@example.com" and title "Members - ...", its
-  box "Address to add as a member", "Remove the member ... from this list?", "No members yet, ...", "2 members added."
-  and its failures, where each said recipient. French, Italian and Russian give Members… an Alt key of its own
-  (Mem_bres, Mem_bri, Уча_стники), where it took the M of Modifier and Modifica and the У of Удалить beside it, on the
-  list's menu and on the Groups page. `DomainsVerbWordsTests` holds the rows, their names and Members…' keys in every
-  catalogue, and the dialog's words; `DomainsFormsTests` and `DomainsRowVerbsTests` hold the new names and menus.
+  page's help, DomainsAndAccounts.md, says Edit on a domain's row and the pencil on a list's, where it said Properties
+  and the gear. The members dialog says member throughout: its heading "Members of everyone@example.com" and title
+  "Members - ...", its box "Address to add as a member", "Remove the member ... from this list?", "No members yet,
+  ...", "2 members added." and its failures, where each said recipient. French, Italian and Russian give Members… an
+  Alt key of its own (Mem_bres, Mem_bri, Уча_стники), where it took the M of Modifier and Modifica and the У of Удалить
+  beside it, on the list's menu and on the Groups page. `DomainsVerbWordsTests` holds the rows, their names and
+  Members…' keys in every catalogue, the dialog's words and the help's; `DomainsFormsTests` and `DomainsRowVerbsTests`
+  hold the new names and menus.
 
 - **Fixed: the Administrator roles page left the built-in roles' purposes in English, said its subtitle twice, and gave
   its form no examples.** "What it is for" showed the description hm_roles holds, which the database scripts write in
