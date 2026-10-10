@@ -2152,6 +2152,15 @@ Los detalles completos se escribieron en:
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>Token de portador para /metrics (vacío = ninguno)</value>
   </data>
+  <data name="Becomes valid in {0} day." xml:space="preserve">
+    <value>Será válido en {0} día.</value>
+  </data>
+  <data name="Becomes valid in {0} days." xml:space="preserve">
+    <value>Será válido en {0} días.</value>
+  </data>
+  <data name="Becomes valid today." xml:space="preserve">
+    <value>Será válido hoy.</value>
+  </data>
   <data name="Before enabling, fill in Directory server host name and Search base, or User DN template to bind without searching." xml:space="preserve">
     <value>Antes de activar, rellene Nombre de host del servidor de directorio y Base de búsqueda, o Plantilla de DN de usuario para hacer bind sin buscar.</value>
   </data>
@@ -8200,6 +8209,9 @@ No se elimina nada de lo que ya está.</value>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>No válido hasta {0}</value>
   </data>
+  <data name="Not valid yet" xml:space="preserve">
+    <value>Aún no válido</value>
+  </data>
   <data name="Note" xml:space="preserve">
     <value>Nota</value>
   </data>
@@ -12848,6 +12860,12 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="The certificate &quot;{0}&quot; is in use by a listener and has a problem: {1}" xml:space="preserve">
     <value>El certificado "{0}" lo está usando un oyente y tiene un problema: {1}</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; is not valid yet and is assigned to a listener. Clients refuse it until it is - check the certificate and this server's clock." xml:space="preserve">
+    <value>El certificado "{0}" aún no es válido y está asignado a un oyente. Los clientes lo rechazan hasta que lo sea - revise el certificado y el reloj de este servidor.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; is not valid yet. It is not assigned to any listener." xml:space="preserve">
+    <value>El certificado "{0}" aún no es válido. No está asignado a ningún oyente.</value>
   </data>
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>El certificado y la clave deben estar ambos definidos para servir HTTPS; con solo uno de ellos TLS no se activa y el servidor lo registra. A diferencia del oyente de la API REST, aquí no hay respaldo en el certificado ACME. Si TLS está configurado pero no puede prepararse (un archivo ilegible, una clave que no coincide), las sondas de salud siguen en HTTP plano y /metrics responde 503 en vez de servir la exposición en claro.</value>

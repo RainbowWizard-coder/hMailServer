@@ -80,6 +80,13 @@ namespace hMailServer.ControlPanel.Services
       public DateTime? ExpiresOn { get; set; }
 
       /// <summary>
+      /// When it becomes valid, in local time, while that is still to come; null once it
+      /// is valid, or when it could not be read. Clients refuse it until then, and the
+      /// SSL certificates page says so as a Warning.
+      /// </summary>
+      public DateTime? NotValidUntil { get; set; }
+
+      /// <summary>
       /// A problem with the files themselves - missing, not a PEM certificate, a key that
       /// does not match - in the SSL certificates page's sentence for it. Null when there
       /// is none; an expiry is not one (<see cref="TlsPosture.TakeInspection"/>), since
@@ -571,6 +578,21 @@ namespace hMailServer.ControlPanel.Services
             if (certificate.DaysRemaining == null)
                continue;
 
+            // A certificate whose date of validity is still to come: clients refuse it
+            // until then, and it is most often this server's clock that is wrong. At the
+            // certificates page's level, a Warning, while a listener uses it, and its row's.
+            if (certificate.NotValidUntil != null)
+            {
+               notes.Add(certificate.InUse
+                  ? new TlsPostureNote(StatusLevel.Warning,
+                     F("The certificate \"{0}\" is not valid yet and is assigned to a listener. Clients refuse it until it is - check the certificate and this server's clock.", certificate.Name),
+                     "certs")
+                  : new TlsPostureNote(StatusLevel.Information,
+                     F("The certificate \"{0}\" is not valid yet. It is not assigned to any listener.", certificate.Name),
+                     "certs"));
+               continue;
+            }
+
             // DaysRemaining, the floor of the days to the expiry, decides the level
             // and the window: 0 is within the next 24 hours, -1 within the last 24.
             // The day the note names is counted on the calendar from the expiry
@@ -660,6 +682,11 @@ namespace hMailServer.ControlPanel.Services
          certificate.DaysRemaining = health.DaysRemaining;
          certificate.ExpiresOn = health.ExpiresOn;
 
+         // A date of validity still to come is the certificate file's Warning, which is
+         // not a problem with the files and was not taken: the row said Valid beside the
+         // certificates page's Warning for the same certificate (F326).
+         certificate.NotValidUntil = health.NotValidUntil;
+
          // DaysRemaining is set only once the file has parsed, and is below 0 only
          // past the expiry, so that the file's Critical finding is then the expiry.
          CertificateFinding fileFinding = health.DaysRemaining < 0 ? null : health.CertificateFile;
@@ -676,9 +703,11 @@ namespace hMailServer.ControlPanel.Services
       /// sentence about the certificate's files or its expiry, and whether a listener
       /// uses it. A problem with the files is the SSL certificates page's own word and
       /// sentence for it, Critical while a listener uses the certificate; past its date
-      /// it Has expired, Critical while in use; inside the warning window it Expires soon,
-      /// a Warning while in use and Information otherwise; beyond it, it is Valid; and
-      /// unread from here, Not checked. The levels are the notes' for the same
+      /// it Has expired, Critical while in use; before its date of validity it is Not
+      /// valid yet, a Warning while in use and Information otherwise, where it said Valid
+      /// beside the certificates page's Warning; inside the warning window it Expires
+      /// soon, a Warning while in use and Information otherwise; beyond it, it is Valid;
+      /// and unread from here, Not checked. The levels are the notes' for the same
       /// certificate, and the day counted is the calendar's, as theirs is.
       /// </summary>
       public static TlsCertificateRow CertificateRow(TlsPostureConfig config, TlsCertificate certificate, DateTime today)
@@ -699,6 +728,13 @@ namespace hMailServer.ControlPanel.Services
             int daysAgo = Math.Max(0, -CalendarDays(certificate, today).Value);
             return new TlsCertificateRow(certificate.InUse ? StatusLevel.Critical : StatusLevel.Warning, L("Has expired"),
                daysAgo == 0 ? L("Expired today.") : Plural(daysAgo, "Expired {0} day ago.", "Expired {0} days ago."), usage);
+         }
+
+         if (certificate.NotValidUntil != null)
+         {
+            int daysToGo = Math.Max(0, (certificate.NotValidUntil.Value.Date - today.Date).Days);
+            return new TlsCertificateRow(certificate.InUse ? StatusLevel.Warning : StatusLevel.Information, L("Not valid yet"),
+               daysToGo == 0 ? L("Becomes valid today.") : Plural(daysToGo, "Becomes valid in {0} day.", "Becomes valid in {0} days."), usage);
          }
 
          int days = Math.Max(0, CalendarDays(certificate, today).Value);

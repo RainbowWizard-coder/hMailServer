@@ -2162,6 +2162,15 @@
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>/metrics 用のベアラー トークン (空 = なし)</value>
   </data>
+  <data name="Becomes valid in {0} day." xml:space="preserve">
+    <value>あと {0} 日で有効になります。</value>
+  </data>
+  <data name="Becomes valid in {0} days." xml:space="preserve">
+    <value>あと {0} 日で有効になります。</value>
+  </data>
+  <data name="Becomes valid today." xml:space="preserve">
+    <value>今日中に有効になります。</value>
+  </data>
   <data name="Before enabling, fill in Directory server host name and Search base, or User DN template to bind without searching." xml:space="preserve">
     <value>有効にする前に、ディレクトリ サーバーのホスト名と検索ベース (または、検索せずにバインドするならユーザー DN テンプレート) を入力してください。</value>
   </data>
@@ -8210,6 +8219,9 @@
   <data name="Not valid until {0}" xml:space="preserve">
     <value>{0} まで無効</value>
   </data>
+  <data name="Not valid yet" xml:space="preserve">
+    <value>有効期間前</value>
+  </data>
   <data name="Note" xml:space="preserve">
     <value>メモ</value>
   </data>
@@ -12858,6 +12870,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The certificate &quot;{0}&quot; is in use by a listener and has a problem: {1}" xml:space="preserve">
     <value>証明書 "{0}" はリスナーで使用中で、問題があります: {1}</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; is not valid yet and is assigned to a listener. Clients refuse it until it is - check the certificate and this server's clock." xml:space="preserve">
+    <value>証明書 "{0}" はまだ有効ではなく、リスナーに割り当てられています。有効になるまで、クライアントはそれを拒否します。証明書とこのサーバーの時計を確認してください。</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; is not valid yet. It is not assigned to any listener." xml:space="preserve">
+    <value>証明書 "{0}" はまだ有効ではありません。どのリスナーにも割り当てられていません。</value>
   </data>
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>HTTPS を提供するには証明書と鍵の両方を設定する必要があります。片方だけでは TLS は有効にならず、サーバーはその旨をログに記録します。REST API リスナーとは異なり、ここでは ACME 証明書へのフォールバックはありません。TLS が設定されていても準備できない場合 (読み取れないファイル、一致しない鍵)、ヘルス プローブは平文の HTTP のままとなり、/metrics は平文でエクスポジションを返す代わりに 503 を返します。</value>

@@ -2152,6 +2152,15 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>Token bearer per /metrics (vuoto = nessuno)</value>
   </data>
+  <data name="Becomes valid in {0} day." xml:space="preserve">
+    <value>Diventa valido tra {0} giorno.</value>
+  </data>
+  <data name="Becomes valid in {0} days." xml:space="preserve">
+    <value>Diventa valido tra {0} giorni.</value>
+  </data>
+  <data name="Becomes valid today." xml:space="preserve">
+    <value>Diventa valido oggi.</value>
+  </data>
   <data name="Before enabling, fill in Directory server host name and Search base, or User DN template to bind without searching." xml:space="preserve">
     <value>Prima di attivare, compilare Nome host del server di directory e Base di ricerca, oppure Modello di DN utente per fare il bind senza cercare.</value>
   </data>
@@ -8200,6 +8209,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Non valido prima del {0}</value>
   </data>
+  <data name="Not valid yet" xml:space="preserve">
+    <value>Non ancora valido</value>
+  </data>
   <data name="Note" xml:space="preserve">
     <value>Nota</value>
   </data>
@@ -12848,6 +12860,12 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   </data>
   <data name="The certificate &quot;{0}&quot; is in use by a listener and has a problem: {1}" xml:space="preserve">
     <value>Il certificato "{0}" è in uso da un listener e presenta un problema: {1}</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; is not valid yet and is assigned to a listener. Clients refuse it until it is - check the certificate and this server's clock." xml:space="preserve">
+    <value>Il certificato "{0}" non è ancora valido ed è assegnato a un listener. Fino ad allora i client lo rifiutano - controllare il certificato e l'orologio di questo server.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; is not valid yet. It is not assigned to any listener." xml:space="preserve">
+    <value>Il certificato "{0}" non è ancora valido. Non è assegnato ad alcun listener.</value>
   </data>
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>Per servire HTTPS devono essere impostati sia il certificato sia la chiave; con uno solo dei due il TLS non viene attivato e il server lo registra. A differenza del listener dell'API REST, qui non si ricade sul certificato ACME. Se il TLS è configurato ma non può essere predisposto (un file illeggibile, una chiave che non corrisponde), le sonde di integrità restano su HTTP in chiaro e /metrics risponde 503 invece di servire l'esposizione in chiaro.</value>

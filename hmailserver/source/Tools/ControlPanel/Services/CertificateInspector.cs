@@ -46,6 +46,13 @@ namespace hMailServer.ControlPanel.Services
 
       public DateTime? ExpiresOn { get; internal set; }
       public int? DaysRemaining { get; internal set; }
+
+      /// <summary>
+      /// When the certificate becomes valid, in local time, while that is still to come:
+      /// set with the certificate file's "Not valid until" finding, null once the
+      /// certificate is valid, past its expiry, or not read.
+      /// </summary>
+      public DateTime? NotValidUntil { get; internal set; }
    }
 
    /// <summary>
@@ -244,6 +251,7 @@ namespace hMailServer.ControlPanel.Services
          }
          else if (certificate.NotBefore > now)
          {
+            health.NotValidUntil = certificate.NotBefore;
             health.CertificateFile = new CertificateFinding(StatusLevel.Warning,
                F("Not valid until {0}", certificate.NotBefore.ToString("yyyy-MM-dd")),
                L("The server serves it (server error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock."));

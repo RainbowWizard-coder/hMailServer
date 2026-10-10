@@ -2152,6 +2152,15 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>Bearer-Token für /metrics (leer = keins)</value>
   </data>
+  <data name="Becomes valid in {0} day." xml:space="preserve">
+    <value>Wird in {0} Tag gültig.</value>
+  </data>
+  <data name="Becomes valid in {0} days." xml:space="preserve">
+    <value>Wird in {0} Tagen gültig.</value>
+  </data>
+  <data name="Becomes valid today." xml:space="preserve">
+    <value>Wird heute gültig.</value>
+  </data>
   <data name="Before enabling, fill in Directory server host name and Search base, or User DN template to bind without searching." xml:space="preserve">
     <value>Füllen Sie vor dem Einschalten Hostname des Verzeichnisservers und Suchbasis aus, oder Benutzer-DN-Vorlage, um ohne Suche zu binden.</value>
   </data>
@@ -8200,6 +8209,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Erst gültig ab {0}</value>
   </data>
+  <data name="Not valid yet" xml:space="preserve">
+    <value>Noch nicht gültig</value>
+  </data>
   <data name="Note" xml:space="preserve">
     <value>Notiz</value>
   </data>
@@ -12848,6 +12860,12 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   </data>
   <data name="The certificate &quot;{0}&quot; is in use by a listener and has a problem: {1}" xml:space="preserve">
     <value>Das Zertifikat „{0}“ wird von einem Listener verwendet und hat ein Problem: {1}</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; is not valid yet and is assigned to a listener. Clients refuse it until it is - check the certificate and this server's clock." xml:space="preserve">
+    <value>Das Zertifikat „{0}“ ist noch nicht gültig und ist einem Listener zugewiesen. Bis dahin lehnen Clients es ab - prüfen Sie das Zertifikat und die Uhr dieses Servers.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; is not valid yet. It is not assigned to any listener." xml:space="preserve">
+    <value>Das Zertifikat „{0}“ ist noch nicht gültig. Es ist keinem Listener zugewiesen.</value>
   </data>
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>Zertifikat und Schlüssel müssen beide gesetzt sein, um HTTPS auszuliefern; mit nur einem davon ist TLS nicht aktiv und der Server protokolliert das. Anders als beim REST-API-Listener gibt es hier keinen Rückgriff auf das ACME-Zertifikat. Ist TLS konfiguriert, kann aber nicht vorbereitet werden (eine unlesbare Datei, ein nicht passender Schlüssel), bleiben die Zustandsprüfungen bei einfachem HTTP und /metrics antwortet mit 503, statt die Ausgabe im Klartext auszuliefern.</value>

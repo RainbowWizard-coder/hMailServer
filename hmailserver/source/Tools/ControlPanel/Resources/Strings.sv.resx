@@ -2152,6 +2152,15 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>Bearer-token för /metrics (tomt = ingen)</value>
   </data>
+  <data name="Becomes valid in {0} day." xml:space="preserve">
+    <value>Blir giltigt om {0} dag.</value>
+  </data>
+  <data name="Becomes valid in {0} days." xml:space="preserve">
+    <value>Blir giltigt om {0} dagar.</value>
+  </data>
+  <data name="Becomes valid today." xml:space="preserve">
+    <value>Blir giltigt i dag.</value>
+  </data>
   <data name="Before enabling, fill in Directory server host name and Search base, or User DN template to bind without searching." xml:space="preserve">
     <value>Fyll i Katalogserverns värdnamn och Sökbas före aktivering, eller Användarens DN-mall för att binda utan att söka.</value>
   </data>
@@ -8200,6 +8209,9 @@ Inget som redan finns där tas bort.</value>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Inte giltigt förrän {0}</value>
   </data>
+  <data name="Not valid yet" xml:space="preserve">
+    <value>Inte giltigt än</value>
+  </data>
   <data name="Note" xml:space="preserve">
     <value>Anteckning</value>
   </data>
@@ -12848,6 +12860,12 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="The certificate &quot;{0}&quot; is in use by a listener and has a problem: {1}" xml:space="preserve">
     <value>Certifikatet "{0}" används av en lyssnare och har ett problem: {1}</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; is not valid yet and is assigned to a listener. Clients refuse it until it is - check the certificate and this server's clock." xml:space="preserve">
+    <value>Certifikatet "{0}" är inte giltigt än och är tilldelat en lyssnare. Klienter vägrar det fram till dess - kontrollera certifikatet och den här serverns klocka.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; is not valid yet. It is not assigned to any listener." xml:space="preserve">
+    <value>Certifikatet "{0}" är inte giltigt än. Det är inte tilldelat någon lyssnare.</value>
   </data>
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>Certifikat och nyckel måste båda vara satta för att servera HTTPS; med bara ett av dem är TLS inte aktiverat och servern loggar det. Till skillnad från REST API-lyssnaren finns här ingen reserv i ACME-certifikatet. Om TLS är konfigurerat men inte kan förberedas (en oläsbar fil, en nyckel som inte matchar) stannar hälsokontrollerna på vanlig HTTP och /metrics svarar 503 i stället för att servera utdata i klartext.</value>

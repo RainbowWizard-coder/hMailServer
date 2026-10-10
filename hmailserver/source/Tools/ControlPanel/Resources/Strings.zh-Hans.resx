@@ -2152,6 +2152,15 @@
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>/metrics 的持有者令牌（留空 = 无）</value>
   </data>
+  <data name="Becomes valid in {0} day." xml:space="preserve">
+    <value>将在 {0} 天后生效。</value>
+  </data>
+  <data name="Becomes valid in {0} days." xml:space="preserve">
+    <value>将在 {0} 天后生效。</value>
+  </data>
+  <data name="Becomes valid today." xml:space="preserve">
+    <value>将于今天生效。</value>
+  </data>
   <data name="Before enabling, fill in Directory server host name and Search base, or User DN template to bind without searching." xml:space="preserve">
     <value>启用之前，请填写目录服务器主机名和搜索基准，或者填写用户 DN 模板以便不经搜索直接绑定。</value>
   </data>
@@ -8200,6 +8209,9 @@
   <data name="Not valid until {0}" xml:space="preserve">
     <value>在 {0} 之前无效</value>
   </data>
+  <data name="Not valid yet" xml:space="preserve">
+    <value>尚未生效</value>
+  </data>
   <data name="Note" xml:space="preserve">
     <value>备注</value>
   </data>
@@ -12848,6 +12860,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The certificate &quot;{0}&quot; is in use by a listener and has a problem: {1}" xml:space="preserve">
     <value>证书 "{0}" 正被某个监听器使用，并且存在问题: {1}</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; is not valid yet and is assigned to a listener. Clients refuse it until it is - check the certificate and this server's clock." xml:space="preserve">
+    <value>证书 "{0}" 尚未生效，且已分配给某个监听器。在生效之前，客户端都会拒绝它 - 请检查证书和本服务器的时钟。</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; is not valid yet. It is not assigned to any listener." xml:space="preserve">
+    <value>证书 "{0}" 尚未生效。它未分配给任何监听器。</value>
   </data>
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>要提供 HTTPS，证书和密钥必须同时设置；只设置其中之一时不会启用 TLS，服务器会记录这一点。与 REST API 监听器不同，此处不会回退到 ACME 证书。如果配置了 TLS 但无法准备就绪（文件不可读、密钥不匹配），健康探测将保持在纯 HTTP 上，而 /metrics 会应答 503，而不是以明文提供指标输出。</value>

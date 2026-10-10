@@ -25,12 +25,13 @@ namespace hMailServer.ControlPanel.Tests.Services
    {
       private static readonly DateTime Today = new(2026, 10, 10);
 
-      private static TlsCertificate Certificate(int? days, bool inUse, string problem = null, string word = null)
+      private static TlsCertificate Certificate(int? days, bool inUse, string problem = null, string word = null, int? validIn = null)
          => new()
          {
             Name = "mail.example.com",
             DaysRemaining = days,
             ExpiresOn = days == null ? null : Today.AddDays(days.Value).AddHours(12),
+            NotValidUntil = validIn == null ? null : Today.AddDays(validIn.Value).AddHours(9),
             InUse = inUse,
             Problem = problem,
             ProblemWord = word
@@ -55,18 +56,41 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal(inUse ? "In use by a listener" : "Not used by any listener", row.Usage);
       }
 
+      /// <summary>
+      /// A certificate whose date of validity is still to come is Not valid yet, a Warning
+      /// while a listener uses it, as the certificates page's finding is, and Information
+      /// otherwise, with the days to go: it said Valid, beside that page's Warning for the
+      /// same certificate, which clients refuse until then (review finding F326).
+      /// </summary>
+      [Theory]
+      [InlineData(5, 205, true, StatusLevel.Warning, "Becomes valid in 5 days.")]
+      [InlineData(5, 205, false, StatusLevel.Information, "Becomes valid in 5 days.")]
+      [InlineData(1, 20, true, StatusLevel.Warning, "Becomes valid in 1 day.")]
+      [InlineData(0, 90, true, StatusLevel.Warning, "Becomes valid today.")]
+      public void ACertificateNotValidYet_SaysSo(int validIn, int days, bool inUse, StatusLevel level, string detail)
+      {
+         TlsCertificateRow row = TlsPosture.CertificateRow(new TlsPostureConfig(), Certificate(days, inUse, validIn: validIn), Today);
+
+         Assert.Equal(level, row.Level);
+         Assert.Equal("Not valid yet", row.State);
+         Assert.Equal(detail, row.Detail);
+      }
+
       /// <summary>The levels are the ones the notes give the same certificate, from the same days.</summary>
       [Theory]
-      [InlineData(60, true)]
-      [InlineData(31, true)]
-      [InlineData(30, true)]
-      [InlineData(12, false)]
-      [InlineData(-3, true)]
-      [InlineData(-3, false)]
-      public void ARowsLevel_IsTheNotesLevel(int days, bool inUse)
+      [InlineData(60, true, null)]
+      [InlineData(31, true, null)]
+      [InlineData(30, true, null)]
+      [InlineData(12, false, null)]
+      [InlineData(-3, true, null)]
+      [InlineData(-3, false, null)]
+      [InlineData(205, true, 5)]
+      [InlineData(205, false, 5)]
+      [InlineData(20, true, 1)]
+      public void ARowsLevel_IsTheNotesLevel(int days, bool inUse, int? validIn)
       {
          var config = new TlsPostureConfig();
-         TlsCertificate certificate = Certificate(days, inUse);
+         TlsCertificate certificate = Certificate(days, inUse, validIn: validIn);
          config.Certificates.Add(certificate);
 
          TlsCertificateRow row = TlsPosture.CertificateRow(config, certificate, Today);
@@ -77,7 +101,7 @@ namespace hMailServer.ControlPanel.Tests.Services
                note = candidate;
          }
 
-         if (days > TlsPosture.ExpiryWarningDays)
+         if (days > TlsPosture.ExpiryWarningDays && validIn == null)
          {
             Assert.Null(note);
             Assert.Equal(StatusLevel.Good, row.Level);
@@ -222,6 +246,40 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal(StatusLevel.Good, row.Level);
          Assert.Equal("Valid", row.State);
          Assert.Equal("Expires in 200 days.", row.Detail);
+      }
+
+      /// <summary>
+      /// A certificate whose date of validity is still to come, read as the page reads it,
+      /// is Not valid yet with its days, its note a Warning while a listener uses it: the
+      /// certificate file's finding, "Not valid until", is a Warning, which the page did not
+      /// take, and the row said Valid and "Expires in 200 days." (review finding F326).
+      /// </summary>
+      [Theory]
+      [InlineData(true, StatusLevel.Warning)]
+      [InlineData(false, StatusLevel.Information)]
+      public void ACertificateNotValidYet_AsThePageReadsIt_SaysSo(bool inUse, StatusLevel level)
+      {
+         DateTime today = DateTime.Today;
+         using var files = new CertificateFiles(today.AddDays(5).AddHours(12), today.AddDays(200).AddHours(12));
+         TlsCertificate certificate = AsThePageReadsIt(files, inUse);
+
+         Assert.Null(certificate.Problem);
+         Assert.Equal(today.AddDays(5).AddHours(12), certificate.NotValidUntil);
+
+         var config = new TlsPostureConfig();
+         config.Certificates.Add(certificate);
+         TlsCertificateRow row = TlsPosture.CertificateRow(config, certificate, today);
+         Assert.Equal(level, row.Level);
+         Assert.Equal("Not valid yet", row.State);
+         Assert.Equal("Becomes valid in 5 days.", row.Detail);
+
+         TlsPostureNote note = Assert.Single(TlsPosture.Notes(config, today),
+            n => n.Text.Contains("\"mail.example.com\"", StringComparison.Ordinal));
+         Assert.Equal(level, note.Level);
+         Assert.Equal(inUse
+            ? "The certificate \"mail.example.com\" is not valid yet and is assigned to a listener. Clients refuse it until it is - check the certificate and this server's clock."
+            : "The certificate \"mail.example.com\" is not valid yet. It is not assigned to any listener.", note.Text);
+         Assert.Equal("certs", note.Page);
       }
 
       private static TlsCertificate AsThePageReadsIt(CertificateFiles files, bool inUse)

@@ -2152,6 +2152,15 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>Bearer-token /metrics-päätepisteelle (tyhjä = ei mitään)</value>
   </data>
+  <data name="Becomes valid in {0} day." xml:space="preserve">
+    <value>Tulee voimaan {0} päivän kuluttua.</value>
+  </data>
+  <data name="Becomes valid in {0} days." xml:space="preserve">
+    <value>Tulee voimaan {0} päivän kuluttua.</value>
+  </data>
+  <data name="Becomes valid today." xml:space="preserve">
+    <value>Tulee voimaan tänään.</value>
+  </data>
   <data name="Before enabling, fill in Directory server host name and Search base, or User DN template to bind without searching." xml:space="preserve">
     <value>Täytä ennen käyttöönottoa Hakemistopalvelimen konenimi ja Hakujuuri tai Käyttäjän DN-malli, jos haluat sitoa hakematta.</value>
   </data>
@@ -8200,6 +8209,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Ei voimassa ennen {0}</value>
   </data>
+  <data name="Not valid yet" xml:space="preserve">
+    <value>Ei vielä voimassa</value>
+  </data>
   <data name="Note" xml:space="preserve">
     <value>Huomautus</value>
   </data>
@@ -12848,6 +12860,12 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="The certificate &quot;{0}&quot; is in use by a listener and has a problem: {1}" xml:space="preserve">
     <value>Varmenne "{0}" on kuuntelijan käytössä ja siinä on ongelma: {1}</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; is not valid yet and is assigned to a listener. Clients refuse it until it is - check the certificate and this server's clock." xml:space="preserve">
+    <value>Varmenne "{0}" ei ole vielä voimassa, ja se on liitetty kuuntelijaan. Asiakkaat hylkäävät sen siihen asti - tarkista varmenne ja tämän palvelimen kello.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; is not valid yet. It is not assigned to any listener." xml:space="preserve">
+    <value>Varmenne "{0}" ei ole vielä voimassa. Sitä ei ole liitetty mihinkään kuuntelijaan.</value>
   </data>
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>Sekä varmenteen että avaimen on oltava asetettuina HTTPS:n tarjoamiseksi; vain toisella niistä TLS ei ole käytössä, ja palvelin kirjaa sen lokiin. Toisin kuin REST-rajapinnan kuuntelijalla, täällä ei ole varamenettelyä ACME-varmenteeseen. Jos TLS on määritetty, mutta sitä ei voi valmistella (lukukelvoton tiedosto, avain, joka ei täsmää), kuntotarkistukset pysyvät tavallisessa HTTP:ssä ja /metrics vastaa 503 sen sijaan, että tarjoaisi tiedot selväkielisinä.</value>

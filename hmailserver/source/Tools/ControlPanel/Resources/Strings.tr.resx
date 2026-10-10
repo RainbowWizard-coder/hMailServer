@@ -2152,6 +2152,15 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>/metrics için taşıyıcı belirteç (boş = yok)</value>
   </data>
+  <data name="Becomes valid in {0} day." xml:space="preserve">
+    <value>{0} gün içinde geçerli hâle gelecek.</value>
+  </data>
+  <data name="Becomes valid in {0} days." xml:space="preserve">
+    <value>{0} gün içinde geçerli hâle gelecek.</value>
+  </data>
+  <data name="Becomes valid today." xml:space="preserve">
+    <value>Bugün geçerli hâle gelecek.</value>
+  </data>
   <data name="Before enabling, fill in Directory server host name and Search base, or User DN template to bind without searching." xml:space="preserve">
     <value>Etkinleştirmeden önce Dizin sunucusu ana bilgisayar adı ile Arama tabanını ya da aramadan bağlanmak için Kullanıcı DN şablonunu doldurun.</value>
   </data>
@@ -8200,6 +8209,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>{0} tarihine kadar geçerli değil</value>
   </data>
+  <data name="Not valid yet" xml:space="preserve">
+    <value>Henüz geçerli değil</value>
+  </data>
   <data name="Note" xml:space="preserve">
     <value>Not</value>
   </data>
@@ -12848,6 +12860,12 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="The certificate &quot;{0}&quot; is in use by a listener and has a problem: {1}" xml:space="preserve">
     <value>"{0}" sertifikası bir dinleyici tarafından kullanılıyor ve bir sorunu var: {1}</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; is not valid yet and is assigned to a listener. Clients refuse it until it is - check the certificate and this server's clock." xml:space="preserve">
+    <value>"{0}" sertifikası henüz geçerli değil ve bir dinleyiciye atanmış durumda. Geçerli olana kadar istemciler onu reddediyor - sertifikayı ve bu sunucunun saatini denetleyin.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; is not valid yet. It is not assigned to any listener." xml:space="preserve">
+    <value>"{0}" sertifikası henüz geçerli değil. Hiçbir dinleyiciye atanmamış.</value>
   </data>
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>HTTPS sunmak için sertifika ve anahtarın ikisi de ayarlanmalıdır; yalnızca biriyle TLS etkin değildir ve sunucu bunu günlüğe yazar. REST API dinleyicisinden farklı olarak burada ACME sertifikasına geri dönüş yoktur. TLS yapılandırılmış ama hazırlanamıyorsa (okunamayan bir dosya, eşleşmeyen bir anahtar), sağlık yoklamaları düz HTTP'de kalır ve /metrics, çıktıyı açıkta sunmak yerine 503 yanıtı verir.</value>

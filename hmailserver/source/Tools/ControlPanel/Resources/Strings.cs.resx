@@ -2179,6 +2179,18 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>Bearer token pro /metrics (prázdné = žádný)</value>
   </data>
+  <data name="Becomes valid in {0} day." xml:space="preserve">
+    <value>Platnost začíná za {0} den.</value>
+  </data>
+  <data name="Becomes valid in {0} days." xml:space="preserve">
+    <value>Platnost začíná za {0} dní.</value>
+  </data>
+  <data name="Becomes valid in {0} days.|few" xml:space="preserve">
+    <value>Platnost začíná za {0} dny.</value>
+  </data>
+  <data name="Becomes valid today." xml:space="preserve">
+    <value>Platnost začíná dnes.</value>
+  </data>
   <data name="Before enabling, fill in Directory server host name and Search base, or User DN template to bind without searching." xml:space="preserve">
     <value>Před zapnutím vyplňte Název hostitele adresářového serveru a Báze hledání, nebo Šablona DN uživatele pro bind bez hledání.</value>
   </data>
@@ -8300,6 +8312,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Platný až od {0}</value>
   </data>
+  <data name="Not valid yet" xml:space="preserve">
+    <value>Zatím neplatný</value>
+  </data>
   <data name="Note" xml:space="preserve">
     <value>Poznámka</value>
   </data>
@@ -13017,6 +13032,12 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="The certificate &quot;{0}&quot; is in use by a listener and has a problem: {1}" xml:space="preserve">
     <value>Certifikát „{0}“ používá listener a má problém: {1}</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; is not valid yet and is assigned to a listener. Clients refuse it until it is - check the certificate and this server's clock." xml:space="preserve">
+    <value>Certifikát „{0}“ zatím není platný a je přiřazen listeneru. Klienti ho do té doby odmítají - zkontrolujte certifikát a hodiny tohoto serveru.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; is not valid yet. It is not assigned to any listener." xml:space="preserve">
+    <value>Certifikát „{0}“ zatím není platný. Certifikát není přiřazen žádnému listeneru.</value>
   </data>
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>Aby se poskytovalo HTTPS, musí být nastaven certifikát I klíč; jen s jedním z nich se TLS nezapne a server to zapíše do logu. Na rozdíl od listeneru REST API se zde nepoužije jako záloha certifikát z ACME. Pokud je TLS nakonfigurováno, ale nelze je připravit (nečitelný soubor, klíč, který neodpovídá), zůstanou zdravotní sondy na nešifrovaném HTTP a /metrics odpovídá 503, místo aby výstup poskytoval v otevřeném textu.</value>

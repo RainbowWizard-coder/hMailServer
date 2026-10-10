@@ -2152,6 +2152,15 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>Bearer token for /metrics (empty = none)</value>
   </data>
+  <data name="Becomes valid in {0} day." xml:space="preserve">
+    <value>Becomes valid in {0} day.</value>
+  </data>
+  <data name="Becomes valid in {0} days." xml:space="preserve">
+    <value>Becomes valid in {0} days.</value>
+  </data>
+  <data name="Becomes valid today." xml:space="preserve">
+    <value>Becomes valid today.</value>
+  </data>
   <data name="Before enabling, fill in Directory server host name and Search base, or User DN template to bind without searching." xml:space="preserve">
     <value>Before enabling, fill in Directory server host name and Search base, or User DN template to bind without searching.</value>
   </data>
@@ -8200,6 +8209,9 @@ Nothing already there is removed.</value>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Not valid until {0}</value>
   </data>
+  <data name="Not valid yet" xml:space="preserve">
+    <value>Not valid yet</value>
+  </data>
   <data name="Note" xml:space="preserve">
     <value>Note</value>
   </data>
@@ -12848,6 +12860,12 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   </data>
   <data name="The certificate &quot;{0}&quot; is in use by a listener and has a problem: {1}" xml:space="preserve">
     <value>The certificate "{0}" is in use by a listener and has a problem: {1}</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; is not valid yet and is assigned to a listener. Clients refuse it until it is - check the certificate and this server's clock." xml:space="preserve">
+    <value>The certificate "{0}" is not valid yet and is assigned to a listener. Clients refuse it until it is - check the certificate and this server's clock.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; is not valid yet. It is not assigned to any listener." xml:space="preserve">
+    <value>The certificate "{0}" is not valid yet. It is not assigned to any listener.</value>
   </data>
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear.</value>

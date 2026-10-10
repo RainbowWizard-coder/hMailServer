@@ -2179,6 +2179,18 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>Token bearer dla /metrics (puste = brak)</value>
   </data>
+  <data name="Becomes valid in {0} day." xml:space="preserve">
+    <value>Stanie się ważny za {0} dzień.</value>
+  </data>
+  <data name="Becomes valid in {0} days." xml:space="preserve">
+    <value>Stanie się ważny za {0} dni.</value>
+  </data>
+  <data name="Becomes valid in {0} days.|few" xml:space="preserve">
+    <value>Stanie się ważny za {0} dni.</value>
+  </data>
+  <data name="Becomes valid today." xml:space="preserve">
+    <value>Stanie się ważny dzisiaj.</value>
+  </data>
   <data name="Before enabling, fill in Directory server host name and Search base, or User DN template to bind without searching." xml:space="preserve">
     <value>Przed włączeniem należy wypełnić pola Nazwa hosta serwera katalogowego i Baza wyszukiwania albo Szablon DN użytkownika, aby wykonać bind bez wyszukiwania.</value>
   </data>
@@ -8300,6 +8312,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Nieważny przed {0}</value>
   </data>
+  <data name="Not valid yet" xml:space="preserve">
+    <value>Jeszcze nieważny</value>
+  </data>
   <data name="Note" xml:space="preserve">
     <value>Notatka</value>
   </data>
@@ -13017,6 +13032,12 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="The certificate &quot;{0}&quot; is in use by a listener and has a problem: {1}" xml:space="preserve">
     <value>Certyfikat „{0}” jest używany przez nasłuch i ma problem: {1}</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; is not valid yet and is assigned to a listener. Clients refuse it until it is - check the certificate and this server's clock." xml:space="preserve">
+    <value>Certyfikat „{0}” nie jest jeszcze ważny i jest przypisany do nasłuchu. Do tego czasu klienty go odrzucają - należy sprawdzić certyfikat oraz zegar tego serwera.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; is not valid yet. It is not assigned to any listener." xml:space="preserve">
+    <value>Certyfikat „{0}” nie jest jeszcze ważny. Nie jest przypisany do żadnego nasłuchu.</value>
   </data>
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>Aby udostępniać HTTPS, muszą być ustawione oba: certyfikat i klucz; przy tylko jednym z nich TLS nie jest włączane, a serwer odnotowuje to w dzienniku. W odróżnieniu od nasłuchu REST API nie ma tu awaryjnego sięgnięcia po certyfikat ACME. Jeśli TLS jest skonfigurowane, ale nie da się go przygotować (nieczytelny plik, klucz, który nie pasuje), sondy kondycji pozostają na zwykłym HTTP, a /metrics odpowiada kodem 503, zamiast udostępniać dane jawnym tekstem.</value>

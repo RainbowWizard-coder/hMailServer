@@ -2152,6 +2152,15 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>Bearer-token voor /metrics (leeg = geen)</value>
   </data>
+  <data name="Becomes valid in {0} day." xml:space="preserve">
+    <value>Wordt over {0} dag geldig.</value>
+  </data>
+  <data name="Becomes valid in {0} days." xml:space="preserve">
+    <value>Wordt over {0} dagen geldig.</value>
+  </data>
+  <data name="Becomes valid today." xml:space="preserve">
+    <value>Wordt vandaag geldig.</value>
+  </data>
   <data name="Before enabling, fill in Directory server host name and Search base, or User DN template to bind without searching." xml:space="preserve">
     <value>Vul vóór het inschakelen Hostnaam van de directoryserver en Zoekbasis in, of Sjabloon voor gebruikers-DN om te binden zonder te zoeken.</value>
   </data>
@@ -8200,6 +8209,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Pas geldig vanaf {0}</value>
   </data>
+  <data name="Not valid yet" xml:space="preserve">
+    <value>Nog niet geldig</value>
+  </data>
   <data name="Note" xml:space="preserve">
     <value>Notitie</value>
   </data>
@@ -12848,6 +12860,12 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="The certificate &quot;{0}&quot; is in use by a listener and has a problem: {1}" xml:space="preserve">
     <value>Het certificaat "{0}" is in gebruik door een listener en heeft een probleem: {1}</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; is not valid yet and is assigned to a listener. Clients refuse it until it is - check the certificate and this server's clock." xml:space="preserve">
+    <value>Het certificaat "{0}" is nog niet geldig en is aan een listener toegewezen. Clients weigeren het tot het geldig is - controleer het certificaat en de klok van deze server.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; is not valid yet. It is not assigned to any listener." xml:space="preserve">
+    <value>Het certificaat "{0}" is nog niet geldig. Het is aan geen enkele listener toegewezen.</value>
   </data>
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>Certificaat en sleutel moeten beide zijn ingesteld om HTTPS te kunnen serveren; met slechts één van beide wordt TLS niet ingeschakeld en legt de server dat vast. Anders dan bij de listener van de REST-API is er hier geen terugval op het ACME-certificaat. Is TLS geconfigureerd maar kan het niet worden voorbereid (een onleesbaar bestand, een sleutel die niet past), dan blijven de gezondheidscontroles op gewone HTTP en antwoordt /metrics met 503 in plaats van de expositie in klare tekst te serveren.</value>

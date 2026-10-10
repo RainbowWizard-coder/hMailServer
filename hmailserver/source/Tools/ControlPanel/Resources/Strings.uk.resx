@@ -2179,6 +2179,18 @@
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>Токен-носій для /metrics (порожньо = немає)</value>
   </data>
+  <data name="Becomes valid in {0} day." xml:space="preserve">
+    <value>Термін дії починається через {0} день.</value>
+  </data>
+  <data name="Becomes valid in {0} days." xml:space="preserve">
+    <value>Термін дії починається через {0} днів.</value>
+  </data>
+  <data name="Becomes valid in {0} days.|few" xml:space="preserve">
+    <value>Термін дії починається через {0} дні.</value>
+  </data>
+  <data name="Becomes valid today." xml:space="preserve">
+    <value>Термін дії починається сьогодні.</value>
+  </data>
   <data name="Before enabling, fill in Directory server host name and Search base, or User DN template to bind without searching." xml:space="preserve">
     <value>Перед увімкненням заповніть поля Ім'я вузла сервера каталогу і База пошуку або поле Шаблон DN користувача для прив'язки без пошуку.</value>
   </data>
@@ -8300,6 +8312,9 @@
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Недійсний до {0}</value>
   </data>
+  <data name="Not valid yet" xml:space="preserve">
+    <value>Ще не дійсний</value>
+  </data>
   <data name="Note" xml:space="preserve">
     <value>Примітка</value>
   </data>
@@ -13017,6 +13032,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The certificate &quot;{0}&quot; is in use by a listener and has a problem: {1}" xml:space="preserve">
     <value>Сертифікат «{0}» використовується слухачем і має проблему: {1}</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; is not valid yet and is assigned to a listener. Clients refuse it until it is - check the certificate and this server's clock." xml:space="preserve">
+    <value>Сертифікат «{0}» ще не дійсний і призначений слухачеві. Доти клієнти відхиляють його - перевірте сертифікат і годинник цього сервера.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; is not valid yet. It is not assigned to any listener." xml:space="preserve">
+    <value>Сертифікат «{0}» ще не дійсний. Його не призначено жодному слухачеві.</value>
   </data>
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>Щоб надавати HTTPS, потрібно задати обидва — і сертифікат, і ключ; лише з одним із них TLS не вмикається, і сервер записує це до журналу. На відміну від слухача REST API, тут немає запасного варіанта з сертифікатом ACME. Якщо TLS налаштовано, але підготувати його не вдається (файл не читається, ключ не відповідає сертифікату), проби працездатності залишаються на звичайному HTTP, а /metrics відповідає 503 замість того, щоб віддавати експозицію у відкритому вигляді.</value>

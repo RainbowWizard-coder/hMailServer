@@ -2179,6 +2179,18 @@ Control Panel может читать файлы сообщений только
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>Токен-носитель для /metrics (пусто — без токена)</value>
   </data>
+  <data name="Becomes valid in {0} day." xml:space="preserve">
+    <value>Срок действия начинается через {0} день.</value>
+  </data>
+  <data name="Becomes valid in {0} days." xml:space="preserve">
+    <value>Срок действия начинается через {0} дней.</value>
+  </data>
+  <data name="Becomes valid in {0} days.|few" xml:space="preserve">
+    <value>Срок действия начинается через {0} дня.</value>
+  </data>
+  <data name="Becomes valid today." xml:space="preserve">
+    <value>Срок действия начинается сегодня.</value>
+  </data>
   <data name="Before enabling, fill in Directory server host name and Search base, or User DN template to bind without searching." xml:space="preserve">
     <value>Перед включением заполните поля Имя узла сервера каталога и База поиска либо поле Шаблон DN пользователя для привязки без поиска.</value>
   </data>
@@ -8300,6 +8312,9 @@ Control Panel может читать файлы сообщений только
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Действителен не ранее {0}</value>
   </data>
+  <data name="Not valid yet" xml:space="preserve">
+    <value>Ещё не действителен</value>
+  </data>
   <data name="Note" xml:space="preserve">
     <value>Примечание</value>
   </data>
@@ -13017,6 +13032,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The certificate &quot;{0}&quot; is in use by a listener and has a problem: {1}" xml:space="preserve">
     <value>Сертификат «{0}» используется прослушивателем, и с ним есть проблема: {1}</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; is not valid yet and is assigned to a listener. Clients refuse it until it is - check the certificate and this server's clock." xml:space="preserve">
+    <value>Сертификат «{0}» ещё не действителен и назначен прослушивателю. До тех пор клиенты отклоняют его - проверьте сертификат и часы этого сервера.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; is not valid yet. It is not assigned to any listener." xml:space="preserve">
+    <value>Сертификат «{0}» ещё не действителен. Он не назначен ни одному прослушивателю.</value>
   </data>
   <data name="The certificate and the key must both be set to serve HTTPS; with only one of them TLS is not enabled and the server logs it. Unlike the REST API listener there is no fall-back to the ACME certificate here. If TLS is configured but cannot be prepared (an unreadable file, a key that does not match), the health probes stay on plain HTTP and /metrics answers 503 rather than serving the exposition in the clear." xml:space="preserve">
     <value>Чтобы отдавать HTTPS, должны быть заданы И сертификат, И ключ; если задано только одно из двух, TLS не включается, и сервер записывает это в журнал. В отличие от прослушивателя REST API, здесь нет запасного варианта с сертификатом ACME. Если TLS настроен, но подготовить его не удаётся (файл не читается, ключ не соответствует сертификату), проверки работоспособности остаются на обычном HTTP, а /metrics отвечает 503, вместо того чтобы отдавать выдачу в открытом виде.</value>
