@@ -11431,8 +11431,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Send everything through my provider" xml:space="preserve">
     <value>Надсилати все через мого провайдера</value>
   </data>
-  <data name="Send it as a bearer token:  Authorization: Bearer hmapi_...  to the REST listener configured on the API &amp; monitoring page. The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
-    <value>Надсилайте його як bearer-токен:  Authorization: Bearer hmapi_...  на слухач REST, налаштований на сторінці «API та моніторинг». Пароль адміністратора також працює і нічим не обмежений - саме тому варто віддати перевагу ключу: ключ може бути лише для читання, обмежений названими доменами, обмежений однією адресою джерела, мати термін дії та бути відкликаним без зміни чогось іншого.</value>
+  <data name="Send it as a bearer token, in this header, to the REST listener configured on the API &amp; monitoring page:" xml:space="preserve">
+    <value>Надсилайте його як bearer-токен у цьому заголовку на слухач REST, налаштований на сторінці «API та моніторинг»:</value>
   </data>
   <data name="Send it during this _hour of the local day (0 to 23)" xml:space="preserve">
     <value>Надсилати в цю _годину місцевої доби (0–23)</value>
@@ -12816,6 +12816,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The administrator password alone signs in, here, in scripts and over the REST API." xml:space="preserve">
     <value>Для входу достатньо самого пароля адміністратора: тут, у сценаріях і через REST API.</value>
+  </data>
+  <data name="The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
+    <value>Пароль адміністратора також працює і нічим не обмежений - саме тому варто віддати перевагу ключу: ключ може бути лише для читання, обмежений названими доменами, обмежений однією адресою джерела, мати термін дії та бути відкликаним без зміни чогось іншого.</value>
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Пароль адміністратора і двофакторна автентифікація - на сторінці «Адміністративний доступ».</value>

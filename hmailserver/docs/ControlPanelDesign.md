@@ -61,6 +61,7 @@ The ramp is Windows 11's: Caption 12, Body 14 (Body Strong is 14 SemiBold), Subt
 | `AppFontSizeBody` | 14 | Body text, controls, navigation rows, card titles. |
 | `AppFontSizeSubtitle` | 20 | A dialog's heading, the sign-in card's heading. |
 | `AppFontSizeTitle` | 28 | The page title. |
+| `AppFontSizeMono` | 13 | Data in the monospaced face (`Typography.MonoFontFamily`, Cascadia Mono then Consolas; `Typography.Mono` in code): a cipher list or a list of key exchange groups, an LDAP filter, search base or DN template, a log line, a script, a token or a key, a DNS record, a path - in a box or a block of its own. Data inside a sentence is a run of its own in that face at the sentence's size (`Services/DataText`: a colon-separated list breaks only after a colon, a long path is cut in its middle with the whole of it in the tool tip). The live log was 12, the diagnostics 12 and the event script 14 (review findings F135, F304). |
 | `TextTitle` | 28 SemiBold, primary, trimmed with an ellipsis | The page title; the `PageHeader` draws it. The older `PageTitle` style stays for the unmigrated pages and adds the level-1 heading and a margin. |
 | `TextSubtitle` | 20 SemiBold, primary, wraps | A dialog's or a card-page's heading. |
 | `TextBodyStrong` | 14 SemiBold, primary, wraps | Card titles, section headings, the summary line of a notice card. |

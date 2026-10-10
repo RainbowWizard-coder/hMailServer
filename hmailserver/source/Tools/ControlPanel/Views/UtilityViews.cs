@@ -403,7 +403,7 @@ namespace hMailServer.ControlPanel.Views
       private readonly TextBlock details_ = new()
       {
          FontFamily = new System.Windows.Media.FontFamily(Typography.MonoFontFamily),
-         FontSize = Typography.Label,
+         FontSize = Typography.Mono,
          TextWrapping = TextWrapping.Wrap
       };
       private readonly LoadingState loading_ = new() { Visibility = Visibility.Collapsed };
@@ -1165,7 +1165,7 @@ namespace hMailServer.ControlPanel.Views
                Text = check.Details.Trim(),
                TextWrapping = TextWrapping.Wrap,
                FontFamily = new System.Windows.Media.FontFamily(Typography.MonoFontFamily),
-               FontSize = Typography.Label,
+               FontSize = Typography.Mono,
                Margin = new Thickness(0, DesignTokens.Space.Xs, 0, 0)
             };
             details.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorSecondaryBrush");

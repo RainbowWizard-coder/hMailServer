@@ -76,6 +76,14 @@ namespace hMailServer.ControlPanel.Views
          public string Label;
 
          /// <summary>
+         /// A free-text value that is data rather than words - a cipher list, a list
+         /// of key exchange groups - shown in the monospaced face at its size
+         /// (Typography.MonoFontFamily, Typography.Mono), where the UI face broke a
+         /// suite name at its hyphens (review finding F135).
+         /// </summary>
+         public bool Monospaced;
+
+         /// <summary>
          /// The argument of an indexed COM property - Settings.CountryPolicy("smtp") -
          /// or null for an ordinary one. Read and written with it.
          /// </summary>
@@ -414,9 +422,11 @@ namespace hMailServer.ControlPanel.Views
             var box = new TextBox
             {
                Text = text ?? "",
-               FontSize = Typography.Body,
+               FontSize = Monospaced ? Typography.Mono : Typography.Body,
                HorizontalAlignment = HorizontalAlignment.Stretch
             };
+            if (Monospaced)
+               box.FontFamily = new System.Windows.Media.FontFamily(Typography.MonoFontFamily);
 
             if (!string.IsNullOrEmpty(placeholder))
                box.PlaceholderText = placeholder;
@@ -1745,6 +1755,7 @@ namespace hMailServer.ControlPanel.Views
             box_.MaxHeight = 220;
             box_.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
             box_.FontFamily = new System.Windows.Media.FontFamily(Typography.MonoFontFamily);
+            box_.FontSize = Typography.Mono;
             return box_;
          }
 
@@ -3321,6 +3332,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "TlsKeyExchangeGroups",
             Label = L("Key exchange groups, in order of preference (empty = the classical fallback secp384r1:x25519:secp256r1)"),
+            Monospaced = true,
             Blurb = L("The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark."),
             // What the server uses when the key is absent - shown, so that saving
             // the page writes the truth back rather than a blank that would drop
@@ -3339,12 +3351,14 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "SslCipherList",
             Label = L("Cipher list for TLS 1.2 and below (OpenSSL format)"),
+            Monospaced = true,
             Blurb = L("The single value AEAD-ONLY (case-insensitive) is a named preset rather than an OpenSSL cipher string: forward-secret AEAD suites only (ECDHE or DHE with AES-GCM or ChaCha20-Poly1305), excluding every CBC-mode suite - the Lucky13 padding-oracle family - and static-RSA key exchange. The cost: TLS 1.2 clients that only speak CBC suites cannot connect, and TLS 1.0/1.1 are left with no usable cipher at all, so do not enable those protocols alongside it. TLS 1.3 is unaffected - its suites are AEAD by construction and are configured separately below. A misspelled preset name is rejected and reported, not silently ignored.")
          });
          ciph.Settings.Add(new IniText
          {
             Path = "TlsCipherSuites13",
             Label = L("TLS 1.3 cipher suites (empty = OpenSSL defaults)"),
+            Monospaced = true,
             Placeholder = "TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256",
             Blurb = L("TLS 1.3 has its own suite list, its own names and its own setter, so the cipher list above does not restrict it. Colon separated, most preferred first, using the RFC 8446 names (TLS_AES_256_GCM_SHA384, TLS_CHACHA20_POLY1305_SHA256, TLS_AES_128_GCM_SHA256, TLS_AES_128_CCM_SHA256, TLS_AES_128_CCM_8_SHA256) - not the OpenSSL cipher-list names. Leave empty to keep OpenSSL's defaults; a name this build does not recognise is skipped and reported rather than failing the whole list."),
             IniStore = iniStore_

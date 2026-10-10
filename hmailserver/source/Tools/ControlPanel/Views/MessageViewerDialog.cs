@@ -47,7 +47,7 @@ namespace hMailServer.ControlPanel.Views
             Height = ReadingHeight,
             Text = ReadMessage(filePath)
          };
-         content.SetResourceReference(FontSizeProperty, "AppFontSizeCaption");
+         content.SetResourceReference(FontSizeProperty, "AppFontSizeMono");
          body.Children.Add(content);
 
          var copy = new Wpf.Ui.Controls.Button { Content = L("_Copy") };

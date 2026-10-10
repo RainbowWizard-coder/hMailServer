@@ -11431,8 +11431,8 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Send everything through my provider" xml:space="preserve">
     <value>Wysyłaj wszystko przez mojego operatora</value>
   </data>
-  <data name="Send it as a bearer token:  Authorization: Bearer hmapi_...  to the REST listener configured on the API &amp; monitoring page. The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
-    <value>Wysyłaj go jako token bearer:  Authorization: Bearer hmapi_...  do nasłuchu REST skonfigurowanego na stronie API i monitorowanie. Hasło administratora również działa i nie podlega żadnym ograniczeniom - i to jest powód, by woleć klucz: klucz może być tylko do odczytu, ograniczony do wskazanych domen, ograniczony do jednego adresu źródłowego, opatrzony terminem wygaśnięcia i unieważniony bez zmieniania czegokolwiek innego.</value>
+  <data name="Send it as a bearer token, in this header, to the REST listener configured on the API &amp; monitoring page:" xml:space="preserve">
+    <value>Wysyłaj go jako token bearer w tym nagłówku do nasłuchu REST skonfigurowanego na stronie API i monitorowanie:</value>
   </data>
   <data name="Send it during this _hour of the local day (0 to 23)" xml:space="preserve">
     <value>Wysyłaj w tej _godzinie lokalnej doby (0–23)</value>
@@ -12816,6 +12816,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="The administrator password alone signs in, here, in scripts and over the REST API." xml:space="preserve">
     <value>Do zalogowania wystarcza samo hasło administratora, tutaj, w skryptach i przez REST API.</value>
+  </data>
+  <data name="The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
+    <value>Hasło administratora również działa i nie podlega żadnym ograniczeniom - i to jest powód, by woleć klucz: klucz może być tylko do odczytu, ograniczony do wskazanych domen, ograniczony do jednego adresu źródłowego, opatrzony terminem wygaśnięcia i unieważniony bez zmieniania czegokolwiek innego.</value>
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Hasło administratora i uwierzytelnianie dwuskładnikowe znajdują się na stronie Dostęp administracyjny.</value>

@@ -676,7 +676,9 @@ namespace hMailServer.ControlPanel.Views
 
          content.Children.Add(Paragraph(F("Protocol versions enabled: {0}", TlsPosture.VersionSummary(config)), Typography.Body));
 
-         content.Children.Add(Paragraph(
+         bool listed = config.WasRead(nameof(config.CipherList)) && !TlsPosture.IsAeadOnlyPreset(config.CipherList)
+            && !string.IsNullOrWhiteSpace(config.CipherList);
+         TextBlock cipherLine = Paragraph(
             !config.WasRead(nameof(config.CipherList))
                ? L("The cipher list could not be read.")
                : TlsPosture.IsAeadOnlyPreset(config.CipherList)
@@ -684,7 +686,13 @@ namespace hMailServer.ControlPanel.Views
                : string.IsNullOrWhiteSpace(config.CipherList)
                   ? L("Cipher list: OpenSSL defaults for TLS 1.2 and below. TLS 1.3 has its own separate list.")
                   : F("Cipher list for TLS 1.2 and below: {0}. TLS 1.3 suites are configured separately and are not restricted by this.", config.CipherList),
-            Typography.Caption));
+            Typography.Caption);
+         // The list itself in the monospaced face, breaking only after a colon, and
+         // the sentence round it in the caption's: as one caption run it broke inside a
+         // suite name, "ECDHE-RSA-AES256-GCM-" / "SHA384" (review finding F135).
+         if (listed)
+            DataTextBlock.Fill(cipherLine, L("Cipher list for TLS 1.2 and below: {0}. TLS 1.3 suites are configured separately and are not restricted by this."), config.CipherList, breakAfterColons: true);
+         content.Children.Add(cipherLine);
 
          content.Children.Add(PageLink("tls", F("{0} →", L(NavigationMap.TitleOf("tls"))), L("Open SSL/TLS, which owns the protocol versions and cipher lists")));
 

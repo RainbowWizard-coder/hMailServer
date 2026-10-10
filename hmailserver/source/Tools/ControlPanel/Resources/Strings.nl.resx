@@ -11289,8 +11289,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Send everything through my provider" xml:space="preserve">
     <value>Alles via mijn provider verzenden</value>
   </data>
-  <data name="Send it as a bearer token:  Authorization: Bearer hmapi_...  to the REST listener configured on the API &amp; monitoring page. The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
-    <value>Stuur hem als bearertoken:  Authorization: Bearer hmapi_...  naar de REST-listener die is geconfigureerd op de pagina API en monitoring. Het beheerderswachtwoord werkt ook en is onbeperkt, en dat is precies de reden om een sleutel te verkiezen: een sleutel kan alleen-lezen zijn, beperkt tot genoemde domeinen, beperkt tot één bronadres, van een vervaldatum worden voorzien, en worden ingetrokken zonder dat er verder iets verandert.</value>
+  <data name="Send it as a bearer token, in this header, to the REST listener configured on the API &amp; monitoring page:" xml:space="preserve">
+    <value>Stuur hem als bearertoken in deze header naar de REST-listener die is geconfigureerd op de pagina API en monitoring:</value>
   </data>
   <data name="Send it during this _hour of the local day (0 to 23)" xml:space="preserve">
     <value>Tijdens dit _uur van de lokale dag versturen (0 tot en met 23)</value>
@@ -12665,6 +12665,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="The administrator password alone signs in, here, in scripts and over the REST API." xml:space="preserve">
     <value>Het beheerderswachtwoord alleen meldt aan, hier, in scripts en via de REST-API.</value>
+  </data>
+  <data name="The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
+    <value>Het beheerderswachtwoord werkt ook en is onbeperkt, en dat is precies de reden om een sleutel te verkiezen: een sleutel kan alleen-lezen zijn, beperkt tot genoemde domeinen, beperkt tot één bronadres, van een vervaldatum worden voorzien, en worden ingetrokken zonder dat er verder iets verandert.</value>
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Het beheerderswachtwoord en tweefactorauthenticatie staan op de pagina Beheerderstoegang.</value>

@@ -11289,8 +11289,8 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Send everything through my provider" xml:space="preserve">
     <value>Her şeyi sağlayıcım üzerinden gönder</value>
   </data>
-  <data name="Send it as a bearer token:  Authorization: Bearer hmapi_...  to the REST listener configured on the API &amp; monitoring page. The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
-    <value>Taşıyıcı belirteç olarak gönderin:  Authorization: Bearer hmapi_...  API ve izleme sayfasında yapılandırılan REST dinleyicisine. Yönetici parolası da çalışır ve kısıtlanmamıştır; anahtarı tercih etmenin nedeni de budur: bir anahtar salt okunur olabilir, adlandırılmış etki alanlarıyla sınırlanabilir, tek bir kaynak adresiyle sınırlanabilir, bir süre sonu verilebilir ve başka hiçbir şey değiştirilmeden iptal edilebilir.</value>
+  <data name="Send it as a bearer token, in this header, to the REST listener configured on the API &amp; monitoring page:" xml:space="preserve">
+    <value>API ve izleme sayfasında yapılandırılan REST dinleyicisine taşıyıcı belirteç olarak bu üst bilgiyle gönderin:</value>
   </data>
   <data name="Send it during this _hour of the local day (0 to 23)" xml:space="preserve">
     <value>Yerel günün bu _saatinde gönder (0 ile 23 arası)</value>
@@ -12665,6 +12665,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="The administrator password alone signs in, here, in scripts and over the REST API." xml:space="preserve">
     <value>Yönetici parolası burada, betiklerde ve REST API üzerinden tek başına oturum açar.</value>
+  </data>
+  <data name="The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
+    <value>Yönetici parolası da çalışır ve kısıtlanmamıştır; anahtarı tercih etmenin nedeni de budur: bir anahtar salt okunur olabilir, adlandırılmış etki alanlarıyla sınırlanabilir, tek bir kaynak adresiyle sınırlanabilir, bir süre sonu verilebilir ve başka hiçbir şey değiştirilmeden iptal edilebilir.</value>
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Yönetici parolası ve iki etkenli kimlik doğrulama Yönetimsel erişim sayfasındadır.</value>

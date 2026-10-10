@@ -66,6 +66,9 @@
     <Compile Include="..\ControlPanel\Services\MnemonicText.cs" />
     <!-- A control's name starts with its caption: the rule LabelInNameTests holds, and the names of links. -->
     <Compile Include="..\ControlPanel\Services\LabelInName.cs" />
+    <!-- Data in the monospaced face inside a sentence: a list that breaks after its
+         colons, a path cut in its middle (review findings F135, F304). -->
+    <Compile Include="..\ControlPanel\Services\DataText.cs" />
     <Compile Include="..\ControlPanel\Services\SettingClaims.cs" />
     <Compile Include="..\ControlPanel\Services\ChartPalette.cs" />
     <Compile Include="..\ControlPanel\Services\StatusPalette.cs" />

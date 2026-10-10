@@ -1429,7 +1429,11 @@ namespace hMailServer.ControlPanel.Views
          IsReadOnly = true,
          AcceptsReturn = true,
          TextWrapping = TextWrapping.Wrap,
-         FontSize = Typography.Caption,
+         FontSize = Typography.Mono,
+         // The DKIM record and the DNS values are data, set in the monospaced face
+         // (review finding F304), which also lines up "Host/Name:", "Type:" and
+         // "Value:" as their padding means them to.
+         FontFamily = new System.Windows.Media.FontFamily(Typography.MonoFontFamily),
          MinHeight = minHeight,
          Padding = new Thickness(DesignTokens.Space.Sm)
       };

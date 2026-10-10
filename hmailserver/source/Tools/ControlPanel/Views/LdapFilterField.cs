@@ -42,6 +42,7 @@ namespace hMailServer.ControlPanel.Views
          box.TextWrapping = TextWrapping.Wrap;
          box.MinLines = 2;
          box.FontFamily = new FontFamily(Typography.MonoFontFamily);
+         box.FontSize = Typography.Mono;
 
          // The placeholder wraps with the text: the box's template draws it in a
          // TextBlock of its own, on one line, so that the default was cut at the

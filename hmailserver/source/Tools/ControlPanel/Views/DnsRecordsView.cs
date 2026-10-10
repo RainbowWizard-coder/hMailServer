@@ -1910,7 +1910,7 @@ namespace hMailServer.ControlPanel.Views
          IsReadOnly = true,
          AcceptsReturn = true,
          TextWrapping = TextWrapping.Wrap,
-         FontSize = Typography.Caption,
+         FontSize = Typography.Mono,
          FontFamily = new System.Windows.Media.FontFamily(Typography.MonoFontFamily),
          MinHeight = minHeight,
          Padding = new Thickness(6),

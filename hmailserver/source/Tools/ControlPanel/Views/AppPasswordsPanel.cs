@@ -70,7 +70,7 @@ namespace hMailServer.ControlPanel.Views
       {
          IsReadOnly = true,
          FontFamily = new System.Windows.Media.FontFamily(Typography.MonoFontFamily),
-         FontSize = Typography.Body,
+         FontSize = Typography.Mono,
          BorderThickness = new Thickness(0),
          Background = System.Windows.Media.Brushes.Transparent
       };

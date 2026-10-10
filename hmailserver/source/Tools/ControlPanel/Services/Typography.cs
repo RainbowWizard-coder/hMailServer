@@ -54,5 +54,12 @@ namespace hMailServer.ControlPanel.Services
       /// (Consolas alone, two orderings of Cascadia/Consolas, and one with a
       /// css-ish "monospace" entry WPF ignores).</summary>
       public const string MonoFontFamily = "Cascadia Mono, Consolas"; // no-loc
+
+      /// <summary>The one size of text in <see cref="MonoFontFamily"/>: a cipher list,
+      /// an LDAP filter, a log line, a script, a token, a path. It was 12 for the live
+      /// log, the Label size for the diagnostics and 14 for the event script (review
+      /// finding F304); 13 sets the monospaced face to the UI face's 14 by its x-height.
+      /// AppFontSizeMono in Tokens.xaml says the same.</summary>
+      public const double Mono = 13;
    }
 }

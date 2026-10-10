@@ -490,6 +490,14 @@ namespace hMailServer.ControlPanel.Views
             StoredAs_(L("The other way to reach a DN: set this and the server skips the search - and with it the need for a search base and a service account. A UPN works against Active Directory. Same %u, %d, %m placeholders, escaped for a distinguished name."), "UserDnTemplate"),
             placeholder: ExamplePlaceholder.Of(JoinOr(new[] { "%u@example.local", "CN=%u,OU=Staff,DC=example,DC=local" })))); // no-loc: two templates, the same in every language
 
+         // A distinguished name is data, as the filter is: the search base and the DN
+         // template in the monospaced face at its size (review finding F135).
+         foreach (Wpf.Ui.Controls.TextBox box in new[] { searchBase_, userDnTemplate_ })
+         {
+            box.FontFamily = new System.Windows.Media.FontFamily(Typography.MonoFontFamily);
+            box.FontSize = Typography.Mono;
+         }
+
          return card;
       }
 

@@ -11289,8 +11289,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Send everything through my provider" xml:space="preserve">
     <value>Lähetä kaikki palveluntarjoajani kautta</value>
   </data>
-  <data name="Send it as a bearer token:  Authorization: Bearer hmapi_...  to the REST listener configured on the API &amp; monitoring page. The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
-    <value>Lähetä se bearer-tokenina:  Authorization: Bearer hmapi_...  API ja valvonta -sivulla määritetylle REST-kuuntelijalle. Myös järjestelmänvalvojan salasana toimii, ja se on rajoittamaton, mikä on syy suosia avainta: avain voi olla vain luku -tilassa, rajattu nimettyihin verkkotunnuksiin, rajattu yhteen lähdeosoitteeseen, sille voi antaa vanhenemisajan, ja sen voi kumota muuttamatta mitään muuta.</value>
+  <data name="Send it as a bearer token, in this header, to the REST listener configured on the API &amp; monitoring page:" xml:space="preserve">
+    <value>Lähetä se bearer-tokenina tässä otsakkeessa API ja valvonta -sivulla määritetylle REST-kuuntelijalle:</value>
   </data>
   <data name="Send it during this _hour of the local day (0 to 23)" xml:space="preserve">
     <value>Lähetä paikallisen vuorokauden tänä tu_ntina (0–23)</value>
@@ -12665,6 +12665,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="The administrator password alone signs in, here, in scripts and over the REST API." xml:space="preserve">
     <value>Pelkkä ylläpitäjän salasana kirjaa sisään täällä, komentosarjoissa ja REST API:n kautta.</value>
+  </data>
+  <data name="The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
+    <value>Myös järjestelmänvalvojan salasana toimii, ja se on rajoittamaton, mikä on syy suosia avainta: avain voi olla vain luku -tilassa, rajattu nimettyihin verkkotunnuksiin, rajattu yhteen lähdeosoitteeseen, sille voi antaa vanhenemisajan, ja sen voi kumota muuttamatta mitään muuta.</value>
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Järjestelmänvalvojan salasana ja kaksivaiheinen todennus ovat Ylläpitokäyttöoikeus-sivulla.</value>

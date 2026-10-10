@@ -52,6 +52,8 @@
     <sys:Double x:Key="AppFontSizeBody">14</sys:Double>
     <sys:Double x:Key="AppFontSizeSubtitle">20</sys:Double>
     <sys:Double x:Key="AppFontSizeTitle">28</sys:Double>
+    <!-- Text in the monospaced face (Typography.MonoFontFamily, Typography.Mono). -->
+    <sys:Double x:Key="AppFontSizeMono">13</sys:Double>
 
     <!-- The ramp as keyed TextBlock styles. Keyed, never implicit: an implicit
          TextBlock style reaches into every control template and overrides the

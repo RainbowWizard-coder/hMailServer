@@ -11289,8 +11289,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Send everything through my provider" xml:space="preserve">
     <value>所有邮件都通过我的提供商发送</value>
   </data>
-  <data name="Send it as a bearer token:  Authorization: Bearer hmapi_...  to the REST listener configured on the API &amp; monitoring page. The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
-    <value>将其作为持有者令牌发送:  Authorization: Bearer hmapi_...  发给在“API 与监控”页配置的 REST 监听器。管理员密码也可以用，且不受限制，这正是优先使用密钥的原因: 密钥可以只读、可以限定于指定的域、可以限定于一个来源地址、可以设置到期时间，并且可以在不改动其他任何内容的情况下被吊销。</value>
+  <data name="Send it as a bearer token, in this header, to the REST listener configured on the API &amp; monitoring page:" xml:space="preserve">
+    <value>将其作为持有者令牌，以下面的标头发给在“API 与监控”页配置的 REST 监听器：</value>
   </data>
   <data name="Send it during this _hour of the local day (0 to 23)" xml:space="preserve">
     <value>在本地时间的这一小时发送（0 到 23）(_H)</value>
@@ -12665,6 +12665,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The administrator password alone signs in, here, in scripts and over the REST API." xml:space="preserve">
     <value>仅凭管理员密码即可登录：在这里、在脚本中以及通过 REST API。</value>
+  </data>
+  <data name="The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
+    <value>管理员密码也可以用，且不受限制，这正是优先使用密钥的原因: 密钥可以只读、可以限定于指定的域、可以限定于一个来源地址、可以设置到期时间，并且可以在不改动其他任何内容的情况下被吊销。</value>
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>管理员密码和双因素身份验证在“管理访问权限”页。</value>

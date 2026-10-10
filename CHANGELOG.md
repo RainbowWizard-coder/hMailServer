@@ -3414,6 +3414,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   three dots only for literal text, and each translation to its catalogue's dash and to three dots only where its
   English has them; `docs/ControlPanelDesign.md` states the rule.
 
+- **Fixed: cipher lists, LDAP names, log lines, the bearer header and paths were set in the UI face, and monospaced
+  text came in three sizes.** The SSL/TLS page's cipher list, TLS 1.3 suites and key exchange groups and Directory
+  authentication's search base and DN template were Segoe text boxes; the transport encryption overview's "Cipher
+  list for TLS 1.2 and below: ECDHE-ECDSA-AES128-GCM-SHA256:..." was caption prose that broke inside a suite name;
+  REST API keys marked off "Authorization: Bearer hmapi_..." by two spaces inside its sentence and wrapped the key
+  store's path at a backslash; and the stalled-mail guide's log lines were body text in SemiBold. Each is in the
+  monospaced face now - the overview's list a run of its own that breaks only after a colon, the header on a line of
+  its own, the store's path cut in its middle with the whole of it in the tool tip - and every box and block of
+  monospaced text is one size, the new `AppFontSizeMono` (13), where the live log was 12, the diagnostics 12, the DNS
+  record and DKIM boxes 12 and the event script 14. `MonospacedDataTests` holds the faces, the size and the runs.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

@@ -11289,8 +11289,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Send everything through my provider" xml:space="preserve">
     <value>Skicka allt genom min leverantör</value>
   </data>
-  <data name="Send it as a bearer token:  Authorization: Bearer hmapi_...  to the REST listener configured on the API &amp; monitoring page. The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
-    <value>Skicka den som en bearer-token:  Authorization: Bearer hmapi_...  till REST-lyssnaren som konfigurerats på sidan API &amp; övervakning. Administratörslösenordet fungerar också och är obegränsat, vilket är skälet att föredra en nyckel: en nyckel kan vara skrivskyddad, begränsad till namngivna domäner, begränsad till en källadress, ges en utgångstid och återkallas utan att något annat ändras.</value>
+  <data name="Send it as a bearer token, in this header, to the REST listener configured on the API &amp; monitoring page:" xml:space="preserve">
+    <value>Skicka den som en bearer-token i det här huvudet till REST-lyssnaren som konfigurerats på sidan API &amp; övervakning:</value>
   </data>
   <data name="Send it during this _hour of the local day (0 to 23)" xml:space="preserve">
     <value>Skicka under den här _timmen av det lokala dygnet (0 till 23)</value>
@@ -12665,6 +12665,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="The administrator password alone signs in, here, in scripts and over the REST API." xml:space="preserve">
     <value>Administratörslösenordet ensamt loggar in, här, i skript och via REST API:et.</value>
+  </data>
+  <data name="The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
+    <value>Administratörslösenordet fungerar också och är obegränsat, vilket är skälet att föredra en nyckel: en nyckel kan vara skrivskyddad, begränsad till namngivna domäner, begränsad till en källadress, ges en utgångstid och återkallas utan att något annat ändras.</value>
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Administratörslösenordet och tvåfaktorsautentiseringen finns på sidan Administrativ åtkomst.</value>

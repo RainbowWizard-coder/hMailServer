@@ -11289,8 +11289,8 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Send everything through my provider" xml:space="preserve">
     <value>Enviar todo a través de mi proveedor</value>
   </data>
-  <data name="Send it as a bearer token:  Authorization: Bearer hmapi_...  to the REST listener configured on the API &amp; monitoring page. The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
-    <value>Envíela como token de portador:  Authorization: Bearer hmapi_...  al oyente REST configurado en la página API y supervisión. La contraseña de administrador también funciona y no tiene restricción alguna, y esa es precisamente la razón para preferir una clave: una clave puede ser de solo lectura, limitarse a dominios concretos, limitarse a una única dirección de origen, tener una caducidad y revocarse sin cambiar nada más.</value>
+  <data name="Send it as a bearer token, in this header, to the REST listener configured on the API &amp; monitoring page:" xml:space="preserve">
+    <value>Envíela como token de portador, en esta cabecera, al oyente REST configurado en la página API y supervisión:</value>
   </data>
   <data name="Send it during this _hour of the local day (0 to 23)" xml:space="preserve">
     <value>Enviarlo durante esta _hora del día local (0 a 23)</value>
@@ -12665,6 +12665,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="The administrator password alone signs in, here, in scripts and over the REST API." xml:space="preserve">
     <value>La contraseña de administrador por sí sola inicia sesión, aquí, en los scripts y a través de la API REST.</value>
+  </data>
+  <data name="The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
+    <value>La contraseña de administrador también funciona y no tiene restricción alguna, y esa es precisamente la razón para preferir una clave: una clave puede ser de solo lectura, limitarse a dominios concretos, limitarse a una única dirección de origen, tener una caducidad y revocarse sin cambiar nada más.</value>
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>La contraseña de administrador y la autenticación de dos factores están en la página Acceso administrativo.</value>

@@ -11289,8 +11289,8 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Send everything through my provider" xml:space="preserve">
     <value>Tout envoyer via mon fournisseur</value>
   </data>
-  <data name="Send it as a bearer token:  Authorization: Bearer hmapi_...  to the REST listener configured on the API &amp; monitoring page. The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
-    <value>Envoyez-la comme jeton porteur :  Authorization: Bearer hmapi_...  à l'écouteur REST configuré sur la page API et supervision. Le mot de passe administrateur fonctionne aussi et n'est soumis à aucune restriction, ce qui est la raison de préférer une clé : une clé peut être en lecture seule, limitée à des domaines nommés, limitée à une seule adresse source, dotée d'une expiration, et révoquée sans rien changer d'autre.</value>
+  <data name="Send it as a bearer token, in this header, to the REST listener configured on the API &amp; monitoring page:" xml:space="preserve">
+    <value>Envoyez-la comme jeton porteur, dans cet en-tête, à l'écouteur REST configuré sur la page API et supervision :</value>
   </data>
   <data name="Send it during this _hour of the local day (0 to 23)" xml:space="preserve">
     <value>L'envoyer pendant cette _heure de la journée locale (0 à 23)</value>
@@ -12665,6 +12665,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   </data>
   <data name="The administrator password alone signs in, here, in scripts and over the REST API." xml:space="preserve">
     <value>Le mot de passe administrateur seul suffit à se connecter, ici, dans les scripts et via l'API REST.</value>
+  </data>
+  <data name="The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
+    <value>Le mot de passe administrateur fonctionne aussi et n'est soumis à aucune restriction, ce qui est la raison de préférer une clé : une clé peut être en lecture seule, limitée à des domaines nommés, limitée à une seule adresse source, dotée d'une expiration, et révoquée sans rien changer d'autre.</value>
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Le mot de passe administrateur et l'authentification à deux facteurs se trouvent sur la page Accès administratif.</value>

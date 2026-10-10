@@ -168,7 +168,7 @@ namespace hMailServer.ControlPanel.Views
          content.Children.Add(newKeyLabel_);
 
          newKeyToken_.FontFamily = new System.Windows.Media.FontFamily(Typography.MonoFontFamily);
-         newKeyToken_.FontSize = Typography.Body;
+         newKeyToken_.FontSize = Typography.Mono;
          newKeyToken_.TextWrapping = TextWrapping.Wrap;
          newKeyToken_.Margin = new Thickness(0, 0, 0, 12);
          System.Windows.Automation.AutomationProperties.SetAutomationId(newKeyToken_, "apikeys-new-token");
@@ -232,8 +232,24 @@ namespace hMailServer.ControlPanel.Views
       {
          Card card = Section_(L("How a key is used"), null, out StackPanel content);
 
+         // The header on a line of its own, in the monospaced face: it was set in
+         // the sentence, marked off by two spaces either side (review finding F304).
+         TextBlock sendIt = Paragraph_(L("Send it as a bearer token, in this header, to the REST listener configured on the API & monitoring page:"));
+         sendIt.Margin = new Thickness(0, 0, 0, 4);
+         content.Children.Add(sendIt);
+         var header = new TextBlock
+         {
+            Text = "Authorization: Bearer hmapi_...", // no-loc: the header, as it is sent
+            FontFamily = new System.Windows.Media.FontFamily(Typography.MonoFontFamily),
+            FontSize = Typography.Mono,
+            Margin = new Thickness(DesignTokens.Space.Md, 0, 0, 10),
+            TextWrapping = TextWrapping.Wrap
+         };
+         header.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorPrimaryBrush");
+         System.Windows.Automation.AutomationProperties.SetAutomationId(header, "apikeys-bearer-header");
+         content.Children.Add(header);
          content.Children.Add(Paragraph_(
-            L("Send it as a bearer token:  Authorization: Bearer hmapi_...  to the REST listener configured on the API & monitoring page. The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else.")));
+            L("The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else.")));
 
          content.Children.Add(Paragraph_(
             L("No key of any scope can create or revoke keys - that needs the administrator password, or this page. A key restricted to particular domains is also refused the delivery-queue endpoints outright, because the queue is server-wide and cannot be filtered by domain.")));
@@ -288,11 +304,17 @@ namespace hMailServer.ControlPanel.Views
             SetSummary_(StatusLevel.Information,
                L("The key store's location is not known from here. It sits beside hMailServer.ini, which is found through this machine's registry and service table - so keys can only be managed from the server itself, not from a Control Panel connected to another host."));
             storePath_.Text = "";
+            storePath_.ToolTip = null;
             empty_.Visibility = Visibility.Collapsed;
             return;
          }
 
-         storePath_.Text = L("Store: ") + path;
+         // The path in the monospaced face and cut in its middle where it is long,
+         // the whole of it in the tool tip, where it wrapped at a backslash (F304).
+         storePath_.Inlines.Clear();
+         storePath_.Inlines.Add(new System.Windows.Documents.Run(L("Store: ")));
+         storePath_.Inlines.Add(new System.Windows.Documents.Run(DataText.MiddleOfPath(path)) { FontFamily = new System.Windows.Media.FontFamily(Typography.MonoFontFamily) });
+         storePath_.ToolTip = path;
 
          List<ApiKeyRecord> keys = ApiKeyStore.Read();
 

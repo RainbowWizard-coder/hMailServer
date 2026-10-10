@@ -11289,8 +11289,8 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="Send everything through my provider" xml:space="preserve">
     <value>Invia tutto tramite il mio provider</value>
   </data>
-  <data name="Send it as a bearer token:  Authorization: Bearer hmapi_...  to the REST listener configured on the API &amp; monitoring page. The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
-    <value>Inviala come token bearer:  Authorization: Bearer hmapi_...  al listener REST configurato nella pagina API e monitoraggio. Funziona anche la password di amministratore, che però non ha alcuna restrizione: ed è proprio questo il motivo per preferire una chiave: una chiave può essere di sola lettura, limitata a domini indicati, limitata a un solo indirizzo di origine, dotata di scadenza e revocata senza cambiare nient'altro.</value>
+  <data name="Send it as a bearer token, in this header, to the REST listener configured on the API &amp; monitoring page:" xml:space="preserve">
+    <value>Inviala come token bearer, in questa intestazione, al listener REST configurato nella pagina API e monitoraggio:</value>
   </data>
   <data name="Send it during this _hour of the local day (0 to 23)" xml:space="preserve">
     <value>Invialo durante quest'_ora del giorno locale (da 0 a 23)</value>
@@ -12665,6 +12665,9 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   </data>
   <data name="The administrator password alone signs in, here, in scripts and over the REST API." xml:space="preserve">
     <value>La sola password di amministratore consente l'accesso, qui, negli script e tramite l'API REST.</value>
+  </data>
+  <data name="The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
+    <value>Funziona anche la password di amministratore, che però non ha alcuna restrizione: ed è proprio questo il motivo per preferire una chiave: una chiave può essere di sola lettura, limitata a domini indicati, limitata a un solo indirizzo di origine, dotata di scadenza e revocata senza cambiare nient'altro.</value>
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>La password di amministratore e l'autenticazione a due fattori si trovano nella pagina Accesso amministrativo.</value>

@@ -24,7 +24,7 @@ namespace hMailServer.ControlPanel.Views
       private readonly TextBox editor_ = new()
       {
          FontFamily = new System.Windows.Media.FontFamily(Typography.MonoFontFamily),
-         FontSize = Typography.Body,
+         FontSize = Typography.Mono,
          AcceptsReturn = true,
          AcceptsTab = true,
          TextWrapping = TextWrapping.NoWrap,

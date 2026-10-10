@@ -11289,8 +11289,8 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Send everything through my provider" xml:space="preserve">
     <value>Send alt gjennom leverandøren min</value>
   </data>
-  <data name="Send it as a bearer token:  Authorization: Bearer hmapi_...  to the REST listener configured on the API &amp; monitoring page. The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
-    <value>Send det som et bearer-token:  Authorization: Bearer hmapi_...  til REST-lytteren som er konfigurert på siden API og overvåking. Administratorpassordet fungerer også og er ubegrenset, som er grunnen til å foretrekke en nøkkel: en nøkkel kan være skrivebeskyttet, begrenset til navngitte domener, begrenset til én kildeadresse, gis et utløp og tilbakekalles uten å endre noe annet.</value>
+  <data name="Send it as a bearer token, in this header, to the REST listener configured on the API &amp; monitoring page:" xml:space="preserve">
+    <value>Send det som et bearer-token i denne headeren til REST-lytteren som er konfigurert på siden API og overvåking:</value>
   </data>
   <data name="Send it during this _hour of the local day (0 to 23)" xml:space="preserve">
     <value>Send det i denne _timen av det lokale døgnet (0 til 23)</value>
@@ -12665,6 +12665,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   </data>
   <data name="The administrator password alone signs in, here, in scripts and over the REST API." xml:space="preserve">
     <value>Administratorpassordet alene logger på, her, i skript og over REST-API-et.</value>
+  </data>
+  <data name="The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
+    <value>Administratorpassordet fungerer også og er ubegrenset, som er grunnen til å foretrekke en nøkkel: en nøkkel kan være skrivebeskyttet, begrenset til navngitte domener, begrenset til én kildeadresse, gis et utløp og tilbakekalles uten å endre noe annet.</value>
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Administratorpassordet og tofaktorautentisering er på siden Administrativ tilgang.</value>

@@ -11289,8 +11289,8 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="Send everything through my provider" xml:space="preserve">
     <value>Alles über meinen Provider senden</value>
   </data>
-  <data name="Send it as a bearer token:  Authorization: Bearer hmapi_...  to the REST listener configured on the API &amp; monitoring page. The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
-    <value>Senden Sie ihn als Bearer-Token:  Authorization: Bearer hmapi_...  an den REST-Listener, der auf der Seite API und Überwachung konfiguriert ist. Das Administratorpasswort funktioniert ebenfalls und ist unbeschränkt, und genau das ist der Grund, einen Schlüssel vorzuziehen: Ein Schlüssel kann schreibgeschützt sein, auf benannte Domains beschränkt, auf eine Quelladresse beschränkt, mit einem Ablauf versehen und widerrufen werden, ohne sonst etwas zu ändern.</value>
+  <data name="Send it as a bearer token, in this header, to the REST listener configured on the API &amp; monitoring page:" xml:space="preserve">
+    <value>Senden Sie ihn als Bearer-Token in diesem Header an den REST-Listener, der auf der Seite API und Überwachung konfiguriert ist:</value>
   </data>
   <data name="Send it during this _hour of the local day (0 to 23)" xml:space="preserve">
     <value>In dieser St_unde des lokalen Tages senden (0 bis 23)</value>
@@ -12665,6 +12665,9 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   </data>
   <data name="The administrator password alone signs in, here, in scripts and over the REST API." xml:space="preserve">
     <value>Das Administratorpasswort allein meldet an, hier, in Skripten und über die REST-API.</value>
+  </data>
+  <data name="The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
+    <value>Das Administratorpasswort funktioniert ebenfalls und ist unbeschränkt, und genau das ist der Grund, einen Schlüssel vorzuziehen: Ein Schlüssel kann schreibgeschützt sein, auf benannte Domains beschränkt, auf eine Quelladresse beschränkt, mit einem Ablauf versehen und widerrufen werden, ohne sonst etwas zu ändern.</value>
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Das Administratorpasswort und die Zwei-Faktor-Authentifizierung stehen auf der Seite Administrativer Zugriff.</value>

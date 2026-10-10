@@ -148,7 +148,7 @@ namespace hMailServer.ControlPanel.Views
             (L("script/save slow"), L("An OnAcceptMessage event script, or the database.")),
             (L("Nothing between 354 and silence"), L("A version older than 6.2.17; upgrade, because that is the version that added these lines.")),
             (L("451 4.3.1 replies"), L("Acceptance exceeded the message finalisation deadline (240 s by default): the sender retries rather than waiting for ever, the error entry names the deadline, and the stage timings above it name what consumed the time.")),
-         }));
+         }, logLines: true));
 
          var links = new WrapPanel { Margin = new Thickness(0, 10, 0, 0) };
          links.Children.Add(Link(L("Open the live logs"), "logs"));
@@ -342,7 +342,13 @@ namespace hMailServer.ControlPanel.Views
          return block;
       }
 
-      private static Grid Table((string what, string cause)[] rows)
+      /// <summary>
+      /// Two columns, what is seen and what it means. With <paramref name="logLines"/>
+      /// the first column is what the log writes - a stage's name, its timing line, a
+      /// reply code - in the monospaced face at its size, where it was body text in
+      /// SemiBold beside the explanation (review finding F304).
+      /// </summary>
+      private static Grid Table((string what, string cause)[] rows, bool logLines = false)
       {
          var grid = new Grid { Margin = new Thickness(0, 6, 0, 0) };
          grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) });
@@ -353,7 +359,12 @@ namespace hMailServer.ControlPanel.Views
             grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
             var what = new TextBlock { Text = rows[i].what, Margin = new Thickness(0, 2, 12, 6) };
-            what.SetResourceReference(StyleProperty, "TextBodyStrong");
+            what.SetResourceReference(StyleProperty, logLines ? "TextBody" : "TextBodyStrong");
+            if (logLines)
+            {
+               what.FontFamily = new System.Windows.Media.FontFamily(Typography.MonoFontFamily);
+               what.FontSize = Typography.Mono;
+            }
             Grid.SetRow(what, i);
             Grid.SetColumn(what, 0);
             grid.Children.Add(what);

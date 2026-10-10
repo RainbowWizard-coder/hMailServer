@@ -11431,8 +11431,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Send everything through my provider" xml:space="preserve">
     <value>Odesílat vše přes mého poskytovatele</value>
   </data>
-  <data name="Send it as a bearer token:  Authorization: Bearer hmapi_...  to the REST listener configured on the API &amp; monitoring page. The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
-    <value>Odešlete jej jako bearer token:  Authorization: Bearer hmapi_...  na REST listener nastavený na stránce API a monitorování. Funguje i heslo správce, to však není nijak omezeno, a právě proto je lepší klíč: klíč může být jen pro čtení, omezený na uvedené domény, omezený na jednu zdrojovou adresu, s vypršením platnosti, a lze jej odvolat, aniž by se cokoli jiného měnilo.</value>
+  <data name="Send it as a bearer token, in this header, to the REST listener configured on the API &amp; monitoring page:" xml:space="preserve">
+    <value>Odešlete jej jako bearer token v této hlavičce na REST listener nastavený na stránce API a monitorování:</value>
   </data>
   <data name="Send it during this _hour of the local day (0 to 23)" xml:space="preserve">
     <value>Odesílat v této _hodině místního dne (0 až 23)</value>
@@ -12816,6 +12816,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="The administrator password alone signs in, here, in scripts and over the REST API." xml:space="preserve">
     <value>K přihlášení stačí samotné heslo správce, zde, ve skriptech i přes REST API.</value>
+  </data>
+  <data name="The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
+    <value>Funguje i heslo správce, to však není nijak omezeno, a právě proto je lepší klíč: klíč může být jen pro čtení, omezený na uvedené domény, omezený na jednu zdrojovou adresu, s vypršením platnosti, a lze jej odvolat, aniž by se cokoli jiného měnilo.</value>
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Heslo správce a dvoufaktorové ověření najdete na stránce Přístup pro správu.</value>

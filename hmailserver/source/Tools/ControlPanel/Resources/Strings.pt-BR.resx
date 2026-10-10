@@ -11289,8 +11289,8 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Send everything through my provider" xml:space="preserve">
     <value>Enviar tudo através do meu provedor</value>
   </data>
-  <data name="Send it as a bearer token:  Authorization: Bearer hmapi_...  to the REST listener configured on the API &amp; monitoring page. The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
-    <value>Envie-a como um token portador:  Authorization: Bearer hmapi_...  para o ouvinte REST configurado na página API e monitoramento. A senha de administrador também funciona e não tem restrição alguma, e é justamente por isso que se prefere uma chave: uma chave pode ser somente leitura, limitada a domínios nomeados, limitada a um endereço de origem, receber uma validade e ser revogada sem alterar mais nada.</value>
+  <data name="Send it as a bearer token, in this header, to the REST listener configured on the API &amp; monitoring page:" xml:space="preserve">
+    <value>Envie-a como um token portador, neste cabeçalho, para o ouvinte REST configurado na página API e monitoramento:</value>
   </data>
   <data name="Send it during this _hour of the local day (0 to 23)" xml:space="preserve">
     <value>Enviar durante esta _hora do dia local (0 a 23)</value>
@@ -12665,6 +12665,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="The administrator password alone signs in, here, in scripts and over the REST API." xml:space="preserve">
     <value>A senha de administrador sozinha faz o login, aqui, em scripts e pela API REST.</value>
+  </data>
+  <data name="The administrator password also works and is unrestricted, which is the reason to prefer a key: a key can be read-only, limited to named domains, limited to one source address, given an expiry, and revoked without changing anything else." xml:space="preserve">
+    <value>A senha de administrador também funciona e não tem restrição alguma, e é justamente por isso que se prefere uma chave: uma chave pode ser somente leitura, limitada a domínios nomeados, limitada a um endereço de origem, receber uma validade e ser revogada sem alterar mais nada.</value>
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>A senha de administrador e a autenticação de dois fatores ficam na página Acesso administrativo.</value>

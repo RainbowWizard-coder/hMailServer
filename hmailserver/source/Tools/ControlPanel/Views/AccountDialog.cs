@@ -108,7 +108,7 @@ namespace hMailServer.ControlPanel.Views
          VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
          HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
          FontFamily = new System.Windows.Media.FontFamily(Typography.MonoFontFamily),
-         FontSize = Typography.Label
+         FontSize = Typography.Mono
       };
 
       // Active Directory
