@@ -3392,10 +3392,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   "Open Protocols (host name)", "SSL/TLS →" as the spam filtering overview already wrote it - and the list editor's
   and the permissions dialog's buttons are "Add…" and "Edit…". The links in a card are one style, `CompactPageLink`
   (the Caption size, 28 pixels tall at the least), where seven pages drew their own 24-pixel links beside the card's
-  32-pixel buttons. The Dashboard's Uptime is the 28 pixels of the other four figures, where it was 20, each figure
-  shrinks only when it is wider than its card (at 760 pixels "128,431" was cut to "128,43"), and the labels under them
-  are the Caption size, where they were 11 pixels, and wrap where the card is narrower than they are.
-  `NavigationCaptionTests` holds the captions, the style and the figures.
+  32-pixel buttons, and a caption with an access key is that size too: the Dashboard's "Open Setup checklist" was
+  drawn at 14 pixels, the Body size WPF-UI's style gives the text of an access key over the button's own. The
+  Dashboard's Uptime is the 28 pixels of the other four figures, where it was 20, each figure shrinks only when it is
+  wider than its card (at 760 pixels "128,431" was cut to "128,43"), and the labels under them are the Caption size,
+  where they were 11 pixels, and wrap where the card is narrower than they are. `NavigationCaptionTests` holds the
+  captions, the style and the figures.
 
 - **Fixed: the Control Panel wrote three dashes and two ellipses, sometimes two of them in one sentence.** Most texts
   used the spaced hyphen, but 21 used an em dash and 3 an en dash ("Public — anyone can send" beside "Nobody - the

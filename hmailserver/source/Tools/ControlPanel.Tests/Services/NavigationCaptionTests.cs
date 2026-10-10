@@ -137,6 +137,10 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("<Setter Property=\"FontSize\" Value=\"{StaticResource AppFontSizeCaption}\" />", style.Value, StringComparison.Ordinal);
          Assert.Contains("<Setter Property=\"Padding\" Value=\"8,4,8,4\" />", style.Value, StringComparison.Ordinal);
          Assert.Contains("<Setter Property=\"MinHeight\" Value=\"28\" />", style.Value, StringComparison.Ordinal);
+         // A caption with an access key is an AccessText, whose implicit style (WPF-UI's)
+         // sets the Body size over the button's: the Dashboard's "Open Setup _checklist"
+         // was drawn at 14 pixels. The string's template in the style sets the Caption size.
+         Assert.Matches(new Regex(@"<Style\.Resources>\s*<DataTemplate DataType=""\{x:Type sys:String\}"">\s*<AccessText Text=""\{Binding\}"" FontSize=""\{StaticResource AppFontSizeCaption\}"" />\s*</DataTemplate>\s*</Style\.Resources>"), style.Value);
 
          string styles = Read("Services", "ButtonStyles.cs");
          Assert.Contains("TryFindResource(\"CompactPageLink\")", styles, StringComparison.Ordinal);
