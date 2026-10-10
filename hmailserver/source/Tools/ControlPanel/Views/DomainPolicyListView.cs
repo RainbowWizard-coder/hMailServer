@@ -527,7 +527,9 @@ namespace hMailServer.ControlPanel.Views
       /// Blocked and the Normal circle Allowed, the shapes the status pills use, so
       /// that a blocked domain is found at a glance and the difference survives
       /// greyscale. The column is floored at its header and at either word with its
-      /// mark, and sorts by the word.
+      /// mark, and sorts and is copied by the word: a template column copies nothing of
+      /// its own, and Ctrl+C on an entry copied an empty field where the text column it
+      /// replaced copied Allowed or Blocked.
       /// </summary>
       private static DataGridTemplateColumn ActionColumn_()
       {
@@ -558,6 +560,7 @@ namespace hMailServer.ControlPanel.Views
             Header = header,
             CellTemplate = new DataTemplate { VisualTree = panel },
             SortMemberPath = nameof(EntryView.Action),
+            ClipboardContentBinding = new System.Windows.Data.Binding(nameof(EntryView.Action)),
             Width = DataGridLength.Auto,
             MinWidth = floor
          };

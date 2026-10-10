@@ -32,6 +32,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(column.IndexOf("panel.AppendChild(mark);", StringComparison.Ordinal) < column.IndexOf("panel.AppendChild(word);", StringComparison.Ordinal),
             "The mark does not lead the word.");
          Assert.Contains("SortMemberPath = nameof(EntryView.Action)", column, StringComparison.Ordinal);
+         // Copied as its word: a template column copies nothing of its own.
+         Assert.Contains("ClipboardContentBinding = new System.Windows.Data.Binding(nameof(EntryView.Action)),", column, StringComparison.Ordinal);
          Assert.Contains("GridStyles.CellWidth(DomainPolicyWords.Action(action), ActionMarkWidth + ActionMarkGap)", column, StringComparison.Ordinal);
 
          string mark = WithheldRowTests.MemberText(page, "private static FrameworkElement ActionMark_(string action)");
@@ -56,6 +58,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          XElement enabled = grid.Descendants(Wpf + "DataGridTemplateColumn").Single();
          Assert.Equal("{loc:L 'Enabled'}", (string)enabled.Attribute("Header"));
          Assert.Equal("Enabled", (string)enabled.Attribute("SortMemberPath"));
+         // Copied as its word, On or Off: a template column copies nothing of its own.
+         Assert.Equal("{Binding Enabled}", (string)enabled.Attribute("ClipboardContentBinding"));
          XElement pill = enabled.Descendants(Scaffold + "StatusPill").Single();
          Assert.Equal("{Binding EnabledLevel}", (string)pill.Attribute("Level"));
          Assert.Equal("{Binding Enabled}", (string)pill.Attribute("Text"));

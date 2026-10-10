@@ -139,8 +139,11 @@
                                  a rule that runs and the Normal circle for one that does not, so
                                  that the state survives greyscale, where it was "No" in the last
                                  column (review finding F323); the row of a rule switched off is
-                                 in the secondary text (the grid's CellStyle). -->
-                            <DataGridTemplateColumn Header="{loc:L 'Enabled'}" Width="Auto" MinWidth="80" SortMemberPath="Enabled">
+                                 in the secondary text (the grid's CellStyle).. It is copied as its word, On or Off: a template
+                                 column copies nothing of its own, and Ctrl+C on a rule copied an
+                                 empty field where the text column it replaced copied the word. -->
+                            <DataGridTemplateColumn Header="{loc:L 'Enabled'}" Width="Auto" MinWidth="80" SortMemberPath="Enabled"
+                                                    ClipboardContentBinding="{Binding Enabled}">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <scaffold:StatusPill Level="{Binding EnabledLevel}" Text="{Binding Enabled}"
