@@ -148,7 +148,7 @@ namespace hMailServer.ControlPanel.Views
          p.Children.Add(Label(L("_Name"), name_));
          p.Children.Add(Label(L("_Lower IP address"), lower_));
          p.Children.Add(Label(L("_Upper IP address"), upper_));
-         priorityRow_ = Label(L("_Priority (higher wins when ranges overlap)"), priority_);
+         priorityRow_ = Label(L("_Priority"), priority_).WithHint(L("Where ranges overlap, the higher priority wins."));
          p.Children.Add(priorityRow_);
          return DialogFields.Scroll(p);
       }

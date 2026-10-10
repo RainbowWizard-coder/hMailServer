@@ -38,7 +38,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          Assert.Equal("Domains", German["Domains"]);
          Assert.Contains("Domain", German["Domain - {0}"], StringComparison.Ordinal);
-         Assert.Equal("_Windows-Domäne (für ein lokales Windows-Konto leer lassen)", German["Windows _domain (leave empty for a local Windows account)"]);
+         Assert.Equal("_Windows-Domäne (leer = ein lokales Windows-Konto)", German["Windows _domain (empty = a local Windows account)"]);
       }
 
       [Fact]

@@ -203,6 +203,8 @@ One name for one thing, in every text the Control Panel shows, so that a reader 
 
 A field's caption ends with no colon: the row's layout already says that the editor below belongs to it.
 
+A field's caption names the field, and its last bracket says only the unit, the range and what an edge value means, in one form - "Ban the sending address for (minutes, up to 525,600; 0 = no ban)", "Warning text (empty = the server message)" - since the caption is the editor's accessible name: what the field is for, how to fill it in and what follows from it are its hint, under the box (review findings F105, F148 and F300). `CaptionWordingTests` holds the dialogs' captions to it, and `CaptionFormTests` every caption to the form.
+
 No word is written in capitals to stress it, in English or in a translation: the sentence carries the stress ("Applied when a password is chosen - ... - and never when one is checked at sign-in"), and a risk the reader must not miss is a Warning notice. Capitals are for names - a protocol, a command, a record type, a unit, the rule editor's IF, THEN, (AND) and (OR) - and `EmphasisCapitalsTests` holds every catalogue to them (review finding F297).
 
 ## Tours

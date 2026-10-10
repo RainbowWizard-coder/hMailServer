@@ -543,6 +543,9 @@
   <data name="A message to ten local mailboxes is written once and linked ten times rather than copied ten times, which is the difference between one disk write and ten for a large message to a distribution list. Needs the data directory on NTFS; where a link cannot be made the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>发给十个本地邮箱的邮件只写入一次并建立十个链接，而不是复制十份；对于发往分发列表的大邮件来说，这就是一次磁盘写入与十次磁盘写入的区别。需要数据目录位于 NTFS 上；在无法建立链接的地方，服务器会复制文件并在 SMTP 日志中说明。</value>
   </data>
+  <data name="A migration rather than a collection: every folder, verbatim, with its flags and dates." xml:space="preserve">
+    <value>这是迁移而非收取：逐字迁移每个文件夹，包括其标记和日期。</value>
+  </data>
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>面向 hMailServer 的现代管理应用：实时仪表板、域与账户、投递队列、日志流、完整的服务器设置，以及 6.x 的传输安全功能（DANE、MTA-STS、ARC、TLS-RPT、ACME）。</value>
   </data>
@@ -1551,6 +1554,9 @@
   <data name="An OnAcceptMessage event script, or the database." xml:space="preserve">
     <value>一个 OnAcceptMessage 事件脚本，或者数据库。</value>
   </data>
+  <data name="An OpenPGP public key, or PEM certificates." xml:space="preserve">
+    <value>OpenPGP 公钥或 PEM 证书。</value>
+  </data>
   <data name="An SPF record - which servers may send this domain's mail" xml:space="preserve">
     <value>一条 SPF 记录 - 哪些服务器可以发送此域的邮件</value>
   </data>
@@ -1737,6 +1743,9 @@
   </data>
   <data name="Append to the account's signature" xml:space="preserve">
     <value>追加到账户的签名之后</value>
+  </data>
+  <data name="Appended to the message." xml:space="preserve">
+    <value>附加到邮件。</value>
   </data>
   <data name="Application (client) ID" xml:space="preserve">
     <value>应用程序（客户端）ID</value>
@@ -2508,6 +2517,9 @@
   </data>
   <data name="Changes what happens at the refuse threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
     <value>更改在拒绝阈值处发生的事情。关闭时，超过该阈值的邮件会在 SMTP 会话期间以 550 拒绝，并告知发件方。打开时，它会以 250 接受并转为暂挂等待审核 - 发件方以为已投递而不会重试，正因如此，误判才能在不退信到一个很可能伪造的返回路径的情况下得以挽回，但这也意味着审核队列成为该邮件唯一存在的地方。适用于在邮件正文接收完毕之后运行的检查；在此之前得出的判定（连接 IP 被列入 DNS 拦截列表、HELO 不正确）没有邮件可暂挂，仍然是拒绝。</value>
+  </data>
+  <data name="Changing it renames the domain and moves every account, alias and list with it." xml:space="preserve">
+    <value>更改它会重命名该域，并把每个账户、别名和列表一起迁移过去。</value>
   </data>
   <data name="Changing it renames the list; its members and settings stay." xml:space="preserve">
     <value>更改后列表即改名；其成员和设置保持不变。</value>
@@ -4079,8 +4091,8 @@
   <data name="Deliver _all now" xml:space="preserve">
     <value>立即全部投递(_A)</value>
   </data>
-  <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
-    <value>将每封邮件投递到其标头中列出的账户（多人共用的邮箱）</value>
+  <data name="Deliver each message to the accounts its headers name" xml:space="preserve">
+    <value>将每封邮件投递到其标头中列出的账户</value>
   </data>
   <data name="Deliver it (default)" xml:space="preserve">
     <value>投递（默认）</value>
@@ -4229,8 +4241,8 @@
   <data name="Directory synchronisation" xml:space="preserve">
     <value>目录同步</value>
   </data>
-  <data name="Disc_laimer text (appended to the message)" xml:space="preserve">
-    <value>免责声明文本（附加到邮件）(_L)</value>
+  <data name="Disc_laimer text" xml:space="preserve">
+    <value>免责声明文本(_L)</value>
   </data>
   <data name="Discard the index and rebuild it" xml:space="preserve">
     <value>丢弃索引并重建</value>
@@ -5116,8 +5128,8 @@
   <data name="Expires _on (server time)" xml:space="preserve">
     <value>到期于(_O)（服务器时间）</value>
   </data>
-  <data name="Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)" xml:space="preserve">
-    <value>失效时间 (yyyy-mm-dd hh:mm:ss，即失效的时间)</value>
+  <data name="Expires on (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
+    <value>失效时间（YYYY-MM-DD HH:MM:SS）</value>
   </data>
   <data name="Expires on {0} (in less than a day)" xml:space="preserve">
     <value>{0} 到期（不到一天后）</value>
@@ -5364,6 +5376,9 @@
   </data>
   <data name="For a domain synchronised with Active Directory." xml:space="preserve">
     <value>用于与 Active Directory 同步的域。</value>
+  </data>
+  <data name="For a mailbox shared by several people." xml:space="preserve">
+    <value>适用于多人共用的邮箱。</value>
   </data>
   <data name="For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed sign-ins, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the allowed and blocked domains still apply. Empty, the default, changes nothing." xml:space="preserve">
     <value>适用于主机共用一个反向名称、地址经常变动的提供商：当连接地址的某个反向名称被此处的名称覆盖、并且正向解析回该地址时，该地址永远不会被自动封禁——无论是登录失败、垃圾邮件陷阱还是空发件人。其他检查一概不跳过：灰名单、SPF、DKIM、DMARC 以及允许与拦截的域仍然适用。为空（默认）时不做任何改变。</value>
@@ -6222,6 +6237,9 @@
   <data name="It is sent as spamd's User: header." xml:space="preserve">
     <value>它作为 spamd 的 User: 标头发送。</value>
   </data>
+  <data name="It may be at any domain this server holds." xml:space="preserve">
+    <value>可以是此服务器持有的任何域。</value>
+  </data>
   <data name="It may use %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED% and %MACRO_PERCENT%." xml:space="preserve">
     <value>可以使用 %MACRO_MAILBOX%、%MACRO_QUOTA%、%MACRO_USED% 和 %MACRO_PERCENT%。</value>
   </data>
@@ -6804,6 +6822,9 @@
   <data name="Mail to the spam trap {0}" xml:space="preserve">
     <value>发往垃圾邮件陷阱 {0} 的邮件</value>
   </data>
+  <data name="Mail to unknown recipients is redirected here." xml:space="preserve">
+    <value>发往未知收件人的邮件会重定向到这里。</value>
+  </data>
   <data name="Mailbox changed" xml:space="preserve">
     <value>已更改邮箱</value>
   </data>
@@ -6869,6 +6890,9 @@
   </data>
   <data name="Mailboxes encrypted at rest" xml:space="preserve">
     <value>静态加密的邮箱</value>
+  </data>
+  <data name="Mailed to a sender this server hosts, naming the rule." xml:space="preserve">
+    <value>发送给此服务器托管的发件人，并注明规则名称。</value>
   </data>
   <data name="Mailing lists" xml:space="preserve">
     <value>邮件列表</value>
@@ -7291,8 +7315,8 @@
   <data name="Mirror address (empty = off)" xml:space="preserve">
     <value>镜像地址（留空 = 关闭）</value>
   </data>
-  <data name="Mirror every folder (IMAP only: a migration, verbatim, with flags and dates)" xml:space="preserve">
-    <value>镜像每个文件夹（仅 IMAP：逐字迁移，包括标记和日期）</value>
+  <data name="Mirror every folder (IMAP only)" xml:space="preserve">
+    <value>镜像每个文件夹（仅 IMAP）</value>
   </data>
   <data name="Mirroring" xml:space="preserve">
     <value>镜像</value>
@@ -7390,8 +7414,8 @@
   <data name="N_ote" xml:space="preserve">
     <value>备注(_O)</value>
   </data>
-  <data name="N_otice text (mailed to a sender this server hosts, naming the rule)" xml:space="preserve">
-    <value>通知文本 (发送给此服务器托管的发件人，并注明规则名称) (_O)</value>
+  <data name="N_otice text" xml:space="preserve">
+    <value>通知文本(_O)</value>
   </data>
   <data name="Na_me" xml:space="preserve">
     <value>名称(_M)</value>
@@ -9727,8 +9751,8 @@
   <data name="Refresh a list, or reload a settings page" xml:space="preserve">
     <value>刷新列表，或重新加载设置页面</value>
   </data>
-  <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
-    <value>拒绝文本（550 告知发件人的内容）(_X)</value>
+  <data name="Refusal te_xt" xml:space="preserve">
+    <value>拒绝文本(_X)</value>
   </data>
   <data name="Refusal text" xml:space="preserve">
     <value>拒收说明</value>
@@ -10160,6 +10184,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Required" xml:space="preserve">
     <value>必需</value>
+  </data>
+  <data name="Required for SSL/TLS and STARTTLS." xml:space="preserve">
+    <value>SSL/TLS 和 STARTTLS 需要。</value>
   </data>
   <data name="Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address." xml:space="preserve">
     <value>必填。用于绑定的 Active Directory 域控制器或其他 LDAP 服务器。对于 LDAPS，名称必须与服务器的证书相符，因此请使用 DNS 名称，而不是 IP 地址。</value>
@@ -10605,8 +10632,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="SRS, BATV and the plain envelope-sender rewrite for forwarded mail" xml:space="preserve">
     <value>用于转发邮件的 SRS、BATV 和简单信封发件人改写</value>
   </data>
-  <data name="SSL c_ertificate (required for SSL/TLS and STARTTLS)" xml:space="preserve">
-    <value>SSL 证书(_E)（SSL/TLS 和 STARTTLS 需要）</value>
+  <data name="SSL c_ertificate" xml:space="preserve">
+    <value>SSL 证书(_E)</value>
   </data>
   <data name="SSL certificate" xml:space="preserve">
     <value>SSL 证书</value>
@@ -13321,6 +13348,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The name spamd looks up its per-user preferences for - a user_prefs file or a row in its SQL preference store. Leave empty unless spamd has been set up for it: a spamd told to change to a user it cannot find may refuse the scan, and an unscanned message is delivered as if SpamAssassin were unreachable." xml:space="preserve">
     <value>spamd 用来查找其每用户首选项的名称 - user_prefs 文件或其 SQL 首选项存储中的一行。除非 spamd 已为此配置，否则请留空: 被要求切换到一个它找不到的用户的 spamd 可能会拒绝扫描，而未扫描的邮件会像 SpamAssassin 不可达时一样被投递。</value>
   </data>
+  <data name="The named domains are on the domain's dialog." xml:space="preserve">
+    <value>指定的域在域的对话框中设置。</value>
+  </data>
   <data name="The new API key, shown once" xml:space="preserve">
     <value>新的 API 密钥，仅显示一次</value>
   </data>
@@ -13363,8 +13393,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The pages people sign in to in a browser: the webmail, the self-service portal and the Control Deck. Most of their settings are reached over the REST API, which also serves the webmail." xml:space="preserve">
     <value>用户在浏览器中登录的页面：网页邮箱、自助服务门户和 Control Deck。它们的大多数设置通过同样提供网页邮箱的 REST API 访问。</value>
   </data>
-  <data name="The partner's key: an OpenPGP public key or PEM certificates (left empty, the key held is kept)" xml:space="preserve">
-    <value>合作方的密钥：OpenPGP 公钥或 PEM 证书（留空则保留已保存的密钥）</value>
+  <data name="The partner's key (empty = keep the key held)" xml:space="preserve">
+    <value>合作方的密钥（留空 = 保留已保存的密钥）</value>
   </data>
   <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
     <value>再输入一次口令，确认没有输错(_W)</value>
@@ -13701,8 +13731,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The server stores this value and never reads it - nothing sets a thread priority from it, so changing it has no effect. It is shown rather than removed so that an administrator who set it years ago can see it is still there and why nothing happened, and it is not editable because a box that accepts a value nothing acts on is worse than no box at all. The thread counts above are honoured." xml:space="preserve">
     <value>服务器存储此值但从不读取它 - 没有任何东西据此设置线程优先级，因此更改它没有任何效果。显示而不是移除它，是为了让多年前设置过它的管理员看到它仍然存在，以及为什么什么都没发生；它不可编辑，因为一个接受无人响应的值的输入框比没有输入框更糟。上面的线程数会被遵守。</value>
   </data>
-  <data name="The server to ask (empty asks the domain's MX hosts)" xml:space="preserve">
-    <value>要询问的服务器（留空则询问该域的 MX 主机）</value>
+  <data name="The server to ask (empty = the domain's MX hosts)" xml:space="preserve">
+    <value>要询问的服务器（留空 = 该域的 MX 主机）</value>
   </data>
   <data name="The server's Host name (Protocols &gt; SMTP) is empty, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
     <value>服务器的主机名 (协议 &gt; SMTP) 为空，因此它在 HELO/EHLO 中通告的是其 Windows 计算机名 - 不是公共 DNS 名称 - 也就无法提供任何 "a:" 机制。建议只授权该域的 MX 主机。请先设置主机名；本页的多条记录都需要它。</value>
@@ -14836,6 +14866,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="What stops one statement blocked on a lock from holding a worker thread for ever. Honoured at connect time by MySQL/MariaDB and PostgreSQL; MS SQL and SQL CE start at ADO's own 30 seconds and pick this value up on any connection that has run an upgrade or maintenance script. Those scripts run under a 30-minute per-statement ceiling of their own regardless of this value." xml:space="preserve">
     <value>是什么阻止一条被锁阻塞的语句永远占用一个工作线程。MySQL/MariaDB 和 PostgreSQL 在连接时遵守它；MS SQL 和 SQL CE 从 ADO 自己的 30 秒开始，并在任何运行过升级或维护脚本的连接上采用此值。这些脚本无论此值如何，都在其自身每条语句 30 分钟的上限下运行。</value>
   </data>
+  <data name="What the 550 reply says to the sender." xml:space="preserve">
+    <value>550 回复告知发件人的内容。</value>
+  </data>
   <data name="What the provider knows this server as: Entra ID's Identifier, Okta's Audience URI." xml:space="preserve">
     <value>提供商用来识别本服务器的名称：Entra ID 的 Identifier，Okta 的 Audience URI。</value>
   </data>
@@ -14934,6 +14967,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Where new messages are stored" xml:space="preserve">
     <value>新邮件的存储位置</value>
+  </data>
+  <data name="Where ranges overlap, the higher priority wins." xml:space="preserve">
+    <value>范围重叠时，优先级高者胜出。</value>
   </data>
   <data name="Where the Control Deck is could not be read." xml:space="preserve">
     <value>无法读取 Control Deck 的位置。</value>
@@ -15115,8 +15151,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Windows Event Log" xml:space="preserve">
     <value>Windows 事件日志</value>
   </data>
-  <data name="Windows _domain (leave empty for a local Windows account)" xml:space="preserve">
-    <value>Windows 域(_D) (本地 Windows 账户请留空)</value>
+  <data name="Windows _domain (empty = a local Windows account)" xml:space="preserve">
+    <value>Windows 域(_D)（留空 = 本地 Windows 账户）</value>
   </data>
   <data name="Windows _user name" xml:space="preserve">
     <value>Windows 用户名(_U)</value>
@@ -15499,8 +15535,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Domain (e.g. gmail.com)" xml:space="preserve">
     <value>域（例如 gmail.com）(_D)</value>
   </data>
-  <data name="_Domain name (changing it renames the domain and moves every account, alias and list with it)" xml:space="preserve">
-    <value>域名(_D)（更改它会重命名该域，并把每个账户、别名和列表一起迁移过去）</value>
+  <data name="_Domain name" xml:space="preserve">
+    <value>域名(_D)</value>
   </data>
   <data name="_Domain or account" xml:space="preserve">
     <value>域或账户(_D)</value>
@@ -15751,8 +15787,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_New accounts start with their keys published" xml:space="preserve">
     <value>新账户一开始就发布其密钥(_N)</value>
   </data>
-  <data name="_New address (it may be at any domain this server holds)" xml:space="preserve">
-    <value>新地址（可以是此服务器持有的任何域）(_N)</value>
+  <data name="_New address" xml:space="preserve">
+    <value>新地址(_N)</value>
   </data>
   <data name="_New password" xml:space="preserve">
     <value>新密码(_N)</value>
@@ -15817,14 +15853,14 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Port (0 = 25)" xml:space="preserve">
     <value>端口(_P)（0 = 25）</value>
   </data>
-  <data name="_Postmaster address (mail to unknown recipients is redirected here)" xml:space="preserve">
-    <value>Postmaster 地址(_P)（发往未知收件人的邮件会重定向到这里）</value>
+  <data name="_Postmaster address" xml:space="preserve">
+    <value>Postmaster 地址(_P)</value>
   </data>
   <data name="_Preview" xml:space="preserve">
     <value>预览(_P)</value>
   </data>
-  <data name="_Priority (higher wins when ranges overlap)" xml:space="preserve">
-    <value>优先级(_P)（范围重叠时数值高者胜出）</value>
+  <data name="_Priority" xml:space="preserve">
+    <value>优先级(_P)</value>
   </data>
   <data name="_Private key file" xml:space="preserve">
     <value>私钥文件(_P)</value>
@@ -15931,8 +15967,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Restart the service" xml:space="preserve">
     <value>重启服务(_R)</value>
   </data>
-  <data name="_Restricted delivery (the named domains are on the domain's dialog)" xml:space="preserve">
-    <value>受限投递 (指定的域在域的对话框中设置) (_R)</value>
+  <data name="_Restricted delivery" xml:space="preserve">
+    <value>受限投递(_R)</value>
   </data>
   <data name="_Retire the old selector" xml:space="preserve">
     <value>停用旧选择器(_R)</value>

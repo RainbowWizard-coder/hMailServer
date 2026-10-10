@@ -543,6 +543,9 @@
   <data name="A message to ten local mailboxes is written once and linked ten times rather than copied ten times, which is the difference between one disk write and ten for a large message to a distribution list. Needs the data directory on NTFS; where a link cannot be made the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>Ett meddelande till tio lokala brevlådor skrivs en gång och länkas tio gånger snarare än kopieras tio gånger, vilket är skillnaden mellan en diskskrivning och tio för ett stort meddelande till en distributionslista. Kräver att datakatalogen ligger på NTFS; där en länk inte kan skapas kopierar servern filen och säger det i SMTP-loggen.</value>
   </data>
+  <data name="A migration rather than a collection: every folder, verbatim, with its flags and dates." xml:space="preserve">
+    <value>En migrering snarare än en hämtning: varje mapp, ordagrant, med dess flaggor och datum.</value>
+  </data>
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>En modern administrationsapp för hMailServer: direktöversikt, domäner och konton, leveranskö, loggströmning, fullständiga serverinställningar och 6.x-seriens transportsäkerhetsfunktioner (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
   </data>
@@ -1551,6 +1554,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="An OnAcceptMessage event script, or the database." xml:space="preserve">
     <value>Ett OnAcceptMessage-händelseskript, eller databasen.</value>
   </data>
+  <data name="An OpenPGP public key, or PEM certificates." xml:space="preserve">
+    <value>En publik OpenPGP-nyckel eller PEM-certifikat.</value>
+  </data>
   <data name="An SPF record - which servers may send this domain's mail" xml:space="preserve">
     <value>En SPF-post - vilka servrar som får skicka domänens post</value>
   </data>
@@ -1737,6 +1743,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Append to the account's signature" xml:space="preserve">
     <value>Lägg till efter kontots signatur</value>
+  </data>
+  <data name="Appended to the message." xml:space="preserve">
+    <value>Läggs till meddelandet.</value>
   </data>
   <data name="Application (client) ID" xml:space="preserve">
     <value>Program-ID (klient-ID)</value>
@@ -2508,6 +2517,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Changes what happens at the refuse threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
     <value>Ändrar vad som händer vid avvisningströskeln. Av: ett meddelande över den avvisas under SMTP-konversationen med 550 och avsändaren får veta det. På: det godtas med 250 och hålls för granskning i stället - avsändaren tror att det levererades och försöker inte om, vilket är det som gör en falsk träff möjlig att återställa utan att studsa till en returväg som troligen är förfalskad, och som också betyder att granskningskön blir den enda plats där meddelandet finns. Gäller kontroller som körs efter att meddelandetexten tagits emot; en dom som nås före det (en anslutande IP på en DNS-spärrlista, ett dåligt HELO) har inget meddelande att hålla kvar och förblir en avvisning.</value>
+  </data>
+  <data name="Changing it renames the domain and moves every account, alias and list with it." xml:space="preserve">
+    <value>Att ändra det byter namn på domänen och flyttar varje konto, alias och lista med den.</value>
   </data>
   <data name="Changing it renames the list; its members and settings stay." xml:space="preserve">
     <value>En ändring byter namn på listan; dess medlemmar och inställningar finns kvar.</value>
@@ -4079,8 +4091,8 @@ Avsändaren fick veta att det accepterades, så inget kommer att försöka igen 
   <data name="Deliver _all now" xml:space="preserve">
     <value>Leverera _alla nu</value>
   </data>
-  <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
-    <value>Leverera varje meddelande till de konton som dess rubriker nämner (en brevlåda som flera personer delar)</value>
+  <data name="Deliver each message to the accounts its headers name" xml:space="preserve">
+    <value>Leverera varje meddelande till de konton som dess rubriker nämner</value>
   </data>
   <data name="Deliver it (default)" xml:space="preserve">
     <value>Leverera det (standard)</value>
@@ -4229,8 +4241,8 @@ Spara ändå?</value>
   <data name="Directory synchronisation" xml:space="preserve">
     <value>Katalogsynkronisering</value>
   </data>
-  <data name="Disc_laimer text (appended to the message)" xml:space="preserve">
-    <value>Friskrivningstext (_läggs till meddelandet)</value>
+  <data name="Disc_laimer text" xml:space="preserve">
+    <value>Fris_krivningstext</value>
   </data>
   <data name="Discard the index and rebuild it" xml:space="preserve">
     <value>Kasta indexet och bygg om det</value>
@@ -5116,8 +5128,8 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Expires _on (server time)" xml:space="preserve">
     <value>Går ut _den (servertid)</value>
   </data>
-  <data name="Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)" xml:space="preserve">
-    <value>Går ut (yyyy-mm-dd hh:mm:ss, när den slutar gälla)</value>
+  <data name="Expires on (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
+    <value>Går ut (YYYY-MM-DD HH:MM:SS)</value>
   </data>
   <data name="Expires on {0} (in less than a day)" xml:space="preserve">
     <value>Går ut {0} (om mindre än en dag)</value>
@@ -5364,6 +5376,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="For a domain synchronised with Active Directory." xml:space="preserve">
     <value>För en domän som synkroniseras med Active Directory.</value>
+  </data>
+  <data name="For a mailbox shared by several people." xml:space="preserve">
+    <value>För en brevlåda som flera personer delar.</value>
   </data>
   <data name="For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed sign-ins, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the allowed and blocked domains still apply. Empty, the default, changes nothing." xml:space="preserve">
     <value>För en leverantör vars värdar delar ett omvänt namn och vars adresser flyttar: en anslutande adress spärras aldrig automatiskt - för misslyckade inloggningar, en skräppostfälla eller en tom avsändare - när ett av dess omvända namn omfattas av ett namn här och pekar tillbaka på adressen. Inget annat hoppas över: gråstlistning, SPF, DKIM, DMARC och de tillåtna och blockerade domänerna gäller fortfarande. Tom, standard, ändrar ingenting.</value>
@@ -6222,6 +6237,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="It is sent as spamd's User: header." xml:space="preserve">
     <value>Den skickas som spamds User:-rubrik.</value>
   </data>
+  <data name="It may be at any domain this server holds." xml:space="preserve">
+    <value>Den får ligga i vilken domän som helst på den här servern.</value>
+  </data>
   <data name="It may use %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED% and %MACRO_PERCENT%." xml:space="preserve">
     <value>Den kan använda %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED% och %MACRO_PERCENT%.</value>
   </data>
@@ -6804,6 +6822,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Mail to the spam trap {0}" xml:space="preserve">
     <value>E-post till skräppostfällan {0}</value>
   </data>
+  <data name="Mail to unknown recipients is redirected here." xml:space="preserve">
+    <value>Post till okända mottagare omdirigeras hit.</value>
+  </data>
   <data name="Mailbox changed" xml:space="preserve">
     <value>Brevlåda ändrad</value>
   </data>
@@ -6869,6 +6890,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="Mailboxes encrypted at rest" xml:space="preserve">
     <value>Brevlådor krypterade i vila</value>
+  </data>
+  <data name="Mailed to a sender this server hosts, naming the rule." xml:space="preserve">
+    <value>Skickas till en avsändare som den här servern hanterar, med regelns namn.</value>
   </data>
   <data name="Mailing lists" xml:space="preserve">
     <value>E-postlistor</value>
@@ -7291,8 +7315,8 @@ Inget som redan finns där tas bort.</value>
   <data name="Mirror address (empty = off)" xml:space="preserve">
     <value>Spegeladress (tomt = av)</value>
   </data>
-  <data name="Mirror every folder (IMAP only: a migration, verbatim, with flags and dates)" xml:space="preserve">
-    <value>Spegla varje mapp (bara IMAP: en migrering, ordagrant, med flaggor och datum)</value>
+  <data name="Mirror every folder (IMAP only)" xml:space="preserve">
+    <value>Spegla varje mapp (bara IMAP)</value>
   </data>
   <data name="Mirroring" xml:space="preserve">
     <value>Spegling</value>
@@ -7390,8 +7414,8 @@ Inget som redan finns där tas bort.</value>
   <data name="N_ote" xml:space="preserve">
     <value>Ant_eckning</value>
   </data>
-  <data name="N_otice text (mailed to a sender this server hosts, naming the rule)" xml:space="preserve">
-    <value>M_eddelandetext (skickas till en avsändare som den här servern hanterar, med regelns namn)</value>
+  <data name="N_otice text" xml:space="preserve">
+    <value>M_eddelandetext</value>
   </data>
   <data name="Na_me" xml:space="preserve">
     <value>_Namn</value>
@@ -9727,8 +9751,8 @@ Kör detta om klienter rapporterar meddelanden som dyker upp under fel UID, elle
   <data name="Refresh a list, or reload a settings page" xml:space="preserve">
     <value>Uppdatera en lista eller ladda om en inställningssida</value>
   </data>
-  <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
-    <value>_Avvisningstext (vad 550 säger till avsändaren)</value>
+  <data name="Refusal te_xt" xml:space="preserve">
+    <value>_Avvisningstext</value>
   </data>
   <data name="Refusal text" xml:space="preserve">
     <value>Avvisningstext</value>
@@ -10160,6 +10184,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Required" xml:space="preserve">
     <value>Krävs</value>
+  </data>
+  <data name="Required for SSL/TLS and STARTTLS." xml:space="preserve">
+    <value>Krävs för SSL/TLS och STARTTLS.</value>
   </data>
   <data name="Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address." xml:space="preserve">
     <value>Krävs. Active Directory-domänkontrollanten eller annan LDAP-server att binda mot. För LDAPS måste namnet matcha serverns certifikat, så använd DNS-namnet, inte en IP-adress.</value>
@@ -10605,8 +10632,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="SRS, BATV and the plain envelope-sender rewrite for forwarded mail" xml:space="preserve">
     <value>SRS, BATV och den enkla omskrivningen av kuvertavsändare för vidarebefordrad post</value>
   </data>
-  <data name="SSL c_ertificate (required for SSL/TLS and STARTTLS)" xml:space="preserve">
-    <value>SSL-c_ertifikat (krävs för SSL/TLS och STARTTLS)</value>
+  <data name="SSL c_ertificate" xml:space="preserve">
+    <value>SSL-c_ertifikat</value>
   </data>
   <data name="SSL certificate" xml:space="preserve">
     <value>SSL-certifikat</value>
@@ -13321,6 +13348,9 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   <data name="The name spamd looks up its per-user preferences for - a user_prefs file or a row in its SQL preference store. Leave empty unless spamd has been set up for it: a spamd told to change to a user it cannot find may refuse the scan, and an unscanned message is delivered as if SpamAssassin were unreachable." xml:space="preserve">
     <value>Namnet spamd slår upp sina per-användarinställningar för - en user_prefs-fil eller en rad i dess SQL-inställningslager. Lämna tomt om inte spamd har ställts in för det: en spamd som sägs att byta till en användare den inte hittar kan vägra skanningen, och ett oskannat meddelande levereras som om SpamAssassin inte kunde nås.</value>
   </data>
+  <data name="The named domains are on the domain's dialog." xml:space="preserve">
+    <value>De namngivna domänerna finns i domänens dialogruta.</value>
+  </data>
   <data name="The new API key, shown once" xml:space="preserve">
     <value>Den nya API-nyckeln, visad en gång</value>
   </data>
@@ -13363,8 +13393,8 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   <data name="The pages people sign in to in a browser: the webmail, the self-service portal and the Control Deck. Most of their settings are reached over the REST API, which also serves the webmail." xml:space="preserve">
     <value>Sidorna som folk loggar in på i en webbläsare: webbmejlen, självbetjäningsportalen och Control Deck. De flesta av deras inställningar nås via REST-API:t, som också levererar webbmejlen.</value>
   </data>
-  <data name="The partner's key: an OpenPGP public key or PEM certificates (left empty, the key held is kept)" xml:space="preserve">
-    <value>Partnerns nyckel: en publik OpenPGP-nyckel eller PEM-certifikat (lämnas fältet tomt behålls den sparade nyckeln)</value>
+  <data name="The partner's key (empty = keep the key held)" xml:space="preserve">
+    <value>Partnerns nyckel (tomt = behåll den sparade nyckeln)</value>
   </data>
   <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
     <value>Lösenfrasen en gång till, för att vara säker på att den skrevs rä_tt</value>
@@ -13701,8 +13731,8 @@ Lägg till det ändå?</value>
   <data name="The server stores this value and never reads it - nothing sets a thread priority from it, so changing it has no effect. It is shown rather than removed so that an administrator who set it years ago can see it is still there and why nothing happened, and it is not editable because a box that accepts a value nothing acts on is worse than no box at all. The thread counts above are honoured." xml:space="preserve">
     <value>Servern lagrar det här värdet och läser det aldrig - inget sätter en trådprioritet från det, så att ändra det har ingen effekt. Det visas i stället för att tas bort så att en administratör som satte det för år sedan kan se att det fortfarande finns och varför inget hände, och det går inte att redigera eftersom en ruta som godtar ett värde inget agerar på är värre än ingen ruta alls. Trådantalen ovan respekteras.</value>
   </data>
-  <data name="The server to ask (empty asks the domain's MX hosts)" xml:space="preserve">
-    <value>Servern som frågas (tom frågar domänens MX-värdar)</value>
+  <data name="The server to ask (empty = the domain's MX hosts)" xml:space="preserve">
+    <value>Servern som frågas (tomt = domänens MX-värdar)</value>
   </data>
   <data name="The server's Host name (Protocols &gt; SMTP) is empty, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
     <value>Serverns Värdnamn (Protokoll &gt; SMTP) är tomt, så den annonserar sitt Windows-datornamn i HELO/EHLO - inte ett publikt DNS-namn - och ingen "a:"-mekanism kan erbjudas. Förslaget auktoriserar bara domänens MX-värdar. Sätt värdnamnet först; flera poster på den här sidan behöver det.</value>
@@ -14836,6 +14866,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="What stops one statement blocked on a lock from holding a worker thread for ever. Honoured at connect time by MySQL/MariaDB and PostgreSQL; MS SQL and SQL CE start at ADO's own 30 seconds and pick this value up on any connection that has run an upgrade or maintenance script. Those scripts run under a 30-minute per-statement ceiling of their own regardless of this value." xml:space="preserve">
     <value>Det som hindrar en sats blockerad på ett lås från att hålla en arbetstråd för evigt. Respekteras vid anslutning av MySQL/MariaDB och PostgreSQL; MS SQL och SQL CE börjar på ADO:s egna 30 sekunder och tar upp det här värdet på varje anslutning som har kört ett uppgraderings- eller underhållsskript. De skripten körs under ett eget tak på 30 minuter per sats oavsett det här värdet.</value>
   </data>
+  <data name="What the 550 reply says to the sender." xml:space="preserve">
+    <value>Vad 550-svaret säger till avsändaren.</value>
+  </data>
   <data name="What the provider knows this server as: Entra ID's Identifier, Okta's Audience URI." xml:space="preserve">
     <value>Det som leverantören känner servern som: Entra ID:s Identifier, Oktas Audience URI.</value>
   </data>
@@ -14934,6 +14967,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="Where new messages are stored" xml:space="preserve">
     <value>Var nya meddelanden lagras</value>
+  </data>
+  <data name="Where ranges overlap, the higher priority wins." xml:space="preserve">
+    <value>När intervall överlappar vinner den högre prioriteten.</value>
   </data>
   <data name="Where the Control Deck is could not be read." xml:space="preserve">
     <value>Det gick inte att läsa var Control Deck finns.</value>
@@ -15115,8 +15151,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Windows Event Log" xml:space="preserve">
     <value>Windows händelselogg</value>
   </data>
-  <data name="Windows _domain (leave empty for a local Windows account)" xml:space="preserve">
-    <value>Windows-_domän (lämna tomt för ett lokalt Windows-konto)</value>
+  <data name="Windows _domain (empty = a local Windows account)" xml:space="preserve">
+    <value>Windows-_domän (tomt = ett lokalt Windows-konto)</value>
   </data>
   <data name="Windows _user name" xml:space="preserve">
     <value>Windows-_användarnamn</value>
@@ -15499,8 +15535,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="_Domain (e.g. gmail.com)" xml:space="preserve">
     <value>_Domän (t.ex. gmail.com)</value>
   </data>
-  <data name="_Domain name (changing it renames the domain and moves every account, alias and list with it)" xml:space="preserve">
-    <value>_Domännamn (att ändra det byter namn på domänen och flyttar varje konto, alias och lista med den)</value>
+  <data name="_Domain name" xml:space="preserve">
+    <value>_Domännamn</value>
   </data>
   <data name="_Domain or account" xml:space="preserve">
     <value>Domän _eller konto</value>
@@ -15751,8 +15787,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="_New accounts start with their keys published" xml:space="preserve">
     <value>_Nya konton börjar med sina nycklar publicerade</value>
   </data>
-  <data name="_New address (it may be at any domain this server holds)" xml:space="preserve">
-    <value>_Ny adress (den får ligga i vilken domän som helst på den här servern)</value>
+  <data name="_New address" xml:space="preserve">
+    <value>_Ny adress</value>
   </data>
   <data name="_New password" xml:space="preserve">
     <value>N_ytt lösenord</value>
@@ -15817,14 +15853,14 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="_Port (0 = 25)" xml:space="preserve">
     <value>_Port (0 = 25)</value>
   </data>
-  <data name="_Postmaster address (mail to unknown recipients is redirected here)" xml:space="preserve">
-    <value>_Postmaster-adress (post till okända mottagare omdirigeras hit)</value>
+  <data name="_Postmaster address" xml:space="preserve">
+    <value>_Postmaster-adress</value>
   </data>
   <data name="_Preview" xml:space="preserve">
     <value>_Förhandsgranska</value>
   </data>
-  <data name="_Priority (higher wins when ranges overlap)" xml:space="preserve">
-    <value>_Prioritet (högre vinner när intervall överlappar)</value>
+  <data name="_Priority" xml:space="preserve">
+    <value>_Prioritet</value>
   </data>
   <data name="_Private key file" xml:space="preserve">
     <value>_Privat nyckelfil</value>
@@ -15931,8 +15967,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="_Restart the service" xml:space="preserve">
     <value>Starta _om tjänsten</value>
   </data>
-  <data name="_Restricted delivery (the named domains are on the domain's dialog)" xml:space="preserve">
-    <value>Begränsad leverans (de namngivna domänerna finns i domänens dialogr_uta)</value>
+  <data name="_Restricted delivery" xml:space="preserve">
+    <value>_Begränsad leverans</value>
   </data>
   <data name="_Retire the old selector" xml:space="preserve">
     <value>_Avveckla den gamla selektorn</value>

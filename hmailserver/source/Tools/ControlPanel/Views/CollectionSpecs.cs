@@ -191,7 +191,7 @@ namespace hMailServer.ControlPanel.Views
          new FieldSpec { Prop = "Blocked", Label = L("Block rather than allow"), GridLabel = L("Action"), GridTrue = L("Block"), GridFalse = L("Allow"), Kind = FieldKind.Bool, GridWidth = 90, Default = false },
          new FieldSpec { Prop = "Reason", Label = L("Reason") },
          new FieldSpec { Prop = "Expires", Label = L("Stops mattering at a date"), Kind = FieldKind.Bool, ShowInGrid = false, Default = false },
-         new FieldSpec { Prop = "ExpiresTime", Label = L("Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)"), GridLabel = L("Expires"), GridOnlyWhen = "Expires", GridEmpty = L("Never"), GridWidth = 150 } // no-loc: GridOnlyWhen names the Bool property
+         new FieldSpec { Prop = "ExpiresTime", Label = L("Expires on (YYYY-MM-DD HH:MM:SS)"), GridLabel = L("Expires"), GridOnlyWhen = "Expires", GridEmpty = L("Never"), GridWidth = 150 } // no-loc: GridOnlyWhen names the Bool property
       };
 
       public static CollectionEditorView GreyListWhiteList() => new(new CollectionSpec
@@ -444,7 +444,7 @@ namespace hMailServer.ControlPanel.Views
             new FieldSpec { Prop = "AllowAutomaticReplies", Label = L("Automatic replies may go to this domain"), Kind = FieldKind.Bool, ShowInGrid = false, Default = true },
             new FieldSpec { Prop = "AllowForwarding", Label = L("Mail may be forwarded to this domain"), Kind = FieldKind.Bool, ShowInGrid = false, Default = true },
             new FieldSpec { Prop = "CalloutEnabled", Label = L("Verify a recipient with the domain's own server"), GridLabel = L("Recipient check"), Kind = FieldKind.Bool, GridWidth = 125, Default = false },
-            new FieldSpec { Prop = "CalloutHost", Label = L("The server to ask (empty asks the domain's MX hosts)"), ShowInGrid = false, Default = "" },
+            new FieldSpec { Prop = "CalloutHost", Label = L("The server to ask (empty = the domain's MX hosts)"), ShowInGrid = false, Default = "" },
             new FieldSpec { Prop = "CalloutPort", Label = L("The port to ask on"), Kind = FieldKind.Number, ShowInGrid = false, Default = 25 },
             new FieldSpec { Prop = "CalloutTimeoutSeconds", Label = L("How long to wait (seconds)"), Kind = FieldKind.Number, ShowInGrid = false, Default = 10 },
             new FieldSpec { Prop = "CalloutCacheMinutes", Label = L("How long an answer is remembered (minutes)"), Kind = FieldKind.Number, ShowInGrid = false, Default = 60 },
@@ -456,7 +456,7 @@ namespace hMailServer.ControlPanel.Views
             // the partner, the expiry, and whether a message can be encrypted
             // to it now.
             new FieldSpec { Prop = "Encrypt", Label = L("Encrypt mail to this domain at this server"), GridLabel = L("Encryption"), Kind = FieldKind.Combo, Options = RemoteEncryptionOptions, GridWidth = 125, Default = 0 },
-            new FieldSpec { Prop = "EncryptKey", Label = L("The partner's key: an OpenPGP public key or PEM certificates (left empty, the key held is kept)"), Kind = FieldKind.Multiline, WriteOnly = true, ShowInGrid = false, Default = "" },
+            new FieldSpec { Prop = "EncryptKey", Label = L("The partner's key (empty = keep the key held)"), Hint = L("An OpenPGP public key, or PEM certificates."), Kind = FieldKind.Multiline, WriteOnly = true, ShowInGrid = false, Default = "" },
             new FieldSpec { Prop = "EncryptKeySummary", Label = L("The key held"), ReadOnly = true, ShowInGrid = false },
             new FieldSpec { Prop = "EncryptFallback", Label = L("When a message cannot be encrypted"), Kind = FieldKind.Combo, Options = RemoteEncryptFallbackOptions, ShowInGrid = false, Default = 0 },
             new FieldSpec { Prop = "Description", Label = L("Description"), Default = "" }
@@ -637,13 +637,13 @@ namespace hMailServer.ControlPanel.Views
             // accounts its headers and its Received lines name, and only to those
             // that are accounts here (or, with the route option, a route's too),
             // and to this account when it names none (ExternalFetchClientBase).
-            new FieldSpec { Prop = "ProcessMIMERecipients", Label = L("Deliver each message to the accounts its headers name (a mailbox shared by several people)"), Kind = FieldKind.Bool, ShowInGrid = false, Default = false },
+            new FieldSpec { Prop = "ProcessMIMERecipients", Label = L("Deliver each message to the accounts its headers name"), Hint = L("For a mailbox shared by several people."), Kind = FieldKind.Bool, ShowInGrid = false, Default = false },
             new FieldSpec { Prop = "MIMERecipientHeaders", Label = L("Headers those addresses are read from"), Hint = L("Used by the option above - for example To, CC, X-RCPT-TO or X-Envelope-To."), ShowInGrid = false, Default = "" },
             new FieldSpec { Prop = "EnableRouteRecipients", Label = L("Deliver to addresses a route covers as well as to this server's accounts"), Kind = FieldKind.Bool, ShowInGrid = false, Default = false },
             new FieldSpec { Prop = "ProcessMIMEDate", Label = L("Date each message by its Received header rather than by when it was downloaded"), Kind = FieldKind.Bool, ShowInGrid = false, Default = false },
             // IMAP accounts only; the server ignores it for POP3. A migration rather than a
             // collection: every folder, verbatim, flags and dates kept, nothing delivered.
-            new FieldSpec { Prop = "MirrorFolders", Label = L("Mirror every folder (IMAP only: a migration, verbatim, with flags and dates)"), Kind = FieldKind.Bool, ShowInGrid = false, Default = false }
+            new FieldSpec { Prop = "MirrorFolders", Label = L("Mirror every folder (IMAP only)"), Hint = L("A migration rather than a collection: every folder, verbatim, with its flags and dates."), Kind = FieldKind.Bool, ShowInGrid = false, Default = false }
          }
       }, embedded: true, onDialogTab: true);
 

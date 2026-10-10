@@ -278,7 +278,7 @@ namespace hMailServer.ControlPanel.Views
          restrictedDelivery_.Items.Add(DialogFields.Combo(L("Follows the domain"), 0));
          restrictedDelivery_.Items.Add(DialogFields.Combo(L("Restricted: named domains only"), 1));
          restrictedDelivery_.Items.Add(DialogFields.Combo(L("Exempt: may exchange mail with anyone"), 2));
-         panel.Children.Add(Label(L("_Restricted delivery (the named domains are on the domain's dialog)"), restrictedDelivery_));
+         panel.Children.Add(Label(L("_Restricted delivery"), restrictedDelivery_).WithHint(L("The named domains are on the domain's dialog.")));
 
          panel.Children.Add(Label(L("_First name"), firstName_));
          panel.Children.Add(Label(L("_Last name"), lastName_));
@@ -467,7 +467,7 @@ namespace hMailServer.ControlPanel.Views
          // it is the row's own hint rather than a block beside it: a hint is read
          // out with the editor, and this one is the whole difference between
          // "a local Windows account" and "a domain that must be joined".
-         FieldRow domainRow = Label(L("Windows _domain (leave empty for a local Windows account)"), adDomain_);
+         FieldRow domainRow = Label(L("Windows _domain (empty = a local Windows account)"), adDomain_);
          panel.Children.Add(domainRow);
          panel.Children.Add(directoryEffect_);
          directoryEffect_.SetResourceReference(FrameworkElement.StyleProperty, "TextCaption");

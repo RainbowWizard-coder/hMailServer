@@ -60,7 +60,7 @@ namespace hMailServer.ControlPanel.Views
          body.Children.Add(notice_);
 
          newAddress_.Text = address_;
-         newAddressRow_ = DialogFields.Field(L("_New address (it may be at any domain this server holds)"), newAddress_);
+         newAddressRow_ = DialogFields.Field(L("_New address"), newAddress_, L("It may be at any domain this server holds."));
          body.Children.Add(newAddressRow_);
 
          body.Children.Add(DialogFields.Check(keepAlias_));

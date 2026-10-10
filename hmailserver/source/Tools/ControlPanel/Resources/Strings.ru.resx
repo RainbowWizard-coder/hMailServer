@@ -546,6 +546,9 @@
   <data name="A message to ten local mailboxes is written once and linked ten times rather than copied ten times, which is the difference between one disk write and ten for a large message to a distribution list. Needs the data directory on NTFS; where a link cannot be made the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>Сообщение для десяти локальных почтовых ящиков записывается один раз и связывается ссылками десять раз, а не копируется десять раз, — а это разница между одной записью на диск и десятью для крупного сообщения, отправленного в список рассылки. Требуется каталог данных на NTFS; там, где создать ссылку не удаётся, сервер копирует файл и сообщает об этом в журнале SMTP.</value>
   </data>
+  <data name="A migration rather than a collection: every folder, verbatim, with its flags and dates." xml:space="preserve">
+    <value>Перенос, а не сбор почты: каждая папка дословно, с флагами и датами.</value>
+  </data>
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>Современное приложение администрирования для hMailServer: живая панель мониторинга, домены и учётные записи, очередь доставки, потоковый просмотр журналов, полный набор параметров сервера и функции транспортной безопасности версии 6.x (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
   </data>
@@ -1563,6 +1566,9 @@ Control Panel может читать файлы сообщений только
   <data name="An OnAcceptMessage event script, or the database." xml:space="preserve">
     <value>Сценарий события OnAcceptMessage или база данных.</value>
   </data>
+  <data name="An OpenPGP public key, or PEM certificates." xml:space="preserve">
+    <value>Открытый ключ OpenPGP или сертификаты PEM.</value>
+  </data>
   <data name="An SPF record - which servers may send this domain's mail" xml:space="preserve">
     <value>Запись SPF - какие серверы могут отправлять почту этого домена</value>
   </data>
@@ -1749,6 +1755,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Append to the account's signature" xml:space="preserve">
     <value>Добавлять к подписи учётной записи</value>
+  </data>
+  <data name="Appended to the message." xml:space="preserve">
+    <value>Добавляется к сообщению.</value>
   </data>
   <data name="Application (client) ID" xml:space="preserve">
     <value>Идентификатор приложения (клиента)</value>
@@ -2532,6 +2541,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Changes what happens at the refuse threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
     <value>Меняет то, что происходит при достижении порога отклонения. Выключено: сообщение, превысившее порог, отклоняется прямо в разговоре SMTP ответом 550, и отправителю об этом сообщают. Включено: оно принимается ответом 250 и вместо этого откладывается на проверку — отправитель считает его доставленным и не повторяет попытку, именно это и позволяет исправить ложное срабатывание, не отправляя отчёт о недоставке по обратному адресу, который, скорее всего, подделан, и это же означает, что очередь на проверку становится единственным местом, где это сообщение вообще существует. Относится к проверкам, которые выполняются после получения тела письма; для вердикта, вынесенного раньше (подключающийся IP в списке блокировки DNS, неправильный HELO), удерживать нечего, и он остаётся отказом.</value>
+  </data>
+  <data name="Changing it renames the domain and moves every account, alias and list with it." xml:space="preserve">
+    <value>Его изменение переименовывает домен и переносит вместе с ним каждую учётную запись, каждый псевдоним и каждый список.</value>
   </data>
   <data name="Changing it renames the list; its members and settings stay." xml:space="preserve">
     <value>Изменение переименовывает список; его участники и параметры сохраняются.</value>
@@ -4128,8 +4140,8 @@ Control Panel может читать файлы сообщений только
   <data name="Deliver _all now" xml:space="preserve">
     <value>Доставить _все сейчас</value>
   </data>
-  <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
-    <value>Доставлять каждое сообщение учётным записям, названным в его заголовках (ящик, общий для нескольких человек)</value>
+  <data name="Deliver each message to the accounts its headers name" xml:space="preserve">
+    <value>Доставлять каждое сообщение учётным записям, названным в его заголовках</value>
   </data>
   <data name="Deliver it (default)" xml:space="preserve">
     <value>Доставить его (по умолчанию)</value>
@@ -4281,8 +4293,8 @@ Control Panel может читать файлы сообщений только
   <data name="Directory synchronisation" xml:space="preserve">
     <value>Синхронизация с каталогом</value>
   </data>
-  <data name="Disc_laimer text (appended to the message)" xml:space="preserve">
-    <value>Текст оговорки (добавляется к сообщению) (_L)</value>
+  <data name="Disc_laimer text" xml:space="preserve">
+    <value>Текст оговорки (_L)</value>
   </data>
   <data name="Discard the index and rebuild it" xml:space="preserve">
     <value>Сбросить индекс и перестроить его</value>
@@ -5180,8 +5192,8 @@ Control Panel может читать файлы сообщений только
   <data name="Expires _on (server time)" xml:space="preserve">
     <value>Ис_текает (время сервера)</value>
   </data>
-  <data name="Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)" xml:space="preserve">
-    <value>Истекает (yyyy-mm-dd hh:mm:ss, когда перестаёт действовать)</value>
+  <data name="Expires on (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
+    <value>Истекает (YYYY-MM-DD HH:MM:SS)</value>
   </data>
   <data name="Expires on {0} (in less than a day)" xml:space="preserve">
     <value>Срок действия истекает {0} (менее чем через сутки)</value>
@@ -5434,6 +5446,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="For a domain synchronised with Active Directory." xml:space="preserve">
     <value>Для домена, синхронизируемого с Active Directory.</value>
+  </data>
+  <data name="For a mailbox shared by several people." xml:space="preserve">
+    <value>Для ящика, общего для нескольких человек.</value>
   </data>
   <data name="For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed sign-ins, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the allowed and blocked domains still apply. Empty, the default, changes nothing." xml:space="preserve">
     <value>Для поставщика, чьи узлы имеют общее обратное имя, а адреса меняются: подключающийся адрес никогда не банится автоматически - за неудачные входы, ловушку для спама или пустого отправителя - если одно из его обратных имён покрыто именем отсюда и разрешается обратно в этот адрес. Больше ничего не пропускается: серые списки, SPF, DKIM, DMARC и разрешённые и заблокированные домены по-прежнему действуют. Пустой список (по умолчанию) ничего не меняет.</value>
@@ -6292,6 +6307,9 @@ Control Panel может читать файлы сообщений только
   <data name="It is sent as spamd's User: header." xml:space="preserve">
     <value>Отправляется как заголовок User: для spamd.</value>
   </data>
+  <data name="It may be at any domain this server holds." xml:space="preserve">
+    <value>Он может быть в любом домене этого сервера.</value>
+  </data>
   <data name="It may use %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED% and %MACRO_PERCENT%." xml:space="preserve">
     <value>Может содержать %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED% и %MACRO_PERCENT%.</value>
   </data>
@@ -6877,6 +6895,9 @@ Control Panel может читать файлы сообщений только
   <data name="Mail to the spam trap {0}" xml:space="preserve">
     <value>Почта на ловушку для спама {0}</value>
   </data>
+  <data name="Mail to unknown recipients is redirected here." xml:space="preserve">
+    <value>Почта неизвестным получателям перенаправляется сюда.</value>
+  </data>
   <data name="Mailbox changed" xml:space="preserve">
     <value>Ящик изменён</value>
   </data>
@@ -6942,6 +6963,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Mailboxes encrypted at rest" xml:space="preserve">
     <value>Ящики, зашифрованные при хранении</value>
+  </data>
+  <data name="Mailed to a sender this server hosts, naming the rule." xml:space="preserve">
+    <value>Отправляется отправителю, обслуживаемому этим сервером, с названием правила.</value>
   </data>
   <data name="Mailing lists" xml:space="preserve">
     <value>Списки рассылки</value>
@@ -7367,8 +7391,8 @@ Control Panel может читать файлы сообщений только
   <data name="Mirror address (empty = off)" xml:space="preserve">
     <value>Адрес зеркалирования (пусто = выключено)</value>
   </data>
-  <data name="Mirror every folder (IMAP only: a migration, verbatim, with flags and dates)" xml:space="preserve">
-    <value>Зеркалировать каждую папку (только IMAP: перенос дословно, с флагами и датами)</value>
+  <data name="Mirror every folder (IMAP only)" xml:space="preserve">
+    <value>Зеркалировать каждую папку (только IMAP)</value>
   </data>
   <data name="Mirroring" xml:space="preserve">
     <value>Зеркалирование</value>
@@ -7466,8 +7490,8 @@ Control Panel может читать файлы сообщений только
   <data name="N_ote" xml:space="preserve">
     <value>При_мечание</value>
   </data>
-  <data name="N_otice text (mailed to a sender this server hosts, naming the rule)" xml:space="preserve">
-    <value>Текст уведомления (отправляется отправителю, обслуживаемому этим сервером, с названием правила) (_N)</value>
+  <data name="N_otice text" xml:space="preserve">
+    <value>Текст уведомления (_N)</value>
   </data>
   <data name="Na_me" xml:space="preserve">
     <value>_Имя</value>
@@ -9821,8 +9845,8 @@ Control Panel может читать файлы сообщений только
   <data name="Refresh a list, or reload a settings page" xml:space="preserve">
     <value>Обновить список или перезагрузить страницу параметров</value>
   </data>
-  <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
-    <value>Текст отказа (что 550 говорит отправителю) (_X)</value>
+  <data name="Refusal te_xt" xml:space="preserve">
+    <value>Текст отказа (_X)</value>
   </data>
   <data name="Refusal text" xml:space="preserve">
     <value>Текст отказа</value>
@@ -10270,6 +10294,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Required" xml:space="preserve">
     <value>Требуется</value>
   </data>
+  <data name="Required for SSL/TLS and STARTTLS." xml:space="preserve">
+    <value>Требуется для SSL/TLS и STARTTLS.</value>
+  </data>
   <data name="Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address." xml:space="preserve">
     <value>Обязательно. Контроллер домена Active Directory или другой сервер LDAP, к которому выполняется привязка. Для LDAPS имя должно совпадать с сертификатом сервера, поэтому используйте DNS-имя, а не IP-адрес.</value>
   </data>
@@ -10714,8 +10741,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="SRS, BATV and the plain envelope-sender rewrite for forwarded mail" xml:space="preserve">
     <value>SRS, BATV и простая замена отправителя конверта для пересылаемой почты</value>
   </data>
-  <data name="SSL c_ertificate (required for SSL/TLS and STARTTLS)" xml:space="preserve">
-    <value>Сертификат _SSL (требуется для SSL/TLS и STARTTLS)</value>
+  <data name="SSL c_ertificate" xml:space="preserve">
+    <value>Сертификат _SSL</value>
   </data>
   <data name="SSL certificate" xml:space="preserve">
     <value>Сертификат SSL</value>
@@ -13499,6 +13526,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The name spamd looks up its per-user preferences for - a user_prefs file or a row in its SQL preference store. Leave empty unless spamd has been set up for it: a spamd told to change to a user it cannot find may refuse the scan, and an unscanned message is delivered as if SpamAssassin were unreachable." xml:space="preserve">
     <value>Имя, по которому spamd ищет свои пользовательские настройки - файл user_prefs или строку в своём SQL-хранилище настроек. Оставьте пустым, если spamd под это не настроен: spamd, которому велено переключиться на пользователя, которого он не может найти, может отказаться сканировать, а непросканированное сообщение доставляется так, будто SpamAssassin недоступен.</value>
   </data>
+  <data name="The named domains are on the domain's dialog." xml:space="preserve">
+    <value>Указанные домены задаются в диалоге домена.</value>
+  </data>
   <data name="The new API key, shown once" xml:space="preserve">
     <value>Новый ключ API, показывается один раз</value>
   </data>
@@ -13541,8 +13571,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The pages people sign in to in a browser: the webmail, the self-service portal and the Control Deck. Most of their settings are reached over the REST API, which also serves the webmail." xml:space="preserve">
     <value>Страницы, на которые люди входят в браузере: веб-почта, портал самообслуживания и Control Deck. Большинство их настроек доступны через REST API, который также отдаёт веб-почту.</value>
   </data>
-  <data name="The partner's key: an OpenPGP public key or PEM certificates (left empty, the key held is kept)" xml:space="preserve">
-    <value>Ключ партнёра: открытый ключ OpenPGP или сертификаты PEM (если оставить пустым, сохранённый ключ останется)</value>
+  <data name="The partner's key (empty = keep the key held)" xml:space="preserve">
+    <value>Ключ партнёра (пусто = оставить сохранённый ключ)</value>
   </data>
   <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
     <value>Парольная фраза ещё раз, чтобы убедиться, что она набрана _верно</value>
@@ -13879,8 +13909,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The server stores this value and never reads it - nothing sets a thread priority from it, so changing it has no effect. It is shown rather than removed so that an administrator who set it years ago can see it is still there and why nothing happened, and it is not editable because a box that accepts a value nothing acts on is worse than no box at all. The thread counts above are honoured." xml:space="preserve">
     <value>Сервер хранит это значение и никогда его не читает - ничто не задаёт по нему приоритет потоков, поэтому его изменение ни на что не влияет. Оно показано, а не убрано, чтобы администратор, задавший его годы назад, видел, что оно всё ещё здесь и почему ничего не произошло; и оно не редактируется, потому что поле, принимающее значение, на которое ничто не реагирует, хуже, чем никакого поля. Счётчики потоков выше соблюдаются.</value>
   </data>
-  <data name="The server to ask (empty asks the domain's MX hosts)" xml:space="preserve">
-    <value>Сервер, у которого спрашивать (пусто — у MX-узлов домена)</value>
+  <data name="The server to ask (empty = the domain's MX hosts)" xml:space="preserve">
+    <value>Сервер, у которого спрашивать (пусто = MX-узлы домена)</value>
   </data>
   <data name="The server's Host name (Protocols &gt; SMTP) is empty, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
     <value>Имя узла сервера (Протоколы &gt; SMTP) пустое, поэтому в HELO/EHLO он объявляет имя своего компьютера Windows - не публичное имя DNS, - и ни один механизм «a:» предложить нельзя. Предложение разрешает только MX-узлы домена. Сначала задайте имя узла; оно нужно нескольким записям на этой странице.</value>
@@ -15020,6 +15050,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="What stops one statement blocked on a lock from holding a worker thread for ever. Honoured at connect time by MySQL/MariaDB and PostgreSQL; MS SQL and SQL CE start at ADO's own 30 seconds and pick this value up on any connection that has run an upgrade or maintenance script. Those scripts run under a 30-minute per-statement ceiling of their own regardless of this value." xml:space="preserve">
     <value>Что не даёт одному запросу, заблокированному на блокировке, вечно держать рабочий поток. Соблюдается при подключении MySQL/MariaDB и PostgreSQL; MS SQL и SQL CE начинают с собственных 30 секунд ADO и подхватывают это значение на любом соединении, выполнявшем скрипт обновления или обслуживания. Эти скрипты выполняются под собственным 30-минутным пределом на оператор независимо от этого значения.</value>
   </data>
+  <data name="What the 550 reply says to the sender." xml:space="preserve">
+    <value>Что ответ 550 говорит отправителю.</value>
+  </data>
   <data name="What the provider knows this server as: Entra ID's Identifier, Okta's Audience URI." xml:space="preserve">
     <value>Под каким именем поставщик знает этот сервер: Identifier в Entra ID, Audience URI в Okta.</value>
   </data>
@@ -15118,6 +15151,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Where new messages are stored" xml:space="preserve">
     <value>Где хранятся новые сообщения</value>
+  </data>
+  <data name="Where ranges overlap, the higher priority wins." xml:space="preserve">
+    <value>При пересечении диапазонов побеждает более высокий приоритет.</value>
   </data>
   <data name="Where the Control Deck is could not be read." xml:space="preserve">
     <value>Не удалось прочитать, где находится Control Deck.</value>
@@ -15299,8 +15335,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Windows Event Log" xml:space="preserve">
     <value>Журнал событий Windows</value>
   </data>
-  <data name="Windows _domain (leave empty for a local Windows account)" xml:space="preserve">
-    <value>_Домен Windows (оставьте пустым для локальной учётной записи Windows)</value>
+  <data name="Windows _domain (empty = a local Windows account)" xml:space="preserve">
+    <value>_Домен Windows (пусто = локальная учётная запись Windows)</value>
   </data>
   <data name="Windows _user name" xml:space="preserve">
     <value>_Имя пользователя Windows</value>
@@ -15686,8 +15722,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Domain (e.g. gmail.com)" xml:space="preserve">
     <value>_Домен (например, gmail.com)</value>
   </data>
-  <data name="_Domain name (changing it renames the domain and moves every account, alias and list with it)" xml:space="preserve">
-    <value>_Имя домена (его изменение переименовывает домен и переносит вместе с ним каждую учётную запись, каждый псевдоним и каждый список)</value>
+  <data name="_Domain name" xml:space="preserve">
+    <value>_Имя домена</value>
   </data>
   <data name="_Domain or account" xml:space="preserve">
     <value>Домен _или учётная запись</value>
@@ -15938,8 +15974,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_New accounts start with their keys published" xml:space="preserve">
     <value>_Новые учётные записи начинают с опубликованными ключами</value>
   </data>
-  <data name="_New address (it may be at any domain this server holds)" xml:space="preserve">
-    <value>_Новый адрес (он может быть в любом домене этого сервера)</value>
+  <data name="_New address" xml:space="preserve">
+    <value>_Новый адрес</value>
   </data>
   <data name="_New password" xml:space="preserve">
     <value>_Новый пароль</value>
@@ -16004,14 +16040,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Port (0 = 25)" xml:space="preserve">
     <value>_Порт (0 — 25)</value>
   </data>
-  <data name="_Postmaster address (mail to unknown recipients is redirected here)" xml:space="preserve">
-    <value>_Адрес постмастера (почта неизвестным получателям перенаправляется сюда)</value>
+  <data name="_Postmaster address" xml:space="preserve">
+    <value>_Адрес постмастера</value>
   </data>
   <data name="_Preview" xml:space="preserve">
     <value>_Предварительный просмотр</value>
   </data>
-  <data name="_Priority (higher wins when ranges overlap)" xml:space="preserve">
-    <value>_Приоритет (при пересечении диапазонов побеждает более высокий)</value>
+  <data name="_Priority" xml:space="preserve">
+    <value>_Приоритет</value>
   </data>
   <data name="_Private key file" xml:space="preserve">
     <value>_Файл закрытого ключа</value>
@@ -16118,8 +16154,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Restart the service" xml:space="preserve">
     <value>_Перезапустить службу</value>
   </data>
-  <data name="_Restricted delivery (the named domains are on the domain's dialog)" xml:space="preserve">
-    <value>Ограниченная доставка (указанные домены задаются в диалоге домена) (_R)</value>
+  <data name="_Restricted delivery" xml:space="preserve">
+    <value>Ограниченная доставка (_R)</value>
   </data>
   <data name="_Retire the old selector" xml:space="preserve">
     <value>_Вывести старый селектор из употребления</value>

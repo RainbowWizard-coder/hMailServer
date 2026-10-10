@@ -3143,8 +3143,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   forms, Windows' own error 1069 apart - the smart host to its name on its tab, in the search index and wherever a
   text sends the reader to it, the Brazilian catalogue to login, and every caption to no colon.
 
-- **Fixed: the domain and account dialogs' captions carried their whole explanation in brackets, which a screen reader
-  heard as the field's name.** "Address (changing it renames the mailbox; it must stay in this domain)", "Delete
+- **Fixed: the dialogs' captions carried their whole explanation in brackets, which a screen reader heard as the field's
+  name.** "Address (changing it renames the mailbox; it must stay in this domain)", "Delete
   messages in this domain's mailboxes older than (days; 0 = no policy, an account's own value overrides it)", "Warning
   text (empty = the server message; %MACRO_MAILBOX%, ...)", the restricted delivery's named domains and the
   impersonation tab's protected persons and partners with a sentence each - the caption is the editor's accessible
@@ -3152,9 +3152,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   rest is the field's hint under the box, which is its help text too: "Address" with "Changing it renames the mailbox;
   it must stay in this domain.", "Warning text (empty = the server message)" with "It may use %MACRO_MAILBOX%,
   %MACRO_QUOTA%, %MACRO_USED% and %MACRO_PERCENT%." - which four catalogues had written without their underscores, the
-  Alt-key mark, and now spell as the server reads them. Fourteen captions of the domain, account and external account
-  dialogs, in every language. `CaptionWordingTests` holds every caption of the dialogs to the rule - a part of a
-  bracket with a ";" or an "=" in it is a unit, a range or what values mean, each meaning five words at most.
+  Alt-key mark, and now spell as the server reads them. Eighteen captions of the domain, account and external account
+  dialogs - "Domain name (changing it renames the domain and moves every account, alias and list with it)",
+  "Restricted delivery (the named domains are on the domain's dialog)" among them - and eleven of the IP range, mailbox
+  move, rule action and TCP/IP port dialogs and the list editors' dialogs - "Priority (higher wins when ranges
+  overlap)", "SSL certificate (required for SSL/TLS and STARTTLS)", "Mirror every folder (IMAP only: a migration,
+  verbatim, with flags and dates)" - in every language. `CaptionWordingTests` holds every caption of the dialogs to the
+  rule: a part of a bracket with a ";" or an "=" in it is a unit, a range or what values mean, each meaning five words
+  at most, and a bracket with neither is a unit, a range, "optional", "leave empty to keep current" or three words at
+  most.
 
 - **Fixed: field captions said a unit, a range and what 0 means in a dozen ways, and one said 0 meant "default" where
   it means every host.** The Anti-spam and Anti-virus pages alone had "(KB, 0 = unlimited)", "(0 never refuses)",

@@ -24,7 +24,11 @@ namespace hMailServer.ControlPanel.Tests.Services
    /// The rule, for a parenthesis with a ";" or an "=" in it: each part between "; " is a
    /// unit or a range ("MB", "% of the limit", "minutes, up to 525,600", "1 to 20", "up
    /// to 100 characters") or what values mean ("0 = no limit", "-1 = the server's, 0 =
-   /// never", "empty = the server message"), each meaning five words at most.
+   /// never", "empty = the server message"), each meaning five words at most. In a dialog, a
+   /// last parenthesis with neither is a unit or a range, "optional", "leave empty to keep
+   /// current", or three words at most: the domain dialog's "_Domain name (changing it renames
+   /// the domain and moves every account, alias and list with it)" and the account's "_Restricted
+   /// delivery (the named domains are on the domain's dialog)" had neither and were explanations.
    /// </summary>
    public class CaptionWordingTests
    {
@@ -70,6 +74,44 @@ namespace hMailServer.ControlPanel.Tests.Services
          return null;
       }
 
+      // The brackets every dialog's password box and optional field share, which say what an
+      // empty box does or that it may be left so.
+      private static readonly string[] SharedBrackets = { "leave empty to keep current", "optional" };
+
+      /// <summary>
+      /// Why a dialog's caption breaks the rule, or null when it keeps it: Problem's reasons, and a
+      /// last bracket with no ";" or "=" that is neither a unit nor a range nor one of the shared
+      /// forms and runs past three words - an explanation, "_Domain name (changing it renames the
+      /// domain and moves every account, alias and list with it)", which Problem cannot see and a
+      /// screen reader reads as the field's name.
+      /// </summary>
+      internal static string DialogProblem(string caption)
+      {
+         string problem = Problem(caption);
+         if (problem != null)
+            return problem;
+         Match last = Regex.Match(caption.Replace("_", ""), @"\(([^()]*)\)\s*$");
+         if (!last.Success)
+            return null;
+         string inner = last.Groups[1].Value;
+         if (inner.Contains(';') || inner.Contains('=') || SharedBrackets.Contains(inner) || UnitPart.IsMatch(inner))
+            return null;
+         return inner.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length > 3 ? "an explanation, which is the field's hint: " + inner : null;
+      }
+
+      [Theory]
+      [InlineData("New _password (leave empty to keep current)")]
+      [InlineData("_Active Directory domain (optional)")]
+      [InlineData("Windows _domain (empty = a local Windows account)")]
+      [InlineData("_Propagation period (hours, 1 to 720)")]
+      [InlineData("Expires on (YYYY-MM-DD HH:MM:SS)")]
+      [InlineData("Mirror every folder (IMAP only)")]
+      [InlineData("_Domain name")]
+      public void ADialogCaption_ThatSaysAUnitOrASharedForm_KeepsTheRule(string caption)
+      {
+         Assert.Null(DialogProblem(caption));
+      }
+
       [Theory]
       [InlineData("Maximum _domain size (MB; 0 = no limit)")]
       [InlineData("_Warn the owner at (% of the limit; -1 = the server's, 0 = never)")]
@@ -92,9 +134,15 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)")]
       [InlineData("_Active Directory domain (for AD-synchronised domains; optional)")]
       [InlineData("Tag te_xt (empty = [EXTERNAL], at most 100 characters)")]
+      [InlineData("_Domain name (changing it renames the domain and moves every account, alias and list with it)")]
+      [InlineData("_Postmaster address (mail to unknown recipients is redirected here)")]
+      [InlineData("_Restricted delivery (the named domains are on the domain's dialog)")]
+      [InlineData("Windows _domain (leave empty for a local Windows account)")]
+      [InlineData("_Priority (higher wins when ranges overlap)")]
+      [InlineData("Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)")]
       public void ACaption_ThatCarriesAnExplanation_BreaksIt(string caption)
       {
-         Assert.NotNull(Problem(caption));
+         Assert.NotNull(DialogProblem(caption));
       }
 
       [Fact]
@@ -111,7 +159,7 @@ namespace hMailServer.ControlPanel.Tests.Services
             {
                read++;
                string caption = match.Groups[1].Value.Replace("\\\"", "\"").Replace("\\\\", "\\");
-               string problem = Problem(caption);
+               string problem = DialogProblem(caption);
                if (problem != null)
                   offenders.Add(relative + ": " + caption + " - " + problem);
             }
@@ -130,6 +178,10 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("Label(L(\"_Address\"), addressBox_).WithHint(L(\"Changing it renames the mailbox; it must stay in this domain.\"));", account, StringComparison.Ordinal);
          Assert.Contains("Label(L(\"Delete messages in this domain's mailboxes _older than (days; 0 = no policy)\"), retentionDays_).WithHint(L(\"An account's own value overrides it.\"));", domain, StringComparison.Ordinal);
          Assert.Contains(".WithHint(L(\"It may use %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED% and %MACRO_PERCENT%.\"))", domain, StringComparison.Ordinal);
+         Assert.Contains("Label(L(\"_Domain name\"), name_).WithHint(L(\"Changing it renames the domain and moves every account, alias and list with it.\"));", domain, StringComparison.Ordinal);
+         Assert.Contains("Label(L(\"_Postmaster address\"), postmaster_).WithHint(L(\"Mail to unknown recipients is redirected here.\"))", domain, StringComparison.Ordinal);
+         Assert.Contains("Label(L(\"_Restricted delivery\"), restrictedDelivery_).WithHint(L(\"The named domains are on the domain's dialog.\"))", account, StringComparison.Ordinal);
+         Assert.Contains("Label(L(\"Windows _domain (empty = a local Windows account)\"), adDomain_);", account, StringComparison.Ordinal);
       }
    }
 }

@@ -257,9 +257,9 @@ namespace hMailServer.ControlPanel.Views
       {
          var panel = DialogFields.TabPanel();
          panel.Children.Add(DialogFields.Check(active_));
-         nameRow_ = Label(L("_Domain name (changing it renames the domain and moves every account, alias and list with it)"), name_);
+         nameRow_ = Label(L("_Domain name"), name_).WithHint(L("Changing it renames the domain and moves every account, alias and list with it."));
          panel.Children.Add(nameRow_);
-         panel.Children.Add(Label(L("_Postmaster address (mail to unknown recipients is redirected here)"), postmaster_));
+         panel.Children.Add(Label(L("_Postmaster address"), postmaster_).WithHint(L("Mail to unknown recipients is redirected here.")));
 
          var adRow = new Grid();
          adRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });

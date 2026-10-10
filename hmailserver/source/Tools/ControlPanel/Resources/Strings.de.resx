@@ -543,6 +543,9 @@
   <data name="A message to ten local mailboxes is written once and linked ten times rather than copied ten times, which is the difference between one disk write and ten for a large message to a distribution list. Needs the data directory on NTFS; where a link cannot be made the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>Eine Nachricht an zehn lokale Postfächer wird einmal geschrieben und zehnmal verlinkt statt zehnmal kopiert, was bei einer großen Nachricht an eine Verteilerliste der Unterschied zwischen einem Schreibvorgang auf die Festplatte und zehn ist. Braucht das Datenverzeichnis auf NTFS; wo kein Link angelegt werden kann, kopiert der Server die Datei und sagt das im SMTP-Protokoll.</value>
   </data>
+  <data name="A migration rather than a collection: every folder, verbatim, with its flags and dates." xml:space="preserve">
+    <value>Eine Migration statt eines Abrufs: jeder Ordner, wortgetreu, mit seinen Flags und Datumsangaben.</value>
+  </data>
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>Eine moderne Verwaltungsanwendung für hMailServer: Live-Dashboard, Domains und Konten, Zustellwarteschlange, Protokoll-Streaming, vollständige Servereinstellungen und die Transportsicherheitsfunktionen von 6.x (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
   </data>
@@ -1551,6 +1554,9 @@ Das Control Panel kann Nachrichtendateien nur lesen, wenn es auf demselben Rechn
   <data name="An OnAcceptMessage event script, or the database." xml:space="preserve">
     <value>Ein OnAcceptMessage-Ereignisskript oder die Datenbank.</value>
   </data>
+  <data name="An OpenPGP public key, or PEM certificates." xml:space="preserve">
+    <value>Ein öffentlicher OpenPGP-Schlüssel oder PEM-Zertifikate.</value>
+  </data>
   <data name="An SPF record - which servers may send this domain's mail" xml:space="preserve">
     <value>Ein SPF-Eintrag - welche Server Mail dieser Domain senden dürfen</value>
   </data>
@@ -1737,6 +1743,9 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   </data>
   <data name="Append to the account's signature" xml:space="preserve">
     <value>An die Signatur des Kontos anhängen</value>
+  </data>
+  <data name="Appended to the message." xml:space="preserve">
+    <value>Wird an die Nachricht angehängt.</value>
   </data>
   <data name="Application (client) ID" xml:space="preserve">
     <value>Anwendungs-ID (Client-ID)</value>
@@ -2508,6 +2517,9 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   </data>
   <data name="Changes what happens at the refuse threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
     <value>Ändert, was an der Abweisungsschwelle geschieht. Aus: eine Nachricht darüber wird während des SMTP-Dialogs mit einer 550 abgelehnt und der Absender erfährt es. Ein: sie wird mit einer 250 angenommen und stattdessen zur Prüfung zurückgehalten - der Absender glaubt, sie sei zugestellt, und wiederholt nicht, was einen Fehlalarm wiederherstellbar macht, ohne an einen wahrscheinlich gefälschten Rückweg zurückzuschicken, und auch bedeutet, dass die Prüfwarteschlange der einzige Ort wird, an dem diese Nachricht existiert. Gilt für Prüfungen, die nach dem Empfang des Nachrichtentexts laufen; ein Urteil davor (eine verbindende IP auf einer DNS-Sperrliste, ein schlechtes HELO) hat keine Nachricht zum Zurückhalten und bleibt eine Ablehnung.</value>
+  </data>
+  <data name="Changing it renames the domain and moves every account, alias and list with it." xml:space="preserve">
+    <value>Eine Änderung benennt die Domain um und verschiebt jedes Konto, jeden Alias und jede Liste mit.</value>
   </data>
   <data name="Changing it renames the list; its members and settings stay." xml:space="preserve">
     <value>Eine Änderung benennt die Liste um; ihre Mitglieder und Einstellungen bleiben.</value>
@@ -4079,8 +4091,8 @@ Dem Absender wurde gesagt, sie sei angenommen, es wird also nichts wiederholt un
   <data name="Deliver _all now" xml:space="preserve">
     <value>_Alle jetzt zustellen</value>
   </data>
-  <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
-    <value>Jede Nachricht an die Konten zustellen, die ihre Header nennen (ein Postfach, das sich mehrere Leute teilen)</value>
+  <data name="Deliver each message to the accounts its headers name" xml:space="preserve">
+    <value>Jede Nachricht an die Konten zustellen, die ihre Header nennen</value>
   </data>
   <data name="Deliver it (default)" xml:space="preserve">
     <value>Zustellen (Standard)</value>
@@ -4229,8 +4241,8 @@ Trotzdem speichern?</value>
   <data name="Directory synchronisation" xml:space="preserve">
     <value>Verzeichnissynchronisation</value>
   </data>
-  <data name="Disc_laimer text (appended to the message)" xml:space="preserve">
-    <value>Haftungsausschluss-Text (an die Nachricht ange_legt)</value>
+  <data name="Disc_laimer text" xml:space="preserve">
+    <value>Haftungsaussch_luss-Text</value>
   </data>
   <data name="Discard the index and rebuild it" xml:space="preserve">
     <value>Den Index verwerfen und neu aufbauen</value>
@@ -5116,8 +5128,8 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Expires _on (server time)" xml:space="preserve">
     <value>Läuft ab a_m (Serverzeit)</value>
   </data>
-  <data name="Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)" xml:space="preserve">
-    <value>Ablaufdatum (yyyy-mm-dd hh:mm:ss, wann der Eintrag nicht mehr gilt)</value>
+  <data name="Expires on (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
+    <value>Ablaufdatum (YYYY-MM-DD HH:MM:SS)</value>
   </data>
   <data name="Expires on {0} (in less than a day)" xml:space="preserve">
     <value>Läuft am {0} ab (in weniger als einem Tag)</value>
@@ -5364,6 +5376,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   </data>
   <data name="For a domain synchronised with Active Directory." xml:space="preserve">
     <value>Für eine mit Active Directory synchronisierte Domain.</value>
+  </data>
+  <data name="For a mailbox shared by several people." xml:space="preserve">
+    <value>Für ein Postfach, das sich mehrere Leute teilen.</value>
   </data>
   <data name="For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed sign-ins, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the allowed and blocked domains still apply. Empty, the default, changes nothing." xml:space="preserve">
     <value>Für einen Anbieter, dessen Hosts einen gemeinsamen Reverse-Namen haben und dessen Adressen wechseln: Eine verbindende Adresse wird nie automatisch gebannt - weder für fehlgeschlagene Anmeldungen noch für eine Spamfalle oder einen leeren Absender -, wenn einer ihrer Reverse-Namen von einem Namen hier abgedeckt ist und wieder auf die Adresse auflöst. Sonst wird nichts übersprungen: Greylisting, SPF, DKIM, DMARC und die zugelassenen und gesperrten Domains gelten weiterhin. Leer, die Voreinstellung, ändert nichts.</value>
@@ -6222,6 +6237,9 @@ Der geprüfte Installer wird dem Update-Helfer übergeben: der Dienst stoppt, di
   <data name="It is sent as spamd's User: header." xml:space="preserve">
     <value>Es wird als User:-Header von spamd gesendet.</value>
   </data>
+  <data name="It may be at any domain this server holds." xml:space="preserve">
+    <value>Sie darf in jeder Domain dieses Servers liegen.</value>
+  </data>
   <data name="It may use %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED% and %MACRO_PERCENT%." xml:space="preserve">
     <value>Er kann %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED% und %MACRO_PERCENT% enthalten.</value>
   </data>
@@ -6804,6 +6822,9 @@ Der geprüfte Installer wird dem Update-Helfer übergeben: der Dienst stoppt, di
   <data name="Mail to the spam trap {0}" xml:space="preserve">
     <value>Mail an die Spam-Falle {0}</value>
   </data>
+  <data name="Mail to unknown recipients is redirected here." xml:space="preserve">
+    <value>Mail an unbekannte Empfänger wird hierher umgeleitet.</value>
+  </data>
   <data name="Mailbox changed" xml:space="preserve">
     <value>Postfach geändert</value>
   </data>
@@ -6869,6 +6890,9 @@ Der geprüfte Installer wird dem Update-Helfer übergeben: der Dienst stoppt, di
   </data>
   <data name="Mailboxes encrypted at rest" xml:space="preserve">
     <value>Im Ruhezustand verschlüsselte Postfächer</value>
+  </data>
+  <data name="Mailed to a sender this server hosts, naming the rule." xml:space="preserve">
+    <value>Geht an einen von diesem Server gehosteten Absender, mit dem Namen der Regel.</value>
   </data>
   <data name="Mailing lists" xml:space="preserve">
     <value>Mailinglisten</value>
@@ -7291,8 +7315,8 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="Mirror address (empty = off)" xml:space="preserve">
     <value>Spiegeladresse (leer = aus)</value>
   </data>
-  <data name="Mirror every folder (IMAP only: a migration, verbatim, with flags and dates)" xml:space="preserve">
-    <value>Jeden Ordner spiegeln (nur IMAP: eine Migration, wortgetreu, mit Flags und Datumsangaben)</value>
+  <data name="Mirror every folder (IMAP only)" xml:space="preserve">
+    <value>Jeden Ordner spiegeln (nur IMAP)</value>
   </data>
   <data name="Mirroring" xml:space="preserve">
     <value>Spiegelung</value>
@@ -7390,8 +7414,8 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="N_ote" xml:space="preserve">
     <value>N_otiz</value>
   </data>
-  <data name="N_otice text (mailed to a sender this server hosts, naming the rule)" xml:space="preserve">
-    <value>Hinw_eistext (an einen von diesem Server gehosteten Absender, mit dem Namen der Regel)</value>
+  <data name="N_otice text" xml:space="preserve">
+    <value>Hinw_eistext</value>
   </data>
   <data name="Na_me" xml:space="preserve">
     <value>N_ame</value>
@@ -9727,8 +9751,8 @@ Führen Sie dies aus, wenn Clients melden, dass Nachrichten unter der falschen U
   <data name="Refresh a list, or reload a settings page" xml:space="preserve">
     <value>Eine Liste aktualisieren oder eine Einstellungsseite neu laden</value>
   </data>
-  <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
-    <value>Ablehnungste_xt (was 550 dem Absender sagt)</value>
+  <data name="Refusal te_xt" xml:space="preserve">
+    <value>Ablehnungste_xt</value>
   </data>
   <data name="Refusal text" xml:space="preserve">
     <value>Ablehnungstext</value>
@@ -10160,6 +10184,9 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   </data>
   <data name="Required" xml:space="preserve">
     <value>Erforderlich</value>
+  </data>
+  <data name="Required for SSL/TLS and STARTTLS." xml:space="preserve">
+    <value>Erforderlich für SSL/TLS und STARTTLS.</value>
   </data>
   <data name="Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address." xml:space="preserve">
     <value>Erforderlich. Der Active-Directory-Domänencontroller oder ein anderer LDAP-Server, an den gebunden wird. Für LDAPS muss der Name zum Zertifikat des Servers passen, verwenden Sie also den DNS-Namen, keine IP-Adresse.</value>
@@ -10605,8 +10632,8 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="SRS, BATV and the plain envelope-sender rewrite for forwarded mail" xml:space="preserve">
     <value>SRS, BATV und das einfache Umschreiben des Umschlagabsenders bei weitergeleiteter Mail</value>
   </data>
-  <data name="SSL c_ertificate (required for SSL/TLS and STARTTLS)" xml:space="preserve">
-    <value>SSL-_Zertifikat (erforderlich für SSL/TLS und STARTTLS)</value>
+  <data name="SSL c_ertificate" xml:space="preserve">
+    <value>SSL-_Zertifikat</value>
   </data>
   <data name="SSL certificate" xml:space="preserve">
     <value>SSL-Zertifikat</value>
@@ -13321,6 +13348,9 @@ konnte nicht geladen werden. Die Nachricht wurde wahrscheinlich zugestellt und i
   <data name="The name spamd looks up its per-user preferences for - a user_prefs file or a row in its SQL preference store. Leave empty unless spamd has been set up for it: a spamd told to change to a user it cannot find may refuse the scan, and an unscanned message is delivered as if SpamAssassin were unreachable." xml:space="preserve">
     <value>Der Name, unter dem spamd seine benutzerbezogenen Einstellungen nachschlägt - eine user_prefs-Datei oder eine Zeile in seinem SQL-Einstellungsspeicher. Lassen Sie das Feld leer, sofern spamd nicht dafür eingerichtet ist: ein spamd, der zu einem Benutzer wechseln soll, den er nicht findet, kann den Scan verweigern, und eine ungescannte Nachricht wird zugestellt, als wäre SpamAssassin nicht erreichbar.</value>
   </data>
+  <data name="The named domains are on the domain's dialog." xml:space="preserve">
+    <value>Die benannten Domains stehen im Dialog der Domain.</value>
+  </data>
   <data name="The new API key, shown once" xml:space="preserve">
     <value>Der neue API-Schlüssel, einmalig angezeigt</value>
   </data>
@@ -13363,8 +13393,8 @@ konnte nicht geladen werden. Die Nachricht wurde wahrscheinlich zugestellt und i
   <data name="The pages people sign in to in a browser: the webmail, the self-service portal and the Control Deck. Most of their settings are reached over the REST API, which also serves the webmail." xml:space="preserve">
     <value>Die Seiten, bei denen sich Leute im Browser anmelden: das Webmail, das Self-Service-Portal und das Control Deck. Die meisten ihrer Einstellungen werden über die REST-API erreicht, die auch das Webmail ausliefert.</value>
   </data>
-  <data name="The partner's key: an OpenPGP public key or PEM certificates (left empty, the key held is kept)" xml:space="preserve">
-    <value>Schlüssel des Partners: ein öffentlicher OpenPGP-Schlüssel oder PEM-Zertifikate (leer gelassen, bleibt der gespeicherte Schlüssel erhalten)</value>
+  <data name="The partner's key (empty = keep the key held)" xml:space="preserve">
+    <value>Schlüssel des Partners (leer = den gespeicherten Schlüssel behalten)</value>
   </data>
   <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
     <value>Die Passphrase noch einmal, damit sicher ist, dass sie richtig getippt _wurde</value>
@@ -13701,8 +13731,8 @@ Trotzdem hinzufügen?</value>
   <data name="The server stores this value and never reads it - nothing sets a thread priority from it, so changing it has no effect. It is shown rather than removed so that an administrator who set it years ago can see it is still there and why nothing happened, and it is not editable because a box that accepts a value nothing acts on is worse than no box at all. The thread counts above are honoured." xml:space="preserve">
     <value>Der Server speichert diesen Wert und liest ihn nie - nichts setzt daraus eine Thread-Priorität, ihn zu ändern hat also keine Wirkung. Er wird angezeigt statt entfernt, damit ein Administrator, der ihn vor Jahren gesetzt hat, sehen kann, dass er noch da ist und warum nichts geschehen ist, und er ist nicht bearbeitbar, weil ein Feld, das einen Wert annimmt, auf den nichts reagiert, schlimmer ist als gar kein Feld. Die Thread-Zahlen oben werden beachtet.</value>
   </data>
-  <data name="The server to ask (empty asks the domain's MX hosts)" xml:space="preserve">
-    <value>Der zu fragende Server (leer fragt die MX-Hosts der Domain)</value>
+  <data name="The server to ask (empty = the domain's MX hosts)" xml:space="preserve">
+    <value>Der zu fragende Server (leer = die MX-Hosts der Domain)</value>
   </data>
   <data name="The server's Host name (Protocols &gt; SMTP) is empty, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
     <value>Der Hostname des Servers (Protokolle &gt; SMTP) ist leer, er kündigt also in HELO/EHLO seinen Windows-Computernamen an - keinen öffentlichen DNS-Namen - und es lässt sich kein „a:"-Mechanismus anbieten. Der Vorschlag autorisiert nur die MX-Hosts der Domain. Setzen Sie zuerst den Hostnamen; mehrere Einträge auf dieser Seite brauchen ihn.</value>
@@ -14836,6 +14866,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="What stops one statement blocked on a lock from holding a worker thread for ever. Honoured at connect time by MySQL/MariaDB and PostgreSQL; MS SQL and SQL CE start at ADO's own 30 seconds and pick this value up on any connection that has run an upgrade or maintenance script. Those scripts run under a 30-minute per-statement ceiling of their own regardless of this value." xml:space="preserve">
     <value>Was verhindert, dass eine einzelne, an einer Sperre blockierte Anweisung einen Arbeitsthread für immer festhält. Wird beim Verbindungsaufbau von MySQL/MariaDB und PostgreSQL beachtet; MS SQL und SQL CE beginnen bei den 30 Sekunden von ADO selbst und übernehmen diesen Wert bei jeder Verbindung, die ein Upgrade- oder Wartungsskript ausgeführt hat. Diese Skripte laufen unabhängig von diesem Wert unter einer eigenen Obergrenze von 30 Minuten je Anweisung.</value>
   </data>
+  <data name="What the 550 reply says to the sender." xml:space="preserve">
+    <value>Was die Antwort 550 dem Absender sagt.</value>
+  </data>
   <data name="What the provider knows this server as: Entra ID's Identifier, Okta's Audience URI." xml:space="preserve">
     <value>Als was der Anbieter diesen Server kennt: der Identifier von Entra ID, die Audience URI von Okta.</value>
   </data>
@@ -14934,6 +14967,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="Where new messages are stored" xml:space="preserve">
     <value>Wo neue Nachrichten gespeichert werden</value>
+  </data>
+  <data name="Where ranges overlap, the higher priority wins." xml:space="preserve">
+    <value>Bei überlappenden Bereichen gewinnt die höhere Priorität.</value>
   </data>
   <data name="Where the Control Deck is could not be read." xml:space="preserve">
     <value>Wo sich das Control Deck befindet, ließ sich nicht lesen.</value>
@@ -15115,8 +15151,8 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="Windows Event Log" xml:space="preserve">
     <value>Windows-Ereignisprotokoll</value>
   </data>
-  <data name="Windows _domain (leave empty for a local Windows account)" xml:space="preserve">
-    <value>_Windows-Domäne (für ein lokales Windows-Konto leer lassen)</value>
+  <data name="Windows _domain (empty = a local Windows account)" xml:space="preserve">
+    <value>_Windows-Domäne (leer = ein lokales Windows-Konto)</value>
   </data>
   <data name="Windows _user name" xml:space="preserve">
     <value>Windows-_Benutzername</value>
@@ -15499,8 +15535,8 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="_Domain (e.g. gmail.com)" xml:space="preserve">
     <value>_Domain (z. B. gmail.com)</value>
   </data>
-  <data name="_Domain name (changing it renames the domain and moves every account, alias and list with it)" xml:space="preserve">
-    <value>Domainname (_eine Änderung benennt die Domain um und verschiebt jedes Konto, jeden Alias und jede Liste mit)</value>
+  <data name="_Domain name" xml:space="preserve">
+    <value>D_omainname</value>
   </data>
   <data name="_Domain or account" xml:space="preserve">
     <value>_Domain oder Konto</value>
@@ -15751,8 +15787,8 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="_New accounts start with their keys published" xml:space="preserve">
     <value>_Neue Konten beginnen mit veröffentlichten Schlüsseln</value>
   </data>
-  <data name="_New address (it may be at any domain this server holds)" xml:space="preserve">
-    <value>_Neue Adresse (sie darf in jeder Domain dieses Servers liegen)</value>
+  <data name="_New address" xml:space="preserve">
+    <value>_Neue Adresse</value>
   </data>
   <data name="_New password" xml:space="preserve">
     <value>_Neues Passwort</value>
@@ -15817,14 +15853,14 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="_Port (0 = 25)" xml:space="preserve">
     <value>_Port (0 = 25)</value>
   </data>
-  <data name="_Postmaster address (mail to unknown recipients is redirected here)" xml:space="preserve">
-    <value>_Postmaster-Adresse (Mail an unbekannte Empfänger wird hierher umgeleitet)</value>
+  <data name="_Postmaster address" xml:space="preserve">
+    <value>_Postmaster-Adresse</value>
   </data>
   <data name="_Preview" xml:space="preserve">
     <value>_Vorschau</value>
   </data>
-  <data name="_Priority (higher wins when ranges overlap)" xml:space="preserve">
-    <value>_Priorität (bei überlappenden Bereichen gewinnt die höhere)</value>
+  <data name="_Priority" xml:space="preserve">
+    <value>_Priorität</value>
   </data>
   <data name="_Private key file" xml:space="preserve">
     <value>_Private Schlüsseldatei</value>
@@ -15931,8 +15967,8 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="_Restart the service" xml:space="preserve">
     <value>Dienst _neu starten</value>
   </data>
-  <data name="_Restricted delivery (the named domains are on the domain's dialog)" xml:space="preserve">
-    <value>Eingeschränkte Zustellung (die benannten Domains stehen im Dialo_g der Domain)</value>
+  <data name="_Restricted delivery" xml:space="preserve">
+    <value>_Eingeschränkte Zustellung</value>
   </data>
   <data name="_Retire the old selector" xml:space="preserve">
     <value>Alten Selektor _stilllegen</value>

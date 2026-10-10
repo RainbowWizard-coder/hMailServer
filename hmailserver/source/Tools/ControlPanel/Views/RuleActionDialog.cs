@@ -117,13 +117,13 @@ namespace hMailServer.ControlPanel.Views
          bindPanel_.Children.Add(Label(L("I_P address"), bindAddress_));
          body.Children.Add(bindPanel_);
 
-         disclaimerPanel_.Children.Add(Label(L("Disc_laimer text (appended to the message)"), disclaimerText_));
+         disclaimerPanel_.Children.Add(Label(L("Disc_laimer text"), disclaimerText_).WithHint(L("Appended to the message.")));
          body.Children.Add(disclaimerPanel_);
 
-         rejectPanel_.Children.Add(Label(L("Refusal te_xt (what the 550 says to the sender)"), rejectText_));
+         rejectPanel_.Children.Add(Label(L("Refusal te_xt"), rejectText_).WithHint(L("What the 550 reply says to the sender.")));
          body.Children.Add(rejectPanel_);
 
-         warnPanel_.Children.Add(Label(L("N_otice text (mailed to a sender this server hosts, naming the rule)"), warnText_));
+         warnPanel_.Children.Add(Label(L("N_otice text"), warnText_).WithHint(L("Mailed to a sender this server hosts, naming the rule.")));
          body.Children.Add(warnPanel_);
 
          body.Children.Add(noParams_);
