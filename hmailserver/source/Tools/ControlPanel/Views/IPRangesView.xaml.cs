@@ -366,15 +366,17 @@ namespace hMailServer.ControlPanel.Views
          => RelayExposure.OpenDirections(PermLR.IsChecked is true, PermAuthLR.IsChecked is true, PermRR.IsChecked is true, PermAuthRR.IsChecked is true);
 
       /// <summary>
-      /// No column of addresses or permissions is narrower than its header or than the
-      /// widest of its words - the widest IPv4 address and the ranges' own, Yes and No in
+      /// No column is narrower than its header, and no column of addresses or permissions
+      /// than the widest of its words - the widest IPv4 address and the ranges' own, Yes and No in
       /// the current language - measured in the grid's font at the Windows text size, so
       /// that a narrow window scrolls the grid sideways rather than cutting a word: fixed
       /// at 150 and 70 pixels, larger text cut them short (review finding F317).
       /// </summary>
       private void FloorColumns_(IEnumerable<RangeRow> rows)
       {
-         foreach (DataGridColumn column in new DataGridColumn[] { LowerColumn, UpperColumn, SmtpColumn, ImapColumn, Pop3Column })
+         // Every column at its header, Priority's too: a column of numbers keeps its
+         // pixels, but its header is words, and at 150 per cent German cut it to "Priori…".
+         foreach (DataGridColumn column in RangeGrid.Columns)
             Floor_(column, GridStyles.HeaderWidth(column.Header as string));
 
          foreach (DataGridColumn column in new DataGridColumn[] { LowerColumn, UpperColumn })

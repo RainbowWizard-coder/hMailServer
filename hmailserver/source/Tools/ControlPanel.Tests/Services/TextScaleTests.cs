@@ -441,6 +441,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          string floors = WithheldRowTests.MemberText(ranges, "private void FloorColumns_(IEnumerable<RangeRow> rows)");
          Assert.True(floors != null, "IPRangesView.FloorColumns_ is gone.");
          Assert.Contains("Floor_(column, GridStyles.CellWidth(\"255.255.255.255\"));", floors, StringComparison.Ordinal);
+         // Every column at its header, Priority's too, which German cut to "Priori…" at 150 per cent.
+         Assert.Matches(@"foreach \(DataGridColumn column in RangeGrid\.Columns\)\s+Floor_\(column, GridStyles\.HeaderWidth\(column\.Header as string\)\);", floors);
          Assert.Contains("Floor_(LowerColumn, GridStyles.CellWidth(row.LowerIP));", floors, StringComparison.Ordinal);
          Assert.Contains("Floor_(UpperColumn, GridStyles.CellWidth(row.UpperIP));", floors, StringComparison.Ordinal);
          Assert.Contains("Floor_(column, GridStyles.CellWidth(L(\"Yes\")));", floors, StringComparison.Ordinal);
