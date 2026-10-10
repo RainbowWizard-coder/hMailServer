@@ -49,7 +49,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void TheTwoBigDialogs_AreWideAndAsTallAsTheirTallestTabWithinACap(string file)
       {
          string code = ReadControlPanelFile(Path.Join("Views", file));
-         Assert.Contains("private const double DialogWidth = 800;", code, StringComparison.Ordinal);
+         Assert.Contains("private const double DialogWidth = DesignTokens.Dialog.ManyTabsWidth;", code, StringComparison.Ordinal);
+         Assert.Equal(800, hMailServer.ControlPanel.Services.DesignTokens.Dialog.ManyTabsWidth);
          Assert.Contains("DialogFields.FitManyTabs(tabs, DialogFields.BodyWidth(DialogWidth));", code, StringComparison.Ordinal);
          Assert.DoesNotContain("FillTabs", code, StringComparison.Ordinal);
       }
@@ -60,6 +61,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void TheFiveTabDialogs_AreAsWideAsTheirHeadersNeed(string file)
       {
          string code = ReadControlPanelFile(Path.Join("Views", file));
+         Assert.Contains("private const double DialogWidth = DesignTokens.Dialog.WideWidth;", code, StringComparison.Ordinal);
          Assert.Contains("double width = DialogFields.WidthForTabs(tabs, DialogWidth);", code, StringComparison.Ordinal);
          Assert.Contains("DialogFields.FitTabs(tabs, DialogFields.BodyWidth(width));", code, StringComparison.Ordinal);
          Assert.Contains("cancel, width: width);", code, StringComparison.Ordinal);

@@ -25,6 +25,9 @@ namespace hMailServer.ControlPanel.Tests.Services
    {
       private static readonly double[] Scale = { 0, 4, 8, 12, 16, 24, 32 };
 
+      // A dialog's width held as a number in a constant or a variable: "DialogWidth = 560".
+      private static readonly Regex HeldDialogWidth = new(@"\b\w*DialogWidth\s*=\s*(\d{3})\b", RegexOptions.IgnoreCase);
+
       [Theory]
       [InlineData("AppPagePadding", "24")]
       [InlineData("AppCardPadding", "24,16")]
@@ -84,12 +87,34 @@ namespace hMailServer.ControlPanel.Tests.Services
             Assert.InRange(width, DesignTokens.Dialog.MinWidth, DesignTokens.Dialog.MaxWidth);
          }
 
+         // The domain and account dialogs' width, for their many tabs, is named too, on the grid.
+         Assert.Equal(800, DesignTokens.Dialog.ManyTabsWidth);
+         Assert.Equal(0, DesignTokens.Dialog.ManyTabsWidth % 4);
+         Assert.InRange(DesignTokens.Dialog.ManyTabsWidth, DesignTokens.Dialog.WidestWidth, DesignTokens.Dialog.MaxWidth);
+
+         // A number in the frame's call, and a number held in a constant or a variable that
+         // the call is given: the IP range and route dialogs kept "private const double
+         // DialogWidth = 560;" under "width: DialogWidth", and the domain and account
+         // dialogs 800, which the call's pattern alone could not see.
          var literal = new Regex(@"(?:UseFrame|\.Frame)\([^;]*?(?:width:\s*|,\s*)(\d{3})\)\s*;", RegexOptions.Singleline);
          var problems = Directory.GetFiles(ViewsDirectory_(), "*.cs")
-            .SelectMany(file => literal.Matches(File.ReadAllText(file)).Select(m => Path.GetFileName(file) + ": " + m.Groups[1].Value))
+            .SelectMany(file =>
+            {
+               string code = File.ReadAllText(file);
+               return literal.Matches(code).Concat(HeldDialogWidth.Matches(code)).Select(m => Path.GetFileName(file) + ": " + m.Value);
+            })
             .ToList();
          Assert.True(problems.Count == 0, "A dialog names a width of its own, not one of DesignTokens.Dialog's:\n" + string.Join("\n", problems));
       }
+
+      /// <summary>The check above sees a width held in a constant as it sees one in the call.</summary>
+      [Theory]
+      [InlineData("private const double DialogWidth = 560;", true)]
+      [InlineData("double dialogWidth = 600;", true)]
+      [InlineData("private const double DialogWidth = DesignTokens.Dialog.WideWidth;", false)]
+      [InlineData("private const double CertificateNameWidth = 280;", false)]
+      public void AWidthHeldInAConstant_IsSeen(string line, bool seen)
+         => Assert.Equal(seen, HeldDialogWidth.IsMatch(line));
 
       /// <summary>
       /// A card that holds a list or a grid takes the compact inset by its name, where it was

@@ -112,14 +112,22 @@ namespace hMailServer.ControlPanel.Services
          /// <summary>A dialog whose body is a grid of columns or a message's source.</summary>
          public const double WidestWidth = 760;
 
+         /// <summary>
+         /// The domain and account dialogs, of seventeen and sixteen tabs: 640 showed six or
+         /// seven of their headers and cut the next mid-word (review finding F193).
+         /// </summary>
+         public const double ManyTabsWidth = 800;
+
          public const double MaxWidth = 900;
          public const double MaxHeightFraction = 0.9;
 
          /// <summary>
          /// The widths a dialog takes, narrowest first (review finding F295: each dialog
          /// named a number of its own - 400, 460, 480, 560, 600, 620, 680). The domain and
-         /// account dialogs are sized to their tab strips (DialogLayout), and the IP range
-         /// and route dialogs to theirs (DialogFields.WidthForTabs).
+         /// account dialogs take <see cref="ManyTabsWidth"/> for their many tabs, and the
+         /// IP range and route dialogs start from <see cref="WideWidth"/> and widen to
+         /// their tab strips where the headers need it (DialogFields.WidthForTabs). None
+         /// names a number of its own, in its frame's call or in a constant.
          /// </summary>
          public static IReadOnlyList<double> Widths { get; } = new[] { NarrowWidth, DefaultWidth, WideWidth, WidestWidth };
       }

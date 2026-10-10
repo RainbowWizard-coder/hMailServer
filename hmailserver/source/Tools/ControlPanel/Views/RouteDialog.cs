@@ -24,11 +24,12 @@ namespace hMailServer.ControlPanel.Views
    public class RouteDialog : FluentDialogWindow
    {
       /// <summary>
-      /// The width this dialog asks the frame for where its five headers fit in it;
-      /// wider where they do not (DialogFields.WidthForTabs). The tabs are measured
-      /// against the body inside the width it is given.
+      /// The width this dialog asks the frame for where its five headers fit in it,
+      /// the token's wide width for a dialog of a wide row, where it named 560 of its
+      /// own (review finding F295); wider where they do not (DialogFields.WidthForTabs).
+      /// The tabs are measured against the body inside the width it is given.
       /// </summary>
-      private const double DialogWidth = 560;
+      private const double DialogWidth = DesignTokens.Dialog.WideWidth;
 
       private readonly string domainName_;
       private int routeId_;

@@ -3539,13 +3539,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   980 or 1000 pixels; a settings panel was as wide as its widest card, so that the cards' right edges ran from 526 to
   761 pixels tab by tab; and four App.xaml styles had no use (review finding F295). A page's padding and a card's are
   the Control Deck's now, 24 and 16 by 24, a dialog's inset 24, the scaffold's gaps on the scale; a list card takes
-  `AppListCardPadding` (8), a dialog one of four widths, 420, 520, 640 or 760 (`DesignTokens.Dialog`), and a page's
-  column the form width, 760, or the overviews', 1000 (`DesignTokens.OverviewWidth`); every card of a settings page
-  and of each of its tabs, and of Server sendout, Diagnosing stalled mail, REST API keys and About, ends at the form
-  width's edge (`FormColumnPanel`); the dead styles are gone; and `build/check-spacing.py`, which the checkers job
-  runs, fails a margin or a padding written off the scale, its baseline the optical nudges and the rest the tree held,
-  which may only shrink. `SpacingScaleTests` and `FormColumnTests` hold the tokens, the scaffold, the dialogs, the
-  list cards and the pages' columns.
+  `AppListCardPadding` (8), a dialog a width `DesignTokens.Dialog` names - one of four, 420, 520, 640 or 760, or 800
+  for the domain and account dialogs and their many tabs (`ManyTabsWidth`), the IP range and route dialogs starting
+  from 640 and widening to their tab strips where the headers need them - and none a number of its own, in its frame's
+  call or in a constant, as the IP range and route dialogs' 560 and the domain and account dialogs' 800 were, and a
+  page's column the form width, 760, or the overviews', 1000 (`DesignTokens.OverviewWidth`); every card of a settings
+  page and of each of its tabs, and of Server sendout, Diagnosing stalled mail, REST API keys and About, ends at the
+  form width's edge (`FormColumnPanel`); the dead styles are gone; and `build/check-spacing.py`, which the checkers
+  job runs, fails a margin or a padding written off the scale, its baseline the optical nudges and the rest the tree
+  held, which may only shrink. `SpacingScaleTests` and `FormColumnTests` hold the tokens, the scaffold, the dialogs'
+  widths, in the frame's call and in a constant, the list cards and the pages' columns.
 
 ### Administration
 

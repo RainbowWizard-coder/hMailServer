@@ -29,12 +29,12 @@ namespace hMailServer.ControlPanel.Views
    public class AccountDialog : FluentDialogWindow
    {
       /// <summary>
-      /// The width this dialog asks the frame for: 800, where 640 showed six or
-      /// seven of its headers and cut the next mid-word, so that a third of the
-      /// tabs could be reached only through the chevrons (review finding F193).
-      /// The token allows 900.
+      /// The width this dialog asks the frame for: 800, the token's width for the
+      /// two dialogs of many tabs, where 640 showed six or seven of its headers and
+      /// cut the next mid-word, so that a third of the tabs could be reached only
+      /// through the chevrons (review finding F193). The token allows 900.
       /// </summary>
-      private const double DialogWidth = 800;
+      private const double DialogWidth = DesignTokens.Dialog.ManyTabsWidth;
 
       private readonly string domainName_;
       private readonly string address_;

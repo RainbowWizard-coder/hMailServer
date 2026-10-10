@@ -82,9 +82,10 @@ namespace hMailServer.ControlPanel.Services
       /// whole: the dialog's own width where the headers fit in it, or the strip's
       /// width and the frame's inset on both sides, no more than
       /// <see cref="DesignTokens.Dialog.MaxWidth"/> - past which the strip scrolls
-      /// (review finding F193). The route and IP range dialogs' five tabs fit 560
-      /// pixels in English and not in German, where "Authentifizierung" and
-      /// "Schutz" were cut behind the chevron.
+      /// (review finding F193). The route and IP range dialogs' five tabs fit the
+      /// 560 pixels they named of their own in English and not in German, where
+      /// "Authentifizierung" and "Schutz" were cut behind the chevron; they fit the
+      /// token's 640 they start from now (F295) in English, German and Japanese.
       /// </summary>
       public static double WidthForStrip(double headersWidth, double preferredWidth)
       {
