@@ -44,6 +44,7 @@ namespace hMailServer.ControlPanel.Views
          // (review finding F101).
          foreach (ListView list in new[] { DomainList, AccountList, AliasList, DistList })
             ScrollBarInset.ForList(list);
+         DomainList.ItemContainerGenerator.StatusChanged += DomainRows_StatusChanged;
          NewAccountPassword.PasswordChanged += (s, e) => ShowNewAccountStrength_();
       }
 
@@ -76,7 +77,7 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>
       /// The domains list's floor: three rows beside the accounts, and in the one
       /// column of a narrow window as many rows as it shows, up to
-      /// ListRowsFloor.MostRows, so that the page scrolls and the list does not
+      /// WholeRowsFloor.MostRows, so that the page scrolls and the list does not
       /// scroll inside it. Held at three rows there, the fourth domain needed a
       /// scroll bar of the list's own inside the page's, over the rows' delete
       /// buttons (review finding F101).
@@ -84,14 +85,33 @@ namespace hMailServer.ControlPanel.Views
       private void FloorDomainList_()
       {
          bool oneColumn = !DomainColumn.Children.Contains(DomainCard);
-         // A row as it is drawn, once there is one; 40 pixels until then.
-         double row = DomainList.ItemContainerGenerator.ContainerFromIndex(0) is FrameworkElement first && first.ActualHeight > 0
-            ? first.ActualHeight
-            : DomainRowHeight;
-         double threeRows = ListRowsFloor.For(ListRowsFloor.FewestRows, DomainRowHeight);
-         double floor = oneColumn ? Math.Max(threeRows, ListRowsFloor.For(DomainList.Items.Count, row)) : threeRows;
+         double threeRows = WholeRowsFloor.For(WholeRowsFloor.FewestRows, DomainRowHeight);
+         double floor = oneColumn ? Math.Max(threeRows, WholeRowsFloor.For(DomainList.Items.Count, DomainRowPitch_())) : threeRows;
          if (DomainList.MinHeight != floor)
             DomainList.MinHeight = floor;
+      }
+
+      /// <summary>
+      /// A domain's row as it is drawn, the top of one to the top of the next - its
+      /// container's height and the margin the container keeps - once there is one,
+      /// and 40 pixels until then. By the container's height alone the floor was the
+      /// margin short for every row, and in the narrowest window the fourth domain
+      /// still scrolled inside the list.
+      /// </summary>
+      private double DomainRowPitch_()
+         => DomainList.ItemContainerGenerator.ContainerFromIndex(0) is FrameworkElement first && first.ActualHeight > 0
+            ? WholeRowsFloor.Pitch(first.ActualHeight, first.Margin.Top, first.Margin.Bottom)
+            : DomainRowHeight;
+
+      /// <summary>
+      /// The list's rows drawn anew - read, filtered or realised as it scrolls: its
+      /// floor again once they are laid out, so that it is built on the rows as drawn
+      /// and not on the 40 pixels a row is taken for until there is one.
+      /// </summary>
+      private void DomainRows_StatusChanged(object sender, EventArgs e)
+      {
+         if (DomainList.ItemContainerGenerator.Status == System.Windows.Controls.Primitives.GeneratorStatus.ContainersGenerated)
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, new Action(FloorDomainList_));
       }
 
       /// <summary>

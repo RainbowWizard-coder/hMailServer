@@ -53,22 +53,28 @@ namespace hMailServer.ControlPanel.Tests.Services
       [Fact]
       public void TheDomainsList_ShowsItsRowsWhole_InOneColumn()
       {
-         Assert.Equal(123, ListRowsFloor.For(0, 40));
-         Assert.Equal(123, ListRowsFloor.For(3, 40));
-         Assert.Equal(403, ListRowsFloor.For(10, 40));
-         Assert.Equal(ListRowsFloor.MostRows * 40 + ListRowsFloor.Chrome, ListRowsFloor.For(500, 40));
+         Assert.Equal(123, WholeRowsFloor.For(0, 40));
+         Assert.Equal(123, WholeRowsFloor.For(3, 40));
+         Assert.Equal(403, WholeRowsFloor.For(10, 40));
+         Assert.Equal(WholeRowsFloor.MostRows * 40 + WholeRowsFloor.Chrome, WholeRowsFloor.For(500, 40));
 
          XElement list = Xaml_("DomainsView.xaml").Descendants().Single(e => (string)e.Attribute(Xaml + "Name") == "DomainList");
-         Assert.Equal(ListRowsFloor.For(ListRowsFloor.FewestRows, 40), double.Parse((string)list.Attribute("MinHeight"), CultureInfo.InvariantCulture));
+         Assert.Equal(WholeRowsFloor.For(WholeRowsFloor.FewestRows, 40), double.Parse((string)list.Attribute("MinHeight"), CultureInfo.InvariantCulture));
 
          string code = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", "DomainsView.xaml.cs"));
          string floor = WithheldRowTests.MemberText(code, "private void FloorDomainList_()");
          Assert.True(floor != null, "DomainsView.FloorDomainList_ is gone.");
          Assert.Contains("bool oneColumn = !DomainColumn.Children.Contains(DomainCard);", floor, StringComparison.Ordinal);
-         Assert.Contains("double floor = oneColumn ? Math.Max(threeRows, ListRowsFloor.For(DomainList.Items.Count, row)) : threeRows;", floor, StringComparison.Ordinal);
-         // A row as it is drawn, where the 40 pixels the floor of three rows is built on are not what it measures.
-         Assert.Contains("DomainList.ItemContainerGenerator.ContainerFromIndex(0) is FrameworkElement first && first.ActualHeight > 0", floor, StringComparison.Ordinal);
+         Assert.Contains("double floor = oneColumn ? Math.Max(threeRows, WholeRowsFloor.For(DomainList.Items.Count, DomainRowPitch_())) : threeRows;", floor, StringComparison.Ordinal);
          Assert.Contains("private const double DomainRowHeight = 40;", code, StringComparison.Ordinal);
+
+         // A row as it is drawn, with its container's margin: by the container's
+         // height alone (36.67 at the render's scale) four domains were floored at
+         // 149.67 where they took 154.67, and the fourth still scrolled in the list.
+         string pitch = WithheldRowTests.MemberText(code, "private double DomainRowPitch_()");
+         Assert.True(pitch != null, "DomainsView.DomainRowPitch_ is gone.");
+         Assert.Contains("DomainList.ItemContainerGenerator.ContainerFromIndex(0) is FrameworkElement first && first.ActualHeight > 0", pitch, StringComparison.Ordinal);
+         Assert.Contains("WholeRowsFloor.Pitch(first.ActualHeight, first.Margin.Top, first.Margin.Bottom)", pitch, StringComparison.Ordinal);
 
          // Again as the columns change, as the list is read and as its search filters it.
          foreach (string member in new[]
@@ -81,6 +87,24 @@ namespace hMailServer.ControlPanel.Tests.Services
             string body = WithheldRowTests.MemberText(code, member);
             Assert.True(body != null && body.Contains("FloorDomainList_();", StringComparison.Ordinal), member + " no longer floors the domains list.");
          }
+
+         // And once the rows it has been given are laid out, so that a floor set
+         // before there was a row to measure is set again on the rows as drawn.
+         Assert.Contains("DomainList.ItemContainerGenerator.StatusChanged += DomainRows_StatusChanged;", code, StringComparison.Ordinal);
+         string generated = WithheldRowTests.MemberText(code, "private void DomainRows_StatusChanged(object sender, EventArgs e)");
+         Assert.True(generated != null, "DomainsView.DomainRows_StatusChanged is gone.");
+         Assert.Contains("GeneratorStatus.ContainersGenerated", generated, StringComparison.Ordinal);
+         Assert.Contains("DispatcherPriority.Loaded, new Action(FloorDomainList_)", generated, StringComparison.Ordinal);
+      }
+
+      /// <summary>A row's pitch is its container's height and the margin the container keeps, top and bottom.</summary>
+      [Fact]
+      public void ARowsPitch_CountsItsContainersMargin()
+      {
+         Assert.Equal(38.67, WholeRowsFloor.Pitch(36.67, 1, 1), 2);
+         Assert.Equal(40, WholeRowsFloor.Pitch(40, 0, 0));
+         // Four rows of the theme's 36.67 and two pixels: whole, with the list's chrome.
+         Assert.True(WholeRowsFloor.For(4, WholeRowsFloor.Pitch(36.67, 0, 2)) >= 4 * 38.67 + 2);
       }
 
       [Fact]

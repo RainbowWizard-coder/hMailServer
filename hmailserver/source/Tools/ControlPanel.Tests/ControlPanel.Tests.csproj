@@ -334,7 +334,7 @@
   <ItemGroup>
     <Compile Include="..\ControlPanel\Services\ShellGeometry.cs" />
     <!-- And the floor of a list that shows its rows whole in the page (review finding F101). -->
-    <Compile Include="..\ControlPanel\Services\ListRowsFloor.cs" />
+    <Compile Include="..\ControlPanel\Services\WholeRowsFloor.cs" />
   </ItemGroup>
 
   <ItemGroup>
