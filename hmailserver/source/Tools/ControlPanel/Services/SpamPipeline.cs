@@ -486,6 +486,28 @@ namespace hMailServer.ControlPanel.Services
       }
 
       /// <summary>
+      /// What the Anti-spam settings page refuses on the refuse threshold's field as
+      /// the two thresholds are typed in, or null: a refuse threshold at or below a
+      /// mark threshold above 0, which is tested first and so refuses every message the
+      /// mark would only mark (review finding F263). Either at 0 is a warning, not a
+      /// refusal: 0 means never, and is a choice (<see cref="ThresholdWarning"/>).
+      /// </summary>
+      public static string ThresholdProblem(int mark, int refuse)
+         => mark > 0 && refuse > 0 && refuse <= mark
+            ? F("The refuse threshold must be above the mark threshold, {0}: at or below it, every message the mark threshold would mark is refused instead.", mark)
+            : null;
+
+      /// <summary>What a threshold at 0 means, said under the two on the settings page; null while both are above 0.</summary>
+      public static string ThresholdWarning(int mark, int refuse)
+         => mark <= 0 && refuse <= 0
+            ? L("Both thresholds are 0, so no score marks, refuses or holds any message.")
+            : mark <= 0
+            ? L("The mark threshold is 0, so no message is marked as spam: 0 means never.")
+            : refuse <= 0
+            ? L("The refuse threshold is 0, so no message is refused or held on its score: 0 means never.")
+            : null;
+
+      /// <summary>
       /// What the total score does to the message, in one sentence, including the
       /// two cases where the answer is "nothing".
       /// </summary>
@@ -666,7 +688,7 @@ namespace hMailServer.ControlPanel.Services
          if (marks && refuses && config.DeleteThreshold <= config.MarkThreshold)
          {
             notes.Add(new SpamPipelineNote(StatusLevel.Critical,
-               F("The delete threshold ({0}) is at or below the mark threshold ({1}) and is tested first, so no message is ever marked and delivered - every message that would be marked is refused instead.", config.DeleteThreshold, config.MarkThreshold)));
+               F("The refuse threshold ({0}) is at or below the mark threshold ({1}) and is tested first, so no message is ever marked and delivered - every message that would be marked is refused instead.", config.DeleteThreshold, config.MarkThreshold)));
          }
 
          int? ceiling = HighestReachableScore(config);

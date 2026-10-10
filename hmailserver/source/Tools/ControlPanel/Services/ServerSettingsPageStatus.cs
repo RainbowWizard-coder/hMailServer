@@ -197,5 +197,48 @@ namespace hMailServer.ControlPanel.Services
 
          return PluralF(saved, "Saved {0} setting at {1} - applied immediately.", "Saved {0} settings at {1} - applied immediately.", saved, time);
       }
+
+      /// <summary>
+      /// The sentence after a save, by what it changed: the one setting changed by
+      /// its caption - "Saved Spam refuse threshold (score) at 14:20:00 - applied
+      /// immediately." - several by their count, and none said as none, where
+      /// <see cref="SaveSentence"/> counted every row the page wrote - "Saved 51
+      /// settings" of a save that changed one (review finding F263). What applied is
+      /// said as SaveSentence says it: waiting is how many of the page's keys the
+      /// server lists as pending, which may be more than this save changed, and null
+      /// a server that cannot say.
+      /// </summary>
+      public static string SavedChangesSentence(IReadOnlyList<string> changed, int failed, string timeText, int? waiting)
+      {
+         int count = changed?.Count ?? 0;
+         string one = count == 1 ? changed[0] : null;
+         string time = timeText ?? "";
+
+         if (failed > 0)
+            return PluralF(failed, "{0} {1} setting could not be written.", "{0} {1} settings could not be written.",
+               count == 0 ? L("No setting had changed.") : count == 1 ? F("Saved {0}.", one) : Plural(count, "Saved {0} change.", "Saved {0} changes."), failed);
+
+         if (count == 0)
+            return F("Saved at {0}: no setting had changed.", time);
+
+         if (waiting == null)
+            return count == 1
+               ? F("Saved {0} at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart.", one, time)
+               : PluralF(count,
+                  "Saved {0} change at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart.",
+                  "Saved {0} changes at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart.",
+                  count, time);
+
+         if (waiting > 0)
+            return PluralF(waiting.Value,
+               "{0} {1} setting on this page waits for a reinitialise or a restart.",
+               "{0} {1} settings on this page wait for a reinitialise or a restart.",
+               count == 1 ? F("Saved {0} at {1}.", one, time) : PluralF(count, "Saved {0} change at {1}.", "Saved {0} changes at {1}.", count, time),
+               waiting.Value);
+
+         return count == 1
+            ? F("Saved {0} at {1} - applied immediately.", one, time)
+            : PluralF(count, "Saved {0} change at {1} - applied immediately.", "Saved {0} changes at {1} - applied immediately.", count, time);
+      }
    }
 }

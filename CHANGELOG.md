@@ -2964,6 +2964,25 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   and a public suffix a Warning holding the List it anyway box; a request that would write nothing says so.
   `QuarantineListDialogTests` holds which holds the score made and the dialog's wiring.
 
+- **Fixed: Anti-spam settings called the refuse threshold the delete threshold, saved thresholds that contradict each
+  other, and said how many settings a save wrote rather than what it changed.** The threshold that refuses a message
+  during the SMTP conversation, or holds it in the quarantine, was labelled "Spam delete threshold (score)"; a refuse
+  threshold at or below the mark threshold - tested first, so no message is ever marked and delivered - or both at 0
+  saved with "Saved 51 settings - applied immediately"; the Quarantine card, which changes what that threshold does,
+  was fourth on General and below the fold; the rspamd hook sat on a tab called SpamAssassin; and the Spam traps tab
+  said the traps are declared in the Control Deck without saying whether any domain had one (review finding F263). The
+  field is now "Spam refuse threshold (score)", its hint saying older versions called it the delete threshold, and
+  every text that named the delete threshold - the Quarantine card, the quarantine's empty states, the pipeline's
+  note, the SPF softfail hint - says refuse threshold. As the two are typed, a refuse threshold at or below a mark
+  threshold above 0 is marked on its field ("The refuse threshold must be above the mark threshold, 5: …") and a save
+  writes nothing and says so, and a threshold at 0 is a Warning under the two saying what 0 means. The Quarantine card
+  is second on General; the SpamAssassin tab is Content filters, holding SpamAssassin and the external filtering hook,
+  and the search finds it by rspamd, Content filters and both names of the threshold; the Spam traps tab says "No
+  domain has a trap address yet, so these settings do nothing." under its Control Deck button while no domain has one,
+  and how many have otherwise. On every settings page the sentence after a save names the setting it changed, or
+  counts the changes ("Saved 3 changes at 14:20:00 - applied immediately."), or says no setting had changed.
+  `AntiSpamPageTests` holds the checks, the sentence and the page's wiring.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

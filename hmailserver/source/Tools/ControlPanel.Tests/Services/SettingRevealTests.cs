@@ -40,7 +40,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("MirrorEMailAddress", "advanced", "Copies of mail", "Mirroring")]
       [InlineData("PstImportDirectory", "advanced", "Migrations", "Migrations")]
       [InlineData("DlpAccountNumberPattern", "delivery", "Rules", "Sensitive content in rules")]
-      [InlineData("AntiSpam.SpamAssassinHost", "antispam", "SpamAssassin", "SpamAssassin")]
+      [InlineData("AntiSpam.SpamAssassinHost", "antispam", "Content filters", "SpamAssassin")]
       [InlineData("UpdateWindow", "updates", null, "How this server updates")]
       [InlineData("SMTPProxyProtocolEnabled", "hardening", null, "Front-end proxies (PROXY protocol and XCLIENT)")]
       [InlineData("DkimOversignHeaders", "security", "Signing", "DKIM oversigning")]

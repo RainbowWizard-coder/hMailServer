@@ -513,6 +513,9 @@
   <data name="A message not on the local disk is looked for in the object store while one is named, so switching back hides nothing. Taken within five seconds." xml:space="preserve">
     <value>ローカル ディスクにないメッセージは、オブジェクト ストアが指定されている間はそこで探されるため、元に戻しても何も隠れません。5 秒以内に適用されます。</value>
   </data>
+  <data name="A message scoring this or more is refused during the SMTP conversation, or held in the quarantine while quarantining is on. Older versions called it the delete threshold." xml:space="preserve">
+    <value>スコアがこの値以上のメッセージは、SMTP のやり取り中に拒否されるか、検疫が有効な間は検疫に保留されます。以前のバージョンでは削除しきい値と呼ばれていました。</value>
+  </data>
   <data name="A message scoring {0} or more is marked as spam and delivered. Nothing is refused on score." xml:space="preserve">
     <value>スコアが {0} 以上のメッセージはスパムとしてマークされたうえで配信されます。スコアを理由に拒否されるものはありません。</value>
   </data>
@@ -2182,6 +2185,9 @@
   <data name="Both thresholds are 0, so no score can mark or refuse anything - the server tests them with &quot;greater than 0&quot; before using them. It also stops testing as soon as the running total reaches the higher threshold, which is 0, so exactly one check runs in each phase and its result is discarded." xml:space="preserve">
     <value>どちらのしきい値も 0 なので、スコアによって何かをマークしたり拒否したりすることはできません。サーバーは使う前に「0 より大きいか」でテストするからです。また、累計が高いほうのしきい値 (これも 0) に達した時点でテストを打ち切るため、各フェーズでちょうど 1 つのチェックが実行され、その結果は破棄されます。</value>
   </data>
+  <data name="Both thresholds are 0, so no score marks, refuses or holds any message." xml:space="preserve">
+    <value>両方のしきい値が 0 のため、どのスコアでもメッセージはマーク、拒否、保留されません。</value>
+  </data>
   <data name="Both ways" xml:space="preserve">
     <value>両方向</value>
   </data>
@@ -2419,8 +2425,8 @@
   <data name="Changes here are saved as you make them, not with the dialog's Save, so Cancel does not undo them." xml:space="preserve">
     <value>ここでの変更は、ダイアログの [保存] ではなく、行ったその場で保存されます。そのため、[キャンセル] では元に戻りません。</value>
   </data>
-  <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
-    <value>削除しきい値で何が起きるかを変更します。オフの場合、しきい値を超えたメッセージは SMTP のやり取り中に 550 で拒否され、送信者にそれが伝わります。オンの場合は 250 で受け入れられ、代わりに確認のために保留されます。送信者は配信されたと思い再試行しないため、おそらく偽装されている返信パスにバウンスすることなく誤検知から回復できますが、同時に、確認キューがそのメッセージの唯一の存在場所になります。メッセージ本文の受信後に実行されるチェックに適用されます。それより前に下された判定 (DNS ブロック リストに載った接続元 IP、不正な HELO) には保留すべきメッセージがないため、拒否のままです。</value>
+  <data name="Changes what happens at the refuse threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
+    <value>拒否しきい値で何が起きるかを変更します。オフの場合、しきい値を超えたメッセージは SMTP のやり取り中に 550 で拒否され、送信者にそれが伝わります。オンの場合は 250 で受け入れられ、代わりに確認のために保留されます。送信者は配信されたと思い再試行しないため、おそらく偽装されている返信パスにバウンスすることなく誤検知から回復できますが、同時に、確認キューがそのメッセージの唯一の存在場所になります。メッセージ本文の受信後に実行されるチェックに適用されます。それより前に下された判定 (DNS ブロック リストに載った接続元 IP、不正な HELO) には保留すべきメッセージがないため、拒否のままです。</value>
   </data>
   <data name="Changing it renames the list; its members and settings stay." xml:space="preserve">
     <value>変更するとリストの名前が変わります。メンバーと設定はそのまま残ります。</value>
@@ -2880,6 +2886,9 @@
   </data>
   <data name="Contacting {0}…" xml:space="preserve">
     <value>{0} に接続しています…</value>
+  </data>
+  <data name="Content filters" xml:space="preserve">
+    <value>コンテンツ フィルター</value>
   </data>
   <data name="Control Deck" xml:space="preserve">
     <value>Control Deck</value>
@@ -6438,8 +6447,8 @@
   <data name="Lower IP" xml:space="preserve">
     <value>下限 IP</value>
   </data>
-  <data name="Lower the mark and delete thresholds, or turn on more of the checks." xml:space="preserve">
-    <value>マークと削除のしきい値を下げるか、より多くのチェックをオンにしてください。</value>
+  <data name="Lower the mark and refuse thresholds, or turn on more of the checks." xml:space="preserve">
+    <value>マークと拒否のしきい値を下げるか、より多くのチェックをオンにしてください。</value>
   </data>
   <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. To allow or block a domain outright, use the Allowed and blocked domains page, under Spam &amp; virus filtering." xml:space="preserve">
     <value>MAIL FROM:&lt;&gt; は配信レポートの返送経路であり、レポートの宛先はちょうど 1 つ、すなわち対象メッセージを送った送信元アドレスです。空の送信者がその後に 2 つ目の宛先を指定するなら、それはバックスキャッター、偽造レポート、または探査です。オフの場合、サーバーは従来どおり受け入れます。オンの場合、2 つ目以降の RCPT TO には 550 を返し、そのトランザクションの DATA も拒否します。宛先が 1 つの空の送信者には一切触れません。スパムテストを実行する IP 範囲からの未認証セッションのみが対象で、スパム対策の除外にある送信者には決して適用されません。ドメイン全体を許可またはブロックするには、[スパムとウイルスのフィルタリング] の下にある [許可・ブロックするドメイン] ページを使用します。</value>
@@ -7408,6 +7417,9 @@
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>DKIM 署名がオンになっているドメインがないため、DNS レコードは不要です。</value>
   </data>
+  <data name="No domain has a trap address yet, so these settings do nothing." xml:space="preserve">
+    <value>トラップ アドレスを持つドメインはまだないため、これらの設定は何もしません。</value>
+  </data>
   <data name="No domain has an Active Directory domain name, so none can take part." xml:space="preserve">
     <value>Active Directory ドメイン名が設定されたドメインがないため、対象にできるドメインはありません。</value>
   </data>
@@ -7663,6 +7675,9 @@
   <data name="No second factor. Enrolling one stops this account's password working in mail clients immediately, because IMAP, POP3 and SMTP have nowhere to enter a code - set up an app password on the App passwords tab first, or the mailbox will go quiet." xml:space="preserve">
     <value>第 2 要素はありません。登録すると、このアカウントのパスワードは直ちにメール クライアントで使えなくなります。IMAP、POP3、SMTP にはコードを入力する場所がないからです。先にアプリ パスワード タブでアプリ パスワードを設定してください。さもないとメールボックスは沈黙します。</value>
   </data>
+  <data name="No setting had changed." xml:space="preserve">
+    <value>変更された設定はありませんでした。</value>
+  </data>
   <data name="No signature database folder is set." xml:space="preserve">
     <value>シグネチャ データベース フォルダーが設定されていません。</value>
   </data>
@@ -7870,11 +7885,11 @@
   <data name="Nothing is ever marked as spam: marking needs a mark threshold above 0, and a 0 there means &quot;never&quot; rather than &quot;always&quot;. Messages reaching {0} are still refused." xml:space="preserve">
     <value>スパムとしてマークされるものはありません: マークにはマークしきい値が 0 より大きい必要があり、そこでの 0 は「常に」ではなく「決してしない」を意味します。{0} に達したメッセージは引き続き拒否されます。</value>
   </data>
-  <data name="Nothing is held right now. A message over the delete threshold after its body has arrived appears here; its sender is told it was accepted." xml:space="preserve">
-    <value>現在、保留中のメッセージはありません。本文の受信後に削除しきい値を超えたメッセージはここに表示され、送信者には受理されたと通知されます。</value>
+  <data name="Nothing is held right now. A message over the refuse threshold after its body has arrived appears here; its sender is told it was accepted." xml:space="preserve">
+    <value>現在、保留中のメッセージはありません。本文の受信後に拒否しきい値を超えたメッセージはここに表示され、送信者には受理されたと通知されます。</value>
   </data>
-  <data name="Nothing is held. Quarantining is switched off: until it is turned on under Anti-spam settings, spam over the delete threshold is refused during the SMTP conversation rather than stored." xml:space="preserve">
-    <value>保留中のメッセージはありません。検疫は無効です: スパム対策の設定で有効にするまで、削除しきい値を超えるスパムは保存されず、SMTP セッション中に拒否されます。</value>
+  <data name="Nothing is held. Quarantining is switched off: until it is turned on under Anti-spam settings, spam over the refuse threshold is refused during the SMTP conversation rather than stored." xml:space="preserve">
+    <value>保留中のメッセージはありません。検疫は無効です: スパム対策の設定で有効にするまで、拒否しきい値を超えるスパムは保存されず、SMTP セッション中に拒否されます。</value>
   </data>
   <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.INI key." xml:space="preserve">
     <value>"{0}" に一致するものはありません。達成したいこと (「スパムを止める」「機器にメールを送らせる」)、ページ名、または hMailServer.INI のキーで試してください。</value>
@@ -10392,6 +10407,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Saved at {0}. No syntax errors. Scripting is off, so the server does not run these handlers." xml:space="preserve">
     <value>{0} に保存しました。構文エラーはありません。スクリプトがオフのため、サーバーはこれらのハンドラーを実行しません。</value>
   </data>
+  <data name="Saved at {0}: no setting had changed." xml:space="preserve">
+    <value>{0} に保存しました: 変更された設定はありませんでした。</value>
+  </data>
   <data name="Saved {0} - every setting on this page is in effect." xml:space="preserve">
     <value>{0} を保存しました。このページのすべての設定が有効です。</value>
   </data>
@@ -10416,11 +10434,38 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Saved {0} - {1} settings wait for a reinitialise; Apply now, in the bar at the foot of the window, takes them." xml:space="preserve">
     <value>{0} を保存しました。{1} 件の設定が再初期化を待っています。ウィンドウ下部のバーにある [今すぐ適用] で適用されます。</value>
   </data>
-  <data name="Saved {0} setting - applied immediately." xml:space="preserve">
-    <value>{0} 件の設定を保存しました - 直ちに適用されます。</value>
+  <data name="Saved {0} at {1} - applied immediately." xml:space="preserve">
+    <value>{1} に {0} を保存しました - 直ちに適用されます。</value>
   </data>
-  <data name="Saved {0} setting - hMailServer.ini settings need a service restart." xml:space="preserve">
-    <value>{0} 件の設定を保存しました - hMailServer.ini の設定はサービスの再起動が必要です。</value>
+  <data name="Saved {0} at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value>{1} に {0} を保存しました - サーバー設定は直ちに適用されます。hMailServer.ini の設定はサービスの再起動後に適用されます。</value>
+  </data>
+  <data name="Saved {0} at {1}." xml:space="preserve">
+    <value>{1} に {0} を保存しました。</value>
+  </data>
+  <data name="Saved {0} change at {1} - applied immediately." xml:space="preserve">
+    <value>{1} に {0} 件の変更を保存しました - 直ちに適用されます。</value>
+  </data>
+  <data name="Saved {0} change at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value>{1} に {0} 件の変更を保存しました - サーバー設定は直ちに適用されます。hMailServer.ini の設定はサービスの再起動後に適用されます。</value>
+  </data>
+  <data name="Saved {0} change at {1}." xml:space="preserve">
+    <value>{1} に {0} 件の変更を保存しました。</value>
+  </data>
+  <data name="Saved {0} change." xml:space="preserve">
+    <value>{0} 件の変更を保存しました。</value>
+  </data>
+  <data name="Saved {0} changes at {1} - applied immediately." xml:space="preserve">
+    <value>{1} に {0} 件の変更を保存しました - 直ちに適用されます。</value>
+  </data>
+  <data name="Saved {0} changes at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value>{1} に {0} 件の変更を保存しました - サーバー設定は直ちに適用されます。hMailServer.ini の設定はサービスの再起動後に適用されます。</value>
+  </data>
+  <data name="Saved {0} changes at {1}." xml:space="preserve">
+    <value>{1} に {0} 件の変更を保存しました。</value>
+  </data>
+  <data name="Saved {0} changes." xml:space="preserve">
+    <value>{0} 件の変更を保存しました。</value>
   </data>
   <data name="Saved {0} setting at {1} - applied immediately." xml:space="preserve">
     <value>{1} に {0} 件の設定を保存しました - 直ちに適用されます。</value>
@@ -10434,12 +10479,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Saved {0} setting." xml:space="preserve">
     <value>{0} 件の設定を保存しました。</value>
   </data>
-  <data name="Saved {0} settings - applied immediately." xml:space="preserve">
-    <value>{0} 件の設定を保存しました - 直ちに適用されます。</value>
-  </data>
-  <data name="Saved {0} settings - hMailServer.ini settings need a service restart." xml:space="preserve">
-    <value>{0} 件の設定を保存しました - hMailServer.ini の設定はサービスの再起動が必要です。</value>
-  </data>
   <data name="Saved {0} settings at {1} - applied immediately." xml:space="preserve">
     <value>{1} に {0} 件の設定を保存しました - 直ちに適用されます。</value>
   </data>
@@ -10451,6 +10490,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Saved {0} settings." xml:space="preserve">
     <value>{0} 件の設定を保存しました。</value>
+  </data>
+  <data name="Saved {0}." xml:space="preserve">
+    <value>{0} を保存しました。</value>
   </data>
   <data name="Saved, but reload failed: {0}" xml:space="preserve">
     <value>保存しましたが、再読み込みに失敗しました: {0}</value>
@@ -11478,9 +11520,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Spam check" xml:space="preserve">
     <value>スパム チェック</value>
   </data>
-  <data name="Spam delete threshold (score)" xml:space="preserve">
-    <value>スパム削除しきい値 (スコア)</value>
-  </data>
   <data name="Spam detected" xml:space="preserve">
     <value>検出したスパム</value>
   </data>
@@ -11492,6 +11531,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Spam mark threshold (score)" xml:space="preserve">
     <value>スパム マークしきい値 (スコア)</value>
+  </data>
+  <data name="Spam refuse threshold (score)" xml:space="preserve">
+    <value>スパム拒否しきい値 (スコア)</value>
   </data>
   <data name="Spam traps" xml:space="preserve">
     <value>スパム トラップ</value>
@@ -12482,9 +12524,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The delete override never deletes on a guess: the copy is removed only when the recorded score actually reached the value, and it goes to the quarantine store instead when that is enabled." xml:space="preserve">
     <value>削除の上書きが推測で削除することはありません。記録されたスコアが実際にその値に達した場合にのみコピーが削除され、検疫ストアが有効な場合は代わりにそちらに送られます。</value>
   </data>
-  <data name="The delete threshold ({0}) is at or below the mark threshold ({1}) and is tested first, so no message is ever marked and delivered - every message that would be marked is refused instead." xml:space="preserve">
-    <value>削除しきい値 ({0}) がマークしきい値 ({1}) 以下で、先にテストされるため、マークされて配信されるメッセージは 1 つもありません。マークされるはずのメッセージはすべて代わりに拒否されます。</value>
-  </data>
   <data name="The delivery queue is empty." xml:space="preserve">
     <value>配信キューは空です。</value>
   </data>
@@ -12841,6 +12880,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The main hMailServer administration password. It is used by this Control Panel, the REST API and any script that connects through the COM API, and is stored hashed in hMailServer.ini. Changing it does not affect mailbox passwords." xml:space="preserve">
     <value>hMailServer の主管理パスワードです。このコントロールパネル、REST API、そして COM API 経由で接続するあらゆるスクリプトが使用し、hMailServer.ini にハッシュ化されて保存されます。これを変更してもメールボックスのパスワードには影響しません。</value>
   </data>
+  <data name="The mark threshold is 0, so no message is marked as spam: 0 means never." xml:space="preserve">
+    <value>マークしきい値が 0 のため、スパムとしてマークされるメッセージはありません。0 は「決してしない」を意味します。</value>
+  </data>
   <data name="The match cannot be checked until both files are present and readable." xml:space="preserve">
     <value>両方のファイルが存在し読み取り可能になるまで、一致を確認できません。</value>
   </data>
@@ -13031,6 +13073,15 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The records were checked." xml:space="preserve">
     <value>レコードを確認しました。</value>
+  </data>
+  <data name="The refuse threshold ({0}) is at or below the mark threshold ({1}) and is tested first, so no message is ever marked and delivered - every message that would be marked is refused instead." xml:space="preserve">
+    <value>拒否しきい値 ({0}) がマークしきい値 ({1}) 以下で、先にテストされるため、マークされて配信されるメッセージは 1 つもありません。マークされるはずのメッセージはすべて代わりに拒否されます。</value>
+  </data>
+  <data name="The refuse threshold is 0, so no message is refused or held on its score: 0 means never." xml:space="preserve">
+    <value>拒否しきい値が 0 のため、スコアによって拒否または保留されるメッセージはありません。0 は「決してしない」を意味します。</value>
+  </data>
+  <data name="The refuse threshold must be above the mark threshold, {0}: at or below it, every message the mark threshold would mark is refused instead." xml:space="preserve">
+    <value>拒否しきい値はマークしきい値 ({0}) より大きくする必要があります。それ以下では、マークしきい値でマークされるはずのメッセージがすべて代わりに拒否されます。</value>
   </data>
   <data name="The relay requires _authentication" xml:space="preserve">
     <value>リレーは認証を必要とする(_A)</value>
@@ -14529,6 +14580,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>どのディレクトリ エントリがメールボックスになるか</value>
+  </data>
+  <data name="Which domains have a spam trap could not be read." xml:space="preserve">
+    <value>どのドメインにスパム トラップがあるかを読み取れませんでした。</value>
   </data>
   <data name="Which list do I need?" xml:space="preserve">
     <value>どのリストを使えばよいか</value>
@@ -16802,8 +16856,14 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} did not answer within 10 seconds from this machine. Likely causes: no A/CNAME record for mta-sts.{1}, the HTTPS listener is not running (no HTTPS port on the Web services &amp; autoconfiguration page), or a firewall in between. Checked from this machine only." xml:space="preserve">
     <value>{0} はこのコンピューターから 10 秒以内に応答しませんでした。考えられる原因: mta-sts.{1} の A/CNAME レコードがない、HTTPS リスナーが動作していない ([Web サービスと自動設定] ページで HTTPS ポートが未設定)、または途中にファイアウォールがある、のいずれかです。確認はこのコンピューターからのみ行っています。</value>
   </data>
+  <data name="{0} domain has trap addresses." xml:space="preserve">
+    <value>{0} 個のドメインにトラップ アドレスがあります。</value>
+  </data>
   <data name="{0} domain, and it is not active." xml:space="preserve">
     <value>{0} 件のドメインがありますが、有効なものはありません。</value>
+  </data>
+  <data name="{0} domains have trap addresses." xml:space="preserve">
+    <value>{0} 個のドメインにトラップ アドレスがあります。</value>
   </data>
   <data name="{0} domains, none of them active." xml:space="preserve">
     <value>{0} 件のドメインがありますが、有効なものはありません。</value>
@@ -17327,14 +17387,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} {1} messages are on their way into them and arrive in a few seconds. All of the mailboxes sign in with the password {2}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
     <value>{0}そこへ向かうメッセージが {1} 件あり、数秒で届きます。すべてのメールボックスはパスワード {2} でサインインします。ここに表示されるのは一度だけです。サーバーは保存していないので、書き留めてください。</value>
   </data>
-  <data name="{0} {1} of them wait for a reinitialise or a restart." xml:space="preserve">
-    <value>{0}うち {1} 件が再初期化または再起動を待っています。</value>
-  </data>
   <data name="{0} {1} of them wait for a reinitialise or a restart; the rest applied immediately." xml:space="preserve">
     <value>{0}うち {1} 件は再初期化または再起動を待っています。残りは直ちに適用されました。</value>
-  </data>
-  <data name="{0} {1} of them waits for a reinitialise or a restart." xml:space="preserve">
-    <value>{0}うち {1} 件が再初期化または再起動を待っています。</value>
   </data>
   <data name="{0} {1} of them waits for a reinitialise or a restart; the rest applied immediately." xml:space="preserve">
     <value>{0}うち {1} 件は再初期化または再起動を待っています。残りは直ちに適用されました。</value>
@@ -17342,8 +17396,14 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} {1} setting could not be written." xml:space="preserve">
     <value>{0}{1} 件の設定を書き込めませんでした。</value>
   </data>
+  <data name="{0} {1} setting on this page waits for a reinitialise or a restart." xml:space="preserve">
+    <value>{0}このページの設定のうち {1} 件は再初期化または再起動を待っています。</value>
+  </data>
   <data name="{0} {1} settings could not be written." xml:space="preserve">
     <value>{0}{1} 件の設定を書き込めませんでした。</value>
+  </data>
+  <data name="{0} {1} settings on this page wait for a reinitialise or a restart." xml:space="preserve">
+    <value>{0}このページの設定のうち {1} 件は再初期化または再起動を待っています。</value>
   </data>
   <data name="{0} — exit code {1} means infected" xml:space="preserve">
     <value>{0} — 終了コード {1} は感染を意味します</value>
@@ -17537,8 +17597,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} には PEM 証明書ブロックが含まれていないため、使用できる CA 証明書がありません (サーバー エラー 6140)。CA 証明書を PEM (Base64) 形式でエクスポートしてください。</value>
   </data>
-  <data name="~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation, as a fail does." xml:space="preserve">
-    <value>~all: ドメインはクライアントがおそらく承認されていないと述べつつ、それでもメッセージを受け入れるよう求めており、多くの大量送信元がその陰に隠れています。削除しきい値以上のスコアは、fail と同様に SMTP の会話中にメッセージを拒否します。</value>
+  <data name="~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many spray sources live behind it. A score at or above the refuse threshold refuses the message during the SMTP conversation, as a fail does." xml:space="preserve">
+    <value>~all: ドメインはクライアントがおそらく承認されていないと述べつつ、それでもメッセージを受け入れるよう求めており、多くの大量送信元がその陰に隠れています。拒否しきい値以上のスコアは、fail と同様に SMTP の会話中にメッセージを拒否します。</value>
   </data>
   <data name="… continued in {0}" xml:space="preserve">
     <value>… {0} に続きます</value>

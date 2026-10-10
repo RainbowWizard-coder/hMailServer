@@ -516,6 +516,9 @@
   <data name="A message not on the local disk is looked for in the object store while one is named, so switching back hides nothing. Taken within five seconds." xml:space="preserve">
     <value>Wiadomość, której nie ma na dysku lokalnym, jest szukana w magazynie obiektów, dopóki jakiś jest wskazany, więc powrót nic nie ukrywa. Przyjmowane w ciągu pięciu sekund.</value>
   </data>
+  <data name="A message scoring this or more is refused during the SMTP conversation, or held in the quarantine while quarantining is on. Older versions called it the delete threshold." xml:space="preserve">
+    <value>Wiadomość z tym wynikiem lub wyższym jest odrzucana podczas rozmowy SMTP albo wstrzymywana w kwarantannie, gdy kwarantanna jest włączona. Starsze wersje nazywały go progiem usuwania.</value>
+  </data>
   <data name="A message scoring {0} or more is marked as spam and delivered. Nothing is refused on score." xml:space="preserve">
     <value>Wiadomość z punktacją {0} lub wyższą jest oznaczana jako spam i dostarczana. Nic nie jest odrzucane na podstawie punktacji.</value>
   </data>
@@ -2206,6 +2209,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Both thresholds are 0, so no score can mark or refuse anything - the server tests them with &quot;greater than 0&quot; before using them. It also stops testing as soon as the running total reaches the higher threshold, which is 0, so exactly one check runs in each phase and its result is discarded." xml:space="preserve">
     <value>Oba progi mają wartość 0, więc żadna punktacja niczego nie oznaczy ani nie odrzuci - serwer sprawdza je warunkiem „większe niż 0”, zanim ich użyje. Przerywa też sprawdzanie, gdy tylko bieżąca suma osiągnie wyższy z progów, czyli 0, więc w każdej fazie wykonuje się dokładnie jedna kontrola, a jej wynik jest odrzucany.</value>
   </data>
+  <data name="Both thresholds are 0, so no score marks, refuses or holds any message." xml:space="preserve">
+    <value>Oba progi wynoszą 0, więc żaden wynik nie oznacza, nie odrzuca ani nie wstrzymuje żadnej wiadomości.</value>
+  </data>
   <data name="Both ways" xml:space="preserve">
     <value>W obie strony</value>
   </data>
@@ -2443,8 +2449,8 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Changes here are saved as you make them, not with the dialog's Save, so Cancel does not undo them." xml:space="preserve">
     <value>Zmiany tutaj są zapisywane od razu, gdy je wprowadzasz, nie przyciskiem Zapisz w oknie dialogowym, więc Anuluj ich nie cofa.</value>
   </data>
-  <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
-    <value>Zmienia to, co dzieje się po przekroczeniu progu usuwania. Wyłączone: wiadomość powyżej progu jest odrzucana w trakcie rozmowy SMTP kodem 550, a nadawca zostaje o tym poinformowany. Włączone: wiadomość jest przyjmowana kodem 250 i zamiast tego wstrzymywana do przeglądu - nadawca jest przekonany, że została dostarczona, i nie ponowi próby, co pozwala odzyskać fałszywy alarm bez odbijania wiadomości na ścieżkę powrotną, która najpewniej jest sfałszowana, ale oznacza też, że kolejka przeglądu staje się jedynym miejscem, w którym ta wiadomość istnieje. Dotyczy kontroli wykonywanych po odebraniu treści wiadomości; werdykt zapadły wcześniej (łączący się adres IP z listy blokowania DNS, błędne HELO) nie ma czego wstrzymać i pozostaje odmową.</value>
+  <data name="Changes what happens at the refuse threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
+    <value>Zmienia to, co dzieje się po przekroczeniu progu odrzucania. Wyłączone: wiadomość powyżej progu jest odrzucana w trakcie rozmowy SMTP kodem 550, a nadawca zostaje o tym poinformowany. Włączone: wiadomość jest przyjmowana kodem 250 i zamiast tego wstrzymywana do przeglądu - nadawca jest przekonany, że została dostarczona, i nie ponowi próby, co pozwala odzyskać fałszywy alarm bez odbijania wiadomości na ścieżkę powrotną, która najpewniej jest sfałszowana, ale oznacza też, że kolejka przeglądu staje się jedynym miejscem, w którym ta wiadomość istnieje. Dotyczy kontroli wykonywanych po odebraniu treści wiadomości; werdykt zapadły wcześniej (łączący się adres IP z listy blokowania DNS, błędne HELO) nie ma czego wstrzymać i pozostaje odmową.</value>
   </data>
   <data name="Changing it renames the list; its members and settings stay." xml:space="preserve">
     <value>Zmiana zmienia nazwę listy; jej członkowie i ustawienia pozostają.</value>
@@ -2904,6 +2910,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   </data>
   <data name="Contacting {0}…" xml:space="preserve">
     <value>Nawiązywanie kontaktu z {0}…</value>
+  </data>
+  <data name="Content filters" xml:space="preserve">
+    <value>Filtry treści</value>
   </data>
   <data name="Control Deck" xml:space="preserve">
     <value>Control Deck</value>
@@ -6511,8 +6520,8 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   <data name="Lower IP" xml:space="preserve">
     <value>Dolny adres IP</value>
   </data>
-  <data name="Lower the mark and delete thresholds, or turn on more of the checks." xml:space="preserve">
-    <value>Należy obniżyć progi oznaczania i usuwania albo włączyć więcej kontroli.</value>
+  <data name="Lower the mark and refuse thresholds, or turn on more of the checks." xml:space="preserve">
+    <value>Należy obniżyć progi oznaczania i odrzucania albo włączyć więcej kontroli.</value>
   </data>
   <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. To allow or block a domain outright, use the Allowed and blocked domains page, under Spam &amp; virus filtering." xml:space="preserve">
     <value>MAIL FROM:&lt;&gt; to ścieżka zwrotna raportu doręczenia, a raport ma dokładnie jednego odbiorcę: adres, który wysłał wiadomość, której dotyczy. Pusty nadawca, który następnie podaje drugiego odbiorcę, to backscatter, sfałszowany raport albo sondowanie. Wyłączone: serwer przyjmuje go jak zawsze. Włączone: drugie i każde kolejne RCPT TO dostaje 550, a DATA transakcji także jest odrzucane; pusty nadawca z jednym odbiorcą nigdy nie jest ruszany. Tylko nieuwierzytelnione sesje z zakresu IP, który wykonuje testy antyspamowe, i nigdy nadawca z wyjątków antyspamowych. Aby dopuścić lub zablokować całą domenę, użyj strony Dozwolone i zablokowane domeny w grupie Filtrowanie spamu i wirusów.</value>
@@ -7490,6 +7499,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>Żadna domena nie ma włączonego podpisywania DKIM, więc żaden rekord DNS nie jest wymagany.</value>
   </data>
+  <data name="No domain has a trap address yet, so these settings do nothing." xml:space="preserve">
+    <value>Żadna domena nie ma jeszcze adresu pułapki, więc te ustawienia nic nie robią.</value>
+  </data>
   <data name="No domain has an Active Directory domain name, so none can take part." xml:space="preserve">
     <value>Żadna domena nie ma nazwy domeny Active Directory, więc żadna nie może wziąć udziału.</value>
   </data>
@@ -7751,6 +7763,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="No second factor. Enrolling one stops this account's password working in mail clients immediately, because IMAP, POP3 and SMTP have nowhere to enter a code - set up an app password on the App passwords tab first, or the mailbox will go quiet." xml:space="preserve">
     <value>Brak drugiego składnika. Jego zarejestrowanie natychmiast unieruchamia hasło tego konta w klientach pocztowych, ponieważ IMAP, POP3 i SMTP nie mają gdzie przyjąć kodu - należy najpierw utworzyć hasło aplikacji na karcie Hasła aplikacji, bo inaczej skrzynka pocztowa zamilknie.</value>
   </data>
+  <data name="No setting had changed." xml:space="preserve">
+    <value>Żadne ustawienie się nie zmieniło.</value>
+  </data>
   <data name="No signature database folder is set." xml:space="preserve">
     <value>Nie ustawiono folderu bazy sygnatur.</value>
   </data>
@@ -7964,11 +7979,11 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Nothing is ever marked as spam: marking needs a mark threshold above 0, and a 0 there means &quot;never&quot; rather than &quot;always&quot;. Messages reaching {0} are still refused." xml:space="preserve">
     <value>Nic nigdy nie jest oznaczane jako spam: oznaczanie wymaga progu oznaczania większego od 0, a 0 oznacza tam „nigdy”, a nie „zawsze”. Wiadomości osiągające {0} są nadal odrzucane.</value>
   </data>
-  <data name="Nothing is held right now. A message over the delete threshold after its body has arrived appears here; its sender is told it was accepted." xml:space="preserve">
-    <value>Obecnie nic nie jest wstrzymane. Wiadomość, która po odebraniu treści przekroczy próg usuwania, pojawia się tutaj; nadawca dowiaduje się, że została przyjęta.</value>
+  <data name="Nothing is held right now. A message over the refuse threshold after its body has arrived appears here; its sender is told it was accepted." xml:space="preserve">
+    <value>Obecnie nic nie jest wstrzymane. Wiadomość, która po odebraniu treści przekroczy próg odrzucania, pojawia się tutaj; nadawca dowiaduje się, że została przyjęta.</value>
   </data>
-  <data name="Nothing is held. Quarantining is switched off: until it is turned on under Anti-spam settings, spam over the delete threshold is refused during the SMTP conversation rather than stored." xml:space="preserve">
-    <value>Nic nie jest wstrzymane. Kwarantanna jest wyłączona: dopóki nie zostanie włączona w Ustawienia antyspamowe, spam powyżej progu usuwania jest odrzucany podczas sesji SMTP, a nie przechowywany.</value>
+  <data name="Nothing is held. Quarantining is switched off: until it is turned on under Anti-spam settings, spam over the refuse threshold is refused during the SMTP conversation rather than stored." xml:space="preserve">
+    <value>Nic nie jest wstrzymane. Kwarantanna jest wyłączona: dopóki nie zostanie włączona w Ustawienia antyspamowe, spam powyżej progu odrzucania jest odrzucany podczas sesji SMTP, a nie przechowywany.</value>
   </data>
   <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.INI key." xml:space="preserve">
     <value>Nic nie pasuje do „{0}”. Warto spróbować opisać cel („zatrzymaj spam”, „pozwól urządzeniu wysyłać pocztę”), podać nazwę strony albo klucz z pliku hMailServer.INI.</value>
@@ -10507,6 +10522,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Saved at {0}. No syntax errors. Scripting is off, so the server does not run these handlers." xml:space="preserve">
     <value>Zapisano o {0}. Brak błędów składni. Skrypty są wyłączone, więc serwer nie uruchamia tych procedur obsługi.</value>
   </data>
+  <data name="Saved at {0}: no setting had changed." xml:space="preserve">
+    <value>Zapisano o {0}: żadne ustawienie się nie zmieniło.</value>
+  </data>
   <data name="Saved {0} - every setting on this page is in effect." xml:space="preserve">
     <value>Zapisano {0} - wszystkie ustawienia na tej stronie obowiązują.</value>
   </data>
@@ -10534,11 +10552,50 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Saved {0} - {1} settings wait for a reinitialise; Apply now, in the bar at the foot of the window, takes them.|few" xml:space="preserve">
     <value>Zapisano {0} - {1} ustawienia czekają na ponowną inicjalizację; przycisk Zastosuj teraz na pasku u dołu okna je zastosuje.</value>
   </data>
-  <data name="Saved {0} setting - applied immediately." xml:space="preserve">
-    <value>Zapisano {0} ustawienie - stosowane natychmiast.</value>
+  <data name="Saved {0} at {1} - applied immediately." xml:space="preserve">
+    <value>Zapisano o {1}: {0} - stosowane natychmiast.</value>
   </data>
-  <data name="Saved {0} setting - hMailServer.ini settings need a service restart." xml:space="preserve">
-    <value>Zapisano {0} ustawienie - ustawienia w hMailServer.ini wymagają ponownego uruchomienia usługi.</value>
+  <data name="Saved {0} at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value>Zapisano o {1}: {0} - ustawienia serwera stosowane natychmiast; ustawienia z hMailServer.ini obowiązują po ponownym uruchomieniu usługi.</value>
+  </data>
+  <data name="Saved {0} at {1}." xml:space="preserve">
+    <value>Zapisano o {1}: {0}.</value>
+  </data>
+  <data name="Saved {0} change at {1} - applied immediately." xml:space="preserve">
+    <value>Zapisano {0} zmianę o {1} - stosowane natychmiast.</value>
+  </data>
+  <data name="Saved {0} change at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value>Zapisano {0} zmianę o {1} - ustawienia serwera stosowane natychmiast; ustawienia z hMailServer.ini obowiązują po ponownym uruchomieniu usługi.</value>
+  </data>
+  <data name="Saved {0} change at {1}." xml:space="preserve">
+    <value>Zapisano {0} zmianę o {1}.</value>
+  </data>
+  <data name="Saved {0} change." xml:space="preserve">
+    <value>Zapisano {0} zmianę.</value>
+  </data>
+  <data name="Saved {0} changes at {1} - applied immediately." xml:space="preserve">
+    <value>Zapisano {0} zmian o {1} - stosowane natychmiast.</value>
+  </data>
+  <data name="Saved {0} changes at {1} - applied immediately.|few" xml:space="preserve">
+    <value>Zapisano {0} zmiany o {1} - stosowane natychmiast.</value>
+  </data>
+  <data name="Saved {0} changes at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value>Zapisano {0} zmian o {1} - ustawienia serwera stosowane natychmiast; ustawienia z hMailServer.ini obowiązują po ponownym uruchomieniu usługi.</value>
+  </data>
+  <data name="Saved {0} changes at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart.|few" xml:space="preserve">
+    <value>Zapisano {0} zmiany o {1} - ustawienia serwera stosowane natychmiast; ustawienia z hMailServer.ini obowiązują po ponownym uruchomieniu usługi.</value>
+  </data>
+  <data name="Saved {0} changes at {1}." xml:space="preserve">
+    <value>Zapisano {0} zmian o {1}.</value>
+  </data>
+  <data name="Saved {0} changes at {1}.|few" xml:space="preserve">
+    <value>Zapisano {0} zmiany o {1}.</value>
+  </data>
+  <data name="Saved {0} changes." xml:space="preserve">
+    <value>Zapisano {0} zmian.</value>
+  </data>
+  <data name="Saved {0} changes.|few" xml:space="preserve">
+    <value>Zapisano {0} zmiany.</value>
   </data>
   <data name="Saved {0} setting at {1} - applied immediately." xml:space="preserve">
     <value>Zapisano {0} ustawienie o {1} - stosowane natychmiast.</value>
@@ -10551,18 +10608,6 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="Saved {0} setting." xml:space="preserve">
     <value>Zapisano {0} ustawienie.</value>
-  </data>
-  <data name="Saved {0} settings - applied immediately." xml:space="preserve">
-    <value>Zapisano {0} ustawień - stosowane natychmiast.</value>
-  </data>
-  <data name="Saved {0} settings - applied immediately.|few" xml:space="preserve">
-    <value>Zapisano {0} ustawienia - stosowane natychmiast.</value>
-  </data>
-  <data name="Saved {0} settings - hMailServer.ini settings need a service restart." xml:space="preserve">
-    <value>Zapisano {0} ustawień - ustawienia w hMailServer.ini wymagają ponownego uruchomienia usługi.</value>
-  </data>
-  <data name="Saved {0} settings - hMailServer.ini settings need a service restart.|few" xml:space="preserve">
-    <value>Zapisano {0} ustawienia - ustawienia w hMailServer.ini wymagają ponownego uruchomienia usługi.</value>
   </data>
   <data name="Saved {0} settings at {1} - applied immediately." xml:space="preserve">
     <value>Zapisano {0} ustawień o {1} - stosowane natychmiast.</value>
@@ -10587,6 +10632,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="Saved {0} settings.|few" xml:space="preserve">
     <value>Zapisano {0} ustawienia.</value>
+  </data>
+  <data name="Saved {0}." xml:space="preserve">
+    <value>Zapisano: {0}.</value>
   </data>
   <data name="Saved, but reload failed: {0}" xml:space="preserve">
     <value>Zapisano, ale przeładowanie nie powiodło się: {0}</value>
@@ -11620,9 +11668,6 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Spam check" xml:space="preserve">
     <value>Kontrola</value>
   </data>
-  <data name="Spam delete threshold (score)" xml:space="preserve">
-    <value>Próg usuwania spamu (punktacja)</value>
-  </data>
   <data name="Spam detected" xml:space="preserve">
     <value>Wykryty spam</value>
   </data>
@@ -11634,6 +11679,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="Spam mark threshold (score)" xml:space="preserve">
     <value>Próg oznaczania spamu (punktacja)</value>
+  </data>
+  <data name="Spam refuse threshold (score)" xml:space="preserve">
+    <value>Próg odrzucania spamu (punktacja)</value>
   </data>
   <data name="Spam traps" xml:space="preserve">
     <value>Pułapki na spam</value>
@@ -12651,9 +12699,6 @@ Należy zaznaczyć klucz powyżej i skopiować go ręcznie - nie zostanie pokaza
   <data name="The delete override never deletes on a guess: the copy is removed only when the recorded score actually reached the value, and it goes to the quarantine store instead when that is enabled." xml:space="preserve">
     <value>Nadpisanie progu usuwania nigdy nie usuwa na podstawie domysłu: kopia jest usuwana tylko wtedy, gdy zapisana punktacja faktycznie osiągnęła tę wartość, a przy włączonej kwarantannie trafia zamiast tego do kwarantanny.</value>
   </data>
-  <data name="The delete threshold ({0}) is at or below the mark threshold ({1}) and is tested first, so no message is ever marked and delivered - every message that would be marked is refused instead." xml:space="preserve">
-    <value>Próg usuwania ({0}) jest równy progowi oznaczania ({1}) lub od niego niższy, a sprawdzany jest jako pierwszy, więc żadna wiadomość nigdy nie zostaje oznaczona i dostarczona - każda, która miałaby zostać oznaczona, jest zamiast tego odrzucana.</value>
-  </data>
   <data name="The delivery queue is empty." xml:space="preserve">
     <value>Kolejka dostarczania jest pusta.</value>
   </data>
@@ -13019,6 +13064,9 @@ Wiadomość została prawdopodobnie dostarczona i nie ma jej już w kolejce.</va
   <data name="The main hMailServer administration password. It is used by this Control Panel, the REST API and any script that connects through the COM API, and is stored hashed in hMailServer.ini. Changing it does not affect mailbox passwords." xml:space="preserve">
     <value>Główne hasło administracyjne hMailServer. Używa go ten Control Panel, REST API i każdy skrypt łączący się przez COM API; jest przechowywane w postaci skrótu w pliku hMailServer.ini. Jego zmiana nie wpływa na hasła skrzynek pocztowych.</value>
   </data>
+  <data name="The mark threshold is 0, so no message is marked as spam: 0 means never." xml:space="preserve">
+    <value>Próg oznaczania wynosi 0, więc żadna wiadomość nie jest oznaczana jako spam: 0 oznacza nigdy.</value>
+  </data>
   <data name="The match cannot be checked until both files are present and readable." xml:space="preserve">
     <value>Dopasowania nie da się sprawdzić, dopóki oba pliki nie będą obecne i możliwe do odczytania.</value>
   </data>
@@ -13209,6 +13257,15 @@ Dodać mimo to?</value>
   </data>
   <data name="The records were checked." xml:space="preserve">
     <value>Rekordy zostały sprawdzone.</value>
+  </data>
+  <data name="The refuse threshold ({0}) is at or below the mark threshold ({1}) and is tested first, so no message is ever marked and delivered - every message that would be marked is refused instead." xml:space="preserve">
+    <value>Próg odrzucania ({0}) jest równy progowi oznaczania ({1}) lub od niego niższy, a sprawdzany jest jako pierwszy, więc żadna wiadomość nigdy nie zostaje oznaczona i dostarczona - każda, która miałaby zostać oznaczona, jest zamiast tego odrzucana.</value>
+  </data>
+  <data name="The refuse threshold is 0, so no message is refused or held on its score: 0 means never." xml:space="preserve">
+    <value>Próg odrzucania wynosi 0, więc żadna wiadomość nie jest odrzucana ani wstrzymywana na podstawie wyniku: 0 oznacza nigdy.</value>
+  </data>
+  <data name="The refuse threshold must be above the mark threshold, {0}: at or below it, every message the mark threshold would mark is refused instead." xml:space="preserve">
+    <value>Próg odrzucania musi być wyższy niż próg oznaczania, {0}: na jego poziomie lub poniżej każda wiadomość, którą próg oznaczania by oznaczył, jest zamiast tego odrzucana.</value>
   </data>
   <data name="The relay requires _authentication" xml:space="preserve">
     <value>Przekaźnik wymaga _uwierzytelnienia</value>
@@ -14713,6 +14770,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>Które wpisy katalogu stają się skrzynkami pocztowymi</value>
+  </data>
+  <data name="Which domains have a spam trap could not be read." xml:space="preserve">
+    <value>Nie udało się odczytać, które domeny mają pułapkę na spam.</value>
   </data>
   <data name="Which list do I need?" xml:space="preserve">
     <value>Której listy potrzebuję?</value>
@@ -17064,8 +17124,17 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} did not answer within 10 seconds from this machine. Likely causes: no A/CNAME record for mta-sts.{1}, the HTTPS listener is not running (no HTTPS port on the Web services &amp; autoconfiguration page), or a firewall in between. Checked from this machine only." xml:space="preserve">
     <value>{0} nie odpowiedział w ciągu 10 sekund z tego komputera. Prawdopodobne przyczyny: brak rekordu A/CNAME dla mta-sts.{1}, niedziałający nasłuch HTTPS (brak portu HTTPS na stronie Usługi webowe i autokonfiguracja) albo zapora po drodze. Sprawdzono wyłącznie z tego komputera.</value>
   </data>
+  <data name="{0} domain has trap addresses." xml:space="preserve">
+    <value>{0} domena ma adresy pułapek.</value>
+  </data>
   <data name="{0} domain, and it is not active." xml:space="preserve">
     <value>{0} domena, która nie jest aktywna.</value>
+  </data>
+  <data name="{0} domains have trap addresses." xml:space="preserve">
+    <value>{0} domen ma adresy pułapek.</value>
+  </data>
+  <data name="{0} domains have trap addresses.|few" xml:space="preserve">
+    <value>{0} domeny mają adresy pułapek.</value>
   </data>
   <data name="{0} domains, none of them active." xml:space="preserve">
     <value>{0} domen, żadna nie jest aktywna.</value>
@@ -17739,20 +17808,11 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} {1} messages are on their way into them and arrive in a few seconds. All of the mailboxes sign in with the password {2}, which is shown here once - write it down, because this server did not keep it.|few" xml:space="preserve">
     <value>{0} {1} wiadomości są w drodze do nich i dotrą w ciągu kilku sekund. Wszystkie skrzynki logują się hasłem {2}. Jest ono pokazane tutaj tylko raz - zapisz je, bo ten serwer go nie zachował.</value>
   </data>
-  <data name="{0} {1} of them wait for a reinitialise or a restart." xml:space="preserve">
-    <value>{0} {1} z nich czeka na ponowną inicjalizację lub ponowne uruchomienie.</value>
-  </data>
-  <data name="{0} {1} of them wait for a reinitialise or a restart.|few" xml:space="preserve">
-    <value>{0} {1} z nich czekają na ponowną inicjalizację lub ponowne uruchomienie.</value>
-  </data>
   <data name="{0} {1} of them wait for a reinitialise or a restart; the rest applied immediately." xml:space="preserve">
     <value>{0} {1} z nich czeka na ponowną inicjalizację lub ponowne uruchomienie; pozostałe zastosowano natychmiast.</value>
   </data>
   <data name="{0} {1} of them wait for a reinitialise or a restart; the rest applied immediately.|few" xml:space="preserve">
     <value>{0} {1} z nich czekają na ponowną inicjalizację lub ponowne uruchomienie; pozostałe zastosowano natychmiast.</value>
-  </data>
-  <data name="{0} {1} of them waits for a reinitialise or a restart." xml:space="preserve">
-    <value>{0} {1} z nich czeka na ponowną inicjalizację lub ponowne uruchomienie.</value>
   </data>
   <data name="{0} {1} of them waits for a reinitialise or a restart; the rest applied immediately." xml:space="preserve">
     <value>{0} {1} z nich czeka na ponowną inicjalizację lub ponowne uruchomienie; pozostałe zastosowano natychmiast.</value>
@@ -17760,11 +17820,20 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} {1} setting could not be written." xml:space="preserve">
     <value>{0} Nie udało się zapisać {1} ustawienia.</value>
   </data>
+  <data name="{0} {1} setting on this page waits for a reinitialise or a restart." xml:space="preserve">
+    <value>{0} {1} ustawienie tej strony czeka na ponowną inicjalizację lub ponowne uruchomienie.</value>
+  </data>
   <data name="{0} {1} settings could not be written." xml:space="preserve">
     <value>{0} Nie udało się zapisać {1} ustawień.</value>
   </data>
   <data name="{0} {1} settings could not be written.|few" xml:space="preserve">
     <value>{0} Nie udało się zapisać {1} ustawień.</value>
+  </data>
+  <data name="{0} {1} settings on this page wait for a reinitialise or a restart." xml:space="preserve">
+    <value>{0} {1} ustawień tej strony czeka na ponowną inicjalizację lub ponowne uruchomienie.</value>
+  </data>
+  <data name="{0} {1} settings on this page wait for a reinitialise or a restart.|few" xml:space="preserve">
+    <value>{0} {1} ustawienia tej strony czekają na ponowną inicjalizację lub ponowne uruchomienie.</value>
   </data>
   <data name="{0} — exit code {1} means infected" xml:space="preserve">
     <value>{0} — kod wyjścia {1} oznacza infekcję</value>
@@ -17961,8 +18030,8 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} nie zawiera bloku certyfikatu PEM, więc nie ma w nim zdatnego do użytku certyfikatu CA (błąd serwera 6140). Należy wyeksportować certyfikat CA w formacie PEM (Base64).</value>
   </data>
-  <data name="~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation, as a fail does." xml:space="preserve">
-    <value>~all: domena mówi, że klient prawdopodobnie nie jest upoważniony, ale prosi, by mimo to przyjąć wiadomość, a wiele źródeł masowych wysyłek się za tym chowa. Punktacja równa progowi usuwania lub wyższa odrzuca wiadomość podczas rozmowy SMTP, tak jak fail.</value>
+  <data name="~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many spray sources live behind it. A score at or above the refuse threshold refuses the message during the SMTP conversation, as a fail does." xml:space="preserve">
+    <value>~all: domena mówi, że klient prawdopodobnie nie jest upoważniony, ale prosi, by mimo to przyjąć wiadomość, a wiele źródeł masowych wysyłek się za tym chowa. Punktacja równa progowi odrzucania lub wyższa odrzuca wiadomość podczas rozmowy SMTP, tak jak fail.</value>
   </data>
   <data name="… continued in {0}" xml:space="preserve">
     <value>… ciąg dalszy w {0}</value>

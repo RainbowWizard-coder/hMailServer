@@ -513,6 +513,9 @@
   <data name="A message not on the local disk is looked for in the object store while one is named, so switching back hides nothing. Taken within five seconds." xml:space="preserve">
     <value>Een bericht dat niet op de lokale schijf staat, wordt in de objectopslag gezocht zolang er een is ingesteld, dus terugschakelen verbergt niets. Binnen vijf seconden overgenomen.</value>
   </data>
+  <data name="A message scoring this or more is refused during the SMTP conversation, or held in the quarantine while quarantining is on. Older versions called it the delete threshold." xml:space="preserve">
+    <value>Een bericht met deze score of hoger wordt tijdens het SMTP-gesprek geweigerd, of in quarantaine vastgehouden zolang quarantaine aan staat. Oudere versies noemden dit de verwijderdrempel.</value>
+  </data>
   <data name="A message scoring {0} or more is marked as spam and delivered. Nothing is refused on score." xml:space="preserve">
     <value>Een bericht met score {0} of hoger wordt als spam gemarkeerd en bezorgd. Er wordt niets geweigerd op score.</value>
   </data>
@@ -2182,6 +2185,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Both thresholds are 0, so no score can mark or refuse anything - the server tests them with &quot;greater than 0&quot; before using them. It also stops testing as soon as the running total reaches the higher threshold, which is 0, so exactly one check runs in each phase and its result is discarded." xml:space="preserve">
     <value>Beide drempels staan op 0, dus geen enkele score kan iets markeren of weigeren - de server toetst ze met "groter dan 0" voordat hij ze gebruikt. Hij stopt ook met toetsen zodra het lopende totaal de hoogste drempel bereikt, en die is 0, dus er draait precies één controle in elke fase en het resultaat daarvan wordt weggegooid.</value>
   </data>
+  <data name="Both thresholds are 0, so no score marks, refuses or holds any message." xml:space="preserve">
+    <value>Beide drempels zijn 0, dus geen enkele score markeert, weigert of houdt een bericht vast.</value>
+  </data>
   <data name="Both ways" xml:space="preserve">
     <value>Beide richtingen</value>
   </data>
@@ -2419,8 +2425,8 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Changes here are saved as you make them, not with the dialog's Save, so Cancel does not undo them." xml:space="preserve">
     <value>Wijzigingen hier worden opgeslagen zodra u ze maakt, niet met Opslaan van het venster, dus Annuleren maakt ze niet ongedaan.</value>
   </data>
-  <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
-    <value>Verandert wat er bij de verwijderdrempel gebeurt. Staat dit uit, dan wordt een bericht daarboven tijdens het SMTP-gesprek geweigerd met een 550 en krijgt de afzender dat te horen. Staat het aan, dan wordt het in plaats daarvan geaccepteerd met een 250 en vastgehouden voor beoordeling - de afzender denkt dat het is bezorgd en probeert het niet opnieuw, en juist dat maakt een vals positief herstelbaar zonder te bouncen naar een return path dat waarschijnlijk vervalst is; het betekent ook dat de beoordelingswachtrij de enige plek wordt waar dat bericht bestaat. Geldt voor controles die draaien nadat de berichttekst is ontvangen; een oordeel dat daarvóór valt (een verbindend IP op een DNS-blokkeerlijst, een slechte HELO) heeft geen bericht om vast te houden en blijft een weigering.</value>
+  <data name="Changes what happens at the refuse threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
+    <value>Verandert wat er bij de weigerdrempel gebeurt. Staat dit uit, dan wordt een bericht daarboven tijdens het SMTP-gesprek geweigerd met een 550 en krijgt de afzender dat te horen. Staat het aan, dan wordt het in plaats daarvan geaccepteerd met een 250 en vastgehouden voor beoordeling - de afzender denkt dat het is bezorgd en probeert het niet opnieuw, en juist dat maakt een vals positief herstelbaar zonder te bouncen naar een return path dat waarschijnlijk vervalst is; het betekent ook dat de beoordelingswachtrij de enige plek wordt waar dat bericht bestaat. Geldt voor controles die draaien nadat de berichttekst is ontvangen; een oordeel dat daarvóór valt (een verbindend IP op een DNS-blokkeerlijst, een slechte HELO) heeft geen bericht om vast te houden en blijft een weigering.</value>
   </data>
   <data name="Changing it renames the list; its members and settings stay." xml:space="preserve">
     <value>Wijzigen geeft de lijst een andere naam; de leden en instellingen blijven.</value>
@@ -2880,6 +2886,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Contacting {0}…" xml:space="preserve">
     <value>Contact opnemen met {0}…</value>
+  </data>
+  <data name="Content filters" xml:space="preserve">
+    <value>Inhoudsfilters</value>
   </data>
   <data name="Control Deck" xml:space="preserve">
     <value>Control Deck</value>
@@ -6438,8 +6447,8 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Lower IP" xml:space="preserve">
     <value>Laagste IP</value>
   </data>
-  <data name="Lower the mark and delete thresholds, or turn on more of the checks." xml:space="preserve">
-    <value>Verlaag de markeer- en verwijderdrempels, of schakel meer van de controles in.</value>
+  <data name="Lower the mark and refuse thresholds, or turn on more of the checks." xml:space="preserve">
+    <value>Verlaag de markeer- en weigerdrempels, of schakel meer van de controles in.</value>
   </data>
   <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. To allow or block a domain outright, use the Allowed and blocked domains page, under Spam &amp; virus filtering." xml:space="preserve">
     <value>MAIL FROM:&lt;&gt; is het retourpad van een bezorgrapport, en een rapport heeft precies één ontvanger: het adres dat het betreffende bericht verzond. Een lege afzender die daarna een tweede ontvanger noemt, is backscatter, een vervalst rapport of een aftasting. Uit: de server accepteert hem zoals altijd. Aan: de tweede en elke volgende RCPT TO krijgt 550 en ook de DATA van de transactie wordt geweigerd; een lege afzender met één ontvanger wordt nooit aangeraakt. Alleen niet-geauthenticeerde sessies van een IP-bereik dat de spamtests uitvoert, en nooit een afzender uit de spamuitzonderingen. Gebruik de pagina Toegestane en geblokkeerde domeinen, onder Spam- en virusfiltering, om een heel domein toe te staan of te blokkeren.</value>
@@ -7408,6 +7417,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>Geen enkel domein heeft DKIM-ondertekening aanstaan, dus er is geen DNS-record vereist.</value>
   </data>
+  <data name="No domain has a trap address yet, so these settings do nothing." xml:space="preserve">
+    <value>Nog geen enkel domein heeft een valadres, dus deze instellingen doen niets.</value>
+  </data>
   <data name="No domain has an Active Directory domain name, so none can take part." xml:space="preserve">
     <value>Geen enkel domein heeft een Active Directory-domeinnaam, dus geen enkel domein kan meedoen.</value>
   </data>
@@ -7663,6 +7675,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No second factor. Enrolling one stops this account's password working in mail clients immediately, because IMAP, POP3 and SMTP have nowhere to enter a code - set up an app password on the App passwords tab first, or the mailbox will go quiet." xml:space="preserve">
     <value>Geen tweede factor. Er een inschrijven zorgt ervoor dat het wachtwoord van dit account per direct niet meer werkt in e-mailclients, omdat IMAP, POP3 en SMTP nergens een code kunnen invoeren - stel eerst een app-wachtwoord in op het tabblad App-wachtwoorden, anders valt het postvak stil.</value>
   </data>
+  <data name="No setting had changed." xml:space="preserve">
+    <value>Er was geen instelling gewijzigd.</value>
+  </data>
   <data name="No signature database folder is set." xml:space="preserve">
     <value>Er is geen map met de handtekeningendatabase ingesteld.</value>
   </data>
@@ -7870,11 +7885,11 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Nothing is ever marked as spam: marking needs a mark threshold above 0, and a 0 there means &quot;never&quot; rather than &quot;always&quot;. Messages reaching {0} are still refused." xml:space="preserve">
     <value>Er wordt nooit iets als spam gemarkeerd: markeren vereist een markeerdrempel boven 0, en een 0 daar betekent "nooit" en niet "altijd". Berichten die {0} halen, worden nog steeds geweigerd.</value>
   </data>
-  <data name="Nothing is held right now. A message over the delete threshold after its body has arrived appears here; its sender is told it was accepted." xml:space="preserve">
-    <value>Er wordt op dit moment niets vastgehouden. Een bericht dat na ontvangst van de inhoud boven de verwijderdrempel uitkomt, verschijnt hier; de afzender krijgt te horen dat het is geaccepteerd.</value>
+  <data name="Nothing is held right now. A message over the refuse threshold after its body has arrived appears here; its sender is told it was accepted." xml:space="preserve">
+    <value>Er wordt op dit moment niets vastgehouden. Een bericht dat na ontvangst van de inhoud boven de weigerdrempel uitkomt, verschijnt hier; de afzender krijgt te horen dat het is geaccepteerd.</value>
   </data>
-  <data name="Nothing is held. Quarantining is switched off: until it is turned on under Anti-spam settings, spam over the delete threshold is refused during the SMTP conversation rather than stored." xml:space="preserve">
-    <value>Er wordt niets vastgehouden. Quarantaine staat uit: totdat deze onder Antispaminstellingen wordt ingeschakeld, wordt spam boven de verwijderdrempel tijdens het SMTP-gesprek geweigerd in plaats van opgeslagen.</value>
+  <data name="Nothing is held. Quarantining is switched off: until it is turned on under Anti-spam settings, spam over the refuse threshold is refused during the SMTP conversation rather than stored." xml:space="preserve">
+    <value>Er wordt niets vastgehouden. Quarantaine staat uit: totdat deze onder Antispaminstellingen wordt ingeschakeld, wordt spam boven de weigerdrempel tijdens het SMTP-gesprek geweigerd in plaats van opgeslagen.</value>
   </data>
   <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.INI key." xml:space="preserve">
     <value>Niets kwam overeen met "{0}". Probeer wat u wilt bereiken ("spam stoppen", "een apparaat mail laten verzenden"), een paginanaam, of een sleutel uit hMailServer.INI.</value>
@@ -10392,6 +10407,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Saved at {0}. No syntax errors. Scripting is off, so the server does not run these handlers." xml:space="preserve">
     <value>Opgeslagen om {0}. Geen syntaxisfouten. Scripting staat uit, dus de server voert deze handlers niet uit.</value>
   </data>
+  <data name="Saved at {0}: no setting had changed." xml:space="preserve">
+    <value>Opgeslagen om {0}: er was geen instelling gewijzigd.</value>
+  </data>
   <data name="Saved {0} - every setting on this page is in effect." xml:space="preserve">
     <value>{0} opgeslagen - elke instelling op deze pagina is van kracht.</value>
   </data>
@@ -10416,11 +10434,38 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Saved {0} - {1} settings wait for a reinitialise; Apply now, in the bar at the foot of the window, takes them." xml:space="preserve">
     <value>{0} opgeslagen - {1} instellingen wachten op een herinitialisatie; Nu toepassen, in de balk onder in het venster, past ze toe.</value>
   </data>
-  <data name="Saved {0} setting - applied immediately." xml:space="preserve">
-    <value>{0} instelling opgeslagen - direct toegepast.</value>
+  <data name="Saved {0} at {1} - applied immediately." xml:space="preserve">
+    <value>{0} opgeslagen om {1} - direct toegepast.</value>
   </data>
-  <data name="Saved {0} setting - hMailServer.ini settings need a service restart." xml:space="preserve">
-    <value>{0} instelling opgeslagen - instellingen in hMailServer.ini vereisen een herstart van de service.</value>
+  <data name="Saved {0} at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value>{0} opgeslagen om {1} - serverinstellingen worden direct toegepast; instellingen in hMailServer.ini gelden na een herstart van de service.</value>
+  </data>
+  <data name="Saved {0} at {1}." xml:space="preserve">
+    <value>{0} opgeslagen om {1}.</value>
+  </data>
+  <data name="Saved {0} change at {1} - applied immediately." xml:space="preserve">
+    <value>{0} wijziging opgeslagen om {1} - direct toegepast.</value>
+  </data>
+  <data name="Saved {0} change at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value>{0} wijziging opgeslagen om {1} - serverinstellingen worden direct toegepast; instellingen in hMailServer.ini gelden na een herstart van de service.</value>
+  </data>
+  <data name="Saved {0} change at {1}." xml:space="preserve">
+    <value>{0} wijziging opgeslagen om {1}.</value>
+  </data>
+  <data name="Saved {0} change." xml:space="preserve">
+    <value>{0} wijziging opgeslagen.</value>
+  </data>
+  <data name="Saved {0} changes at {1} - applied immediately." xml:space="preserve">
+    <value>{0} wijzigingen opgeslagen om {1} - direct toegepast.</value>
+  </data>
+  <data name="Saved {0} changes at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value>{0} wijzigingen opgeslagen om {1} - serverinstellingen worden direct toegepast; instellingen in hMailServer.ini gelden na een herstart van de service.</value>
+  </data>
+  <data name="Saved {0} changes at {1}." xml:space="preserve">
+    <value>{0} wijzigingen opgeslagen om {1}.</value>
+  </data>
+  <data name="Saved {0} changes." xml:space="preserve">
+    <value>{0} wijzigingen opgeslagen.</value>
   </data>
   <data name="Saved {0} setting at {1} - applied immediately." xml:space="preserve">
     <value>{0} instelling opgeslagen om {1} - direct toegepast.</value>
@@ -10434,12 +10479,6 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Saved {0} setting." xml:space="preserve">
     <value>{0} instelling opgeslagen.</value>
   </data>
-  <data name="Saved {0} settings - applied immediately." xml:space="preserve">
-    <value>{0} instellingen opgeslagen - direct toegepast.</value>
-  </data>
-  <data name="Saved {0} settings - hMailServer.ini settings need a service restart." xml:space="preserve">
-    <value>{0} instellingen opgeslagen - instellingen in hMailServer.ini vereisen een herstart van de service.</value>
-  </data>
   <data name="Saved {0} settings at {1} - applied immediately." xml:space="preserve">
     <value>{0} instellingen opgeslagen om {1} - direct toegepast.</value>
   </data>
@@ -10451,6 +10490,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Saved {0} settings." xml:space="preserve">
     <value>{0} instellingen opgeslagen.</value>
+  </data>
+  <data name="Saved {0}." xml:space="preserve">
+    <value>{0} opgeslagen.</value>
   </data>
   <data name="Saved, but reload failed: {0}" xml:space="preserve">
     <value>Opgeslagen, maar opnieuw laden is mislukt: {0}</value>
@@ -11478,9 +11520,6 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Spam check" xml:space="preserve">
     <value>Spamcontrole</value>
   </data>
-  <data name="Spam delete threshold (score)" xml:space="preserve">
-    <value>Verwijderdrempel voor spam (score)</value>
-  </data>
   <data name="Spam detected" xml:space="preserve">
     <value>Spam gedetecteerd</value>
   </data>
@@ -11492,6 +11531,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Spam mark threshold (score)" xml:space="preserve">
     <value>Markeringsdrempel voor spam (score)</value>
+  </data>
+  <data name="Spam refuse threshold (score)" xml:space="preserve">
+    <value>Weigerdrempel voor spam (score)</value>
   </data>
   <data name="Spam traps" xml:space="preserve">
     <value>Spamvallen</value>
@@ -12482,9 +12524,6 @@ Selecteer de sleutel hierboven en kopieer die met de hand - hij wordt niet opnie
   <data name="The delete override never deletes on a guess: the copy is removed only when the recorded score actually reached the value, and it goes to the quarantine store instead when that is enabled." xml:space="preserve">
     <value>De verwijderoverschrijving verwijdert nooit op een vermoeden: de kopie wordt alleen verwijderd wanneer de vastgelegde score de waarde daadwerkelijk heeft bereikt, en gaat in plaats daarvan naar de quarantaineopslag wanneer die is ingeschakeld.</value>
   </data>
-  <data name="The delete threshold ({0}) is at or below the mark threshold ({1}) and is tested first, so no message is ever marked and delivered - every message that would be marked is refused instead." xml:space="preserve">
-    <value>De verwijderdrempel ({0}) ligt op of onder de markeerdrempel ({1}) en wordt als eerste getest, dus er wordt nooit een bericht gemarkeerd en bezorgd - elk bericht dat gemarkeerd zou worden, wordt in plaats daarvan geweigerd.</value>
-  </data>
   <data name="The delivery queue is empty." xml:space="preserve">
     <value>De bezorgwachtrij is leeg.</value>
   </data>
@@ -12841,6 +12880,9 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   <data name="The main hMailServer administration password. It is used by this Control Panel, the REST API and any script that connects through the COM API, and is stored hashed in hMailServer.ini. Changing it does not affect mailbox passwords." xml:space="preserve">
     <value>Het hoofdbeheerderswachtwoord van hMailServer. Het wordt gebruikt door dit Control Panel, de REST-API en elk script dat via de COM-API verbinding maakt, en wordt gehasht opgeslagen in hMailServer.ini. Het wijzigen ervan heeft geen invloed op de wachtwoorden van postvakken.</value>
   </data>
+  <data name="The mark threshold is 0, so no message is marked as spam: 0 means never." xml:space="preserve">
+    <value>De markeerdrempel is 0, dus geen bericht wordt als spam gemarkeerd: 0 betekent nooit.</value>
+  </data>
   <data name="The match cannot be checked until both files are present and readable." xml:space="preserve">
     <value>De overeenkomst kan pas worden gecontroleerd wanneer beide bestanden aanwezig en leesbaar zijn.</value>
   </data>
@@ -13031,6 +13073,15 @@ Toch toevoegen?</value>
   </data>
   <data name="The records were checked." xml:space="preserve">
     <value>De records zijn gecontroleerd.</value>
+  </data>
+  <data name="The refuse threshold ({0}) is at or below the mark threshold ({1}) and is tested first, so no message is ever marked and delivered - every message that would be marked is refused instead." xml:space="preserve">
+    <value>De weigerdrempel ({0}) ligt op of onder de markeerdrempel ({1}) en wordt als eerste getest, dus er wordt nooit een bericht gemarkeerd en bezorgd - elk bericht dat gemarkeerd zou worden, wordt in plaats daarvan geweigerd.</value>
+  </data>
+  <data name="The refuse threshold is 0, so no message is refused or held on its score: 0 means never." xml:space="preserve">
+    <value>De weigerdrempel is 0, dus geen bericht wordt op zijn score geweigerd of vastgehouden: 0 betekent nooit.</value>
+  </data>
+  <data name="The refuse threshold must be above the mark threshold, {0}: at or below it, every message the mark threshold would mark is refused instead." xml:space="preserve">
+    <value>De weigerdrempel moet boven de markeerdrempel liggen, {0}: erop of eronder wordt elk bericht dat de markeerdrempel zou markeren in plaats daarvan geweigerd.</value>
   </data>
   <data name="The relay requires _authentication" xml:space="preserve">
     <value>De relay vereist _authenticatie</value>
@@ -14529,6 +14580,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>Welke directoryvermeldingen postvakken worden</value>
+  </data>
+  <data name="Which domains have a spam trap could not be read." xml:space="preserve">
+    <value>Welke domeinen een spamval hebben, kon niet worden gelezen.</value>
   </data>
   <data name="Which list do I need?" xml:space="preserve">
     <value>Welke lijst heb ik nodig?</value>
@@ -16802,8 +16856,14 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} did not answer within 10 seconds from this machine. Likely causes: no A/CNAME record for mta-sts.{1}, the HTTPS listener is not running (no HTTPS port on the Web services &amp; autoconfiguration page), or a firewall in between. Checked from this machine only." xml:space="preserve">
     <value>{0} antwoordde niet binnen 10 seconden vanaf deze machine. Waarschijnlijke oorzaken: geen A/CNAME-record voor mta-sts.{1}, de HTTPS-listener draait niet (geen HTTPS-poort op de pagina Webservices en autoconfiguratie), of een firewall ertussen. Alleen vanaf deze machine gecontroleerd.</value>
   </data>
+  <data name="{0} domain has trap addresses." xml:space="preserve">
+    <value>{0} domein heeft valadressen.</value>
+  </data>
   <data name="{0} domain, and it is not active." xml:space="preserve">
     <value>{0} domein, en het is niet actief.</value>
+  </data>
+  <data name="{0} domains have trap addresses." xml:space="preserve">
+    <value>{0} domeinen hebben valadressen.</value>
   </data>
   <data name="{0} domains, none of them active." xml:space="preserve">
     <value>{0} domeinen, geen ervan actief.</value>
@@ -17327,14 +17387,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} {1} messages are on their way into them and arrive in a few seconds. All of the mailboxes sign in with the password {2}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
     <value>{0} {1} berichten zijn onderweg ernaartoe en komen binnen enkele seconden aan. Alle postbussen melden zich aan met het wachtwoord {2}. Het wordt hier één keer getoond - schrijf het op, want deze server heeft het niet bewaard.</value>
   </data>
-  <data name="{0} {1} of them wait for a reinitialise or a restart." xml:space="preserve">
-    <value>{0} {1} ervan wachten op een herinitialisatie of een herstart.</value>
-  </data>
   <data name="{0} {1} of them wait for a reinitialise or a restart; the rest applied immediately." xml:space="preserve">
     <value>{0} {1} ervan wachten op een herinitialisatie of een herstart; de rest is direct toegepast.</value>
-  </data>
-  <data name="{0} {1} of them waits for a reinitialise or a restart." xml:space="preserve">
-    <value>{0} {1} ervan wacht op een herinitialisatie of een herstart.</value>
   </data>
   <data name="{0} {1} of them waits for a reinitialise or a restart; the rest applied immediately." xml:space="preserve">
     <value>{0} {1} ervan wacht op een herinitialisatie of een herstart; de rest is direct toegepast.</value>
@@ -17342,8 +17396,14 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} {1} setting could not be written." xml:space="preserve">
     <value>{0} {1} instelling kon niet worden geschreven.</value>
   </data>
+  <data name="{0} {1} setting on this page waits for a reinitialise or a restart." xml:space="preserve">
+    <value>{0} {1} instelling van deze pagina wacht op een herinitialisatie of een herstart.</value>
+  </data>
   <data name="{0} {1} settings could not be written." xml:space="preserve">
     <value>{0} {1} instellingen konden niet worden geschreven.</value>
+  </data>
+  <data name="{0} {1} settings on this page wait for a reinitialise or a restart." xml:space="preserve">
+    <value>{0} {1} instellingen van deze pagina wachten op een herinitialisatie of een herstart.</value>
   </data>
   <data name="{0} — exit code {1} means infected" xml:space="preserve">
     <value>{0} — afsluitcode {1} betekent geïnfecteerd</value>
@@ -17537,8 +17597,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} bevat geen PEM-certificaatblok, dus het bevat geen bruikbaar CA-certificaat (serverfout 6140). Exporteer het CA-certificaat in PEM-indeling (Base64).</value>
   </data>
-  <data name="~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation, as a fail does." xml:space="preserve">
-    <value>~all: het domein zegt dat de client waarschijnlijk niet gemachtigd is, maar vraagt het bericht toch te accepteren, en veel bulkverzenders schuilen erachter. Een score op of boven de verwijderdrempel weigert het bericht tijdens het SMTP-gesprek, zoals een fail dat doet.</value>
+  <data name="~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many spray sources live behind it. A score at or above the refuse threshold refuses the message during the SMTP conversation, as a fail does." xml:space="preserve">
+    <value>~all: het domein zegt dat de client waarschijnlijk niet gemachtigd is, maar vraagt het bericht toch te accepteren, en veel bulkverzenders schuilen erachter. Een score op of boven de weigerdrempel weigert het bericht tijdens het SMTP-gesprek, zoals een fail dat doet.</value>
   </data>
   <data name="… continued in {0}" xml:space="preserve">
     <value>… gaat verder in {0}</value>

@@ -156,7 +156,7 @@ namespace hMailServer.ControlPanel.Views
          // Each scanner's test is on its tab - Test SpamAssassin connection, Test
          // ClamAV connection - where the link went to Diagnostics, which runs port 25,
          // MX, backup-folder and IP checks and tests neither (review finding F251).
-         links.Children.Add(Link(L("Anti-spam settings: test SpamAssassin"), "antispam", N("SpamAssassin")));
+         links.Children.Add(Link(L("Anti-spam settings: test SpamAssassin"), "antispam", N("Content filters")));
          links.Children.Add(Link(L("Anti-virus settings: test ClamAV"), "antivirus", N("ClamAV")));
          content.Children.Add(links);
          return card;

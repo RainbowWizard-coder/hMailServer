@@ -513,6 +513,9 @@
   <data name="A message not on the local disk is looked for in the object store while one is named, so switching back hides nothing. Taken within five seconds." xml:space="preserve">
     <value>Viestiä, joka ei ole paikallisella levyllä, etsitään objektivarastosta niin kauan kuin sellainen on nimetty, joten takaisin vaihtaminen ei piilota mitään. Otetaan käyttöön viidessä sekunnissa.</value>
   </data>
+  <data name="A message scoring this or more is refused during the SMTP conversation, or held in the quarantine while quarantining is on. Older versions called it the delete threshold." xml:space="preserve">
+    <value>Viesti, jonka pisteet ovat tämä tai enemmän, hylätään SMTP-keskustelun aikana tai pidätetään karanteeniin, kun karanteeni on käytössä. Vanhemmat versiot kutsuivat sitä poistokynnykseksi.</value>
+  </data>
   <data name="A message scoring {0} or more is marked as spam and delivered. Nothing is refused on score." xml:space="preserve">
     <value>Viesti, jonka pistemäärä on {0} tai enemmän, merkitään roskapostiksi ja toimitetaan. Mitään ei hylätä pistemäärän perusteella.</value>
   </data>
@@ -2182,6 +2185,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Both thresholds are 0, so no score can mark or refuse anything - the server tests them with &quot;greater than 0&quot; before using them. It also stops testing as soon as the running total reaches the higher threshold, which is 0, so exactly one check runs in each phase and its result is discarded." xml:space="preserve">
     <value>Molemmat kynnysarvot ovat 0, joten mikään pistemäärä ei voi merkitä tai hylätä mitään - palvelin testaa ne ehdolla "suurempi kuin 0" ennen käyttöä. Se myös lopettaa testaamisen heti, kun juokseva summa saavuttaa korkeamman kynnyksen, joka on 0, joten kussakin vaiheessa ajetaan täsmälleen yksi tarkistus ja sen tulos hylätään.</value>
   </data>
+  <data name="Both thresholds are 0, so no score marks, refuses or holds any message." xml:space="preserve">
+    <value>Molemmat kynnykset ovat 0, joten mikään pistemäärä ei merkitse, hylkää eikä pidätä yhtään viestiä.</value>
+  </data>
   <data name="Both ways" xml:space="preserve">
     <value>Molempiin suuntiin</value>
   </data>
@@ -2419,8 +2425,8 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Changes here are saved as you make them, not with the dialog's Save, so Cancel does not undo them." xml:space="preserve">
     <value>Täällä tehdyt muutokset tallennetaan heti, kun teet ne, ei valintaikkunan Tallenna-painikkeella, joten Peruuta ei kumoa niitä.</value>
   </data>
-  <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
-    <value>Muuttaa sitä, mitä poistokynnyksellä tapahtuu. Pois päältä: sen ylittävä viesti hylätään SMTP-keskustelun aikana koodilla 550 ja lähettäjälle kerrotaan. Päällä: se hyväksytään koodilla 250 ja pidätetään tarkastukseen - lähettäjä uskoo sen toimitetun eikä yritä uudelleen, minkä ansiosta väärä positiivinen on palautettavissa palauttamatta viestiä todennäköisesti väärennettyyn paluupolkuun, ja mikä tarkoittaa myös, että tarkastusjonosta tulee ainoa paikka, jossa viesti on olemassa. Koskee tarkistuksia, jotka ajetaan viestin rungon vastaanottamisen jälkeen; sitä ennen tehdyllä tuomiolla (DNS-estolistalla oleva yhdistävä IP, huono HELO) ei ole pidätettävää viestiä, ja se pysyy hylkäyksenä.</value>
+  <data name="Changes what happens at the refuse threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
+    <value>Muuttaa sitä, mitä hylkäyskynnyksellä tapahtuu. Pois päältä: sen ylittävä viesti hylätään SMTP-keskustelun aikana koodilla 550 ja lähettäjälle kerrotaan. Päällä: se hyväksytään koodilla 250 ja pidätetään tarkastukseen - lähettäjä uskoo sen toimitetun eikä yritä uudelleen, minkä ansiosta väärä positiivinen on palautettavissa palauttamatta viestiä todennäköisesti väärennettyyn paluupolkuun, ja mikä tarkoittaa myös, että tarkastusjonosta tulee ainoa paikka, jossa viesti on olemassa. Koskee tarkistuksia, jotka ajetaan viestin rungon vastaanottamisen jälkeen; sitä ennen tehdyllä tuomiolla (DNS-estolistalla oleva yhdistävä IP, huono HELO) ei ole pidätettävää viestiä, ja se pysyy hylkäyksenä.</value>
   </data>
   <data name="Changing it renames the list; its members and settings stay." xml:space="preserve">
     <value>Muutos nimeää listan uudelleen; sen jäsenet ja asetukset säilyvät.</value>
@@ -2880,6 +2886,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Contacting {0}…" xml:space="preserve">
     <value>Otetaan yhteyttä kohteeseen {0}…</value>
+  </data>
+  <data name="Content filters" xml:space="preserve">
+    <value>Sisältösuodattimet</value>
   </data>
   <data name="Control Deck" xml:space="preserve">
     <value>Control Deck</value>
@@ -6438,8 +6447,8 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Lower IP" xml:space="preserve">
     <value>Alempi IP</value>
   </data>
-  <data name="Lower the mark and delete thresholds, or turn on more of the checks." xml:space="preserve">
-    <value>Laske merkintä- ja poistokynnyksiä tai ota käyttöön useampia tarkistuksia.</value>
+  <data name="Lower the mark and refuse thresholds, or turn on more of the checks." xml:space="preserve">
+    <value>Laske merkintä- ja hylkäyskynnyksiä tai ota käyttöön useampia tarkistuksia.</value>
   </data>
   <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. To allow or block a domain outright, use the Allowed and blocked domains page, under Spam &amp; virus filtering." xml:space="preserve">
     <value>MAIL FROM:&lt;&gt; on toimitusraportin paluupolku, ja raportilla on täsmälleen yksi vastaanottaja: osoite, joka lähetti raportin kohteena olevan viestin. Tyhjä lähettäjä, joka nimeää toisen vastaanottajan, on backscatteria, väärennetty raportti tai tunnustelu. Pois: palvelin hyväksyy sen kuten aina. Päällä: toiseen ja jokaiseen myöhempään RCPT TO -komentoon vastataan 550 ja myös tapahtuman DATA hylätään; yhden vastaanottajan tyhjään lähettäjään ei koskaan kosketa. Vain tunnistautumattomat istunnot IP-alueelta, joka ajaa roskapostitestit, eikä koskaan roskapostipoikkeuksissa oleva lähettäjä. Kokonaisen verkkotunnuksen voi sallia tai estää sivulla Sallitut ja estetyt verkkotunnukset, ryhmässä Roskapostin ja virusten suodatus.</value>
@@ -7408,6 +7417,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>Yhdelläkään verkkotunnuksella ei ole DKIM-allekirjoitusta päällä, joten DNS-tietuetta ei tarvita.</value>
   </data>
+  <data name="No domain has a trap address yet, so these settings do nothing." xml:space="preserve">
+    <value>Millään verkkotunnuksella ei vielä ole ansaosoitetta, joten nämä asetukset eivät tee mitään.</value>
+  </data>
   <data name="No domain has an Active Directory domain name, so none can take part." xml:space="preserve">
     <value>Yhdelläkään verkkotunnuksella ei ole Active Directory -toimialueen nimeä, joten mikään ei voi osallistua.</value>
   </data>
@@ -7663,6 +7675,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="No second factor. Enrolling one stops this account's password working in mail clients immediately, because IMAP, POP3 and SMTP have nowhere to enter a code - set up an app password on the App passwords tab first, or the mailbox will go quiet." xml:space="preserve">
     <value>Ei toista tunnistustekijää. Sellaisen käyttöönotto lopettaa heti tämän tilin salasanan toimimisen postiasiakkaissa, koska IMAP:ssa, POP3:ssa ja SMTP:ssä ei ole paikkaa koodin syöttämiseen - määritä ensin sovellussalasana Sovellussalasanat-välilehdellä, tai postilaatikko hiljenee.</value>
   </data>
+  <data name="No setting had changed." xml:space="preserve">
+    <value>Mikään asetus ei ollut muuttunut.</value>
+  </data>
   <data name="No signature database folder is set." xml:space="preserve">
     <value>Virustunnistetietokannan kansiota ei ole asetettu.</value>
   </data>
@@ -7870,11 +7885,11 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Nothing is ever marked as spam: marking needs a mark threshold above 0, and a 0 there means &quot;never&quot; rather than &quot;always&quot;. Messages reaching {0} are still refused." xml:space="preserve">
     <value>Mitään ei koskaan merkitä roskapostiksi: merkintä vaatii merkintäkynnyksen yli 0, ja 0 siinä tarkoittaa "ei koskaan" eikä "aina". Viestit, jotka saavuttavat {0}, hylätään silti.</value>
   </data>
-  <data name="Nothing is held right now. A message over the delete threshold after its body has arrived appears here; its sender is told it was accepted." xml:space="preserve">
-    <value>Mitään ei ole juuri nyt pidätettynä. Viesti, joka sisällön vastaanoton jälkeen ylittää poistokynnyksen, ilmestyy tähän; lähettäjälle kerrotaan, että se hyväksyttiin.</value>
+  <data name="Nothing is held right now. A message over the refuse threshold after its body has arrived appears here; its sender is told it was accepted." xml:space="preserve">
+    <value>Mitään ei ole juuri nyt pidätettynä. Viesti, joka sisällön vastaanoton jälkeen ylittää hylkäyskynnyksen, ilmestyy tähän; lähettäjälle kerrotaan, että se hyväksyttiin.</value>
   </data>
-  <data name="Nothing is held. Quarantining is switched off: until it is turned on under Anti-spam settings, spam over the delete threshold is refused during the SMTP conversation rather than stored." xml:space="preserve">
-    <value>Mitään ei ole pidätettynä. Karanteeni on pois käytöstä: kunnes se otetaan käyttöön kohdassa Roskapostisuojauksen asetukset, poistokynnyksen ylittävä roskaposti hylätään SMTP-keskustelun aikana tallentamisen sijaan.</value>
+  <data name="Nothing is held. Quarantining is switched off: until it is turned on under Anti-spam settings, spam over the refuse threshold is refused during the SMTP conversation rather than stored." xml:space="preserve">
+    <value>Mitään ei ole pidätettynä. Karanteeni on pois käytöstä: kunnes se otetaan käyttöön kohdassa Roskapostisuojauksen asetukset, hylkäyskynnyksen ylittävä roskaposti hylätään SMTP-keskustelun aikana tallentamisen sijaan.</value>
   </data>
   <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.INI key." xml:space="preserve">
     <value>Mikään ei täsmännyt hakuun "{0}". Kokeile sitä, mitä yrität saada aikaan ("pysäytä roskaposti", "anna laitteen lähettää postia"), sivun nimeä tai hMailServer.INI-avainta.</value>
@@ -10392,6 +10407,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Saved at {0}. No syntax errors. Scripting is off, so the server does not run these handlers." xml:space="preserve">
     <value>Tallennettu klo {0}. Ei syntaksivirheitä. Komentosarjat ovat pois päältä, joten palvelin ei suorita näitä käsittelijöitä.</value>
   </data>
+  <data name="Saved at {0}: no setting had changed." xml:space="preserve">
+    <value>Tallennettu klo {0}: mikään asetus ei ollut muuttunut.</value>
+  </data>
   <data name="Saved {0} - every setting on this page is in effect." xml:space="preserve">
     <value>Tallennettu {0} - kaikki tämän sivun asetukset ovat voimassa.</value>
   </data>
@@ -10416,11 +10434,38 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Saved {0} - {1} settings wait for a reinitialise; Apply now, in the bar at the foot of the window, takes them." xml:space="preserve">
     <value>Tallennettu {0} - {1} asetusta odottaa uudelleenalustusta; ikkunan alareunan palkin Ota käyttöön nyt ottaa ne käyttöön.</value>
   </data>
-  <data name="Saved {0} setting - applied immediately." xml:space="preserve">
-    <value>Tallennettu {0} asetus - tulee voimaan heti.</value>
+  <data name="Saved {0} at {1} - applied immediately." xml:space="preserve">
+    <value>Tallennettu {0} klo {1} - tulee voimaan heti.</value>
   </data>
-  <data name="Saved {0} setting - hMailServer.ini settings need a service restart." xml:space="preserve">
-    <value>Tallennettu {0} asetus - hMailServer.ini-asetukset edellyttävät palvelun uudelleenkäynnistystä.</value>
+  <data name="Saved {0} at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value>Tallennettu {0} klo {1} - palvelinasetukset tulevat voimaan heti; hMailServer.ini-asetukset vasta palvelun uudelleenkäynnistyksen jälkeen.</value>
+  </data>
+  <data name="Saved {0} at {1}." xml:space="preserve">
+    <value>Tallennettu {0} klo {1}.</value>
+  </data>
+  <data name="Saved {0} change at {1} - applied immediately." xml:space="preserve">
+    <value>Tallennettu {0} muutos klo {1} - tulee voimaan heti.</value>
+  </data>
+  <data name="Saved {0} change at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value>Tallennettu {0} muutos klo {1} - palvelinasetukset tulevat voimaan heti; hMailServer.ini-asetukset vasta palvelun uudelleenkäynnistyksen jälkeen.</value>
+  </data>
+  <data name="Saved {0} change at {1}." xml:space="preserve">
+    <value>Tallennettu {0} muutos klo {1}.</value>
+  </data>
+  <data name="Saved {0} change." xml:space="preserve">
+    <value>Tallennettu {0} muutos.</value>
+  </data>
+  <data name="Saved {0} changes at {1} - applied immediately." xml:space="preserve">
+    <value>Tallennettu {0} muutosta klo {1} - tulevat voimaan heti.</value>
+  </data>
+  <data name="Saved {0} changes at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value>Tallennettu {0} muutosta klo {1} - palvelinasetukset tulevat voimaan heti; hMailServer.ini-asetukset vasta palvelun uudelleenkäynnistyksen jälkeen.</value>
+  </data>
+  <data name="Saved {0} changes at {1}." xml:space="preserve">
+    <value>Tallennettu {0} muutosta klo {1}.</value>
+  </data>
+  <data name="Saved {0} changes." xml:space="preserve">
+    <value>Tallennettu {0} muutosta.</value>
   </data>
   <data name="Saved {0} setting at {1} - applied immediately." xml:space="preserve">
     <value>Tallennettu {0} asetus klo {1} - tulee voimaan heti.</value>
@@ -10434,12 +10479,6 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Saved {0} setting." xml:space="preserve">
     <value>Tallennettu {0} asetus.</value>
   </data>
-  <data name="Saved {0} settings - applied immediately." xml:space="preserve">
-    <value>Tallennettu {0} asetusta - tulevat voimaan heti.</value>
-  </data>
-  <data name="Saved {0} settings - hMailServer.ini settings need a service restart." xml:space="preserve">
-    <value>Tallennettu {0} asetusta - hMailServer.ini-asetukset edellyttävät palvelun uudelleenkäynnistystä.</value>
-  </data>
   <data name="Saved {0} settings at {1} - applied immediately." xml:space="preserve">
     <value>Tallennettu {0} asetusta klo {1} - tulevat voimaan heti.</value>
   </data>
@@ -10451,6 +10490,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Saved {0} settings." xml:space="preserve">
     <value>Tallennettu {0} asetusta.</value>
+  </data>
+  <data name="Saved {0}." xml:space="preserve">
+    <value>Tallennettu {0}.</value>
   </data>
   <data name="Saved, but reload failed: {0}" xml:space="preserve">
     <value>Tallennettu, mutta uudelleenlataus epäonnistui: {0}</value>
@@ -11478,9 +11520,6 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Spam check" xml:space="preserve">
     <value>Tarkistus</value>
   </data>
-  <data name="Spam delete threshold (score)" xml:space="preserve">
-    <value>Roskapostin poistokynnys (pistemäärä)</value>
-  </data>
   <data name="Spam detected" xml:space="preserve">
     <value>Roskapostia havaittu</value>
   </data>
@@ -11492,6 +11531,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Spam mark threshold (score)" xml:space="preserve">
     <value>Roskapostin merkintäkynnys (pistemäärä)</value>
+  </data>
+  <data name="Spam refuse threshold (score)" xml:space="preserve">
+    <value>Roskapostin hylkäyskynnys (pistemäärä)</value>
   </data>
   <data name="Spam traps" xml:space="preserve">
     <value>Roskapostiansat</value>
@@ -12482,9 +12524,6 @@ Valitse yllä oleva avain ja kopioi se käsin - sitä ei näytetä uudelleen.</v
   <data name="The delete override never deletes on a guess: the copy is removed only when the recorded score actually reached the value, and it goes to the quarantine store instead when that is enabled." xml:space="preserve">
     <value>Poiston ohitus ei koskaan poista arvauksen perusteella: kopio poistetaan vain, kun tallennettu pistemäärä todella saavutti arvon, ja se menee sen sijaan karanteenivarastoon, kun se on käytössä.</value>
   </data>
-  <data name="The delete threshold ({0}) is at or below the mark threshold ({1}) and is tested first, so no message is ever marked and delivered - every message that would be marked is refused instead." xml:space="preserve">
-    <value>Poistokynnys ({0}) on merkintäkynnyksen ({1}) tasolla tai sen alla ja se testataan ensin, joten yhtään viestiä ei koskaan merkitä ja toimiteta - jokainen viesti, joka merkittäisiin, hylätään sen sijaan.</value>
-  </data>
   <data name="The delivery queue is empty." xml:space="preserve">
     <value>Toimitusjono on tyhjä.</value>
   </data>
@@ -12841,6 +12880,9 @@ ei voitu ladata. Viesti on todennäköisesti toimitettu eikä ole enää jonossa
   <data name="The main hMailServer administration password. It is used by this Control Panel, the REST API and any script that connects through the COM API, and is stored hashed in hMailServer.ini. Changing it does not affect mailbox passwords." xml:space="preserve">
     <value>hMailServerin pääasiallinen hallintasalasana. Sitä käyttävät tämä Control Panel, REST-rajapinta ja jokainen COM-rajapinnan kautta yhdistävä komentosarja, ja se tallennetaan tiivisteenä hMailServer.ini-tiedostoon. Sen vaihtaminen ei vaikuta postilaatikoiden salasanoihin.</value>
   </data>
+  <data name="The mark threshold is 0, so no message is marked as spam: 0 means never." xml:space="preserve">
+    <value>Merkintäkynnys on 0, joten yhtään viestiä ei merkitä roskapostiksi: 0 tarkoittaa ei koskaan.</value>
+  </data>
   <data name="The match cannot be checked until both files are present and readable." xml:space="preserve">
     <value>Vastaavuutta ei voi tarkistaa, ennen kuin molemmat tiedostot ovat olemassa ja luettavissa.</value>
   </data>
@@ -13031,6 +13073,15 @@ Lisätäänkö silti?</value>
   </data>
   <data name="The records were checked." xml:space="preserve">
     <value>Tietueet tarkistettiin.</value>
+  </data>
+  <data name="The refuse threshold ({0}) is at or below the mark threshold ({1}) and is tested first, so no message is ever marked and delivered - every message that would be marked is refused instead." xml:space="preserve">
+    <value>Hylkäyskynnys ({0}) on merkintäkynnyksen ({1}) tasolla tai sen alla ja se testataan ensin, joten yhtään viestiä ei koskaan merkitä ja toimiteta - jokainen viesti, joka merkittäisiin, hylätään sen sijaan.</value>
+  </data>
+  <data name="The refuse threshold is 0, so no message is refused or held on its score: 0 means never." xml:space="preserve">
+    <value>Hylkäyskynnys on 0, joten yhtään viestiä ei hylätä eikä pidätetä pisteidensä perusteella: 0 tarkoittaa ei koskaan.</value>
+  </data>
+  <data name="The refuse threshold must be above the mark threshold, {0}: at or below it, every message the mark threshold would mark is refused instead." xml:space="preserve">
+    <value>Hylkäyskynnyksen on oltava merkintäkynnystä {0} suurempi: sen tasolla tai alla jokainen viesti, jonka merkintäkynnys merkitsisi, hylätään sen sijaan.</value>
   </data>
   <data name="The relay requires _authentication" xml:space="preserve">
     <value>V_älityspalvelin vaatii todennuksen</value>
@@ -14529,6 +14580,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>Mistä hakemistomerkinnöistä tulee postilaatikoita</value>
+  </data>
+  <data name="Which domains have a spam trap could not be read." xml:space="preserve">
+    <value>Ei voitu lukea, millä verkkotunnuksilla on roskapostiansa.</value>
   </data>
   <data name="Which list do I need?" xml:space="preserve">
     <value>Mitä luetteloa tarvitsen?</value>
@@ -16802,8 +16856,14 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} did not answer within 10 seconds from this machine. Likely causes: no A/CNAME record for mta-sts.{1}, the HTTPS listener is not running (no HTTPS port on the Web services &amp; autoconfiguration page), or a firewall in between. Checked from this machine only." xml:space="preserve">
     <value>{0} ei vastannut 10 sekunnin kuluessa tältä koneelta. Todennäköiset syyt: ei A/CNAME-tietuetta kohteelle mta-sts.{1}, HTTPS-kuuntelija ei ole käynnissä (ei HTTPS-porttia sivulla Verkkopalvelut ja automaattinen määritys), tai välissä oleva palomuuri. Tarkistettu vain tältä koneelta.</value>
   </data>
+  <data name="{0} domain has trap addresses." xml:space="preserve">
+    <value>{0} verkkotunnuksella on ansaosoitteita.</value>
+  </data>
   <data name="{0} domain, and it is not active." xml:space="preserve">
     <value>{0} verkkotunnus, eikä se ole aktiivinen.</value>
+  </data>
+  <data name="{0} domains have trap addresses." xml:space="preserve">
+    <value>{0} verkkotunnuksella on ansaosoitteita.</value>
   </data>
   <data name="{0} domains, none of them active." xml:space="preserve">
     <value>{0} verkkotunnusta, yksikään ei aktiivinen.</value>
@@ -17327,14 +17387,8 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} {1} messages are on their way into them and arrive in a few seconds. All of the mailboxes sign in with the password {2}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
     <value>{0} {1} viestiä on matkalla niihin ja saapuu muutamassa sekunnissa. Kaikki postilaatikot kirjautuvat salasanalla {2}. Se näytetään tässä kerran - kirjoita se muistiin, sillä palvelin ei tallentanut sitä.</value>
   </data>
-  <data name="{0} {1} of them wait for a reinitialise or a restart." xml:space="preserve">
-    <value>{0} {1} niistä odottaa uudelleenalustusta tai uudelleenkäynnistystä.</value>
-  </data>
   <data name="{0} {1} of them wait for a reinitialise or a restart; the rest applied immediately." xml:space="preserve">
     <value>{0} {1} niistä odottaa uudelleenalustusta tai uudelleenkäynnistystä; muut tulivat voimaan heti.</value>
-  </data>
-  <data name="{0} {1} of them waits for a reinitialise or a restart." xml:space="preserve">
-    <value>{0} {1} niistä odottaa uudelleenalustusta tai uudelleenkäynnistystä.</value>
   </data>
   <data name="{0} {1} of them waits for a reinitialise or a restart; the rest applied immediately." xml:space="preserve">
     <value>{0} {1} niistä odottaa uudelleenalustusta tai uudelleenkäynnistystä; muut tulivat voimaan heti.</value>
@@ -17342,8 +17396,14 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} {1} setting could not be written." xml:space="preserve">
     <value>{0} {1} asetusta ei voitu kirjoittaa.</value>
   </data>
+  <data name="{0} {1} setting on this page waits for a reinitialise or a restart." xml:space="preserve">
+    <value>{0} {1} tämän sivun asetus odottaa uudelleenalustusta tai uudelleenkäynnistystä.</value>
+  </data>
   <data name="{0} {1} settings could not be written." xml:space="preserve">
     <value>{0} {1} asetusta ei voitu kirjoittaa.</value>
+  </data>
+  <data name="{0} {1} settings on this page wait for a reinitialise or a restart." xml:space="preserve">
+    <value>{0} {1} tämän sivun asetusta odottaa uudelleenalustusta tai uudelleenkäynnistystä.</value>
   </data>
   <data name="{0} — exit code {1} means infected" xml:space="preserve">
     <value>{0} — poistumiskoodi {1} tarkoittaa tartuntaa</value>
@@ -17537,8 +17597,8 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} ei sisällä PEM-varmennelohkoa, joten siinä ei ole käyttökelpoista CA-varmennetta (palvelinvirhe 6140). Vie CA-varmenne PEM (Base64) -muodossa.</value>
   </data>
-  <data name="~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation, as a fail does." xml:space="preserve">
-    <value>~all: verkkotunnus sanoo, että asiakas ei luultavasti ole valtuutettu, mutta pyytää hyväksymään viestin silti, ja moni massalähettäjä piileskelee sen takana. Poistokynnyksen saavuttava pistemäärä hylkää viestin SMTP-keskustelun aikana, kuten fail.</value>
+  <data name="~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many spray sources live behind it. A score at or above the refuse threshold refuses the message during the SMTP conversation, as a fail does." xml:space="preserve">
+    <value>~all: verkkotunnus sanoo, että asiakas ei luultavasti ole valtuutettu, mutta pyytää hyväksymään viestin silti, ja moni massalähettäjä piileskelee sen takana. Hylkäyskynnyksen saavuttava pistemäärä hylkää viestin SMTP-keskustelun aikana, kuten fail.</value>
   </data>
   <data name="… continued in {0}" xml:space="preserve">
     <value>… jatkuu tiedostossa {0}</value>

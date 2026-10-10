@@ -557,6 +557,9 @@ namespace hMailServer.ControlPanel.Views
          private TextBox box_;
          private Wpf.Ui.Controls.NumberBox number_;
 
+         /// <summary>The created number box, or null for a text row (for a check across fields).</summary>
+         public Wpf.Ui.Controls.NumberBox Number => number_;
+
          /// <summary>Current text in the editor (for live test buttons).</summary>
          public string CurrentText
             => number_ != null
@@ -1312,6 +1315,108 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
+      /// A Warning among a card's rows that a check across its fields fills in and
+      /// shows (WireThresholdCheck_): collapsed, with its row, until it has something
+      /// to say. Writes nothing.
+      /// </summary>
+      private sealed class FollowingNoticeRow : ComSetting, INotPersisted
+      {
+         public Scaffold.InlineNotice Notice { get; private set; }
+
+         public override bool WantsInitialValue => false;
+
+         protected override bool CaptionOnRow => false;
+
+         protected override FrameworkElement BuildEditor(object value)
+            => Notice = new Scaffold.InlineNotice { Level = StatusLevel.Warning, Margin = new Thickness(0) };
+
+         public override object ReadEditor() => null;
+
+         public override void Write(object owner, string property)
+         {
+         }
+      }
+
+      /// <summary>
+      /// Whether any domain has a spam trap, which the trap settings do nothing
+      /// without: a Warning while none has, where the card said so in its last
+      /// sentence alone, and how many have one otherwise (review finding F263). The
+      /// traps are each domain's, read as the card is built - one call per domain.
+      /// Writes nothing.
+      /// </summary>
+      private sealed class SpamTrapCountRow : ComSetting, INotPersisted
+      {
+         public override bool WantsInitialValue => false;
+
+         protected override bool CaptionOnRow => false;
+
+         protected override FrameworkElement BuildEditor(object value)
+         {
+            var notice = new Scaffold.InlineNotice { Margin = new Thickness(0) };
+            System.Windows.Automation.AutomationProperties.SetAutomationId(notice, "antispam-trap-domains");
+
+            int? withTraps = DomainsWithTraps_();
+            if (withTraps == null)
+            {
+               notice.Level = StatusLevel.Warning;
+               notice.Text = L("Which domains have a spam trap could not be read.");
+            }
+            else if (withTraps == 0)
+            {
+               notice.Level = StatusLevel.Warning;
+               notice.Text = L("No domain has a trap address yet, so these settings do nothing.");
+            }
+            else
+            {
+               notice.Level = StatusLevel.Normal;
+               notice.Text = Plural(withTraps.Value, "{0} domain has trap addresses.", "{0} domains have trap addresses.");
+            }
+
+            return notice;
+         }
+
+         /// <summary>How many of the server's domains declare a spam trap; null when they could not be read.</summary>
+         private static int? DomainsWithTraps_()
+         {
+            dynamic domains = null;
+            try
+            {
+               domains = ServerSession.Current.Application.Domains;
+               int count = (int)domains.Count, withTraps = 0;
+               for (int i = 0; i < count; i++)
+               {
+                  dynamic domain = domains.Item[i];
+                  try
+                  {
+                     if (!string.IsNullOrWhiteSpace((string)domain.SpamTraps))
+                        withTraps++;
+                  }
+                  finally
+                  {
+                     ServerSession.Release((object)domain);
+                  }
+               }
+
+               return withTraps;
+            }
+            catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+            {
+               return null;
+            }
+            finally
+            {
+               ServerSession.Release((object)domains);
+            }
+         }
+
+         public override object ReadEditor() => null;
+
+         public override void Write(object owner, string property)
+         {
+         }
+      }
+
+      /// <summary>
       /// The Control Deck's button on a card whose settings are the server's half of
       /// something the Deck holds the rest of - the alert rules, the webhook
       /// subscriptions, the spam-trap addresses, a compromised account's held
@@ -1747,6 +1852,15 @@ namespace hMailServer.ControlPanel.Views
       // page say a lost link, and no card repeats it (ComErrorText.LevelFor).
       private bool linkLost_;
       private Action afterBuildUi_;
+
+      // What the anti-spam thresholds' check refuses, while it refuses something: a
+      // save then writes nothing and says so (WireThresholdCheck_, Save_).
+      private string thresholdProblem_;
+
+      // What each editor held once the page settled after it was read, or after the
+      // last save, so that a save says what it changed rather than how many rows it
+      // wrote (review finding F263).
+      private readonly Dictionary<ComSetting, object> initial_ = new(ReferenceEqualityComparer.Instance);
 
       // The rows BuildUi built an editor for this time. A row whose value could not
       // be read has none, and a save neither writes nor counts it (Save_Click).
@@ -2487,15 +2601,54 @@ namespace hMailServer.ControlPanel.Views
          Header.PageKey = "antispam";
          Header.Subtitle = L("Score-based spam filtering: SPF, DKIM, DMARC, host checks, greylisting and SpamAssassin.");
 
+         // The threshold the server calls the delete threshold refuses a message
+         // during the SMTP conversation, or holds it in the quarantine while that is
+         // on - nothing is deleted - and is named for that, the old name in its hint
+         // and among the page's search aliases (review finding F263). A pair that
+         // contradicts itself is refused on the field, and a threshold at 0 is warned
+         // of under the two (WireThresholdCheck_).
          var general = Card(L("Thresholds & actions"));
-         general.Settings.Add(new ComText { Path = "AntiSpam.SpamMarkThreshold", Label = L("Spam mark threshold (score)"), Numeric = true });
-         general.Settings.Add(new ComText { Path = "AntiSpam.SpamDeleteThreshold", Label = L("Spam delete threshold (score)"), Numeric = true });
+         var markThreshold = new ComText { Path = "AntiSpam.SpamMarkThreshold", Label = L("Spam mark threshold (score)"), Numeric = true };
+         general.Settings.Add(markThreshold);
+         var refuseThreshold = new ComText
+         {
+            Path = "AntiSpam.SpamDeleteThreshold",
+            Label = L("Spam refuse threshold (score)"),
+            Numeric = true,
+            Blurb = L("A message scoring this or more is refused during the SMTP conversation, or held in the quarantine while quarantining is on. Older versions called it the delete threshold.")
+         };
+         general.Settings.Add(refuseThreshold);
+         var thresholdNotice = new FollowingNoticeRow();
+         general.Settings.Add(thresholdNotice);
+         afterBuildUi_ = () => WireThresholdCheck_(markThreshold, refuseThreshold, thresholdNotice);
          general.Settings.Add(new ComBool { Path = "AntiSpam.AddHeaderSpam", Label = L("Add X-hMailServer-Spam header") });
          general.Settings.Add(new ComBool { Path = "AntiSpam.AddHeaderReason", Label = L("Add X-hMailServer-Reason header") });
          general.Settings.Add(new ComBool { Path = "AntiSpam.PrependSubject", Label = L("Prepend text to subject") });
          general.Settings.Add(new ComText { Path = "AntiSpam.PrependSubjectText", Label = L("Subject prefix") });
          general.Settings.Add(new ComText { Path = "AntiSpam.MaximumMessageSize", Label = L("Max message size to spam-scan (KB, 0 = unlimited)"), Numeric = true });
          Tab(L("General")).Cards.Add(general);
+
+         // Directly under the refuse threshold, because this setting changes what that
+         // threshold DOES rather than adding a feature beside it: second on General,
+         // where it was fourth and below the fold (review finding F263).
+         var quarantine = Card(L("Quarantine instead of refusing"),
+            L("Changes what happens at the refuse threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal."));
+         quarantine.Settings.Add(new IniBool
+         {
+            Path = "QuarantineEnabled",
+            Label = L("Hold messages for review instead of refusing them"),
+            Blurb = L("Off by default. Turning it on means the server starts storing mail it considers spam, so watch the retention window below."),
+            IniStore = iniStore_
+         });
+         quarantine.Settings.Add(new IniNumber
+         {
+            Path = "QuarantineRetentionDays",
+            Label = L("Delete quarantined messages after (days; 0 = never)"),
+            Default = 30,
+            Blurb = L("0 keeps every message until it is released or deleted, so watch the disk."),
+            IniStore = iniStore_
+         });
+         Tab(L("General")).Cards.Add(quarantine);
 
          // A score, beside the thresholds it is weighed against: the URI
          // blocklists ask about every domain a message links to, up to 200, and
@@ -2520,26 +2673,6 @@ namespace hMailServer.ControlPanel.Views
          tarpit.Settings.Add(new ComText { Path = "AntiSpam.TarpitDelay", Label = L("Delay for each further recipient (seconds, at most 30; 0 = off)"), Numeric = true });
          Tab(L("General")).Cards.Add(tarpit);
 
-         // Directly under the delete threshold, because this setting changes what that
-         // threshold DOES rather than adding a feature beside it.
-         var quarantine = Card(L("Quarantine instead of refusing"),
-            L("Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal."));
-         quarantine.Settings.Add(new IniBool
-         {
-            Path = "QuarantineEnabled",
-            Label = L("Hold messages for review instead of refusing them"),
-            Blurb = L("Off by default. Turning it on means the server starts storing mail it considers spam, so watch the retention window below."),
-            IniStore = iniStore_
-         });
-         quarantine.Settings.Add(new IniNumber
-         {
-            Path = "QuarantineRetentionDays",
-            Label = L("Delete quarantined messages after (days; 0 = never)"),
-            Default = 30,
-            Blurb = L("0 keeps every message until it is released or deleted, so watch the disk."),
-            IniStore = iniStore_
-         });
-         Tab(L("General")).Cards.Add(quarantine);
 
          var auth = Card(L("Sender authentication"));
          auth.Settings.Add(new ComBool { Path = "AntiSpam.UseSPF", Label = L("Check SPF") });
@@ -2552,7 +2685,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "AntiSpam.UseSPFSoftFailScore",
             Label = L("SPF softfail score (0 = not scored)"),
             Numeric = true,
-            Blurb = L("~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation, as a fail does.")
+            Blurb = L("~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many spray sources live behind it. A score at or above the refuse threshold refuses the message during the SMTP conversation, as a fail does.")
          });
          auth.Settings.Add(new ComText
          {
@@ -2810,7 +2943,10 @@ namespace hMailServer.ControlPanel.Views
             Blurb = L("Moving a message into the folder designated Junk reports it to sa-learn as spam, and moving one back out reports it as ham, so the filter learns from what people already do rather than from a separate ritual nobody performs. Off by default: it runs sa-learn per move, and a user who files newsletters in Junk is teaching the filter that newsletters are spam for everyone the scanner serves."),
             IniStore = iniStore_
          });
-         Tab(L("SpamAssassin")).Cards.Add(sa);
+         // SpamAssassin and the external engine (rspamd) are both content filters,
+         // and the tab is named for both: rspamd sat on a tab called SpamAssassin
+         // (review finding F263). The old name is among the page's search aliases.
+         Tab(L("Content filters")).Cards.Add(sa);
 
          var hook = Card(L("External filtering engine (rspamd and anything else that speaks HTTP)"),
             L("Hands every accepted message to an engine over HTTP and uses the score it returns. The message is the request body and the envelope, connecting address and HELO travel as request headers, which is what rspamd's own check endpoint already expects - so pointing this at rspamd needs no adapter, and pointing it at something you wrote yourself needs only a program that answers JSON."));
@@ -2852,7 +2988,7 @@ namespace hMailServer.ControlPanel.Views
             Blurb = L("A message above this is passed without being sent to the engine, because sending a large attachment across the network costs more than the answer is worth. 0 removes the ceiling, which is reasonable for an engine on this machine."),
             IniStore = iniStore_
          });
-         Tab(L("SpamAssassin")).Cards.Add(hook);
+         Tab(L("Content filters")).Cards.Add(hook);
 
          // What happens to a server that writes to a spam trap (docs/SpamTraps.md).
          // The traps themselves are declared per domain, in the Control Deck or over
@@ -2860,6 +2996,7 @@ namespace hMailServer.ControlPanel.Views
          var traps = Card(L("Spam traps"),
             L("A spam trap is an address in one of your domains that nobody uses, so whoever writes to it is sending spam. These settings say what happens to a server that does. The trap addresses are declared per domain in the Control Deck; until a domain has one, nothing here does anything."));
          traps.Settings.Add(new DeckLinkRow());
+         traps.Settings.Add(new SpamTrapCountRow());
          traps.Settings.Add(new ComText
          {
             Path = "SpamTrapBanMinutes",
@@ -5614,7 +5751,11 @@ namespace hMailServer.ControlPanel.Views
          // loading use, so the guard is released only once the page has settled
          // and the page does not announce unsaved changes before anybody has
          // typed anything.
-         Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, new Action(() => building_ = false));
+         Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, new Action(() =>
+         {
+            building_ = false;
+            RecordBaseline_();
+         }));
       }
 
       /// <summary>
@@ -6292,6 +6433,58 @@ namespace hMailServer.ControlPanel.Views
          Update();
       }
 
+      /// <summary>
+      /// The anti-spam thresholds held to each other as they are typed: a refuse
+      /// threshold at or below a mark threshold above 0 refuses every message the mark
+      /// would only mark - the server tests the refuse threshold first - and is
+      /// refused on its field, and a save then writes nothing; either at 0 is warned
+      /// of under the two, since 0 there means "never". The pair saved silently
+      /// (review finding F263).
+      /// </summary>
+      private void WireThresholdCheck_(ComText mark, ComText refuse, FollowingNoticeRow notice)
+      {
+         thresholdProblem_ = null;
+
+         // The warning's row, collapsed until the check has something to say - and for
+         // good where the thresholds could not be read, which leaves nothing to check.
+         FrameworkElement shown = notice?.Notice == null ? null : notice.Notice.Parent as Scaffold.FieldRow ?? (FrameworkElement)notice.Notice;
+         if (shown != null)
+            shown.Visibility = Visibility.Collapsed;
+         if (mark?.Number == null || refuse?.Number == null || shown == null)
+            return;
+
+         Wpf.Ui.Controls.NumberBox markBox = mark.Number, refuseBox = refuse.Number;
+
+         // The box's words, which lead its value while it is typed in.
+         static int ValueOf_(Wpf.Ui.Controls.NumberBox box)
+            => int.TryParse((box.Text ?? "").Trim(), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.CurrentCulture, out int typed)
+               ? typed
+               : (int)(box.Value ?? 0);
+
+         void Check()
+         {
+            int markAt = ValueOf_(markBox), refuseAt = ValueOf_(refuseBox);
+
+            thresholdProblem_ = SpamPipeline.ThresholdProblem(markAt, refuseAt);
+            if (refuseBox.Parent is Scaffold.FieldRow row)
+               row.Error = thresholdProblem_;
+
+            string warning = SpamPipeline.ThresholdWarning(markAt, refuseAt);
+            notice.Notice.Text = warning;
+            shown.Visibility = warning == null ? Visibility.Collapsed : Visibility.Visible;
+         }
+
+         // After the field's own handler, which takes a message away at an edit.
+         void Later() => Dispatcher.BeginInvoke(DispatcherPriority.Input, new Action(Check));
+         foreach (Wpf.Ui.Controls.NumberBox box in new[] { markBox, refuseBox })
+         {
+            box.TextChanged += (_, _) => Later();
+            box.ValueChanged += (_, _) => Later();
+         }
+
+         Check();
+      }
+
       private static void WireChaChaDependency(ComBool preferServer, ComBool chacha, ComBool tls12, ComBool tls13)
       {
          if (preferServer == null || chacha == null || tls12 == null || tls13 == null)
@@ -6470,6 +6663,35 @@ namespace hMailServer.ControlPanel.Views
 
       private void Save_Click(object sender, RoutedEventArgs e) => Save_();
 
+      /// <summary>What each editor this build of the page shows holds now, which a save is compared with.</summary>
+      private void RecordBaseline_()
+      {
+         initial_.Clear();
+         foreach (ComSetting setting in built_)
+         {
+            if (setting is INotPersisted || string.IsNullOrEmpty(setting.Path))
+               continue;
+            initial_[setting] = EditorValue_(setting);
+         }
+      }
+
+      /// <summary>An editor's value, or null where it cannot be read.</summary>
+      private static object EditorValue_(ComSetting setting)
+      {
+         try
+         {
+            return setting.ReadEditor();
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            return null;
+         }
+      }
+
+      /// <summary>Whether a row's editor holds something other than what it held when the page settled or was last saved.</summary>
+      private bool Changed_(ComSetting setting)
+         => initial_.TryGetValue(setting, out object before) && !Equals(before, EditorValue_(setting));
+
       /// <summary>
       /// Writes every row this build of the page showed an editor for, and says on
       /// the pill and in the page's notice what reached the server. True when every row
@@ -6478,6 +6700,23 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private bool Save_()
       {
+         // A pair of thresholds that contradict each other is refused on its field,
+         // and nothing is written while it is (WireThresholdCheck_).
+         if (thresholdProblem_ != null)
+         {
+            ShowNotice_(L("Nothing was saved: correct what is marked below, then save again."), StatusLevel.Critical);
+            return false;
+         }
+
+         // What this save changes, by caption, for the sentence after it: the rows
+         // whose editors hold something other than they did when the page settled.
+         var changed = new List<string>();
+         foreach (ComSetting setting in tabs_.SelectMany(tab => tab.Cards).SelectMany(card => card.Settings))
+         {
+            if (built_.Contains(setting) && !(setting is INotPersisted) && !string.IsNullOrEmpty(setting.Path) && Changed_(setting))
+               changed.Add(MnemonicText.Strip(setting.Label ?? setting.Path));
+         }
+
          // The writes below are synchronous COM calls, and a page of a hundred and
          // fifty of them over a remote link takes long enough to be worth saying
          // so. Letting the dispatcher paint at Render priority puts the pill on
@@ -6608,18 +6847,18 @@ namespace hMailServer.ControlPanel.Views
 
          ServerSettingsPageState outcome = ServerSettingsPageStatus.AfterSave(failed, waiting, waitingForRestart);
          ShowState_(outcome);
-         string saveSentence = ServerSettingsPageStatus.SaveSentence(saved, failed, DateTime.Now.ToLongTimeString(), waiting);
+         // What the save changed, by name, where it counted every row it wrote -
+         // "Saved 51 settings" of a save that changed one (review finding F263).
+         string saveSentence = ServerSettingsPageStatus.SavedChangesSentence(changed, failed, DateTime.Now.ToLongTimeString(), waiting);
          ShowNotice_(
             Sentences(saveSentence, firstFailure),
             ServerSettingsPageStatus.LevelFor(outcome));
 
          if (failed == 0)
-            Services.Toast.Success(waiting == null
-               ? Plural(saved, "Saved {0} setting - hMailServer.ini settings need a service restart.", "Saved {0} settings - hMailServer.ini settings need a service restart.")
-               : waiting > 0
-                  ? PluralF(waiting.Value, "{0} {1} of them waits for a reinitialise or a restart.", "{0} {1} of them wait for a reinitialise or a restart.",
-                     Plural(saved, "Saved {0} setting.", "Saved {0} settings."), waiting.Value)
-                  : Plural(saved, "Saved {0} setting - applied immediately.", "Saved {0} settings - applied immediately."));
+         {
+            Services.Toast.Success(saveSentence);
+            RecordBaseline_();
+         }
          else
             Services.Toast.Failure(Plural(failed, "{0} setting could not be written.", "{0} settings could not be written."), L("Partly saved"));
 

@@ -28,7 +28,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          string accepting = WithheldRowTests.MemberText(code, "private Card Accepting()");
          Assert.True(accepting != null, "StalledMailView.Accepting is gone.");
 
-         Assert.Contains("Link(L(\"Anti-spam settings: test SpamAssassin\"), \"antispam\", N(\"SpamAssassin\"))", accepting, StringComparison.Ordinal);
+         Assert.Contains("Link(L(\"Anti-spam settings: test SpamAssassin\"), \"antispam\", N(\"Content filters\"))", accepting, StringComparison.Ordinal);
          Assert.Contains("Link(L(\"Anti-virus settings: test ClamAV\"), \"antivirus\", N(\"ClamAV\"))", accepting, StringComparison.Ordinal);
          Assert.DoesNotContain("\"diagnostics\"", accepting, StringComparison.Ordinal);
 
@@ -42,7 +42,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          // The tabs named hold the tests: each test button is on its card of that tab.
          string settings = ReadControlPanelFile(Path.Join("Views", "ServerSettingsView.xaml.cs"));
-         AssertOnTab_(WithheldRowTests.MemberText(settings, "private void BuildAntiSpam()"), "ButtonText = L(\"Test SpamAssassin connection\")", "Tab(L(\"SpamAssassin\")).Cards.Add(sa);");
+         AssertOnTab_(WithheldRowTests.MemberText(settings, "private void BuildAntiSpam()"), "ButtonText = L(\"Test SpamAssassin connection\")", "Tab(L(\"Content filters\")).Cards.Add(sa);");
          AssertOnTab_(WithheldRowTests.MemberText(settings, "private void BuildAntiVirus()"), "ButtonText = L(\"Test ClamAV connection\")", "Tab(L(\"ClamAV\")).Cards.Add(clamav);");
       }
 

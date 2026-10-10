@@ -513,6 +513,9 @@
   <data name="A message not on the local disk is looked for in the object store while one is named, so switching back hides nothing. Taken within five seconds." xml:space="preserve">
     <value>不在本地磁盘上的邮件，只要指定了对象存储，就会到那里查找，因此切换回来不会隐藏任何内容。五秒内生效。</value>
   </data>
+  <data name="A message scoring this or more is refused during the SMTP conversation, or held in the quarantine while quarantining is on. Older versions called it the delete threshold." xml:space="preserve">
+    <value>得分达到或超过此值的邮件会在 SMTP 会话期间被拒绝；开启隔离时则会被暂挂在隔离区中。旧版本称其为删除阈值。</value>
+  </data>
   <data name="A message scoring {0} or more is marked as spam and delivered. Nothing is refused on score." xml:space="preserve">
     <value>分数达到 {0} 或以上的邮件会被标记为垃圾邮件并投递。不会因分数而拒收任何邮件。</value>
   </data>
@@ -2182,6 +2185,9 @@
   <data name="Both thresholds are 0, so no score can mark or refuse anything - the server tests them with &quot;greater than 0&quot; before using them. It also stops testing as soon as the running total reaches the higher threshold, which is 0, so exactly one check runs in each phase and its result is discarded." xml:space="preserve">
     <value>两个阈值都是 0，因此没有任何分数能标记或拒绝任何邮件 - 服务器在使用它们之前会先测试“大于 0”。它还会在累计总分达到较高阈值（即 0）时立即停止测试，因此每个阶段恰好只运行一项检查，而且其结果会被丢弃。</value>
   </data>
+  <data name="Both thresholds are 0, so no score marks, refuses or holds any message." xml:space="preserve">
+    <value>两个阈值都是 0，因此任何分数都不会标记、拒绝或暂挂任何邮件。</value>
+  </data>
   <data name="Both ways" xml:space="preserve">
     <value>双向</value>
   </data>
@@ -2419,8 +2425,8 @@
   <data name="Changes here are saved as you make them, not with the dialog's Save, so Cancel does not undo them." xml:space="preserve">
     <value>此处的更改会在您进行时立即保存，而不是随对话框的“保存”一起保存，因此“取消”不会撤销它们。</value>
   </data>
-  <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
-    <value>更改在删除阈值处发生的事情。关闭时，超过该阈值的邮件会在 SMTP 会话期间以 550 拒绝，并告知发件方。打开时，它会以 250 接受并转为暂挂等待审核 - 发件方以为已投递而不会重试，正因如此，误判才能在不退信到一个很可能伪造的返回路径的情况下得以挽回，但这也意味着审核队列成为该邮件唯一存在的地方。适用于在邮件正文接收完毕之后运行的检查；在此之前得出的判定（连接 IP 被列入 DNS 拦截列表、HELO 不正确）没有邮件可暂挂，仍然是拒绝。</value>
+  <data name="Changes what happens at the refuse threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
+    <value>更改在拒绝阈值处发生的事情。关闭时，超过该阈值的邮件会在 SMTP 会话期间以 550 拒绝，并告知发件方。打开时，它会以 250 接受并转为暂挂等待审核 - 发件方以为已投递而不会重试，正因如此，误判才能在不退信到一个很可能伪造的返回路径的情况下得以挽回，但这也意味着审核队列成为该邮件唯一存在的地方。适用于在邮件正文接收完毕之后运行的检查；在此之前得出的判定（连接 IP 被列入 DNS 拦截列表、HELO 不正确）没有邮件可暂挂，仍然是拒绝。</value>
   </data>
   <data name="Changing it renames the list; its members and settings stay." xml:space="preserve">
     <value>更改后列表即改名；其成员和设置保持不变。</value>
@@ -2880,6 +2886,9 @@
   </data>
   <data name="Contacting {0}…" xml:space="preserve">
     <value>正在联系 {0}…</value>
+  </data>
+  <data name="Content filters" xml:space="preserve">
+    <value>内容过滤器</value>
   </data>
   <data name="Control Deck" xml:space="preserve">
     <value>Control Deck</value>
@@ -6438,8 +6447,8 @@
   <data name="Lower IP" xml:space="preserve">
     <value>起始 IP</value>
   </data>
-  <data name="Lower the mark and delete thresholds, or turn on more of the checks." xml:space="preserve">
-    <value>降低标记和删除阈值，或者打开更多的检查。</value>
+  <data name="Lower the mark and refuse thresholds, or turn on more of the checks." xml:space="preserve">
+    <value>降低标记和拒绝阈值，或者打开更多的检查。</value>
   </data>
   <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. To allow or block a domain outright, use the Allowed and blocked domains page, under Spam &amp; virus filtering." xml:space="preserve">
     <value>MAIL FROM:&lt;&gt; 是投递报告的回传路径，而报告只有一个收件人：发送该报告所涉邮件的地址。空发件人随后又指定第二个收件人，就是反向散射、伪造的报告或探测。关闭时，服务器像以往一样接受它。开启时，第二个及之后的每个 RCPT TO 都回应 550，该事务的 DATA 也被拒绝；只有一个收件人的空发件人从不受影响。仅适用于运行反垃圾邮件测试的 IP 范围内的未认证会话，绝不适用于反垃圾邮件豁免中的发件人。要整体允许或拦截某个域，请使用“垃圾邮件和病毒过滤”下的“允许与拦截的域”页。</value>
@@ -7408,6 +7417,9 @@
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>没有任何域打开了 DKIM 签名，因此不需要 DNS 记录。</value>
   </data>
+  <data name="No domain has a trap address yet, so these settings do nothing." xml:space="preserve">
+    <value>还没有任何域设置陷阱地址，所以这些设置不起任何作用。</value>
+  </data>
   <data name="No domain has an Active Directory domain name, so none can take part." xml:space="preserve">
     <value>没有任何域设置了 Active Directory 域名，因此没有域可以参与。</value>
   </data>
@@ -7663,6 +7675,9 @@
   <data name="No second factor. Enrolling one stops this account's password working in mail clients immediately, because IMAP, POP3 and SMTP have nowhere to enter a code - set up an app password on the App passwords tab first, or the mailbox will go quiet." xml:space="preserve">
     <value>没有第二重验证。注册一个会立即让此账户的密码在邮件客户端中失效，因为 IMAP、POP3 和 SMTP 没有地方输入代码 - 请先在“应用密码”选项卡上设置一个应用密码，否则邮箱会陷入沉寂。</value>
   </data>
+  <data name="No setting had changed." xml:space="preserve">
+    <value>没有任何设置发生变化。</value>
+  </data>
   <data name="No signature database folder is set." xml:space="preserve">
     <value>未设置签名数据库文件夹。</value>
   </data>
@@ -7870,11 +7885,11 @@
   <data name="Nothing is ever marked as spam: marking needs a mark threshold above 0, and a 0 there means &quot;never&quot; rather than &quot;always&quot;. Messages reaching {0} are still refused." xml:space="preserve">
     <value>永远不会有邮件被标记为垃圾邮件：标记需要一个大于 0 的标记阈值，而 0 表示“从不”而不是“总是”。达到 {0} 的邮件仍会被拒绝。</value>
   </data>
-  <data name="Nothing is held right now. A message over the delete threshold after its body has arrived appears here; its sender is told it was accepted." xml:space="preserve">
-    <value>当前没有暂留的邮件。正文到达后超过删除阈值的邮件会显示在这里；其发件人会被告知邮件已被接受。</value>
+  <data name="Nothing is held right now. A message over the refuse threshold after its body has arrived appears here; its sender is told it was accepted." xml:space="preserve">
+    <value>当前没有暂留的邮件。正文到达后超过拒绝阈值的邮件会显示在这里；其发件人会被告知邮件已被接受。</value>
   </data>
-  <data name="Nothing is held. Quarantining is switched off: until it is turned on under Anti-spam settings, spam over the delete threshold is refused during the SMTP conversation rather than stored." xml:space="preserve">
-    <value>没有暂留的邮件。隔离已关闭：在“反垃圾邮件设置”中开启之前，超过删除阈值的垃圾邮件会在 SMTP 会话中被拒绝，而不会被保存。</value>
+  <data name="Nothing is held. Quarantining is switched off: until it is turned on under Anti-spam settings, spam over the refuse threshold is refused during the SMTP conversation rather than stored." xml:space="preserve">
+    <value>没有暂留的邮件。隔离已关闭：在“反垃圾邮件设置”中开启之前，超过拒绝阈值的垃圾邮件会在 SMTP 会话中被拒绝，而不会被保存。</value>
   </data>
   <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.INI key." xml:space="preserve">
     <value>没有与 "{0}" 匹配的内容。请尝试输入您想达成的目标（“阻止垃圾邮件”、“允许设备发送邮件”）、页面名称或 hMailServer.INI 键名。</value>
@@ -10392,6 +10407,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Saved at {0}. No syntax errors. Scripting is off, so the server does not run these handlers." xml:space="preserve">
     <value>已于 {0} 保存。没有语法错误。脚本已关闭，因此服务器不会运行这些处理程序。</value>
   </data>
+  <data name="Saved at {0}: no setting had changed." xml:space="preserve">
+    <value>已于 {0} 保存：没有任何设置发生变化。</value>
+  </data>
   <data name="Saved {0} - every setting on this page is in effect." xml:space="preserve">
     <value>已保存 {0} - 此页上的每项设置都已生效。</value>
   </data>
@@ -10416,11 +10434,38 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Saved {0} - {1} settings wait for a reinitialise; Apply now, in the bar at the foot of the window, takes them." xml:space="preserve">
     <value>已保存 {0} - {1} 项设置等待重新初始化；窗口底部栏中的“立即应用”会使其生效。</value>
   </data>
-  <data name="Saved {0} setting - applied immediately." xml:space="preserve">
-    <value>已保存 {0} 项设置 - 立即生效。</value>
+  <data name="Saved {0} at {1} - applied immediately." xml:space="preserve">
+    <value>已于 {1} 保存 {0} - 立即生效。</value>
   </data>
-  <data name="Saved {0} setting - hMailServer.ini settings need a service restart." xml:space="preserve">
-    <value>已保存 {0} 项设置 - hMailServer.ini 中的设置需要重启服务。</value>
+  <data name="Saved {0} at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value>已于 {1} 保存 {0} - 服务器设置立即生效；hMailServer.ini 中的设置在重启服务后生效。</value>
+  </data>
+  <data name="Saved {0} at {1}." xml:space="preserve">
+    <value>已于 {1} 保存 {0}。</value>
+  </data>
+  <data name="Saved {0} change at {1} - applied immediately." xml:space="preserve">
+    <value>已于 {1} 保存 {0} 项更改 - 立即生效。</value>
+  </data>
+  <data name="Saved {0} change at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value>已于 {1} 保存 {0} 项更改 - 服务器设置立即生效；hMailServer.ini 中的设置在重启服务后生效。</value>
+  </data>
+  <data name="Saved {0} change at {1}." xml:space="preserve">
+    <value>已于 {1} 保存 {0} 项更改。</value>
+  </data>
+  <data name="Saved {0} change." xml:space="preserve">
+    <value>已保存 {0} 项更改。</value>
+  </data>
+  <data name="Saved {0} changes at {1} - applied immediately." xml:space="preserve">
+    <value>已于 {1} 保存 {0} 项更改 - 立即生效。</value>
+  </data>
+  <data name="Saved {0} changes at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value>已于 {1} 保存 {0} 项更改 - 服务器设置立即生效；hMailServer.ini 中的设置在重启服务后生效。</value>
+  </data>
+  <data name="Saved {0} changes at {1}." xml:space="preserve">
+    <value>已于 {1} 保存 {0} 项更改。</value>
+  </data>
+  <data name="Saved {0} changes." xml:space="preserve">
+    <value>已保存 {0} 项更改。</value>
   </data>
   <data name="Saved {0} setting at {1} - applied immediately." xml:space="preserve">
     <value>已于 {1} 保存 {0} 项设置 - 立即生效。</value>
@@ -10434,12 +10479,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Saved {0} setting." xml:space="preserve">
     <value>已保存 {0} 项设置。</value>
   </data>
-  <data name="Saved {0} settings - applied immediately." xml:space="preserve">
-    <value>已保存 {0} 项设置 - 立即生效。</value>
-  </data>
-  <data name="Saved {0} settings - hMailServer.ini settings need a service restart." xml:space="preserve">
-    <value>已保存 {0} 项设置 - hMailServer.ini 中的设置需要重启服务。</value>
-  </data>
   <data name="Saved {0} settings at {1} - applied immediately." xml:space="preserve">
     <value>已于 {1} 保存 {0} 项设置 - 立即生效。</value>
   </data>
@@ -10451,6 +10490,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Saved {0} settings." xml:space="preserve">
     <value>已保存 {0} 项设置。</value>
+  </data>
+  <data name="Saved {0}." xml:space="preserve">
+    <value>已保存 {0}。</value>
   </data>
   <data name="Saved, but reload failed: {0}" xml:space="preserve">
     <value>已保存，但重新加载失败: {0}</value>
@@ -11478,9 +11520,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Spam check" xml:space="preserve">
     <value>垃圾邮件检查</value>
   </data>
-  <data name="Spam delete threshold (score)" xml:space="preserve">
-    <value>垃圾邮件删除阈值 (分数)</value>
-  </data>
   <data name="Spam detected" xml:space="preserve">
     <value>检测到的垃圾邮件</value>
   </data>
@@ -11492,6 +11531,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Spam mark threshold (score)" xml:space="preserve">
     <value>垃圾邮件标记阈值 (分数)</value>
+  </data>
+  <data name="Spam refuse threshold (score)" xml:space="preserve">
+    <value>垃圾邮件拒绝阈值 (分数)</value>
   </data>
   <data name="Spam traps" xml:space="preserve">
     <value>垃圾邮件陷阱</value>
@@ -12482,9 +12524,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The delete override never deletes on a guess: the copy is removed only when the recorded score actually reached the value, and it goes to the quarantine store instead when that is enabled." xml:space="preserve">
     <value>删除覆盖永远不会凭猜测删除: 只有在记录的分数确实达到该值时才会移除副本，而在启用了隔离存储时会改为转入隔离存储。</value>
   </data>
-  <data name="The delete threshold ({0}) is at or below the mark threshold ({1}) and is tested first, so no message is ever marked and delivered - every message that would be marked is refused instead." xml:space="preserve">
-    <value>删除阈值 ({0}) 不高于标记阈值 ({1})，并且先被测试，因此永远不会有邮件被标记并投递 - 所有本应被标记的邮件都会被拒绝。</value>
-  </data>
   <data name="The delivery queue is empty." xml:space="preserve">
     <value>投递队列为空。</value>
   </data>
@@ -12841,6 +12880,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The main hMailServer administration password. It is used by this Control Panel, the REST API and any script that connects through the COM API, and is stored hashed in hMailServer.ini. Changing it does not affect mailbox passwords." xml:space="preserve">
     <value>hMailServer 的主管理密码。此控制面板、REST API 以及任何通过 COM API 连接的脚本都使用它，它以哈希形式存储在 hMailServer.ini 中。更改它不会影响邮箱密码。</value>
   </data>
+  <data name="The mark threshold is 0, so no message is marked as spam: 0 means never." xml:space="preserve">
+    <value>标记阈值为 0，因此不会有邮件被标记为垃圾邮件：0 表示从不。</value>
+  </data>
   <data name="The match cannot be checked until both files are present and readable." xml:space="preserve">
     <value>在两个文件都存在且可读之前，无法检查是否匹配。</value>
   </data>
@@ -13031,6 +13073,15 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The records were checked." xml:space="preserve">
     <value>记录已检查。</value>
+  </data>
+  <data name="The refuse threshold ({0}) is at or below the mark threshold ({1}) and is tested first, so no message is ever marked and delivered - every message that would be marked is refused instead." xml:space="preserve">
+    <value>拒绝阈值 ({0}) 不高于标记阈值 ({1})，并且先被测试，因此永远不会有邮件被标记并投递 - 所有本应被标记的邮件都会被拒绝。</value>
+  </data>
+  <data name="The refuse threshold is 0, so no message is refused or held on its score: 0 means never." xml:space="preserve">
+    <value>拒绝阈值为 0，因此不会有邮件因分数被拒绝或暂挂：0 表示从不。</value>
+  </data>
+  <data name="The refuse threshold must be above the mark threshold, {0}: at or below it, every message the mark threshold would mark is refused instead." xml:space="preserve">
+    <value>拒绝阈值必须高于标记阈值 {0}：等于或低于它时，所有本应被标记阈值标记的邮件都会被拒绝。</value>
   </data>
   <data name="The relay requires _authentication" xml:space="preserve">
     <value>中继要求身份验证(_A)</value>
@@ -14529,6 +14580,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>哪些目录条目会成为邮箱</value>
+  </data>
+  <data name="Which domains have a spam trap could not be read." xml:space="preserve">
+    <value>无法读取哪些域设置了垃圾邮件陷阱。</value>
   </data>
   <data name="Which list do I need?" xml:space="preserve">
     <value>我需要哪个列表？</value>
@@ -16802,8 +16856,14 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} did not answer within 10 seconds from this machine. Likely causes: no A/CNAME record for mta-sts.{1}, the HTTPS listener is not running (no HTTPS port on the Web services &amp; autoconfiguration page), or a firewall in between. Checked from this machine only." xml:space="preserve">
     <value>{0} 未在 10 秒内从本机得到应答。可能的原因：mta-sts.{1} 没有 A/CNAME 记录、HTTPS 监听器没有运行（“Web 服务和自动配置”页上没有 HTTPS 端口），或者中间隔着防火墙。仅从本机检查。</value>
   </data>
+  <data name="{0} domain has trap addresses." xml:space="preserve">
+    <value>有 {0} 个域设置了陷阱地址。</value>
+  </data>
   <data name="{0} domain, and it is not active." xml:space="preserve">
     <value>{0} 个域，没有一个处于活动状态。</value>
+  </data>
+  <data name="{0} domains have trap addresses." xml:space="preserve">
+    <value>有 {0} 个域设置了陷阱地址。</value>
   </data>
   <data name="{0} domains, none of them active." xml:space="preserve">
     <value>{0} 个域，没有一个处于活动状态。</value>
@@ -17327,14 +17387,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} {1} messages are on their way into them and arrive in a few seconds. All of the mailboxes sign in with the password {2}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
     <value>{0}有 {1} 封邮件正在投递到其中，几秒钟后送达。所有邮箱都使用密码 {2} 登录。它在此处只显示一次，请记下来，因为本服务器并未保存它。</value>
   </data>
-  <data name="{0} {1} of them wait for a reinitialise or a restart." xml:space="preserve">
-    <value>{0}其中 {1} 项等待重新初始化或重启。</value>
-  </data>
   <data name="{0} {1} of them wait for a reinitialise or a restart; the rest applied immediately." xml:space="preserve">
     <value>{0}其中 {1} 项等待重新初始化或重启；其余已立即生效。</value>
-  </data>
-  <data name="{0} {1} of them waits for a reinitialise or a restart." xml:space="preserve">
-    <value>{0}其中 {1} 项等待重新初始化或重启。</value>
   </data>
   <data name="{0} {1} of them waits for a reinitialise or a restart; the rest applied immediately." xml:space="preserve">
     <value>{0}其中 {1} 项等待重新初始化或重启；其余已立即生效。</value>
@@ -17342,8 +17396,14 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} {1} setting could not be written." xml:space="preserve">
     <value>{0}有 {1} 项设置无法写入。</value>
   </data>
+  <data name="{0} {1} setting on this page waits for a reinitialise or a restart." xml:space="preserve">
+    <value>{0}本页有 {1} 项设置等待重新初始化或重启。</value>
+  </data>
   <data name="{0} {1} settings could not be written." xml:space="preserve">
     <value>{0}有 {1} 项设置无法写入。</value>
+  </data>
+  <data name="{0} {1} settings on this page wait for a reinitialise or a restart." xml:space="preserve">
+    <value>{0}本页有 {1} 项设置等待重新初始化或重启。</value>
   </data>
   <data name="{0} — exit code {1} means infected" xml:space="preserve">
     <value>{0} — 退出代码 {1} 表示已感染</value>
@@ -17537,8 +17597,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}：{1} 不包含任何 PEM 证书块，因此它没有可用的 CA 证书（服务器错误 6140）。请以 PEM（Base64）格式导出该 CA 证书。</value>
   </data>
-  <data name="~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation, as a fail does." xml:space="preserve">
-    <value>~all：该域表示客户端可能未获授权，但请求仍然接受邮件，许多群发来源就藏在它后面。达到或超过删除阈值的分数会像 fail 一样在 SMTP 会话期间拒绝邮件。</value>
+  <data name="~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many spray sources live behind it. A score at or above the refuse threshold refuses the message during the SMTP conversation, as a fail does." xml:space="preserve">
+    <value>~all：该域表示客户端可能未获授权，但请求仍然接受邮件，许多群发来源就藏在它后面。达到或超过拒绝阈值的分数会像 fail 一样在 SMTP 会话期间拒绝邮件。</value>
   </data>
   <data name="… continued in {0}" xml:space="preserve">
     <value>… 接续于 {0}</value>

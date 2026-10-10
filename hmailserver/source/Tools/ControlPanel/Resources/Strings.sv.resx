@@ -513,6 +513,9 @@
   <data name="A message not on the local disk is looked for in the object store while one is named, so switching back hides nothing. Taken within five seconds." xml:space="preserve">
     <value>Ett meddelande som inte finns på den lokala disken söks i objektlagringen så länge en sådan är angiven, så att byta tillbaka döljer ingenting. Tas i bruk inom fem sekunder.</value>
   </data>
+  <data name="A message scoring this or more is refused during the SMTP conversation, or held in the quarantine while quarantining is on. Older versions called it the delete threshold." xml:space="preserve">
+    <value>Ett meddelande med denna poäng eller mer avvisas under SMTP-konversationen, eller hålls kvar i karantänen medan karantän är på. Äldre versioner kallade den borttagningströskeln.</value>
+  </data>
   <data name="A message scoring {0} or more is marked as spam and delivered. Nothing is refused on score." xml:space="preserve">
     <value>Ett meddelande med {0} poäng eller mer markeras som skräppost och levereras. Inget avvisas på poäng.</value>
   </data>
@@ -2182,6 +2185,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Both thresholds are 0, so no score can mark or refuse anything - the server tests them with &quot;greater than 0&quot; before using them. It also stops testing as soon as the running total reaches the higher threshold, which is 0, so exactly one check runs in each phase and its result is discarded." xml:space="preserve">
     <value>Båda trösklarna är 0, så ingen poäng kan markera eller avvisa något - servern testar dem med "större än 0" innan den använder dem. Den slutar också testa så snart den löpande summan når den högre tröskeln, som är 0, så exakt en kontroll körs i varje fas och dess resultat kastas.</value>
   </data>
+  <data name="Both thresholds are 0, so no score marks, refuses or holds any message." xml:space="preserve">
+    <value>Båda trösklarna är 0, så ingen poäng markerar, avvisar eller håller kvar något meddelande.</value>
+  </data>
   <data name="Both ways" xml:space="preserve">
     <value>Båda hållen</value>
   </data>
@@ -2419,8 +2425,8 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Changes here are saved as you make them, not with the dialog's Save, so Cancel does not undo them." xml:space="preserve">
     <value>Ändringar här sparas allteftersom du gör dem, inte med dialogrutans Spara, så Avbryt ångrar dem inte.</value>
   </data>
-  <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
-    <value>Ändrar vad som händer vid borttagningströskeln. Av: ett meddelande över den avvisas under SMTP-konversationen med 550 och avsändaren får veta det. På: det godtas med 250 och hålls för granskning i stället - avsändaren tror att det levererades och försöker inte om, vilket är det som gör en falsk träff möjlig att återställa utan att studsa till en returväg som troligen är förfalskad, och som också betyder att granskningskön blir den enda plats där meddelandet finns. Gäller kontroller som körs efter att meddelandetexten tagits emot; en dom som nås före det (en anslutande IP på en DNS-spärrlista, ett dåligt HELO) har inget meddelande att hålla kvar och förblir en avvisning.</value>
+  <data name="Changes what happens at the refuse threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
+    <value>Ändrar vad som händer vid avvisningströskeln. Av: ett meddelande över den avvisas under SMTP-konversationen med 550 och avsändaren får veta det. På: det godtas med 250 och hålls för granskning i stället - avsändaren tror att det levererades och försöker inte om, vilket är det som gör en falsk träff möjlig att återställa utan att studsa till en returväg som troligen är förfalskad, och som också betyder att granskningskön blir den enda plats där meddelandet finns. Gäller kontroller som körs efter att meddelandetexten tagits emot; en dom som nås före det (en anslutande IP på en DNS-spärrlista, ett dåligt HELO) har inget meddelande att hålla kvar och förblir en avvisning.</value>
   </data>
   <data name="Changing it renames the list; its members and settings stay." xml:space="preserve">
     <value>En ändring byter namn på listan; dess medlemmar och inställningar finns kvar.</value>
@@ -2880,6 +2886,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Contacting {0}…" xml:space="preserve">
     <value>Kontaktar {0}…</value>
+  </data>
+  <data name="Content filters" xml:space="preserve">
+    <value>Innehållsfilter</value>
   </data>
   <data name="Control Deck" xml:space="preserve">
     <value>Control Deck</value>
@@ -6438,8 +6447,8 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Lower IP" xml:space="preserve">
     <value>Nedre IP</value>
   </data>
-  <data name="Lower the mark and delete thresholds, or turn on more of the checks." xml:space="preserve">
-    <value>Sänk trösklarna för märkning och borttagning, eller slå på fler av kontrollerna.</value>
+  <data name="Lower the mark and refuse thresholds, or turn on more of the checks." xml:space="preserve">
+    <value>Sänk trösklarna för märkning och avvisning, eller slå på fler av kontrollerna.</value>
   </data>
   <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. To allow or block a domain outright, use the Allowed and blocked domains page, under Spam &amp; virus filtering." xml:space="preserve">
     <value>MAIL FROM:&lt;&gt; är returvägen för en leveransrapport, och en rapport har exakt en mottagare: adressen som skickade meddelandet den gäller. En tom avsändare som sedan anger en andra mottagare är backscatter, en förfalskad rapport eller en sondering. Av: servern accepterar den som alltid. På: den andra och varje senare RCPT TO besvaras med 550 och transaktionens DATA avvisas också; en tom avsändare med en mottagare rörs aldrig. Endast oautentiserade sessioner från ett IP-intervall som kör skräpposttesterna, och aldrig en avsändare bland skräppostundantagen. Använd sidan Tillåtna och blockerade domäner under Skräppost- &amp; virusfiltrering för att tillåta eller blockera en hel domän.</value>
@@ -7408,6 +7417,9 @@ Inget som redan finns där tas bort.</value>
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>Ingen domän har DKIM-signering påslagen, så ingen DNS-post krävs.</value>
   </data>
+  <data name="No domain has a trap address yet, so these settings do nothing." xml:space="preserve">
+    <value>Ingen domän har en fälladress ännu, så de här inställningarna gör ingenting.</value>
+  </data>
   <data name="No domain has an Active Directory domain name, so none can take part." xml:space="preserve">
     <value>Ingen domän har ett Active Directory-domännamn, så ingen kan delta.</value>
   </data>
@@ -7663,6 +7675,9 @@ Inget som redan finns där tas bort.</value>
   <data name="No second factor. Enrolling one stops this account's password working in mail clients immediately, because IMAP, POP3 and SMTP have nowhere to enter a code - set up an app password on the App passwords tab first, or the mailbox will go quiet." xml:space="preserve">
     <value>Ingen andra faktor. Att registrera en gör att det här kontots lösenord omedelbart slutar fungera i e-postklienter, eftersom IMAP, POP3 och SMTP inte har någonstans att ange en kod - sätt först upp ett applösenord på fliken Applösenord, annars tystnar brevlådan.</value>
   </data>
+  <data name="No setting had changed." xml:space="preserve">
+    <value>Ingen inställning hade ändrats.</value>
+  </data>
   <data name="No signature database folder is set." xml:space="preserve">
     <value>Ingen mapp för signaturdatabasen är satt.</value>
   </data>
@@ -7870,11 +7885,11 @@ Inget som redan finns där tas bort.</value>
   <data name="Nothing is ever marked as spam: marking needs a mark threshold above 0, and a 0 there means &quot;never&quot; rather than &quot;always&quot;. Messages reaching {0} are still refused." xml:space="preserve">
     <value>Inget markeras någonsin som skräppost: markering kräver en markeringströskel över 0, och en 0 där betyder "aldrig" snarare än "alltid". Meddelanden som når {0} avvisas ändå.</value>
   </data>
-  <data name="Nothing is held right now. A message over the delete threshold after its body has arrived appears here; its sender is told it was accepted." xml:space="preserve">
-    <value>Inget hålls kvar just nu. Ett meddelande över raderingströskeln efter att innehållet tagits emot visas här; avsändaren får veta att det togs emot.</value>
+  <data name="Nothing is held right now. A message over the refuse threshold after its body has arrived appears here; its sender is told it was accepted." xml:space="preserve">
+    <value>Inget hålls kvar just nu. Ett meddelande över avvisningströskeln efter att innehållet tagits emot visas här; avsändaren får veta att det togs emot.</value>
   </data>
-  <data name="Nothing is held. Quarantining is switched off: until it is turned on under Anti-spam settings, spam over the delete threshold is refused during the SMTP conversation rather than stored." xml:space="preserve">
-    <value>Inget hålls kvar. Karantän är avstängd: tills den slås på under Skräppostinställningar avvisas skräppost över raderingströskeln under SMTP-sessionen i stället för att sparas.</value>
+  <data name="Nothing is held. Quarantining is switched off: until it is turned on under Anti-spam settings, spam over the refuse threshold is refused during the SMTP conversation rather than stored." xml:space="preserve">
+    <value>Inget hålls kvar. Karantän är avstängd: tills den slås på under Skräppostinställningar avvisas skräppost över avvisningströskeln under SMTP-sessionen i stället för att sparas.</value>
   </data>
   <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.INI key." xml:space="preserve">
     <value>Inget matchade "{0}". Prova det du försöker uppnå ("stoppa skräppost", "låt en enhet skicka post"), ett sidnamn, eller en hMailServer.INI-nyckel.</value>
@@ -10392,6 +10407,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Saved at {0}. No syntax errors. Scripting is off, so the server does not run these handlers." xml:space="preserve">
     <value>Sparat {0}. Inga syntaxfel. Skript är avstängda, så servern kör inte de här hanterarna.</value>
   </data>
+  <data name="Saved at {0}: no setting had changed." xml:space="preserve">
+    <value>Sparat kl. {0}: ingen inställning hade ändrats.</value>
+  </data>
   <data name="Saved {0} - every setting on this page is in effect." xml:space="preserve">
     <value>Sparat {0} - alla inställningar på den här sidan gäller.</value>
   </data>
@@ -10416,11 +10434,38 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Saved {0} - {1} settings wait for a reinitialise; Apply now, in the bar at the foot of the window, takes them." xml:space="preserve">
     <value>Sparat {0} - {1} inställningar väntar på en ominitiering; Tillämpa nu, i fältet längst ned i fönstret, tillämpar dem.</value>
   </data>
-  <data name="Saved {0} setting - applied immediately." xml:space="preserve">
-    <value>Sparade {0} inställning - tillämpad omedelbart.</value>
+  <data name="Saved {0} at {1} - applied immediately." xml:space="preserve">
+    <value>Sparade {0} kl. {1} - tillämpad omedelbart.</value>
   </data>
-  <data name="Saved {0} setting - hMailServer.ini settings need a service restart." xml:space="preserve">
-    <value>Sparade {0} inställning - inställningar i hMailServer.ini kräver en omstart av tjänsten.</value>
+  <data name="Saved {0} at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value>Sparade {0} kl. {1} - serverinställningar tillämpade omedelbart; inställningar i hMailServer.ini gäller efter en omstart av tjänsten.</value>
+  </data>
+  <data name="Saved {0} at {1}." xml:space="preserve">
+    <value>Sparade {0} kl. {1}.</value>
+  </data>
+  <data name="Saved {0} change at {1} - applied immediately." xml:space="preserve">
+    <value>Sparade {0} ändring kl. {1} - tillämpad omedelbart.</value>
+  </data>
+  <data name="Saved {0} change at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value>Sparade {0} ändring kl. {1} - serverinställningar tillämpade omedelbart; inställningar i hMailServer.ini gäller efter en omstart av tjänsten.</value>
+  </data>
+  <data name="Saved {0} change at {1}." xml:space="preserve">
+    <value>Sparade {0} ändring kl. {1}.</value>
+  </data>
+  <data name="Saved {0} change." xml:space="preserve">
+    <value>Sparade {0} ändring.</value>
+  </data>
+  <data name="Saved {0} changes at {1} - applied immediately." xml:space="preserve">
+    <value>Sparade {0} ändringar kl. {1} - tillämpade omedelbart.</value>
+  </data>
+  <data name="Saved {0} changes at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value>Sparade {0} ändringar kl. {1} - serverinställningar tillämpade omedelbart; inställningar i hMailServer.ini gäller efter en omstart av tjänsten.</value>
+  </data>
+  <data name="Saved {0} changes at {1}." xml:space="preserve">
+    <value>Sparade {0} ändringar kl. {1}.</value>
+  </data>
+  <data name="Saved {0} changes." xml:space="preserve">
+    <value>Sparade {0} ändringar.</value>
   </data>
   <data name="Saved {0} setting at {1} - applied immediately." xml:space="preserve">
     <value>Sparade {0} inställning kl. {1} - tillämpad omedelbart.</value>
@@ -10434,12 +10479,6 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Saved {0} setting." xml:space="preserve">
     <value>Sparade {0} inställning.</value>
   </data>
-  <data name="Saved {0} settings - applied immediately." xml:space="preserve">
-    <value>Sparade {0} inställningar - tillämpade omedelbart.</value>
-  </data>
-  <data name="Saved {0} settings - hMailServer.ini settings need a service restart." xml:space="preserve">
-    <value>Sparade {0} inställningar - inställningar i hMailServer.ini kräver en omstart av tjänsten.</value>
-  </data>
   <data name="Saved {0} settings at {1} - applied immediately." xml:space="preserve">
     <value>Sparade {0} inställningar kl. {1} - tillämpade omedelbart.</value>
   </data>
@@ -10451,6 +10490,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Saved {0} settings." xml:space="preserve">
     <value>Sparade {0} inställningar.</value>
+  </data>
+  <data name="Saved {0}." xml:space="preserve">
+    <value>Sparade {0}.</value>
   </data>
   <data name="Saved, but reload failed: {0}" xml:space="preserve">
     <value>Sparat, men omladdningen misslyckades: {0}</value>
@@ -11478,9 +11520,6 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Spam check" xml:space="preserve">
     <value>Skräppostkontroll</value>
   </data>
-  <data name="Spam delete threshold (score)" xml:space="preserve">
-    <value>Tröskel för borttagning av skräppost (poäng)</value>
-  </data>
   <data name="Spam detected" xml:space="preserve">
     <value>Skräppost upptäckt</value>
   </data>
@@ -11492,6 +11531,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Spam mark threshold (score)" xml:space="preserve">
     <value>Tröskel för märkning av skräppost (poäng)</value>
+  </data>
+  <data name="Spam refuse threshold (score)" xml:space="preserve">
+    <value>Tröskel för avvisning av skräppost (poäng)</value>
   </data>
   <data name="Spam traps" xml:space="preserve">
     <value>Skräppostfällor</value>
@@ -12482,9 +12524,6 @@ Markera nyckeln ovan och kopiera den för hand - den visas inte igen.</value>
   <data name="The delete override never deletes on a guess: the copy is removed only when the recorded score actually reached the value, and it goes to the quarantine store instead when that is enabled." xml:space="preserve">
     <value>Borttagningsåsidosättningen tar aldrig bort på en gissning: kopian tas bara bort när den registrerade poängen faktiskt nådde värdet, och den går till karantänlagret i stället när det är aktiverat.</value>
   </data>
-  <data name="The delete threshold ({0}) is at or below the mark threshold ({1}) and is tested first, so no message is ever marked and delivered - every message that would be marked is refused instead." xml:space="preserve">
-    <value>Borttagningströskeln ({0}) är vid eller under markeringströskeln ({1}) och testas först, så inget meddelande markeras och levereras någonsin - varje meddelande som skulle markeras avvisas i stället.</value>
-  </data>
   <data name="The delivery queue is empty." xml:space="preserve">
     <value>Leveranskön är tom.</value>
   </data>
@@ -12841,6 +12880,9 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   <data name="The main hMailServer administration password. It is used by this Control Panel, the REST API and any script that connects through the COM API, and is stored hashed in hMailServer.ini. Changing it does not affect mailbox passwords." xml:space="preserve">
     <value>hMailServers huvudsakliga administrationslösenord. Det används av den här Kontrollpanelen, REST API:et och varje skript som ansluter via COM API:et, och lagras hashat i hMailServer.ini. Att ändra det påverkar inte brevlådelösenord.</value>
   </data>
+  <data name="The mark threshold is 0, so no message is marked as spam: 0 means never." xml:space="preserve">
+    <value>Markeringströskeln är 0, så inget meddelande markeras som skräppost: 0 betyder aldrig.</value>
+  </data>
   <data name="The match cannot be checked until both files are present and readable." xml:space="preserve">
     <value>Matchningen kan inte kontrolleras förrän båda filerna finns och är läsbara.</value>
   </data>
@@ -13031,6 +13073,15 @@ Lägg till det ändå?</value>
   </data>
   <data name="The records were checked." xml:space="preserve">
     <value>Posterna har kontrollerats.</value>
+  </data>
+  <data name="The refuse threshold ({0}) is at or below the mark threshold ({1}) and is tested first, so no message is ever marked and delivered - every message that would be marked is refused instead." xml:space="preserve">
+    <value>Avvisningströskeln ({0}) är vid eller under markeringströskeln ({1}) och testas först, så inget meddelande markeras och levereras någonsin - varje meddelande som skulle markeras avvisas i stället.</value>
+  </data>
+  <data name="The refuse threshold is 0, so no message is refused or held on its score: 0 means never." xml:space="preserve">
+    <value>Avvisningströskeln är 0, så inget meddelande avvisas eller hålls kvar på sin poäng: 0 betyder aldrig.</value>
+  </data>
+  <data name="The refuse threshold must be above the mark threshold, {0}: at or below it, every message the mark threshold would mark is refused instead." xml:space="preserve">
+    <value>Avvisningströskeln måste ligga över markeringströskeln, {0}: på eller under den avvisas i stället varje meddelande som markeringströskeln skulle markera.</value>
   </data>
   <data name="The relay requires _authentication" xml:space="preserve">
     <value>Relät kräver a_utentisering</value>
@@ -14529,6 +14580,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>Vilka katalogposter som blir brevlådor</value>
+  </data>
+  <data name="Which domains have a spam trap could not be read." xml:space="preserve">
+    <value>Vilka domäner som har en skräppostfälla kunde inte läsas.</value>
   </data>
   <data name="Which list do I need?" xml:space="preserve">
     <value>Vilken lista behöver jag?</value>
@@ -16802,8 +16856,14 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} did not answer within 10 seconds from this machine. Likely causes: no A/CNAME record for mta-sts.{1}, the HTTPS listener is not running (no HTTPS port on the Web services &amp; autoconfiguration page), or a firewall in between. Checked from this machine only." xml:space="preserve">
     <value>{0} svarade inte inom 10 sekunder från den här datorn. Troliga orsaker: ingen A-/CNAME-post för mta-sts.{1}, HTTPS-lyssnaren körs inte (ingen HTTPS-port på sidan Webbtjänster &amp; automatisk konfiguration), eller en brandvägg emellan. Kontrollerat bara från den här datorn.</value>
   </data>
+  <data name="{0} domain has trap addresses." xml:space="preserve">
+    <value>{0} domän har fälladresser.</value>
+  </data>
   <data name="{0} domain, and it is not active." xml:space="preserve">
     <value>{0} domän, och den är inte aktiv.</value>
+  </data>
+  <data name="{0} domains have trap addresses." xml:space="preserve">
+    <value>{0} domäner har fälladresser.</value>
   </data>
   <data name="{0} domains, none of them active." xml:space="preserve">
     <value>{0} domäner, ingen av dem aktiv.</value>
@@ -17327,14 +17387,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} {1} messages are on their way into them and arrive in a few seconds. All of the mailboxes sign in with the password {2}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
     <value>{0} {1} meddelanden är på väg in i dem och kommer fram om några sekunder. Alla brevlådor loggar in med lösenordet {2}. Det visas här en enda gång - skriv ned det, för den här servern sparade det inte.</value>
   </data>
-  <data name="{0} {1} of them wait for a reinitialise or a restart." xml:space="preserve">
-    <value>{0} {1} av dem väntar på en ominitiering eller en omstart.</value>
-  </data>
   <data name="{0} {1} of them wait for a reinitialise or a restart; the rest applied immediately." xml:space="preserve">
     <value>{0} {1} av dem väntar på en ominitiering eller en omstart; resten tillämpades omedelbart.</value>
-  </data>
-  <data name="{0} {1} of them waits for a reinitialise or a restart." xml:space="preserve">
-    <value>{0} {1} av dem väntar på en ominitiering eller en omstart.</value>
   </data>
   <data name="{0} {1} of them waits for a reinitialise or a restart; the rest applied immediately." xml:space="preserve">
     <value>{0} {1} av dem väntar på en ominitiering eller en omstart; resten tillämpades omedelbart.</value>
@@ -17342,8 +17396,14 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} {1} setting could not be written." xml:space="preserve">
     <value>{0} {1} inställning kunde inte skrivas.</value>
   </data>
+  <data name="{0} {1} setting on this page waits for a reinitialise or a restart." xml:space="preserve">
+    <value>{0} {1} inställning på den här sidan väntar på en ominitiering eller en omstart.</value>
+  </data>
   <data name="{0} {1} settings could not be written." xml:space="preserve">
     <value>{0} {1} inställningar kunde inte skrivas.</value>
+  </data>
+  <data name="{0} {1} settings on this page wait for a reinitialise or a restart." xml:space="preserve">
+    <value>{0} {1} inställningar på den här sidan väntar på en ominitiering eller en omstart.</value>
   </data>
   <data name="{0} — exit code {1} means infected" xml:space="preserve">
     <value>{0} — utgångskod {1} betyder infekterat</value>
@@ -17537,8 +17597,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} innehåller inget PEM-certifikatblock, så den innehåller inget användbart CA-certifikat (serverfel 6140). Exportera CA-certifikatet i PEM-format (Base64).</value>
   </data>
-  <data name="~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation, as a fail does." xml:space="preserve">
-    <value>~all: domänen säger att klienten troligen inte är behörig men ber att meddelandet ändå accepteras, och många massutskickare gömmer sig bakom det. En poäng på eller över raderingströskeln avvisar meddelandet under SMTP-dialogen, som ett fail gör.</value>
+  <data name="~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many spray sources live behind it. A score at or above the refuse threshold refuses the message during the SMTP conversation, as a fail does." xml:space="preserve">
+    <value>~all: domänen säger att klienten troligen inte är behörig men ber att meddelandet ändå accepteras, och många massutskickare gömmer sig bakom det. En poäng på eller över avvisningströskeln avvisar meddelandet under SMTP-dialogen, som ett fail gör.</value>
   </data>
   <data name="… continued in {0}" xml:space="preserve">
     <value>… fortsätter i {0}</value>

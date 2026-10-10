@@ -381,6 +381,10 @@ namespace hMailServer.ControlPanel.Services
          new ReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>(
             new Dictionary<string, IReadOnlyDictionary<string, string>>(StringComparer.OrdinalIgnoreCase)
             {
+               // The engines that read a message's content are on Content filters,
+               // whose old name, SpamAssassin, is one of them (review finding F263).
+               ["antispam"] = TabsOf_(
+                  (N("Content filters"), "SpamAssassin|Content filters|rspamd|External filtering engine")),
                ["security"] = TabsOf_(
                   (N("Encryption"), "DANE|TLSA|MTA-STS|Downgrade|Opportunistic TLS|Enforce TLS"),
                   (N("Signing"), "ARC|DKIM oversigning|Oversign|DKIM expiry|DKIM timestamps|Authentication-Results|Received-SPF"),
@@ -753,7 +757,7 @@ namespace hMailServer.ControlPanel.Services
 
                Page("antispam", N("Anti-spam settings"),
                   N("Scores and thresholds, SPF, DKIM and DMARC checks, greylisting, and SpamAssassin."),
-                  aliases: "Anti-spam|Spam filter|Stop spam|Score|Threshold|SPF|DKIM|DMARC|ARC|Greylisting|SpamAssassin|Junk mail|PTR|HELO check|Subject prefix",
+                  aliases: "Anti-spam|Spam filter|Stop spam|Score|Threshold|Refuse threshold|Delete threshold|SPF|DKIM|DMARC|ARC|Greylisting|SpamAssassin|Content filters|rspamd|External filtering engine|Junk mail|PTR|HELO check|Subject prefix",
                   seeAlso: "spamoverview|quarantine|dnsbl|surbl|spamwhitelist|greylistwhitelist"),
 
                // The overview is first in most of these lists on purpose: it is the

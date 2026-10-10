@@ -294,8 +294,8 @@ namespace hMailServer.ControlPanel.Views
                ShowSweepState_(RetentionDays_());
                empty_.Action = quarantining ? null : OpenAntiSpamSettings_();
                StatusText.Show(empty_, null, total, null, quarantining
-                  ? L("Nothing is held right now. A message over the delete threshold after its body has arrived appears here; its sender is told it was accepted.")
-                  : L("Nothing is held. Quarantining is switched off: until it is turned on under Anti-spam settings, spam over the delete threshold is refused during the SMTP conversation rather than stored."));
+                  ? L("Nothing is held right now. A message over the refuse threshold after its body has arrived appears here; its sender is told it was accepted.")
+                  : L("Nothing is held. Quarantining is switched off: until it is turned on under Anti-spam settings, spam over the refuse threshold is refused during the SMTP conversation rather than stored."));
                emptyText_ = empty_.Text;
                emptyAction_ = empty_.Action;
                total_ = total;

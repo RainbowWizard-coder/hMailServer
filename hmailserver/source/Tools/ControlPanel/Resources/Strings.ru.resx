@@ -516,6 +516,9 @@
   <data name="A message not on the local disk is looked for in the object store while one is named, so switching back hides nothing. Taken within five seconds." xml:space="preserve">
     <value>Сообщение, которого нет на локальном диске, ищется в хранилище объектов, пока оно указано, поэтому возврат назад ничего не скрывает. Применяется в течение пяти секунд.</value>
   </data>
+  <data name="A message scoring this or more is refused during the SMTP conversation, or held in the quarantine while quarantining is on. Older versions called it the delete threshold." xml:space="preserve">
+    <value>Сообщение с таким баллом или выше отклоняется во время SMTP-сеанса или задерживается в карантине, пока карантин включён. В прежних версиях он назывался порогом удаления.</value>
+  </data>
   <data name="A message scoring {0} or more is marked as spam and delivered. Nothing is refused on score." xml:space="preserve">
     <value>Сообщение с оценкой {0} и выше помечается как спам и доставляется. По оценке ничего не отклоняется.</value>
   </data>
@@ -2206,6 +2209,9 @@ Control Panel может читать файлы сообщений только
   <data name="Both thresholds are 0, so no score can mark or refuse anything - the server tests them with &quot;greater than 0&quot; before using them. It also stops testing as soon as the running total reaches the higher threshold, which is 0, so exactly one check runs in each phase and its result is discarded." xml:space="preserve">
     <value>Оба порога равны 0, поэтому никакая оценка ничего не пометит и не отклонит — перед использованием сервер проверяет их условием «больше 0». К тому же он прекращает проверки, как только накопленный итог достигает большего порога, а тот равен 0, — так что в каждой фазе выполняется ровно одна проверка, и её результат отбрасывается.</value>
   </data>
+  <data name="Both thresholds are 0, so no score marks, refuses or holds any message." xml:space="preserve">
+    <value>Оба порога равны 0, поэтому никакой балл не помечает, не отклоняет и не задерживает сообщения.</value>
+  </data>
   <data name="Both ways" xml:space="preserve">
     <value>В обе стороны</value>
   </data>
@@ -2443,8 +2449,8 @@ Control Panel может читать файлы сообщений только
   <data name="Changes here are saved as you make them, not with the dialog's Save, so Cancel does not undo them." xml:space="preserve">
     <value>Изменения здесь сохраняются сразу, по мере того как вы их вносите, а не кнопкой «Сохранить» диалога, поэтому «Отмена» их не отменяет.</value>
   </data>
-  <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
-    <value>Меняет то, что происходит при достижении порога удаления. Выключено: сообщение, превысившее порог, отклоняется прямо в разговоре SMTP ответом 550, и отправителю об этом сообщают. Включено: оно принимается ответом 250 и вместо этого откладывается на проверку — отправитель считает его доставленным и не повторяет попытку, именно это и позволяет исправить ложное срабатывание, не отправляя отчёт о недоставке по обратному адресу, который, скорее всего, подделан, и это же означает, что очередь на проверку становится единственным местом, где это сообщение вообще существует. Относится к проверкам, которые выполняются после получения тела письма; для вердикта, вынесенного раньше (подключающийся IP в списке блокировки DNS, неправильный HELO), удерживать нечего, и он остаётся отказом.</value>
+  <data name="Changes what happens at the refuse threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
+    <value>Меняет то, что происходит при достижении порога отклонения. Выключено: сообщение, превысившее порог, отклоняется прямо в разговоре SMTP ответом 550, и отправителю об этом сообщают. Включено: оно принимается ответом 250 и вместо этого откладывается на проверку — отправитель считает его доставленным и не повторяет попытку, именно это и позволяет исправить ложное срабатывание, не отправляя отчёт о недоставке по обратному адресу, который, скорее всего, подделан, и это же означает, что очередь на проверку становится единственным местом, где это сообщение вообще существует. Относится к проверкам, которые выполняются после получения тела письма; для вердикта, вынесенного раньше (подключающийся IP в списке блокировки DNS, неправильный HELO), удерживать нечего, и он остаётся отказом.</value>
   </data>
   <data name="Changing it renames the list; its members and settings stay." xml:space="preserve">
     <value>Изменение переименовывает список; его участники и параметры сохраняются.</value>
@@ -2904,6 +2910,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Contacting {0}…" xml:space="preserve">
     <value>Обращение к {0}…</value>
+  </data>
+  <data name="Content filters" xml:space="preserve">
+    <value>Фильтры содержимого</value>
   </data>
   <data name="Control Deck" xml:space="preserve">
     <value>Control Deck</value>
@@ -6511,8 +6520,8 @@ Control Panel может читать файлы сообщений только
   <data name="Lower IP" xml:space="preserve">
     <value>Нижний IP</value>
   </data>
-  <data name="Lower the mark and delete thresholds, or turn on more of the checks." xml:space="preserve">
-    <value>Снизьте пороги пометки и удаления или включите больше проверок.</value>
+  <data name="Lower the mark and refuse thresholds, or turn on more of the checks." xml:space="preserve">
+    <value>Снизьте пороги пометки и отклонения или включите больше проверок.</value>
   </data>
   <data name="MAIL FROM:&lt;&gt; is the reverse-path of a delivery report, and a report has exactly one recipient: the address that sent the message it is about. A null sender that goes on to name a second recipient is backscatter, a forged report or a probe. Off, the server accepts it as it always has. On, the second and every later RCPT TO is answered 550 and the transaction's DATA is refused as well; a null sender with one recipient is never touched. Unauthenticated sessions of an IP range that runs the spam tests only, and never a sender in the spam exemptions. To allow or block a domain outright, use the Allowed and blocked domains page, under Spam &amp; virus filtering." xml:space="preserve">
     <value>MAIL FROM:&lt;&gt; - это обратный путь отчёта о доставке, а у отчёта ровно один получатель: адрес, отправивший письмо, о котором идёт речь. Пустой отправитель, который затем называет второго получателя, - это backscatter, поддельный отчёт или зондирование. Выключено: сервер принимает его, как и всегда. Включено: на второй и каждый следующий RCPT TO даётся 550, а DATA транзакции тоже отклоняется; пустой отправитель с одним получателем не затрагивается никогда. Только неаутентифицированные сеансы из диапазона IP, для которого выполняются антиспам-проверки, и никогда - отправитель из исключений антиспама. Чтобы разрешить или заблокировать домен целиком, используйте страницу «Разрешённые и заблокированные домены» в разделе «Фильтрация спама и вирусов».</value>
@@ -7490,6 +7499,9 @@ Control Panel может читать файлы сообщений только
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>Ни у одного домена не включено подписывание DKIM, поэтому запись DNS не требуется.</value>
   </data>
+  <data name="No domain has a trap address yet, so these settings do nothing." xml:space="preserve">
+    <value>Ни у одного домена пока нет адреса-ловушки, поэтому эти параметры ничего не делают.</value>
+  </data>
   <data name="No domain has an Active Directory domain name, so none can take part." xml:space="preserve">
     <value>Ни у одного домена нет имени домена Active Directory, поэтому участвовать не может ни один.</value>
   </data>
@@ -7751,6 +7763,9 @@ Control Panel может читать файлы сообщений только
   <data name="No second factor. Enrolling one stops this account's password working in mail clients immediately, because IMAP, POP3 and SMTP have nowhere to enter a code - set up an app password on the App passwords tab first, or the mailbox will go quiet." xml:space="preserve">
     <value>Второго фактора нет. Как только вы его подключите, пароль этой учётной записи сразу перестанет работать в почтовых клиентах, потому что в IMAP, POP3 и SMTP код вводить негде: сначала создайте пароль приложения на вкладке «Пароли приложений», иначе почтовый ящик замолчит.</value>
   </data>
+  <data name="No setting had changed." xml:space="preserve">
+    <value>Ни один параметр не изменился.</value>
+  </data>
   <data name="No signature database folder is set." xml:space="preserve">
     <value>Папка базы сигнатур не задана.</value>
   </data>
@@ -7964,11 +7979,11 @@ Control Panel может читать файлы сообщений только
   <data name="Nothing is ever marked as spam: marking needs a mark threshold above 0, and a 0 there means &quot;never&quot; rather than &quot;always&quot;. Messages reaching {0} are still refused." xml:space="preserve">
     <value>Ничто и никогда не помечается как спам: для пометки нужен порог пометки больше 0, а 0 здесь означает «никогда», а не «всегда». Сообщения, достигающие {0}, всё равно отклоняются.</value>
   </data>
-  <data name="Nothing is held right now. A message over the delete threshold after its body has arrived appears here; its sender is told it was accepted." xml:space="preserve">
-    <value>Сейчас ничего не задержано. Сообщение, превысившее порог удаления после получения тела, появляется здесь; отправителю сообщается, что оно принято.</value>
+  <data name="Nothing is held right now. A message over the refuse threshold after its body has arrived appears here; its sender is told it was accepted." xml:space="preserve">
+    <value>Сейчас ничего не задержано. Сообщение, превысившее порог отклонения после получения тела, появляется здесь; отправителю сообщается, что оно принято.</value>
   </data>
-  <data name="Nothing is held. Quarantining is switched off: until it is turned on under Anti-spam settings, spam over the delete threshold is refused during the SMTP conversation rather than stored." xml:space="preserve">
-    <value>Ничего не задержано. Карантин выключен: пока он не включён в разделе «Параметры антиспама», спам выше порога удаления отклоняется во время SMTP-сеанса, а не сохраняется.</value>
+  <data name="Nothing is held. Quarantining is switched off: until it is turned on under Anti-spam settings, spam over the refuse threshold is refused during the SMTP conversation rather than stored." xml:space="preserve">
+    <value>Ничего не задержано. Карантин выключен: пока он не включён в разделе «Параметры антиспама», спам выше порога отклонения отклоняется во время SMTP-сеанса, а не сохраняется.</value>
   </data>
   <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.INI key." xml:space="preserve">
     <value>Ничто не совпало с «{0}». Попробуйте описать то, чего вы хотите добиться («остановить спам», «разрешить устройству отправлять почту»), либо имя страницы, либо ключ из hMailServer.INI.</value>
@@ -10507,6 +10522,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Saved at {0}. No syntax errors. Scripting is off, so the server does not run these handlers." xml:space="preserve">
     <value>Сохранено в {0}. Синтаксических ошибок нет. Сценарии выключены, поэтому сервер не выполняет эти обработчики.</value>
   </data>
+  <data name="Saved at {0}: no setting had changed." xml:space="preserve">
+    <value>Сохранено в {0}: ни один параметр не изменился.</value>
+  </data>
   <data name="Saved {0} - every setting on this page is in effect." xml:space="preserve">
     <value>Сохранено: {0} — все параметры на этой странице действуют.</value>
   </data>
@@ -10534,11 +10552,50 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Saved {0} - {1} settings wait for a reinitialise; Apply now, in the bar at the foot of the window, takes them.|few" xml:space="preserve">
     <value>Сохранено: {0} — {1} параметра ждут повторной инициализации; кнопка «Применить сейчас» на панели внизу окна применит их.</value>
   </data>
-  <data name="Saved {0} setting - applied immediately." xml:space="preserve">
-    <value>Сохранено параметров: {0} — применяются немедленно.</value>
+  <data name="Saved {0} at {1} - applied immediately." xml:space="preserve">
+    <value>Сохранено в {1}: {0} - применяется немедленно.</value>
   </data>
-  <data name="Saved {0} setting - hMailServer.ini settings need a service restart." xml:space="preserve">
-    <value>Сохранено параметров: {0} — параметры hMailServer.ini требуют перезапуска службы.</value>
+  <data name="Saved {0} at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value>Сохранено в {1}: {0} - параметры сервера применяются немедленно; параметры hMailServer.ini вступают в силу после перезапуска службы.</value>
+  </data>
+  <data name="Saved {0} at {1}." xml:space="preserve">
+    <value>Сохранено в {1}: {0}.</value>
+  </data>
+  <data name="Saved {0} change at {1} - applied immediately." xml:space="preserve">
+    <value>Сохранено {0} изменение в {1} - применяется немедленно.</value>
+  </data>
+  <data name="Saved {0} change at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value>Сохранено {0} изменение в {1} - параметры сервера применяются немедленно; параметры hMailServer.ini вступают в силу после перезапуска службы.</value>
+  </data>
+  <data name="Saved {0} change at {1}." xml:space="preserve">
+    <value>Сохранено {0} изменение в {1}.</value>
+  </data>
+  <data name="Saved {0} change." xml:space="preserve">
+    <value>Сохранено {0} изменение.</value>
+  </data>
+  <data name="Saved {0} changes at {1} - applied immediately." xml:space="preserve">
+    <value>Сохранено {0} изменений в {1} - применяются немедленно.</value>
+  </data>
+  <data name="Saved {0} changes at {1} - applied immediately.|few" xml:space="preserve">
+    <value>Сохранено {0} изменения в {1} - применяются немедленно.</value>
+  </data>
+  <data name="Saved {0} changes at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value>Сохранено {0} изменений в {1} - параметры сервера применяются немедленно; параметры hMailServer.ini вступают в силу после перезапуска службы.</value>
+  </data>
+  <data name="Saved {0} changes at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart.|few" xml:space="preserve">
+    <value>Сохранено {0} изменения в {1} - параметры сервера применяются немедленно; параметры hMailServer.ini вступают в силу после перезапуска службы.</value>
+  </data>
+  <data name="Saved {0} changes at {1}." xml:space="preserve">
+    <value>Сохранено {0} изменений в {1}.</value>
+  </data>
+  <data name="Saved {0} changes at {1}.|few" xml:space="preserve">
+    <value>Сохранено {0} изменения в {1}.</value>
+  </data>
+  <data name="Saved {0} changes." xml:space="preserve">
+    <value>Сохранено {0} изменений.</value>
+  </data>
+  <data name="Saved {0} changes.|few" xml:space="preserve">
+    <value>Сохранено {0} изменения.</value>
   </data>
   <data name="Saved {0} setting at {1} - applied immediately." xml:space="preserve">
     <value>Сохранено параметров: {0} в {1} — применяются немедленно.</value>
@@ -10551,18 +10608,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Saved {0} setting." xml:space="preserve">
     <value>Сохранено параметров: {0}.</value>
-  </data>
-  <data name="Saved {0} settings - applied immediately." xml:space="preserve">
-    <value>Сохранено параметров: {0} — применяются немедленно.</value>
-  </data>
-  <data name="Saved {0} settings - applied immediately.|few" xml:space="preserve">
-    <value>Сохранено параметров: {0} — применяются немедленно.</value>
-  </data>
-  <data name="Saved {0} settings - hMailServer.ini settings need a service restart." xml:space="preserve">
-    <value>Сохранено параметров: {0} — параметры hMailServer.ini требуют перезапуска службы.</value>
-  </data>
-  <data name="Saved {0} settings - hMailServer.ini settings need a service restart.|few" xml:space="preserve">
-    <value>Сохранено параметров: {0} — параметры hMailServer.ini требуют перезапуска службы.</value>
   </data>
   <data name="Saved {0} settings at {1} - applied immediately." xml:space="preserve">
     <value>Сохранено параметров: {0} в {1} — применяются немедленно.</value>
@@ -10587,6 +10632,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Saved {0} settings.|few" xml:space="preserve">
     <value>Сохранено параметров: {0}.</value>
+  </data>
+  <data name="Saved {0}." xml:space="preserve">
+    <value>Сохранено: {0}.</value>
   </data>
   <data name="Saved, but reload failed: {0}" xml:space="preserve">
     <value>Сохранено, но перезагрузить не удалось: {0}</value>
@@ -11620,9 +11668,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Spam check" xml:space="preserve">
     <value>Проверка</value>
   </data>
-  <data name="Spam delete threshold (score)" xml:space="preserve">
-    <value>Порог удаления спама (оценка)</value>
-  </data>
   <data name="Spam detected" xml:space="preserve">
     <value>Обнаружено спама</value>
   </data>
@@ -11634,6 +11679,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Spam mark threshold (score)" xml:space="preserve">
     <value>Порог пометки спама (оценка)</value>
+  </data>
+  <data name="Spam refuse threshold (score)" xml:space="preserve">
+    <value>Порог отклонения спама (оценка)</value>
   </data>
   <data name="Spam traps" xml:space="preserve">
     <value>Ловушки для спама</value>
@@ -12651,9 +12699,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The delete override never deletes on a guess: the copy is removed only when the recorded score actually reached the value, and it goes to the quarantine store instead when that is enabled." xml:space="preserve">
     <value>Переопределение удаления никогда не удаляет наугад: копия удаляется, только когда записанная оценка действительно достигла значения, а при включённом хранилище карантина отправляется туда.</value>
   </data>
-  <data name="The delete threshold ({0}) is at or below the mark threshold ({1}) and is tested first, so no message is ever marked and delivered - every message that would be marked is refused instead." xml:space="preserve">
-    <value>Порог удаления ({0}) не выше порога пометки ({1}) и проверяется первым, поэтому ни одно сообщение никогда не помечается и не доставляется - каждое сообщение, которое было бы помечено, вместо этого отклоняется.</value>
-  </data>
   <data name="The delivery queue is empty." xml:space="preserve">
     <value>Очередь доставки пуста.</value>
   </data>
@@ -13019,6 +13064,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The main hMailServer administration password. It is used by this Control Panel, the REST API and any script that connects through the COM API, and is stored hashed in hMailServer.ini. Changing it does not affect mailbox passwords." xml:space="preserve">
     <value>Основной пароль администрирования hMailServer. Его используют этот Control Panel, REST API и любой скрипт, подключающийся через COM API; он хранится в hMailServer.ini в виде хеша. Его изменение не влияет на пароли почтовых ящиков.</value>
   </data>
+  <data name="The mark threshold is 0, so no message is marked as spam: 0 means never." xml:space="preserve">
+    <value>Порог пометки равен 0, поэтому ни одно сообщение не помечается как спам: 0 означает никогда.</value>
+  </data>
   <data name="The match cannot be checked until both files are present and readable." xml:space="preserve">
     <value>Соответствие нельзя проверить, пока оба файла не будут на месте и доступны для чтения.</value>
   </data>
@@ -13209,6 +13257,15 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The records were checked." xml:space="preserve">
     <value>Записи проверены.</value>
+  </data>
+  <data name="The refuse threshold ({0}) is at or below the mark threshold ({1}) and is tested first, so no message is ever marked and delivered - every message that would be marked is refused instead." xml:space="preserve">
+    <value>Порог отклонения ({0}) не выше порога пометки ({1}) и проверяется первым, поэтому ни одно сообщение никогда не помечается и не доставляется - каждое сообщение, которое было бы помечено, вместо этого отклоняется.</value>
+  </data>
+  <data name="The refuse threshold is 0, so no message is refused or held on its score: 0 means never." xml:space="preserve">
+    <value>Порог отклонения равен 0, поэтому ни одно сообщение не отклоняется и не задерживается по баллу: 0 означает никогда.</value>
+  </data>
+  <data name="The refuse threshold must be above the mark threshold, {0}: at or below it, every message the mark threshold would mark is refused instead." xml:space="preserve">
+    <value>Порог отклонения должен быть выше порога пометки, {0}: на нём или ниже каждое сообщение, которое порог пометки пометил бы, вместо этого отклоняется.</value>
   </data>
   <data name="The relay requires _authentication" xml:space="preserve">
     <value>Ретранслятор требует _аутентификации</value>
@@ -14713,6 +14770,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>Какие записи каталога становятся почтовыми ящиками</value>
+  </data>
+  <data name="Which domains have a spam trap could not be read." xml:space="preserve">
+    <value>Не удалось прочитать, у каких доменов есть ловушки для спама.</value>
   </data>
   <data name="Which list do I need?" xml:space="preserve">
     <value>Какой список мне нужен?</value>
@@ -17064,8 +17124,17 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} did not answer within 10 seconds from this machine. Likely causes: no A/CNAME record for mta-sts.{1}, the HTTPS listener is not running (no HTTPS port on the Web services &amp; autoconfiguration page), or a firewall in between. Checked from this machine only." xml:space="preserve">
     <value>{0} не ответил в течение 10 секунд с этого компьютера. Вероятные причины: нет записи A/CNAME для mta-sts.{1}, не запущен прослушиватель HTTPS (нет порта HTTPS на странице «Веб-службы и автоконфигурация») или межсетевой экран на пути. Проверено только с этого компьютера.</value>
   </data>
+  <data name="{0} domain has trap addresses." xml:space="preserve">
+    <value>У {0} домена есть адреса-ловушки.</value>
+  </data>
   <data name="{0} domain, and it is not active." xml:space="preserve">
     <value>Доменов: {0}, ни один не активен.</value>
+  </data>
+  <data name="{0} domains have trap addresses." xml:space="preserve">
+    <value>У {0} доменов есть адреса-ловушки.</value>
+  </data>
+  <data name="{0} domains have trap addresses.|few" xml:space="preserve">
+    <value>У {0} доменов есть адреса-ловушки.</value>
   </data>
   <data name="{0} domains, none of them active." xml:space="preserve">
     <value>Доменов: {0}, ни один не активен.</value>
@@ -17739,20 +17808,11 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} {1} messages are on their way into them and arrive in a few seconds. All of the mailboxes sign in with the password {2}, which is shown here once - write it down, because this server did not keep it.|few" xml:space="preserve">
     <value>{0} {1} сообщения уже в пути и придут через несколько секунд. Все почтовые ящики входят с паролем {2}. Он показан здесь один раз - запишите его, сервер его не сохранил.</value>
   </data>
-  <data name="{0} {1} of them wait for a reinitialise or a restart." xml:space="preserve">
-    <value>{0} {1} из них ждут повторной инициализации или перезапуска.</value>
-  </data>
-  <data name="{0} {1} of them wait for a reinitialise or a restart.|few" xml:space="preserve">
-    <value>{0} {1} из них ждут повторной инициализации или перезапуска.</value>
-  </data>
   <data name="{0} {1} of them wait for a reinitialise or a restart; the rest applied immediately." xml:space="preserve">
     <value>{0} {1} из них ждут повторной инициализации или перезапуска; остальные применены немедленно.</value>
   </data>
   <data name="{0} {1} of them wait for a reinitialise or a restart; the rest applied immediately.|few" xml:space="preserve">
     <value>{0} {1} из них ждут повторной инициализации или перезапуска; остальные применены немедленно.</value>
-  </data>
-  <data name="{0} {1} of them waits for a reinitialise or a restart." xml:space="preserve">
-    <value>{0} {1} из них ждёт повторной инициализации или перезапуска.</value>
   </data>
   <data name="{0} {1} of them waits for a reinitialise or a restart; the rest applied immediately." xml:space="preserve">
     <value>{0} {1} из них ждёт повторной инициализации или перезапуска; остальные применены немедленно.</value>
@@ -17760,11 +17820,20 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} {1} setting could not be written." xml:space="preserve">
     <value>{0} Не удалось записать параметров: {1}.</value>
   </data>
+  <data name="{0} {1} setting on this page waits for a reinitialise or a restart." xml:space="preserve">
+    <value>{0} {1} параметр этой страницы ждёт повторной инициализации или перезапуска.</value>
+  </data>
   <data name="{0} {1} settings could not be written." xml:space="preserve">
     <value>{0} Не удалось записать параметров: {1}.</value>
   </data>
   <data name="{0} {1} settings could not be written.|few" xml:space="preserve">
     <value>{0} Не удалось записать параметров: {1}.</value>
+  </data>
+  <data name="{0} {1} settings on this page wait for a reinitialise or a restart." xml:space="preserve">
+    <value>{0} {1} параметров этой страницы ждут повторной инициализации или перезапуска.</value>
+  </data>
+  <data name="{0} {1} settings on this page wait for a reinitialise or a restart.|few" xml:space="preserve">
+    <value>{0} {1} параметра этой страницы ждут повторной инициализации или перезапуска.</value>
   </data>
   <data name="{0} — exit code {1} means infected" xml:space="preserve">
     <value>{0} — код выхода {1} означает заражение</value>
@@ -17961,8 +18030,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} не содержит блока сертификата PEM, поэтому в нём нет пригодного сертификата ЦС (ошибка сервера 6140). Экспортируйте сертификат ЦС в формате PEM (Base64).</value>
   </data>
-  <data name="~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation, as a fail does." xml:space="preserve">
-    <value>~all: домен говорит, что клиент, вероятно, не авторизован, но просит всё же принять письмо, и за этим прячутся многие массовые рассылки. Балл на пороге удаления или выше отклоняет письмо в ходе SMTP-диалога, как это делает fail.</value>
+  <data name="~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many spray sources live behind it. A score at or above the refuse threshold refuses the message during the SMTP conversation, as a fail does." xml:space="preserve">
+    <value>~all: домен говорит, что клиент, вероятно, не авторизован, но просит всё же принять письмо, и за этим прячутся многие массовые рассылки. Балл на пороге отклонения или выше отклоняет письмо в ходе SMTP-диалога, как это делает fail.</value>
   </data>
   <data name="… continued in {0}" xml:space="preserve">
     <value>… продолжение в {0}</value>

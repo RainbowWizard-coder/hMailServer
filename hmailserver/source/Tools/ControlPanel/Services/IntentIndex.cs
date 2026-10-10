@@ -176,7 +176,7 @@ namespace hMailServer.ControlPanel.Services
          new IntentEntry(N("stop spam"), "antispam",
             N("Scores and thresholds, SPF, DKIM, DMARC, greylisting and SpamAssassin all live here.")),
          new IntentEntry(N("too much spam is getting through"), "antispam",
-            N("Lower the mark and delete thresholds, or turn on more of the checks.")),
+            N("Lower the mark and refuse thresholds, or turn on more of the checks.")),
          new IntentEntry(N("turn on spamassassin"), "antispam",
             N("Point the server at a SpamAssassin host and choose how its score is merged.")),
          new IntentEntry(N("check spf dkim and dmarc"), "antispam",
