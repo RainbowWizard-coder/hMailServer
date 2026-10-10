@@ -107,7 +107,7 @@
                              status's check marks it (Services/IpRangeCells; review
                              finding F231): the bans looked like permanent ranges, and
                              relaying was on the card of the one range selected. -->
-                        <DataGridTextColumn Header="{loc:L 'Expires'}" Binding="{Binding Expires}" Width="120" MinWidth="96" ElementStyle="{StaticResource GridTrimmedText}" />
+                        <DataGridTextColumn Header="{loc:L 'Expires'}" Binding="{Binding Expires}" Width="150" MinWidth="110" ElementStyle="{StaticResource GridTrimmedText}" />
                         <DataGridTemplateColumn Header="{loc:L 'Relay'}" Width="130" MinWidth="104" SortMemberPath="Relay">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
