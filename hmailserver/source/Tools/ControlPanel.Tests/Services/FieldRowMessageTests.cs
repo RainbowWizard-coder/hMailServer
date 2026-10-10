@@ -129,24 +129,54 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
-      /// The three dialogs whose renders showed the footer moved by a message keep
-      /// a line of room for it: the body's floor is raised by it once the window
-      /// has sized itself, and the window stays centred as it was placed.
+      /// The dialogs whose fields can be refused keep room for the messages: a
+      /// line for each field a press can refuse, or for each line the longest
+      /// message wraps to; the access-control entry for its account or group box
+      /// alone, which Anyone collapses.
       /// </summary>
       [Theory]
-      [InlineData("DomainPolicyListView.cs")]
-      [InlineData("ServerSettingsView.NeverBanNames.cs")]
-      [InlineData("SuppressionListView.cs")]
-      public void ADialogWithARefusableField_KeepsRoomForItsMessage(string view)
+      [InlineData("DomainPolicyListView.cs", "dialog.KeepRoomForFieldErrors();")]
+      [InlineData("ServerSettingsView.NeverBanNames.cs", "dialog.KeepRoomForFieldErrors();")]
+      [InlineData("SuppressionListView.cs", "dialog.KeepRoomForFieldErrors();")]
+      [InlineData("FieldDialog.cs", "KeepRoomForFieldErrors(Math.Max(1, fields.Count(f => f.Required)));")]
+      [InlineData("DistributionListDialog.cs", "KeepRoomForFieldErrors(3);")]
+      [InlineData("FolderPermissionsDialog.cs", "KeepRoomForFieldErrors(1, subjectRow_);")]
+      public void ADialogWithARefusableField_KeepsRoomForItsMessage(string view, string call)
       {
          string source = ReadControlPanelFile(Path.Join("Views", view));
-         Assert.Contains("dialog.KeepRoomForFieldErrors();", source, StringComparison.Ordinal);
+         Assert.Contains(call, source, StringComparison.Ordinal);
+      }
 
+      /// <summary>
+      /// The room is the floor of the presenter that holds the body, taken again
+      /// whenever the body's height changes, from its height without the messages
+      /// shown in it (Services/FieldMessageRoom), so that a row shown or collapsed
+      /// grows or shrinks the dialog and only a message is kept from moving the
+      /// footer. The body's own floor, raised once at Loaded, kept the
+      /// access-control entry as tall as with its account box after Anyone
+      /// collapsed it. The window stays centred as it was placed, and lets go of
+      /// the layout manager's event when it closes.
+      /// </summary>
+      [Fact]
+      public void TheRoom_FollowsTheBody()
+      {
          string window = Normalise(ReadControlPanelFile(Path.Join("Views", "FluentDialogWindow.cs")));
-         Assert.Contains("public void KeepRoomForFieldErrors(int lines = 1)", window, StringComparison.Ordinal);
-         Assert.Contains("double room = lines * FieldRow.ErrorLineHeight(this);", window, StringComparison.Ordinal);
-         Assert.Contains("double grows = Math.Max(0, Math.Min(room, MaxHeight - ActualHeight));", window, StringComparison.Ordinal);
-         Assert.Contains("body.MinHeight = body.ActualHeight + grows;", window, StringComparison.Ordinal);
+         Assert.Contains("public void KeepRoomForFieldErrors(int lines = 1, params FieldRow[] refusable)", window, StringComparison.Ordinal);
+         Assert.Contains("VisualTreeHelper.GetParent(body) is not FrameworkElement holder", window, StringComparison.Ordinal);
+         Assert.Contains("lines * FieldRow.ErrorLineHeight(this)", window, StringComparison.Ordinal);
+         Assert.Contains("ActualHeight - scroller.ActualHeight", window, StringComparison.Ordinal);
+         Assert.Contains("Top -= grows / 2;", window, StringComparison.Ordinal);
+         Assert.Contains("body.LayoutUpdated += follow;", window, StringComparison.Ordinal);
+         Assert.Contains("Closed += (_, _) => body.LayoutUpdated -= follow;", window, StringComparison.Ordinal);
+         Assert.Contains("FieldMessageRoom.Take(height, FieldMessageRoom.Covered(spans), room_, window_.MaxHeight, chrome_, refusableShown)", window, StringComparison.Ordinal);
+         Assert.Contains("holder_.MinHeight = floor;", window, StringComparison.Ordinal);
+         Assert.DoesNotContain("body.MinHeight", window, StringComparison.Ordinal);
+
+         // A collapsed element's messages and rows are not counted.
+         Assert.Contains("if (at is UIElement element && element.Visibility == Visibility.Collapsed)\n               return;", window, StringComparison.Ordinal);
+
+         string row = ReadControlPanelFile(Path.Join("Views", "Scaffold", "FieldRow.cs"));
+         Assert.Contains("internal FrameworkElement ShownMessage => Error != null ? Part<FrameworkElement>(\"PART_ErrorRow\") : null;", row, StringComparison.Ordinal);
       }
 
       // ---- helpers -------------------------------------------------------------------------

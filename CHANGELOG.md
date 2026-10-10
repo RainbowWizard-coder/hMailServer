@@ -1863,7 +1863,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   body text now, 14 pixels in the primary colour, and the hint stays small and tertiary; the message sits directly
   under the box, the box's border turns the danger colour and its focus ring with it, and an edit of the value takes
   the message away; the dialogs whose field can be refused - Allow or block a domain, the never-ban name and the
-  suppression list's Add - keep a line of room for the message, so that their buttons stay where they were.
+  suppression list's Add - keep a line of room for the message, so that their buttons stay where they were, while a
+  row shown or collapsed still grows or shrinks the dialog.
 
 - **Fixed: the Domains & accounts page's four forms answered a bad value with a message box or with nothing at all.**
   Add domain said "Enter a valid domain name." in a message box, Create account said "Address and password are

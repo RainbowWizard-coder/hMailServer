@@ -167,6 +167,14 @@ namespace hMailServer.ControlPanel.Views.Scaffold
       protected override AutomationControlType ControlType => AutomationControlType.Group;
 
       /// <summary>
+      /// The line the message is drawn in, its cross and its words, while a
+      /// message is set; null while none is. For a dialog that keeps room for its
+      /// messages (FluentDialogWindow.KeepRoomForFieldErrors), which takes the
+      /// body's height without them.
+      /// </summary>
+      internal FrameworkElement ShownMessage => Error != null ? Part<FrameworkElement>("PART_ErrorRow") : null;
+
+      /// <summary>
       /// The height one line of a message takes under an editor, as the template
       /// draws it - the caption size's line and the gap above it - for a dialog
       /// that keeps room for its messages (FluentDialogWindow.KeepRoomForFieldErrors).

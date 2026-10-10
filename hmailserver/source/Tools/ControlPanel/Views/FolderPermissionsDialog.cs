@@ -506,7 +506,11 @@ namespace hMailServer.ControlPanel.Views
          cancel.Click += (s, e) => Close();
 
          UseFrame(L("Access-control entry"), body, ok, cancel, width: 520);
-         KeepRoomForFieldErrors();
+
+         // Room for the account or group box's message, while the box is shown:
+         // an entry for Anyone has nothing to refuse, and the dialog shrinks with
+         // the box as it did.
+         KeepRoomForFieldErrors(1, subjectRow_);
          UpdateSubjectState();
 
          // The offer is read once the page has said where from (Suggest).

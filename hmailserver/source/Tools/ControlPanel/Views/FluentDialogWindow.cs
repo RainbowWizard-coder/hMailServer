@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -116,33 +117,136 @@ namespace hMailServer.ControlPanel.Views
       /// message, 20 pixels a line, and moved its footer, Add and Cancel with it,
       /// from under the pointer that had pressed Add (review finding F213). For
       /// the dialogs whose fields can be refused on the field: one line for each
-      /// field a press can refuse at once. The body's floor, not the window's
-      /// height: a FluentWindow sized to its content counts a title bar its chrome
-      /// does not draw, and a height set from it left that much more blank.
+      /// field a press can refuse at once, or for each line the longest message
+      /// wraps to. The body's floor, not the window's height: a FluentWindow sized
+      /// to its content counts a title bar its chrome does not draw, and a height
+      /// set from it left that much more blank.
+      ///
+      /// The room follows the body: as the body's own content changes - a row
+      /// shown or collapsed, a notice put in - the floor is taken again from the
+      /// body's height without its messages, so that the dialog grows and shrinks
+      /// with its content as it did and only a message is kept from moving the
+      /// footer. A floor measured once, when the dialog loaded, held the
+      /// access-control entry as tall as with its account box after Anyone
+      /// collapsed the box, about 110 pixels of blank above Save. With
+      /// <paramref name="refusable"/> named, the room is kept only while one of
+      /// those rows is shown: a dialog whose only field that can be refused is
+      /// collapsed has no message to keep room for.
       /// </summary>
-      public void KeepRoomForFieldErrors(int lines = 1)
+      public void KeepRoomForFieldErrors(int lines = 1, params FieldRow[] refusable)
       {
          if (lines <= 0)
             return;
 
          Loaded += (_, _) =>
          {
-            if (SizeToContent != SizeToContent.Height || (Content as DialogFrame)?.Body is not FrameworkElement body)
+            if (SizeToContent != SizeToContent.Height || (Content as DialogFrame)?.Body is not FrameworkElement body
+                || VisualTreeHelper.GetParent(body) is not FrameworkElement holder || ScrollerAround_(holder) is not ScrollViewer scroller)
                return;
 
-            // Only what the window can still grow: at the cap the body scrolls,
-            // and a floor past it would only be blank to scroll through.
-            double room = lines * FieldRow.ErrorLineHeight(this);
-            double grows = Math.Max(0, Math.Min(room, MaxHeight - ActualHeight));
-            if (grows <= 0)
-               return;
-
-            body.MinHeight = body.ActualHeight + grows;
+            // The floor is the presenter's that holds the body, inside the body's
+            // scroller, so that the body's own height stays its content's and a
+            // change of it can be seen. The window's height outside the scroller -
+            // the title bar, the heading, the footer - is what a change of the
+            // body leaves as it is.
+            var room = new FieldErrorRoom_(this, body, holder, lines * FieldRow.ErrorLineHeight(this),
+               ActualHeight - scroller.ActualHeight, refusable ?? Array.Empty<FieldRow>());
+            double grows = room.Take();
 
             // Centred as it was placed: the room it grows by is shared above and below.
-            if (WindowStartupLocation != WindowStartupLocation.Manual)
+            if (grows > 0 && WindowStartupLocation != WindowStartupLocation.Manual)
                Top -= grows / 2;
+
+            // Taken again after every layout in which the body's height changed.
+            // The layout manager holds what LayoutUpdated is given, so it is let
+            // go with the dialog.
+            EventHandler follow = (_, _) => room.Take();
+            body.LayoutUpdated += follow;
+            Closed += (_, _) => body.LayoutUpdated -= follow;
          };
+      }
+
+      private static ScrollViewer ScrollerAround_(DependencyObject element)
+      {
+         for (DependencyObject at = VisualTreeHelper.GetParent(element); at != null; at = VisualTreeHelper.GetParent(at))
+         {
+            if (at is ScrollViewer scroller)
+               return scroller;
+         }
+
+         return null;
+      }
+
+      /// <summary>
+      /// The room one dialog keeps for its fields' messages (KeepRoomForFieldErrors):
+      /// the floor of the presenter that holds the body, at the body's height
+      /// without the messages shown in it and the room more, but no higher than
+      /// the window can still grow (Services/FieldMessageRoom).
+      /// </summary>
+      private sealed class FieldErrorRoom_
+      {
+         private readonly FluentDialogWindow window_;
+         private readonly FrameworkElement body_;
+         private readonly FrameworkElement holder_;
+         private readonly double room_;
+         private readonly double chrome_;
+         private readonly FieldRow[] refusable_;
+         private double measured_ = double.NaN;
+
+         public FieldErrorRoom_(FluentDialogWindow window, FrameworkElement body, FrameworkElement holder, double room, double chrome, FieldRow[] refusable)
+         {
+            window_ = window;
+            body_ = body;
+            holder_ = holder;
+            room_ = room;
+            chrome_ = chrome;
+            refusable_ = refusable;
+         }
+
+         /// <summary>
+         /// Sets the floor for the body as it is laid out now, where its height
+         /// changed since the last time; what the room adds to the body's height.
+         /// </summary>
+         public double Take()
+         {
+            double height = body_.DesiredSize.Height;
+            if (height.Equals(measured_))
+               return 0;
+            measured_ = height;
+
+            var spans = new List<(double Top, double Bottom)>();
+            bool refusableShown = refusable_.Length == 0;
+            Gather_(body_, spans, ref refusableShown);
+
+            (double floor, double grows) = FieldMessageRoom.Take(height, FieldMessageRoom.Covered(spans), room_, window_.MaxHeight, chrome_, refusableShown);
+            if (Math.Abs(holder_.MinHeight - floor) >= 0.5)
+               holder_.MinHeight = floor;
+            return grows;
+         }
+
+         // The messages shown in the body, where they are, and whether one of the
+         // rows the room is for is shown; nothing under a collapsed element is.
+         private void Gather_(DependencyObject at, List<(double Top, double Bottom)> spans, ref bool refusableShown)
+         {
+            if (at is UIElement element && element.Visibility == Visibility.Collapsed)
+               return;
+
+            if (at is FieldRow row)
+            {
+               if (!refusableShown && Array.IndexOf(refusable_, row) >= 0)
+                  refusableShown = true;
+
+               if (row.ShownMessage is FrameworkElement line && line.IsArrangeValid)
+               {
+                  Rect bounds = line.TransformToAncestor(body_).TransformBounds(new Rect(0, 0, line.ActualWidth, line.ActualHeight));
+                  spans.Add((bounds.Top - line.Margin.Top, bounds.Bottom + line.Margin.Bottom));
+               }
+            }
+
+            int count = VisualTreeHelper.GetChildrenCount(at);
+            for (int i = 0; i < count; i++)
+               Gather_(VisualTreeHelper.GetChild(at, i), spans, ref refusableShown);
+         }
       }
 
       /// <summary>
