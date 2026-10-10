@@ -44,6 +44,7 @@ namespace HM
    }
 
    MessageIndexer::MessageIndexer() :
+      uses_the_database_(true),
       generation_(0),
       stop_asked_(false),
       waiters_(0),
@@ -56,6 +57,7 @@ namespace HM
    }
 
    MessageIndexer::MessageIndexer(const boost::function<void()> &work) :
+      uses_the_database_(false),
       generation_(0),
       stop_asked_(false),
       waiters_(0),
@@ -109,9 +111,14 @@ namespace HM
          // read there, and one saved after finds the state Starting or Running
          // here. A setting saved while the database is closed is not saved: its
          // save goes through the same empty database manager, as any setting's
-         // does then, and never gets here.
+         // does then, and never gets here. A tester's stand-in, which uses no
+         // database, starts whatever the servers' state: MessageIndexerTester
+         // runs in a server whose servers may be stopped - a /Test run whose
+         // InitInstance failed, COM's Utilities.RunTestSuite after Application.Stop -
+         // where every one of its Starts was refused and each test waited a
+         // minute for a pass that never began.
          const int state = ServerStatus::Instance()->GetState();
-         if (state == ServerStatus::StateStopping || state == ServerStatus::StateStopped)
+         if (uses_the_database_ && (state == ServerStatus::StateStopping || state == ServerStatus::StateStopped))
          {
             LOG_DEBUG("The message indexer is not started while the servers are stopped; it starts with them.");
             return;
@@ -417,9 +424,10 @@ namespace HM
                return true;
          }
 
-         if (maxWaitSeconds > 0 && std::chrono::steady_clock::now() >= deadline)
-            return false;
-
+         // The checkpoint before the limit is looked at, so that a wait that
+         // gives up has called it for every turn it waited, the last too: a first
+         // turn that ran over a limit of a second or two - on a loaded machine,
+         // or under an emulator - gave up without calling it once.
          if (progress)
          {
             lock.unlock();
@@ -434,6 +442,9 @@ namespace HM
             }
             lock.lock();
          }
+
+         if (maxWaitSeconds > 0 && std::chrono::steady_clock::now() >= deadline)
+            return false;
       }
    }
 
@@ -929,7 +940,10 @@ namespace HM
 
                AskIndexer_();
 
-               if (!swallows)
+               // Nor while an ask to be made once a stop has asked the pass to
+               // end is still to come: a request that came between AskIndexer_'s
+               // look and this point would end the pass without it.
+               if (!swallows && ask_.load() != AskStopThenStartWhileAStopWaits)
                   boost::this_thread::interruption_point();
 
                {
@@ -1234,6 +1248,25 @@ namespace HM
 
       if (swallowed != 1)
          throw std::logic_error("MessageIndexerTester: the stand-in pass swallowed no request to stop, so the test showed nothing.");
+   }
+
+   void
+   MessageIndexerTester::TestAStandInStartsWhileTheServersAreStopped()
+   {
+      const ServerStatus::ServerState state = (ServerStatus::ServerState) ServerStatus::Instance()->GetState();
+      ServerStatus::Instance()->SetState(ServerStatus::StateStopped);
+
+      StandInPass pass;
+      MessageIndexer indexer(boost::bind(&StandInPass::Run, &pass));
+      indexer.Start();
+      const bool began = pass.WaitForRuns(1, StandInWait);
+
+      ServerStatus::Instance()->SetState(state);
+
+      if (!began)
+         throw std::logic_error("MessageIndexerTester: a stand-in indexer, which uses no database, began no pass within a minute of a Start made while the servers were stopped: it was refused as the server's indexer is, and every test of a ClassTester run in a server whose servers are stopped would wait a minute and fail.");
+
+      indexer.Stop();
    }
 
    void

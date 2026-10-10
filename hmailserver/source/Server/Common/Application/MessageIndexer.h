@@ -98,6 +98,11 @@ namespace HM
       // its minute rather than asking again at once.
       bool IndexFullTextMessages_(const std::vector<PersistentMessageIndex::IndexableMessage> &messages, bool &skipped);
 
+      // The server's indexer, whose thread uses the database, which is not
+      // started while the servers are stopped (Start); false for a tester's
+      // stand-in, which uses none.
+      const bool uses_the_database_;
+
       // starterMutex_ guards what follows to turn_over_. It is never held while
       // the thread is waited for: from 6ebf39d39 Stop joined under it, and an
       // OnError script the indexer ran then, turning MessageIndexing on or off,
@@ -181,6 +186,12 @@ namespace HM
       // reports it (HM4208): the caller has stopped the log's writes
       // (Logger::ForbidWritesForThisProcess), or the report is written.
       void TestAnExceptionOnItsThread();
+
+      // A stand-in indexer starts while the servers are stopped, as Test's
+      // asks of it wherever ClassTester runs. It sets the process's server
+      // state, and so runs in business-object-tests alone, which has no
+      // servers: inside a server it would stop that server's indexer starting.
+      void TestAStandInStartsWhileTheServersAreStopped();
 
    private:
       void TestStopWaitsForThePassInFlight_();

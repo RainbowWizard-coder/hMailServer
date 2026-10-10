@@ -4508,6 +4508,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   list of one item nested in it. The two older entries of the shape, the spam filtering overview's under Control Panel
   and that of the SURBL entries' hosts under 6.3.6, are wrapped again as well; a line after one that ends a sentence
   or a clause still begins a list, as the entries that list their parts do, and the self-test holds both.
+- **`MessageIndexerTester` no longer turns on when a thread happens to run, nor on the servers of the process it runs
+  in being started.** A stop with a limit looked at the limit before it called its progress, so that a first second's
+  wait that ran over a limit of two seconds - on a loaded machine, or under the emulator the AArch64 builds run the
+  testers in - gave up without calling it, and the test that wants it called failed; the stop now calls it before it
+  looks, as the service controller's checkpoint is better told at every turn. The stand-in pass that makes its stop
+  and start once a stop has asked it to end could meet that stop's request between its look and its interruption
+  point and end without them; it no longer stops at that point while they are still to be made. And the stand-in
+  indexer was refused a start while the servers were stopped, as the server's indexer is for the database's sake,
+  though it uses none: in a `/Test` run whose start failed, or `Utilities.RunTestSuite` after `Application.Stop`,
+  each of the indexer's tests waited a minute and failed. `business-object-tests` starts one with the servers
+  stopped.
 
 ### Documentation
 
