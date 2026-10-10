@@ -20,7 +20,8 @@
         <ResourceDictionary Source="/hMailCP;component/Views/Scaffold/Tokens.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
-    <!-- PageHeader: title (and an optional pill beside it), subtitle, actions on the right. -->
+    <!-- PageHeader: title (and an optional pill beside it) with the actions on the
+         right, the subtitle on a line of its own under them. -->
     <Style TargetType="{x:Type scaffold:PageHeader}">
         <Setter Property="Focusable" Value="False" />
         <Setter Property="IsTabStop" Value="False" />
@@ -33,26 +34,33 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <!-- The second row holds the actions when there is no room
-                             beside the title for them (PageHeader.MeasureOverride). -->
+                        <!-- The title row (with the actions beside the title where
+                             there is room for both), the subtitle, and the actions
+                             when there is no room beside the title for them
+                             (PageHeader.MeasureOverride). -->
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <StackPanel>
-                            <!-- A WrapPanel, not a horizontal StackPanel: in a narrow
-                                 window the status beside the title moves under it
-                                 instead of being clipped ("0 remote do"). -->
-                            <WrapPanel Orientation="Horizontal">
-                                <TextBlock x:Name="PART_Title" Text="{TemplateBinding Title}"
-                                           Style="{StaticResource TextTitle}" VerticalAlignment="Center"
-                                           Margin="0,0,12,0" />
-                                <ContentPresenter x:Name="PART_Status" Content="{TemplateBinding Status}"
-                                                  Margin="0,6,0,0" VerticalAlignment="Center" />
-                            </WrapPanel>
-                            <TextBlock x:Name="PART_Subtitle" Text="{TemplateBinding Subtitle}"
-                                       Style="{StaticResource TextSecondary}" Margin="0,4,0,0" />
-                        </StackPanel>
+                        <!-- A WrapPanel, not a horizontal StackPanel: in a narrow
+                             window the status beside the title moves under it
+                             instead of being clipped ("0 remote do"). -->
+                        <WrapPanel x:Name="PART_TitleRow" Orientation="Horizontal">
+                            <TextBlock x:Name="PART_Title" Text="{TemplateBinding Title}"
+                                       Style="{StaticResource TextTitle}" VerticalAlignment="Center"
+                                       Margin="0,0,12,0" />
+                            <ContentPresenter x:Name="PART_Status" Content="{TemplateBinding Status}"
+                                              Margin="0,6,0,0" VerticalAlignment="Center" />
+                        </WrapPanel>
+                        <!-- On a line of its own across the header, under the title and
+                             the actions alike, as wide as a comfortable line and no
+                             wider: in the column left of the actions a subtitle of a
+                             few sentences ran to ten lines and pushed the list it
+                             described below the window (review finding F279). -->
+                        <TextBlock x:Name="PART_Subtitle" Grid.Row="1" Grid.ColumnSpan="2" Text="{TemplateBinding Subtitle}"
+                                   Style="{StaticResource TextSecondary}" Margin="0,4,0,0"
+                                   MaxWidth="{StaticResource AppSubtitleWidth}" HorizontalAlignment="Left" />
                         <StackPanel x:Name="PART_ActionBar" Grid.Column="1" Orientation="Horizontal" Margin="16,6,0,0"
                                     VerticalAlignment="Top" HorizontalAlignment="Right">
                             <!-- The page's tour, where it has one. Before the

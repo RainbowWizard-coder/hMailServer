@@ -600,8 +600,8 @@
   <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
     <value>面向整个域的回复 - 例如关闭的办公室、撤销的部门。它只为没有自己的休假回复的账户作答：账户自己的回复始终优先，而且对任何一封邮件最多只有一条回复。</value>
   </data>
-  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
-    <value>角色是一组有名字的权限，分配把它授予指定域中的某个账户。四个内置角色无法编辑：它们的权限写在服务器代码中，这样改动数据库也无法给谁增加权限。在这里没有角色的账户，拥有其管理员级别一直赋予它的权限。</value>
+  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
+    <value>角色是一组有名字的权限，分配把它授予指定域中的某个账户。在这里没有角色的账户，拥有其管理员级别一直赋予它的权限。</value>
   </data>
   <data name="A room" xml:space="preserve">
     <value>会议室</value>
@@ -1194,8 +1194,8 @@
   <data name="Addresses and domains every account wants or does not, below each account's own list and its domain's." xml:space="preserve">
     <value>所有账户想要或不想要的地址和域名，排在每个账户自己的名单及其域名的名单之后。</value>
   </data>
-  <data name="Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted. An account's own list is consulted first and its domain's next, so this list only decides for a recipient whose own lists say nothing. To refuse a sender for everyone during the SMTP conversation, whatever anybody's own list says, use Blocked senders." xml:space="preserve">
-    <value>所有账户想要或不想要的地址和整个域名。被允许的发件人的邮件会跳过垃圾邮件判定；被拦截的发件人的邮件在开启隔离时被扣留在隔离区，未开启时被标记为垃圾邮件——永远不会被删除。先看账户自己的名单，再看其域名的名单，因此只有当收件人自己的名单都没有意见时，这份名单才起决定作用。若要在 SMTP 会话期间就对所有人拒收某个发件人，而不管谁的名单怎么说，请使用 已拦截的发件人。</value>
+  <data name="Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted." xml:space="preserve">
+    <value>所有账户想要或不想要的地址和整个域名。被允许的发件人的邮件会跳过垃圾邮件判定；被拦截的发件人的邮件在开启隔离时被扣留在隔离区，未开启时被标记为垃圾邮件——永远不会被删除。</value>
   </data>
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>{0} 的账户想要或不想要的地址和整个域名。在账户自己的名单之后、服务器的名单之前参考。</value>
@@ -4543,8 +4543,8 @@
   <data name="Entry skipped" xml:space="preserve">
     <value>已跳过条目</value>
   </data>
-  <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
-    <value>当邮件带有条目要求的认证结果（SPF、DKIM、DMARC 的任意组合）时放行灰名单的信封域名和 HELO 后缀。精确匹配的域名，或以点开头的后缀如 .mail.example.com（覆盖该名称及其下的所有名称）。SPF 在 RCPT TO 时即可得知，因此仅要求 SPF 的条目在该处决定；DKIM 和 DMARC 只有在邮件收到后才存在，因此要求其中之一的条目暂时放行收件人，若结果不是通过，邮件在 DATA 之后进入灰名单，并且仅在 DKIM 验证或 DMARC 开启时如此，否则该条目永远无法满足。与 SPF 通过时绕过不同，这是您授予指定域名的特权，而不是世界上每一次 SPF 通过都具有的属性。</value>
+  <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination." xml:space="preserve">
+    <value>当邮件带有条目要求的认证结果（SPF、DKIM、DMARC 的任意组合）时放行灰名单的信封域名和 HELO 后缀。</value>
   </data>
   <data name="Envelope report" xml:space="preserve">
     <value>信封报告</value>
@@ -4555,8 +4555,8 @@
   <data name="Envelope senders refused outright or scored - one address, or a whole domain with its subdomains." xml:space="preserve">
     <value>被直接拒绝或计分的信封发件人 - 一个地址，或者整个域及其子域。</value>
   </data>
-  <data name="Envelope senders refused outright, or scored. An entry with an @ is one exact address; without one it is a whole domain including its subdomains. The default score of 100 crosses the delete threshold and refuses the message during the SMTP conversation. This matches the address the sender CLAIMS, so it stops a correspondent who keeps using one address - it is not an anti-spoofing tool, and stops nothing that rotates addresses." xml:space="preserve">
-    <value>被直接拒绝或计分的信封发件人。带 @ 的条目是一个精确地址；不带 @ 的条目是整个域，包括其子域。默认分数 100 会越过删除阈值，并在 SMTP 会话期间拒绝该邮件。它匹配的是发件人所声称的地址，因此能挡住一直使用同一个地址的通信方 - 它不是反伪造工具，挡不住任何轮换地址的人。</value>
+  <data name="Envelope senders refused outright, or scored. An entry with an @ is one exact address; without one it is a whole domain including its subdomains." xml:space="preserve">
+    <value>被直接拒绝或计分的信封发件人。带 @ 的条目是一个精确地址；不带 @ 的条目是整个域，包括其子域。</value>
   </data>
   <data name="Erase _traces..." xml:space="preserve">
     <value>清除痕迹(_T)...</value>
@@ -11644,6 +11644,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
     <value>选出应当拥有邮箱的人员的 LDAP 过滤器。默认值选取带有邮件地址的已启用 person 对象 - 这有意排除了已禁用的离职人员、服务账户和计算机，而更宽泛的过滤器会为这些全都预配邮箱。</value>
   </data>
+  <data name="The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
+    <value>“正在监听”列读取自本机已打开的端口，而不是配置，因此它显示的是实际发生的情况，而不是所要求的情况。</value>
+  </data>
   <data name="The MTA-STS hosting settings could not be read: {0}" xml:space="preserve">
     <value>无法读取 MTA-STS 托管设置: {0}</value>
   </data>
@@ -12491,8 +12494,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>概览会指出那些悄悄不起作用的安排 - 为零的阈值、没有任何已启用检查能达到的阈值、评分为零的检查。</value>
   </data>
-  <data name="The pages people sign in to in a browser - the webmail, the self-service portal and the Control Deck: how they sign in, how long a session lasts, what people may do, OpenPGP, notifications and importing. Most of these are reached over the REST API, which also serves the webmail." xml:space="preserve">
-    <value>用户在浏览器中登录的页面（网页邮箱、自助服务门户和 Control Deck）：他们如何登录、会话持续多久、用户可以做什么、OpenPGP、通知和导入。其中大多数通过同样提供网页邮箱的 REST API 访问。</value>
+  <data name="The pages people sign in to in a browser: the webmail, the self-service portal and the Control Deck. Most of their settings are reached over the REST API, which also serves the webmail." xml:space="preserve">
+    <value>用户在浏览器中登录的页面：网页邮箱、自助服务门户和 Control Deck。它们的大多数设置通过同样提供网页邮箱的 REST API 访问。</value>
   </data>
   <data name="The partner's key: an OpenPGP public key or PEM certificates (left empty, the key held is kept)" xml:space="preserve">
     <value>合作方的密钥：OpenPGP 公钥或 PEM 证书（留空则保留已保存的密钥）</value>
@@ -12539,8 +12542,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The port to ask on" xml:space="preserve">
     <value>询问使用的端口</value>
   </data>
-  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one. The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
-    <value>各协议监听的端口、其绑定地址和连接安全性。更改在重新初始化服务器后生效，本页会在每次更改后提供重新初始化。“正在监听”列读取自本机已打开的端口，而不是配置，因此它显示的是实际发生的情况，而不是所要求的情况。</value>
+  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one." xml:space="preserve">
+    <value>各协议监听的端口、其绑定地址和连接安全性。更改在重新初始化服务器后生效，本页会在每次更改后提供重新初始化。</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>私钥不属于此证书: 它们的公钥不同。这一对不会加载 (服务器错误 5113)，使用此证书的每个 TLS 端口都将无法启动。请将此条目指向与此证书一起生成的密钥文件。</value>

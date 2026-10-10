@@ -600,8 +600,8 @@
   <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
     <value>Una respuesta para todo el dominio - una oficina cerrada, un departamento disuelto. Solo responde por las cuentas que NO tienen mensaje de vacaciones propio: el mensaje propio de una cuenta siempre gana, y como mucho una respuesta contesta a cada mensaje.</value>
   </data>
-  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
-    <value>Un rol es un conjunto de permisos con nombre, y una asignación se lo da a una cuenta en dominios concretos. Los cuatro roles integrados no se pueden editar: sus permisos están en el código del servidor, de modo que un cambio en la base de datos no puede dar autoridad a nadie. Una cuenta sin rol aquí tiene lo que su nivel de administrador siempre le ha dado.</value>
+  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
+    <value>Un rol es un conjunto de permisos con nombre, y una asignación se lo da a una cuenta en dominios concretos. Una cuenta sin rol aquí tiene lo que su nivel de administrador siempre le ha dado.</value>
   </data>
   <data name="A room" xml:space="preserve">
     <value>Una sala</value>
@@ -1194,8 +1194,8 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
   <data name="Addresses and domains every account wants or does not, below each account's own list and its domain's." xml:space="preserve">
     <value>Direcciones y dominios que todas las cuentas quieren o no, por debajo de la lista propia de cada cuenta y la de su dominio.</value>
   </data>
-  <data name="Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted. An account's own list is consulted first and its domain's next, so this list only decides for a recipient whose own lists say nothing. To refuse a sender for everyone during the SMTP conversation, whatever anybody's own list says, use Blocked senders." xml:space="preserve">
-    <value>Direcciones y dominios enteros que todas las cuentas quieren, o no. El correo de un remitente permitido se salta el veredicto de spam; el de uno bloqueado se retiene en la cuarentena donde está activada, y se marca como spam donde no - nunca se borra. Primero se consulta la lista propia de la cuenta y después la de su dominio, así que esta lista solo decide para un destinatario cuyas listas no dicen nada. Para rechazar a un remitente para todos durante la conversación SMTP, diga lo que diga cualquier lista propia, use Remitentes bloqueados.</value>
+  <data name="Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted." xml:space="preserve">
+    <value>Direcciones y dominios enteros que todas las cuentas quieren, o no. El correo de un remitente permitido se salta el veredicto de spam; el de uno bloqueado se retiene en la cuarentena donde está activada, y se marca como spam donde no - nunca se borra.</value>
   </data>
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>Direcciones y dominios enteros que las cuentas de {0} quieren, o no. Se consulta después de la lista propia de una cuenta y antes de la del servidor.</value>
@@ -4543,8 +4543,8 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Entry skipped" xml:space="preserve">
     <value>Entrada omitida</value>
   </data>
-  <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
-    <value>Dominios del sobre y sufijos HELO que pasan el greylisting cuando el mensaje lleva los resultados de autenticación que exige la entrada - SPF, DKIM, DMARC, en cualquier combinación. Un dominio comparado exactamente, o un sufijo con punto inicial como .mail.example.com que cubre ese nombre y todos los nombres bajo él. SPF se conoce en RCPT TO, así que una entrada que solo exige SPF decide ahí; DKIM y DMARC solo existen cuando el mensaje ha entrado, así que una entrada que exige cualquiera de ellos deja pasar al destinatario de momento y el mensaje se somete a greylisting tras DATA si el resultado no es un pase - y solo mientras la verificación DKIM o DMARC esté activada, ya que de lo contrario la entrada nunca puede cumplirse. A diferencia de Omitir si SPF pasa, esto es un privilegio que usted concede a un dominio con nombre, no una propiedad de cada SPF que pasa en el mundo.</value>
+  <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination." xml:space="preserve">
+    <value>Dominios del sobre y sufijos HELO que pasan el greylisting cuando el mensaje lleva los resultados de autenticación que exige la entrada - SPF, DKIM, DMARC, en cualquier combinación.</value>
   </data>
   <data name="Envelope report" xml:space="preserve">
     <value>Informe de sobre</value>
@@ -4555,8 +4555,8 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Envelope senders refused outright or scored - one address, or a whole domain with its subdomains." xml:space="preserve">
     <value>Remitentes de sobre rechazados de plano o puntuados - una dirección, o un dominio entero con sus subdominios.</value>
   </data>
-  <data name="Envelope senders refused outright, or scored. An entry with an @ is one exact address; without one it is a whole domain including its subdomains. The default score of 100 crosses the delete threshold and refuses the message during the SMTP conversation. This matches the address the sender CLAIMS, so it stops a correspondent who keeps using one address - it is not an anti-spoofing tool, and stops nothing that rotates addresses." xml:space="preserve">
-    <value>Remitentes de sobre rechazados de plano, o puntuados. Una entrada con @ es una dirección exacta; sin ella es un dominio entero incluidos sus subdominios. La puntuación por defecto de 100 supera el umbral de borrado y rechaza el mensaje durante la conversación SMTP. Esto compara la dirección que el remitente DICE tener, así que detiene a un corresponsal que sigue usando una dirección - no es una herramienta contra la suplantación, y no detiene nada que rote direcciones.</value>
+  <data name="Envelope senders refused outright, or scored. An entry with an @ is one exact address; without one it is a whole domain including its subdomains." xml:space="preserve">
+    <value>Remitentes de sobre rechazados de plano, o puntuados. Una entrada con @ es una dirección exacta; sin ella es un dominio entero incluidos sus subdominios.</value>
   </data>
   <data name="Erase _traces..." xml:space="preserve">
     <value>B_orrar rastros...</value>
@@ -11644,6 +11644,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
     <value>El filtro LDAP que selecciona a las personas que deben tener buzón. El valor por defecto toma los objetos de persona habilitados que llevan una dirección de correo - lo que deliberadamente excluye a quienes se han ido y están deshabilitados, a las cuentas de servicio y a los equipos, a todos los cuales un filtro más amplio les aprovisionaría buzón.</value>
   </data>
+  <data name="The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
+    <value>La columna Escuchando se lee de los puertos abiertos de esta máquina, no de la configuración, así que muestra lo que está ocurriendo realmente y no lo que se pidió.</value>
+  </data>
   <data name="The MTA-STS hosting settings could not be read: {0}" xml:space="preserve">
     <value>No se pudieron leer los ajustes de alojamiento de MTA-STS: {0}</value>
   </data>
@@ -12491,8 +12494,8 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>El resumen nombra las configuraciones que en silencio no hacen nada - un umbral a cero, un umbral que ninguna comprobación activada puede alcanzar, una comprobación que puntúa cero.</value>
   </data>
-  <data name="The pages people sign in to in a browser - the webmail, the self-service portal and the Control Deck: how they sign in, how long a session lasts, what people may do, OpenPGP, notifications and importing. Most of these are reached over the REST API, which also serves the webmail." xml:space="preserve">
-    <value>Las páginas en las que la gente inicia sesión en un navegador - el webmail, el portal de autoservicio y el Control Deck: cómo inician sesión, cuánto dura una sesión, qué puede hacer la gente, OpenPGP, notificaciones e importación. La mayoría se alcanzan por la API REST, que también sirve el webmail.</value>
+  <data name="The pages people sign in to in a browser: the webmail, the self-service portal and the Control Deck. Most of their settings are reached over the REST API, which also serves the webmail." xml:space="preserve">
+    <value>Las páginas en las que la gente inicia sesión en un navegador: el webmail, el portal de autoservicio y el Control Deck. La mayoría de sus ajustes se alcanzan por la API REST, que también sirve el webmail.</value>
   </data>
   <data name="The partner's key: an OpenPGP public key or PEM certificates (left empty, the key held is kept)" xml:space="preserve">
     <value>Clave del socio: una clave pública OpenPGP o certificados PEM (si se deja vacía, se conserva la clave guardada)</value>
@@ -12539,8 +12542,8 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
   <data name="The port to ask on" xml:space="preserve">
     <value>El puerto por el que preguntar</value>
   </data>
-  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one. The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
-    <value>Los puertos en los que escucha cada protocolo, su dirección de enlace y la seguridad de la conexión. Un cambio surte efecto cuando se reinicializa el servidor, algo que esta página ofrece después de cada cambio. La columna Escuchando se lee de los puertos abiertos de esta máquina, no de la configuración, así que muestra lo que está ocurriendo realmente y no lo que se pidió.</value>
+  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one." xml:space="preserve">
+    <value>Los puertos en los que escucha cada protocolo, su dirección de enlace y la seguridad de la conexión. Un cambio surte efecto cuando se reinicializa el servidor, algo que esta página ofrece después de cada cambio.</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>La clave privada no pertenece a este certificado: sus claves públicas difieren. El par no se cargará (error del servidor 5113) y todos los puertos TLS que usen este certificado fallarán al arrancar. Apunte esta entrada al archivo de clave que se generó con este certificado.</value>

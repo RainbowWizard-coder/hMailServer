@@ -4473,7 +4473,7 @@ namespace hMailServer.ControlPanel.Views
       private void BuildWebmail()
       {
          Header.PageKey = "webmail";
-         Header.Subtitle = L("The pages people sign in to in a browser - the webmail, the self-service portal and the Control Deck: how they sign in, how long a session lasts, what people may do, OpenPGP, notifications and importing. Most of these are reached over the REST API, which also serves the webmail.");
+         Header.Subtitle = L("The pages people sign in to in a browser: the webmail, the self-service portal and the Control Deck. Most of their settings are reached over the REST API, which also serves the webmail.");
 
          // ---- Sign-in -------------------------------------------------------
 

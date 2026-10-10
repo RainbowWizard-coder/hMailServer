@@ -88,6 +88,11 @@ namespace hMailServer.ControlPanel.Views
          hMailServer.ControlPanel.Services.SelectionGate.Bind(PortGrid, PropertiesButton, DeleteButton);
          FloorColumns_();
 
+         // Where the Listening column's word comes from, as its header's tool tip
+         // and help text: it was the third sentence of the page's subtitle, which
+         // keeps two (review finding F279).
+         GridStyles.HeaderCaption(ListeningColumn, L("The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for."));
+
          // Enter and F2 open the selected port, Delete deletes it after asking,
          // Insert goes to the add form, and Enter in the form adds the port;
          // Escape empties the port box and leaves the address (Views/GridKeys, FormSubmit).

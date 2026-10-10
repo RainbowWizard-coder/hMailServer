@@ -120,7 +120,7 @@ namespace hMailServer.ControlPanel.Views
          root.Children.Add(new PageHeader
          {
             PageKey = "roles",
-            Subtitle = L("A role is a named set of permissions, and an assignment gives one to an account in named domains. The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority. An account with no role here holds whatever its admin level has always given it."),
+            Subtitle = L("A role is a named set of permissions, and an assignment gives one to an account in named domains. An account with no role here holds whatever its admin level has always given it."),
             Actions = actions
          });
 

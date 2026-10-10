@@ -97,6 +97,13 @@ namespace hMailServer.ControlPanel.Services
       public const double FormWidth = 760;
 
       /// <summary>
+      /// The widest a page's subtitle runs on its line under the title (AppSubtitleWidth
+      /// in Tokens.xaml): about a hundred and twenty characters of body text, two lines
+      /// for the two sentences a subtitle holds (review finding F279).
+      /// </summary>
+      public const double SubtitleWidth = 840;
+
+      /// <summary>
       /// The tint behind an inline notice: the notice's status colour at this
       /// opacity. Zero under High Contrast, where a tinted surface is a colour
       /// the user asked Windows not to show them and the border carries the

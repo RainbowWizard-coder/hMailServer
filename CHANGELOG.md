@@ -2419,6 +2419,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   tab's content. They are Secondary buttons on those tabs, the dialog's Save is its one Primary button, and the Rules
   tab starts at the dialog's inset as the other tabs do; on the Rules page and the list pages Add stays Primary.
 
+- **Fixed: a page's subtitle was squeezed into the column left of its actions, and the long ones pushed the page's
+  list below the window.** The greylisting bypass list's subtitle ran to ten lines in English and fourteen in German,
+  the allow and block list's to six and eight, Blocked senders' to six, Webmail's to five and TCP/IP ports' to three,
+  so that in the narrowest window those pages showed their list's header and no rows. The subtitle has a line of its
+  own under the title and the actions, across the header up to 840 pixels (AppSubtitleWidth), and the actions go under
+  it only where the title would not fit beside them whole; and those subtitles, and the Administrator roles page's,
+  are two sentences at most, the rest being in the help document each page's help opens - and, for the ports page, in
+  the Listening column's header, which says that the column is read from this machine's open ports. Every page's
+  subtitle is held to two sentences, six still longer listed with why.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

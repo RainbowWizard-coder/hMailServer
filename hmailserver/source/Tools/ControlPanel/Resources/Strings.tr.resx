@@ -600,8 +600,8 @@
   <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
     <value>Etki alanının tamamı için bir yanıt - kapanan bir ofis, kaldırılan bir departman. Yalnızca kendine ait bir tatil iletisi OLMAYAN hesaplar için yanıt verir: hesabın kendi iletisi her zaman üstün gelir ve herhangi bir iletiye en fazla bir yanıt gönderilir.</value>
   </data>
-  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
-    <value>Rol, adlandırılmış bir izin kümesidir ve atama onu belirtilen alan adlarında bir hesaba verir. Dört yerleşik rol düzenlenemez: izinleri sunucunun kodundadır, böylece veritabanındaki bir değişiklik kimseye yetki veremez. Burada rolü olmayan bir hesap, yönetici düzeyinin ona her zaman verdiğine sahiptir.</value>
+  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
+    <value>Rol, adlandırılmış bir izin kümesidir ve atama onu belirtilen alan adlarında bir hesaba verir. Burada rolü olmayan bir hesap, yönetici düzeyinin ona her zaman verdiğine sahiptir.</value>
   </data>
   <data name="A room" xml:space="preserve">
     <value>Bir oda</value>
@@ -1194,8 +1194,8 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Addresses and domains every account wants or does not, below each account's own list and its domain's." xml:space="preserve">
     <value>Tüm hesapların istediği ya da istemediği adresler ve alan adları; her hesabın kendi listesinin ve alan adının listesinin altında.</value>
   </data>
-  <data name="Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted. An account's own list is consulted first and its domain's next, so this list only decides for a recipient whose own lists say nothing. To refuse a sender for everyone during the SMTP conversation, whatever anybody's own list says, use Blocked senders." xml:space="preserve">
-    <value>Tüm hesapların istediği ya da istemediği adresler ve alan adlarının tamamı. İzinli bir göndericinin postası istenmeyen posta kararını atlar; engellenmiş birininki karantina açıksa orada alıkonur, değilse istenmeyen olarak işaretlenir - asla silinmez. Önce hesabın kendi listesine, sonra alan adının listesine bakılır; bu yüzden bu liste yalnızca kendi listeleri bir şey söylemeyen alıcı için karar verir. Bir göndericiyi, kimin listesi ne derse desin, SMTP görüşmesi sırasında herkes için reddetmek için Engellenen gönderenler listesini kullanın.</value>
+  <data name="Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted." xml:space="preserve">
+    <value>Tüm hesapların istediği ya da istemediği adresler ve alan adlarının tamamı. İzinli bir göndericinin postası istenmeyen posta kararını atlar; engellenmiş birininki karantina açıksa orada alıkonur, değilse istenmeyen olarak işaretlenir - asla silinmez.</value>
   </data>
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>{0} hesaplarının istediği ya da istemediği adresler ve alan adlarının tamamı. Hesabın kendi listesinden sonra, sunucunun listesinden önce bakılır.</value>
@@ -4543,8 +4543,8 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Entry skipped" xml:space="preserve">
     <value>Girdi atlandı</value>
   </data>
-  <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
-    <value>İleti, kaydın gerektirdiği kimlik doğrulama sonuçlarını - SPF, DKIM, DMARC, herhangi bir birleşim - taşıdığında gri listelemeyi atlayan zarf alan adları ve HELO sonekleri. Tam eşleşen bir alan adı ya da .mail.example.com gibi başında nokta olan ve o adı ve altındaki her adı kapsayan bir sonek. SPF, RCPT TO anında bilinir, bu yüzden yalnızca SPF isteyen bir kayıt orada karar verir; DKIM ve DMARC yalnızca ileti alındıktan sonra var olur, bu yüzden ikisinden birini isteyen bir kayıt alıcıyı şimdilik geçirir ve sonuç geçer değilse ileti DATA sonrasında gri listelenir - ve yalnızca DKIM doğrulaması veya DMARC açıkken, aksi halde kayıt hiçbir zaman karşılanamaz. SPF başarılıysa atla seçeneğinden farklı olarak bu, dünyadaki her SPF geçişinin bir özelliği değil, adı geçen bir alan adına sizin verdiğiniz bir ayrıcalıktır.</value>
+  <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination." xml:space="preserve">
+    <value>İleti, kaydın gerektirdiği kimlik doğrulama sonuçlarını - SPF, DKIM, DMARC, herhangi bir birleşim - taşıdığında gri listelemeyi atlayan zarf alan adları ve HELO sonekleri.</value>
   </data>
   <data name="Envelope report" xml:space="preserve">
     <value>Zarf raporu</value>
@@ -4555,8 +4555,8 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Envelope senders refused outright or scored - one address, or a whole domain with its subdomains." xml:space="preserve">
     <value>Doğrudan reddedilen ya da puanlanan zarf gönderenleri - tek bir adres ya da alt etki alanlarıyla birlikte bütün bir etki alanı.</value>
   </data>
-  <data name="Envelope senders refused outright, or scored. An entry with an @ is one exact address; without one it is a whole domain including its subdomains. The default score of 100 crosses the delete threshold and refuses the message during the SMTP conversation. This matches the address the sender CLAIMS, so it stops a correspondent who keeps using one address - it is not an anti-spoofing tool, and stops nothing that rotates addresses." xml:space="preserve">
-    <value>Doğrudan reddedilen ya da puanlanan zarf gönderenleri. @ içeren bir girdi tek bir tam adrestir; içermeyen, alt etki alanları dâhil bütün bir etki alanıdır. Varsayılan 100 puan silme eşiğini aşar ve iletiyi SMTP görüşmesi sırasında reddeder. Bu, gönderenin İDDİA ETTİĞİ adresle eşleşir; dolayısıyla tek bir adresi kullanmayı sürdüren bir muhabiri durdurur - bir sahtecilik önleme aracı değildir ve adres değiştiren hiçbir şeyi durdurmaz.</value>
+  <data name="Envelope senders refused outright, or scored. An entry with an @ is one exact address; without one it is a whole domain including its subdomains." xml:space="preserve">
+    <value>Doğrudan reddedilen ya da puanlanan zarf gönderenleri. @ içeren bir girdi tek bir tam adrestir; içermeyen, alt etki alanları dâhil bütün bir etki alanıdır.</value>
   </data>
   <data name="Erase _traces..." xml:space="preserve">
     <value>_İzleri sil...</value>
@@ -11644,6 +11644,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
     <value>Posta kutusu olması gereken kişileri seçen LDAP süzgeci. Varsayılan, posta adresi taşıyan etkin person nesnelerini alır - bu, devre dışı bırakılmış ayrılanları, hizmet hesaplarını ve bilgisayarları bilerek dışlar; daha geniş bir süzgeç bunların hepsine posta kutusu sağlardı.</value>
   </data>
+  <data name="The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
+    <value>Dinliyor sütunu yapılandırmadan değil, bu makinenin açık portlarından okunur; bu yüzden istenen değil, gerçekte olan görünür.</value>
+  </data>
   <data name="The MTA-STS hosting settings could not be read: {0}" xml:space="preserve">
     <value>MTA-STS barındırma ayarları okunamadı: {0}</value>
   </data>
@@ -12491,8 +12494,8 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>Genel bakış, sessizce hiçbir şey yapmayan düzenlemeleri adlandırır - sıfır eşik, etkin hiçbir denetimin ulaşamayacağı bir eşik, sıfır puan veren bir denetim.</value>
   </data>
-  <data name="The pages people sign in to in a browser - the webmail, the self-service portal and the Control Deck: how they sign in, how long a session lasts, what people may do, OpenPGP, notifications and importing. Most of these are reached over the REST API, which also serves the webmail." xml:space="preserve">
-    <value>Kişilerin tarayıcıda oturum açtığı sayfalar - web postası, self servis portalı ve Control Deck: nasıl oturum açtıkları, bir oturumun ne kadar sürdüğü, kişilerin neler yapabileceği, OpenPGP, bildirimler ve içe aktarma. Bunların çoğuna, web postasını da sunan REST API üzerinden ulaşılır.</value>
+  <data name="The pages people sign in to in a browser: the webmail, the self-service portal and the Control Deck. Most of their settings are reached over the REST API, which also serves the webmail." xml:space="preserve">
+    <value>Kişilerin tarayıcıda oturum açtığı sayfalar: web postası, self servis portalı ve Control Deck. Bunların ayarlarının çoğuna, web postasını da sunan REST API üzerinden ulaşılır.</value>
   </data>
   <data name="The partner's key: an OpenPGP public key or PEM certificates (left empty, the key held is kept)" xml:space="preserve">
     <value>Ortağın anahtarı: bir OpenPGP ortak anahtarı veya PEM sertifikaları (boş bırakılırsa kayıtlı anahtar korunur)</value>
@@ -12539,8 +12542,8 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   <data name="The port to ask on" xml:space="preserve">
     <value>Sorulacak bağlantı noktası</value>
   </data>
-  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one. The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
-    <value>Her protokolün dinlediği portlar, bağlama adresleri ve bağlantı güvenliği. Bir değişiklik, sunucu yeniden başlatıldığında (Reinitialize) geçerli olur; bu sayfa bunu her değişiklikten sonra önerir. Dinliyor sütunu yapılandırmadan değil, bu makinenin açık portlarından okunur; bu yüzden istenen değil, gerçekte olan görünür.</value>
+  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one." xml:space="preserve">
+    <value>Her protokolün dinlediği portlar, bağlama adresleri ve bağlantı güvenliği. Bir değişiklik, sunucu yeniden başlatıldığında (Reinitialize) geçerli olur; bu sayfa bunu her değişiklikten sonra önerir.</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>Özel anahtar bu sertifikaya ait değil: ortak anahtarları farklı. Çift yüklenmez (sunucu hatası 5113) ve bu sertifikayı kullanan her TLS portu başlatılamaz. Bu girdiyi, bu sertifikayla birlikte üretilen anahtar dosyasına yönlendirin.</value>

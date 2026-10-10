@@ -600,8 +600,8 @@
   <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
     <value>Een antwoord voor het hele domein - een gesloten kantoor, een opgeheven afdeling. Het antwoordt alleen voor accounts die GEEN eigen afwezigheidsbericht hebben: het eigen bericht van een account wint altijd, en hooguit één antwoord beantwoordt een bericht.</value>
   </data>
-  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
-    <value>Een rol is een benoemde verzameling rechten, en een toewijzing geeft die aan een account binnen genoemde domeinen. De vier ingebouwde rollen zijn niet te bewerken: hun rechten staan in de code van de server, zodat een wijziging in de database niemand bevoegdheid kan geven. Een account zonder rol hier heeft wat zijn beheerdersniveau het altijd heeft gegeven.</value>
+  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
+    <value>Een rol is een benoemde verzameling rechten, en een toewijzing geeft die aan een account binnen genoemde domeinen. Een account zonder rol hier heeft wat zijn beheerdersniveau het altijd heeft gegeven.</value>
   </data>
   <data name="A room" xml:space="preserve">
     <value>Een ruimte</value>
@@ -1194,8 +1194,8 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Addresses and domains every account wants or does not, below each account's own list and its domain's." xml:space="preserve">
     <value>Adressen en domeinen die elk account wel of niet wil, onder de eigen lijst van elk account en die van zijn domein.</value>
   </data>
-  <data name="Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted. An account's own list is consulted first and its domain's next, so this list only decides for a recipient whose own lists say nothing. To refuse a sender for everyone during the SMTP conversation, whatever anybody's own list says, use Blocked senders." xml:space="preserve">
-    <value>Adressen en hele domeinen die elk account wil, of niet. Post van een toegestane afzender slaat het spamoordeel over; die van een geblokkeerde wordt in quarantaine gehouden waar die aan staat, en als spam gemarkeerd waar dat niet zo is - nooit verwijderd. Eerst geldt de eigen lijst van een account en dan die van zijn domein, dus deze lijst beslist alleen voor een ontvanger wiens eigen lijsten niets zeggen. Om een afzender voor iedereen al tijdens het SMTP-gesprek te weigeren, wat iemands eigen lijst ook zegt, gebruikt u Geblokkeerde afzenders.</value>
+  <data name="Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted." xml:space="preserve">
+    <value>Adressen en hele domeinen die elk account wil, of niet. Post van een toegestane afzender slaat het spamoordeel over; die van een geblokkeerde wordt in quarantaine gehouden waar die aan staat, en als spam gemarkeerd waar dat niet zo is - nooit verwijderd.</value>
   </data>
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>Adressen en hele domeinen die de accounts van {0} willen, of niet. Geldt na de eigen lijst van een account en voor die van de server.</value>
@@ -4543,8 +4543,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Entry skipped" xml:space="preserve">
     <value>Vermelding overgeslagen</value>
   </data>
-  <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
-    <value>Envelopdomeinen en HELO-achtervoegsels die greylisting passeren wanneer het bericht de authenticatieresultaten draagt die de vermelding vereist - SPF, DKIM, DMARC, in elke combinatie. Een exact vergeleken domein, of een achtervoegsel met een punt vooraan zoals .mail.example.com dat die naam en elke naam eronder dekt. SPF is bekend bij RCPT TO, dus een vermelding die alleen SPF vereist beslist daar; DKIM en DMARC bestaan pas als het bericht binnen is, dus een vermelding die een van beide vereist laat de ontvanger voorlopig door en het bericht wordt na DATA gegreylist als het resultaat geen pass is - en alleen zolang DKIM-verificatie of DMARC is ingeschakeld, want anders kan de vermelding nooit worden voldaan. Anders dan Overslaan bij geslaagde SPF is dit een voorrecht dat u een genoemd domein verleent, geen eigenschap van elke geslaagde SPF ter wereld.</value>
+  <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination." xml:space="preserve">
+    <value>Envelopdomeinen en HELO-achtervoegsels die greylisting passeren wanneer het bericht de authenticatieresultaten draagt die de vermelding vereist - SPF, DKIM, DMARC, in elke combinatie.</value>
   </data>
   <data name="Envelope report" xml:space="preserve">
     <value>Envelopverslag</value>
@@ -4555,8 +4555,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Envelope senders refused outright or scored - one address, or a whole domain with its subdomains." xml:space="preserve">
     <value>Envelopafzenders die meteen worden geweigerd of een score krijgen - één adres, of een heel domein met zijn subdomeinen.</value>
   </data>
-  <data name="Envelope senders refused outright, or scored. An entry with an @ is one exact address; without one it is a whole domain including its subdomains. The default score of 100 crosses the delete threshold and refuses the message during the SMTP conversation. This matches the address the sender CLAIMS, so it stops a correspondent who keeps using one address - it is not an anti-spoofing tool, and stops nothing that rotates addresses." xml:space="preserve">
-    <value>Envelopafzenders die meteen worden geweigerd, of een score krijgen. Een vermelding met een @ is één exact adres; zonder @ is het een heel domein inclusief zijn subdomeinen. De standaardscore van 100 overschrijdt de verwijderdrempel en weigert het bericht tijdens het SMTP-gesprek. Dit vergelijkt met het adres dat de afzender BEWEERT, dus het houdt een correspondent tegen die één adres blijft gebruiken - het is geen middel tegen spoofing, en het houdt niets tegen dat van adres wisselt.</value>
+  <data name="Envelope senders refused outright, or scored. An entry with an @ is one exact address; without one it is a whole domain including its subdomains." xml:space="preserve">
+    <value>Envelopafzenders die meteen worden geweigerd, of een score krijgen. Een vermelding met een @ is één exact adres; zonder @ is het een heel domein inclusief zijn subdomeinen.</value>
   </data>
   <data name="Erase _traces..." xml:space="preserve">
     <value>Sporen _wissen...</value>
@@ -11644,6 +11644,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
     <value>Het LDAP-filter dat de mensen selecteert die een postvak horen te hebben. De standaard neemt ingeschakelde person-objecten met een mailadres - wat bewust uitgeschakelde vertrekkers, serviceaccounts en computers uitsluit, waarvoor een ruimer filter allemaal postvakken zou aanmaken.</value>
   </data>
+  <data name="The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
+    <value>De kolom Luistert wordt gelezen uit de open poorten van deze machine en niet uit de configuratie, dus die toont wat er werkelijk gebeurt in plaats van wat er is gevraagd.</value>
+  </data>
   <data name="The MTA-STS hosting settings could not be read: {0}" xml:space="preserve">
     <value>De MTA-STS-hostinginstellingen konden niet worden gelezen: {0}</value>
   </data>
@@ -12491,8 +12494,8 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>Het overzicht noemt de opstellingen die stilzwijgend niets doen - een drempel van nul, een drempel die geen enkele ingeschakelde controle kan bereiken, een controle die nul scoort.</value>
   </data>
-  <data name="The pages people sign in to in a browser - the webmail, the self-service portal and the Control Deck: how they sign in, how long a session lasts, what people may do, OpenPGP, notifications and importing. Most of these are reached over the REST API, which also serves the webmail." xml:space="preserve">
-    <value>De pagina's waarop mensen zich in een browser aanmelden - de webmail, het selfserviceportaal en het Control Deck: hoe ze zich aanmelden, hoe lang een sessie duurt, wat mensen mogen doen, OpenPGP, meldingen en importeren. De meeste worden via de REST-API bereikt, die ook de webmail levert.</value>
+  <data name="The pages people sign in to in a browser: the webmail, the self-service portal and the Control Deck. Most of their settings are reached over the REST API, which also serves the webmail." xml:space="preserve">
+    <value>De pagina's waarop mensen zich in een browser aanmelden: de webmail, het selfserviceportaal en het Control Deck. De meeste van hun instellingen worden via de REST-API bereikt, die ook de webmail levert.</value>
   </data>
   <data name="The partner's key: an OpenPGP public key or PEM certificates (left empty, the key held is kept)" xml:space="preserve">
     <value>Sleutel van de partner: een openbare OpenPGP-sleutel of PEM-certificaten (leeg gelaten blijft de bewaarde sleutel behouden)</value>
@@ -12539,8 +12542,8 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   <data name="The port to ask on" xml:space="preserve">
     <value>De poort waarop wordt gevraagd</value>
   </data>
-  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one. The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
-    <value>De poorten waarop elk protocol luistert, hun bindadres en verbindingsbeveiliging. Een wijziging gaat in wanneer de server wordt geherinitialiseerd, wat deze pagina na elke wijziging aanbiedt. De kolom Luistert wordt gelezen uit de open poorten van deze machine en niet uit de configuratie, dus die toont wat er werkelijk gebeurt in plaats van wat er is gevraagd.</value>
+  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one." xml:space="preserve">
+    <value>De poorten waarop elk protocol luistert, hun bindadres en verbindingsbeveiliging. Een wijziging gaat in wanneer de server wordt geherinitialiseerd, wat deze pagina na elke wijziging aanbiedt.</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>De privésleutel hoort niet bij dit certificaat: hun openbare sleutels verschillen. Het paar laadt niet (serverfout 5113) en elke TLS-poort die dit certificaat gebruikt, start niet. Laat deze vermelding wijzen naar het sleutelbestand dat samen met dit certificaat is gegenereerd.</value>

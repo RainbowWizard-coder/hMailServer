@@ -73,12 +73,14 @@ namespace hMailServer.ControlPanel.Views.Scaffold
       }
 
       /// <summary>
-      /// One line under the title saying what the page shows or when it was last
-      /// refreshed. Left unset on a page that names its <see cref="PageKey"/>, it
-      /// is the page's description in the navigation map - its tool tip in the
-      /// sidebar and its line in the palette - so that a page with nothing more
-      /// to say than that says it in the same words. Null hides the line on a
-      /// header with no key.
+      /// What the page shows, or when it was last refreshed, in a sentence or two on a
+      /// line of its own under the title and the actions, up to
+      /// <see cref="Services.DesignTokens.SubtitleWidth"/> wide; the rest of what a
+      /// page has to say is in its help (review finding F279). Left unset on a page
+      /// that names its <see cref="PageKey"/>, it is the page's description in the
+      /// navigation map - its tool tip in the sidebar and its line in the palette -
+      /// so that a page with nothing more to say than that says it in the same
+      /// words. Null hides the line on a header with no key.
       /// </summary>
       public string Subtitle
       {
@@ -157,12 +159,14 @@ namespace hMailServer.ControlPanel.Views.Scaffold
       }
 
       /// <summary>
-      /// The actions sit beside the title while that leaves the title and subtitle
-      /// room to be read, and under the subtitle, from the left, when it does not.
-      /// Beside it at any width, a page with a wide set of actions - the
+      /// The actions sit beside the title while the title fits beside them whole,
+      /// and under the subtitle, from the left, when it does not. The subtitle has a
+      /// line of its own under both, so only the title is measured against them:
+      /// beside the actions at any width, a page with a wide set of them - the
       /// Quarantine page's grouping list and three buttons - squeezed its title to
-      /// "Quaran..." and its subtitle to a column of three words a line in a
-      /// 1000-pixel window, and pushed the list it describes below the fold.
+      /// "Quaran..." in a 1000-pixel window, and while the subtitle shared the
+      /// title's column it ran to a column of three words a line and pushed the
+      /// list it describes below the fold (review finding F279).
       /// </summary>
       protected override Size MeasureOverride(Size constraint)
       {
@@ -170,9 +174,9 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          {
             bar.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
             double actions = bar.DesiredSize.Width;
-            bool under = actions > 0 && constraint.Width - actions < System.Math.Max(MinimumTitleWidth, constraint.Width * 0.45);
+            bool under = Services.PageHeaderLayout.ActionsGoUnder(constraint.Width, actions, TitleWidth_());
 
-            int row = under ? 1 : 0;
+            int row = under ? 2 : 0;
             if (System.Windows.Controls.Grid.GetRow(bar) != row)
             {
                System.Windows.Controls.Grid.SetRow(bar, row);
@@ -186,8 +190,14 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          return base.MeasureOverride(constraint);
       }
 
-      /// <summary>The narrowest the title and subtitle are left beside the actions.</summary>
-      private const double MinimumTitleWidth = 360;
+      /// <summary>The title's own width, whole, with its gap before the pill.</summary>
+      private double TitleWidth_()
+      {
+         if (Part<FrameworkElement>("PART_Title") is not { } title)
+            return 0;
+         title.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+         return title.DesiredSize.Width;
+      }
 
       private static void OnTourIdChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
          => ((PageHeader)d).ApplyTourVisibility_();

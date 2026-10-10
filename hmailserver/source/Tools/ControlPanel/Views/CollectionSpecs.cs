@@ -132,7 +132,7 @@ namespace hMailServer.ControlPanel.Views
       public static CollectionEditorView BlockedSenders() => new(new CollectionSpec
       {
          PageKey = "blockedsenders",
-         Subtitle = L("Envelope senders refused outright, or scored. An entry with an @ is one exact address; without one it is a whole domain including its subdomains. The default score of 100 crosses the delete threshold and refuses the message during the SMTP conversation. This matches the address the sender CLAIMS, so it stops a correspondent who keeps using one address - it is not an anti-spoofing tool, and stops nothing that rotates addresses."),
+         Subtitle = L("Envelope senders refused outright, or scored. An entry with an @ is one exact address; without one it is a whole domain including its subdomains."),
          ItemNoun = L("blocked sender"),
          AddTitle = N("Add a blocked sender"),
          EditTitle = N("Edit the blocked sender"),
@@ -164,7 +164,7 @@ namespace hMailServer.ControlPanel.Views
       {
          PageKey = "senderlist",
          SearchPlaceholder = N("Search the allow and block list"),
-         Subtitle = L("Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted. An account's own list is consulted first and its domain's next, so this list only decides for a recipient whose own lists say nothing. To refuse a sender for everyone during the SMTP conversation, whatever anybody's own list says, use Blocked senders."),
+         Subtitle = L("Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted."),
          ItemNoun = L("list entry"),
          AddTitle = N("Add a list entry"),
          EditTitle = N("Edit the list entry"),
@@ -236,7 +236,7 @@ namespace hMailServer.ControlPanel.Views
       public static CollectionEditorView GreyListBypass() => new(new CollectionSpec
       {
          PageKey = "greylistbypass",
-         Subtitle = L("Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world."),
+         Subtitle = L("Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination."),
          ItemNoun = L("bypass entry"),
          AddTitle = N("Add a bypass entry"),
          EditTitle = N("Edit the bypass entry"),

@@ -603,8 +603,8 @@
   <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
     <value>Відповідь для цілого домену — закритий офіс, розформований відділ. Вона надсилається лише для облікових записів, які НЕ мають власного повідомлення про відпустку: власне повідомлення облікового запису завжди має перевагу, і на будь-яке повідомлення надходить щонайбільше одна відповідь.</value>
   </data>
-  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
-    <value>Роль — це іменований набір прав, а призначення надає її обліковому запису в зазначених доменах. Чотири вбудовані ролі не можна змінити: їхні права містяться в коді сервера, щоб зміна в базі даних не могла нікому надати повноважень. Обліковий запис без ролі тут має те, що йому завжди давав його рівень адміністратора.</value>
+  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
+    <value>Роль — це іменований набір прав, а призначення надає її обліковому запису в зазначених доменах. Обліковий запис без ролі тут має те, що йому завжди давав його рівень адміністратора.</value>
   </data>
   <data name="A room" xml:space="preserve">
     <value>Приміщення</value>
@@ -1200,8 +1200,8 @@
   <data name="Addresses and domains every account wants or does not, below each account's own list and its domain's." xml:space="preserve">
     <value>Адреси й домени, які всі облікові записи хочуть або не хочуть отримувати, після власного списку кожного облікового запису та списку його домену.</value>
   </data>
-  <data name="Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted. An account's own list is consulted first and its domain's next, so this list only decides for a recipient whose own lists say nothing. To refuse a sender for everyone during the SMTP conversation, whatever anybody's own list says, use Blocked senders." xml:space="preserve">
-    <value>Адреси й цілі домени, які всі облікові записи хочуть або не хочуть отримувати. Пошта дозволеного відправника оминає вердикт фільтра спаму; пошта заблокованого затримується в карантині, якщо його ввімкнено, а інакше позначається як спам — її ніколи не видаляють. Спершу діє власний список облікового запису, потім список його домену, тож цей список вирішує лише для одержувача, чиї списки мовчать. Щоб відхиляти відправника для всіх ще під час сеансу SMTP, хоч би що казав чий-небудь список, використовуйте Заблоковані відправники.</value>
+  <data name="Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted." xml:space="preserve">
+    <value>Адреси й цілі домени, які всі облікові записи хочуть або не хочуть отримувати. Пошта дозволеного відправника оминає вердикт фільтра спаму; пошта заблокованого затримується в карантині, якщо його ввімкнено, а інакше позначається як спам — її ніколи не видаляють.</value>
   </data>
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>Адреси й цілі домени, які облікові записи {0} хочуть або не хочуть отримувати. Діє після власного списку облікового запису та перед списком сервера.</value>
@@ -4589,8 +4589,8 @@
   <data name="Entry skipped" xml:space="preserve">
     <value>Запис пропущено</value>
   </data>
-  <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
-    <value>Домени конверта та суфікси HELO, які пропускають повз сірий список, коли повідомлення несе результати автентифікації, яких вимагає запис - SPF, DKIM, DMARC, у будь-якому поєднанні. Домен, що порівнюється точно, або суфікс із крапкою на початку, як .mail.example.com, що покриває це ім'я та всі імена під ним. SPF відомий на RCPT TO, тому запис, що вимагає лише SPF, вирішує там; DKIM і DMARC існують лише після отримання повідомлення, тому запис, що вимагає будь-якого з них, поки пропускає одержувача, а повідомлення потрапляє до сірого списку після DATA, якщо результат не є успішним - і лише доки ввімкнено перевірку DKIM або DMARC, інакше запис ніколи не може бути виконаний. На відміну від параметра Пропускати за успішної перевірки SPF це привілей, який ви надаєте названому домену, а не властивість кожної успішної перевірки SPF у світі.</value>
+  <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination." xml:space="preserve">
+    <value>Домени конверта та суфікси HELO, які пропускають повз сірий список, коли повідомлення несе результати автентифікації, яких вимагає запис - SPF, DKIM, DMARC, у будь-якому поєднанні.</value>
   </data>
   <data name="Envelope report" xml:space="preserve">
     <value>Звіт про конверт</value>
@@ -4601,8 +4601,8 @@
   <data name="Envelope senders refused outright or scored - one address, or a whole domain with its subdomains." xml:space="preserve">
     <value>Відправники конверта, яких відхиляють одразу або оцінюють - одна адреса або цілий домен з його піддоменами.</value>
   </data>
-  <data name="Envelope senders refused outright, or scored. An entry with an @ is one exact address; without one it is a whole domain including its subdomains. The default score of 100 crosses the delete threshold and refuses the message during the SMTP conversation. This matches the address the sender CLAIMS, so it stops a correspondent who keeps using one address - it is not an anti-spoofing tool, and stops nothing that rotates addresses." xml:space="preserve">
-    <value>Відправники конверта, яких відхиляють одразу або оцінюють. Запис із @ - це одна точна адреса; без нього - цілий домен разом із піддоменами. Типова оцінка 100 перетинає поріг видалення і відхиляє повідомлення під час діалогу SMTP. Це зіставляє адресу, яку відправник ЗАЯВЛЯЄ, тому зупиняє кореспондента, який і далі використовує одну адресу - це не засіб проти підробки, і воно не зупиняє нічого, що змінює адреси.</value>
+  <data name="Envelope senders refused outright, or scored. An entry with an @ is one exact address; without one it is a whole domain including its subdomains." xml:space="preserve">
+    <value>Відправники конверта, яких відхиляють одразу або оцінюють. Запис із @ - це одна точна адреса; без нього - цілий домен разом із піддоменами.</value>
   </data>
   <data name="Erase _traces..." xml:space="preserve">
     <value>Стерти с_ліди...</value>
@@ -11774,6 +11774,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
     <value>Фільтр LDAP, який вибирає людей, у яких має бути поштова скринька. Типовий бере увімкнені об'єкти person, що мають поштову адресу - це навмисно виключає вимкнених колишніх працівників, облікові записи служб і комп'ютери, для всіх яких ширший фільтр створив би скриньки.</value>
   </data>
+  <data name="The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
+    <value>Стовпець «Слухає» читається з відкритих портів цього комп'ютера, а не з конфігурації, тому показує, що відбувається насправді, а не що було запитано.</value>
+  </data>
   <data name="The MTA-STS hosting settings could not be read: {0}" xml:space="preserve">
     <value>Не вдалося прочитати параметри розміщення MTA-STS: {0}</value>
   </data>
@@ -12654,8 +12657,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>Огляд називає ті сполучення, які мовчки нічого не роблять - нульовий поріг, поріг, недосяжний для жодної увімкненої перевірки, перевірку з нульовою оцінкою.</value>
   </data>
-  <data name="The pages people sign in to in a browser - the webmail, the self-service portal and the Control Deck: how they sign in, how long a session lasts, what people may do, OpenPGP, notifications and importing. Most of these are reached over the REST API, which also serves the webmail." xml:space="preserve">
-    <value>Сторінки, до яких люди входять у браузері, — вебпошта, портал самообслуговування й Control Deck: як вони входять, скільки триває сеанс, що можуть робити люди, OpenPGP, сповіщення та імпорт. Більшість із них доступні через REST API, який також віддає вебпошту.</value>
+  <data name="The pages people sign in to in a browser: the webmail, the self-service portal and the Control Deck. Most of their settings are reached over the REST API, which also serves the webmail." xml:space="preserve">
+    <value>Сторінки, до яких люди входять у браузері: вебпошта, портал самообслуговування й Control Deck. Більшість їхніх налаштувань доступні через REST API, який також віддає вебпошту.</value>
   </data>
   <data name="The partner's key: an OpenPGP public key or PEM certificates (left empty, the key held is kept)" xml:space="preserve">
     <value>Ключ партнера: відкритий ключ OpenPGP або сертифікати PEM (якщо залишити порожнім, збережений ключ залишиться)</value>
@@ -12702,8 +12705,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The port to ask on" xml:space="preserve">
     <value>Порт, на якому питати</value>
   </data>
-  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one. The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
-    <value>Порти, які слухає кожен протокол, їхня адреса прив'язки та безпека з'єднання. Зміна набуває чинності після повторної ініціалізації сервера, яку ця сторінка пропонує після кожної зміни. Стовпець «Слухає» читається з відкритих портів цього комп'ютера, а не з конфігурації, тому показує, що відбувається насправді, а не що було запитано.</value>
+  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one." xml:space="preserve">
+    <value>Порти, які слухає кожен протокол, їхня адреса прив'язки та безпека з'єднання. Зміна набуває чинності після повторної ініціалізації сервера, яку ця сторінка пропонує після кожної зміни.</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>Закритий ключ не належить цьому сертифікату: їхні відкриті ключі різняться. Пара не завантажиться (помилка сервера 5113), і жоден порт TLS, що використовує цей сертифікат, не запуститься. Вкажіть у цьому записі файл ключа, який було згенеровано разом із цим сертифікатом.</value>

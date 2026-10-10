@@ -101,6 +101,9 @@
     <!-- And what a list page's count and empty state say while its search filters
          the rows it read (review findings F288 and F210). -->
     <Compile Include="..\ControlPanel\Services\ListSearchCount.cs" />
+    <!-- And where a page header puts its actions: beside the title while the title
+         fits beside them whole, under the subtitle where it does not. -->
+    <Compile Include="..\ControlPanel\Services\PageHeaderLayout.cs" />
     <!-- And the server settings page's own, which is a different lifecycle from
          the INI pages' above: read and written over COM, so it is clean, unsaved,
          saving, saved or partly saved, with no service restart in it. -->

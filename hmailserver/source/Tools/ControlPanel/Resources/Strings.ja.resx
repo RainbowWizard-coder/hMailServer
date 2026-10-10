@@ -600,8 +600,8 @@
   <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
     <value>ドメイン全体に対する応答です。閉鎖したオフィスや廃止した部署などに使います。応答するのは、独自の不在メッセージを持たないアカウント宛てのメールだけです。アカウント自身のメッセージが常に優先され、1 通のメッセージに対する応答は多くても 1 通です。</value>
   </data>
-  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
-    <value>ロールは名前の付いた権限の集まりで、割り当てによって指定したドメインの範囲でアカウントに与えられます。組み込みの四つのロールは編集できません。その権限はサーバーのコードにあり、データベースを書き換えても誰にも権限を与えられないようにするためです。ここでロールを持たないアカウントは、その管理者レベルが常に与えてきたものを持ちます。</value>
+  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
+    <value>ロールは名前の付いた権限の集まりで、割り当てによって指定したドメインの範囲でアカウントに与えられます。ここでロールを持たないアカウントは、その管理者レベルが常に与えてきたものを持ちます。</value>
   </data>
   <data name="A room" xml:space="preserve">
     <value>会議室</value>
@@ -1194,8 +1194,8 @@
   <data name="Addresses and domains every account wants or does not, below each account's own list and its domain's." xml:space="preserve">
     <value>すべてのアカウントが望む、または望まないアドレスとドメイン。各アカウント自身の一覧とそのドメインの一覧より後に参照されます。</value>
   </data>
-  <data name="Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted. An account's own list is consulted first and its domain's next, so this list only decides for a recipient whose own lists say nothing. To refuse a sender for everyone during the SMTP conversation, whatever anybody's own list says, use Blocked senders." xml:space="preserve">
-    <value>すべてのアカウントが望む、または望まないアドレスとドメイン全体。許可した差出人のメールは迷惑メールの判定を通過し、ブロックした差出人のメールは検疫が有効なら検疫に保留され、そうでなければ迷惑メールとして印が付きます。削除されることはありません。まずアカウント自身の一覧、次にそのドメインの一覧が参照されるため、この一覧が決め手になるのは自身の一覧が何も言わない受信者だけです。誰の一覧にかかわらず SMTP のやり取りの間に全員に対して差出人を拒否するには、ブロックされた送信者を使います。</value>
+  <data name="Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted." xml:space="preserve">
+    <value>すべてのアカウントが望む、または望まないアドレスとドメイン全体。許可した差出人のメールは迷惑メールの判定を通過し、ブロックした差出人のメールは検疫が有効なら検疫に保留され、そうでなければ迷惑メールとして印が付きます。削除されることはありません。</value>
   </data>
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>{0} のアカウントが望む、または望まないアドレスとドメイン全体。アカウント自身の一覧の後、サーバーの一覧の前に参照されます。</value>
@@ -4543,8 +4543,8 @@
   <data name="Entry skipped" xml:space="preserve">
     <value>エントリをスキップ</value>
   </data>
-  <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
-    <value>エントリが要求する認証結果 (SPF、DKIM、DMARC の任意の組み合わせ) をメッセージが持つときにグレイリスティングを通過させるエンベロープ ドメインと HELO 接尾辞。完全一致するドメイン、または .mail.example.com のように先頭にドットの付いた接尾辞 (その名前とその配下のすべての名前を含む)。SPF は RCPT TO の時点で分かるため、SPF のみを要求するエントリはそこで決定します。DKIM と DMARC はメッセージを受信して初めて存在するため、どちらかを要求するエントリはひとまず受信者を通し、結果が合格でなければ DATA の後にグレイリスティングされます。これは DKIM 検証または DMARC が有効な間だけで、そうでなければエントリは決して満たされません。SPF 成功時にバイパスするとは異なり、これは名前を挙げたドメインに与える特権であり、世界中のあらゆる SPF 合格が持つ性質ではありません。</value>
+  <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination." xml:space="preserve">
+    <value>エントリが要求する認証結果 (SPF、DKIM、DMARC の任意の組み合わせ) をメッセージが持つときにグレイリスティングを通過させるエンベロープ ドメインと HELO 接尾辞。</value>
   </data>
   <data name="Envelope report" xml:space="preserve">
     <value>エンベロープ報告</value>
@@ -4555,8 +4555,8 @@
   <data name="Envelope senders refused outright or scored - one address, or a whole domain with its subdomains." xml:space="preserve">
     <value>エンベロープ送信者を無条件に拒否するか、スコアを付けます。1 つのアドレス、またはサブドメインを含むドメイン全体を指定できます。</value>
   </data>
-  <data name="Envelope senders refused outright, or scored. An entry with an @ is one exact address; without one it is a whole domain including its subdomains. The default score of 100 crosses the delete threshold and refuses the message during the SMTP conversation. This matches the address the sender CLAIMS, so it stops a correspondent who keeps using one address - it is not an anti-spoofing tool, and stops nothing that rotates addresses." xml:space="preserve">
-    <value>エンベロープ送信者を無条件に拒否するか、スコアを付けます。@ を含むエントリは 1 つの正確なアドレスで、含まないエントリはサブドメインを含むドメイン全体です。既定のスコア 100 は削除しきい値を超え、SMTP のやり取り中にメッセージを拒否します。これは送信者が「名乗る」アドレスと照合するため、1 つのアドレスを使い続ける相手を止めることはできますが、なりすまし対策のツールではなく、アドレスを次々に変えるものは何も止められません。</value>
+  <data name="Envelope senders refused outright, or scored. An entry with an @ is one exact address; without one it is a whole domain including its subdomains." xml:space="preserve">
+    <value>エンベロープ送信者を無条件に拒否するか、スコアを付けます。@ を含むエントリは 1 つの正確なアドレスで、含まないエントリはサブドメインを含むドメイン全体です。</value>
   </data>
   <data name="Erase _traces..." xml:space="preserve">
     <value>痕跡を消去(_T)...</value>
@@ -11644,6 +11644,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
     <value>メールボックスを持つべき人を選ぶ LDAP フィルター。既定では、メール アドレスを持つ有効な person オブジェクトを対象にします。無効化された退職者、サービス アカウント、コンピューターは意図的に除外されます。より広いフィルターではこれらすべてにメールボックスが作られてしまいます。</value>
   </data>
+  <data name="The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
+    <value>「待ち受け中」列は設定ではなくこのコンピューターの開いているポートから読み取られるため、要求された内容ではなく実際に起きていることを示します。</value>
+  </data>
   <data name="The MTA-STS hosting settings could not be read: {0}" xml:space="preserve">
     <value>MTA-STS ホスティング設定を読み取れませんでした: {0}</value>
   </data>
@@ -12491,8 +12494,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>概要には、黙って何もしていない構成が挙げられます。ゼロのしきい値、有効なチェックのどれも到達できないしきい値、スコアがゼロのチェックなどです。</value>
   </data>
-  <data name="The pages people sign in to in a browser - the webmail, the self-service portal and the Control Deck: how they sign in, how long a session lasts, what people may do, OpenPGP, notifications and importing. Most of these are reached over the REST API, which also serves the webmail." xml:space="preserve">
-    <value>利用者がブラウザーでサインインするページ (ウェブメール、セルフサービス ポータル、Control Deck) について: サインイン方法、セッションの長さ、利用者ができること、OpenPGP、通知、インポート。これらのほとんどは、ウェブメールも提供する REST API 経由で扱います。</value>
+  <data name="The pages people sign in to in a browser: the webmail, the self-service portal and the Control Deck. Most of their settings are reached over the REST API, which also serves the webmail." xml:space="preserve">
+    <value>利用者がブラウザーでサインインするページ: ウェブメール、セルフサービス ポータル、Control Deck。その設定のほとんどは、ウェブメールも提供する REST API 経由で扱います。</value>
   </data>
   <data name="The partner's key: an OpenPGP public key or PEM certificates (left empty, the key held is kept)" xml:space="preserve">
     <value>パートナーの鍵: OpenPGP 公開鍵または PEM 証明書 (空のままにすると保存済みの鍵が維持されます)</value>
@@ -12539,8 +12542,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The port to ask on" xml:space="preserve">
     <value>問い合わせに使うポート</value>
   </data>
-  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one. The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
-    <value>各プロトコルが待ち受けるポート、そのバインド アドレス、接続セキュリティ。変更はサーバーを再初期化したときに有効になり、このページは変更のたびに再初期化を提案します。「待ち受け中」列は設定ではなくこのコンピューターの開いているポートから読み取られるため、要求された内容ではなく実際に起きていることを示します。</value>
+  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one." xml:space="preserve">
+    <value>各プロトコルが待ち受けるポート、そのバインド アドレス、接続セキュリティ。変更はサーバーを再初期化したときに有効になり、このページは変更のたびに再初期化を提案します。</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>秘密鍵はこの証明書のものではありません。公開鍵が異なります。このペアは読み込まれず (サーバー エラー 5113)、この証明書を使うすべての TLS ポートが起動に失敗します。このエントリを、この証明書と共に生成された鍵ファイルに向けてください。</value>

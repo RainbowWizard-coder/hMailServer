@@ -600,8 +600,8 @@
   <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
     <value>Et svar for hele domenet - et stengt kontor, en nedlagt avdeling. Det svarer bare for kontoer som IKKE har en egen fraværsmelding: kontoens egen melding vinner alltid, og høyst ett svar besvarer en melding.</value>
   </data>
-  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
-    <value>En rolle er et navngitt sett med tillatelser, og en tildeling gir den til en konto i navngitte domener. De fire innebygde rollene kan ikke redigeres: tillatelsene deres ligger i serverens kode, slik at en endring i databasen ikke kan gi noen myndighet. En konto uten rolle her har det administratornivået alltid har gitt den.</value>
+  <data name="A role is a named set of permissions, and an assignment gives one to an account in named domains. An account with no role here holds whatever its admin level has always given it." xml:space="preserve">
+    <value>En rolle er et navngitt sett med tillatelser, og en tildeling gir den til en konto i navngitte domener. En konto uten rolle her har det administratornivået alltid har gitt den.</value>
   </data>
   <data name="A room" xml:space="preserve">
     <value>Et rom</value>
@@ -1194,8 +1194,8 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Addresses and domains every account wants or does not, below each account's own list and its domain's." xml:space="preserve">
     <value>Adresser og domener som alle kontoer ønsker eller ikke ønsker, under hver kontos egen liste og domenets.</value>
   </data>
-  <data name="Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted. An account's own list is consulted first and its domain's next, so this list only decides for a recipient whose own lists say nothing. To refuse a sender for everyone during the SMTP conversation, whatever anybody's own list says, use Blocked senders." xml:space="preserve">
-    <value>Adresser og hele domener som alle kontoer ønsker, eller ikke ønsker. Posten fra en tillatt avsender hopper over søppelpostdommen; posten fra en blokkert holdes i karantene der den er slått på, og merkes som søppel der den ikke er det - den slettes aldri. En kontos egen liste brukes først og domenets deretter, så denne listen avgjør bare for en mottaker hvis egne lister ikke sier noe. For å avvise en avsender for alle under SMTP-samtalen, uansett hva noens egen liste sier, bruk Blokkerte avsendere.</value>
+  <data name="Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted." xml:space="preserve">
+    <value>Adresser og hele domener som alle kontoer ønsker, eller ikke ønsker. Posten fra en tillatt avsender hopper over søppelpostdommen; posten fra en blokkert holdes i karantene der den er slått på, og merkes som søppel der den ikke er det - den slettes aldri.</value>
   </data>
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>Adresser og hele domener som kontoene i {0} ønsker, eller ikke ønsker. Brukes etter en kontos egen liste og før tjenerens.</value>
@@ -4543,8 +4543,8 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Entry skipped" xml:space="preserve">
     <value>Oppføring hoppet over</value>
   </data>
-  <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
-    <value>Konvoluttdomener og HELO-suffikser som slipper forbi grålisting når meldingen bærer autentiseringsresultatene oppføringen krever - SPF, DKIM, DMARC, i enhver kombinasjon. Et domene matchet nøyaktig, eller et suffiks med innledende punktum som .mail.example.com som dekker det navnet og alle navn under det. SPF er kjent ved RCPT TO, så en oppføring som bare krever SPF avgjøres der; DKIM og DMARC finnes først når meldingen er mottatt, så en oppføring som krever en av dem slipper mottakeren gjennom inntil videre, og meldingen grålistes etter DATA hvis resultatet ikke er bestått - og bare mens DKIM-verifisering eller DMARC er slått på, ellers kan oppføringen aldri oppfylles. I motsetning til Hopp over ved SPF-godkjenning er dette et privilegium du gir et navngitt domene, ikke en egenskap ved enhver SPF-godkjenning i verden.</value>
+  <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination." xml:space="preserve">
+    <value>Konvoluttdomener og HELO-suffikser som slipper forbi grålisting når meldingen bærer autentiseringsresultatene oppføringen krever - SPF, DKIM, DMARC, i enhver kombinasjon.</value>
   </data>
   <data name="Envelope report" xml:space="preserve">
     <value>Konvoluttrapport</value>
@@ -4555,8 +4555,8 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Envelope senders refused outright or scored - one address, or a whole domain with its subdomains." xml:space="preserve">
     <value>Konvoluttavsendere som avvises rett ut eller gis poeng - én adresse, eller et helt domene med underdomenene sine.</value>
   </data>
-  <data name="Envelope senders refused outright, or scored. An entry with an @ is one exact address; without one it is a whole domain including its subdomains. The default score of 100 crosses the delete threshold and refuses the message during the SMTP conversation. This matches the address the sender CLAIMS, so it stops a correspondent who keeps using one address - it is not an anti-spoofing tool, and stops nothing that rotates addresses." xml:space="preserve">
-    <value>Konvoluttavsendere som avvises rett ut, eller gis poeng. En oppføring med @ er én nøyaktig adresse; uten er det et helt domene inkludert underdomener. Standardpoengsummen 100 krysser sletteterskelen og avviser meldingen under SMTP-samtalen. Dette samsvarer med adressen avsenderen HEVDER, så det stopper en korrespondent som fortsetter å bruke én adresse - det er ikke et verktøy mot forfalskning, og stopper ingenting som bytter adresser.</value>
+  <data name="Envelope senders refused outright, or scored. An entry with an @ is one exact address; without one it is a whole domain including its subdomains." xml:space="preserve">
+    <value>Konvoluttavsendere som avvises rett ut, eller gis poeng. En oppføring med @ er én nøyaktig adresse; uten er det et helt domene inkludert underdomener.</value>
   </data>
   <data name="Erase _traces..." xml:space="preserve">
     <value>Slett s_por...</value>
@@ -11644,6 +11644,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
     <value>LDAP-filteret som velger ut personene som skal ha en postboks. Standarden tar aktiverte person-objekter som bærer en e-postadresse - som bevisst utelukker deaktiverte sluttede, tjenestekontoer og datamaskiner, som et bredere filter ville provisjonert postbokser for.</value>
   </data>
+  <data name="The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
+    <value>Kolonnen Lytter leses fra denne maskinens åpne porter, ikke fra konfigurasjonen, så den viser hva som faktisk skjer, ikke hva som ble bedt om.</value>
+  </data>
   <data name="The MTA-STS hosting settings could not be read: {0}" xml:space="preserve">
     <value>MTA-STS-hostinginnstillingene kunne ikke leses: {0}</value>
   </data>
@@ -12491,8 +12494,8 @@ kunne ikke lastes. Meldingen er sannsynligvis levert og ikke lenger i køen.</va
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>Oversikten nevner oppsettene som stille gjør ingenting - en terskel på null, en terskel ingen aktivert kontroll kan nå, en kontroll som gir null poeng.</value>
   </data>
-  <data name="The pages people sign in to in a browser - the webmail, the self-service portal and the Control Deck: how they sign in, how long a session lasts, what people may do, OpenPGP, notifications and importing. Most of these are reached over the REST API, which also serves the webmail." xml:space="preserve">
-    <value>Sidene folk logger på i en nettleser - webmailen, selvbetjeningsportalen og Control Deck: hvordan de logger på, hvor lenge en økt varer, hva folk kan gjøre, OpenPGP, varsler og import. De fleste nås via REST-API-et, som også leverer webmailen.</value>
+  <data name="The pages people sign in to in a browser: the webmail, the self-service portal and the Control Deck. Most of their settings are reached over the REST API, which also serves the webmail." xml:space="preserve">
+    <value>Sidene folk logger på i en nettleser: webmailen, selvbetjeningsportalen og Control Deck. De fleste av innstillingene deres nås via REST-API-et, som også leverer webmailen.</value>
   </data>
   <data name="The partner's key: an OpenPGP public key or PEM certificates (left empty, the key held is kept)" xml:space="preserve">
     <value>Partnerens nøkkel: en offentlig OpenPGP-nøkkel eller PEM-sertifikater (står feltet tomt, beholdes den lagrede nøkkelen)</value>
@@ -12539,8 +12542,8 @@ kunne ikke lastes. Meldingen er sannsynligvis levert og ikke lenger i køen.</va
   <data name="The port to ask on" xml:space="preserve">
     <value>Porten det spørres på</value>
   </data>
-  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one. The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
-    <value>Portene hver protokoll lytter på, bindingsadressen deres og forbindelsessikkerheten. En endring trer i kraft når serveren reinitialiseres, noe denne siden tilbyr etter hver endring. Kolonnen Lytter leses fra denne maskinens åpne porter, ikke fra konfigurasjonen, så den viser hva som faktisk skjer, ikke hva som ble bedt om.</value>
+  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one." xml:space="preserve">
+    <value>Portene hver protokoll lytter på, bindingsadressen deres og forbindelsessikkerheten. En endring trer i kraft når serveren reinitialiseres, noe denne siden tilbyr etter hver endring.</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>Den private nøkkelen tilhører ikke dette sertifikatet: de offentlige nøklene deres er forskjellige. Paret lastes ikke (serverfeil 5113), og hver TLS-port som bruker dette sertifikatet, vil ikke kunne starte. Pek denne oppføringen på nøkkelfilen som ble generert sammen med dette sertifikatet.</value>
