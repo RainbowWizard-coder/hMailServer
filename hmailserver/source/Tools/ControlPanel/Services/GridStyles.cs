@@ -63,9 +63,16 @@ namespace hMailServer.ControlPanel.Services
          double size = Setting(style, Control.FontSizeProperty, 12.0);
          FontWeight weight = Setting(style, Control.FontWeightProperty, FontWeights.SemiBold);
          Thickness padding = Setting(style, Control.PaddingProperty, new Thickness(10, 8, 10, 8));
-         FontFamily family = Application.Current?.MainWindow?.FontFamily ?? new FontFamily("Segoe UI Variable Text, Segoe UI"); // no-loc
+         Window window = Application.Current?.MainWindow;
+         FontFamily family = window?.FontFamily ?? new FontFamily("Segoe UI Variable Text, Segoe UI"); // no-loc
+         // In the window's text formatting mode and at its DPI, as CellWidth measures:
+         // measured by ideal metrics, a header of Latin letters came out a few pixels
+         // narrower than the window draws it, and a column floored at it - the
+         // Suppression list's "Last status code" - was cut by its last letters.
+         TextFormattingMode mode = window != null ? TextOptions.GetTextFormattingMode(window) : TextFormattingMode.Ideal;
+         double pixelsPerDip = window != null ? VisualTreeHelper.GetDpi(window).PixelsPerDip : 1.0;
          var words = new FormattedText(header, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,
-            new Typeface(family, FontStyles.Normal, weight, FontStretches.Normal), size, Brushes.Black, 1.0);
+            new Typeface(family, FontStyles.Normal, weight, FontStretches.Normal), size, Brushes.Black, null, mode, pixelsPerDip);
          return Math.Ceiling(words.WidthIncludingTrailingWhitespace) + padding.Left + padding.Right;
       }
 

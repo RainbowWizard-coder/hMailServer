@@ -1266,6 +1266,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Addresses at other providers a person may send as (up to 20; 0 = none)" xml:space="preserve">
     <value>Adressen bij andere providers waarmee iemand mag verzenden (tot 20; 0 = geen)</value>
   </data>
+  <data name="Addresses on this server's own domains cannot be added - the list applies only to mail leaving the server." xml:space="preserve">
+    <value>Adressen op de eigen domeinen van deze server kunnen niet worden toegevoegd - de lijst geldt alleen voor mail die de server verlaat.</value>
+  </data>
   <data name="Addresses or CIDR blocks." xml:space="preserve">
     <value>Adressen of CIDR-blokken.</value>
   </data>
@@ -1583,9 +1586,6 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   </data>
   <data name="An address such as spammer@example.com is that address alone; a domain such as example.com is the domain and its subdomains." xml:space="preserve">
     <value>Een adres zoals spammer@example.com is alleen dat adres; een domein zoals example.com is het domein met zijn subdomeinen.</value>
-  </data>
-  <data name="An address this server hosts is refused: the list only applies to mail leaving the server." xml:space="preserve">
-    <value>Een adres dat deze server host, wordt geweigerd: de lijst geldt alleen voor mail die de server verlaat.</value>
   </data>
   <data name="An administrator" xml:space="preserve">
     <value>Een beheerder</value>
@@ -1950,9 +1950,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Audit trail" xml:space="preserve">
     <value>Auditlogboek</value>
-  </data>
-  <data name="Auth" xml:space="preserve">
-    <value>Auth</value>
   </data>
   <data name="Authenticate accounts against Active Directory or any LDAP directory, so users sign in with their domain password." xml:space="preserve">
     <value>Accounts authenticeren tegen Active Directory of een LDAP-directory, zodat gebruikers zich aanmelden met hun domeinwachtwoord.</value>
@@ -2670,6 +2667,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Choose a preset…" xml:space="preserve">
     <value>Kies een voorinstelling…</value>
+  </data>
+  <data name="Choose a profile to compare it with this server." xml:space="preserve">
+    <value>Kies een profiel om het met deze server te vergelijken.</value>
   </data>
   <data name="Choose a role" xml:space="preserve">
     <value>Kies een rol</value>
@@ -5692,9 +5692,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Hands the verified installer to the update helper. The service stops and starts; if it does not come back, the previous version is reinstalled, unless the new version has already changed the database. The outcome is reported here when the service is back." xml:space="preserve">
     <value>Geeft het geverifieerde installatieprogramma door aan de updatehelper. De service stopt en start; komt hij niet terug, dan wordt de vorige versie opnieuw geïnstalleerd, tenzij de nieuwe versie de database al heeft gewijzigd. De uitkomst wordt hier gemeld zodra de service weer draait.</value>
   </data>
-  <data name="Hard" xml:space="preserve">
-    <value>Hard</value>
-  </data>
   <data name="Hard bounce" xml:space="preserve">
     <value>Harde bounce</value>
   </data>
@@ -6450,8 +6447,8 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Last sign-in" xml:space="preserve">
     <value>Laatste aanmelding</value>
   </data>
-  <data name="Last status" xml:space="preserve">
-    <value>Laatste status</value>
+  <data name="Last status code" xml:space="preserve">
+    <value>Laatste statuscode</value>
   </data>
   <data name="Last update: {0}." xml:space="preserve">
     <value>Laatste update: {0}.</value>
@@ -8293,6 +8290,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Nothing needs action." xml:space="preserve">
     <value>Niets vraagt om actie.</value>
   </data>
+  <data name="Nothing to compare until the server can be read." xml:space="preserve">
+    <value>Niets te vergelijken zolang de server niet kan worden gelezen.</value>
+  </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Er is niets toegepast: de opties zijn gewijzigd terwijl de bevestiging openstond, dus het voorbeeld beschrijft niet meer wat dit zou doen. Voer het voorbeeld opnieuw uit.</value>
   </data>
@@ -9182,9 +9182,6 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   </data>
   <data name="Point the server at an ACME authority such as Let's Encrypt and it will renew on its own." xml:space="preserve">
     <value>Wijs de server een ACME-autoriteit zoals Let's Encrypt aan en hij verlengt vanzelf.</value>
-  </data>
-  <data name="Policy" xml:space="preserve">
-    <value>Beleid</value>
   </data>
   <data name="Policy MX host patterns (empty = derive from each domain's MX)" xml:space="preserve">
     <value>MX-hostpatronen voor het beleid (leeg = afleiden uit de MX van elk domein)</value>
@@ -11946,9 +11943,6 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Smart host name (empty = direct delivery)" xml:space="preserve">
     <value>Naam van de smart host (leeg = directe bezorging)</value>
   </data>
-  <data name="Soft" xml:space="preserve">
-    <value>Zacht</value>
-  </data>
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>Zachte bounces binnen het venster voordat een lid geen mail meer krijgt (1 tot 100)</value>
   </data>
@@ -12080,6 +12074,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Status" xml:space="preserve">
     <value>Status</value>
+  </data>
+  <data name="Status code" xml:space="preserve">
+    <value>Statuscode</value>
   </data>
   <data name="Step {0} of {1}" xml:space="preserve">
     <value>Stap {0} van {1}</value>
@@ -12221,6 +12218,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Support session opened" xml:space="preserve">
     <value>Ondersteuningssessie geopend</value>
+  </data>
+  <data name="Suppressed addresses" xml:space="preserve">
+    <value>Onderdrukte adressen</value>
   </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Onderdrukkingslijst</value>
@@ -13517,6 +13517,9 @@ Toch toevoegen?</value>
   </data>
   <data name="The profile" xml:space="preserve">
     <value>Het profiel</value>
+  </data>
+  <data name="The profiles' own words - their summaries, reasons, notes and steps - come from the server, in English." xml:space="preserve">
+    <value>De eigen teksten van de profielen - hun samenvattingen, redenen, opmerkingen en stappen - komen van de server, in het Engels.</value>
   </data>
   <data name="The protocol versions could not be read." xml:space="preserve">
     <value>De protocolversies konden niet worden gelezen.</value>

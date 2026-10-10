@@ -93,6 +93,11 @@ namespace hMailServer.ControlPanel.Views
          // keeps two (review finding F279).
          GridStyles.HeaderCaption(ListeningColumn, L("The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for."));
 
+         // The AUTH column's name in words, as its header's tool tip and help text:
+         // the header is the SMTP command's own name, which a long header in words
+         // took 170 pixels of the certificate's room for (review finding F322).
+         GridStyles.HeaderCaption(AuthColumn, L("SMTP authentication"));
+
          // Enter and F2 open the selected port, Delete deletes it after asking,
          // Insert goes to the add form, and Enter in the form adds the port;
          // Escape empties the port box and leaves the address (Views/GridKeys, FormSubmit).

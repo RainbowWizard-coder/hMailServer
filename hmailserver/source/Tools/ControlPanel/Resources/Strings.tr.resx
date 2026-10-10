@@ -1266,6 +1266,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Addresses at other providers a person may send as (up to 20; 0 = none)" xml:space="preserve">
     <value>Bir kişinin adına gönderebileceği başka sağlayıcılardaki adresler (en fazla 20; 0 = yok)</value>
   </data>
+  <data name="Addresses on this server's own domains cannot be added - the list applies only to mail leaving the server." xml:space="preserve">
+    <value>Bu sunucunun kendi etki alanlarındaki adresler eklenemez - liste yalnızca sunucudan çıkan postaya uygulanır.</value>
+  </data>
   <data name="Addresses or CIDR blocks." xml:space="preserve">
     <value>Adresler veya CIDR blokları.</value>
   </data>
@@ -1583,9 +1586,6 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   </data>
   <data name="An address such as spammer@example.com is that address alone; a domain such as example.com is the domain and its subdomains." xml:space="preserve">
     <value>spammer@example.com gibi bir adres yalnızca o adrestir; example.com gibi bir etki alanı, etki alanı ve alt etki alanlarıdır.</value>
-  </data>
-  <data name="An address this server hosts is refused: the list only applies to mail leaving the server." xml:space="preserve">
-    <value>Bu sunucunun barındırdığı bir adres reddedilir: liste yalnızca sunucudan çıkan postaya uygulanır.</value>
   </data>
   <data name="An administrator" xml:space="preserve">
     <value>Bir yönetici</value>
@@ -1950,9 +1950,6 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Audit trail" xml:space="preserve">
     <value>Denetim izi</value>
-  </data>
-  <data name="Auth" xml:space="preserve">
-    <value>Kimlik doğrulama</value>
   </data>
   <data name="Authenticate accounts against Active Directory or any LDAP directory, so users sign in with their domain password." xml:space="preserve">
     <value>Hesapların kimliğini Active Directory veya herhangi bir LDAP dizinine karşı doğrulayın; böylece kullanıcılar etki alanı parolalarıyla oturum açar.</value>
@@ -2670,6 +2667,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Choose a preset…" xml:space="preserve">
     <value>Bir ön ayar seçin…</value>
+  </data>
+  <data name="Choose a profile to compare it with this server." xml:space="preserve">
+    <value>Bu sunucuyla karşılaştırmak için bir profil seçin.</value>
   </data>
   <data name="Choose a role" xml:space="preserve">
     <value>Bir rol seçin</value>
@@ -5692,9 +5692,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Hands the verified installer to the update helper. The service stops and starts; if it does not come back, the previous version is reinstalled, unless the new version has already changed the database. The outcome is reported here when the service is back." xml:space="preserve">
     <value>Doğrulanan yükleyiciyi güncelleştirme yardımcısına verir. Hizmet durur ve başlar; geri gelmezse önceki sürüm yeniden yüklenir; yeni sürüm veritabanını zaten değiştirdiyse yüklenmez. Sonuç, hizmet geri geldiğinde burada bildirilir.</value>
   </data>
-  <data name="Hard" xml:space="preserve">
-    <value>Kalıcı</value>
-  </data>
   <data name="Hard bounce" xml:space="preserve">
     <value>Kalıcı geri dönüş</value>
   </data>
@@ -6450,8 +6447,8 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Last sign-in" xml:space="preserve">
     <value>Son oturum açma</value>
   </data>
-  <data name="Last status" xml:space="preserve">
-    <value>Son durum</value>
+  <data name="Last status code" xml:space="preserve">
+    <value>Son durum kodu</value>
   </data>
   <data name="Last update: {0}." xml:space="preserve">
     <value>Son güncelleme: {0}.</value>
@@ -8293,6 +8290,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Nothing needs action." xml:space="preserve">
     <value>İşlem gerektiren bir şey yok.</value>
   </data>
+  <data name="Nothing to compare until the server can be read." xml:space="preserve">
+    <value>Sunucu okunabilene kadar karşılaştırılacak bir şey yok.</value>
+  </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Hiçbir şey uygulanmadı: onay açıkken seçenekler değişti; bu yüzden ön izleme artık bunun ne yapacağını anlatmıyor. Ön izlemeyi yeniden çalıştırın.</value>
   </data>
@@ -9182,9 +9182,6 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   </data>
   <data name="Point the server at an ACME authority such as Let's Encrypt and it will renew on its own." xml:space="preserve">
     <value>Sunucuyu Let's Encrypt gibi bir ACME otoritesine yöneltin; kendi kendine yeniler.</value>
-  </data>
-  <data name="Policy" xml:space="preserve">
-    <value>İlke</value>
   </data>
   <data name="Policy MX host patterns (empty = derive from each domain's MX)" xml:space="preserve">
     <value>İlke MX ana bilgisayar desenleri (boş = her etki alanının MX'inden türet)</value>
@@ -11946,9 +11943,6 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Smart host name (empty = direct delivery)" xml:space="preserve">
     <value>Akıllı ana bilgisayar adı (boş = doğrudan teslim)</value>
   </data>
-  <data name="Soft" xml:space="preserve">
-    <value>Geçici</value>
-  </data>
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>Bir üyenin posta almayı bırakmasından önce pencere içindeki geçici geri dönmeler (1 ile 100 arası)</value>
   </data>
@@ -12080,6 +12074,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Status" xml:space="preserve">
     <value>Durum</value>
+  </data>
+  <data name="Status code" xml:space="preserve">
+    <value>Durum kodu</value>
   </data>
   <data name="Step {0} of {1}" xml:space="preserve">
     <value>Adım {0}/{1}</value>
@@ -12221,6 +12218,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Support session opened" xml:space="preserve">
     <value>Destek oturumu açıldı</value>
+  </data>
+  <data name="Suppressed addresses" xml:space="preserve">
+    <value>Engellenen adresler</value>
   </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Engelleme listesi</value>
@@ -13517,6 +13517,9 @@ Yine de eklensin mi?</value>
   </data>
   <data name="The profile" xml:space="preserve">
     <value>Profil</value>
+  </data>
+  <data name="The profiles' own words - their summaries, reasons, notes and steps - come from the server, in English." xml:space="preserve">
+    <value>Profillerin kendi metinleri - özetleri, nedenleri, notları ve adımları - sunucudan İngilizce olarak gelir.</value>
   </data>
   <data name="The protocol versions could not be read." xml:space="preserve">
     <value>Protokol sürümleri okunamadı.</value>

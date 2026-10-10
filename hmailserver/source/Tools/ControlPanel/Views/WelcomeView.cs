@@ -23,9 +23,11 @@ namespace hMailServer.ControlPanel.Views
       // tour that starts itself: a first-run walk that seizes the screen of
       // somebody who already knows the product is the reason first-run walks
       // have a bad name. It is taken off the page once the walk is finished.
+      // At the Normal level, as the sample domain's offer is: an offer is not a
+      // fact worth the Information word and its diamond (review finding F307).
       private readonly InlineNotice tourOffer_ = new()
       {
-         Level = StatusLevel.Information,
+         Level = StatusLevel.Normal,
          Visibility = Visibility.Collapsed,
          Margin = new Thickness(0, 0, 0, 16)
       };
@@ -146,7 +148,10 @@ namespace hMailServer.ControlPanel.Views
          // then the one that had no route at all - mail that has stalled. The list
          // lives in WelcomeIntents so a test can hold every entry to a page that
          // exists, and the right number of them.
-         var intents = new System.Windows.Controls.Primitives.UniformGrid { Columns = 2 };
+         // Twelve pixels past the right and the bottom, which the rows' own right and
+         // bottom margins take back, so that the right column ends where the notices
+         // above it do, and not 12 pixels short of them (review finding F307).
+         var intents = new System.Windows.Controls.Primitives.UniformGrid { Columns = 2, Margin = new Thickness(0, 0, -DesignTokens.Space.Md, -DesignTokens.Space.Md) };
          foreach (WelcomeIntent intent in WelcomeIntents.Entries)
             intents.Children.Add(IntentRow(intent));
          panel.Children.Add(new SettingsSection { Heading = L("What do you want to do?"), Content = intents });
@@ -155,7 +160,9 @@ namespace hMailServer.ControlPanel.Views
          panel.Children.Add(sample_);
 
          // One tile per group of the sidebar the signed-in credential sees, filled
-         // as the page is entered (ShowAreas_).
+         // as the page is entered (ShowAreas_). Past the right and the bottom by the
+         // tiles' own margins, as the intents are.
+         areas_.Margin = new Thickness(0, 0, -DesignTokens.Space.Md, -DesignTokens.Space.Md);
          panel.Children.Add(new SettingsSection { Heading = L("Or browse by area"), Content = areas_, Margin = new Thickness(0) });
 
          var scroll = new ScrollViewer { Content = panel, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
@@ -181,9 +188,26 @@ namespace hMailServer.ControlPanel.Views
          stack.Children.Add(Text(L(intent.Heading), "TextBodyStrong", new Thickness(0, 0, 0, 4)));
          stack.Children.Add(Text(L(intent.Blurb), "TextCaption", new Thickness(0)));
 
+         // A chevron at the row's end, in the tertiary text: with a heading and a
+         // caption alone, nothing at rest said the row could be pressed (review
+         // finding F307).
+         var row = new Grid();
+         row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+         row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+         row.Children.Add(stack);
+         var chevron = new Wpf.Ui.Controls.SymbolIcon(Wpf.Ui.Controls.SymbolRegular.ChevronRight20)
+         {
+            FontSize = 16,
+            Margin = new Thickness(DesignTokens.Space.Md, 0, 0, 0),
+            VerticalAlignment = VerticalAlignment.Center
+         };
+         chevron.SetResourceReference(ForegroundProperty, "TextFillColorTertiaryBrush");
+         Grid.SetColumn(chevron, 1);
+         row.Children.Add(chevron);
+
          var btn = new Wpf.Ui.Controls.Button
          {
-            Content = stack,
+            Content = row,
             Appearance = Wpf.Ui.Controls.ControlAppearance.Secondary,
             Margin = new Thickness(0, 0, 12, 12),
             Padding = new Thickness(16, 12, 16, 12),
@@ -196,6 +220,8 @@ namespace hMailServer.ControlPanel.Views
             Cursor = System.Windows.Input.Cursors.Hand
          };
          System.Windows.Automation.AutomationProperties.SetName(btn, L(intent.Heading));
+         // The blurb that helps a reader choose, which the name alone lost.
+         System.Windows.Automation.AutomationProperties.SetHelpText(btn, L(intent.Blurb));
          btn.Click += (s, e) => (Application.Current.MainWindow as MainWindow)?.NavigateTo(intent.Page);
          return btn;
       }

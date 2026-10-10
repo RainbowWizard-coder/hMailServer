@@ -83,13 +83,21 @@
                         <!-- Each width is the column's share of a window that has room; its
                              floor, set in the code-behind (FloorColumns_), is the widest
                              of its words, so that a narrow window scrolls the grid sideways
-                             rather than cutting a word. -->
-                        <DataGridTextColumn x:Name="ProtocolColumn" Header="{loc:L 'Protocol'}" Binding="{Binding Protocol}" Width="120" />
-                        <DataGridTextColumn x:Name="AddressColumn" Header="{loc:L 'Address'}" Binding="{Binding Address}" Width="170" />
-                        <DataGridTextColumn x:Name="PortColumn" Header="{loc:L 'Port'}" Binding="{Binding Port}" Width="90"
+                             rather than cutting a word. The fixed columns are no wider than
+                             their words need, so that the certificate's name, the one value
+                             of the row that runs long, has the rest: they totalled 880
+                             pixels and left it some 150 - "mail.example.com (Let..." - while
+                             Address took 170 for "0.0.0.0" (review finding F322). -->
+                        <DataGridTextColumn x:Name="ProtocolColumn" Header="{loc:L 'Protocol'}" Binding="{Binding Protocol}" Width="100" />
+                        <DataGridTextColumn x:Name="AddressColumn" Header="{loc:L 'Address'}" Binding="{Binding Address}" Width="130" />
+                        <DataGridTextColumn x:Name="PortColumn" Header="{loc:L 'Port'}" Binding="{Binding Port}" Width="80"
                                             ElementStyle="{StaticResource GridNumberText}" HeaderStyle="{StaticResource GridNumberHeader}" />
-                        <DataGridTextColumn x:Name="SecurityColumn" Header="{loc:L 'Connection security'}" Binding="{Binding Security}" Width="180" />
-                        <DataGridTextColumn x:Name="AuthColumn" Header="{loc:L 'SMTP authentication'}" Binding="{Binding Auth}" Width="170" />
+                        <DataGridTextColumn x:Name="SecurityColumn" Header="{loc:L 'Connection security'}" Binding="{Binding Security}" Width="150" />
+                        <!-- AUTH, the SMTP command's own name in every language, with "SMTP
+                             authentication" as its tool tip and help text (the code-behind):
+                             the long header took 170 pixels for On and Off and was cut in
+                             German, "SMTP-Authentifizieru...". -->
+                        <DataGridTextColumn x:Name="AuthColumn" Header="AUTH" Binding="{Binding Auth}" Width="90" /> <!-- no-loc -->
                         <!-- A shape as well as a word, so the difference between a live
                              port and a dead one survives greyscale, colour blindness and
                              High Contrast. The mark itself is built in the code-behind by
@@ -97,7 +105,7 @@
                              straight to Fill would render a stroke-only mark as nothing
                              at all, which is precisely the silent failure that helper
                              exists to prevent. -->
-                        <DataGridTemplateColumn x:Name="ListeningColumn" Header="{loc:L 'Listening'}" Width="150" SortMemberPath="ListeningWord">
+                        <DataGridTemplateColumn x:Name="ListeningColumn" Header="{loc:L 'Listening'}" Width="130" SortMemberPath="ListeningWord">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal" ToolTip="{Binding ListeningTip}">

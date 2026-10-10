@@ -703,9 +703,14 @@ namespace hMailServer.ControlPanel.Views
          section.Children.Add(Label(L("Key si_ze"), rotKeyBits_));
          section.Children.Add(DialogFields.Note(L("The schedule is saved with the domain. The buttons below act at once. While the rotation manages the domain, the selector and key file above are the rotation's to change.")));
 
-         section.Children.Add(DialogFields.Separator());
-         section.Children.Add(rotStatus_);
-         section.Children.Add(rotState_);
+         // The rotation as the server reports it and the five things it can be
+         // asked to do, on a surface of their own under the schedule: as the tab's
+         // last row, directly above Save and Cancel, the buttons read as one footer
+         // with them (review finding F320). With the eight pixels each button keeps
+         // under itself, the surface's inset is twelve on every side.
+         var now = new StackPanel();
+         now.Children.Add(rotStatus_);
+         now.Children.Add(rotState_);
 
          var buttons = new WrapPanel { Margin = new Thickness(0, DesignTokens.Space.Md, 0, 0) };
 
@@ -736,7 +741,13 @@ namespace hMailServer.ControlPanel.Views
          rotCancel_.Click += (s, e) => CancelRotation();
          buttons.Children.Add(rotCancel_);
 
-         section.Children.Add(buttons);
+         now.Children.Add(buttons);
+         section.Children.Add(new Scaffold.Card
+         {
+            Padding = new Thickness(DesignTokens.Space.Md, DesignTokens.Space.Md, DesignTokens.Space.Md, DesignTokens.Space.Xs),
+            Margin = new Thickness(0, DesignTokens.Space.Md, 0, 0),
+            Content = now
+         });
 
          return new SettingsSection
          {

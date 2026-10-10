@@ -75,8 +75,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(columns != null, "BuildColumns_ is gone.");
 
          Assert.Contains("Trimmed_(L(\"Address\"), nameof(EntryView.Address), new DataGridLength(1, DataGridLengthUnitType.Star), 200)", columns, StringComparison.Ordinal);
-         Assert.Contains("Trimmed_(L(\"Why\"), nameof(EntryView.Why), new DataGridLength(140), 140)", columns, StringComparison.Ordinal);
-         Assert.Contains("Fitted_(L(\"Status\"), nameof(EntryView.Status), 84)", columns, StringComparison.Ordinal);
+         Assert.Contains("Trimmed_(L(\"Reason\"), nameof(EntryView.Why), new DataGridLength(140), 140)", columns, StringComparison.Ordinal);
+         Assert.Contains("Fitted_(L(\"Status code\"), nameof(EntryView.Status), 84)", columns, StringComparison.Ordinal);
          Assert.Contains("Trimmed_(L(\"Source\"), nameof(EntryView.Source), new DataGridLength(1, DataGridLengthUnitType.Star), 160)", columns, StringComparison.Ordinal);
          Assert.Contains("Text_(L(\"Since\"), nameof(EntryView.Since), new DataGridLength(150))", columns, StringComparison.Ordinal);
          Assert.Contains("Text_(L(\"Expires\"), nameof(EntryView.Expires), new DataGridLength(150))", columns, StringComparison.Ordinal);

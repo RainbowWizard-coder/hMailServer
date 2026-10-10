@@ -69,9 +69,12 @@
                         <DataGridTextColumn Header="{loc:L 'Target host'}" Binding="{Binding TargetHost}" Width="*" ElementStyle="{StaticResource GridTrimmedText}" />
                         <DataGridTextColumn Header="{loc:L 'Port'}" Binding="{Binding TargetPort}" Width="80"
                                             ElementStyle="{StaticResource GridNumberText}" HeaderStyle="{StaticResource GridNumberHeader}" />
-                        <DataGridTextColumn Header="{loc:L 'Retries'}" Binding="{Binding Retries}" Width="80"
+                        <!-- Retries as wide as its header, which German cut to "Wiederh..." at
+                             80 pixels; Authentication in words, the group's one abbreviation
+                             as it was, at the width of its words (review finding F322). -->
+                        <DataGridTextColumn Header="{loc:L 'Retries'}" Binding="{Binding Retries}" Width="Auto" MinWidth="80"
                                             ElementStyle="{StaticResource GridNumberText}" HeaderStyle="{StaticResource GridNumberHeader}" />
-                        <DataGridTextColumn Header="{loc:L 'Auth'}" Binding="{Binding Auth}" Width="80" />
+                        <DataGridTextColumn Header="{loc:L 'Authentication'}" Binding="{Binding Auth}" Width="130" />
                     </DataGrid.Columns>
                 </DataGrid>
                 </scaffold:FillPanel>

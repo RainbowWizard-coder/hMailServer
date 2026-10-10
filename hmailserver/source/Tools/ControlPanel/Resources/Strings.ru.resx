@@ -1278,6 +1278,9 @@ Control Panel может читать файлы сообщений только
   <data name="Addresses at other providers a person may send as (up to 20; 0 = none)" xml:space="preserve">
     <value>Адреса у других провайдеров, от имени которых можно отправлять (до 20; 0 = нет)</value>
   </data>
+  <data name="Addresses on this server's own domains cannot be added - the list applies only to mail leaving the server." xml:space="preserve">
+    <value>Адреса собственных доменов этого сервера добавить нельзя - список действует только для почты, покидающей сервер.</value>
+  </data>
   <data name="Addresses or CIDR blocks." xml:space="preserve">
     <value>Адреса или блоки CIDR.</value>
   </data>
@@ -1601,9 +1604,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="An address such as spammer@example.com is that address alone; a domain such as example.com is the domain and its subdomains." xml:space="preserve">
     <value>Адрес вроде spammer@example.com означает только этот адрес; домен вроде example.com означает домен и его поддомены.</value>
-  </data>
-  <data name="An address this server hosts is refused: the list only applies to mail leaving the server." xml:space="preserve">
-    <value>Адрес, обслуживаемый этим сервером, отклоняется: список действует только для почты, покидающей сервер.</value>
   </data>
   <data name="An administrator" xml:space="preserve">
     <value>Администратор</value>
@@ -1977,9 +1977,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Audit trail" xml:space="preserve">
     <value>Журнал аудита</value>
-  </data>
-  <data name="Auth" xml:space="preserve">
-    <value>Аутентификация</value>
   </data>
   <data name="Authenticate accounts against Active Directory or any LDAP directory, so users sign in with their domain password." xml:space="preserve">
     <value>Проверяйте учётные записи в Active Directory или в любом каталоге LDAP, чтобы пользователи входили со своим доменным паролем.</value>
@@ -2703,6 +2700,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Choose a preset…" xml:space="preserve">
     <value>Выберите готовый набор…</value>
+  </data>
+  <data name="Choose a profile to compare it with this server." xml:space="preserve">
+    <value>Выберите профиль, чтобы сравнить его с этим сервером.</value>
   </data>
   <data name="Choose a role" xml:space="preserve">
     <value>Выберите роль</value>
@@ -5777,9 +5777,6 @@ Control Panel может читать файлы сообщений только
   <data name="Hands the verified installer to the update helper. The service stops and starts; if it does not come back, the previous version is reinstalled, unless the new version has already changed the database. The outcome is reported here when the service is back." xml:space="preserve">
     <value>Передаёт проверенный установщик вспомогательной программе обновления. Служба останавливается и запускается снова; если она не поднимется, будет переустановлена предыдущая версия, кроме случая, когда новая версия уже изменила базу данных. Итог показывается здесь, когда служба вернётся в строй.</value>
   </data>
-  <data name="Hard" xml:space="preserve">
-    <value>Постоянные</value>
-  </data>
   <data name="Hard bounce" xml:space="preserve">
     <value>Постоянный отказ</value>
   </data>
@@ -6535,8 +6532,8 @@ Control Panel может читать файлы сообщений только
   <data name="Last sign-in" xml:space="preserve">
     <value>Последний вход</value>
   </data>
-  <data name="Last status" xml:space="preserve">
-    <value>Последний статус</value>
+  <data name="Last status code" xml:space="preserve">
+    <value>Последний код состояния</value>
   </data>
   <data name="Last update: {0}." xml:space="preserve">
     <value>Последнее обновление: {0}.</value>
@@ -8402,6 +8399,9 @@ Control Panel может читать файлы сообщений только
   <data name="Nothing needs action." xml:space="preserve">
     <value>Ничего не требует действий.</value>
   </data>
+  <data name="Nothing to compare until the server can be read." xml:space="preserve">
+    <value>Сравнивать нечего, пока сервер нельзя прочитать.</value>
+  </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Ничего не применено: пока было открыто подтверждение, параметры изменились, поэтому предварительный просмотр больше не описывает то, что произойдёт. Выполните предварительный просмотр заново.</value>
   </data>
@@ -9291,9 +9291,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Point the server at an ACME authority such as Let's Encrypt and it will renew on its own." xml:space="preserve">
     <value>Укажите серверу центр ACME, например Let's Encrypt, и он будет обновлять сертификат сам.</value>
-  </data>
-  <data name="Policy" xml:space="preserve">
-    <value>Политика</value>
   </data>
   <data name="Policy MX host patterns (empty = derive from each domain's MX)" xml:space="preserve">
     <value>Образцы узлов MX в политике (пусто — вывести из MX каждого домена)</value>
@@ -12103,9 +12100,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Smart host name (empty = direct delivery)" xml:space="preserve">
     <value>Имя смарт-хоста (пусто = прямая доставка)</value>
   </data>
-  <data name="Soft" xml:space="preserve">
-    <value>Временные</value>
-  </data>
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>Временные отказы в окне, после которых участник перестаёт получать почту (от 1 до 100)</value>
   </data>
@@ -12237,6 +12231,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Status" xml:space="preserve">
     <value>Состояние</value>
+  </data>
+  <data name="Status code" xml:space="preserve">
+    <value>Код состояния</value>
   </data>
   <data name="Step {0} of {1}" xml:space="preserve">
     <value>Шаг {0} из {1}</value>
@@ -12378,6 +12375,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Support session opened" xml:space="preserve">
     <value>Сеанс поддержки открыт</value>
+  </data>
+  <data name="Suppressed addresses" xml:space="preserve">
+    <value>Подавленные адреса</value>
   </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Список подавления</value>
@@ -13704,6 +13704,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The profile" xml:space="preserve">
     <value>Профиль</value>
+  </data>
+  <data name="The profiles' own words - their summaries, reasons, notes and steps - come from the server, in English." xml:space="preserve">
+    <value>Собственные тексты профилей - их сводки, причины, примечания и шаги - приходят с сервера на английском.</value>
   </data>
   <data name="The protocol versions could not be read." xml:space="preserve">
     <value>Версии протокола не удалось прочитать.</value>

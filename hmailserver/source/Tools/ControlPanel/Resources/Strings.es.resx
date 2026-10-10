@@ -1266,6 +1266,9 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
   <data name="Addresses at other providers a person may send as (up to 20; 0 = none)" xml:space="preserve">
     <value>Direcciones en otros proveedores con las que una persona puede enviar (hasta 20; 0 = ninguna)</value>
   </data>
+  <data name="Addresses on this server's own domains cannot be added - the list applies only to mail leaving the server." xml:space="preserve">
+    <value>No se pueden añadir direcciones de los dominios propios de este servidor - la lista solo se aplica al correo que sale del servidor.</value>
+  </data>
   <data name="Addresses or CIDR blocks." xml:space="preserve">
     <value>Direcciones o bloques CIDR.</value>
   </data>
@@ -1583,9 +1586,6 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
   </data>
   <data name="An address such as spammer@example.com is that address alone; a domain such as example.com is the domain and its subdomains." xml:space="preserve">
     <value>Una dirección como spammer@example.com es solo esa dirección; un dominio como example.com es el dominio y sus subdominios.</value>
-  </data>
-  <data name="An address this server hosts is refused: the list only applies to mail leaving the server." xml:space="preserve">
-    <value>Se rechaza una dirección alojada en este servidor: la lista solo se aplica al correo que sale del servidor.</value>
   </data>
   <data name="An administrator" xml:space="preserve">
     <value>Un administrador</value>
@@ -1950,9 +1950,6 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Audit trail" xml:space="preserve">
     <value>Registro de auditoría</value>
-  </data>
-  <data name="Auth" xml:space="preserve">
-    <value>Auth</value>
   </data>
   <data name="Authenticate accounts against Active Directory or any LDAP directory, so users sign in with their domain password." xml:space="preserve">
     <value>Autenticar cuentas contra Active Directory o cualquier directorio LDAP, para que los usuarios inicien sesión con su contraseña de dominio.</value>
@@ -2670,6 +2667,9 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Choose a preset…" xml:space="preserve">
     <value>Elegir un preajuste…</value>
+  </data>
+  <data name="Choose a profile to compare it with this server." xml:space="preserve">
+    <value>Elija un perfil para compararlo con este servidor.</value>
   </data>
   <data name="Choose a role" xml:space="preserve">
     <value>Elija un rol</value>
@@ -5692,9 +5692,6 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Hands the verified installer to the update helper. The service stops and starts; if it does not come back, the previous version is reinstalled, unless the new version has already changed the database. The outcome is reported here when the service is back." xml:space="preserve">
     <value>Entrega el instalador verificado al ayudante de actualización. El servicio se detiene y arranca; si no vuelve, se reinstala la versión anterior, salvo que la nueva versión ya haya cambiado la base de datos. El resultado se informa aquí cuando el servicio está de vuelta.</value>
   </data>
-  <data name="Hard" xml:space="preserve">
-    <value>Permanente</value>
-  </data>
   <data name="Hard bounce" xml:space="preserve">
     <value>Rebote permanente</value>
   </data>
@@ -6450,8 +6447,8 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   <data name="Last sign-in" xml:space="preserve">
     <value>Último inicio de sesión</value>
   </data>
-  <data name="Last status" xml:space="preserve">
-    <value>Último estado</value>
+  <data name="Last status code" xml:space="preserve">
+    <value>Último código de estado</value>
   </data>
   <data name="Last update: {0}." xml:space="preserve">
     <value>Última actualización: {0}.</value>
@@ -8293,6 +8290,9 @@ No se elimina nada de lo que ya está.</value>
   <data name="Nothing needs action." xml:space="preserve">
     <value>Nada requiere acción.</value>
   </data>
+  <data name="Nothing to compare until the server can be read." xml:space="preserve">
+    <value>No hay nada que comparar hasta que se pueda leer el servidor.</value>
+  </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>No se aplicó nada: las opciones cambiaron mientras la confirmación estaba abierta, así que la vista previa ya no describe lo que esto haría. Vuelva a ejecutar la vista previa.</value>
   </data>
@@ -9182,9 +9182,6 @@ No se aceptarán conexiones nuevas ni se entregará correo hasta que se reanude.
   </data>
   <data name="Point the server at an ACME authority such as Let's Encrypt and it will renew on its own." xml:space="preserve">
     <value>Apunte el servidor a una autoridad ACME como Let's Encrypt y renovará por sí solo.</value>
-  </data>
-  <data name="Policy" xml:space="preserve">
-    <value>Política</value>
   </data>
   <data name="Policy MX host patterns (empty = derive from each domain's MX)" xml:space="preserve">
     <value>Patrones de hosts MX de la política (vacío = derivarlos del MX de cada dominio)</value>
@@ -11946,9 +11943,6 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Smart host name (empty = direct delivery)" xml:space="preserve">
     <value>Nombre del smart host (vacío = entrega directa)</value>
   </data>
-  <data name="Soft" xml:space="preserve">
-    <value>Temporal</value>
-  </data>
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>Rebotes temporales dentro de la ventana antes de que un miembro deje de recibir correo (1 a 100)</value>
   </data>
@@ -12080,6 +12074,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="Status" xml:space="preserve">
     <value>Estado</value>
+  </data>
+  <data name="Status code" xml:space="preserve">
+    <value>Código de estado</value>
   </data>
   <data name="Step {0} of {1}" xml:space="preserve">
     <value>Paso {0} de {1}</value>
@@ -12221,6 +12218,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="Support session opened" xml:space="preserve">
     <value>Sesión de soporte abierta</value>
+  </data>
+  <data name="Suppressed addresses" xml:space="preserve">
+    <value>Direcciones suprimidas</value>
   </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Lista de supresión</value>
@@ -13517,6 +13517,9 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
   </data>
   <data name="The profile" xml:space="preserve">
     <value>El perfil</value>
+  </data>
+  <data name="The profiles' own words - their summaries, reasons, notes and steps - come from the server, in English." xml:space="preserve">
+    <value>Los textos propios de los perfiles - sus resúmenes, motivos, notas y pasos - vienen del servidor, en inglés.</value>
   </data>
   <data name="The protocol versions could not be read." xml:space="preserve">
     <value>No se pudieron leer las versiones del protocolo.</value>

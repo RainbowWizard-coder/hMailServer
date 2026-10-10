@@ -288,16 +288,20 @@ namespace hMailServer.ControlPanel.Views
          public string Listed { get; init; }
 
          // The address, then each count with its column's name: a row of bare
-         // numbers says nothing without the columns.
+         // numbers says nothing without the columns. The columns are named by the
+         // categories the list's Reason column says (CategoryText_).
          public override string ToString() => RowSpeech.Of(Address,
-            RowSpeech.Labelled(L("Hard"), Count_(Hard)), RowSpeech.Labelled(L("Soft"), Count_(Soft)),
-            RowSpeech.Labelled(L("Mailbox full"), Count_(MailboxFull)), RowSpeech.Labelled(L("Policy"), Count_(Policy)),
-            RowSpeech.Labelled(L("Other"), Count_(Other)), RowSpeech.Labelled(L("In a row"), Count_(InARow)),
-            RowSpeech.Labelled(L("Last status"), LastStatus), RowSpeech.Labelled(L("Last delivered"), LastDelivered), Listed);
+            RowSpeech.Labelled(CategoryText_("hard"), Count_(Hard)), RowSpeech.Labelled(CategoryText_("soft"), Count_(Soft)),
+            RowSpeech.Labelled(CategoryText_("mailbox_full"), Count_(MailboxFull)), RowSpeech.Labelled(CategoryText_("policy"), Count_(Policy)),
+            RowSpeech.Labelled(CategoryText_("other"), Count_(Other)), RowSpeech.Labelled(L("In a row"), Count_(InARow)),
+            RowSpeech.Labelled(L("Last status code"), LastStatus), RowSpeech.Labelled(L("Last delivered"), LastDelivered), Listed);
 
          private static string Count_(int count) => count.ToString(System.Globalization.CultureInfo.CurrentCulture);
       }
 
+      // One name per category in both grids: the list's Reason column and the
+      // bounce counts' headers, which said "Soft" and "Policy" beside "Temporary
+      // failure" and "Policy refusal" (review finding F318).
       private static string CategoryText_(string category) => category switch
       {
          "hard" => L("Hard bounce"),
@@ -494,8 +498,14 @@ namespace hMailServer.ControlPanel.Views
          var host = new Grid();
          host.Children.Add(entries_);
          host.Children.Add(empty_);
-         var listCard = new Card { Padding = new Thickness(DesignTokens.ListCardPadding), Content = host };
-         parts.Children.Add(FillPanel.Filling(listCard, FillPanel.ListCardFloor, 2));
+         // Titled, as the bounce counts' card under it is: the list's card was the
+         // page's one untitled card (review finding F318).
+         var listCard = new Card { Title = L("Suppressed addresses"), Padding = new Thickness(DesignTokens.ListCardPadding), Content = host };
+         parts.Children.Add(FillPanel.Filling(listCard, FillPanel.TitledListCardFloor, 2));
+
+         // An address selected in the list selects its row of the bounce counts,
+         // where the two grids were not linked.
+         entries_.SelectionChanged += (_, _) => SelectCountsOf_(entries_.SelectedItem as EntryView);
 
          // What the receiving server answered for the selected address - "550 5.1.1
          // user unknown" - or the note of one put here by hand, which was the row's
@@ -516,6 +526,27 @@ namespace hMailServer.ControlPanel.Views
          parts.Children.Add(FillPanel.Filling(countsCard, FillPanel.TitledListCardFloor, 1));
 
          Content = root;
+      }
+
+      /// <summary>The bounce counts' row of the address selected in the list, selected and brought into view; none when it has none.</summary>
+      private void SelectCountsOf_(EntryView entry)
+      {
+         CountView row = null;
+         if (entry != null && counts_.ItemsSource is IEnumerable<CountView> rows)
+         {
+            foreach (CountView candidate in rows)
+            {
+               if (string.Equals(candidate.Address, entry.Address, StringComparison.OrdinalIgnoreCase))
+               {
+                  row = candidate;
+                  break;
+               }
+            }
+         }
+
+         counts_.SelectedItem = row;
+         if (row != null)
+            counts_.ScrollIntoView(row);
       }
 
       /// <summary>A domain name in the box, and in its list: cut short with an ellipsis where it is wider than the box, and whole in its tool tip.</summary>
@@ -543,9 +574,12 @@ namespace hMailServer.ControlPanel.Views
       // than its own header now, measured in the header's font (Floor_).
       private void BuildColumns_()
       {
+         // Reason and Status code, where Why and Status named the same two things
+         // the bounce counts call by other words (review finding F318); the code is
+         // the enhanced status code the receiving server answered with, 5.1.1.
          entries_.Columns.Add(Trimmed_(L("Address"), nameof(EntryView.Address), new DataGridLength(1, DataGridLengthUnitType.Star), 200));
-         entries_.Columns.Add(Trimmed_(L("Why"), nameof(EntryView.Why), new DataGridLength(140), 140));
-         entries_.Columns.Add(Fitted_(L("Status"), nameof(EntryView.Status), 84));
+         entries_.Columns.Add(Trimmed_(L("Reason"), nameof(EntryView.Why), new DataGridLength(140), 140));
+         entries_.Columns.Add(Fitted_(L("Status code"), nameof(EntryView.Status), 84));
          entries_.Columns.Add(Trimmed_(L("Source"), nameof(EntryView.Source), new DataGridLength(1, DataGridLengthUnitType.Star), 160));
          entries_.Columns.Add(Text_(L("Since"), nameof(EntryView.Since), new DataGridLength(150)));
          entries_.Columns.Add(Text_(L("Expires"), nameof(EntryView.Expires), new DataGridLength(150)));
@@ -562,13 +596,16 @@ namespace hMailServer.ControlPanel.Views
          entries_.RowStyle = rowStyle;
 
          counts_.Columns.Add(Trimmed_(L("Address"), nameof(CountView.Address), new DataGridLength(1, DataGridLengthUnitType.Star), 180));
-         counts_.Columns.Add(Number_(L("Hard"), nameof(CountView.Hard)));
-         counts_.Columns.Add(Number_(L("Soft"), nameof(CountView.Soft)));
-         counts_.Columns.Add(Number_(L("Mailbox full"), nameof(CountView.MailboxFull)));
-         counts_.Columns.Add(Number_(L("Policy"), nameof(CountView.Policy)));
-         counts_.Columns.Add(Number_(L("Other"), nameof(CountView.Other)));
+         // Each count under its category's name in the list's Reason column.
+         counts_.Columns.Add(Number_(CategoryText_("hard"), nameof(CountView.Hard)));
+         counts_.Columns.Add(Number_(CategoryText_("soft"), nameof(CountView.Soft)));
+         counts_.Columns.Add(Number_(CategoryText_("mailbox_full"), nameof(CountView.MailboxFull)));
+         counts_.Columns.Add(Number_(CategoryText_("policy"), nameof(CountView.Policy)));
+         counts_.Columns.Add(Number_(CategoryText_("other"), nameof(CountView.Other)));
          counts_.Columns.Add(Number_(L("In a row"), nameof(CountView.InARow)));
-         counts_.Columns.Add(Text_(L("Last status"), nameof(CountView.LastStatus), new DataGridLength(90)));
+         // Its codes' width over a floor, as the list's Status code is: fixed at its
+         // header's measured width, "Last status code" was cut by its last letters.
+         counts_.Columns.Add(Fitted_(L("Last status code"), nameof(CountView.LastStatus), 90));
          counts_.Columns.Add(Text_(L("Last bounce"), nameof(CountView.LastBounce), new DataGridLength(150)));
          counts_.Columns.Add(Text_(L("Last delivered"), nameof(CountView.LastDelivered), new DataGridLength(150)));
          counts_.Columns.Add(Text_(L("Listed"), nameof(CountView.Listed), new DataGridLength(70)));
@@ -628,10 +665,13 @@ namespace hMailServer.ControlPanel.Views
 
          var address = new Wpf.Ui.Controls.TextBox();
          var note = new Wpf.Ui.Controls.TextBox();
-         var expires = new Wpf.Ui.Controls.NumberBox { Minimum = 0, Maximum = 3650, Value = 0, SmallChange = 1, LargeChange = 10, MaxDecimalPlaces = 0 };
+         // As wide as four digits and the box's buttons, where it spanned the dialog's 432 pixels (review finding F318).
+         var expires = new Wpf.Ui.Controls.NumberBox { Minimum = 0, Maximum = 3650, Value = 0, SmallChange = 1, LargeChange = 10, MaxDecimalPlaces = 0, Width = 160, HorizontalAlignment = HorizontalAlignment.Left };
 
          var body = new StackPanel();
-         var addressRow = DialogFields.Field(L("A_ddress"), address, L("An address this server hosts is refused: the list only applies to mail leaving the server."));
+         // Says what cannot be added, where "An address this server hosts is
+         // refused" read as if the address would be refused mail.
+         var addressRow = DialogFields.Field(L("A_ddress"), address, L("Addresses on this server's own domains cannot be added - the list applies only to mail leaving the server."));
          body.Children.Add(addressRow);
          body.Children.Add(DialogFields.Field(L("_Note"), note, L("Kept with the entry, for whoever reads the list next.")));
          body.Children.Add(DialogFields.Field(L("_Expires after (days)"), expires, L("0 keeps the entry until it is removed.")));

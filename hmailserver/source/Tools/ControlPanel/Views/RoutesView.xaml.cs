@@ -24,8 +24,12 @@ namespace hMailServer.ControlPanel.Views
          public string Auth { get; set; }
 
          // What a screen reader says for the row: its cells, not the name of
-         // this class, which is what a grid row is announced as otherwise.
-         public override string ToString() => DomainName + ", " + TargetHost + ":" + TargetPort;
+         // this class, which is what a grid row is announced as otherwise - the
+         // retries and the sign-in with their columns' names as well, which the
+         // row's name left out (review finding F322).
+         public override string ToString() => RowSpeech.Of(DomainName, TargetHost + ":" + TargetPort,
+            RowSpeech.Labelled(L("Retries"), Retries.ToString(System.Globalization.CultureInfo.CurrentCulture)),
+            RowSpeech.Labelled(L("Authentication"), Auth));
       }
 
       public RoutesView()
@@ -37,6 +41,12 @@ namespace hMailServer.ControlPanel.Views
          // one, where the caption said "Domain (e.g. partner.com)" (review
          // finding F303).
          NewDomain.PlaceholderText = F("e.g. {0}", "partner.example");
+
+         // No column narrower than its own header in the language in force, as the
+         // TCP/IP ports page floors its columns: German cut Retries to "Wiederh..."
+         // at 80 pixels (review finding F322).
+         foreach (DataGridColumn column in RouteGrid.Columns)
+            column.MinWidth = Math.Max(column.MinWidth, GridStyles.HeaderWidth(column.Header as string));
 
          // Enter and F2 open the selected route, Delete deletes it after asking,
          // Insert goes to the add form, and Enter in the form adds the route;

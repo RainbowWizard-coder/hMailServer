@@ -125,7 +125,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          { "QuarantineView.cs", "private void Build()", "FillPanel.Filling(list_, FillPanel.ListRowsFloor)" },
          { "DomainPolicyListView.cs", "private void Build()", "FillPanel.Filling(entries_, FillPanel.ListRowsFloor)" },
          { "DiscoveryView.cs", "private void Build_()", "FillPanel.Filling(cases_, FillPanel.ListRowsFloor)" },
-         { "SuppressionListView.cs", "private void Build()", "FillPanel.Filling(listCard, FillPanel.ListCardFloor, 2)" },
+         { "SuppressionListView.cs", "private void Build()", "FillPanel.Filling(listCard, FillPanel.TitledListCardFloor, 2)" },
       };
 
       /// <summary>

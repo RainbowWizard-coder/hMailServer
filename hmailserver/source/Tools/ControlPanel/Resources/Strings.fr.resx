@@ -1266,6 +1266,9 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   <data name="Addresses at other providers a person may send as (up to 20; 0 = none)" xml:space="preserve">
     <value>Adresses chez d'autres fournisseurs sous lesquelles on peut envoyer (jusqu'à 20 ; 0 = aucune)</value>
   </data>
+  <data name="Addresses on this server's own domains cannot be added - the list applies only to mail leaving the server." xml:space="preserve">
+    <value>Les adresses des domaines de ce serveur ne peuvent pas être ajoutées - la liste ne s'applique qu'au courrier qui quitte le serveur.</value>
+  </data>
   <data name="Addresses or CIDR blocks." xml:space="preserve">
     <value>Des adresses ou des blocs CIDR.</value>
   </data>
@@ -1583,9 +1586,6 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   </data>
   <data name="An address such as spammer@example.com is that address alone; a domain such as example.com is the domain and its subdomains." xml:space="preserve">
     <value>Une adresse comme spammer@example.com désigne cette seule adresse ; un domaine comme example.com désigne le domaine et ses sous-domaines.</value>
-  </data>
-  <data name="An address this server hosts is refused: the list only applies to mail leaving the server." xml:space="preserve">
-    <value>Une adresse hébergée par ce serveur est refusée : la liste ne s'applique qu'au courrier qui quitte le serveur.</value>
   </data>
   <data name="An administrator" xml:space="preserve">
     <value>Un administrateur</value>
@@ -1950,9 +1950,6 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   </data>
   <data name="Audit trail" xml:space="preserve">
     <value>Journal d'audit</value>
-  </data>
-  <data name="Auth" xml:space="preserve">
-    <value>Auth</value>
   </data>
   <data name="Authenticate accounts against Active Directory or any LDAP directory, so users sign in with their domain password." xml:space="preserve">
     <value>Authentifier les comptes contre Active Directory ou tout annuaire LDAP, pour que les utilisateurs se connectent avec leur mot de passe de domaine.</value>
@@ -2670,6 +2667,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   </data>
   <data name="Choose a preset…" xml:space="preserve">
     <value>Choisir un préréglage…</value>
+  </data>
+  <data name="Choose a profile to compare it with this server." xml:space="preserve">
+    <value>Choisissez un profil pour le comparer à ce serveur.</value>
   </data>
   <data name="Choose a role" xml:space="preserve">
     <value>Choisissez un rôle</value>
@@ -5692,9 +5692,6 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Hands the verified installer to the update helper. The service stops and starts; if it does not come back, the previous version is reinstalled, unless the new version has already changed the database. The outcome is reported here when the service is back." xml:space="preserve">
     <value>Remet l'installateur vérifié à l'assistant de mise à jour. Le service s'arrête et redémarre ; s'il ne revient pas, la version précédente est réinstallée, sauf si la nouvelle version a déjà modifié la base de données. Le résultat est rapporté ici quand le service est de retour.</value>
   </data>
-  <data name="Hard" xml:space="preserve">
-    <value>Définitif</value>
-  </data>
   <data name="Hard bounce" xml:space="preserve">
     <value>Rebond définitif</value>
   </data>
@@ -6450,8 +6447,8 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="Last sign-in" xml:space="preserve">
     <value>Dernière connexion</value>
   </data>
-  <data name="Last status" xml:space="preserve">
-    <value>Dernier statut</value>
+  <data name="Last status code" xml:space="preserve">
+    <value>Dernier code d'état</value>
   </data>
   <data name="Last update: {0}." xml:space="preserve">
     <value>Dernière mise à jour : {0}.</value>
@@ -8293,6 +8290,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="Nothing needs action." xml:space="preserve">
     <value>Rien ne demande d'action.</value>
   </data>
+  <data name="Nothing to compare until the server can be read." xml:space="preserve">
+    <value>Rien à comparer tant que le serveur ne peut pas être lu.</value>
+  </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Rien n'a été appliqué : les options ont changé pendant que la confirmation était ouverte, l'aperçu ne décrit donc plus ce que cela ferait. Relancez l'aperçu.</value>
   </data>
@@ -9182,9 +9182,6 @@ Aucune nouvelle connexion ne sera acceptée et aucun courrier ne sera livré jus
   </data>
   <data name="Point the server at an ACME authority such as Let's Encrypt and it will renew on its own." xml:space="preserve">
     <value>Faites pointer le serveur vers une autorité ACME telle que Let's Encrypt et il renouvellera tout seul.</value>
-  </data>
-  <data name="Policy" xml:space="preserve">
-    <value>Politique</value>
   </data>
   <data name="Policy MX host patterns (empty = derive from each domain's MX)" xml:space="preserve">
     <value>Motifs d'hôtes MX de la politique (vide = dériver des MX de chaque domaine)</value>
@@ -11946,9 +11943,6 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Smart host name (empty = direct delivery)" xml:space="preserve">
     <value>Nom du smart host (vide = livraison directe)</value>
   </data>
-  <data name="Soft" xml:space="preserve">
-    <value>Temporaire</value>
-  </data>
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>Rebonds temporaires dans la fenêtre avant qu'un membre ne reçoive plus de courrier (1 à 100)</value>
   </data>
@@ -12080,6 +12074,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   </data>
   <data name="Status" xml:space="preserve">
     <value>État</value>
+  </data>
+  <data name="Status code" xml:space="preserve">
+    <value>Code d'état</value>
   </data>
   <data name="Step {0} of {1}" xml:space="preserve">
     <value>Étape {0} sur {1}</value>
@@ -12221,6 +12218,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   </data>
   <data name="Support session opened" xml:space="preserve">
     <value>Session d'assistance ouverte</value>
+  </data>
+  <data name="Suppressed addresses" xml:space="preserve">
+    <value>Adresses sur la liste de suppression</value>
   </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Liste de suppression</value>
@@ -13517,6 +13517,9 @@ L'ajouter quand même ?</value>
   </data>
   <data name="The profile" xml:space="preserve">
     <value>Le profil</value>
+  </data>
+  <data name="The profiles' own words - their summaries, reasons, notes and steps - come from the server, in English." xml:space="preserve">
+    <value>Les textes propres aux profils - leurs résumés, motifs, notes et étapes - viennent du serveur, en anglais.</value>
   </data>
   <data name="The protocol versions could not be read." xml:space="preserve">
     <value>Les versions du protocole n'ont pas pu être lues.</value>

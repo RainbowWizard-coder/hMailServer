@@ -51,7 +51,20 @@ namespace hMailServer.ControlPanel.Views
 
       private readonly InlineNotice status_ = new() { Visibility = Visibility.Collapsed };
       private readonly InlineNotice applied_ = new() { Level = StatusLevel.Information, Visibility = Visibility.Collapsed, Margin = new Thickness(0, 0, 0, 8) };
-      private readonly TextBlock summary_ = new() { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 8) };
+      private readonly TextBlock summary_ = new() { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 8) };
+
+      // What the table's place says while there is no profile to compare: none to
+      // choose, or none that could be read - where the card was a rectangle of
+      // column headers with nothing under them (review finding F308).
+      private readonly EmptyState empty_ = new() { Icon = Wpf.Ui.Controls.SymbolRegular.TableSettings24, Visibility = Visibility.Collapsed };
+
+      // The profiles' own words are the server's, in English: in another language
+      // the page's translated heading "What it cannot do for you" stood over the
+      // server's English steps, summary and reasons with nothing to say why.
+      private readonly TextBlock englishNote_ = new() { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 8), Visibility = Visibility.Collapsed };
+
+      // The profiles could not be read, so there is nothing to choose either.
+      private bool listUnread_;
       private readonly TextBlock steps_ = new() { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0) };
       private readonly CheckBox confirm_ = new()
       {
@@ -178,6 +191,7 @@ namespace hMailServer.ControlPanel.Views
       {
          Status_(StatusLevel.Normal, "");
          loading_ = true;
+         listUnread_ = false;
 
          try
          {
@@ -230,6 +244,7 @@ namespace hMailServer.ControlPanel.Views
             // read goes, with its acts.
             applied_.Visibility = Visibility.Collapsed;
             HideAppliedActs_();
+            listUnread_ = true;
             Status_(StatusLevel.Critical, ServerSession.DescribeComError(ex));
          }
          finally
@@ -307,6 +322,9 @@ namespace hMailServer.ControlPanel.Views
 
          rows_.ItemsSource = null;
          summary_.Text = "";
+         // Collapsed while it says nothing, so that the table's headers, or the empty
+         // state under them, are not a blank line down the card.
+         summary_.Visibility = Visibility.Collapsed;
          steps_.Text = "";
          confirm_.IsChecked = false;
          confirm_.Visibility = Visibility.Collapsed;
@@ -315,9 +333,13 @@ namespace hMailServer.ControlPanel.Views
          changes_ = 0;
          needsConfirmation_ = false;
          diffToken_ = "";
+         englishNote_.Visibility = Visibility.Collapsed;
 
          if (profiles_.SelectedItem is not ProfileChoice choice)
+         {
+            ShowNothingToCompare_(listUnread_);
             return;
+         }
 
          try
          {
@@ -336,6 +358,7 @@ namespace hMailServer.ControlPanel.Views
             JsonElement root = document.RootElement;
 
             summary_.Text = Text_(root, "summary");
+            summary_.Visibility = summary_.Text.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
 
             var rows = new List<RowView>();
             foreach (JsonElement entry in root.GetProperty("entries").EnumerateArray())
@@ -386,11 +409,28 @@ namespace hMailServer.ControlPanel.Views
             string blocked = Text_(root, "blocked");
             if (blocked.Length > 0)
                Status_(StatusLevel.Information, blocked);
+
+            empty_.Visibility = Visibility.Collapsed;
+            englishNote_.Visibility = Loc.Translated ? Visibility.Visible : Visibility.Collapsed;
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
+            rows_.ItemsSource = null;
             Status_(StatusLevel.Critical, ServerSession.DescribeComError(ex));
+            ShowNothingToCompare_(true);
          }
+      }
+
+      /// <summary>
+      /// The table's place while there is no profile to compare: none that could be
+      /// read - the notice above says why - or none chosen.
+      /// </summary>
+      private void ShowNothingToCompare_(bool unread)
+      {
+         empty_.Text = unread
+            ? L("Nothing to compare until the server can be read.")
+            : L("Choose a profile to compare it with this server.");
+         empty_.Visibility = Visibility.Visible;
       }
 
       private void ApplySelected()
@@ -619,8 +659,19 @@ namespace hMailServer.ControlPanel.Views
          // above it and the confirmation and steps under it keep their heights,
          // so the card asks for all three and the table takes the rest.
          var body = new FillPanel();
+         englishNote_.Text = L("The profiles' own words - their summaries, reasons, notes and steps - come from the server, in English.");
+         englishNote_.SetResourceReference(FrameworkElement.StyleProperty, "TextCaption");
+         body.Children.Add(englishNote_);
          body.Children.Add(summary_);
-         body.Children.Add(FillPanel.Filling(rows_, 0));
+         // The table on a FillPanel of its own at its three rows, and the empty state
+         // laid over it under its column headers, as a list card's is.
+         var table = new FillPanel();
+         table.Children.Add(FillPanel.Filling(rows_, 0));
+         var tableHost = new Grid();
+         tableHost.Children.Add(table);
+         tableHost.Children.Add(empty_);
+         EmptyStateUnderHeaders.Keep(empty_, rows_);
+         body.Children.Add(FillPanel.Filling(tableHost, 0));
          var bottom = new StackPanel();
          bottom.Children.Add(confirm_);
          confirmNote_.SetResourceReference(FrameworkElement.StyleProperty, "TextCaption");
@@ -631,7 +682,10 @@ namespace hMailServer.ControlPanel.Views
          bottom.Children.Add(steps_);
          body.Children.Add(bottom);
 
-         var card = new Card { Padding = new Thickness(DesignTokens.ListCardPadding), Content = body };
+         // The Card's own inset, AppCardPadding, where it was eight pixels: it holds
+         // a summary, a table and a confirmation, a card of content rather than a
+         // bare list's (review finding F308).
+         var card = new Card { Content = body };
          parts.Children.Add(FillPanel.Filling(card, 0));
 
          Content = root;

@@ -1266,6 +1266,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Addresses at other providers a person may send as (up to 20; 0 = none)" xml:space="preserve">
     <value>Adresser hos andra leverantörer som någon får skicka som (upp till 20; 0 = inga)</value>
   </data>
+  <data name="Addresses on this server's own domains cannot be added - the list applies only to mail leaving the server." xml:space="preserve">
+    <value>Adresser på serverns egna domäner kan inte läggas till - listan gäller bara e-post som lämnar servern.</value>
+  </data>
   <data name="Addresses or CIDR blocks." xml:space="preserve">
     <value>Adresser eller CIDR-block.</value>
   </data>
@@ -1583,9 +1586,6 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   </data>
   <data name="An address such as spammer@example.com is that address alone; a domain such as example.com is the domain and its subdomains." xml:space="preserve">
     <value>En adress som spammer@example.com är bara den adressen; en domän som example.com är domänen och dess underdomäner.</value>
-  </data>
-  <data name="An address this server hosts is refused: the list only applies to mail leaving the server." xml:space="preserve">
-    <value>En adress som den här servern har avvisas: listan gäller bara e-post som lämnar servern.</value>
   </data>
   <data name="An administrator" xml:space="preserve">
     <value>En administratör</value>
@@ -1950,9 +1950,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Audit trail" xml:space="preserve">
     <value>Granskningslogg</value>
-  </data>
-  <data name="Auth" xml:space="preserve">
-    <value>Aut.</value>
   </data>
   <data name="Authenticate accounts against Active Directory or any LDAP directory, so users sign in with their domain password." xml:space="preserve">
     <value>Autentisera konton mot Active Directory eller valfri LDAP-katalog, så att användarna loggar in med sitt domänlösenord.</value>
@@ -2670,6 +2667,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Choose a preset…" xml:space="preserve">
     <value>Välj en förinställning…</value>
+  </data>
+  <data name="Choose a profile to compare it with this server." xml:space="preserve">
+    <value>Välj en profil för att jämföra den med den här servern.</value>
   </data>
   <data name="Choose a role" xml:space="preserve">
     <value>Välj en roll</value>
@@ -5692,9 +5692,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Hands the verified installer to the update helper. The service stops and starts; if it does not come back, the previous version is reinstalled, unless the new version has already changed the database. The outcome is reported here when the service is back." xml:space="preserve">
     <value>Lämnar över det verifierade installationsprogrammet till uppdateringshjälpen. Tjänsten stoppas och startas; om den inte kommer tillbaka installeras den tidigare versionen om, såvida inte den nya versionen redan har ändrat databasen. Resultatet rapporteras här när tjänsten är tillbaka.</value>
   </data>
-  <data name="Hard" xml:space="preserve">
-    <value>Hård</value>
-  </data>
   <data name="Hard bounce" xml:space="preserve">
     <value>Hård studs</value>
   </data>
@@ -6450,8 +6447,8 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Last sign-in" xml:space="preserve">
     <value>Senaste inloggning</value>
   </data>
-  <data name="Last status" xml:space="preserve">
-    <value>Senaste status</value>
+  <data name="Last status code" xml:space="preserve">
+    <value>Senaste statuskod</value>
   </data>
   <data name="Last update: {0}." xml:space="preserve">
     <value>Senaste uppdatering: {0}.</value>
@@ -8293,6 +8290,9 @@ Inget som redan finns där tas bort.</value>
   <data name="Nothing needs action." xml:space="preserve">
     <value>Inget behöver åtgärdas.</value>
   </data>
+  <data name="Nothing to compare until the server can be read." xml:space="preserve">
+    <value>Inget att jämföra förrän servern kan läsas.</value>
+  </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Inget tillämpades: alternativen ändrades medan bekräftelsen var öppen, så förhandsgranskningen beskriver inte längre vad detta skulle göra. Kör förhandsgranskningen igen.</value>
   </data>
@@ -9182,9 +9182,6 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   </data>
   <data name="Point the server at an ACME authority such as Let's Encrypt and it will renew on its own." xml:space="preserve">
     <value>Peka servern på en ACME-utfärdare som Let's Encrypt så förnyar den på egen hand.</value>
-  </data>
-  <data name="Policy" xml:space="preserve">
-    <value>Policy</value>
   </data>
   <data name="Policy MX host patterns (empty = derive from each domain's MX)" xml:space="preserve">
     <value>MX-värdmönster i policyn (tomt = härled från varje domäns MX)</value>
@@ -11946,9 +11943,6 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Smart host name (empty = direct delivery)" xml:space="preserve">
     <value>Namn på smart värd (tomt = direkt leverans)</value>
   </data>
-  <data name="Soft" xml:space="preserve">
-    <value>Mjuk</value>
-  </data>
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>Mjuka studsar inom fönstret innan en medlem inte längre får post (1 till 100)</value>
   </data>
@@ -12080,6 +12074,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Status" xml:space="preserve">
     <value>Status</value>
+  </data>
+  <data name="Status code" xml:space="preserve">
+    <value>Statuskod</value>
   </data>
   <data name="Step {0} of {1}" xml:space="preserve">
     <value>Steg {0} av {1}</value>
@@ -12221,6 +12218,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Support session opened" xml:space="preserve">
     <value>Supportsession öppnad</value>
+  </data>
+  <data name="Suppressed addresses" xml:space="preserve">
+    <value>Spärrade adresser</value>
   </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Spärrlista</value>
@@ -13517,6 +13517,9 @@ Lägg till det ändå?</value>
   </data>
   <data name="The profile" xml:space="preserve">
     <value>Profilen</value>
+  </data>
+  <data name="The profiles' own words - their summaries, reasons, notes and steps - come from the server, in English." xml:space="preserve">
+    <value>Profilernas egna texter - sammanfattningar, skäl, anteckningar och steg - kommer från servern, på engelska.</value>
   </data>
   <data name="The protocol versions could not be read." xml:space="preserve">
     <value>Protokollversionerna kunde inte läsas.</value>

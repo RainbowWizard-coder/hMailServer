@@ -182,8 +182,11 @@
                                                  above). A DockPanel, not a StackPanel, so that the name can
                                                  be cut short while the pill stays right after it. -->
                                             <DockPanel HorizontalAlignment="Left">
+                                                <!-- The secondary text's colour, as the account rows' glyph:
+                                                     the brand blue marks the selection, and was spent on a
+                                                     glyph on every row (review finding F098). -->
                                                 <Border DockPanel.Dock="Left" Style="{StaticResource RowGlyphDimsWhenInactive}">
-                                                    <ui:SymbolIcon Symbol="Globe24" Foreground="{DynamicResource AppBrandBrush}" />
+                                                    <ui:SymbolIcon Symbol="Globe24" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                                                 </Border>
                                                 <scaffold:StatusPill DockPanel.Dock="Right" Level="Normal" Text="{loc:L 'Inactive'}" Margin="8,0,0,0"
                                                                      Style="{StaticResource RowInactivePill}" />
