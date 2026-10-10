@@ -43,7 +43,6 @@ namespace HM
       worker_thread_count_(0),
       live_worker_count_(0),
       stopping_(false),
-      threads_left_(false),
       max_simultaneous_(0),
       queue_name_ (sQueueName)
    {
@@ -106,19 +105,24 @@ namespace HM
       DispatchBlockingTasks_();
    }
 
-   std::atomic<int> WorkQueue::queues_with_threads_left_(0);
+   std::atomic<int> WorkQueue::threads_left_(0);
 
    int
-   WorkQueue::GetQueuesWithThreadsLeft()
+   WorkQueue::GetThreadsLeft()
    {
-      return queues_with_threads_left_.load();
+      return threads_left_.load();
    }
 
    void
-   WorkQueue::SetThreadsLeft_(bool left)
+   WorkQueue::CountThreadsLeft_()
    {
-      if (threads_left_.exchange(left) != left)
-         queues_with_threads_left_ += left ? 1 : -1;
+      for (const auto &worker : workerThreads_)
+      {
+         // Not one that has ended meanwhile, nor one counted already.
+         int running = WorkerRunning;
+         if (worker.second->compare_exchange_strong(running, WorkerLeft))
+            threads_left_++;
+      }
    }
 
    WorkQueue::~WorkQueue(void)
@@ -126,10 +130,7 @@ namespace HM
       try
       {
          if (workerThreads_.empty())
-         {
-            SetThreadsLeft_(false);
             return;
-         }
 
          // Stop() gave up on these, and they are still inside io_context_.run() -
          // on an io_context that is a member of this object and is about to be
@@ -141,15 +142,11 @@ namespace HM
          io_context_.stop();
 
          if (JoinWorkers_(5000))
-         {
-            SetThreadsLeft_(false);
             return;
-         }
 
-         // Still running, on what is about to be freed: counted for the rest of
-         // the process (GetQueuesWithThreadsLeft), whether or not a Stop gave up
-         // on them first.
-         SetThreadsLeft_(true);
+         // Still running, on what is about to be freed: counted until each ends
+         // (GetThreadsLeft), whether or not a Stop gave up on it first.
+         CountThreadsLeft_();
 
          // The cast names FormatArgument's unsigned __int64 constructor, which is the
          // one a size_t binds to exactly on Windows. On a 64-bit POSIX build size_t is
@@ -624,10 +621,11 @@ namespace HM
       {
          try
          {
+            WorkerFatePtr fate = std::make_shared<std::atomic<int>>(WorkerRunning);
             std::shared_ptr<boost::thread> thread = std::shared_ptr<boost::thread>
-               (new boost::thread(std::bind( &WorkQueue::IoServiceRunWorker, this )));
+               (new boost::thread(std::bind( &WorkQueue::IoServiceRunWorker, this, fate )));
 
-            workerThreads_.insert(thread);
+            workerThreads_[thread] = fate;
 
             live_worker_count_++;
          }
@@ -664,7 +662,7 @@ namespace HM
    }
 
    void
-   WorkQueue::IoServiceRunWorker()
+   WorkQueue::IoServiceRunWorker(WorkerFatePtr fate)
    //---------------------------------------------------------------------------
    // DESCRIPTION:
    // The top of one worker thread. There is nothing above this frame to catch
@@ -682,10 +680,16 @@ namespace HM
       {
       }
 
-      // Last, and cannot throw. The stall detector counts the threads that are
-      // still in here, and a count that never comes down describes a pool that no
-      // longer exists.
+      // Cannot throw. The stall detector counts the threads that are still in
+      // here, and a count that never comes down describes a pool that no longer
+      // exists.
       live_worker_count_--;
+
+      // Last, and cannot throw: through what the thread shares with its queue,
+      // which a stop that gave up on it may have let go of. Counted in
+      // GetThreadsLeft, it is no longer.
+      if (fate->exchange(WorkerEnded) == WorkerLeft)
+         threads_left_--;
    }
 
    void
@@ -833,16 +837,16 @@ namespace HM
 
       for (int i = 0; i < attempt_count; i++)
       {
-         for (std::shared_ptr<boost::thread> thread : workerThreads_)
+         for (const auto &worker : workerThreads_)
          {
-            thread->interrupt();
+            worker.first->interrupt();
          }
 
-         for (std::shared_ptr<boost::thread> thread : workerThreads_)
+         for (const auto &worker : workerThreads_)
          {
-            if (thread->timed_join(boost::posix_time::milliseconds(1)))
+            if (worker.first->timed_join(boost::posix_time::milliseconds(1)))
             {
-               completedThreads.insert(thread);
+               completedThreads.insert(worker.first);
             }
          }
 
@@ -925,15 +929,12 @@ namespace HM
 
       if (JoinWorkers_(10000))
       {
-         // Those an earlier Stop gave up on among them.
-         SetThreadsLeft_(false);
-
          LOG_DEBUG(Formatter::Format("All threads are joined in queue {0}.", queue_name_));
          return;
       }
 
-      // Until a later Stop or the destructor joins them (GetQueuesWithThreadsLeft).
-      SetThreadsLeft_(true);
+      // Until each ends (GetThreadsLeft).
+      CountThreadsLeft_();
 
       // Application level rather than an error record: a worker still inside a
       // wedged external dependency - a scanner, a script, a database that has

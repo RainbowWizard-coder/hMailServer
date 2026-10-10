@@ -2358,7 +2358,8 @@ int main(int argc, char *argv[])
 
    // A reinitialise under way - the REST API's, a backup restore's, an ACME
    // deployment's - is waited for, the message indexer a minute at most, and
-   // the database closed (Application::ShutDown). Until 10 October 2026 a
+   // the database closed but for a connection still in use, which is left open
+   // (Application::ShutDown). Until 10 October 2026 a
    // SIGTERM during such a reinitialise closed the database under it, and the
    // process faulted on its way out.
    bool ended = HM::Application::Instance()->ShutDown();
@@ -2371,12 +2372,14 @@ int main(int argc, char *argv[])
 
    HM::Logger::Instance()->LogApplication(_T("Stopped."));
 
-   // A thread the stop gave up on - the indexer's, in a statement, a work
-   // queue's, or the reinitialise waiting for the indexer - would run on through
-   // the destructors of statics that returning from main runs, with the database
-   // it may be using left open for it: the process ends here instead, which ends
-   // the thread and closes the connections. What the log and standard output
-   // hold is flushed first.
+   // A thread the stop gave up on - the indexer's, a work queue's, or the
+   // reinitialise waiting for the indexer - would run on through the destructors
+   // of statics that returning from main runs, and a connection still in use was
+   // left open for its caller: the process ends here instead, the thread with
+   // it, and the database server rolls back a statement the end cuts off on a
+   // connection left open - the end does not close it as a close would, as this
+   // comment said until the re-check of 10 October 2026. What the log and
+   // standard output hold is flushed first.
    if (!ended)
    {
       (void) std::fflush(nullptr);

@@ -78,12 +78,23 @@
 //     the start runs, or on the message indexer's own thread while a stop that
 //     holds it waits for the indexer. Once the stop before the process ends has
 //     begun every one is refused, and that stop waits for one under way, where
-//     until 10 October 2026 it closed the database under a reinitialise; and it
-//     leaves the database open while a thread a work queue's stop gave up on still
-//     runs, where it closed it under that thread. COM's Stop and Start wait five
-//     seconds at most for one under way, where they waited for it without a
-//     limit, and the service's start takes the mutex before it opens the
-//     database. Run last, since it makes that stop.
+//     until 10 October 2026 it closed the database under a reinitialise. It
+//     closes every database connection but one in use, which it leaves open for
+//     its caller, where it closed it under the statement, and answers that the
+//     process is to end at once while a connection is in use or a thread a work
+//     queue's stop gave up on still runs - and only while it runs, where from 10
+//     October 2026 until the re-check of that change it counted a queue that had
+//     once given up on a thread for the rest of the process. COM's Stop and
+//     Start wait five seconds at most for one under way, where they waited for
+//     it without a limit, and the service's start takes the mutex before it
+//     opens the database. Run last, since it makes that stop.
+//   - The database's close before the process ends (DatabaseConnectionManager-
+//     Tester, Common/SQL/DatabaseConnectionManager.cpp, over stand-in
+//     connections): an idle connection is closed at once and one in use only
+//     when its caller hands it back, nothing is handed out after the close, and
+//     the wait for one in use ends when it comes back or at its limit - SQL
+//     Server Compact's flush interval and two seconds, nothing on a database
+//     server.
 //   - A message's X-hMailServer-LoopCount, which comes with mail from anyone, is a
 //     count only when it is digits, and never above the limit (LoopCountTester,
 //     Common/Rules/RuleGuard.cpp): MessageData and the Sieve evaluator read it with
@@ -155,6 +166,7 @@
 #include "../Common/Application/ExceptionHandler.h"
 #include "../Common/Application/Logger.h"
 #include "../Common/Application/Application.h"
+#include "../Common/SQL/DatabaseConnectionManager.h"
 #include "../Common/Application/MessageIndexer.h"
 #include "../Common/Util/OidcSignIn.h"
 #include "../Common/Util/RestApiServer.h"
@@ -496,6 +508,13 @@ namespace
    }
 
    void
+   TestDatabaseCloseBeforeExit()
+   {
+      HM::DatabaseConnectionManagerTester tester;
+      tester.Test();
+   }
+
+   void
    TestLoopCount()
    {
       HM::LoopCountTester tester;
@@ -571,9 +590,10 @@ main(int /*argc*/, char * /*argv*/[])
    failed += Run(&TestWorkerException, "an exception on a worker's thread is reported and answered as a failure, and ends nothing more than the work");
    failed += Run(&TestMessageIndexerException, "an exception on the message indexer's thread is reported and ends that thread, not the process, and the next Start begins the indexer again");
    failed += Run(&TestServersLock, "a reinitialise, a stop or a start asked on the thread that holds the servers' mutex, or on the message indexer's own thread while a stop that holds it waits for the indexer, is refused at once");
+   failed += Run(&TestDatabaseCloseBeforeExit, "the database's close before the process ends closes an idle connection at once and one in use only when it is handed back, hands out none after it, and waits out SQL Server Compact's flush interval for one in use, nothing on a database server");
 
    // Last: it makes the stop before the process ends.
-   failed += Run(&TestServersLockBeforeExit, "once the stop before the process ends has begun a reinitialise, a stop or a start is refused, that stop waits for one under way, and it leaves the database open while a thread a work queue's stop gave up on still runs; COM's Stop and Start wait a few seconds at most for one under way, and the service's start takes the mutex before it opens the database");
+   failed += Run(&TestServersLockBeforeExit, "once the stop before the process ends has begun a reinitialise, a stop or a start is refused, that stop waits for one under way, closes every database connection but one in use, and ends the process at once while one is in use or a thread a work queue's stop gave up on still runs, and only while it runs; COM's Stop and Start wait a few seconds at most for one under way, and the service's start takes the mutex before it opens the database");
 
    return failed == 0 ? 0 : 1;
 }

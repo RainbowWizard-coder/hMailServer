@@ -60,15 +60,19 @@ namespace HM
 
       void Stop();
 
-      // How many queues have a thread that a stop gave up on, as far as is
-      // known still running: counted when Stop gives up after its ten seconds,
-      // or the destructor after its five more, and no longer once a later Stop
-      // or the destructor has joined it. Read by the stop before the process
-      // ends (Application::ShutDown): such a thread may be in a statement - a
-      // delivery, a script, a lookup in a database or a host that has stopped
-      // answering - and the database closed under it frees the connection the
-      // statement is on, as it did until 10 October 2026.
-      static int GetQueuesWithThreadsLeft();
+      // How many worker threads a stop gave up on are still running, in every
+      // queue: counted when Stop gives up on one after its ten seconds, or the
+      // destructor after its five more, and no longer from the moment the
+      // thread ends - it says so itself, through what it shares with its queue,
+      // which may be gone by then. Read by the stop before the process ends
+      // (Application::ShutDown), which then ends the process at once rather
+      // than through the destructors of statics, which such a thread may be
+      // using. From 10 October 2026 until the re-check of that change this
+      // counted queues, and a queue once counted stayed counted until a later
+      // stop or its destructor joined the thread, so that a reinitialise that
+      // gave up on a thread - which then ended - left every later stop of the
+      // process taking the thread for one still running.
+      static int GetThreadsLeft();
 
       const String &GetName() const;
 
@@ -136,9 +140,26 @@ namespace HM
       void RemoveRunningTask_(unsigned __int64 task_id);
       void FinishTask_(unsigned __int64 task_id, bool may_block);
 
+      // What became of one worker thread, which the thread and its queue
+      // share: Running; Left, once a stop has given up on it and counted it in
+      // GetThreadsLeft; Ended, once it has left its loop. Shared, so that the
+      // thread can say it has ended after the queue that gave up on it is gone.
+      enum WorkerFate
+      {
+         WorkerRunning = 0,
+         WorkerLeft = 1,
+         WorkerEnded = 2
+      };
+
+      typedef std::shared_ptr<std::atomic<int>> WorkerFatePtr;
+
+      // The worker threads Stop or the destructor still have to join, counted
+      // in GetThreadsLeft (Left), unless they have ended since.
+      void CountThreadsLeft_();
+
       // The top of a worker thread, and the exception barrier for it. Nothing
       // above these frames can catch anything, so nothing may escape them.
-      void IoServiceRunWorker();
+      void IoServiceRunWorker(WorkerFatePtr fate);
       void RunWorker_();
       void ReportWorkerException_(const String &detail);
 
@@ -189,14 +210,9 @@ namespace HM
       // accepting it and dropping it in silence.
       std::atomic<bool> stopping_;
 
-      // This queue is counted in GetQueuesWithThreadsLeft.
-      std::atomic<bool> threads_left_;
-
-      // Counted once per queue (threads_left_), and only ever changed with it.
-      static std::atomic<int> queues_with_threads_left_;
-
-      // Counts this queue in GetQueuesWithThreadsLeft, or no longer.
-      void SetThreadsLeft_(bool left);
+      // GetThreadsLeft: a thread is added when its fate moves from Running to
+      // Left, and taken off when it moves from Left to Ended, and only then.
+      static std::atomic<int> threads_left_;
 
       unsigned int max_simultaneous_;
 
@@ -206,7 +222,8 @@ namespace HM
       // scheduler thread while the queue runs on its own.
       std::atomic<bool> monitor_for_stalls_{false};
 
-      std::set<std::shared_ptr<boost::thread>> workerThreads_;
+      // Each worker thread not yet joined, with its fate.
+      std::map<std::shared_ptr<boost::thread>, WorkerFatePtr> workerThreads_;
    };
 
 }

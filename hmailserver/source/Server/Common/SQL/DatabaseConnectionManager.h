@@ -5,7 +5,12 @@
 #pragma once
 
 #include "DALConnection.h"
+#include "DatabaseSettings.h"
 #include "../Persistence/SchemaUpgrader.h"
+
+#include <functional>
+#include <memory>
+#include <vector>
 
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
@@ -21,8 +26,31 @@ namespace HM
       ~DatabaseConnectionManager(void);
 
       bool CreateConnections(String &sErrorMessage);
-      
+
+      // Every connection closed, those in use included: a reinitialise's,
+      // which opens the database again at once, and a command-line verb's.
       void Disconnect();
+
+      // The close before the process ends (Application::ShutDown): the idle
+      // connections closed now, each one in use as its caller hands it back,
+      // and none handed out from now on - a statement asked for meanwhile is
+      // answered as one with no connection to run on, and DatabaseUnavailable-
+      // Marker says so. Waits maxWaitSeconds at most for those in use to come
+      // back, calling progress about once a second while it waits, and answers
+      // how many are still out. Until 10 October 2026 the stop before exit
+      // closed the database with Disconnect, under a statement still running
+      // on one of them (PQfinish, mysql_close).
+      int CloseWhenIdle(int maxWaitSeconds, const std::function<void()> &progress);
+
+      // How long CloseWhenIdle waits for a connection in use before the
+      // process ends without it. SQL Server Compact: its flush interval and
+      // two seconds more - it writes what was committed to its file only then,
+      // or when its last connection closes, and with one left open nothing
+      // else does; the wait covers what was committed before CloseWhenIdle
+      // began, on every connection. The database servers: not at all, since
+      // what they took is theirs, and a statement the process's end cuts off
+      // is theirs to roll back.
+      static int SecondsToWaitForConnectionsInUse(DatabaseSettings::SQLDBType type);
 
       // Four overloads rather than two with a defaulted reference. The default
       // used to be String(_T("")) - a temporary bound to a non-const reference,
@@ -60,10 +88,15 @@ namespace HM
       bool EnsuresPrerequisites(long DBVersion, String &sErrorMessage);
    private:
 
+      friend class DatabaseConnectionManagerTester;
+
       DALConnection::ConnectionResult Connect_(String &sErrorMessage);
 
       std::shared_ptr<DALConnection> GetConnection_();
       void ReleaseConnection_(std::shared_ptr<DALConnection> pConn);
+
+      // One connection closed for CloseWhenIdle, and said when it cannot be.
+      static void CloseBeforeExit_(const std::shared_ptr<DALConnection> &pConnection);
 
       // Test-only fault injection; see the comment above the definition. Off unless
       // [Settings] SimulateDatabaseFailureFor names a substring of the statement.
@@ -89,5 +122,32 @@ namespace HM
       // GetConnection_ can wake immediately instead of polling.
       boost::condition_variable_any connection_released_;
 
+      // CloseWhenIdle has begun: nothing is handed out, and a connection
+      // handed back is closed. Under mutex_; never cleared - a reinitialise
+      // makes a new manager.
+      bool closing_ = false;
+
+   };
+
+   // CloseWhenIdle, over stand-in connections that need no database: the idle
+   // ones closed at once and the one in use only once it is handed back,
+   // nothing handed out meanwhile, and the wait ended by the last one coming
+   // back or by its limit. Runs wherever ClassTester runs, and in
+   // business-object-tests: it touches no manager but its own.
+   class DatabaseConnectionManagerTester
+   {
+   public:
+      void Test();
+
+      // A manager over count stand-in connections, all idle, for the stop
+      // before the process ends (ServersLockTester): they are put in
+      // connections too, each to be asked whether it has been closed
+      // (DALConnection::IsConnected).
+      static std::shared_ptr<DatabaseConnectionManager> MakeManagerOfStandIns(int count, std::vector<std::shared_ptr<DALConnection>> &connections);
+
+   private:
+      void TestTheConnectionInUseIsClosedOnlyWhenHandedBack_();
+      void TestTheWaitEndsWithTheLastConnectionBack_();
+      void TestTheWaitForAConnectionInUse_();
    };
 }

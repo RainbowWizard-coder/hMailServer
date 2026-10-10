@@ -152,15 +152,18 @@ namespace HM
       // so this waits for that thread itself, the same minute at most, and the
       // reinitialise then stops short, leaving the rest to this.
       //
-      // Answers false when a thread was left running - the indexer's, still in
-      // a statement; one of a work queue's that the queue's stop gave up on
-      // after its ten seconds and five more (WorkQueue::Stop), in this stop or
-      // an earlier one; or the stop or start this waited for - in which case
-      // the database is left open, since that thread may be using it: the
-      // caller then ends the process at once, without the destructors of
-      // statics, which the thread may be using too (TerminateProcess, _Exit).
-      // Until 10 October 2026 the database was closed under such a thread, and
-      // the process ended through the destructors.
+      // The database is closed but for a connection still in use, which is
+      // closed when its caller hands it back and otherwise left open - on SQL
+      // Server Compact once its flush interval has been waited out
+      // (CloseDatabaseBeforeExit_). Answers false when a thread was left
+      // running - the indexer's; one of a work queue's that the queue's stop
+      // gave up on after its ten seconds and five more (WorkQueue::Stop) and
+      // that has not ended since, in this stop or an earlier one; or the stop
+      // or start this waited for - or a connection was left open: the caller
+      // then ends the process at once, without the destructors of statics,
+      // which such a thread may be using (TerminateProcess, _Exit). Until 10
+      // October 2026 the database was closed under such a thread, and the
+      // process ended through the destructors.
       bool ShutDown();
 
       void SubmitPendingEmail();
@@ -301,11 +304,22 @@ namespace HM
       };
 
       // ExitInstance. Before the process ends (ShutDown) the database is closed
-      // only when no thread the stop gave up on may be using it - the message
-      // indexer's (indexerEnded false), or a work queue's
-      // (WorkQueue::GetQueuesWithThreadsLeft), the queues this removes among
-      // them - and this answers whether it was. A reinitialise's closes it.
+      // by CloseDatabaseBeforeExit_, and this answers what that does. A
+      // reinitialise's closes it whatever is left.
       bool ExitInstance_(StopPurpose purpose, bool indexerEnded);
+
+      // The close before the process ends: every connection not in use closed
+      // now, each one in use when its caller hands it back, none handed out
+      // after it (DatabaseConnectionManager::CloseWhenIdle), one still in use
+      // waited for as long as the database needs to keep what was committed -
+      // SQL Server Compact's flush interval - and then left open. True, and the
+      // manager let go of, when nothing was left: no connection in use, the
+      // indexer's thread ended (indexerEnded), no start, stop or reinitialise
+      // ShutDown gave up waiting for (holderLeft), and no thread a work queue's
+      // stop gave up on still running (WorkQueue::GetThreadsLeft). Otherwise
+      // false, the manager left published so that such a thread finds no
+      // connection rather than none, and the process is to end at once.
+      bool CloseDatabaseBeforeExit_(bool indexerEnded, bool holderLeft);
 
       // The stop's progress callback, copied under its lock: TerminateServer
       // sets it on the service controller's thread while a stop on another -
@@ -460,10 +474,12 @@ namespace HM
    // OnError script the indexer runs - is refused at once, where the holder may
    // be waiting for that thread to end; once the stop before the process ends
    // (ShutDown) has begun every one is refused; that stop waits for one under
-   // way; and it leaves the database open, and answers so, while a thread a
-   // work queue's stop gave up on is still running. Until 10 October 2026 no
-   // test drove the mutex: the indexer's test (MessageIndexerTester) took one
-   // of its own.
+   // way; it closes every database connection but one still in use, which it
+   // leaves open, and answers that the process is to end at once while a
+   // connection is in use or a thread a work queue's stop gave up on is still
+   // running - and only while that thread runs. Until 10 October 2026 no test
+   // drove the mutex: the indexer's test (MessageIndexerTester) took one of
+   // its own.
    //
    // Test lets go of whatever it takes at once and starts and stops nothing,
    // the indexer it asks on being a stand-in with no database, so that it runs
@@ -487,6 +503,7 @@ namespace HM
       void TestTheStopBeforeExitWaitsForOneUnderWay_();
       void TestComsStopAndStartWaitAMomentAtMost_();
       void TestTheServicesStartTakesTheLockFirst_();
-      void TestAWorkQueuesThreadLeftKeepsTheDatabaseOpen_();
+      void TestAWorkQueuesThreadLeftEndsTheProcessWhileItRuns_();
+      void TestAConnectionInUseIsLeftOpenAndTheRestClosed_();
    };
 }

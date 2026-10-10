@@ -151,8 +151,12 @@ namespace HM
       if (!ADOConnection::QuoteValue(password, quotedPassword))
          quotedPassword = password;
 
+      // The flush interval is the one the close before the process ends waits
+      // out for a connection still in use (DatabaseSettings::SqlCeFlushIntervalSeconds).
+      const int flushIntervalSeconds = DatabaseSettings::SqlCeFlushIntervalSeconds;
+
       String sConnectionString;
-      sConnectionString.Format(_T("Provider=Microsoft.SQLSERVER.CE.OLEDB.4.0;Data Source=%s;SSCE:Database Password=%s;SSCE:Max Database Size=4000;SSCE:Flush Interval=10;"), quotedFile.c_str(), quotedPassword.c_str());
+      sConnectionString.Format(_T("Provider=Microsoft.SQLSERVER.CE.OLEDB.4.0;Data Source=%s;SSCE:Database Password=%s;SSCE:Max Database Size=4000;SSCE:Flush Interval=%d;"), quotedFile.c_str(), quotedPassword.c_str(), flushIntervalSeconds);
 
       return sConnectionString;
    }

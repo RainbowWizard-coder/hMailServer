@@ -38,6 +38,13 @@
 
 #include <boost/chrono.hpp>
 
+#include <atomic>
+#include <chrono>
+#include <stdexcept>
+#include <string>
+#include <thread>
+#include <vector>
+
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
@@ -174,8 +181,83 @@ namespace HM
 
       busy_connections_.clear();
    }
-   
-   bool 
+
+   int
+   DatabaseConnectionManager::CloseWhenIdle(int maxWaitSeconds, const std::function<void()> &progress)
+   {
+      boost::unique_lock<boost::recursive_mutex> guard(mutex_);
+
+      closing_ = true;
+
+      for (std::shared_ptr<DALConnection> pConnection : available_connections_)
+         CloseBeforeExit_(pConnection);
+
+      available_connections_.clear();
+
+      // A caller waiting for a connection is answered now (GetConnection_).
+      connection_released_.notify_all();
+
+      // Those in use come back through ReleaseConnection_, which closes each.
+      const boost::chrono::steady_clock::time_point deadline =
+         boost::chrono::steady_clock::now() + boost::chrono::seconds(maxWaitSeconds > 0 ? maxWaitSeconds : 0);
+      boost::chrono::steady_clock::time_point nextProgress = boost::chrono::steady_clock::now() + boost::chrono::seconds(1);
+
+      while (!busy_connections_.empty())
+      {
+         const boost::chrono::steady_clock::time_point now = boost::chrono::steady_clock::now();
+         if (now >= deadline)
+            break;
+
+         if (now >= nextProgress)
+         {
+            nextProgress = now + boost::chrono::seconds(1);
+
+            // Told without the lock, which a caller handing a connection back
+            // takes.
+            if (progress)
+            {
+               guard.unlock();
+               progress();
+               guard.lock();
+               continue;
+            }
+         }
+
+         connection_released_.wait_until(guard, deadline < nextProgress ? deadline : nextProgress);
+      }
+
+      return (int) busy_connections_.size();
+   }
+
+   void
+   DatabaseConnectionManager::CloseBeforeExit_(const std::shared_ptr<DALConnection> &pConnection)
+   {
+      try
+      {
+         pConnection->Disconnect();
+      }
+      catch (...)
+      {
+         // Left as it is, to end with the process as one still in use does;
+         // said, since on SQL Server Compact what was committed since its last
+         // write then waits for the flush interval, or is lost.
+         LOG_APPLICATION("A database connection could not be closed before the process ends, and ends with the process as it is.");
+      }
+   }
+
+   int
+   DatabaseConnectionManager::SecondsToWaitForConnectionsInUse(DatabaseSettings::SQLDBType type)
+   {
+      // By value: the constant is declared in its class.
+      const int flushIntervalSeconds = DatabaseSettings::SqlCeFlushIntervalSeconds;
+
+      if (type == DatabaseSettings::TypeMSSQLCompactEdition)
+         return flushIntervalSeconds + 2;
+
+      return 0;
+   }
+
+   bool
    DatabaseConnectionManager::Execute(const SQLStatement &statement, __int64 *iInsertID, int iIgnoreErrors)
    {
       // The caller does not want the message. It is still produced and logged by
@@ -456,6 +538,16 @@ namespace HM
 
       busy_connections_.erase(iterConnection);
 
+      if (closing_)
+      {
+         // The close before the process ends waits for this one (CloseWhenIdle):
+         // closed now that nothing uses it, rather than under its statement.
+         CloseBeforeExit_(pConnection);
+
+         connection_released_.notify_all();
+         return;
+      }
+
       // Locate an available connection
       available_connections_.insert(pConnection);
 
@@ -498,6 +590,18 @@ namespace HM
       // Loop until we find a free connection (re-checking after each wakeup).
       while (1)
       {
+         // The process is ending (CloseWhenIdle): nothing more is handed out, and
+         // the caller is answered as the pool answers when it has no connection
+         // at all, below - a statement after the close is not one that found
+         // nothing.
+         if (closing_)
+         {
+            DatabaseUnavailableMarker::Mark();
+
+            std::shared_ptr<DALConnection> pEmpty;
+            return pEmpty;
+         }
+
          // Locate an available connection
          auto iterConnection = available_connections_.begin();
 
@@ -681,6 +785,12 @@ namespace HM
    DatabaseConnectionManager::GetIsConnected()
    {
       boost::lock_guard<boost::recursive_mutex> guard(mutex_);
+
+      // Closing before the process ends: a connection still out is its
+      // caller's, and nothing else runs.
+      if (closing_)
+         return false;
+
       size_t iNoOfConnections = busy_connections_.size() + available_connections_.size();
 
       if (iNoOfConnections == 0)
@@ -763,5 +873,201 @@ namespace HM
       ReleaseConnection_(pConnection);
 
       return result;
+   }
+
+   namespace
+   {
+      // A connection with no database behind it: it answers every call as one
+      // that worked and records when it is closed.
+      class StandInConnection : public DALConnection
+      {
+      public:
+         StandInConnection() :
+            DALConnection(std::make_shared<DatabaseSettings>(String(), String(), String(), String(), String(), String(), String(),
+               DatabaseSettings::TypeUnknown, 0))
+         {
+         }
+
+         ConnectionResult Connect(String &/*sErrorMessage*/) override { return Connected; }
+         bool Disconnect() override { closed_.store(true); return true; }
+         ExecutionResult TryExecute(const SQLCommand &/*command*/, String &/*sErrorMessage*/, __int64 * /*iInsertID*/, int /*iIgnoreErrors*/) override { return DALSuccess; }
+         bool IsConnected() const override { return !closed_.load(); }
+         void OnConnected() override {}
+         bool BeginTransaction(String &/*sErrorMessage*/) override { return true; }
+         bool CommitTransaction(String &/*sErrorMessage*/) override { return true; }
+         bool RollbackTransaction(String &/*sErrorMessage*/) override { return true; }
+         void SetTimeout(int /*seconds*/) override {}
+         bool GetSupportsCommandParameters() const override { return true; }
+         bool CheckServerVersion(String &/*errorMessage*/) override { return true; }
+         void EscapeString(String &/*sInput*/) override {}
+         std::shared_ptr<DALRecordset> CreateRecordset() override { return std::shared_ptr<DALRecordset>(); }
+         std::shared_ptr<IMacroExpander> CreateMacroExpander() override { return std::shared_ptr<IMacroExpander>(); }
+
+         bool IsClosed() const { return closed_.load(); }
+
+      private:
+         std::atomic<bool> closed_{false};
+      };
+
+      void ExpectOfTheClose(bool condition, const char *failure)
+      {
+         if (!condition)
+            throw std::logic_error(std::string("DatabaseConnectionManagerTester: ") + failure);
+      }
+   }
+
+   void
+   DatabaseConnectionManagerTester::Test()
+   {
+      TestTheConnectionInUseIsClosedOnlyWhenHandedBack_();
+      TestTheWaitEndsWithTheLastConnectionBack_();
+      TestTheWaitForAConnectionInUse_();
+   }
+
+   std::shared_ptr<DatabaseConnectionManager>
+   DatabaseConnectionManagerTester::MakeManagerOfStandIns(int count, std::vector<std::shared_ptr<DALConnection>> &connections)
+   {
+      std::shared_ptr<DatabaseConnectionManager> manager = std::make_shared<DatabaseConnectionManager>();
+      for (int i = 0; i < count; i++)
+      {
+         std::shared_ptr<DALConnection> connection = std::make_shared<StandInConnection>();
+         connections.push_back(connection);
+         manager->available_connections_.insert(connection);
+      }
+
+      return manager;
+   }
+
+   void
+   DatabaseConnectionManagerTester::TestTheConnectionInUseIsClosedOnlyWhenHandedBack_()
+   {
+      DatabaseConnectionManager manager;
+      std::vector<std::shared_ptr<StandInConnection>> connections;
+      for (int i = 0; i < 3; i++)
+      {
+         connections.push_back(std::make_shared<StandInConnection>());
+         manager.available_connections_.insert(connections.back());
+      }
+
+      // In use, as a transaction holds it - or a statement that has not ended.
+      String error;
+      std::shared_ptr<DALConnection> inUse = manager.BeginTransaction(error);
+      ExpectOfTheClose(inUse != nullptr, "no connection was handed out before the close.");
+
+      const int left = manager.CloseWhenIdle(0, std::function<void()>());
+
+      int idleClosed = 0;
+      bool inUseClosed = false;
+      for (const std::shared_ptr<StandInConnection> &connection : connections)
+      {
+         if (connection == inUse)
+            inUseClosed = connection->IsClosed();
+         else if (connection->IsClosed())
+            idleClosed++;
+      }
+
+      ExpectOfTheClose(left == 1, "the close did not answer that one connection was still in use.");
+      ExpectOfTheClose(!inUseClosed, "the close closed the connection in use under its caller, as Disconnect does - until 10 October 2026 the stop before the process ends closed a statement's connection under it (PQfinish, mysql_close).");
+      ExpectOfTheClose(idleClosed == 2, "the close left an idle connection open.");
+      ExpectOfTheClose(!manager.GetIsConnected(), "the manager answered that it was connected once the close had begun.");
+
+      // Nothing handed out from now on, and at once: with every connection
+      // that is left in use, the pool would otherwise wait for one - on a
+      // thread of its own, so that such a wait fails the test rather than
+      // hangs it, and ends when the connection in use is handed back below.
+      std::atomic<bool> returned(false);
+      std::atomic<bool> handedOut(false);
+      std::atomic<bool> marked(false);
+      std::thread asker([&manager, &returned, &handedOut, &marked]()
+      {
+         DatabaseUnavailableMarker::Clear();
+         String askError;
+         std::shared_ptr<DALConnection> after = manager.BeginTransaction(askError);
+         handedOut.store(after != nullptr);
+         marked.store(DatabaseUnavailableMarker::IsMarked());
+         DatabaseUnavailableMarker::Clear();
+         if (after)
+            manager.RollbackTransaction(after, askError);
+         returned.store(true);
+      });
+
+      const std::chrono::steady_clock::time_point until = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+      while (!returned.load() && std::chrono::steady_clock::now() < until)
+         std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      const bool atOnce = returned.load();
+
+      // Closed as its caller hands it back.
+      manager.CommitTransaction(inUse, error);
+      asker.join();
+
+      ExpectOfTheClose(atOnce, "a connection asked for after the close had begun was waited for.");
+      ExpectOfTheClose(!handedOut.load(), "a connection was handed out after the close had begun.");
+      ExpectOfTheClose(marked.load(), "a connection refused after the close had begun was not marked as the database unavailable.");
+
+      ExpectOfTheClose(std::static_pointer_cast<StandInConnection>(inUse)->IsClosed(), "the connection in use was not closed when its caller handed it back after the close.");
+      ExpectOfTheClose(manager.GetBusyConnectionCount() == 0 && manager.GetAvailableConnectionCount() == 0, "a connection handed back after the close went back to the pool.");
+   }
+
+   void
+   DatabaseConnectionManagerTester::TestTheWaitEndsWithTheLastConnectionBack_()
+   {
+      DatabaseConnectionManager manager;
+      std::shared_ptr<StandInConnection> connection = std::make_shared<StandInConnection>();
+      manager.available_connections_.insert(connection);
+
+      String error;
+      std::shared_ptr<DALConnection> inUse = manager.BeginTransaction(error);
+      ExpectOfTheClose(inUse != nullptr, "no connection was handed out before the close.");
+
+      // Handed back a moment into the wait, as a statement that ends.
+      std::thread caller([&manager, inUse]()
+      {
+         std::this_thread::sleep_for(std::chrono::milliseconds(300));
+         String commitError;
+         manager.CommitTransaction(inUse, commitError);
+      });
+
+      const std::chrono::steady_clock::time_point before = std::chrono::steady_clock::now();
+      const int left = manager.CloseWhenIdle(30, std::function<void()>());
+      const std::chrono::steady_clock::duration took = std::chrono::steady_clock::now() - before;
+      caller.join();
+
+      ExpectOfTheClose(left == 0, "the close answered that a connection was still in use after its caller had handed it back.");
+      ExpectOfTheClose(took < std::chrono::seconds(20), "the close waited on after the last connection in use had come back.");
+      ExpectOfTheClose(connection->IsClosed(), "the connection handed back during the close's wait was not closed.");
+   }
+
+   void
+   DatabaseConnectionManagerTester::TestTheWaitForAConnectionInUse_()
+   {
+      // SQL Server Compact's wait covers its flush interval, the servers' is none.
+      const int flushIntervalSeconds = DatabaseSettings::SqlCeFlushIntervalSeconds;
+      ExpectOfTheClose(DatabaseConnectionManager::SecondsToWaitForConnectionsInUse(DatabaseSettings::TypeMSSQLCompactEdition) > flushIntervalSeconds,
+         "the close before the process ends does not wait out SQL Server Compact's flush interval for a connection in use, and the process's end would lose what was committed since its last write.");
+      ExpectOfTheClose(DatabaseConnectionManager::SecondsToWaitForConnectionsInUse(DatabaseSettings::TypePGServer) == 0 &&
+         DatabaseConnectionManager::SecondsToWaitForConnectionsInUse(DatabaseSettings::TypeMYSQLServer) == 0 &&
+         DatabaseConnectionManager::SecondsToWaitForConnectionsInUse(DatabaseSettings::TypeMSSQLServer) == 0,
+         "the close before the process ends waits for a connection in use on a database server, where nothing committed is lost.");
+
+      DatabaseConnectionManager manager;
+      std::shared_ptr<StandInConnection> connection = std::make_shared<StandInConnection>();
+      manager.available_connections_.insert(connection);
+
+      String error;
+      std::shared_ptr<DALConnection> inUse = manager.BeginTransaction(error);
+      ExpectOfTheClose(inUse != nullptr, "no connection was handed out before the close.");
+
+      std::atomic<int> told(0);
+      const std::chrono::steady_clock::time_point before = std::chrono::steady_clock::now();
+      const int left = manager.CloseWhenIdle(2, [&told]() { told++; });
+      const std::chrono::steady_clock::duration took = std::chrono::steady_clock::now() - before;
+
+      ExpectOfTheClose(left == 1, "the close did not answer that the connection was still in use at the end of its wait.");
+      ExpectOfTheClose(took >= std::chrono::milliseconds(1900), "the close did not wait its limit for the connection in use.");
+      ExpectOfTheClose(told.load() >= 1, "the close's wait did not tell its progress, which the service controller is given.");
+      ExpectOfTheClose(!connection->IsClosed(), "the close closed the connection in use when its wait ended.");
+
+      manager.CommitTransaction(inUse, error);
+      ExpectOfTheClose(connection->IsClosed(), "the connection in use was not closed when its caller handed it back after the close's wait.");
    }
 }

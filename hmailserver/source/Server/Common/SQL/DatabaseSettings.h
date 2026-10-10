@@ -20,6 +20,17 @@ namespace HM
          TypeMSSQLCompactEdition = 4
       };
 
+      // How often SQL Server Compact writes what has been committed to its
+      // file, in seconds (SSCE:Flush Interval, SQLCEConnection's connection
+      // string). It runs in this process, and a commit since its last write is
+      // in the process's memory alone until the next, or until its last
+      // connection to the file closes: a process that ends without that close
+      // loses it. Declared here, where the POSIX build sees it too, for the
+      // close before the process ends
+      // (DatabaseConnectionManager::SecondsToWaitForConnectionsInUse). Read by
+      // value only.
+      static const int SqlCeFlushIntervalSeconds = 10;
+
       DatabaseSettings(const String &sDatabaseProvider, const String &sDatabaseServer, const String &sDatabaseName, const String &sUsername, const String &sPassword,
          const String &sDatabaseDirectory, const String &sDatabaseServerFailoverPartner, HM::DatabaseSettings::SQLDBType dbType, long lDBPort);
       virtual ~DatabaseSettings();

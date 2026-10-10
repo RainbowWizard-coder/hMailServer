@@ -101,6 +101,7 @@
 #include "../TCPIP/DeflateStreams.h"
 #include "../TCPIP/SslContextInitializer.h"
 #include "../SQL/DatabaseTls.h"
+#include "../SQL/DatabaseConnectionManager.h"
 #include "Time.h"
 #include "Utilities.h"
 #include "Parsing/AddresslistParser.h"
@@ -901,6 +902,15 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing the servers' mutex\n"));
       ServersLockTester serversLockTester;
       serversLockTester.Test();
+
+      // The close before the process ends (Application::ShutDown), over a
+      // manager of the test's own with stand-in connections: an idle one is
+      // closed at once and one in use only when it is handed back, nothing is
+      // handed out meanwhile, and SQL Server Compact's flush interval is waited
+      // out for one still in use. The server's own manager is not touched.
+      OutputDebugString(_T("hMailServer: Testing the database's close before the process ends\n"));
+      DatabaseConnectionManagerTester databaseConnectionManagerTester;
+      databaseConnectionManagerTester.Test();
 
       // Parameter substitution matters most on the two backends the bench does not
       // usually run: MySQL and PostgreSQL report GetSupportsCommandParameters() as

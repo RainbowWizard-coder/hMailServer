@@ -1598,8 +1598,9 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
       ClassTester oTester;
       oTester.DoTests();
 
-      // A thread the stop gave up on ends with the process, now, as after a
-      // service stop (TerminateServer).
+      // A thread the stop gave up on, or a connection left open for its
+      // caller, ends with the process, now, as after a service stop
+      // (TerminateServer).
       if (!HM::Application::Instance()->ShutDown())
       {
          fflush(nullptr);
@@ -2111,8 +2112,9 @@ TerminateServer()
    // waited for - this service's own start among them, which reports the
    // service running before it opens the database (ServiceMain,
    // InitializeApplication) - the message indexer a minute at most, the
-   // checkpoint advancing meanwhile, and the database closed
-   // (Application::ShutDown).
+   // checkpoint advancing meanwhile, and the database closed but for a
+   // connection still in use, SQL Server Compact's flush interval waited out
+   // for one (Application::ShutDown).
    const bool ended = HM::Application::Instance()->ShutDown();
 
    HM::Application::Instance()->SetStopProgressCallback(std::function<void()>());
@@ -2125,12 +2127,16 @@ TerminateServer()
       ReportServiceStatus(SERVICE_STOPPED, 0);
    }
 
-   // A thread the stop gave up on - the indexer's, in a statement, a work
-   // queue's, or a reinitialise waiting for the indexer - would run on through
-   // the destructors of statics as the process ends, with the database it may
-   // be using left open for it: the process ends here instead, once the
-   // service controller has been told, which ends the thread and closes the
-   // connections.
+   // A thread the stop gave up on - the indexer's, a work queue's, or a
+   // reinitialise waiting for the indexer - would run on through the
+   // destructors of statics as the process ends, and a connection still in use
+   // was left open for its caller: the process ends here instead, once the
+   // service controller has been told, the thread with it. The end of the
+   // process does not close what was left open the way a close does: a
+   // database server rolls back the statement it cuts off, and SQL Server
+   // Compact, which runs in this process, keeps only what it wrote to its file
+   // - which ShutDown has waited for. Until the re-check of 10 October 2026
+   // this comment said that the end closed the connections.
    if (!ended)
    {
       fflush(nullptr);

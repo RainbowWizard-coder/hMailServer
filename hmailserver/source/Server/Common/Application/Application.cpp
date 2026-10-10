@@ -118,6 +118,7 @@
 
 #include <chrono>
 #include <condition_variable>
+#include <exception>
 #include <memory>
 #include <mutex>
 #include <stdexcept>
@@ -533,46 +534,99 @@ namespace HM
       }
       backupManager.reset();
 
-      // Before the process ends, a thread the stop gave up on may be using the
-      // database: the message indexer's, still in a statement after its minute,
-      // or one of a work queue's after its ten seconds and five more - a
-      // delivery, a script, a lookup in a database or a host that has stopped
-      // answering - the queues removed above among them. Closed under it, as
-      // until 10 October 2026, the close freed the connection the statement was
-      // on (PQfinish, mysql_close) while the call was still in it, and a
-      // statement after it went through the manager reset here. The process ends
-      // straight after this, the thread with it, and its end closes the
-      // connections (ShutDown). A reinitialise closes the database whatever is
-      // left, as it always has: it opens it again at once, and the process goes
-      // on.
-      const int queuesWithThreadsLeft = WorkQueue::GetQueuesWithThreadsLeft();
-      const bool closeDatabase = purpose != StopBeforeExit || (indexerEnded && queuesWithThreadsLeft == 0);
-      if (closeDatabase)
+      // A reinitialise closes the database whatever is left, as it always has:
+      // it opens it again at once, and the process goes on.
+      bool ended = true;
+      if (purpose == StopBeforeExit)
       {
-         LOG_DEBUG("Application::ExitInstance - Closing database connection...");
-         CloseDatabase();
+         ended = CloseDatabaseBeforeExit_(indexerEnded, false);
       }
       else
       {
-         String which;
-         if (!indexerEnded)
-            which = _T("the message indexer's thread, still in a statement");
-
-         if (queuesWithThreadsLeft > 0)
-         {
-            if (!which.IsEmpty())
-               which += _T(", and ");
-            which += Formatter::Format(_T("a thread of {0} work queue(s), which the stop gave up on"), queuesWithThreadsLeft);
-         }
-
-         LOG_APPLICATION(Formatter::Format(_T("The database connections are left open: {0}, may be using them, and the process ends now."), which));
+         LOG_DEBUG("Application::ExitInstance - Closing database connection...");
+         CloseDatabase();
       }
 
       MimeEnvironment::SetAutoFolding(false);
 
       OutOfMemoryHandler::Terminate();
 
-      return closeDatabase;
+      return ended;
+   }
+
+   bool
+   Application::CloseDatabaseBeforeExit_(bool indexerEnded, bool holderLeft)
+   {
+      // Before the process ends, a thread may still be using the database: the
+      // message indexer's after its minute, one of a work queue's that its
+      // queue's stop gave up on after its ten seconds and five more - a
+      // delivery, a script, a lookup in a database or a host that has stopped
+      // answering - a COM call's, or that of a start, a stop or a reinitialise
+      // ShutDown gave up waiting for (holderLeft). Every connection not in use
+      // is closed now, and each one in use as its caller hands it back - never
+      // under the statement on it, which until 10 October 2026 the close freed
+      // (PQfinish, mysql_close) while the call was still in it - and none is
+      // handed out after this: a statement asked for meanwhile, by such a
+      // thread or a COM call, finds no connection and fails as one the
+      // database could not take, where it went through the manager let go of
+      // here.
+      //
+      // A connection still in use is waited for as long as what was committed
+      // needs to reach the database's own storage before the process ends
+      // (DatabaseConnectionManager::SecondsToWaitForConnectionsInUse): not at
+      // all on a database server, which has it; on SQL Server Compact, which
+      // runs in this process and writes what was committed to its file every
+      // ten seconds, or when its last connection closes, that interval and two
+      // seconds more. From 10 October 2026 until the re-check of that change
+      // the database was left open, nothing closed, whenever the indexer had
+      // not ended or a work queue's stop had once given up on a thread - in
+      // this stop or any before it in the process's life, the thread ended or
+      // not - and the process was then ended at once: on SQL Server Compact,
+      // what had been committed since its last write was lost with it, as nine
+      // acknowledged saves of the last second were in the re-check's run, whose
+      // process ended without a close another way.
+      std::shared_ptr<DatabaseConnectionManager> manager = GetDBManager();
+      int inUse = 0;
+      if (manager)
+      {
+         const int waitSeconds = DatabaseConnectionManager::SecondsToWaitForConnectionsInUse(IniFileSettings::Instance()->GetDatabaseType());
+         inUse = manager->CloseWhenIdle(waitSeconds, StopProgress_());
+      }
+
+      // Read after the wait, which a thread may have ended in.
+      const int threadsLeft = WorkQueue::GetThreadsLeft();
+
+      if (inUse == 0 && indexerEnded && !holderLeft && threadsLeft == 0)
+      {
+         // Nothing left that may use it: let go of, as a reinitialise's close
+         // does, and the process ends the ordinary way.
+         LOG_DEBUG("Application::ExitInstance - Closing database connection...");
+         CloseDatabase();
+         return true;
+      }
+
+      // Left published, closed: a thread left running that asks for a
+      // connection is answered that there is none. The process then ends at
+      // once (ShutDown), without the destructors of statics, which such a
+      // thread may be using too.
+      String said;
+      if (inUse > 0)
+         said = Formatter::Format(_T("The database connections not in use are closed, and {0} still in use are left open"), inUse);
+      else
+         said = _T("The database is closed");
+
+      if (!indexerEnded)
+         said += _T("; the message indexer's thread has not ended");
+
+      if (holderLeft)
+         said += _T("; the start, the stop or the reinitialise of the servers this stop waited for has not ended");
+
+      if (threadsLeft > 0)
+         said += Formatter::Format(_T("; {0} thread(s) of the work queues, which their stop gave up on, still run"), threadsLeft);
+
+      LOG_APPLICATION(said + _T(". The process ends now."));
+
+      return false;
    }
 
    void
@@ -1660,9 +1714,12 @@ namespace HM
          // for the minute this stop would give it. It ends at its next
          // interruption point, both waits return, and the reinitialise stops
          // short. A thread still in its statement after the minute is left to
-         // the process's end, with the reinitialise waiting for it.
+         // the process's end, with the reinitialise waiting for it - the
+         // database closed first but for what is in use, as after a stop of
+         // this one's own (CloseDatabaseBeforeExit_), so that what was
+         // committed is not lost with the process.
          if (!MessageIndexer::Instance()->Stop(progress, IndexerWaitBeforeExitSeconds))
-            return false;
+            return CloseDatabaseBeforeExit_(false, true);
 
          // The rest of it is bounded - the drain, the sandbox's poller (a minute
          // at most), the work queues (ten seconds each), a start that was under
@@ -1678,7 +1735,7 @@ namespace HM
             if (std::chrono::steady_clock::now() >= deadline)
             {
                LOG_APPLICATION("Gave up waiting for the start, the stop or the reinitialise of the servers that was under way. The process ends with it.");
-               return false;
+               return CloseDatabaseBeforeExit_(true, true);
             }
          }
 
@@ -1979,14 +2036,16 @@ namespace HM
       // statement timeout ends there, or any statement with the timeout at 0 or on
       // a connection gone silent. Until 10 October 2026 such a stop waited for it
       // without end while the service controller was told it was progressing. The
-      // stop now goes on and answers false: ShutDown leaves the database open, the
-      // thread's connection with it, and the process ends at once, the thread
-      // with it - as it does when a work queue's stop above has given up on one of
-      // its threads (ExitInstance_, WorkQueue::GetQueuesWithThreadsLeft). Until 10
-      // October 2026 this comment said the process's end cut the statement, but
-      // the database was closed under the thread first, and the process ended
-      // through the destructors of statics with the thread still running; and so
-      // it was under a work queue's thread that a stop had given up on.
+      // stop now goes on and answers false: ShutDown closes every connection but
+      // the one the thread's statement is on, which it leaves open - waiting out
+      // SQL Server Compact's flush interval first - and the process ends at once,
+      // the thread with it, as it does when a work queue's stop above has given
+      // up on one of its threads (CloseDatabaseBeforeExit_,
+      // WorkQueue::GetThreadsLeft). Until 10 October 2026 this comment said the
+      // process's end cut the statement, but the database was closed under the
+      // thread first, and the process ended through the destructors of statics
+      // with the thread still running; and so it was under a work queue's thread
+      // that a stop had given up on.
       const bool indexerEnded = MessageIndexer::Instance()->Stop(progress, purpose == StopBeforeExit ? IndexerWaitBeforeExitSeconds : 0);
 
       ServerStatus::Instance()->SetState(ServerStatus::StateStopped);
@@ -2414,7 +2473,10 @@ namespace HM
          TestTheStopBeforeExitWaitsForOneUnderWay_();
          application.shutting_down_ = false;
 
-         TestAWorkQueuesThreadLeftKeepsTheDatabaseOpen_();
+         TestAWorkQueuesThreadLeftEndsTheProcessWhileItRuns_();
+         application.shutting_down_ = false;
+
+         TestAConnectionInUseIsLeftOpenAndTheRestClosed_();
          application.shutting_down_ = false;
 
          TestComsStopAndStartWaitAMomentAtMost_();
@@ -2865,12 +2927,8 @@ namespace HM
          throw std::logic_error("ServersLockTester: the service's start, which waited for a stop before the process ends, was not refused once that stop let go of the servers' mutex, before it opened anything.");
    }
 
-   void
-   ServersLockTester::TestAWorkQueuesThreadLeftKeepsTheDatabaseOpen_()
+   namespace
    {
-      Application &application = *Application::Instance();
-      std::shared_ptr<ServersLockAnswers> answers = std::make_shared<ServersLockAnswers>();
-
       // A task that makes no interruption point until the test lets it go - a
       // delivery, a script or a lookup in a database or a host that has stopped
       // answering - so that its queue's stop gives up on it.
@@ -2894,9 +2952,72 @@ namespace HM
          std::shared_ptr<ServersLockAnswers> answers_;
       };
 
-      const int before = WorkQueue::GetQueuesWithThreadsLeft();
+      // The process's database manager stood in for by the test's, and put
+      // back however the test ends.
+      class StandInDatabase
+      {
+      public:
+         StandInDatabase(std::shared_ptr<DatabaseConnectionManager> &slot, boost::mutex &guard,
+            const std::shared_ptr<DatabaseConnectionManager> &standIn) :
+            slot_(slot),
+            guard_(guard)
+         {
+            boost::lock_guard<boost::mutex> lock(guard_);
+            replaced_ = slot_;
+            slot_ = standIn;
+         }
+
+         // The stand-in let go of after the lock, as Application lets go of a
+         // manager. A lock the system refuses would leave the process's
+         // manager the test's stand-in, and an exception may not leave a
+         // destructor: the process ends, as it would have, said here where it
+         // happens.
+         ~StandInDatabase()
+         {
+            try
+            {
+               std::shared_ptr<DatabaseConnectionManager> standIn;
+               {
+                  boost::lock_guard<boost::mutex> lock(guard_);
+                  standIn.swap(slot_);
+                  slot_ = replaced_;
+               }
+            }
+            catch (...)
+            {
+               std::terminate();
+            }
+         }
+
+         StandInDatabase(const StandInDatabase &) = delete;
+         StandInDatabase &operator=(const StandInDatabase &) = delete;
+
+      private:
+         std::shared_ptr<DatabaseConnectionManager> &slot_;
+         boost::mutex &guard_;
+         std::shared_ptr<DatabaseConnectionManager> replaced_;
+      };
+   }
+
+   void
+   ServersLockTester::TestAWorkQueuesThreadLeftEndsTheProcessWhileItRuns_()
+   {
+      Application &application = *Application::Instance();
+      std::shared_ptr<ServersLockAnswers> answers = std::make_shared<ServersLockAnswers>();
+
+      // The database stood in for by one idle connection, which nothing uses.
+      std::vector<std::shared_ptr<DALConnection>> connections;
+      std::shared_ptr<DatabaseConnectionManager> database = DatabaseConnectionManagerTester::MakeManagerOfStandIns(1, connections);
+      StandInDatabase standIn(application.db_manager_, application.managers_mutex_, database);
+
+      const int before = WorkQueue::GetThreadsLeft();
       int left = before;
-      bool ended = true;
+      bool endedWhileHeld = true;
+      bool keptWhileHeld = false;
+      bool closedWhileHeld = false;
+      bool noLongerCounted = false;
+      bool endedAfter = false;
+      bool letGoOfAfter = false;
       {
          WorkQueue queue(1, "ServersLockTester's queue");
 
@@ -2916,31 +3037,134 @@ namespace HM
 
          // Ten seconds, and it gives up.
          queue.Stop();
-         left = WorkQueue::GetQueuesWithThreadsLeft();
+         left = WorkQueue::GetThreadsLeft();
 
-         ended = application.ShutDown();
+         endedWhileHeld = application.ShutDown();
          application.shutting_down_ = false;
-      }
+         keptWhileHeld = application.GetDBManager() == database;
+         closedWhileHeld = !connections[0]->IsConnected();
 
-      const int after = WorkQueue::GetQueuesWithThreadsLeft();
+         // The thread ends once its task is let go of, and is no longer counted
+         // from then on - with the queue still here, nothing having joined it.
+         answers->Set([&answers]() { answers->let_go = true; });
+         const std::chrono::steady_clock::time_point until = std::chrono::steady_clock::now() + std::chrono::seconds(20);
+         for (;;)
+         {
+            noLongerCounted = WorkQueue::GetThreadsLeft() == before;
+            if (noLongerCounted || std::chrono::steady_clock::now() >= until)
+               break;
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(25));
+         }
+
+         // With nothing left, the stop ends the process the ordinary way.
+         if (noLongerCounted)
+         {
+            endedAfter = application.ShutDown();
+            application.shutting_down_ = false;
+            letGoOfAfter = !application.GetDBManager();
+         }
+      }
 
       if (left != before + 1)
-         throw std::logic_error("ServersLockTester: a work queue whose stop gave up on a thread still running was not counted as having one left (WorkQueue::GetQueuesWithThreadsLeft).");
+         throw std::logic_error("ServersLockTester: a thread a work queue's stop gave up on, still running, was not counted (WorkQueue::GetThreadsLeft).");
+
+      if (endedWhileHeld)
+         throw std::logic_error("ServersLockTester: the stop before the process ends answered that nothing was left running while a work queue's stop had given up on a thread, and the process would have ended through the destructors of statics under it.");
+
+      if (!keptWhileHeld)
+         throw std::logic_error("ServersLockTester: the stop before the process ends let go of the database manager while a thread a work queue's stop gave up on still ran: a statement it made next would have gone through none.");
+
+      if (!closedWhileHeld)
+         throw std::logic_error("ServersLockTester: the stop before the process ends left a database connection that nothing used open while a thread a work queue's stop gave up on still ran: on SQL Server Compact, what was committed since its last write would have been lost with the process.");
+
+      if (!noLongerCounted)
+         throw std::logic_error("ServersLockTester: a thread a work queue's stop gave up on was still counted twenty seconds after it had ended, nothing having joined it: from 10 October 2026 until the re-check of that change every later stop of the process took it for one still running.");
+
+      if (!endedAfter || !letGoOfAfter)
+         throw std::logic_error("ServersLockTester: once the thread a work queue's stop gave up on had ended, the stop before the process ends still answered that something was left, or kept the database manager.");
+   }
+
+   void
+   ServersLockTester::TestAConnectionInUseIsLeftOpenAndTheRestClosed_()
+   {
+      Application &application = *Application::Instance();
+
+      // The database stood in for by three connections, one of them in use -
+      // a statement that has not ended, a transaction, a COM call's.
+      std::vector<std::shared_ptr<DALConnection>> connections;
+      std::shared_ptr<DatabaseConnectionManager> database = DatabaseConnectionManagerTester::MakeManagerOfStandIns(3, connections);
+      StandInDatabase standIn(application.db_manager_, application.managers_mutex_, database);
+
+      String error;
+      std::shared_ptr<DALConnection> inUse = database->BeginTransaction(error);
+      if (!inUse)
+         throw std::logic_error("ServersLockTester: the stand-in database handed out no connection.");
+
+      const bool ended = application.ShutDown();
+      application.shutting_down_ = false;
+
+      const bool kept = application.GetDBManager() == database;
+      int idleClosed = 0;
+      for (const std::shared_ptr<DALConnection> &connection : connections)
+      {
+         if (connection != inUse && !connection->IsConnected())
+            idleClosed++;
+      }
+
+      const bool inUseOpen = inUse->IsConnected();
+
+      // Nothing handed out after the close - asked on a thread of its own,
+      // since a pool that waited for the connection in use would not answer
+      // until it is handed back below.
+      std::shared_ptr<std::atomic<bool>> asked = std::make_shared<std::atomic<bool>>(false);
+      std::shared_ptr<std::atomic<bool>> handedOut = std::make_shared<std::atomic<bool>>(false);
+      boost::thread asker([database, asked, handedOut]()
+      {
+         String askError;
+         std::shared_ptr<DALConnection> after = database->BeginTransaction(askError);
+         handedOut->store(after != nullptr);
+         if (after)
+            database->RollbackTransaction(after, askError);
+         asked->store(true);
+      });
+
+      const std::chrono::steady_clock::time_point until = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+      while (!asked->load() && std::chrono::steady_clock::now() < until)
+         std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      const bool answeredAtOnce = asked->load();
+
+      // Closed once its caller hands it back.
+      database->CommitTransaction(inUse, error);
+      const bool closedWhenBack = !inUse->IsConnected();
+
+      if (!asker.try_join_for(boost::chrono::seconds(20)))
+         asker.detach();
+
+      // And with nothing in use, the stop ends the process the ordinary way.
+      const bool endedAfter = application.ShutDown();
+      application.shutting_down_ = false;
+      const bool letGoOfAfter = !application.GetDBManager();
 
       if (ended)
-         throw std::logic_error("ServersLockTester: the stop before the process ends answered that no thread was left running while a work queue's stop had given up on one, and closed the database under it, as it did until 10 October 2026.");
+         throw std::logic_error("ServersLockTester: the stop before the process ends answered that nothing was left while a database connection was in use, and the process would have ended through the destructors of statics under its caller.");
 
-      if (after != before)
-         throw std::logic_error("ServersLockTester: a work queue whose thread had ended by the time the queue went was still counted as having one left.");
+      if (!inUseOpen)
+         throw std::logic_error("ServersLockTester: the stop before the process ends closed a database connection in use under its caller, as it did until 10 October 2026 (PQfinish, mysql_close under the statement).");
 
-      // With no thread left, the database is closed again.
-      if (after == 0)
-      {
-         const bool endedAfter = application.ShutDown();
-         application.shutting_down_ = false;
+      if (idleClosed != 2)
+         throw std::logic_error("ServersLockTester: the stop before the process ends left a database connection that nothing used open, alongside one in use: on SQL Server Compact, what was committed since its last write would have been lost with the process, as from 10 October 2026 until the re-check of that change.");
 
-         if (!endedAfter)
-            throw std::logic_error("ServersLockTester: the stop before the process ends answered that a thread was left running once the work queue's thread had ended.");
-      }
+      if (!kept)
+         throw std::logic_error("ServersLockTester: the stop before the process ends let go of the database manager while a connection was in use: a statement its caller made next would have gone through none.");
+
+      if (!answeredAtOnce || handedOut->load())
+         throw std::logic_error("ServersLockTester: a database connection asked for after the stop before the process ends had closed the database was handed out, or waited for.");
+
+      if (!closedWhenBack)
+         throw std::logic_error("ServersLockTester: the connection in use during the stop before the process ends was not closed when its caller handed it back.");
+
+      if (!endedAfter || !letGoOfAfter)
+         throw std::logic_error("ServersLockTester: once no connection was in use, the stop before the process ends still answered that something was left, or kept the database manager.");
    }
 }

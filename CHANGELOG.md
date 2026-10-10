@@ -461,17 +461,21 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   a write on MySQL, and not at all when it is 0). A reinitialise waits for as long as that takes, since it closes
   the database straight after; a stop after which the process ends - the service's, or a signal's on Linux - waits a
   minute at most, says so in the log and goes on, so that a database that has stopped answering no longer holds the
-  stop for ever while the service controller is told that it is progressing. Such a stop then leaves the database
-  open, since the thread may still be using it, and ends the process at once, the thread with it, where closing
-  the database freed the connection the thread's statement was on and the process went on through the destructors
-  of its statics with the thread still running. It does the same when the stop of one of the server's work queues
-  has given up on a thread, after its ten seconds and five more - a delivery, a script, an external account's fetch
-  or a lookup held by a database or a host that has stopped answering - in that stop or an earlier one, where the
-  database was closed under that thread too (in every version). On Linux, with another session's lock holding the
-  external fetch manager's first statement and the indexer idle, a SIGTERM closed the database under the statement
-  16 seconds later on PostgreSQL 18 and MariaDB 13; now the database is left open and the process ends then. A
-  reinitialise still closes the database whatever a work queue's stop left running, as it always has, and opens it
-  again. A start after a stop begins a new
+  stop for ever while the service controller is told that it is progressing. Such a stop then closes every database
+  connection but the one the thread's statement is on, which it leaves open, and ends the process at once, the thread
+  with it, where closing the database freed the connection the statement was on and the process went on through the
+  destructors of its statics with the thread still running. It does the same while a connection is still in use, or a
+  thread that the stop of one of the server's work queues has given up on, after its ten seconds and five more - a
+  delivery, a script, an external account's fetch or a lookup held by a database or a host that has stopped answering -
+  still runs, where the database was closed under that thread too (in every version): a connection in use is closed
+  once its caller hands it back, none is handed out after the close, and a thread that asks for one is answered that
+  there is none. SQL Server Compact, the database of a default Windows installation, runs in the server's process and
+  writes what was committed to its file every ten seconds, or when its last connection closes, and what a process that
+  ends without that close had not yet written is lost: a connection still in use there is waited for twelve seconds
+  before the process ends. On Linux, with another session's lock holding the external fetch manager's first statement
+  and the indexer idle, a SIGTERM closed the database under the statement 16 seconds later on PostgreSQL 18 and
+  MariaDB 13; now that connection is left open and the process ends then. A reinitialise still closes the database
+  whatever is left running, as it always has, and opens it again. A start after a stop begins a new
   thread, and no indexer is started while the servers are stopped, from a reinitialise's stop to its start, the
   start of the servers starting it from its setting - which is now saved before the indexer is started or stopped,
   where a save that came after the start of the servers had read it left the indexer stopped with the setting on,
@@ -503,9 +507,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the indexer was in the second batch of the test's 450 messages, and every fixture after it was refused a
   connection. With the test's backfill made one batch, so that its teardown always comes in the middle of it, the
   server died there in three Alpine runs of three (twice a segmentation fault, once the exception) and lives through
-  it with the fix. The limit, the lock, the order of the save and the start on the indexer's own thread were found
-  by the re-check of the fix, and the request asked once, the script's reinitialise and the database closed after
-  the minute by the re-check of that.
+  it with the fix. The limit, the lock, the order of the save and the start on the indexer's own thread were found by
+  the re-check of the fix, the request asked once, the script's reinitialise and the database closed after the minute
+  by the re-check of that, and by the re-check after it that the database was then left open, nothing closed, whenever
+  a work queue's stop had once given up on a thread in the process's life, the thread ended or not: on SQL Server
+  Compact the process's end then lost what had been committed since the last write - nine acknowledged saves of the
+  last second in the re-check's run, whose process ended without a close another way.
 - **Fixed: a service stop, a Windows shutdown or a SIGTERM during a reinitialise closed the database under the
   reinitialise, and the process could end in a fault.** A reinitialise - COM's `Application.Reinitialize`, the REST
   API's `POST /api/v1/server/reinitialize`, a backup restore's, an ACME deployment's - runs on a thread of its own,
@@ -4593,22 +4600,27 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 - **`ServersLockTester` drives the lock that every stop, start and reinitialise of the servers now holds
   (*Correctness*, above), through the server's own calls.** Until now no test reached it: the indexer's test took a
   lock of its own, so that a change that waited for the lock on the indexer's own thread, or dropped the refusal on
-  the thread that holds it, passed every tester. A reinitialise, a stop and a start asked on the thread that holds
-  the lock, as a script the stop or the start runs would ask them, must be refused within twenty seconds, and the
-  lock asked for on a stand-in indexer's own thread while a stop that holds it waits for that thread must be
-  refused too; with either refusal taken out the test fails after twenty seconds. `TestInternals` runs these on
-  Windows and `business-object-tests` on Linux. `business-object-tests` also makes the stop before the process
-  ends: once it has begun, a reinitialise and a stop are refused, and it waits for a reinitialise that holds the
-  lock - a reinitialise queued behind that one being refused too. Without the refusal the queued reinitialise ran,
-  and with the stop going straight on it returned while the lock was held. And with a work queue's thread held in a
-  task past its queue's stop, the stop answers that a thread is left, which leaves the database open, and once the
-  thread has ended it answers that none is; with the database closed whatever the queues left, as before, or the
-  queue not counted, the test fails. COM's `Stop` and `Start`, made while a reinitialise holds the lock, must be
-  refused after their five seconds and not before them; waiting without a limit, they had not returned after twenty.
-  A reinitialise asked once the stop before the process ends has begun must be refused before the lock is let go
-  of, and the service's start must wait for that stop's lock before it opens the database; without the lock it
-  returned at once. `business-object-tests` now writes each
-  result out as it comes, so that a test after a failure that never returns leaves the failure in the output.
+  the thread that holds it, passed every tester. A reinitialise, a stop and a start asked on the thread that holds the
+  lock, as a script the stop or the start runs would ask them, must be refused within twenty seconds, and the lock
+  asked for on a stand-in indexer's own thread while a stop that holds it waits for that thread must be refused too;
+  with either refusal taken out the test fails after twenty seconds. `TestInternals` runs these on Windows and
+  `business-object-tests` on Linux. `business-object-tests` also makes the stop before the process ends: once it has
+  begun, a reinitialise and a stop are refused, and it waits for a reinitialise that holds the lock - a reinitialise
+  queued behind that one being refused too. Without the refusal the queued reinitialise ran, and with the stop going
+  straight on it returned while the lock was held. And with a work queue's thread held in a task past its queue's
+  stop, the stop answers that the process is to end at once, closing the database connection nothing uses and keeping
+  the database manager for the thread, and once the thread has ended - nothing having joined it - that the process may
+  end the ordinary way; with a connection of a stand-in database in use, the stop leaves that one open, closes the
+  others, hands out none after them and closes that one once it is handed back. With the database closed under the
+  connection in use, as before, a thread counted after it has ended, a connection handed back put back in the pool, or
+  one handed out after the close, the test fails; and `DatabaseConnectionManagerTester` (`TestInternals` and
+  `business-object-tests`, over stand-in connections) fails too, and when SQL Server Compact's flush interval is not
+  waited out for a connection in use. COM's `Stop` and `Start`, made while a reinitialise holds the lock, must be
+  refused after their five seconds and not before them; waiting without a limit, they had not returned after twenty. A
+  reinitialise asked once the stop before the process ends has begun must be refused before the lock is let go of, and
+  the service's start must wait for that stop's lock before it opens the database; without the lock it returned at
+  once. `business-object-tests` now writes each result out as it comes, so that a test after a failure that never
+  returns leaves the failure in the output.
 
 ### Documentation
 
