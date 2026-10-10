@@ -116,7 +116,7 @@ namespace HM
       // the reconciliation pass) after its content changed.
       static bool DeleteForMessage(__int64 messageID);
 
-      // Terms whose message no longer exists. Mirrors
+      // Terms whose message no longer exists. Mirrored by
       // PersistentMessageMetaData::DeleteOrphanedItems; staleness here is a
       // space problem and never a correctness one, because the searcher only
       // sees messages that are still in the folder being searched. A

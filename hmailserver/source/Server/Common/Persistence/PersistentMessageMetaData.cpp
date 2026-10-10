@@ -197,18 +197,55 @@ namespace HM
       return bRetVal;
    }
 
-   /*
-      Delete metadata info for messages no longer in the system.
-   */
    bool 
    PersistentMessageMetaData::DeleteOrphanedItems()
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // Deletes the metadata of messages no longer in the system, a thousand
+   // message ids at a time, from the lowest the table names upwards, each slice
+   // its own statement and a short pause between two - as
+   // PersistentMessageIndex::DeleteOrphanedItems has swept the full-text terms
+   // since 9c76455c1. It was one statement over the whole table, which the
+   // message indexer runs at every start before anything else, with no
+   // interruption point in it: a stop of the servers then waited for the whole
+   // of it (MessageIndexer::Stop), and on SQL Server Compact the scheduled tasks
+   // that start with the service waited for the database's one connection as
+   // they did for the terms' sweep. Now a stop waits for a slice. The gaps
+   // between the ids the table names are stepped over, not walked.
+   //---------------------------------------------------------------------------()
    {
-      SQLStatement statement;
-      statement.SetTable("hm_message_metadata");
-      statement.SetStatementType(SQLStatement::STDelete);
-      statement.SetWhereClause("not exists (select messageid from hm_messages where messageid = metadata_messageid)");;
+      const __int64 sliceIds = 1000;
 
-      return Application::Instance()->GetDBManager()->Execute(statement);
+      __int64 from = 0;
+      for (;;)
+      {
+         SQLCommand lowest("select min(metadata_messageid) as low from hm_message_metadata where metadata_messageid >= @FROM");
+         lowest.AddParameter("@FROM", from);
+
+         std::shared_ptr<DALRecordset> pRS = Application::Instance()->GetDBManager()->OpenRecordset(lowest);
+         if (!pRS)
+            return false;
+
+         if (pRS->IsEOF() || pRS->GetIsNull("low"))
+            return true;
+
+         const __int64 low = pRS->GetInt64Value("low");
+         pRS.reset();
+
+         SQLCommand command("delete from hm_message_metadata where metadata_messageid >= @LOW and metadata_messageid < @HIGH "
+                            "and not exists (select messageid from hm_messages where messageid = metadata_messageid)");
+         command.AddParameter("@LOW", low);
+         command.AddParameter("@HIGH", low + sliceIds);
+
+         if (!Application::Instance()->GetDBManager()->Execute(command))
+            return false;
+
+         from = low + sliceIds;
+
+         // Housekeeping, so the rest of the server goes first; also where a
+         // stop of the servers ends the sweep.
+         boost::this_thread::sleep_for(boost::chrono::milliseconds(50));
+      }
    }
 
    bool

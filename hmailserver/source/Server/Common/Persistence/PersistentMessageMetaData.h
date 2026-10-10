@@ -32,6 +32,11 @@ namespace HM
       bool DeleteForMessage(std::shared_ptr<Message> message);
       void GetMetaData(int accountID, int folderID, const String &headerField, std::map<__int64, String > &result);
       bool SaveObject(std::shared_ptr<MessageMetaData> metaData);
+
+      // The metadata of messages that no longer exist, a thousand message ids a
+      // statement with a pause between two, so that a stop of the servers waits
+      // for a slice rather than the whole table (the .cpp says why). Run by the
+      // message indexer's thread.
       bool DeleteOrphanedItems();
       int GetTotalMessageCount();
       void Clear();

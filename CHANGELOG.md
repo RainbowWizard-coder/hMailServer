@@ -452,12 +452,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the process (the exception above; a fault ends it still) and on Windows wrote a minidump. And the start that
   followed found the thread still ending, took it for the running indexer and started none. The stop now waits for
   the thread to end, telling the service controller meanwhile. The thread ends at its next interruption point -
-  before each message of a batch, between two slices of the full-text sweep, in the pauses - which can be several
-  statements away: a pass reads what it is to index with several before its first message, and at the indexer's
-  start the sweep of the message metadata's orphans is one statement over the whole table. A statement lasts as long
-  as the database takes to answer it, or `DatabaseStatementTimeout` where the database applies that (not to a write
-  on MySQL, and not at all when it is 0). A reinitialise waits for as long as that takes, since it closes the
-  database straight after; a stop after which the process ends - the service's, or a signal's on Linux - waits a
+  before each message of a batch, between two slices of its sweeps for the rows of messages that are gone, in the
+  pauses - which can be several statements away: a pass reads what it is to index with several before its first
+  message. The sweep of the message metadata, which the indexer makes at every start, was one statement over the
+  whole table; it is now cut into slices as the full-text terms' sweep is (*Operations*, below). A statement lasts
+  as long as the database takes to answer it, or `DatabaseStatementTimeout` where the database applies that (not to
+  a write on MySQL, and not at all when it is 0). A reinitialise waits for as long as that takes, since it closes
+  the database straight after; a stop after which the process ends - the service's, or a signal's on Linux - waits a
   minute at most, says so in the log and goes on, so that a database that has stopped answering no longer holds the
   stop for ever while the service controller is told that it is progressing. A start after a stop begins a new
   thread, and no indexer is started while the servers are stopped, from a reinitialise's stop to its start, the
@@ -1033,7 +1034,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   start with the service waited 60 seconds for the connection and failed (`HM5180`, then `HM6613` and `HM6624`), after
   the restart with the index on in both measuring runs of 7 October 2026. It now removes them a thousand message ids a
   statement, stepping over the ids the index names none of, with a pause of 50 ms between two: some 150 seconds in all
-  there, no statement over 1.6 seconds.
+  there, no statement over 1.6 seconds. The sweep of the message metadata for the messages that are gone, which the
+  indexer makes at every start whether the full-text index is on or not, is cut the same way: it was one statement
+  over the whole table, which a stop of the servers had to wait for (*Correctness*, above).
 
 ### Build and tests
 

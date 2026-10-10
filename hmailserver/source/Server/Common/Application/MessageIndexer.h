@@ -30,14 +30,13 @@ namespace HM
       // it does comes after what it uses is gone - the database manager, which
       // a Reinitialize resets straight after StopServers - and answers whether
       // it has. The thread ends at its next interruption point: before each
-      // message of a batch, between two slices of the full-text terms' orphan
-      // sweep, in the pause between two backfill passes and in the minute's
-      // wait. That can be several statements away - a pass reads what it is to
-      // index with several before its first message, and at the indexer's start
-      // the sweep of the message metadata's orphans is one statement over the
-      // whole table - and a statement takes as long as the database takes to
-      // answer it, or DatabaseStatementTimeout where the database applies that:
-      // not to a write on MySQL, not at all when it is 0.
+      // message of a batch, between two slices of the sweeps of the message
+      // metadata's and the full-text terms' orphans, in the pause between two
+      // backfill passes and in the minute's wait. That can be several statements
+      // away - a pass reads what it is to index with several before its first
+      // message - and a statement takes as long as the database takes to answer
+      // it, or DatabaseStatementTimeout where the database applies that: not to
+      // a write on MySQL, not at all when it is 0.
       //
       // maxWaitSeconds 0 waits until the thread has ended, as a Reinitialize
       // must, the database closed straight after. Above 0 it gives up after so
