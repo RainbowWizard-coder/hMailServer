@@ -11868,8 +11868,8 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="Start at the delivery queue: if the message is there, the reason it has not left is there too." xml:space="preserve">
     <value>Beginnen Sie bei der Zustellwarteschlange: Wenn die Nachricht dort ist, ist auch der Grund dort, warum sie nicht weg ist.</value>
   </data>
-  <data name="Start here: jump straight to a common task, or press Ctrl+K and describe what you want to do." xml:space="preserve">
-    <value>Beginnen Sie hier: Springen Sie direkt zu einer häufigen Aufgabe, oder drücken Sie Strg+K und beschreiben Sie, was Sie tun wollen.</value>
+  <data name="Start here: jump straight to a common task, or describe what you want to do in the search." xml:space="preserve">
+    <value>Beginnen Sie hier: Springen Sie direkt zu einer häufigen Aufgabe, oder beschreiben Sie in der Suche, was Sie tun wollen.</value>
   </data>
   <data name="Start the mail server engine again, as the header's Resume does" xml:space="preserve">
     <value>Die Engine des Mailservers wieder starten, wie Fortsetzen in der Kopfzeile</value>
@@ -15346,6 +15346,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="_Display name attribute" xml:space="preserve">
     <value>A_ttribut für den Anzeigenamen</value>
   </data>
+  <data name="_Domain" xml:space="preserve">
+    <value>_Domain</value>
+  </data>
   <data name="_Domain (e.g. gmail.com)" xml:space="preserve">
     <value>_Domain (z. B. gmail.com)</value>
   </data>
@@ -15357,9 +15360,6 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="_Domain or suffix" xml:space="preserve">
     <value>_Domain oder Suffix</value>
-  </data>
-  <data name="_Domain:" xml:space="preserve">
-    <value>_Domain:</value>
   </data>
   <data name="_Domains" xml:space="preserve">
     <value>_Domains</value>

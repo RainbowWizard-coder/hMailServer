@@ -11868,8 +11868,8 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Start at the delivery queue: if the message is there, the reason it has not left is there too." xml:space="preserve">
     <value>Empiece por la cola de entrega: si el mensaje está ahí, también está ahí el motivo por el que no ha salido.</value>
   </data>
-  <data name="Start here: jump straight to a common task, or press Ctrl+K and describe what you want to do." xml:space="preserve">
-    <value>Empiece aquí: vaya directamente a una tarea habitual, o pulse Ctrl+K y describa lo que quiere hacer.</value>
+  <data name="Start here: jump straight to a common task, or describe what you want to do in the search." xml:space="preserve">
+    <value>Empiece aquí: vaya directamente a una tarea habitual, o describa en la búsqueda lo que quiere hacer.</value>
   </data>
   <data name="Start the mail server engine again, as the header's Resume does" xml:space="preserve">
     <value>Volver a iniciar el motor del servidor de correo, como hace Reanudar en el encabezado</value>
@@ -15346,6 +15346,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="_Display name attribute" xml:space="preserve">
     <value>Atributo del nombre para _mostrar</value>
   </data>
+  <data name="_Domain" xml:space="preserve">
+    <value>_Dominio</value>
+  </data>
   <data name="_Domain (e.g. gmail.com)" xml:space="preserve">
     <value>_Dominio (p. ej. gmail.com)</value>
   </data>
@@ -15357,9 +15360,6 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="_Domain or suffix" xml:space="preserve">
     <value>_Dominio o sufijo</value>
-  </data>
-  <data name="_Domain:" xml:space="preserve">
-    <value>_Dominio:</value>
   </data>
   <data name="_Domains" xml:space="preserve">
     <value>_Dominios</value>

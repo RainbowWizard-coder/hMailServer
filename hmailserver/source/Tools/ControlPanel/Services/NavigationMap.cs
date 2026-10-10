@@ -497,8 +497,11 @@ namespace hMailServer.ControlPanel.Services
       {
          return new List<NavNode>
          {
+            // The purpose is read in the palette and the sidebar's tool tip as well as
+            // the manifest, so it names the search, not its key: in the palette it
+            // told a reader already there to press Ctrl+K (review finding F039).
             Page("welcome", N("Welcome"),
-               N("Start here: jump straight to a common task, or press Ctrl+K and describe what you want to do."),
+               N("Start here: jump straight to a common task, or describe what you want to do in the search."),
                aliases: "Home|Start|Getting started|Quick actions|First steps",
                seeAlso: "dashboard",
                needs: EveryCredential),

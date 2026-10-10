@@ -173,7 +173,9 @@ namespace hMailServer.ControlPanel.Views
 
          System.Windows.Automation.AutomationProperties.SetAutomationId(domainCombo_, "dns-records-domain");
          domainCombo_.SelectionChanged += (s, e) => BuildCards();
-         page.Children.Add(new FieldRow { Label = L("_Domain:"), Content = domainCombo_ });
+         // A caption names its field and ends in no colon, as every other caption
+         // above a field does (review finding F043).
+         page.Children.Add(new FieldRow { Label = L("_Domain"), Content = domainCombo_ });
 
          page.Children.Add(readFailure_);
          System.Windows.Automation.AutomationProperties.SetAutomationId(checkSummary_, "dns-records-check-summary");

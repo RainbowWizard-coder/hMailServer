@@ -11868,8 +11868,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Start at the delivery queue: if the message is there, the reason it has not left is there too." xml:space="preserve">
     <value>从投递队列开始: 如果邮件在那里，它没有发出的原因也在那里。</value>
   </data>
-  <data name="Start here: jump straight to a common task, or press Ctrl+K and describe what you want to do." xml:space="preserve">
-    <value>从这里开始: 直接跳到常见任务，或按 Ctrl+K 描述您想做什么。</value>
+  <data name="Start here: jump straight to a common task, or describe what you want to do in the search." xml:space="preserve">
+    <value>从这里开始：直接跳到常见任务，或在搜索中描述您想做什么。</value>
   </data>
   <data name="Start the mail server engine again, as the header's Resume does" xml:space="preserve">
     <value>重新启动邮件服务器引擎，与标题中的“恢复”相同</value>
@@ -15346,6 +15346,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Display name attribute" xml:space="preserve">
     <value>显示名称属性(_D)</value>
   </data>
+  <data name="_Domain" xml:space="preserve">
+    <value>域(_D)</value>
+  </data>
   <data name="_Domain (e.g. gmail.com)" xml:space="preserve">
     <value>域（例如 gmail.com）(_D)</value>
   </data>
@@ -15357,9 +15360,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="_Domain or suffix" xml:space="preserve">
     <value>域或后缀(_D)</value>
-  </data>
-  <data name="_Domain:" xml:space="preserve">
-    <value>域(_D)：</value>
   </data>
   <data name="_Domains" xml:space="preserve">
     <value>域(_D)</value>

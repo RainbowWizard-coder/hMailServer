@@ -11868,8 +11868,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Start at the delivery queue: if the message is there, the reason it has not left is there too." xml:space="preserve">
     <value>配信キューから始めてください。メッセージがそこにあれば、送信されていない理由もそこにあります。</value>
   </data>
-  <data name="Start here: jump straight to a common task, or press Ctrl+K and describe what you want to do." xml:space="preserve">
-    <value>ここから始めましょう。よくあるタスクに直接ジャンプするか、Ctrl+K を押してやりたいことを入力してください。</value>
+  <data name="Start here: jump straight to a common task, or describe what you want to do in the search." xml:space="preserve">
+    <value>ここから始めましょう。よくあるタスクに直接ジャンプするか、やりたいことを検索に入力してください。</value>
   </data>
   <data name="Start the mail server engine again, as the header's Resume does" xml:space="preserve">
     <value>ヘッダーの [再開] と同じく、メール サーバーのエンジンを再び開始します</value>
@@ -15346,6 +15346,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Display name attribute" xml:space="preserve">
     <value>表示名の属性(_D)</value>
   </data>
+  <data name="_Domain" xml:space="preserve">
+    <value>ドメイン(_D)</value>
+  </data>
   <data name="_Domain (e.g. gmail.com)" xml:space="preserve">
     <value>ドメイン (例: gmail.com)(_D)</value>
   </data>
@@ -15357,9 +15360,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Domain or suffix" xml:space="preserve">
     <value>ドメインまたはサフィックス(_D)</value>
-  </data>
-  <data name="_Domain:" xml:space="preserve">
-    <value>ドメイン(_D):</value>
   </data>
   <data name="_Domains" xml:space="preserve">
     <value>ドメイン(_D)</value>

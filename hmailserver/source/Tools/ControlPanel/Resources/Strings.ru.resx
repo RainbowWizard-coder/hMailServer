@@ -12010,8 +12010,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Start at the delivery queue: if the message is there, the reason it has not left is there too." xml:space="preserve">
     <value>Начните с очереди доставки: если сообщение там, то и причина, по которой оно не ушло, тоже там.</value>
   </data>
-  <data name="Start here: jump straight to a common task, or press Ctrl+K and describe what you want to do." xml:space="preserve">
-    <value>Начните отсюда: перейдите сразу к обычной задаче или нажмите Ctrl+K и опишите, что вы хотите сделать.</value>
+  <data name="Start here: jump straight to a common task, or describe what you want to do in the search." xml:space="preserve">
+    <value>Начните отсюда: перейдите сразу к обычной задаче или опишите в поиске, что вы хотите сделать.</value>
   </data>
   <data name="Start the mail server engine again, as the header's Resume does" xml:space="preserve">
     <value>Снова запустить движок почтового сервера, как кнопка «Возобновить» в заголовке</value>
@@ -15533,6 +15533,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Display name attribute" xml:space="preserve">
     <value>Атрибут _отображаемого имени</value>
   </data>
+  <data name="_Domain" xml:space="preserve">
+    <value>_Домен</value>
+  </data>
   <data name="_Domain (e.g. gmail.com)" xml:space="preserve">
     <value>_Домен (например, gmail.com)</value>
   </data>
@@ -15544,9 +15547,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Domain or suffix" xml:space="preserve">
     <value>_Домен или суффикс</value>
-  </data>
-  <data name="_Domain:" xml:space="preserve">
-    <value>_Домен:</value>
   </data>
   <data name="_Domains" xml:space="preserve">
     <value>_Домены</value>

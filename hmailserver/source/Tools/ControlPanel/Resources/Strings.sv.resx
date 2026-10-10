@@ -11868,8 +11868,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Start at the delivery queue: if the message is there, the reason it has not left is there too." xml:space="preserve">
     <value>Börja i leveranskön: om meddelandet finns där finns skälet till att det inte lämnat där också.</value>
   </data>
-  <data name="Start here: jump straight to a common task, or press Ctrl+K and describe what you want to do." xml:space="preserve">
-    <value>Börja här: hoppa direkt till en vanlig uppgift, eller tryck Ctrl+K och beskriv vad du vill göra.</value>
+  <data name="Start here: jump straight to a common task, or describe what you want to do in the search." xml:space="preserve">
+    <value>Börja här: hoppa direkt till en vanlig uppgift, eller beskriv i sökningen vad du vill göra.</value>
   </data>
   <data name="Start the mail server engine again, as the header's Resume does" xml:space="preserve">
     <value>Starta e-postserverns motor igen, som Återuppta i sidhuvudet gör</value>
@@ -15346,6 +15346,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="_Display name attribute" xml:space="preserve">
     <value>Attribut för _visningsnamn</value>
   </data>
+  <data name="_Domain" xml:space="preserve">
+    <value>D_omän</value>
+  </data>
   <data name="_Domain (e.g. gmail.com)" xml:space="preserve">
     <value>_Domän (t.ex. gmail.com)</value>
   </data>
@@ -15357,9 +15360,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="_Domain or suffix" xml:space="preserve">
     <value>_Domän eller suffix</value>
-  </data>
-  <data name="_Domain:" xml:space="preserve">
-    <value>D_omän:</value>
   </data>
   <data name="_Domains" xml:space="preserve">
     <value>D_omäner</value>

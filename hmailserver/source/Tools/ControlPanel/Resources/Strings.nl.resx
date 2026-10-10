@@ -11868,8 +11868,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Start at the delivery queue: if the message is there, the reason it has not left is there too." xml:space="preserve">
     <value>Begin bij de bezorgwachtrij: staat het bericht daar, dan staat de reden waarom het niet is vertrokken er ook.</value>
   </data>
-  <data name="Start here: jump straight to a common task, or press Ctrl+K and describe what you want to do." xml:space="preserve">
-    <value>Begin hier: spring meteen naar een veelvoorkomende taak, of druk op Ctrl+K en beschrijf wat u wilt doen.</value>
+  <data name="Start here: jump straight to a common task, or describe what you want to do in the search." xml:space="preserve">
+    <value>Begin hier: spring meteen naar een veelvoorkomende taak, of beschrijf in de zoekfunctie wat u wilt doen.</value>
   </data>
   <data name="Start the mail server engine again, as the header's Resume does" xml:space="preserve">
     <value>De engine van de mailserver weer starten, zoals Hervatten in de kop doet</value>
@@ -15346,6 +15346,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_Display name attribute" xml:space="preserve">
     <value>W_eergavenaamattribuut</value>
   </data>
+  <data name="_Domain" xml:space="preserve">
+    <value>_Domein</value>
+  </data>
   <data name="_Domain (e.g. gmail.com)" xml:space="preserve">
     <value>_Domein (bijv. gmail.com)</value>
   </data>
@@ -15357,9 +15360,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="_Domain or suffix" xml:space="preserve">
     <value>_Domein of achtervoegsel</value>
-  </data>
-  <data name="_Domain:" xml:space="preserve">
-    <value>_Domein:</value>
   </data>
   <data name="_Domains" xml:space="preserve">
     <value>_Domeinen</value>

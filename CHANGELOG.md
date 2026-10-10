@@ -3037,6 +3037,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   need action. 7 items cannot be checked from here. 4 items are not needed. Next step: ...", leaving out a state no
   item is in. `SetupTallyTests` holds the sentences, a Russian count's few and many forms, and both pages reading them.
 
+- **Fixed: three small copy slips - a chart title that said its unit twice, a palette row that told its reader to press
+  Ctrl+K, and two field captions that ended in a colon.** The Dashboard's sessions chart was titled "Active sessions
+  (sessions)", which Japanese cut to "アクティブなセッション (セッショ…" at 1280; a chart card now shows its unit in brackets only
+  where its title does not name it (`ChartDefinition.CardTitle`, the sessions chart marked `TitleNamesUnit`, since
+  Finnish counts "istuntoa" in "Aktiiviset istunnot"), and the table and the spoken words keep the unit. The Welcome
+  page's purpose, which the Ctrl+K palette shows as its first row and the sidebar as a tool tip, said "or press Ctrl+K
+  and describe what you want to do" to a reader already in the palette; it says "or describe what you want to do in the
+  search". The DNS records page's "Domain:" and the new public folder's "Folder name:" are "Domain" and "Folder name",
+  as every other caption above a field is, the folder's with an Alt key. `SmallCopyTests` holds the titles, that no
+  page's purpose names Ctrl+K, and that no FieldRow caption ends in a colon.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

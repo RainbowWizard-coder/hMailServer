@@ -229,9 +229,11 @@ namespace hMailServer.ControlPanel.Views
 
       private void Build_()
       {
-         titleText_.Text = definition_.Unit.Length == 0
-            ? definition_.Title
-            : definition_.Title + " (" + definition_.Unit + ")";
+         // The unit in brackets only where the title does not already name it:
+         // "Active sessions (sessions)" said its unit twice, and in Japanese the
+         // repeat cut the title at 1280 (review finding F035). The table's headers
+         // and the spoken description keep the unit.
+         titleText_.Text = definition_.CardTitle;
          titleText_.FontWeight = FontWeights.SemiBold;
          titleText_.FontSize = Typography.Body;
          titleText_.TextWrapping = TextWrapping.Wrap;

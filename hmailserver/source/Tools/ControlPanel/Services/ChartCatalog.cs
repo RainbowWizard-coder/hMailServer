@@ -57,6 +57,27 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>"sessions", "messages / minute" - never null, may be empty.</summary>
       public string Unit { get; }
 
+      /// <summary>
+      /// True where the title names what the chart counts, as "Active sessions"
+      /// names sessions: the card then shows the title alone. Said here rather than
+      /// found in the words, because a language may name the unit in another form
+      /// than the title does - Finnish counts "istuntoa" in "Aktiiviset istunnot".
+      /// </summary>
+      public bool TitleNamesUnit { get; init; }
+
+      /// <summary>
+      /// The title as the card shows it: the title and its unit in brackets,
+      /// "Delivery throughput (messages / minute)", or the title alone where it
+      /// already names its unit - by <see cref="TitleNamesUnit"/>, or because the
+      /// unit's words are in it - so that no card reads "Active sessions
+      /// (sessions)" (review finding F035). The table's headers and the spoken
+      /// description keep the unit.
+      /// </summary>
+      public string CardTitle
+         => Unit.Length == 0 || TitleNamesUnit || Title.Contains(Unit, StringComparison.CurrentCultureIgnoreCase)
+            ? Title
+            : Title + " (" + Unit + ")";
+
       /// <summary>A .NET numeric format string, e.g. "N0" or "N1".</summary>
       public string ValueFormat { get; }
 
@@ -107,7 +128,11 @@ namespace hMailServer.ControlPanel.Services
          L("Concurrent SMTP, IMAP and POP3 sessions, sampled every 2 seconds."),
          L("sessions"),
          "N0",
-         "SMTP", "IMAP", "POP3");
+         "SMTP", "IMAP", "POP3")
+      {
+         // The card says Active sessions, not Active sessions (sessions).
+         TitleNamesUnit = true
+      };
 
       public static IReadOnlyList<ChartDefinition> All { get; } = new[]
       {

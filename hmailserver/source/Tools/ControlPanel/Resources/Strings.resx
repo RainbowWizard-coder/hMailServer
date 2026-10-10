@@ -11868,8 +11868,8 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Start at the delivery queue: if the message is there, the reason it has not left is there too." xml:space="preserve">
     <value>Start at the delivery queue: if the message is there, the reason it has not left is there too.</value>
   </data>
-  <data name="Start here: jump straight to a common task, or press Ctrl+K and describe what you want to do." xml:space="preserve">
-    <value>Start here: jump straight to a common task, or press Ctrl+K and describe what you want to do.</value>
+  <data name="Start here: jump straight to a common task, or describe what you want to do in the search." xml:space="preserve">
+    <value>Start here: jump straight to a common task, or describe what you want to do in the search.</value>
   </data>
   <data name="Start the mail server engine again, as the header's Resume does" xml:space="preserve">
     <value>Start the mail server engine again, as the header's Resume does</value>
@@ -15346,6 +15346,9 @@ It will keep trying as you use the application.</value>
   <data name="_Display name attribute" xml:space="preserve">
     <value>_Display name attribute</value>
   </data>
+  <data name="_Domain" xml:space="preserve">
+    <value>_Domain</value>
+  </data>
   <data name="_Domain (e.g. gmail.com)" xml:space="preserve">
     <value>_Domain (e.g. gmail.com)</value>
   </data>
@@ -15357,9 +15360,6 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="_Domain or suffix" xml:space="preserve">
     <value>_Domain or suffix</value>
-  </data>
-  <data name="_Domain:" xml:space="preserve">
-    <value>_Domain:</value>
   </data>
   <data name="_Domains" xml:space="preserve">
     <value>_Domains</value>
