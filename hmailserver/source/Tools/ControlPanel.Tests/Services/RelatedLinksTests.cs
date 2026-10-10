@@ -52,8 +52,11 @@ namespace hMailServer.ControlPanel.Tests.Services
 
       /// <summary>
       /// The pairs the map's comments put side by side on purpose, and the ones
-      /// the review found dropped by the cut: each lists the other, among its
-      /// first three, which are the links still drawn beside a long trail.
+      /// the review found dropped by the cut: each lists the other among its
+      /// first three. A page's partners come first, so they are the links drawn
+      /// first wherever there is room - beside the trail of every page at 1280
+      /// in English - and in a narrow window, where one link or none fits, the
+      /// first that its drop-down, More (n) or Related pages (n), lists.
       /// </summary>
       [Theory]
       [InlineData("tls", "autoban")]

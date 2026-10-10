@@ -692,10 +692,10 @@ namespace hMailServer.ControlPanel.Services
 
                // The overview is first in most of these lists on purpose: it is the
                // one page that says what the change just made on this page does to
-               // a message, and in a narrow window the first links are the ones
-               // drawn beside the breadcrumb (the rest go in its More drop-down). A
-               // page's own partner comes first where the two are a pair: the
-               // greylisting lists, the two sender lists.
+               // a message, and the first links are the ones drawn beside the
+               // breadcrumb where there is room, and the first in its drop-down
+               // where there is not. A page's own partner comes first where the two
+               // are a pair: the greylisting lists, the two sender lists.
                Page("surbl", N("SURBL servers"),
                   N("Block lists checked against the links found inside a message body."),
                   aliases: "SURBL|URI block list|Link blacklist|Body URL check|Spamhaus DBL",
@@ -805,8 +805,9 @@ namespace hMailServer.ControlPanel.Services
                   // reader who followed an old note about the combined page and
                   // wanted the other half has a way across. The breadcrumb draws as
                   // many as fit and puts the rest in its More drop-down, and each
-                  // half lists the other among its first three, so the way across is
-                  // drawn in a narrow window as well (RelatedLinksTests).
+                  // half lists the other among its first three (RelatedLinksTests),
+                  // so the way across is drawn wherever there is room for three, and
+                  // is among the first the drop-down lists in a narrow window.
                   seeAlso: "ipranges|authentication|tls|logs"),
 
                // Directory authentication is how accounts prove who they are, so it

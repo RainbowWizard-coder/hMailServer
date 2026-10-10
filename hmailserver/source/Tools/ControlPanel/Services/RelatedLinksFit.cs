@@ -14,7 +14,8 @@ namespace hMailServer.ControlPanel.Services
    /// LDAP's directory synchronisation, the greylisting exemptions' bypass list,
    /// SSL/TLS's Auto-ban, the block lists' IP ranges - and twelve pages were the
    /// drawn link of none (review finding F271). WPF-free, so that
-   /// RelatedLinksFitTests holds the rule; MainWindow.Related.cs measures.
+   /// RelatedLinksTests holds the rule (Everything_IsDrawnWhenItFits,
+   /// TheRest_GoBehindTheDropDown); MainWindow.Related.cs measures.
    /// </summary>
    public static class RelatedLinksFit
    {
