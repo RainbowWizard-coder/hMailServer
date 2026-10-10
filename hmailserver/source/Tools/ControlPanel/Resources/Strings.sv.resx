@@ -1906,6 +1906,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="At your DNS host, publish a TXT record named _dmarc.&lt;domain&gt;, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish." xml:space="preserve">
     <value>Publicera hos din DNS-leverantör en TXT-post med namnet _dmarc.&lt;domain&gt;, som börjar med v=DMARC1; p=none medan du läser rapporterna, sedan p=quarantine eller p=reject. Sidan DNS-poster visar posten att publicera.</value>
   </data>
+  <data name="Attachment blocking" xml:space="preserve">
+    <value>Blockering av bilagor</value>
+  </data>
   <data name="Attachment blocking is switched off, so a pattern added here is not applied until it is turned on." xml:space="preserve">
     <value>Blockering av bilagor är avstängd, så ett mönster som läggs till här tillämpas inte förrän blockeringen slås på.</value>
   </data>
@@ -1920,9 +1923,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Attachment blocking is switched on with no patterns to block, so it does nothing at all." xml:space="preserve">
     <value>Bilageblockering är påslagen utan några mönster att blockera, så den gör ingenting alls.</value>
-  </data>
-  <data name="Attachment blocking, which is separate" xml:space="preserve">
-    <value>Bilageblockering, som är separat</value>
   </data>
   <data name="Attachment name" xml:space="preserve">
     <value>Bilagans namn</value>
@@ -2347,9 +2347,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Bypass on SPF success" xml:space="preserve">
     <value>Hoppa över vid godkänd SPF</value>
   </data>
-  <data name="Bypass when sender matches MX" xml:space="preserve">
-    <value>Hoppa över när avsändaren matchar MX</value>
-  </data>
   <data name="CA certificate for a private endpoint (PEM; empty = the machine's roots)" xml:space="preserve">
     <value>CA-certifikat för en privat slutpunkt (PEM; tomt = datorns rotcertifikat)</value>
   </data>
@@ -2731,11 +2728,8 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="ClamAV" xml:space="preserve">
     <value>ClamAV</value>
   </data>
-  <data name="ClamAV (clamd, over TCP)" xml:space="preserve">
-    <value>ClamAV (clamd, över TCP)</value>
-  </data>
-  <data name="ClamAV (network daemon)" xml:space="preserve">
-    <value>ClamAV (nätverksdemon)</value>
+  <data name="ClamAV (clamd)" xml:space="preserve">
+    <value>ClamAV (clamd)</value>
   </data>
   <data name="ClamAV and external scanners, and what to do with a message that is found to be infected." xml:space="preserve">
     <value>ClamAV och externa skannrar, och vad som ska göras med ett meddelande som visar sig vara infekterat.</value>
@@ -2748,9 +2742,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="ClamWin" xml:space="preserve">
     <value>ClamWin</value>
-  </data>
-  <data name="ClamWin (local executable)" xml:space="preserve">
-    <value>ClamWin (lokal körbar fil)</value>
   </data>
   <data name="ClamWin and ClamAV both use the same signature database. Running both scans every message twice against the same definitions." xml:space="preserve">
     <value>ClamWin och ClamAV använder båda samma signaturdatabas. Att köra båda skannar varje meddelande två gånger mot samma definitioner.</value>
@@ -3591,17 +3582,11 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Current key" xml:space="preserve">
     <value>Aktuell nyckel</value>
   </data>
-  <data name="Custom" xml:space="preserve">
-    <value>Anpassad</value>
-  </data>
   <data name="Custom header…" xml:space="preserve">
     <value>Egen rubrik…</value>
   </data>
   <data name="Custom scanner" xml:space="preserve">
     <value>Anpassad skanner</value>
-  </data>
-  <data name="Custom scanner (external program)" xml:space="preserve">
-    <value>Egen skanner (externt program)</value>
   </data>
   <data name="Cut" xml:space="preserve">
     <value>Klipp ut</value>
@@ -5094,6 +5079,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Exempt: may exchange mail with anyone" xml:space="preserve">
     <value>Undantagen: får utbyta post med vem som helst</value>
+  </data>
+  <data name="Exit code that means infected" xml:space="preserve">
+    <value>Slutkod som betyder infekterad</value>
   </data>
   <data name="Expand the navigation" xml:space="preserve">
     <value>Fäll ut navigeringen</value>
@@ -6980,9 +6968,6 @@ Varje Web Push-prenumeration under det nuvarande paret slutar fungera direkt, oc
   <data name="Match any criterion (OR)" xml:space="preserve">
     <value>Matcha något kriterium (ELLER)</value>
   </data>
-  <data name="Matched against" xml:space="preserve">
-    <value>Matchas mot</value>
-  </data>
   <data name="Matched on" xml:space="preserve">
     <value>Matchas mot</value>
   </data>
@@ -8281,10 +8266,10 @@ Inget som redan finns där tas bort.</value>
   <data name="Notifications of new mail sent to the browsers and phones people allow. The server signs them with its own VAPID key pair, made once with the button below." xml:space="preserve">
     <value>Aviseringar om ny post till de webbläsare och telefoner som folk tillåter. Servern signerar dem med sitt eget VAPID-nyckelpar, som skapas en gång med knappen nedan.</value>
   </data>
-  <data name="Notify receiver" xml:space="preserve">
-    <value>Meddela mottagaren</value>
+  <data name="Notify the recipients" xml:space="preserve">
+    <value>Meddela mottagarna</value>
   </data>
-  <data name="Notify sender" xml:space="preserve">
+  <data name="Notify the sender" xml:space="preserve">
     <value>Meddela avsändaren</value>
   </data>
   <data name="Now a mailbox. An account is an address somebody signs in to and receives mail at." xml:space="preserve">
@@ -10386,9 +10371,6 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Return it to the sender (5.7.1)" xml:space="preserve">
     <value>Returnera det till avsändaren (5.7.1)</value>
   </data>
-  <data name="Return value for infected" xml:space="preserve">
-    <value>Returvärde för infekterad</value>
-  </data>
   <data name="Reuse and expiry" xml:space="preserve">
     <value>Återanvändning och utgång</value>
   </data>
@@ -10506,8 +10488,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Run a preview first: the options have changed since the last one, so it no longer describes what this would do." xml:space="preserve">
     <value>Kör en förhandsgranskning först: alternativen har ändrats sedan den senaste, så den beskriver inte längre vad detta skulle göra.</value>
   </data>
-  <data name="Run an external command; a configured return value indicates an infected message. Use %FILE% where the file to scan should be passed on the command line. For engines without a CLI (HTTP/API, DLP, SIEM), use an OnAcceptMessage handler on the Event scripts page instead." xml:space="preserve">
-    <value>Kör ett externt kommando; ett konfigurerat returvärde anger ett infekterat meddelande. Använd %FILE% där filen som ska skannas ska skickas på kommandoraden. För motorer utan kommandoradsgränssnitt (HTTP/API, DLP, SIEM), använd en OnAcceptMessage-hanterare på sidan Händelseskript i stället.</value>
+  <data name="Run an external command; the exit code set below means an infected message. Use %FILE% where the file to scan should be passed on the command line. For engines without a CLI (HTTP/API, DLP, SIEM), use an OnAcceptMessage handler on the Event scripts page instead." xml:space="preserve">
+    <value>Kör ett externt kommando; slutkoden som anges nedan anger ett infekterat meddelande. Använd %FILE% där filen som ska skannas ska skickas på kommandoraden. För motorer utan kommandoradsgränssnitt (HTTP/API, DLP, SIEM), använd en OnAcceptMessage-hanterare på sidan Händelseskript i stället.</value>
   </data>
   <data name="Run anti-spam on downloaded mail" xml:space="preserve">
     <value>Kör skräppostkontroll på hämtad post</value>
@@ -11901,6 +11883,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Size limit and scanners…" xml:space="preserve">
     <value>Storleksgräns och skannrar…</value>
   </data>
+  <data name="Skip greylisting when the connecting address is an A or MX host of the sender's domain" xml:space="preserve">
+    <value>Hoppa över gråstlistning när den anslutande adressen är en A- eller MX-värd för avsändarens domän</value>
+  </data>
   <data name="Skip the tour" xml:space="preserve">
     <value>Hoppa över rundturen</value>
   </data>
@@ -12420,9 +12405,6 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Test custom scanner" xml:space="preserve">
     <value>Testa anpassad skanner</value>
   </data>
-  <data name="Test failed: {0}" xml:space="preserve">
-    <value>Testet misslyckades: {0}</value>
-  </data>
   <data name="Test the connection" xml:space="preserve">
     <value>Testa anslutningen</value>
   </data>
@@ -12516,8 +12498,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="The HELO name" xml:space="preserve">
     <value>HELO-namnet</value>
   </data>
-  <data name="The HELO/EHLO host" xml:space="preserve">
-    <value>HELO/EHLO-värden</value>
+  <data name="The HELO/EHLO name" xml:space="preserve">
+    <value>HELO/EHLO-namnet</value>
   </data>
   <data name="The Host name on the Protocols page is empty, so the server falls back to its Windows computer name - shown above as this machine's name. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
     <value>Värdnamnet på sidan Protokoll är tomt, så servern faller tillbaka på sitt Windows-datornamn - visat ovan som den här datorns namn. Ett bart datornamn är inte ett publikt DNS-namn: mottagare som jämför HELO med DNS straffar det, och ingen PTR-post kan stämma med det. Sätt ett riktigt värdnamn först.</value>
@@ -15130,8 +15112,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Which scanners can actually run, what size of message is scanned, and what happens to one that is found to be infected." xml:space="preserve">
     <value>Vilka skannrar som faktiskt kan köras, hur stora meddelanden som skannas, och vad som händer med ett som visar sig vara infekterat.</value>
   </data>
-  <data name="Which scanners can actually run, what they are asked to look at, and what happens to a message one of them condemns. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
-    <value>Vilka skannrar som faktiskt kan köras, vad de ombeds titta på, och vad som händer med ett meddelande en av dem dömer ut. Inget på den här sidan kan redigeras - varje avsnitt har en knapp till sidan som äger dess inställningar.</value>
+  <data name="Which scanners can actually run, what they are asked to look at, and what happens to a message found to be infected. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
+    <value>Vilka skannrar som faktiskt kan köras, vad de ombeds titta på, och vad som händer med ett meddelande som visar sig vara infekterat. Inget på den här sidan kan redigeras - varje avsnitt har en knapp till sidan som äger dess inställningar.</value>
   </data>
   <data name="Which services are running, who is connected right now, and how long the server has been up." xml:space="preserve">
     <value>Vilka tjänster som körs, vem som är ansluten just nu, och hur länge servern har varit uppe.</value>
@@ -17012,11 +16994,11 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="the sender's SPF check passed" xml:space="preserve">
     <value>avsändarens SPF-kontroll godkändes</value>
   </data>
-  <data name="the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
-    <value>avsändarens domän eller HELO-värd är en av de {0} posterna på förbigångslistan för gråstlistning och meddelandet bär den godkända SPF, DKIM eller DMARC som posten kräver</value>
-  </data>
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>avsändarens domän eller HELO-namn är en tillåten domän</value>
+  </data>
+  <data name="the sender's domain or HELO name is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
+    <value>avsändarens domän eller HELO-namn är en av de {0} posterna på förbigångslistan för gråstlistning och meddelandet bär den godkända SPF, DKIM eller DMARC som posten kräver</value>
   </data>
   <data name="the server is slow" xml:space="preserve">
     <value>servern är långsam</value>
@@ -17368,6 +17350,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} did not answer within 10 seconds from this machine. Likely causes: no A/CNAME record for mta-sts.{1}, the HTTPS listener is not running (no HTTPS port on the Web services &amp; autoconfiguration page), or a firewall in between. Checked from this machine only." xml:space="preserve">
     <value>{0} svarade inte inom 10 sekunder från den här datorn. Troliga orsaker: ingen A-/CNAME-post för mta-sts.{1}, HTTPS-lyssnaren körs inte (ingen HTTPS-port på sidan Webbtjänster &amp; automatisk konfiguration), eller en brandvägg emellan. Kontrollerat bara från den här datorn.</value>
+  </data>
+  <data name="{0} did not work: {1}" xml:space="preserve">
+    <value>{0} fungerade inte: {1}</value>
   </data>
   <data name="{0} domain has trap addresses." xml:space="preserve">
     <value>{0} domän har fälladresser.</value>

@@ -637,7 +637,7 @@ namespace hMailServer.ControlPanel.Services
          if (config.GreylistWhiteListEntries > 0)
             bypasses.Add(F("the connecting address matches one of the greylisting exemptions (entries: {0})", config.GreylistWhiteListEntries));
          if (config.GreylistBypassEntries > 0)
-            bypasses.Add(F("the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires", config.GreylistBypassEntries));
+            bypasses.Add(F("the sender's domain or HELO name is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires", config.GreylistBypassEntries));
          if (config.DomainPolicyListEntries > 0)
             bypasses.Add(L("the sender's domain or HELO name is an allowed domain"));
 

@@ -1924,6 +1924,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="At your DNS host, publish a TXT record named _dmarc.&lt;domain&gt;, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish." xml:space="preserve">
     <value>U svého poskytovatele DNS zveřejněte záznam TXT s názvem _dmarc.&lt;domain&gt;, zpočátku s v=DMARC1; p=none, dokud čtete zprávy, poté p=quarantine nebo p=reject. Stránka Záznamy DNS ukazuje záznam ke zveřejnění.</value>
   </data>
+  <data name="Attachment blocking" xml:space="preserve">
+    <value>Blokování příloh</value>
+  </data>
   <data name="Attachment blocking is switched off, so a pattern added here is not applied until it is turned on." xml:space="preserve">
     <value>Blokování příloh je vypnuté, takže vzor přidaný zde se neuplatní, dokud se blokování nezapne.</value>
   </data>
@@ -1941,9 +1944,6 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Attachment blocking is switched on with no patterns to block, so it does nothing at all." xml:space="preserve">
     <value>Blokování příloh je zapnuto, ale nejsou zadány žádné vzory k blokování, takže nedělá vůbec nic.</value>
-  </data>
-  <data name="Attachment blocking, which is separate" xml:space="preserve">
-    <value>Blokování příloh, které je samostatné</value>
   </data>
   <data name="Attachment name" xml:space="preserve">
     <value>Název přílohy</value>
@@ -2371,9 +2371,6 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Bypass on SPF success" xml:space="preserve">
     <value>Přeskočit při úspěšném SPF</value>
   </data>
-  <data name="Bypass when sender matches MX" xml:space="preserve">
-    <value>Přeskočit, když odesílatel odpovídá MX</value>
-  </data>
   <data name="CA certificate for a private endpoint (PEM; empty = the machine's roots)" xml:space="preserve">
     <value>Certifikát CA pro soukromý koncový bod (PEM; prázdné = kořenové certifikáty počítače)</value>
   </data>
@@ -2755,11 +2752,8 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="ClamAV" xml:space="preserve">
     <value>ClamAV</value>
   </data>
-  <data name="ClamAV (clamd, over TCP)" xml:space="preserve">
-    <value>ClamAV (clamd, přes TCP)</value>
-  </data>
-  <data name="ClamAV (network daemon)" xml:space="preserve">
-    <value>ClamAV (síťový démon)</value>
+  <data name="ClamAV (clamd)" xml:space="preserve">
+    <value>ClamAV (clamd)</value>
   </data>
   <data name="ClamAV and external scanners, and what to do with a message that is found to be infected." xml:space="preserve">
     <value>ClamAV a externí skenery a co udělat se zprávou, u které se zjistí nákaza.</value>
@@ -2772,9 +2766,6 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="ClamWin" xml:space="preserve">
     <value>ClamWin</value>
-  </data>
-  <data name="ClamWin (local executable)" xml:space="preserve">
-    <value>ClamWin (místní spustitelný soubor)</value>
   </data>
   <data name="ClamWin and ClamAV both use the same signature database. Running both scans every message twice against the same definitions." xml:space="preserve">
     <value>ClamWin i ClamAV používají tutéž databázi signatur. Když poběží oba, každá zpráva se prověří dvakrát proti týmž definicím.</value>
@@ -3615,17 +3606,11 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Current key" xml:space="preserve">
     <value>Aktuální klíč</value>
   </data>
-  <data name="Custom" xml:space="preserve">
-    <value>Vlastní</value>
-  </data>
   <data name="Custom header…" xml:space="preserve">
     <value>Vlastní hlavička…</value>
   </data>
   <data name="Custom scanner" xml:space="preserve">
     <value>Vlastní skener</value>
-  </data>
-  <data name="Custom scanner (external program)" xml:space="preserve">
-    <value>Vlastní skener (externí program)</value>
   </data>
   <data name="Cut" xml:space="preserve">
     <value>Vyjmout</value>
@@ -5155,6 +5140,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Exempt: may exchange mail with anyone" xml:space="preserve">
     <value>Výjimka: může si psát s kýmkoli</value>
+  </data>
+  <data name="Exit code that means infected" xml:space="preserve">
+    <value>Návratový kód, který znamená nákazu</value>
   </data>
   <data name="Expand the navigation" xml:space="preserve">
     <value>Rozbalit navigaci</value>
@@ -7053,9 +7041,6 @@ Každý odběr Web Push vytvořený se současným párem okamžitě přestane f
   <data name="Match any criterion (OR)" xml:space="preserve">
     <value>Splnit libovolné kritérium (OR)</value>
   </data>
-  <data name="Matched against" xml:space="preserve">
-    <value>Porovnáváno s</value>
-  </data>
   <data name="Matched on" xml:space="preserve">
     <value>Porovnávat s</value>
   </data>
@@ -8375,10 +8360,10 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Notifications of new mail sent to the browsers and phones people allow. The server signs them with its own VAPID key pair, made once with the button below." xml:space="preserve">
     <value>Oznámení o nové poště do prohlížečů a telefonů, které lidé povolí. Server je podepisuje vlastním párem klíčů VAPID, který se jednou vytvoří tlačítkem níže.</value>
   </data>
-  <data name="Notify receiver" xml:space="preserve">
+  <data name="Notify the recipients" xml:space="preserve">
     <value>Upozornit příjemce</value>
   </data>
-  <data name="Notify sender" xml:space="preserve">
+  <data name="Notify the sender" xml:space="preserve">
     <value>Upozornit odesílatele</value>
   </data>
   <data name="Now a mailbox. An account is an address somebody signs in to and receives mail at." xml:space="preserve">
@@ -10495,9 +10480,6 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Return it to the sender (5.7.1)" xml:space="preserve">
     <value>Vrátit ji odesílateli (5.7.1)</value>
   </data>
-  <data name="Return value for infected" xml:space="preserve">
-    <value>Návratová hodnota pro nakaženou zprávu</value>
-  </data>
   <data name="Reuse and expiry" xml:space="preserve">
     <value>Opakované použití a vypršení platnosti</value>
   </data>
@@ -10615,8 +10597,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Run a preview first: the options have changed since the last one, so it no longer describes what this would do." xml:space="preserve">
     <value>Nejprve spusťte náhled: volby se od posledního změnily, takže už nepopisuje, co by se provedlo.</value>
   </data>
-  <data name="Run an external command; a configured return value indicates an infected message. Use %FILE% where the file to scan should be passed on the command line. For engines without a CLI (HTTP/API, DLP, SIEM), use an OnAcceptMessage handler on the Event scripts page instead." xml:space="preserve">
-    <value>Spustí externí příkaz; nakonfigurovaná návratová hodnota označuje nakaženou zprávu. Použijte %FILE% tam, kde se má na příkazovém řádku předat soubor ke skenování. Pro enginy bez CLI (HTTP/API, DLP, SIEM) použijte místo toho obslužnou rutinu OnAcceptMessage na stránce Skripty událostí.</value>
+  <data name="Run an external command; the exit code set below means an infected message. Use %FILE% where the file to scan should be passed on the command line. For engines without a CLI (HTTP/API, DLP, SIEM), use an OnAcceptMessage handler on the Event scripts page instead." xml:space="preserve">
+    <value>Spustí externí příkaz; níže nastavený návratový kód označuje nakaženou zprávu. Použijte %FILE% tam, kde se má na příkazovém řádku předat soubor ke skenování. Pro enginy bez CLI (HTTP/API, DLP, SIEM) použijte místo toho obslužnou rutinu OnAcceptMessage na stránce Skripty událostí.</value>
   </data>
   <data name="Run anti-spam on downloaded mail" xml:space="preserve">
     <value>Spouštět antispam na stažené poště</value>
@@ -12043,6 +12025,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Size limit and scanners…" xml:space="preserve">
     <value>Limit velikosti a skenery…</value>
   </data>
+  <data name="Skip greylisting when the connecting address is an A or MX host of the sender's domain" xml:space="preserve">
+    <value>Přeskočit greylisting, když je připojující se adresa hostitelem A nebo MX domény odesílatele</value>
+  </data>
   <data name="Skip the tour" xml:space="preserve">
     <value>Přeskočit prohlídku</value>
   </data>
@@ -12565,9 +12550,6 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Test custom scanner" xml:space="preserve">
     <value>Otestovat vlastní skener</value>
   </data>
-  <data name="Test failed: {0}" xml:space="preserve">
-    <value>Test selhal: {0}</value>
-  </data>
   <data name="Test the connection" xml:space="preserve">
     <value>Otestovat připojení</value>
   </data>
@@ -12661,8 +12643,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="The HELO name" xml:space="preserve">
     <value>Název HELO</value>
   </data>
-  <data name="The HELO/EHLO host" xml:space="preserve">
-    <value>Hostitel HELO/EHLO</value>
+  <data name="The HELO/EHLO name" xml:space="preserve">
+    <value>Název HELO/EHLO</value>
   </data>
   <data name="The Host name on the Protocols page is empty, so the server falls back to its Windows computer name - shown above as this machine's name. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
     <value>Název hostitele na stránce Protokoly je prázdný, takže server použije svůj název počítače ve Windows – zobrazeno výše jako název tohoto počítače. Holý název počítače není veřejný název v DNS: příjemci, kteří porovnávají HELO s DNS, jej penalizují a žádný PTR s ním nemůže souhlasit. Nejprve nastavte skutečný název hostitele.</value>
@@ -15308,8 +15290,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Which scanners can actually run, what size of message is scanned, and what happens to one that is found to be infected." xml:space="preserve">
     <value>Které skenery skutečně mohou běžet, jak velké zprávy se kontrolují a co se stane s tou, u které se zjistí infekce.</value>
   </data>
-  <data name="Which scanners can actually run, what they are asked to look at, and what happens to a message one of them condemns. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
-    <value>Které skenery skutečně mohou běžet, na co se mají dívat a co se stane se zprávou, kterou jeden z nich odsoudí. Na této stránce nelze nic upravovat - každá část má tlačítko, které otevře stránku, jíž patří její nastavení.</value>
+  <data name="Which scanners can actually run, what they are asked to look at, and what happens to a message found to be infected. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
+    <value>Které skenery skutečně mohou běžet, na co se mají dívat a co se stane se zprávou, v níž najdou nákazu. Na této stránce nelze nic upravovat - každá část má tlačítko, které otevře stránku, jíž patří její nastavení.</value>
   </data>
   <data name="Which services are running, who is connected right now, and how long the server has been up." xml:space="preserve">
     <value>Které služby běží, kdo je právě připojen a jak dlouho server běží.</value>
@@ -17208,11 +17190,11 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="the sender's SPF check passed" xml:space="preserve">
     <value>kontrola SPF odesílatele prošla</value>
   </data>
-  <data name="the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
-    <value>doména nebo hostitel HELO odesílatele je jednou z {0} položek seznamu obejití greylistingu a zpráva nese úspěšné SPF, DKIM nebo DMARC, které tato položka vyžaduje</value>
-  </data>
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>doména odesílatele nebo název HELO je povolená doména</value>
+  </data>
+  <data name="the sender's domain or HELO name is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
+    <value>doména nebo název HELO odesílatele je jednou z {0} položek seznamu obejití greylistingu a zpráva nese úspěšné SPF, DKIM nebo DMARC, které tato položka vyžaduje</value>
   </data>
   <data name="the server is slow" xml:space="preserve">
     <value>server je pomalý</value>
@@ -17624,6 +17606,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} did not answer within 10 seconds from this machine. Likely causes: no A/CNAME record for mta-sts.{1}, the HTTPS listener is not running (no HTTPS port on the Web services &amp; autoconfiguration page), or a firewall in between. Checked from this machine only." xml:space="preserve">
     <value>{0} z tohoto počítače neodpověděl do 10 sekund. Pravděpodobné příčiny: žádný záznam A/CNAME pro mta-sts.{1}, neběžící HTTPS listener (žádný port HTTPS na stránce Webové služby a autokonfigurace), nebo firewall mezi nimi. Zkontrolováno pouze z tohoto počítače.</value>
+  </data>
+  <data name="{0} did not work: {1}" xml:space="preserve">
+    <value>{0} se nezdařilo: {1}</value>
   </data>
   <data name="{0} domain has trap addresses." xml:space="preserve">
     <value>{0} doména má adresy pastí.</value>

@@ -1906,6 +1906,9 @@ Los detalles completos se escribieron en:
   <data name="At your DNS host, publish a TXT record named _dmarc.&lt;domain&gt;, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish." xml:space="preserve">
     <value>En su proveedor de DNS, publique un registro TXT llamado _dmarc.&lt;domain&gt;, empezando por v=DMARC1; p=none mientras lee los informes, y después p=quarantine o p=reject. La página Registros DNS muestra el registro a publicar.</value>
   </data>
+  <data name="Attachment blocking" xml:space="preserve">
+    <value>Bloqueo de adjuntos</value>
+  </data>
   <data name="Attachment blocking is switched off, so a pattern added here is not applied until it is turned on." xml:space="preserve">
     <value>El bloqueo de adjuntos está desactivado, así que un patrón añadido aquí no se aplica hasta que se active.</value>
   </data>
@@ -1920,9 +1923,6 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Attachment blocking is switched on with no patterns to block, so it does nothing at all." xml:space="preserve">
     <value>El bloqueo de adjuntos está activado sin patrones que bloquear, así que no hace nada en absoluto.</value>
-  </data>
-  <data name="Attachment blocking, which is separate" xml:space="preserve">
-    <value>Bloqueo de adjuntos, que es aparte</value>
   </data>
   <data name="Attachment name" xml:space="preserve">
     <value>Nombre del adjunto</value>
@@ -2347,9 +2347,6 @@ Los detalles completos se escribieron en:
   <data name="Bypass on SPF success" xml:space="preserve">
     <value>Omitir si SPF pasa</value>
   </data>
-  <data name="Bypass when sender matches MX" xml:space="preserve">
-    <value>Omitir cuando el remitente coincide con el MX</value>
-  </data>
   <data name="CA certificate for a private endpoint (PEM; empty = the machine's roots)" xml:space="preserve">
     <value>Certificado de CA para un punto de acceso privado (PEM; vacío = las raíces del equipo)</value>
   </data>
@@ -2731,11 +2728,8 @@ Los detalles completos se escribieron en:
   <data name="ClamAV" xml:space="preserve">
     <value>ClamAV</value>
   </data>
-  <data name="ClamAV (clamd, over TCP)" xml:space="preserve">
-    <value>ClamAV (clamd, por TCP)</value>
-  </data>
-  <data name="ClamAV (network daemon)" xml:space="preserve">
-    <value>ClamAV (demonio de red)</value>
+  <data name="ClamAV (clamd)" xml:space="preserve">
+    <value>ClamAV (clamd)</value>
   </data>
   <data name="ClamAV and external scanners, and what to do with a message that is found to be infected." xml:space="preserve">
     <value>ClamAV y analizadores externos, y qué hacer con un mensaje que resulta infectado.</value>
@@ -2748,9 +2742,6 @@ Los detalles completos se escribieron en:
   </data>
   <data name="ClamWin" xml:space="preserve">
     <value>ClamWin</value>
-  </data>
-  <data name="ClamWin (local executable)" xml:space="preserve">
-    <value>ClamWin (ejecutable local)</value>
   </data>
   <data name="ClamWin and ClamAV both use the same signature database. Running both scans every message twice against the same definitions." xml:space="preserve">
     <value>ClamWin y ClamAV usan la misma base de firmas. Ejecutar ambos analiza cada mensaje dos veces contra las mismas definiciones.</value>
@@ -3591,17 +3582,11 @@ Los detalles completos se escribieron en:
   <data name="Current key" xml:space="preserve">
     <value>Clave actual</value>
   </data>
-  <data name="Custom" xml:space="preserve">
-    <value>Personalizado</value>
-  </data>
   <data name="Custom header…" xml:space="preserve">
     <value>Cabecera personalizada…</value>
   </data>
   <data name="Custom scanner" xml:space="preserve">
     <value>Analizador personalizado</value>
-  </data>
-  <data name="Custom scanner (external program)" xml:space="preserve">
-    <value>Analizador personalizado (programa externo)</value>
   </data>
   <data name="Cut" xml:space="preserve">
     <value>Cortar</value>
@@ -5094,6 +5079,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   </data>
   <data name="Exempt: may exchange mail with anyone" xml:space="preserve">
     <value>Exenta: puede intercambiar correo con cualquiera</value>
+  </data>
+  <data name="Exit code that means infected" xml:space="preserve">
+    <value>Código de salida que indica infección</value>
   </data>
   <data name="Expand the navigation" xml:space="preserve">
     <value>Expandir la navegación</value>
@@ -6980,9 +6968,6 @@ Cada suscripción de Web Push hecha con el par actual deja de funcionar al momen
   <data name="Match any criterion (OR)" xml:space="preserve">
     <value>Cumplir cualquier criterio (OR)</value>
   </data>
-  <data name="Matched against" xml:space="preserve">
-    <value>Se compara con</value>
-  </data>
   <data name="Matched on" xml:space="preserve">
     <value>Comparar con</value>
   </data>
@@ -8281,10 +8266,10 @@ No se elimina nada de lo que ya está.</value>
   <data name="Notifications of new mail sent to the browsers and phones people allow. The server signs them with its own VAPID key pair, made once with the button below." xml:space="preserve">
     <value>Notificaciones de correo nuevo enviadas a los navegadores y teléfonos que la gente permite. El servidor las firma con su propio par de claves VAPID, creado una vez con el botón de abajo.</value>
   </data>
-  <data name="Notify receiver" xml:space="preserve">
-    <value>Notificar al receptor</value>
+  <data name="Notify the recipients" xml:space="preserve">
+    <value>Notificar a los destinatarios</value>
   </data>
-  <data name="Notify sender" xml:space="preserve">
+  <data name="Notify the sender" xml:space="preserve">
     <value>Notificar al remitente</value>
   </data>
   <data name="Now a mailbox. An account is an address somebody signs in to and receives mail at." xml:space="preserve">
@@ -10386,9 +10371,6 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Return it to the sender (5.7.1)" xml:space="preserve">
     <value>Devolverlo al remitente (5.7.1)</value>
   </data>
-  <data name="Return value for infected" xml:space="preserve">
-    <value>Valor de retorno para infectado</value>
-  </data>
   <data name="Reuse and expiry" xml:space="preserve">
     <value>Reutilización y caducidad</value>
   </data>
@@ -10506,8 +10488,8 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Run a preview first: the options have changed since the last one, so it no longer describes what this would do." xml:space="preserve">
     <value>Ejecute antes una vista previa: las opciones han cambiado desde la última, así que ya no describe lo que esto haría.</value>
   </data>
-  <data name="Run an external command; a configured return value indicates an infected message. Use %FILE% where the file to scan should be passed on the command line. For engines without a CLI (HTTP/API, DLP, SIEM), use an OnAcceptMessage handler on the Event scripts page instead." xml:space="preserve">
-    <value>Ejecutar un comando externo; un valor de retorno configurado indica un mensaje infectado. Use %FILE% donde deba pasarse en la línea de comandos el archivo que se va a analizar. Para motores sin CLI (HTTP/API, DLP, SIEM), use en su lugar un manejador OnAcceptMessage en la página Scripts de eventos.</value>
+  <data name="Run an external command; the exit code set below means an infected message. Use %FILE% where the file to scan should be passed on the command line. For engines without a CLI (HTTP/API, DLP, SIEM), use an OnAcceptMessage handler on the Event scripts page instead." xml:space="preserve">
+    <value>Ejecutar un comando externo; el código de salida indicado abajo señala un mensaje infectado. Use %FILE% donde deba pasarse en la línea de comandos el archivo que se va a analizar. Para motores sin CLI (HTTP/API, DLP, SIEM), use en su lugar un manejador OnAcceptMessage en la página Scripts de eventos.</value>
   </data>
   <data name="Run anti-spam on downloaded mail" xml:space="preserve">
     <value>Ejecutar el antispam en el correo descargado</value>
@@ -11901,6 +11883,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Size limit and scanners…" xml:space="preserve">
     <value>Límite de tamaño y analizadores…</value>
   </data>
+  <data name="Skip greylisting when the connecting address is an A or MX host of the sender's domain" xml:space="preserve">
+    <value>Omitir el greylisting cuando la dirección que se conecta es un host A o MX del dominio del remitente</value>
+  </data>
   <data name="Skip the tour" xml:space="preserve">
     <value>Omitir el recorrido</value>
   </data>
@@ -12420,9 +12405,6 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Test custom scanner" xml:space="preserve">
     <value>Probar el analizador personalizado</value>
   </data>
-  <data name="Test failed: {0}" xml:space="preserve">
-    <value>La prueba falló: {0}</value>
-  </data>
   <data name="Test the connection" xml:space="preserve">
     <value>Probar la conexión</value>
   </data>
@@ -12516,8 +12498,8 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="The HELO name" xml:space="preserve">
     <value>El nombre HELO</value>
   </data>
-  <data name="The HELO/EHLO host" xml:space="preserve">
-    <value>El host HELO/EHLO</value>
+  <data name="The HELO/EHLO name" xml:space="preserve">
+    <value>El nombre HELO/EHLO</value>
   </data>
   <data name="The Host name on the Protocols page is empty, so the server falls back to its Windows computer name - shown above as this machine's name. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
     <value>El nombre de host en la página Protocolos está vacío, así que el servidor recurre a su nombre de equipo de Windows - mostrado arriba como el nombre de esta máquina. Un nombre de equipo a secas no es un nombre DNS público: los receptores que comparan el HELO con el DNS lo penalizarán, y ningún PTR puede coincidir con él. Defina primero un nombre de host real.</value>
@@ -15130,8 +15112,8 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="Which scanners can actually run, what size of message is scanned, and what happens to one that is found to be infected." xml:space="preserve">
     <value>Qué analizadores pueden ejecutarse realmente, qué tamaño de mensaje se analiza y qué le ocurre a uno que resulta estar infectado.</value>
   </data>
-  <data name="Which scanners can actually run, what they are asked to look at, and what happens to a message one of them condemns. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
-    <value>Qué analizadores pueden ejecutarse realmente, qué se les pide que miren y qué le ocurre a un mensaje que uno de ellos condena. Nada de esta página puede editarse - cada sección tiene un botón que abre la página propietaria de sus ajustes.</value>
+  <data name="Which scanners can actually run, what they are asked to look at, and what happens to a message found to be infected. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
+    <value>Qué analizadores pueden ejecutarse realmente, qué se les pide que miren y qué le ocurre a un mensaje en el que se encuentra una infección. Nada de esta página puede editarse - cada sección tiene un botón que abre la página propietaria de sus ajustes.</value>
   </data>
   <data name="Which services are running, who is connected right now, and how long the server has been up." xml:space="preserve">
     <value>Qué servicios están en marcha, quién está conectado ahora mismo y cuánto tiempo lleva el servidor funcionando.</value>
@@ -17012,11 +16994,11 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="the sender's SPF check passed" xml:space="preserve">
     <value>la comprobación SPF del remitente pasó</value>
   </data>
-  <data name="the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
-    <value>el dominio o el host HELO del remitente es una de las {0} entradas de la lista de omisión del greylisting y el mensaje lleva el pase de SPF, DKIM o DMARC que exige esa entrada</value>
-  </data>
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>el dominio del remitente o el nombre HELO es un dominio permitido</value>
+  </data>
+  <data name="the sender's domain or HELO name is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
+    <value>el dominio o el nombre HELO del remitente es una de las {0} entradas de la lista de omisión del greylisting y el mensaje lleva el pase de SPF, DKIM o DMARC que exige esa entrada</value>
   </data>
   <data name="the server is slow" xml:space="preserve">
     <value>el servidor va lento</value>
@@ -17368,6 +17350,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="{0} did not answer within 10 seconds from this machine. Likely causes: no A/CNAME record for mta-sts.{1}, the HTTPS listener is not running (no HTTPS port on the Web services &amp; autoconfiguration page), or a firewall in between. Checked from this machine only." xml:space="preserve">
     <value>{0} no respondió en 10 segundos desde esta máquina. Causas probables: no hay registro A/CNAME para mta-sts.{1}, el oyente HTTPS no está en marcha (sin puerto HTTPS en la página Servicios web y autoconfiguración), o un cortafuegos intermedio. Comprobado solo desde esta máquina.</value>
+  </data>
+  <data name="{0} did not work: {1}" xml:space="preserve">
+    <value>{0} no funcionó: {1}</value>
   </data>
   <data name="{0} domain has trap addresses." xml:space="preserve">
     <value>{0} dominio tiene direcciones trampa.</value>

@@ -1236,7 +1236,9 @@ namespace hMailServer.ControlPanel.Views
                }
                catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
                {
-                  Report_(StatusLevel.Critical, F("Test failed: {0}", ServerSession.DescribeComError(ex)));
+                  // The act by its name, where every failure said "Test failed",
+                  // whichever button it was (review finding F312).
+                  Report_(StatusLevel.Critical, F("{0} did not work: {1}", MnemonicText.Strip(ButtonText), ServerSession.DescribeComError(ex)));
                }
             };
 
@@ -2890,7 +2892,7 @@ namespace hMailServer.ControlPanel.Views
          grey.Settings.Add(new ComText { Path = "AntiSpam.GreyListingInitialDelay", Label = L("Initial delay (minutes)"), Numeric = true });
          grey.Settings.Add(new ComText { Path = "AntiSpam.GreyListingInitialDelete", Label = L("Delete unconfirmed after (days)"), Numeric = true, Divisor = 24 });
          grey.Settings.Add(new ComText { Path = "AntiSpam.GreyListingFinalDelete", Label = L("Delete confirmed after (days)"), Numeric = true, Divisor = 24 });
-         grey.Settings.Add(new ComBool { Path = "AntiSpam.BypassGreylistingOnMailFromMX", Label = L("Bypass when sender matches MX") });
+         grey.Settings.Add(new ComBool { Path = "AntiSpam.BypassGreylistingOnMailFromMX", Label = L("Skip greylisting when the connecting address is an A or MX host of the sender's domain") });
          grey.Settings.Add(new ComBool { Path = "AntiSpam.BypassGreylistingOnSPFSuccess", Label = L("Bypass on SPF success") });
          // The hardened greylisting of 18 September 2026 (discussion #282): each
          // off or inert by default, so a server that never touches them runs
@@ -3117,6 +3119,17 @@ namespace hMailServer.ControlPanel.Views
          Header.PageKey = "antivirus";
          Header.Subtitle = L("Virus scanning and attachment blocking of received messages.");
 
+         // The scanners' tabs in the order the server runs them - ClamWin, the
+         // custom scanner, then ClamAV (Services/VirusPipeline) - each named as the
+         // virus scanning overview names it, where the tabs went ClamAV, ClamWin,
+         // Custom and the scanners were "ClamAV (network daemon)" here and "ClamAV
+         // (clamd, over TCP)" there (review finding F312). Tab() keeps the order
+         // the tabs are first asked for in.
+         Tab(L("General"));
+         Tab(L("ClamWin"));
+         Tab(L("Custom scanner"));
+         Tab(L("ClamAV"));
+
          var general = Card(L("Action & notifications"));
          var action = new ComCombo
          {
@@ -3125,8 +3138,8 @@ namespace hMailServer.ControlPanel.Views
             Options = AntivirusAction,
             Blurb = L("Every attachment is replaced by a short note, not only the infected one; an encrypted message is delivered unchanged.")
          };
-         var notifySender = new ComBool { Path = "AntiVirus.NotifySender", Label = L("Notify sender") };
-         var notifyReceiver = new ComBool { Path = "AntiVirus.NotifyReceiver", Label = L("Notify receiver") };
+         var notifySender = new ComBool { Path = "AntiVirus.NotifySender", Label = L("Notify the sender") };
+         var notifyReceiver = new ComBool { Path = "AntiVirus.NotifyReceiver", Label = L("Notify the recipients") };
          general.Settings.Add(action);
          general.Settings.Add(notifySender);
          general.Settings.Add(notifyReceiver);
@@ -3169,7 +3182,7 @@ namespace hMailServer.ControlPanel.Views
          });
          Tab(L("General")).Cards.Add(failure);
 
-         var clamav = Card(L("ClamAV (network daemon)"));
+         var clamav = Card(L("ClamAV (clamd)"));
          clamav.Settings.Add(new ComBool { Path = "AntiVirus.ClamAVEnabled", Label = L("Scan with clamd") });
          var clamHost = new ComText { Path = "AntiVirus.ClamAVHost", Label = L("Host") };
          var clamPort = new ComText { Path = "AntiVirus.ClamAVPort", Label = L("Port"), Numeric = true };
@@ -3192,7 +3205,7 @@ namespace hMailServer.ControlPanel.Views
          });
          Tab(L("ClamAV")).Cards.Add(clamav);
 
-         var clamwin = Card(L("ClamWin (local executable)"));
+         var clamwin = Card(L("ClamWin"));
          clamwin.Settings.Add(new ComBool { Path = "AntiVirus.ClamWinEnabled", Label = L("Scan with ClamWin") });
          var clamWinExe = new ComText { Path = "AntiVirus.ClamWinExecutable", Label = L("clamscan.exe path"), BrowseFile = true, FileFilter = "Programs (*.exe)|*.exe|All files (*.*)|*.*" };
          var clamWinDb = new ComText { Path = "AntiVirus.ClamWinDBFolder", Label = L("Database folder"), BrowseFolder = true };
@@ -3210,10 +3223,10 @@ namespace hMailServer.ControlPanel.Views
          });
          Tab(L("ClamWin")).Cards.Add(clamwin);
 
-         var custom = Card(L("Custom scanner"), L("Run an external command; a configured return value indicates an infected message. Use %FILE% where the file to scan should be passed on the command line. For engines without a CLI (HTTP/API, DLP, SIEM), use an OnAcceptMessage handler on the Event scripts page instead."));
+         var custom = Card(L("Custom scanner"), L("Run an external command; the exit code set below means an infected message. Use %FILE% where the file to scan should be passed on the command line. For engines without a CLI (HTTP/API, DLP, SIEM), use an OnAcceptMessage handler on the Event scripts page instead."));
          custom.Settings.Add(new ComBool { Path = "AntiVirus.CustomScannerEnabled", Label = L("Use a custom virus scanner") });
          var customExe = new ComText { Path = "AntiVirus.CustomScannerExecutable", Label = L("Command line (use %FILE% for the scanned file)") };
-         var customReturn = new ComText { Path = "AntiVirus.CustomScannerReturnValue", Label = L("Return value for infected"), Numeric = true };
+         var customReturn = new ComText { Path = "AntiVirus.CustomScannerReturnValue", Label = L("Exit code that means infected"), Numeric = true };
          custom.Settings.Add(new ComPreset
          {
             Label = L("Preset engine (fills the command line and return value below \u2013 adjust the path/exit code for your version)"),
@@ -3228,7 +3241,7 @@ namespace hMailServer.ControlPanel.Views
             ButtonText = L("Test custom scanner"),
             Outcome = () => TestCustomScanner(customExe.CurrentText)
          });
-         Tab(L("Custom")).Cards.Add(custom);
+         Tab(L("Custom scanner")).Cards.Add(custom);
 
          // Attachments opened somewhere safe (docs/Sandbox.md). Inert until an
          // administrator names a sandbox, which is a service outside this server,

@@ -3285,8 +3285,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   until 2027-01-09 (90 days left)" stood beside "... is valid until 2027-01-09, 90 days from now"; the status columns
   are Certificate status and Key status, where Certificate and Private key read as repeats of the file columns; and
   the page loads under "Checking the certificate files…" (F311). The auto-ban captions the finding names are left to
-  T3.1 item 9 (F143), which puts them in the sign-in vocabulary. `DnsRecordsCopyTests`, `RulePartTextTests`,
-  `ProtocolsAndDeliveryCopyTests` and `CertificatesAndAccessCopyTests` hold it.
+  T3.1 item 9 (F143), which puts them in the sign-in vocabulary. Spam and virus: each scanner has one name on its
+  settings tab and on the virus scanning overview - ClamWin, Custom scanner, ClamAV (clamd) - where ClamAV was "ClamAV
+  (network daemon)" on one and "ClamAV (clamd, over TCP)" on the other and the custom scanner had three names; its
+  result is "Exit code that means infected"; the notices are Notify the sender and Notify the recipients; the
+  scanners' tabs are in the order the server runs them, ClamWin, Custom scanner, ClamAV; greylisting's MX switch says
+  what it does, "Skip greylisting when the connecting address is an A or MX host of the sender's domain", and the
+  bypass list says Matched on and HELO name as the overview does; the virus overview's subtitle says "a message found
+  to be infected" where it was "condemned", and its card is Attachment blocking; and a settings button's failure names
+  the button, "Test ClamAV connection did not work: ...", where every one said "Test failed" (F312).
+  `DnsRecordsCopyTests`, `RulePartTextTests`, `ProtocolsAndDeliveryCopyTests`, `CertificatesAndAccessCopyTests` and
+  `SpamAndVirusCopyTests` hold it.
 
 ### Administration
 

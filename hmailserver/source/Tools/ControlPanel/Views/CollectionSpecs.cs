@@ -222,7 +222,7 @@ namespace hMailServer.ControlPanel.Views
       private static readonly (int Value, string Label)[] GreyListBypassMatchOptions =
       {
          (1, L("The envelope sender's domain (MAIL FROM)")),
-         (2, L("The HELO/EHLO host")),
+         (2, L("The HELO/EHLO name")),
          (3, L("Either of them"))
       };
 
@@ -251,7 +251,7 @@ namespace hMailServer.ControlPanel.Views
          Fields =
          {
             new FieldSpec { Prop = "Pattern", Label = L("Domain, or .suffix"), GridWidth = 220, Default = "" },
-            new FieldSpec { Prop = "MatchOn", Label = L("Matched against"), Kind = FieldKind.Combo, Options = GreyListBypassMatchOptions, GridWidth = 200, Default = 1 },
+            new FieldSpec { Prop = "MatchOn", Label = L("Matched on"), Kind = FieldKind.Combo, Options = GreyListBypassMatchOptions, GridWidth = 200, Default = 1 },
             // Headed by the result's name alone, reading Required or a dash: the
             // three tick boxes' captions headed 80-pixel columns, in which all
             // three read "Requires…".

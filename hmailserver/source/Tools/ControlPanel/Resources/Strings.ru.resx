@@ -1924,6 +1924,9 @@ Control Panel может читать файлы сообщений только
   <data name="At your DNS host, publish a TXT record named _dmarc.&lt;domain&gt;, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish." xml:space="preserve">
     <value>У своего DNS-провайдера опубликуйте запись TXT с именем _dmarc.&lt;domain&gt;, сначала с v=DMARC1; p=none, пока вы читаете отчёты, затем p=quarantine или p=reject. Страница Записи DNS показывает запись для публикации.</value>
   </data>
+  <data name="Attachment blocking" xml:space="preserve">
+    <value>Блокировка вложений</value>
+  </data>
   <data name="Attachment blocking is switched off, so a pattern added here is not applied until it is turned on." xml:space="preserve">
     <value>Блокировка вложений выключена, поэтому добавленный здесь шаблон не применяется, пока она не будет включена.</value>
   </data>
@@ -1941,9 +1944,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Attachment blocking is switched on with no patterns to block, so it does nothing at all." xml:space="preserve">
     <value>Блокировка вложений включена, но шаблонов для блокировки нет, поэтому она не делает ровно ничего.</value>
-  </data>
-  <data name="Attachment blocking, which is separate" xml:space="preserve">
-    <value>Блокировка вложений — это отдельный механизм</value>
   </data>
   <data name="Attachment name" xml:space="preserve">
     <value>Имя вложения</value>
@@ -2371,9 +2371,6 @@ Control Panel может читать файлы сообщений только
   <data name="Bypass on SPF success" xml:space="preserve">
     <value>Пропускать при успешной проверке SPF</value>
   </data>
-  <data name="Bypass when sender matches MX" xml:space="preserve">
-    <value>Пропускать, когда отправитель совпадает с MX</value>
-  </data>
   <data name="CA certificate for a private endpoint (PEM; empty = the machine's roots)" xml:space="preserve">
     <value>Сертификат ЦС для частной конечной точки (PEM; пусто = корневые сертификаты компьютера)</value>
   </data>
@@ -2755,11 +2752,8 @@ Control Panel может читать файлы сообщений только
   <data name="ClamAV" xml:space="preserve">
     <value>ClamAV</value>
   </data>
-  <data name="ClamAV (clamd, over TCP)" xml:space="preserve">
-    <value>ClamAV (clamd, по TCP)</value>
-  </data>
-  <data name="ClamAV (network daemon)" xml:space="preserve">
-    <value>ClamAV (сетевой демон)</value>
+  <data name="ClamAV (clamd)" xml:space="preserve">
+    <value>ClamAV (clamd)</value>
   </data>
   <data name="ClamAV and external scanners, and what to do with a message that is found to be infected." xml:space="preserve">
     <value>ClamAV и внешние сканеры, а также что делать с сообщением, признанным заражённым.</value>
@@ -2772,9 +2766,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="ClamWin" xml:space="preserve">
     <value>ClamWin</value>
-  </data>
-  <data name="ClamWin (local executable)" xml:space="preserve">
-    <value>ClamWin (локальная программа)</value>
   </data>
   <data name="ClamWin and ClamAV both use the same signature database. Running both scans every message twice against the same definitions." xml:space="preserve">
     <value>ClamWin и ClamAV используют одну и ту же базу сигнатур. Если включить оба, каждое сообщение проверяется дважды по одним и тем же определениям.</value>
@@ -3615,17 +3606,11 @@ Control Panel может читать файлы сообщений только
   <data name="Current key" xml:space="preserve">
     <value>Текущий ключ</value>
   </data>
-  <data name="Custom" xml:space="preserve">
-    <value>Свой</value>
-  </data>
   <data name="Custom header…" xml:space="preserve">
     <value>Свой заголовок…</value>
   </data>
   <data name="Custom scanner" xml:space="preserve">
     <value>Свой сканер</value>
-  </data>
-  <data name="Custom scanner (external program)" xml:space="preserve">
-    <value>Свой сканер (внешняя программа)</value>
   </data>
   <data name="Cut" xml:space="preserve">
     <value>Вырезать</value>
@@ -5155,6 +5140,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Exempt: may exchange mail with anyone" xml:space="preserve">
     <value>Исключение: может переписываться с кем угодно</value>
+  </data>
+  <data name="Exit code that means infected" xml:space="preserve">
+    <value>Код завершения, означающий заражение</value>
   </data>
   <data name="Expand the navigation" xml:space="preserve">
     <value>Развернуть навигацию</value>
@@ -7053,9 +7041,6 @@ Control Panel может читать файлы сообщений только
   <data name="Match any criterion (OR)" xml:space="preserve">
     <value>Соответствие любому критерию (ИЛИ)</value>
   </data>
-  <data name="Matched against" xml:space="preserve">
-    <value>Сравнивается с</value>
-  </data>
   <data name="Matched on" xml:space="preserve">
     <value>Сопоставлять с</value>
   </data>
@@ -8375,10 +8360,10 @@ Control Panel может читать файлы сообщений только
   <data name="Notifications of new mail sent to the browsers and phones people allow. The server signs them with its own VAPID key pair, made once with the button below." xml:space="preserve">
     <value>Уведомления о новой почте в браузеры и телефоны, которые разрешат люди. Сервер подписывает их собственной парой ключей VAPID, создаваемой один раз кнопкой ниже.</value>
   </data>
-  <data name="Notify receiver" xml:space="preserve">
-    <value>Уведомлять получателя</value>
+  <data name="Notify the recipients" xml:space="preserve">
+    <value>Уведомлять получателей</value>
   </data>
-  <data name="Notify sender" xml:space="preserve">
+  <data name="Notify the sender" xml:space="preserve">
     <value>Уведомлять отправителя</value>
   </data>
   <data name="Now a mailbox. An account is an address somebody signs in to and receives mail at." xml:space="preserve">
@@ -10495,9 +10480,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Return it to the sender (5.7.1)" xml:space="preserve">
     <value>Вернуть его отправителю (5.7.1)</value>
   </data>
-  <data name="Return value for infected" xml:space="preserve">
-    <value>Возвращаемое значение при заражении</value>
-  </data>
   <data name="Reuse and expiry" xml:space="preserve">
     <value>Повторное использование и срок действия</value>
   </data>
@@ -10615,8 +10597,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Run a preview first: the options have changed since the last one, so it no longer describes what this would do." xml:space="preserve">
     <value>Сначала выполните предварительный просмотр: параметры изменились с прошлого раза, поэтому он больше не описывает то, что здесь произойдёт.</value>
   </data>
-  <data name="Run an external command; a configured return value indicates an infected message. Use %FILE% where the file to scan should be passed on the command line. For engines without a CLI (HTTP/API, DLP, SIEM), use an OnAcceptMessage handler on the Event scripts page instead." xml:space="preserve">
-    <value>Запускать внешнюю команду; заданное возвращаемое значение означает заражённое сообщение. Укажите %FILE% там, где в командной строке должен передаваться проверяемый файл. Для движков без интерфейса командной строки (HTTP/API, DLP, SIEM) используйте вместо этого обработчик OnAcceptMessage на странице «Сценарии событий».</value>
+  <data name="Run an external command; the exit code set below means an infected message. Use %FILE% where the file to scan should be passed on the command line. For engines without a CLI (HTTP/API, DLP, SIEM), use an OnAcceptMessage handler on the Event scripts page instead." xml:space="preserve">
+    <value>Запускать внешнюю команду; заданный ниже код завершения означает заражённое сообщение. Укажите %FILE% там, где в командной строке должен передаваться проверяемый файл. Для движков без интерфейса командной строки (HTTP/API, DLP, SIEM) используйте вместо этого обработчик OnAcceptMessage на странице «Сценарии событий».</value>
   </data>
   <data name="Run anti-spam on downloaded mail" xml:space="preserve">
     <value>Проверять скачанную почту антиспамом</value>
@@ -12043,6 +12025,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Size limit and scanners…" xml:space="preserve">
     <value>Ограничение размера и сканеры…</value>
   </data>
+  <data name="Skip greylisting when the connecting address is an A or MX host of the sender's domain" xml:space="preserve">
+    <value>Пропускать серые списки, когда подключающийся адрес - узел A или MX домена отправителя</value>
+  </data>
   <data name="Skip the tour" xml:space="preserve">
     <value>Пропустить экскурсию</value>
   </data>
@@ -12565,9 +12550,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Test custom scanner" xml:space="preserve">
     <value>Проверить пользовательский сканер</value>
   </data>
-  <data name="Test failed: {0}" xml:space="preserve">
-    <value>Проверка не удалась: {0}</value>
-  </data>
   <data name="Test the connection" xml:space="preserve">
     <value>Проверить подключение</value>
   </data>
@@ -12661,8 +12643,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The HELO name" xml:space="preserve">
     <value>Имя HELO</value>
   </data>
-  <data name="The HELO/EHLO host" xml:space="preserve">
-    <value>Хост HELO/EHLO</value>
+  <data name="The HELO/EHLO name" xml:space="preserve">
+    <value>Имя HELO/EHLO</value>
   </data>
   <data name="The Host name on the Protocols page is empty, so the server falls back to its Windows computer name - shown above as this machine's name. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
     <value>Поле «Имя узла» на странице «Протоколы» пусто, поэтому сервер использует вместо него имя своего компьютера Windows — показано выше как имя этого компьютера. Голое имя компьютера не является публичным именем DNS: получатели, сверяющие HELO с DNS, начислят за него штраф, и никакая запись PTR с ним согласоваться не может. Сначала задайте настоящее имя узла.</value>
@@ -15308,8 +15290,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Which scanners can actually run, what size of message is scanned, and what happens to one that is found to be infected." xml:space="preserve">
     <value>Какие сканеры действительно могут работать, сообщения какого размера сканируются и что происходит с тем, что признано заражённым.</value>
   </data>
-  <data name="Which scanners can actually run, what they are asked to look at, and what happens to a message one of them condemns. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
-    <value>Какие сканеры действительно могут работать, на что их просят смотреть и что происходит с сообщением, которое один из них осудил. На этой странице ничего нельзя редактировать - в каждом разделе есть кнопка, открывающая страницу, которой принадлежат его параметры.</value>
+  <data name="Which scanners can actually run, what they are asked to look at, and what happens to a message found to be infected. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
+    <value>Какие сканеры действительно могут работать, на что их просят смотреть и что происходит с сообщением, в котором найдено заражение. На этой странице ничего нельзя редактировать - в каждом разделе есть кнопка, открывающая страницу, которой принадлежат его параметры.</value>
   </data>
   <data name="Which services are running, who is connected right now, and how long the server has been up." xml:space="preserve">
     <value>Какие службы работают, кто подключён прямо сейчас и как долго сервер работает.</value>
@@ -17208,11 +17190,11 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="the sender's SPF check passed" xml:space="preserve">
     <value>проверка SPF отправителя пройдена</value>
   </data>
-  <data name="the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
-    <value>домен или хост HELO отправителя является одной из {0} записей списка обхода серых списков, и сообщение несёт успешную проверку SPF, DKIM или DMARC, которой требует эта запись</value>
-  </data>
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>домен отправителя или имя HELO — разрешённый домен</value>
+  </data>
+  <data name="the sender's domain or HELO name is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
+    <value>домен или имя HELO отправителя является одной из {0} записей списка обхода серых списков, и сообщение несёт успешную проверку SPF, DKIM или DMARC, которой требует эта запись</value>
   </data>
   <data name="the server is slow" xml:space="preserve">
     <value>сервер работает медленно</value>
@@ -17624,6 +17606,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} did not answer within 10 seconds from this machine. Likely causes: no A/CNAME record for mta-sts.{1}, the HTTPS listener is not running (no HTTPS port on the Web services &amp; autoconfiguration page), or a firewall in between. Checked from this machine only." xml:space="preserve">
     <value>{0} не ответил в течение 10 секунд с этого компьютера. Вероятные причины: нет записи A/CNAME для mta-sts.{1}, не запущен прослушиватель HTTPS (нет порта HTTPS на странице «Веб-службы и автоконфигурация») или межсетевой экран на пути. Проверено только с этого компьютера.</value>
+  </data>
+  <data name="{0} did not work: {1}" xml:space="preserve">
+    <value>{0} - не удалось: {1}</value>
   </data>
   <data name="{0} domain has trap addresses." xml:space="preserve">
     <value>У {0} домена есть адреса-ловушки.</value>

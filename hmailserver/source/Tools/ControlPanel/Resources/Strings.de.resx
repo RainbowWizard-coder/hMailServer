@@ -1906,6 +1906,9 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="At your DNS host, publish a TXT record named _dmarc.&lt;domain&gt;, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish." xml:space="preserve">
     <value>Veröffentlichen Sie bei Ihrem DNS-Anbieter einen TXT-Eintrag namens _dmarc.&lt;domain&gt;, zunächst mit v=DMARC1; p=none, solange Sie die Berichte lesen, dann mit p=quarantine oder p=reject. Die Seite DNS-Einträge zeigt den zu veröffentlichenden Eintrag.</value>
   </data>
+  <data name="Attachment blocking" xml:space="preserve">
+    <value>Sperren von Anhängen</value>
+  </data>
   <data name="Attachment blocking is switched off, so a pattern added here is not applied until it is turned on." xml:space="preserve">
     <value>Die Anhangsperre ist ausgeschaltet, daher wird ein hier hinzugefügtes Muster erst angewendet, wenn sie eingeschaltet wird.</value>
   </data>
@@ -1920,9 +1923,6 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   </data>
   <data name="Attachment blocking is switched on with no patterns to block, so it does nothing at all." xml:space="preserve">
     <value>Die Anhangsperre ist eingeschaltet, hat aber keine Muster zum Sperren, sie tut also überhaupt nichts.</value>
-  </data>
-  <data name="Attachment blocking, which is separate" xml:space="preserve">
-    <value>Anhangsperre, die davon getrennt ist</value>
   </data>
   <data name="Attachment name" xml:space="preserve">
     <value>Anhangname</value>
@@ -2347,9 +2347,6 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Bypass on SPF success" xml:space="preserve">
     <value>Bei SPF-Erfolg umgehen</value>
   </data>
-  <data name="Bypass when sender matches MX" xml:space="preserve">
-    <value>Umgehen, wenn der Absender zum MX passt</value>
-  </data>
   <data name="CA certificate for a private endpoint (PEM; empty = the machine's roots)" xml:space="preserve">
     <value>CA-Zertifikat für einen privaten Endpunkt (PEM; leer = die Stammzertifikate des Rechners)</value>
   </data>
@@ -2731,11 +2728,8 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="ClamAV" xml:space="preserve">
     <value>ClamAV</value>
   </data>
-  <data name="ClamAV (clamd, over TCP)" xml:space="preserve">
-    <value>ClamAV (clamd, über TCP)</value>
-  </data>
-  <data name="ClamAV (network daemon)" xml:space="preserve">
-    <value>ClamAV (Netzwerk-Daemon)</value>
+  <data name="ClamAV (clamd)" xml:space="preserve">
+    <value>ClamAV (clamd)</value>
   </data>
   <data name="ClamAV and external scanners, and what to do with a message that is found to be infected." xml:space="preserve">
     <value>ClamAV und externe Scanner, und was mit einer als infiziert erkannten Nachricht geschieht.</value>
@@ -2748,9 +2742,6 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   </data>
   <data name="ClamWin" xml:space="preserve">
     <value>ClamWin</value>
-  </data>
-  <data name="ClamWin (local executable)" xml:space="preserve">
-    <value>ClamWin (lokale ausführbare Datei)</value>
   </data>
   <data name="ClamWin and ClamAV both use the same signature database. Running both scans every message twice against the same definitions." xml:space="preserve">
     <value>ClamWin und ClamAV verwenden beide dieselbe Signaturdatenbank. Beide zu betreiben scannt jede Nachricht zweimal gegen dieselben Definitionen.</value>
@@ -3591,17 +3582,11 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Current key" xml:space="preserve">
     <value>Aktueller Schlüssel</value>
   </data>
-  <data name="Custom" xml:space="preserve">
-    <value>Benutzerdefiniert</value>
-  </data>
   <data name="Custom header…" xml:space="preserve">
     <value>Benutzerdefinierter Header…</value>
   </data>
   <data name="Custom scanner" xml:space="preserve">
     <value>Benutzerdefinierter Scanner</value>
-  </data>
-  <data name="Custom scanner (external program)" xml:space="preserve">
-    <value>Benutzerdefinierter Scanner (externes Programm)</value>
   </data>
   <data name="Cut" xml:space="preserve">
     <value>Ausschneiden</value>
@@ -5094,6 +5079,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   </data>
   <data name="Exempt: may exchange mail with anyone" xml:space="preserve">
     <value>Ausgenommen: darf mit jedem Post austauschen</value>
+  </data>
+  <data name="Exit code that means infected" xml:space="preserve">
+    <value>Exit-Code, der „infiziert“ bedeutet</value>
   </data>
   <data name="Expand the navigation" xml:space="preserve">
     <value>Navigation ausklappen</value>
@@ -6980,9 +6968,6 @@ Jedes Web-Push-Abonnement unter dem jetzigen Paar funktioniert sofort nicht mehr
   <data name="Match any criterion (OR)" xml:space="preserve">
     <value>Irgendein Kriterium erfüllen (ODER)</value>
   </data>
-  <data name="Matched against" xml:space="preserve">
-    <value>Verglichen mit</value>
-  </data>
   <data name="Matched on" xml:space="preserve">
     <value>Abgeglichen mit</value>
   </data>
@@ -8281,11 +8266,11 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="Notifications of new mail sent to the browsers and phones people allow. The server signs them with its own VAPID key pair, made once with the button below." xml:space="preserve">
     <value>Benachrichtigungen über neue Post an die Browser und Telefone, die Leute zulassen. Der Server signiert sie mit seinem eigenen VAPID-Schlüsselpaar, das einmal mit der Schaltfläche unten erzeugt wird.</value>
   </data>
-  <data name="Notify receiver" xml:space="preserve">
-    <value>Empfänger benachrichtigen</value>
+  <data name="Notify the recipients" xml:space="preserve">
+    <value>Die Empfänger benachrichtigen</value>
   </data>
-  <data name="Notify sender" xml:space="preserve">
-    <value>Absender benachrichtigen</value>
+  <data name="Notify the sender" xml:space="preserve">
+    <value>Den Absender benachrichtigen</value>
   </data>
   <data name="Now a mailbox. An account is an address somebody signs in to and receives mail at." xml:space="preserve">
     <value>Jetzt ein Postfach. Ein Konto ist eine Adresse, an der sich jemand anmeldet und Mail empfängt.</value>
@@ -10386,9 +10371,6 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="Return it to the sender (5.7.1)" xml:space="preserve">
     <value>An den Absender zurückschicken (5.7.1)</value>
   </data>
-  <data name="Return value for infected" xml:space="preserve">
-    <value>Rückgabewert für infiziert</value>
-  </data>
   <data name="Reuse and expiry" xml:space="preserve">
     <value>Wiederverwendung und Ablauf</value>
   </data>
@@ -10506,8 +10488,8 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="Run a preview first: the options have changed since the last one, so it no longer describes what this would do." xml:space="preserve">
     <value>Führen Sie zuerst eine Vorschau aus: die Optionen haben sich seit der letzten geändert, sie beschreibt also nicht mehr, was dies tun würde.</value>
   </data>
-  <data name="Run an external command; a configured return value indicates an infected message. Use %FILE% where the file to scan should be passed on the command line. For engines without a CLI (HTTP/API, DLP, SIEM), use an OnAcceptMessage handler on the Event scripts page instead." xml:space="preserve">
-    <value>Einen externen Befehl ausführen; ein konfigurierter Rückgabewert zeigt eine infizierte Nachricht an. Verwenden Sie %FILE% dort, wo die zu scannende Datei auf der Befehlszeile übergeben werden soll. Für Engines ohne CLI (HTTP/API, DLP, SIEM) verwenden Sie stattdessen einen OnAcceptMessage-Handler auf der Seite Ereignis-Skripte.</value>
+  <data name="Run an external command; the exit code set below means an infected message. Use %FILE% where the file to scan should be passed on the command line. For engines without a CLI (HTTP/API, DLP, SIEM), use an OnAcceptMessage handler on the Event scripts page instead." xml:space="preserve">
+    <value>Einen externen Befehl ausführen; der unten eingestellte Exit-Code zeigt eine infizierte Nachricht an. Verwenden Sie %FILE% dort, wo die zu scannende Datei auf der Befehlszeile übergeben werden soll. Für Engines ohne CLI (HTTP/API, DLP, SIEM) verwenden Sie stattdessen einen OnAcceptMessage-Handler auf der Seite Ereignis-Skripte.</value>
   </data>
   <data name="Run anti-spam on downloaded mail" xml:space="preserve">
     <value>Anti-Spam auf heruntergeladener Mail ausführen</value>
@@ -11901,6 +11883,9 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="Size limit and scanners…" xml:space="preserve">
     <value>Größengrenze und Scanner…</value>
   </data>
+  <data name="Skip greylisting when the connecting address is an A or MX host of the sender's domain" xml:space="preserve">
+    <value>Greylisting überspringen, wenn die verbindende Adresse ein A- oder MX-Host der Domain des Absenders ist</value>
+  </data>
   <data name="Skip the tour" xml:space="preserve">
     <value>Rundgang überspringen</value>
   </data>
@@ -12420,9 +12405,6 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="Test custom scanner" xml:space="preserve">
     <value>Den eigenen Scanner testen</value>
   </data>
-  <data name="Test failed: {0}" xml:space="preserve">
-    <value>Der Test schlug fehl: {0}</value>
-  </data>
   <data name="Test the connection" xml:space="preserve">
     <value>Die Verbindung testen</value>
   </data>
@@ -12516,8 +12498,8 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="The HELO name" xml:space="preserve">
     <value>Der HELO-Name</value>
   </data>
-  <data name="The HELO/EHLO host" xml:space="preserve">
-    <value>Der HELO/EHLO-Host</value>
+  <data name="The HELO/EHLO name" xml:space="preserve">
+    <value>Der HELO/EHLO-Name</value>
   </data>
   <data name="The Host name on the Protocols page is empty, so the server falls back to its Windows computer name - shown above as this machine's name. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
     <value>Der Hostname auf der Seite Protokolle ist leer, der Server greift also auf seinen Windows-Computernamen zurück - oben als Name dieses Rechners angezeigt. Ein bloßer Computername ist kein öffentlicher DNS-Name: Empfänger, die HELO mit dem DNS vergleichen, bewerten ihn negativ, und kein PTR kann mit ihm übereinstimmen. Setzen Sie zuerst einen echten Hostnamen.</value>
@@ -15130,8 +15112,8 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="Which scanners can actually run, what size of message is scanned, and what happens to one that is found to be infected." xml:space="preserve">
     <value>Welche Scanner tatsächlich laufen können, welche Nachrichtengröße gescannt wird und was mit einer Nachricht geschieht, die als infiziert erkannt wird.</value>
   </data>
-  <data name="Which scanners can actually run, what they are asked to look at, and what happens to a message one of them condemns. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
-    <value>Welche Scanner tatsächlich laufen können, was sie sich ansehen sollen und was mit einer Nachricht geschieht, die einer von ihnen verurteilt. Auf dieser Seite lässt sich nichts bearbeiten - jeder Abschnitt hat eine Schaltfläche zu der Seite, der seine Einstellungen gehören.</value>
+  <data name="Which scanners can actually run, what they are asked to look at, and what happens to a message found to be infected. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
+    <value>Welche Scanner tatsächlich laufen können, was sie sich ansehen sollen und was mit einer Nachricht geschieht, die als infiziert erkannt wird. Auf dieser Seite lässt sich nichts bearbeiten - jeder Abschnitt hat eine Schaltfläche zu der Seite, der seine Einstellungen gehören.</value>
   </data>
   <data name="Which services are running, who is connected right now, and how long the server has been up." xml:space="preserve">
     <value>Welche Dienste laufen, wer gerade verbunden ist und wie lange der Server schon läuft.</value>
@@ -17012,11 +16994,11 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="the sender's SPF check passed" xml:space="preserve">
     <value>die SPF-Prüfung des Absenders bestanden wurde</value>
   </data>
-  <data name="the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
-    <value>die Domain oder der HELO-Host des Absenders ist einer der {0} Einträge der Greylisting-Umgehungsliste und die Nachricht trägt das bestandene SPF, DKIM oder DMARC, das dieser Eintrag verlangt</value>
-  </data>
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>die Domain des Absenders oder der HELO-Name eine zugelassene Domain ist</value>
+  </data>
+  <data name="the sender's domain or HELO name is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
+    <value>die Domain oder der HELO-Name des Absenders ist einer der {0} Einträge der Greylisting-Umgehungsliste und die Nachricht trägt das bestandene SPF, DKIM oder DMARC, das dieser Eintrag verlangt</value>
   </data>
   <data name="the server is slow" xml:space="preserve">
     <value>der Server ist langsam</value>
@@ -17368,6 +17350,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="{0} did not answer within 10 seconds from this machine. Likely causes: no A/CNAME record for mta-sts.{1}, the HTTPS listener is not running (no HTTPS port on the Web services &amp; autoconfiguration page), or a firewall in between. Checked from this machine only." xml:space="preserve">
     <value>{0} hat von diesem Rechner aus nicht innerhalb von 10 Sekunden geantwortet. Wahrscheinliche Ursachen: kein A/CNAME-Eintrag für mta-sts.{1}, der HTTPS-Listener läuft nicht (kein HTTPS-Port auf der Seite Webdienste und Autokonfiguration), oder eine Firewall dazwischen. Nur von diesem Rechner aus geprüft.</value>
+  </data>
+  <data name="{0} did not work: {1}" xml:space="preserve">
+    <value>{0} hat nicht funktioniert: {1}</value>
   </data>
   <data name="{0} domain has trap addresses." xml:space="preserve">
     <value>{0} Domain hat Fallenadressen.</value>

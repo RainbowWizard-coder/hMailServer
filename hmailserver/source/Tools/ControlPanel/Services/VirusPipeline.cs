@@ -284,7 +284,7 @@ namespace hMailServer.ControlPanel.Services
          //    the database folder to the executable on the command line.
          bool clamWinUsable = !IsBlank(config.ClamWinExecutable) && !IsBlank(config.ClamWinDatabaseFolder);
          scanners.Add(new VirusScannerEntry(
-            "clamwin", 1, L("ClamWin (local executable)"),
+            "clamwin", 1, L("ClamWin"),
             config.ClamWinEnabled,
             config.ClamWinEnabled && clamWinUsable,
             IsBlank(config.ClamWinExecutable) ? L("No executable set") : config.ClamWinExecutable,
@@ -302,7 +302,7 @@ namespace hMailServer.ControlPanel.Services
          //    that means "infected" is a number and 0 is a legitimate choice, so it
          //    is never treated as missing.
          scanners.Add(new VirusScannerEntry(
-            "custom", 2, L("Custom scanner (external program)"),
+            "custom", 2, L("Custom scanner"),
             config.CustomScannerEnabled,
             config.CustomScannerEnabled && !IsBlank(config.CustomScannerExecutable),
             IsBlank(config.CustomScannerExecutable)
@@ -319,7 +319,7 @@ namespace hMailServer.ControlPanel.Services
          //    default, it is an address nothing listens on.
          bool clamAvUsable = !IsBlank(config.ClamAvHost) && config.ClamAvPort > 0 && config.ClamAvPort <= 65535;
          scanners.Add(new VirusScannerEntry(
-            "clamav", 3, L("ClamAV (clamd, over TCP)"),
+            "clamav", 3, L("ClamAV (clamd)"),
             config.ClamAvEnabled,
             config.ClamAvEnabled && clamAvUsable,
             IsBlank(config.ClamAvHost)

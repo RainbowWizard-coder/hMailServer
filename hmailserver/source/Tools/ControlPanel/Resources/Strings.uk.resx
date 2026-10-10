@@ -1924,6 +1924,9 @@
   <data name="At your DNS host, publish a TXT record named _dmarc.&lt;domain&gt;, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish." xml:space="preserve">
     <value>У свого DNS-провайдера опублікуйте запис TXT з іменем _dmarc.&lt;domain&gt;, спочатку з v=DMARC1; p=none, доки ви читаєте звіти, потім p=quarantine або p=reject. Сторінка DNS-записи показує запис для публікації.</value>
   </data>
+  <data name="Attachment blocking" xml:space="preserve">
+    <value>Блокування вкладень</value>
+  </data>
   <data name="Attachment blocking is switched off, so a pattern added here is not applied until it is turned on." xml:space="preserve">
     <value>Блокування вкладень вимкнено, тож доданий тут шаблон не застосовується, доки блокування не буде ввімкнено.</value>
   </data>
@@ -1941,9 +1944,6 @@
   </data>
   <data name="Attachment blocking is switched on with no patterns to block, so it does nothing at all." xml:space="preserve">
     <value>Блокування вкладень увімкнено, але шаблонів для блокування немає, тож воно взагалі нічого не робить.</value>
-  </data>
-  <data name="Attachment blocking, which is separate" xml:space="preserve">
-    <value>Блокування вкладень, яке є окремим механізмом</value>
   </data>
   <data name="Attachment name" xml:space="preserve">
     <value>Ім’я вкладення</value>
@@ -2371,9 +2371,6 @@
   <data name="Bypass on SPF success" xml:space="preserve">
     <value>Пропускати за успішної перевірки SPF</value>
   </data>
-  <data name="Bypass when sender matches MX" xml:space="preserve">
-    <value>Пропускати, коли відправник збігається з MX</value>
-  </data>
   <data name="CA certificate for a private endpoint (PEM; empty = the machine's roots)" xml:space="preserve">
     <value>Сертифікат ЦС для приватної кінцевої точки (PEM; порожньо = кореневі сертифікати комп'ютера)</value>
   </data>
@@ -2755,11 +2752,8 @@
   <data name="ClamAV" xml:space="preserve">
     <value>ClamAV</value>
   </data>
-  <data name="ClamAV (clamd, over TCP)" xml:space="preserve">
-    <value>ClamAV (clamd, через TCP)</value>
-  </data>
-  <data name="ClamAV (network daemon)" xml:space="preserve">
-    <value>ClamAV (мережева служба)</value>
+  <data name="ClamAV (clamd)" xml:space="preserve">
+    <value>ClamAV (clamd)</value>
   </data>
   <data name="ClamAV and external scanners, and what to do with a message that is found to be infected." xml:space="preserve">
     <value>ClamAV і зовнішні сканери, а також те, що робити з повідомленням, у якому виявлено зараження.</value>
@@ -2772,9 +2766,6 @@
   </data>
   <data name="ClamWin" xml:space="preserve">
     <value>ClamWin</value>
-  </data>
-  <data name="ClamWin (local executable)" xml:space="preserve">
-    <value>ClamWin (локальний виконуваний файл)</value>
   </data>
   <data name="ClamWin and ClamAV both use the same signature database. Running both scans every message twice against the same definitions." xml:space="preserve">
     <value>ClamWin і ClamAV використовують ту саму базу сигнатур. Якщо ввімкнено обидва, кожне повідомлення сканується двічі за тими самими визначеннями.</value>
@@ -3615,17 +3606,11 @@
   <data name="Current key" xml:space="preserve">
     <value>Поточний ключ</value>
   </data>
-  <data name="Custom" xml:space="preserve">
-    <value>Власний</value>
-  </data>
   <data name="Custom header…" xml:space="preserve">
     <value>Власний заголовок…</value>
   </data>
   <data name="Custom scanner" xml:space="preserve">
     <value>Власний сканер</value>
-  </data>
-  <data name="Custom scanner (external program)" xml:space="preserve">
-    <value>Власний сканер (зовнішня програма)</value>
   </data>
   <data name="Cut" xml:space="preserve">
     <value>Вирізати</value>
@@ -5155,6 +5140,9 @@
   </data>
   <data name="Exempt: may exchange mail with anyone" xml:space="preserve">
     <value>Виняток: може листуватися з будь-ким</value>
+  </data>
+  <data name="Exit code that means infected" xml:space="preserve">
+    <value>Код завершення, що означає зараження</value>
   </data>
   <data name="Expand the navigation" xml:space="preserve">
     <value>Розгорнути навігацію</value>
@@ -7053,9 +7041,6 @@
   <data name="Match any criterion (OR)" xml:space="preserve">
     <value>Відповідає будь-який критерій (OR)</value>
   </data>
-  <data name="Matched against" xml:space="preserve">
-    <value>Порівнюється з</value>
-  </data>
   <data name="Matched on" xml:space="preserve">
     <value>Зіставляти з</value>
   </data>
@@ -8375,10 +8360,10 @@
   <data name="Notifications of new mail sent to the browsers and phones people allow. The server signs them with its own VAPID key pair, made once with the button below." xml:space="preserve">
     <value>Сповіщення про нову пошту в браузери й телефони, які дозволять люди. Сервер підписує їх власною парою ключів VAPID, яку створюють один раз кнопкою нижче.</value>
   </data>
-  <data name="Notify receiver" xml:space="preserve">
-    <value>Сповістити отримувача</value>
+  <data name="Notify the recipients" xml:space="preserve">
+    <value>Сповістити отримувачів</value>
   </data>
-  <data name="Notify sender" xml:space="preserve">
+  <data name="Notify the sender" xml:space="preserve">
     <value>Сповістити відправника</value>
   </data>
   <data name="Now a mailbox. An account is an address somebody signs in to and receives mail at." xml:space="preserve">
@@ -10495,9 +10480,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Return it to the sender (5.7.1)" xml:space="preserve">
     <value>Повернути його відправникові (5.7.1)</value>
   </data>
-  <data name="Return value for infected" xml:space="preserve">
-    <value>Значення повернення для зараженого</value>
-  </data>
   <data name="Reuse and expiry" xml:space="preserve">
     <value>Повторне використання та термін дії</value>
   </data>
@@ -10615,8 +10597,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Run a preview first: the options have changed since the last one, so it no longer describes what this would do." xml:space="preserve">
     <value>Спершу виконайте попередній перегляд: параметри змінилися після попереднього, тому він більше не описує, що це зробило б.</value>
   </data>
-  <data name="Run an external command; a configured return value indicates an infected message. Use %FILE% where the file to scan should be passed on the command line. For engines without a CLI (HTTP/API, DLP, SIEM), use an OnAcceptMessage handler on the Event scripts page instead." xml:space="preserve">
-    <value>Запускає зовнішню команду; налаштоване значення повернення означає заражене повідомлення. Використовуйте %FILE% там, де в командному рядку має передаватися файл для сканування. Для рушіїв без CLI (HTTP/API, DLP, SIEM) використовуйте натомість обробник OnAcceptMessage на сторінці «Скрипти подій».</value>
+  <data name="Run an external command; the exit code set below means an infected message. Use %FILE% where the file to scan should be passed on the command line. For engines without a CLI (HTTP/API, DLP, SIEM), use an OnAcceptMessage handler on the Event scripts page instead." xml:space="preserve">
+    <value>Запускає зовнішню команду; заданий нижче код завершення означає заражене повідомлення. Використовуйте %FILE% там, де в командному рядку має передаватися файл для сканування. Для рушіїв без CLI (HTTP/API, DLP, SIEM) використовуйте натомість обробник OnAcceptMessage на сторінці «Скрипти подій».</value>
   </data>
   <data name="Run anti-spam on downloaded mail" xml:space="preserve">
     <value>Виконувати захист від спаму для завантаженої пошти</value>
@@ -12043,6 +12025,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Size limit and scanners…" xml:space="preserve">
     <value>Обмеження розміру та сканери…</value>
   </data>
+  <data name="Skip greylisting when the connecting address is an A or MX host of the sender's domain" xml:space="preserve">
+    <value>Пропускати сірий список, коли адреса, що підключається, - вузол A або MX домену відправника</value>
+  </data>
   <data name="Skip the tour" xml:space="preserve">
     <value>Пропустити екскурсію</value>
   </data>
@@ -12565,9 +12550,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Test custom scanner" xml:space="preserve">
     <value>Перевірити власний сканер</value>
   </data>
-  <data name="Test failed: {0}" xml:space="preserve">
-    <value>Тест не вдався: {0}</value>
-  </data>
   <data name="Test the connection" xml:space="preserve">
     <value>Перевірити з'єднання</value>
   </data>
@@ -12661,8 +12643,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The HELO name" xml:space="preserve">
     <value>Ім’я HELO</value>
   </data>
-  <data name="The HELO/EHLO host" xml:space="preserve">
-    <value>Хост HELO/EHLO</value>
+  <data name="The HELO/EHLO name" xml:space="preserve">
+    <value>Ім’я HELO/EHLO</value>
   </data>
   <data name="The Host name on the Protocols page is empty, so the server falls back to its Windows computer name - shown above as this machine's name. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
     <value>Ім'я вузла на сторінці «Протоколи» порожнє, тому сервер відкочується до імені свого комп'ютера Windows — показано вище як ім’я цього комп’ютера. Голе ім'я комп'ютера - не публічне ім'я DNS: отримувачі, які порівнюють HELO з DNS, штрафуватимуть його, і жоден PTR не може з ним збігтися. Спершу задайте справжнє ім'я вузла.</value>
@@ -15308,8 +15290,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Which scanners can actually run, what size of message is scanned, and what happens to one that is found to be infected." xml:space="preserve">
     <value>Які сканери справді можуть працювати, повідомлення якого розміру скануються і що відбувається з тим, що визнано зараженим.</value>
   </data>
-  <data name="Which scanners can actually run, what they are asked to look at, and what happens to a message one of them condemns. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
-    <value>Які сканери справді можуть працювати, на що їх просять дивитися і що відбувається з повідомленням, яке один із них засудив. На цій сторінці нічого не можна редагувати - у кожному розділі є кнопка, що відкриває сторінку, якій належать його параметри.</value>
+  <data name="Which scanners can actually run, what they are asked to look at, and what happens to a message found to be infected. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
+    <value>Які сканери справді можуть працювати, на що їх просять дивитися і що відбувається з повідомленням, у якому знайдено зараження. На цій сторінці нічого не можна редагувати - у кожному розділі є кнопка, що відкриває сторінку, якій належать його параметри.</value>
   </data>
   <data name="Which services are running, who is connected right now, and how long the server has been up." xml:space="preserve">
     <value>Які служби працюють, хто під'єднаний просто зараз і як довго сервер працює.</value>
@@ -17208,11 +17190,11 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="the sender's SPF check passed" xml:space="preserve">
     <value>перевірку SPF відправника пройдено</value>
   </data>
-  <data name="the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
-    <value>домен або хост HELO відправника є одним із {0} записів списку обходу сірого списку, і повідомлення несе успішну перевірку SPF, DKIM або DMARC, якої вимагає цей запис</value>
-  </data>
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>домен відправника або ім’я HELO — дозволений домен</value>
+  </data>
+  <data name="the sender's domain or HELO name is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
+    <value>домен або ім’я HELO відправника є одним із {0} записів списку обходу сірого списку, і повідомлення несе успішну перевірку SPF, DKIM або DMARC, якої вимагає цей запис</value>
   </data>
   <data name="the server is slow" xml:space="preserve">
     <value>сервер працює повільно</value>
@@ -17624,6 +17606,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} did not answer within 10 seconds from this machine. Likely causes: no A/CNAME record for mta-sts.{1}, the HTTPS listener is not running (no HTTPS port on the Web services &amp; autoconfiguration page), or a firewall in between. Checked from this machine only." xml:space="preserve">
     <value>{0} не відповів протягом 10 секунд із цього комп’ютера. Імовірні причини: немає запису A/CNAME для mta-sts.{1}, слухач HTTPS не працює (немає порту HTTPS на сторінці «Вебслужби та автоконфігурація») або між ними стоїть брандмауер. Перевірено лише з цього комп’ютера.</value>
+  </data>
+  <data name="{0} did not work: {1}" xml:space="preserve">
+    <value>{0} - не вдалося: {1}</value>
   </data>
   <data name="{0} domain has trap addresses." xml:space="preserve">
     <value>{0} домен має адреси-пастки.</value>

@@ -1924,6 +1924,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="At your DNS host, publish a TXT record named _dmarc.&lt;domain&gt;, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish." xml:space="preserve">
     <value>U swojego dostawcy DNS opublikuj rekord TXT o nazwie _dmarc.&lt;domain&gt;, zaczynając od v=DMARC1; p=none na czas czytania raportów, potem p=quarantine lub p=reject. Strona Rekordy DNS pokazuje rekord do opublikowania.</value>
   </data>
+  <data name="Attachment blocking" xml:space="preserve">
+    <value>Blokowanie załączników</value>
+  </data>
   <data name="Attachment blocking is switched off, so a pattern added here is not applied until it is turned on." xml:space="preserve">
     <value>Blokowanie załączników jest wyłączone, więc wzorzec dodany tutaj nie będzie stosowany, dopóki blokowanie nie zostanie włączone.</value>
   </data>
@@ -1941,9 +1944,6 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   </data>
   <data name="Attachment blocking is switched on with no patterns to block, so it does nothing at all." xml:space="preserve">
     <value>Blokowanie załączników jest włączone, ale nie ma żadnych wzorców do blokowania, więc nie robi zupełnie nic.</value>
-  </data>
-  <data name="Attachment blocking, which is separate" xml:space="preserve">
-    <value>Blokowanie załączników, które jest odrębne</value>
   </data>
   <data name="Attachment name" xml:space="preserve">
     <value>Nazwa załącznika</value>
@@ -2371,9 +2371,6 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Bypass on SPF success" xml:space="preserve">
     <value>Pomijaj przy pozytywnym wyniku SPF</value>
   </data>
-  <data name="Bypass when sender matches MX" xml:space="preserve">
-    <value>Pomijaj, gdy nadawca pasuje do rekordu MX</value>
-  </data>
   <data name="CA certificate for a private endpoint (PEM; empty = the machine's roots)" xml:space="preserve">
     <value>Certyfikat urzędu dla prywatnego punktu końcowego (PEM; puste = certyfikaty główne komputera)</value>
   </data>
@@ -2755,11 +2752,8 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="ClamAV" xml:space="preserve">
     <value>ClamAV</value>
   </data>
-  <data name="ClamAV (clamd, over TCP)" xml:space="preserve">
-    <value>ClamAV (clamd, przez TCP)</value>
-  </data>
-  <data name="ClamAV (network daemon)" xml:space="preserve">
-    <value>ClamAV (demon sieciowy)</value>
+  <data name="ClamAV (clamd)" xml:space="preserve">
+    <value>ClamAV (clamd)</value>
   </data>
   <data name="ClamAV and external scanners, and what to do with a message that is found to be infected." xml:space="preserve">
     <value>ClamAV i skanery zewnętrzne oraz to, co zrobić z wiadomością uznaną za zainfekowaną.</value>
@@ -2772,9 +2766,6 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   </data>
   <data name="ClamWin" xml:space="preserve">
     <value>ClamWin</value>
-  </data>
-  <data name="ClamWin (local executable)" xml:space="preserve">
-    <value>ClamWin (lokalny program wykonywalny)</value>
   </data>
   <data name="ClamWin and ClamAV both use the same signature database. Running both scans every message twice against the same definitions." xml:space="preserve">
     <value>ClamWin i ClamAV korzystają z tej samej bazy sygnatur. Uruchomienie obu skanuje każdą wiadomość dwa razy według tych samych definicji.</value>
@@ -3615,17 +3606,11 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Current key" xml:space="preserve">
     <value>Bieżący klucz</value>
   </data>
-  <data name="Custom" xml:space="preserve">
-    <value>Własne</value>
-  </data>
   <data name="Custom header…" xml:space="preserve">
     <value>Własny nagłówek…</value>
   </data>
   <data name="Custom scanner" xml:space="preserve">
     <value>Własny skaner</value>
-  </data>
-  <data name="Custom scanner (external program)" xml:space="preserve">
-    <value>Własny skaner (program zewnętrzny)</value>
   </data>
   <data name="Cut" xml:space="preserve">
     <value>Wytnij</value>
@@ -5155,6 +5140,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="Exempt: may exchange mail with anyone" xml:space="preserve">
     <value>Wyjątek: może wymieniać pocztę z każdym</value>
+  </data>
+  <data name="Exit code that means infected" xml:space="preserve">
+    <value>Kod wyjścia oznaczający infekcję</value>
   </data>
   <data name="Expand the navigation" xml:space="preserve">
     <value>Rozwiń nawigację</value>
@@ -7053,9 +7041,6 @@ Każda subskrypcja Web Push utworzona z obecną parą natychmiast przestaje dzia
   <data name="Match any criterion (OR)" xml:space="preserve">
     <value>Dopasuj dowolne kryterium (OR)</value>
   </data>
-  <data name="Matched against" xml:space="preserve">
-    <value>Dopasowywane do</value>
-  </data>
   <data name="Matched on" xml:space="preserve">
     <value>Porównywane z</value>
   </data>
@@ -8375,10 +8360,10 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Notifications of new mail sent to the browsers and phones people allow. The server signs them with its own VAPID key pair, made once with the button below." xml:space="preserve">
     <value>Powiadomienia o nowej poczcie wysyłane do przeglądarek i telefonów, na które ludzie pozwolą. Serwer podpisuje je własną parą kluczy VAPID, tworzoną raz przyciskiem poniżej.</value>
   </data>
-  <data name="Notify receiver" xml:space="preserve">
-    <value>Powiadom odbiorcę</value>
+  <data name="Notify the recipients" xml:space="preserve">
+    <value>Powiadom odbiorców</value>
   </data>
-  <data name="Notify sender" xml:space="preserve">
+  <data name="Notify the sender" xml:space="preserve">
     <value>Powiadom nadawcę</value>
   </data>
   <data name="Now a mailbox. An account is an address somebody signs in to and receives mail at." xml:space="preserve">
@@ -10495,9 +10480,6 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Return it to the sender (5.7.1)" xml:space="preserve">
     <value>Zwróć do nadawcy (5.7.1)</value>
   </data>
-  <data name="Return value for infected" xml:space="preserve">
-    <value>Wartość zwracana dla zainfekowanej wiadomości</value>
-  </data>
   <data name="Reuse and expiry" xml:space="preserve">
     <value>Ponowne użycie i wygasanie</value>
   </data>
@@ -10615,8 +10597,8 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Run a preview first: the options have changed since the last one, so it no longer describes what this would do." xml:space="preserve">
     <value>Najpierw należy uruchomić podgląd: opcje zmieniły się od poprzedniego, więc nie opisuje on już tego, co zrobiłaby ta operacja.</value>
   </data>
-  <data name="Run an external command; a configured return value indicates an infected message. Use %FILE% where the file to scan should be passed on the command line. For engines without a CLI (HTTP/API, DLP, SIEM), use an OnAcceptMessage handler on the Event scripts page instead." xml:space="preserve">
-    <value>Uruchamia polecenie zewnętrzne; skonfigurowana wartość zwracana oznacza zainfekowaną wiadomość. W miejscu, w którym w wierszu polecenia ma zostać przekazany plik do skanowania, należy wpisać %FILE%. Dla silników bez interfejsu wiersza poleceń (HTTP/API, DLP, SIEM) trzeba zamiast tego użyć procedury OnAcceptMessage na stronie Skrypty zdarzeń.</value>
+  <data name="Run an external command; the exit code set below means an infected message. Use %FILE% where the file to scan should be passed on the command line. For engines without a CLI (HTTP/API, DLP, SIEM), use an OnAcceptMessage handler on the Event scripts page instead." xml:space="preserve">
+    <value>Uruchamia polecenie zewnętrzne; ustawiony poniżej kod wyjścia oznacza zainfekowaną wiadomość. W miejscu, w którym w wierszu polecenia ma zostać przekazany plik do skanowania, należy wpisać %FILE%. Dla silników bez interfejsu wiersza poleceń (HTTP/API, DLP, SIEM) trzeba zamiast tego użyć procedury OnAcceptMessage na stronie Skrypty zdarzeń.</value>
   </data>
   <data name="Run anti-spam on downloaded mail" xml:space="preserve">
     <value>Uruchamiaj antyspam dla pobranej poczty</value>
@@ -12043,6 +12025,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Size limit and scanners…" xml:space="preserve">
     <value>Limit rozmiaru i skanery…</value>
   </data>
+  <data name="Skip greylisting when the connecting address is an A or MX host of the sender's domain" xml:space="preserve">
+    <value>Pomijaj greylisting, gdy łączący się adres jest hostem A lub MX domeny nadawcy</value>
+  </data>
   <data name="Skip the tour" xml:space="preserve">
     <value>Pomiń przewodnik</value>
   </data>
@@ -12565,9 +12550,6 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Test custom scanner" xml:space="preserve">
     <value>Przetestuj własny skaner</value>
   </data>
-  <data name="Test failed: {0}" xml:space="preserve">
-    <value>Test nie powiódł się: {0}</value>
-  </data>
   <data name="Test the connection" xml:space="preserve">
     <value>Przetestuj połączenie</value>
   </data>
@@ -12661,8 +12643,8 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="The HELO name" xml:space="preserve">
     <value>Nazwa HELO</value>
   </data>
-  <data name="The HELO/EHLO host" xml:space="preserve">
-    <value>Host HELO/EHLO</value>
+  <data name="The HELO/EHLO name" xml:space="preserve">
+    <value>Nazwa HELO/EHLO</value>
   </data>
   <data name="The Host name on the Protocols page is empty, so the server falls back to its Windows computer name - shown above as this machine's name. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
     <value>Nazwa hosta na stronie Protokoły jest pusta, więc serwer używa zamiast niej swojej nazwy komputera w systemie Windows - pokazywana powyżej jako nazwa tego komputera. Sama nazwa komputera nie jest publiczną nazwą DNS: odbiorcy porównujący HELO z DNS ukarzą ją punktami, a żaden rekord PTR nie może się z nią zgadzać. Najpierw należy ustawić prawdziwą nazwę hosta.</value>
@@ -15308,8 +15290,8 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="Which scanners can actually run, what size of message is scanned, and what happens to one that is found to be infected." xml:space="preserve">
     <value>Które skanery faktycznie mogą działać, wiadomości jakiego rozmiaru są skanowane i co dzieje się z wiadomością uznaną za zainfekowaną.</value>
   </data>
-  <data name="Which scanners can actually run, what they are asked to look at, and what happens to a message one of them condemns. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
-    <value>Które skanery faktycznie mogą działać, na co mają patrzeć i co dzieje się z wiadomością, którą któryś z nich potępi. Na tej stronie nic nie da się edytować - każda sekcja ma przycisk prowadzący do strony, do której należą jej ustawienia.</value>
+  <data name="Which scanners can actually run, what they are asked to look at, and what happens to a message found to be infected. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
+    <value>Które skanery faktycznie mogą działać, na co mają patrzeć i co dzieje się z wiadomością, w której wykryto infekcję. Na tej stronie nic nie da się edytować - każda sekcja ma przycisk prowadzący do strony, do której należą jej ustawienia.</value>
   </data>
   <data name="Which services are running, who is connected right now, and how long the server has been up." xml:space="preserve">
     <value>Które usługi działają, kto jest teraz połączony i jak długo serwer pracuje.</value>
@@ -17208,11 +17190,11 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="the sender's SPF check passed" xml:space="preserve">
     <value>kontrola SPF nadawcy zakończyła się powodzeniem</value>
   </data>
-  <data name="the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
-    <value>domena lub host HELO nadawcy jest jednym z {0} wpisów listy pominięć greylistingu, a wiadomość niesie pozytywny wynik SPF, DKIM lub DMARC wymagany przez ten wpis</value>
-  </data>
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>domena nadawcy lub nazwa HELO jest dozwoloną domeną</value>
+  </data>
+  <data name="the sender's domain or HELO name is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
+    <value>domena lub nazwa HELO nadawcy jest jednym z {0} wpisów listy pominięć greylistingu, a wiadomość niesie pozytywny wynik SPF, DKIM lub DMARC wymagany przez ten wpis</value>
   </data>
   <data name="the server is slow" xml:space="preserve">
     <value>serwer działa wolno</value>
@@ -17624,6 +17606,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} did not answer within 10 seconds from this machine. Likely causes: no A/CNAME record for mta-sts.{1}, the HTTPS listener is not running (no HTTPS port on the Web services &amp; autoconfiguration page), or a firewall in between. Checked from this machine only." xml:space="preserve">
     <value>{0} nie odpowiedział w ciągu 10 sekund z tego komputera. Prawdopodobne przyczyny: brak rekordu A/CNAME dla mta-sts.{1}, niedziałający nasłuch HTTPS (brak portu HTTPS na stronie Usługi webowe i autokonfiguracja) albo zapora po drodze. Sprawdzono wyłącznie z tego komputera.</value>
+  </data>
+  <data name="{0} did not work: {1}" xml:space="preserve">
+    <value>{0} - nie powiodło się: {1}</value>
   </data>
   <data name="{0} domain has trap addresses." xml:space="preserve">
     <value>{0} domena ma adresy pułapek.</value>

@@ -85,7 +85,7 @@ namespace hMailServer.ControlPanel.Views
          page.Children.Add(header_ = new PageHeader
          {
             PageKey = "virusoverview",
-            Subtitle = L("Which scanners can actually run, what they are asked to look at, and what happens to a message one of them condemns. Nothing on this page can be edited - each section has a button to the page that owns its settings."),
+            Subtitle = L("Which scanners can actually run, what they are asked to look at, and what happens to a message found to be infected. Nothing on this page can be edited - each section has a button to the page that owns its settings."),
             Actions = refresh
          });
 
@@ -744,7 +744,7 @@ namespace hMailServer.ControlPanel.Views
 
       private Card AttachmentsCard(VirusPipelineConfig config)
       {
-         Card card = Section(L("Attachment blocking, which is separate"), out StackPanel content);
+         Card card = Section(L("Attachment blocking"), out StackPanel content);
 
          content.Children.Add(Paragraph(
             !config.WasRead(nameof(config.AttachmentBlockingEnabled), nameof(config.BlockedAttachmentPatterns))

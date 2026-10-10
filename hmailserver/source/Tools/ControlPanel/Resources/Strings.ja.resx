@@ -1916,6 +1916,9 @@
   <data name="At your DNS host, publish a TXT record named _dmarc.&lt;domain&gt;, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish." xml:space="preserve">
     <value>DNS ホスティング先で、_dmarc.&lt;domain&gt; という名前の TXT レコードを公開します。レポートを読む間は v=DMARC1; p=none で始め、その後 p=quarantine または p=reject にします。DNS レコード ページに公開すべきレコードが表示されます。</value>
   </data>
+  <data name="Attachment blocking" xml:space="preserve">
+    <value>添付ファイルのブロック</value>
+  </data>
   <data name="Attachment blocking is switched off, so a pattern added here is not applied until it is turned on." xml:space="preserve">
     <value>添付ファイルのブロックはオフです。有効にするまで、ここで追加したパターンは適用されません。</value>
   </data>
@@ -1930,9 +1933,6 @@
   </data>
   <data name="Attachment blocking is switched on with no patterns to block, so it does nothing at all." xml:space="preserve">
     <value>添付ファイルのブロックは有効になっていますが、ブロックするパターンが 1 つもないため、まったく何もしません。</value>
-  </data>
-  <data name="Attachment blocking, which is separate" xml:space="preserve">
-    <value>添付ファイルのブロック (これは別の機能です)</value>
   </data>
   <data name="Attachment name" xml:space="preserve">
     <value>添付ファイル名</value>
@@ -2357,9 +2357,6 @@
   <data name="Bypass on SPF success" xml:space="preserve">
     <value>SPF 成功時にバイパスする</value>
   </data>
-  <data name="Bypass when sender matches MX" xml:space="preserve">
-    <value>送信者が MX と一致する場合にバイパスする</value>
-  </data>
   <data name="CA certificate for a private endpoint (PEM; empty = the machine's roots)" xml:space="preserve">
     <value>プライベート エンドポイントの CA 証明書 (PEM。空 = コンピューターのルート証明書)</value>
   </data>
@@ -2741,11 +2738,8 @@
   <data name="ClamAV" xml:space="preserve">
     <value>ClamAV</value>
   </data>
-  <data name="ClamAV (clamd, over TCP)" xml:space="preserve">
-    <value>ClamAV (clamd、TCP 経由)</value>
-  </data>
-  <data name="ClamAV (network daemon)" xml:space="preserve">
-    <value>ClamAV (ネットワーク デーモン)</value>
+  <data name="ClamAV (clamd)" xml:space="preserve">
+    <value>ClamAV (clamd)</value>
   </data>
   <data name="ClamAV and external scanners, and what to do with a message that is found to be infected." xml:space="preserve">
     <value>ClamAV と外部スキャナー、および感染が見つかったメッセージの扱い。</value>
@@ -2758,9 +2752,6 @@
   </data>
   <data name="ClamWin" xml:space="preserve">
     <value>ClamWin</value>
-  </data>
-  <data name="ClamWin (local executable)" xml:space="preserve">
-    <value>ClamWin (ローカルの実行ファイル)</value>
   </data>
   <data name="ClamWin and ClamAV both use the same signature database. Running both scans every message twice against the same definitions." xml:space="preserve">
     <value>ClamWin と ClamAV は同じシグネチャ データベースを使います。両方を実行すると、すべてのメッセージが同じ定義に対して 2 回スキャンされます。</value>
@@ -3601,17 +3592,11 @@
   <data name="Current key" xml:space="preserve">
     <value>現在のキー</value>
   </data>
-  <data name="Custom" xml:space="preserve">
-    <value>カスタム</value>
-  </data>
   <data name="Custom header…" xml:space="preserve">
     <value>カスタム ヘッダー…</value>
   </data>
   <data name="Custom scanner" xml:space="preserve">
     <value>カスタム スキャナー</value>
-  </data>
-  <data name="Custom scanner (external program)" xml:space="preserve">
-    <value>カスタム スキャナー (外部プログラム)</value>
   </data>
   <data name="Cut" xml:space="preserve">
     <value>切り取り</value>
@@ -5104,6 +5089,9 @@
   </data>
   <data name="Exempt: may exchange mail with anyone" xml:space="preserve">
     <value>除外: 誰とでもメールをやり取りできる</value>
+  </data>
+  <data name="Exit code that means infected" xml:space="preserve">
+    <value>感染を示す終了コード</value>
   </data>
   <data name="Expand the navigation" xml:space="preserve">
     <value>ナビゲーションを展開する</value>
@@ -6990,9 +6978,6 @@
   <data name="Match any criterion (OR)" xml:space="preserve">
     <value>いずれかの条件に一致 (OR)</value>
   </data>
-  <data name="Matched against" xml:space="preserve">
-    <value>照合対象</value>
-  </data>
   <data name="Matched on" xml:space="preserve">
     <value>照合対象</value>
   </data>
@@ -8291,10 +8276,10 @@
   <data name="Notifications of new mail sent to the browsers and phones people allow. The server signs them with its own VAPID key pair, made once with the button below." xml:space="preserve">
     <value>利用者が許可したブラウザーや電話に送る新着メールの通知。サーバーは、下のボタンで一度だけ作成する自身の VAPID キー ペアで通知に署名します。</value>
   </data>
-  <data name="Notify receiver" xml:space="preserve">
+  <data name="Notify the recipients" xml:space="preserve">
     <value>受信者に通知する</value>
   </data>
-  <data name="Notify sender" xml:space="preserve">
+  <data name="Notify the sender" xml:space="preserve">
     <value>送信者に通知する</value>
   </data>
   <data name="Now a mailbox. An account is an address somebody signs in to and receives mail at." xml:space="preserve">
@@ -10396,9 +10381,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Return it to the sender (5.7.1)" xml:space="preserve">
     <value>送信者に返送する (5.7.1)</value>
   </data>
-  <data name="Return value for infected" xml:space="preserve">
-    <value>感染時の戻り値</value>
-  </data>
   <data name="Reuse and expiry" xml:space="preserve">
     <value>再利用と有効期限</value>
   </data>
@@ -10516,8 +10498,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Run a preview first: the options have changed since the last one, so it no longer describes what this would do." xml:space="preserve">
     <value>先にプレビューを実行してください。前回のプレビュー以降にオプションが変更されたため、今回行われる内容とは一致しなくなっています。</value>
   </data>
-  <data name="Run an external command; a configured return value indicates an infected message. Use %FILE% where the file to scan should be passed on the command line. For engines without a CLI (HTTP/API, DLP, SIEM), use an OnAcceptMessage handler on the Event scripts page instead." xml:space="preserve">
-    <value>外部コマンドを実行します。設定した戻り値が、メッセージが感染していることを示します。スキャンするファイルをコマンド ラインで渡す位置には %FILE% を使ってください。CLI を持たないエンジン (HTTP/API、DLP、SIEM) の場合は、代わりに「イベント スクリプト」ページの OnAcceptMessage ハンドラーを使用してください。</value>
+  <data name="Run an external command; the exit code set below means an infected message. Use %FILE% where the file to scan should be passed on the command line. For engines without a CLI (HTTP/API, DLP, SIEM), use an OnAcceptMessage handler on the Event scripts page instead." xml:space="preserve">
+    <value>外部コマンドを実行します。下で設定した終了コードが、メッセージが感染していることを示します。スキャンするファイルをコマンド ラインで渡す位置には %FILE% を使ってください。CLI を持たないエンジン (HTTP/API、DLP、SIEM) の場合は、代わりに「イベント スクリプト」ページの OnAcceptMessage ハンドラーを使用してください。</value>
   </data>
   <data name="Run anti-spam on downloaded mail" xml:space="preserve">
     <value>ダウンロードしたメールにスパム対策を実行する</value>
@@ -11911,6 +11893,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Size limit and scanners…" xml:space="preserve">
     <value>サイズ制限とスキャナー…</value>
   </data>
+  <data name="Skip greylisting when the connecting address is an A or MX host of the sender's domain" xml:space="preserve">
+    <value>接続元アドレスが送信者のドメインの A または MX ホストである場合はグレイリスティングをスキップする</value>
+  </data>
   <data name="Skip the tour" xml:space="preserve">
     <value>案内をスキップ</value>
   </data>
@@ -12430,9 +12415,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Test custom scanner" xml:space="preserve">
     <value>カスタム スキャナーをテスト</value>
   </data>
-  <data name="Test failed: {0}" xml:space="preserve">
-    <value>テストに失敗しました: {0}</value>
-  </data>
   <data name="Test the connection" xml:space="preserve">
     <value>接続をテスト</value>
   </data>
@@ -12526,8 +12508,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The HELO name" xml:space="preserve">
     <value>HELO 名</value>
   </data>
-  <data name="The HELO/EHLO host" xml:space="preserve">
-    <value>HELO/EHLO ホスト</value>
+  <data name="The HELO/EHLO name" xml:space="preserve">
+    <value>HELO/EHLO 名</value>
   </data>
   <data name="The Host name on the Protocols page is empty, so the server falls back to its Windows computer name - shown above as this machine's name. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
     <value>プロトコル ページのホスト名が空のため、サーバーは Windows のコンピューター名 (上にこのコンピューターの名前として表示されています) にフォールバックします。素のコンピューター名は公開 DNS 名ではありません。HELO を DNS と比較する受信側はこれを減点し、どの PTR とも一致しません。まず実際のホスト名を設定してください。</value>
@@ -15140,8 +15122,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Which scanners can actually run, what size of message is scanned, and what happens to one that is found to be infected." xml:space="preserve">
     <value>実際に実行できるスキャナー、スキャンされるメッセージのサイズ、感染が見つかったメッセージの扱い。</value>
   </data>
-  <data name="Which scanners can actually run, what they are asked to look at, and what happens to a message one of them condemns. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
-    <value>実際に実行できるスキャナー、スキャナーが見るように指示されるもの、いずれかのスキャナーが有罪と判定したメッセージの扱い。このページでは何も編集できません。各セクションに、その設定を持つページを開くボタンがあります。</value>
+  <data name="Which scanners can actually run, what they are asked to look at, and what happens to a message found to be infected. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
+    <value>実際に実行できるスキャナー、スキャナーが見るように指示されるもの、感染が見つかったメッセージの扱い。このページでは何も編集できません。各セクションに、その設定を持つページを開くボタンがあります。</value>
   </data>
   <data name="Which services are running, who is connected right now, and how long the server has been up." xml:space="preserve">
     <value>どのサービスが実行中か、今誰が接続しているか、サーバーの稼働時間。</value>
@@ -17022,11 +17004,11 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="the sender's SPF check passed" xml:space="preserve">
     <value>送信者の SPF チェックに合格しました</value>
   </data>
-  <data name="the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
-    <value>送信者のドメインまたは HELO ホストがグレイリスティングのバイパス リストの {0} 件のエントリのいずれかに一致し、メッセージがそのエントリの要求する SPF、DKIM、または DMARC の合格を持っている</value>
-  </data>
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>送信者のドメインまたは HELO 名が許可するドメインである</value>
+  </data>
+  <data name="the sender's domain or HELO name is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
+    <value>送信者のドメインまたは HELO 名がグレイリスティングのバイパス リストの {0} 件のエントリのいずれかに一致し、メッセージがそのエントリの要求する SPF、DKIM、または DMARC の合格を持っている</value>
   </data>
   <data name="the server is slow" xml:space="preserve">
     <value>サーバーが遅い</value>
@@ -17378,6 +17360,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} did not answer within 10 seconds from this machine. Likely causes: no A/CNAME record for mta-sts.{1}, the HTTPS listener is not running (no HTTPS port on the Web services &amp; autoconfiguration page), or a firewall in between. Checked from this machine only." xml:space="preserve">
     <value>{0} はこのコンピューターから 10 秒以内に応答しませんでした。考えられる原因: mta-sts.{1} の A/CNAME レコードがない、HTTPS リスナーが動作していない ([Web サービスと自動設定] ページで HTTPS ポートが未設定)、または途中にファイアウォールがある、のいずれかです。確認はこのコンピューターからのみ行っています。</value>
+  </data>
+  <data name="{0} did not work: {1}" xml:space="preserve">
+    <value>{0} は失敗しました: {1}</value>
   </data>
   <data name="{0} domain has trap addresses." xml:space="preserve">
     <value>{0} 個のドメインにトラップ アドレスがあります。</value>
