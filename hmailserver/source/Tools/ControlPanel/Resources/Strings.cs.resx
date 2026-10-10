@@ -13275,8 +13275,14 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="The {0} IP range does not require TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>Jediný IP rozsah ({0}) nevyžaduje TLS před ověřením, takže heslo v otevřeném textu se přijme všude, kde je port povolí.</value>
   </data>
+  <data name="The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it changed, or discard the previous settings to keep what it wrote, then apply it again." xml:space="preserve">
+    <value>Profil {0} se {1} nepodařilo použít celý: některá jeho nastavení nebyla zapsána. Vraťte, co změnil, nebo zahoďte předchozí nastavení, abyste ponechali, co zapsal, a pak jej použijte znovu.</value>
+  </data>
   <data name="The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it wrote, or keep it, and apply it again." xml:space="preserve">
     <value>Profil {0} se {1} nepodařilo použít celý: některá jeho nastavení nebyla zapsána. Vraťte, co zapsal, nebo to ponechte, a použijte jej znovu.</value>
+  </data>
+  <data name="The {0} profile could not be applied on {1}: none of the settings it would change could be written, so there is nothing to put back. Apply it again, or keep the shipped settings." xml:space="preserve">
+    <value>Profil {0} se {1} nepodařilo použít: žádné z nastavení, která by změnil, se nepodařilo zapsat, takže není co vracet. Použijte jej znovu, nebo ponechte dodaná nastavení.</value>
   </data>
   <data name="The {0} profile is applied. What it replaced is kept, and can be put back." xml:space="preserve">
     <value>Profil {0} je použit. Co nahradil, je uschováno a lze to vrátit.</value>

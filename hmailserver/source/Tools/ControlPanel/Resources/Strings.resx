@@ -13112,8 +13112,14 @@ It will keep trying as you use the application.</value>
   <data name="The {0} IP range does not require TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>The {0} IP range does not require TLS before authentication, so a plaintext password is accepted wherever a port permits one.</value>
   </data>
+  <data name="The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it changed, or discard the previous settings to keep what it wrote, then apply it again." xml:space="preserve">
+    <value>The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it changed, or discard the previous settings to keep what it wrote, then apply it again.</value>
+  </data>
   <data name="The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it wrote, or keep it, and apply it again." xml:space="preserve">
     <value>The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it wrote, or keep it, and apply it again.</value>
+  </data>
+  <data name="The {0} profile could not be applied on {1}: none of the settings it would change could be written, so there is nothing to put back. Apply it again, or keep the shipped settings." xml:space="preserve">
+    <value>The {0} profile could not be applied on {1}: none of the settings it would change could be written, so there is nothing to put back. Apply it again, or keep the shipped settings.</value>
   </data>
   <data name="The {0} profile is applied. What it replaced is kept, and can be put back." xml:space="preserve">
     <value>The {0} profile is applied. What it replaced is kept, and can be put back.</value>

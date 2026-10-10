@@ -13112,8 +13112,14 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The {0} IP range does not require TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>{0} 件の IP 範囲のいずれも認証前に TLS を必須としていないため、ポートが許可する場所では平文のパスワードが受け入れられます。</value>
   </data>
+  <data name="The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it changed, or discard the previous settings to keep what it wrote, then apply it again." xml:space="preserve">
+    <value>プロファイル {0} を {1} に完全には適用できませんでした: 一部の設定が書き込まれていません。変更したものを元に戻すか、以前の設定を破棄して書き込まれたものを保持してから、もう一度適用してください。</value>
+  </data>
   <data name="The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it wrote, or keep it, and apply it again." xml:space="preserve">
     <value>プロファイル {0} を {1} に完全には適用できませんでした: 一部の設定が書き込まれていません。書き込まれたものを元に戻すか保持してから、もう一度適用してください。</value>
+  </data>
+  <data name="The {0} profile could not be applied on {1}: none of the settings it would change could be written, so there is nothing to put back. Apply it again, or keep the shipped settings." xml:space="preserve">
+    <value>プロファイル {0} を {1} に適用できませんでした: 変更する設定がどれも書き込めなかったため、元に戻すものはありません。もう一度適用するか、出荷時の設定を保持してください。</value>
   </data>
   <data name="The {0} profile is applied. What it replaced is kept, and can be put back." xml:space="preserve">
     <value>プロファイル {0} が適用されています。置き換えたものは保存されており、元に戻せます。</value>

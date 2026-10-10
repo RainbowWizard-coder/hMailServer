@@ -258,7 +258,17 @@ namespace hMailServer.ControlPanel.Views
             else if (state == "declined")
                text = F("The settings this version ships with were chosen on {0}, and no profile applied; any of the four can still be compared with this server.", Date_(applied, "changed"));
             else if (state == "failed")
-               text = F("The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it wrote, or keep it, and apply it again.", name, Date_(applied, "applied"));
+            {
+               // Each sentence names the acts the notice shows with it (review finding
+               // F278): with the way back held, Put back what it changed and Discard
+               // the previous settings - which keeps what was written - and with none,
+               // since every write that would have changed a setting failed, Keep the
+               // shipped settings. The one sentence they replace named an act this page
+               // no longer has.
+               text = snapshotHeld_
+                  ? F("The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it changed, or discard the previous settings to keep what it wrote, then apply it again.", name, Date_(applied, "applied"))
+                  : F("The {0} profile could not be applied on {1}: none of the settings it would change could be written, so there is nothing to put back. Apply it again, or keep the shipped settings.", name, Date_(applied, "applied"));
+            }
             else if (state == "reverted")
                text = F("The {0} profile was applied and then reverted on {1}; the settings are the ones it replaced.", name, Date_(applied, "changed"));
             else if (state == "kept")

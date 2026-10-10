@@ -13275,8 +13275,14 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The {0} IP range does not require TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>{0} діапазон IP не вимагає TLS перед автентифікацією, тому пароль відкритим текстом приймається всюди, де його дозволяє порт.</value>
   </data>
+  <data name="The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it changed, or discard the previous settings to keep what it wrote, then apply it again." xml:space="preserve">
+    <value>Профіль {0} не вдалося застосувати повністю {1}: частину його параметрів не записано. Поверніть те, що він змінив, або відкиньте попередні параметри, щоб залишити записане, а потім застосуйте профіль знову.</value>
+  </data>
   <data name="The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it wrote, or keep it, and apply it again." xml:space="preserve">
     <value>Профіль {0} не вдалося застосувати повністю {1}: частину його параметрів не записано. Поверніть записане або збережіть його й застосуйте профіль знову.</value>
+  </data>
+  <data name="The {0} profile could not be applied on {1}: none of the settings it would change could be written, so there is nothing to put back. Apply it again, or keep the shipped settings." xml:space="preserve">
+    <value>Профіль {0} не вдалося застосувати {1}: жоден із параметрів, які він змінив би, не вдалося записати, тож повертати нічого. Застосуйте його знову або залиште постачені параметри.</value>
   </data>
   <data name="The {0} profile is applied. What it replaced is kept, and can be put back." xml:space="preserve">
     <value>Профіль {0} застосовано. Те, що він замінив, збережено і може бути повернуто.</value>

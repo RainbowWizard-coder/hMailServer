@@ -13112,8 +13112,14 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="The {0} IP range does not require TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>La {0} plage IP n'exige pas TLS avant l'authentification : un mot de passe en clair est donc accepté partout où un port en permet un.</value>
   </data>
+  <data name="The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it changed, or discard the previous settings to keep what it wrote, then apply it again." xml:space="preserve">
+    <value>Le profil {0} n'a pas pu être appliqué entièrement le {1} : certains de ses paramètres n'ont pas été écrits. Rétablissez ce qu'il a changé, ou abandonnez les paramètres précédents pour garder ce qu'il a écrit, puis appliquez-le de nouveau.</value>
+  </data>
   <data name="The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it wrote, or keep it, and apply it again." xml:space="preserve">
     <value>Le profil {0} n'a pas pu être appliqué entièrement le {1} : certains de ses paramètres n'ont pas été écrits. Rétablissez ce qu'il a écrit, ou gardez-le, et appliquez-le de nouveau.</value>
+  </data>
+  <data name="The {0} profile could not be applied on {1}: none of the settings it would change could be written, so there is nothing to put back. Apply it again, or keep the shipped settings." xml:space="preserve">
+    <value>Le profil {0} n'a pas pu être appliqué le {1} : aucun des paramètres qu'il changerait n'a pu être écrit, il n'y a donc rien à rétablir. Appliquez-le de nouveau, ou gardez les paramètres livrés.</value>
   </data>
   <data name="The {0} profile is applied. What it replaced is kept, and can be put back." xml:space="preserve">
     <value>Le profil {0} est appliqué. Ce qu'il a remplacé est conservé et peut être rétabli.</value>

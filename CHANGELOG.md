@@ -2590,15 +2590,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   confusable Keep buttons.** "The small-office profile is applied." said the key, in German and Japanese as well,
   where the list, the setup checklist and the other confirmations said "Small office", and the Apply and Put back
   questions and the lines that say what they did used the key too; the 430-pixel list of profiles and five buttons
-  wrapped onto two rows at 1280 pixels and three at 760, with "Keep its settings, forget the way back" beside "Keep the
-  shipped settings", which mean different things; Refresh was in that row where the sibling pages have it in the
+  wrapped onto two rows at 1280 pixels and three at 760, with "Keep its settings, forget the way back" beside "Keep
+  the shipped settings", which mean different things; Refresh was in that row where the sibling pages have it in the
   header; the list's items were sentences ("Small office - settings that would change on this server: 3 of 31."); and
   the table's last column, "Asks for a confirmation", held notes that are not confirmations. The profile is named by
   its title everywhere; Refresh is in the header; Put back what it changed and Discard the previous settings, as the
   way back's two acts, and Keep the shipped settings, while no profile is in effect, are the applied notice's own,
-  each shown while it can be taken, so that the two never show together and the row beside the list holds the list
-  and Apply this profile; each profile in the list is its title with "Would change here: 3 of 31" beside it in the
-  caption colour; and the column is Notes. `ProfilesPageFlowTests` holds the titles, the acts and the list.
+  each shown while it can be taken, so that the two never show together and the row beside the list holds the list and
+  Apply this profile, and the notice of a profile that could not be applied in full names the acts it shows - "Put
+  back what it changed, or discard the previous settings to keep what it wrote, then apply it again." with a way back,
+  and "Apply it again, or keep the shipped settings." with none, where it said "Put back what it wrote, or keep it" of
+  an act the page no longer has; each profile in the list is its title with "Would change here: 3 of 31" beside it in
+  the caption colour; and the column is Notes. `ProfilesPageFlowTests` holds the titles, the acts and the list.
 
 - **Fixed: the Dashboard's attention card filled the first screen, the Server status page's configuration warnings
   never reached it, and its figures led nowhere.** The card listed every open step of the setup checklist - eleven to
