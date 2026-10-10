@@ -81,7 +81,7 @@ Five status colours and a neutral, as brushes that `ThemeTokens.Refresh` recompu
 
 | Token | Light | Dark | High Contrast | What it is for |
 |---|---|---|---|---|
-| `AppBrandBrush` | #2F6FE0 | #4C8DFF | Highlight | The selection pill, the accent that is not a status. |
+| `AppBrandBrush` | #2F6FE0 | #4C8DFF | Highlight | The selection pill, the selected tab's underline, the title bar's glyph, the accent that is not a status - and WPF-UI's accent: `ThemeTokens` gives it to WPF-UI after every theme change (`DesignTokens.Accent`), and republishes the brushes WPF-UI draws in its accent (`DesignTokens.AccentBrushes`), which its theme dictionary made with the Windows accent and keep it, so that the primary button, a ticked check box, a radio button, a switch, the progress ring and a text selection are this blue whatever accent Windows has (the owner's choice of 9 October 2026, the brand over the Windows accent; review finding F045), the primary button's fill a shade darker under the pointer and pressed in the light theme so that its white words keep 4.5:1. Under High Contrast the accent is the user's. The logo's `BrandGradient` is the one other blue. |
 | `AppSuccessBrush` | #1A7F37 | #3FB950 | WindowText | Good: connected, done, passed. Square. |
 | `AppWarningBrush` | #9A6700 | #D29922 | WindowText | Warning: a backlog, a certificate near expiry, a reconnect in progress. Triangle. |
 | `AppDangerBrush` | #CF222E | #F85149 | WindowText | Critical: a failure, a lost link, a validation message. Cross. |

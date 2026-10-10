@@ -3496,6 +3496,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   caption, their notes under their own; and the IP ranges page's permission boxes keep to the top of their row.
   `CheckBoxColumnTests` holds the style, the inset and each of the pages.
 
+- **Fixed: the Control Panel drew three blues, and its primary buttons and ticked boxes took the Windows accent.** The
+  selected tab's underline and the title bar's glyph were App.xaml's BrandBrush, #2F81F7 in both themes, whose
+  recolour for the theme never took effect; the rail and the selection pills were the brand, #2F6FE0 in the light
+  theme and #4C8DFF in the dark; and the primary buttons, the ticked check boxes, the switches and the progress ring
+  took the Windows accent, which on a machine whose accent is red or orange is a colour the Control Panel keeps for
+  danger and warning (review finding F045). The brand is WPF-UI's accent now, given to it after every theme change, so
+  that a primary button, a ticked box, a radio button, a switch, the ring and a text selection are the brand whatever
+  accent Windows has, as the owner chose on 9 October 2026; the light theme's primary button keeps its white words at
+  4.5:1 or more under the pointer and pressed, where WPF-UI's own, the brand made translucent, measured 4.0:1. The tab
+  underline and the title glyph are the brand too, and BrandBrush is gone; under High Contrast the accent is the
+  user's. `BrandAccentTests` holds the accent to the brand, the words on it, the theme change and the two blues that
+  were left.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

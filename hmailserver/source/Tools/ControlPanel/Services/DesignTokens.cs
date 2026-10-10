@@ -580,6 +580,145 @@ namespace hMailServer.ControlPanel.Services
       }
 
       /// <summary>
+      /// WPF-UI's accent, as 0xAARRGGBB, made of the brand (review finding F045; the
+      /// owner's choice of 9 October 2026, the brand over the Windows accent): the four
+      /// colours WPF-UI derives its accent brushes from - the system accent, a text
+      /// selection's; the primary, a ticked check box's, a switch's and a radio
+      /// button's, and the light theme's primary button; the secondary, the dark
+      /// theme's primary button and the shade whose brightness WPF-UI reads to choose
+      /// dark or light words on the accent; the tertiary - and the primary button's
+      /// fill under the pointer and pressed. The light theme's fill is its brand,
+      /// #2F6FE0, under white words at 4.7:1, a shade darker under the pointer and
+      /// pressed (WPF-UI's own made the brand translucent there, 4.0:1 over the page);
+      /// the dark theme's is its brand, #4C8DFF, under black words at 6.6:1. The
+      /// secondary keeps WPF-UI's choice of words the theme's own: light words under
+      /// a light theme's (its brightness under WPF-UI's 80), dark under a dark one's.
+      /// Null under High Contrast, whose accent is the user's.
+      /// </summary>
+      public readonly struct AccentArgb
+      {
+         public AccentArgb(uint system, uint primary, uint secondary, uint tertiary, uint hover, uint pressed, uint text)
+         {
+            System = system;
+            Primary = primary;
+            Secondary = secondary;
+            Tertiary = tertiary;
+            Hover = hover;
+            Pressed = pressed;
+            Text = text;
+         }
+
+         public uint System { get; }
+         public uint Primary { get; }
+         public uint Secondary { get; }
+         public uint Tertiary { get; }
+
+         /// <summary>The primary button's fill under the pointer (AccentFillColorSecondary).</summary>
+         public uint Hover { get; }
+
+         /// <summary>The primary button's fill pressed (AccentFillColorTertiary).</summary>
+         public uint Pressed { get; }
+
+         /// <summary>The words on the accent, the theme's own (TextOnAccentFillColorPrimary).</summary>
+         public uint Text { get; }
+
+         /// <summary>The primary button's fill at rest, as WPF-UI picks it for the theme.</summary>
+         public uint Fill(ChartTheme theme) => theme == ChartTheme.Dark ? Secondary : Primary;
+
+         /// <summary>One of the accent's colours by its part.</summary>
+         public uint Of(AccentPart part, ChartTheme theme) => part switch
+         {
+            AccentPart.System => System,
+            AccentPart.Primary => Primary,
+            AccentPart.Secondary => Secondary,
+            AccentPart.Tertiary => Tertiary,
+            AccentPart.Hover => Hover,
+            AccentPart.Pressed => Pressed,
+            _ => Fill(theme)
+         };
+      }
+
+      /// <summary>
+      /// The accent colours WPF-UI's theme dictionaries draw their brushes in: its four
+      /// accent colours (SystemAccentColor...Tertiary), and the accent fill at rest,
+      /// under the pointer and pressed (AccentFillColorDefault, Secondary, Tertiary).
+      /// </summary>
+      public enum AccentPart
+      {
+         System,
+         Primary,
+         Secondary,
+         Tertiary,
+         Fill,
+         Hover,
+         Pressed
+      }
+
+      /// <summary>
+      /// WPF-UI's brushes drawn in the accent, each with the part of it its light and
+      /// dark theme dictionaries give it (WPF-UI 4.3's Light.xaml and Dark.xaml, which
+      /// agree on every one of these): ThemeTokens republishes them in the brand on the
+      /// application's own dictionary, where they shadow the theme's. A theme brush keeps
+      /// the accent colour it was made with when the accent changes after it - the
+      /// primary button stayed the Windows accent beside a ticked box in the brand - so
+      /// the colours alone are not enough. The text field's focused line, the combo box's
+      /// focused border and the link button's words are not here: ThemeTokens gives those
+      /// the focus and link colours.
+      /// </summary>
+      public static IReadOnlyList<(string Key, AccentPart Part)> AccentBrushes { get; } = new[]
+      {
+         ("AccentButtonBackground", AccentPart.Fill),
+         ("AccentButtonBackgroundPointerOver", AccentPart.Hover),
+         ("AccentButtonBackgroundPressed", AccentPart.Pressed),
+         ("CalendarViewSelectedBackground", AccentPart.Primary),
+         ("CalendarViewSelectedBackgroundPointerOver", AccentPart.Hover),
+         ("CalendarViewSelectedBorderBrush", AccentPart.Primary),
+         ("CalendarViewTodayBackground", AccentPart.Primary),
+         ("CheckBoxCheckBackgroundFillChecked", AccentPart.Primary),
+         ("CheckBoxCheckBackgroundFillCheckedPointerOver", AccentPart.Hover),
+         ("CheckBoxCheckBackgroundFillCheckedPressed", AccentPart.Pressed),
+         ("ComboBoxItemPillFillBrush", AccentPart.Primary),
+         ("InfoBarInformationalSeverityIconBackground", AccentPart.Primary),
+         ("ListBoxItemSelectedBackgroundThemeBrush", AccentPart.Primary),
+         ("ListViewItemPillFillBrush", AccentPart.Primary),
+         ("NavigationViewSelectionIndicatorForeground", AccentPart.Primary),
+         ("ProgressBarForeground", AccentPart.Primary),
+         ("ProgressRingForegroundThemeBrush", AccentPart.Primary),
+         ("RadioButtonOuterEllipseCheckedStroke", AccentPart.Primary),
+         ("RadioButtonOuterEllipseCheckedStrokePointerOver", AccentPart.Pressed),
+         ("RatingControlSelectedForeground", AccentPart.Primary),
+         ("SliderThumbBackground", AccentPart.Primary),
+         ("SliderThumbBackgroundPointerOver", AccentPart.Hover),
+         ("ThumbRateForeground", AccentPart.Primary),
+         ("ToggleButtonBackgroundChecked", AccentPart.Primary),
+         ("ToggleButtonBackgroundCheckedPressed", AccentPart.Tertiary),
+         ("ToggleButtonForegroundCheckedPointerOver", AccentPart.Secondary),
+         ("ToggleSwitchFillOn", AccentPart.Primary),
+         ("ToggleSwitchFillOnPointerOver", AccentPart.Hover),
+         ("ToggleSwitchFillOnPressed", AccentPart.Pressed),
+         ("ToggleSwitchStrokeOn", AccentPart.Primary),
+         ("ToggleSwitchStrokeOnPointerOver", AccentPart.Hover),
+         ("ToggleSwitchStrokeOnPressed", AccentPart.Pressed),
+         ("TreeViewItemSelectionIndicatorForeground", AccentPart.Primary)
+      };
+
+      /// <summary>WPF-UI's accent for a theme, or null to keep the theme's own (<see cref="AccentArgb"/>).</summary>
+      public static AccentArgb? Accent(ChartTheme theme)
+      {
+         switch (theme)
+         {
+            case ChartTheme.HighContrast:
+               return null;
+
+            case ChartTheme.Light:
+               return new AccentArgb(LightBrand, LightBrand, 0xFF2559BA, 0xFF1E4A9C, 0xFF2A65D0, 0xFF2559BA, 0xFFFFFFFF);
+
+            default:
+               return new AccentArgb(DarkBrand, DarkBrand, DarkBrand, 0xFF7AA9FF, 0xFF4580E8, 0xFF4077D8, 0xFF000000);
+         }
+      }
+
+      /// <summary>
       /// A link's colour at rest and under the pointer, as 0xAARRGGBB: the About
       /// page's, the help pane's document list, every link inside a help
       /// document and the sign-in page's link button. A link took WPF's own

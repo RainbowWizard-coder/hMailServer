@@ -234,23 +234,22 @@ namespace hMailServer.ControlPanel.Services
          Set(LogApp, logApp);
          Set(LogError, logError);
 
-         // App.xaml declares "BrandBrush" as a fixed dark-theme blue (#2F81F7), and
-         // every StaticResource reference to it - the sidebar pill, the tab
-         // underline, the per-page icons - kept that blue on a light surface, where
-         // it reads washed-out. The declared instance is mutated IN PLACE rather
-         // than replaced, and the difference is load order: a StaticResource
-         // resolves to an instance once, when its view loads, so replacing the
-         // dictionary entry only reaches views loaded afterwards - and the App
-         // constructor (where Initialize runs) executes before App.xaml's
-         // resources even exist. Mutating the declared brush updates every
-         // consumer that ever resolved it, whenever the theme changes. XAML
-         // resource brushes are not frozen unless marked so; the guard keeps a
-         // future Freeze from becoming a crash here.
-         if (Application.Current?.Resources["BrandBrush"] is SolidColorBrush declaredBrand && !declaredBrand.IsFrozen)
-            declaredBrand.Color = brand;
-
          // Channel 2: publish fresh brushes for XAML DynamicResource consumers.
          Publish("AppBrandBrush", brand);
+
+         // One blue (review finding F045; the owner's choice of 9 October 2026, the
+         // brand over the Windows accent): WPF-UI's accent - the primary button, a
+         // ticked check box, a radio button, a switch, the progress ring, a text
+         // selection - is the brand, where it was the Windows accent, so that the
+         // shell showed three blues and, on a machine whose accent is red or orange,
+         // drew its primary buttons in a colour the Control Panel keeps for danger and
+         // warning. After every theme change, since WPF-UI's Apply sets the accent from
+         // Windows' first; under High Contrast the theme's own stands.
+         if (DesignTokens.Accent(CurrentChartTheme) is DesignTokens.AccentArgb accent)
+            ApplyBrandAccent_(accent, CurrentChartTheme);
+         else
+            WithdrawBrandAccent_();
+
          Publish("AppSuccessBrush", success);
          Publish("AppWarningBrush", warning);
          Publish("AppDangerBrush", danger);
@@ -480,6 +479,53 @@ namespace hMailServer.ControlPanel.Services
             App.LogException(new InvalidOperationException(
                "A shared ThemeTokens brush is frozen and keeps the colour of the theme it was frozen in (" + color + " was not applied). Reference the token by its resource key instead of handing the brush to a template factory.")); // no-loc
          }
+      }
+
+      /// <summary>
+      /// Gives WPF-UI the brand as its accent: the four accent colours it derives its
+      /// brushes from, then the fills under the pointer and pressed, which it makes
+      /// the accent at 90 and 80 per cent - the light theme's white words measured
+      /// under 4.5:1 on the brand made translucent over the page - as opaque shades
+      /// that keep the words on them clear (DesignTokens.Accent).
+      /// </summary>
+      private static void ApplyBrandAccent_(DesignTokens.AccentArgb accent, ChartTheme theme)
+      {
+         if (Application.Current == null)
+            return;
+
+         try
+         {
+            ApplicationAccentColorManager.Apply(FromArgb(accent.System), FromArgb(accent.Primary),
+               FromArgb(accent.Secondary), FromArgb(accent.Tertiary));
+         }
+         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+         {
+            // Keep the theme's accent rather than fail a theme change.
+            App.LogException(fatalCheck);
+            return;
+         }
+
+         PublishValue("AccentFillColorSecondary", FromArgb(accent.Hover));
+         Publish("AccentFillColorSecondaryBrush", FromArgb(accent.Hover));
+         PublishValue("AccentFillColorTertiary", FromArgb(accent.Pressed));
+         Publish("AccentFillColorTertiaryBrush", FromArgb(accent.Pressed));
+
+         // And the brushes WPF-UI draws in its accent, which its theme dictionary
+         // made with the accent in force as it loaded and which keep that colour
+         // when the accent changes after it: the primary button stayed the Windows
+         // accent beside a ticked box in the brand.
+         foreach ((string key, DesignTokens.AccentPart part) in DesignTokens.AccentBrushes)
+            Publish(key, FromArgb(accent.Of(part, theme)));
+      }
+
+      /// <summary>Under High Contrast, the accent brushes are the theme's own again.</summary>
+      private static void WithdrawBrandAccent_()
+      {
+         if (Application.Current == null)
+            return;
+
+         foreach ((string key, DesignTokens.AccentPart _) in DesignTokens.AccentBrushes)
+            Application.Current.Resources.Remove(key);
       }
 
       private static void Publish(string key, Color color)

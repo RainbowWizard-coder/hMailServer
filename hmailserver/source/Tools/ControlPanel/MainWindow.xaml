@@ -35,7 +35,7 @@
 
         <ui:TitleBar Grid.Row="0" Title="{loc:L 'hMailServer Control Panel'}" ShowMaximize="True" ShowMinimize="True">
             <ui:TitleBar.Icon>
-                <ui:SymbolIcon Symbol="Mail24" Foreground="{StaticResource BrandBrush}" />
+                <ui:SymbolIcon Symbol="Mail24" Foreground="{DynamicResource AppBrandBrush}" />
             </ui:TitleBar.Icon>
         </ui:TitleBar>
 
