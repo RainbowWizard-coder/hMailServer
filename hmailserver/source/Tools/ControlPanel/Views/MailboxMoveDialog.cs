@@ -81,6 +81,8 @@ namespace hMailServer.ControlPanel.Views
             L("The mailbox, its messages and everything keyed on the account go with it: its rules, filters, folders and their permissions, application passwords, second factor, contacts, calendars, preferences, password history, sender lists, group memberships and its role."),
             width: 560);
 
+         // Room for the new address's message, so that Move and Cancel stay where they are.
+         KeepRoomForFieldErrors(1, newAddressRow_);
          Loaded += (s, e) => ShowWhatWouldStopIt();
       }
 

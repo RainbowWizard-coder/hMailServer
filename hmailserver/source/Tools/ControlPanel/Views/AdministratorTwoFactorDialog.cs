@@ -121,6 +121,11 @@ namespace hMailServer.ControlPanel.Views
          });
 
          UseFrame(L("Second factor on the administrator credential"), body, action_, close_, width: 560);
+
+         // Room for the code's message, two lines at this width ("... then try the
+         // current code."), while the code box is shown: enrolled, or after an
+         // enrolment the server refused, there is no code to refuse.
+         KeepRoomForFieldErrors(2, codeRow_);
          RefreshState();
 
          // A dialog closed with an enrolment still unconfirmed rolls it back, so a

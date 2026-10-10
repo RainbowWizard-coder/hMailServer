@@ -87,6 +87,11 @@ namespace hMailServer.ControlPanel.Views
          close.Click += (s, e) => Close();
 
          UseFrame(L("Two-factor authentication"), body, action_, close, width: 560);
+
+         // Room for the code's message, which wraps to two lines at this width
+         // ("... Make sure your authenticator app is set up with the new key."),
+         // so that Enable two-factor authentication and Close stay where they are.
+         KeepRoomForFieldErrors(2, codeRow_);
          RefreshState();
          Loaded += (s, e) => code_.Focus();
       }

@@ -688,6 +688,10 @@ namespace hMailServer.ControlPanel.Views
             L("The key is shown once, when it is created, and never again. It is live immediately - the server re-reads its key store on every request."),
             width: 560);
 
+         // Room for a field's message: a press refuses one field, and the longest
+         // message - the expiry's, the source restriction's - wraps to two lines.
+         dlg.KeepRoomForFieldErrors(2);
+
          return dlg.ShowDialog() == true ? result : null;
       }
 

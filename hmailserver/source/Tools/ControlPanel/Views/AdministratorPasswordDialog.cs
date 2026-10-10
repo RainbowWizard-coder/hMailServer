@@ -70,6 +70,9 @@ namespace hMailServer.ControlPanel.Views
 
          UseFrame(Title, body, change, cancel,
             L("The password this Control Panel, the REST API and every script that connects through the COM API sign in to the server with. Mailbox passwords are not changed."));
+
+         // Room for a box's message: a press refuses one box, in one line.
+         KeepRoomForFieldErrors();
       }
 
       /// <summary>Whether the server has the new password.</summary>

@@ -130,6 +130,9 @@ namespace hMailServer.ControlPanel.Views
          cancel.Click += (s, e) => Close();
 
          UseFrame(L("Port binding"), body, save, cancel, width: 520);
+
+         // Room for the port's message, where the dialog is not at its cap.
+         KeepRoomForFieldErrors(1, portRow_);
          Loaded += (s, e) => Load();
       }
 

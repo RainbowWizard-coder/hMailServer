@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using Xunit;
@@ -141,10 +142,51 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("FieldDialog.cs", "KeepRoomForFieldErrors(Math.Max(1, fields.Count(f => f.Required)));")]
       [InlineData("DistributionListDialog.cs", "KeepRoomForFieldErrors(3);")]
       [InlineData("FolderPermissionsDialog.cs", "KeepRoomForFieldErrors(1, subjectRow_);")]
+      [InlineData("TotpSetupDialog.cs", "KeepRoomForFieldErrors(2, codeRow_);")]
+      [InlineData("AdministratorTwoFactorDialog.cs", "KeepRoomForFieldErrors(2, codeRow_);")]
+      [InlineData("AdministratorPasswordDialog.cs", "KeepRoomForFieldErrors();")]
+      [InlineData("ApiKeysView.cs", "dlg.KeepRoomForFieldErrors(2);")]
+      [InlineData("TcpIpPortDialog.cs", "KeepRoomForFieldErrors(1, portRow_);")]
+      [InlineData("MailboxMoveDialog.cs", "KeepRoomForFieldErrors(1, newAddressRow_);")]
       public void ADialogWithARefusableField_KeepsRoomForItsMessage(string view, string call)
       {
          string source = ReadControlPanelFile(Path.Join("Views", view));
          Assert.Contains(call, source, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// The rule docs/ControlPanelDesign.md states, held for every dialog on the
+      /// frame: one that says a message under a field keeps room for it, or fits
+      /// its tabs to a height of their own, which a message inside a tab does not
+      /// change. It was applied to the three dialogs whose renders had shown the
+      /// footer move and to the unit's own, and the two-factor setup grew from 547
+      /// to 583 pixels on a wrong code, Enable two-factor authentication and Close
+      /// 36 pixels lower; the administrator's second factor and password, the API
+      /// key's Create, the port binding and the mailbox move did the same.
+      /// </summary>
+      [Fact]
+      public void EveryDialogOnTheFrameThatRefusesAField_KeepsRoomForTheMessage()
+      {
+         var missing = new List<string>();
+         foreach (string file in Directory.GetFiles(ControlPanelDirectory("Views"), "*.cs", SearchOption.AllDirectories))
+         {
+            string name = Path.GetFileName(file);
+            if (name is "DialogFields.cs" or "FluentDialogWindow.cs")
+               continue;
+
+            string source = File.ReadAllText(file);
+            bool framed = source.Contains("UseFrame(", StringComparison.Ordinal) || source.Contains(".Frame(", StringComparison.Ordinal);
+            bool refuses = Regex.IsMatch(source, @"\.Error = [LF]\(|DialogFields\.ShowError\(|DialogFields\.ShowFirstError\(");
+            bool keeps = source.Contains("KeepRoomForFieldErrors(", StringComparison.Ordinal)
+               || source.Contains("DialogFields.FitTabs(", StringComparison.Ordinal)
+               || source.Contains("DialogFields.FillTabs(", StringComparison.Ordinal);
+            if (framed && refuses && !keeps)
+               missing.Add(name);
+         }
+
+         Assert.True(missing.Count == 0,
+            "These dialogs say a message under a field and keep no room for it, so that the message moves their buttons (FluentDialogWindow.KeepRoomForFieldErrors): "
+            + string.Join(", ", missing));
       }
 
       /// <summary>
@@ -191,6 +233,21 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       private static string Normalise(string text) => text.Replace("\r\n", "\n");
+
+      private static string ControlPanelDirectory(string relative)
+      {
+         var directory = new DirectoryInfo(AppContext.BaseDirectory);
+         while (directory != null)
+         {
+            string candidate = Path.Join(directory.FullName, "ControlPanel", relative);
+            if (Directory.Exists(candidate) && File.Exists(Path.Join(directory.FullName, "ControlPanel", "Views", "FieldDialog.cs")))
+               return candidate;
+            directory = directory.Parent;
+         }
+
+         Assert.Fail("ControlPanel/" + relative + " could not be found from the test binaries.");
+         return null;
+      }
 
       private static string ReadControlPanelFile(string relative)
       {
