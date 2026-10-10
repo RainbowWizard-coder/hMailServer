@@ -774,8 +774,8 @@
   <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Automatic certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
     <value>ACME je zapnuto a volba „Znovu použít soukromý klíč při obnovách“ je vypnuta, takže každá obnova certifikátu vygeneruje nový soukromý klíč. Pokud publikujete TLSA záznamy '3 1 1', při příští obnově přestanou platit – znovu ji zapněte na stránce Automatické certifikáty (ACME) (výchozí), nebo TLSA záznam po každé obnově aktualizujte.</value>
   </data>
-  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
-    <value>ACME je zapnuto, ale pole „Názvy hostitelů pro certifikát“ na stránce Automatické certifikáty (ACME) je prázdné, takže se nikdy nevyžádá žádný certifikát – klient zapíše do logu 'No domains configured' a skončí. Uveďte tam názvy hostitelů, které má certifikát pokrývat (například mail.yourdomain.com, mta-sts.yourdomain.com).</value>
+  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.example.com, mta-sts.example.com)." xml:space="preserve">
+    <value>ACME je zapnuto, ale pole „Názvy hostitelů pro certifikát“ na stránce Automatické certifikáty (ACME) je prázdné, takže se nikdy nevyžádá žádný certifikát – klient zapíše do logu 'No domains configured' a skončí. Uveďte tam názvy hostitelů, které má certifikát pokrývat (například mail.example.com, mta-sts.example.com).</value>
   </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME je zapnuto, ale zatím nebyl vydán žádný certifikát – v {0} nejsou oba soubory fullchain.pem a privkey.pem. Vydání probíhá podle vlastního plánu serveru, takže je to pár minut po zapnutí normální; pokud to přetrvává, certifikační autorita na tento server nedosáhla a stránka Kontrolní seznam nastavení kontroluje přesně to.</value>
@@ -1389,8 +1389,8 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Alias domain" xml:space="preserve">
     <value>Doména aliasu</value>
   </data>
-  <data name="Alias domain name (e.g. example.net)" xml:space="preserve">
-    <value>Název aliasové domény (např. example.net)</value>
+  <data name="Alias domain name" xml:space="preserve">
+    <value>Název aliasové domény</value>
   </data>
   <data name="Aliases" xml:space="preserve">
     <value>Aliasy</value>
@@ -4374,10 +4374,7 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
     <value>Neposílat zprávy větší než (KB; 0 = bez limitu)</value>
   </data>
   <data name="Do_main" xml:space="preserve">
-    <value>D_oména</value>
-  </data>
-  <data name="Do_main (e.g. partner.com)" xml:space="preserve">
-    <value>_Doména (např. partner.com)</value>
+    <value>Do_ména</value>
   </data>
   <data name="Does not match the certificate" xml:space="preserve">
     <value>Neodpovídá certifikátu</value>
@@ -6652,8 +6649,8 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Lo_cal to external" xml:space="preserve">
     <value>Místní _do externí</value>
   </data>
-  <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
-    <value>D_olní IP (např. 10.0.0.0)</value>
+  <data name="Lo_wer IP" xml:space="preserve">
+    <value>D_olní IP</value>
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Načítání…</value>
@@ -12304,6 +12301,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
     <value>Například zen.spamhaus.org nebo bl.spamcop.net</value>
   </data>
+  <data name="Such as {0}" xml:space="preserve">
+    <value>Například {0}</value>
+  </data>
   <data name="Support session opened" xml:space="preserve">
     <value>Relace podpory otevřena</value>
   </data>
@@ -15732,10 +15732,7 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
     <value>Atribut zobrazovaného _jména</value>
   </data>
   <data name="_Domain" xml:space="preserve">
-    <value>_Doména</value>
-  </data>
-  <data name="_Domain (e.g. gmail.com)" xml:space="preserve">
-    <value>D_oména (např. gmail.com)</value>
+    <value>Do_ména</value>
   </data>
   <data name="_Domain name" xml:space="preserve">
     <value>_Název domény</value>
@@ -15851,9 +15848,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Header name" xml:space="preserve">
     <value>_Název hlavičky</value>
   </data>
-  <data name="_Header name (e.g. X-Spam-Status)" xml:space="preserve">
-    <value>_Název hlavičky (např. X-Spam-Status)</value>
-  </data>
   <data name="_Hosted domain" xml:space="preserve">
     <value>_Hostovaná doména</value>
   </data>
@@ -15866,8 +15860,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_IMAP" xml:space="preserve">
     <value>_IMAP</value>
   </data>
-  <data name="_IMAP folder (e.g. INBOX.Archive)" xml:space="preserve">
-    <value>_IMAP složka (např. INBOX.Archive)</value>
+  <data name="_IMAP folder" xml:space="preserve">
+    <value>_IMAP složka</value>
   </data>
   <data name="_IMAP folders in this mailbox" xml:space="preserve">
     <value>_IMAP složky v této poštovní schránce</value>
@@ -16257,10 +16251,7 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
     <value>Odemknout poštovní _schránku</value>
   </data>
   <data name="_Upper IP" xml:space="preserve">
-    <value>_Horní IP</value>
-  </data>
-  <data name="_Upper IP (e.g. 10.0.0.255)" xml:space="preserve">
-    <value>Horn_í IP (např. 10.0.0.255)</value>
+    <value>Horn_í IP</value>
   </data>
   <data name="_Upper IP address" xml:space="preserve">
     <value>_Horní IP adresa</value>

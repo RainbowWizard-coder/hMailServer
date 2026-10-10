@@ -107,7 +107,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void TheNamesTab_IsHeadedAliasDomain_AndTheExternalTab_KeepsTheServerColumn()
       {
          string specs = Specs();
-         Assert.Matches(new Regex(@"Prop = ""AliasName"", Label = L\(""Alias domain name \(e\.g\. example\.net\)""\), GridLabel = L\(""Alias domain""\)"), specs);
+         Assert.Matches(new Regex(@"Prop = ""AliasName"", Label = L\(""Alias domain name""\), GridLabel = L\(""Alias domain""\), Default = """", Hint = F\(""Such as \{0\}"", ""example\.net""\)"), specs);
          Assert.Matches(new Regex(@"Prop = ""ServerType"".*ShowInGrid = false"), specs);
          // The connection security is off the grid as well, so that the server has
          // the room (F199, ExternalAccountsGridTests).

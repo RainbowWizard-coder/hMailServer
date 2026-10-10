@@ -288,6 +288,19 @@ namespace hMailServer.ControlPanel.Services
          else
             Application.Current?.Resources.Remove("TextFillColorTertiaryBrush");
 
+         // A text field's placeholder: the dark tertiary on the field's own
+         // fill, which is lighter than the page (DesignTokens.PlaceholderTextFor).
+         // Both keys - the one Wpf.Ui's text box templates draw the placeholder
+         // with and the theme brush it is made from - are shadowed, and taken
+         // away in the light and High Contrast themes.
+         foreach (string key in new[] { "TextControlPlaceholderForeground", "TextPlaceholderColorBrush" })
+         {
+            if (DesignTokens.PlaceholderTextFor(CurrentChartTheme) is uint placeholder)
+               Publish(key, FromArgb(placeholder));
+            else
+               Application.Current?.Resources.Remove(key);
+         }
+
          // The focus colour (DesignTokens.Focus): the ring FocusGlow draws round
          // a text field that has the keyboard, the glow outside it, and the
          // border the navigation draws round the row the keyboard is on. The

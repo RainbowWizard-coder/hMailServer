@@ -179,14 +179,38 @@ namespace hMailServer.ControlPanel.Services
       /// line, the Related links' caption, the search box's shortcut. Black at
       /// 58% composites to #696969 on the page (5.3:1) and #656565 on the
       /// darkest light surface, a hovered row (5.1:1), and stays a step lighter
-      /// than the secondary text (62%). The dark theme's tertiary (#87FFFFFF,
-      /// 6.4:1 on the page) and High Contrast's are left as the theme has them.
+      /// than the secondary text (62%). High Contrast's is left as the theme has it.
       /// </summary>
       public const uint LightTertiaryText = 0x94000000;
 
+      /// <summary>
+      /// The dark theme's tertiary text and the placeholder in a text field,
+      /// which replace Wpf.Ui's. Wpf.Ui's dark tertiary is white at 53%
+      /// (#87FFFFFF), 5.5:1 on the page, and its placeholder a shade fainter; a
+      /// placeholder sits on the field's own fill, #393939 on a card, where
+      /// "Search domains" measured #9F9F9F, 4.36:1 (review findings F099,
+      /// F303). White at 60% composites to #B0B0B0 there (5.3:1) and to #A6A6A6
+      /// on the page (6.7:1), and stays a step fainter than the secondary text
+      /// (77%).
+      /// </summary>
+      public const uint DarkTertiaryText = 0x99FFFFFF;
+
       /// <summary>The tertiary text colour this theme needs in place of Wpf.Ui's, or null to keep the theme's own.</summary>
-      public static uint? TertiaryTextFor(ChartTheme theme)
-         => theme == ChartTheme.Light ? LightTertiaryText : null;
+      public static uint? TertiaryTextFor(ChartTheme theme) => theme switch
+      {
+         ChartTheme.Light => LightTertiaryText,
+         ChartTheme.Dark => DarkTertiaryText,
+         _ => null
+      };
+
+      /// <summary>
+      /// The colour of a text field's placeholder in this theme in place of
+      /// Wpf.Ui's, or null to keep the theme's own: the dark tertiary, since the
+      /// field's fill is lighter than the page; the light theme's own
+      /// placeholder (black at 62%) already clears 4.5:1 on its field.
+      /// </summary>
+      public static uint? PlaceholderTextFor(ChartTheme theme)
+         => theme == ChartTheme.Dark ? DarkTertiaryText : null;
 
       /// <summary>
       /// Where the keyboard is: the colour of the ring round a text field that

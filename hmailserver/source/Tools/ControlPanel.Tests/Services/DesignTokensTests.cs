@@ -241,8 +241,50 @@ namespace hMailServer.ControlPanel.Tests.Services
          double ratio = ChartPalette.ContrastRatio(text, surface);
          Assert.True(ratio >= 4.5, $"tertiary text on {surface:X8} is {ratio:F2}:1.");
 
-         Assert.Null(DesignTokens.TertiaryTextFor(ChartTheme.Dark));
          Assert.Null(DesignTokens.TertiaryTextFor(ChartTheme.HighContrast));
+      }
+
+      /// <summary>
+      /// The dark theme's tertiary text and a text field's placeholder clear
+      /// 4.5:1 on the page, a card, a hovered row and the field's own fill on a
+      /// card (#393939), where Wpf.Ui's placeholder - "Search domains", "Account
+      /// address" - measured 4.36:1 (review findings F099, F303). The light
+      /// theme keeps Wpf.Ui's placeholder (black at 62%, over the light
+      /// tertiary's 58%), and High Contrast the system's.
+      /// </summary>
+      [Theory]
+      [InlineData(0xFF202020u)]
+      [InlineData(0xFF1B1B1Bu)]
+      [InlineData(0xFF2B2B2Bu)]
+      [InlineData(0xFF2D2D2Du)]
+      [InlineData(0xFF323232u)]
+      [InlineData(0xFF393939u)]
+      public void TheDarkThemesTertiaryTextAndPlaceholderClearFourPointFiveToOne(uint surface)
+      {
+         foreach (uint? token in new[] { DesignTokens.TertiaryTextFor(ChartTheme.Dark), DesignTokens.PlaceholderTextFor(ChartTheme.Dark) })
+         {
+            Assert.True(token.HasValue);
+            uint text = Over(token.Value, (token.Value >> 24) / 255.0, surface);
+            double ratio = ChartPalette.ContrastRatio(text, surface);
+            Assert.True(ratio >= 4.5, $"dark tertiary text on {surface:X8} is {ratio:F2}:1.");
+         }
+
+         Assert.Null(DesignTokens.PlaceholderTextFor(ChartTheme.Light));
+         Assert.Null(DesignTokens.PlaceholderTextFor(ChartTheme.HighContrast));
+         // A step fainter than the dark secondary text (white at 77%).
+         Assert.True((DesignTokens.DarkTertiaryText >> 24) < 0xC5);
+      }
+
+      /// <summary>
+      /// The placeholder is published under both keys Wpf.Ui's text fields read,
+      /// and taken away again where the theme's own is kept.
+      /// </summary>
+      [Fact]
+      public void ThePlaceholderIsPublishedUnderWpfUisKeys()
+      {
+         string source = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Services", "ThemeTokens.cs"));
+         Assert.Contains("\"TextControlPlaceholderForeground\", \"TextPlaceholderColorBrush\"", source, StringComparison.Ordinal);
+         Assert.Contains("DesignTokens.PlaceholderTextFor(CurrentChartTheme)", source, StringComparison.Ordinal);
       }
 
       /// <summary>

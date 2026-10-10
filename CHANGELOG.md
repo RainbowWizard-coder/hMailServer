@@ -3237,6 +3237,25 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   titles. `JapaneseStyleTests` holds the note, and `build/check-mnemonics.py` refuses a space before a Japanese or
   Chinese key's suffix, its self-test with a catalogue made to break it.
 
+- **Fixed: the Control Panel's examples were in some captions and in other boxes, said yourdomain.com, could read as
+  values already set, and were faint in the dark theme.** Routes said "Domain (e.g. partner.com)", IP ranges "Lower IP
+  (e.g. 10.0.0.0)" and "Upper IP (e.g. 10.0.0.255)", the rule dialogs "Header name (e.g. X-Spam-Status)" and "IMAP
+  folder (e.g. INBOX.Archive)", MX query "Domain (e.g. gmail.com)" and a domain's aliases "Alias domain name (e.g.
+  example.net)", each its whole example in the field's accessible name, while other pages put theirs in the box;
+  Transport security, Certificates (ACME), Web services, Server sendout and the setup checklist's ACME item said
+  yourdomain.com where the rest say example.com, and the translations invented their own (mail.ihredomain.de,
+  mail.dindomän.se); an empty DNS override showed 1.1.1.1, which read as a Cloudflare resolver set on this server, and
+  an empty REST API port 8045 and OpenTelemetry endpoint http://localhost:4318 as values configured; "e.g. 127.0.0.1"
+  was English in every language; and a dark placeholder on a card's field measured 4.36:1 (review findings F303,
+  F099). Each caption now names its field and its box shows the example marked as one - "e.g. partner.example", "e.g.
+  1.1.1.1", "e.g. mail.example.com" - in every language (z. B., p. ex., 例:), or, in a dialog whose boxes have no
+  placeholder and in a list's dialog, its hint under the box says it ("Such as X-Spam-Status"); the examples are from
+  example.com and example.net, MX query's gmail.com excepted, since example.com publishes no mail server; the
+  sendout's From name says what it is under the box rather than inside it. The dark theme's tertiary text and
+  placeholders are white at 60% (`DesignTokens.DarkTertiaryText`), 5.3:1 on a field's fill on a card and 6.7:1 on the
+  page, published under both keys Wpf.Ui's text fields read. `PlaceholderExampleTests` holds the captions, the boxes
+  and yourdomain's absence, and `DesignTokensTests` the dark text on every dark surface a field or a hint sits on.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

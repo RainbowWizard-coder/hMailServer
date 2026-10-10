@@ -1569,7 +1569,7 @@ namespace hMailServer.ControlPanel.Services
          {
             // Verified: RequestCertificate logs and returns before contacting the CA.
             item.Add(SetupItemState.ActionNeeded,
-               L("ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)."));
+               L("ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.example.com, mta-sts.example.com)."));
          }
          else
          {

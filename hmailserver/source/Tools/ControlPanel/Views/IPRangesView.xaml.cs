@@ -49,6 +49,12 @@ namespace hMailServer.ControlPanel.Views
       {
          InitializeComponent();
 
+         // The captions name the fields and the boxes show an example, marked as
+         // one, where the captions said "Lower IP (e.g. 10.0.0.0)" (review
+         // finding F303).
+         NewLower.PlaceholderText = F("e.g. {0}", "10.0.0.0");
+         NewUpper.PlaceholderText = F("e.g. {0}", "10.0.0.255");
+
          // Properties and Delete act on the selected range: live with nothing
          // selected, one answered with a message box and the other with nothing.
          SelectionGate.Bind(RangeGrid, PropertiesButton, DeleteRangeButton);

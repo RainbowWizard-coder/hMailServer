@@ -768,8 +768,8 @@
   <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Automatic certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
     <value>ACME è attivo e 'Riutilizza la chiave privata tra un rinnovo e l'altro' è disattivato, quindi ogni rinnovo del certificato genera una nuova chiave privata. Se pubblichi record TLSA '3 1 1' si romperanno al prossimo rinnovo - riattivalo nella pagina Certificati automatici (ACME) (l'impostazione predefinita), o aggiorna il record TLSA dopo ogni rinnovo.</value>
   </data>
-  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
-    <value>ACME è attivo ma 'Nomi host per il certificato' nella pagina Certificati automatici (ACME) è vuoto, quindi nessun certificato viene mai richiesto - il client registra 'No domains configured' e si ferma. Elenca lì i nomi host che il certificato deve coprire (per esempio mail.tuodominio.it, mta-sts.tuodominio.it).</value>
+  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.example.com, mta-sts.example.com)." xml:space="preserve">
+    <value>ACME è attivo ma 'Nomi host per il certificato' nella pagina Certificati automatici (ACME) è vuoto, quindi nessun certificato viene mai richiesto - il client registra 'No domains configured' e si ferma. Elenca lì i nomi host che il certificato deve coprire (per esempio mail.example.com, mta-sts.example.com).</value>
   </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME è attivo ma nessun certificato è ancora stato emesso - fullchain.pem e privkey.pem non sono entrambi in {0}. L'emissione avviene secondo la pianificazione del server, quindi è normale per qualche minuto dopo l'attivazione; se persiste, la CA non è riuscita a raggiungere questo server, e la pagina Checklist di configurazione verifica esattamente questo.</value>
@@ -1383,8 +1383,8 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   <data name="Alias domain" xml:space="preserve">
     <value>Dominio alias</value>
   </data>
-  <data name="Alias domain name (e.g. example.net)" xml:space="preserve">
-    <value>Nome di dominio alias (es. example.net)</value>
+  <data name="Alias domain name" xml:space="preserve">
+    <value>Nome di dominio alias</value>
   </data>
   <data name="Aliases" xml:space="preserve">
     <value>Alias</value>
@@ -4322,10 +4322,7 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
     <value>Non inviare messaggi più grandi di (KB; 0 = nessun limite)</value>
   </data>
   <data name="Do_main" xml:space="preserve">
-    <value>D_ominio</value>
-  </data>
-  <data name="Do_main (e.g. partner.com)" xml:space="preserve">
-    <value>_Dominio (es. partner.com)</value>
+    <value>Do_minio</value>
   </data>
   <data name="Does not match the certificate" xml:space="preserve">
     <value>Non corrisponde al certificato</value>
@@ -6582,8 +6579,8 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="Lo_cal to external" xml:space="preserve">
     <value>_Da locale a esterno</value>
   </data>
-  <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
-    <value>IP inf_eriore (es. 10.0.0.0)</value>
+  <data name="Lo_wer IP" xml:space="preserve">
+    <value>IP inf_eriore</value>
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Caricamento…</value>
@@ -12162,6 +12159,9 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
     <value>Ad esempio zen.spamhaus.org o bl.spamcop.net</value>
   </data>
+  <data name="Such as {0}" xml:space="preserve">
+    <value>Ad esempio {0}</value>
+  </data>
   <data name="Support session opened" xml:space="preserve">
     <value>Sessione di assistenza aperta</value>
   </data>
@@ -15547,9 +15547,6 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="_Domain" xml:space="preserve">
     <value>_Dominio</value>
   </data>
-  <data name="_Domain (e.g. gmail.com)" xml:space="preserve">
-    <value>_Dominio (es. gmail.com)</value>
-  </data>
   <data name="_Domain name" xml:space="preserve">
     <value>_Nome del dominio</value>
   </data>
@@ -15664,9 +15661,6 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="_Header name" xml:space="preserve">
     <value>N_ome dell'intestazione</value>
   </data>
-  <data name="_Header name (e.g. X-Spam-Status)" xml:space="preserve">
-    <value>_Nome dell'intestazione (ad es. X-Spam-Status)</value>
-  </data>
   <data name="_Hosted domain" xml:space="preserve">
     <value>_Dominio ospitato</value>
   </data>
@@ -15679,8 +15673,8 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="_IMAP" xml:space="preserve">
     <value>_IMAP</value>
   </data>
-  <data name="_IMAP folder (e.g. INBOX.Archive)" xml:space="preserve">
-    <value>Cartella _IMAP (ad es. INBOX.Archive)</value>
+  <data name="_IMAP folder" xml:space="preserve">
+    <value>Cartella _IMAP</value>
   </data>
   <data name="_IMAP folders in this mailbox" xml:space="preserve">
     <value>_Cartelle IMAP in questa casella</value>
@@ -16071,9 +16065,6 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="_Upper IP" xml:space="preserve">
     <value>IP s_uperiore</value>
-  </data>
-  <data name="_Upper IP (e.g. 10.0.0.255)" xml:space="preserve">
-    <value>IP s_uperiore (es. 10.0.0.255)</value>
   </data>
   <data name="_Upper IP address" xml:space="preserve">
     <value>In_dirizzo IP superiore</value>

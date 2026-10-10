@@ -768,8 +768,8 @@
   <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Automatic certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
     <value>ACME etkin ve 'Özel anahtarı yenilemeler boyunca yeniden kullan' kapalı; bu nedenle her sertifika yenilemesi yeni bir özel anahtar üretir. '3 1 1' TLSA kayıtları yayımlarsanız bir sonraki yenilemede bozulurlar - Otomatik sertifikalar (ACME) sayfasında bunu yeniden açın (varsayılan) ya da her yenilemeden sonra TLSA kaydını güncelleyin.</value>
   </data>
-  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
-    <value>ACME etkin ama Otomatik sertifikalar (ACME) sayfasındaki 'Sertifika için ana bilgisayar adları' boş; bu nedenle hiçbir zaman sertifika istenmez - istemci 'No domains configured' satırını günlüğe yazıp durur. Sertifikanın kapsaması gereken ana bilgisayar adlarını orada listeleyin (örneğin mail.yourdomain.com, mta-sts.yourdomain.com).</value>
+  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.example.com, mta-sts.example.com)." xml:space="preserve">
+    <value>ACME etkin ama Otomatik sertifikalar (ACME) sayfasındaki 'Sertifika için ana bilgisayar adları' boş; bu nedenle hiçbir zaman sertifika istenmez - istemci 'No domains configured' satırını günlüğe yazıp durur. Sertifikanın kapsaması gereken ana bilgisayar adlarını orada listeleyin (örneğin mail.example.com, mta-sts.example.com).</value>
   </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME açık ama henüz sertifika verilmemiş - fullchain.pem ve privkey.pem dosyalarının ikisi birden {0} içinde değil. Sertifika verme işlemi sunucunun kendi zamanlamasına göre olur; bu yüzden özelliği açtıktan sonraki birkaç dakika boyunca bu normaldir. Sürerse, CA bu sunucuya ulaşamamış demektir ve Kurulum kontrol listesi sayfası tam olarak bunu denetler.</value>
@@ -1383,8 +1383,8 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Alias domain" xml:space="preserve">
     <value>Diğer ad etki alanı</value>
   </data>
-  <data name="Alias domain name (e.g. example.net)" xml:space="preserve">
-    <value>Diğer ad etki alanı adı (örneğin example.net)</value>
+  <data name="Alias domain name" xml:space="preserve">
+    <value>Diğer ad etki alanı adı</value>
   </data>
   <data name="Aliases" xml:space="preserve">
     <value>Diğer adlar</value>
@@ -4324,9 +4324,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Do_main" xml:space="preserve">
     <value>Et_ki alanı</value>
   </data>
-  <data name="Do_main (e.g. partner.com)" xml:space="preserve">
-    <value>_Etki alanı (örneğin partner.com)</value>
-  </data>
   <data name="Does not match the certificate" xml:space="preserve">
     <value>Sertifikayla eşleşmiyor</value>
   </data>
@@ -6582,8 +6579,8 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Lo_cal to external" xml:space="preserve">
     <value>Yerelden dı_şa</value>
   </data>
-  <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
-    <value>Alt IP (ö_rneğin 10.0.0.0)</value>
+  <data name="Lo_wer IP" xml:space="preserve">
+    <value>Alt IP ad_resi</value>
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Yükleniyor…</value>
@@ -12162,6 +12159,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
     <value>Örneğin zen.spamhaus.org veya bl.spamcop.net</value>
   </data>
+  <data name="Such as {0}" xml:space="preserve">
+    <value>Örneğin {0}</value>
+  </data>
   <data name="Support session opened" xml:space="preserve">
     <value>Destek oturumu açıldı</value>
   </data>
@@ -15547,9 +15547,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="_Domain" xml:space="preserve">
     <value>_Etki alanı</value>
   </data>
-  <data name="_Domain (e.g. gmail.com)" xml:space="preserve">
-    <value>_Etki alanı (örneğin gmail.com)</value>
-  </data>
   <data name="_Domain name" xml:space="preserve">
     <value>Etki _alanı adı</value>
   </data>
@@ -15664,9 +15661,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="_Header name" xml:space="preserve">
     <value>Ba_şlık adı</value>
   </data>
-  <data name="_Header name (e.g. X-Spam-Status)" xml:space="preserve">
-    <value>_Başlık adı (örneğin X-Spam-Status)</value>
-  </data>
   <data name="_Hosted domain" xml:space="preserve">
     <value>_Barındırılan etki alanı</value>
   </data>
@@ -15679,8 +15673,8 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="_IMAP" xml:space="preserve">
     <value>_IMAP</value>
   </data>
-  <data name="_IMAP folder (e.g. INBOX.Archive)" xml:space="preserve">
-    <value>IMAP klasörü (_örneğin INBOX.Archive)</value>
+  <data name="_IMAP folder" xml:space="preserve">
+    <value>IMAP kla_sörü</value>
   </data>
   <data name="_IMAP folders in this mailbox" xml:space="preserve">
     <value>Bu posta kutusundaki _IMAP klasörleri</value>
@@ -16071,9 +16065,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="_Upper IP" xml:space="preserve">
     <value>_Üst IP</value>
-  </data>
-  <data name="_Upper IP (e.g. 10.0.0.255)" xml:space="preserve">
-    <value>_Üst IP (ör. 10.0.0.255)</value>
   </data>
   <data name="_Upper IP address" xml:space="preserve">
     <value>_Üst IP adresi</value>

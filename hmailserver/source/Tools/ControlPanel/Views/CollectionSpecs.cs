@@ -555,8 +555,9 @@ namespace hMailServer.ControlPanel.Views
          },
          Fields =
          {
-            // The example stays in the dialog's caption; the column is headed by the name alone.
-            new FieldSpec { Prop = "AliasName", Label = L("Alias domain name (e.g. example.net)"), GridLabel = L("Alias domain"), Default = "" }
+            // The caption names the field and its hint gives the example (review
+            // finding F303); the column is headed by the name alone.
+            new FieldSpec { Prop = "AliasName", Label = L("Alias domain name"), GridLabel = L("Alias domain"), Default = "", Hint = F("Such as {0}", "example.net") }
          }
       }, embedded: true, onDialogTab: true);
 

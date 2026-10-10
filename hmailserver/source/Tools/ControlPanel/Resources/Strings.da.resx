@@ -768,8 +768,8 @@
   <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Automatic certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
     <value>ACME er aktiveret, og 'Genbrug den private nøgle på tværs af fornyelser' er slået fra, så hver fornyelse af certifikatet genererer en ny privat nøgle. Hvis du offentliggør '3 1 1'-TLSA-poster, går de i stykker ved næste fornyelse – slå den til igen på siden Automatiske certifikater (ACME) (standarden), eller opdatér TLSA-posten efter hver fornyelse.</value>
   </data>
-  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
-    <value>ACME er aktiveret, men 'Værtsnavne til certifikatet' på siden Automatiske certifikater (ACME) er tom, så der anmodes aldrig om et certifikat – klienten logger 'No domains configured' og stopper. Angiv dér de værtsnavne, certifikatet skal dække (for eksempel mail.yourdomain.com, mta-sts.yourdomain.com).</value>
+  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.example.com, mta-sts.example.com)." xml:space="preserve">
+    <value>ACME er aktiveret, men 'Værtsnavne til certifikatet' på siden Automatiske certifikater (ACME) er tom, så der anmodes aldrig om et certifikat – klienten logger 'No domains configured' og stopper. Angiv dér de værtsnavne, certifikatet skal dække (for eksempel mail.example.com, mta-sts.example.com).</value>
   </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME er slået til, men der er endnu ikke udstedt noget certifikat – fullchain.pem og privkey.pem ligger ikke begge i {0}. Udstedelsen sker efter serverens egen tidsplan, så dette er normalt i nogle minutter efter aktiveringen; hvis det fortsætter, kunne CA'en ikke nå denne server, og siden Tjekliste til opsætning kontrollerer netop det.</value>
@@ -1383,8 +1383,8 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Alias domain" xml:space="preserve">
     <value>Aliasdomæne</value>
   </data>
-  <data name="Alias domain name (e.g. example.net)" xml:space="preserve">
-    <value>Aliasdomænenavn (f.eks. example.net)</value>
+  <data name="Alias domain name" xml:space="preserve">
+    <value>Aliasdomænenavn</value>
   </data>
   <data name="Aliases" xml:space="preserve">
     <value>Aliasser</value>
@@ -4322,10 +4322,7 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
     <value>Send ikke meddelelser, der er større end (KB; 0 = ingen grænse)</value>
   </data>
   <data name="Do_main" xml:space="preserve">
-    <value>Do_mæne</value>
-  </data>
-  <data name="Do_main (e.g. partner.com)" xml:space="preserve">
-    <value>_Domæne (f.eks. partner.com)</value>
+    <value>Dom_æne</value>
   </data>
   <data name="Does not match the certificate" xml:space="preserve">
     <value>Svarer ikke til certifikatet</value>
@@ -6582,8 +6579,8 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="Lo_cal to external" xml:space="preserve">
     <value>Lokal til ek_stern</value>
   </data>
-  <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
-    <value>Nedre IP (_f.eks. 10.0.0.0)</value>
+  <data name="Lo_wer IP" xml:space="preserve">
+    <value>Ned_re IP</value>
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Indlæser…</value>
@@ -12162,6 +12159,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
     <value>Såsom zen.spamhaus.org eller bl.spamcop.net</value>
   </data>
+  <data name="Such as {0}" xml:space="preserve">
+    <value>Såsom {0}</value>
+  </data>
   <data name="Support session opened" xml:space="preserve">
     <value>Supportsession åbnet</value>
   </data>
@@ -15545,10 +15545,7 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
     <value>Attribut for _visningsnavn</value>
   </data>
   <data name="_Domain" xml:space="preserve">
-    <value>D_omæne</value>
-  </data>
-  <data name="_Domain (e.g. gmail.com)" xml:space="preserve">
-    <value>_Domæne (f.eks. gmail.com)</value>
+    <value>Do_mæne</value>
   </data>
   <data name="_Domain name" xml:space="preserve">
     <value>_Domænenavn</value>
@@ -15664,9 +15661,6 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="_Header name" xml:space="preserve">
     <value>He_adernavn</value>
   </data>
-  <data name="_Header name (e.g. X-Spam-Status)" xml:space="preserve">
-    <value>_Headernavn (f.eks. X-Spam-Status)</value>
-  </data>
   <data name="_Hosted domain" xml:space="preserve">
     <value>_Hostet domæne</value>
   </data>
@@ -15679,8 +15673,8 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="_IMAP" xml:space="preserve">
     <value>_IMAP</value>
   </data>
-  <data name="_IMAP folder (e.g. INBOX.Archive)" xml:space="preserve">
-    <value>_IMAP-mappe (f.eks. INBOX.Archive)</value>
+  <data name="_IMAP folder" xml:space="preserve">
+    <value>_IMAP-mappe</value>
   </data>
   <data name="_IMAP folders in this mailbox" xml:space="preserve">
     <value>_IMAP-mapper i denne postkasse</value>
@@ -16070,10 +16064,7 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
     <value>_Lås postkasse op</value>
   </data>
   <data name="_Upper IP" xml:space="preserve">
-    <value>Ø_vre IP</value>
-  </data>
-  <data name="_Upper IP (e.g. 10.0.0.255)" xml:space="preserve">
-    <value>Øv_re IP (f.eks. 10.0.0.255)</value>
+    <value>_Højeste IP</value>
   </data>
   <data name="_Upper IP address" xml:space="preserve">
     <value>_Øvre IP-adresse</value>

@@ -774,8 +774,8 @@
   <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Automatic certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
     <value>ACME увімкнено, а параметр «Повторно використовувати закритий ключ під час поновлень» вимкнено, тому кожне поновлення сертифіката створює новий закритий ключ. Якщо ви публікуєте TLSA-записи «3 1 1», вони зламаються під час наступного поновлення — знову ввімкніть його на сторінці «Автоматичні сертифікати (ACME)» (типове значення) або оновлюйте TLSA-запис після кожного поновлення.</value>
   </data>
-  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
-    <value>ACME увімкнено, але поле «Імена вузлів для сертифіката» на сторінці «Автоматичні сертифікати (ACME)» порожнє, тому сертифікат ніколи не запитується — клієнт записує в журнал «No domains configured» і зупиняється. Перелічіть там імена вузлів, які має охоплювати сертифікат (наприклад, mail.yourdomain.com, mta-sts.yourdomain.com).</value>
+  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.example.com, mta-sts.example.com)." xml:space="preserve">
+    <value>ACME увімкнено, але поле «Імена вузлів для сертифіката» на сторінці «Автоматичні сертифікати (ACME)» порожнє, тому сертифікат ніколи не запитується — клієнт записує в журнал «No domains configured» і зупиняється. Перелічіть там імена вузлів, які має охоплювати сертифікат (наприклад, mail.example.com, mta-sts.example.com).</value>
   </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME увімкнено, але сертифікат ще не видано — у {0} немає обох файлів fullchain.pem і privkey.pem. Видача відбувається за власним розкладом сервера, тож протягом кількох хвилин після ввімкнення це нормально; якщо стан не змінюється, ЦС не зміг дістатися цього сервера, і сторінка «Контрольний список налаштування» перевіряє саме це.</value>
@@ -1389,8 +1389,8 @@
   <data name="Alias domain" xml:space="preserve">
     <value>Домен-псевдонім</value>
   </data>
-  <data name="Alias domain name (e.g. example.net)" xml:space="preserve">
-    <value>Ім’я домену-псевдоніма (наприклад, example.net)</value>
+  <data name="Alias domain name" xml:space="preserve">
+    <value>Ім’я домену-псевдоніма</value>
   </data>
   <data name="Aliases" xml:space="preserve">
     <value>Псевдоніми</value>
@@ -4376,9 +4376,6 @@
   <data name="Do_main" xml:space="preserve">
     <value>Дом_ен</value>
   </data>
-  <data name="Do_main (e.g. partner.com)" xml:space="preserve">
-    <value>_Домен (наприклад, partner.com)</value>
-  </data>
   <data name="Does not match the certificate" xml:space="preserve">
     <value>Не відповідає сертифікату</value>
   </data>
@@ -6652,8 +6649,8 @@
   <data name="Lo_cal to external" xml:space="preserve">
     <value>Локальні _до зовнішніх</value>
   </data>
-  <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
-    <value>Н_ижня IP-адреса (напр. 10.0.0.0)</value>
+  <data name="Lo_wer IP" xml:space="preserve">
+    <value>Н_ижня IP-адреса</value>
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Завантаження…</value>
@@ -12304,6 +12301,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
     <value>Наприклад, zen.spamhaus.org або bl.spamcop.net</value>
   </data>
+  <data name="Such as {0}" xml:space="preserve">
+    <value>Наприклад, {0}</value>
+  </data>
   <data name="Support session opened" xml:space="preserve">
     <value>Сеанс підтримки відкрито</value>
   </data>
@@ -15734,9 +15734,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_Domain" xml:space="preserve">
     <value>_Домен</value>
   </data>
-  <data name="_Domain (e.g. gmail.com)" xml:space="preserve">
-    <value>_Домен (наприклад, gmail.com)</value>
-  </data>
   <data name="_Domain name" xml:space="preserve">
     <value>_Ім’я домену</value>
   </data>
@@ -15851,9 +15848,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_Header name" xml:space="preserve">
     <value>Ім’_я заголовка</value>
   </data>
-  <data name="_Header name (e.g. X-Spam-Status)" xml:space="preserve">
-    <value>_Ім’я заголовка (наприклад, X-Spam-Status)</value>
-  </data>
   <data name="_Hosted domain" xml:space="preserve">
     <value>_Розміщений домен</value>
   </data>
@@ -15866,8 +15860,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_IMAP" xml:space="preserve">
     <value>_IMAP</value>
   </data>
-  <data name="_IMAP folder (e.g. INBOX.Archive)" xml:space="preserve">
-    <value>Папка _IMAP (наприклад, INBOX.Archive)</value>
+  <data name="_IMAP folder" xml:space="preserve">
+    <value>Папка _IMAP</value>
   </data>
   <data name="_IMAP folders in this mailbox" xml:space="preserve">
     <value>Папки _IMAP у цій поштовій скриньці</value>
@@ -16257,10 +16251,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>_Розблокувати поштову скриньку</value>
   </data>
   <data name="_Upper IP" xml:space="preserve">
-    <value>_Верхній IP</value>
-  </data>
-  <data name="_Upper IP (e.g. 10.0.0.255)" xml:space="preserve">
-    <value>В_ерхній IP (наприклад, 10.0.0.255)</value>
+    <value>В_ерхній IP</value>
   </data>
   <data name="_Upper IP address" xml:space="preserve">
     <value>_Верхня IP-адреса</value>

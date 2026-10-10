@@ -768,8 +768,8 @@
   <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Automatic certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
     <value>ACME is ingeschakeld en 'De privésleutel hergebruiken bij verlengingen' staat uit, dus elke certificaatverlenging genereert een nieuwe privésleutel. Als u '3 1 1' TLSA-records publiceert, breken die bij de volgende verlenging - schakel het weer in op de pagina Automatische certificaten (ACME) (de standaard), of werk het TLSA-record na elke verlenging bij.</value>
   </data>
-  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
-    <value>ACME is ingeschakeld maar 'Hostnamen voor het certificaat' op de pagina Automatische certificaten (ACME) is leeg, dus er wordt nooit een certificaat aangevraagd - de client logt 'No domains configured' en stopt. Som daar de hostnamen op die het certificaat moet dekken (bijvoorbeeld mail.uwdomein.nl, mta-sts.uwdomein.nl).</value>
+  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.example.com, mta-sts.example.com)." xml:space="preserve">
+    <value>ACME is ingeschakeld maar 'Hostnamen voor het certificaat' op de pagina Automatische certificaten (ACME) is leeg, dus er wordt nooit een certificaat aangevraagd - de client logt 'No domains configured' en stopt. Som daar de hostnamen op die het certificaat moet dekken (bijvoorbeeld mail.example.com, mta-sts.example.com).</value>
   </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME is ingeschakeld maar er is nog geen certificaat uitgegeven - fullchain.pem en privkey.pem staan niet allebei in {0}. Uitgifte gebeurt volgens het eigen schema van de server, dus dit is normaal gedurende enkele minuten na het inschakelen; houdt het aan, dan kon de CA deze server niet bereiken, en de pagina Configuratiechecklist controleert precies dat.</value>
@@ -1383,8 +1383,8 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Alias domain" xml:space="preserve">
     <value>Aliasdomein</value>
   </data>
-  <data name="Alias domain name (e.g. example.net)" xml:space="preserve">
-    <value>Aliasdomeinnaam (bijv. example.net)</value>
+  <data name="Alias domain name" xml:space="preserve">
+    <value>Aliasdomeinnaam</value>
   </data>
   <data name="Aliases" xml:space="preserve">
     <value>Aliassen</value>
@@ -4324,9 +4324,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Do_main" xml:space="preserve">
     <value>D_omein</value>
   </data>
-  <data name="Do_main (e.g. partner.com)" xml:space="preserve">
-    <value>D_omein (bijv. partner.com)</value>
-  </data>
   <data name="Does not match the certificate" xml:space="preserve">
     <value>Komt niet overeen met het certificaat</value>
   </data>
@@ -6582,8 +6579,8 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Lo_cal to external" xml:space="preserve">
     <value>Lo_kaal naar extern</value>
   </data>
-  <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
-    <value>L_aagste IP (bijv. 10.0.0.0)</value>
+  <data name="Lo_wer IP" xml:space="preserve">
+    <value>L_aagste IP</value>
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Laden…</value>
@@ -10303,7 +10300,7 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
     <value>S_tandaardpoorten herstellen</value>
   </data>
   <data name="Restore the default ran_ges" xml:space="preserve">
-    <value>Standaardbereiken _herstellen</value>
+    <value>Standaardberei_ken herstellen</value>
   </data>
   <data name="Restore the mailbo_x" xml:space="preserve">
     <value>De mailbo_x herstellen</value>
@@ -12161,6 +12158,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
     <value>Bijvoorbeeld zen.spamhaus.org of bl.spamcop.net</value>
+  </data>
+  <data name="Such as {0}" xml:space="preserve">
+    <value>Bijvoorbeeld {0}</value>
   </data>
   <data name="Support session opened" xml:space="preserve">
     <value>Ondersteuningssessie geopend</value>
@@ -15547,9 +15547,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_Domain" xml:space="preserve">
     <value>_Domein</value>
   </data>
-  <data name="_Domain (e.g. gmail.com)" xml:space="preserve">
-    <value>_Domein (bijv. gmail.com)</value>
-  </data>
   <data name="_Domain name" xml:space="preserve">
     <value>_Domeinnaam</value>
   </data>
@@ -15664,9 +15661,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_Header name" xml:space="preserve">
     <value>_Headernaam</value>
   </data>
-  <data name="_Header name (e.g. X-Spam-Status)" xml:space="preserve">
-    <value>_Headernaam (bijv. X-Spam-Status)</value>
-  </data>
   <data name="_Hosted domain" xml:space="preserve">
     <value>_Gehost domein</value>
   </data>
@@ -15679,8 +15673,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_IMAP" xml:space="preserve">
     <value>_IMAP</value>
   </data>
-  <data name="_IMAP folder (e.g. INBOX.Archive)" xml:space="preserve">
-    <value>_IMAP-map (bijv. INBOX.Archive)</value>
+  <data name="_IMAP folder" xml:space="preserve">
+    <value>_IMAP-map</value>
   </data>
   <data name="_IMAP folders in this mailbox" xml:space="preserve">
     <value>_IMAP-mappen in dit postvak</value>
@@ -16070,10 +16064,7 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
     <value>Po_stvak ontgrendelen</value>
   </data>
   <data name="_Upper IP" xml:space="preserve">
-    <value>Bovenste _IP</value>
-  </data>
-  <data name="_Upper IP (e.g. 10.0.0.255)" xml:space="preserve">
-    <value>Bovenste IP (bi_jv. 10.0.0.255)</value>
+    <value>_Hoogste IP</value>
   </data>
   <data name="_Upper IP address" xml:space="preserve">
     <value>_Bovenste IP-adres</value>

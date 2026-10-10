@@ -244,10 +244,10 @@
                 <scaffold:FieldRow x:Name="NewNameRow" Label="{loc:L 'Na_me'}" Margin="0,0,8,0" LabelGroup="RangeLine">
                     <ui:TextBox x:Name="NewName" />
                 </scaffold:FieldRow>
-                <scaffold:FieldRow x:Name="NewLowerRow" Grid.Column="1" Label="{loc:L 'Lo_wer IP (e.g. 10.0.0.0)'}" Margin="0,0,8,0" LabelGroup="RangeLine">
+                <scaffold:FieldRow x:Name="NewLowerRow" Grid.Column="1" Label="{loc:L 'Lo_wer IP'}" Margin="0,0,8,0" LabelGroup="RangeLine">
                     <ui:TextBox x:Name="NewLower" />
                 </scaffold:FieldRow>
-                <scaffold:FieldRow x:Name="NewUpperRow" Grid.Column="2" Label="{loc:L '_Upper IP (e.g. 10.0.0.255)'}" Margin="0,0,8,0" LabelGroup="RangeLine">
+                <scaffold:FieldRow x:Name="NewUpperRow" Grid.Column="2" Label="{loc:L '_Upper IP'}" Margin="0,0,8,0" LabelGroup="RangeLine">
                     <ui:TextBox x:Name="NewUpper" />
                 </scaffold:FieldRow>
                 <scaffold:FieldRow x:Name="NewPriorityRow" Grid.Column="3" Label="{loc:L 'Pri_ority'}" Margin="0,0,8,0" LabelGroup="RangeLine">

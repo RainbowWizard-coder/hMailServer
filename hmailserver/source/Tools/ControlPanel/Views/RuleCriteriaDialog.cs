@@ -62,7 +62,7 @@ namespace hMailServer.ControlPanel.Views
          field_.Items.Add(DialogFields.Combo(L("Custom header…"), 0));
          field_.SelectionChanged += (s, e) => FieldChanged_();
 
-         headerRow_ = Label(L("_Header name (e.g. X-Spam-Status)"), header_);
+         headerRow_ = DialogFields.Field(L("_Header name"), header_, F("Such as {0}", "X-Spam-Status")); // no-loc: a header name, the same in every language
          body.Children.Add(headerRow_);
 
          body.Children.Add(Label(L("_Match type"), match_));

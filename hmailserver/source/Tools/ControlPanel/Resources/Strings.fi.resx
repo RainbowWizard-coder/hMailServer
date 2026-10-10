@@ -768,8 +768,8 @@
   <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Automatic certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
     <value>ACME on käytössä ja 'Käytä yksityistä avainta uudelleen uusintojen yli' on pois käytöstä, joten jokainen varmenteen uusiminen luo uuden yksityisen avaimen. Jos julkaiset '3 1 1' -TLSA-tietueita, ne rikkoutuvat seuraavassa uusimisessa – ota se uudelleen käyttöön sivulla Automaattiset varmenteet (ACME) (oletus) tai päivitä TLSA-tietue jokaisen uusimisen jälkeen.</value>
   </data>
-  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
-    <value>ACME on käytössä, mutta 'Varmenteen konenimet' sivulla Automaattiset varmenteet (ACME) on tyhjä, joten varmennetta ei koskaan pyydetä – asiakas kirjaa lokiin 'No domains configured' ja pysähtyy. Luettele siihen konenimet, jotka varmenteen tulisi kattaa (esimerkiksi mail.yourdomain.com, mta-sts.yourdomain.com).</value>
+  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.example.com, mta-sts.example.com)." xml:space="preserve">
+    <value>ACME on käytössä, mutta 'Varmenteen konenimet' sivulla Automaattiset varmenteet (ACME) on tyhjä, joten varmennetta ei koskaan pyydetä – asiakas kirjaa lokiin 'No domains configured' ja pysähtyy. Luettele siihen konenimet, jotka varmenteen tulisi kattaa (esimerkiksi mail.example.com, mta-sts.example.com).</value>
   </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME on kytketty päälle, mutta varmennetta ei ole vielä myönnetty – fullchain.pem ja privkey.pem eivät molemmat ole kansiossa {0}. Myöntäminen tapahtuu palvelimen omassa aikataulussa, joten tämä on normaalia muutaman minuutin ajan käyttöönoton jälkeen; jos tila jatkuu, CA ei tavoittanut tätä palvelinta, ja Käyttöönoton tarkistuslista -sivu tarkistaa juuri sen.</value>
@@ -1383,8 +1383,8 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Alias domain" xml:space="preserve">
     <value>Aliasverkkotunnus</value>
   </data>
-  <data name="Alias domain name (e.g. example.net)" xml:space="preserve">
-    <value>Aliasverkkotunnuksen nimi (esim. example.net)</value>
+  <data name="Alias domain name" xml:space="preserve">
+    <value>Aliasverkkotunnuksen nimi</value>
   </data>
   <data name="Aliases" xml:space="preserve">
     <value>Aliakset</value>
@@ -4324,9 +4324,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Do_main" xml:space="preserve">
     <value>V_erkkotunnus</value>
   </data>
-  <data name="Do_main (e.g. partner.com)" xml:space="preserve">
-    <value>V_erkkotunnus (esim. partner.com)</value>
-  </data>
   <data name="Does not match the certificate" xml:space="preserve">
     <value>Ei vastaa varmennetta</value>
   </data>
@@ -6582,8 +6579,8 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Lo_cal to external" xml:space="preserve">
     <value>Paikallinen ul_koiseen</value>
   </data>
-  <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
-    <value>Al_empi IP (esim. 10.0.0.0)</value>
+  <data name="Lo_wer IP" xml:space="preserve">
+    <value>Al_empi IP</value>
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Ladataan…</value>
@@ -12162,6 +12159,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
     <value>Esimerkiksi zen.spamhaus.org tai bl.spamcop.net</value>
   </data>
+  <data name="Such as {0}" xml:space="preserve">
+    <value>Esimerkiksi {0}</value>
+  </data>
   <data name="Support session opened" xml:space="preserve">
     <value>Tukiistunto avattu</value>
   </data>
@@ -15547,9 +15547,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="_Domain" xml:space="preserve">
     <value>_Verkkotunnus</value>
   </data>
-  <data name="_Domain (e.g. gmail.com)" xml:space="preserve">
-    <value>_Verkkotunnus (esim. gmail.com)</value>
-  </data>
   <data name="_Domain name" xml:space="preserve">
     <value>_Verkkotunnuksen nimi</value>
   </data>
@@ -15664,9 +15661,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="_Header name" xml:space="preserve">
     <value>Ots_akkeen nimi</value>
   </data>
-  <data name="_Header name (e.g. X-Spam-Status)" xml:space="preserve">
-    <value>_Otsakkeen nimi (esim. X-Spam-Status)</value>
-  </data>
   <data name="_Hosted domain" xml:space="preserve">
     <value>Isännöity _verkkotunnus</value>
   </data>
@@ -15679,8 +15673,8 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="_IMAP" xml:space="preserve">
     <value>_IMAP</value>
   </data>
-  <data name="_IMAP folder (e.g. INBOX.Archive)" xml:space="preserve">
-    <value>_IMAP-kansio (esim. INBOX.Archive)</value>
+  <data name="_IMAP folder" xml:space="preserve">
+    <value>_IMAP-kansio</value>
   </data>
   <data name="_IMAP folders in this mailbox" xml:space="preserve">
     <value>IMAP-_kansiot tässä postilaatikossa</value>
@@ -16071,9 +16065,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="_Upper IP" xml:space="preserve">
     <value>_Ylempi IP</value>
-  </data>
-  <data name="_Upper IP (e.g. 10.0.0.255)" xml:space="preserve">
-    <value>_Ylempi IP (esim. 10.0.0.255)</value>
   </data>
   <data name="_Upper IP address" xml:space="preserve">
     <value>_Ylempi IP-osoite</value>

@@ -102,7 +102,7 @@
                     <ColumnDefinition Width="*" MinWidth="80" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <scaffold:FieldRow x:Name="RouteDomainRow" Label="{loc:L 'Do_main (e.g. partner.com)'}" Margin="0,0,8,0" LabelGroup="RouteLine">
+                <scaffold:FieldRow x:Name="RouteDomainRow" Label="{loc:L 'Do_main'}" Margin="0,0,8,0" LabelGroup="RouteLine">
                     <ui:TextBox x:Name="NewDomain" />
                 </scaffold:FieldRow>
                 <scaffold:FieldRow x:Name="RouteHostRow" Grid.Column="1" Label="{loc:L '_Target SMTP host'}" Margin="0,0,8,0" LabelGroup="RouteLine">

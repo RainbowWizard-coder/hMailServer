@@ -774,8 +774,8 @@
   <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Automatic certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
     <value>ACME включён, а параметр «Повторно использовать закрытый ключ при обновлениях» выключен, поэтому при каждом обновлении сертификата создаётся новый закрытый ключ. Если вы публикуете записи TLSA вида «3 1 1», они сломаются при следующем обновлении — снова включите его на странице «Автоматические сертификаты (ACME)» (значение по умолчанию) или обновляйте запись TLSA после каждого обновления сертификата.</value>
   </data>
-  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
-    <value>ACME включён, но поле «Имена узлов для сертификата» на странице «Автоматические сертификаты (ACME)» пусто, поэтому сертификат никогда не запрашивается — клиент записывает в журнал «No domains configured» и останавливается. Перечислите там имена узлов, которые должен охватывать сертификат (например, mail.yourdomain.com, mta-sts.yourdomain.com).</value>
+  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.example.com, mta-sts.example.com)." xml:space="preserve">
+    <value>ACME включён, но поле «Имена узлов для сертификата» на странице «Автоматические сертификаты (ACME)» пусто, поэтому сертификат никогда не запрашивается — клиент записывает в журнал «No domains configured» и останавливается. Перечислите там имена узлов, которые должен охватывать сертификат (например, mail.example.com, mta-sts.example.com).</value>
   </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME включён, но сертификат ещё не выпущен — в {0} нет одновременно fullchain.pem и privkey.pem. Выпуск происходит по собственному расписанию сервера, поэтому в течение нескольких минут после включения это нормально; если состояние сохраняется, значит ЦС не смог достучаться до этого сервера, и страница «Контрольный список настройки» проверяет именно это.</value>
@@ -1389,8 +1389,8 @@ Control Panel может читать файлы сообщений только
   <data name="Alias domain" xml:space="preserve">
     <value>Домен-псевдоним</value>
   </data>
-  <data name="Alias domain name (e.g. example.net)" xml:space="preserve">
-    <value>Имя домена-псевдонима (например, example.net)</value>
+  <data name="Alias domain name" xml:space="preserve">
+    <value>Имя домена-псевдонима</value>
   </data>
   <data name="Aliases" xml:space="preserve">
     <value>Псевдонимы</value>
@@ -4376,9 +4376,6 @@ Control Panel может читать файлы сообщений только
   <data name="Do_main" xml:space="preserve">
     <value>Дом_ен</value>
   </data>
-  <data name="Do_main (e.g. partner.com)" xml:space="preserve">
-    <value>_Домен (например, partner.com)</value>
-  </data>
   <data name="Does not match the certificate" xml:space="preserve">
     <value>Не соответствует сертификату</value>
   </data>
@@ -6652,8 +6649,8 @@ Control Panel может читать файлы сообщений только
   <data name="Lo_cal to external" xml:space="preserve">
     <value>Ло_кальный → внешний</value>
   </data>
-  <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
-    <value>_Нижний IP (например, 10.0.0.0)</value>
+  <data name="Lo_wer IP" xml:space="preserve">
+    <value>_Нижний IP</value>
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Загрузка…</value>
@@ -12304,6 +12301,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
     <value>Например, zen.spamhaus.org или bl.spamcop.net</value>
   </data>
+  <data name="Such as {0}" xml:space="preserve">
+    <value>Например, {0}</value>
+  </data>
   <data name="Support session opened" xml:space="preserve">
     <value>Сеанс поддержки открыт</value>
   </data>
@@ -15734,9 +15734,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Domain" xml:space="preserve">
     <value>_Домен</value>
   </data>
-  <data name="_Domain (e.g. gmail.com)" xml:space="preserve">
-    <value>_Домен (например, gmail.com)</value>
-  </data>
   <data name="_Domain name" xml:space="preserve">
     <value>_Имя домена</value>
   </data>
@@ -15851,9 +15848,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Header name" xml:space="preserve">
     <value>Имя _заголовка</value>
   </data>
-  <data name="_Header name (e.g. X-Spam-Status)" xml:space="preserve">
-    <value>_Имя заголовка (например, X-Spam-Status)</value>
-  </data>
   <data name="_Hosted domain" xml:space="preserve">
     <value>_Размещённый домен</value>
   </data>
@@ -15866,8 +15860,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_IMAP" xml:space="preserve">
     <value>_IMAP</value>
   </data>
-  <data name="_IMAP folder (e.g. INBOX.Archive)" xml:space="preserve">
-    <value>Папка _IMAP (например, INBOX.Archive)</value>
+  <data name="_IMAP folder" xml:space="preserve">
+    <value>Папка _IMAP</value>
   </data>
   <data name="_IMAP folders in this mailbox" xml:space="preserve">
     <value>Папки _IMAP в этом почтовом ящике</value>
@@ -16257,10 +16251,7 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
     <value>_Разблокировать почтовый ящик</value>
   </data>
   <data name="_Upper IP" xml:space="preserve">
-    <value>Верхний _IP</value>
-  </data>
-  <data name="_Upper IP (e.g. 10.0.0.255)" xml:space="preserve">
-    <value>В_ерхний IP (например, 10.0.0.255)</value>
+    <value>В_ерхний IP</value>
   </data>
   <data name="_Upper IP address" xml:space="preserve">
     <value>_Верхний IP-адрес</value>

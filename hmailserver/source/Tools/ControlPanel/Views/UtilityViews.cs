@@ -388,7 +388,11 @@ namespace hMailServer.ControlPanel.Views
    /// <summary>MX query utility (same as the classic Utilities > MX-query).</summary>
    public class MxQueryView : UserControl, IPageLifecycle
    {
-      private readonly Wpf.Ui.Controls.TextBox domain_ = new();
+      // The caption names the field and the box shows an example, marked as one,
+      // where the caption said "Domain (e.g. gmail.com)" (review finding F303). A
+      // domain that publishes mail servers, not one of example.com's, which
+      // publishes a null MX (RFC 7505) and so answers none.
+      private readonly Wpf.Ui.Controls.TextBox domain_ = new() { PlaceholderText = F("e.g. {0}", "gmail.com") };
 
       // The answer at its level, over the servers it names (review finding F252):
       // a summary a notice says - found, none found, the query failed - and the
@@ -431,7 +435,7 @@ namespace hMailServer.ControlPanel.Views
          inputRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
          inputRow.Children.Add(new FieldRow
          {
-            Label = L("_Domain (e.g. gmail.com)"),
+            Label = L("_Domain"),
             Content = domain_,
             Margin = new Thickness(0, 0, 8, 0)
          });
@@ -576,11 +580,13 @@ namespace hMailServer.ControlPanel.Views
    public class SendoutView : UserControl, IPageLifecycle
    {
       private readonly Wpf.Ui.Controls.TextBox wildcard_ = new() { Text = "*" };
-      private readonly Wpf.Ui.Controls.TextBox fromAddress_ = new() { PlaceholderText = "postmaster@yourdomain.com" };
+      private readonly Wpf.Ui.Controls.TextBox fromAddress_ = new() { PlaceholderText = F("e.g. {0}", "postmaster@example.com") };
       // The display name recipients see, not an account name - the hint used to
       // be "Administrator", which read as though the account name were a word
-      // that translates. It is not: see the comment in ConnectView.xaml.
-      private readonly Wpf.Ui.Controls.TextBox fromName_ = new() { PlaceholderText = L("Sender name, as recipients see it") };
+      // that translates. It is not: see the comment in ConnectView.xaml. What
+      // the name is goes in the row's hint, under the box, where it was the
+      // box's placeholder and went once a name was typed (review finding F303).
+      private readonly Wpf.Ui.Controls.TextBox fromName_ = new();
       // No placeholder: the field's caption is the same word, and a placeholder
       // that repeats the caption is a second copy of it inside the editor.
       private readonly Wpf.Ui.Controls.TextBox subject_ = new();
@@ -616,7 +622,7 @@ namespace hMailServer.ControlPanel.Views
          form.Children.Add(new FieldRow { Label = L("_Recipient wildcard (* = everyone)"), Content = wildcard_ });
          fromRow_.Content = fromAddress_;
          form.Children.Add(fromRow_);
-         form.Children.Add(new FieldRow { Label = L("From _name"), Content = fromName_ });
+         form.Children.Add(new FieldRow { Label = L("From _name"), Content = fromName_, Hint = L("Sender name, as recipients see it") });
          subjectRow_.Content = subject_;
          form.Children.Add(subjectRow_);
          body_.SetResourceReference(Control.ForegroundProperty, "TextFillColorPrimaryBrush");

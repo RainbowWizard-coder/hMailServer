@@ -2219,7 +2219,7 @@ namespace hMailServer.ControlPanel.Views
                      {
                         Key = "AuthenticationResultsIdentity",
                         Label = L("Identity the results are written under (empty = this computer's name)"),
-                        Placeholder = "mail.yourdomain.com",
+                        Placeholder = F("e.g. {0}", "mail.example.com"),
                         Blurb = L("The authserv-id: the first token of every Authentication-Results header this server writes, always lower-cased, and the name a downstream filter checks before trusting the verdicts. The same name decides which arriving Authentication-Results headers are treated as forged: one claiming this identity is removed, while one naming any other identity is left completely untouched.")
                      }
                   }
@@ -2296,7 +2296,7 @@ namespace hMailServer.ControlPanel.Views
                      // reporting joined this page: two identically-labelled fields
                      // on one page are ambiguous to anyone who cannot see which
                      // card they are in, and AccessibleNamesTests fails on it.
-                     new TextSetting { Key = "TlsRptFromAddress", Label = L("TLS report sender address (empty = off)"), Placeholder = "tlsrpt@yourdomain.com" },
+                     new TextSetting { Key = "TlsRptFromAddress", Label = L("TLS report sender address (empty = off)"), Placeholder = F("e.g. {0}", "tlsrpt@example.com") },
                      new TextSetting { Key = "TlsRptOrganizationName", Default = "hMailServer", Label = L("Organisation name in TLS reports") }
                   }
                });
@@ -2312,7 +2312,7 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Sends the daily aggregate reports that domains ask for with a rua= tag in their DMARC record (RFC 7489) - who sent mail claiming to be them, and whether it passed. Reports only go to an address outside the policy domain when that address's own DNS says it wants them, so a domain cannot use its DMARC record to aim this server's reports at somebody else."),
                   Settings =
                   {
-                     new TextSetting { Key = "DmarcRptFromAddress", Label = L("DMARC report sender address (empty = off)"), Placeholder = "dmarc@yourdomain.com" },
+                     new TextSetting { Key = "DmarcRptFromAddress", Label = L("DMARC report sender address (empty = off)"), Placeholder = F("e.g. {0}", "dmarc@example.com") },
                      new TextSetting { Key = "DmarcRptOrganizationName", Default = "hMailServer", Label = L("Organisation name in DMARC reports") }
                   }
                });
@@ -2328,8 +2328,8 @@ namespace hMailServer.ControlPanel.Views
                   Settings =
                   {
                      new BoolSetting { Key = "AcmeEnabled", Default = false, Label = L("Issue and renew certificates automatically") },
-                     new TextSetting { Key = "AcmeContactEmail", DependsOn = AcmeSwitch, Label = L("Contact email address (CA expiry notices)"), Placeholder = "admin@yourdomain.com" },
-                     new TextSetting { Key = "AcmeDomains", DependsOn = AcmeSwitch, Label = L("Host names for the certificate (comma separated)"), Placeholder = "mail.yourdomain.com, mta-sts.yourdomain.com" }, // no-loc
+                     new TextSetting { Key = "AcmeContactEmail", DependsOn = AcmeSwitch, Label = L("Contact email address (CA expiry notices)"), Placeholder = F("e.g. {0}", "admin@example.com") },
+                     new TextSetting { Key = "AcmeDomains", DependsOn = AcmeSwitch, Label = L("Host names for the certificate (comma separated)"), Placeholder = F("e.g. {0}", "mail.example.com, mta-sts.example.com") }, // no-loc
                      new TextSetting { Key = "AcmeDirectoryUrl", DependsOn = AcmeSwitch, Default = "https://acme-v02.api.letsencrypt.org/directory", Placeholder = "https://acme-v02.api.letsencrypt.org/directory", Label = L("ACME directory URL") }, // no-loc: a URL
                      new NumberSetting { Key = "AcmeHttpPort", DependsOn = AcmeSwitch, Minimum = 1, Maximum = 65535, Default = "80", Label = L("Port for http-01 challenges") },
                      new PathSetting { Key = "AcmeCertificateDirectory", PickFolder = true, Label = L("Certificate output folder (empty = Data\\ACME)"), Placeholder = L("Falls back to Data\\ACME") },
@@ -2363,7 +2363,7 @@ namespace hMailServer.ControlPanel.Views
                   {
                      new DeckLinkSetting(),
                      new ElsewhereSetting("apikeys", L("Creating and revoking API keys")),
-                     new NumberSetting { Key = "RestApiPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("Port (0 = off)"), Placeholder = "8045" },
+                     new NumberSetting { Key = "RestApiPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("Port (0 = off)"), Placeholder = F("e.g. {0}", "8045") },
                      new TextSetting { Key = "RestApiBindAddress", Address = true, Default = "127.0.0.1", Label = L("Bind address") },
                      new PathSetting { Key = "RestApiCertificateFile", FileFilter = L("PEM/certificate files (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|All files (*.*)|*.*"), Label = L("TLS certificate file (PEM, optional)"), Placeholder = L("Falls back to the ACME certificate") },
                      new PathSetting { Key = "RestApiPrivateKeyFile", FileFilter = L("PEM/key files (*.pem;*.key)|*.pem;*.key|All files (*.*)|*.*"), Label = L("TLS private key file (PEM, optional)") }
@@ -2384,7 +2384,7 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Prometheus metrics (/metrics), OpenTelemetry export of traces, metrics and logs (one endpoint per signal, each off until set), a slow-query log, and JSON-structured log output for log aggregators (on the Logging page)."),
                   Settings =
                   {
-                     new NumberSetting { Key = "MetricsServerPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("Metrics port (0 = off)"), Placeholder = "9090" },
+                     new NumberSetting { Key = "MetricsServerPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("Metrics port (0 = off)"), Placeholder = F("e.g. {0}", "9090") },
                      new NumberSetting
                      {
                         Key = "MetricsHistoryDays", Minimum = 0, Maximum = 36500,
@@ -2445,21 +2445,21 @@ namespace hMailServer.ControlPanel.Views
                      {
                         Key = "OtelEndpoint",
                         Label = L("OpenTelemetry OTLP endpoint for traces (empty = off)"),
-                        Placeholder = "http://localhost:4318",
+                        Placeholder = F("e.g. {0}", "http://localhost:4318"),
                         Blurb = L(SettingClaims.NoteFor("OtelEndpoint"))
                      },
                      new TextSetting
                      {
                         Key = "OtelMetricsEndpoint",
                         Label = L("OpenTelemetry OTLP endpoint for metrics (empty = off)"),
-                        Placeholder = "http://localhost:4318",
+                        Placeholder = F("e.g. {0}", "http://localhost:4318"),
                         Blurb = L(SettingClaims.NoteFor("OtelMetricsEndpoint"))
                      },
                      new TextSetting
                      {
                         Key = "OtelLogsEndpoint",
                         Label = L("OpenTelemetry OTLP endpoint for logs (empty = off)"),
-                        Placeholder = "http://localhost:4318",
+                        Placeholder = F("e.g. {0}", "http://localhost:4318"),
                         Blurb = L(SettingClaims.NoteFor("OtelLogsEndpoint"))
                      },
                      new NumberSetting
@@ -2627,7 +2627,7 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Lets mail clients upload and manage per-account Sieve filter scripts over TCP. Authentication is SASL PLAIN against the account database, so the mailbox password crosses this connection. STARTTLS is offered only when a TLS-capable mailbox port has a certificate to borrow - the status below says whether it will be."),
                   Settings =
                   {
-                     new NumberSetting { Key = "ManageSieveServerPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("ManageSieve port (0 = off)"), Placeholder = "4190" },
+                     new NumberSetting { Key = "ManageSieveServerPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("ManageSieve port (0 = off)"), Placeholder = F("e.g. {0}", "4190") },
                      new TextSetting { Key = "ManageSieveServerBindAddress", Address = true, Default = "127.0.0.1", Label = L("ManageSieve bind address") }
                   },
                   Warnings =
@@ -2821,7 +2821,7 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Submission identity handling and the diagnostic headers added to received mail. (Where SMTP AUTH is offered is on the Authentication page.)"),
                   Settings =
                   {
-                     new TextSetting { Key = "AuthUserReplacementIP", Address = true, Label = L("Replace the client IP for authenticated users (empty = keep the real IP)"), Placeholder = "e.g. 127.0.0.1" },
+                     new TextSetting { Key = "AuthUserReplacementIP", Address = true, Label = L("Replace the client IP for authenticated users (empty = keep the real IP)"), Placeholder = F("e.g. {0}", "127.0.0.1") },
                      new BoolSetting { Key = "AddXAuthUserHeader", Default = false, Label = L("Add an X-AuthUser header with the authenticated account") },
                      new BoolSetting { Key = "AddXAuthUserIP", Default = true, Label = L("Include the client IP in the X-AuthUser header") },
                      new BoolSetting { Key = "AddXOriginalRcptTo", Default = false, Label = L("Add an X-OriginalRcptTo header") }
@@ -2906,7 +2906,7 @@ namespace hMailServer.ControlPanel.Views
                         Key = "SendingLimitsOverrides",
                         Section = "SendingLimitsOverrides",
                         Label = L("Per-address overrides, one per line: address=messages:recipients[:hours]"),
-                        Placeholder = "newsletter@yourdomain.com=5000:50000\nceo@yourdomain.com=0:0",
+                        Placeholder = "newsletter@example.com=5000:50000\nceo@example.com=0:0",
                         Blurb = L("An override replaces the global ceilings for that address; 0:0 exempts it entirely. Without the optional :hours the override uses the global period. A malformed line is ignored with a log entry and the global limit still applies to that account. Comment lines in this INI section are not shown here and are dropped if the list is saved.")
                      }
                   }
@@ -2933,7 +2933,7 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Bounces and virus notifications are sent from mailer-daemon@<domain>. This overrides the <domain> part. Left empty, the server uses its own host name, then the local domain the message involves, then this computer's name. It is not a delivery setting and does not change where mail is routed."),
                   Settings =
                   {
-                     new TextSetting { Key = "DaemonAddressDomain", Label = L("Domain for the mailer-daemon sender address (empty = the host name)"), Blurb = L("Without a host name, the message's local domain is used, and without that, the machine name."), Placeholder = "yourdomain.com" }
+                     new TextSetting { Key = "DaemonAddressDomain", Label = L("Domain for the mailer-daemon sender address (empty = the host name)"), Blurb = L("Without a host name, the message's local domain is used, and without that, the machine name."), Placeholder = F("e.g. {0}", "example.com") }
                   }
                });
                cards_.Add(new CardDef
@@ -3207,7 +3207,7 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Which resolver hMailServer queries. Leave empty to use the name servers Windows is configured with. The override takes a single IPv4 address and is used on port 53; DNSSEC validation and its trust anchors are on the Transport security page."),
                   Settings =
                   {
-                     new TextSetting { Key = "DNSServer", Address = true, Rule = SettingAddressRule.DnsOverride, Label = L("Override DNS server (empty = the name servers Windows uses)"), Placeholder = "1.1.1.1" }
+                     new TextSetting { Key = "DNSServer", Address = true, Rule = SettingAddressRule.DnsOverride, Label = L("Override DNS server (empty = the name servers Windows uses)"), Placeholder = F("e.g. {0}", "1.1.1.1") }
                   }
                });
                cards_.Add(new CardDef
@@ -3283,7 +3283,7 @@ namespace hMailServer.ControlPanel.Views
                         }
                      },
                      new NumberSetting { Key = "MtaStsPolicyMaxAge", Minimum = 86400, Maximum = 31557600, Default = "604800", Label = L("Policy max age (seconds, 86,400 to 31,557,600)"), Blurb = L("The default, 604,800, is a week; 86,400 is a day and 31,557,600 a year, the longest RFC 8461 allows.") },
-                     new TextSetting { Key = "MtaStsPolicyMx", Label = L("Policy MX host patterns (empty = derive from each domain's MX)"), Placeholder = "mail.yourdomain.com, *.yourdomain.com" } // no-loc
+                     new TextSetting { Key = "MtaStsPolicyMx", Label = L("Policy MX host patterns (empty = derive from each domain's MX)"), Placeholder = F("e.g. {0}", "mail.example.com, *.example.com") } // no-loc
                   }
                });
                cards_.Add(new CardDef
@@ -3296,14 +3296,14 @@ namespace hMailServer.ControlPanel.Views
                      {
                         Key = "CalDavRedirectUrl",
                         Label = L("Redirect /.well-known/caldav to (empty = answer 404)"),
-                        Placeholder = "https://calendar.yourdomain.com/dav/",
+                        Placeholder = F("e.g. {0}", "https://calendar.example.com/dav/"),
                         Blurb = L("Must be an absolute URL. A relative one is refused and the discovery URL answers 404 instead, with the reason reported once in the error log.")
                      },
                      new TextSetting
                      {
                         Key = "CardDavRedirectUrl",
                         Label = L("Redirect /.well-known/carddav to (empty = answer 404)"),
-                        Placeholder = "https://contacts.yourdomain.com/dav/",
+                        Placeholder = F("e.g. {0}", "https://contacts.example.com/dav/"),
                         Blurb = L("Must be an absolute URL, as above.")
                      }
                   }

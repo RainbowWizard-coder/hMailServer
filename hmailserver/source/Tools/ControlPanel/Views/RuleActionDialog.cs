@@ -97,7 +97,7 @@ namespace hMailServer.ControlPanel.Views
          body.Children.Add(replyPanel_);
 
          // Move to folder
-         folderPanel_.Children.Add(Label(L("_IMAP folder (e.g. INBOX.Archive)"), imapFolder_));
+         folderPanel_.Children.Add(DialogFields.Field(L("_IMAP folder"), imapFolder_, F("Such as {0}", "INBOX.Archive")));
          body.Children.Add(folderPanel_);
 
          // Script

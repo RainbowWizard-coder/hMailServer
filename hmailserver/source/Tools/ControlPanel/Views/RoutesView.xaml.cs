@@ -33,6 +33,11 @@ namespace hMailServer.ControlPanel.Views
          InitializeComponent();
          hMailServer.ControlPanel.Services.SelectionGate.Bind(RouteGrid, PropertiesButton, DeleteButton);
 
+         // The caption names the field and the box shows an example, marked as
+         // one, where the caption said "Domain (e.g. partner.com)" (review
+         // finding F303).
+         NewDomain.PlaceholderText = F("e.g. {0}", "partner.example");
+
          // Enter and F2 open the selected route, Delete deletes it after asking,
          // Insert goes to the add form, and Enter in the form adds the route;
          // Escape empties its two boxes and leaves the port (Views/GridKeys, FormSubmit).

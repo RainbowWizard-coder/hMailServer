@@ -768,8 +768,8 @@
   <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Automatic certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
     <value>ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Automatic certificates (ACME) page (the default), or update the TLSA record after every renewal.</value>
   </data>
-  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
-    <value>ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com).</value>
+  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.example.com, mta-sts.example.com)." xml:space="preserve">
+    <value>ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.example.com, mta-sts.example.com).</value>
   </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that.</value>
@@ -1383,8 +1383,8 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Alias domain" xml:space="preserve">
     <value>Alias domain</value>
   </data>
-  <data name="Alias domain name (e.g. example.net)" xml:space="preserve">
-    <value>Alias domain name (e.g. example.net)</value>
+  <data name="Alias domain name" xml:space="preserve">
+    <value>Alias domain name</value>
   </data>
   <data name="Aliases" xml:space="preserve">
     <value>Aliases</value>
@@ -4324,9 +4324,6 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Do_main" xml:space="preserve">
     <value>Do_main</value>
   </data>
-  <data name="Do_main (e.g. partner.com)" xml:space="preserve">
-    <value>Do_main (e.g. partner.com)</value>
-  </data>
   <data name="Does not match the certificate" xml:space="preserve">
     <value>Does not match the certificate</value>
   </data>
@@ -6582,8 +6579,8 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="Lo_cal to external" xml:space="preserve">
     <value>Lo_cal to external</value>
   </data>
-  <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
-    <value>Lo_wer IP (e.g. 10.0.0.0)</value>
+  <data name="Lo_wer IP" xml:space="preserve">
+    <value>Lo_wer IP</value>
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Loading…</value>
@@ -12162,6 +12159,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
     <value>Such as zen.spamhaus.org or bl.spamcop.net</value>
   </data>
+  <data name="Such as {0}" xml:space="preserve">
+    <value>Such as {0}</value>
+  </data>
   <data name="Support session opened" xml:space="preserve">
     <value>Support session opened</value>
   </data>
@@ -15547,9 +15547,6 @@ It will keep trying as you use the application.</value>
   <data name="_Domain" xml:space="preserve">
     <value>_Domain</value>
   </data>
-  <data name="_Domain (e.g. gmail.com)" xml:space="preserve">
-    <value>_Domain (e.g. gmail.com)</value>
-  </data>
   <data name="_Domain name" xml:space="preserve">
     <value>_Domain name</value>
   </data>
@@ -15664,9 +15661,6 @@ It will keep trying as you use the application.</value>
   <data name="_Header name" xml:space="preserve">
     <value>_Header name</value>
   </data>
-  <data name="_Header name (e.g. X-Spam-Status)" xml:space="preserve">
-    <value>_Header name (e.g. X-Spam-Status)</value>
-  </data>
   <data name="_Hosted domain" xml:space="preserve">
     <value>_Hosted domain</value>
   </data>
@@ -15679,8 +15673,8 @@ It will keep trying as you use the application.</value>
   <data name="_IMAP" xml:space="preserve">
     <value>_IMAP</value>
   </data>
-  <data name="_IMAP folder (e.g. INBOX.Archive)" xml:space="preserve">
-    <value>_IMAP folder (e.g. INBOX.Archive)</value>
+  <data name="_IMAP folder" xml:space="preserve">
+    <value>_IMAP folder</value>
   </data>
   <data name="_IMAP folders in this mailbox" xml:space="preserve">
     <value>_IMAP folders in this mailbox</value>
@@ -16071,9 +16065,6 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="_Upper IP" xml:space="preserve">
     <value>_Upper IP</value>
-  </data>
-  <data name="_Upper IP (e.g. 10.0.0.255)" xml:space="preserve">
-    <value>_Upper IP (e.g. 10.0.0.255)</value>
   </data>
   <data name="_Upper IP address" xml:space="preserve">
     <value>_Upper IP address</value>

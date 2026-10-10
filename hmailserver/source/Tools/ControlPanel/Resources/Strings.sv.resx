@@ -768,8 +768,8 @@
   <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Automatic certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
     <value>ACME är aktiverat och 'Återanvänd den privata nyckeln över förnyelser' är av, så varje certifikatförnyelse genererar en ny privat nyckel. Om du publicerar TLSA-poster av typen '3 1 1' går de sönder vid nästa förnyelse - slå på det igen på sidan Automatiska certifikat (ACME) (standard), eller uppdatera TLSA-posten efter varje förnyelse.</value>
   </data>
-  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
-    <value>ACME är aktiverat men 'Värdnamn för certifikatet' på sidan Automatiska certifikat (ACME) är tomt, så inget certifikat begärs någonsin - klienten loggar 'No domains configured' och stannar. Lista där värdnamnen certifikatet ska täcka (till exempel mail.dindomän.se, mta-sts.dindomän.se).</value>
+  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.example.com, mta-sts.example.com)." xml:space="preserve">
+    <value>ACME är aktiverat men 'Värdnamn för certifikatet' på sidan Automatiska certifikat (ACME) är tomt, så inget certifikat begärs någonsin - klienten loggar 'No domains configured' och stannar. Lista där värdnamnen certifikatet ska täcka (till exempel mail.example.com, mta-sts.example.com).</value>
   </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME är på men inget certifikat har utfärdats ännu - fullchain.pem och privkey.pem finns inte båda i {0}. Utfärdandet sker enligt serverns eget schema, så det här är normalt några minuter efter aktiveringen; om det består kunde CA:n inte nå den här servern, och sidan Konfigurationschecklista kontrollerar exakt det.</value>
@@ -1383,8 +1383,8 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Alias domain" xml:space="preserve">
     <value>Aliasdomän</value>
   </data>
-  <data name="Alias domain name (e.g. example.net)" xml:space="preserve">
-    <value>Aliasdomännamn (t.ex. example.net)</value>
+  <data name="Alias domain name" xml:space="preserve">
+    <value>Aliasdomännamn</value>
   </data>
   <data name="Aliases" xml:space="preserve">
     <value>Alias</value>
@@ -4322,10 +4322,7 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
     <value>Skicka inte meddelanden större än (KB; 0 = ingen gräns)</value>
   </data>
   <data name="Do_main" xml:space="preserve">
-    <value>D_omän</value>
-  </data>
-  <data name="Do_main (e.g. partner.com)" xml:space="preserve">
-    <value>Domä_n (t.ex. partner.com)</value>
+    <value>Dom_än</value>
   </data>
   <data name="Does not match the certificate" xml:space="preserve">
     <value>Matchar inte certifikatet</value>
@@ -6582,8 +6579,8 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Lo_cal to external" xml:space="preserve">
     <value>Lo_kalt till externt</value>
   </data>
-  <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
-    <value>Nedre IP (t.e_x. 10.0.0.0)</value>
+  <data name="Lo_wer IP" xml:space="preserve">
+    <value>Lä_gsta IP</value>
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>Läser in…</value>
@@ -12162,6 +12159,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
     <value>Till exempel zen.spamhaus.org eller bl.spamcop.net</value>
   </data>
+  <data name="Such as {0}" xml:space="preserve">
+    <value>Till exempel {0}</value>
+  </data>
   <data name="Support session opened" xml:space="preserve">
     <value>Supportsession öppnad</value>
   </data>
@@ -15547,9 +15547,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="_Domain" xml:space="preserve">
     <value>D_omän</value>
   </data>
-  <data name="_Domain (e.g. gmail.com)" xml:space="preserve">
-    <value>_Domän (t.ex. gmail.com)</value>
-  </data>
   <data name="_Domain name" xml:space="preserve">
     <value>_Domännamn</value>
   </data>
@@ -15664,9 +15661,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="_Header name" xml:space="preserve">
     <value>R_ubriknamn</value>
   </data>
-  <data name="_Header name (e.g. X-Spam-Status)" xml:space="preserve">
-    <value>_Rubriknamn (t.ex. X-Spam-Status)</value>
-  </data>
   <data name="_Hosted domain" xml:space="preserve">
     <value>_Hostad domän</value>
   </data>
@@ -15679,8 +15673,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="_IMAP" xml:space="preserve">
     <value>_IMAP</value>
   </data>
-  <data name="_IMAP folder (e.g. INBOX.Archive)" xml:space="preserve">
-    <value>_IMAP-mapp (t.ex. INBOX.Archive)</value>
+  <data name="_IMAP folder" xml:space="preserve">
+    <value>_IMAP-mapp</value>
   </data>
   <data name="_IMAP folders in this mailbox" xml:space="preserve">
     <value>_IMAP-mappar i den här brevlådan</value>
@@ -16071,9 +16065,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="_Upper IP" xml:space="preserve">
     <value>_Övre IP</value>
-  </data>
-  <data name="_Upper IP (e.g. 10.0.0.255)" xml:space="preserve">
-    <value>_Övre IP (t.ex. 10.0.0.255)</value>
   </data>
   <data name="_Upper IP address" xml:space="preserve">
     <value>Ö_vre IP-adress</value>

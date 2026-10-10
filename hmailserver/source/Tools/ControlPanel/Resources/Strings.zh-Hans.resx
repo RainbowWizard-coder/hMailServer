@@ -768,8 +768,8 @@
   <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Automatic certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
     <value>已启用 ACME，但“在续订之间重用同一把私钥”处于关闭状态，因此每次续期证书都会生成新的私钥。如果您发布 '3 1 1' 的 TLSA 记录，它们会在下一次续期时失效 - 请在“自动证书（ACME）”页上重新打开它（默认值），或者在每次续期之后更新 TLSA 记录。</value>
   </data>
-  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
-    <value>已启用 ACME，但“自动证书（ACME）”页上的“证书的主机名”为空，因此永远不会请求证书 - 客户端会记录“No domains configured”并停止。请在那里列出证书应涵盖的主机名（例如 mail.yourdomain.com、mta-sts.yourdomain.com）。</value>
+  <data name="ACME is on, but 'Host names for the certificate' on the Automatic certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.example.com, mta-sts.example.com)." xml:space="preserve">
+    <value>已启用 ACME，但“自动证书（ACME）”页上的“证书的主机名”为空，因此永远不会请求证书 - 客户端会记录“No domains configured”并停止。请在那里列出证书应涵盖的主机名（例如 mail.example.com、mta-sts.example.com）。</value>
   </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME 已打开，但尚未颁发任何证书 - fullchain.pem 和 privkey.pem 并未同时位于 {0} 中。颁发按服务器自己的计划进行，因此启用后的几分钟内出现这种情况是正常的；如果一直如此，说明 CA 无法访问到本服务器，而“设置清单”页检查的正是这一点。</value>
@@ -1383,8 +1383,8 @@
   <data name="Alias domain" xml:space="preserve">
     <value>别名域</value>
   </data>
-  <data name="Alias domain name (e.g. example.net)" xml:space="preserve">
-    <value>别名域名（例如 example.net）</value>
+  <data name="Alias domain name" xml:space="preserve">
+    <value>别名域名</value>
   </data>
   <data name="Aliases" xml:space="preserve">
     <value>别名</value>
@@ -4324,9 +4324,6 @@
   <data name="Do_main" xml:space="preserve">
     <value>域(_M)</value>
   </data>
-  <data name="Do_main (e.g. partner.com)" xml:space="preserve">
-    <value>域（例如 partner.com）(_M)</value>
-  </data>
   <data name="Does not match the certificate" xml:space="preserve">
     <value>与证书不匹配</value>
   </data>
@@ -6582,8 +6579,8 @@
   <data name="Lo_cal to external" xml:space="preserve">
     <value>本地到外部(_C)</value>
   </data>
-  <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
-    <value>起始 IP（例如 10.0.0.0）(_W)</value>
+  <data name="Lo_wer IP" xml:space="preserve">
+    <value>起始 IP(_W)</value>
   </data>
   <data name="Loading…" xml:space="preserve">
     <value>正在加载…</value>
@@ -12162,6 +12159,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
     <value>例如 zen.spamhaus.org 或 bl.spamcop.net</value>
   </data>
+  <data name="Such as {0}" xml:space="preserve">
+    <value>例如 {0}</value>
+  </data>
   <data name="Support session opened" xml:space="preserve">
     <value>已打开支持会话</value>
   </data>
@@ -15547,9 +15547,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Domain" xml:space="preserve">
     <value>域(_D)</value>
   </data>
-  <data name="_Domain (e.g. gmail.com)" xml:space="preserve">
-    <value>域（例如 gmail.com）(_D)</value>
-  </data>
   <data name="_Domain name" xml:space="preserve">
     <value>域名(_D)</value>
   </data>
@@ -15664,9 +15661,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Header name" xml:space="preserve">
     <value>标头名称(_H)</value>
   </data>
-  <data name="_Header name (e.g. X-Spam-Status)" xml:space="preserve">
-    <value>标头名称(_H)（例如 X-Spam-Status）</value>
-  </data>
   <data name="_Hosted domain" xml:space="preserve">
     <value>托管的域(_H)</value>
   </data>
@@ -15679,8 +15673,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_IMAP" xml:space="preserve">
     <value>IMAP(_I)</value>
   </data>
-  <data name="_IMAP folder (e.g. INBOX.Archive)" xml:space="preserve">
-    <value>IMAP 文件夹(_I)（例如 INBOX.Archive）</value>
+  <data name="_IMAP folder" xml:space="preserve">
+    <value>IMAP 文件夹(_I)</value>
   </data>
   <data name="_IMAP folders in this mailbox" xml:space="preserve">
     <value>此邮箱中的 IMAP 文件夹(_I)</value>
@@ -16071,9 +16065,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="_Upper IP" xml:space="preserve">
     <value>上限 IP(_U)</value>
-  </data>
-  <data name="_Upper IP (e.g. 10.0.0.255)" xml:space="preserve">
-    <value>上限 IP (例如 10.0.0.255)(_U)</value>
   </data>
   <data name="_Upper IP address" xml:space="preserve">
     <value>结束 IP 地址(_U)</value>
