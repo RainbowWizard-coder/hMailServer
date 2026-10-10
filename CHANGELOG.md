@@ -2870,6 +2870,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Recipients and State keep a width the grid scrolls sideways for. `DeliveryQueueTests` holds the state words and
   their order, the outcomes, the question and the page's lines.
 
+- **Fixed: the Auto-ban page kept its two never-ban lists in two shapes, and an address entry the server ignored was
+  said only in its error log.** The list by address, `AutoBanNeverBan`, was one comma-separated box saved with Save
+  beside the list by reverse name, a table whose buttons write at once; what a block such as 203.0.113.5/24 spared
+  was left to the reader's arithmetic, and an entry the server could not read - "192.168.1", a host name - protected
+  nothing without a word on the page. Never auto-ban these addresses is now a table like the names list: each address
+  or block with what it covers - One address, "203.0.113.0 - 203.0.113.255", or "Ignored: not an address or a block",
+  with a warning that names every entry the server ignores - and Add address... and Remove address, which read the
+  list again and write it at once. The Add dialog takes an address or a CIDR block as the server reads one - four
+  decimal parts with no leading zero, a prefix no longer than the address - and says under its box an entry it would
+  not read or one listed already; Remove asks first. `NeverBanAddressListTests` holds the server's reading of an
+  entry, what each row covers, the refusals and the page's row.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

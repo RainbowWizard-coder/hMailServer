@@ -486,6 +486,12 @@
   <data name="A list could not be read, so the answer may change once it can be." xml:space="preserve">
     <value>Bir liste okunamadı; okunabildiğinde yanıt değişebilir.</value>
   </data>
+  <data name="A listed address is never auto-banned, and its failed sign-ins are not counted. It applies to the next ban." xml:space="preserve">
+    <value>Listedeki bir adres hiçbir zaman otomatik yasaklanmaz ve başarısız oturum açmaları sayılmaz. Bir sonraki yasaklamadan itibaren geçerlidir.</value>
+  </data>
+  <data name="A listed address is never auto-banned, and its failed sign-ins are not counted. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine." xml:space="preserve">
+    <value>Listedeki bir adres hiçbir zaman otomatik yasaklanmaz ve başarısız oturum açmaları sayılmaz. Güvenlik duvarı seçeneğini açmadan önce yönetim yaptığınız adresleri buraya yazın: güvenlik duvarına ulaşan bir yasak, o adresi bu makinedeki tüm posta bağlantı noktalarının dışında bırakır.</value>
+  </data>
   <data name="A listener wants a certificate and STARTTLS, so that no password crosses the network in the clear." xml:space="preserve">
     <value>Bir dinleyicinin sertifikaya ve STARTTLS'e ihtiyacı vardır; böylece hiçbir parola ağdan açık metin olarak geçmez.</value>
   </data>
@@ -807,6 +813,9 @@
   <data name="A_ddress" xml:space="preserve">
     <value>_Adres</value>
   </data>
+  <data name="A_ddress or block" xml:space="preserve">
+    <value>_Adres veya blok</value>
+  </data>
   <data name="Abort on messages _marked as spam" xml:space="preserve">
     <value>Spam olarak _işaretlenen iletilerde durdur</value>
   </data>
@@ -1086,6 +1095,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Add an action to the rule “{0}”." xml:space="preserve">
     <value>“{0}” kuralına bir eylem ekleyin.</value>
   </data>
+  <data name="Add an address to the never-ban list" xml:space="preserve">
+    <value>Asla yasaklanmayanlar listesine adres ekle</value>
+  </data>
   <data name="Add an entry" xml:space="preserve">
     <value>Kayıt ekle</value>
   </data>
@@ -1193,6 +1205,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   </data>
   <data name="Address contains" xml:space="preserve">
     <value>Adres şunu içeriyor</value>
+  </data>
+  <data name="Address or block" xml:space="preserve">
+    <value>Adres veya blok</value>
   </data>
   <data name="Address or domain" xml:space="preserve">
     <value>Adres veya etki alanı</value>
@@ -1523,6 +1538,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   </data>
   <data name="An address is spared only when one of its reverse names is covered AND resolves back to the address, since anybody who holds an address can write its reverse name. It applies to the next ban." xml:space="preserve">
     <value>Bir adres yalnızca ters adlarından biri kapsanıyor VE adrese geri çözümleniyorsa korunur; çünkü bir adrese sahip olan herkes onun ters adını kendisi yazabilir. Bir sonraki yasaklamadan itibaren geçerlidir.</value>
+  </data>
+  <data name="An address or a block is required." xml:space="preserve">
+    <value>Bir adres veya blok gerekli.</value>
   </data>
   <data name="An address such as spammer@example.com is that address alone; a domain such as example.com is the domain and its subdomains." xml:space="preserve">
     <value>spammer@example.com gibi bir adres yalnızca o adrestir; example.com gibi bir etki alanı, etki alanı ve alt etki alanlarıdır.</value>
@@ -3159,6 +3177,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
 
 {1}</value>
   </data>
+  <data name="Could not read the never-ban list: {0}" xml:space="preserve">
+    <value>Asla yasaklanmayanlar listesi okunamadı: {0}</value>
+  </data>
   <data name="Could not read the outcome: {0}" xml:space="preserve">
     <value>Sonuç okunamadı: {0}</value>
   </data>
@@ -3264,6 +3285,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Could not save the list: {0}" xml:space="preserve">
     <value>Liste kaydedilemedi: {0}</value>
   </data>
+  <data name="Could not save the never-ban list: {0}" xml:space="preserve">
+    <value>Asla yasaklanmayanlar listesi kaydedilemedi: {0}</value>
+  </data>
   <data name="Could not save the passphrase: {0}" xml:space="preserve">
     <value>Parola ifadesi kaydedilemedi: {0}</value>
   </data>
@@ -3347,6 +3371,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Country blocking" xml:space="preserve">
     <value>Ülke engelleme</value>
+  </data>
+  <data name="Covers" xml:space="preserve">
+    <value>Kapsam</value>
   </data>
   <data name="Cr_eate" xml:space="preserve">
     <value>_Oluştur</value>
@@ -5008,9 +5035,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Facility (0 to 23)" xml:space="preserve">
     <value>Facility (0 - 23)</value>
   </data>
-  <data name="Failed logons from a listed address are not counted at all, so it can never be banned. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine. Example: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. An entry that is not an address is reported by name in the error log and ignored." xml:space="preserve">
-    <value>Listedeki bir adresten gelen başarısız oturum açmalar hiç sayılmaz, bu yüzden o adres asla yasaklanamaz. Güvenlik duvarı seçeneğini açmadan önce yönetim yaptığınız adresleri buraya yazın: güvenlik duvarına ulaşan bir yasak, o adresi bu makinedeki tüm posta bağlantı noktalarının dışında bırakır. Örnek: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. Adres olmayan bir girdi hata günlüğüne adıyla bildirilir ve yok sayılır.</value>
-  </data>
   <data name="Failed sign-ins as {0}" xml:space="preserve">
     <value>{0} olarak başarısız oturum açmalar</value>
   </data>
@@ -5763,6 +5787,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Ignored" xml:space="preserve">
     <value>Yoksayılıyor</value>
+  </data>
+  <data name="Ignored: not an address or a block" xml:space="preserve">
+    <value>Yok sayılır: adres veya blok değil</value>
   </data>
   <data name="Images (*.jpg;*.jpeg;*.png;*.gif)" xml:space="preserve">
     <value>Görüntüler (*.jpg;*.jpeg;*.png;*.gif)</value>
@@ -7093,8 +7120,8 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Never auto-ban by reverse name" xml:space="preserve">
     <value>Ters ada göre hiçbir zaman otomatik yasaklama</value>
   </data>
-  <data name="Never auto-ban these addresses (comma separated; CIDR blocks allowed)" xml:space="preserve">
-    <value>Bu adresleri hiçbir zaman otomatik yasaklama (virgülle ayrılmış; CIDR blokları kullanılabilir)</value>
+  <data name="Never auto-ban these addresses" xml:space="preserve">
+    <value>Bu adresleri hiçbir zaman otomatik yasaklama</value>
   </data>
   <data name="Never greylisted." xml:space="preserve">
     <value>Hiçbir zaman greylisting'e takılmaz.</value>
@@ -7239,6 +7266,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
     <value>Bu etki alanının engelleme listesinde hiç adres yok. Bir adres, kendisine giden posta kalıcı olarak geri döndüğünde ya da siz bir adres eklediğinizde buraya gelir.</value>
+  </data>
+  <data name="No addresses, so any address can be auto-banned." xml:space="preserve">
+    <value>Adres yok; bu nedenle herhangi bir adres otomatik olarak yasaklanabilir.</value>
   </data>
   <data name="No addresses, so no server is let past greylisting for its IP address." xml:space="preserve">
     <value>Adres yok; bu nedenle hiçbir sunucu IP adresi için greylisting'den muaf tutulmaz.</value>
@@ -8104,8 +8134,14 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Once a minute the server writes one row per metric - sessions, messages processed, delivered, deferred and bounced, spam and viruses, authentication and TLS outcomes, missing message files - to hm_metricsamples, and keeps them this many days. It is what the dashboard's 24 hours, 7 days and 30 days views and GET /api/v1/metrics/history read. A week of minute-resolution history is about a hundred and forty thousand small rows. 0 turns the sampler off." xml:space="preserve">
     <value>Sunucu dakikada bir, ölçüm başına bir satırı - oturumlar, işlenen, teslim edilen, ertelenen ve geri dönen iletiler, spam ve virüsler, kimlik doğrulama ve TLS sonuçları, eksik ileti dosyaları - hm_metricsamples tablosuna yazar ve bu kadar gün saklar. Panonun 24 saat, 7 gün ve 30 gün görünümlerinin ve GET /api/v1/metrics/history'nin okuduğu budur. Dakika çözünürlüğünde bir haftalık geçmiş yaklaşık yüz kırk bin küçük satırdır. 0 örnekleyiciyi kapatır.</value>
   </data>
+  <data name="One address" xml:space="preserve">
+    <value>Tek adres</value>
+  </data>
   <data name="One address of this machine: 127.0.0.1 when the manager runs here, otherwise an address on a management network." xml:space="preserve">
     <value>Bu bilgisayarın bir adresi: yönetici burada çalışıyorsa 127.0.0.1, değilse yönetim ağındaki adres.</value>
+  </data>
+  <data name="One address, such as 192.0.2.10, or a block in CIDR form, such as 203.0.113.0/24 or 2001:db8::/32." xml:space="preserve">
+    <value>Tek bir adres (örneğin 192.0.2.10) ya da CIDR biçiminde bir blok (örneğin 203.0.113.0/24 veya 2001:db8::/32).</value>
   </data>
   <data name="One blocked-attachment pattern is configured but attachment blocking is switched off, so it is not applied." xml:space="preserve">
     <value>Bir engellenen ek deseni yapılandırılmış ama ek engelleme kapalı; bu yüzden uygulanmıyor.</value>
@@ -9487,6 +9523,9 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   <data name="Remember this many previous passwords (0 = no history)" xml:space="preserve">
     <value>Bu kadar önceki parolayı hatırla (0 = geçmiş yok)</value>
   </data>
+  <data name="Remo_ve address" xml:space="preserve">
+    <value>Adresi ka_ldır</value>
+  </data>
   <data name="Remo_ve the photo" xml:space="preserve">
     <value>_Fotoğrafı kaldır</value>
   </data>
@@ -9558,6 +9597,11 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   </data>
   <data name="Remove the token" xml:space="preserve">
     <value>Belirteci kaldır</value>
+  </data>
+  <data name="Remove {0} from the addresses that are never auto-banned?&#10;&#10;An address it spared can be auto-banned again from the next ban on." xml:space="preserve">
+    <value>{0} hiçbir zaman otomatik yasaklanmayan adreslerden kaldırılsın mı?
+
+Koruduğu bir adres, bir sonraki yasaklamadan itibaren yeniden otomatik yasaklanabilir.</value>
   </data>
   <data name="Remove {0} from the list?&#10;&#10;A blocked domain is accepted again at once; an allowed domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
     <value>{0} listeden kaldırılsın mı?
@@ -13036,6 +13080,9 @@ Yine de eklensin mi?</value>
   <data name="The server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
     <value>Sunucuda böyle bir ayar ya da eylem yok - bu Control Panel'den daha eski olabilir ({0})</value>
   </data>
+  <data name="The server ignores {0}: not an address or a CIDR block, so no address is spared for it." xml:space="preserve">
+    <value>Sunucu {0} girdisini yok sayar: adres veya CIDR bloğu değildir, bu yüzden hiçbir adresi muaf tutmaz.</value>
+  </data>
   <data name="The server is draining. A reinitialise ends maintenance mode: the listeners open again and delivery resumes. Reinitialise the server now?" xml:space="preserve">
     <value>Sunucu boşaltılıyor. Yeniden başlatma (Reinitialize) bakım modunu sona erdirir: dinleyiciler yeniden açılır ve teslim sürer. Sunucu şimdi yeniden başlatılsın mı?</value>
   </data>
@@ -14620,6 +14667,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="_Add address" xml:space="preserve">
     <value>Adres ek_le</value>
+  </data>
+  <data name="_Add address…" xml:space="preserve">
+    <value>_Adres ekle…</value>
   </data>
   <data name="_Add anyway" xml:space="preserve">
     <value>Yine de _ekle</value>
@@ -16545,6 +16595,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} bypass entries" xml:space="preserve">
     <value>{0} atlama kaydı</value>
   </data>
+  <data name="{0} can be auto-banned again from the next ban on." xml:space="preserve">
+    <value>{0}, bir sonraki yasaklamadan itibaren yeniden otomatik yasaklanabilir.</value>
+  </data>
   <data name="{0} case. Select it for its lines on the audit trail." xml:space="preserve">
     <value>{0} dava. Denetim izindeki satırlarını görmek için onu seçin.</value>
   </data>
@@ -16728,14 +16781,23 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} is here with the mailboxes {1}, the list {2} and a rule that files invoices. Its password was shown once, when it was made; remove the sample and make it again to be given another." xml:space="preserve">
     <value>{0} burada: {1} posta kutuları, {2} listesi ve faturaları dosyalayan bir kural. Parola bir kez, örnek oluşturulurken gösterildi; yenisini almak için örneği kaldırıp yeniden oluşturun.</value>
   </data>
+  <data name="{0} is never auto-banned from the next ban on." xml:space="preserve">
+    <value>{0}, bir sonraki yasaklamadan itibaren hiçbir zaman otomatik yasaklanmaz.</value>
+  </data>
   <data name="{0} is never auto-banned: its reverse name {1} resolves back to it and is covered by {2}." xml:space="preserve">
     <value>{0} hiçbir zaman otomatik yasaklanmaz: ters adı {1} ona geri çözümleniyor ve {2} tarafından kapsanıyor.</value>
   </data>
   <data name="{0} is not an IP address." xml:space="preserve">
     <value>{0} bir IP adresi değil.</value>
   </data>
+  <data name="{0} is not an address or a CIDR block." xml:space="preserve">
+    <value>{0} bir adres veya CIDR bloğu değil.</value>
+  </data>
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0} açık ama 0 puan veriyor; bu yüzden her iletide bir aramaya mal oluyor ve sonucu hiçbir zaman değiştiremiyor. Bir puan verin ya da kapatın.</value>
+  </data>
+  <data name="{0} is on the list already." xml:space="preserve">
+    <value>{0} zaten listede.</value>
   </data>
   <data name="{0} is on the list. It applies to the next session from that domain." xml:space="preserve">
     <value>{0} listede. O alan adından gelen bir sonraki oturum için geçerli.</value>
@@ -17066,6 +17128,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0} was no longer banned: the ban had lifted already." xml:space="preserve">
     <value>{0} artık yasaklı değildi: yasak zaten kalkmıştı.</value>
+  </data>
+  <data name="{0} was not listed any more." xml:space="preserve">
+    <value>{0} artık listede değildi.</value>
   </data>
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} artık listede değildi.</value>

@@ -486,6 +486,12 @@
   <data name="A list could not be read, so the answer may change once it can be." xml:space="preserve">
     <value>Een lijst kon niet worden gelezen, dus het antwoord kan veranderen zodra dat wel lukt.</value>
   </data>
+  <data name="A listed address is never auto-banned, and its failed sign-ins are not counted. It applies to the next ban." xml:space="preserve">
+    <value>Een vermeld adres wordt nooit automatisch gebannen, en zijn mislukte aanmeldingen worden niet geteld. Geldt vanaf de volgende ban.</value>
+  </data>
+  <data name="A listed address is never auto-banned, and its failed sign-ins are not counted. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine." xml:space="preserve">
+    <value>Een vermeld adres wordt nooit automatisch gebannen, en zijn mislukte aanmeldingen worden niet geteld. Zet hier de adressen van waaruit u beheert voordat u de firewall-optie inschakelt: een ban die de firewall bereikt sluit dat adres uit van elke mailpoort op deze machine.</value>
+  </data>
   <data name="A listener wants a certificate and STARTTLS, so that no password crosses the network in the clear." xml:space="preserve">
     <value>Een listener heeft een certificaat en STARTTLS nodig, zodat er geen wachtwoord onversleuteld over het netwerk gaat.</value>
   </data>
@@ -807,6 +813,9 @@
   <data name="A_ddress" xml:space="preserve">
     <value>_Adres</value>
   </data>
+  <data name="A_ddress or block" xml:space="preserve">
+    <value>_Adres of blok</value>
+  </data>
   <data name="Abort on messages _marked as spam" xml:space="preserve">
     <value>Afbreken bij berichten die als spam ge_markeerd zijn</value>
   </data>
@@ -1086,6 +1095,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Add an action to the rule “{0}”." xml:space="preserve">
     <value>Een actie toevoegen aan de regel ‘{0}’.</value>
   </data>
+  <data name="Add an address to the never-ban list" xml:space="preserve">
+    <value>Een adres toevoegen aan de nooit-bannen-lijst</value>
+  </data>
   <data name="Add an entry" xml:space="preserve">
     <value>Een vermelding toevoegen</value>
   </data>
@@ -1193,6 +1205,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   </data>
   <data name="Address contains" xml:space="preserve">
     <value>Adres bevat</value>
+  </data>
+  <data name="Address or block" xml:space="preserve">
+    <value>Adres of blok</value>
   </data>
   <data name="Address or domain" xml:space="preserve">
     <value>Adres of domein</value>
@@ -1523,6 +1538,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   </data>
   <data name="An address is spared only when one of its reverse names is covered AND resolves back to the address, since anybody who holds an address can write its reverse name. It applies to the next ban." xml:space="preserve">
     <value>Een adres wordt alleen gespaard als een van zijn reverse-namen gedekt is EN terug verwijst naar het adres, want wie een adres heeft, kan de reverse-naam ervan zelf schrijven. Geldt vanaf de volgende ban.</value>
+  </data>
+  <data name="An address or a block is required." xml:space="preserve">
+    <value>Een adres of blok is verplicht.</value>
   </data>
   <data name="An address such as spammer@example.com is that address alone; a domain such as example.com is the domain and its subdomains." xml:space="preserve">
     <value>Een adres zoals spammer@example.com is alleen dat adres; een domein zoals example.com is het domein met zijn subdomeinen.</value>
@@ -3159,6 +3177,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
 
 {1}</value>
   </data>
+  <data name="Could not read the never-ban list: {0}" xml:space="preserve">
+    <value>De nooit-bannen-lijst kon niet worden gelezen: {0}</value>
+  </data>
   <data name="Could not read the outcome: {0}" xml:space="preserve">
     <value>Het resultaat kon niet worden gelezen: {0}</value>
   </data>
@@ -3264,6 +3285,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Could not save the list: {0}" xml:space="preserve">
     <value>Kon de lijst niet opslaan: {0}</value>
   </data>
+  <data name="Could not save the never-ban list: {0}" xml:space="preserve">
+    <value>De nooit-bannen-lijst kon niet worden opgeslagen: {0}</value>
+  </data>
   <data name="Could not save the passphrase: {0}" xml:space="preserve">
     <value>Kon de wachtwoordzin niet opslaan: {0}</value>
   </data>
@@ -3347,6 +3371,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Country blocking" xml:space="preserve">
     <value>Blokkeren per land</value>
+  </data>
+  <data name="Covers" xml:space="preserve">
+    <value>Omvat</value>
   </data>
   <data name="Cr_eate" xml:space="preserve">
     <value>_Aanmaken</value>
@@ -5008,9 +5035,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Facility (0 to 23)" xml:space="preserve">
     <value>Facility (0 tot en met 23)</value>
   </data>
-  <data name="Failed logons from a listed address are not counted at all, so it can never be banned. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine. Example: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. An entry that is not an address is reported by name in the error log and ignored." xml:space="preserve">
-    <value>Mislukte aanmeldingen vanaf een vermeld adres worden helemaal niet geteld, dus het kan nooit geband worden. Zet hier de adressen van waaruit u beheert voordat u de firewall-optie inschakelt: een ban die de firewall bereikt sluit dat adres uit van elke mailpoort op deze machine. Voorbeeld: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. Een vermelding die geen adres is wordt bij naam in het foutenlogboek gemeld en genegeerd.</value>
-  </data>
   <data name="Failed sign-ins as {0}" xml:space="preserve">
     <value>Mislukte aanmeldingen als {0}</value>
   </data>
@@ -5763,6 +5787,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Ignored" xml:space="preserve">
     <value>Genegeerd</value>
+  </data>
+  <data name="Ignored: not an address or a block" xml:space="preserve">
+    <value>Genegeerd: geen adres of blok</value>
   </data>
   <data name="Images (*.jpg;*.jpeg;*.png;*.gif)" xml:space="preserve">
     <value>Afbeeldingen (*.jpg;*.jpeg;*.png;*.gif)</value>
@@ -7093,8 +7120,8 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Never auto-ban by reverse name" xml:space="preserve">
     <value>Nooit automatisch bannen op reverse-naam</value>
   </data>
-  <data name="Never auto-ban these addresses (comma separated; CIDR blocks allowed)" xml:space="preserve">
-    <value>Deze adressen nooit automatisch bannen (door komma's gescheiden; CIDR-blokken toegestaan)</value>
+  <data name="Never auto-ban these addresses" xml:space="preserve">
+    <value>Deze adressen nooit automatisch bannen</value>
   </data>
   <data name="Never greylisted." xml:space="preserve">
     <value>Nooit gegreylist.</value>
@@ -7239,6 +7266,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
     <value>Er staat geen adres op de onderdrukkingslijst van dit domein. Een adres komt hier als mail eraan definitief bouncet, of als u er een toevoegt.</value>
+  </data>
+  <data name="No addresses, so any address can be auto-banned." xml:space="preserve">
+    <value>Geen adressen, dus elk adres kan automatisch gebannen worden.</value>
   </data>
   <data name="No addresses, so no server is let past greylisting for its IP address." xml:space="preserve">
     <value>Geen adressen, dus geen enkele server wordt op grond van zijn IP-adres langs greylisting gelaten.</value>
@@ -8104,8 +8134,14 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Once a minute the server writes one row per metric - sessions, messages processed, delivered, deferred and bounced, spam and viruses, authentication and TLS outcomes, missing message files - to hm_metricsamples, and keeps them this many days. It is what the dashboard's 24 hours, 7 days and 30 days views and GET /api/v1/metrics/history read. A week of minute-resolution history is about a hundred and forty thousand small rows. 0 turns the sampler off." xml:space="preserve">
     <value>Eenmaal per minuut schrijft de server één rij per metriek - sessies, verwerkte, bezorgde, uitgestelde en gebouncete berichten, spam en virussen, authenticatie- en TLS-uitkomsten, ontbrekende berichtbestanden - naar hm_metricsamples, en bewaart die dit aantal dagen. Het is wat de weergaven 24 uur, 7 dagen en 30 dagen van het dashboard en GET /api/v1/metrics/history lezen. Een week geschiedenis met minuutresolutie is ongeveer honderdveertigduizend kleine rijen. 0 schakelt de bemonstering uit.</value>
   </data>
+  <data name="One address" xml:space="preserve">
+    <value>Eén adres</value>
+  </data>
   <data name="One address of this machine: 127.0.0.1 when the manager runs here, otherwise an address on a management network." xml:space="preserve">
     <value>Eén adres van deze machine: 127.0.0.1 wanneer de manager hier draait, anders een adres op een beheernetwerk.</value>
+  </data>
+  <data name="One address, such as 192.0.2.10, or a block in CIDR form, such as 203.0.113.0/24 or 2001:db8::/32." xml:space="preserve">
+    <value>Eén adres, zoals 192.0.2.10, of een blok in CIDR-notatie, zoals 203.0.113.0/24 of 2001:db8::/32.</value>
   </data>
   <data name="One blocked-attachment pattern is configured but attachment blocking is switched off, so it is not applied." xml:space="preserve">
     <value>Eén patroon voor geblokkeerde bijlagen is geconfigureerd, maar bijlageblokkering staat uit, dus het wordt niet toegepast.</value>
@@ -9487,6 +9523,9 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   <data name="Remember this many previous passwords (0 = no history)" xml:space="preserve">
     <value>Dit aantal vorige wachtwoorden onthouden (0 = geen geschiedenis)</value>
   </data>
+  <data name="Remo_ve address" xml:space="preserve">
+    <value>Adres ve_rwijderen</value>
+  </data>
   <data name="Remo_ve the photo" xml:space="preserve">
     <value>_De foto verwijderen</value>
   </data>
@@ -9558,6 +9597,11 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   </data>
   <data name="Remove the token" xml:space="preserve">
     <value>Token verwijderen</value>
+  </data>
+  <data name="Remove {0} from the addresses that are never auto-banned?&#10;&#10;An address it spared can be auto-banned again from the next ban on." xml:space="preserve">
+    <value>{0} verwijderen uit de adressen die nooit automatisch gebannen worden?
+
+Een adres dat het spaarde, kan vanaf de volgende ban weer automatisch gebannen worden.</value>
   </data>
   <data name="Remove {0} from the list?&#10;&#10;A blocked domain is accepted again at once; an allowed domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
     <value>{0} van de lijst verwijderen?
@@ -13036,6 +13080,9 @@ Toch toevoegen?</value>
   <data name="The server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
     <value>De server heeft zo'n instelling of actie niet - hij is mogelijk ouder dan dit Control Panel ({0})</value>
   </data>
+  <data name="The server ignores {0}: not an address or a CIDR block, so no address is spared for it." xml:space="preserve">
+    <value>De server negeert {0}: geen adres of CIDR-blok, dus er wordt daardoor geen adres gespaard.</value>
+  </data>
   <data name="The server is draining. A reinitialise ends maintenance mode: the listeners open again and delivery resumes. Reinitialise the server now?" xml:space="preserve">
     <value>De server loopt leeg. Een herinitialisatie beëindigt de onderhoudsmodus: de listeners gaan weer open en de bezorging wordt hervat. De server nu herinitialiseren?</value>
   </data>
@@ -14620,6 +14667,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="_Add address" xml:space="preserve">
     <value>Adres toe_voegen</value>
+  </data>
+  <data name="_Add address…" xml:space="preserve">
+    <value>_Adres toevoegen…</value>
   </data>
   <data name="_Add anyway" xml:space="preserve">
     <value>_Toch toevoegen</value>
@@ -16545,6 +16595,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} bypass entries" xml:space="preserve">
     <value>{0} omzeilingen</value>
   </data>
+  <data name="{0} can be auto-banned again from the next ban on." xml:space="preserve">
+    <value>{0} kan vanaf de volgende ban weer automatisch gebannen worden.</value>
+  </data>
   <data name="{0} case. Select it for its lines on the audit trail." xml:space="preserve">
     <value>{0} zaak. Selecteer deze voor de regels in het auditlogboek.</value>
   </data>
@@ -16728,14 +16781,23 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} is here with the mailboxes {1}, the list {2} and a rule that files invoices. Its password was shown once, when it was made; remove the sample and make it again to be given another." xml:space="preserve">
     <value>{0} staat er, met de postbussen {1}, de lijst {2} en een regel die facturen opbergt. Het wachtwoord is één keer getoond, toen het voorbeeld werd gemaakt; verwijder het voorbeeld en maak het opnieuw om een nieuw wachtwoord te krijgen.</value>
   </data>
+  <data name="{0} is never auto-banned from the next ban on." xml:space="preserve">
+    <value>{0} wordt vanaf de volgende ban nooit automatisch gebannen.</value>
+  </data>
   <data name="{0} is never auto-banned: its reverse name {1} resolves back to it and is covered by {2}." xml:space="preserve">
     <value>{0} wordt nooit automatisch gebannen: de reverse-naam {1} verwijst terug naar het adres en is gedekt door {2}.</value>
   </data>
   <data name="{0} is not an IP address." xml:space="preserve">
     <value>{0} is geen IP-adres.</value>
   </data>
+  <data name="{0} is not an address or a CIDR block." xml:space="preserve">
+    <value>{0} is geen adres of CIDR-blok.</value>
+  </data>
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0} staat aan maar scoort 0, dus kost het bij elk bericht een opzoeking en kan het de uitkomst nooit veranderen. Geef het een score, of zet het uit.</value>
+  </data>
+  <data name="{0} is on the list already." xml:space="preserve">
+    <value>{0} staat al op de lijst.</value>
   </data>
   <data name="{0} is on the list. It applies to the next session from that domain." xml:space="preserve">
     <value>{0} staat op de lijst. Het geldt voor de volgende sessie vanaf dat domein.</value>
@@ -17066,6 +17128,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} was no longer banned: the ban had lifted already." xml:space="preserve">
     <value>{0} was niet meer verbannen: de verbanning was al afgelopen.</value>
+  </data>
+  <data name="{0} was not listed any more." xml:space="preserve">
+    <value>{0} stond niet meer op de lijst.</value>
   </data>
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} stond niet meer op de lijst.</value>

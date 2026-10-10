@@ -21,7 +21,7 @@ by all four writers:
 
 | List | Keyed by | Where |
 |---|---|---|
-| `AutoBanNeverBan` | Addresses and CIDR blocks: `192.0.2.10, 203.0.113.0/24, 2001:db8::/32` | A setting; the Control Panel's Auto-ban page, *Below the server: the firewall* |
+| `AutoBanNeverBan` | Addresses and CIDR blocks: `192.0.2.10, 203.0.113.0/24, 2001:db8::/32` | A setting; the Auto-ban page, *Below the server: the firewall*, a table of its entries, each with what it spares and one the server cannot read marked |
 | The never-ban list by reverse name | The reverse names of a provider's hosts: `.example.net` | A table, `hm_neverbannames`; the Auto-ban page, *Never auto-ban by reverse name* |
 
 An address on either is never banned, and the widening of a ban below never

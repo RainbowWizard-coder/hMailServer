@@ -486,6 +486,12 @@
   <data name="A list could not be read, so the answer may change once it can be." xml:space="preserve">
     <value>No se pudo leer una lista, así que la respuesta puede cambiar cuando se pueda leer.</value>
   </data>
+  <data name="A listed address is never auto-banned, and its failed sign-ins are not counted. It applies to the next ban." xml:space="preserve">
+    <value>Una dirección de la lista nunca se bloquea automáticamente, y sus inicios de sesión fallidos no se cuentan. Se aplica desde el siguiente bloqueo.</value>
+  </data>
+  <data name="A listed address is never auto-banned, and its failed sign-ins are not counted. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine." xml:space="preserve">
+    <value>Una dirección de la lista nunca se bloquea automáticamente, y sus inicios de sesión fallidos no se cuentan. Anote aquí las direcciones desde las que administra antes de activar la opción del cortafuegos: un bloqueo que llega al cortafuegos deja esa dirección fuera de todos los puertos de correo de esta máquina.</value>
+  </data>
   <data name="A listener wants a certificate and STARTTLS, so that no password crosses the network in the clear." xml:space="preserve">
     <value>Un oyente necesita un certificado y STARTTLS, para que ninguna contraseña cruce la red en claro.</value>
   </data>
@@ -807,6 +813,9 @@
   <data name="A_ddress" xml:space="preserve">
     <value>_Dirección</value>
   </data>
+  <data name="A_ddress or block" xml:space="preserve">
+    <value>_Dirección o bloque</value>
+  </data>
   <data name="Abort on messages _marked as spam" xml:space="preserve">
     <value>Abortar en mensajes _marcados como spam</value>
   </data>
@@ -1086,6 +1095,9 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
   <data name="Add an action to the rule “{0}”." xml:space="preserve">
     <value>Añadir una acción a la regla «{0}».</value>
   </data>
+  <data name="Add an address to the never-ban list" xml:space="preserve">
+    <value>Añadir una dirección a la lista de nunca bloquear</value>
+  </data>
   <data name="Add an entry" xml:space="preserve">
     <value>Añadir una entrada</value>
   </data>
@@ -1193,6 +1205,9 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
   </data>
   <data name="Address contains" xml:space="preserve">
     <value>La dirección contiene</value>
+  </data>
+  <data name="Address or block" xml:space="preserve">
+    <value>Dirección o bloque</value>
   </data>
   <data name="Address or domain" xml:space="preserve">
     <value>Dirección o dominio</value>
@@ -1523,6 +1538,9 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
   </data>
   <data name="An address is spared only when one of its reverse names is covered AND resolves back to the address, since anybody who holds an address can write its reverse name. It applies to the next ban." xml:space="preserve">
     <value>Una dirección solo se exime cuando uno de sus nombres inversos está cubierto Y resuelve de vuelta a la dirección, porque cualquiera que tenga una dirección puede escribir su nombre inverso. Se aplica desde el siguiente bloqueo.</value>
+  </data>
+  <data name="An address or a block is required." xml:space="preserve">
+    <value>Se requiere una dirección o un bloque.</value>
   </data>
   <data name="An address such as spammer@example.com is that address alone; a domain such as example.com is the domain and its subdomains." xml:space="preserve">
     <value>Una dirección como spammer@example.com es solo esa dirección; un dominio como example.com es el dominio y sus subdominios.</value>
@@ -3159,6 +3177,9 @@ Los detalles completos se escribieron en:
 
 {1}</value>
   </data>
+  <data name="Could not read the never-ban list: {0}" xml:space="preserve">
+    <value>No se pudo leer la lista de nunca bloquear: {0}</value>
+  </data>
   <data name="Could not read the outcome: {0}" xml:space="preserve">
     <value>No se pudo leer el resultado: {0}</value>
   </data>
@@ -3264,6 +3285,9 @@ Los detalles completos se escribieron en:
   <data name="Could not save the list: {0}" xml:space="preserve">
     <value>No se pudo guardar la lista: {0}</value>
   </data>
+  <data name="Could not save the never-ban list: {0}" xml:space="preserve">
+    <value>No se pudo guardar la lista de nunca bloquear: {0}</value>
+  </data>
   <data name="Could not save the passphrase: {0}" xml:space="preserve">
     <value>No se pudo guardar la frase de contraseña: {0}</value>
   </data>
@@ -3347,6 +3371,9 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Country blocking" xml:space="preserve">
     <value>Bloqueo por país</value>
+  </data>
+  <data name="Covers" xml:space="preserve">
+    <value>Abarca</value>
   </data>
   <data name="Cr_eate" xml:space="preserve">
     <value>_Crear</value>
@@ -5008,9 +5035,6 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Facility (0 to 23)" xml:space="preserve">
     <value>Facility (0 a 23)</value>
   </data>
-  <data name="Failed logons from a listed address are not counted at all, so it can never be banned. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine. Example: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. An entry that is not an address is reported by name in the error log and ignored." xml:space="preserve">
-    <value>Los inicios de sesión fallidos desde una dirección de la lista no se cuentan en absoluto, así que nunca puede bloquearse. Anote aquí las direcciones desde las que administra antes de activar la opción del cortafuegos: un bloqueo que llega al cortafuegos deja esa dirección fuera de todos los puertos de correo de esta máquina. Ejemplo: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. Una entrada que no sea una dirección se notifica por su nombre en el registro de errores y se ignora.</value>
-  </data>
   <data name="Failed sign-ins as {0}" xml:space="preserve">
     <value>Inicios de sesión fallidos como {0}</value>
   </data>
@@ -5763,6 +5787,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   </data>
   <data name="Ignored" xml:space="preserve">
     <value>Ignorada</value>
+  </data>
+  <data name="Ignored: not an address or a block" xml:space="preserve">
+    <value>Ignorada: no es una dirección ni un bloque</value>
   </data>
   <data name="Images (*.jpg;*.jpeg;*.png;*.gif)" xml:space="preserve">
     <value>Imágenes (*.jpg;*.jpeg;*.png;*.gif)</value>
@@ -7093,8 +7120,8 @@ No se elimina nada de lo que ya está.</value>
   <data name="Never auto-ban by reverse name" xml:space="preserve">
     <value>Nunca bloquear automáticamente por nombre inverso</value>
   </data>
-  <data name="Never auto-ban these addresses (comma separated; CIDR blocks allowed)" xml:space="preserve">
-    <value>Nunca bloquear automáticamente estas direcciones (separadas por comas; se admiten bloques CIDR)</value>
+  <data name="Never auto-ban these addresses" xml:space="preserve">
+    <value>Nunca bloquear automáticamente estas direcciones</value>
   </data>
   <data name="Never greylisted." xml:space="preserve">
     <value>Nunca pasa por greylisting.</value>
@@ -7239,6 +7266,9 @@ No se elimina nada de lo que ya está.</value>
   </data>
   <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
     <value>No hay ninguna dirección en la lista de supresión de este dominio. Una dirección se añade aquí cuando el correo a ella rebota de forma definitiva, o cuando usted añade una.</value>
+  </data>
+  <data name="No addresses, so any address can be auto-banned." xml:space="preserve">
+    <value>No hay direcciones, así que cualquier dirección puede bloquearse automáticamente.</value>
   </data>
   <data name="No addresses, so no server is let past greylisting for its IP address." xml:space="preserve">
     <value>No hay direcciones, así que ningún servidor se libra del greylisting por su dirección IP.</value>
@@ -8104,8 +8134,14 @@ No se elimina nada de lo que ya está.</value>
   <data name="Once a minute the server writes one row per metric - sessions, messages processed, delivered, deferred and bounced, spam and viruses, authentication and TLS outcomes, missing message files - to hm_metricsamples, and keeps them this many days. It is what the dashboard's 24 hours, 7 days and 30 days views and GET /api/v1/metrics/history read. A week of minute-resolution history is about a hundred and forty thousand small rows. 0 turns the sampler off." xml:space="preserve">
     <value>Una vez por minuto el servidor escribe una fila por métrica - sesiones, mensajes procesados, entregados, aplazados y rebotados, spam y virus, resultados de autenticación y TLS, archivos de mensaje que faltan - en hm_metricsamples, y las conserva estos días. Es lo que leen las vistas de 24 horas, 7 días y 30 días del panel y GET /api/v1/metrics/history. Una semana de histórico con resolución de minuto son unas ciento cuarenta mil filas pequeñas. 0 apaga el muestreador.</value>
   </data>
+  <data name="One address" xml:space="preserve">
+    <value>Una dirección</value>
+  </data>
   <data name="One address of this machine: 127.0.0.1 when the manager runs here, otherwise an address on a management network." xml:space="preserve">
     <value>Una dirección de este equipo: 127.0.0.1 cuando el gestor se ejecuta aquí; si no, una dirección de una red de administración.</value>
+  </data>
+  <data name="One address, such as 192.0.2.10, or a block in CIDR form, such as 203.0.113.0/24 or 2001:db8::/32." xml:space="preserve">
+    <value>Una dirección, como 192.0.2.10, o un bloque en forma CIDR, como 203.0.113.0/24 o 2001:db8::/32.</value>
   </data>
   <data name="One blocked-attachment pattern is configured but attachment blocking is switched off, so it is not applied." xml:space="preserve">
     <value>Hay un patrón de adjunto bloqueado configurado pero el bloqueo de adjuntos está desactivado, así que no se aplica.</value>
@@ -9487,6 +9523,9 @@ Ejecute esto si los clientes informan de mensajes que aparecen con un UID equivo
   <data name="Remember this many previous passwords (0 = no history)" xml:space="preserve">
     <value>Recordar este número de contraseñas anteriores (0 = sin historial)</value>
   </data>
+  <data name="Remo_ve address" xml:space="preserve">
+    <value>_Quitar dirección</value>
+  </data>
   <data name="Remo_ve the photo" xml:space="preserve">
     <value>_Quitar la foto</value>
   </data>
@@ -9558,6 +9597,11 @@ Ejecute esto si los clientes informan de mensajes que aparecen con un UID equivo
   </data>
   <data name="Remove the token" xml:space="preserve">
     <value>Quitar el token</value>
+  </data>
+  <data name="Remove {0} from the addresses that are never auto-banned?&#10;&#10;An address it spared can be auto-banned again from the next ban on." xml:space="preserve">
+    <value>¿Quitar {0} de las direcciones que nunca se bloquean automáticamente?
+
+Una dirección que eximía puede volver a bloquearse automáticamente desde el siguiente bloqueo.</value>
   </data>
   <data name="Remove {0} from the list?&#10;&#10;A blocked domain is accepted again at once; an allowed domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
     <value>¿Quitar {0} de la lista?
@@ -13036,6 +13080,9 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
   <data name="The server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
     <value>El servidor no tiene ese ajuste ni esa acción - puede que sea anterior a este Control Panel ({0})</value>
   </data>
+  <data name="The server ignores {0}: not an address or a CIDR block, so no address is spared for it." xml:space="preserve">
+    <value>El servidor ignora {0}: no es una dirección ni un bloque CIDR, así que no exime a ninguna dirección.</value>
+  </data>
   <data name="The server is draining. A reinitialise ends maintenance mode: the listeners open again and delivery resumes. Reinitialise the server now?" xml:space="preserve">
     <value>El servidor se está vaciando. Una reinicialización termina el modo de mantenimiento: las escuchas vuelven a abrirse y la entrega se reanuda. ¿Reinicializar el servidor ahora?</value>
   </data>
@@ -14620,6 +14667,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="_Add address" xml:space="preserve">
     <value>_Añadir dirección</value>
+  </data>
+  <data name="_Add address…" xml:space="preserve">
+    <value>_Añadir dirección…</value>
   </data>
   <data name="_Add anyway" xml:space="preserve">
     <value>_Añadir de todos modos</value>
@@ -16545,6 +16595,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="{0} bypass entries" xml:space="preserve">
     <value>{0} entradas de omisión</value>
   </data>
+  <data name="{0} can be auto-banned again from the next ban on." xml:space="preserve">
+    <value>Desde el siguiente bloqueo, {0} puede volver a bloquearse automáticamente.</value>
+  </data>
   <data name="{0} case. Select it for its lines on the audit trail." xml:space="preserve">
     <value>{0} caso. Selecciónelo para ver sus líneas en el registro de auditoría.</value>
   </data>
@@ -16728,14 +16781,23 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="{0} is here with the mailboxes {1}, the list {2} and a rule that files invoices. Its password was shown once, when it was made; remove the sample and make it again to be given another." xml:space="preserve">
     <value>{0} está aquí con los buzones {1}, la lista {2} y una regla que archiva facturas. La contraseña se mostró una vez, al crear la muestra; elimine la muestra y créela de nuevo para obtener otra.</value>
   </data>
+  <data name="{0} is never auto-banned from the next ban on." xml:space="preserve">
+    <value>Desde el siguiente bloqueo, {0} nunca se bloquea automáticamente.</value>
+  </data>
   <data name="{0} is never auto-banned: its reverse name {1} resolves back to it and is covered by {2}." xml:space="preserve">
     <value>{0} nunca se bloquea automáticamente: su nombre inverso {1} resuelve de vuelta a ella y está cubierto por {2}.</value>
   </data>
   <data name="{0} is not an IP address." xml:space="preserve">
     <value>{0} no es una dirección IP.</value>
   </data>
+  <data name="{0} is not an address or a CIDR block." xml:space="preserve">
+    <value>{0} no es una dirección ni un bloque CIDR.</value>
+  </data>
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0} está activado pero puntúa 0, así que cuesta una búsqueda en cada mensaje y nunca puede cambiar el resultado. Dele una puntuación, o desactívelo.</value>
+  </data>
+  <data name="{0} is on the list already." xml:space="preserve">
+    <value>{0} ya está en la lista.</value>
   </data>
   <data name="{0} is on the list. It applies to the next session from that domain." xml:space="preserve">
     <value>{0} está en la lista. Se aplica a la siguiente sesión desde ese dominio.</value>
@@ -17066,6 +17128,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="{0} was no longer banned: the ban had lifted already." xml:space="preserve">
     <value>{0} ya no estaba bloqueada: el bloqueo ya se había levantado.</value>
+  </data>
+  <data name="{0} was not listed any more." xml:space="preserve">
+    <value>{0} ya no estaba en la lista.</value>
   </data>
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} ya no estaba en la lista.</value>

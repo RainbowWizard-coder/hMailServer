@@ -211,7 +211,7 @@ namespace hMailServer.ControlPanel.Services
          new SettingEntry("Max invalid logon attempts", "MaxInvalidLogonAttempts", "autoban", "Auto-ban", "Auto-ban"),
          new SettingEntry("MaxMind country database (.mmdb)", "GeoIpDatabaseFile", "autoban", "Countries", "Country blocking"),
          new SettingEntry("Names that are never auto-banned", "AutoBanNeverBanNames", "autoban", "Auto-ban", "Never auto-ban by reverse name"),
-         new SettingEntry("Never auto-ban these addresses (comma separated; CIDR blocks allowed)", "AutoBanNeverBan", "autoban", "Auto-ban", "Below the server: the firewall"),
+         new SettingEntry("Never auto-ban these addresses", "AutoBanNeverBan", "autoban", "Auto-ban", "Below the server: the firewall"),
          new SettingEntry("Never judged by country (addresses and CIDR ranges, comma separated)", "CountryBlockingExemptRanges", "autoban", "Countries", "Country blocking"),
          new SettingEntry("POP3 connections", "CountryPolicy", "autoban", "Countries", "Country blocking"),
          new SettingEntry("Program to run when an address is banned or unbanned (empty = none)", "AutoBanCommand", "autoban", "Auto-ban", "Below the server: the firewall"),

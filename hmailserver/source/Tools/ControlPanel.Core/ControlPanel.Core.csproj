@@ -172,6 +172,8 @@
     <!-- Where a queued message stands, and what the queue's buttons did to the rows
          chosen (review finding F248). -->
     <Compile Include="..\ControlPanel\Services\QueueWords.cs" />
+    <!-- The never-ban list by address, read as the server reads it (review finding F231). -->
+    <Compile Include="..\ControlPanel\Services\NeverBanAddressList.cs" />
   </ItemGroup>
 
   <!-- The operator documentation, embedded straight from the repository as

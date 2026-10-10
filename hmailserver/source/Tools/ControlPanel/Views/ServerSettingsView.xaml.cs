@@ -3257,11 +3257,14 @@ namespace hMailServer.ControlPanel.Views
             Blurb = L("Run as <command> ban <address> <minutes> <ports> when a ban is created and <command> unban <address> when the range goes, on Windows and on Linux alike - for a cloud firewall, a router or a SIEM. Quote the program's path if it contains spaces; the server appends the arguments. A non-zero exit or a program that cannot start is reported once in the error log."),
             IniStore = iniStore_
          });
-         below.Settings.Add(new IniText
+         // The never-ban list by address, a table like the list by reverse name
+         // below, whose buttons write at once (review finding F231): it was one
+         // comma-separated box saved with Save. See NeverBanAddressRows.
+         below.Settings.Add(new NeverBanAddressRows
          {
             Path = "AutoBanNeverBan",
-            Label = L("Never auto-ban these addresses (comma separated; CIDR blocks allowed)"),
-            Blurb = L("Failed logons from a listed address are not counted at all, so it can never be banned. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine. Example: 192.0.2.10, 203.0.113.0/24, 2001:db8::/32. An entry that is not an address is reported by name in the error log and ignored."),
+            Label = L("Never auto-ban these addresses"),
+            Blurb = L("A listed address is never auto-banned, and its failed sign-ins are not counted. Put the addresses you administer from here before turning the firewall option on: a ban that reaches the firewall locks that address out of every mail port on this machine."),
             IniStore = iniStore_
          });
 
