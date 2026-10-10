@@ -109,7 +109,8 @@ namespace HM
       // server's, a /Test run. False when the start failed or was refused, the
       // reason in the log, and a refusal's in refused when it is given. One
       // under way is waited for until it has ended, or for maxWaitSeconds when
-      // that is above 0, and the start then refused.
+      // that is above 0, and the start then refused - from an event script,
+      // ComServersWaitSeconds at most whatever is asked (TakeServersLock_).
       bool StartServers(int maxWaitSeconds = 0, String *refused = nullptr);
 
       // The service's start, and a /Debug run's (InitializeApplication):
@@ -140,7 +141,8 @@ namespace HM
       // statement, and a script's on one of a work queue's threads past the
       // ten seconds that queue's stop gives the thread (WorkQueue::Stop),
       // after which it stopped the servers the reinitialise had started again.
-      // Five seconds, below those ten.
+      // Five seconds, below those ten. An event script's Stop, Start and
+      // Reinitialize wait no longer either (TakeServersLock_).
       static const int ComServersWaitSeconds = 5;
 
       // The stop before the process ends - the service's stop and Windows'
@@ -281,7 +283,10 @@ namespace HM
       // indexer is the server's (MessageIndexer::Instance), or a tester's
       // stand-in (ServersLockTester). A stop, a start or a reinitialise under
       // way is waited for until it has ended, or for maxWaitSeconds when that
-      // is above 0 (StartServers); after ShutDown has begun nothing is.
+      // is above 0 (StartServers); asked from an event script, for
+      // ComServersWaitSeconds at most, since what holds the mutex may be
+      // joining the script's thread without a limit (ScriptServer::
+      // IsScriptRunningOnThisThread); after ShutDown has begun nothing is.
       String TakeServersLock_(boost::unique_lock<boost::timed_mutex> &lock, MessageIndexer &indexer, int maxWaitSeconds = 0);
 
       // Says which thread holds servers_mutex_ from when it is taken
@@ -488,8 +493,9 @@ namespace HM
    // process ends, sets the process's server state and holds the mutex for
    // seconds, and so runs in business-object-tests alone, which has no
    // servers, after every other test. It also holds COM's Application.Stop and
-   // Start to the few seconds they wait for one under way, and the service's
-   // start to taking the mutex before it opens the database.
+   // Start, and an event script's reinitialise, to the few seconds they wait
+   // for one under way, and the service's start to taking the mutex before it
+   // opens the database.
    class ServersLockTester
    {
    public:
@@ -502,6 +508,7 @@ namespace HM
       void TestRefusedOnceTheStopBeforeExitHasBegun_();
       void TestTheStopBeforeExitWaitsForOneUnderWay_();
       void TestComsStopAndStartWaitAMomentAtMost_();
+      void TestAScriptsCallWaitsAMomentAtMost_();
       void TestTheServicesStartTakesTheLockFirst_();
       void TestAWorkQueuesThreadLeftEndsTheProcessWhileItRuns_();
       void TestAConnectionInUseIsLeftOpenAndTheRestClosed_();

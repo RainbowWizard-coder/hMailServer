@@ -341,6 +341,16 @@ namespace HM
       return scripts_running_on_thread > 0;
    }
 
+   ScriptServer::ScriptRunOnThisThread::ScriptRunOnThisThread()
+   {
+      scripts_running_on_thread++;
+   }
+
+   ScriptServer::ScriptRunOnThisThread::~ScriptRunOnThisThread()
+   {
+      scripts_running_on_thread--;
+   }
+
    bool
    ScriptServer::IsRunnableLanguage_(const String &language)
    {

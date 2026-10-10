@@ -28,6 +28,7 @@
 #include "../SQL/DALConnectionFactory.h"
 #include "../SQL/DatabaseConnectionManager.h"
 #include "../SQL/DatabaseTls.h"
+#include "../Scripting/ScriptServer.h"
 
 #include "../Util/Time.h"
 #include "../Util/ServerStatus.h"
@@ -1140,7 +1141,11 @@ namespace HM
    // first. The two that reach the scheduler do nothing while a stop, a start or a
    // reinitialise holds servers_mutex_: it is rebuilding the scheduler from the
    // published values, or tearing it down, and a handle to the one it is tearing
-   // down is not worth racing for. A service stop did not take that mutex until 10
+   // down is not worth racing for. They hold it while they act, and say so as a
+   // stop does (ServersLockHeld_), so that an OnError script an error of theirs
+   // runs, asking for a reinitialise, a stop or a start, is refused at once
+   // rather than left waiting for the mutex its own thread holds, as until the
+   // re-check of 10 October 2026. A service stop did not take that mutex until 10
    // October 2026, so the scheduler and the two task handles are copied under
    // scheduler_handles_mutex_, which the stop's reset takes too. Each reads the
    // value it takes when it runs, as Subscribe asks, and runs after the save's
@@ -1161,6 +1166,7 @@ namespace HM
       ini->Subscribe(_T("GreylistingRecordExpirationInterval"), [this]()
       {
          boost::unique_lock<boost::timed_mutex> rebuilding(servers_mutex_, boost::try_to_lock);
+         ServersLockHeld_ held(*this, rebuilding);
          if (!rebuilding.owns_lock() || !IsServing_())
             return;
 
@@ -1190,6 +1196,7 @@ namespace HM
             return;
 
          boost::unique_lock<boost::timed_mutex> rebuilding(servers_mutex_, boost::try_to_lock);
+         ServersLockHeld_ held(*this, rebuilding);
          if (!rebuilding.owns_lock() || !IsServing_())
             return;
 
@@ -1762,10 +1769,28 @@ namespace HM
       if (servers_mutex_holder_.load() == std::this_thread::get_id())
          return "a stop, a start or a reinitialise of the servers is under way on this thread, which asked for this from a script it runs.";
 
-      if (!indexer.LockServersUnlessOnItsThread(lock, maxWaitSeconds))
+      // An event script's call waits a few seconds at most, whatever its
+      // caller asked (ComServersWaitSeconds): the stop, the start or the
+      // reinitialise holding the mutex may be joining the thread the script
+      // runs on without a limit - an OnError script's Application.Reinitialize
+      // on the sandbox's poller, which a stop joins however long its request
+      // takes - and the two would wait for each other for ever. From 10
+      // October 2026, when COM's Stop (the Control Panel's Pause) began to
+      // hold the mutex, until the re-check of that change, they did; before
+      // it, a reinitialise's own lock did the same to another reinitialise.
+      const bool fromScript = ScriptServer::IsScriptRunningOnThisThread();
+      const int scriptWaitSeconds = ComServersWaitSeconds;
+      int waitSeconds = maxWaitSeconds;
+      if (fromScript && (waitSeconds <= 0 || waitSeconds > scriptWaitSeconds))
+         waitSeconds = scriptWaitSeconds;
+
+      if (!indexer.LockServersUnlessOnItsThread(lock, waitSeconds))
       {
-         if (maxWaitSeconds > 0)
-            return Formatter::Format("a stop, a start or a reinitialise of the servers is under way, which this waits {0} seconds at most for - not at all on the message indexer's own thread, which it may be waiting for: try again once it has ended.", maxWaitSeconds);
+         if (fromScript)
+            return Formatter::Format("a stop, a start or a reinitialise of the servers is under way, which a call from an event script waits {0} seconds at most for, since it may be waiting for the thread the script runs on: try again once it has ended.", waitSeconds);
+
+         if (waitSeconds > 0)
+            return Formatter::Format("a stop, a start or a reinitialise of the servers is under way, which this waits {0} seconds at most for - not at all on the message indexer's own thread, which it may be waiting for: try again once it has ended.", waitSeconds);
 
          return "a stop, a start or a reinitialise of the servers is under way, and it may be waiting for the message indexer, on whose thread this was asked.";
       }
@@ -2482,6 +2507,9 @@ namespace HM
          TestComsStopAndStartWaitAMomentAtMost_();
          application.shutting_down_ = false;
 
+         TestAScriptsCallWaitsAMomentAtMost_();
+         application.shutting_down_ = false;
+
          TestTheServicesStartTakesTheLockFirst_();
          application.shutting_down_ = false;
       }
@@ -3166,5 +3194,85 @@ namespace HM
 
       if (!endedAfter || !letGoOfAfter)
          throw std::logic_error("ServersLockTester: once no connection was in use, the stop before the process ends still answered that something was left, or kept the database manager.");
+   }
+   void
+   ServersLockTester::TestAScriptsCallWaitsAMomentAtMost_()
+   {
+      Application &application = *Application::Instance();
+      std::shared_ptr<ServersLockAnswers> answers = std::make_shared<ServersLockAnswers>();
+
+      // COM's Stop (the Control Panel's Pause) holding the mutex, as it does
+      // while it joins the sandbox's poller without a limit, until the test
+      // lets it go - a minute at most.
+      boost::thread stop([&application, answers]()
+      {
+         boost::unique_lock<boost::timed_mutex> lock(application.servers_mutex_, boost::defer_lock);
+         const String taking = application.TakeServersLock_(lock, *MessageIndexer::Instance());
+         Application::ServersLockHeld_ held(application, lock);
+         answers->Set([&]() { answers->taking = taking; answers->holding = true; });
+
+         answers->WaitFor(ServersLockWait, [&answers]() { return answers->let_go; });
+      });
+
+      if (!answers->WaitFor(ServersLockWait, [&answers]() { return answers->holding; }) || !answers->taking.IsEmpty())
+      {
+         answers->Set([&]() { answers->let_go = true; });
+         stop.join();
+         throw std::logic_error("ServersLockTester: the servers' mutex was not taken for the stop the test stands in for.");
+      }
+
+      // An OnError script's Application.Reinitialize on that poller's thread,
+      // standing in: a reinitialise asked with no limit of its own, on a thread
+      // counted as running a script.
+      struct ScriptCall
+      {
+         std::atomic<bool> returned{false};
+         String answer;
+         std::chrono::steady_clock::duration took{};
+      };
+      std::shared_ptr<ScriptCall> call = std::make_shared<ScriptCall>();
+      boost::thread poller([&application, call]()
+      {
+         ScriptServer::ScriptRunOnThisThread script;
+         const std::chrono::steady_clock::time_point before = std::chrono::steady_clock::now();
+         call->answer = application.Reinitialize();
+         call->took = std::chrono::steady_clock::now() - before;
+         call->returned.store(true);
+      });
+
+      // While the stop still holds the mutex - as it would for ever, joining
+      // the poller.
+      const std::chrono::steady_clock::time_point until = std::chrono::steady_clock::now() + std::chrono::seconds(20);
+      while (!call->returned.load() && std::chrono::steady_clock::now() < until)
+         std::this_thread::sleep_for(std::chrono::milliseconds(25));
+
+      const bool returnedWhileHeld = call->returned.load();
+
+      // A call that still waits finds the process ending once it takes the
+      // mutex, and so reinitialises nothing.
+      application.shutting_down_ = true;
+      answers->Set([&]() { answers->let_go = true; });
+      stop.join();
+
+      const bool joined = poller.try_join_for(boost::chrono::seconds(20));
+      application.shutting_down_ = false;
+      if (!joined)
+         poller.detach();
+
+      if (!returnedWhileHeld)
+         throw std::logic_error("ServersLockTester: a reinitialise asked from an event script had not returned twenty seconds into a stop that held the servers' mutex: it waited for the stop, which may be joining the script's own thread - the sandbox's poller, for COM's Stop - and the two would have waited for each other for ever, as from 10 October 2026 until the re-check of that change.");
+
+      if (!joined)
+         throw std::logic_error("ServersLockTester: a reinitialise asked from an event script had not ended twenty seconds after the stop let go of the servers' mutex.");
+
+      if (!call->answer.Contains(_T("event script")))
+         throw std::logic_error("ServersLockTester: a reinitialise asked from an event script during a stop that held the servers' mutex was not refused as a script's call.");
+
+      // A moment first, so that a stop about to end is not refused: the limit,
+      // give or take the clock's grain. (A copy: chrono takes the constant by
+      // reference.)
+      const int limit = Application::ComServersWaitSeconds;
+      if (call->took < std::chrono::seconds(limit) - std::chrono::milliseconds(500))
+         throw std::logic_error("ServersLockTester: a reinitialise asked from an event script during a stop was refused without waiting the few seconds it waits.");
    }
 }

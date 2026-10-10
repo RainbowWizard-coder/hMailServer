@@ -528,7 +528,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   short and leaves the rest to that stop; a reinitialise, a stop or a start that comes after it is refused, where
   one queued behind it started the servers again in a process that was ending - at once, without waiting for the
   lock. A script that a stop or a start runs on its own thread, asking for another, is refused rather than made to
-  wait for itself. COM's `Application.Stop` and `Start` wait five seconds at most for a stop, a start or a
+  wait for itself, and so is one that a setting's save runs while it holds the lock; and an event script's
+  `Application.Reinitialize`, `Stop` or `Start` waits five seconds at most for one under way, and is then refused,
+  since what holds the lock may be joining the script's own thread without a limit - an `OnError` script on the
+  sandbox's poller, which a stop joins however long its request takes - and the two would wait for each other for
+  ever. COM's `Application.Stop` and `Start` wait five seconds at most for a stop, a start or a
   reinitialise under way, and are then refused with an error that says so: until now a `Stop` during a reinitialise
   did nothing and answered that it had stopped the servers, and a `Start` was refused as a start that failed. The
   limit keeps a Control Panel's call from waiting as long as the indexer's statement, and a script's call on one of a
@@ -4619,7 +4623,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   one handed out after the close, the test fails; and `DatabaseConnectionManagerTester` (`TestInternals` and
   `business-object-tests`, over stand-in connections) fails too, and when SQL Server Compact's flush interval is not
   waited out for a connection in use. COM's `Stop` and `Start`, made while a reinitialise holds the lock, must be
-  refused after their five seconds and not before them; waiting without a limit, they had not returned after twenty. A
+  refused after their five seconds and not before them; waiting without a limit, they had not returned after twenty.
+  So must a reinitialise asked with no limit of its own on a thread running an event script, while a stop holds the
+  lock; with a script's call waited for as any other, it had not returned after twenty. A
   reinitialise asked once the stop before the process ends has begun must be refused before the lock is let go of, and
   the service's start must wait for that stop's lock before it opens the database; without the lock it returned at
   once. `business-object-tests` now writes each result out as it comes, so that a test after a failure that never

@@ -86,8 +86,10 @@
 //     October 2026 until the re-check of that change it counted a queue that had
 //     once given up on a thread for the rest of the process. COM's Stop and
 //     Start wait five seconds at most for one under way, where they waited for
-//     it without a limit, and the service's start takes the mutex before it
-//     opens the database. Run last, since it makes that stop.
+//     it without a limit, and so does an event script's reinitialise, whose
+//     thread what holds the mutex may be joining; and the service's start takes
+//     the mutex before it opens the database. Run last, since it makes that
+//     stop.
 //   - The database's close before the process ends (DatabaseConnectionManager-
 //     Tester, Common/SQL/DatabaseConnectionManager.cpp, over stand-in
 //     connections): an idle connection is closed at once and one in use only
@@ -593,7 +595,7 @@ main(int /*argc*/, char * /*argv*/[])
    failed += Run(&TestDatabaseCloseBeforeExit, "the database's close before the process ends closes an idle connection at once and one in use only when it is handed back, hands out none after it, and waits out SQL Server Compact's flush interval for one in use, nothing on a database server");
 
    // Last: it makes the stop before the process ends.
-   failed += Run(&TestServersLockBeforeExit, "once the stop before the process ends has begun a reinitialise, a stop or a start is refused, that stop waits for one under way, closes every database connection but one in use, and ends the process at once while one is in use or a thread a work queue's stop gave up on still runs, and only while it runs; COM's Stop and Start wait a few seconds at most for one under way, and the service's start takes the mutex before it opens the database");
+   failed += Run(&TestServersLockBeforeExit, "once the stop before the process ends has begun a reinitialise, a stop or a start is refused, that stop waits for one under way, closes every database connection but one in use, and ends the process at once while one is in use or a thread a work queue's stop gave up on still runs, and only while it runs; COM's Stop and Start, and an event script's reinitialise, wait a few seconds at most for one under way, and the service's start takes the mutex before it opens the database");
 
    return failed == 0 ? 0 : 1;
 }

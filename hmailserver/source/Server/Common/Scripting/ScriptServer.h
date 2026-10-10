@@ -137,8 +137,23 @@ namespace HM
       // MTA, where the event threads are too, so the script calls it directly and
       // its members run on the thread running the script; a COM client in
       // another process is answered on one of COM's own threads, which never run
-      // one. InterfaceUtilities::MayUseServerHelpers_ asks it.
+      // one. InterfaceUtilities::MayUseServerHelpers_ asks it, and so does
+      // Application::TakeServersLock_, which waits a few seconds at most for a
+      // script's stop, start or reinitialise.
       static bool IsScriptRunningOnThisThread();
+
+      // The calling thread counted as running an event script for as long as
+      // this lives, as every run the server makes is counted: for a test that
+      // stands in for a script's call (ServersLockTester).
+      class ScriptRunOnThisThread
+      {
+      public:
+         ScriptRunOnThisThread();
+         ~ScriptRunOnThisThread();
+
+         ScriptRunOnThisThread(const ScriptRunOnThisThread &) = delete;
+         ScriptRunOnThisThread &operator=(const ScriptRunOnThisThread &) = delete;
+      };
 
    private:
 
