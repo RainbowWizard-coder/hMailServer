@@ -7177,6 +7177,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="No entry covers this sender's domain; entries matched against the HELO name are not checked here." xml:space="preserve">
     <value>Mikään merkintä ei kata tämän lähettäjän verkkotunnusta; HELO-nimeen verrattavia merkintöjä ei tarkisteta tässä.</value>
   </data>
+  <data name="No entry in this list has &quot;{0}&quot; in it." xml:space="preserve">
+    <value>Missään tämän luettelon merkinnässä ei ole merkkijonoa "{0}".</value>
+  </data>
   <data name="No entry matches this address, so the list leaves it to the spam checks." xml:space="preserve">
     <value>Mikään merkintä ei osu tähän osoitteeseen, joten luettelo jättää sen roskapostitarkistuksille.</value>
   </data>
@@ -7341,6 +7344,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." xml:space="preserve">
     <value>Profiilia ei ole otettu käyttöön. Profiili asettaa noin kolmekymmentä asetusta sen mukaan, millainen palvelin tämä on - pieni toimisto, suodattavan yhdyskäytävän takana, lähtevä välityspalvelin, suurten määrien lähettäjä - ja näyttää jokaisen muutoksen ennen sen tekemistä.</value>
+  </data>
+  <data name="No public folder has &quot;{0}&quot; in its name." xml:space="preserve">
+    <value>Minkään julkisen kansion nimessä ei ole merkkijonoa "{0}".</value>
   </data>
   <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
     <value>Julkisia kansioita ei vielä ole. Lisää kansio luo kansion, jonka useampi tili voi avata; Käyttöoikeudet määrää sitten, kuka saa lukea ja kirjoittaa siihen.</value>
@@ -10234,8 +10240,14 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Search" xml:space="preserve">
     <value>Hae</value>
   </data>
+  <data name="Search DNS block lists" xml:space="preserve">
+    <value>Hae DNS-estolistoista</value>
+  </data>
   <data name="Search IP ranges" xml:space="preserve">
     <value>Hae IP-alueista</value>
+  </data>
+  <data name="Search SURBL servers" xml:space="preserve">
+    <value>Hae SURBL-palvelimista</value>
   </data>
   <data name="Search _filter" xml:space="preserve">
     <value>Haku_suodatin</value>
@@ -10245,6 +10257,12 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Search bas_e (SearchBase)" xml:space="preserve">
     <value>Hakujuu_ri (SearchBase)</value>
+  </data>
+  <data name="Search blocked attachment patterns" xml:space="preserve">
+    <value>Hae estettyjen liitteiden kuvioista</value>
+  </data>
+  <data name="Search blocked senders" xml:space="preserve">
+    <value>Hae estetyistä lähettäjistä</value>
   </data>
   <data name="Search certificates" xml:space="preserve">
     <value>Hae varmenteista</value>
@@ -10258,6 +10276,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Search for part of an account name. Leave empty to list every user in the domain." xml:space="preserve">
     <value>Hae tilin nimen osalla. Jätä tyhjäksi luetellaksesi verkkotunnuksen kaikki käyttäjät.</value>
   </data>
+  <data name="Search greylisting exemptions" xml:space="preserve">
+    <value>Hae harmaalistauksen poikkeuksista</value>
+  </data>
   <data name="Search pages, settings and tasks" xml:space="preserve">
     <value>Hae sivuja, asetuksia ja tehtäviä</value>
   </data>
@@ -10270,6 +10291,12 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Search ports" xml:space="preserve">
     <value>Hae porteista</value>
   </data>
+  <data name="Search public folders" xml:space="preserve">
+    <value>Hae julkisista kansioista</value>
+  </data>
+  <data name="Search remote domains" xml:space="preserve">
+    <value>Hae etäverkkotunnuksista</value>
+  </data>
   <data name="Search results" xml:space="preserve">
     <value>Hakutulokset</value>
   </data>
@@ -10279,14 +10306,32 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Search rules" xml:space="preserve">
     <value>Hae säännöistä</value>
   </data>
+  <data name="Search security groups" xml:space="preserve">
+    <value>Hae suojausryhmistä</value>
+  </data>
   <data name="Search sender, recipient, subject or reason" xml:space="preserve">
     <value>Hae lähettäjää, vastaanottajaa, aihetta tai syytä</value>
+  </data>
+  <data name="Search server messages" xml:space="preserve">
+    <value>Hae palvelimen viesteistä</value>
+  </data>
+  <data name="Search spam exemptions" xml:space="preserve">
+    <value>Hae roskapostipoikkeuksista</value>
+  </data>
+  <data name="Search the allow and block list" xml:space="preserve">
+    <value>Hae sallittujen ja estettyjen luettelosta</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Hae toimitusjonosta</value>
   </data>
+  <data name="Search the greylisting bypass list" xml:space="preserve">
+    <value>Hae harmaalistauksen ohituslistasta</value>
+  </data>
   <data name="Search this document" xml:space="preserve">
     <value>Hae tästä asiakirjasta</value>
+  </data>
+  <data name="Search this list" xml:space="preserve">
+    <value>Hae tästä luettelosta</value>
   </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>Hae, tai sano mitä haluat tehdä - "pysäytä roskaposti", "estä IP"</value>
@@ -10875,6 +10920,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Show {0} in the navigation" xml:space="preserve">
     <value>Näytä {0} navigoinnissa</value>
+  </data>
+  <data name="Shown: {0} of {1}" xml:space="preserve">
+    <value>Näkyvissä: {0}/{1}</value>
   </data>
   <data name="Sieve" xml:space="preserve">
     <value>Sieve</value>

@@ -7250,6 +7250,9 @@
   <data name="No entry covers this sender's domain; entries matched against the HELO name are not checked here." xml:space="preserve">
     <value>Жоден запис не охоплює домен цього відправника; записи, що порівнюються з ім'ям HELO, тут не перевіряються.</value>
   </data>
+  <data name="No entry in this list has &quot;{0}&quot; in it." xml:space="preserve">
+    <value>Жоден запис цього списку не містить «{0}».</value>
+  </data>
   <data name="No entry matches this address, so the list leaves it to the spam checks." xml:space="preserve">
     <value>Жоден запис не збігається з цією адресою, тож список залишає її перевіркам на спам.</value>
   </data>
@@ -7417,6 +7420,9 @@
   </data>
   <data name="No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." xml:space="preserve">
     <value>Жодного профілю не застосовано. Профіль задає близько тридцяти параметрів для типу сервера - невеликий офіс, за фільтрувальним шлюзом, вихідний ретранслятор, масовий відправник - і показує кожну зміну до того, як її буде зроблено.</value>
+  </data>
+  <data name="No public folder has &quot;{0}&quot; in its name." xml:space="preserve">
+    <value>Жодна публічна папка не містить «{0}» у назві.</value>
   </data>
   <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
     <value>Спільних папок ще немає. Додати папку створює папку, яку можуть відкривати кілька облікових записів; Дозволи потім визначає, хто може читати й записувати в неї.</value>
@@ -10355,8 +10361,14 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Search" xml:space="preserve">
     <value>Пошук</value>
   </data>
+  <data name="Search DNS block lists" xml:space="preserve">
+    <value>Пошук списків блокування DNS</value>
+  </data>
   <data name="Search IP ranges" xml:space="preserve">
     <value>Пошук діапазонів IP</value>
+  </data>
+  <data name="Search SURBL servers" xml:space="preserve">
+    <value>Пошук серверів SURBL</value>
   </data>
   <data name="Search _filter" xml:space="preserve">
     <value>_Фільтр пошуку</value>
@@ -10366,6 +10378,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Search bas_e (SearchBase)" xml:space="preserve">
     <value>База пошуку (S_earchBase)</value>
+  </data>
+  <data name="Search blocked attachment patterns" xml:space="preserve">
+    <value>Пошук шаблонів заблокованих вкладень</value>
+  </data>
+  <data name="Search blocked senders" xml:space="preserve">
+    <value>Пошук заблокованих відправників</value>
   </data>
   <data name="Search certificates" xml:space="preserve">
     <value>Пошук сертифікатів</value>
@@ -10379,6 +10397,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Search for part of an account name. Leave empty to list every user in the domain." xml:space="preserve">
     <value>Шукайте частину імені облікового запису. Залиште порожнім, щоб перелічити всіх користувачів домену.</value>
   </data>
+  <data name="Search greylisting exemptions" xml:space="preserve">
+    <value>Пошук винятків сірого списку</value>
+  </data>
   <data name="Search pages, settings and tasks" xml:space="preserve">
     <value>Пошук сторінок, параметрів і завдань</value>
   </data>
@@ -10391,6 +10412,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Search ports" xml:space="preserve">
     <value>Пошук портів</value>
   </data>
+  <data name="Search public folders" xml:space="preserve">
+    <value>Пошук публічних папок</value>
+  </data>
+  <data name="Search remote domains" xml:space="preserve">
+    <value>Пошук зовнішніх доменів</value>
+  </data>
   <data name="Search results" xml:space="preserve">
     <value>Результати пошуку</value>
   </data>
@@ -10400,14 +10427,32 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Search rules" xml:space="preserve">
     <value>Пошук правил</value>
   </data>
+  <data name="Search security groups" xml:space="preserve">
+    <value>Пошук груп безпеки</value>
+  </data>
   <data name="Search sender, recipient, subject or reason" xml:space="preserve">
     <value>Відправник, одержувач, тема або причина</value>
+  </data>
+  <data name="Search server messages" xml:space="preserve">
+    <value>Пошук повідомлень сервера</value>
+  </data>
+  <data name="Search spam exemptions" xml:space="preserve">
+    <value>Пошук винятків антиспаму</value>
+  </data>
+  <data name="Search the allow and block list" xml:space="preserve">
+    <value>Пошук у списку дозволених і заблокованих</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Пошук у черзі доставки</value>
   </data>
+  <data name="Search the greylisting bypass list" xml:space="preserve">
+    <value>Пошук у списку обходу сірого списку</value>
+  </data>
   <data name="Search this document" xml:space="preserve">
     <value>Пошук у цьому документі</value>
+  </data>
+  <data name="Search this list" xml:space="preserve">
+    <value>Пошук у цьому списку</value>
   </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>Шукайте або скажіть, що хочете зробити - «зупинити спам», «заблокувати IP»</value>
@@ -11002,6 +11047,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Show {0} in the navigation" xml:space="preserve">
     <value>Показувати {0} у навігації</value>
+  </data>
+  <data name="Shown: {0} of {1}" xml:space="preserve">
+    <value>Показано: {0} з {1}</value>
   </data>
   <data name="Sieve" xml:space="preserve">
     <value>Sieve</value>

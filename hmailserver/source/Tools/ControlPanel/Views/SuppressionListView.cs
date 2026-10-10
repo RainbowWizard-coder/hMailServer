@@ -67,7 +67,14 @@ namespace hMailServer.ControlPanel.Views
       // Add waits for a read that works (Services/ReadFailure).
       private Button addButton_;
 
-      public SuppressionListView() => Build();
+      // The search asks the server once typing pauses (review finding F210).
+      private readonly SearchDelay searchDelay_;
+
+      public SuppressionListView()
+      {
+         searchDelay_ = new SearchDelay(Reload);
+         Build();
+      }
 
       // Read on entry rather than in the constructor, because the page cache keeps
       // this instance for the session: an entry removed over REST since the page
@@ -89,9 +96,7 @@ namespace hMailServer.ControlPanel.Views
          Reload();
       }
 
-      public void OnLeave()
-      {
-      }
+      public void OnLeave() => searchDelay_.Cancel();
 
       private string Domain => domainChoice_.SelectedItem as string ?? "";
 
@@ -446,10 +451,13 @@ namespace hMailServer.ControlPanel.Views
          AutomationProperties.SetName(domainChoice_, MnemonicText.Strip(L("Sending _domain")));
          domainChoice_.SelectionChanged += (_, _) => Reload();
          domainChoice_.ItemTemplate = TrimmedItem_();
-         // Enter in the search box searches, and Refresh reads again with whatever
-         // it holds: a search is a query to the server, not a filter over rows
-         // already here, so it does not run on every keystroke.
-         toolbar_.PreviewKeyDown += (_, e) => { if (e.Key == System.Windows.Input.Key.Enter) Reload(); };
+         // The search is a query to the server, not a filter over rows already
+         // here, so it runs once typing pauses rather than on every keystroke -
+         // and no longer on Enter alone, which nothing on the page said (review
+         // finding F210). Enter runs it at once, and Refresh reads again with
+         // whatever the box holds.
+         toolbar_.SearchTextChanged += (_, _) => searchDelay_.Restart();
+         toolbar_.PreviewKeyDown += (_, e) => { if (e.Key == System.Windows.Input.Key.Enter) searchDelay_.Now(); };
 
          var filters = new StackPanel { Orientation = Orientation.Horizontal };
          filters.Children.Add(new Label { Content = L("Sending _domain"), Target = domainChoice_, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 6, 0) });

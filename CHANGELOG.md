@@ -2366,6 +2366,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Limits or DKIM scrolls inside its tab, and no lower than the 360 an embedded list needs (`DialogFields.FitManyTabs`,
   `DialogLayout.ManyTabsCap`).
 
+- **Fixed: most list pages could not be searched, and three searched only on Enter.** The collection lists - the SURBL
+  servers, DNS block lists, spam exemptions, blocked senders, the allow and block list, the greylisting exemptions and
+  bypass list, blocked attachments, remote domains, server messages and groups - had no search box, so a list of
+  hundreds of entries could only be scrolled, and the Groups page had none beside the domains page's two; the public
+  folders had none either. Each now has one over its list, named for what it searches, that filters as it is typed in
+  over every column the list shows, as the domains, IP ranges and rules pages do; while it hides entries the count
+  beside the title says how many it shows ("Shown: 2 of 40"), and where it hides them all the list says that no entry
+  has what was typed in it. The allowed and blocked domains filter as they are typed in where they waited for Enter,
+  and their "Entries that match the search" notice no longer stays once the search is cleared; the suppression list
+  and the audit trail, whose searches ask the server, search once typing pauses for 300 milliseconds, and at once on
+  Enter.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

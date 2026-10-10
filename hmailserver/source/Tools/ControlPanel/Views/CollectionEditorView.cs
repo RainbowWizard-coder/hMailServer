@@ -143,6 +143,13 @@ namespace hMailServer.ControlPanel.Views
          public string CountOne = N("1 item");
          public string CountMany = N("{0} items");
 
+         // The search box's placeholder, which is also its accessible name, one
+         // whole catalogued text marked with N() and translated where it is shown:
+         // "Search SURBL servers". The list pages in page mode search as the
+         // domains, IP ranges and rules pages do, live over every column the grid
+         // shows (review findings F210 and F112).
+         public string SearchPlaceholder = N("Search this list");
+
          // The editor sits on a tab of a dialog whose Save and Cancel do not reach
          // it: Add, Edit and Delete write to the server as they are pressed, and a
          // Cancel afterwards keeps them. Said under the hint (SavedAsMadeNote), as
@@ -235,6 +242,18 @@ namespace hMailServer.ControlPanel.Views
       // Add waits for a read that works (Services/ReadFailure); null for a
       // collection that cannot be added to.
       private Button addButton_;
+
+      // The page's search, live over every column the grid shows, as the domains,
+      // IP ranges and rules pages search theirs; null embedded in a dialog's tab,
+      // whose short list needs none. A list of hundreds of blocked senders could
+      // only be scrolled (review findings F210 and F112).
+      private Toolbar search_;
+
+      // The empty state's action, put back when a search that matched nothing is
+      // cleared; and the page's parts, which a page built on this one adds to
+      // under the list (the Groups page's Members row).
+      private Button addFirst_;
+      private FillPanel parts_;
 
       public CollectionEditorView(CollectionSpec spec) : this(spec, false)
       {
@@ -386,6 +405,16 @@ namespace hMailServer.ControlPanel.Views
             Grid.SetRow(scroll, 2);
             root.Children.Add(scroll);
          }
+         parts_ = parts;
+
+         // The search above the notices and the list, as on the IP ranges page.
+         if (!embedded_)
+         {
+            search_ = new Toolbar { SearchPlaceholder = L(spec_.SearchPlaceholder) };
+            search_.SearchTextChanged += (_, _) => ShowListState_();
+            parts.Children.Add(search_);
+         }
+
          // The notice's own style gives it the card gap below, as on the
          // quarantine page, so it carries no margin of its own here.
          parts.Children.Add(stateNotice_);
@@ -501,6 +530,7 @@ namespace hMailServer.ControlPanel.Views
             System.Windows.Automation.AutomationProperties.SetAutomationId(first, "collection-add-first");
             first.Click += (_, _) => OpenDialog(null);
             empty_.Action = first;
+            addFirst_ = first;
          }
 
          var host = new Grid();
@@ -572,15 +602,6 @@ namespace hMailServer.ControlPanel.Views
             // The switch is read with the list, so a link that fails between
             // the two is one failed read, said once by the notice below.
             state = spec_.StateNotice?.Invoke(rows_.Count);
-            // An empty list is a state to name, not a blank to stare at: the
-            // empty state says so in the grid's own place.
-            // The empty state carries the sentence that was in the status line.
-            // Only a list that can be added to has one: the one collection that
-            // cannot (the fixed set of server messages) is never empty, and
-            // inventing a sentence for it would be a new text for a state that
-            // does not occur.
-            if (spec_.CanAdd)
-               StatusText.Show(empty_, null, rows_.Count, null, spec_.EmptyText ?? L("Nothing here yet - Add creates the first entry."));
 
             // A load that worked says nothing: the count beside the title and
             // the empty state in the grid's place already say what there is, and
@@ -606,12 +627,7 @@ namespace hMailServer.ControlPanel.Views
 
          ReadFailure.Clear(status_, addButton_);
          ShowState_(state);
-         int activeCount = ActiveCount_();
-         countBadge_.Level = ActiveEntries.PillLevel(activeCount, rows_.Count);
-         countBadge_.Visibility = Visibility.Visible;
-         countBadge_.Text = activeCount >= 0 ? ActiveEntries.PillText(activeCount, rows_.Count) : rows_.Count == 1
-            ? L(spec_.CountOne)
-            : F(spec_.CountMany, rows_.Count);
+         ShowListState_();
 
          Row keep = selectId > 0 ? rows_.FirstOrDefault(r => r.Id == selectId) : null;
          if (keep == null)
@@ -624,6 +640,71 @@ namespace hMailServer.ControlPanel.Views
          if (keep != null)
             Select_(keep, focus);
       }
+
+      /// <summary>
+      /// The count beside the title and the empty state, for the rows read and the
+      /// search over them, which filters the grid live: while the search hides
+      /// rows the pill says how many it shows of how many there are, "Shown: 2 of
+      /// 40", and where it hides every one the empty state says that nothing has
+      /// what was typed, without the action that adds a first entry to a list that
+      /// has entries. Called after every read that worked and every keystroke.
+      /// </summary>
+      private void ShowListState_()
+      {
+         // A read that failed has neither: its notice says what happened.
+         if (ReadFailure.IsShown(status_))
+            return;
+
+         string query = search_?.SearchText?.Trim() ?? "";
+         ListSearch.Apply(grid_, query, item => item is Row row ? SearchWords_(row) : "");
+         bool searching = query.Length > 0 && rows_.Count > 0;
+         int shown = searching ? rows_.Count(row => ListSearch.Contains(SearchWords_(row), query)) : rows_.Count;
+
+         int activeCount = ActiveCount_();
+         countBadge_.Visibility = Visibility.Visible;
+         if (searching)
+         {
+            countBadge_.Level = StatusLevel.Normal;
+            countBadge_.Text = F("Shown: {0} of {1}", shown, rows_.Count);
+         }
+         else
+         {
+            countBadge_.Level = ActiveEntries.PillLevel(activeCount, rows_.Count);
+            countBadge_.Text = activeCount >= 0 ? ActiveEntries.PillText(activeCount, rows_.Count) : rows_.Count == 1
+               ? L(spec_.CountOne)
+               : F(spec_.CountMany, rows_.Count);
+         }
+
+         if (searching && shown == 0)
+         {
+            empty_.Action = null;
+            empty_.Text = F("No entry in this list has \"{0}\" in it.", query);
+            empty_.Visibility = Visibility.Visible;
+            return;
+         }
+
+         // An empty list is a state to name, not a blank to stare at: the
+         // empty state says so in the grid's own place, with the sentence that
+         // was in the status line. Only a list that can be added to has one: the
+         // one collection that cannot (the fixed set of server messages) is
+         // never empty, and inventing a sentence for it would be a new text for
+         // a state that does not occur.
+         empty_.Action = addFirst_;
+         if (spec_.CanAdd)
+            StatusText.Show(empty_, null, rows_.Count, null, spec_.EmptyText ?? L("Nothing here yet - Add creates the first entry."));
+         else
+            empty_.Visibility = Visibility.Collapsed;
+      }
+
+      /// <summary>The words the search reads in a row: every cell the grid shows, as it shows them.</summary>
+      private string SearchWords_(Row row)
+         => string.Join(" ", spec_.Fields.Where(f => f.ShowInGrid).Select(f => CellWords_(f, row)));
+
+      /// <summary>
+      /// What a page built on this list adds under it, inside the page's scrolling
+      /// parts: the Groups page's Members row. Page mode only.
+      /// </summary>
+      internal void AddBelowList(UIElement part) => parts_?.Children.Add(part);
 
       /// <summary>
       /// A row as a screen reader hears it: every cell the grid shows, as the grid

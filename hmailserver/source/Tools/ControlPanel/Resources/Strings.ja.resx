@@ -7177,6 +7177,9 @@
   <data name="No entry covers this sender's domain; entries matched against the HELO name are not checked here." xml:space="preserve">
     <value>この送信者のドメインに該当するエントリはありません。HELO 名と照合するエントリは、ここでは確認しません。</value>
   </data>
+  <data name="No entry in this list has &quot;{0}&quot; in it." xml:space="preserve">
+    <value>この一覧に「{0}」を含むエントリはありません。</value>
+  </data>
   <data name="No entry matches this address, so the list leaves it to the spam checks." xml:space="preserve">
     <value>このアドレスに一致するエントリはないため、リストはスパム チェックに任せます。</value>
   </data>
@@ -7341,6 +7344,9 @@
   </data>
   <data name="No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." xml:space="preserve">
     <value>プロファイルは適用されていません。プロファイルは、このサーバーの種類 (小規模オフィス、フィルタリングゲートウェイの背後、送信リレー、大量送信者) に合わせて約三十の設定を定め、変更を行う前にすべて示します。</value>
+  </data>
+  <data name="No public folder has &quot;{0}&quot; in its name." xml:space="preserve">
+    <value>名前に「{0}」を含む公開フォルダーはありません。</value>
   </data>
   <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
     <value>パブリック フォルダーはまだありません。フォルダーを追加 で複数のアカウントが開けるフォルダーを作成し、権限 で読み書きできるユーザーを決めます。</value>
@@ -10234,8 +10240,14 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Search" xml:space="preserve">
     <value>検索</value>
   </data>
+  <data name="Search DNS block lists" xml:space="preserve">
+    <value>DNS ブロック リストを検索</value>
+  </data>
   <data name="Search IP ranges" xml:space="preserve">
     <value>IP 範囲を検索</value>
+  </data>
+  <data name="Search SURBL servers" xml:space="preserve">
+    <value>SURBL サーバーを検索</value>
   </data>
   <data name="Search _filter" xml:space="preserve">
     <value>検索フィルター(_F)</value>
@@ -10245,6 +10257,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Search bas_e (SearchBase)" xml:space="preserve">
     <value>検索ベース (SearchBase)(_E)</value>
+  </data>
+  <data name="Search blocked attachment patterns" xml:space="preserve">
+    <value>ブロックする添付ファイルのパターンを検索</value>
+  </data>
+  <data name="Search blocked senders" xml:space="preserve">
+    <value>ブロックされた送信者を検索</value>
   </data>
   <data name="Search certificates" xml:space="preserve">
     <value>証明書を検索</value>
@@ -10258,6 +10276,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Search for part of an account name. Leave empty to list every user in the domain." xml:space="preserve">
     <value>アカウント名の一部で検索します。空のままにするとドメイン内のすべてのユーザーを一覧表示します。</value>
   </data>
+  <data name="Search greylisting exemptions" xml:space="preserve">
+    <value>グレイリスティングの除外を検索</value>
+  </data>
   <data name="Search pages, settings and tasks" xml:space="preserve">
     <value>ページ、設定、タスクを検索</value>
   </data>
@@ -10270,6 +10291,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Search ports" xml:space="preserve">
     <value>ポートを検索</value>
   </data>
+  <data name="Search public folders" xml:space="preserve">
+    <value>公開フォルダーを検索</value>
+  </data>
+  <data name="Search remote domains" xml:space="preserve">
+    <value>リモートドメインを検索</value>
+  </data>
   <data name="Search results" xml:space="preserve">
     <value>検索結果</value>
   </data>
@@ -10279,14 +10306,32 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Search rules" xml:space="preserve">
     <value>ルールを検索</value>
   </data>
+  <data name="Search security groups" xml:space="preserve">
+    <value>セキュリティ グループを検索</value>
+  </data>
   <data name="Search sender, recipient, subject or reason" xml:space="preserve">
     <value>送信者、受信者、件名、理由を検索</value>
+  </data>
+  <data name="Search server messages" xml:space="preserve">
+    <value>サーバー メッセージを検索</value>
+  </data>
+  <data name="Search spam exemptions" xml:space="preserve">
+    <value>スパム対策の除外を検索</value>
+  </data>
+  <data name="Search the allow and block list" xml:space="preserve">
+    <value>許可・ブロック一覧を検索</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>配信キューを検索</value>
   </data>
+  <data name="Search the greylisting bypass list" xml:space="preserve">
+    <value>グレイリスティングのバイパス リストを検索</value>
+  </data>
   <data name="Search this document" xml:space="preserve">
     <value>このドキュメント内を検索</value>
+  </data>
+  <data name="Search this list" xml:space="preserve">
+    <value>この一覧を検索</value>
   </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>検索するか、やりたいことを入力してください - 「スパムを止める」「IP をブロックする」</value>
@@ -10875,6 +10920,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Show {0} in the navigation" xml:space="preserve">
     <value>ナビゲーションに {0} を表示する</value>
+  </data>
+  <data name="Shown: {0} of {1}" xml:space="preserve">
+    <value>表示: {1} 件中 {0} 件</value>
   </data>
   <data name="Sieve" xml:space="preserve">
     <value>Sieve</value>

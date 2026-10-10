@@ -7177,6 +7177,9 @@ No se elimina nada de lo que ya está.</value>
   <data name="No entry covers this sender's domain; entries matched against the HELO name are not checked here." xml:space="preserve">
     <value>Ninguna entrada cubre el dominio de este remitente; las entradas que se comparan con el nombre HELO no se comprueban aquí.</value>
   </data>
+  <data name="No entry in this list has &quot;{0}&quot; in it." xml:space="preserve">
+    <value>Ninguna entrada de esta lista contiene «{0}».</value>
+  </data>
   <data name="No entry matches this address, so the list leaves it to the spam checks." xml:space="preserve">
     <value>Ninguna entrada coincide con esta dirección, así que la lista la deja a las comprobaciones de spam.</value>
   </data>
@@ -7341,6 +7344,9 @@ No se elimina nada de lo que ya está.</value>
   </data>
   <data name="No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." xml:space="preserve">
     <value>No se ha aplicado ningún perfil. Un perfil establece unos treinta ajustes para el tipo de servidor que es este - una oficina pequeña, detrás de una pasarela de filtrado, un relé saliente, un remitente de gran volumen - y muestra cada cambio antes de hacerlo.</value>
+  </data>
+  <data name="No public folder has &quot;{0}&quot; in its name." xml:space="preserve">
+    <value>Ninguna carpeta pública contiene «{0}» en su nombre.</value>
   </data>
   <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
     <value>Todavía no hay carpetas públicas. Añadir carpeta crea una que varias cuentas pueden abrir; Permisos decide después quién puede leer y escribir en ella.</value>
@@ -10234,8 +10240,14 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Search" xml:space="preserve">
     <value>Buscar</value>
   </data>
+  <data name="Search DNS block lists" xml:space="preserve">
+    <value>Buscar listas de bloqueo DNS</value>
+  </data>
   <data name="Search IP ranges" xml:space="preserve">
     <value>Buscar rangos de IP</value>
+  </data>
+  <data name="Search SURBL servers" xml:space="preserve">
+    <value>Buscar servidores SURBL</value>
   </data>
   <data name="Search _filter" xml:space="preserve">
     <value>_Filtro de búsqueda</value>
@@ -10245,6 +10257,12 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="Search bas_e (SearchBase)" xml:space="preserve">
     <value>Bas_e de búsqueda (SearchBase)</value>
+  </data>
+  <data name="Search blocked attachment patterns" xml:space="preserve">
+    <value>Buscar patrones de adjuntos bloqueados</value>
+  </data>
+  <data name="Search blocked senders" xml:space="preserve">
+    <value>Buscar remitentes bloqueados</value>
   </data>
   <data name="Search certificates" xml:space="preserve">
     <value>Buscar certificados</value>
@@ -10258,6 +10276,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Search for part of an account name. Leave empty to list every user in the domain." xml:space="preserve">
     <value>Busque parte de un nombre de cuenta. Déjelo vacío para listar todos los usuarios del dominio.</value>
   </data>
+  <data name="Search greylisting exemptions" xml:space="preserve">
+    <value>Buscar exenciones del greylisting</value>
+  </data>
   <data name="Search pages, settings and tasks" xml:space="preserve">
     <value>Buscar páginas, ajustes y tareas</value>
   </data>
@@ -10270,6 +10291,12 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Search ports" xml:space="preserve">
     <value>Buscar puertos</value>
   </data>
+  <data name="Search public folders" xml:space="preserve">
+    <value>Buscar carpetas públicas</value>
+  </data>
+  <data name="Search remote domains" xml:space="preserve">
+    <value>Buscar dominios remotos</value>
+  </data>
   <data name="Search results" xml:space="preserve">
     <value>Resultados de la búsqueda</value>
   </data>
@@ -10279,14 +10306,32 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Search rules" xml:space="preserve">
     <value>Buscar reglas</value>
   </data>
+  <data name="Search security groups" xml:space="preserve">
+    <value>Buscar grupos de seguridad</value>
+  </data>
   <data name="Search sender, recipient, subject or reason" xml:space="preserve">
     <value>Buscar remitente, destinatario, asunto o motivo</value>
+  </data>
+  <data name="Search server messages" xml:space="preserve">
+    <value>Buscar mensajes del servidor</value>
+  </data>
+  <data name="Search spam exemptions" xml:space="preserve">
+    <value>Buscar exenciones antispam</value>
+  </data>
+  <data name="Search the allow and block list" xml:space="preserve">
+    <value>Buscar en la lista de permitidos y bloqueados</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Buscar en la cola de entrega</value>
   </data>
+  <data name="Search the greylisting bypass list" xml:space="preserve">
+    <value>Buscar en la lista de omisión del greylisting</value>
+  </data>
   <data name="Search this document" xml:space="preserve">
     <value>Buscar en este documento</value>
+  </data>
+  <data name="Search this list" xml:space="preserve">
+    <value>Buscar en esta lista</value>
   </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>Busque, o diga lo que quiere hacer - "parar el spam", "bloquear una IP"</value>
@@ -10875,6 +10920,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="Show {0} in the navigation" xml:space="preserve">
     <value>Mostrar {0} en la navegación</value>
+  </data>
+  <data name="Shown: {0} of {1}" xml:space="preserve">
+    <value>Mostrados: {0} de {1}</value>
   </data>
   <data name="Sieve" xml:space="preserve">
     <value>Sieve</value>

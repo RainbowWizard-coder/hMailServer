@@ -7177,6 +7177,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="No entry covers this sender's domain; entries matched against the HELO name are not checked here." xml:space="preserve">
     <value>Bu göndereninin etki alanını kapsayan girdi yok; HELO adıyla karşılaştırılan girdiler burada denetlenmez.</value>
   </data>
+  <data name="No entry in this list has &quot;{0}&quot; in it." xml:space="preserve">
+    <value>Bu listede "{0}" içeren kayıt yok.</value>
+  </data>
   <data name="No entry matches this address, so the list leaves it to the spam checks." xml:space="preserve">
     <value>Bu adresle eşleşen girdi yok; liste onu spam denetimlerine bırakır.</value>
   </data>
@@ -7341,6 +7344,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." xml:space="preserve">
     <value>Hiçbir profil uygulanmadı. Bir profil, bu sunucunun türüne göre - küçük bir ofis, filtreleyen bir ağ geçidinin arkasında, giden bir aktarıcı, yüksek hacimli bir gönderici - otuz kadar ayar belirler ve her değişikliği yapmadan önce gösterir.</value>
+  </data>
+  <data name="No public folder has &quot;{0}&quot; in its name." xml:space="preserve">
+    <value>Adında "{0}" geçen genel klasör yok.</value>
   </data>
   <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
     <value>Henüz ortak klasör yok. Klasör ekle, birkaç hesabın açabileceği bir klasör oluşturur; ardından İzinler, kimin okuyup yazabileceğine karar verir.</value>
@@ -10234,8 +10240,14 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Search" xml:space="preserve">
     <value>Ara</value>
   </data>
+  <data name="Search DNS block lists" xml:space="preserve">
+    <value>DNS engelleme listelerini ara</value>
+  </data>
   <data name="Search IP ranges" xml:space="preserve">
     <value>IP aralıklarını ara</value>
+  </data>
+  <data name="Search SURBL servers" xml:space="preserve">
+    <value>SURBL sunucularını ara</value>
   </data>
   <data name="Search _filter" xml:space="preserve">
     <value>Arama _filtresi</value>
@@ -10245,6 +10257,12 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Search bas_e (SearchBase)" xml:space="preserve">
     <value>Arama _tabanı (SearchBase)</value>
+  </data>
+  <data name="Search blocked attachment patterns" xml:space="preserve">
+    <value>Engellenen ek desenlerini ara</value>
+  </data>
+  <data name="Search blocked senders" xml:space="preserve">
+    <value>Engellenen gönderenleri ara</value>
   </data>
   <data name="Search certificates" xml:space="preserve">
     <value>Sertifikaları ara</value>
@@ -10258,6 +10276,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Search for part of an account name. Leave empty to list every user in the domain." xml:space="preserve">
     <value>Bir hesap adının bir bölümünü arayın. Etki alanındaki her kullanıcıyı listelemek için boş bırakın.</value>
   </data>
+  <data name="Search greylisting exemptions" xml:space="preserve">
+    <value>Greylisting istisnalarını ara</value>
+  </data>
   <data name="Search pages, settings and tasks" xml:space="preserve">
     <value>Sayfaları, ayarları ve görevleri ara</value>
   </data>
@@ -10270,6 +10291,12 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Search ports" xml:space="preserve">
     <value>Portları ara</value>
   </data>
+  <data name="Search public folders" xml:space="preserve">
+    <value>Genel klasörlerde ara</value>
+  </data>
+  <data name="Search remote domains" xml:space="preserve">
+    <value>Uzak alan adlarını ara</value>
+  </data>
   <data name="Search results" xml:space="preserve">
     <value>Arama sonuçları</value>
   </data>
@@ -10279,14 +10306,32 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Search rules" xml:space="preserve">
     <value>Kuralları ara</value>
   </data>
+  <data name="Search security groups" xml:space="preserve">
+    <value>Güvenlik gruplarını ara</value>
+  </data>
   <data name="Search sender, recipient, subject or reason" xml:space="preserve">
     <value>Gönderen, alıcı, konu veya nedende ara</value>
+  </data>
+  <data name="Search server messages" xml:space="preserve">
+    <value>Sunucu iletilerini ara</value>
+  </data>
+  <data name="Search spam exemptions" xml:space="preserve">
+    <value>Spam istisnalarını ara</value>
+  </data>
+  <data name="Search the allow and block list" xml:space="preserve">
+    <value>İzin ve engel listesinde ara</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Teslim kuyruğunda ara</value>
   </data>
+  <data name="Search the greylisting bypass list" xml:space="preserve">
+    <value>Gri listeleme atlama listesinde ara</value>
+  </data>
   <data name="Search this document" xml:space="preserve">
     <value>Bu belgede ara</value>
+  </data>
+  <data name="Search this list" xml:space="preserve">
+    <value>Bu listede ara</value>
   </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>Arayın ya da ne yapmak istediğinizi söyleyin - "spamı durdur", "bir IP'yi engelle"</value>
@@ -10875,6 +10920,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Show {0} in the navigation" xml:space="preserve">
     <value>{0} öğesini gezintide göster</value>
+  </data>
+  <data name="Shown: {0} of {1}" xml:space="preserve">
+    <value>Gösterilen: {0}/{1}</value>
   </data>
   <data name="Sieve" xml:space="preserve">
     <value>Sieve</value>

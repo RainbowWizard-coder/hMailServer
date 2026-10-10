@@ -7177,6 +7177,9 @@
   <data name="No entry covers this sender's domain; entries matched against the HELO name are not checked here." xml:space="preserve">
     <value>没有条目涵盖此发件人的域；与 HELO 名称比对的条目不在此处检查。</value>
   </data>
+  <data name="No entry in this list has &quot;{0}&quot; in it." xml:space="preserve">
+    <value>此列表中没有包含“{0}”的条目。</value>
+  </data>
   <data name="No entry matches this address, so the list leaves it to the spam checks." xml:space="preserve">
     <value>没有条目与此地址匹配，因此该列表把它交给垃圾邮件检查。</value>
   </data>
@@ -7341,6 +7344,9 @@
   </data>
   <data name="No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." xml:space="preserve">
     <value>尚未应用任何配置方案。配置方案会按此服务器的类型——小型办公室、位于过滤网关之后、出站中继、大批量发件方——设置约三十项设置，并在进行每项更改之前先显示出来。</value>
+  </data>
+  <data name="No public folder has &quot;{0}&quot; in its name." xml:space="preserve">
+    <value>没有名称中包含“{0}”的公用文件夹。</value>
   </data>
   <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
     <value>还没有公用文件夹。添加文件夹 会创建一个可供多个帐户打开的文件夹；然后由 权限 决定谁可以读写它。</value>
@@ -10234,8 +10240,14 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Search" xml:space="preserve">
     <value>搜索</value>
   </data>
+  <data name="Search DNS block lists" xml:space="preserve">
+    <value>搜索 DNS 拦截列表</value>
+  </data>
   <data name="Search IP ranges" xml:space="preserve">
     <value>搜索 IP 范围</value>
+  </data>
+  <data name="Search SURBL servers" xml:space="preserve">
+    <value>搜索 SURBL 服务器</value>
   </data>
   <data name="Search _filter" xml:space="preserve">
     <value>搜索过滤器(_F)</value>
@@ -10245,6 +10257,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Search bas_e (SearchBase)" xml:space="preserve">
     <value>搜索基准 (S_earchBase)</value>
+  </data>
+  <data name="Search blocked attachment patterns" xml:space="preserve">
+    <value>搜索附件拦截模式</value>
+  </data>
+  <data name="Search blocked senders" xml:space="preserve">
+    <value>搜索已拦截的发件人</value>
   </data>
   <data name="Search certificates" xml:space="preserve">
     <value>搜索证书</value>
@@ -10258,6 +10276,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Search for part of an account name. Leave empty to list every user in the domain." xml:space="preserve">
     <value>搜索账户名的一部分。留空则列出域中的所有用户。</value>
   </data>
+  <data name="Search greylisting exemptions" xml:space="preserve">
+    <value>搜索灰名单豁免</value>
+  </data>
   <data name="Search pages, settings and tasks" xml:space="preserve">
     <value>搜索页面、设置和任务</value>
   </data>
@@ -10270,6 +10291,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Search ports" xml:space="preserve">
     <value>搜索端口</value>
   </data>
+  <data name="Search public folders" xml:space="preserve">
+    <value>搜索公用文件夹</value>
+  </data>
+  <data name="Search remote domains" xml:space="preserve">
+    <value>搜索远程域</value>
+  </data>
   <data name="Search results" xml:space="preserve">
     <value>搜索结果</value>
   </data>
@@ -10279,14 +10306,32 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Search rules" xml:space="preserve">
     <value>搜索规则</value>
   </data>
+  <data name="Search security groups" xml:space="preserve">
+    <value>搜索安全组</value>
+  </data>
   <data name="Search sender, recipient, subject or reason" xml:space="preserve">
     <value>搜索发件人、收件人、主题或原因</value>
+  </data>
+  <data name="Search server messages" xml:space="preserve">
+    <value>搜索服务器消息</value>
+  </data>
+  <data name="Search spam exemptions" xml:space="preserve">
+    <value>搜索反垃圾邮件豁免</value>
+  </data>
+  <data name="Search the allow and block list" xml:space="preserve">
+    <value>搜索允许与拦截名单</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>搜索投递队列</value>
   </data>
+  <data name="Search the greylisting bypass list" xml:space="preserve">
+    <value>搜索灰名单绕过列表</value>
+  </data>
   <data name="Search this document" xml:space="preserve">
     <value>在此文档中搜索</value>
+  </data>
+  <data name="Search this list" xml:space="preserve">
+    <value>搜索此列表</value>
   </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>搜索，或说出您想做什么 - “阻止垃圾邮件”、“封禁一个 IP”</value>
@@ -10875,6 +10920,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Show {0} in the navigation" xml:space="preserve">
     <value>在导航中显示 {0}</value>
+  </data>
+  <data name="Shown: {0} of {1}" xml:space="preserve">
+    <value>已显示：{0}/{1}</value>
   </data>
   <data name="Sieve" xml:space="preserve">
     <value>Sieve</value>

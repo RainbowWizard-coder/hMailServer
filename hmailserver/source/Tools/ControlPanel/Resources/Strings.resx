@@ -7177,6 +7177,9 @@ Nothing already there is removed.</value>
   <data name="No entry covers this sender's domain; entries matched against the HELO name are not checked here." xml:space="preserve">
     <value>No entry covers this sender's domain; entries matched against the HELO name are not checked here.</value>
   </data>
+  <data name="No entry in this list has &quot;{0}&quot; in it." xml:space="preserve">
+    <value>No entry in this list has "{0}" in it.</value>
+  </data>
   <data name="No entry matches this address, so the list leaves it to the spam checks." xml:space="preserve">
     <value>No entry matches this address, so the list leaves it to the spam checks.</value>
   </data>
@@ -7341,6 +7344,9 @@ Nothing already there is removed.</value>
   </data>
   <data name="No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." xml:space="preserve">
     <value>No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made.</value>
+  </data>
+  <data name="No public folder has &quot;{0}&quot; in its name." xml:space="preserve">
+    <value>No public folder has "{0}" in its name.</value>
   </data>
   <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
     <value>No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it.</value>
@@ -10234,8 +10240,14 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Search" xml:space="preserve">
     <value>Search</value>
   </data>
+  <data name="Search DNS block lists" xml:space="preserve">
+    <value>Search DNS block lists</value>
+  </data>
   <data name="Search IP ranges" xml:space="preserve">
     <value>Search IP ranges</value>
+  </data>
+  <data name="Search SURBL servers" xml:space="preserve">
+    <value>Search SURBL servers</value>
   </data>
   <data name="Search _filter" xml:space="preserve">
     <value>Search _filter</value>
@@ -10245,6 +10257,12 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   </data>
   <data name="Search bas_e (SearchBase)" xml:space="preserve">
     <value>Search bas_e (SearchBase)</value>
+  </data>
+  <data name="Search blocked attachment patterns" xml:space="preserve">
+    <value>Search blocked attachment patterns</value>
+  </data>
+  <data name="Search blocked senders" xml:space="preserve">
+    <value>Search blocked senders</value>
   </data>
   <data name="Search certificates" xml:space="preserve">
     <value>Search certificates</value>
@@ -10258,6 +10276,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Search for part of an account name. Leave empty to list every user in the domain." xml:space="preserve">
     <value>Search for part of an account name. Leave empty to list every user in the domain.</value>
   </data>
+  <data name="Search greylisting exemptions" xml:space="preserve">
+    <value>Search greylisting exemptions</value>
+  </data>
   <data name="Search pages, settings and tasks" xml:space="preserve">
     <value>Search pages, settings and tasks</value>
   </data>
@@ -10270,6 +10291,12 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Search ports" xml:space="preserve">
     <value>Search ports</value>
   </data>
+  <data name="Search public folders" xml:space="preserve">
+    <value>Search public folders</value>
+  </data>
+  <data name="Search remote domains" xml:space="preserve">
+    <value>Search remote domains</value>
+  </data>
   <data name="Search results" xml:space="preserve">
     <value>Search results</value>
   </data>
@@ -10279,14 +10306,32 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Search rules" xml:space="preserve">
     <value>Search rules</value>
   </data>
+  <data name="Search security groups" xml:space="preserve">
+    <value>Search security groups</value>
+  </data>
   <data name="Search sender, recipient, subject or reason" xml:space="preserve">
     <value>Search sender, recipient, subject or reason</value>
+  </data>
+  <data name="Search server messages" xml:space="preserve">
+    <value>Search server messages</value>
+  </data>
+  <data name="Search spam exemptions" xml:space="preserve">
+    <value>Search spam exemptions</value>
+  </data>
+  <data name="Search the allow and block list" xml:space="preserve">
+    <value>Search the allow and block list</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Search the delivery queue</value>
   </data>
+  <data name="Search the greylisting bypass list" xml:space="preserve">
+    <value>Search the greylisting bypass list</value>
+  </data>
   <data name="Search this document" xml:space="preserve">
     <value>Search this document</value>
+  </data>
+  <data name="Search this list" xml:space="preserve">
+    <value>Search this list</value>
   </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>Search, or say what you want to do - "stop spam", "block an IP"</value>
@@ -10875,6 +10920,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   </data>
   <data name="Show {0} in the navigation" xml:space="preserve">
     <value>Show {0} in the navigation</value>
+  </data>
+  <data name="Shown: {0} of {1}" xml:space="preserve">
+    <value>Shown: {0} of {1}</value>
   </data>
   <data name="Sieve" xml:space="preserve">
     <value>Sieve</value>

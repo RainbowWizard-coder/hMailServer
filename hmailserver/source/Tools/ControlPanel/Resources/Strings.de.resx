@@ -7177,6 +7177,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="No entry covers this sender's domain; entries matched against the HELO name are not checked here." xml:space="preserve">
     <value>Kein Eintrag deckt die Domain dieses Absenders ab; Einträge, die mit dem HELO-Namen verglichen werden, werden hier nicht geprüft.</value>
   </data>
+  <data name="No entry in this list has &quot;{0}&quot; in it." xml:space="preserve">
+    <value>Kein Eintrag dieser Liste enthält „{0}“.</value>
+  </data>
   <data name="No entry matches this address, so the list leaves it to the spam checks." xml:space="preserve">
     <value>Kein Eintrag passt auf diese Adresse, daher überlässt die Liste sie den Spamprüfungen.</value>
   </data>
@@ -7341,6 +7344,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   </data>
   <data name="No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." xml:space="preserve">
     <value>Es wurde kein Profil angewendet. Ein Profil setzt etwa dreißig Einstellungen für die Art von Server, die dies ist - ein kleines Büro, hinter einem Filter-Gateway, ein ausgehendes Relay, ein Massenversender - und zeigt jede Änderung, bevor sie vorgenommen wird.</value>
+  </data>
+  <data name="No public folder has &quot;{0}&quot; in its name." xml:space="preserve">
+    <value>Kein öffentlicher Ordner enthält „{0}“ im Namen.</value>
   </data>
   <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
     <value>Noch keine öffentlichen Ordner. Ordner hinzufügen legt einen an, den mehrere Konten öffnen können; Berechtigungen legt dann fest, wer darin lesen und schreiben darf.</value>
@@ -10234,8 +10240,14 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="Search" xml:space="preserve">
     <value>Suchen</value>
   </data>
+  <data name="Search DNS block lists" xml:space="preserve">
+    <value>DNS-Sperrlisten durchsuchen</value>
+  </data>
   <data name="Search IP ranges" xml:space="preserve">
     <value>IP-Bereiche durchsuchen</value>
+  </data>
+  <data name="Search SURBL servers" xml:space="preserve">
+    <value>SURBL-Server durchsuchen</value>
   </data>
   <data name="Search _filter" xml:space="preserve">
     <value>Such_filter</value>
@@ -10245,6 +10257,12 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   </data>
   <data name="Search bas_e (SearchBase)" xml:space="preserve">
     <value>S_uchbasis (SearchBase)</value>
+  </data>
+  <data name="Search blocked attachment patterns" xml:space="preserve">
+    <value>Muster für gesperrte Anhänge durchsuchen</value>
+  </data>
+  <data name="Search blocked senders" xml:space="preserve">
+    <value>Gesperrte Absender durchsuchen</value>
   </data>
   <data name="Search certificates" xml:space="preserve">
     <value>Zertifikate durchsuchen</value>
@@ -10258,6 +10276,9 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="Search for part of an account name. Leave empty to list every user in the domain." xml:space="preserve">
     <value>Nach einem Teil eines Kontonamens suchen. Leer lassen, um jeden Benutzer in der Domain aufzulisten.</value>
   </data>
+  <data name="Search greylisting exemptions" xml:space="preserve">
+    <value>Greylisting-Ausnahmen durchsuchen</value>
+  </data>
   <data name="Search pages, settings and tasks" xml:space="preserve">
     <value>Seiten, Einstellungen und Aufgaben durchsuchen</value>
   </data>
@@ -10270,6 +10291,12 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="Search ports" xml:space="preserve">
     <value>Ports durchsuchen</value>
   </data>
+  <data name="Search public folders" xml:space="preserve">
+    <value>Öffentliche Ordner durchsuchen</value>
+  </data>
+  <data name="Search remote domains" xml:space="preserve">
+    <value>Fremde Domains durchsuchen</value>
+  </data>
   <data name="Search results" xml:space="preserve">
     <value>Suchergebnisse</value>
   </data>
@@ -10279,14 +10306,32 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="Search rules" xml:space="preserve">
     <value>Regeln durchsuchen</value>
   </data>
+  <data name="Search security groups" xml:space="preserve">
+    <value>Sicherheitsgruppen durchsuchen</value>
+  </data>
   <data name="Search sender, recipient, subject or reason" xml:space="preserve">
     <value>Absender, Empfänger, Betreff, Grund suchen</value>
+  </data>
+  <data name="Search server messages" xml:space="preserve">
+    <value>Servernachrichten durchsuchen</value>
+  </data>
+  <data name="Search spam exemptions" xml:space="preserve">
+    <value>Spam-Ausnahmen durchsuchen</value>
+  </data>
+  <data name="Search the allow and block list" xml:space="preserve">
+    <value>Die Zulassungs- und Sperrliste durchsuchen</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Die Zustellwarteschlange durchsuchen</value>
   </data>
+  <data name="Search the greylisting bypass list" xml:space="preserve">
+    <value>Die Greylisting-Umgehungsliste durchsuchen</value>
+  </data>
   <data name="Search this document" xml:space="preserve">
     <value>In diesem Dokument suchen</value>
+  </data>
+  <data name="Search this list" xml:space="preserve">
+    <value>Diese Liste durchsuchen</value>
   </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>Suchen, oder sagen Sie, was Sie tun wollen - „Spam stoppen", „eine IP sperren"</value>
@@ -10875,6 +10920,9 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   </data>
   <data name="Show {0} in the navigation" xml:space="preserve">
     <value>{0} in der Navigation anzeigen</value>
+  </data>
+  <data name="Shown: {0} of {1}" xml:space="preserve">
+    <value>Angezeigt: {0} von {1}</value>
   </data>
   <data name="Sieve" xml:space="preserve">
     <value>Sieve</value>

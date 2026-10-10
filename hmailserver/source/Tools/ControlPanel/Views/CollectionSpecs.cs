@@ -53,6 +53,7 @@ namespace hMailServer.ControlPanel.Views
          EditTitle = N("Edit the SURBL server"),
          CountOne = N("1 SURBL server"),
          CountMany = N("{0} SURBL servers"),
+         SearchPlaceholder = N("Search SURBL servers"),
          DeletePrompt = N("Delete the SURBL server {0}?"),
          DeleteNameProps = new[] { "DNSHost" }, // no-loc: the properties that name an entry
          EmptyText = L("No SURBL servers, so the links in a message body are not looked up in any list."),
@@ -85,6 +86,7 @@ namespace hMailServer.ControlPanel.Views
          EditTitle = N("Edit the DNS block list"),
          CountOne = N("1 block list"),
          CountMany = N("{0} block lists"),
+         SearchPlaceholder = N("Search DNS block lists"),
          DeletePrompt = N("Delete the DNS block list {0}?"),
          DeleteNameProps = new[] { "DNSHost" }, // no-loc: the properties that name an entry
          EmptyText = L("No block lists, so connecting addresses are not looked up in any."),
@@ -113,6 +115,7 @@ namespace hMailServer.ControlPanel.Views
          EditTitle = N("Edit the spam exemption"),
          CountOne = N("1 spam exemption"),
          CountMany = N("{0} spam exemptions"),
+         SearchPlaceholder = N("Search spam exemptions"),
          DeletePrompt = N("Delete the spam exemption {0}? Mail it covers goes through the spam checks again."),
          DeleteNameProps = new[] { "Description", "EmailAddress", "LowerIPAddress" }, // no-loc: the properties that name an entry
          EmptyText = L("No exemptions, so no sender is let past spam protection by this list."),
@@ -135,6 +138,7 @@ namespace hMailServer.ControlPanel.Views
          EditTitle = N("Edit the blocked sender"),
          CountOne = N("1 blocked sender"),
          CountMany = N("{0} blocked senders"),
+         SearchPlaceholder = N("Search blocked senders"),
          DeletePrompt = N("Delete the blocked sender {0}?"),
          DeleteNameProps = new[] { "Address" }, // no-loc: the properties that name an entry
          EmptyText = L("No blocked senders, so no envelope sender is refused or scored for its address alone."),
@@ -159,6 +163,7 @@ namespace hMailServer.ControlPanel.Views
       public static CollectionEditorView SenderList() => new(new CollectionSpec
       {
          PageKey = "senderlist",
+         SearchPlaceholder = N("Search the allow and block list"),
          Subtitle = L("Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted. An account's own list is consulted first and its domain's next, so this list only decides for a recipient whose own lists say nothing. To refuse a sender for everyone during the SMTP conversation, whatever anybody's own list says, use Blocked senders."),
          ItemNoun = L("list entry"),
          AddTitle = N("Add a list entry"),
@@ -197,6 +202,7 @@ namespace hMailServer.ControlPanel.Views
          EditTitle = N("Edit the greylisting exemption"),
          CountOne = N("1 IP address"),
          CountMany = N("{0} IP addresses"),
+         SearchPlaceholder = N("Search greylisting exemptions"),
          DeletePrompt = N("Delete the greylisting exemption {0}? Mail from it is greylisted again."),
          DeleteNameProps = new[] { "IPAddress" }, // no-loc: the properties that name an entry
          EmptyText = L("No addresses, so no server is let past greylisting for its IP address."),
@@ -236,6 +242,7 @@ namespace hMailServer.ControlPanel.Views
          EditTitle = N("Edit the bypass entry"),
          CountOne = N("1 bypass entry"),
          CountMany = N("{0} bypass entries"),
+         SearchPlaceholder = N("Search the greylisting bypass list"),
          DeletePrompt = N("Delete the greylisting bypass entry {0}? Mail it matched is greylisted again."),
          DeleteNameProps = new[] { "Pattern" }, // no-loc: the properties that name an entry
          EmptyText = L("No entries, so no domain is let past greylisting for the authentication results its mail carries."),
@@ -270,6 +277,7 @@ namespace hMailServer.ControlPanel.Views
          EditTitle = N("Edit the blocked attachment pattern"),
          CountOne = N("1 pattern"),
          CountMany = N("{0} patterns"),
+         SearchPlaceholder = N("Search blocked attachment patterns"),
          DeletePrompt = N("Delete the blocked attachment pattern {0}? Attachments it matched are no longer replaced."),
          DeleteNameProps = new[] { "Wildcard" }, // no-loc: the properties that name an entry
          EmptyText = L("No patterns, so no attachment is replaced for its file name."),
@@ -340,6 +348,7 @@ namespace hMailServer.ControlPanel.Views
          EditTitle = N("Edit the security group"),
          CountOne = N("1 security group"),
          CountMany = N("{0} security groups"),
+         SearchPlaceholder = N("Search security groups"),
          DeletePrompt = N("Delete the security group {0}? The folder permissions and calendar shares given to it are removed, so its members lose them."),
          DeleteNameProps = new[] { "Name" }, // no-loc: the properties that name an entry
          EmptyText = L("No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which."),
@@ -412,6 +421,7 @@ namespace hMailServer.ControlPanel.Views
          EditTitle = N("Edit the remote domain policy"),
          CountOne = N("1 remote domain policy"),
          CountMany = N("{0} remote domain policies"),
+         SearchPlaceholder = N("Search remote domains"),
          DeletePrompt = N("Delete the remote domain policy {0}? Mail to and from that domain follows the server-wide settings again."),
          DeleteNameProps = new[] { "DomainName" }, // no-loc: the properties that name an entry
          EmptyText = L("No policies, so the server talks to every remote domain on its general settings."),
@@ -461,6 +471,7 @@ namespace hMailServer.ControlPanel.Views
          EditTitle = N("Edit the server message"),
          CountOne = N("1 server message"),
          CountMany = N("{0} server messages"),
+         SearchPlaceholder = N("Search server messages"),
          CanAdd = false,
          CanDelete = false,
          GetCollection = () => Settings.ServerMessages,
@@ -685,25 +696,13 @@ namespace hMailServer.ControlPanel.Views
 
       public GroupsPageView(CollectionSpec spec)
       {
-         // The page chrome (title and subtitle) is drawn here so the members row
-         // can sit inside the same page layout; the editor is hosted in its
-         // embedded form, which draws no chrome of its own. The subtitle is taken
-         // off the spec so the embedded editor does not repeat it as its hint.
-         string subtitle = spec.Subtitle;
-         spec.Subtitle = null;
-
-         editor_ = new CollectionEditorView(spec, embedded: true);
-
-         var root = new Grid();
-         root.SetResourceReference(MarginProperty, "AppPagePadding");
-         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-         root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-
-         root.Children.Add(new Scaffold.PageHeader { PageKey = spec.PageKey, Subtitle = subtitle });
-
-         Grid.SetRow(editor_, 1);
-         root.Children.Add(editor_);
+         // The editor in its page mode, as every other list of the kind: its
+         // header with the title, the count and the page's actions, its search
+         // (review finding F112: the page had none, the domains page beside it
+         // did) and the list; the members row goes under the list, inside the
+         // page's scrolling parts. The page drew its own header around the
+         // editor's embedded form, whose toolbar had no search.
+         editor_ = new CollectionEditorView(spec);
 
          var membersRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 12, 0, 0) };
 
@@ -727,10 +726,9 @@ namespace hMailServer.ControlPanel.Views
          membersHint_.SetResourceReference(StyleProperty, "TextCaption");
          membersRow.Children.Add(membersHint_);
 
-         Grid.SetRow(membersRow, 2);
-         root.Children.Add(membersRow);
+         editor_.AddBelowList(membersRow);
 
-         Content = root;
+         Content = editor_;
 
          // handledEventsToo, in case a future DataGrid template handles the event
          // on its way up; today it arrives unhandled.

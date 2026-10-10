@@ -7177,6 +7177,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="No entry covers this sender's domain; entries matched against the HELO name are not checked here." xml:space="preserve">
     <value>Aucune entrée ne couvre le domaine de cet expéditeur ; les entrées comparées au nom HELO ne sont pas vérifiées ici.</value>
   </data>
+  <data name="No entry in this list has &quot;{0}&quot; in it." xml:space="preserve">
+    <value>Aucune entrée de cette liste ne contient « {0} ».</value>
+  </data>
   <data name="No entry matches this address, so the list leaves it to the spam checks." xml:space="preserve">
     <value>Aucune entrée ne correspond à cette adresse : la liste la laisse donc aux vérifications anti-spam.</value>
   </data>
@@ -7341,6 +7344,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   </data>
   <data name="No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." xml:space="preserve">
     <value>Aucun profil n'a été appliqué. Un profil définit une trentaine de paramètres pour le type de serveur qu'est celui-ci - un petit bureau, derrière une passerelle de filtrage, un relais sortant, un expéditeur à fort volume - et montre chaque changement avant de le faire.</value>
+  </data>
+  <data name="No public folder has &quot;{0}&quot; in its name." xml:space="preserve">
+    <value>Aucun dossier public ne contient « {0} » dans son nom.</value>
   </data>
   <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
     <value>Aucun dossier public pour l'instant. Ajouter un dossier en crée un que plusieurs comptes peuvent ouvrir ; Permissions décide ensuite qui peut y lire et y écrire.</value>
@@ -10234,8 +10240,14 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Search" xml:space="preserve">
     <value>Rechercher</value>
   </data>
+  <data name="Search DNS block lists" xml:space="preserve">
+    <value>Rechercher des listes de blocage DNS</value>
+  </data>
   <data name="Search IP ranges" xml:space="preserve">
     <value>Rechercher des plages IP</value>
+  </data>
+  <data name="Search SURBL servers" xml:space="preserve">
+    <value>Rechercher des serveurs SURBL</value>
   </data>
   <data name="Search _filter" xml:space="preserve">
     <value>_Filtre de recherche</value>
@@ -10245,6 +10257,12 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   </data>
   <data name="Search bas_e (SearchBase)" xml:space="preserve">
     <value>_Base de recherche (SearchBase)</value>
+  </data>
+  <data name="Search blocked attachment patterns" xml:space="preserve">
+    <value>Rechercher des motifs de pièces jointes bloquées</value>
+  </data>
+  <data name="Search blocked senders" xml:space="preserve">
+    <value>Rechercher des expéditeurs bloqués</value>
   </data>
   <data name="Search certificates" xml:space="preserve">
     <value>Rechercher des certificats</value>
@@ -10258,6 +10276,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Search for part of an account name. Leave empty to list every user in the domain." xml:space="preserve">
     <value>Recherchez une partie d'un nom de compte. Laissez vide pour lister tous les utilisateurs du domaine.</value>
   </data>
+  <data name="Search greylisting exemptions" xml:space="preserve">
+    <value>Rechercher des exemptions du greylisting</value>
+  </data>
   <data name="Search pages, settings and tasks" xml:space="preserve">
     <value>Rechercher dans les pages, les réglages et les tâches</value>
   </data>
@@ -10270,6 +10291,12 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Search ports" xml:space="preserve">
     <value>Rechercher des ports</value>
   </data>
+  <data name="Search public folders" xml:space="preserve">
+    <value>Rechercher des dossiers publics</value>
+  </data>
+  <data name="Search remote domains" xml:space="preserve">
+    <value>Rechercher des domaines distants</value>
+  </data>
   <data name="Search results" xml:space="preserve">
     <value>Résultats de la recherche</value>
   </data>
@@ -10279,14 +10306,32 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Search rules" xml:space="preserve">
     <value>Rechercher des règles</value>
   </data>
+  <data name="Search security groups" xml:space="preserve">
+    <value>Rechercher des groupes de sécurité</value>
+  </data>
   <data name="Search sender, recipient, subject or reason" xml:space="preserve">
     <value>Chercher expéditeur, destinataire, objet, motif</value>
+  </data>
+  <data name="Search server messages" xml:space="preserve">
+    <value>Rechercher des messages du serveur</value>
+  </data>
+  <data name="Search spam exemptions" xml:space="preserve">
+    <value>Rechercher des exemptions anti-spam</value>
+  </data>
+  <data name="Search the allow and block list" xml:space="preserve">
+    <value>Rechercher dans la liste d'autorisation et de blocage</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Rechercher dans la file de livraison</value>
   </data>
+  <data name="Search the greylisting bypass list" xml:space="preserve">
+    <value>Rechercher dans la liste de contournement de la liste grise</value>
+  </data>
   <data name="Search this document" xml:space="preserve">
     <value>Rechercher dans ce document</value>
+  </data>
+  <data name="Search this list" xml:space="preserve">
+    <value>Rechercher dans cette liste</value>
   </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>Recherchez, ou dites ce que vous voulez faire - « arrêter le spam », « bloquer une IP »</value>
@@ -10875,6 +10920,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   </data>
   <data name="Show {0} in the navigation" xml:space="preserve">
     <value>Afficher {0} dans la navigation</value>
+  </data>
+  <data name="Shown: {0} of {1}" xml:space="preserve">
+    <value>Affichés : {0} sur {1}</value>
   </data>
   <data name="Sieve" xml:space="preserve">
     <value>Sieve</value>

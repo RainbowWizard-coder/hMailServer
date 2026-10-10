@@ -92,9 +92,16 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("OpenDialog(null)", build, StringComparison.Ordinal);
          Assert.Matches(new Regex(@"if \(spec_\.CanAdd\)\s*\{\s*var first = new Button \{ Content = L\(""Add the _first entry…""\) \};"), build);
 
+         // The read says what the list holds through ShowListState_, which the
+         // search calls too (review finding F210), and which puts the action back
+         // once a search that matched nothing is cleared.
          string reload = WithheldRowTests.MemberText(code, "private void Load_(int selectId, int selectIndex, bool focus)");
          Assert.True(reload != null, "CollectionEditorView.Load_ is gone.");
-         Assert.Contains("spec_.EmptyText ??", reload, StringComparison.Ordinal);
+         Assert.Contains("ShowListState_();", reload, StringComparison.Ordinal);
+         string state = WithheldRowTests.MemberText(code, "private void ShowListState_()");
+         Assert.True(state != null, "CollectionEditorView.ShowListState_ is gone.");
+         Assert.Contains("spec_.EmptyText ??", state, StringComparison.Ordinal);
+         Assert.Contains("empty_.Action = addFirst_;", state, StringComparison.Ordinal);
       }
 
       public static TheoryData<string, string, string> XamlListPages => new()

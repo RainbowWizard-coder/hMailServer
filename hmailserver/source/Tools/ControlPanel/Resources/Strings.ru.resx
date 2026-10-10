@@ -7250,6 +7250,9 @@ Control Panel может читать файлы сообщений только
   <data name="No entry covers this sender's domain; entries matched against the HELO name are not checked here." xml:space="preserve">
     <value>Ни одна запись не распространяется на домен этого отправителя; записи, сравниваемые с именем HELO, здесь не проверяются.</value>
   </data>
+  <data name="No entry in this list has &quot;{0}&quot; in it." xml:space="preserve">
+    <value>Ни одна запись этого списка не содержит «{0}».</value>
+  </data>
   <data name="No entry matches this address, so the list leaves it to the spam checks." xml:space="preserve">
     <value>Ни одна запись не совпадает с этим адресом, поэтому список оставляет его проверкам на спам.</value>
   </data>
@@ -7417,6 +7420,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." xml:space="preserve">
     <value>Профиль не применён. Профиль задаёт около тридцати параметров для типа сервера - небольшой офис, за фильтрующим шлюзом, исходящий ретранслятор, массовый отправитель - и показывает каждое изменение до того, как оно будет сделано.</value>
+  </data>
+  <data name="No public folder has &quot;{0}&quot; in its name." xml:space="preserve">
+    <value>Ни в одном названии общей папки нет «{0}».</value>
   </data>
   <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
     <value>Общих папок пока нет. Добавить папку создаёт папку, которую могут открывать несколько учётных записей; Разрешения затем определяет, кто может читать и записывать в неё.</value>
@@ -10355,8 +10361,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Search" xml:space="preserve">
     <value>Поиск</value>
   </data>
+  <data name="Search DNS block lists" xml:space="preserve">
+    <value>Поиск по спискам блокировки DNS</value>
+  </data>
   <data name="Search IP ranges" xml:space="preserve">
     <value>Поиск по диапазонам IP</value>
+  </data>
+  <data name="Search SURBL servers" xml:space="preserve">
+    <value>Поиск по серверам SURBL</value>
   </data>
   <data name="Search _filter" xml:space="preserve">
     <value>_Фильтр поиска</value>
@@ -10366,6 +10378,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Search bas_e (SearchBase)" xml:space="preserve">
     <value>База поиска (_SearchBase)</value>
+  </data>
+  <data name="Search blocked attachment patterns" xml:space="preserve">
+    <value>Поиск по шаблонам заблокированных вложений</value>
+  </data>
+  <data name="Search blocked senders" xml:space="preserve">
+    <value>Поиск по заблокированным отправителям</value>
   </data>
   <data name="Search certificates" xml:space="preserve">
     <value>Поиск по сертификатам</value>
@@ -10379,6 +10397,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Search for part of an account name. Leave empty to list every user in the domain." xml:space="preserve">
     <value>Введите часть имени учётной записи. Оставьте поле пустым, чтобы перечислить всех пользователей домена.</value>
   </data>
+  <data name="Search greylisting exemptions" xml:space="preserve">
+    <value>Поиск по исключениям серых списков</value>
+  </data>
   <data name="Search pages, settings and tasks" xml:space="preserve">
     <value>Поиск по страницам, параметрам и задачам</value>
   </data>
@@ -10391,6 +10412,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Search ports" xml:space="preserve">
     <value>Поиск по портам</value>
   </data>
+  <data name="Search public folders" xml:space="preserve">
+    <value>Поиск по общим папкам</value>
+  </data>
+  <data name="Search remote domains" xml:space="preserve">
+    <value>Поиск по внешним доменам</value>
+  </data>
   <data name="Search results" xml:space="preserve">
     <value>Результаты поиска</value>
   </data>
@@ -10400,14 +10427,32 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Search rules" xml:space="preserve">
     <value>Поиск по правилам</value>
   </data>
+  <data name="Search security groups" xml:space="preserve">
+    <value>Поиск по группам безопасности</value>
+  </data>
   <data name="Search sender, recipient, subject or reason" xml:space="preserve">
     <value>Отправитель, получатель, тема или причина</value>
+  </data>
+  <data name="Search server messages" xml:space="preserve">
+    <value>Поиск по сообщениям сервера</value>
+  </data>
+  <data name="Search spam exemptions" xml:space="preserve">
+    <value>Поиск по исключениям антиспама</value>
+  </data>
+  <data name="Search the allow and block list" xml:space="preserve">
+    <value>Поиск по списку разрешённых и заблокированных</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Поиск по очереди доставки</value>
   </data>
+  <data name="Search the greylisting bypass list" xml:space="preserve">
+    <value>Поиск по списку обхода серых списков</value>
+  </data>
   <data name="Search this document" xml:space="preserve">
     <value>Поиск в этом документе</value>
+  </data>
+  <data name="Search this list" xml:space="preserve">
+    <value>Поиск по этому списку</value>
   </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>Ищите или скажите, что нужно сделать, — «остановить спам», «заблокировать IP»</value>
@@ -11002,6 +11047,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Show {0} in the navigation" xml:space="preserve">
     <value>Показывать {0} в навигации</value>
+  </data>
+  <data name="Shown: {0} of {1}" xml:space="preserve">
+    <value>Показано: {0} из {1}</value>
   </data>
   <data name="Sieve" xml:space="preserve">
     <value>Sieve</value>

@@ -7250,6 +7250,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No entry covers this sender's domain; entries matched against the HELO name are not checked here." xml:space="preserve">
     <value>Na doménu tohoto odesílatele se nevztahuje žádný záznam; záznamy porovnávané se jménem HELO se zde nekontrolují.</value>
   </data>
+  <data name="No entry in this list has &quot;{0}&quot; in it." xml:space="preserve">
+    <value>Žádná položka tohoto seznamu neobsahuje „{0}“.</value>
+  </data>
   <data name="No entry matches this address, so the list leaves it to the spam checks." xml:space="preserve">
     <value>Této adrese neodpovídá žádný záznam, takže ji seznam nechává na kontrolách spamu.</value>
   </data>
@@ -7417,6 +7420,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." xml:space="preserve">
     <value>Nebyl použit žádný profil. Profil nastaví zhruba třicet nastavení podle druhu serveru - malá kancelář, za filtrující bránou, odchozí relay, hromadný odesílatel - a každou změnu ukáže dříve, než ji provede.</value>
+  </data>
+  <data name="No public folder has &quot;{0}&quot; in its name." xml:space="preserve">
+    <value>Žádná veřejná složka nemá v názvu „{0}“.</value>
   </data>
   <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
     <value>Zatím žádné veřejné složky. Přidat složku vytvoří složku, kterou může otevřít více účtů; Oprávnění pak určí, kdo do ní smí číst a zapisovat.</value>
@@ -10355,8 +10361,14 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Search" xml:space="preserve">
     <value>Hledat</value>
   </data>
+  <data name="Search DNS block lists" xml:space="preserve">
+    <value>Hledat v blokovacích seznamech DNS</value>
+  </data>
   <data name="Search IP ranges" xml:space="preserve">
     <value>Hledat v IP rozsazích</value>
+  </data>
+  <data name="Search SURBL servers" xml:space="preserve">
+    <value>Hledat v serverech SURBL</value>
   </data>
   <data name="Search _filter" xml:space="preserve">
     <value>Vyhledávací _filtr</value>
@@ -10366,6 +10378,12 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Search bas_e (SearchBase)" xml:space="preserve">
     <value>_Báze hledání (SearchBase)</value>
+  </data>
+  <data name="Search blocked attachment patterns" xml:space="preserve">
+    <value>Hledat ve vzorech blokovaných příloh</value>
+  </data>
+  <data name="Search blocked senders" xml:space="preserve">
+    <value>Hledat v blokovaných odesílatelích</value>
   </data>
   <data name="Search certificates" xml:space="preserve">
     <value>Hledat v certifikátech</value>
@@ -10379,6 +10397,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Search for part of an account name. Leave empty to list every user in the domain." xml:space="preserve">
     <value>Zadejte část názvu účtu. Ponecháte-li pole prázdné, vypíší se všichni uživatelé v doméně.</value>
   </data>
+  <data name="Search greylisting exemptions" xml:space="preserve">
+    <value>Hledat ve výjimkách z greylistingu</value>
+  </data>
   <data name="Search pages, settings and tasks" xml:space="preserve">
     <value>Hledat ve stránkách, nastaveních a úlohách</value>
   </data>
@@ -10391,6 +10412,12 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Search ports" xml:space="preserve">
     <value>Hledat v portech</value>
   </data>
+  <data name="Search public folders" xml:space="preserve">
+    <value>Hledat ve veřejných složkách</value>
+  </data>
+  <data name="Search remote domains" xml:space="preserve">
+    <value>Hledat ve vzdálených doménách</value>
+  </data>
   <data name="Search results" xml:space="preserve">
     <value>Výsledky hledání</value>
   </data>
@@ -10400,14 +10427,32 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Search rules" xml:space="preserve">
     <value>Hledat v pravidlech</value>
   </data>
+  <data name="Search security groups" xml:space="preserve">
+    <value>Hledat ve skupinách zabezpečení</value>
+  </data>
   <data name="Search sender, recipient, subject or reason" xml:space="preserve">
     <value>Hledat odesílatele, příjemce, předmět, důvod</value>
+  </data>
+  <data name="Search server messages" xml:space="preserve">
+    <value>Hledat ve zprávách serveru</value>
+  </data>
+  <data name="Search spam exemptions" xml:space="preserve">
+    <value>Hledat ve výjimkách z antispamu</value>
+  </data>
+  <data name="Search the allow and block list" xml:space="preserve">
+    <value>Hledat v seznamu povolených a blokovaných</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Hledat v doručovací frontě</value>
   </data>
+  <data name="Search the greylisting bypass list" xml:space="preserve">
+    <value>Hledat v seznamu obejití greylistingu</value>
+  </data>
   <data name="Search this document" xml:space="preserve">
     <value>Hledat v tomto dokumentu</value>
+  </data>
+  <data name="Search this list" xml:space="preserve">
+    <value>Hledat v tomto seznamu</value>
   </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>Hledejte, nebo napište, co chcete udělat – „zastavit spam“, „zablokovat IP“</value>
@@ -11002,6 +11047,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Show {0} in the navigation" xml:space="preserve">
     <value>Zobrazit {0} v navigaci</value>
+  </data>
+  <data name="Shown: {0} of {1}" xml:space="preserve">
+    <value>Zobrazeno: {0} z {1}</value>
   </data>
   <data name="Sieve" xml:space="preserve">
     <value>Sieve</value>

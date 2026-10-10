@@ -43,15 +43,21 @@ namespace hMailServer.ControlPanel.Views
       private int offset_;
       private int total_;
 
-      public AuditTrailView() => Build();
+      // The search asks the server once typing pauses, from the newest rows
+      // (review finding F210).
+      private readonly SearchDelay searchDelay_;
+
+      public AuditTrailView()
+      {
+         searchDelay_ = new SearchDelay(() => { offset_ = 0; Reload(); });
+         Build();
+      }
 
       // Read on entry rather than in the constructor: a change made since the
       // page was first opened must be here when somebody comes back to it.
       public void OnEnter() => Reload();
 
-      public void OnLeave()
-      {
-      }
+      public void OnLeave() => searchDelay_.Cancel();
 
       private void Status_(StatusLevel level, string text)
       {
@@ -257,7 +263,11 @@ namespace hMailServer.ControlPanel.Views
             Subtitle = L("Every administrative change as one row in a hash chain: who made it, when, over which interface, from where, and with what authority. A setting's change can be put back from its row.")
          });
 
-         toolbar_.PreviewKeyDown += (_, e) => { if (e.Key == System.Windows.Input.Key.Enter) { offset_ = 0; Reload(); } };
+         // A query to the server, run once typing pauses, where it waited for
+         // Enter, which nothing on the page said (review finding F210); Enter
+         // runs it at once.
+         toolbar_.SearchTextChanged += (_, _) => searchDelay_.Restart();
+         toolbar_.PreviewKeyDown += (_, e) => { if (e.Key == System.Windows.Input.Key.Enter) searchDelay_.Now(); };
 
          // A WrapPanel, so that in a narrow window the last buttons move to a
          // second line rather than off the edge (the toolbar gives the actions

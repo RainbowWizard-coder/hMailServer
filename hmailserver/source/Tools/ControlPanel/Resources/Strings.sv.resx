@@ -7177,6 +7177,9 @@ Inget som redan finns där tas bort.</value>
   <data name="No entry covers this sender's domain; entries matched against the HELO name are not checked here." xml:space="preserve">
     <value>Ingen post täcker den här avsändarens domän; poster som jämförs med HELO-namnet kontrolleras inte här.</value>
   </data>
+  <data name="No entry in this list has &quot;{0}&quot; in it." xml:space="preserve">
+    <value>Ingen post i den här listan innehåller ”{0}”.</value>
+  </data>
   <data name="No entry matches this address, so the list leaves it to the spam checks." xml:space="preserve">
     <value>Ingen post träffar den här adressen, så listan lämnar den åt skräppostkontrollerna.</value>
   </data>
@@ -7341,6 +7344,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." xml:space="preserve">
     <value>Ingen profil har tillämpats. En profil ställer in ett trettiotal inställningar för den sorts server det här är - ett litet kontor, bakom en filtrerande gateway, ett utgående relä, en avsändare med stora volymer - och visar varje ändring innan den görs.</value>
+  </data>
+  <data name="No public folder has &quot;{0}&quot; in its name." xml:space="preserve">
+    <value>Ingen publik mapp har ”{0}” i namnet.</value>
   </data>
   <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
     <value>Inga offentliga mappar ännu. Lägg till mapp skapar en som flera konton kan öppna; Behörigheter avgör sedan vem som får läsa och skriva i den.</value>
@@ -10234,8 +10240,14 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Search" xml:space="preserve">
     <value>Sök</value>
   </data>
+  <data name="Search DNS block lists" xml:space="preserve">
+    <value>Sök DNS-spärrlistor</value>
+  </data>
   <data name="Search IP ranges" xml:space="preserve">
     <value>Sök IP-intervall</value>
+  </data>
+  <data name="Search SURBL servers" xml:space="preserve">
+    <value>Sök SURBL-servrar</value>
   </data>
   <data name="Search _filter" xml:space="preserve">
     <value>Sö_kfilter</value>
@@ -10245,6 +10257,12 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Search bas_e (SearchBase)" xml:space="preserve">
     <value>Sö_kbas (SearchBase)</value>
+  </data>
+  <data name="Search blocked attachment patterns" xml:space="preserve">
+    <value>Sök mönster för blockerade bilagor</value>
+  </data>
+  <data name="Search blocked senders" xml:space="preserve">
+    <value>Sök blockerade avsändare</value>
   </data>
   <data name="Search certificates" xml:space="preserve">
     <value>Sök certifikat</value>
@@ -10258,6 +10276,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Search for part of an account name. Leave empty to list every user in the domain." xml:space="preserve">
     <value>Sök efter en del av ett kontonamn. Lämna tomt för att lista varje användare i domänen.</value>
   </data>
+  <data name="Search greylisting exemptions" xml:space="preserve">
+    <value>Sök undantag från gråstlistning</value>
+  </data>
   <data name="Search pages, settings and tasks" xml:space="preserve">
     <value>Sök sidor, inställningar och uppgifter</value>
   </data>
@@ -10270,6 +10291,12 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Search ports" xml:space="preserve">
     <value>Sök portar</value>
   </data>
+  <data name="Search public folders" xml:space="preserve">
+    <value>Sök publika mappar</value>
+  </data>
+  <data name="Search remote domains" xml:space="preserve">
+    <value>Sök externa domäner</value>
+  </data>
   <data name="Search results" xml:space="preserve">
     <value>Sökresultat</value>
   </data>
@@ -10279,14 +10306,32 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Search rules" xml:space="preserve">
     <value>Sök regler</value>
   </data>
+  <data name="Search security groups" xml:space="preserve">
+    <value>Sök säkerhetsgrupper</value>
+  </data>
   <data name="Search sender, recipient, subject or reason" xml:space="preserve">
     <value>Sök avsändare, mottagare, ämne eller orsak</value>
+  </data>
+  <data name="Search server messages" xml:space="preserve">
+    <value>Sök servermeddelanden</value>
+  </data>
+  <data name="Search spam exemptions" xml:space="preserve">
+    <value>Sök skräppostundantag</value>
+  </data>
+  <data name="Search the allow and block list" xml:space="preserve">
+    <value>Sök i listan över tillåtna och blockerade</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Sök i leveranskön</value>
   </data>
+  <data name="Search the greylisting bypass list" xml:space="preserve">
+    <value>Sök i förbigångslistan för gråstlistning</value>
+  </data>
   <data name="Search this document" xml:space="preserve">
     <value>Sök i det här dokumentet</value>
+  </data>
+  <data name="Search this list" xml:space="preserve">
+    <value>Sök i den här listan</value>
   </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>Sök, eller säg vad du vill göra - "stoppa skräppost", "blockera en IP"</value>
@@ -10875,6 +10920,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Show {0} in the navigation" xml:space="preserve">
     <value>Visa {0} i navigeringen</value>
+  </data>
+  <data name="Shown: {0} of {1}" xml:space="preserve">
+    <value>Visas: {0} av {1}</value>
   </data>
   <data name="Sieve" xml:space="preserve">
     <value>Sieve</value>

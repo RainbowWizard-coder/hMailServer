@@ -7177,6 +7177,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No entry covers this sender's domain; entries matched against the HELO name are not checked here." xml:space="preserve">
     <value>Geen vermelding dekt het domein van deze afzender; vermeldingen die met de HELO-naam worden vergeleken, worden hier niet gecontroleerd.</value>
   </data>
+  <data name="No entry in this list has &quot;{0}&quot; in it." xml:space="preserve">
+    <value>Geen enkele vermelding in deze lijst bevat "{0}".</value>
+  </data>
   <data name="No entry matches this address, so the list leaves it to the spam checks." xml:space="preserve">
     <value>Geen vermelding komt overeen met dit adres, dus laat de lijst het aan de spamcontroles over.</value>
   </data>
@@ -7341,6 +7344,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." xml:space="preserve">
     <value>Er is geen profiel toegepast. Een profiel stelt ongeveer dertig instellingen in voor het soort server dat dit is - een klein kantoor, achter een filterende gateway, een uitgaand relay, een verzender van grote volumes - en toont elke wijziging voordat die wordt gedaan.</value>
+  </data>
+  <data name="No public folder has &quot;{0}&quot; in its name." xml:space="preserve">
+    <value>Geen enkele openbare map bevat "{0}" in de naam.</value>
   </data>
   <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
     <value>Nog geen openbare mappen. Map toevoegen maakt er een die meerdere accounts kunnen openen; Rechten bepaalt daarna wie erin mag lezen en schrijven.</value>
@@ -10234,8 +10240,14 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Search" xml:space="preserve">
     <value>Zoeken</value>
   </data>
+  <data name="Search DNS block lists" xml:space="preserve">
+    <value>DNS-blokkeerlijsten doorzoeken</value>
+  </data>
   <data name="Search IP ranges" xml:space="preserve">
     <value>IP-bereiken doorzoeken</value>
+  </data>
+  <data name="Search SURBL servers" xml:space="preserve">
+    <value>SURBL-servers doorzoeken</value>
   </data>
   <data name="Search _filter" xml:space="preserve">
     <value>Zoek_filter</value>
@@ -10245,6 +10257,12 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Search bas_e (SearchBase)" xml:space="preserve">
     <value>_Zoekbasis (SearchBase)</value>
+  </data>
+  <data name="Search blocked attachment patterns" xml:space="preserve">
+    <value>Patronen voor geblokkeerde bijlagen doorzoeken</value>
+  </data>
+  <data name="Search blocked senders" xml:space="preserve">
+    <value>Geblokkeerde afzenders doorzoeken</value>
   </data>
   <data name="Search certificates" xml:space="preserve">
     <value>Certificaten doorzoeken</value>
@@ -10258,6 +10276,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Search for part of an account name. Leave empty to list every user in the domain." xml:space="preserve">
     <value>Zoek naar een deel van een accountnaam. Laat leeg om elke gebruiker in het domein op te sommen.</value>
   </data>
+  <data name="Search greylisting exemptions" xml:space="preserve">
+    <value>Greylisting-uitzonderingen doorzoeken</value>
+  </data>
   <data name="Search pages, settings and tasks" xml:space="preserve">
     <value>Zoek in pagina's, instellingen en taken</value>
   </data>
@@ -10270,6 +10291,12 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Search ports" xml:space="preserve">
     <value>Poorten doorzoeken</value>
   </data>
+  <data name="Search public folders" xml:space="preserve">
+    <value>Openbare mappen doorzoeken</value>
+  </data>
+  <data name="Search remote domains" xml:space="preserve">
+    <value>Externe domeinen doorzoeken</value>
+  </data>
   <data name="Search results" xml:space="preserve">
     <value>Zoekresultaten</value>
   </data>
@@ -10279,14 +10306,32 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Search rules" xml:space="preserve">
     <value>Regels doorzoeken</value>
   </data>
+  <data name="Search security groups" xml:space="preserve">
+    <value>Beveiligingsgroepen doorzoeken</value>
+  </data>
   <data name="Search sender, recipient, subject or reason" xml:space="preserve">
     <value>Zoek op afzender, ontvanger, onderwerp, reden</value>
+  </data>
+  <data name="Search server messages" xml:space="preserve">
+    <value>Serverberichten doorzoeken</value>
+  </data>
+  <data name="Search spam exemptions" xml:space="preserve">
+    <value>Spamuitzonderingen doorzoeken</value>
+  </data>
+  <data name="Search the allow and block list" xml:space="preserve">
+    <value>De toestaan- en blokkeerlijst doorzoeken</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>De bezorgwachtrij doorzoeken</value>
   </data>
+  <data name="Search the greylisting bypass list" xml:space="preserve">
+    <value>De greylisting-omzeilingslijst doorzoeken</value>
+  </data>
   <data name="Search this document" xml:space="preserve">
     <value>Zoeken in dit document</value>
+  </data>
+  <data name="Search this list" xml:space="preserve">
+    <value>Deze lijst doorzoeken</value>
   </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>Zoek, of zeg wat u wilt doen - "stop spam", "blokkeer een IP"</value>
@@ -10875,6 +10920,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Show {0} in the navigation" xml:space="preserve">
     <value>{0} in de navigatie tonen</value>
+  </data>
+  <data name="Shown: {0} of {1}" xml:space="preserve">
+    <value>Getoond: {0} van {1}</value>
   </data>
   <data name="Sieve" xml:space="preserve">
     <value>Sieve</value>

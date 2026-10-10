@@ -7177,6 +7177,9 @@ Intet, der allerede er der, fjernes.</value>
   <data name="No entry covers this sender's domain; entries matched against the HELO name are not checked here." xml:space="preserve">
     <value>Ingen post dækker denne afsenders domæne; poster, der sammenlignes med HELO-navnet, kontrolleres ikke her.</value>
   </data>
+  <data name="No entry in this list has &quot;{0}&quot; in it." xml:space="preserve">
+    <value>Ingen post i denne liste indeholder "{0}".</value>
+  </data>
   <data name="No entry matches this address, so the list leaves it to the spam checks." xml:space="preserve">
     <value>Ingen post matcher denne adresse, så listen overlader den til spamkontrollerne.</value>
   </data>
@@ -7341,6 +7344,9 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." xml:space="preserve">
     <value>Der er ikke anvendt nogen profil. En profil sætter omkring tredive indstillinger for den slags server, dette er - et lille kontor, bag en filtrerende gateway, et udgående relæ, en afsender med store mængder - og viser hver ændring, før den foretages.</value>
+  </data>
+  <data name="No public folder has &quot;{0}&quot; in its name." xml:space="preserve">
+    <value>Ingen offentlig mappe har "{0}" i navnet.</value>
   </data>
   <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
     <value>Ingen offentlige mapper endnu. Tilføj mappe opretter en, som flere konti kan åbne; Rettigheder afgør derefter, hvem der må læse og skrive i den.</value>
@@ -10234,8 +10240,14 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="Search" xml:space="preserve">
     <value>Søg</value>
   </data>
+  <data name="Search DNS block lists" xml:space="preserve">
+    <value>Søg i DNS-blokeringslister</value>
+  </data>
   <data name="Search IP ranges" xml:space="preserve">
     <value>Søg i IP-intervaller</value>
+  </data>
+  <data name="Search SURBL servers" xml:space="preserve">
+    <value>Søg i SURBL-servere</value>
   </data>
   <data name="Search _filter" xml:space="preserve">
     <value>_Søgefilter</value>
@@ -10245,6 +10257,12 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   </data>
   <data name="Search bas_e (SearchBase)" xml:space="preserve">
     <value>Søgebas_e (SearchBase)</value>
+  </data>
+  <data name="Search blocked attachment patterns" xml:space="preserve">
+    <value>Søg i mønstre for blokerede vedhæftede filer</value>
+  </data>
+  <data name="Search blocked senders" xml:space="preserve">
+    <value>Søg i blokerede afsendere</value>
   </data>
   <data name="Search certificates" xml:space="preserve">
     <value>Søg i certifikater</value>
@@ -10258,6 +10276,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="Search for part of an account name. Leave empty to list every user in the domain." xml:space="preserve">
     <value>Søg efter en del af et kontonavn. Lad stå tomt for at liste alle brugere i domænet.</value>
   </data>
+  <data name="Search greylisting exemptions" xml:space="preserve">
+    <value>Søg i greylisting-undtagelser</value>
+  </data>
   <data name="Search pages, settings and tasks" xml:space="preserve">
     <value>Søg i sider, indstillinger og opgaver</value>
   </data>
@@ -10270,6 +10291,12 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="Search ports" xml:space="preserve">
     <value>Søg i porte</value>
   </data>
+  <data name="Search public folders" xml:space="preserve">
+    <value>Søg i offentlige mapper</value>
+  </data>
+  <data name="Search remote domains" xml:space="preserve">
+    <value>Søg i eksterne domæner</value>
+  </data>
   <data name="Search results" xml:space="preserve">
     <value>Søgeresultater</value>
   </data>
@@ -10279,14 +10306,32 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="Search rules" xml:space="preserve">
     <value>Søg i regler</value>
   </data>
+  <data name="Search security groups" xml:space="preserve">
+    <value>Søg i sikkerhedsgrupper</value>
+  </data>
   <data name="Search sender, recipient, subject or reason" xml:space="preserve">
     <value>Søg i afsender, modtager, emne eller årsag</value>
+  </data>
+  <data name="Search server messages" xml:space="preserve">
+    <value>Søg i servermeddelelser</value>
+  </data>
+  <data name="Search spam exemptions" xml:space="preserve">
+    <value>Søg i spamundtagelser</value>
+  </data>
+  <data name="Search the allow and block list" xml:space="preserve">
+    <value>Søg i listen over tilladte og blokerede</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Søg i leveringskøen</value>
   </data>
+  <data name="Search the greylisting bypass list" xml:space="preserve">
+    <value>Søg i greylisting-omgåelseslisten</value>
+  </data>
   <data name="Search this document" xml:space="preserve">
     <value>Søg i dette dokument</value>
+  </data>
+  <data name="Search this list" xml:space="preserve">
+    <value>Søg i denne liste</value>
   </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>Søg, eller sig hvad du vil gøre - "stop spam", "blokér en IP"</value>
@@ -10875,6 +10920,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   </data>
   <data name="Show {0} in the navigation" xml:space="preserve">
     <value>Vis {0} i navigationen</value>
+  </data>
+  <data name="Shown: {0} of {1}" xml:space="preserve">
+    <value>Vist: {0} af {1}</value>
   </data>
   <data name="Sieve" xml:space="preserve">
     <value>Sieve</value>

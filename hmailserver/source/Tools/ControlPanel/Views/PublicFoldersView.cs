@@ -31,6 +31,14 @@ namespace hMailServer.ControlPanel.Views
       private readonly EmptyState empty_ = new() { Icon = Wpf.Ui.Controls.SymbolRegular.FolderPeople24, Visibility = Visibility.Collapsed };
       private readonly TextBlock count_ = new() { Margin = new Thickness(0, 12, 0, 0) };
 
+      // The search, live over the folders' names, as on every other list page
+      // (review finding F210).
+      private readonly Toolbar search_ = new() { SearchPlaceholder = L("Search public folders") };
+
+      // What an empty list means, said by a read that finds no folder and by a
+      // search cleared over one.
+      private static string EmptySentence_ => L("No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it.");
+
       // Add folder waits for a read that works (Services/ReadFailure).
       private Wpf.Ui.Controls.Button addButton_;
 
@@ -43,6 +51,7 @@ namespace hMailServer.ControlPanel.Views
       {
          var root = new Grid();
          root.SetResourceReference(MarginProperty, "AppPagePadding");
+         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
          root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
          root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
          root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
@@ -65,14 +74,18 @@ namespace hMailServer.ControlPanel.Views
          header_.Actions = actions;
          root.Children.Add(header_);
 
-         Grid.SetRow(notice_, 1);
+         search_.SearchTextChanged += (_, _) => ShowSearch_();
+         Grid.SetRow(search_, 1);
+         root.Children.Add(search_);
+
+         Grid.SetRow(notice_, 2);
          root.Children.Add(notice_);
 
          var host = new Grid();
          host.Children.Add(list_);
          host.Children.Add(empty_);
          var card = new Card { Padding = new Thickness(8), Content = host };
-         Grid.SetRow(card, 2);
+         Grid.SetRow(card, 3);
          root.Children.Add(card);
 
          // Enter and F2 open the selected folder's permissions, Delete deletes it
@@ -80,7 +93,7 @@ namespace hMailServer.ControlPanel.Views
          GridKeys.Wire(list_, permissions, delete, addButton_);
 
          count_.SetResourceReference(StyleProperty, "TextCaption");
-         Grid.SetRow(count_, 3);
+         Grid.SetRow(count_, 4);
          root.Children.Add(count_);
 
          Content = root;
@@ -142,8 +155,30 @@ namespace hMailServer.ControlPanel.Views
          list_.ItemsSource = names;
          // The empty state says what to do, not only that there is nothing:
          // "0 public folders." left a first-time administrator with a blank card.
-         StatusText.Show(empty_, notice_, names.Count, null,
-            L("No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it."));
+         StatusText.Show(empty_, notice_, names.Count, null, EmptySentence_);
+         ShowSearch_();
+      }
+
+      /// <summary>
+      /// The search over the folders read: the list filtered as it is typed in, and
+      /// where it hides every folder, the empty state saying that none has what was
+      /// typed in its name.
+      /// </summary>
+      private void ShowSearch_()
+      {
+         if (ReadFailure.IsShown(notice_) || list_.ItemsSource is not List<string> names)
+            return;
+
+         string query = search_.SearchText?.Trim() ?? "";
+         ListSearch.Apply(list_, query);
+         if (query.Length > 0 && names.Count > 0 && !names.Exists(name => ListSearch.Contains(name, query)))
+         {
+            empty_.Text = F("No public folder has \"{0}\" in its name.", query);
+            empty_.Visibility = Visibility.Visible;
+            return;
+         }
+
+         StatusText.Show(empty_, null, names.Count, null, EmptySentence_);
       }
 
       private void AddFolder()

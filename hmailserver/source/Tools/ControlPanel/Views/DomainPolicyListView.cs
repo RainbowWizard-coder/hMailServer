@@ -223,8 +223,12 @@ namespace hMailServer.ControlPanel.Views
          StatusText.Show(empty_, null, all_.Count, null,
             L("The list is empty, and an empty list changes nothing: every domain is greylisted and scored as before."));
 
+         // The match notice goes with the search: typed away, it said "1 of 4"
+         // under a list of four (review finding F210).
          if (all_.Count > 0 && shown.Count < all_.Count)
             Status_(StatusLevel.Information, F("Entries that match the search: {0} of {1}.", shown.Count, all_.Count));
+         else if (status_.Level == StatusLevel.Information && !ReadFailure.IsShown(status_))
+            status_.Visibility = Visibility.Collapsed;
       }
 
       private void AddEntry()
@@ -298,7 +302,12 @@ namespace hMailServer.ControlPanel.Views
             Text = L("Not the spam exemptions, whose senders and IP ranges skip every test, and not the allow and block list, which decides per recipient at delivery. example.com matches that domain alone; .example.com matches the domain and everything beneath it.")
          };
 
-         toolbar_.PreviewKeyDown += (_, e) => { if (e.Key == System.Windows.Input.Key.Enter) Present_(); };
+         // Filtered as it is typed in, as the domains and IP ranges pages are: a
+         // filter over the rows already here, which asked for Enter, and nothing on
+         // the page said so (review finding F210). Not over a list that could not
+         // be read, which Present_ would read again on every keystroke: its notice
+         // has Try again.
+         toolbar_.SearchTextChanged += (_, _) => { if (!ReadFailure.IsShown(status_)) Present_(); };
 
          // The IP ranges shape: the list takes the height the toolbar and the
          // notices above it leave in the window, down to a floor of three rows,

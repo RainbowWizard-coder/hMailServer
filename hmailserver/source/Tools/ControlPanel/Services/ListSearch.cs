@@ -37,6 +37,33 @@ namespace hMailServer.ControlPanel.Services
          view.Filter = string.IsNullOrEmpty(q) ? null : item => Matches(item, q);
       }
 
+      /// <summary>
+      /// The same filter over the words <paramref name="text"/> gives each row - for
+      /// rows whose properties are not what the list shows: the collection editor's
+      /// rows hold their values in a dictionary and a database id, and a search over
+      /// those found nothing in "Values" and every id with the digits typed (review
+      /// findings F210 and F112).
+      /// </summary>
+      public static void Apply(ItemsControl control, string query, Func<object, string> text)
+      {
+         if (control == null || text == null)
+            return;
+
+         ICollectionView view = CollectionViewSource.GetDefaultView(control.ItemsSource);
+         if (view == null)
+            return;
+
+         string q = query?.Trim();
+         view.Filter = string.IsNullOrEmpty(q) ? null : item => Contains(text(item), q);
+      }
+
+      /// <summary>Whether <paramref name="words"/> holds <paramref name="query"/>, as the list search reads it: case-insensitive, trimmed, an empty query matching everything.</summary>
+      public static bool Contains(string words, string query)
+      {
+         string q = query?.Trim();
+         return string.IsNullOrEmpty(q) || (words ?? "").IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0;
+      }
+
       private static bool Matches(object item, string q)
       {
          if (item == null)
