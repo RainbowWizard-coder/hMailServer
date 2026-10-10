@@ -246,6 +246,50 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(offenders.Count == 0, "Write what a number means as the English does, \"0 = ...\":\n" + string.Join("\n", offenders));
       }
 
+      /// <summary>
+      /// A quantity of four digits or more is written with its thousands grouped in every English text,
+      /// a hint as its caption is, so that a row does not show one number two ways: the MTA-STS
+      /// policy's caption said "(seconds, 86,400 to 31,557,600)" over "From 86400, a day, to 31557600,
+      /// a year", the session timeouts' "(0 = the server's own 43,200)" over "43200 is twelve hours. At
+      /// most 2592000". A year, a port's number, an RFC's, an error's or a schema's is a name, as the
+      /// caption rule has it, and so is a number in quotes; two texts show the literal a box takes.
+      /// </summary>
+      [Fact]
+      public void EveryText_GroupsTheThousandsOfAQuantity()
+      {
+         var number = new Regex(@"(?<![\w,.:/#+-])\d{4,}(?![\w,.:/]?\w)");
+         var named = new Regex(@"(?:RFC|port|ports|error|HM|schema|version|ID|PBKDF2|SHA|X\.|BIMI|DS|TLSA|code)[ -]?$", RegexOptions.IgnoreCase);
+         string[] literals = { "such as 1048576 for 1 MB", "1048576 bytes is 1 MB" };
+         string path = ConfirmationPatternTests.ControlPanelFile(Path.Join("Resources", "Strings.resx"));
+         var offenders = new List<string>();
+         foreach (string text in XDocument.Load(path).Root.Elements("data").Select(d => (string)d.Attribute("name")))
+         {
+            string judged = Regex.Replace(literals.Aggregate(text, (s, literal) => s.Replace(literal, "", StringComparison.Ordinal)), "\"[^\"]*\"", "\"\"");
+            foreach (Match m in number.Matches(judged))
+            {
+               if (Regex.IsMatch(m.Value, @"^(?:19|20)\d\d$")
+                  || named.IsMatch(judged[Math.Max(0, m.Index - 12)..m.Index])
+                  || Regex.IsMatch(judged[Math.Max(0, m.Index - 40)..m.Index], @"\bport\b", RegexOptions.IgnoreCase))
+                  continue;
+               offenders.Add(m.Value + ": " + text);
+            }
+         }
+
+         Assert.True(offenders.Count == 0, "Group the thousands of a quantity, \"2,592,000\":\n" + string.Join("\n", offenders));
+      }
+
+      [Fact]
+      public void TheHintsUnderARange_DoNotSayItAgain()
+      {
+         string feature = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", "FeatureSettingsView.xaml.cs"));
+         string ldap = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", "LdapSettingsView.cs"));
+
+         Assert.Contains("Label = L(\"Policy max age (seconds, 86,400 to 31,557,600)\"), Blurb = L(\"The default, 604,800, is a week; 86,400 is a day and 31,557,600 a year, the longest RFC 8461 allows.\")", feature, StringComparison.Ordinal);
+         Assert.Contains("Blurb = Sentences(L(\"How much sending history a crash can forget.\"), L(\"The default is 10.\"))", feature, StringComparison.Ordinal);
+         Assert.Contains("StoredAs_(L(\"Default 10. The server reads values below 1 as 10 and clamps values above 90", ldap, StringComparison.Ordinal);
+         Assert.DoesNotContain("allowed range 1 to 90", ldap, StringComparison.Ordinal);
+      }
+
       private static void Judge(string relative, string caption, List<string> offenders)
       {
          List<string> problems = Problems(caption);

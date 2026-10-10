@@ -212,7 +212,7 @@ namespace hMailServer.ControlPanel.Views
          if (addressBox_.Text.Trim().Length == 0)
             addressRow_.Error = L("Enter the list's address.");
          if (!InlineFormChecks.TryWholeNumber(archiveDays_.Text, 0, 3650, out int archiveDays))
-            archiveDaysRow_.Error = L("Enter a number of days from 0 (for ever) to 3650.");
+            archiveDaysRow_.Error = L("Enter a number of days from 0 (for ever) to 3,650.");
          if (!InlineFormChecks.TryWholeNumber(digestHour_.Text, 0, 23, out int digestHour))
             digestHourRow_.Error = L("Enter an hour from 0 to 23.");
          if (DialogFields.ShowFirstError(addressRow_, archiveDaysRow_, digestHourRow_))

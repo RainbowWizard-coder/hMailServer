@@ -371,7 +371,7 @@ namespace hMailServer.ControlPanel.Views
             placeholder: "displayName"));
 
          content.Children.Add(LabelledBox_(L("_Maximum entries to read"), maxUsers_, "dirsync-max-users",
-            L("A ceiling on one pass - 5000 when left empty - so a search base pointed one level too high cannot be answered by reading an entire forest. If it is hit, the run says so and disables nothing at all - beyond the limit, an entry that exists is indistinguishable from one that was deleted."),
+            L("A ceiling on one pass - 5,000 when left empty - so a search base pointed one level too high cannot be answered by reading an entire forest. If it is hit, the run says so and disables nothing at all - beyond the limit, an entry that exists is indistinguishable from one that was deleted."),
             placeholder: "5000"));
 
          return card;

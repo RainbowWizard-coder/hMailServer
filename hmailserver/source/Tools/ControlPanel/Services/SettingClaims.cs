@@ -162,7 +162,7 @@ namespace hMailServer.ControlPanel.Services
       public static readonly IReadOnlyList<(int Value, string Label)> SyslogTransportOptions =
          new (int, string)[]
          {
-            (SyslogTransportUdp, N("UDP - no delivery guarantee, truncated at 1024 bytes")),
+            (SyslogTransportUdp, N("UDP - no delivery guarantee, truncated at 1,024 bytes")),
             (SyslogTransportTcp, N("TCP - delivered in order, nothing truncated")),
             (SyslogTransportTls, N("TCP over TLS (RFC 5425), certificate verified"))
          };
@@ -258,7 +258,7 @@ namespace hMailServer.ControlPanel.Services
       /// as a persistent setting - that is this note's one job.
       /// </summary>
       public static readonly string CacheMaxSizeIsSessionOnly = N(
-         "Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts.");
+         "Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10,240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts.");
 
       /// <summary>
       /// Shown on the JSON-lines checkbox while NCSA is selected. Logger::Render_
@@ -300,7 +300,7 @@ namespace hMailServer.ControlPanel.Services
          new SettingClaim("Logging.SyslogEnabled", ClaimKind.Conditional, SyslogAppliesOnRestart),
 
          new SettingClaim("Logging.SyslogTransport", ClaimKind.Honoured,
-            N("UDP truncates an entry to 1024 bytes, which is RFC 5426's guidance and is under every path MTU that matters; the two stream transports frame each entry with its own length (RFC 5425) and truncate nothing. TLS verifies the collector's certificate chain and its name against the machine's root store, and refuses the connection when either fails - so a collector with a self-signed certificate needs that certificate trusted on this machine.")),
+            N("UDP truncates an entry to 1,024 bytes, which is RFC 5426's guidance and is under every path MTU that matters; the two stream transports frame each entry with its own length (RFC 5425) and truncate nothing. TLS verifies the collector's certificate chain and its name against the machine's root store, and refuses the connection when either fails - so a collector with a self-signed certificate needs that certificate trusted on this machine.")),
 
          // Verified against the server: BounceTracker reads every one of these at
          // the moment it acts, so a change applies to the next message, and with
@@ -317,7 +317,7 @@ namespace hMailServer.ControlPanel.Services
             N("Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient. Turning this off stops reports being read at all; refusals met while delivering are still counted.")),
 
          new SettingClaim("Logging.SyslogHost", ClaimKind.Conditional,
-            N("Empty means the systemd journal on Linux, and means nothing is sent on Windows. A collector that stops answering never delays mail: entries queue, the oldest are dropped once 4096 are waiting, and the application log says so once when it starts and once when the collector comes back.")),
+            N("Empty means the systemd journal on Linux, and means nothing is sent on Windows. A collector that stops answering never delays mail: entries queue, the oldest are dropped once 4,096 are waiting, and the application log says so once when it starts and once when the collector comes back.")),
 
          // The four in-memory cache size limits. Honoured - the server applies
          // the value immediately and the getter reads the live value back - but

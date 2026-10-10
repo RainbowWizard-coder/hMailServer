@@ -26,7 +26,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          string save = Member("private void Save()");
          Assert.Contains("DialogFields.ClearErrors(addressRow_, archiveDaysRow_, digestHourRow_);", save, StringComparison.Ordinal);
          Assert.Contains("if (!InlineFormChecks.TryWholeNumber(archiveDays_.Text, 0, 3650, out int archiveDays))", save, StringComparison.Ordinal);
-         Assert.Contains("archiveDaysRow_.Error = L(\"Enter a number of days from 0 (for ever) to 3650.\");", save, StringComparison.Ordinal);
+         Assert.Contains("archiveDaysRow_.Error = L(\"Enter a number of days from 0 (for ever) to 3,650.\");", save, StringComparison.Ordinal);
          Assert.Contains("if (!InlineFormChecks.TryWholeNumber(digestHour_.Text, 0, 23, out int digestHour))", save, StringComparison.Ordinal);
          Assert.Contains("digestHourRow_.Error = L(\"Enter an hour from 0 to 23.\");", save, StringComparison.Ordinal);
          Assert.Contains("addressRow_.Error = L(\"Enter the list's address.\");", save, StringComparison.Ordinal);

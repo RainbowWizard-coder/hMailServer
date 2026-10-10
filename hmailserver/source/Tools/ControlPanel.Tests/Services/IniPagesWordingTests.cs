@@ -144,7 +144,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("ExamplePlaceholder.Of(\"dc01.example.local\")", ldap, StringComparison.Ordinal);
          Assert.Contains("ExamplePlaceholder.Of(\"DC=example,DC=local\")", ldap, StringComparison.Ordinal);
          Assert.Contains("ExamplePlaceholder.Of(\"svc-mail@example.local\")", ldap, StringComparison.Ordinal);
-         Assert.Contains("L(\"Default 10, allowed range 1 to 90.", ldap, StringComparison.Ordinal);
+         Assert.Contains("L(\"Default 10. The server reads values below 1 as 10", ldap, StringComparison.Ordinal);
 
          // Authentication: the OAuth2 card's three URLs - the token issuer, the provider's
          // published keys and its introspection endpoint - are examples.
@@ -160,7 +160,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          {
             string hint = box.Groups[1].Value;
             string fallback = box.Groups[2].Value;
-            Assert.True(hint.Contains(fallback, StringComparison.Ordinal),
+            // the hint groups a number's thousands, "5,000", and the box takes it as typed, "5000"
+            Assert.True(Regex.Replace(hint, @"(?<=\d),(?=\d{3})", "").Contains(fallback, StringComparison.Ordinal),
                "The hint of the box whose empty value is " + fallback + " does not say so: " + hint);
          }
       }

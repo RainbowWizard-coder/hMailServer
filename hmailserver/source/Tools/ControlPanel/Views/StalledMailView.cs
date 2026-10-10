@@ -207,7 +207,7 @@ namespace hMailServer.ControlPanel.Views
             (L("DNS query timeout (10)"), L("A single DNS query. 0 = no time limit.")),
             (L("Event script execution timeout (60)"), L("One event script invocation. 0 = no time limit.")),
             (L("External process timeout (300)"), L("An external scanner process. 0 = no time limit.")),
-            (L("Absolute lifetime of one client session (1800)"), L("An entire outbound delivery session. 0 = no time limit.")),
+            (L("Absolute lifetime of one client session (1,800)"), L("An entire outbound delivery session. 0 = no time limit.")),
             (L("Report the async work queue as stalled after (120)"), L("How long every worker may be busy before the saturation report. 0 = reporting off.")),
             (L("Wait for a free database connection (60)"), L("Waiting for a pooled database connection. 0 = no time limit.")),
          }));

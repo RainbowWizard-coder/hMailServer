@@ -2153,7 +2153,7 @@ namespace hMailServer.ControlPanel.Views
                         Default = "0",
                         Placeholder = "604800",
                         Label = L("Validity window for the signatures this server makes (seconds; 0 = no expiry)"),
-                        Blurb = L("0 emits no expiry at all, which is the safe default: an expiry is a promise about mail already in flight, and a window shorter than the delay a retry, a greylist or a mailing list adds costs the message its DKIM pass and its DMARC alignment at the far end. 604800 is a week, the usual choice for a sender who wants one. A signing timestamp is always sent regardless of this value.")
+                        Blurb = L("0 emits no expiry at all, which is the safe default: an expiry is a promise about mail already in flight, and a window shorter than the delay a retry, a greylist or a mailing list adds costs the message its DKIM pass and its DMARC alignment at the far end. 604,800 is a week, the usual choice for a sender who wants one. A signing timestamp is always sent regardless of this value.")
                      },
                      new BoolSetting
                      {
@@ -2468,7 +2468,7 @@ namespace hMailServer.ControlPanel.Views
                         Default = "60",
                         Label = L("Seconds between metric pushes"),
                         Placeholder = "60",
-                        Blurb = L("From 5 to 3600. Only used when the metrics endpoint above is set.")
+                        Blurb = L("From 5 to 3,600. Only used when the metrics endpoint above is set.")
                      },
                      new TextSetting { Key = "OtelServiceName", Default = "hmailserver", Label = L("OpenTelemetry service name") },
                      new NumberSetting { Key = "SlowQueryLogMilliseconds", Minimum = 0, Default = "0", Label = L("Log database queries slower than (milliseconds; 0 = off)"), Placeholder = "250" }
@@ -2899,7 +2899,7 @@ namespace hMailServer.ControlPanel.Views
                         Section = "SendingLimits",
                         Default = "10",
                         Label = L("Save the counters to disk every (seconds, 1 to 3,600)"),
-                        Blurb = Sentences(L("How much sending history a crash can forget, from 1 second to 3600."), L("The default is 10."))
+                        Blurb = Sentences(L("How much sending history a crash can forget."), L("The default is 10."))
                      },
                      new SectionLinesSetting
                      {
@@ -3282,7 +3282,7 @@ namespace hMailServer.ControlPanel.Views
                            ("none", L("none - no policy: senders that cached one stop applying it"))
                         }
                      },
-                     new NumberSetting { Key = "MtaStsPolicyMaxAge", Minimum = 86400, Maximum = 31557600, Default = "604800", Label = L("Policy max age (seconds, 86,400 to 31,557,600)"), Blurb = Sentences(L("From 86400, a day, to 31557600, a year - the longest RFC 8461 allows."), L("The default, 604,800, is a week.")) },
+                     new NumberSetting { Key = "MtaStsPolicyMaxAge", Minimum = 86400, Maximum = 31557600, Default = "604800", Label = L("Policy max age (seconds, 86,400 to 31,557,600)"), Blurb = L("The default, 604,800, is a week; 86,400 is a day and 31,557,600 a year, the longest RFC 8461 allows.") },
                      new TextSetting { Key = "MtaStsPolicyMx", Label = L("Policy MX host patterns (empty = derive from each domain's MX)"), Placeholder = "mail.yourdomain.com, *.yourdomain.com" } // no-loc
                   }
                });

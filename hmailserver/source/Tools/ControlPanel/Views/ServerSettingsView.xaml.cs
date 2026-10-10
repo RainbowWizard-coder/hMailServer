@@ -3074,7 +3074,7 @@ namespace hMailServer.ControlPanel.Views
             Label = L("Ban the sending address for (minutes, up to 525,600; 0 = no ban)"),
             Numeric = true,
             Maximum = 525600,
-            Blurb = L("1440 by default; the ban is an expiring IP range, as an auto-ban is. An authenticated session, the spam exemptions, an incoming relay and an address in 'Never auto-ban these addresses' on the Auto-ban page are never banned.")
+            Blurb = L("1,440 by default; the ban is an expiring IP range, as an auto-ban is. An authenticated session, the spam exemptions, an incoming relay and an address in 'Never auto-ban these addresses' on the Auto-ban page are never banned.")
          });
          traps.Settings.Add(new ComText
          {
@@ -3352,7 +3352,7 @@ namespace hMailServer.ControlPanel.Views
             // meaningful rather than a mistake, which is why IniNumber grew a
             // minimum at all.
             MinimumValue = -1,
-            Blurb = L("Each cached session costs server memory, and a client that churns handshakes grows the cache - this cap is the defence. A positive value replaces OpenSSL's default cap of 20480 sessions. -1 turns the server-side cache off entirely, which stops session-ID resumption but leaves tickets - which cost the server no memory - unaffected. 0 leaves OpenSSL alone."),
+            Blurb = L("Each cached session costs server memory, and a client that churns handshakes grows the cache - this cap is the defence. A positive value replaces OpenSSL's default cap of 20,480 sessions. -1 turns the server-side cache off entirely, which stops session-ID resumption but leaves tickets - which cost the server no memory - unaffected. 0 leaves OpenSSL alone."),
             IniStore = iniStore_
          });
          resume.Settings.Add(new IniNumber
@@ -3368,7 +3368,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "TlsTicketKeyRotationSeconds",
             Label = L("Rotate the session-ticket key every (seconds; 0 = OpenSSL's single key)"),
             Default = 0,
-            Blurb = L("What rotation defends: OpenSSL's default ticket key is generated once, when the listener starts, and is never rotated, so every ticket that listener issues for the life of the process is sealed under the same key - and that key, recovered later, decrypts every ticket ever recorded. With an interval set, a captured ticket is useless after at most two intervals. 86400 is a day. Only meaningful while session tickets are enabled above."),
+            Blurb = L("What rotation defends: OpenSSL's default ticket key is generated once, when the listener starts, and is never rotated, so every ticket that listener issues for the life of the process is sealed under the same key - and that key, recovered later, decrypts every ticket ever recorded. With an interval set, a captured ticket is useless after at most two intervals. 86,400 is a day. Only meaningful while session tickets are enabled above."),
             IniStore = iniStore_
          });
          Tab(L("Session resumption")).Cards.Add(resume);
@@ -4654,7 +4654,7 @@ namespace hMailServer.ControlPanel.Views
             Label = L("Warn in the application log and Windows event log below this much free space (MB; 0 = never)"),
             Default = 1024,
             MinimumValue = 0,
-            Blurb = L("Where the administrator is told, well before anything is refused. 1024 MB is roughly fifty more maximum-size messages."),
+            Blurb = L("Where the administrator is told, well before anything is refused. 1,024 MB is roughly fifty more maximum-size messages."),
             IniStore = iniStore_
          });
          disk.Settings.Add(new IniNumber
@@ -4922,7 +4922,7 @@ namespace hMailServer.ControlPanel.Views
             Label = L("Seconds a session may go unused (0 = the server's own 1,800)"),
             Numeric = true,
             Maximum = 2592000,
-            Blurb = L("At most 2592000, thirty days.")
+            Blurb = L("At most 2,592,000, thirty days.")
          });
          sessions.Settings.Add(new ComText
          {
@@ -4930,7 +4930,7 @@ namespace hMailServer.ControlPanel.Views
             Label = L("Seconds a session may last at all (0 = the server's own 43,200)"),
             Numeric = true,
             Maximum = 2592000,
-            Blurb = L("43200 is twelve hours. At most 2592000, thirty days.")
+            Blurb = L("43,200 is twelve hours. At most 2,592,000, thirty days.")
          });
          sessions.Settings.Add(new ComBool
          {
@@ -5069,7 +5069,7 @@ namespace hMailServer.ControlPanel.Views
             Numeric = true,
             Minimum = 1024,
             Maximum = 1048576,
-            Blurb = L("65536 by default.")
+            Blurb = L("65,536 by default.")
          });
          pgp.Settings.Add(new ComBool
          {
@@ -5173,7 +5173,7 @@ namespace hMailServer.ControlPanel.Views
             Key = "time_to_live_seconds",
             Group = RestSettings.PushGroup,
             Maximum = 2419200,
-            Blurb = L("86400 by default; 0 delivers at once or not at all.")
+            Blurb = L("86,400 by default; 0 delivers at once or not at all.")
          });
          push.Settings.Add(new RestNumber
          {

@@ -120,8 +120,8 @@
   <data name="0 disables auto-ban entirely, even with the box above ticked." xml:space="preserve">
     <value>0 désactive entièrement le bannissement automatique, même avec la case ci-dessus cochée.</value>
   </data>
-  <data name="0 emits no expiry at all, which is the safe default: an expiry is a promise about mail already in flight, and a window shorter than the delay a retry, a greylist or a mailing list adds costs the message its DKIM pass and its DMARC alignment at the far end. 604800 is a week, the usual choice for a sender who wants one. A signing timestamp is always sent regardless of this value." xml:space="preserve">
-    <value>0 n'émet aucune expiration, ce qui est le défaut sûr : une expiration est une promesse sur du courrier déjà en transit, et une fenêtre plus courte que le délai qu'ajoute une nouvelle tentative, un greylisting ou une liste de diffusion coûte au message son succès DKIM et son alignement DMARC à l'autre bout. 604800 est une semaine, le choix habituel d'un expéditeur qui en veut une. Un horodatage de signature est toujours envoyé quelle que soit cette valeur.</value>
+  <data name="0 emits no expiry at all, which is the safe default: an expiry is a promise about mail already in flight, and a window shorter than the delay a retry, a greylist or a mailing list adds costs the message its DKIM pass and its DMARC alignment at the far end. 604,800 is a week, the usual choice for a sender who wants one. A signing timestamp is always sent regardless of this value." xml:space="preserve">
+    <value>0 n'émet aucune expiration, ce qui est le défaut sûr : une expiration est une promesse sur du courrier déjà en transit, et une fenêtre plus courte que le délai qu'ajoute une nouvelle tentative, un greylisting ou une liste de diffusion coûte au message son succès DKIM et son alignement DMARC à l'autre bout. 604 800 est une semaine, le choix habituel d'un expéditeur qui en veut une. Un horodatage de signature est toujours envoyé quelle que soit cette valeur.</value>
   </data>
   <data name="0 is the shipped default and disables the whole mechanism." xml:space="preserve">
     <value>0 est la valeur livrée par défaut et désactive tout le mécanisme.</value>
@@ -207,6 +207,9 @@
   <data name="1 spam exemption" xml:space="preserve">
     <value>1 exemption anti-spam</value>
   </data>
+  <data name="1,440 by default; the ban is an expiring IP range, as an auto-ban is. An authenticated session, the spam exemptions, an incoming relay and an address in 'Never auto-ban these addresses' on the Auto-ban page are never banned." xml:space="preserve">
+    <value>1 440 par défaut ; le bannissement est une plage IP qui expire, comme pour le bannissement automatique. Une session authentifiée, les exemptions anti-spam, un relais entrant et une adresse de « Ne jamais bannir automatiquement ces adresses » sur la page Bannissement automatique ne sont jamais bannis.</value>
+  </data>
   <data name="1.  Scan this QR code with an authenticator app (Microsoft Authenticator, Google Authenticator, Authy, 1Password…)." xml:space="preserve">
     <value>1.  Scannez ce code QR avec une application d'authentification (Microsoft Authenticator, Google Authenticator, Authy, 1Password…).</value>
   </data>
@@ -221,9 +224,6 @@
   </data>
   <data name="14 by default. The unread copies are deleted; the read ones stay." xml:space="preserve">
     <value>14 par défaut. Les copies non lues sont supprimées ; les copies lues restent.</value>
-  </data>
-  <data name="1440 by default; the ban is an expiring IP range, as an auto-ban is. An authenticated session, the spam exemptions, an incoming relay and an address in 'Never auto-ban these addresses' on the Auto-ban page are never banned." xml:space="preserve">
-    <value>1440 par défaut ; le bannissement est une plage IP qui expire, comme pour le bannissement automatique. Une session authentifiée, les exemptions anti-spam, un relais entrant et une adresse de « Ne jamais bannir automatiquement ces adresses » sur la page Bannissement automatique ne sont jamais bannis.</value>
   </data>
   <data name="15 by default, counted once no IMAP or POP3 session holds the key. After that the mail is readable again only after the next sign-in with the password." xml:space="preserve">
     <value>15 par défaut, comptées dès qu'aucune session IMAP ou POP3 ne tient la clé. Ensuite, le courrier n'est de nouveau lisible qu'après la prochaine connexion avec le mot de passe.</value>
@@ -294,8 +294,8 @@
   <data name="4 by default. The last hour's messages have to exceed this many times the busiest hour of the baseline, and reach the floor below." xml:space="preserve">
     <value>4 par défaut. Les messages de la dernière heure doivent dépasser autant de fois l'heure la plus chargée de la référence, et atteindre le plancher ci-dessous.</value>
   </data>
-  <data name="43200 is twelve hours. At most 2592000, thirty days." xml:space="preserve">
-    <value>43200 font douze heures. Au plus 2592000, trente jours.</value>
+  <data name="43,200 is twelve hours. At most 2,592,000, thirty days." xml:space="preserve">
+    <value>43 200 font douze heures. Au plus 2 592 000, trente jours.</value>
   </data>
   <data name="443 is the port clients expect." xml:space="preserve">
     <value>443 est le port qu'attendent les clients.</value>
@@ -333,8 +333,8 @@
   <data name="60 by default; means nothing while the threshold above is 0." xml:space="preserve">
     <value>60 par défaut ; ne signifie rien tant que le seuil ci-dessus est à 0.</value>
   </data>
-  <data name="65536 by default." xml:space="preserve">
-    <value>65536 par défaut.</value>
+  <data name="65,536 by default." xml:space="preserve">
+    <value>65 536 par défaut.</value>
   </data>
   <data name="7 by default." xml:space="preserve">
     <value>7 par défaut.</value>
@@ -357,8 +357,8 @@
   <data name="80 is the port clients expect." xml:space="preserve">
     <value>80 est le port qu'attendent les clients.</value>
   </data>
-  <data name="86400 by default; 0 delivers at once or not at all." xml:space="preserve">
-    <value>86400 par défaut ; 0 livre tout de suite ou pas du tout.</value>
+  <data name="86,400 by default; 0 delivers at once or not at all." xml:space="preserve">
+    <value>86 400 par défaut ; 0 livre tout de suite ou pas du tout.</value>
   </data>
   <data name="90 by default. A ban or a block a hit made is not removed with its record." xml:space="preserve">
     <value>90 par défaut. Un bannissement ou un blocage causé par un déclenchement n'est pas supprimé avec son enregistrement.</value>
@@ -393,8 +393,8 @@
   <data name="A backup destination - until one is set there is no backup" xml:space="preserve">
     <value>Une destination de sauvegarde - tant qu'aucune n'est définie, il n'y a pas de sauvegarde</value>
   </data>
-  <data name="A ceiling on one pass - 5000 when left empty - so a search base pointed one level too high cannot be answered by reading an entire forest. If it is hit, the run says so and disables nothing at all - beyond the limit, an entry that exists is indistinguishable from one that was deleted." xml:space="preserve">
-    <value>Un plafond sur une passe - 5000 si le champ reste vide - pour qu'une base de recherche placée un niveau trop haut ne puisse pas être satisfaite en lisant une forêt entière. S'il est atteint, l'exécution le dit et ne désactive rien du tout - au-delà de la limite, une entrée qui existe est indiscernable d'une entrée supprimée.</value>
+  <data name="A ceiling on one pass - 5,000 when left empty - so a search base pointed one level too high cannot be answered by reading an entire forest. If it is hit, the run says so and disables nothing at all - beyond the limit, an entry that exists is indistinguishable from one that was deleted." xml:space="preserve">
+    <value>Un plafond sur une passe - 5 000 si le champ reste vide - pour qu'une base de recherche placée un niveau trop haut ne puisse pas être satisfaite en lisant une forêt entière. S'il est atteint, l'exécution le dit et ne désactive rien du tout - au-delà de la limite, une entrée qui existe est indiscernable d'une entrée supprimée.</value>
   </data>
   <data name="A certificate has been issued into {0}, but its expiry could not be read: {1}" xml:space="preserve">
     <value>Un certificat a été émis dans {0}, mais son expiration n'a pas pu être lue : {1}</value>
@@ -849,8 +849,8 @@
   <data name="About" xml:space="preserve">
     <value>À propos</value>
   </data>
-  <data name="Absolute lifetime of one client session (1800)" xml:space="preserve">
-    <value>Durée de vie absolue d'une session client (1800)</value>
+  <data name="Absolute lifetime of one client session (1,800)" xml:space="preserve">
+    <value>Durée de vie absolue d'une session client (1 800)</value>
   </data>
   <data name="Absolute lifetime of one client session (seconds; 0 = no time limit)" xml:space="preserve">
     <value>Durée de vie absolue d'une session client (secondes ; 0 = pas de limite de temps)</value>
@@ -1885,8 +1885,8 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="At least {0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page. There are more accounts on this server than this page walks, so there may be others." xml:space="preserve">
     <value>Au moins {0} comptes de collecte POP3 externes ont l'antivirus désactivé, si bien que le courrier collecté par ceux-ci est livré sans analyse quel que soit le réglage ici. L'interrupteur est sur le compte de collecte, pas sur cette page. Il y a plus de comptes sur ce serveur que cette page n'en parcourt, il peut donc y en avoir d'autres.</value>
   </data>
-  <data name="At most 2592000, thirty days." xml:space="preserve">
-    <value>Au plus 2592000, trente jours.</value>
+  <data name="At most 2,592,000, thirty days." xml:space="preserve">
+    <value>Au plus 2 592 000, trente jours.</value>
   </data>
   <data name="At most one backup per calendar day, taken at the first check at or after this time (the server's local time). If an interval is also set below, the daily time wins." xml:space="preserve">
     <value>Au plus une sauvegarde par jour civil, prise à la première vérification à cette heure ou après (heure locale du serveur). Si un intervalle est aussi défini ci-dessous, l'heure quotidienne l'emporte.</value>
@@ -3801,8 +3801,8 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Declined" xml:space="preserve">
     <value>Refusé</value>
   </data>
-  <data name="Default 10, allowed range 1 to 90. The server reads values below 1 as 10 and clamps values above 90, because &quot;wait forever&quot; for an unreachable directory is how connection threads get exhausted." xml:space="preserve">
-    <value>Par défaut 10, plage autorisée de 1 à 90. Le serveur lit les valeurs inférieures à 1 comme 10 et borne les valeurs au-dessus de 90, parce que « attendre indéfiniment » un annuaire injoignable est ainsi que les threads de connexion s'épuisent.</value>
+  <data name="Default 10. The server reads values below 1 as 10 and clamps values above 90, because &quot;wait forever&quot; for an unreachable directory is how connection threads get exhausted." xml:space="preserve">
+    <value>Par défaut 10. Le serveur lit les valeurs inférieures à 1 comme 10 et borne les valeurs au-dessus de 90, parce que « attendre indéfiniment » un annuaire injoignable est ainsi que les threads de connexion s'épuisent.</value>
   </data>
   <data name="Default domain (for sign-ins without a domain)" xml:space="preserve">
     <value>Domaine par défaut (pour les connexions sans domaine)</value>
@@ -4435,8 +4435,8 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Each as the browser writes it: https, the host and any port. Empty, the default, is right while the relying party is empty; once a relying party is set, no passkey is registered or taken until this names the origins." xml:space="preserve">
     <value>Chacune telle que le navigateur l'écrit : https, l'hôte et un éventuel port. Vide, la valeur par défaut, convient tant que la partie de confiance est vide ; une fois une partie de confiance définie, aucune clé d'accès n'est enregistrée ni acceptée tant que ceci ne nomme pas les origines.</value>
   </data>
-  <data name="Each cached session costs server memory, and a client that churns handshakes grows the cache - this cap is the defence. A positive value replaces OpenSSL's default cap of 20480 sessions. -1 turns the server-side cache off entirely, which stops session-ID resumption but leaves tickets - which cost the server no memory - unaffected. 0 leaves OpenSSL alone." xml:space="preserve">
-    <value>Chaque session en cache coûte de la mémoire serveur, et un client qui enchaîne les poignées de main fait grossir le cache - ce plafond est la défense. Une valeur positive remplace le plafond par défaut d'OpenSSL de 20480 sessions. -1 désactive entièrement le cache côté serveur, ce qui arrête la reprise par identifiant de session mais laisse les tickets - qui ne coûtent aucune mémoire au serveur - intacts. 0 laisse OpenSSL tranquille.</value>
+  <data name="Each cached session costs server memory, and a client that churns handshakes grows the cache - this cap is the defence. A positive value replaces OpenSSL's default cap of 20,480 sessions. -1 turns the server-side cache off entirely, which stops session-ID resumption but leaves tickets - which cost the server no memory - unaffected. 0 leaves OpenSSL alone." xml:space="preserve">
+    <value>Chaque session en cache coûte de la mémoire serveur, et un client qui enchaîne les poignées de main fait grossir le cache - ce plafond est la défense. Une valeur positive remplace le plafond par défaut d'OpenSSL de 20 480 sessions. -1 désactive entièrement le cache côté serveur, ce qui arrête la reprise par identifiant de session mais laisse les tickets - qui ne coûtent aucune mémoire au serveur - intacts. 0 laisse OpenSSL tranquille.</value>
   </data>
   <data name="Each check can be enabled separately and given its own score." xml:space="preserve">
     <value>Chaque vérification peut être activée séparément et recevoir son propre score.</value>
@@ -4585,8 +4585,8 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Empty means postmaster at this server's host name." xml:space="preserve">
     <value>Vide signifie postmaster au nom d'hôte de ce serveur.</value>
   </data>
-  <data name="Empty means the systemd journal on Linux, and means nothing is sent on Windows. A collector that stops answering never delays mail: entries queue, the oldest are dropped once 4096 are waiting, and the application log says so once when it starts and once when the collector comes back." xml:space="preserve">
-    <value>Vide signifie le journal systemd sous Linux, et sous Windows que rien n'est envoyé. Un collecteur qui cesse de répondre ne retarde jamais le courrier : les entrées sont mises en file, les plus anciennes sont abandonnées dès que 4096 attendent, et le journal applicatif le signale une fois au début et une fois au retour du collecteur.</value>
+  <data name="Empty means the systemd journal on Linux, and means nothing is sent on Windows. A collector that stops answering never delays mail: entries queue, the oldest are dropped once 4,096 are waiting, and the application log says so once when it starts and once when the collector comes back." xml:space="preserve">
+    <value>Vide signifie le journal systemd sous Linux, et sous Windows que rien n'est envoyé. Un collecteur qui cesse de répondre ne retarde jamais le courrier : les entrées sont mises en file, les plus anciennes sont abandonnées dès que 4 096 attendent, et le journal applicatif le signale une fois au début et une fois au retour du collecteur.</value>
   </data>
   <data name="Empty, the default, answers nobody. Name the managers one by one: UDP does not prove where a request came from." xml:space="preserve">
     <value>Vide, la valeur par défaut, ne répond à personne. Nommez les gestionnaires un par un : UDP ne prouve pas d'où vient une requête.</value>
@@ -4744,8 +4744,8 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Enter a name for the relay." xml:space="preserve">
     <value>Saisissez un nom pour le relais.</value>
   </data>
-  <data name="Enter a number of days from 0 (for ever) to 3650." xml:space="preserve">
-    <value>Saisissez un nombre de jours de 0 (pour toujours) à 3650.</value>
+  <data name="Enter a number of days from 0 (for ever) to 3,650." xml:space="preserve">
+    <value>Saisissez un nombre de jours de 0 (pour toujours) à 3 650.</value>
   </data>
   <data name="Enter a password, or press Generate." xml:space="preserve">
     <value>Saisissez un mot de passe ou appuyez sur Générer.</value>
@@ -5455,11 +5455,8 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="From (a_ddress)" xml:space="preserve">
     <value>De (a_dresse)</value>
   </data>
-  <data name="From 5 to 3600. Only used when the metrics endpoint above is set." xml:space="preserve">
-    <value>De 5 à 3600. Utilisé seulement lorsque le point de métriques ci-dessus est défini.</value>
-  </data>
-  <data name="From 86400, a day, to 31557600, a year - the longest RFC 8461 allows." xml:space="preserve">
-    <value>De 86400, un jour, à 31557600, un an - le plus long que permet le RFC 8461.</value>
+  <data name="From 5 to 3,600. Only used when the metrics endpoint above is set." xml:space="preserve">
+    <value>De 5 à 3 600. Utilisé seulement lorsque le point de métriques ci-dessus est défini.</value>
   </data>
   <data name="From _name" xml:space="preserve">
     <value>_Nom d'expédition</value>
@@ -5869,8 +5866,8 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="How much detail each entry carries. Lowering the level is the other half of controlling log volume." xml:space="preserve">
     <value>Combien de détail porte chaque entrée. Baisser le niveau est l'autre moitié du contrôle du volume des journaux.</value>
   </data>
-  <data name="How much sending history a crash can forget, from 1 second to 3600." xml:space="preserve">
-    <value>Combien d'historique d'envoi un crash peut oublier, de 1 seconde à 3600.</value>
+  <data name="How much sending history a crash can forget." xml:space="preserve">
+    <value>Combien d'historique d'envoi un crash peut oublier.</value>
   </data>
   <data name="How often a client may check for mail" xml:space="preserve">
     <value>À quelle fréquence un client peut relever son courrier</value>
@@ -12312,8 +12309,8 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Taken (server time)" xml:space="preserve">
     <value>Effectuée (heure du serveur)</value>
   </data>
-  <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts." xml:space="preserve">
-    <value>Prend effet immédiatement, mais n'est conservé qu'en mémoire : rien ne stocke cette valeur, chaque redémarrage du service la ramène donc à la valeur intégrée de 10240 Ko (10 Mo). Pour garder une limite différente, il faut la redéfinir après chaque redémarrage, par exemple depuis un script de démarrage via l'API COM. Les TTL et le commutateur d'activation de cette carte sont stockés et survivent bien aux redémarrages.</value>
+  <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10,240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts." xml:space="preserve">
+    <value>Prend effet immédiatement, mais n'est conservé qu'en mémoire : rien ne stocke cette valeur, chaque redémarrage du service la ramène donc à la valeur intégrée de 10 240 Ko (10 Mo). Pour garder une limite différente, il faut la redéfinir après chaque redémarrage, par exemple depuis un script de démarrage via l'API COM. Les TTL et le commutateur d'activation de cette carte sont stockés et survivent bien aux redémarrages.</value>
   </data>
   <data name="Target SMTP _port" xml:space="preserve">
     <value>_Port SMTP cible</value>
@@ -12947,8 +12944,8 @@ Sélectionnez la clé ci-dessus et copiez-la à la main - elle ne sera plus jama
   <data name="The default is 24, and 168 is a week." xml:space="preserve">
     <value>La valeur par défaut est 24, et 168 correspond à une semaine.</value>
   </data>
-  <data name="The default, 604,800, is a week." xml:space="preserve">
-    <value>La valeur par défaut, 604 800, correspond à une semaine.</value>
+  <data name="The default, 604,800, is a week; 86,400 is a day and 31,557,600 a year, the longest RFC 8461 allows." xml:space="preserve">
+    <value>La valeur par défaut, 604 800, correspond à une semaine ; 86 400 à un jour et 31 557 600 à un an, le plus long que permet le RFC 8461.</value>
   </data>
   <data name="The delete override never deletes on a guess: the copy is removed only when the recorded score actually reached the value, and it goes to the quarantine store instead when that is enabled." xml:space="preserve">
     <value>La surcharge de suppression ne supprime jamais sur une supposition : la copie n'est retirée que lorsque le score enregistré a réellement atteint la valeur, et elle part dans la quarantaine à la place quand celle-ci est activée.</value>
@@ -14452,14 +14449,14 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="Type:       TXT" xml:space="preserve">
     <value>Type :      TXT</value>
   </data>
-  <data name="UDP - no delivery guarantee, truncated at 1024 bytes" xml:space="preserve">
-    <value>UDP - aucune garantie de remise, tronqué à 1024 octets</value>
+  <data name="UDP - no delivery guarantee, truncated at 1,024 bytes" xml:space="preserve">
+    <value>UDP - aucune garantie de remise, tronqué à 1 024 octets</value>
   </data>
   <data name="UDP port (1 to 65535)" xml:space="preserve">
     <value>Port UDP (1 à 65535)</value>
   </data>
-  <data name="UDP truncates an entry to 1024 bytes, which is RFC 5426's guidance and is under every path MTU that matters; the two stream transports frame each entry with its own length (RFC 5425) and truncate nothing. TLS verifies the collector's certificate chain and its name against the machine's root store, and refuses the connection when either fails - so a collector with a self-signed certificate needs that certificate trusted on this machine." xml:space="preserve">
-    <value>UDP tronque une entrée à 1024 octets, ce qui correspond à la recommandation de la RFC 5426 et reste sous toute MTU de chemin qui compte ; les deux transports en flux encadrent chaque entrée par sa propre longueur (RFC 5425) et ne tronquent rien. TLS vérifie la chaîne de certificats du collecteur et son nom auprès du magasin racine de la machine, et refuse la connexion si l'un des deux échoue - un collecteur au certificat auto-signé exige donc que ce certificat soit approuvé sur cette machine.</value>
+  <data name="UDP truncates an entry to 1,024 bytes, which is RFC 5426's guidance and is under every path MTU that matters; the two stream transports frame each entry with its own length (RFC 5425) and truncate nothing. TLS verifies the collector's certificate chain and its name against the machine's root store, and refuses the connection when either fails - so a collector with a self-signed certificate needs that certificate trusted on this machine." xml:space="preserve">
+    <value>UDP tronque une entrée à 1 024 octets, ce qui correspond à la recommandation de la RFC 5426 et reste sous toute MTU de chemin qui compte ; les deux transports en flux encadrent chaque entrée par sa propre longueur (RFC 5425) et ne tronquent rien. TLS vérifie la chaîne de certificats du collecteur et son nom auprès du magasin racine de la machine, et refuse la connexion si l'un des deux échoue - un collecteur au certificat auto-signé exige donc que ce certificat soit approuvé sur cette machine.</value>
   </data>
   <data name="Unable to reach the server (RPC unavailable)." xml:space="preserve">
     <value>Impossible de joindre le serveur (RPC indisponible).</value>
@@ -14863,8 +14860,8 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="What people may do in the webmail" xml:space="preserve">
     <value>Ce que chacun peut faire dans le webmail</value>
   </data>
-  <data name="What rotation defends: OpenSSL's default ticket key is generated once, when the listener starts, and is never rotated, so every ticket that listener issues for the life of the process is sealed under the same key - and that key, recovered later, decrypts every ticket ever recorded. With an interval set, a captured ticket is useless after at most two intervals. 86400 is a day. Only meaningful while session tickets are enabled above." xml:space="preserve">
-    <value>Ce que la rotation défend : la clé de ticket par défaut d'OpenSSL est générée une seule fois, au démarrage de l'écouteur, et n'est jamais renouvelée ; chaque ticket que cet écouteur émet pendant toute la vie du processus est donc scellé sous la même clé - et cette clé, récupérée plus tard, déchiffre tous les tickets déjà enregistrés. Avec un intervalle défini, un ticket capturé est inutile après deux intervalles au plus. 86400 correspond à un jour. N'a de sens que tant que les tickets de session sont activés ci-dessus.</value>
+  <data name="What rotation defends: OpenSSL's default ticket key is generated once, when the listener starts, and is never rotated, so every ticket that listener issues for the life of the process is sealed under the same key - and that key, recovered later, decrypts every ticket ever recorded. With an interval set, a captured ticket is useless after at most two intervals. 86,400 is a day. Only meaningful while session tickets are enabled above." xml:space="preserve">
+    <value>Ce que la rotation défend : la clé de ticket par défaut d'OpenSSL est générée une seule fois, au démarrage de l'écouteur, et n'est jamais renouvelée ; chaque ticket que cet écouteur émet pendant toute la vie du processus est donc scellé sous la même clé - et cette clé, récupérée plus tard, déchiffre tous les tickets déjà enregistrés. Avec un intervalle défini, un ticket capturé est inutile après deux intervalles au plus. 86 400 correspond à un jour. N'a de sens que tant que les tickets de session sont activés ci-dessus.</value>
   </data>
   <data name="What stops one statement blocked on a lock from holding a worker thread for ever. Honoured at connect time by MySQL/MariaDB and PostgreSQL; MS SQL and SQL CE start at ADO's own 30 seconds and pick this value up on any connection that has run an upgrade or maintenance script. Those scripts run under a 30-minute per-statement ceiling of their own regardless of this value." xml:space="preserve">
     <value>Ce qui empêche une instruction bloquée sur un verrou de retenir indéfiniment un thread de travail. Respecté à la connexion par MySQL/MariaDB et PostgreSQL ; MS SQL et SQL CE partent des 30 secondes propres à ADO et reprennent cette valeur sur toute connexion ayant exécuté un script de mise à niveau ou de maintenance. Ces scripts s'exécutent sous un plafond de 30 minutes par instruction qui leur est propre, quelle que soit cette valeur.</value>
@@ -14977,8 +14974,8 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="Where the Control Deck is could not be read." xml:space="preserve">
     <value>L'emplacement du Control Deck n'a pas pu être lu.</value>
   </data>
-  <data name="Where the administrator is told, well before anything is refused. 1024 MB is roughly fifty more maximum-size messages." xml:space="preserve">
-    <value>Là où l'administrateur est averti, bien avant que quoi que ce soit ne soit refusé. 1024 Mo, c'est environ cinquante messages de taille maximale de plus.</value>
+  <data name="Where the administrator is told, well before anything is refused. 1,024 MB is roughly fifty more maximum-size messages." xml:space="preserve">
+    <value>Là où l'administrateur est averti, bien avant que quoi que ce soit ne soit refusé. 1 024 Mo, c'est environ cinquante messages de taille maximale de plus.</value>
   </data>
   <data name="Where the issued certificate would be written could not be determined, because neither the output folder above nor the server's data folder ([Directories] DataFolder in hMailServer.ini) could be read." xml:space="preserve">
     <value>L'endroit où le certificat émis serait écrit n'a pas pu être déterminé, car ni le dossier de sortie ci-dessus ni le dossier de données du serveur ([Directories] DataFolder dans hMailServer.ini) n'ont pu être lus.</value>
