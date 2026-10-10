@@ -8674,6 +8674,9 @@ Inget som redan finns där tas bort.</value>
   <data name="Only used together with the user name above" xml:space="preserve">
     <value>Används bara tillsammans med användarnamnet ovan</value>
   </data>
+  <data name="Only what could be read is counted." xml:space="preserve">
+    <value>Bara det som kunde läsas är räknat.</value>
+  </data>
   <data name="Open" xml:space="preserve">
     <value>Öppet</value>
   </data>
@@ -9281,6 +9284,9 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   </data>
   <data name="Press &quot;Check&quot; to look the record up through this machine's resolver." xml:space="preserve">
     <value>Tryck på "Kontrollera" för att slå upp posten genom den här datorns resolver.</value>
+  </data>
+  <data name="Press F6 to reach the tour's buttons; while one of them has the keyboard, Escape ends the tour." xml:space="preserve">
+    <value>Tryck på F6 för att nå rundturens knappar; medan en av dem har tangentbordet avslutar Esc rundturen.</value>
   </data>
   <data name="Press the button of the form the keyboard is in, on a page as in a dialog" xml:space="preserve">
     <value>Tryck på knappen i formuläret som tangentbordet är i, på en sida som i en dialogruta</value>
@@ -17861,14 +17867,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} value could not be read from the server, so this summary may be incomplete." xml:space="preserve">
     <value>{0} värde kunde inte läsas från servern, så den här sammanfattningen kan vara ofullständig.</value>
   </data>
-  <data name="{0} value could not be read: {1} The items above may be incomplete." xml:space="preserve">
-    <value>{0} värde kunde inte läsas: {1} Posterna ovan kan vara ofullständiga.</value>
-  </data>
   <data name="{0} values could not be read from the server, so this summary may be incomplete." xml:space="preserve">
     <value>{0} värden kunde inte läsas från servern, så den här sammanfattningen kan vara ofullständig.</value>
-  </data>
-  <data name="{0} values could not be read: {1} The items above may be incomplete." xml:space="preserve">
-    <value>{0} värden kunde inte läsas: {1} Posterna ovan kan vara ofullständiga.</value>
   </data>
   <data name="{0} wait for a service restart." xml:space="preserve">
     <value>{0} väntar på en omstart av tjänsten.</value>

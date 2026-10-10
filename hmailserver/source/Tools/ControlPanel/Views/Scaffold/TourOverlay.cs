@@ -57,6 +57,17 @@ namespace hMailServer.ControlPanel.Views.Scaffold
       private readonly TextBlock tourName_ = new();
       private readonly TextBlock position_ = new();
       private readonly TextBlock sentence_ = new();
+
+      // How the keyboard reaches the card: on the first step of a run, under its
+      // buttons (review finding F044).
+      private readonly TextBlock keys_ = new();
+
+      // The position of the step a run opened on, however often that step is drawn
+      // again: the shell draws a step again once its page is laid out, and as the
+      // page reloads (MainWindow.TourPageChanged_), so "the card was not showing"
+      // is true of the first drawing only.
+      private string firstPosition_;
+
       private readonly Wpf.Ui.Controls.Button back_ = new();
       private readonly Wpf.Ui.Controls.Button next_ = new();
       private readonly Wpf.Ui.Controls.Button finish_ = new();
@@ -126,10 +137,21 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          buttons.Children.Add(finish_);
          buttons.Children.Add(skip_);
 
+         // The card says how the keyboard reaches it, as the shell lets it: it never
+         // takes the keyboard, F6 moves into it and Escape ends the tour from inside
+         // it - which nothing on the card, its name or its first announcement said.
+         // In the card's help text always; on the card and in the announcement on
+         // the first step a run shows, where it is news.
+         keys_.Text = KeysSentence;
+         keys_.TextWrapping = TextWrapping.Wrap;
+         keys_.Margin = new Thickness(0, DesignTokens.Space.Sm, 0, 0);
+         keys_.SetResourceReference(StyleProperty, "TextCaptionTertiary");
+
          var body = new StackPanel();
          body.Children.Add(head);
          body.Children.Add(sentence_);
          body.Children.Add(buttons);
+         body.Children.Add(keys_);
 
          card_.Width = CardWidth;
          card_.Padding = new Thickness(DesignTokens.Space.Lg);
@@ -143,6 +165,7 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          // sentence when it changes without the tour having to steal focus to
          // make that happen.
          AutomationProperties.SetLiveSetting(card_, AutomationLiveSetting.Polite);
+         AutomationProperties.SetHelpText(card_, KeysSentence);
 
          Children.Add(ring_);
          Children.Add(dashes_);
@@ -159,6 +182,9 @@ namespace hMailServer.ControlPanel.Views.Scaffold
       /// <summary>True while a step is showing.</summary>
       public bool Showing => Visibility == Visibility.Visible;
 
+      /// <summary>How the keyboard reaches the card's buttons and leaves the tour (F044).</summary>
+      public static string KeysSentence => L("Press F6 to reach the tour's buttons; while one of them has the keyboard, Escape ends the tour.");
+
       /// <summary>
       /// Shows a step: the ring around <paramref name="target"/>, the card
       /// beside it. <paramref name="lastStep"/> makes Next read <em>Finish</em>,
@@ -168,6 +194,12 @@ namespace hMailServer.ControlPanel.Views.Scaffold
       public void ShowStep(FrameworkElement target, string tourName, string position, string sentence,
          bool canGoBack, bool lastStep)
       {
+         // The first step of this run: the card was not showing before it was
+         // first drawn.
+         if (!Showing)
+            firstPosition_ = position;
+         bool first = string.Equals(position, firstPosition_, StringComparison.Ordinal);
+
          target_ = target;
          tourName_.Text = tourName ?? "";
          position_.Text = position ?? "";
@@ -175,18 +207,20 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          back_.Visibility = canGoBack ? Visibility.Visible : Visibility.Collapsed;
          next_.Visibility = lastStep ? Visibility.Collapsed : Visibility.Visible;
          finish_.Visibility = lastStep ? Visibility.Visible : Visibility.Collapsed;
+         keys_.Visibility = first ? Visibility.Visible : Visibility.Collapsed;
          AutomationProperties.SetName(card_, (tourName ?? "") + ". " + (position ?? "") + ". " + (sentence ?? ""));
 
          Visibility = Visibility.Visible;
          target?.BringIntoView();
          Reposition();
-         Announce(sentence);
+         Announce(first ? Sentences(sentence, KeysSentence) : sentence);
       }
 
       /// <summary>Takes the tour off the screen. Safe to call when nothing is showing.</summary>
       public void Hide()
       {
          target_ = null;
+         firstPosition_ = null;
          Visibility = Visibility.Collapsed;
       }
 

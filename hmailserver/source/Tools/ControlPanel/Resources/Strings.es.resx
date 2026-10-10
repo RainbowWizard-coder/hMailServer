@@ -8674,6 +8674,9 @@ No se elimina nada de lo que ya está.</value>
   <data name="Only used together with the user name above" xml:space="preserve">
     <value>Solo se usa junto con el nombre de usuario de arriba</value>
   </data>
+  <data name="Only what could be read is counted." xml:space="preserve">
+    <value>Solo se cuenta lo que se pudo leer.</value>
+  </data>
   <data name="Open" xml:space="preserve">
     <value>Abierto</value>
   </data>
@@ -9281,6 +9284,9 @@ No se aceptarán conexiones nuevas ni se entregará correo hasta que se reanude.
   </data>
   <data name="Press &quot;Check&quot; to look the record up through this machine's resolver." xml:space="preserve">
     <value>Pulse "Comprobar" para buscar el registro a través del resolutor de esta máquina.</value>
+  </data>
+  <data name="Press F6 to reach the tour's buttons; while one of them has the keyboard, Escape ends the tour." xml:space="preserve">
+    <value>Pulse F6 para llegar a los botones del recorrido; mientras uno de ellos tenga el teclado, Esc termina el recorrido.</value>
   </data>
   <data name="Press the button of the form the keyboard is in, on a page as in a dialog" xml:space="preserve">
     <value>Pulsar el botón del formulario en el que está el teclado, en una página como en un cuadro de diálogo</value>
@@ -17861,14 +17867,8 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="{0} value could not be read from the server, so this summary may be incomplete." xml:space="preserve">
     <value>{0} valor no pudo leerse del servidor, así que este resumen puede estar incompleto.</value>
   </data>
-  <data name="{0} value could not be read: {1} The items above may be incomplete." xml:space="preserve">
-    <value>{0} valor no pudo leerse: {1} Los elementos de arriba pueden estar incompletos.</value>
-  </data>
   <data name="{0} values could not be read from the server, so this summary may be incomplete." xml:space="preserve">
     <value>{0} valores no pudieron leerse del servidor, así que este resumen puede estar incompleto.</value>
-  </data>
-  <data name="{0} values could not be read: {1} The items above may be incomplete." xml:space="preserve">
-    <value>{0} valores no pudieron leerse: {1} Los elementos de arriba pueden estar incompletos.</value>
   </data>
   <data name="{0} wait for a service restart." xml:space="preserve">
     <value>{0} esperan un reinicio del servicio.</value>

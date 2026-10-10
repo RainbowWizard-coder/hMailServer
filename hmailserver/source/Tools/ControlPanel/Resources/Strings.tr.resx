@@ -8674,6 +8674,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Only used together with the user name above" xml:space="preserve">
     <value>Yalnızca yukarıdaki kullanıcı adıyla birlikte kullanılır</value>
   </data>
+  <data name="Only what could be read is counted." xml:space="preserve">
+    <value>Yalnızca okunabilenler sayıldı.</value>
+  </data>
   <data name="Open" xml:space="preserve">
     <value>Açık</value>
   </data>
@@ -9281,6 +9284,9 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   </data>
   <data name="Press &quot;Check&quot; to look the record up through this machine's resolver." xml:space="preserve">
     <value>Kaydı bu makinenin çözümleyicisi üzerinden aramak için "Denetle" düğmesine basın.</value>
+  </data>
+  <data name="Press F6 to reach the tour's buttons; while one of them has the keyboard, Escape ends the tour." xml:space="preserve">
+    <value>Turun düğmelerine ulaşmak için F6'ya basın; bunlardan biri klavye odağındayken Esc turu sonlandırır.</value>
   </data>
   <data name="Press the button of the form the keyboard is in, on a page as in a dialog" xml:space="preserve">
     <value>Klavyenin bulunduğu formun düğmesine bas; iletişim kutusunda olduğu gibi sayfada da</value>
@@ -17861,14 +17867,8 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} value could not be read from the server, so this summary may be incomplete." xml:space="preserve">
     <value>{0} değer sunucudan okunamadı; bu yüzden bu özet eksik olabilir.</value>
   </data>
-  <data name="{0} value could not be read: {1} The items above may be incomplete." xml:space="preserve">
-    <value>{0} değer okunamadı: {1} Yukarıdaki öğeler eksik olabilir.</value>
-  </data>
   <data name="{0} values could not be read from the server, so this summary may be incomplete." xml:space="preserve">
     <value>{0} değer sunucudan okunamadı; bu yüzden bu özet eksik olabilir.</value>
-  </data>
-  <data name="{0} values could not be read: {1} The items above may be incomplete." xml:space="preserve">
-    <value>{0} değer okunamadı: {1} Yukarıdaki öğeler eksik olabilir.</value>
   </data>
   <data name="{0} wait for a service restart." xml:space="preserve">
     <value>{0} ayar hizmetin yeniden başlatılmasını bekliyor.</value>

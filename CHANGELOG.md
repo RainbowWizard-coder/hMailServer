@@ -3654,6 +3654,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the product alone again on the sign-in page. `SignInMemoryTests` holds the levels, the prefill, the title and the
   page and the window to using them.
 
+- **Fixed: with values it could not read, the setup checklist drew a tally and a next step counted from them above the
+  notice that said so, and that notice spoke of "the items above"; and nothing on the tour's card said that F6
+  reaches it.** With the link lost the checklist began "4 need action, 7 cannot be told from here, 0 done, 4 not
+  needed. Next step: MTA-STS policy hosting..." and only then "11 values could not be read: ... The items above may be
+  incomplete." The notice is now first and says it in the DNS records page's words, "Some values could not be read,
+  so the cards below may be incomplete." with the reason last; and while values could not be read the tally begins
+  "Only what could be read is counted." and names no next step, since the step it would name is the first of the
+  items that could be told, not the first that needs doing. The tour never takes the keyboard - F6 moves into its
+  card and Escape ends the tour from inside it - and neither the card, its accessible name nor its first announcement
+  said so: the card's help text says "Press F6 to reach the tour's buttons; while one of them has the keyboard,
+  Escape ends the tour.", and the first step of a run shows the sentence as a tertiary line under its buttons and adds
+  it to what is announced. `SetupChecklistReadFailureTests` and `TourKeysHintTests` hold the two.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

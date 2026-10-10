@@ -82,8 +82,9 @@ namespace hMailServer.ControlPanel.Views
       // the level is confirmation and never the only carrier.
       private readonly InlineNotice summary_ = new() { Visibility = Visibility.Collapsed };
 
-      // A read that failed is its own notice: it says the items above may be
-      // incomplete, which is a different statement from the tally.
+      // A read that failed is its own notice, above the tally: it says the items
+      // below may be incomplete, which is a different statement from the tally,
+      // and one the tally depends on.
       private readonly InlineNotice readFailure_ = new()
       {
          Level = StatusLevel.Warning,
@@ -134,8 +135,12 @@ namespace hMailServer.ControlPanel.Views
          System.Windows.Automation.AutomationProperties.SetAutomationId(goToNext_, "external-setup-go-to-next");
          goToNext_.Click += (s, e) => GoToNextStep_();
 
-         page.Children.Add(summary_);
+         // The failure first: a tally counted from values some of which could not
+         // be read was drawn above the notice that said so, and that notice spoke
+         // of "the items above" while it sat above them (review finding F040).
+         // Collapsed while every value was read, it leaves the tally first.
          page.Children.Add(readFailure_);
+         page.Children.Add(summary_);
          page.Children.Add(body_);
 
          status_.Margin = new Thickness(0, 12, 0, 0);
@@ -180,12 +185,15 @@ namespace hMailServer.ControlPanel.Views
          // The level from the cause: a lost link is Critical, as the shell's pill
          // calls it, and values a server that answered could not give are a Warning.
          readFailure_.Level = ComErrorText.LevelFor(checks_.LinkLost);
+         // In DNS records' words, which say the same of its cards: what follows
+         // first, the reason last, where a sentence after it ran on from the
+         // runtime's text in brackets that it may end with; and no count, since one
+         // read that failed may be the whole of an item.
          readFailure_.Text = checks_.FailedReads == 0
             ? null
-            : PluralF(checks_.FailedReads,
-               "{0} value could not be read: {1} The items above may be incomplete.",
-               "{0} values could not be read: {1} The items above may be incomplete.",
-               checks_.FailedReads, checks_.FirstError);
+            : checks_.FailedReads == 1
+               ? F("Some values could not be read, so the cards below may be incomplete. Why: {0}", checks_.FirstError)
+               : F("Some values could not be read, so the cards below may be incomplete. The first reason: {0}", checks_.FirstError);
          readFailure_.Visibility = checks_.FailedReads == 0 ? Visibility.Collapsed : Visibility.Visible;
 
          RenderItems(checks_.DnsLookupCount > 0
@@ -260,8 +268,13 @@ namespace hMailServer.ControlPanel.Views
          // Dashboard's setup card (Services/SetupTally): "4 items need action. 7 items
          // cannot be checked from here. 4 items are not needed.", where one sentence
          // said "4 need action, 7 cannot be told from here, 0 done, 4 not needed"
-         // (review finding F034).
-         summary_.Text = SetupTally.Tally(action, unknown, done, unused, next?.Title);
+         // (review finding F034). While values could not be read, the tally says
+         // first that it counts only what could be, and names no next step: the step
+         // it would name is the first of the items that could be told, not the first
+         // that needs doing (F040).
+         bool partial = checks_.FailedReads > 0;
+         summary_.Text = Sentences(partial ? L("Only what could be read is counted.") : null,
+            SetupTally.Tally(action, unknown, done, unused, partial ? null : next?.Title));
          summary_.Visibility = Visibility.Visible;
 
          // Two sentences; each is whole in the catalogue.
