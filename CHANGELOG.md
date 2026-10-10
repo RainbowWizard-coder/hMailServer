@@ -3735,6 +3735,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   every language. `HostedAddressTests` holds the completion, the placeholders, the search, the selections, the primary
   button and the names.
 
+- **Fixed: the account dialog's Folders tab was a blank box over "0 folders.", Remove the photo could be pressed with
+  no photo, and the distribution list members dialog never said how many members a list has.** The folder list of an
+  empty mailbox now says in its place "No folders yet. The server creates INBOX when the mailbox is first opened; Add
+  folder creates one now.", after a read that worked and never after one that failed; Remove the photo on the
+  Directory entry tab is enabled only while the account has a photo or a new one is chosen, where it was live under
+  "This account has no photo."; and the members dialog's heading has the count under it, "3 members" in the language's
+  own plural forms, after a read that worked. `AccountDialogStatesTests` holds the empty state, the button and the
+  count.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

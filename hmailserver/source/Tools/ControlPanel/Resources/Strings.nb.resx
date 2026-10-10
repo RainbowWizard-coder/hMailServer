@@ -7885,6 +7885,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="No file set" xml:space="preserve">
     <value>Ingen fil satt</value>
   </data>
+  <data name="No folders yet. The server creates INBOX when the mailbox is first opened; Add folder creates one now." xml:space="preserve">
+    <value>Ingen mapper ennå. Serveren oppretter INBOX når postboksen åpnes første gang; Legg til mappe oppretter en nå.</value>
+  </data>
   <data name="No group found named '{0}'." xml:space="preserve">
     <value>Ingen gruppe funnet med navnet '{0}'.</value>
   </data>
@@ -17639,8 +17642,14 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="{0} makes {1} under {2}, and {2} as well if it is not there. With a folder selected, the name starts under it." xml:space="preserve">
     <value>{0} lager {1} under {2}, og {2} også hvis den ikke finnes. Er en mappe valgt, begynner navnet under den.</value>
   </data>
+  <data name="{0} member" xml:space="preserve">
+    <value>{0} medlem</value>
+  </data>
   <data name="{0} member added." xml:space="preserve">
     <value>{0} medlem lagt til.</value>
+  </data>
+  <data name="{0} members" xml:space="preserve">
+    <value>{0} medlemmer</value>
   </data>
   <data name="{0} members added." xml:space="preserve">
     <value>{0} medlemmer lagt til.</value>

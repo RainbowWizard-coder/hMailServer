@@ -7885,6 +7885,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="No file set" xml:space="preserve">
     <value>Tiedostoa ei asetettu</value>
   </data>
+  <data name="No folders yet. The server creates INBOX when the mailbox is first opened; Add folder creates one now." xml:space="preserve">
+    <value>Ei vielä kansioita. Palvelin luo kansion INBOX, kun postilaatikko avataan ensimmäisen kerran; Lisää kansio luo kansion heti.</value>
+  </data>
   <data name="No group found named '{0}'." xml:space="preserve">
     <value>Ryhmää nimeltä '{0}' ei löytynyt.</value>
   </data>
@@ -17639,8 +17642,14 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} makes {1} under {2}, and {2} as well if it is not there. With a folder selected, the name starts under it." xml:space="preserve">
     <value>{0} luo kansion {1} kansion {2} alle ja myös kansion {2}, jos sitä ei ole. Kun kansio on valittuna, nimi alkaa sen alta.</value>
   </data>
+  <data name="{0} member" xml:space="preserve">
+    <value>{0} jäsen</value>
+  </data>
   <data name="{0} member added." xml:space="preserve">
     <value>{0} jäsen lisätty.</value>
+  </data>
+  <data name="{0} members" xml:space="preserve">
+    <value>{0} jäsentä</value>
   </data>
   <data name="{0} members added." xml:space="preserve">
     <value>{0} jäsentä lisätty.</value>

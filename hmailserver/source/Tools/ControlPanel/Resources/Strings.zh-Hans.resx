@@ -7885,6 +7885,9 @@
   <data name="No file set" xml:space="preserve">
     <value>未设置文件</value>
   </data>
+  <data name="No folders yet. The server creates INBOX when the mailbox is first opened; Add folder creates one now." xml:space="preserve">
+    <value>还没有文件夹。邮箱首次打开时服务器会创建 INBOX；“添加文件夹”可立即创建一个。</value>
+  </data>
   <data name="No group found named '{0}'." xml:space="preserve">
     <value>找不到名为 '{0}' 的组。</value>
   </data>
@@ -17639,8 +17642,14 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} makes {1} under {2}, and {2} as well if it is not there. With a folder selected, the name starts under it." xml:space="preserve">
     <value>{0} 会在 {2} 下创建 {1}，如果 {2} 不存在也会一并创建。选中某个文件夹时，名称从它下面开始。</value>
   </data>
+  <data name="{0} member" xml:space="preserve">
+    <value>{0} 名成员</value>
+  </data>
   <data name="{0} member added." xml:space="preserve">
     <value>已添加 {0} 个成员。</value>
+  </data>
+  <data name="{0} members" xml:space="preserve">
+    <value>{0} 名成员</value>
   </data>
   <data name="{0} members added." xml:space="preserve">
     <value>已添加 {0} 个成员。</value>

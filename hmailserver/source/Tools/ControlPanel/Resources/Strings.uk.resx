@@ -7976,6 +7976,9 @@
   <data name="No file set" xml:space="preserve">
     <value>Файл не задано</value>
   </data>
+  <data name="No folders yet. The server creates INBOX when the mailbox is first opened; Add folder creates one now." xml:space="preserve">
+    <value>Тек ще немає. Сервер створює INBOX під час першого відкриття поштової скриньки; «Додати папку» створює теку одразу.</value>
+  </data>
   <data name="No group found named '{0}'." xml:space="preserve">
     <value>Групу з назвою '{0}' не знайдено.</value>
   </data>
@@ -17961,14 +17964,23 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} makes {1} under {2}, and {2} as well if it is not there. With a folder selected, the name starts under it." xml:space="preserve">
     <value>{0} створює {1} у {2}, а також саму {2}, якщо її немає. Якщо вибрано папку, назва починається всередині неї.</value>
   </data>
+  <data name="{0} member" xml:space="preserve">
+    <value>{0} учасник</value>
+  </data>
   <data name="{0} member added." xml:space="preserve">
     <value>Додано {0} учасника.</value>
+  </data>
+  <data name="{0} members" xml:space="preserve">
+    <value>{0} учасників</value>
   </data>
   <data name="{0} members added." xml:space="preserve">
     <value>Додано {0} учасників.</value>
   </data>
   <data name="{0} members added.|few" xml:space="preserve">
     <value>Додано {0} учасники.</value>
+  </data>
+  <data name="{0} members|few" xml:space="preserve">
+    <value>{0} учасники</value>
   </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} повідомлення</value>

@@ -7885,6 +7885,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="No file set" xml:space="preserve">
     <value>Keine Datei gesetzt</value>
   </data>
+  <data name="No folders yet. The server creates INBOX when the mailbox is first opened; Add folder creates one now." xml:space="preserve">
+    <value>Noch keine Ordner. Der Server legt INBOX an, wenn das Postfach zum ersten Mal geöffnet wird; Ordner hinzufügen legt jetzt einen an.</value>
+  </data>
   <data name="No group found named '{0}'." xml:space="preserve">
     <value>Keine Gruppe mit dem Namen '{0}' gefunden.</value>
   </data>
@@ -17639,8 +17642,14 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="{0} makes {1} under {2}, and {2} as well if it is not there. With a folder selected, the name starts under it." xml:space="preserve">
     <value>{0} legt {1} unter {2} an, und {2} ebenfalls, falls es ihn noch nicht gibt. Ist ein Ordner ausgewählt, beginnt der Name unter ihm.</value>
   </data>
+  <data name="{0} member" xml:space="preserve">
+    <value>{0} Mitglied</value>
+  </data>
   <data name="{0} member added." xml:space="preserve">
     <value>{0} Mitglied hinzugefügt.</value>
+  </data>
+  <data name="{0} members" xml:space="preserve">
+    <value>{0} Mitglieder</value>
   </data>
   <data name="{0} members added." xml:space="preserve">
     <value>{0} Mitglieder hinzugefügt.</value>

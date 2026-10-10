@@ -7885,6 +7885,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No file set" xml:space="preserve">
     <value>Geen bestand ingesteld</value>
   </data>
+  <data name="No folders yet. The server creates INBOX when the mailbox is first opened; Add folder creates one now." xml:space="preserve">
+    <value>Nog geen mappen. De server maakt INBOX aan wanneer het postvak voor het eerst wordt geopend; Map toevoegen maakt er nu een aan.</value>
+  </data>
   <data name="No group found named '{0}'." xml:space="preserve">
     <value>Geen groep gevonden met de naam '{0}'.</value>
   </data>
@@ -17639,8 +17642,14 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} makes {1} under {2}, and {2} as well if it is not there. With a folder selected, the name starts under it." xml:space="preserve">
     <value>{0} maakt {1} onder {2}, en ook {2} als die er nog niet is. Met een map geselecteerd begint de naam eronder.</value>
   </data>
+  <data name="{0} member" xml:space="preserve">
+    <value>{0} lid</value>
+  </data>
   <data name="{0} member added." xml:space="preserve">
     <value>{0} lid toegevoegd.</value>
+  </data>
+  <data name="{0} members" xml:space="preserve">
+    <value>{0} leden</value>
   </data>
   <data name="{0} members added." xml:space="preserve">
     <value>{0} leden toegevoegd.</value>

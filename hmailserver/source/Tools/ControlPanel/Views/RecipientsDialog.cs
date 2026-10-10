@@ -45,6 +45,10 @@ namespace hMailServer.ControlPanel.Views
       private readonly ComboBox delivery_ = new() { IsEnabled = false, HorizontalAlignment = HorizontalAlignment.Left, MinWidth = 240 };
       private bool showingDelivery_;
 
+      // The frame, whose description under the heading counts the members (review
+      // finding F111): the heading never said how many there are.
+      private DialogFrame frame_;
+
       public RecipientsDialog(Window owner, string domainName, string listAddress)
       {
          domainName_ = domainName;
@@ -149,7 +153,7 @@ namespace hMailServer.ControlPanel.Views
          var closeButton = new Wpf.Ui.Controls.Button { Content = L("Close"), Appearance = Wpf.Ui.Controls.ControlAppearance.Primary, MinWidth = 88 };
          closeButton.Click += (s, e) => Close();
 
-         UseFrame(F("Members of {0}", listAddress), body, null, closeButton, width: DesignTokens.Dialog.DefaultWidth);
+         frame_ = UseFrame(F("Members of {0}", listAddress), body, null, closeButton, width: DesignTokens.Dialog.DefaultWidth);
          Loaded += (s, e) => Reload();
       }
 
@@ -215,6 +219,11 @@ namespace hMailServer.ControlPanel.Views
             StatusText.Show(empty_, null, rows.Count, null, L("No members yet, so mail sent to this list reaches nobody. Add an address below."));
          else
             empty_.Visibility = Visibility.Collapsed;
+
+         // How many, under the heading, after a read that worked: a list it could not
+         // read has no count to give.
+         if (frame_ != null)
+            frame_.Description = read ? Plural(rows.Count, "{0} member", "{0} members") : null;
       }
 
       private void AddRecipient()

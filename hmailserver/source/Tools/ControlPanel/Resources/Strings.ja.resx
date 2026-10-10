@@ -7895,6 +7895,9 @@
   <data name="No file set" xml:space="preserve">
     <value>ファイルが未設定</value>
   </data>
+  <data name="No folders yet. The server creates INBOX when the mailbox is first opened; Add folder creates one now." xml:space="preserve">
+    <value>フォルダーはまだありません。INBOX はメールボックスが初めて開かれたときにサーバーが作成します。今すぐ作成するには「フォルダーを追加」を使います。</value>
+  </data>
   <data name="No group found named '{0}'." xml:space="preserve">
     <value>'{0}' という名前のグループは見つかりません。</value>
   </data>
@@ -17649,8 +17652,14 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} makes {1} under {2}, and {2} as well if it is not there. With a folder selected, the name starts under it." xml:space="preserve">
     <value>{0} は {2} の下に {1} を作り、{2} がなければ {2} も作ります。フォルダーを選択していると、名前はその下から始まります。</value>
   </data>
+  <data name="{0} member" xml:space="preserve">
+    <value>メンバー {0} 人</value>
+  </data>
   <data name="{0} member added." xml:space="preserve">
     <value>{0} 人のメンバーを追加しました。</value>
+  </data>
+  <data name="{0} members" xml:space="preserve">
+    <value>メンバー {0} 人</value>
   </data>
   <data name="{0} members added." xml:space="preserve">
     <value>{0} 人のメンバーを追加しました。</value>

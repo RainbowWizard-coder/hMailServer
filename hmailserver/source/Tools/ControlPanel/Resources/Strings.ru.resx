@@ -7976,6 +7976,9 @@ Control Panel может читать файлы сообщений только
   <data name="No file set" xml:space="preserve">
     <value>Файл не задан</value>
   </data>
+  <data name="No folders yet. The server creates INBOX when the mailbox is first opened; Add folder creates one now." xml:space="preserve">
+    <value>Папок пока нет. Сервер создаёт INBOX при первом открытии почтового ящика; «Добавить папку» создаёт папку сразу.</value>
+  </data>
   <data name="No group found named '{0}'." xml:space="preserve">
     <value>Группа с именем «{0}» не найдена.</value>
   </data>
@@ -17961,14 +17964,23 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} makes {1} under {2}, and {2} as well if it is not there. With a folder selected, the name starts under it." xml:space="preserve">
     <value>{0} создаёт {1} в {2}, а также саму {2}, если её нет. Если выбрана папка, имя начинается внутри неё.</value>
   </data>
+  <data name="{0} member" xml:space="preserve">
+    <value>{0} участник</value>
+  </data>
   <data name="{0} member added." xml:space="preserve">
     <value>Добавлен {0} участник.</value>
+  </data>
+  <data name="{0} members" xml:space="preserve">
+    <value>{0} участников</value>
   </data>
   <data name="{0} members added." xml:space="preserve">
     <value>Добавлено {0} участников.</value>
   </data>
   <data name="{0} members added.|few" xml:space="preserve">
     <value>Добавлено {0} участника.</value>
+  </data>
+  <data name="{0} members|few" xml:space="preserve">
+    <value>{0} участника</value>
   </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} сообщение</value>

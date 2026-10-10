@@ -7976,6 +7976,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No file set" xml:space="preserve">
     <value>Není nastaven žádný soubor</value>
   </data>
+  <data name="No folders yet. The server creates INBOX when the mailbox is first opened; Add folder creates one now." xml:space="preserve">
+    <value>Zatím žádné složky. Server vytvoří INBOX při prvním otevření schránky; Přidat složku vytvoří složku hned teď.</value>
+  </data>
   <data name="No group found named '{0}'." xml:space="preserve">
     <value>Nebyla nalezena žádná skupina s názvem '{0}'.</value>
   </data>
@@ -17961,14 +17964,23 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} makes {1} under {2}, and {2} as well if it is not there. With a folder selected, the name starts under it." xml:space="preserve">
     <value>{0} vytvoří {1} pod {2}, a pokud {2} neexistuje, vytvoří i ji. Je-li vybrána složka, název začíná pod ní.</value>
   </data>
+  <data name="{0} member" xml:space="preserve">
+    <value>{0} člen</value>
+  </data>
   <data name="{0} member added." xml:space="preserve">
     <value>Přidán {0} člen.</value>
+  </data>
+  <data name="{0} members" xml:space="preserve">
+    <value>{0} členů</value>
   </data>
   <data name="{0} members added." xml:space="preserve">
     <value>Přidáno {0} členů.</value>
   </data>
   <data name="{0} members added.|few" xml:space="preserve">
     <value>Přidáni {0} členové.</value>
+  </data>
+  <data name="{0} members|few" xml:space="preserve">
+    <value>{0} členové</value>
   </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} zpráva</value>

@@ -157,6 +157,10 @@ namespace hMailServer.ControlPanel.Views
       private readonly CheckBox openPgpPublish_ = new() { Content = L("_Publish this account's OpenPGP public keys in the Web Key Directory") };
       private readonly TextBlock dirPhotoState_ = new() { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, DesignTokens.Space.Sm) };
 
+      // Remove the photo, which there is something to remove for only while the
+      // account has a photo, or a new one is chosen (RefreshDirectoryPhotoState_).
+      private Wpf.Ui.Controls.Button dirPhotoRemove_;
+
       // The photo as the column keeps it - base64 - or null while nothing has
       // been chosen and nothing removed, which is what tells Save to leave the
       // stored photo alone.
@@ -177,6 +181,11 @@ namespace hMailServer.ControlPanel.Views
       private AccountRecoveryPanel recovery_;
       private RulesView accountRules_;
       private readonly ListBox folderList_ = new() { Height = 220 };
+
+      // What an empty mailbox means, in the list's place (review finding F103): the
+      // list was a blank 220 pixels above "0 folders.". Shown only after a read that
+      // worked, as the other lists' empty states are.
+      private readonly EmptyState folderEmpty_ = new() { Icon = Wpf.Ui.Controls.SymbolRegular.Folder24, Padding = new Thickness(12), Visibility = Visibility.Collapsed };
 
       // Each row's folder name, by index: a row shows "(not subscribed)" after the
       // name in the current language, which taking it off again in English left on
@@ -533,6 +542,7 @@ namespace hMailServer.ControlPanel.Views
          choose.Click += (s, e) => ChooseDirectoryPhoto();
          var remove = new Wpf.Ui.Controls.Button { Content = L("Remo_ve the photo") };
          remove.Click += (s, e) => RemoveDirectoryPhoto();
+         dirPhotoRemove_ = remove;
          photoButtons.Children.Add(choose);
          photoButtons.Children.Add(remove);
          panel.Children.Add(photoButtons);
@@ -575,6 +585,12 @@ namespace hMailServer.ControlPanel.Views
          dirPhotoState_.Text = has
             ? (dirPhotoChanged_ ? L("A new photo has been chosen; it is saved with the account.") : L("This account has a photo."))
             : (dirPhotoChanged_ ? L("The photo is removed when the account is saved.") : L("This account has no photo."));
+
+         // Nothing to remove, nothing to press (review finding F110): Remove the photo
+         // was live under "This account has no photo." and pressing it said the photo
+         // would be removed on save.
+         if (dirPhotoRemove_ != null)
+            dirPhotoRemove_.IsEnabled = has;
       }
 
       private void ChooseDirectoryPhoto()
@@ -757,7 +773,12 @@ namespace hMailServer.ControlPanel.Views
       {
          var panel = DialogFields.TabPanel();
          panel.Children.Add(folderNotice_);
-         panel.Children.Add(Label(L("_IMAP folders in this mailbox"), folderList_));
+         // The list and its empty state share the list's place; the caption's key
+         // still puts the keyboard in the list (Mnemonic.Editor finds it in the grid).
+         var folderHost = new Grid();
+         folderHost.Children.Add(folderList_);
+         folderHost.Children.Add(folderEmpty_);
+         panel.Children.Add(Label(L("_IMAP folders in this mailbox"), folderHost));
 
          var actions = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, DesignTokens.Space.Md) };
          var add = new Wpf.Ui.Controls.Button { Content = L("_Add folder"), Margin = new Thickness(0, 0, DesignTokens.Space.Sm, 0) };
@@ -834,9 +855,13 @@ namespace hMailServer.ControlPanel.Views
             ServerSession.Release(folders);
             ServerSession.Release(a);
             folderStatus_.Text = Plural(count, "{0} folder.", "{0} folders.");
+            StatusText.Show(folderEmpty_, null, count, null,
+               L("No folders yet. The server creates INBOX when the mailbox is first opened; Add folder creates one now."));
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
+            // A mailbox this dialog could not read is not one with no folders.
+            folderEmpty_.Visibility = Visibility.Collapsed;
             folderStatus_.Text = "";
             folderNotice_.Show(StatusLevel.Critical, L("Could not load folders: ") + ServerSession.DescribeComError(ex));
          }

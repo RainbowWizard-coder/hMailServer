@@ -7885,6 +7885,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="No file set" xml:space="preserve">
     <value>Dosya ayarlanmamış</value>
   </data>
+  <data name="No folders yet. The server creates INBOX when the mailbox is first opened; Add folder creates one now." xml:space="preserve">
+    <value>Henüz klasör yok. Sunucu, posta kutusu ilk açıldığında INBOX klasörünü oluşturur; Klasör ekle hemen bir klasör oluşturur.</value>
+  </data>
   <data name="No group found named '{0}'." xml:space="preserve">
     <value>'{0}' adlı grup bulunamadı.</value>
   </data>
@@ -17639,8 +17642,14 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} makes {1} under {2}, and {2} as well if it is not there. With a folder selected, the name starts under it." xml:space="preserve">
     <value>{0}, {2} altında {1} oluşturur; {2} yoksa onu da oluşturur. Bir klasör seçiliyse ad onun altında başlar.</value>
   </data>
+  <data name="{0} member" xml:space="preserve">
+    <value>{0} üye</value>
+  </data>
   <data name="{0} member added." xml:space="preserve">
     <value>{0} üye eklendi.</value>
+  </data>
+  <data name="{0} members" xml:space="preserve">
+    <value>{0} üye</value>
   </data>
   <data name="{0} members added." xml:space="preserve">
     <value>{0} üye eklendi.</value>
