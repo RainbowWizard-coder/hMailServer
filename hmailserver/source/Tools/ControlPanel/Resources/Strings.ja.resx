@@ -763,7 +763,7 @@
     <value>ARC シールの付与は有効で、シールに使う DKIM のセレクターと鍵を持つ有効なドメインが少なくとも 1 つあります。DNS 側は上の DKIM の項目でカバーされています。シールは同じ TXT レコードで検証されるためです。</value>
   </data>
   <data name="ARC sealing is on, but no active domain has DKIM signing with a selector and key file configured, so forwarded mail is silently not sealed at all." xml:space="preserve">
-    <value>ARC シールの付与は有効 ですが、セレクターと鍵ファイルを設定した DKIM 署名を持つ有効なドメインが 1 つもないため、転送メールには何も告げられないままシールがまったく付きません。</value>
+    <value>ARC シールの付与は有効ですが、セレクターと鍵ファイルを設定した DKIM 署名を持つ有効なドメインが 1 つもないため、転送メールには何も告げられないままシールがまったく付きません。</value>
   </data>
   <data name="ARC sealing of forwarded mail - needs a domain DKIM key" xml:space="preserve">
     <value>転送メールへの ARC シールの付与 - ドメインの DKIM 鍵が必要です</value>
@@ -1823,7 +1823,7 @@
     <value>自動設定は、正しいホスト名、ポート、セキュリティをクライアントに渡します。</value>
   </data>
   <data name="Autoconfiguration is off, so no listener or DNS names are required." xml:space="preserve">
-    <value>自動設定は無効 のため、リスナーも DNS 名も必要ありません。</value>
+    <value>自動設定は無効のため、リスナーも DNS 名も必要ありません。</value>
   </data>
   <data name="Autoconfiguration is on (the shipped default), but the web services listener has neither an HTTP nor an HTTPS port, so nothing answers the configuration URLs. Set a port on the Web services &amp; autoconfiguration page if you want clients to self-configure; if you do not, this row is safe to ignore, or turn off 'Thunderbird autoconfig + Outlook autodiscover' there to silence it." xml:space="preserve">
     <value>自動設定は有効 (出荷時の既定値) ですが、Web サービスのリスナーに HTTP ポートも HTTPS ポートもないため、設定 URL に応答するものがありません。クライアントに自動設定させたい場合は、[Web サービスと自動設定] ページでポートを設定してください。不要であればこの行は無視して構いませんし、同じページで「Thunderbird autoconfig + Outlook autodiscover」をオフにすれば表示されなくなります。</value>
@@ -2231,7 +2231,7 @@
     <value>前回のバックアップの実行時刻を判断できません: {0} をこのコンピューターから読み取れませんでした。サーバー上のフォルダーか、[ライブ ログ] ページのバックアップ ログを確認してください。</value>
   </data>
   <data name="Cannot tell whether a schedule is configured: hMailServer.ini was not found on this machine. Check the daily backup time and the backup interval on the server itself." xml:space="preserve">
-    <value>スケジュールが設定されているかどうか判断できません: このコンピューターに hMailServer.ini が見つかりませんでした。サーバー自身で 毎日のバックアップ時刻とバックアップ間隔を確認してください。</value>
+    <value>スケジュールが設定されているかどうか判断できません: このコンピューターに hMailServer.ini が見つかりませんでした。サーバー自身で毎日のバックアップ時刻とバックアップ間隔を確認してください。</value>
   </data>
   <data name="Case" xml:space="preserve">
     <value>ケース</value>
@@ -6148,7 +6148,7 @@
     <value>MTA-STS と DANE はその約束を公開し、TLS-RPT は誰がそれを守れなかったかを教えてくれます。</value>
   </data>
   <data name="MTA-STS hosting is off, so nothing needs serving and no record should be published." xml:space="preserve">
-    <value>MTA-STS ホスティングは無効 のため、配信するものはなく、レコードを公開すべきでもありません。</value>
+    <value>MTA-STS ホスティングは無効のため、配信するものはなく、レコードを公開すべきでもありません。</value>
   </data>
   <data name="MTA-STS hosting is on (the shipped default), but the web services listener has no HTTPS port, so the policy cannot be served at all - RFC 8461 only allows it over HTTPS. Set 'HTTPS port' on the Web services &amp; autoconfiguration page if you want MTA-STS; if you do not, this row is safe to ignore, or turn off 'Serve MTA-STS policies for local domains' on the same page to silence it." xml:space="preserve">
     <value>MTA-STS ホスティングは有効 (出荷時の既定値) ですが、Web サービスのリスナーに HTTPS ポートがないため、ポリシーをまったく配信できません。RFC 8461 は HTTPS 経由しか認めていません。MTA-STS を使うなら [Web サービスと自動設定] ページで「HTTPS ポート」を設定してください。不要であればこの行は無視して構いませんし、同じページで「ローカル ドメインの MTA-STS ポリシーを提供する」をオフにすれば表示されなくなります。</value>
@@ -6977,7 +6977,7 @@
     <value>バックアップ先が設定されていません。</value>
   </data>
   <data name="No backup first: 'Back up to the configured destination before an unattended apply' is off." xml:space="preserve">
-    <value>事前のバックアップなし: 「無人での適用の前に、設定されている保存先へバックアップする」 がオフです。</value>
+    <value>事前のバックアップなし: 「無人での適用の前に、設定されている保存先へバックアップする」がオフです。</value>
   </data>
   <data name="No backup first: no backup destination is set (Backup &amp; restore). A rollback puts the previous program back, not the database." xml:space="preserve">
     <value>事前のバックアップなし: バックアップ先が設定されていません (バックアップと復元)。ロールバックで戻るのは以前のプログラムで、データベースは戻りません。</value>

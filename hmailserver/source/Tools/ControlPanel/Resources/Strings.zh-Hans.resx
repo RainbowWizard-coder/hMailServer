@@ -6977,7 +6977,7 @@
     <value>未设置备份目标。</value>
   </data>
   <data name="No backup first: 'Back up to the configured destination before an unattended apply' is off." xml:space="preserve">
-    <value>不先备份：“在无人值守安装之前先备份到已配置的目标位置” 已关闭。</value>
+    <value>不先备份：“在无人值守安装之前先备份到已配置的目标位置”已关闭。</value>
   </data>
   <data name="No backup first: no backup destination is set (Backup &amp; restore). A rollback puts the previous program back, not the database." xml:space="preserve">
     <value>不先备份：未设置备份目标（备份与还原）。回滚会恢复之前的程序，而不会恢复数据库。</value>
