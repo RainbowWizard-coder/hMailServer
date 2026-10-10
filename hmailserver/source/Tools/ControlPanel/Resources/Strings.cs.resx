@@ -1572,9 +1572,6 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="An account - a mailbox in a domain" xml:space="preserve">
     <value>Účet - schránka v doméně</value>
   </data>
-  <data name="An account address is required." xml:space="preserve">
-    <value>Je vyžadována adresa účtu.</value>
-  </data>
   <data name="An account can be switched off without deleting it, which keeps the mail and refuses new sign-ins." xml:space="preserve">
     <value>Účet lze vypnout, aniž byste jej smazali, čímž se zachová pošta a nová přihlášení se odmítají.</value>
   </data>
@@ -3626,6 +3623,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Custom header…" xml:space="preserve">
     <value>Vlastní hlavička…</value>
+  </data>
+  <data name="Custom roles are made over the REST API, and the Control Deck deletes one that nobody holds." xml:space="preserve">
+    <value>Vlastní role se vytvářejí přes REST API a Control Deck odstraní roli, kterou nikdo nemá.</value>
   </data>
   <data name="Custom scanner" xml:space="preserve">
     <value>Vlastní skener</value>
@@ -12985,6 +12985,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="The built-in connectivity and configuration checks, and the last message-store consistency scan." xml:space="preserve">
     <value>Vestavěné kontroly připojení a konfigurace a poslední kontrola konzistence úložiště zpráv.</value>
   </data>
+  <data name="The built-in roles cannot be changed. Custom roles are made over the REST API, and the Control Deck deletes one that nobody holds." xml:space="preserve">
+    <value>Vestavěné role nelze měnit. Vlastní role se vytvářejí přes REST API a Control Deck odstraní roli, kterou nikdo nemá.</value>
+  </data>
   <data name="The case's lines on the audit trail" xml:space="preserve">
     <value>Řádky případu v auditním záznamu</value>
   </data>
@@ -18041,6 +18044,12 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} must be between {1} and {2}." xml:space="preserve">
     <value>{0} musí být mezi {1} a {2}.</value>
+  </data>
+  <data name="{0} no longer holds {1}, and holds what its admin level gives it." xml:space="preserve">
+    <value>Účet {0} už nemá roli {1} a má to, co mu dává jeho úroveň správce.</value>
+  </data>
+  <data name="{0} now holds {1}." xml:space="preserve">
+    <value>Účet {0} má nyní roli {1}.</value>
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>{0} z jednorázových kódů pro obnovu u tohoto účtu je nepoužitých.</value>

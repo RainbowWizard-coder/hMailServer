@@ -3686,6 +3686,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   answered and could not give the list, ending "Press Reload to read it again. Why:" and the server's reason.
   `DirectorySyncDomainReadTests` holds the levels and the sentences.
 
+- **Fixed: the Administrator roles page said a missing address or role in an amber notice under its form, said
+  nothing when a role was given or taken away, and nothing on it said where custom roles are made.** "An account
+  address is required." and "Choose a role to give." were a Warning notice under the form - the level a lost link has
+  - often below the window's edge; they are now said on their boxes, both at once, with the keyboard put in the first,
+  and Give the role and Take the role away stay beside the boxes when a message appears. A role given now says
+  "helen@example.com now holds helpdesk." and selects the assignment, and a role taken away says that the account no
+  longer holds it and holds what its admin level gives it, where the boxes emptied and the list reloaded without a
+  word. A new administrator looked for an Add role button: the Roles card says "The built-in roles cannot be changed.
+  Custom roles are made over the REST API, and the Control Deck deletes one that nobody holds." with Open the
+  Control Deck under it - the Deck lists, gives out and deletes roles and makes none, which the review's proposed
+  wording said it did - and REST API keys, whose key holds a role, names Administrator roles among its related pages.
+  `RolesFormFeedbackTests` holds the messages, the outcomes, the card and the related pages, and the card's sentence
+  to what the Deck's Roles view does.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

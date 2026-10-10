@@ -32,9 +32,10 @@ namespace hMailServer.ControlPanel.Views
    /// The four built-in roles cannot be edited here or anywhere else: their
    /// permissions are in the server's code, not in its database, so that an
    /// UPDATE against the table cannot hand somebody a permission. Custom roles
-   /// are made over the REST API and the Control Deck; this page lists them and
-   /// gives them out, which is what an administrator standing at this machine
-   /// actually needs to do.
+   /// are made over the REST API (POST /api/v1/roles), and the Control Deck
+   /// deletes one nobody holds; this page lists them and gives them out, which is
+   /// what an administrator standing at this machine actually needs to do, and its
+   /// roles card says so.
    ///
    /// An account that is not listed here is not without authority: it holds
    /// whatever its admin level has always given it. That is why the upgrade
@@ -88,6 +89,19 @@ namespace hMailServer.ControlPanel.Views
       private readonly Wpf.Ui.Controls.TextBox address_ = new() { MinWidth = 220, Margin = new Thickness(0, 0, 8, 0) };
       private readonly Wpf.Ui.Controls.TextBox domains_ = new() { MinWidth = 180, Margin = new Thickness(0, 0, 8, 0) };
       private readonly InlineNotice notice_ = new() { Visibility = Visibility.Collapsed };
+
+      // The form's two rows that can refuse what was typed: their messages are on
+      // their boxes (review finding F088), and the buttons beside them stay on the
+      // boxes' line when one appears (RoleFormLine).
+      private Scaffold.FieldRow accountRow_;
+      private Scaffold.FieldRow roleRow_;
+      private const string RoleFormLine = "RoleFormLine"; // no-loc: a shared size group
+
+      // Open the Control Deck, under the roles card's sentence that sends the
+      // reader there; read again with the roles, since the REST API may have been
+      // turned on or off since (F089).
+      private readonly ContentControl deckRow_ = new() { Focusable = false, IsTabStop = false, Margin = new Thickness(0, 0, 0, 8) };
+
       private readonly EmptyState empty_ = new()
       {
          Icon = Wpf.Ui.Controls.SymbolRegular.Shield24,
@@ -150,13 +164,19 @@ namespace hMailServer.ControlPanel.Views
          // the roles from who holds one, and neither grid had a name.
          System.Windows.Automation.AutomationProperties.SetName(roleGrid_, L("Roles"));
          System.Windows.Automation.AutomationProperties.SetName(assignmentGrid_, L("Who holds a role"));
+         // Where custom roles are made, which only this class's comment said, so
+         // that a new administrator looked for an Add role button (F089).
+         var rolesContent = new StackPanel();
+         rolesContent.Children.Add(deckRow_);
+         rolesContent.Children.Add(roleGrid_);
          cards.Children.Add(new Card
          {
             Title = L("Roles"),
             Description = Loc.Sentences(
                L("The four built-in roles cannot be edited: their permissions are in the server's code so that a change to the database cannot hand somebody authority."),
+               L("Custom roles are made over the REST API, and the Control Deck deletes one that nobody holds."),
                L("An account with no role here holds whatever its admin level has always given it.")),
-            Content = roleGrid_
+            Content = rolesContent
          });
 
          // The account and its domains share the card's width, the role between
@@ -172,6 +192,7 @@ namespace hMailServer.ControlPanel.Views
          // something is typed - and the role list had none at all. The buttons sit
          // on the boxes' baseline, and the row wraps in a narrow window.
          var form = new WrapPanel { Margin = new Thickness(0, 10, 0, 0) };
+         Grid.SetIsSharedSizeScope(form, true);
          // The hint goes in PlaceholderText and the Text stays a literal: a
          // value filled from the catalogue is what turned the sign-in user-name
          // box into a Chinese word in issue 156. The placeholders are examples,
@@ -180,7 +201,8 @@ namespace hMailServer.ControlPanel.Views
          address_.PlaceholderText = "helpdesk@example.com"; // no-loc: an example address
          domains_.PlaceholderText = "example.com, example.net"; // no-loc: example domains
          address_.Margin = roleChoice_.Margin = domains_.Margin = new Thickness(0);
-         form.Children.Add(FormField_(L("_Account"), address_));
+         accountRow_ = FormField_(L("_Account"), address_);
+         form.Children.Add(accountRow_);
          // The box opens on no role: it opened on the first the server lists,
          // serveradmin, beside the primary Give the role (review finding F055).
          rolePlaceholder_.Text = L("Choose a role");
@@ -190,7 +212,8 @@ namespace hMailServer.ControlPanel.Views
          var roleBox = new Grid();
          roleBox.Children.Add(roleChoice_);
          roleBox.Children.Add(rolePlaceholder_);
-         form.Children.Add(FormField_(L("R_ole"), roleBox));
+         roleRow_ = FormField_(L("R_ole"), roleBox);
+         form.Children.Add(roleRow_);
          // What an empty box gives, which the grid showed only once the role was
          // given: the account's own domain for most roles, every domain for
          // serveradmin and auditor (RoleManager::ReachesEveryDomainWhenUnlisted).
@@ -205,24 +228,22 @@ namespace hMailServer.ControlPanel.Views
          {
             Content = L("_Give the role"),
             Appearance = Wpf.Ui.Controls.ControlAppearance.Primary,
-            Margin = new Thickness(0, 0, 8, 12),
-            VerticalAlignment = VerticalAlignment.Bottom
+            VerticalAlignment = VerticalAlignment.Top
          };
          System.Windows.Automation.AutomationProperties.SetAutomationId(give_, "roles-assign");
          give_.Click += (s, e) => Assign_();
-         form.Children.Add(OnTheBoxesLine_(give_, L("_Domains")));
+         form.Children.Add(BesideTheBoxes_(give_, new Thickness(0, 0, 8, 12)));
          // Enter in the form gives the role; Escape empties the two boxes.
          FormSubmit.Bind(form, give_, address_, domains_);
 
          take_ = new Wpf.Ui.Controls.Button
          {
             Content = L("_Take the role away"),
-            Margin = new Thickness(0, 0, 0, 12),
-            VerticalAlignment = VerticalAlignment.Bottom
+            VerticalAlignment = VerticalAlignment.Top
          };
          System.Windows.Automation.AutomationProperties.SetAutomationId(take_, "roles-unassign");
          take_.Click += (s, e) => Unassign_();
-         form.Children.Add(OnTheBoxesLine_(take_, L("_Domains")));
+         form.Children.Add(BesideTheBoxes_(take_, new Thickness(0, 0, 0, 12)));
 
          // Take the role away takes it from the assignment chosen in the list and
          // nothing else, so it can be pressed only while one is chosen, and it is the
@@ -247,16 +268,6 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
-      /// A caption's room above a button, drawn in the caption's style and never
-      /// seen: it has no automation peer, so that a screen reader does not find a
-      /// second Domains beside the box's own.
-      /// </summary>
-      private sealed class CaptionRoom : TextBlock
-      {
-         protected override System.Windows.Automation.Peers.AutomationPeer OnCreateAutomationPeer() => null;
-      }
-
-      /// <summary>
       /// The width of the Domains box's row, which its hint wraps to: as wide as
       /// the box was beside its old placeholder, so that the form's line still
       /// holds the three boxes and both buttons at 1280 pixels.
@@ -264,28 +275,24 @@ namespace hMailServer.ControlPanel.Views
       private const double DomainsRowWidth = 230;
 
       /// <summary>
-      /// One box of the form with its caption above it, at the top of the form's
-      /// line, so that a hint or a message under one box leaves the others where
-      /// they are.
+      /// One box of the form with its caption above it, at the top of the form's line
+      /// and the caption's line shared with the buttons beside it, so that a hint or
+      /// a message under one box leaves the others, and the buttons, where they are.
       /// </summary>
       private static Scaffold.FieldRow FormField_(string caption, FrameworkElement editor)
-         => new() { Label = caption, Content = editor, Margin = new Thickness(0, 0, 8, 12), VerticalAlignment = VerticalAlignment.Top };
+         => new() { Label = caption, Content = editor, Margin = new Thickness(0, 0, 8, 12), LabelGroup = RoleFormLine, VerticalAlignment = VerticalAlignment.Top };
 
       /// <summary>
-      /// A button of the form on the boxes' line: under a caption's room - the
-      /// caption of a box beside it, drawn in the caption's style and hidden - so
-      /// that it stands beside the boxes whatever a box's hint or message adds
-      /// under them. It stood at the bottom of the form's line, which the Domains
-      /// box's hint would have put three lines below the boxes.
+      /// A button under a row as tall as the captions beside it, so that it stays
+      /// beside the boxes when a message appears under one, as the incoming relays'
+      /// Add does; it was aligned to the bottom of the line, which a message moved.
       /// </summary>
-      private static FrameworkElement OnTheBoxesLine_(Wpf.Ui.Controls.Button button, string besideCaption)
+      private static Grid BesideTheBoxes_(FrameworkElement button, Thickness margin)
       {
-         var room = new CaptionRoom { Text = MnemonicText.Strip(besideCaption), Visibility = Visibility.Hidden, Margin = new Thickness(0, 0, 0, 4) };
-         room.SetResourceReference(StyleProperty, "TextBody");
-         button.VerticalAlignment = VerticalAlignment.Top;
-         var line = new StackPanel { VerticalAlignment = VerticalAlignment.Top, Margin = button.Margin };
-         button.Margin = new Thickness(0);
-         line.Children.Add(room);
+         var line = new Grid { Margin = margin };
+         line.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto, SharedSizeGroup = RoleFormLine });
+         line.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+         Grid.SetRow(button, 1);
          line.Children.Add(button);
          return line;
       }
@@ -335,6 +342,7 @@ namespace hMailServer.ControlPanel.Views
       private void Reload_()
       {
          notice_.Visibility = Visibility.Collapsed;
+         deckRow_.Content = ControlDeckLink.Row(L("Open the Control Deck"));
 
          var roles = new List<RoleRow>();
          var assignments = new List<AssignmentRow>();
@@ -418,18 +426,19 @@ namespace hMailServer.ControlPanel.Views
       private void Assign_()
       {
          string address = (address_.Text ?? "").Trim();
+         notice_.Visibility = Visibility.Collapsed;
 
+         // What is missing is said on its box, both at once, and the keyboard put in
+         // the first, where it was an amber notice under the form at the level a lost
+         // link has (review finding F088). Typing in a box, or choosing a role, takes
+         // its message away.
+         DialogFields.ClearErrors(accountRow_, roleRow_);
          if (address.Length == 0)
-         {
-            Warn_(L("An account address is required."));
-            return;
-         }
-
+            accountRow_.Error = L("Enter the account's address.");
          if (roleChoice_.SelectedItem == null)
-         {
-            Warn_(L("Choose a role to give."));
+            roleRow_.Error = L("Choose a role to give.");
+         if (DialogFields.ShowFirstError(accountRow_, roleRow_))
             return;
-         }
 
          // A role that reaches everything is asked about first, Cancel being the
          // answer Enter gives.
@@ -439,7 +448,7 @@ namespace hMailServer.ControlPanel.Views
              !Dialogs.Confirm(RoleGrant.Question(address, role), L("Control Panel"), L("_Give the role"), destructive: true, cancelByDefault: true))
             return;
 
-         Write_(address, role, RoleWords.DomainsToSend(domains_.Text));
+         Write_(address, role, RoleWords.DomainsToSend(domains_.Text), F("{0} now holds {1}.", address, role));
       }
 
       /// <summary>
@@ -456,10 +465,16 @@ namespace hMailServer.ControlPanel.Views
          if (!Dialogs.Confirm(Confirmations.TakeRoleAway(row.Role, row.Address), L("Control Panel"), L("_Take the role away"), destructive: true))
             return;
 
-         Write_(row.Address, "", "");
+         Write_(row.Address, "", "", F("{0} no longer holds {1}, and holds what its admin level gives it.", row.Address, row.Role));
       }
 
-      private void Write_(string address, string role, string domains)
+      /// <summary>
+      /// Gives the role, or takes it away with an empty one, and says what it did:
+      /// <paramref name="outcome"/>, at Good, once the list has been read again,
+      /// where the boxes emptied and the list reloaded without a word (F088). Said
+      /// after the read, since Reload_ empties the form's notice first.
+      /// </summary>
+      private void Write_(string address, string role, string domains, string outcome)
       {
          try
          {
@@ -474,14 +489,18 @@ namespace hMailServer.ControlPanel.Views
          address_.Text = "";
          domains_.Text = "";
          Reload_();
-      }
 
-      /// <summary>A prompt for the form: something to fill in first.</summary>
-      private void Warn_(string message)
-      {
-         notice_.Level = StatusLevel.Warning;
-         notice_.Text = message;
+         notice_.Level = StatusLevel.Good;
+         notice_.Text = outcome;
          notice_.Visibility = Visibility.Visible;
+
+         // The assignment given is the row chosen, and in view.
+         if (role.Length > 0 && assignmentGrid_.ItemsSource is List<AssignmentRow> rows
+             && rows.Find(r => string.Equals(r.Address, address, StringComparison.OrdinalIgnoreCase)) is AssignmentRow given)
+         {
+            assignmentGrid_.SelectedItem = given;
+            assignmentGrid_.ScrollIntoView(given);
+         }
       }
 
       /// <summary>

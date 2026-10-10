@@ -1554,9 +1554,6 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="An account - a mailbox in a domain" xml:space="preserve">
     <value>En konto - en postkasse i et domene</value>
   </data>
-  <data name="An account address is required." xml:space="preserve">
-    <value>En kontoadresse er påkrevd.</value>
-  </data>
   <data name="An account can be switched off without deleting it, which keeps the mail and refuses new sign-ins." xml:space="preserve">
     <value>En konto kan slås av uten å slettes, noe som beholder e-posten og avviser nye innlogginger.</value>
   </data>
@@ -3593,6 +3590,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   </data>
   <data name="Custom header…" xml:space="preserve">
     <value>Egendefinert header…</value>
+  </data>
+  <data name="Custom roles are made over the REST API, and the Control Deck deletes one that nobody holds." xml:space="preserve">
+    <value>Egendefinerte roller lages via REST-API-et, og Control Deck sletter en som ingen har.</value>
   </data>
   <data name="Custom scanner" xml:space="preserve">
     <value>Egendefinert skanner</value>
@@ -12825,6 +12825,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="The built-in connectivity and configuration checks, and the last message-store consistency scan." xml:space="preserve">
     <value>De innebygde tilkoblings- og konfigurasjonskontrollene, og den siste konsistensskanningen av meldingslageret.</value>
   </data>
+  <data name="The built-in roles cannot be changed. Custom roles are made over the REST API, and the Control Deck deletes one that nobody holds." xml:space="preserve">
+    <value>De innebygde rollene kan ikke endres. Egendefinerte roller lages via REST-API-et, og Control Deck sletter en som ingen har.</value>
+  </data>
   <data name="The case's lines on the audit trail" xml:space="preserve">
     <value>Sakens linjer i revisjonsloggen</value>
   </data>
@@ -17689,6 +17692,12 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="{0} must be between {1} and {2}." xml:space="preserve">
     <value>{0} må være mellom {1} og {2}.</value>
+  </data>
+  <data name="{0} no longer holds {1}, and holds what its admin level gives it." xml:space="preserve">
+    <value>{0} har ikke lenger rollen {1} og har det administratornivået gir den.</value>
+  </data>
+  <data name="{0} now holds {1}." xml:space="preserve">
+    <value>{0} har nå rollen {1}.</value>
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>{0} av kontoens engangskoder for gjenoppretting er ubrukte.</value>

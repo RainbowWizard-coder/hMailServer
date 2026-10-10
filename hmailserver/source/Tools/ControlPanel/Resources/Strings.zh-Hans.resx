@@ -1554,9 +1554,6 @@
   <data name="An account - a mailbox in a domain" xml:space="preserve">
     <value>一个账户 - 域中的邮箱</value>
   </data>
-  <data name="An account address is required." xml:space="preserve">
-    <value>需要账户地址。</value>
-  </data>
   <data name="An account can be switched off without deleting it, which keeps the mail and refuses new sign-ins." xml:space="preserve">
     <value>账户可以在不删除的情况下关闭，这样既保留邮件，又拒绝新的登录。</value>
   </data>
@@ -3593,6 +3590,9 @@
   </data>
   <data name="Custom header…" xml:space="preserve">
     <value>自定义标头…</value>
+  </data>
+  <data name="Custom roles are made over the REST API, and the Control Deck deletes one that nobody holds." xml:space="preserve">
+    <value>自定义角色通过 REST API 创建，Control Deck 可以删除没有人拥有的角色。</value>
   </data>
   <data name="Custom scanner" xml:space="preserve">
     <value>自定义扫描器</value>
@@ -12825,6 +12825,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The built-in connectivity and configuration checks, and the last message-store consistency scan." xml:space="preserve">
     <value>内置的连通性和配置检查，以及最近一次邮件存储一致性扫描。</value>
   </data>
+  <data name="The built-in roles cannot be changed. Custom roles are made over the REST API, and the Control Deck deletes one that nobody holds." xml:space="preserve">
+    <value>内置角色无法更改。自定义角色通过 REST API 创建，Control Deck 可以删除没有人拥有的角色。</value>
+  </data>
   <data name="The case's lines on the audit trail" xml:space="preserve">
     <value>此案件在审计记录中的行</value>
   </data>
@@ -17689,6 +17692,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} must be between {1} and {2}." xml:space="preserve">
     <value>{0} 必须介于 {1} 和 {2} 之间。</value>
+  </data>
+  <data name="{0} no longer holds {1}, and holds what its admin level gives it." xml:space="preserve">
+    <value>{0} 不再拥有角色 {1}，现在拥有其管理员级别赋予的权限。</value>
+  </data>
+  <data name="{0} now holds {1}." xml:space="preserve">
+    <value>{0} 现在拥有角色 {1}。</value>
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>此账户的一次性恢复代码中有 {0} 个未使用。</value>

@@ -1554,9 +1554,6 @@ Das Control Panel kann Nachrichtendateien nur lesen, wenn es auf demselben Rechn
   <data name="An account - a mailbox in a domain" xml:space="preserve">
     <value>Ein Konto - ein Postfach in einer Domain</value>
   </data>
-  <data name="An account address is required." xml:space="preserve">
-    <value>Eine Kontoadresse ist erforderlich.</value>
-  </data>
   <data name="An account can be switched off without deleting it, which keeps the mail and refuses new sign-ins." xml:space="preserve">
     <value>Ein Konto kann abgeschaltet werden, ohne es zu löschen, was die Mail behält und neue Anmeldungen ablehnt.</value>
   </data>
@@ -3593,6 +3590,9 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   </data>
   <data name="Custom header…" xml:space="preserve">
     <value>Benutzerdefinierter Header…</value>
+  </data>
+  <data name="Custom roles are made over the REST API, and the Control Deck deletes one that nobody holds." xml:space="preserve">
+    <value>Eigene Rollen werden über die REST-API angelegt, und das Control Deck löscht eine, die niemand hat.</value>
   </data>
   <data name="Custom scanner" xml:space="preserve">
     <value>Benutzerdefinierter Scanner</value>
@@ -12825,6 +12825,9 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="The built-in connectivity and configuration checks, and the last message-store consistency scan." xml:space="preserve">
     <value>Die eingebauten Verbindungs- und Konfigurationsprüfungen und der letzte Konsistenz-Scan des Nachrichtenspeichers.</value>
   </data>
+  <data name="The built-in roles cannot be changed. Custom roles are made over the REST API, and the Control Deck deletes one that nobody holds." xml:space="preserve">
+    <value>Die integrierten Rollen lassen sich nicht ändern. Eigene Rollen werden über die REST-API angelegt, und das Control Deck löscht eine, die niemand hat.</value>
+  </data>
   <data name="The case's lines on the audit trail" xml:space="preserve">
     <value>Die Zeilen des Falls im Prüfprotokoll</value>
   </data>
@@ -17689,6 +17692,12 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="{0} must be between {1} and {2}." xml:space="preserve">
     <value>{0} muss zwischen {1} und {2} liegen.</value>
+  </data>
+  <data name="{0} no longer holds {1}, and holds what its admin level gives it." xml:space="preserve">
+    <value>{0} hat die Rolle {1} nicht mehr und hat das, was seine Administratorstufe ihm gibt.</value>
+  </data>
+  <data name="{0} now holds {1}." xml:space="preserve">
+    <value>{0} hat jetzt die Rolle {1}.</value>
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>{0} der Einmal-Wiederherstellungscodes des Kontos sind unbenutzt.</value>

@@ -1554,9 +1554,6 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="An account - a mailbox in a domain" xml:space="preserve">
     <value>An account - a mailbox in a domain</value>
   </data>
-  <data name="An account address is required." xml:space="preserve">
-    <value>An account address is required.</value>
-  </data>
   <data name="An account can be switched off without deleting it, which keeps the mail and refuses new sign-ins." xml:space="preserve">
     <value>An account can be switched off without deleting it, which keeps the mail and refuses new sign-ins.</value>
   </data>
@@ -3593,6 +3590,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   </data>
   <data name="Custom header…" xml:space="preserve">
     <value>Custom header…</value>
+  </data>
+  <data name="Custom roles are made over the REST API, and the Control Deck deletes one that nobody holds." xml:space="preserve">
+    <value>Custom roles are made over the REST API, and the Control Deck deletes one that nobody holds.</value>
   </data>
   <data name="Custom scanner" xml:space="preserve">
     <value>Custom scanner</value>
@@ -12825,6 +12825,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="The built-in connectivity and configuration checks, and the last message-store consistency scan." xml:space="preserve">
     <value>The built-in connectivity and configuration checks, and the last message-store consistency scan.</value>
   </data>
+  <data name="The built-in roles cannot be changed. Custom roles are made over the REST API, and the Control Deck deletes one that nobody holds." xml:space="preserve">
+    <value>The built-in roles cannot be changed. Custom roles are made over the REST API, and the Control Deck deletes one that nobody holds.</value>
+  </data>
   <data name="The case's lines on the audit trail" xml:space="preserve">
     <value>The case's lines on the audit trail</value>
   </data>
@@ -17689,6 +17692,12 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="{0} must be between {1} and {2}." xml:space="preserve">
     <value>{0} must be between {1} and {2}.</value>
+  </data>
+  <data name="{0} no longer holds {1}, and holds what its admin level gives it." xml:space="preserve">
+    <value>{0} no longer holds {1}, and holds what its admin level gives it.</value>
+  </data>
+  <data name="{0} now holds {1}." xml:space="preserve">
+    <value>{0} now holds {1}.</value>
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>{0} of the account's one-time recovery codes are unused.</value>

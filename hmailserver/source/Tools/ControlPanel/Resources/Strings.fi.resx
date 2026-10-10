@@ -1554,9 +1554,6 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="An account - a mailbox in a domain" xml:space="preserve">
     <value>Tili - postilaatikko verkkotunnuksessa</value>
   </data>
-  <data name="An account address is required." xml:space="preserve">
-    <value>Tilin osoite vaaditaan.</value>
-  </data>
   <data name="An account can be switched off without deleting it, which keeps the mail and refuses new sign-ins." xml:space="preserve">
     <value>Tilin voi kytkeä pois käytöstä poistamatta sitä, jolloin posti säilyy ja uudet kirjautumiset hylätään.</value>
   </data>
@@ -3593,6 +3590,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Custom header…" xml:space="preserve">
     <value>Mukautettu otsake…</value>
+  </data>
+  <data name="Custom roles are made over the REST API, and the Control Deck deletes one that nobody holds." xml:space="preserve">
+    <value>Mukautetut roolit luodaan REST-rajapinnan kautta, ja Control Deck poistaa roolin, jota kenelläkään ei ole.</value>
   </data>
   <data name="Custom scanner" xml:space="preserve">
     <value>Mukautettu tarkistin</value>
@@ -12825,6 +12825,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="The built-in connectivity and configuration checks, and the last message-store consistency scan." xml:space="preserve">
     <value>Sisäänrakennetut yhteys- ja määritystarkistukset sekä viimeisin viestivaraston eheystarkistus.</value>
   </data>
+  <data name="The built-in roles cannot be changed. Custom roles are made over the REST API, and the Control Deck deletes one that nobody holds." xml:space="preserve">
+    <value>Sisäänrakennettuja rooleja ei voi muuttaa. Mukautetut roolit luodaan REST-rajapinnan kautta, ja Control Deck poistaa roolin, jota kenelläkään ei ole.</value>
+  </data>
   <data name="The case's lines on the audit trail" xml:space="preserve">
     <value>Tapauksen rivit tarkastuslokissa</value>
   </data>
@@ -17689,6 +17692,12 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} must be between {1} and {2}." xml:space="preserve">
     <value>{0} on oltava välillä {1} - {2}.</value>
+  </data>
+  <data name="{0} no longer holds {1}, and holds what its admin level gives it." xml:space="preserve">
+    <value>Tilillä {0} ei ole enää roolia {1}, ja se saa sen, minkä sen ylläpitotaso antaa.</value>
+  </data>
+  <data name="{0} now holds {1}." xml:space="preserve">
+    <value>Tilillä {0} on nyt rooli {1}.</value>
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>{0} tilin kertakäyttöisistä palautuskoodeista on käyttämättä.</value>

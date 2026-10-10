@@ -896,7 +896,8 @@ namespace hMailServer.ControlPanel.Services
                Page("apikeys", N("REST API keys"),
                   N("Scoped, expiring credentials for the REST API, so automation does not have to carry the administrator password."),
                   aliases: "API key|Bearer token|Access token|Credential|Service account for the API|Revoke a key|hmapi|Automation credential|Read-only key",
-                  seeAlso: "api|adminaccess"),
+                  // A key's role is one of the Administrator roles page's (F089).
+                  seeAlso: "api|adminaccess|roles"),
 
                Page("ipranges", N("IP ranges"),
                   N("Which addresses may connect, which may relay without authenticating, and which must authenticate first."),

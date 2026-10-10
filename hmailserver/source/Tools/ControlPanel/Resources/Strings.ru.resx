@@ -1572,9 +1572,6 @@ Control Panel может читать файлы сообщений только
   <data name="An account - a mailbox in a domain" xml:space="preserve">
     <value>Учётная запись - почтовый ящик в домене</value>
   </data>
-  <data name="An account address is required." xml:space="preserve">
-    <value>Требуется адрес учётной записи.</value>
-  </data>
   <data name="An account can be switched off without deleting it, which keeps the mail and refuses new sign-ins." xml:space="preserve">
     <value>Учётную запись можно отключить, не удаляя её: почта сохраняется, а новые входы отклоняются.</value>
   </data>
@@ -3626,6 +3623,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Custom header…" xml:space="preserve">
     <value>Свой заголовок…</value>
+  </data>
+  <data name="Custom roles are made over the REST API, and the Control Deck deletes one that nobody holds." xml:space="preserve">
+    <value>Собственные роли создаются через REST API, а Control Deck удаляет роль, которой ни у кого нет.</value>
   </data>
   <data name="Custom scanner" xml:space="preserve">
     <value>Свой сканер</value>
@@ -12985,6 +12985,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The built-in connectivity and configuration checks, and the last message-store consistency scan." xml:space="preserve">
     <value>Встроенные проверки связи и конфигурации, а также последняя проверка целостности хранилища сообщений.</value>
   </data>
+  <data name="The built-in roles cannot be changed. Custom roles are made over the REST API, and the Control Deck deletes one that nobody holds." xml:space="preserve">
+    <value>Встроенные роли изменить нельзя. Собственные роли создаются через REST API, а Control Deck удаляет роль, которой ни у кого нет.</value>
+  </data>
   <data name="The case's lines on the audit trail" xml:space="preserve">
     <value>Строки дела в журнале аудита</value>
   </data>
@@ -18041,6 +18044,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} must be between {1} and {2}." xml:space="preserve">
     <value>{0} должно быть в диапазоне от {1} до {2}.</value>
+  </data>
+  <data name="{0} no longer holds {1}, and holds what its admin level gives it." xml:space="preserve">
+    <value>У учётной записи {0} больше нет роли {1}; у неё то, что даёт её уровень администратора.</value>
+  </data>
+  <data name="{0} now holds {1}." xml:space="preserve">
+    <value>Учётной записи {0} назначена роль {1}.</value>
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>Не использовано одноразовых кодов восстановления: {0}.</value>

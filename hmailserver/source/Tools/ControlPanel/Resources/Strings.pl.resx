@@ -1572,9 +1572,6 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   <data name="An account - a mailbox in a domain" xml:space="preserve">
     <value>Konto - skrzynka w domenie</value>
   </data>
-  <data name="An account address is required." xml:space="preserve">
-    <value>Adres konta jest wymagany.</value>
-  </data>
   <data name="An account can be switched off without deleting it, which keeps the mail and refuses new sign-ins." xml:space="preserve">
     <value>Konto można wyłączyć bez usuwania go, co zachowuje pocztę i odrzuca nowe logowania.</value>
   </data>
@@ -3626,6 +3623,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   </data>
   <data name="Custom header…" xml:space="preserve">
     <value>Własny nagłówek…</value>
+  </data>
+  <data name="Custom roles are made over the REST API, and the Control Deck deletes one that nobody holds." xml:space="preserve">
+    <value>Role niestandardowe tworzy się przez REST API, a Control Deck usuwa rolę, której nikt nie ma.</value>
   </data>
   <data name="Custom scanner" xml:space="preserve">
     <value>Własny skaner</value>
@@ -12985,6 +12985,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="The built-in connectivity and configuration checks, and the last message-store consistency scan." xml:space="preserve">
     <value>Wbudowane kontrole łączności i konfiguracji oraz ostatnie skanowanie spójności magazynu wiadomości.</value>
   </data>
+  <data name="The built-in roles cannot be changed. Custom roles are made over the REST API, and the Control Deck deletes one that nobody holds." xml:space="preserve">
+    <value>Wbudowanych ról nie można zmieniać. Role niestandardowe tworzy się przez REST API, a Control Deck usuwa rolę, której nikt nie ma.</value>
+  </data>
   <data name="The case's lines on the audit trail" xml:space="preserve">
     <value>Wiersze sprawy w dzienniku audytu</value>
   </data>
@@ -18041,6 +18044,12 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} must be between {1} and {2}." xml:space="preserve">
     <value>{0} musi mieścić się między {1} a {2}.</value>
+  </data>
+  <data name="{0} no longer holds {1}, and holds what its admin level gives it." xml:space="preserve">
+    <value>Konto {0} nie ma już roli {1} i ma to, co daje mu jego poziom administratora.</value>
+  </data>
+  <data name="{0} now holds {1}." xml:space="preserve">
+    <value>Konto {0} ma teraz rolę {1}.</value>
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>{0} z jednorazowych kodów odzyskiwania konta jest nieużytych.</value>

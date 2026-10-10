@@ -1572,9 +1572,6 @@
   <data name="An account - a mailbox in a domain" xml:space="preserve">
     <value>Обліковий запис - поштова скринька в домені</value>
   </data>
-  <data name="An account address is required." xml:space="preserve">
-    <value>Потрібна адреса облікового запису.</value>
-  </data>
   <data name="An account can be switched off without deleting it, which keeps the mail and refuses new sign-ins." xml:space="preserve">
     <value>Обліковий запис можна вимкнути, не видаляючи його: пошта зберігається, а нові входи відхиляються.</value>
   </data>
@@ -3626,6 +3623,9 @@
   </data>
   <data name="Custom header…" xml:space="preserve">
     <value>Власний заголовок…</value>
+  </data>
+  <data name="Custom roles are made over the REST API, and the Control Deck deletes one that nobody holds." xml:space="preserve">
+    <value>Власні ролі створюються через REST API, а Control Deck видаляє роль, якої ні в кого немає.</value>
   </data>
   <data name="Custom scanner" xml:space="preserve">
     <value>Власний сканер</value>
@@ -12985,6 +12985,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The built-in connectivity and configuration checks, and the last message-store consistency scan." xml:space="preserve">
     <value>Вбудовані перевірки з'єднання та конфігурації, а також останнє сканування цілісності сховища повідомлень.</value>
   </data>
+  <data name="The built-in roles cannot be changed. Custom roles are made over the REST API, and the Control Deck deletes one that nobody holds." xml:space="preserve">
+    <value>Вбудовані ролі змінити не можна. Власні ролі створюються через REST API, а Control Deck видаляє роль, якої ні в кого немає.</value>
+  </data>
   <data name="The case's lines on the audit trail" xml:space="preserve">
     <value>Рядки справи в журналі аудиту</value>
   </data>
@@ -18041,6 +18044,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} must be between {1} and {2}." xml:space="preserve">
     <value>{0} має бути від {1} до {2}.</value>
+  </data>
+  <data name="{0} no longer holds {1}, and holds what its admin level gives it." xml:space="preserve">
+    <value>Обліковий запис {0} більше не має ролі {1}; він має те, що дає його рівень адміністратора.</value>
+  </data>
+  <data name="{0} now holds {1}." xml:space="preserve">
+    <value>Обліковому запису {0} призначено роль {1}.</value>
   </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>Не використано одноразових кодів відновлення: {0}.</value>

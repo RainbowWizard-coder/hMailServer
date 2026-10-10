@@ -149,7 +149,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(unassign != null, "RolesView.Unassign_ is gone.");
          Assert.DoesNotContain("address_.Text", unassign, StringComparison.Ordinal);
          int asks = unassign.IndexOf("Confirmations.TakeRoleAway(row.Role, row.Address)", StringComparison.Ordinal);
-         int writes = unassign.IndexOf("Write_(row.Address, \"\", \"\")", StringComparison.Ordinal);
+         int writes = unassign.IndexOf("Write_(row.Address, \"\", \"\", ", StringComparison.Ordinal);
          Assert.True(asks >= 0 && writes > asks, "Take the role away writes without asking first.");
          Assert.Contains("destructive: true", unassign, StringComparison.Ordinal);
 
