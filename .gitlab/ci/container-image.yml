@@ -58,12 +58,16 @@
 #                         it (predicate type cyclonedx) by the same identity, and all
 #                         of it verified (build/ci/container-image-sign.sh);
 #   container_scanning, container_scanning_arm64
-#                         linix (default:'s tag): GitLab's own Container Scanning
-#                         template, free on every tier, over each platform's pushed
-#                         image by its digest. A finding does not fail the pipeline
-#                         (the template makes it allow_failure); its report is the
-#                         job's artifact, for members with the Developer role or
-#                         above, since the vulnerability report is GitLab Ultimate;
+#                         linix (default:'s tag), in Docker Hub's aquasec/trivy,
+#                         dependency-scan's image by the same digest: each platform's
+#                         pushed image by its digest scanned for known
+#                         vulnerabilities, with that day's database
+#                         (build/ci/container-scan.sh). A finding does not fail the
+#                         pipeline (allow_failure, as GitLab's template had it); the
+#                         report, in GitLab's container-scanning format and Trivy's
+#                         own, is the job's artifact, for members with the Developer
+#                         role or above, since the vulnerability report is GitLab
+#                         Ultimate;
 #   container-image-start, container-image-start-arm64
 #                         linix: each platform's pushed image, by its digest, started
 #                         as a service beside PostgreSQL through its own entrypoint -
@@ -117,26 +121,25 @@
 # for a job of an included file too. The start tests' database password is a
 # throwaway, for service containers nothing outside the job can reach.
 #
-# The Container Scanning analyzer is pinned by digest, as the other scans' images are:
-# registry.gitlab.com's security-products/container-scanning:8 as it was on
-# 10 October 2026 (analyzer 8.6.35, built that day at 16:22 UTC). GitLab rebuilds that
-# image every day, the analyzer unchanged and its vulnerability databases new, and stops
-# serving a digest it has replaced within a day or two: the digests of 26 and 28
-# September both answered 404 on 30 September, and the one taken on 5 October answered
-# 404 on 10 October, so a pin older than that fails the pull (the job is allowed to
-# fail, and the scan is then lost). Unlike gitlab-security.yml's two analyzers it has no
-# copy in the project's registry, and may not have one: the image carries GitLab's
-# Enterprise Edition code (the analyzer gem's ee/, under GitLab's EE licence) and a
-# database built with the GitLab Advisory Database (/home/gitlab/.cache/trivy/ee, under
-# GitLab's Security Alert Database Terms), and neither allows a copy to be published.
-# So the digest is taken again the day a release is tagged (RELEASE.md, step 1), and
-# build/check-image-pins.py, in Renovate's schedule's pipeline, names it once it is
-# gone; build/check-release-chain.py holds the job to GitLab's image by digest
-# (docs/ContinuousIntegration.md, "container_scanning's analyzer"). kaniko's image is
-# linux-image's, by reference, so that one digest serves every build job.
-
-include:
-  - template: Jobs/Container-Scanning.gitlab-ci.yml
+# The scan is Trivy's, in its own image pinned by digest, and not GitLab's Container
+# Scanning template, which ran until 10 October 2026: GitLab's analyzer image
+# (security-products/container-scanning:8) is rebuilt every day, the analyzer the same
+# and its vulnerability databases new, and GitLab stops serving a digest it has
+# replaced within a day or two - the digests of 26 and 28 September answered 404 on
+# 30 September, and the one taken on 5 October on 10 October - so a pin taken for a
+# release could be gone before its tag's pipeline pulled it, and the job, allowed to
+# fail, would then lose both scans without a word. Nor may the image be copied into
+# the project's registry, as gitlab-security.yml's two analyzers are: it carries
+# GitLab's Enterprise Edition code (the analyzer gem's ee/, under GitLab's EE licence)
+# and a database built with the GitLab Advisory Database (under GitLab's Security
+# Alert Database Terms), and neither allows a copy to be published. The analyzer on
+# the Free tier ran Trivy over Trivy's own database; this runs Trivy 0.74.0 itself,
+# the release dependency-scan runs, with that day's database downloaded as the job
+# runs, and its image stays on Docker Hub under its digest. build/check-release-chain.py
+# holds the two jobs to dependency-scan's image, to build/ci/container-scan.sh and to
+# each platform's image, and the tree to no GitLab container-scanning analyzer or
+# template (docs/ContinuousIntegration.md, "container_scanning's scanner"). kaniko's
+# image is linux-image's, by reference, so that one digest serves every build job.
 
 # The linux/arm64 image in a branch's pipeline, as linux-image builds the linux/amd64
 # one: from the generic arm64 .deb deb-ubuntu26.04-arm64 made, which is manual on
@@ -363,31 +366,48 @@ container-image-sign:
     paths:
       - container-image-signed/
 
-# The template's job, held to the release's rules and handed the linux/amd64 image by
-# digest: CS_IMAGE comes from container-image's dotenv report, which the template's
-# `dependencies: []` would keep from it, so dependencies names that job.
+# The linux/amd64 image, by the digest container-image's dotenv report names
+# (HM_IMAGE_AMD64), scanned by Trivy in dependency-scan's image, by the same digest,
+# with that day's database (build/ci/container-scan.sh; the header says why not
+# GitLab's analyzer). Trivy reads the image from the registry, anonymously, and runs
+# nothing in it. A finding is a warning, as it was under GitLab's template: by now
+# the release is published, and the report says what to do. .no-github keeps
+# GitHub's registry, Trivy's default for its other databases, out; the image runs as
+# root, so the job can write /etc/hosts. CONTAINER_SCANNING_DISABLED, GitLab's
+# switch, still turns both scans off.
 container_scanning:
-  # GitLab's own, by digest, on one line (the header says why it is not a copy);
-  # re-taken on 10 October 2026, when the registry no longer served the one of 5
-  # October.
-  image: registry.gitlab.com/security-products/container-scanning:8@sha256:fa105a4e2835c9177186c31ed3ce2d999a7479c1268f0d1932828e831d541f97
+  extends: .no-github
   stage: release
+  image:
+    name: aquasec/trivy:0.74.0@sha256:62b1e65e8869bc4b4c6aa4fa2b21595256c7c2f6018a9d9ad61caf87187c1969
+    entrypoint: [""]
   needs:
     - job: container-image
       artifacts: true
   dependencies: [container-image]
   timeout: 30 minutes
+  allow_failure: true
   rules:
     - if: $CONTAINER_SCANNING_DISABLED == 'true' || $CONTAINER_SCANNING_DISABLED == '1'
       when: never
     - !reference [.release-rules, rules]
+  variables:
+    HM_SCAN_ARCH: amd64
+  script:
+    - sh build/ci/container-scan.sh
+  artifacts:
+    when: always
+    access: developer
+    expire_in: 90 days
+    paths:
+      - container-scan/
+    reports:
+      container_scanning: container-scan/gl-container-scanning-report.json
 
-# The same scan over the linux/arm64 image, by its digest: the analyzer reads the
-# image's files and runs nothing in it, so the platform is no matter to it (on linix,
-# 29 September 2026, it scanned an arm64 image of this Dockerfile by digest and found
-# the arm64 hmailserver package). CS_IMAGE is set in the job's shell, because a dotenv
-# report's variables take precedence over a job's own, and container-image's names
-# the linux/amd64 image.
+# The same scan over the linux/arm64 image, by its own digest (HM_IMAGE_ARM64): Trivy
+# reads the image's files and runs nothing in it, so the platform is no matter to the
+# runner. The job's HM_SCAN_ARCH picks the image; container-image's dotenv report,
+# whose variables outrank a job's own, names both platforms' and sets no HM_SCAN_ARCH.
 container_scanning_arm64:
   extends: container_scanning
   needs:
@@ -398,9 +418,8 @@ container_scanning_arm64:
     - if: $CONTAINER_SCANNING_DISABLED == 'true' || $CONTAINER_SCANNING_DISABLED == '1'
       when: never
     - !reference [.release-rules, rules]
-  before_script:
-    - export CS_IMAGE="$HM_IMAGE_ARM64"
-    - echo "scanning the linux/arm64 image, $CS_IMAGE"
+  variables:
+    HM_SCAN_ARCH: arm64
 
 # The pushed image started as a user starts it, beside PostgreSQL, and asked for SMTP
 # and the REST API: services on one network of the job's own (FF_NETWORK_PER_BUILD), so

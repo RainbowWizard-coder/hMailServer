@@ -214,12 +214,13 @@ refuses it. This checker holds them to each other. It fails when:
     (container-image-sbom, build/ci/container-image-sbom.sh) to that platform's image
     and verifies the attestation; or container-image-start does not start the pushed
     image with the command its test script names, on a network of its own; or
-    container_scanning names its analyzer but as GitLab's registry holds it, by a
-    major version and a digest on its one image: line (CONTAINER_SCANNING): by a tag
-    alone, which would run whatever GitLab built last in a release's pipeline, or from
-    a copy in the project's registry, which the image's licences forbid - GitLab's EE
-    code and its advisory database are in it - or container_scanning_arm64 names an
-    image of its own; or the
+    container_scanning does not run build/ci/container-scan.sh over the linux/amd64
+    image in dependency-scan's Trivy image, by the same digest (CONTAINER_SCANNER),
+    keeping its report, or container_scanning_arm64 is anything but its twin for the
+    linux/arm64 image, or the script no longer takes each platform's image by its
+    digest, the project's alone, or a CI file names GitLab's container-scanning
+    analyzer or includes its template again (GITLAB_SCANNER) - an image GitLab
+    rebuilds daily and stops serving within days of, which may not be copied; or the
     switch, the project's own CI/CD variable HM_PUBLISH_IMAGE, is not read as the jobs
     run - container-image-deb.sh, linux-image.sh and container-image-push.sh must
     refuse, exiting non-zero, unless it is "1" - or is read by a rule, which is
@@ -386,6 +387,7 @@ FILES = {
     "image-sbom": os.path.join("build", "ci", "container-image-sbom.sh"),
     "dockerfile": os.path.join("hmailserver", "source", "Server", "platform", "packaging", "docker", "Dockerfile"),
     "image-start": os.path.join("build", "ci", "container-image-start-test.sh"),
+    "image-scan": os.path.join("build", "ci", "container-scan.sh"),
     # Artifact Hub: the image's repository's metadata and its push; the chart, whose
     # images annotation names the image's platforms, and its packaging.
     "image-artifacthub": os.path.join("build", "ci", "container-image-artifacthub.sh"),
@@ -641,14 +643,29 @@ MIRRORED_SAST = re.compile(r"^    name: registry\.gitlab\.com/hmailserver/hmails
 # landing's scanner from.
 MIRRORED_SECRETS = re.compile(r"^  image: registry\.gitlab\.com/hmailserver/hmailserver/mirror/secrets:"
                               r"[0-9]+(?:\.[0-9]+)*-([0-9a-f]{12})@sha256:([0-9a-f]{64})\s*$", re.MULTILINE)
-# container_scanning's analyzer as GitLab's registry holds it, by a major version and a
-# digest, on the job's one image: line. It is not copied into the project's registry,
-# as the two above are: the image carries code under GitLab's EE licence and a database
-# built with the GitLab Advisory Database, whose terms allow neither to be published
-# (.gitlab/ci/container-image.yml's header); GitLab rebuilds it daily, and the digest is
-# taken again before a release tag.
-CONTAINER_SCANNING = re.compile(r"^  image: registry\.gitlab\.com/security-products/container-scanning:[0-9]+"
-                                r"@sha256:[0-9a-f]{64}\s*$", re.MULTILINE)
+# container_scanning's scanner: Trivy, in Docker Hub's aquasec/trivy by its release and
+# digest, on the job's image's name: line - dependency-scan's, which the check holds it
+# to, so that Renovate moves the two together. Not GitLab's analyzer, which GitLab
+# rebuilds daily and stops serving a digest of within days, and which may not be copied
+# into the project's registry, as the two above are: the image carries code under
+# GitLab's EE licence and a database built with the GitLab Advisory Database, whose
+# terms allow neither to be published (.gitlab/ci/container-image.yml's header).
+# GITLAB_SCANNER finds that analyzer, or GitLab's template, on a line of a CI file that
+# is not a comment.
+CONTAINER_SCANNER = re.compile(r"^    name: (aquasec/trivy:[0-9]+(?:\.[0-9]+)*@sha256:[0-9a-f]{64})\s*$", re.MULTILINE)
+GITLAB_SCANNER = re.compile(r"security-products/container-scanning|Container-Scanning\.gitlab-ci\.yml")
+# What build/ci/container-scan.sh must hold: each platform's image by its digest, the
+# project's alone, from container-image's dotenv report; Trivy's vulnerability scan of
+# that platform; the database from where dependency-scan takes it; and the report in
+# GitLab's format, where the job keeps it.
+CONTAINER_SCAN_SCRIPT = ("REPOSITORY=registry.gitlab.com/hmailserver/hmailserver\n",
+                         'DATABASES="mirror.gcr.io/aquasec/trivy-db:2 public.ecr.aws/aquasecurity/trivy-db:2"\n',
+                         "OUT=container-scan\n",
+                         'digest=${image#"$REPOSITORY@sha256:"}\n',
+                         '[ "${#digest}" -eq 64 ] || fail 2',
+                         'trivy image --skip-db-update --scanners vuln --platform "linux/$arch" --format json --output "$report"',
+                         'grep -qF "sha256:$digest" "$report" || fail 1',
+                         'trivy convert --format template --template @/contrib/gitlab.tpl --output "$OUT/gl-container-scanning-report.json"')
 # The scans on linix that judge a batch as a whole: on a protected batch* branch their
 # rules compare the tree with master, not with the push before.
 WHOLE_CHANGE_SCANS = ["static-analysis", "semgrep", "ci-image-packages", "dependency-scan"]
@@ -1727,17 +1744,39 @@ def check(texts, chain, feed):
     scanning = image_jobs.get("container_scanning", "")
     if scanning and not re.search(r"^  dependencies: \[container-image\]\s*$", scanning, re.MULTILINE):
         problems.append("container_scanning does not take container-image's dotenv report (dependencies: [container-image]): "
-                        "the template's dependencies: [] leaves it no CS_IMAGE")
-    if scanning and not CONTAINER_SCANNING.search(scanning):
-        problems.append("container_scanning does not name GitLab's analyzer as GitLab's registry holds it, by a major version "
-                        "and a digest on one line (image: registry.gitlab.com/security-products/container-scanning:<major>"
-                        "@sha256:<digest>): a tag alone runs whatever GitLab built last in a release's pipeline, and the "
-                        "image may not be copied into the project's registry - it carries GitLab's EE code and a database "
-                        "built with the GitLab Advisory Database, whose terms forbid that (ContinuousIntegration.md, "
-                        "\"container_scanning's analyzer\")")
-    if re.search(r"^  image:", image_jobs.get("container_scanning_arm64", ""), re.MULTILINE):
-        problems.append("container_scanning_arm64 names an image of its own: it runs container_scanning's analyzer, which it "
-                        "extends, and which is held to GitLab's by digest")
+                        "it would have no platform's image by its digest to scan")
+    if scanning:
+        scanner = CONTAINER_SCANNER.search(scanning)
+        trivy = CONTAINER_SCANNER.search(jobs.get("dependency-scan", ""))
+        if not scanner or not trivy or scanner.group(1) != trivy.group(1):
+            problems.append("container_scanning does not run in dependency-scan's Trivy image by the same release and digest, "
+                            "on its image's name: line (%s; dependency-scan's %s): its scanner is Trivy, pinned where Renovate "
+                            "moves both, not GitLab's analyzer, which GitLab rebuilds daily and stops serving within days of "
+                            "(ContinuousIntegration.md, \"container_scanning's scanner\")"
+                            % (scanner.group(1) if scanner else "none", trivy.group(1) if trivy else "none"))
+        for needle, why in (("    HM_SCAN_ARCH: amd64\n", "scan the linux/amd64 image (HM_SCAN_ARCH: amd64)"),
+                            ("    - sh build/ci/container-scan.sh\n", "run build/ci/container-scan.sh"),
+                            ("    reports:\n      container_scanning: container-scan/gl-container-scanning-report.json\n",
+                             "keep the script's report as the job's container_scanning report")):
+            if needle not in scanning + "\n":
+                problems.append("container_scanning does not %s" % why)
+    if re.search(r"^  (?:image|script|before_script|artifacts|allow_failure):", image_jobs.get("container_scanning_arm64", ""),
+                 re.MULTILINE):
+        problems.append("container_scanning_arm64 has an image, a script or artifacts of its own: it is container_scanning's "
+                        "twin, the same scan of the linux/arm64 image, which it extends")
+    every_ci = dict(texts.get("ci-includes", {}), **{".gitlab-ci.yml": ci, FILES["image"].replace(os.sep, "/"): texts["image"]})
+    for path, text in sorted(every_ci.items()):
+        named = [line.strip() for line in text.split("\n") if GITLAB_SCANNER.search(line) and not line.lstrip().startswith("#")]
+        if named:
+            problems.append("%s names GitLab's container-scanning analyzer or includes its template (%s): GitLab rebuilds "
+                            "that image daily and stops serving a digest of it within days, and it may not be copied; "
+                            "container_scanning runs Trivy (ContinuousIntegration.md, \"container_scanning's scanner\")"
+                            % (path, named[0][:100]))
+    for needle in CONTAINER_SCAN_SCRIPT + tuple("  %s) image=${HM_IMAGE_%s:-} ;;\n" % (arch, arch.upper())
+                                                for arch in IMAGE_PLATFORMS):
+        if needle not in texts["image-scan"]:
+            problems.append("%s no longer has %s: it scans each platform's image by its digest, the project's alone, "
+                            "and keeps the report in GitLab's format where the job takes it" % (FILES["image-scan"], needle.strip()))
     image_script = texts["image-sign"]
     for needle, why in (('platforms="%s"' % " ".join(IMAGE_PLATFORMS), "every platform's image signed"),
                         ('\nsign index "$index"\n', "the index, which every tag names, signed"),
@@ -3579,11 +3618,10 @@ def image_platform_problems(texts, jobs, image_jobs):
             problems.append("%s no longer has %s (%s)" % (FILES["image-sbom"], needle, why))
     scan = image_jobs.get("container_scanning_arm64", "")
     if scan and not (re.search(r"^  extends: container_scanning\s*$", scan, re.MULTILINE)
-                     and re.search(r"^  dependencies: \[container-image\]\s*$", scan, re.MULTILINE)
-                     and '    - export CS_IMAGE="$HM_IMAGE_ARM64"' in scan):
-        problems.append("container_scanning_arm64 does not scan the linux/arm64 image: it must extend container_scanning, take "
-                        "container-image's dotenv report and set CS_IMAGE to HM_IMAGE_ARM64 in its shell, since the report's "
-                        "CS_IMAGE, the linux/amd64 image, outranks a job's own variables")
+                     and re.search(r"^    HM_SCAN_ARCH: arm64\s*$", scan, re.MULTILINE)):
+        problems.append("container_scanning_arm64 does not scan the linux/arm64 image: it must extend container_scanning and "
+                        "set HM_SCAN_ARCH to arm64, by which build/ci/container-scan.sh takes HM_IMAGE_ARM64 from "
+                        "container-image's dotenv report")
     start = image_jobs.get("container-image-start-arm64", "")
     command = re.search(r"^START_COMMAND='([^'\n]+)'$", texts["image-start"], re.MULTILINE)
     if start and not (re.search(r"^  extends: container-image-start\s*$", start, re.MULTILINE)
@@ -4056,19 +4094,49 @@ def self_test(chain, feed):
            "    - job: container-image-start\n      artifacts: false\n    - job: container-image-start-arm64\n      artifacts: false\n  timeout: 15 minutes",
            "  needs: []\n  timeout: 15 minutes", "container-image-sign does not need container-image")
     broken("the scan without the image's name", "image", "  dependencies: [container-image]\n", "", "container_scanning does not take")
-    scanner = CONTAINER_SCANNING.search(texts["image"])
-    scanner_pin = scanner.group(0).rstrip() if scanner else "container_scanning's pinned analyzer is not found"
-    broken("container_scanning's analyzer by its tag alone", "image", scanner_pin, scanner_pin.split("@")[0],
-           "container_scanning does not name GitLab's analyzer as GitLab's registry holds it")
-    broken("container_scanning's analyzer from a copy in the project's registry", "image", scanner_pin,
-           scanner_pin.replace("registry.gitlab.com/security-products/container-scanning:8@",
-                               "registry.gitlab.com/hmailserver/hmailserver/mirror/container-scanning:8.6.35-000000000000@"),
-           "container_scanning does not name GitLab's analyzer as GitLab's registry holds it")
-    broken("container_scanning's analyzer named over two lines", "image", scanner_pin,
-           scanner_pin.replace("  image: ", "  image:\n    name: ", 1), "container_scanning does not name GitLab's analyzer")
+    # container_scanning's scanner: Trivy in dependency-scan's image, the pin as the file has
+    # it (Renovate moves it), and never GitLab's analyzer or template again.
+    scanner = CONTAINER_SCANNER.search(blocks(texts["image"]).get("container_scanning", ""))
+    scanner_pin = scanner.group(0).rstrip() if scanner else "container_scanning's Trivy is not found"
+    trivy_release = re.search(r"aquasec/trivy:([0-9.]+)@", scanner_pin)
+    broken("container_scanning's Trivy by its tag alone", "image", scanner_pin, scanner_pin.split("@")[0],
+           "container_scanning does not run in dependency-scan's Trivy image")
+    broken("container_scanning's Trivy another release than dependency-scan's", "image", scanner_pin,
+           scanner_pin.replace("aquasec/trivy:%s@" % (trivy_release.group(1) if trivy_release else "?"), "aquasec/trivy:0.1.0@"),
+           "container_scanning does not run in dependency-scan's Trivy image")
+    broken("container_scanning's Trivy named on the image: line", "image", "  image:\n" + scanner_pin + "\n    entrypoint: [\"\"]\n",
+           scanner_pin.replace("    name: ", "  image: ") + "\n", "container_scanning does not run in")
+    broken("GitLab's analyzer in container_scanning again", "image", "  image:\n" + scanner_pin + "\n    entrypoint: [\"\"]\n",
+           "  image: registry.gitlab.com/security-products/container-scanning:8@sha256:%s\n" % ("1" * 64),
+           "names GitLab's container-scanning analyzer")
+    broken("GitLab's template included again", "image", "\ncontainer_scanning:\n",
+           "\ninclude:\n  - template: Jobs/Container-Scanning.gitlab-ci.yml\n\ncontainer_scanning:\n",
+           "names GitLab's container-scanning analyzer or includes its template")
+    broken("GitLab's analyzer named in another CI file", "ci", "\nvariables:\n",
+           "\nvariables:\n  CS_ANALYZER_IMAGE: registry.gitlab.com/security-products/container-scanning:8\n",
+           ".gitlab-ci.yml names GitLab's container-scanning analyzer")
+    broken("the scan without its script", "image", "    - sh build/ci/container-scan.sh\n", "    - trivy image \"$HM_IMAGE_AMD64\"\n",
+           "container_scanning does not run build/ci/container-scan.sh")
+    broken("the scan's report not kept", "image",
+           "    reports:\n      container_scanning: container-scan/gl-container-scanning-report.json\n", "",
+           "container_scanning does not keep the script's report")
+    broken("the amd64 scan of the arm64 image", "image", "    HM_SCAN_ARCH: amd64\n", "    HM_SCAN_ARCH: arm64\n",
+           "container_scanning does not scan the linux/amd64 image")
     broken("the arm64 scan in an image of its own", "image", "container_scanning_arm64:\n  extends: container_scanning\n",
            "container_scanning_arm64:\n  extends: container_scanning\n  image: registry.example/scanner:1\n",
-           "container_scanning_arm64 names an image of its own")
+           "container_scanning_arm64 has an image, a script or artifacts of its own")
+    broken("the arm64 scan with a script of its own", "image", "    HM_SCAN_ARCH: arm64\n",
+           "    HM_SCAN_ARCH: arm64\n  script:\n    - trivy image \"$HM_IMAGE_ARM64\"\n",
+           "container_scanning_arm64 has an image, a script or artifacts of its own")
+    broken("the scan script taking amd64's image for arm64", "image-scan", "  arm64) image=${HM_IMAGE_ARM64:-} ;;\n",
+           "  arm64) image=${HM_IMAGE_AMD64:-} ;;\n", "no longer has arm64) image=${HM_IMAGE_ARM64:-} ;;")
+    broken("the scan script taking any registry's image", "image-scan", 'digest=${image#"$REPOSITORY@sha256:"}\n',
+           'digest=${image#*@sha256:}\n', "no longer has digest=${image#")
+    broken("the scan script taking a database from GitHub", "image-scan",
+           'DATABASES="mirror.gcr.io/aquasec/trivy-db:2 public.ecr.aws/aquasecurity/trivy-db:2"\n',
+           'DATABASES="ghcr.io/aquasecurity/trivy-db:2"\n', "no longer has DATABASES=")
+    broken("the scan script's report not in GitLab's format", "image-scan", "--template @/contrib/gitlab.tpl", "--template @/contrib/html.tpl",
+           "no longer has trivy convert --format template")
     broken("the image signed before its SBOM is made", "image", "    - job: container-image-sbom\n      artifacts: true\n", "",
            "container-image-sign does not need container-image-sbom")
     broken("the image's SBOM made from release-sign's artifact", "image", "  variables:\n    HM_IMAGE_DEB_DIR: container-image-deb\n  script:\n    - bash",
@@ -4212,7 +4280,7 @@ def self_test(chain, feed):
     broken("the signature of amd64 alone", "image-sign", 'platforms="amd64 arm64"', 'platforms="amd64"', "every platform's image signed")
     broken("the index left unsigned", "image-sign", '\nsign index "$index"\n', "\ntrue\n", "the index, which every tag names, signed")
     broken("the arm64 scan gone", "image", "\ncontainer_scanning_arm64:\n", "\ncontainer_scanning_old:\n", "has no container_scanning_arm64 job")
-    broken("the arm64 scan over the amd64 image", "image", '    - export CS_IMAGE="$HM_IMAGE_ARM64"\n', "", "container_scanning_arm64 does not scan")
+    broken("the arm64 scan over the amd64 image", "image", "    HM_SCAN_ARCH: arm64\n", "", "container_scanning_arm64 does not scan")
     broken("the arm64 start gone", "image", "\ncontainer-image-start-arm64:\n", "\ncontainer-image-start-old:\n",
            "has no container-image-start-arm64 job")
     broken("the arm64 start as the host's platform", "image", "      docker:\n        platform: linux/arm64\n", "",

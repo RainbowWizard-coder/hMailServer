@@ -4663,17 +4663,22 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `allow_failure`, and RELEASE.md runs the check before a tag; `checkers` runs the self-test alone. On 10 October it
   found 59 pins in 118 places, and
   `container_scanning`'s gone (ContinuousIntegration.md, "Image pins").
-- **`container_scanning` runs again: its analyzer is re-pinned to the digest GitLab's `container-scanning:8` names on
-  10 October 2026, and is not copied into the project's registry, which its licences forbid.** The digest taken on 5
-  October answered 404 by 10 October, and the job, which runs in a release tag's pipeline alone and is allowed to fail,
-  would have lost both platforms' scans without a word. GitLab rebuilds the image every day, the analyzer (8.6.35) the
-  same and its vulnerability databases new, and serves a replaced digest for a day or two. A copy, as
-  `semgrep-sast`'s and `secret_detection`'s are, was the plan, and is not made: the image carries GitLab's
-  Enterprise Edition code (the analyzer gem's `ee/`) and a database built with the GitLab Advisory Database, whose
-  licence and terms allow no copy to be published. So the release commit takes the digest again (RELEASE.md, step 1),
-  and `build/check-release-chain.py` fails when the job names the analyzer by a tag alone, from the project's
-  registry or over two lines, or `container_scanning_arm64` names an image of its own (ContinuousIntegration.md,
-  "container_scanning's analyzer").
+- **`container_scanning` and `container_scanning_arm64` scan each platform's pushed image with Trivy, in
+  `dependency-scan`'s own image by its digest, where they ran GitLab's Container Scanning analyzer by a digest GitLab
+  stops serving within days.** The analyzer's digest taken on 5 October 2026 answered 404 by 10 October, and the
+  jobs, which run in a release tag's pipeline alone and are allowed to fail, would have lost both platforms' scans
+  without a word. GitLab rebuilds that image every day, the analyzer (8.6.35) the same and its vulnerability
+  databases new, and serves a replaced digest for a day or two, so a digest taken for a release could be gone before
+  its tag's pipeline pulled it; nor may the image be copied into the project's registry, as `semgrep-sast`'s and
+  `secret_detection`'s are, since it carries GitLab's Enterprise Edition code (the analyzer gem's `ee/`) and a
+  database built with the GitLab Advisory Database, whose licence and terms allow no copy to be published. The new
+  `build/ci/container-scan.sh` runs Trivy 0.74.0 - Docker Hub's `aquasec/trivy`, which Renovate moves with
+  `dependency-scan`'s - over the image by its digest, the project's alone, with that day's database from
+  `mirror.gcr.io` or `public.ecr.aws`, and keeps the report in GitLab's container-scanning format and Trivy's own; a
+  finding is still a warning. Run as the jobs run it, on 10 October it scanned 6.3.6's two published images by digest
+  in 18 seconds each. `build/check-release-chain.py` holds the jobs to `dependency-scan`'s image and to the script,
+  and fails a CI file that names GitLab's container-scanning analyzer or includes its template again
+  (ContinuousIntegration.md, "container_scanning's scanner").
 - **Both secret scans read every path under a directory named `build`, `bin`, `obj`, `target` or `packages`, this
   tree's `build/` among them, which GitLab's rules leave out.** `secret_detection` and `build/scan-secrets.py`, the
   hooks' and the landing's scan, took GitLab's rules whole, and their global allowlist left out those directories:

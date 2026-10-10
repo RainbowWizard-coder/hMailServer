@@ -380,7 +380,7 @@ that does not exist (empty, pg_dump's exit status 1) or in one cut short.
 | `container-image-artifacthub` | a runner with the tag `linix`, in regctl's image; in the default branch's pipeline, **started by hand** | Pushes the tree's `platform/packaging/docker/artifacthub-repo.yml` under the tag `artifacthub.io`, as Artifact Hub reads it, when it holds the repository ID, as it does since 6 October 2026, and reads it back; for a file without one, nothing ([Artifact Hub](#artifact-hub)). Nothing waits for it (`build/ci/container-image-artifacthub.sh`) |
 | `container-image-sbom` | a runner with the tag `linix`, in the Linux CI image | For each platform, Syft's reading of that platform's pushed image by its digest, with what that architecture's `.deb`'s own SBOM names inside the binary (`build/ci/container-image-sbom.sh`) |
 | `container-image-sign` | a runner with the tag `linix`, in cosign's image, after both start tests (since 6.3.6) | Signs the index and each platform's image by its digest, attests each platform's SBOM to its image, and verifies all of it (`build/ci/container-image-sign.sh`): only an image that has started and answered is signed |
-| `container_scanning`, `container_scanning_arm64` | a runner with the tag `linix` | GitLab's Container Scanning over each platform's pushed image by its digest; a finding is a warning, and its report is the job's artifact |
+| `container_scanning`, `container_scanning_arm64` | a runner with the tag `linix`, in Trivy's image | Trivy over each platform's pushed image by its digest, with that day's vulnerability database (`build/ci/container-scan.sh`); a finding is a warning, and its report, in GitLab's container-scanning format, is the job's artifact. GitLab's own Container Scanning template ran until 10 October 2026, when its analyzer's pinned digest was gone from GitLab's registry (ContinuousIntegration.md, "container_scanning's scanner") |
 | `container-image-start`, `container-image-start-arm64` | a runner with the tag `linix`, in the Linux CI image | Starts each platform's pushed image by its digest as a service beside PostgreSQL - the arm64 one as a service of that platform, under qemu-user - and asks it for SMTP on 25 and for the REST API over TLS (The start test, below) |
 
 In a branch's pipeline, `linux-image` builds the linux/amd64 image from
@@ -602,7 +602,10 @@ scripts, in the jobs' own images, unprivileged, as the jobs run them:
   then held `.sig` tags for all three digests and `.att` tags for the two images.
 - **Scanning.** GitLab's container-scanning analyzer, version 8 (gcs 8.6.35, Trivy
   0.72.0), scanned each platform's image by digest in 6 s: 18 findings each, and its
-  SBOM listed the `hmailserver` package of that architecture.
+  SBOM listed the `hmailserver` package of that architecture. Its jobs run Trivy
+  0.74.0 instead since 10 October 2026 (`build/ci/container-scan.sh`), which, as the
+  jobs run it, scanned 6.3.6's two published images by digest on server2 that day
+  in 18 s each: 19 findings each, each report naming its platform.
 - **The tags only forward.** Against the same kind of stand-in, as a user that neither
   owns the checkout nor is root, `container-image-push.sh` pushed small images of
   both platforms, each labelled with its version and built with kaniko as the jobs

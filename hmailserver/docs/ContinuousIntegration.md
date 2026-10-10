@@ -106,7 +106,7 @@ The other tables on this page name runners the same way.
 | `container-image-artifacthub` | release | linix, in regctl's image | a `v*` tag, after `container-image`; the default branch, by hand, allowed to fail; refuses unless `HM_PUBLISH_IMAGE` is `1` | Artifact Hub's metadata for the image's repository, the tree's `platform/packaging/docker/artifacthub-repo.yml`, pushed under the tag `artifacthub.io` and read back, when it holds the repository ID Artifact Hub gave, as it does since 6 October 2026; for a file without one, nothing. Nothing waits for it (`build/ci/container-image-artifacthub.sh`; [ContainerImage.md](ContainerImage.md), "Artifact Hub") |
 | `container-image-sbom` | release | linix | a `v*` tag, after `container-image` | Each platform's image's SBOM: Syft over it by its digest, with that architecture's `.deb`'s own SBOM added (`build/ci/container-image-sbom.sh`) |
 | `container-image-sign` | release | linix | a `v*` tag, after `container-image-sbom` | The index and each platform's image signed by digest with Sigstore as this pipeline, each image's SBOM attested to it, and all of it verified (`build/ci/container-image-sign.sh`) |
-| `container_scanning`, `container_scanning_arm64` | release | linix | a `v*` tag, after `container-image` | GitLab's own Container Scanning template over each platform's pushed image, by its digest; a finding does not fail the pipeline (`.gitlab/ci/container-image.yml`) |
+| `container_scanning`, `container_scanning_arm64` | release | linix, in Trivy's image | a `v*` tag, after `container-image` | Trivy over each platform's pushed image, by its digest, with that day's vulnerability database, its report in GitLab's container-scanning format; a finding does not fail the pipeline (`build/ci/container-scan.sh`; [Security scanning](#security-scanning)) |
 | `container-image-start`, `container-image-start-arm64` | release | linix | a `v*` tag, after `container-image` | Each platform's pushed image started beside PostgreSQL - the arm64 one under qemu-user - and asked for SMTP and the REST API (`build/ci/container-image-start-test.sh`) |
 | `pypi-publish` | release | linix | `master`, started by hand | The release's `hmailserver-cli` to PyPI through a trusted publisher, with attestations; says "not configured" and passes until PyPI has the publisher, and fails once PyPI has the project and no publisher matches ([CommandLinePackages.md](CommandLinePackages.md)) |
 | `psgallery-publish` | release | linix | `master`, started by hand | The release's `HmailServer` module to the PowerShell Gallery; says "not configured" and passes until `PSGALLERY_API_KEY` is set, and refuses a module with no Authenticode signature, which the release does not make yet |
@@ -289,8 +289,9 @@ owner decided that the project's CI depends on no minutes of GitLab's.
 
 **How.** `.gitlab-ci.yml`'s `default:` names the tags `[$HM_RUNNER]`, which every
 job that names no runner of its own takes, GitLab's templates' jobs among them
-(`semgrep-sast`, `secret_detection`, `container_scanning`, and any analyzer a
-template would add). Its `variables:` set `HM_RUNNER` to `linix`, the tag linix
+(`semgrep-sast`, `secret_detection`, and any analyzer a template would add).
+`container_scanning`, which ran GitLab's template until 10 October 2026, takes them
+too. `.gitlab-ci.yml`'s `variables:` set `HM_RUNNER` to `linix`, the tag linix
 and server2 carry. The jobs that need a machine of a kind name their own runner as
 before (`.linix`'s `linix`, `bench150`, `linix-systemd`). The workflow's rules
 choose the runner for each pipeline: every rule that makes a pipeline for a
@@ -1209,11 +1210,10 @@ What the host needs:
 - The images of the jobs that take `default:`'s tags (since 9 October 2026), each
   by digest, each pulled on first use: Docker Hub's `python:3.14-slim-trixie`,
   `node:24-trixie-slim`, `alpine:3.24`, `ubuntu:26.04`, `debian:13`,
-  `archlinux:base` and `regclient/regctl:v0.11.6-alpine`, Microsoft's
-  `mcr.microsoft.com/dotnet/sdk:10.0`, `gcr.io/projectsigstore/cosign`, the
-  project's copies of GitLab's analyzers (`mirror/semgrep`, `mirror/secrets`) and
-  GitLab's `security-products/container-scanning:8`, which may not be copied
-  ([Security scanning](#security-scanning)).
+  `archlinux:base`, `regclient/regctl:v0.11.6-alpine` and `aquasec/trivy:0.74.0`
+  (`container_scanning`'s), Microsoft's `mcr.microsoft.com/dotnet/sdk:10.0`,
+  `gcr.io/projectsigstore/cosign`, and the project's copies of GitLab's analyzers
+  (`mirror/semgrep`, `mirror/secrets`).
 - The runner's local cache, which carries the fuzz corpus from night to night
   (`cache:` in `linux-fuzz`). The docker executor keeps it in volumes on the
   host, one for each of the three places a job can run in, so a night's job
@@ -1862,7 +1862,7 @@ pinned by digest where the CI file names it.
 | `semgrep-sast` | `registry.gitlab.com/hmailserver/hmailserver/mirror/semgrep`, by digest: GitLab's `security-products/semgrep` 6.26.1, copied digest for digest ([Change checks](#change-checks)) | the analyzer, Semgrep and GitLab's rules, all in the image |
 | `secret_detection` | `registry.gitlab.com/hmailserver/hmailserver/mirror/secrets`, by digest: GitLab's `security-products/secrets` 7.40.0, copied digest for digest ([Change checks](#change-checks)) | the analyzer, gitleaks 8.30.1 and GitLab's rules 0.25.1, all in the image; `build/scan-secrets.py` takes the same image |
 | `image-pins` | `python:3.14-slim-trixie` (Docker Hub) | Python's own library alone; it asks each pin's own registry for its manifest, and downloads nothing |
-| `container_scanning`, `container_scanning_arm64` | `registry.gitlab.com/security-products/container-scanning:8`, by digest: GitLab's own, which may not be copied ([Security scanning](#security-scanning)) | the analyzer (gcs 8.6.35), Trivy and its two databases, all in the image as GitLab built it that day |
+| `container_scanning`, `container_scanning_arm64` | `aquasec/trivy:0.74.0`, pinned by digest (Docker Hub): `dependency-scan`'s ([Security scanning](#security-scanning)) | Trivy 0.74.0; its vulnerability database, that day's, from `mirror.gcr.io`, with `public.ecr.aws` as the fallback; the image scanned, read from the project's registry without credentials |
 | `semgrep-sast-gate`, `mr-dependency-check` | `python:3.14-slim-trixie` (Docker Hub) | git from Debian's archive; OSV's export from Google Cloud Storage (`osv-vulnerabilities.storage.googleapis.com`) and OSV's API (`api.osv.dev`); the checkers are the standard library's Python |
 | `scorecard` | `nixos/nix:2.35.2` (Docker Hub) | OpenSSF Scorecard 5.5.0 and its closure from `cache.nixos.org`, by its Nix store path and pinned NAR hash, each path checked against the signature of the `cache.nixos.org-1` key the image trusts ([OpenSSF Scorecard](#openssf-scorecard)) |
 | `linux-db-upgrade-*` services | `postgres:18`, `mariadb:13` (Docker Hub) | the database servers |
@@ -2822,7 +2822,7 @@ so the first image is 6.3.6's.
 | `container-image-artifacthub` | linix, in the same regctl image; in the default branch's pipeline, started by hand and allowed to fail | Refuses, exit 3, unless `HM_PUBLISH_IMAGE` is `1`, and pushes only to the group's path, only from a protected `v*` tag or the protected default branch. While `platform/packaging/docker/artifacthub-repo.yml` holds no repository ID it pushes nothing and passes; it refuses a file with anything but comments, blank lines and one `repositoryID: <a UUID>`. Then it pushes that file, byte for byte, under the tag `artifacthub.io` alone, in the shape Artifact Hub documents for `oras push` (an empty configuration of the type `application/vnd.cncf.artifacthub.config.v1+yaml`, the file as the one layer of the type `application/vnd.cncf.artifacthub.repository-metadata.layer.v1.yaml`), and reads the manifest and the layer back. No job needs it, so a failure stops nothing of the image (`build/ci/container-image-artifacthub.sh`) |
 | `container-image-sbom` | linix, in the Linux CI image | For each platform, Syft reads that platform's pushed image from the registry by its digest, with the job's own registry credentials, and `build/asset-sbom.py image` adds what the release's `.deb` SBOM of that architecture names inside the binary and makes the image, by its digest and its platform (`--arch`), the document's subject; it refuses a `.deb` SBOM that does not describe the `.deb`, or that is another architecture's, and an image in which Syft finds no `hmailserver` package of that architecture (`build/ci/container-image-sbom.sh`) |
 | `container-image-sign` | linix, in cosign's image (`HM_COSIGN_IMAGE`) | Signs the index and each platform's image, each by its own digest, with Sigstore, keylessly, as the same pipeline identity the release's files carry, and verifies each signature with that identity. Every tag names the index, so its one signature covers them; a client that pulls a tag then fetches its platform's image by that image's digest, which carries its own. The signatures are stored beside what they sign in cosign's tag form, `sha256-<digest>.sig`, with Rekor v1 as the log. It then attests each platform's SBOM to that platform's image (`cosign attest --type cyclonedx`, stored as `sha256-<digest>.att`) and verifies each attestation with the same identity (`build/ci/container-image-sign.sh`) |
-| `container_scanning`, `container_scanning_arm64` | linix | GitLab's Container Scanning template, which the Free tier runs, over each platform's pushed image by its digest, with the analyzer pinned by digest: the first takes `CS_IMAGE`, the linux/amd64 image, from `container-image`'s dotenv report; the second extends it and sets `CS_IMAGE` to the linux/arm64 image in its shell, because a dotenv report's variables take precedence over a job's own. The analyzer reads the image's files and runs nothing, so the platform is no matter to it. Each is `allow_failure`, as the template makes it; its report is the job's artifact, for members with the Developer role or above, because the vulnerability report is GitLab Ultimate |
+| `container_scanning`, `container_scanning_arm64` | linix, in Trivy's image (`aquasec/trivy:0.74.0`, `dependency-scan`'s, by digest) | Trivy over each platform's pushed image by its digest, with that day's vulnerability database from `mirror.gcr.io` or `public.ecr.aws` (`build/ci/container-scan.sh`): the first scans `HM_IMAGE_AMD64`, from `container-image`'s dotenv report, and the second, which extends it, `HM_IMAGE_ARM64`, each chosen by the job's `HM_SCAN_ARCH`; the script refuses any image but the project's by a full digest. Trivy reads the image's files from the registry without credentials and runs nothing in it, so the platform is no matter to the runner. Each is `allow_failure`, as GitLab's template, which the jobs ran until 10 October 2026, made them: a finding is a warning. The report, in GitLab's container-scanning format and Trivy's own, is the job's artifact, for members with the Developer role or above, because the vulnerability report is GitLab Ultimate |
 | `container-image-start`, `container-image-start-arm64` | linix, in the Linux CI image | Each starts a platform's pushed image as a service beside PostgreSQL, on a network of the job's own, through its entrypoint, and asks it for SMTP on 25 (with STARTTLS) and for the REST API over TLS with the release's version: the first the index by its digest, which the runner resolves to linux/amd64, and the second the linux/arm64 image by its own digest, as a service of the platform linux/arm64 (`services:docker:platform`), which the runner runs under qemu-user (`build/ci/container-image-start-test.sh`, which also runs by hand against any image with `--docker`, and `HM_START_PLATFORM` for another platform) |
 
 In 6.3.6's tag pipeline 2914690858 server2 ran `container-image-amd64`,
@@ -3545,7 +3545,8 @@ measured times after the first pipelines.
 | `secret_detection` | 17 s in a pipeline | 30 min | In `master`'s pipeline 2886389460 (27 September 2026) it failed on twenty-four vetted test fixtures, which `.gitleaksignore` names since `535e9005c`, on a shared runner of GitLab's, as it ran until 9 October 2026. Its scan of the whole history took under a minute on linix |
 | `container-image-amd64`, `container-image-arm64` | 44 to 50 s and 162 to 217 s by hand | 30 min | As `linux-image` and `linux-image-arm64`, from the release's `.deb` files; each keeps a tarball of about 85 MB for `container-image` |
 | `container-image` | under a minute by hand | 30 min | Both tarballs imported, the index made and checked, and pushed to a registry standing in for GitLab's on linix on 29 September 2026; the push to `registry.gitlab.com` adds the upload of about 170 MB, and the job the download of both tarballs |
-| `container-image-sign`, `container_scanning`, `container_scanning_arm64` | not measured | 15 and 30 min | None has run in a pipeline. The analyzer's scan of Ubuntu 24.04 on linix, by hand, finished within two minutes of its start, its image's download included; its scan of each platform's image of 6.3.5, by digest, took 6 s once its image was there |
+| `container-image-sign` | not measured | 15 min | 6.3.6's tag pipeline 2914690858 ran it (job 16947103144); its time was not read |
+| `container_scanning`, `container_scanning_arm64` | 18 s each by hand | 30 min | `build/ci/container-scan.sh` as the jobs run it, in Trivy's image on server2, over each of 6.3.6's two images by digest on 10 October 2026, the database's download (about 10 s) included. GitLab's analyzer, which the jobs ran until then, scanned each image of 6.3.5 by digest in 6 s once its image was there |
 | `renovate` | 2 to 5 min | 1 h | The dry runs of 25 September 2026 on linix: 5 s for the advisory database, 9 s to install the .NET SDK, 1 to 1.5 min for Renovate. The first run also pulls its image, about 450 MB |
 | `image-pins` | under a minute | 15 min | 37 s from the laptop on 10 October 2026, for 59 pins in 118 places; the self-test about a second |
 
@@ -3789,32 +3790,44 @@ above to download. `SECRET_DETECTION_DISABLED=true`, as a CI/CD variable, turns
 skips it when `SAST_DISABLED` is set, and the job's own rules, which replace the
 template's, do not read it. A third, `container_scanning`, and its twin
 `container_scanning_arm64`, scan the container image a `v*` tag's release
-pushes, each platform's by its digest, after the push, in the same way, with
-GitLab's analyzer as GitLab's registry holds it, pinned by digest
-([The container image](#the-container-image)); `CONTAINER_SCANNING_DISABLED=true`
-turns it off.
+pushes, each platform's by its digest, after the push, with Trivy rather than a
+template of GitLab's (below; [The container image](#the-container-image));
+`CONTAINER_SCANNING_DISABLED=true`, GitLab's switch, turns both off.
 
-**`container_scanning`'s analyzer.** It is GitLab's
-`security-products/container-scanning:8`, by digest, and not a copy in the
-project's registry as the other two analyzers are, because it may not be
-copied: the image carries GitLab's Enterprise Edition code (the analyzer gem's
-`ee/`, under GitLab's EE licence, which allows no copy to be published) and a
-vulnerability database built with the GitLab Advisory Database
-(`/home/gitlab/.cache/trivy/ee`, 114 MB, under GitLab's Security Alert
-Database Terms, which forbid copying and mirroring it). The analyzer on the
-Free tier reads the other database, Trivy's own (`ce`), but the image holds
-both. GitLab rebuilds the image every day - analyzer 8.6.35, revision
-`fa5e43f4`, built at 16:23 UTC on 9 October 2026 and at 16:22 on 10 October,
-the analyzer the same and both databases new - and stops serving a digest it
-has replaced within a day or two: the digests of 26 and 28 September answered
-404 on 30 September, and the one taken on 5 October answered 404 on 10 October.
-The job is allowed to fail, so a scan lost that way says nothing. So the digest
-is taken again the day a release is tagged (RELEASE.md, step 1), which also
-gives the scan that day's advisories; `build/check-image-pins.py` names it once
-it is gone ([Image pins](#image-pins)); and `build/check-release-chain.py` fails
-when the job names the analyzer by a tag alone, which would run whatever GitLab
-built last, from the project's registry, or over two lines, and when
-`container_scanning_arm64` names an image of its own.
+**`container_scanning`'s scanner.** It is Trivy 0.74.0, in Docker Hub's
+`aquasec/trivy` by the digest `dependency-scan` runs, so that Renovate moves the
+two together, over each platform's pushed image by its digest, with that day's
+vulnerability database, downloaded as the job runs from `mirror.gcr.io` or, when
+that does not answer, `public.ecr.aws` (`build/ci/container-scan.sh`). Its report
+is in GitLab's container-scanning format (Trivy's own `contrib/gitlab.tpl`), with
+Trivy's JSON beside it. Until 10 October 2026 the jobs ran GitLab's Container
+Scanning template, whose analyzer, `security-products/container-scanning:8`,
+could be neither pinned for long nor copied. GitLab rebuilds that image every
+day - analyzer 8.6.35, revision `fa5e43f4`, built at 16:23 UTC on 9 October 2026
+and at 16:22 on 10 October, the analyzer the same and both databases new - and
+stops serving a digest it has replaced within a day or two: the digests of 26
+and 28 September answered 404 on 30 September, and the one taken on 5 October
+answered 404 on 10 October. A digest taken in a release's commit could be gone
+before its tag's pipeline pulled it, and the job, allowed to fail, would then
+lose both scans without a word. And the image may not be copied into the
+project's registry, as the other two analyzers are: it carries GitLab's
+Enterprise Edition code (the analyzer gem's `ee/`, under GitLab's EE licence,
+which allows no copy to be published) and a vulnerability database built with
+the GitLab Advisory Database (`/home/gitlab/.cache/trivy/ee`, 114 MB, under
+GitLab's Security Alert Database Terms, which forbid copying and mirroring it).
+On the Free tier the analyzer read Trivy's own database, which this reads too.
+Run as the jobs run it - `.no-github`'s `before_script`, then the script, in the
+pinned image - on server2 on 10 October 2026, it scanned 6.3.6's two published
+images by digest in 18 s each, 19 findings each (15 Medium and 4 Low), each
+report naming its platform, and refused a missing or unknown platform, an image
+named by a tag, from another registry or by a short digest, a digest the
+registry does not have, and a run with no database. `build/check-release-chain.py`
+fails when `container_scanning` runs in another image than `dependency-scan`'s
+Trivy, by another release or digest, does not run the script, scans another
+platform or keeps no report, when `container_scanning_arm64` is anything but its
+twin for linux/arm64, when the script no longer takes each platform's image by
+its digest, the project's alone, and when a CI file names GitLab's
+container-scanning analyzer or includes its template again.
 
 `semgrep-sast` passes whatever it found, and holds nothing to a baseline; what
 holds a change or a release on its findings is the job that reads its report
