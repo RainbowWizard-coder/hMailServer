@@ -4895,11 +4895,11 @@ Control Panel может читать файлы сообщений только
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Введите парольную фразу, которой будет зашифрован архив, и наберите её ещё раз ниже.</value>
   </data>
-  <data name="Enter the path of the certificate file, or choose the file with the … button beside the box." xml:space="preserve">
-    <value>Введите путь к файлу сертификата или выберите файл кнопкой «…» рядом с полем.</value>
+  <data name="Enter the path of the certificate file, or choose the file with Browse… beside the box." xml:space="preserve">
+    <value>Введите путь к файлу сертификата или выберите файл кнопкой «Обзор…» рядом с полем.</value>
   </data>
-  <data name="Enter the path of the private key file, or choose the file with the … button beside the box." xml:space="preserve">
-    <value>Введите путь к файлу закрытого ключа или выберите файл кнопкой «…» рядом с полем.</value>
+  <data name="Enter the path of the private key file, or choose the file with Browse… beside the box." xml:space="preserve">
+    <value>Введите путь к файлу закрытого ключа или выберите файл кнопкой «Обзор…» рядом с полем.</value>
   </data>
   <data name="Enter the scanner command first." xml:space="preserve">
     <value>Сначала укажите команду сканера.</value>

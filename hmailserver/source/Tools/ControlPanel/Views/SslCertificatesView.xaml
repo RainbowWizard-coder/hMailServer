@@ -233,49 +233,52 @@
 
         <scaffold:Card Title="{loc:L 'Add certificate'}" Margin="0,12,0,0">
             <StackPanel>
-                <!-- Two lines of two fields (review finding F236): the name and the
-                     passphrase, then the two files, each line's captions as tall as
-                     its tallest (FieldRow.LabelGroup), so that the boxes of a line
-                     line up whatever a caption wraps to and a message under one box
-                     moves none of the others. Five fields shared one line: the
+                <!-- Two lines of two fields: the two files, each picker half the card -
+                     its box at least 120 pixels and Browse… beside it - then the name
+                     under the certificate file, which fills it in, and the key's
+                     passphrase under the key file. Five fields shared one line: the
                      passphrase's caption wrapped to two lines in English and three in
-                     German, and at 760 pixels the path boxes were 100 pixels wide.
-                     Add is the card's own action, in its footer. -->
+                     German, and at 760 pixels Browse… took its column's room and left
+                     a box some 48 pixels wide in English and none in German (review
+                     findings F236 and F324). Each line's captions are as tall as its
+                     tallest (FieldRow.LabelGroup), so that the boxes of a line line up
+                     whatever a caption wraps to and a message under one box moves none
+                     of the others. Add is the card's own action, in its footer. -->
                 <Grid x:Name="AddCertForm" Grid.IsSharedSizeScope="True">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" MinWidth="200" />
+                        <ColumnDefinition Width="*" MinWidth="240" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <scaffold:FieldRow x:Name="NewCertNameRow" Label="{loc:L '_Name'}" Margin="0,0,8,12" LabelGroup="CertNameLine"
-                                       Hint="{loc:L 'Filled in from the certificate when you choose its file, while this box is empty.'}">
-                        <ui:TextBox x:Name="NewCertName" />
-                    </scaffold:FieldRow>
-                    <scaffold:FieldRow Grid.Column="1" Label="{loc:L 'Ke_y passphrase (only for an encrypted key)'}" Margin="0,0,0,12" LabelGroup="CertNameLine">
-                        <local:PasswordField x:Name="NewKeyPassphrase" />
-                    </scaffold:FieldRow>
-                    <scaffold:FieldRow x:Name="NewCertFileRow" Grid.Row="1" Label="{loc:L '_Certificate file (PEM)'}" Margin="0,0,8,0" LabelGroup="CertFileLine">
+                    <scaffold:FieldRow x:Name="NewCertFileRow" Label="{loc:L '_Certificate file (PEM)'}" Margin="0,0,8,12" LabelGroup="CertFileLine">
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" MinWidth="120" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <ui:TextBox x:Name="NewCertFile" />
                             <ui:Button x:Name="BrowseCertButton" Grid.Column="1" Content="{loc:L 'Browse…'}" Click="BrowseCert_Click" Margin="4,0,0,0" />
                         </Grid>
                     </scaffold:FieldRow>
-                    <scaffold:FieldRow x:Name="NewKeyFileRow" Grid.Row="1" Grid.Column="1" Label="{loc:L 'Private key _file (PEM)'}" Margin="0" LabelGroup="CertFileLine">
+                    <scaffold:FieldRow x:Name="NewKeyFileRow" Grid.Column="1" Label="{loc:L 'Private key _file (PEM)'}" Margin="0,0,0,12" LabelGroup="CertFileLine">
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" MinWidth="120" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <ui:TextBox x:Name="NewKeyFile" />
                             <ui:Button x:Name="BrowseKeyButton" Grid.Column="1" Content="{loc:L 'Browse…'}" Click="BrowseKey_Click" Margin="4,0,0,0" />
                         </Grid>
+                    </scaffold:FieldRow>
+                    <scaffold:FieldRow x:Name="NewCertNameRow" Grid.Row="1" Label="{loc:L '_Name'}" Margin="0,0,8,0" LabelGroup="CertNameLine"
+                                       Hint="{loc:L 'Filled in from the certificate when you choose its file, while this box is empty.'}">
+                        <ui:TextBox x:Name="NewCertName" />
+                    </scaffold:FieldRow>
+                    <scaffold:FieldRow x:Name="NewKeyPassphraseRow" Grid.Row="1" Grid.Column="1" Label="{loc:L 'Ke_y passphrase (only for an encrypted key)'}" Margin="0" LabelGroup="CertNameLine">
+                        <local:PasswordField x:Name="NewKeyPassphrase" />
                     </scaffold:FieldRow>
                 </Grid>
                 <!-- What the server reads, and how a .pfx or .p12 is made into it: the

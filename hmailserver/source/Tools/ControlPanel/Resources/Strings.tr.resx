@@ -4837,11 +4837,11 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Arşivin şifreleneceği parola tümcesini girin ve aşağıya bir kez daha yazın.</value>
   </data>
-  <data name="Enter the path of the certificate file, or choose the file with the … button beside the box." xml:space="preserve">
-    <value>Sertifika dosyasının yolunu girin veya dosyayı kutunun yanındaki … düğmesiyle seçin.</value>
+  <data name="Enter the path of the certificate file, or choose the file with Browse… beside the box." xml:space="preserve">
+    <value>Sertifika dosyasının yolunu girin veya dosyayı kutunun yanındaki Gözat… düğmesiyle seçin.</value>
   </data>
-  <data name="Enter the path of the private key file, or choose the file with the … button beside the box." xml:space="preserve">
-    <value>Özel anahtar dosyasının yolunu girin veya dosyayı kutunun yanındaki … düğmesiyle seçin.</value>
+  <data name="Enter the path of the private key file, or choose the file with Browse… beside the box." xml:space="preserve">
+    <value>Özel anahtar dosyasının yolunu girin veya dosyayı kutunun yanındaki Gözat… düğmesiyle seçin.</value>
   </data>
   <data name="Enter the scanner command first." xml:space="preserve">
     <value>Önce tarayıcı komutunu girin.</value>

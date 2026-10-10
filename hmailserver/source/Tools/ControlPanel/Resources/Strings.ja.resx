@@ -4847,11 +4847,11 @@
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>アーカイブを暗号化するパスフレーズを入力し、下にもう一度入力してください。</value>
   </data>
-  <data name="Enter the path of the certificate file, or choose the file with the … button beside the box." xml:space="preserve">
-    <value>証明書ファイルのパスを入力するか、ボックスの横の「…」ボタンでファイルを選んでください。</value>
+  <data name="Enter the path of the certificate file, or choose the file with Browse… beside the box." xml:space="preserve">
+    <value>証明書ファイルのパスを入力するか、ボックスの横の [参照…] でファイルを選んでください。</value>
   </data>
-  <data name="Enter the path of the private key file, or choose the file with the … button beside the box." xml:space="preserve">
-    <value>秘密キー ファイルのパスを入力するか、ボックスの横の「…」ボタンでファイルを選んでください。</value>
+  <data name="Enter the path of the private key file, or choose the file with Browse… beside the box." xml:space="preserve">
+    <value>秘密キー ファイルのパスを入力するか、ボックスの横の [参照…] でファイルを選んでください。</value>
   </data>
   <data name="Enter the scanner command first." xml:space="preserve">
     <value>先にスキャナーのコマンドを入力してください。</value>

@@ -4837,11 +4837,11 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Geben Sie die Passphrase ein, mit der das Archiv verschlüsselt werden soll, und tippen Sie sie unten noch einmal.</value>
   </data>
-  <data name="Enter the path of the certificate file, or choose the file with the … button beside the box." xml:space="preserve">
-    <value>Geben Sie den Pfad der Zertifikatdatei ein, oder wählen Sie die Datei mit der Schaltfläche … neben dem Feld.</value>
+  <data name="Enter the path of the certificate file, or choose the file with Browse… beside the box." xml:space="preserve">
+    <value>Geben Sie den Pfad der Zertifikatdatei ein, oder wählen Sie die Datei mit Durchsuchen… neben dem Feld.</value>
   </data>
-  <data name="Enter the path of the private key file, or choose the file with the … button beside the box." xml:space="preserve">
-    <value>Geben Sie den Pfad der privaten Schlüsseldatei ein, oder wählen Sie die Datei mit der Schaltfläche … neben dem Feld.</value>
+  <data name="Enter the path of the private key file, or choose the file with Browse… beside the box." xml:space="preserve">
+    <value>Geben Sie den Pfad der privaten Schlüsseldatei ein, oder wählen Sie die Datei mit Durchsuchen… neben dem Feld.</value>
   </data>
   <data name="Enter the scanner command first." xml:space="preserve">
     <value>Geben Sie zuerst den Scanner-Befehl ein.</value>

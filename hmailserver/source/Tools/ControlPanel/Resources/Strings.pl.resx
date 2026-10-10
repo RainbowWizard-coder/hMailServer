@@ -4895,11 +4895,11 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Wpisz hasło, którym ma zostać zaszyfrowane archiwum, i wpisz je jeszcze raz poniżej.</value>
   </data>
-  <data name="Enter the path of the certificate file, or choose the file with the … button beside the box." xml:space="preserve">
-    <value>Należy podać ścieżkę pliku certyfikatu lub wybrać plik przyciskiem … obok pola.</value>
+  <data name="Enter the path of the certificate file, or choose the file with Browse… beside the box." xml:space="preserve">
+    <value>Należy podać ścieżkę pliku certyfikatu lub wybrać plik przyciskiem Przeglądaj… obok pola.</value>
   </data>
-  <data name="Enter the path of the private key file, or choose the file with the … button beside the box." xml:space="preserve">
-    <value>Należy podać ścieżkę pliku klucza prywatnego lub wybrać plik przyciskiem … obok pola.</value>
+  <data name="Enter the path of the private key file, or choose the file with Browse… beside the box." xml:space="preserve">
+    <value>Należy podać ścieżkę pliku klucza prywatnego lub wybrać plik przyciskiem Przeglądaj… obok pola.</value>
   </data>
   <data name="Enter the scanner command first." xml:space="preserve">
     <value>Najpierw należy podać polecenie skanera.</value>

@@ -4837,11 +4837,11 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Voer de wachtwoordzin in waarmee het archief versleuteld moet worden, en typ hem hieronder nog eens.</value>
   </data>
-  <data name="Enter the path of the certificate file, or choose the file with the … button beside the box." xml:space="preserve">
-    <value>Voer het pad van het certificaatbestand in, of kies het bestand met de knop … naast het vak.</value>
+  <data name="Enter the path of the certificate file, or choose the file with Browse… beside the box." xml:space="preserve">
+    <value>Voer het pad van het certificaatbestand in, of kies het bestand met Bladeren… naast het vak.</value>
   </data>
-  <data name="Enter the path of the private key file, or choose the file with the … button beside the box." xml:space="preserve">
-    <value>Voer het pad van het privésleutelbestand in, of kies het bestand met de knop … naast het vak.</value>
+  <data name="Enter the path of the private key file, or choose the file with Browse… beside the box." xml:space="preserve">
+    <value>Voer het pad van het privésleutelbestand in, of kies het bestand met Bladeren… naast het vak.</value>
   </data>
   <data name="Enter the scanner command first." xml:space="preserve">
     <value>Voer eerst het scannercommando in.</value>

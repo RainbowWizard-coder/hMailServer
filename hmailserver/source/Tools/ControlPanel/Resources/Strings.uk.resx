@@ -4895,11 +4895,11 @@
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Введіть парольну фразу, якою буде зашифровано архів, і наберіть її ще раз нижче.</value>
   </data>
-  <data name="Enter the path of the certificate file, or choose the file with the … button beside the box." xml:space="preserve">
-    <value>Введіть шлях до файлу сертифіката або виберіть файл кнопкою «…» поруч із полем.</value>
+  <data name="Enter the path of the certificate file, or choose the file with Browse… beside the box." xml:space="preserve">
+    <value>Введіть шлях до файлу сертифіката або виберіть файл кнопкою «Огляд…» поруч із полем.</value>
   </data>
-  <data name="Enter the path of the private key file, or choose the file with the … button beside the box." xml:space="preserve">
-    <value>Введіть шлях до файлу закритого ключа або виберіть файл кнопкою «…» поруч із полем.</value>
+  <data name="Enter the path of the private key file, or choose the file with Browse… beside the box." xml:space="preserve">
+    <value>Введіть шлях до файлу закритого ключа або виберіть файл кнопкою «Огляд…» поруч із полем.</value>
   </data>
   <data name="Enter the scanner command first." xml:space="preserve">
     <value>Спершу введіть команду сканера.</value>

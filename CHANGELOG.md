@@ -3321,7 +3321,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 - **Fixed: file pickers, the administrators' signposts, repeated wording and the dialogs' headings.** A file picker on
   the settings pages, Backup and SSL certificates is captioned Browse…, as the dialogs' are, where it was a 40-pixel
   "…", and is named by its caption and the field it fills, "Browse: Database folder", so that in every language the
-  name starts with the word on the button; an account's Administration level says that the Administrator roles page
+  name starts with the word on the button; SSL certificates' Add certificate form gives its two pickers a line of
+  their own, each half the card, its box at least 120 pixels wide, and the name, the key's passphrase and Add the
+  line under them, where on one line of five the wider button left a box some 48 pixels wide in English at 760
+  pixels and none at all in German, and its messages for an empty file box name Browse…, where they named "the …
+  button"; an account's Administration level says that the Administrator roles page
   can give the account a narrower, named role instead, which nothing on the dialog said, and Domains lists
   Administrator roles among its related pages for an administrator who may open it (review finding F324). Texts that
   said one thing two ways say it one way, ten texts fewer to translate seventeen times: the DNS records page's read

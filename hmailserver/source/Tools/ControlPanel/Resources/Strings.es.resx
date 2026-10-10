@@ -4837,11 +4837,11 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Escriba la frase de contraseña con la que se cifrará el archivo y vuelva a escribirla abajo.</value>
   </data>
-  <data name="Enter the path of the certificate file, or choose the file with the … button beside the box." xml:space="preserve">
-    <value>Introduzca la ruta del archivo de certificado, o elija el archivo con el botón … junto a la casilla.</value>
+  <data name="Enter the path of the certificate file, or choose the file with Browse… beside the box." xml:space="preserve">
+    <value>Introduzca la ruta del archivo de certificado, o elija el archivo con Examinar… junto a la casilla.</value>
   </data>
-  <data name="Enter the path of the private key file, or choose the file with the … button beside the box." xml:space="preserve">
-    <value>Introduzca la ruta del archivo de clave privada, o elija el archivo con el botón … junto a la casilla.</value>
+  <data name="Enter the path of the private key file, or choose the file with Browse… beside the box." xml:space="preserve">
+    <value>Introduzca la ruta del archivo de clave privada, o elija el archivo con Examinar… junto a la casilla.</value>
   </data>
   <data name="Enter the scanner command first." xml:space="preserve">
     <value>Introduzca antes el comando del analizador.</value>

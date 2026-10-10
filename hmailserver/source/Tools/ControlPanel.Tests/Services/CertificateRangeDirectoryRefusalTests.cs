@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Xml.Linq;
 using Xunit;
 
@@ -28,12 +29,16 @@ namespace hMailServer.ControlPanel.Tests.Services
          string add = Member("SslCertificatesView.xaml.cs", "private async void Add_Click(object sender, RoutedEventArgs e)");
          Assert.Contains("DialogFields.ClearErrors(NewCertNameRow, NewCertFileRow, NewKeyFileRow);", add, StringComparison.Ordinal);
          Assert.Contains("NewCertNameRow.Error = L(\"Enter a name for the certificate.\");", add, StringComparison.Ordinal);
-         Assert.Contains("NewCertFileRow.Error = L(\"Enter the path of the certificate file, or choose the file with the … button beside the box.\");", add, StringComparison.Ordinal);
-         Assert.Contains("NewKeyFileRow.Error = L(\"Enter the path of the private key file, or choose the file with the … button beside the box.\");", add, StringComparison.Ordinal);
-         Assert.Contains("if (DialogFields.ShowFirstError(NewCertNameRow, NewCertFileRow, NewKeyFileRow))", add, StringComparison.Ordinal);
+         // A file's message names its picker by the picker's caption, Browse…, where
+         // it named "the … button" that F324 re-captioned; the keyboard goes to the
+         // first box refused as the form lays them out, the files' line first.
+         Assert.Contains("NewCertFileRow.Error = L(\"Enter the path of the certificate file, or choose the file with Browse… beside the box.\");", add, StringComparison.Ordinal);
+         Assert.Contains("NewKeyFileRow.Error = L(\"Enter the path of the private key file, or choose the file with Browse… beside the box.\");", add, StringComparison.Ordinal);
+         Assert.Contains("if (DialogFields.ShowFirstError(NewCertFileRow, NewKeyFileRow, NewCertNameRow))", add, StringComparison.Ordinal);
          Assert.DoesNotContain("are required.", add, StringComparison.Ordinal);
+         Assert.DoesNotContain("the … button", add, StringComparison.Ordinal);
 
-         // The hint names the box it means, which is beside the others, not below.
+         // The hint names the box it means, the Key passphrase box, not "the box below".
          string page = Read("SslCertificatesView.xaml.cs");
          Assert.Contains("Enter its passphrase in the Key passphrase box before adding", page, StringComparison.Ordinal);
          Assert.DoesNotContain("in the box below", page, StringComparison.Ordinal);
@@ -68,14 +73,27 @@ namespace hMailServer.ControlPanel.Tests.Services
          XElement page = XDocument.Parse(Read(file)).Root;
          FormLineAssert.ButtonLinesUpWithItsRow(page, form, row, button, file);
 
-         // Every field of the line in its group, none on the line's bottom edge.
-         foreach (XElement field in FormLineAssert.Named(page, form, file).Elements())
+         // Every field of the button's line in its group, none on the line's bottom
+         // edge. The certificate form is two lines, the files' and then the name's,
+         // the passphrase's and Add (review finding F324): a field's line is the grid
+         // row of the form's child that holds it.
+         XElement formElement = FormLineAssert.Named(page, form, file);
+         string LineOf(XElement e)
          {
-            if (field.Name.LocalName != "FieldRow")
-               continue;
-            Assert.Equal((string)FormLineAssert.Named(page, row, file).Attribute("LabelGroup"), (string)field.Attribute("LabelGroup"));
+            while (e.Parent != formElement)
+               e = e.Parent;
+            return (string)e.Attribute("Grid.Row") ?? "0";
+         }
+         XElement rowElement = FormLineAssert.Named(page, row, file);
+         string line = LineOf(rowElement);
+         int fields = 0;
+         foreach (XElement field in formElement.Descendants().Where(e => e.Name.LocalName == "FieldRow" && LineOf(e) == line))
+         {
+            fields++;
+            Assert.Equal((string)rowElement.Attribute("LabelGroup"), (string)field.Attribute("LabelGroup"));
             Assert.Null(field.Attribute("VerticalAlignment"));
          }
+         Assert.True(fields >= 2, file + ": the button's line holds fewer than two fields.");
       }
 
       [Fact]

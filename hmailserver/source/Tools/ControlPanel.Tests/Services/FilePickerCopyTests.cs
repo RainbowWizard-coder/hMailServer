@@ -3,9 +3,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using hMailServer.ControlPanel.Services;
 using Xunit;
 
@@ -53,6 +55,62 @@ namespace hMailServer.ControlPanel.Tests.Services
          string certsCode = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", "SslCertificatesView.xaml.cs"));
          Assert.Contains("ControlHelp.NameLink(BrowseCertButton, L(\"Browse…\"), LabelInName.Shown(L(\"_Certificate file (PEM)\")));", certsCode, StringComparison.Ordinal);
          Assert.Contains("ControlHelp.NameLink(BrowseKeyButton, L(\"Browse…\"), LabelInName.Shown(L(\"Private key _file (PEM)\")));", certsCode, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// The certificate's two pickers have the form's first line to themselves, each
+      /// half of it, the box at least 120 pixels and Browse… beside it; under them the
+      /// name, and the key's passphrase and Add, in the same halves. On one line of
+      /// five, Browse… took its column's room: the boxes were some 48 pixels wide in
+      /// English at 760 pixels and none in German, with Durchsuchen… cut at the right.
+      /// </summary>
+      [Fact]
+      public void TheCertificatesPickers_HaveTheFormsFirstLine_EachHalfOfIt()
+      {
+         XNamespace x = "http://schemas.microsoft.com/winfx/2006/xaml";
+         XElement page = XDocument.Parse(ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", "SslCertificatesView.xaml"))).Root;
+         XElement Named(string name) => page.Descendants().Single(e => (string)e.Attribute(x + "Name") == name);
+         static string Row(XElement e) => (string)e.Attribute("Grid.Row") ?? "0";
+         static string Column(XElement e) => (string)e.Attribute("Grid.Column") ?? "0";
+         static List<string> Widths(XElement grid)
+            => grid.Elements().Single(e => e.Name.LocalName == "Grid.ColumnDefinitions").Elements().Select(c => (string)c.Attribute("Width")).ToList();
+
+         XElement form = Named("AddCertForm");
+         Assert.Equal(new[] { "*", "*" }, Widths(form));
+
+         XElement cert = Named("NewCertFileRow"), key = Named("NewKeyFileRow");
+         Assert.Equal(form, cert.Parent);
+         Assert.Equal(form, key.Parent);
+         Assert.Equal(("0", "0"), (Row(cert), Column(cert)));
+         Assert.Equal(("0", "1"), (Row(key), Column(key)));
+         Assert.Null(key.Attribute("Grid.ColumnSpan"));
+         Assert.Equal((string)cert.Attribute("LabelGroup"), (string)key.Attribute("LabelGroup"));
+
+         // The second line: the name in the first half, the passphrase and Add in the second.
+         XElement name = Named("NewCertNameRow"), last = Named("AddCertLastLine");
+         Assert.Equal(("1", "0"), (Row(name), Column(name)));
+         Assert.Equal(("1", "1"), (Row(last), Column(last)));
+         Assert.Equal(new[] { "*", "Auto" }, Widths(last));
+         Assert.Equal(last, Named("NewKeyPassphraseRow").Parent);
+         Assert.True(Named("AddCertButton").Ancestors().Contains(last), "Add is not on the passphrase's line.");
+         Assert.Equal((string)name.Attribute("LabelGroup"), (string)Named("NewKeyPassphraseRow").Attribute("LabelGroup"));
+         Assert.NotEqual((string)cert.Attribute("LabelGroup"), (string)name.Attribute("LabelGroup"));
+         Assert.Equal(4, form.Elements().Count(e => !e.Name.LocalName.StartsWith("Grid.", StringComparison.Ordinal)));
+
+         foreach ((string box, string browse) in new[] { ("NewCertFile", "BrowseCertButton"), ("NewKeyFile", "BrowseKeyButton") })
+         {
+            XElement picker = Named(box).Parent;
+            Assert.Equal(picker, Named(browse).Parent);
+            List<XElement> parts = picker.Elements().Single(e => e.Name.LocalName == "Grid.ColumnDefinitions").Elements().ToList();
+            Assert.Equal("*", (string)parts[0].Attribute("Width"));
+            Assert.True((double?)parts[0].Attribute("MinWidth") >= 120, box + " may shrink below 120 pixels.");
+            Assert.Equal("Auto", (string)parts[1].Attribute("Width"));
+            Assert.Equal("1", Column(Named(browse)));
+         }
+
+         // In the order the form is read and tabbed: the files, then the name.
+         List<string> order = form.Elements().Select(e => (string)e.Attribute(x + "Name")).Where(n => n != null).ToList();
+         Assert.True(order.IndexOf("NewKeyFileRow") < order.IndexOf("NewCertNameRow"), "The name comes before the files in the tab order.");
       }
 
       /// <summary>No button anywhere is captioned by an ellipsis alone.</summary>

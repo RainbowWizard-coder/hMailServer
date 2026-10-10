@@ -4895,11 +4895,11 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Zadejte heslo, kterým se má archiv šifrovat, a napište je znovu níže.</value>
   </data>
-  <data name="Enter the path of the certificate file, or choose the file with the … button beside the box." xml:space="preserve">
-    <value>Zadejte cestu k souboru certifikátu, nebo soubor vyberte tlačítkem … vedle pole.</value>
+  <data name="Enter the path of the certificate file, or choose the file with Browse… beside the box." xml:space="preserve">
+    <value>Zadejte cestu k souboru certifikátu, nebo soubor vyberte tlačítkem Procházet… vedle pole.</value>
   </data>
-  <data name="Enter the path of the private key file, or choose the file with the … button beside the box." xml:space="preserve">
-    <value>Zadejte cestu k souboru soukromého klíče, nebo soubor vyberte tlačítkem … vedle pole.</value>
+  <data name="Enter the path of the private key file, or choose the file with Browse… beside the box." xml:space="preserve">
+    <value>Zadejte cestu k souboru soukromého klíče, nebo soubor vyberte tlačítkem Procházet… vedle pole.</value>
   </data>
   <data name="Enter the scanner command first." xml:space="preserve">
     <value>Nejdřív zadejte příkaz skeneru.</value>

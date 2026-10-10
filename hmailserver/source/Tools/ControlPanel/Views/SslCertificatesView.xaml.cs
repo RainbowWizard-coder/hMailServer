@@ -787,15 +787,17 @@ namespace hMailServer.ControlPanel.Views
 
          // Each box left empty is said on that box, all on one press, with the
          // keyboard in the first, where one message box named all three and none
-         // of them (review finding F129).
+         // of them (review finding F129) - the first as the form lays them out,
+         // the files' line above the name's, and each file's message naming its
+         // picker by its caption (F324).
          DialogFields.ClearErrors(NewCertNameRow, NewCertFileRow, NewKeyFileRow);
          if (name.Length == 0)
             NewCertNameRow.Error = L("Enter a name for the certificate.");
          if (certFile.Length == 0)
-            NewCertFileRow.Error = L("Enter the path of the certificate file, or choose the file with the … button beside the box.");
+            NewCertFileRow.Error = L("Enter the path of the certificate file, or choose the file with Browse… beside the box.");
          if (keyFile.Length == 0)
-            NewKeyFileRow.Error = L("Enter the path of the private key file, or choose the file with the … button beside the box.");
-         if (DialogFields.ShowFirstError(NewCertNameRow, NewCertFileRow, NewKeyFileRow))
+            NewKeyFileRow.Error = L("Enter the path of the private key file, or choose the file with Browse… beside the box.");
+         if (DialogFields.ShowFirstError(NewCertFileRow, NewKeyFileRow, NewCertNameRow))
             return;
 
          // Catch the outage before it is configured: an encrypted key with no
