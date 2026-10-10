@@ -11615,7 +11615,7 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
     <value>De REST-API draait niet: hij levert gewone HTTP alleen op 127.0.0.1 of ::1, en luisteren op {0} vereist een TLS-certificaatbestand en het bijbehorende privésleutelbestand op de pagina API en monitoring, of een ACME-certificaat dat aan deze server is uitgegeven.</value>
   </data>
   <data name="The REST API is not running: listening on {0} needs a certificate, set on the API &amp; monitoring page." xml:space="preserve">
-    <value>De REST-API draait niet: luisteren op {0} vraagt een certificaat, in te stellen op de pagina API en monitoring.</value>
+    <value>De REST-API draait niet: luisteren op {0} vereist een certificaat, in te stellen op de pagina API en monitoring.</value>
   </data>
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>De REST-API staat uit (de poort op de pagina API en monitoring is {0}), en deze instellingen worden erover bereikt: de server bewaart ze, maar geen COM-eigenschap draagt ze. Geef de REST-API een poort op de pagina API en monitoring, initialiseer de server opnieuw en open deze pagina opnieuw.</value>
@@ -13923,7 +13923,7 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
     <value>Waar nieuwe berichten worden opgeslagen</value>
   </data>
   <data name="Where the Control Deck is could not be read." xml:space="preserve">
-    <value>Waar de Control Deck is, kon niet worden gelezen.</value>
+    <value>Waar de Control Deck zich bevindt, kon niet worden gelezen.</value>
   </data>
   <data name="Where the administrator is told, well before anything is refused. 1024 MB is roughly fifty more maximum-size messages." xml:space="preserve">
     <value>Waar de beheerder het te horen krijgt, ruim voordat er iets wordt geweigerd. 1024 MB is ruwweg vijftig berichten van maximale grootte extra.</value>

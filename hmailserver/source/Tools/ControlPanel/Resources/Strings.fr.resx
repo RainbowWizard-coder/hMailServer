@@ -11615,7 +11615,7 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
     <value>L'API REST ne tourne pas : elle ne sert du HTTP en clair que sur 127.0.0.1 ou ::1, et écouter sur {0} exige un fichier de certificat TLS et son fichier de clé privée sur la page API et supervision, ou un certificat ACME délivré à ce serveur.</value>
   </data>
   <data name="The REST API is not running: listening on {0} needs a certificate, set on the API &amp; monitoring page." xml:space="preserve">
-    <value>L'API REST n'est pas en marche : écouter sur {0} demande un certificat, défini sur la page API et supervision.</value>
+    <value>L'API REST n'est pas en marche : écouter sur {0} exige un certificat, défini sur la page API et supervision.</value>
   </data>
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>L'API REST est désactivée (son port sur la page API et supervision vaut {0}), et ces réglages passent par elle : le serveur les conserve, mais aucune propriété COM ne les porte. Donnez un port à l'API REST sur la page API et supervision, réinitialisez le serveur et rouvrez cette page.</value>

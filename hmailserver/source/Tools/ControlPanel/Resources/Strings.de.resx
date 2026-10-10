@@ -11615,7 +11615,7 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
     <value>Die REST-API läuft nicht: Sie bedient reines HTTP nur auf 127.0.0.1 oder ::1, und das Lauschen auf {0} erfordert eine TLS-Zertifikatdatei und deren private Schlüsseldatei auf der Seite API und Überwachung oder ein für diesen Server ausgestelltes ACME-Zertifikat.</value>
   </data>
   <data name="The REST API is not running: listening on {0} needs a certificate, set on the API &amp; monitoring page." xml:space="preserve">
-    <value>Die REST-API läuft nicht: Lauschen auf {0} braucht ein Zertifikat, das auf der Seite API und Überwachung gesetzt wird.</value>
+    <value>Die REST-API läuft nicht: Das Lauschen auf {0} erfordert ein Zertifikat, das auf der Seite API und Überwachung gesetzt wird.</value>
   </data>
   <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>Die REST-API ist aus (ihr Port auf der Seite API und Überwachung ist {0}), und diese Einstellungen werden über sie erreicht: Der Server hält sie, aber keine COM-Eigenschaft trägt sie. Geben Sie der REST-API auf der Seite API und Überwachung einen Port, initialisieren Sie den Server neu und öffnen Sie diese Seite erneut.</value>
@@ -13923,7 +13923,7 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
     <value>Wo neue Nachrichten gespeichert werden</value>
   </data>
   <data name="Where the Control Deck is could not be read." xml:space="preserve">
-    <value>Wo das Control Deck ist, ließ sich nicht lesen.</value>
+    <value>Wo sich das Control Deck befindet, ließ sich nicht lesen.</value>
   </data>
   <data name="Where the administrator is told, well before anything is refused. 1024 MB is roughly fifty more maximum-size messages." xml:space="preserve">
     <value>Wo der Administrator Bescheid bekommt, lange bevor etwas abgelehnt wird. 1024 MB sind ungefähr fünfzig weitere Nachrichten in maximaler Größe.</value>
