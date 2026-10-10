@@ -609,6 +609,9 @@
   <data name="A route overrides MX lookup for named domains." xml:space="preserve">
     <value>Bir rota, adı verilen etki alanları için MX aramasının yerine geçer.</value>
   </data>
+  <data name="A sample domain" xml:space="preserve">
+    <value>Örnek etki alanı</value>
+  </data>
   <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict: nobody looked." xml:space="preserve">
     <value>Hata veren, zaman aşımına uğrayan veya motoruna ulaşamayan bir tarama temiz bir hüküm değildir: kimse bakmamıştır.</value>
   </data>
@@ -6431,6 +6434,9 @@ Geçerli çiftle yapılan her Web Push aboneliği hemen çalışmayı bırakır 
   <data name="Make a sample _domain" xml:space="preserve">
     <value>Örnek etki alanı oluştur (_D)</value>
   </data>
+  <data name="Makes {0} with three mailboxes, a distribution list, a rule and some delivered mail, so that every page has something in it. Remove it before this server takes real mail." xml:space="preserve">
+    <value>{0} etki alanını üç posta kutusu, bir dağıtım listesi, bir kural ve birkaç teslim edilmiş iletiyle oluşturur; böylece her sayfada bir şeyler olur. Bu sunucu gerçek posta almaya başlamadan önce örneği kaldırın.</value>
+  </data>
   <data name="ManageSieve (RFC 5804)" xml:space="preserve">
     <value>ManageSieve (RFC 5804)</value>
   </data>
@@ -7644,9 +7650,6 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Nothing needs attention - the {0} external setup check is done or not needed." xml:space="preserve">
     <value>Dikkat gerektiren bir şey yok - {0} dış kurulum denetiminin tümü yapıldı ya da gerekmiyor.</value>
-  </data>
-  <data name="Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every page has something in it while you learn. Every mailbox signs in with one password, which this server mints now and shows once, so write it down - and remove the sample before this server takes real mail." xml:space="preserve">
-    <value>Bu sunucuda henüz bakacak bir şey yok mu? Bu, {0} etki alanını üç posta kutusu, bir dağıtım listesi, bir kural ve birkaç teslim edilmiş iletiyle oluşturur; böylece öğrenirken her sayfada bir şeyler olur. Tüm posta kutuları, bu sunucunun şimdi üretip bir kez göstereceği tek bir parolayla oturum açar; parolayı not edin ve bu sunucu gerçek posta almaya başlamadan önce örneği kaldırın.</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Hiçbir şey uygulanmadı: onay açıkken seçenekler değişti; bu yüzden ön izleme artık bunun ne yapacağını anlatmıyor. Ön izlemeyi yeniden çalıştırın.</value>
@@ -16449,8 +16452,8 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} is downloaded and verified; Install update applies it" xml:space="preserve">
     <value>{0} indirildi ve doğrulandı; "Güncelleştirmeyi yükle" bunu uygular</value>
   </data>
-  <data name="{0} is here with the mailboxes {1}, the list {2} and one rule that files invoices. The one password for all of them was shown when it was made and was not kept - remove the sample and make it again to be given another. It is left out of the first-hour checklist, because a sample domain is not this server's first domain." xml:space="preserve">
-    <value>{0} burada: {1} posta kutuları, {2} listesi ve faturaları dosyalayan bir kural. Tüm posta kutularının tek parolası örnek oluşturulurken gösterildi ve saklanmadı; yenisini almak için örneği kaldırıp yeniden oluşturun. İlk saatin denetim listesinde sayılmaz, çünkü bir örnek etki alanı bu sunucunun ilk etki alanı değildir.</value>
+  <data name="{0} is here with the mailboxes {1}, the list {2} and a rule that files invoices. Its password was shown once, when it was made; remove the sample and make it again to be given another." xml:space="preserve">
+    <value>{0} burada: {1} posta kutuları, {2} listesi ve faturaları dosyalayan bir kural. Parola bir kez, örnek oluşturulurken gösterildi; yenisini almak için örneği kaldırıp yeniden oluşturun.</value>
   </data>
   <data name="{0} is never auto-banned: its reverse name {1} resolves back to it and is covered by {2}." xml:space="preserve">
     <value>{0} hiçbir zaman otomatik yasaklanmaz: ters adı {1} ona geri çözümleniyor ve {2} tarafından kapsanıyor.</value>

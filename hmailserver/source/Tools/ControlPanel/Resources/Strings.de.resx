@@ -609,6 +609,9 @@
   <data name="A route overrides MX lookup for named domains." xml:space="preserve">
     <value>Eine Route setzt für die genannten Domains die MX-Suche außer Kraft.</value>
   </data>
+  <data name="A sample domain" xml:space="preserve">
+    <value>Beispieldomain</value>
+  </data>
   <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict: nobody looked." xml:space="preserve">
     <value>Ein Scan, der auf einen Fehler läuft, in einen Timeout gerät oder seine Engine nicht erreicht, ist kein sauberes Urteil: niemand hat hingesehen.</value>
   </data>
@@ -6431,6 +6434,9 @@ Jedes Web-Push-Abonnement unter dem jetzigen Paar funktioniert sofort nicht mehr
   <data name="Make a sample _domain" xml:space="preserve">
     <value>Beispiel_domain anlegen</value>
   </data>
+  <data name="Makes {0} with three mailboxes, a distribution list, a rule and some delivered mail, so that every page has something in it. Remove it before this server takes real mail." xml:space="preserve">
+    <value>Legt {0} mit drei Postfächern, einer Verteilerliste, einer Regel und einigen zugestellten Nachrichten an, damit auf jeder Seite etwas steht. Entfernen Sie das Beispiel, bevor dieser Server echte Post annimmt.</value>
+  </data>
   <data name="ManageSieve (RFC 5804)" xml:space="preserve">
     <value>ManageSieve (RFC 5804)</value>
   </data>
@@ -7644,9 +7650,6 @@ Nichts, was schon dort ist, wird entfernt.</value>
   </data>
   <data name="Nothing needs attention - the {0} external setup check is done or not needed." xml:space="preserve">
     <value>Nichts braucht Aufmerksamkeit - die {0} Prüfung der externen Einrichtung ist erledigt oder nicht nötig.</value>
-  </data>
-  <data name="Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every page has something in it while you learn. Every mailbox signs in with one password, which this server mints now and shows once, so write it down - and remove the sample before this server takes real mail." xml:space="preserve">
-    <value>Auf diesem Server gibt es noch nichts zu sehen? Dies legt {0} mit drei Postfächern, einer Verteilerliste, einer Regel und einer Handvoll zugestellter Nachrichten an, damit beim Lernen auf jeder Seite etwas steht. Alle Postfächer melden sich mit einem einzigen Kennwort an, das dieser Server jetzt erzeugt und einmal anzeigt - schreiben Sie es auf und entfernen Sie das Beispiel, bevor dieser Server echte Post annimmt.</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Es wurde nichts angewendet: die Optionen haben sich geändert, während die Bestätigung offen war, die Vorschau beschreibt also nicht mehr, was dies tun würde. Führen Sie die Vorschau erneut aus.</value>
@@ -16449,8 +16452,8 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="{0} is downloaded and verified; Install update applies it" xml:space="preserve">
     <value>{0} ist heruntergeladen und geprüft; „Update installieren" wendet es an</value>
   </data>
-  <data name="{0} is here with the mailboxes {1}, the list {2} and one rule that files invoices. The one password for all of them was shown when it was made and was not kept - remove the sample and make it again to be given another. It is left out of the first-hour checklist, because a sample domain is not this server's first domain." xml:space="preserve">
-    <value>{0} ist vorhanden, mit den Postfächern {1}, der Liste {2} und einer Regel, die Rechnungen einsortiert. Das eine Kennwort für alle Postfächer wurde beim Anlegen des Beispiels gezeigt und nicht gespeichert; entfernen Sie das Beispiel und legen Sie es erneut an, um ein neues zu erhalten. In der Prüfliste der ersten Stunde bleibt sie unberücksichtigt, denn eine Beispieldomain ist nicht die erste Domain dieses Servers.</value>
+  <data name="{0} is here with the mailboxes {1}, the list {2} and a rule that files invoices. Its password was shown once, when it was made; remove the sample and make it again to be given another." xml:space="preserve">
+    <value>{0} ist vorhanden, mit den Postfächern {1}, der Liste {2} und einer Regel, die Rechnungen einsortiert. Das Kennwort wurde einmal gezeigt, beim Anlegen des Beispiels; entfernen Sie das Beispiel und legen Sie es erneut an, um ein neues zu erhalten.</value>
   </data>
   <data name="{0} is never auto-banned: its reverse name {1} resolves back to it and is covered by {2}." xml:space="preserve">
     <value>{0} wird nie automatisch gebannt: Der Reverse-Name {1} löst wieder auf die Adresse auf und ist von {2} abgedeckt.</value>

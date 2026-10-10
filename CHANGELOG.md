@@ -2572,6 +2572,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   list again after its DNS lookups. Action needed and Cannot tell keep their whole text. `SetupChecklistNextStepTests`
   holds the button, where it goes and the one-line items.
 
+- **Fixed: the Welcome page's sample-domain offer assumed an empty server, and two stacked notices pushed the task
+  list down.** "Nothing on this server to look at yet? This makes example.test…" showed whenever example.test was
+  absent, on a server of four domains and eleven accounts as on a new one; it was a second purple Information notice
+  under the walk's, four lines at 1280 pixels and seven at 760, and repeated the password sentence its dialog shows;
+  it arrived after the first paint and moved the intents about 80 pixels under the pointer; and at 760 pixels no
+  intent was on screen. The walk's offer is now the one notice above the intents, and the sample is a card under them
+  titled A sample domain - "Makes example.test with three mailboxes, a distribution list, a rule and some delivered
+  mail, so that every page has something in it. Remove it before this server takes real mail." - with Make a sample
+  domain, or Remove the sample domain, in its footer. The card is drawn as the page is and its button pressed once the
+  read lands; what the read found is a notice in the card at its level, Good for the sample that is here (with how to
+  be given another password, which the creation dialog alone shows), Warning for a domain of that name that is not
+  the sample - with Open Domains - and for a domain table the server could not read. `WelcomeSampleCardTests` holds
+  the card, its place and its states.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

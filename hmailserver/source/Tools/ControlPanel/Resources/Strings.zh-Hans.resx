@@ -609,6 +609,9 @@
   <data name="A route overrides MX lookup for named domains." xml:space="preserve">
     <value>路由会为指定的域覆盖 MX 查询。</value>
   </data>
+  <data name="A sample domain" xml:space="preserve">
+    <value>样例域</value>
+  </data>
   <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict: nobody looked." xml:space="preserve">
     <value>出错、超时或者连不上引擎的扫描不是一个明确的结论：等于没有人看过。</value>
   </data>
@@ -6431,6 +6434,9 @@
   <data name="Make a sample _domain" xml:space="preserve">
     <value>创建样例域 (_D)</value>
   </data>
+  <data name="Makes {0} with three mailboxes, a distribution list, a rule and some delivered mail, so that every page has something in it. Remove it before this server takes real mail." xml:space="preserve">
+    <value>创建 {0}，带三个邮箱、一个通讯组列表、一条规则和一些已投递的邮件，让每个页面里都有内容。请在此服务器接收真实邮件之前移除样例。</value>
+  </data>
   <data name="ManageSieve (RFC 5804)" xml:space="preserve">
     <value>ManageSieve（RFC 5804）</value>
   </data>
@@ -7644,9 +7650,6 @@
   </data>
   <data name="Nothing needs attention - the {0} external setup check is done or not needed." xml:space="preserve">
     <value>无需处理 - 全部 {0} 项外部设置检查都已完成或不需要。</value>
-  </data>
-  <data name="Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every page has something in it while you learn. Every mailbox signs in with one password, which this server mints now and shows once, so write it down - and remove the sample before this server takes real mail." xml:space="preserve">
-    <value>此服务器上还没有可看的内容？这会创建 {0}，带三个邮箱、一个通讯组列表、一条规则和若干已投递的邮件，让您学习时每个页面里都有内容。所有邮箱都使用同一个密码登录，该密码由本服务器现在生成并只显示一次，请记下来，并在此服务器接收真实邮件之前移除样例。</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>未应用任何内容：在确认窗口打开期间选项发生了变化，因此预览不再描述此操作会做什么。请重新运行预览。</value>
@@ -16449,8 +16452,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} is downloaded and verified; Install update applies it" xml:space="preserve">
     <value>{0} 已下载并通过验证；“安装更新”会应用它</value>
   </data>
-  <data name="{0} is here with the mailboxes {1}, the list {2} and one rule that files invoices. The one password for all of them was shown when it was made and was not kept - remove the sample and make it again to be given another. It is left out of the first-hour checklist, because a sample domain is not this server's first domain." xml:space="preserve">
-    <value>{0} 已存在：邮箱 {1}、列表 {2}，以及一条归档发票的规则。所有邮箱共用的密码在创建样例时显示过一次，并未保存；如需新密码，请先移除样例再重新创建。它不计入第一小时的检查清单，因为样例域不是此服务器的第一个域。</value>
+  <data name="{0} is here with the mailboxes {1}, the list {2} and a rule that files invoices. Its password was shown once, when it was made; remove the sample and make it again to be given another." xml:space="preserve">
+    <value>{0} 已存在：邮箱 {1}、列表 {2}，以及一条归档发票的规则。密码在创建样例时显示过一次；如需新密码，请移除样例后重新创建。</value>
   </data>
   <data name="{0} is never auto-banned: its reverse name {1} resolves back to it and is covered by {2}." xml:space="preserve">
     <value>{0} 永远不会被自动封禁：其反向名称 {1} 正向解析回该地址，且被 {2} 覆盖。</value>

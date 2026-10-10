@@ -32,9 +32,15 @@ namespace hMailServer.ControlPanel.Views
 
       // The sample domain (the server's Common/Application/SampleDomain.h): one
       // button that fills a bare server with something to look at, and one that
-      // takes it away again and says what went. It is a notice beside the walk's,
-      // and for the same reason: an offer that a reader who knows the product
-      // steps past, rather than a step they have to get out of.
+      // takes it away again and says what went. A card of its own under the
+      // intents, titled A sample domain, with its button in the card's footer
+      // (review finding F275): it was a second notice above the intents, four
+      // lines that began "Nothing on this server to look at yet?" on a server of
+      // four domains and eleven accounts, and arrived after the first paint, so
+      // that the intents moved under the pointer. The walk's is the one notice
+      // above the intents. The card is drawn as the page is - its title, what the
+      // sample is and its button, not yet pressable - so that the read only fills
+      // it in.
       //
       // Four shapes. No sample: the offer. Ours: what is in it and the button that
       // removes it. A domain named example.test that this server did not make:
@@ -44,18 +50,33 @@ namespace hMailServer.ControlPanel.Views
       //
       // The password is in none of them. It is minted by the server when the
       // sample is made, shown in the dialog that reports the creation, and never
-      // stored, so there is nothing for this notice to read back.
-      private readonly InlineNotice sample_ = new()
+      // stored, so there is nothing for this card to read back.
+      private readonly Card sample_ = new()
       {
-         Level = StatusLevel.Information,
+         Title = L("A sample domain"),
+         Margin = new Thickness(0, 0, 12, 24)
+      };
+
+      // What the read found, at its level: Good for the sample that is here,
+      // Warning for a domain of that name that is not the sample and for a
+      // domain table that could not be read; nothing while there is no sample.
+      private readonly InlineNotice sampleNotice_ = new()
+      {
          Visibility = Visibility.Collapsed,
-         Margin = new Thickness(0, 0, 0, 16)
+         Margin = new Thickness(0)
       };
 
       private readonly Wpf.Ui.Controls.Button sampleAction_ = new()
       {
-         Appearance = Wpf.Ui.Controls.ControlAppearance.Secondary
+         Appearance = Wpf.Ui.Controls.ControlAppearance.Secondary,
+         Content = MakeSampleCaption_(),
+         HorizontalAlignment = HorizontalAlignment.Left,
+         IsEnabled = false
       };
+
+      // The domain the server makes the sample under (SampleDomain.h), until its
+      // read names it.
+      private const string SampleDomainName = "example.test"; // no-loc: a domain name
 
       // What the last read of the server said, so that the button knows which of
       // the two calls it is. Empty until the page has been entered.
@@ -109,9 +130,11 @@ namespace hMailServer.ControlPanel.Views
          panel.Children.Add(tourOffer_);
 
          System.Windows.Automation.AutomationProperties.SetAutomationId(sampleAction_, "welcome-sample-domain");
+         System.Windows.Automation.AutomationProperties.SetAutomationId(sample_, "welcome-sample-card");
          sampleAction_.Click += (s, e) => SampleClicked_();
-         sample_.Content = sampleAction_;
-         panel.Children.Add(sample_);
+         sample_.Description = SampleDescription_(SampleDomainName);
+         sample_.Content = sampleNotice_;
+         sample_.Footer = sampleAction_;
 
          panel.Children.Add(Text(L("Start with what you want to do, browse by area below, or press Ctrl+K to search every page and setting."),
             "TextSecondary", new Thickness(0, 0, 0, 16)));
@@ -125,6 +148,9 @@ namespace hMailServer.ControlPanel.Views
          foreach (WelcomeIntent intent in WelcomeIntents.Entries)
             intents.Children.Add(IntentRow(intent));
          panel.Children.Add(new SettingsSection { Heading = L("What do you want to do?"), Content = intents });
+
+         // The sample domain, under the intents, which come first.
+         panel.Children.Add(sample_);
 
          // One tile per group of the sidebar the signed-in credential sees, filled
          // as the page is entered (ShowAreas_).
@@ -314,6 +340,13 @@ namespace hMailServer.ControlPanel.Views
          });
       }
 
+      /// <summary>The offer's button, before the read lands and after it finds no sample: one caption, one key.</summary>
+      private static string MakeSampleCaption_() => L("Make a sample _domain");
+
+      /// <summary>What the sample is, whatever the read finds: the card's description.</summary>
+      private static string SampleDescription_(string domain)
+         => F("Makes {0} with three mailboxes, a distribution list, a rule and some delivered mail, so that every page has something in it. Remove it before this server takes real mail.", domain);
+
       private void ShowSample_(string json)
       {
          sampleState_ = "";
@@ -341,18 +374,23 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
+         sample_.Description = SampleDescription_(domain.Length > 0 ? domain : SampleDomainName);
+         sampleNotice_.Content = null;
+         sampleAction_.IsEnabled = !sampleBusy_;
+
          if (sampleState_ == "present")
          {
-            sample_.Level = StatusLevel.Good;
-            sample_.Text = F("{0} is here with the mailboxes {1}, the list {2} and one rule that files invoices. The one password for all of them was shown when it was made and was not kept - remove the sample and make it again to be given another. It is left out of the first-hour checklist, because a sample domain is not this server's first domain.",
-               domain, string.Join(", ", accounts), list);
+            // The password is said in the dialog that reports the sample's
+            // creation, and only there; here, how to be given another.
+            sampleNotice_.Show(StatusLevel.Good, F("{0} is here with the mailboxes {1}, the list {2} and a rule that files invoices. Its password was shown once, when it was made; remove the sample and make it again to be given another.",
+               domain, string.Join(", ", accounts), list));
             sampleAction_.Content = L("Re_move the sample domain");
             sampleAction_.Visibility = Visibility.Visible;
          }
          else if (sampleState_ == "foreign")
          {
-            sample_.Level = StatusLevel.Warning;
-            sample_.Text = F("A domain named {0} is already on this server, and it is not the sample domain this page makes, so no sample can be made here and this page will not remove it. If you do not want that domain, delete it on the Domains page.", domain);
+            sampleNotice_.Show(StatusLevel.Warning, F("A domain named {0} is already on this server, and it is not the sample domain this page makes, so no sample can be made here and this page will not remove it. If you do not want that domain, delete it on the Domains page.", domain));
+            sampleNotice_.Content = NoticeActions.OpenPage("domains", "welcome-sample-open-domains"); // no-loc: a page key and an id
             sampleAction_.Visibility = Visibility.Collapsed;
          }
          else if (sampleState_ == "unknown")
@@ -360,18 +398,20 @@ namespace hMailServer.ControlPanel.Views
             // The server could not read its domain table. Offering either button
             // here would be offering to act on an answer it has just said it does
             // not have.
-            sample_.Level = StatusLevel.Warning;
-            sample_.Text = L("This server could not read its domain table, so it cannot say whether the sample domain is here. Nothing is offered until it can.");
+            sampleNotice_.Show(StatusLevel.Warning, L("This server could not read its domain table, so it cannot say whether the sample domain is here. Nothing is offered until it can."));
             sampleAction_.Visibility = Visibility.Collapsed;
          }
          else
          {
-            sample_.Level = StatusLevel.Information;
-            sample_.Text = F("Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every page has something in it while you learn. Every mailbox signs in with one password, which this server mints now and shows once, so write it down - and remove the sample before this server takes real mail.", domain);
-            sampleAction_.Content = L("Make a sample _domain");
+            // The offer: what the sample is is the card's description, and the
+            // password sentence is the creation dialog's.
+            sampleNotice_.Hide();
+            sampleAction_.Content = MakeSampleCaption_();
             sampleAction_.Visibility = Visibility.Visible;
          }
 
+         // A card with nothing to offer and nothing to say has no footer.
+         sample_.Footer = sampleAction_.Visibility == Visibility.Visible ? sampleAction_ : null;
          sample_.Visibility = Visibility.Visible;
       }
 

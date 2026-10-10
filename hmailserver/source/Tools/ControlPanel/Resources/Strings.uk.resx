@@ -612,6 +612,9 @@
   <data name="A route overrides MX lookup for named domains." xml:space="preserve">
     <value>Маршрут перевизначає пошук MX-записів для вказаних доменів.</value>
   </data>
+  <data name="A sample domain" xml:space="preserve">
+    <value>Зразковий домен</value>
+  </data>
   <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict: nobody looked." xml:space="preserve">
     <value>Сканування, яке завершилося помилкою, перевищило час очікування або не змогло дістатися свого рушія, не є чистим висновком: ніхто нічого не перевірив.</value>
   </data>
@@ -6498,6 +6501,9 @@
   <data name="Make a sample _domain" xml:space="preserve">
     <value>Створити зразковий домен (_D)</value>
   </data>
+  <data name="Makes {0} with three mailboxes, a distribution list, a rule and some delivered mail, so that every page has something in it. Remove it before this server takes real mail." xml:space="preserve">
+    <value>Створює {0} з трьома скриньками, списком розсилки, правилом і кількома доставленими повідомленнями, щоб на кожній сторінці щось було. Вилучіть зразок, перш ніж цей сервер прийматиме справжню пошту.</value>
+  </data>
   <data name="ManageSieve (RFC 5804)" xml:space="preserve">
     <value>ManageSieve (RFC 5804)</value>
   </data>
@@ -7732,9 +7738,6 @@
   </data>
   <data name="Nothing needs attention - the {0} external setup check is done or not needed." xml:space="preserve">
     <value>Ніщо не потребує уваги — усі {0} перевірка зовнішнього налаштування виконано або вони не потрібні.</value>
-  </data>
-  <data name="Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every page has something in it while you learn. Every mailbox signs in with one password, which this server mints now and shows once, so write it down - and remove the sample before this server takes real mail." xml:space="preserve">
-    <value>Поки що нема на що подивитися на цьому сервері? Це створює {0} з трьома скриньками, списком розсилки, одним правилом і кількома доставленими повідомленнями, щоб під час навчання на кожній сторінці щось було. Усі скриньки входять з одним паролем, який цей сервер створює зараз і показує один раз, тож запишіть його - і вилучіть зразок, перш ніж цей сервер прийматиме справжню пошту.</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Нічого не застосовано: параметри змінилися, поки підтвердження було відкрите, тому попередній перегляд більше не описує, що це зробило б. Виконайте попередній перегляд ще раз.</value>
@@ -16720,8 +16723,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} is downloaded and verified; Install update applies it" xml:space="preserve">
     <value>{0} завантажено й перевірено; застосовує його кнопка «Установити оновлення»</value>
   </data>
-  <data name="{0} is here with the mailboxes {1}, the list {2} and one rule that files invoices. The one password for all of them was shown when it was made and was not kept - remove the sample and make it again to be given another. It is left out of the first-hour checklist, because a sample domain is not this server's first domain." xml:space="preserve">
-    <value>{0} тут: скриньки {1}, список {2} і одне правило, що розкладає рахунки. Єдиний пароль для всіх скриньок був показаний під час створення зразка і не зберігався; вилучіть зразок і створіть його знову, щоб отримати новий. У контрольному списку першої години він не враховується, бо зразковий домен не є першим доменом цього сервера.</value>
+  <data name="{0} is here with the mailboxes {1}, the list {2} and a rule that files invoices. Its password was shown once, when it was made; remove the sample and make it again to be given another." xml:space="preserve">
+    <value>{0} тут: скриньки {1}, список {2} і правило, що розкладає рахунки. Пароль показано один раз, під час створення зразка; вилучіть зразок і створіть його знову, щоб отримати новий.</value>
   </data>
   <data name="{0} is never auto-banned: its reverse name {1} resolves back to it and is covered by {2}." xml:space="preserve">
     <value>{0} ніколи не банять автоматично: її зворотне ім'я {1} розв'язується назад у неї і покрите шаблоном {2}.</value>

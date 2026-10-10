@@ -609,6 +609,9 @@
   <data name="A route overrides MX lookup for named domains." xml:space="preserve">
     <value>En rute tilsidesætter MX-opslag for navngivne domæner.</value>
   </data>
+  <data name="A sample domain" xml:space="preserve">
+    <value>Prøvedomæne</value>
+  </data>
   <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict: nobody looked." xml:space="preserve">
     <value>En scanning, der fejler, får timeout eller ikke kan nå sin motor, er ikke en ren dom: ingen har set efter.</value>
   </data>
@@ -6431,6 +6434,9 @@ Hvert Web Push-abonnement under det nuværende par holder straks op med at virke
   <data name="Make a sample _domain" xml:space="preserve">
     <value>Opret et prøve_domæne</value>
   </data>
+  <data name="Makes {0} with three mailboxes, a distribution list, a rule and some delivered mail, so that every page has something in it. Remove it before this server takes real mail." xml:space="preserve">
+    <value>Opretter {0} med tre postkasser, en distributionsliste, en regel og lidt leveret post, så der er noget på hver side. Fjern prøven, før denne server modtager rigtig post.</value>
+  </data>
   <data name="ManageSieve (RFC 5804)" xml:space="preserve">
     <value>ManageSieve (RFC 5804)</value>
   </data>
@@ -7644,9 +7650,6 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="Nothing needs attention - the {0} external setup check is done or not needed." xml:space="preserve">
     <value>Intet kræver opmærksomhed - den {0} kontrol af den eksterne opsætning er udført eller ikke nødvendig.</value>
-  </data>
-  <data name="Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every page has something in it while you learn. Every mailbox signs in with one password, which this server mints now and shows once, so write it down - and remove the sample before this server takes real mail." xml:space="preserve">
-    <value>Intet at se på denne server endnu? Dette opretter {0} med tre postkasser, en distributionsliste, en regel og en håndfuld leverede beskeder, så der er noget på hver side, mens du lærer. Alle postkasser logger ind med én adgangskode, som denne server laver nu og viser én gang, så skriv den ned - og fjern prøven, før denne server modtager rigtig post.</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Intet blev anvendt: indstillingerne ændrede sig, mens bekræftelsen var åben, så forhåndsvisningen beskriver ikke længere, hvad dette ville gøre. Kør forhåndsvisningen igen.</value>
@@ -16449,8 +16452,8 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="{0} is downloaded and verified; Install update applies it" xml:space="preserve">
     <value>{0} er downloadet og verificeret; Installér opdatering anvender den</value>
   </data>
-  <data name="{0} is here with the mailboxes {1}, the list {2} and one rule that files invoices. The one password for all of them was shown when it was made and was not kept - remove the sample and make it again to be given another. It is left out of the first-hour checklist, because a sample domain is not this server's first domain." xml:space="preserve">
-    <value>{0} er her med postkasserne {1}, listen {2} og én regel, der arkiverer fakturaer. Den ene adgangskode til alle postkasser blev vist, da prøven blev lavet, og blev ikke gemt; fjern prøven og lav den igen for at få en ny. Det holdes uden for den første times tjekliste, fordi et prøvedomæne ikke er denne servers første domæne.</value>
+  <data name="{0} is here with the mailboxes {1}, the list {2} and a rule that files invoices. Its password was shown once, when it was made; remove the sample and make it again to be given another." xml:space="preserve">
+    <value>{0} er her med postkasserne {1}, listen {2} og en regel, der arkiverer fakturaer. Adgangskoden blev vist én gang, da prøven blev lavet; fjern prøven og lav den igen for at få en ny.</value>
   </data>
   <data name="{0} is never auto-banned: its reverse name {1} resolves back to it and is covered by {2}." xml:space="preserve">
     <value>{0} blokeres aldrig automatisk: dens omvendte navn {1} peger tilbage på den og er dækket af {2}.</value>

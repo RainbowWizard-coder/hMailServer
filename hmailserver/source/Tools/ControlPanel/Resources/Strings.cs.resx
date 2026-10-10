@@ -612,6 +612,9 @@
   <data name="A route overrides MX lookup for named domains." xml:space="preserve">
     <value>Trasa nahrazuje vyhledávání MX pro uvedené domény.</value>
   </data>
+  <data name="A sample domain" xml:space="preserve">
+    <value>Ukázková doména</value>
+  </data>
   <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict: nobody looked." xml:space="preserve">
     <value>Kontrola, která skončí chybou, vyprší nebo nedosáhne na svůj engine, neznamená verdikt „čistá“: nikdo se nedíval.</value>
   </data>
@@ -6498,6 +6501,9 @@ Každý odběr Web Push vytvořený se současným párem okamžitě přestane f
   <data name="Make a sample _domain" xml:space="preserve">
     <value>Vytvořit ukázkovou _doménu</value>
   </data>
+  <data name="Makes {0} with three mailboxes, a distribution list, a rule and some delivered mail, so that every page has something in it. Remove it before this server takes real mail." xml:space="preserve">
+    <value>Vytvoří {0} se třemi schránkami, distribučním seznamem, pravidlem a několika doručenými zprávami, aby na každé stránce něco bylo. Ukázku odstraňte dříve, než tento server začne přijímat skutečnou poštu.</value>
+  </data>
   <data name="ManageSieve (RFC 5804)" xml:space="preserve">
     <value>ManageSieve (RFC 5804)</value>
   </data>
@@ -7732,9 +7738,6 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Nothing needs attention - the {0} external setup check is done or not needed." xml:space="preserve">
     <value>Nic nevyžaduje pozornost – {0} kontrola externího nastavení je hotová nebo není potřeba.</value>
-  </data>
-  <data name="Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every page has something in it while you learn. Every mailbox signs in with one password, which this server mints now and shows once, so write it down - and remove the sample before this server takes real mail." xml:space="preserve">
-    <value>Na tomto serveru zatím není co si prohlédnout? Toto vytvoří {0} se třemi schránkami, distribučním seznamem, pravidlem a několika doručenými zprávami, aby při učení bylo na každé stránce něco k vidění. Všechny schránky se přihlašují jedním heslem, které tento server nyní vytvoří a jednou zobrazí, takže si je zapište - a ukázku odstraňte dříve, než tento server začne přijímat skutečnou poštu.</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Neuplatnilo se nic: volby se změnily, zatímco bylo otevřené potvrzení, takže náhled už nepopisuje, co by se provedlo. Spusťte náhled znovu.</value>
@@ -16720,8 +16723,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} is downloaded and verified; Install update applies it" xml:space="preserve">
     <value>{0} je stažen a ověřen; použije ji akce Nainstalovat aktualizaci</value>
   </data>
-  <data name="{0} is here with the mailboxes {1}, the list {2} and one rule that files invoices. The one password for all of them was shown when it was made and was not kept - remove the sample and make it again to be given another. It is left out of the first-hour checklist, because a sample domain is not this server's first domain." xml:space="preserve">
-    <value>{0} je zde se schránkami {1}, seznamem {2} a jedním pravidlem, které zakládá faktury. Jedno heslo pro všechny schránky bylo zobrazeno při vytvoření ukázky a nebylo uloženo; odstraňte ukázku a vytvořte ji znovu, chcete-li dostat další. V kontrolním seznamu první hodiny se nezapočítává, protože ukázková doména není první doménou tohoto serveru.</value>
+  <data name="{0} is here with the mailboxes {1}, the list {2} and a rule that files invoices. Its password was shown once, when it was made; remove the sample and make it again to be given another." xml:space="preserve">
+    <value>{0} je zde se schránkami {1}, seznamem {2} a pravidlem, které zakládá faktury. Heslo bylo zobrazeno jednou, při vytvoření ukázky; chcete-li dostat další, odstraňte ukázku a vytvořte ji znovu.</value>
   </data>
   <data name="{0} is never auto-banned: its reverse name {1} resolves back to it and is covered by {2}." xml:space="preserve">
     <value>{0} se nikdy automaticky nezakáže: její reverzní název {1} se překládá zpět na ni a je pokryt vzorem {2}.</value>

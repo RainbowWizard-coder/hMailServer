@@ -609,6 +609,9 @@
   <data name="A route overrides MX lookup for named domains." xml:space="preserve">
     <value>ルートは、指定したドメインについて MX の参照を上書きします。</value>
   </data>
+  <data name="A sample domain" xml:space="preserve">
+    <value>サンプルドメイン</value>
+  </data>
   <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict: nobody looked." xml:space="preserve">
     <value>エラーになったスキャン、タイムアウトしたスキャン、エンジンに到達できなかったスキャンは、「問題なし」という判定ではありません。誰も中身を見ていないからです。</value>
   </data>
@@ -6431,6 +6434,9 @@
   <data name="Make a sample _domain" xml:space="preserve">
     <value>サンプルドメインを作成 (_D)</value>
   </data>
+  <data name="Makes {0} with three mailboxes, a distribution list, a rule and some delivered mail, so that every page has something in it. Remove it before this server takes real mail." xml:space="preserve">
+    <value>{0} を、3 つのメールボックス、配布リスト、ルール、いくつかの配信済みメールとともに作成し、どのページにも何かが表示されるようにします。このサーバーが実際のメールを受け取る前にサンプルを削除してください。</value>
+  </data>
   <data name="ManageSieve (RFC 5804)" xml:space="preserve">
     <value>ManageSieve (RFC 5804)</value>
   </data>
@@ -7644,9 +7650,6 @@
   </data>
   <data name="Nothing needs attention - the {0} external setup check is done or not needed." xml:space="preserve">
     <value>注意すべきものはありません。{0} 件の外部セットアップ チェックはすべて完了しているか不要です。</value>
-  </data>
-  <data name="Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every page has something in it while you learn. Every mailbox signs in with one password, which this server mints now and shows once, so write it down - and remove the sample before this server takes real mail." xml:space="preserve">
-    <value>このサーバーにはまだ見るものがありませんか。これは {0} を、3 つのメールボックス、配布リスト、ルール、いくつかの配信済みメッセージとともに作成し、学習中もどのページにも何かが表示されるようにします。すべてのメールボックスは、このサーバーが今生成して一度だけ表示する 1 つのパスワードでサインインします。必ず書き留め、このサーバーが実際のメールを受け取る前にサンプルを削除してください。</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>何も適用されませんでした: 確認を開いている間にオプションが変更されたため、プレビューはもうこの操作の内容を表していません。プレビューをもう一度実行してください。</value>
@@ -16449,8 +16452,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} is downloaded and verified; Install update applies it" xml:space="preserve">
     <value>{0} をダウンロードして検証しました。適用するには「更新プログラムのインストール」を実行します</value>
   </data>
-  <data name="{0} is here with the mailboxes {1}, the list {2} and one rule that files invoices. The one password for all of them was shown when it was made and was not kept - remove the sample and make it again to be given another. It is left out of the first-hour checklist, because a sample domain is not this server's first domain." xml:space="preserve">
-    <value>{0} があります。メールボックス {1}、リスト {2}、および請求書を仕分けるルール 1 件。すべてのメールボックスに共通のパスワードはサンプル作成時に表示され、保存されていません。新しいものを得るには、サンプルを削除して作り直してください。サンプルドメインはこのサーバーの最初のドメインではないため、最初の 1 時間のチェックリストには数えられません。</value>
+  <data name="{0} is here with the mailboxes {1}, the list {2} and a rule that files invoices. Its password was shown once, when it was made; remove the sample and make it again to be given another." xml:space="preserve">
+    <value>{0} があります。メールボックス {1}、リスト {2}、および請求書を仕分けるルール。パスワードはサンプル作成時に一度だけ表示されました。新しいものを得るには、サンプルを削除して作り直してください。</value>
   </data>
   <data name="{0} is never auto-banned: its reverse name {1} resolves back to it and is covered by {2}." xml:space="preserve">
     <value>{0} は決して自動 BAN されません: 逆引き名 {1} がこのアドレスに正引きで戻り、{2} の対象に含まれます。</value>

@@ -612,6 +612,9 @@
   <data name="A route overrides MX lookup for named domains." xml:space="preserve">
     <value>Маршрут заменяет собой поиск MX для указанных доменов.</value>
   </data>
+  <data name="A sample domain" xml:space="preserve">
+    <value>Образцовый домен</value>
+  </data>
   <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict: nobody looked." xml:space="preserve">
     <value>Проверка, завершившаяся ошибкой, тайм-аутом или не сумевшая связаться со своим движком, — это не вердикт «чисто»: никто ничего не смотрел.</value>
   </data>
@@ -6498,6 +6501,9 @@ Control Panel может читать файлы сообщений только
   <data name="Make a sample _domain" xml:space="preserve">
     <value>Создать образцовый домен (_D)</value>
   </data>
+  <data name="Makes {0} with three mailboxes, a distribution list, a rule and some delivered mail, so that every page has something in it. Remove it before this server takes real mail." xml:space="preserve">
+    <value>Создаёт {0} с тремя почтовыми ящиками, списком рассылки, правилом и несколькими доставленными сообщениями, чтобы на каждой странице что-то было. Удалите образец, прежде чем этот сервер начнёт принимать настоящую почту.</value>
+  </data>
   <data name="ManageSieve (RFC 5804)" xml:space="preserve">
     <value>ManageSieve (RFC 5804)</value>
   </data>
@@ -7732,9 +7738,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Nothing needs attention - the {0} external setup check is done or not needed." xml:space="preserve">
     <value>Внимания ничего не требует — все {0} проверка внешней настройки выполнены или не нужны.</value>
-  </data>
-  <data name="Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every page has something in it while you learn. Every mailbox signs in with one password, which this server mints now and shows once, so write it down - and remove the sample before this server takes real mail." xml:space="preserve">
-    <value>Пока нечего посмотреть на этом сервере? Это создаёт {0} с тремя почтовыми ящиками, списком рассылки, одним правилом и несколькими доставленными сообщениями, чтобы во время обучения на каждой странице что-то было. Все почтовые ящики входят с одним паролем, который этот сервер создаёт сейчас и показывает один раз, - запишите его и удалите образец, прежде чем этот сервер начнёт принимать настоящую почту.</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Ничего не применено: пока было открыто подтверждение, параметры изменились, поэтому предварительный просмотр больше не описывает то, что произойдёт. Выполните предварительный просмотр заново.</value>
@@ -16720,8 +16723,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} is downloaded and verified; Install update applies it" xml:space="preserve">
     <value>{0} — загружено и проверено; применяется кнопкой «Установить обновление»</value>
   </data>
-  <data name="{0} is here with the mailboxes {1}, the list {2} and one rule that files invoices. The one password for all of them was shown when it was made and was not kept - remove the sample and make it again to be given another. It is left out of the first-hour checklist, because a sample domain is not this server's first domain." xml:space="preserve">
-    <value>{0} здесь: почтовые ящики {1}, список {2} и одно правило, раскладывающее счета. Единый пароль для всех ящиков был показан при создании образца и не сохранён; удалите образец и создайте его заново, чтобы получить новый. В контрольном списке первого часа он не учитывается, потому что образцовый домен не является первым доменом этого сервера.</value>
+  <data name="{0} is here with the mailboxes {1}, the list {2} and a rule that files invoices. Its password was shown once, when it was made; remove the sample and make it again to be given another." xml:space="preserve">
+    <value>{0} здесь: почтовые ящики {1}, список {2} и правило, раскладывающее счета. Пароль был показан один раз, при создании образца; удалите образец и создайте его заново, чтобы получить новый.</value>
   </data>
   <data name="{0} is never auto-banned: its reverse name {1} resolves back to it and is covered by {2}." xml:space="preserve">
     <value>{0} никогда не банится автоматически: его обратное имя {1} разрешается обратно в него и покрыто шаблоном {2}.</value>
