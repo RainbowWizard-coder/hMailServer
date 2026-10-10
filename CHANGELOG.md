@@ -3177,9 +3177,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   four timeouts of Server limits & expert settings that did not say what 0 means, and its reserved threads, now do.
   "Extra delivery attempts per additional MX host (0 = default)" is "MX hosts tried per attempt, times the attempt
   number (0 = all)": the setting bounds how many of a domain's MX hosts each attempt tries, and its hint had said it
-  multiplied the retry count. About 150 captions and hints, in every language. `CaptionFormTests` holds every caption
-  of the Control Panel to the form - "max" in either case, but MTA-STS's own max age, and what an empty box means in
-  prose, in a caption or an input prompt's.
+  multiplied the retry count. About 150 captions and hints, in every language; the Russian, which wrote what 0 means as
+  "(0 — без ограничения)" in 29 captions and "(0 = ...)" in 85, and the Ukrainian once, write "=" as the English and
+  the other catalogues do, and both name a caption's unit in one case, "(дни; 0 = никогда)" where it was "(дней; 0 —
+  никогда)" beside "(дни, до 3 650; ...)". `CaptionFormTests` holds every caption of the Control Panel to the form -
+  "max" in either case, but MTA-STS's own max age, and what an empty box means in prose, in a caption or an input
+  prompt's - and every catalogue to the English's "<n> =".
 
 - **Fixed: about sixty texts wrote a word in capitals to stress it, and a few said "honestly" or "perfectly".** "This
   server only CHECKS SPF on incoming mail", "the PTR is NOT published in your domain's zone", "applied to THIS

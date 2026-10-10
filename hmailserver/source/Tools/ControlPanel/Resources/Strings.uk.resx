@@ -925,7 +925,7 @@
     <value>Адреса облікового запису (_чия скринька)</value>
   </data>
   <data name="Account cache TTL (seconds)" xml:space="preserve">
-    <value>TTL кешу облікових записів (секунд)</value>
+    <value>TTL кешу облікових записів (секунди)</value>
   </data>
   <data name="Account cache maximum size (KB, resets at service restart)" xml:space="preserve">
     <value>Максимальний розмір кешу облікових записів (КБ, скидається під час перезапуску служби)</value>
@@ -1384,7 +1384,7 @@
     <value>Адреса псевдоніма</value>
   </data>
   <data name="Alias cache TTL (seconds)" xml:space="preserve">
-    <value>TTL кешу псевдонімів (секунд)</value>
+    <value>TTL кешу псевдонімів (секунди)</value>
   </data>
   <data name="Alias cache maximum size (KB, resets at service restart)" xml:space="preserve">
     <value>Максимальний розмір кешу псевдонімів (КБ, скидається під час перезапуску служби)</value>
@@ -1691,10 +1691,10 @@
     <value>Відповідати з кешу DNS-розв’язувача Windows, коли це можливо</value>
   </data>
   <data name="Answer the same sender a_gain after (days; 0 = once per absence)" xml:space="preserve">
-    <value>Відповідати тому самому відправнику знову через (д_нів; 0 = один раз за відсутність)</value>
+    <value>Відповідати тому самому відправнику знову через (д_ні; 0 = один раз за відсутність)</value>
   </data>
   <data name="Answer the same sender again after (da_ys; 0 = once per absence)" xml:space="preserve">
-    <value>Відповідати тому самому відправнику знову через (дн_ів; 0 = один раз за відсутність)</value>
+    <value>Відповідати тому самому відправнику знову через (дн_і; 0 = один раз за відсутність)</value>
   </data>
   <data name="Answered, but not with a policy" xml:space="preserve">
     <value>Відповідь отримано, але це не політика</value>
@@ -2147,10 +2147,10 @@
     <value>Резервні копії зберігаються в {0}.</value>
   </data>
   <data name="Ban duration (minutes)" xml:space="preserve">
-    <value>Тривалість блокування (хвилин)</value>
+    <value>Тривалість блокування (хвилини)</value>
   </data>
   <data name="Ban for (hours, 1 to 8,760)" xml:space="preserve">
-    <value>Блокувати на (годин, від 1 до 8 760)</value>
+    <value>Блокувати на (години, від 1 до 8 760)</value>
   </data>
   <data name="Ban the sending address for (minutes, up to 525,600; 0 = no ban)" xml:space="preserve">
     <value>Блокувати адресу відправника на (хвилини, до 525 600; 0 = без блокування)</value>
@@ -3868,7 +3868,7 @@
     <value>Видалити пароль програми</value>
   </data>
   <data name="Delete archived messages after (days; 0 = keep for ever)" xml:space="preserve">
-    <value>Видаляти архівовані повідомлення через (днів; 0 = зберігати назавжди)</value>
+    <value>Видаляти архівовані повідомлення через (дні; 0 = зберігати назавжди)</value>
   </data>
   <data name="Delete archives older tha_n (days; 0 = keep for ever)" xml:space="preserve">
     <value>_Видаляти архіви, старші за (дні; 0 = зберігати назавжди)</value>
@@ -3880,7 +3880,7 @@
     <value>Видаляти архіви, старші за стільки днів</value>
   </data>
   <data name="Delete confirmed after (days)" xml:space="preserve">
-    <value>Видаляти підтверджені записи через (днів)</value>
+    <value>Видаляти підтверджені записи через (дні)</value>
   </data>
   <data name="Delete distribution list" xml:space="preserve">
     <value>Видалити список розсилки</value>
@@ -3928,16 +3928,16 @@
     <value>Видалити повідомлення</value>
   </data>
   <data name="Delete messages in this domain's mailboxes _older than (days; 0 = no policy)" xml:space="preserve">
-    <value>_Видаляти повідомлення в скриньках цього домену, старші за (днів; 0 = без політики)</value>
+    <value>_Видаляти повідомлення в скриньках цього домену, старші за (дні; 0 = без політики)</value>
   </data>
   <data name="Delete messages older than (days)" xml:space="preserve">
-    <value>Видаляти повідомлення, старші за (днів)</value>
+    <value>Видаляти повідомлення, старші за (дні)</value>
   </data>
   <data name="Delete quarantined message" xml:space="preserve">
     <value>Видалити повідомлення з карантину</value>
   </data>
   <data name="Delete quarantined messages after (days; 0 = never)" xml:space="preserve">
-    <value>Видаляти повідомлення з карантину після (днів; 0 = ніколи)</value>
+    <value>Видаляти повідомлення з карантину після (дні; 0 = ніколи)</value>
   </data>
   <data name="Delete selected ra_nge" xml:space="preserve">
     <value>Видалити ви_браний діапазон</value>
@@ -4108,10 +4108,10 @@
 Відправнику сказали, що його прийнято, тому ніщо не повторить спробу, а іншої копії немає.</value>
   </data>
   <data name="Delete trace events after (days; 0 = never)" xml:space="preserve">
-    <value>Видаляти події трасування після (днів; 0 = ніколи)</value>
+    <value>Видаляти події трасування після (дні; 0 = ніколи)</value>
   </data>
   <data name="Delete unconfirmed after (days)" xml:space="preserve">
-    <value>Видаляти непідтверджені після (днів)</value>
+    <value>Видаляти непідтверджені після (дні)</value>
   </data>
   <data name="Deleted" xml:space="preserve">
     <value>Видалено</value>
@@ -4359,7 +4359,7 @@
     <value>Списки розсилки живуть у домені, якому належить адреса списку.</value>
   </data>
   <data name="Distribution-list cache TTL (seconds)" xml:space="preserve">
-    <value>TTL кешу списків розсилки (секунд)</value>
+    <value>TTL кешу списків розсилки (секунди)</value>
   </data>
   <data name="Distribution-list cache maximum size (KB, resets at service restart)" xml:space="preserve">
     <value>Максимальний розмір кешу списків розсилки (КБ, скидається при перезапуску служби)</value>
@@ -4404,7 +4404,7 @@
     <value>Псевдоніми домену</value>
   </data>
   <data name="Domain cache TTL (seconds)" xml:space="preserve">
-    <value>TTL кешу доменів (секунд)</value>
+    <value>TTL кешу доменів (секунди)</value>
   </data>
   <data name="Domain cache maximum size (KB, resets at service restart)" xml:space="preserve">
     <value>Максимальний розмір кешу доменів (КБ, скидається при перезапуску служби)</value>
@@ -5166,7 +5166,7 @@
     <value>Очікуваний видавець токена (iss)</value>
   </data>
   <data name="Expire passwords after (days; 0 = never)" xml:space="preserve">
-    <value>Термін дії паролів (днів; 0 = ніколи)</value>
+    <value>Термін дії паролів (дні; 0 = ніколи)</value>
   </data>
   <data name="Expired" xml:space="preserve">
     <value>Сплив</value>
@@ -5544,7 +5544,7 @@
     <value>Повні права</value>
   </data>
   <data name="Full re-index interval (minutes)" xml:space="preserve">
-    <value>Інтервал повного переіндексування (хвилин)</value>
+    <value>Інтервал повного переіндексування (хвилини)</value>
   </data>
   <data name="Full-text term index for IMAP SEARCH BODY and TEXT" xml:space="preserve">
     <value>Повнотекстовий індекс термінів для IMAP SEARCH BODY і TEXT</value>
@@ -5904,7 +5904,7 @@
     <value>Як довго кожен робочий потік може бути зайнятий до звіту про насичення. 0 = звіти вимкнено.</value>
   </data>
   <data name="How long that refusal lasts (minutes)" xml:space="preserve">
-    <value>Як довго триває ця відмова (хвилин)</value>
+    <value>Як довго триває ця відмова (хвилини)</value>
   </data>
   <data name="How long that window lasts. Four hours by default." xml:space="preserve">
     <value>Скільки триває це вікно. Типово чотири години.</value>
@@ -6177,7 +6177,7 @@
     <value>Збій інфраструктури, не пов'язаний із жодним паролем - кожен обліковий запис, що автентифікується через цей каталог, не зміг би увійти. Етап: {0}. Каталог: {1} через {2}. Причина: {3} (помилка LDAP {4}).</value>
   </data>
   <data name="Initial delay (minutes)" xml:space="preserve">
-    <value>Початкова затримка (хвилин)</value>
+    <value>Початкова затримка (хвилини)</value>
   </data>
   <data name="Ins" xml:space="preserve">
     <value>Ins</value>
@@ -6332,7 +6332,7 @@
     <value>Залишити</value>
   </data>
   <data name="Keep archived messages for (_days; 0 = for ever)" xml:space="preserve">
-    <value>Зберігати архівовані повідомлення (днів; 0 = _назавжди)</value>
+    <value>Зберігати архівовані повідомлення (дні; 0 = _назавжди)</value>
   </data>
   <data name="Keep greylisting active during the record expiration window" xml:space="preserve">
     <value>Не вимикати сірий список протягом вікна закінчення терміну дії записів</value>
@@ -6344,7 +6344,7 @@
     <value>Зберігати повідомлення в S3-сумісному сховищі (AWS S3, MinIO, Wasabi, Backblaze B2, Ceph) або в Azure Blob Storage замість каталогу даних. Кошик або контейнер має вже існувати й бути доступним із цього сервера. Скопіюйте поточний вміст командою hmailserver --copy-store-to-object-storage, перш ніж переводити нові повідомлення до сховища об'єктів.</value>
   </data>
   <data name="Keep metric history for (days; 0 = do not record)" xml:space="preserve">
-    <value>Зберігати історію метрик протягом (днів; 0 = не записувати)</value>
+    <value>Зберігати історію метрик протягом (дні; 0 = не записувати)</value>
   </data>
   <data name="Keep p=none until you know your own mail passes. Editing this to p=quarantine or p=reject before then tells every receiver to junk or bounce your own legitimate mail." xml:space="preserve">
     <value>Залишайте p=none, доки не переконаєтеся, що ваша власна пошта проходить перевірку. Зміна на p=quarantine або p=reject до того наказує кожному отримувачеві відкидати у спам або повертати вашу власну законну пошту.</value>
@@ -6674,7 +6674,7 @@
     <value>Заблокувати адресу, якій раз у раз не вдається ввійти, - і впустити назад ту, яку не слід було блокувати; відхиляти чи дозволяти цілі країни та затримувати пошту облікового запису, який схожий на захоплений.</value>
   </data>
   <data name="Lockout duration (minutes)" xml:space="preserve">
-    <value>Тривалість блокування (хвилин)</value>
+    <value>Тривалість блокування (хвилини)</value>
   </data>
   <data name="Log categories" xml:space="preserve">
     <value>Категорії журналу</value>
@@ -7144,10 +7144,10 @@
     <value>Максимальний розмір облікових записів, створених у _цьому домені (МБ; 0 = без обмеження)</value>
   </data>
   <data name="Maximum time for one IMAP search (seconds; 0 = no limit)" xml:space="preserve">
-    <value>Максимальний час одного пошуку IMAP (секунд; 0 = без обмеження)</value>
+    <value>Максимальний час одного пошуку IMAP (секунди; 0 = без обмеження)</value>
   </data>
   <data name="Maximum timeout (seconds)" xml:space="preserve">
-    <value>Максимальний час очікування (секунд)</value>
+    <value>Максимальний час очікування (секунди)</value>
   </data>
   <data name="Measured by the server on its own time, and at most a quarter of an hour old. A file with several names is counted once." xml:space="preserve">
     <value>Вимірюється сервером у вільний час, дані не старші за чверть години. Файл із кількома назвами рахується один раз.</value>
@@ -7359,7 +7359,7 @@
     <value>Мінімальна серйозність, яка стає подією</value>
   </data>
   <data name="Minimum timeout (seconds)" xml:space="preserve">
-    <value>Мінімальний час очікування (секунд)</value>
+    <value>Мінімальний час очікування (секунди)</value>
   </data>
   <data name="Minutes a mailbox key stays open after its last use (1 to 1,440)" xml:space="preserve">
     <value>Хвилин, протягом яких ключ скриньки лишається відкритим після останнього використання (від 1 до 1 440)</value>
@@ -10571,7 +10571,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>_Запустити діагностику</value>
   </data>
   <data name="Run _every (minutes)" xml:space="preserve">
-    <value>Запускати _кожні (хвилин)</value>
+    <value>Запускати _кожні (хвилини)</value>
   </data>
   <data name="Run a preview first: the options have changed since the last one, so it no longer describes what this would do." xml:space="preserve">
     <value>Спершу виконайте попередній перегляд: параметри змінилися після попереднього, тому він більше не описує, що це зробило б.</value>
@@ -11057,7 +11057,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>Оцінка, починаючи з якої підозріле вважається шкідливим (від 0 до 100)</value>
   </data>
   <data name="Score of a message whose links name more than 200 domains (0 = none)" xml:space="preserve">
-    <value>Оцінка повідомлення, посилання якого називають понад 200 доменів (0 — немає)</value>
+    <value>Оцінка повідомлення, посилання якого називають понад 200 доменів (0 = немає)</value>
   </data>
   <data name="Score that counts as a takeover (1 to 6)" xml:space="preserve">
     <value>Оцінка, що вважається захопленням (від 1 до 6)</value>
@@ -15675,7 +15675,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>_Видалити список</value>
   </data>
   <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep for ever)" xml:space="preserve">
-    <value>_Видаляти повідомлення, старші за (днів; 0 = політика домену, -1 = зберігати завжди)</value>
+    <value>_Видаляти повідомлення, старші за (дні; 0 = політика домену, -1 = зберігати завжди)</value>
   </data>
   <data name="_Delete permanently" xml:space="preserve">
     <value>Видалити назав_жди</value>
@@ -15777,7 +15777,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>Спл_иває</value>
   </data>
   <data name="_Expires after (days)" xml:space="preserve">
-    <value>_Спливає через (днів)</value>
+    <value>_Спливає через (дні)</value>
   </data>
   <data name="_Expiry date" xml:space="preserve">
     <value>Дата за_вершення терміну дії</value>

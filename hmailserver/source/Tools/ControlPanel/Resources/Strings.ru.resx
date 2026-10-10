@@ -1691,10 +1691,10 @@ Control Panel может читать файлы сообщений только
     <value>Отвечать из кэша DNS-резолвера Windows, когда это возможно</value>
   </data>
   <data name="Answer the same sender a_gain after (days; 0 = once per absence)" xml:space="preserve">
-    <value>Отвечать тому же отправителю снова через (д_ней; 0 = один раз за отсутствие)</value>
+    <value>Отвечать тому же отправителю снова через (д_ни; 0 = один раз за отсутствие)</value>
   </data>
   <data name="Answer the same sender again after (da_ys; 0 = once per absence)" xml:space="preserve">
-    <value>Отвечать тому _же отправителю снова через (дней; 0 = один раз за отсутствие)</value>
+    <value>Отвечать тому _же отправителю снова через (дни; 0 = один раз за отсутствие)</value>
   </data>
   <data name="Answered, but not with a policy" xml:space="preserve">
     <value>Ответ получен, но это не политика</value>
@@ -1835,13 +1835,13 @@ Control Panel может читать файлы сообщений только
     <value>Архивы в папке назначения</value>
   </data>
   <data name="Archives to kee_p (0 = keep all)" xml:space="preserve">
-    <value>_Сколько архивов хранить (0 — хранить все)</value>
+    <value>_Сколько архивов хранить (0 = хранить все)</value>
   </data>
   <data name="Archives to keep" xml:space="preserve">
     <value>Сколько архивов хранить</value>
   </data>
   <data name="Archives to keep (0 = keep all)" xml:space="preserve">
-    <value>Сколько архивов хранить (0 — хранить все)</value>
+    <value>Сколько архивов хранить (0 = хранить все)</value>
   </data>
   <data name="Archiving writes a copy of every message to a folder you choose." xml:space="preserve">
     <value>Архивирование записывает копию каждого сообщения в выбранную вами папку.</value>
@@ -2150,7 +2150,7 @@ Control Panel может читать файлы сообщений только
     <value>Длительность блокировки (минуты)</value>
   </data>
   <data name="Ban for (hours, 1 to 8,760)" xml:space="preserve">
-    <value>Блокировать на (часов, от 1 до 8 760)</value>
+    <value>Блокировать на (часы, от 1 до 8 760)</value>
   </data>
   <data name="Ban the sending address for (minutes, up to 525,600; 0 = no ban)" xml:space="preserve">
     <value>Блокировать отправляющий адрес на (минуты, до 525 600; 0 = без блокировки)</value>
@@ -3805,7 +3805,7 @@ Control Panel может читать файлы сообщений только
     <value>Дней, в пределах которых учитываются временные отказы (от 1 до 365)</value>
   </data>
   <data name="Days to keep on server (0 = never delete, -1 = delete after download)" xml:space="preserve">
-    <value>Сколько дней хранить на сервере (0 — никогда не удалять, -1 — удалять после загрузки)</value>
+    <value>Сколько дней хранить на сервере (0 = никогда не удалять, -1 = удалять после загрузки)</value>
   </data>
   <data name="De_lete rule" xml:space="preserve">
     <value>_Удалить правило</value>
@@ -3868,7 +3868,7 @@ Control Panel может читать файлы сообщений только
     <value>Удалить пароль приложения</value>
   </data>
   <data name="Delete archived messages after (days; 0 = keep for ever)" xml:space="preserve">
-    <value>Удалять архивированные сообщения через (дней; 0 — хранить вечно)</value>
+    <value>Удалять архивированные сообщения через (дни; 0 = хранить вечно)</value>
   </data>
   <data name="Delete archives older tha_n (days; 0 = keep for ever)" xml:space="preserve">
     <value>У_далять архивы старше (дни; 0 = хранить вечно)</value>
@@ -3880,7 +3880,7 @@ Control Panel может читать файлы сообщений только
     <value>Удалять архивы старше указанного числа дней</value>
   </data>
   <data name="Delete confirmed after (days)" xml:space="preserve">
-    <value>Удалять подтверждённые записи через (дней)</value>
+    <value>Удалять подтверждённые записи через (дни)</value>
   </data>
   <data name="Delete distribution list" xml:space="preserve">
     <value>Удалить список рассылки</value>
@@ -3928,16 +3928,16 @@ Control Panel может читать файлы сообщений только
     <value>Удалить сообщения</value>
   </data>
   <data name="Delete messages in this domain's mailboxes _older than (days; 0 = no policy)" xml:space="preserve">
-    <value>Удалять сообщения в почтовых _ящиках этого домена старше (дней; 0 — политики нет)</value>
+    <value>Удалять сообщения в почтовых _ящиках этого домена старше (дни; 0 = политики нет)</value>
   </data>
   <data name="Delete messages older than (days)" xml:space="preserve">
-    <value>Удалять сообщения старше (дней)</value>
+    <value>Удалять сообщения старше (дни)</value>
   </data>
   <data name="Delete quarantined message" xml:space="preserve">
     <value>Удалить сообщение из карантина</value>
   </data>
   <data name="Delete quarantined messages after (days; 0 = never)" xml:space="preserve">
-    <value>Удалять сообщения из карантина через (дней; 0 — никогда)</value>
+    <value>Удалять сообщения из карантина через (дни; 0 = никогда)</value>
   </data>
   <data name="Delete selected ra_nge" xml:space="preserve">
     <value>Уд_алить выбранный диапазон</value>
@@ -4108,10 +4108,10 @@ Control Panel может читать файлы сообщений только
 Отправителю сообщили, что письмо принято, поэтому повторных попыток не будет и другой копии не существует.</value>
   </data>
   <data name="Delete trace events after (days; 0 = never)" xml:space="preserve">
-    <value>Удалять события трассировки через (дней; 0 — никогда)</value>
+    <value>Удалять события трассировки через (дни; 0 = никогда)</value>
   </data>
   <data name="Delete unconfirmed after (days)" xml:space="preserve">
-    <value>Удалять неподтверждённые записи через (дней)</value>
+    <value>Удалять неподтверждённые записи через (дни)</value>
   </data>
   <data name="Deleted" xml:space="preserve">
     <value>Удалено</value>
@@ -4374,7 +4374,7 @@ Control Panel может читать файлы сообщений только
     <value>Не предлагать AUTH на этих локальных портах TCP (через запятую)</value>
   </data>
   <data name="Do not send messages larger than (KB; 0 = no limit)" xml:space="preserve">
-    <value>Не отправлять сообщения больше (КБ; 0 — без ограничения)</value>
+    <value>Не отправлять сообщения больше (КБ; 0 = без ограничения)</value>
   </data>
   <data name="Do_main" xml:space="preserve">
     <value>Дом_ен</value>
@@ -5166,7 +5166,7 @@ Control Panel может читать файлы сообщений только
     <value>Ожидаемый издатель токена (iss)</value>
   </data>
   <data name="Expire passwords after (days; 0 = never)" xml:space="preserve">
-    <value>Считать пароли просроченными через (дней; 0 — никогда)</value>
+    <value>Считать пароли просроченными через (дни; 0 = никогда)</value>
   </data>
   <data name="Expired" xml:space="preserve">
     <value>Истёк</value>
@@ -5901,7 +5901,7 @@ Control Panel может читать файлы сообщений только
     <value>Сколько помнить ответ (минуты)</value>
   </data>
   <data name="How long every worker may be busy before the saturation report. 0 = reporting off." xml:space="preserve">
-    <value>Сколько времени все рабочие потоки могут быть заняты до появления сообщения о насыщении. 0 — сообщения отключены.</value>
+    <value>Сколько времени все рабочие потоки могут быть заняты до появления сообщения о насыщении. 0 = сообщения отключены.</value>
   </data>
   <data name="How long that refusal lasts (minutes)" xml:space="preserve">
     <value>Как долго длится этот отказ (минуты)</value>
@@ -6332,7 +6332,7 @@ Control Panel может читать файлы сообщений только
     <value>Сохранить</value>
   </data>
   <data name="Keep archived messages for (_days; 0 = for ever)" xml:space="preserve">
-    <value>Хра_нить архивированные сообщения (дней; 0 = вечно)</value>
+    <value>Хра_нить архивированные сообщения (дни; 0 = вечно)</value>
   </data>
   <data name="Keep greylisting active during the record expiration window" xml:space="preserve">
     <value>Оставлять серые списки активными в окне истечения записей</value>
@@ -6344,7 +6344,7 @@ Control Panel может читать файлы сообщений только
     <value>Хранить сообщения в S3-совместимом хранилище (AWS S3, MinIO, Wasabi, Backblaze B2, Ceph) или в Azure Blob Storage вместо каталога данных. Корзина или контейнер должны уже существовать и быть доступны с этого сервера. Скопируйте текущее содержимое командой hmailserver --copy-store-to-object-storage, прежде чем переключать новые сообщения в хранилище объектов.</value>
   </data>
   <data name="Keep metric history for (days; 0 = do not record)" xml:space="preserve">
-    <value>Хранить историю метрик (дней; 0 — не записывать)</value>
+    <value>Хранить историю метрик (дни; 0 = не записывать)</value>
   </data>
   <data name="Keep p=none until you know your own mail passes. Editing this to p=quarantine or p=reject before then tells every receiver to junk or bounce your own legitimate mail." xml:space="preserve">
     <value>Оставляйте p=none, пока не убедитесь, что ваша собственная почта проходит проверку. Изменение на p=quarantine или p=reject раньше этого момента предписывает каждому получателю отправлять вашу же законную почту в спам или возвращать её обратно.</value>
@@ -6668,13 +6668,13 @@ Control Panel может читать файлы сообщений только
     <value>Местоположение (sysLocation)</value>
   </data>
   <data name="Lock a name after this many failures (0 = off)" xml:space="preserve">
-    <value>Блокировать имя после стольких неудач (0 — выключено)</value>
+    <value>Блокировать имя после стольких неудач (0 = выключено)</value>
   </data>
   <data name="Lock out an address that keeps failing to sign in - and let one back in that should not have been locked out; refuse or allow whole countries, and hold the mail of an account that looks taken over." xml:space="preserve">
     <value>Заблокировать адрес, который снова и снова не может войти, - и вернуть доступ тому, кого блокировать не следовало; отклонять или разрешать целые страны и задерживать почту учётной записи, которая выглядит захваченной.</value>
   </data>
   <data name="Lockout duration (minutes)" xml:space="preserve">
-    <value>Длительность блокировки (минут)</value>
+    <value>Длительность блокировки (минуты)</value>
   </data>
   <data name="Log categories" xml:space="preserve">
     <value>Категории журнала</value>
@@ -7072,10 +7072,10 @@ Control Panel может читать файлы сообщений только
     <value>Максимум узлов MX для попыток (0 = все)</value>
   </data>
   <data name="Maximum _domain size (MB; 0 = no limit)" xml:space="preserve">
-    <value>Максимальный размер _домена (МБ; 0 — без ограничения)</value>
+    <value>Максимальный размер _домена (МБ; 0 = без ограничения)</value>
   </data>
   <data name="Maximum _message size (KB; 0 = no limit)" xml:space="preserve">
-    <value>_Максимальный размер сообщения (КБ; 0 — без ограничения)</value>
+    <value>_Максимальный размер сообщения (КБ; 0 = без ограничения)</value>
   </data>
   <data name="Maximum account size (MB)" xml:space="preserve">
     <value>Максимальный размер учётной записи (МБ)</value>
@@ -7099,7 +7099,7 @@ Control Panel может читать файлы сообщений только
     <value>Максимальный размер домена (МБ)</value>
   </data>
   <data name="Maximum message content read for one IMAP search (MB; 0 = no limit)" xml:space="preserve">
-    <value>Максимум читаемого содержимого сообщений на один поиск IMAP (МБ; 0 — без ограничения)</value>
+    <value>Максимум читаемого содержимого сообщений на один поиск IMAP (МБ; 0 = без ограничения)</value>
   </data>
   <data name="Maximum message size (KB)" xml:space="preserve">
     <value>Максимальный размер сообщения (КБ)</value>
@@ -7141,13 +7141,13 @@ Control Panel может читать файлы сообщений только
     <value>Максимальный размер (МБ)</value>
   </data>
   <data name="Maximum size for _accounts created in this domain (MB; 0 = no limit)" xml:space="preserve">
-    <value>Максимальный размер _учётных записей, создаваемых в этом домене (МБ; 0 — без ограничения)</value>
+    <value>Максимальный размер _учётных записей, создаваемых в этом домене (МБ; 0 = без ограничения)</value>
   </data>
   <data name="Maximum time for one IMAP search (seconds; 0 = no limit)" xml:space="preserve">
-    <value>Максимальное время на один поиск IMAP (секунд; 0 — без ограничения)</value>
+    <value>Максимальное время на один поиск IMAP (секунды; 0 = без ограничения)</value>
   </data>
   <data name="Maximum timeout (seconds)" xml:space="preserve">
-    <value>Максимальный тайм-аут (секунд)</value>
+    <value>Максимальный тайм-аут (секунды)</value>
   </data>
   <data name="Measured by the server on its own time, and at most a quarter of an hour old. A file with several names is counted once." xml:space="preserve">
     <value>Измеряется сервером в свободное время, данные не старше четверти часа. Файл с несколькими именами считается один раз.</value>
@@ -7350,16 +7350,16 @@ Control Panel может читать файлы сообщений только
     <value>Свернуть</value>
   </data>
   <data name="Minimum length (0 = no minimum)" xml:space="preserve">
-    <value>Минимальная длина (0 — без минимума)</value>
+    <value>Минимальная длина (0 = без минимума)</value>
   </data>
   <data name="Minimum seconds between sign-ins to one account (0 = no limit)" xml:space="preserve">
-    <value>Минимум секунд между входами в одну учётную запись (0 — без ограничения)</value>
+    <value>Минимум секунд между входами в одну учётную запись (0 = без ограничения)</value>
   </data>
   <data name="Minimum severity that becomes an event" xml:space="preserve">
     <value>Минимальная важность, при которой создаётся событие</value>
   </data>
   <data name="Minimum timeout (seconds)" xml:space="preserve">
-    <value>Минимальный тайм-аут (секунд)</value>
+    <value>Минимальный тайм-аут (секунды)</value>
   </data>
   <data name="Minutes a mailbox key stays open after its last use (1 to 1,440)" xml:space="preserve">
     <value>Минут, в течение которых ключ ящика остаётся открытым после последнего использования (от 1 до 1 440)</value>
@@ -9545,7 +9545,7 @@ Control Panel может читать файлы сообщений только
     <value>Идентификатор в очереди {0} — выберите его и нажмите «Следить за этим сообщением».</value>
   </data>
   <data name="Quick early retries before the normal schedule (0 = off)" xml:space="preserve">
-    <value>Быстрые ранние повторные попытки до обычного расписания (0 — выключено)</value>
+    <value>Быстрые ранние повторные попытки до обычного расписания (0 = выключено)</value>
   </data>
   <data name="REST API" xml:space="preserve">
     <value>REST API</value>
@@ -9768,7 +9768,7 @@ Control Panel может читать файлы сообщений только
     <value>Получатели</value>
   </data>
   <data name="Recipients a message may name before the delay starts (0 = off)" xml:space="preserve">
-    <value>Сколько получателей сообщение может назвать до начала задержки (0 — выключено)</value>
+    <value>Сколько получателей сообщение может назвать до начала задержки (0 = выключено)</value>
   </data>
   <data name="Recipients are the stricter measure: one message to two thousand addresses is two thousand recipients." xml:space="preserve">
     <value>Получатели — более строгая мера: одно сообщение на две тысячи адресов — это две тысячи получателей.</value>
@@ -9876,7 +9876,7 @@ Control Panel может читать файлы сообщений только
     <value>Отклонить с указанием причины</value>
   </data>
   <data name="Refuse mail with a temporary error below this much free space (MB; 0 = never)" xml:space="preserve">
-    <value>Отклонять почту с временной ошибкой, когда свободного места меньше указанного (МБ; 0 — никогда)</value>
+    <value>Отклонять почту с временной ошибкой, когда свободного места меньше указанного (МБ; 0 = никогда)</value>
   </data>
   <data name="Refuse or allow connections by the country a MaxMind database places the address in; nothing is judged by country until you supply the database." xml:space="preserve">
     <value>Отклоняйте или разрешайте подключения по стране, к которой база данных MaxMind относит адрес; пока вы не предоставите базу, по стране ничего не оценивается.</value>
@@ -10041,7 +10041,7 @@ Control Panel может читать файлы сообщений только
     <value>Уб_рать критерий</value>
   </data>
   <data name="Remember this many previous passwords (0 = no history)" xml:space="preserve">
-    <value>Запоминать столько предыдущих паролей (0 — без истории)</value>
+    <value>Запоминать столько предыдущих паролей (0 = без истории)</value>
   </data>
   <data name="Remo_ve address" xml:space="preserve">
     <value>Уда_лить адрес</value>
@@ -10571,7 +10571,7 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
     <value>_Запустить диагностику</value>
   </data>
   <data name="Run _every (minutes)" xml:space="preserve">
-    <value>_Запускать каждые (минут)</value>
+    <value>_Запускать каждые (минуты)</value>
   </data>
   <data name="Run a preview first: the options have changed since the last one, so it no longer describes what this would do." xml:space="preserve">
     <value>Сначала выполните предварительный просмотр: параметры изменились с прошлого раза, поэтому он больше не описывает то, что здесь произойдёт.</value>
@@ -11057,7 +11057,7 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
     <value>Оценка, начиная с которой подозрительное считается вредоносным (от 0 до 100)</value>
   </data>
   <data name="Score of a message whose links name more than 200 domains (0 = none)" xml:space="preserve">
-    <value>Оценка сообщения, ссылки которого называют более 200 доменов (0 — нет)</value>
+    <value>Оценка сообщения, ссылки которого называют более 200 доменов (0 = нет)</value>
   </data>
   <data name="Score that counts as a takeover (1 to 6)" xml:space="preserve">
     <value>Оценка, которая считается захватом (от 1 до 6)</value>
@@ -11261,7 +11261,7 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
     <value>Секунд, которые сеанс может длиться вообще (0 = собственные 43 200 сервера)</value>
   </data>
   <data name="Seconds a single SQL statement may run (0 = no limit)" xml:space="preserve">
-    <value>Сколько секунд может выполняться один оператор SQL (0 — без ограничения)</value>
+    <value>Сколько секунд может выполняться один оператор SQL (0 = без ограничения)</value>
   </data>
   <data name="Seconds an introspection verdict is reused (never past the token's own expiry)" xml:space="preserve">
     <value>Сколько секунд повторно используется вердикт интроспекции (никогда дольше собственного срока действия токена)</value>
@@ -15675,7 +15675,7 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
     <value>_Удалить список</value>
   </data>
   <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep for ever)" xml:space="preserve">
-    <value>Удалять сообщения старше (_дней; 0 — политика домена, -1 — хранить вечно)</value>
+    <value>Удалять сообщения старше (_дни; 0 = политика домена, -1 = хранить вечно)</value>
   </data>
   <data name="_Delete permanently" xml:space="preserve">
     <value>Удалить _навсегда</value>
@@ -15696,7 +15696,7 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
     <value>Удалить _выбранное</value>
   </data>
   <data name="_Delete threshold override (-1 or 0 = off)" xml:space="preserve">
-    <value>Переопределение порога _удаления (-1 или 0 — выключено)</value>
+    <value>Переопределение порога _удаления (-1 или 0 = выключено)</value>
   </data>
   <data name="_Deliver now" xml:space="preserve">
     <value>_Доставить сейчас</value>
@@ -15777,7 +15777,7 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
     <value>С_рок действия</value>
   </data>
   <data name="_Expires after (days)" xml:space="preserve">
-    <value>_Истекает через (дней)</value>
+    <value>_Истекает через (дни)</value>
   </data>
   <data name="_Expiry date" xml:space="preserve">
     <value>Д_ата окончания срока действия</value>
@@ -15927,7 +15927,7 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
     <value>_Создать новую пару ключей</value>
   </data>
   <data name="_Mark threshold override (-1 = use the global setting, 0 = never mark)" xml:space="preserve">
-    <value>Переопределение порога пометки (-_1 — использовать общий параметр, 0 — никогда не помечать)</value>
+    <value>Переопределение порога пометки (-_1 = использовать общий параметр, 0 = никогда не помечать)</value>
   </data>
   <data name="_Match type" xml:space="preserve">
     <value>_Тип сопоставления</value>
@@ -16041,7 +16041,7 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
     <value>_Номер порта</value>
   </data>
   <data name="_Port (0 = 25)" xml:space="preserve">
-    <value>_Порт (0 — 25)</value>
+    <value>_Порт (0 = 25)</value>
   </data>
   <data name="_Postmaster address" xml:space="preserve">
     <value>_Адрес постмастера</value>
@@ -16083,7 +16083,7 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
     <value>_Запрос</value>
   </data>
   <data name="_Quota (MB; 0 = no limit)" xml:space="preserve">
-    <value>_Квота (МБ; 0 — без ограничения)</value>
+    <value>_Квота (МБ; 0 = без ограничения)</value>
   </data>
   <data name="_Raise webhook events about this domain's mail and accounts" xml:space="preserve">
     <value>_Генерировать события веб-хуков о почте и учётных записях этого домена</value>

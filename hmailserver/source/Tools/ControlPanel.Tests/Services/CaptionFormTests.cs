@@ -28,8 +28,8 @@ namespace hMailServer.ControlPanel.Tests.Services
    /// for the number; a range "a to b", never "a-b"; a number of four digits or more with its
    /// thousands grouped (a port's or an RFC's number is a name, not a quantity); "0 = ...", never
    /// "0 never refuses", and "empty = ...", never "empty asks the domain's MX hosts" or "leave it
-   /// empty for ..."; the unit and the range before what values mean, after "; "; and "comma
-   /// separated".
+   /// empty for ..."; the unit and the range before what values mean, after "; "; "comma
+   /// separated"; and in every catalogue what a number means as "&lt;n&gt; =", as the English writes it.
    /// </summary>
    public class CaptionFormTests
    {
@@ -209,6 +209,41 @@ namespace hMailServer.ControlPanel.Tests.Services
          }
 
          Assert.True(offenders.Count == 0, "Say what an empty box means as \"empty = ...\":\n" + string.Join("\n", offenders));
+      }
+
+      /// <summary>
+      /// What a number means is "&lt;n&gt; = ..." in every catalogue wherever the English writes it so: the
+      /// Russian wrote "(0 — без ограничения)" in 29 captions beside "(0 = без ограничения)" in 85, two
+      /// of them captions c00bb6212 had written, and the Ukrainian once "(0 — немає)", where the other
+      /// fifteen catalogues write "=" in all of them.
+      /// </summary>
+      [Fact]
+      public void EveryTranslation_SaysWhatANumberMeansAsTheEnglishDoes()
+      {
+         string folder = Path.GetDirectoryName(ConfirmationPatternTests.ControlPanelFile(Path.Join("Resources", "Strings.resx")));
+         var meaning = new Regex(@"(?<![\w,.-])(-?\d+) = ");
+         var offenders = new List<string>();
+         int read = 0;
+         foreach (string path in Directory.EnumerateFiles(folder, "Strings.*.resx"))
+         {
+            foreach (XElement data in XDocument.Load(path).Root.Elements("data"))
+            {
+               string key = (string)data.Attribute("name");
+               // the Alt key's underscore may stand in the number: "(-_1 = ...)"
+               string value = (data.Element("value")?.Value ?? "").Replace("_", "", StringComparison.Ordinal);
+               if (value.Length == 0)
+                  continue;
+               foreach (Match number in meaning.Matches(key))
+               {
+                  read++;
+                  if (!Regex.IsMatch(value, @"(?<![\d.,])" + Regex.Escape(number.Groups[1].Value) + " ="))
+                     offenders.Add(Path.GetFileName(path) + ": " + key + " = " + value);
+               }
+            }
+         }
+
+         Assert.True(read > 1500, "Only " + read + " numbers' meanings were read from the catalogues.");
+         Assert.True(offenders.Count == 0, "Write what a number means as the English does, \"0 = ...\":\n" + string.Join("\n", offenders));
       }
 
       private static void Judge(string relative, string caption, List<string> offenders)
