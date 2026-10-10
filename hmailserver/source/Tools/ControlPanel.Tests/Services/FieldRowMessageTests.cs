@@ -147,6 +147,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("AdministratorPasswordDialog.cs", "KeepRoomForFieldErrors();")]
       [InlineData("ApiKeysView.cs", "dlg.KeepRoomForFieldErrors(2);")]
       [InlineData("TcpIpPortDialog.cs", "KeepRoomForFieldErrors(1, portRow_);")]
+      [InlineData("PublicFolderNameDialog.cs", "KeepRoomForFieldErrors(2, nameRow_);")]
       [InlineData("MailboxMoveDialog.cs", "KeepRoomForFieldErrors(1, newAddressRow_);")]
       [InlineData("RuleCriteriaDialog.cs", "KeepRoomForFieldErrors(2);")]
       [InlineData("IncomingRelayDialog.cs", "dialog.KeepRoomForFieldErrors(3);")]

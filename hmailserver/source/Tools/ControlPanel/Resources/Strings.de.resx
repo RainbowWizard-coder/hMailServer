@@ -456,6 +456,12 @@
   <data name="A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on." xml:space="preserve">
     <value>Eine Datei eines übermittelten Typs in einer Nachricht von außen wird an eine Sandbox gesendet, die Sie betreiben oder abonnieren, und die Nachricht wartet – in keinem Postfach und nicht in der Quarantäne – auf deren Urteil: sauber wird zugestellt, schädlich kommt in die Quarantäne. Nichts wird zurückgehalten, bis beide Adressen gesetzt sind und dies eingeschaltet ist.</value>
   </data>
+  <data name="A folder can be at most {0} levels down." xml:space="preserve">
+    <value>Ein Ordner kann höchstens {0} Ebenen tief liegen.</value>
+  </data>
+  <data name="A folder's name can be at most {0} characters long." xml:space="preserve">
+    <value>Der Name eines Ordners darf höchstens {0} Zeichen lang sein.</value>
+  </data>
   <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Eine Kulanz für eingehende Post: ein Postfach, das sein Limit um weniger als dies überschreitet, empfängt weiterhin, damit jemand, der eine Woche fort ist, keine Post verliert, weil am Montag ein großer Anhang ankam. Die eigenen Speicherungen und Kopien des Inhabers enden am Limit selbst. Jede Domain kann einen eigenen Wert setzen. Gilt sofort.</value>
   </data>
@@ -518,6 +524,9 @@
   </data>
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>Eine moderne Verwaltungsanwendung für hMailServer: Live-Dashboard, Domains und Konten, Zustellwarteschlange, Protokoll-Streaming, vollständige Servereinstellungen und die Transportsicherheitsfunktionen von 6.x (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
+  </data>
+  <data name="A name cannot begin or end with &quot;{0}&quot; or have two together: &quot;{0}&quot; separates a folder from its sub-folder." xml:space="preserve">
+    <value>Ein Name darf nicht mit „{0}“ beginnen oder enden und es nicht zweimal hintereinander enthalten: „{0}“ trennt einen Ordner von seinem Unterordner.</value>
   </data>
   <data name="A name is required." xml:space="preserve">
     <value>Ein Name ist erforderlich.</value>
@@ -3799,6 +3808,12 @@ Dem Absender wurde gesagt, sie sei angenommen, es wird also nichts wiederholt un
   <data name="Delete the public folder {0} and every message in it?" xml:space="preserve">
     <value>Den öffentlichen Ordner {0} und jede Nachricht darin löschen?</value>
   </data>
+  <data name="Delete the public folder {1}, its {0} sub-folder and every message in them?" xml:space="preserve">
+    <value>Den öffentlichen Ordner {1}, seinen {0} Unterordner und jede Nachricht darin löschen?</value>
+  </data>
+  <data name="Delete the public folder {1}, its {0} sub-folders and every message in them?" xml:space="preserve">
+    <value>Den öffentlichen Ordner {1}, seine {0} Unterordner und jede Nachricht darin löschen?</value>
+  </data>
   <data name="Delete the remote domain policy {0}? Mail to and from that domain follows the server-wide settings again." xml:space="preserve">
     <value>Die Regel für die fremde Domain {0} löschen? E-Mails an diese und von dieser Domain folgen wieder den serverweiten Einstellungen.</value>
   </data>
@@ -4450,6 +4465,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Enter a name for the certificate." xml:space="preserve">
     <value>Geben Sie einen Namen für das Zertifikat ein.</value>
   </data>
+  <data name="Enter a name for the folder." xml:space="preserve">
+    <value>Geben Sie einen Namen für den Ordner ein.</value>
+  </data>
   <data name="Enter a name for the new rule." xml:space="preserve">
     <value>Geben Sie einen Namen für die neue Regel ein.</value>
   </data>
@@ -5031,9 +5049,6 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   </data>
   <data name="Folder name (use the hierarchy delimiter for sub-folders):" xml:space="preserve">
     <value>Ordnername (verwenden Sie das Hierarchie-Trennzeichen für Unterordner):</value>
-  </data>
-  <data name="Folder name:" xml:space="preserve">
-    <value>Ordnername:</value>
   </data>
   <data name="Folders" xml:space="preserve">
     <value>Ordner</value>
@@ -10939,8 +10954,8 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="Shared HMAC secret (only for HS256/384/512 tokens)" xml:space="preserve">
     <value>Gemeinsames HMAC-Geheimnis (nur für HS256/384/512-Tokens)</value>
   </data>
-  <data name="Shared IMAP folders that several accounts can access. Use the hierarchy delimiter to create sub-folders, and edit permissions to grant access." xml:space="preserve">
-    <value>Freigegebene IMAP-Ordner, auf die mehrere Konten zugreifen können. Verwenden Sie das Hierarchie-Trennzeichen, um Unterordner anzulegen, und bearbeiten Sie die Berechtigungen, um Zugriff zu gewähren.</value>
+  <data name="Shared IMAP folders that several accounts can open, each with the permissions it is given. A name with &quot;{0}&quot; in it makes a sub-folder: {1} puts {2} under {3}." xml:space="preserve">
+    <value>Freigegebene IMAP-Ordner, die mehrere Konten öffnen können, jeder mit den Berechtigungen, die er erhält. Ein Name mit „{0}“ legt einen Unterordner an: {1} legt {2} unter {3} an.</value>
   </data>
   <data name="Shared IMAP folders, and which accounts or groups may read and write each one." xml:space="preserve">
     <value>Freigegebene IMAP-Ordner und welche Konten oder Gruppen jeden davon lesen und beschreiben dürfen.</value>
@@ -14717,6 +14732,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="_First name" xml:space="preserve">
     <value>_Vorname</value>
   </data>
+  <data name="_Folder name" xml:space="preserve">
+    <value>_Ordnername</value>
+  </data>
   <data name="_Follow this message" xml:space="preserve">
     <value>Dieser Nachricht _folgen</value>
   </data>
@@ -16449,8 +16467,14 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="{0} external accounts" xml:space="preserve">
     <value>{0} externe Konten</value>
   </data>
+  <data name="{0} folder has &quot;{2}&quot; in its own name rather than being a sub-folder, so a mail client cannot open it: {1}. Add folder now makes such a name a sub-folder." xml:space="preserve">
+    <value>{0} Ordner hat „{2}“ im eigenen Namen, statt ein Unterordner zu sein, daher kann ein Mail-Client ihn nicht öffnen: {1}. Ordner hinzufügen macht aus einem solchen Namen jetzt einen Unterordner.</value>
+  </data>
   <data name="{0} folder." xml:space="preserve">
     <value>{0} Ordner.</value>
+  </data>
+  <data name="{0} folders have &quot;{2}&quot; in their own names rather than being sub-folders, so a mail client cannot open them: {1}. Add folder now makes such a name a sub-folder." xml:space="preserve">
+    <value>{0} Ordner haben „{2}“ im eigenen Namen, statt Unterordner zu sein, daher kann ein Mail-Client sie nicht öffnen: {1}. Ordner hinzufügen macht aus einem solchen Namen jetzt einen Unterordner.</value>
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} Ordner.</value>
@@ -16463,6 +16487,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="{0} h {1} min" xml:space="preserve">
     <value>{0} Std. {1} Min.</value>
+  </data>
+  <data name="{0} has &quot;{1}&quot; in its own name rather than being a sub-folder, so a mail client cannot open it. Add folder now makes such a name a sub-folder." xml:space="preserve">
+    <value>{0} hat „{1}“ im eigenen Namen, statt ein Unterordner zu sein, daher kann ein Mail-Client den Ordner nicht öffnen. Ordner hinzufügen macht aus einem solchen Namen jetzt einen Unterordner.</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} wurde nach {1} verschoben.</value>
@@ -16493,6 +16520,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="{0} incoming relays" xml:space="preserve">
     <value>{0} eingehende Relays</value>
+  </data>
+  <data name="{0} is a public folder already." xml:space="preserve">
+    <value>{0} ist bereits ein öffentlicher Ordner.</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} ist bereits Mitglied dieser Gruppe.</value>
@@ -16574,6 +16604,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="{0} mail servers receive mail for {1}." xml:space="preserve">
     <value>{0} Mailserver nehmen Mail für {1} an.</value>
+  </data>
+  <data name="{0} makes {1} under {2}, and {2} as well if it is not there. With a folder selected, the name starts under it." xml:space="preserve">
+    <value>{0} legt {1} unter {2} an, und {2} ebenfalls, falls es ihn noch nicht gibt. Ist ein Ordner ausgewählt, beginnt der Name unter ihm.</value>
   </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} Nachricht</value>

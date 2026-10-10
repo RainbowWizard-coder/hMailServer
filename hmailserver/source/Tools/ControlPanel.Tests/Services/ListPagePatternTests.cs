@@ -131,7 +131,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          string folders = WithheldRowTests.MemberText(ReadControlPanelFile(Path.Join("Views", "PublicFoldersView.cs")), "private void ShowSearch_()");
          Assert.True(folders != null, "PublicFoldersView.ShowSearch_ is gone.");
-         Assert.Contains("count_.Text = ListSearchCount.PillText(query, shown, names.Count,", folders, StringComparison.Ordinal);
+         Assert.Contains("count_.Text = ListSearchCount.PillText(query, shown, folders.Count,", folders, StringComparison.Ordinal);
 
          string quarantine = WithheldRowTests.MemberText(ReadControlPanelFile(Path.Join("Views", "QuarantineView.cs")), "private void ShowSearchState_()");
          Assert.True(quarantine != null, "QuarantineView.ShowSearchState_ is gone.");

@@ -456,6 +456,12 @@
   <data name="A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on." xml:space="preserve">
     <value>Un archivo de un tipo enviado en un mensaje de fuera se envía a un sandbox que usted gestiona o al que está suscrito, y el mensaje espera, en ningún buzón y fuera de la cuarentena, su veredicto: el limpio se entrega y el malicioso va a cuarentena. No se retiene nada hasta que ambas direcciones estén configuradas y esto esté activado.</value>
   </data>
+  <data name="A folder can be at most {0} levels down." xml:space="preserve">
+    <value>Una carpeta puede estar como máximo {0} niveles por debajo.</value>
+  </data>
+  <data name="A folder's name can be at most {0} characters long." xml:space="preserve">
+    <value>El nombre de una carpeta puede tener como máximo {0} caracteres.</value>
+  </data>
   <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Un margen para el correo entrante: un buzón que supera su límite en menos que esto sigue recibiendo, para que quien está fuera una semana no pierda correo porque el lunes llegó un adjunto grande. Los guardados y copias del propio dueño se detienen en el límite. Cada dominio puede fijar el suyo. Se aplica al instante.</value>
   </data>
@@ -518,6 +524,9 @@
   </data>
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>Una aplicación de administración moderna para hMailServer: panel en vivo, dominios y cuentas, cola de entrega, transmisión de registros, todos los ajustes del servidor y las funciones de seguridad de transporte de la 6.x (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
+  </data>
+  <data name="A name cannot begin or end with &quot;{0}&quot; or have two together: &quot;{0}&quot; separates a folder from its sub-folder." xml:space="preserve">
+    <value>Un nombre no puede empezar ni terminar con «{0}» ni tener dos seguidos: «{0}» separa una carpeta de su subcarpeta.</value>
   </data>
   <data name="A name is required." xml:space="preserve">
     <value>El nombre es obligatorio.</value>
@@ -3799,6 +3808,12 @@ Al remitente se le dijo que fue aceptado, así que nada lo reintentará y no hay
   <data name="Delete the public folder {0} and every message in it?" xml:space="preserve">
     <value>¿Borrar la carpeta pública {0} y cada mensaje que contiene?</value>
   </data>
+  <data name="Delete the public folder {1}, its {0} sub-folder and every message in them?" xml:space="preserve">
+    <value>¿Borrar la carpeta pública {1}, su {0} subcarpeta y cada mensaje que contienen?</value>
+  </data>
+  <data name="Delete the public folder {1}, its {0} sub-folders and every message in them?" xml:space="preserve">
+    <value>¿Borrar la carpeta pública {1}, sus {0} subcarpetas y cada mensaje que contienen?</value>
+  </data>
   <data name="Delete the remote domain policy {0}? Mail to and from that domain follows the server-wide settings again." xml:space="preserve">
     <value>¿Borrar la política de dominio remoto {0}? El correo hacia y desde ese dominio vuelve a seguir los ajustes de todo el servidor.</value>
   </data>
@@ -4450,6 +4465,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Enter a name for the certificate." xml:space="preserve">
     <value>Introduzca un nombre para el certificado.</value>
   </data>
+  <data name="Enter a name for the folder." xml:space="preserve">
+    <value>Introduzca un nombre para la carpeta.</value>
+  </data>
   <data name="Enter a name for the new rule." xml:space="preserve">
     <value>Introduzca un nombre para la nueva regla.</value>
   </data>
@@ -5031,9 +5049,6 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   </data>
   <data name="Folder name (use the hierarchy delimiter for sub-folders):" xml:space="preserve">
     <value>Nombre de la carpeta (use el delimitador de jerarquía para las subcarpetas):</value>
-  </data>
-  <data name="Folder name:" xml:space="preserve">
-    <value>Nombre de la carpeta:</value>
   </data>
   <data name="Folders" xml:space="preserve">
     <value>Carpetas</value>
@@ -10939,8 +10954,8 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Shared HMAC secret (only for HS256/384/512 tokens)" xml:space="preserve">
     <value>Secreto HMAC compartido (solo para tokens HS256/384/512)</value>
   </data>
-  <data name="Shared IMAP folders that several accounts can access. Use the hierarchy delimiter to create sub-folders, and edit permissions to grant access." xml:space="preserve">
-    <value>Carpetas IMAP compartidas a las que pueden acceder varias cuentas. Use el delimitador de jerarquía para crear subcarpetas, y edite los permisos para conceder acceso.</value>
+  <data name="Shared IMAP folders that several accounts can open, each with the permissions it is given. A name with &quot;{0}&quot; in it makes a sub-folder: {1} puts {2} under {3}." xml:space="preserve">
+    <value>Carpetas IMAP compartidas que varias cuentas pueden abrir, cada una con los permisos que se le dan. Un nombre con «{0}» crea una subcarpeta: {1} pone {2} dentro de {3}.</value>
   </data>
   <data name="Shared IMAP folders, and which accounts or groups may read and write each one." xml:space="preserve">
     <value>Carpetas IMAP compartidas, y qué cuentas o grupos pueden leer y escribir en cada una.</value>
@@ -14717,6 +14732,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="_First name" xml:space="preserve">
     <value>_Nombre</value>
   </data>
+  <data name="_Folder name" xml:space="preserve">
+    <value>_Nombre de la carpeta</value>
+  </data>
   <data name="_Follow this message" xml:space="preserve">
     <value>_Seguir este mensaje</value>
   </data>
@@ -16449,8 +16467,14 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="{0} external accounts" xml:space="preserve">
     <value>{0} cuentas externas</value>
   </data>
+  <data name="{0} folder has &quot;{2}&quot; in its own name rather than being a sub-folder, so a mail client cannot open it: {1}. Add folder now makes such a name a sub-folder." xml:space="preserve">
+    <value>{0} carpeta tiene «{2}» en su propio nombre en lugar de ser una subcarpeta, así que un cliente de correo no puede abrirla: {1}. Añadir carpeta convierte ahora un nombre así en una subcarpeta.</value>
+  </data>
   <data name="{0} folder." xml:space="preserve">
     <value>{0} carpeta.</value>
+  </data>
+  <data name="{0} folders have &quot;{2}&quot; in their own names rather than being sub-folders, so a mail client cannot open them: {1}. Add folder now makes such a name a sub-folder." xml:space="preserve">
+    <value>{0} carpetas tienen «{2}» en su propio nombre en lugar de ser subcarpetas, así que un cliente de correo no puede abrirlas: {1}. Añadir carpeta convierte ahora un nombre así en una subcarpeta.</value>
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} carpetas.</value>
@@ -16463,6 +16487,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="{0} h {1} min" xml:space="preserve">
     <value>{0} h {1} min</value>
+  </data>
+  <data name="{0} has &quot;{1}&quot; in its own name rather than being a sub-folder, so a mail client cannot open it. Add folder now makes such a name a sub-folder." xml:space="preserve">
+    <value>{0} tiene «{1}» en su propio nombre en lugar de ser una subcarpeta, así que un cliente de correo no puede abrirla. Añadir carpeta convierte ahora un nombre así en una subcarpeta.</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} se ha movido a {1}.</value>
@@ -16493,6 +16520,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="{0} incoming relays" xml:space="preserve">
     <value>{0} relés entrantes</value>
+  </data>
+  <data name="{0} is a public folder already." xml:space="preserve">
+    <value>{0} ya es una carpeta pública.</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} ya es miembro de este grupo.</value>
@@ -16574,6 +16604,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="{0} mail servers receive mail for {1}." xml:space="preserve">
     <value>{0} servidores de correo reciben el correo de {1}.</value>
+  </data>
+  <data name="{0} makes {1} under {2}, and {2} as well if it is not there. With a folder selected, the name starts under it." xml:space="preserve">
+    <value>{0} crea {1} dentro de {2}, y también {2} si no existe. Con una carpeta seleccionada, el nombre empieza dentro de ella.</value>
   </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} mensaje</value>

@@ -459,6 +459,12 @@
   <data name="A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on." xml:space="preserve">
     <value>Файл отправляемого типа в сообщении извне отправляется в песочницу, которую вы обслуживаете или на которую подписаны, а сообщение ждёт её вердикта – ни в одном почтовом ящике и не в карантине: чистое доставляется, вредоносное помещается в карантин. Ничего не задерживается, пока не заданы оба адреса и этот параметр не включён.</value>
   </data>
+  <data name="A folder can be at most {0} levels down." xml:space="preserve">
+    <value>Папка может находиться не глубже {0} уровней.</value>
+  </data>
+  <data name="A folder's name can be at most {0} characters long." xml:space="preserve">
+    <value>Имя папки может содержать не более {0} символов.</value>
+  </data>
   <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Запас для входящей почты: ящик, превысивший лимит меньше чем на это, продолжает принимать, чтобы человек, уехавший на неделю, не потерял почту из-за большого вложения в понедельник. Собственные сохранения и копии владельца останавливаются на самом лимите. Каждый домен может задать свой. Действует сразу.</value>
   </data>
@@ -521,6 +527,9 @@
   </data>
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>Современное приложение администрирования для hMailServer: живая панель мониторинга, домены и учётные записи, очередь доставки, потоковый просмотр журналов, полный набор параметров сервера и функции транспортной безопасности версии 6.x (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
+  </data>
+  <data name="A name cannot begin or end with &quot;{0}&quot; or have two together: &quot;{0}&quot; separates a folder from its sub-folder." xml:space="preserve">
+    <value>Имя не может начинаться или заканчиваться символом «{0}» или содержать два таких символа подряд: «{0}» отделяет папку от вложенной в неё.</value>
   </data>
   <data name="A name is required." xml:space="preserve">
     <value>Требуется имя.</value>
@@ -3832,6 +3841,15 @@ Control Panel может читать файлы сообщений только
   <data name="Delete the public folder {0} and every message in it?" xml:space="preserve">
     <value>Удалить общую папку {0} и все сообщения в ней?</value>
   </data>
+  <data name="Delete the public folder {1}, its {0} sub-folder and every message in them?" xml:space="preserve">
+    <value>Удалить общую папку {1}, {0} вложенную папку и все сообщения в них?</value>
+  </data>
+  <data name="Delete the public folder {1}, its {0} sub-folders and every message in them?" xml:space="preserve">
+    <value>Удалить общую папку {1}, {0} вложенных папок и все сообщения в них?</value>
+  </data>
+  <data name="Delete the public folder {1}, its {0} sub-folders and every message in them?|few" xml:space="preserve">
+    <value>Удалить общую папку {1}, {0} вложенные папки и все сообщения в них?</value>
+  </data>
   <data name="Delete the remote domain policy {0}? Mail to and from that domain follows the server-wide settings again." xml:space="preserve">
     <value>Удалить правило для внешнего домена {0}? Почта в этот домен и из него снова подчиняется общим параметрам сервера.</value>
   </data>
@@ -4496,6 +4514,9 @@ Control Panel может читать файлы сообщений только
   <data name="Enter a name for the certificate." xml:space="preserve">
     <value>Введите имя сертификата.</value>
   </data>
+  <data name="Enter a name for the folder." xml:space="preserve">
+    <value>Введите имя папки.</value>
+  </data>
   <data name="Enter a name for the new rule." xml:space="preserve">
     <value>Укажите имя нового правила.</value>
   </data>
@@ -5095,9 +5116,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Folder name (use the hierarchy delimiter for sub-folders):" xml:space="preserve">
     <value>Имя папки (для вложенных папок используйте разделитель иерархии):</value>
-  </data>
-  <data name="Folder name:" xml:space="preserve">
-    <value>Имя папки:</value>
   </data>
   <data name="Folders" xml:space="preserve">
     <value>Папки</value>
@@ -11066,8 +11084,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Shared HMAC secret (only for HS256/384/512 tokens)" xml:space="preserve">
     <value>Общий секрет HMAC (только для токенов HS256/384/512)</value>
   </data>
-  <data name="Shared IMAP folders that several accounts can access. Use the hierarchy delimiter to create sub-folders, and edit permissions to grant access." xml:space="preserve">
-    <value>Общие папки IMAP, к которым имеют доступ несколько учётных записей. Используйте разделитель иерархии, чтобы создавать вложенные папки, и изменяйте разрешения, чтобы выдавать доступ.</value>
+  <data name="Shared IMAP folders that several accounts can open, each with the permissions it is given. A name with &quot;{0}&quot; in it makes a sub-folder: {1} puts {2} under {3}." xml:space="preserve">
+    <value>Общие папки IMAP, которые могут открывать несколько учётных записей, каждая со своими разрешениями. Имя с «{0}» создаёт вложенную папку: {1} помещает {2} в {3}.</value>
   </data>
   <data name="Shared IMAP folders, and which accounts or groups may read and write each one." xml:space="preserve">
     <value>Общие папки IMAP и то, какие учётные записи или группы могут читать каждую из них и записывать в неё.</value>
@@ -14889,6 +14907,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_First name" xml:space="preserve">
     <value>_Имя</value>
   </data>
+  <data name="_Folder name" xml:space="preserve">
+    <value>_Имя папки</value>
+  </data>
   <data name="_Follow this message" xml:space="preserve">
     <value>_Следить за этим сообщением</value>
   </data>
@@ -16711,8 +16732,17 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} external accounts" xml:space="preserve">
     <value>Внешних учётных записей: {0}</value>
   </data>
+  <data name="{0} folder has &quot;{2}&quot; in its own name rather than being a sub-folder, so a mail client cannot open it: {1}. Add folder now makes such a name a sub-folder." xml:space="preserve">
+    <value>В именах папок есть «{2}», хотя они не вложенные, поэтому почтовый клиент не может их открыть (папок: {0}): {1}. Добавить папку теперь создаёт из такого имени вложенную папку.</value>
+  </data>
   <data name="{0} folder." xml:space="preserve">
     <value>Папок: {0}.</value>
+  </data>
+  <data name="{0} folders have &quot;{2}&quot; in their own names rather than being sub-folders, so a mail client cannot open them: {1}. Add folder now makes such a name a sub-folder." xml:space="preserve">
+    <value>В именах папок есть «{2}», хотя они не вложенные, поэтому почтовый клиент не может их открыть (папок: {0}): {1}. Добавить папку теперь создаёт из такого имени вложенную папку.</value>
+  </data>
+  <data name="{0} folders have &quot;{2}&quot; in their own names rather than being sub-folders, so a mail client cannot open them: {1}. Add folder now makes such a name a sub-folder.|few" xml:space="preserve">
+    <value>В именах папок есть «{2}», хотя они не вложенные, поэтому почтовый клиент не может их открыть (папок: {0}): {1}. Добавить папку теперь создаёт из такого имени вложенную папку.</value>
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>Папок: {0}.</value>
@@ -16728,6 +16758,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} h {1} min" xml:space="preserve">
     <value>{0} ч {1} мин</value>
+  </data>
+  <data name="{0} has &quot;{1}&quot; in its own name rather than being a sub-folder, so a mail client cannot open it. Add folder now makes such a name a sub-folder." xml:space="preserve">
+    <value>В имени папки {0} есть «{1}», хотя она не вложенная, поэтому почтовый клиент не может её открыть. Добавить папку теперь создаёт из такого имени вложенную папку.</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} перенесён на {1}.</value>
@@ -16767,6 +16800,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} incoming relays|few" xml:space="preserve">
     <value>Входящие ретрансляции: {0}</value>
+  </data>
+  <data name="{0} is a public folder already." xml:space="preserve">
+    <value>{0} уже является общей папкой.</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} уже входит в эту группу.</value>
@@ -16854,6 +16890,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} mail servers receive mail for {1}.|few" xml:space="preserve">
     <value>Почтовых серверов, принимающих почту для {1}: {0}.</value>
+  </data>
+  <data name="{0} makes {1} under {2}, and {2} as well if it is not there. With a folder selected, the name starts under it." xml:space="preserve">
+    <value>{0} создаёт {1} в {2}, а также саму {2}, если её нет. Если выбрана папка, имя начинается внутри неё.</value>
   </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} сообщение</value>

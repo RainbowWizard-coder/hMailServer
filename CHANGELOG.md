@@ -2681,6 +2681,22 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   second row; with every account a member already, the dialog says so in place of the list. `GroupMemberCandidatesTests`
   holds the list, the words and the picker.
 
+- **Fixed: the Public folders page told the reader to "use the hierarchy delimiter" to make sub-folders, which made
+  folders a mail client cannot open, and listed the folders flat.** The page never named the delimiter or showed the
+  hierarchy - Sales and Sales.Leads were two rows side by side - and the server's Add took "Sales.Leads" as one folder's
+  name at the top, while the server finds a folder by splitting its path at the delimiter and walking down from the
+  top, so that such a folder could be listed but not opened. The page now reads the folders' tree through each folder's
+  sub-folders and lists each under its parent, a level further in, with a folder's glyph, and the subtitle names the
+  server's delimiter in an example ("Sales.Leads puts Leads under Sales"). Add folder asks for the name in a dialog
+  that says what the delimiter does, opens on the selected folder's name and the delimiter, has Create in place of OK,
+  pressed only once a name is typed, and makes each folder of the name under the one before it, as a mail client's
+  CREATE does; a name with an empty part, too long or too deep, or of a folder that is there already, is said under
+  the box, and the new folder is selected. Delete's question says how many sub-folders go with the folder ("Delete the
+  public folder Sales, its 2 sub-folders and every message in them?"), and a folder whose own name holds the
+  delimiter is pointed out above the list. A sub-folder's Permissions open on the sub-folder, which the permissions
+  dialog looked for at the top alone. `PublicFolderTreeTests` holds the tree, the checks, the words and the page's
+  reads and writes.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

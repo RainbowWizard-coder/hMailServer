@@ -554,7 +554,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("DomainsView.xaml.cs", "private void DeleteAlias_(string name)", "Confirmations.DeleteAlias(name)", "L(\"_Delete alias\")")]
       [InlineData("DomainsView.xaml.cs", "private void DeleteDistList_(string address)", "Confirmations.DeleteDistributionList(address)", "L(\"_Delete list\")")]
       [InlineData("DomainsView.xaml.cs", "private void DeleteDomain_(string name)", "Confirmations.DeleteDomain(name, accountCount)", "L(\"_Delete domain\")")]
-      [InlineData("PublicFoldersView.cs", "private void DeleteFolder()", "Confirmations.DeletePublicFolder(name)", "L(\"_Delete folder\")")]
+      [InlineData("PublicFoldersView.cs", "private void DeleteFolder()", "PublicFolderTree.DeleteQuestion(folder)", "L(\"_Delete folder\")")]
       [InlineData("IPRangesView.xaml.cs", "private void Delete_Click(object sender, RoutedEventArgs e)", "Confirmations.DeleteIpRange(row.Name, row.LowerIP, row.UpperIP)", "L(\"_Delete range\")")]
       public void EachDelete_AsksItsOwnQuestion_WithTheActOnItsButton(string file, string member, string question, string action)
       {

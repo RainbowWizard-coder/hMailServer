@@ -43,7 +43,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          { "RulesView.xaml.cs", "private void Reload()", "Could not read the rules: " },
          { "TcpIpPortsView.xaml.cs", "private void Reload()", "Could not read the ports: " },
          { "UtilityViews.cs", "private void Reload()", "Could not read the incoming relays: " },
-         { "PublicFoldersView.cs", "private void Reload()", "Could not read the public folders: " },
+         { "PublicFoldersView.cs", "private void Reload_(string selectName, int selectIndex)", "Could not read the public folders: " },
          { "QuarantineView.cs", "private void Reload()", "Could not read the quarantine: " },
          { "DomainPolicyListView.cs", "private void Unread_(string prefix, string why)", "Could not read the list: " },
          { "AuditTrailView.cs", "private void Reload()", "Could not read the audit trail: " },

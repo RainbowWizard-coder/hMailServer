@@ -456,6 +456,12 @@
   <data name="A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on." xml:space="preserve">
     <value>En fil av en innsendt type i en melding utenfra sendes til en sandkasse du driver eller abonnerer på, og meldingen venter – i ingen postkasse og ikke i karantene – på dommen: ren leveres, skadelig settes i karantene. Ingenting holdes tilbake før begge adressene er satt og dette er slått på.</value>
   </data>
+  <data name="A folder can be at most {0} levels down." xml:space="preserve">
+    <value>En mappe kan ligge høyst {0} nivåer ned.</value>
+  </data>
+  <data name="A folder's name can be at most {0} characters long." xml:space="preserve">
+    <value>Navnet på en mappe kan være høyst {0} tegn langt.</value>
+  </data>
   <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>En margin for innkommende post: en postkasse som er over grensen med mindre enn dette, tar fortsatt imot, så en som er borte en uke ikke mister post fordi et stort vedlegg kom på mandag. Eierens egne lagringer og kopier stopper ved selve grensen. Hvert domene kan sette sin egen. Gjelder straks.</value>
   </data>
@@ -518,6 +524,9 @@
   </data>
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>En moderne administrasjonsapp for hMailServer: sanntidsoversikt, domener og kontoer, leveringskø, loggstrømming, alle serverinnstillinger og transportsikkerhetsfunksjonene i 6.x (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
+  </data>
+  <data name="A name cannot begin or end with &quot;{0}&quot; or have two together: &quot;{0}&quot; separates a folder from its sub-folder." xml:space="preserve">
+    <value>Et navn kan ikke begynne eller slutte med «{0}» eller ha to etter hverandre: «{0}» skiller en mappe fra undermappen dens.</value>
   </data>
   <data name="A name is required." xml:space="preserve">
     <value>Et navn er påkrevd.</value>
@@ -3799,6 +3808,12 @@ Avsenderen fikk beskjed om at den ble godtatt, så ingenting vil prøve på nytt
   <data name="Delete the public folder {0} and every message in it?" xml:space="preserve">
     <value>Slette den offentlige mappen {0} og hver melding i den?</value>
   </data>
+  <data name="Delete the public folder {1}, its {0} sub-folder and every message in them?" xml:space="preserve">
+    <value>Slette den offentlige mappen {1}, dens {0} undermappe og hver melding i dem?</value>
+  </data>
+  <data name="Delete the public folder {1}, its {0} sub-folders and every message in them?" xml:space="preserve">
+    <value>Slette den offentlige mappen {1}, dens {0} undermapper og hver melding i dem?</value>
+  </data>
   <data name="Delete the remote domain policy {0}? Mail to and from that domain follows the server-wide settings again." xml:space="preserve">
     <value>Slette regelen for eksternt domene {0}? E-post til og fra det domenet følger igjen innstillingene for hele serveren.</value>
   </data>
@@ -4450,6 +4465,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Enter a name for the certificate." xml:space="preserve">
     <value>Skriv inn et navn på sertifikatet.</value>
   </data>
+  <data name="Enter a name for the folder." xml:space="preserve">
+    <value>Skriv inn et navn på mappen.</value>
+  </data>
   <data name="Enter a name for the new rule." xml:space="preserve">
     <value>Skriv inn et navn på den nye regelen.</value>
   </data>
@@ -5031,9 +5049,6 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Folder name (use the hierarchy delimiter for sub-folders):" xml:space="preserve">
     <value>Mappenavn (bruk hierarkiskilletegnet for undermapper):</value>
-  </data>
-  <data name="Folder name:" xml:space="preserve">
-    <value>Mappenavn:</value>
   </data>
   <data name="Folders" xml:space="preserve">
     <value>Mapper</value>
@@ -10939,8 +10954,8 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Shared HMAC secret (only for HS256/384/512 tokens)" xml:space="preserve">
     <value>Delt HMAC-hemmelighet (bare for HS256/384/512-token)</value>
   </data>
-  <data name="Shared IMAP folders that several accounts can access. Use the hierarchy delimiter to create sub-folders, and edit permissions to grant access." xml:space="preserve">
-    <value>Delte IMAP-mapper som flere kontoer har tilgang til. Bruk hierarkiskilletegnet for å opprette undermapper, og rediger tillatelser for å gi tilgang.</value>
+  <data name="Shared IMAP folders that several accounts can open, each with the permissions it is given. A name with &quot;{0}&quot; in it makes a sub-folder: {1} puts {2} under {3}." xml:space="preserve">
+    <value>Delte IMAP-mapper som flere kontoer kan åpne, hver med tillatelsene den får. Et navn med «{0}» i lager en undermappe: {1} legger {2} under {3}.</value>
   </data>
   <data name="Shared IMAP folders, and which accounts or groups may read and write each one." xml:space="preserve">
     <value>Delte IMAP-mapper, og hvilke kontoer eller grupper som kan lese og skrive hver av dem.</value>
@@ -14717,6 +14732,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="_First name" xml:space="preserve">
     <value>_Fornavn</value>
   </data>
+  <data name="_Folder name" xml:space="preserve">
+    <value>_Mappenavn</value>
+  </data>
   <data name="_Follow this message" xml:space="preserve">
     <value>_Følg denne meldingen</value>
   </data>
@@ -16449,8 +16467,14 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="{0} external accounts" xml:space="preserve">
     <value>{0} eksterne kontoer</value>
   </data>
+  <data name="{0} folder has &quot;{2}&quot; in its own name rather than being a sub-folder, so a mail client cannot open it: {1}. Add folder now makes such a name a sub-folder." xml:space="preserve">
+    <value>{0} mappe har «{2}» i sitt eget navn i stedet for å være en undermappe, så en e-postklient kan ikke åpne den: {1}. Legg til mappe gjør nå et slikt navn til en undermappe.</value>
+  </data>
   <data name="{0} folder." xml:space="preserve">
     <value>{0} mappe.</value>
+  </data>
+  <data name="{0} folders have &quot;{2}&quot; in their own names rather than being sub-folders, so a mail client cannot open them: {1}. Add folder now makes such a name a sub-folder." xml:space="preserve">
+    <value>{0} mapper har «{2}» i sine egne navn i stedet for å være undermapper, så en e-postklient kan ikke åpne dem: {1}. Legg til mappe gjør nå et slikt navn til en undermappe.</value>
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} mapper.</value>
@@ -16463,6 +16487,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="{0} h {1} min" xml:space="preserve">
     <value>{0} t {1} min</value>
+  </data>
+  <data name="{0} has &quot;{1}&quot; in its own name rather than being a sub-folder, so a mail client cannot open it. Add folder now makes such a name a sub-folder." xml:space="preserve">
+    <value>{0} har «{1}» i sitt eget navn i stedet for å være en undermappe, så en e-postklient kan ikke åpne den. Legg til mappe gjør nå et slikt navn til en undermappe.</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} er flyttet til {1}.</value>
@@ -16493,6 +16520,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="{0} incoming relays" xml:space="preserve">
     <value>{0} innkommende relayer</value>
+  </data>
+  <data name="{0} is a public folder already." xml:space="preserve">
+    <value>{0} er allerede en offentlig mappe.</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} er allerede medlem av denne gruppen.</value>
@@ -16574,6 +16604,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="{0} mail servers receive mail for {1}." xml:space="preserve">
     <value>{0} e-postservere mottar e-post for {1}.</value>
+  </data>
+  <data name="{0} makes {1} under {2}, and {2} as well if it is not there. With a folder selected, the name starts under it." xml:space="preserve">
+    <value>{0} lager {1} under {2}, og {2} også hvis den ikke finnes. Er en mappe valgt, begynner navnet under den.</value>
   </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} melding</value>

@@ -456,6 +456,12 @@
   <data name="A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on." xml:space="preserve">
     <value>Een bestand van een ingediend type in een bericht van buiten wordt naar een sandbox gestuurd die u beheert of waarop u geabonneerd bent, en het bericht wacht – in geen enkele postbus en niet in quarantaine – op het oordeel: schoon wordt bezorgd, kwaadaardig gaat in quarantaine. Er wordt niets vastgehouden totdat beide adressen zijn ingesteld en dit is ingeschakeld.</value>
   </data>
+  <data name="A folder can be at most {0} levels down." xml:space="preserve">
+    <value>Een map kan hoogstens {0} niveaus diep liggen.</value>
+  </data>
+  <data name="A folder's name can be at most {0} characters long." xml:space="preserve">
+    <value>De naam van een map mag hoogstens {0} tekens lang zijn.</value>
+  </data>
   <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Een marge voor inkomende mail: een mailbox die minder dan dit over haar limiet is, ontvangt nog, zodat iemand die een week weg is geen mail verliest omdat maandag een grote bijlage aankwam. De eigen opslag en kopieën van de eigenaar stoppen bij de limiet zelf. Elk domein kan zijn eigen waarde zetten. Geldt meteen.</value>
   </data>
@@ -518,6 +524,9 @@
   </data>
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>Een moderne beheertoepassing voor hMailServer: live dashboard, domeinen en accounts, bezorgwachtrij, logstreaming, volledige serverinstellingen en de transportbeveiligingsfuncties van 6.x (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
+  </data>
+  <data name="A name cannot begin or end with &quot;{0}&quot; or have two together: &quot;{0}&quot; separates a folder from its sub-folder." xml:space="preserve">
+    <value>Een naam mag niet met "{0}" beginnen of eindigen en er geen twee achter elkaar bevatten: "{0}" scheidt een map van zijn submap.</value>
   </data>
   <data name="A name is required." xml:space="preserve">
     <value>Een naam is verplicht.</value>
@@ -3799,6 +3808,12 @@ De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert 
   <data name="Delete the public folder {0} and every message in it?" xml:space="preserve">
     <value>De openbare map {0} en elk bericht erin verwijderen?</value>
   </data>
+  <data name="Delete the public folder {1}, its {0} sub-folder and every message in them?" xml:space="preserve">
+    <value>De openbare map {1}, zijn {0} submap en elk bericht erin verwijderen?</value>
+  </data>
+  <data name="Delete the public folder {1}, its {0} sub-folders and every message in them?" xml:space="preserve">
+    <value>De openbare map {1}, zijn {0} submappen en elk bericht erin verwijderen?</value>
+  </data>
   <data name="Delete the remote domain policy {0}? Mail to and from that domain follows the server-wide settings again." xml:space="preserve">
     <value>De regel voor het externe domein {0} verwijderen? Mail van en naar dat domein volgt weer de instellingen voor de hele server.</value>
   </data>
@@ -4450,6 +4465,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Enter a name for the certificate." xml:space="preserve">
     <value>Voer een naam voor het certificaat in.</value>
   </data>
+  <data name="Enter a name for the folder." xml:space="preserve">
+    <value>Voer een naam voor de map in.</value>
+  </data>
   <data name="Enter a name for the new rule." xml:space="preserve">
     <value>Voer een naam in voor de nieuwe regel.</value>
   </data>
@@ -5031,9 +5049,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Folder name (use the hierarchy delimiter for sub-folders):" xml:space="preserve">
     <value>Mapnaam (gebruik het hiërarchiescheidingsteken voor submappen):</value>
-  </data>
-  <data name="Folder name:" xml:space="preserve">
-    <value>Mapnaam:</value>
   </data>
   <data name="Folders" xml:space="preserve">
     <value>Mappen</value>
@@ -10939,8 +10954,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Shared HMAC secret (only for HS256/384/512 tokens)" xml:space="preserve">
     <value>Gedeeld HMAC-geheim (alleen voor HS256/384/512-tokens)</value>
   </data>
-  <data name="Shared IMAP folders that several accounts can access. Use the hierarchy delimiter to create sub-folders, and edit permissions to grant access." xml:space="preserve">
-    <value>Gedeelde IMAP-mappen waar meerdere accounts bij kunnen. Gebruik het hiërarchiescheidingsteken om submappen te maken, en bewerk de rechten om toegang te verlenen.</value>
+  <data name="Shared IMAP folders that several accounts can open, each with the permissions it is given. A name with &quot;{0}&quot; in it makes a sub-folder: {1} puts {2} under {3}." xml:space="preserve">
+    <value>Gedeelde IMAP-mappen die meerdere accounts kunnen openen, elk met de rechten die ze krijgt. Een naam met "{0}" erin maakt een submap: {1} plaatst {2} onder {3}.</value>
   </data>
   <data name="Shared IMAP folders, and which accounts or groups may read and write each one." xml:space="preserve">
     <value>Gedeelde IMAP-mappen, en welke accounts of groepen elke map mogen lezen en beschrijven.</value>
@@ -14717,6 +14732,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_First name" xml:space="preserve">
     <value>_Voornaam</value>
   </data>
+  <data name="_Folder name" xml:space="preserve">
+    <value>_Mapnaam</value>
+  </data>
   <data name="_Follow this message" xml:space="preserve">
     <value>_Dit bericht volgen</value>
   </data>
@@ -16449,8 +16467,14 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} external accounts" xml:space="preserve">
     <value>{0} externe accounts</value>
   </data>
+  <data name="{0} folder has &quot;{2}&quot; in its own name rather than being a sub-folder, so a mail client cannot open it: {1}. Add folder now makes such a name a sub-folder." xml:space="preserve">
+    <value>{0} map heeft "{2}" in de eigen naam in plaats van een submap te zijn, dus een e-mailclient kan hem niet openen: {1}. Map toevoegen maakt van zo'n naam nu een submap.</value>
+  </data>
   <data name="{0} folder." xml:space="preserve">
     <value>{0} map.</value>
+  </data>
+  <data name="{0} folders have &quot;{2}&quot; in their own names rather than being sub-folders, so a mail client cannot open them: {1}. Add folder now makes such a name a sub-folder." xml:space="preserve">
+    <value>{0} mappen hebben "{2}" in de eigen naam in plaats van submappen te zijn, dus een e-mailclient kan ze niet openen: {1}. Map toevoegen maakt van zo'n naam nu een submap.</value>
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} mappen.</value>
@@ -16463,6 +16487,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} h {1} min" xml:space="preserve">
     <value>{0} u {1} min</value>
+  </data>
+  <data name="{0} has &quot;{1}&quot; in its own name rather than being a sub-folder, so a mail client cannot open it. Add folder now makes such a name a sub-folder." xml:space="preserve">
+    <value>{0} heeft "{1}" in de eigen naam in plaats van een submap te zijn, dus een e-mailclient kan de map niet openen. Map toevoegen maakt van zo'n naam nu een submap.</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} is verplaatst naar {1}.</value>
@@ -16493,6 +16520,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} incoming relays" xml:space="preserve">
     <value>{0} inkomende relays</value>
+  </data>
+  <data name="{0} is a public folder already." xml:space="preserve">
+    <value>{0} is al een openbare map.</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} is al lid van deze groep.</value>
@@ -16574,6 +16604,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} mail servers receive mail for {1}." xml:space="preserve">
     <value>{0} mailservers ontvangen mail voor {1}.</value>
+  </data>
+  <data name="{0} makes {1} under {2}, and {2} as well if it is not there. With a folder selected, the name starts under it." xml:space="preserve">
+    <value>{0} maakt {1} onder {2}, en ook {2} als die er nog niet is. Met een map geselecteerd begint de naam eronder.</value>
   </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} bericht</value>

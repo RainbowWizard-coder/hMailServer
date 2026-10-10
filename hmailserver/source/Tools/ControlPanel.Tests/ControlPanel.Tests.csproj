@@ -273,6 +273,12 @@
     <Compile Include="..\ControlPanel\Services\GroupMemberCandidates.cs" />
   </ItemGroup>
 
+  <!-- The Public folders page's tree, its checks of a new folder's name and its words
+       (review finding F206). -->
+  <ItemGroup>
+    <Compile Include="..\ControlPanel\Services\PublicFolderTree.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <!-- WindowsServiceInfo queries Win32_Service; the app gets this through its
          own reference and the test assembly needs its own. -->

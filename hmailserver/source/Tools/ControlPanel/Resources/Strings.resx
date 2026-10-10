@@ -456,6 +456,12 @@
   <data name="A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on." xml:space="preserve">
     <value>A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on.</value>
   </data>
+  <data name="A folder can be at most {0} levels down." xml:space="preserve">
+    <value>A folder can be at most {0} levels down.</value>
+  </data>
+  <data name="A folder's name can be at most {0} characters long." xml:space="preserve">
+    <value>A folder's name can be at most {0} characters long.</value>
+  </data>
   <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once.</value>
   </data>
@@ -518,6 +524,9 @@
   </data>
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
+  </data>
+  <data name="A name cannot begin or end with &quot;{0}&quot; or have two together: &quot;{0}&quot; separates a folder from its sub-folder." xml:space="preserve">
+    <value>A name cannot begin or end with "{0}" or have two together: "{0}" separates a folder from its sub-folder.</value>
   </data>
   <data name="A name is required." xml:space="preserve">
     <value>A name is required.</value>
@@ -3799,6 +3808,12 @@ The sender was told it was accepted, so nothing will retry and there is no other
   <data name="Delete the public folder {0} and every message in it?" xml:space="preserve">
     <value>Delete the public folder {0} and every message in it?</value>
   </data>
+  <data name="Delete the public folder {1}, its {0} sub-folder and every message in them?" xml:space="preserve">
+    <value>Delete the public folder {1}, its {0} sub-folder and every message in them?</value>
+  </data>
+  <data name="Delete the public folder {1}, its {0} sub-folders and every message in them?" xml:space="preserve">
+    <value>Delete the public folder {1}, its {0} sub-folders and every message in them?</value>
+  </data>
   <data name="Delete the remote domain policy {0}? Mail to and from that domain follows the server-wide settings again." xml:space="preserve">
     <value>Delete the remote domain policy {0}? Mail to and from that domain follows the server-wide settings again.</value>
   </data>
@@ -4450,6 +4465,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Enter a name for the certificate." xml:space="preserve">
     <value>Enter a name for the certificate.</value>
   </data>
+  <data name="Enter a name for the folder." xml:space="preserve">
+    <value>Enter a name for the folder.</value>
+  </data>
   <data name="Enter a name for the new rule." xml:space="preserve">
     <value>Enter a name for the new rule.</value>
   </data>
@@ -5031,9 +5049,6 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Folder name (use the hierarchy delimiter for sub-folders):" xml:space="preserve">
     <value>Folder name (use the hierarchy delimiter for sub-folders):</value>
-  </data>
-  <data name="Folder name:" xml:space="preserve">
-    <value>Folder name:</value>
   </data>
   <data name="Folders" xml:space="preserve">
     <value>Folders</value>
@@ -10939,8 +10954,8 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Shared HMAC secret (only for HS256/384/512 tokens)" xml:space="preserve">
     <value>Shared HMAC secret (only for HS256/384/512 tokens)</value>
   </data>
-  <data name="Shared IMAP folders that several accounts can access. Use the hierarchy delimiter to create sub-folders, and edit permissions to grant access." xml:space="preserve">
-    <value>Shared IMAP folders that several accounts can access. Use the hierarchy delimiter to create sub-folders, and edit permissions to grant access.</value>
+  <data name="Shared IMAP folders that several accounts can open, each with the permissions it is given. A name with &quot;{0}&quot; in it makes a sub-folder: {1} puts {2} under {3}." xml:space="preserve">
+    <value>Shared IMAP folders that several accounts can open, each with the permissions it is given. A name with "{0}" in it makes a sub-folder: {1} puts {2} under {3}.</value>
   </data>
   <data name="Shared IMAP folders, and which accounts or groups may read and write each one." xml:space="preserve">
     <value>Shared IMAP folders, and which accounts or groups may read and write each one.</value>
@@ -14717,6 +14732,9 @@ It will keep trying as you use the application.</value>
   <data name="_First name" xml:space="preserve">
     <value>_First name</value>
   </data>
+  <data name="_Folder name" xml:space="preserve">
+    <value>_Folder name</value>
+  </data>
   <data name="_Follow this message" xml:space="preserve">
     <value>_Follow this message</value>
   </data>
@@ -16449,8 +16467,14 @@ It will keep trying as you use the application.</value>
   <data name="{0} external accounts" xml:space="preserve">
     <value>{0} external accounts</value>
   </data>
+  <data name="{0} folder has &quot;{2}&quot; in its own name rather than being a sub-folder, so a mail client cannot open it: {1}. Add folder now makes such a name a sub-folder." xml:space="preserve">
+    <value>{0} folder has "{2}" in its own name rather than being a sub-folder, so a mail client cannot open it: {1}. Add folder now makes such a name a sub-folder.</value>
+  </data>
   <data name="{0} folder." xml:space="preserve">
     <value>{0} folder.</value>
+  </data>
+  <data name="{0} folders have &quot;{2}&quot; in their own names rather than being sub-folders, so a mail client cannot open them: {1}. Add folder now makes such a name a sub-folder." xml:space="preserve">
+    <value>{0} folders have "{2}" in their own names rather than being sub-folders, so a mail client cannot open them: {1}. Add folder now makes such a name a sub-folder.</value>
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} folders.</value>
@@ -16463,6 +16487,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="{0} h {1} min" xml:space="preserve">
     <value>{0} h {1} min</value>
+  </data>
+  <data name="{0} has &quot;{1}&quot; in its own name rather than being a sub-folder, so a mail client cannot open it. Add folder now makes such a name a sub-folder." xml:space="preserve">
+    <value>{0} has "{1}" in its own name rather than being a sub-folder, so a mail client cannot open it. Add folder now makes such a name a sub-folder.</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} has been moved to {1}.</value>
@@ -16493,6 +16520,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="{0} incoming relays" xml:space="preserve">
     <value>{0} incoming relays</value>
+  </data>
+  <data name="{0} is a public folder already." xml:space="preserve">
+    <value>{0} is a public folder already.</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} is already a member of this group.</value>
@@ -16574,6 +16604,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="{0} mail servers receive mail for {1}." xml:space="preserve">
     <value>{0} mail servers receive mail for {1}.</value>
+  </data>
+  <data name="{0} makes {1} under {2}, and {2} as well if it is not there. With a folder selected, the name starts under it." xml:space="preserve">
+    <value>{0} makes {1} under {2}, and {2} as well if it is not there. With a folder selected, the name starts under it.</value>
   </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} message</value>

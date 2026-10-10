@@ -456,6 +456,12 @@
   <data name="A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on." xml:space="preserve">
     <value>En fil av en inskickad typ i ett meddelande utifrån skickas till en sandlåda som du driver eller prenumererar på, och meddelandet väntar – i ingen brevlåda och inte i karantän – på dess dom: rent levereras, skadligt sätts i karantän. Inget hålls kvar förrän båda adresserna är angivna och detta är påslaget.</value>
   </data>
+  <data name="A folder can be at most {0} levels down." xml:space="preserve">
+    <value>En mapp kan ligga högst {0} nivåer ned.</value>
+  </data>
+  <data name="A folder's name can be at most {0} characters long." xml:space="preserve">
+    <value>Ett mappnamn kan vara högst {0} tecken långt.</value>
+  </data>
   <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>En marginal för inkommande post: en brevlåda som är över sin gräns med mindre än detta tar fortfarande emot, så att den som är borta en vecka inte förlorar post för att en stor bilaga kom på måndagen. Ägarens egna sparningar och kopior stannar vid själva gränsen. Varje domän kan sätta sin egen. Gäller genast.</value>
   </data>
@@ -518,6 +524,9 @@
   </data>
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>En modern administrationsapp för hMailServer: direktöversikt, domäner och konton, leveranskö, loggströmning, fullständiga serverinställningar och 6.x-seriens transportsäkerhetsfunktioner (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
+  </data>
+  <data name="A name cannot begin or end with &quot;{0}&quot; or have two together: &quot;{0}&quot; separates a folder from its sub-folder." xml:space="preserve">
+    <value>Ett namn kan inte börja eller sluta med ”{0}” eller ha två i rad: ”{0}” skiljer en mapp från dess undermapp.</value>
   </data>
   <data name="A name is required." xml:space="preserve">
     <value>Ett namn krävs.</value>
@@ -3799,6 +3808,12 @@ Avsändaren fick veta att det accepterades, så inget kommer att försöka igen 
   <data name="Delete the public folder {0} and every message in it?" xml:space="preserve">
     <value>Ta bort den publika mappen {0} och varje meddelande i den?</value>
   </data>
+  <data name="Delete the public folder {1}, its {0} sub-folder and every message in them?" xml:space="preserve">
+    <value>Ta bort den publika mappen {1}, dess {0} undermapp och varje meddelande i dem?</value>
+  </data>
+  <data name="Delete the public folder {1}, its {0} sub-folders and every message in them?" xml:space="preserve">
+    <value>Ta bort den publika mappen {1}, dess {0} undermappar och varje meddelande i dem?</value>
+  </data>
   <data name="Delete the remote domain policy {0}? Mail to and from that domain follows the server-wide settings again." xml:space="preserve">
     <value>Ta bort regeln för den externa domänen {0}? E-post till och från den domänen följer åter inställningarna för hela servern.</value>
   </data>
@@ -4450,6 +4465,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Enter a name for the certificate." xml:space="preserve">
     <value>Ange ett namn på certifikatet.</value>
   </data>
+  <data name="Enter a name for the folder." xml:space="preserve">
+    <value>Ange ett namn på mappen.</value>
+  </data>
   <data name="Enter a name for the new rule." xml:space="preserve">
     <value>Ange ett namn för den nya regeln.</value>
   </data>
@@ -5031,9 +5049,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Folder name (use the hierarchy delimiter for sub-folders):" xml:space="preserve">
     <value>Mappnamn (använd hierarkiavgränsaren för undermappar):</value>
-  </data>
-  <data name="Folder name:" xml:space="preserve">
-    <value>Mappnamn:</value>
   </data>
   <data name="Folders" xml:space="preserve">
     <value>Mappar</value>
@@ -10939,8 +10954,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Shared HMAC secret (only for HS256/384/512 tokens)" xml:space="preserve">
     <value>Delad HMAC-hemlighet (bara för HS256/384/512-token)</value>
   </data>
-  <data name="Shared IMAP folders that several accounts can access. Use the hierarchy delimiter to create sub-folders, and edit permissions to grant access." xml:space="preserve">
-    <value>Delade IMAP-mappar som flera konton kan nå. Använd hierarkiavgränsaren för att skapa undermappar, och redigera behörigheter för att ge åtkomst.</value>
+  <data name="Shared IMAP folders that several accounts can open, each with the permissions it is given. A name with &quot;{0}&quot; in it makes a sub-folder: {1} puts {2} under {3}." xml:space="preserve">
+    <value>Delade IMAP-mappar som flera konton kan öppna, var och en med de behörigheter den får. Ett namn med ”{0}” i skapar en undermapp: {1} lägger {2} under {3}.</value>
   </data>
   <data name="Shared IMAP folders, and which accounts or groups may read and write each one." xml:space="preserve">
     <value>Delade IMAP-mappar, och vilka konton eller grupper som får läsa och skriva i var och en.</value>
@@ -14717,6 +14732,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="_First name" xml:space="preserve">
     <value>_Förnamn</value>
   </data>
+  <data name="_Folder name" xml:space="preserve">
+    <value>_Mappnamn</value>
+  </data>
   <data name="_Follow this message" xml:space="preserve">
     <value>_Följ det här meddelandet</value>
   </data>
@@ -16449,8 +16467,14 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} external accounts" xml:space="preserve">
     <value>{0} externa konton</value>
   </data>
+  <data name="{0} folder has &quot;{2}&quot; in its own name rather than being a sub-folder, so a mail client cannot open it: {1}. Add folder now makes such a name a sub-folder." xml:space="preserve">
+    <value>{0} mapp har ”{2}” i sitt eget namn i stället för att vara en undermapp, så en e-postklient kan inte öppna den: {1}. Lägg till mapp gör nu ett sådant namn till en undermapp.</value>
+  </data>
   <data name="{0} folder." xml:space="preserve">
     <value>{0} mapp.</value>
+  </data>
+  <data name="{0} folders have &quot;{2}&quot; in their own names rather than being sub-folders, so a mail client cannot open them: {1}. Add folder now makes such a name a sub-folder." xml:space="preserve">
+    <value>{0} mappar har ”{2}” i sina egna namn i stället för att vara undermappar, så en e-postklient kan inte öppna dem: {1}. Lägg till mapp gör nu ett sådant namn till en undermapp.</value>
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} mappar.</value>
@@ -16463,6 +16487,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} h {1} min" xml:space="preserve">
     <value>{0} tim {1} min</value>
+  </data>
+  <data name="{0} has &quot;{1}&quot; in its own name rather than being a sub-folder, so a mail client cannot open it. Add folder now makes such a name a sub-folder." xml:space="preserve">
+    <value>{0} har ”{1}” i sitt eget namn i stället för att vara en undermapp, så en e-postklient kan inte öppna den. Lägg till mapp gör nu ett sådant namn till en undermapp.</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} har flyttats till {1}.</value>
@@ -16493,6 +16520,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} incoming relays" xml:space="preserve">
     <value>{0} inkommande reläer</value>
+  </data>
+  <data name="{0} is a public folder already." xml:space="preserve">
+    <value>{0} är redan en publik mapp.</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} är redan medlem i den här gruppen.</value>
@@ -16574,6 +16604,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} mail servers receive mail for {1}." xml:space="preserve">
     <value>{0} e-postservrar tar emot e-post för {1}.</value>
+  </data>
+  <data name="{0} makes {1} under {2}, and {2} as well if it is not there. With a folder selected, the name starts under it." xml:space="preserve">
+    <value>{0} skapar {1} under {2}, och {2} också om den inte finns. Med en mapp markerad börjar namnet under den.</value>
   </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} meddelande</value>

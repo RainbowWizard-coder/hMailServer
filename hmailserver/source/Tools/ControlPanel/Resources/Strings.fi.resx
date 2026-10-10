@@ -456,6 +456,12 @@
   <data name="A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on." xml:space="preserve">
     <value>Lähetettävää tyyppiä oleva tiedosto ulkopuolelta tulevassa viestissä lähetetään hiekkalaatikkoon, jota ylläpidät tai jonka tilaat, ja viesti odottaa – ei missään postilaatikossa eikä karanteenissa – sen tuomiota: puhdas toimitetaan, haitallinen asetetaan karanteeniin. Mitään ei pidätetä, ennen kuin molemmat osoitteet on asetettu ja tämä on päällä.</value>
   </data>
+  <data name="A folder can be at most {0} levels down." xml:space="preserve">
+    <value>Kansio voi olla enintään {0} tason syvyydessä.</value>
+  </data>
+  <data name="A folder's name can be at most {0} characters long." xml:space="preserve">
+    <value>Kansion nimessä voi olla enintään {0} merkkiä.</value>
+  </data>
   <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Joustovara saapuvalle postille: rajansa tätä vähemmän ylittänyt postilaatikko ottaa yhä vastaan, jotta viikon poissa oleva ei menetä postia siksi, että maanantaina saapui iso liite. Omistajan omat tallennukset ja kopiot pysähtyvät itse rajaan. Jokainen toimialue voi asettaa omansa. Voimassa heti.</value>
   </data>
@@ -518,6 +524,9 @@
   </data>
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>Nykyaikainen hallintasovellus hMailServerille: reaaliaikainen koontinäyttö, verkkotunnukset ja tilit, toimitusjono, lokien suoratoisto, kaikki palvelinasetukset ja 6.x-version siirtoturvallisuusominaisuudet (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
+  </data>
+  <data name="A name cannot begin or end with &quot;{0}&quot; or have two together: &quot;{0}&quot; separates a folder from its sub-folder." xml:space="preserve">
+    <value>Nimi ei voi alkaa tai päättyä merkkiin "{0}" eikä sisältää kahta peräkkäin: "{0}" erottaa kansion sen alikansiosta.</value>
   </data>
   <data name="A name is required." xml:space="preserve">
     <value>Nimi vaaditaan.</value>
@@ -3799,6 +3808,12 @@ Lähettäjälle kerrottiin, että se hyväksyttiin, joten mikään ei yritä uud
   <data name="Delete the public folder {0} and every message in it?" xml:space="preserve">
     <value>Poistetaanko julkinen kansio {0} ja jokainen sen viesti?</value>
   </data>
+  <data name="Delete the public folder {1}, its {0} sub-folder and every message in them?" xml:space="preserve">
+    <value>Poistetaanko julkinen kansio {1}, sen {0} alikansio ja jokainen niiden viesti?</value>
+  </data>
+  <data name="Delete the public folder {1}, its {0} sub-folders and every message in them?" xml:space="preserve">
+    <value>Poistetaanko julkinen kansio {1}, sen {0} alikansiota ja jokainen niiden viesti?</value>
+  </data>
   <data name="Delete the remote domain policy {0}? Mail to and from that domain follows the server-wide settings again." xml:space="preserve">
     <value>Poistetaanko etäverkkotunnuksen käytäntö {0}? Posta kyseiseen verkkotunnukseen ja sieltä noudattaa taas koko palvelimen asetuksia.</value>
   </data>
@@ -4450,6 +4465,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Enter a name for the certificate." xml:space="preserve">
     <value>Anna varmenteelle nimi.</value>
   </data>
+  <data name="Enter a name for the folder." xml:space="preserve">
+    <value>Anna kansiolle nimi.</value>
+  </data>
   <data name="Enter a name for the new rule." xml:space="preserve">
     <value>Anna uudelle säännölle nimi.</value>
   </data>
@@ -5031,9 +5049,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Folder name (use the hierarchy delimiter for sub-folders):" xml:space="preserve">
     <value>Kansion nimi (käytä hierarkiaerotinta alikansioille):</value>
-  </data>
-  <data name="Folder name:" xml:space="preserve">
-    <value>Kansion nimi:</value>
   </data>
   <data name="Folders" xml:space="preserve">
     <value>Kansiot</value>
@@ -10939,8 +10954,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Shared HMAC secret (only for HS256/384/512 tokens)" xml:space="preserve">
     <value>Jaettu HMAC-salaisuus (vain HS256/384/512-tokeneille)</value>
   </data>
-  <data name="Shared IMAP folders that several accounts can access. Use the hierarchy delimiter to create sub-folders, and edit permissions to grant access." xml:space="preserve">
-    <value>Jaetut IMAP-kansiot, joita useat tilit voivat käyttää. Luo alikansioita hierarkiaerottimella ja muokkaa käyttöoikeuksia myöntääksesi pääsyn.</value>
+  <data name="Shared IMAP folders that several accounts can open, each with the permissions it is given. A name with &quot;{0}&quot; in it makes a sub-folder: {1} puts {2} under {3}." xml:space="preserve">
+    <value>Jaetut IMAP-kansiot, jotka useat tilit voivat avata, kukin sille annetuin käyttöoikeuksin. Nimi, jossa on "{0}", luo alikansion: {1} sijoittaa kansion {2} kansion {3} alle.</value>
   </data>
   <data name="Shared IMAP folders, and which accounts or groups may read and write each one." xml:space="preserve">
     <value>Jaetut IMAP-kansiot ja se, mitkä tilit tai ryhmät saavat lukea ja kirjoittaa kutakin.</value>
@@ -14717,6 +14732,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="_First name" xml:space="preserve">
     <value>_Etunimi</value>
   </data>
+  <data name="_Folder name" xml:space="preserve">
+    <value>_Kansion nimi</value>
+  </data>
   <data name="_Follow this message" xml:space="preserve">
     <value>_Seuraa tätä viestiä</value>
   </data>
@@ -16449,8 +16467,14 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} external accounts" xml:space="preserve">
     <value>{0} ulkoista tiliä</value>
   </data>
+  <data name="{0} folder has &quot;{2}&quot; in its own name rather than being a sub-folder, so a mail client cannot open it: {1}. Add folder now makes such a name a sub-folder." xml:space="preserve">
+    <value>Postiasiakas ei voi avata kansioita, joiden omassa nimessä on "{2}" (yhteensä {0}): {1}. Lisää kansio tekee nyt tällaisesta nimestä alikansion.</value>
+  </data>
   <data name="{0} folder." xml:space="preserve">
     <value>{0} kansio.</value>
+  </data>
+  <data name="{0} folders have &quot;{2}&quot; in their own names rather than being sub-folders, so a mail client cannot open them: {1}. Add folder now makes such a name a sub-folder." xml:space="preserve">
+    <value>Postiasiakas ei voi avata kansioita, joiden omassa nimessä on "{2}" (yhteensä {0}): {1}. Lisää kansio tekee nyt tällaisesta nimestä alikansion.</value>
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} kansiota.</value>
@@ -16463,6 +16487,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} h {1} min" xml:space="preserve">
     <value>{0} h {1} min</value>
+  </data>
+  <data name="{0} has &quot;{1}&quot; in its own name rather than being a sub-folder, so a mail client cannot open it. Add folder now makes such a name a sub-folder." xml:space="preserve">
+    <value>Kansion {0} omassa nimessä on "{1}" sen sijaan, että se olisi alikansio, joten postiasiakas ei voi avata sitä. Lisää kansio tekee nyt tällaisesta nimestä alikansion.</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} on siirretty osoitteeseen {1}.</value>
@@ -16493,6 +16520,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} incoming relays" xml:space="preserve">
     <value>{0} saapuvaa välityspalvelinta</value>
+  </data>
+  <data name="{0} is a public folder already." xml:space="preserve">
+    <value>{0} on jo julkinen kansio.</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} on jo tämän ryhmän jäsen.</value>
@@ -16574,6 +16604,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} mail servers receive mail for {1}." xml:space="preserve">
     <value>{0} postipalvelinta vastaanottaa postin kohteelle {1}.</value>
+  </data>
+  <data name="{0} makes {1} under {2}, and {2} as well if it is not there. With a folder selected, the name starts under it." xml:space="preserve">
+    <value>{0} luo kansion {1} kansion {2} alle ja myös kansion {2}, jos sitä ei ole. Kun kansio on valittuna, nimi alkaa sen alta.</value>
   </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} viesti</value>

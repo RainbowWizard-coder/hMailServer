@@ -79,6 +79,20 @@ namespace hMailServer.ControlPanel.Services
          StatusText.Show(empty, null, total, null, emptyText);
       }
 
+      /// <summary>
+      /// Clears a search that hides <paramref name="item"/>, a row the page has just
+      /// made and is about to select, so that the row is in the list to be selected
+      /// and seen: a search typed in before the add left the new row out, and the
+      /// page selected nothing and said the row was added.
+      /// </summary>
+      public static void Reveal(Toolbar search, ItemsControl list, object item)
+      {
+         if (search == null || list == null || item == null || list.Items.Contains(item))
+            return;
+
+         search.SearchText = "";
+      }
+
       // How many rows the page read.
       private static int Total_(IEnumerable source)
       {

@@ -73,6 +73,11 @@ namespace hMailServer.ControlPanel.Views
       };
 
       private readonly string folderName_;
+
+      // The names from the top folder down to this one: a folder is found under its
+      // parent (OpenFolder), where it was looked for at the top alone and a
+      // sub-folder's permissions could not be read (review finding F206).
+      private readonly IReadOnlyList<string> folderPath_;
       // On a card with the compact inset, as the public folders list is: the
       // rows take the application's list row style (the selection fill and the
       // brand pill, in place of WPF-UI's solid accent band), and the card is the
@@ -87,8 +92,15 @@ namespace hMailServer.ControlPanel.Views
       private readonly InlineNotice notice_ = DialogFields.Notice();
 
       public FolderPermissionsDialog(Window owner, string folderName)
+         : this(owner, new[] { folderName }, folderName)
+      {
+      }
+
+      /// <summary>The permissions of the public folder at <paramref name="folderPath"/>, named <paramref name="folderName"/> - its full name, Sales.Leads.</summary>
+      public FolderPermissionsDialog(Window owner, IReadOnlyList<string> folderPath, string folderName)
       {
          folderName_ = folderName;
+         folderPath_ = folderPath;
          Owner = owner;
          Title = F("Permissions - {0}", folderName);
 
@@ -134,7 +146,32 @@ namespace hMailServer.ControlPanel.Views
          Loaded += (s, e) => Reload();
       }
 
-      private dynamic OpenFolder(dynamic folders) => folders.ItemByName[folderName_];
+      /// <summary>
+      /// The folder, reached from the top through each folder's SubFolders, as
+      /// PublicFoldersView.OpenFolderAt reaches it. Walked here rather than through
+      /// that method so that this file says what the folder is to a reader of it
+      /// alone, build/check-deck-parity.py's census of what the program writes.
+      /// </summary>
+      private dynamic OpenFolder(dynamic folders)
+      {
+         dynamic folder = folders.ItemByName[folderPath_[0]];
+         for (int i = 1; i < folderPath_.Count; i++)
+         {
+            dynamic subFolders = folder.SubFolders;
+            try
+            {
+               dynamic next = subFolders.ItemByName[folderPath_[i]];
+               ServerSession.Release((object)folder);
+               folder = next;
+            }
+            finally
+            {
+               ServerSession.Release((object)subFolders);
+            }
+         }
+
+         return folder;
+      }
 
       private void Reload()
       {

@@ -456,6 +456,12 @@
   <data name="A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on." xml:space="preserve">
     <value>外部から届いたメッセージに含まれる送信対象の種類のファイルは、運用または契約しているサンドボックスに送信され、メッセージはどのメールボックスにも検疫にも入らないまま、その判定を待ちます。クリーンなら配信され、悪意ありなら検疫されます。両方のアドレスを設定してこれをオンにするまで、何も保留されません。</value>
   </data>
+  <data name="A folder can be at most {0} levels down." xml:space="preserve">
+    <value>フォルダーの階層は最大 {0} レベルまでです。</value>
+  </data>
+  <data name="A folder's name can be at most {0} characters long." xml:space="preserve">
+    <value>フォルダー名は最大 {0} 文字です。</value>
+  </data>
   <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>受信メールのための猶予です。上限をこの割合未満で超えたメールボックスはまだ受信できるので、1 週間不在の人が月曜に大きな添付ファイルが届いたためにメールを失うことはありません。所有者自身の保存やコピーは上限で止まります。ドメインごとに設定できます。すぐに適用されます。</value>
   </data>
@@ -518,6 +524,9 @@
   </data>
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>hMailServer 向けの最新の管理アプリケーションです。リアルタイムのダッシュボード、ドメインとアカウント、配信キュー、ログのストリーミング、サーバー設定のすべて、そして 6.x の転送セキュリティ機能 (DANE、MTA-STS、ARC、TLS-RPT、ACME) を備えています。</value>
+  </data>
+  <data name="A name cannot begin or end with &quot;{0}&quot; or have two together: &quot;{0}&quot; separates a folder from its sub-folder." xml:space="preserve">
+    <value>名前の先頭や末尾に「{0}」を置いたり、「{0}」を 2 つ続けたりすることはできません。「{0}」はフォルダーとそのサブフォルダーを区切ります。</value>
   </data>
   <data name="A name is required." xml:space="preserve">
     <value>名前は必須です。</value>
@@ -3799,6 +3808,12 @@
   <data name="Delete the public folder {0} and every message in it?" xml:space="preserve">
     <value>公開フォルダー {0} とその中のすべてのメッセージを削除しますか?</value>
   </data>
+  <data name="Delete the public folder {1}, its {0} sub-folder and every message in them?" xml:space="preserve">
+    <value>公開フォルダー {1}、その {0} 個のサブフォルダー、およびそれらの中のすべてのメッセージを削除しますか?</value>
+  </data>
+  <data name="Delete the public folder {1}, its {0} sub-folders and every message in them?" xml:space="preserve">
+    <value>公開フォルダー {1}、その {0} 個のサブフォルダー、およびそれらの中のすべてのメッセージを削除しますか?</value>
+  </data>
   <data name="Delete the remote domain policy {0}? Mail to and from that domain follows the server-wide settings again." xml:space="preserve">
     <value>リモートドメインのポリシー {0} を削除しますか? そのドメインとの間のメールは、再びサーバー全体の設定に従います。</value>
   </data>
@@ -4450,6 +4465,9 @@
   <data name="Enter a name for the certificate." xml:space="preserve">
     <value>証明書の名前を入力してください。</value>
   </data>
+  <data name="Enter a name for the folder." xml:space="preserve">
+    <value>フォルダーの名前を入力してください。</value>
+  </data>
   <data name="Enter a name for the new rule." xml:space="preserve">
     <value>新しいルールの名前を入力してください。</value>
   </data>
@@ -5031,9 +5049,6 @@
   </data>
   <data name="Folder name (use the hierarchy delimiter for sub-folders):" xml:space="preserve">
     <value>フォルダー名 (サブフォルダーには階層の区切り文字を使用):</value>
-  </data>
-  <data name="Folder name:" xml:space="preserve">
-    <value>フォルダー名:</value>
   </data>
   <data name="Folders" xml:space="preserve">
     <value>フォルダー</value>
@@ -10939,8 +10954,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Shared HMAC secret (only for HS256/384/512 tokens)" xml:space="preserve">
     <value>共有 HMAC シークレット (HS256/384/512 トークンのみ)</value>
   </data>
-  <data name="Shared IMAP folders that several accounts can access. Use the hierarchy delimiter to create sub-folders, and edit permissions to grant access." xml:space="preserve">
-    <value>複数のアカウントがアクセスできる共有 IMAP フォルダー。階層区切り文字でサブフォルダーを作成し、権限を編集してアクセスを付与します。</value>
+  <data name="Shared IMAP folders that several accounts can open, each with the permissions it is given. A name with &quot;{0}&quot; in it makes a sub-folder: {1} puts {2} under {3}." xml:space="preserve">
+    <value>複数のアカウントが開ける共有 IMAP フォルダーで、それぞれに付与された権限が適用されます。名前に「{0}」を含めるとサブフォルダーになります。{1} は {3} の下に {2} を作ります。</value>
   </data>
   <data name="Shared IMAP folders, and which accounts or groups may read and write each one." xml:space="preserve">
     <value>共有 IMAP フォルダーと、それぞれを読み書きできるアカウントまたはグループ。</value>
@@ -14717,6 +14732,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_First name" xml:space="preserve">
     <value>名(_F)</value>
   </data>
+  <data name="_Folder name" xml:space="preserve">
+    <value>フォルダー名(_F)</value>
+  </data>
   <data name="_Follow this message" xml:space="preserve">
     <value>このメッセージを追跡(_F)</value>
   </data>
@@ -16449,8 +16467,14 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} external accounts" xml:space="preserve">
     <value>外部アカウント {0} 件</value>
   </data>
+  <data name="{0} folder has &quot;{2}&quot; in its own name rather than being a sub-folder, so a mail client cannot open it: {1}. Add folder now makes such a name a sub-folder." xml:space="preserve">
+    <value>{0} 個のフォルダーはサブフォルダーではなく、名前そのものに「{2}」を含んでいるため、メール クライアントで開けません: {1}。[フォルダーを追加] は、このような名前をサブフォルダーとして作成するようになりました。</value>
+  </data>
   <data name="{0} folder." xml:space="preserve">
     <value>フォルダー {0} 件。</value>
+  </data>
+  <data name="{0} folders have &quot;{2}&quot; in their own names rather than being sub-folders, so a mail client cannot open them: {1}. Add folder now makes such a name a sub-folder." xml:space="preserve">
+    <value>{0} 個のフォルダーはサブフォルダーではなく、名前そのものに「{2}」を含んでいるため、メール クライアントで開けません: {1}。[フォルダーを追加] は、このような名前をサブフォルダーとして作成するようになりました。</value>
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>フォルダー {0} 件。</value>
@@ -16463,6 +16487,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} h {1} min" xml:space="preserve">
     <value>{0} 時間 {1} 分</value>
+  </data>
+  <data name="{0} has &quot;{1}&quot; in its own name rather than being a sub-folder, so a mail client cannot open it. Add folder now makes such a name a sub-folder." xml:space="preserve">
+    <value>{0} はサブフォルダーではなく、名前そのものに「{1}」を含んでいるため、メール クライアントで開けません。[フォルダーを追加] は、このような名前をサブフォルダーとして作成するようになりました。</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} を {1} に移動しました。</value>
@@ -16493,6 +16520,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} incoming relays" xml:space="preserve">
     <value>受信リレー {0} 件</value>
+  </data>
+  <data name="{0} is a public folder already." xml:space="preserve">
+    <value>{0} は既に公開フォルダーです。</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} は既にこのグループのメンバーです。</value>
@@ -16574,6 +16604,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} mail servers receive mail for {1}." xml:space="preserve">
     <value>{1} 宛てのメールを受け取るメール サーバーは {0} 台です。</value>
+  </data>
+  <data name="{0} makes {1} under {2}, and {2} as well if it is not there. With a folder selected, the name starts under it." xml:space="preserve">
+    <value>{0} は {2} の下に {1} を作り、{2} がなければ {2} も作ります。フォルダーを選択していると、名前はその下から始まります。</value>
   </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} 件のメッセージ</value>

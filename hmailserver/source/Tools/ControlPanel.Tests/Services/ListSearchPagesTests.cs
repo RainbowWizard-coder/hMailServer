@@ -117,7 +117,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("search_.SearchTextChanged += (_, _) => ShowSearch_();", code, StringComparison.Ordinal);
          string show = WithheldRowTests.MemberText(code, "private void ShowSearch_()");
          Assert.True(show != null, "PublicFoldersView.ShowSearch_ is gone.");
-         Assert.Contains("ListSearch.Apply(list_, query);", show, StringComparison.Ordinal);
+         Assert.Contains("ListSearch.Apply(list_, query, item => (item as PublicFolderTree.Folder)?.FullName ?? \"\");", show, StringComparison.Ordinal);
          Assert.Contains("No public folder has", show, StringComparison.Ordinal);
       }
 
