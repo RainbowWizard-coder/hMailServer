@@ -25,7 +25,15 @@ eleven commits and no check noticed. This one holds:
     it - and links its own release. release-publish ends the notes with the section's
     text, so a line left in the middle sends the reader to the release page half-way
     through; a fold of parallel work on 1 October 2026 left 6.3.6's mid-section, and it
-    was put back by hand in 26311a532.
+    was put back by hand in 26311a532;
+  - no line of an entry's text that a spaced hyphen begins in the middle of a sentence:
+    "- " at the start of a line opens a list there, so that a rewrap that put the hyphen
+    of "under the form - the level a lost link has - often below" first on a line broke
+    the entry after "has" and made the rest of it a list of one item nested in it (found
+    in t34a's CHANGELOG entry for review findings F088 and F089, 10 October 2026, with
+    two older entries of the same shape). A line before that ends a sentence or a clause
+    (".", ":", ";", "!" or "?", a closing bracket, quote or mark-up after it) is taken to
+    begin a list of its own, as entries that list their parts do.
 
   python build/check-changelog.py [--self-test]
 """
@@ -37,6 +45,34 @@ ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
 RELEASE = re.compile(r'^## \[(\d+)\.(\d+)\.(\d+)(-[0-9A-Za-z.]+)?\]\(https://gitlab\.com/[^)]+\) - \d{4}-\d{2}-\d{2}( .*)?$')
 INLINE = re.compile(r'\S\s+(---\s+##(\s|$)|##\s+\[\d|###\s+[A-Z])')
 FULL_NOTES = re.compile(r'^Full notes: \[the [^\]]+ release\]\(https://gitlab\.com/[^)]*/-/releases/v([^)/]+)\)\.\s*$')
+# A line of an entry's text that a list marker begins, and the end of a line before it
+# that closes a sentence or a clause.
+NESTED_ITEM = re.compile(r'^ +[-*+] ')
+CLAUSE_END = re.compile(r'[.:;!?][)\]"\'*_`]*$')
+
+
+def mid_sentence_items(lines):
+    """The line numbers of an entry's lines that a list marker begins mid-sentence."""
+    out = []
+    fenced = False
+    for n, line in enumerate(lines, 1):
+        if line.lstrip().startswith('```'):
+            fenced = not fenced
+            continue
+        if fenced or n < 2 or not NESTED_ITEM.match(line):
+            continue
+        before = lines[n - 2].rstrip()
+        if not before or before.lstrip().startswith(('|', '#')) or CLAUSE_END.search(before):
+            continue
+        indent = len(line) - len(line.lstrip(' '))
+        indent_before = len(before) - len(before.lstrip(' '))
+        # The line before is a deeper item's text, or an item beside this one: this line
+        # is the next item of a list. Otherwise it is of the paragraph the line before
+        # stops in the middle of.
+        if indent_before > indent or (indent_before == indent and NESTED_ITEM.match(before)):
+            continue
+        out.append(n)
+    return out
 
 
 def problems_of(text):
@@ -49,6 +85,9 @@ def problems_of(text):
         if INLINE.search(line) and not line.lstrip().startswith(('|', '`')):
             out.append('line %d: a rule or a heading inside a line of text (a rewrap that ran on too far?): %s'
                        % (n, line.strip()[:120]))
+    for n in mid_sentence_items(lines):
+        out.append('line %d: a line of an entry begins with "- " in the middle of a sentence, which opens a nested '
+                   'list there (a spaced hyphen a rewrap put first on the line?): %s' % (n, lines[n - 1].strip()[:120]))
     unreleased = [n for n, h in sections if h.startswith('## Unreleased')]
     if len(unreleased) != 1:
         out.append('%d "## Unreleased" headings, where there must be one' % len(unreleased))
@@ -123,6 +162,8 @@ def self_test():
     good = '\n'.join([
         '# Changelog', '', 'Intro.', '', '---', '',
         '## Unreleased - in the tree after 6.3.5, not yet released', '', '### Build and tests', '',
+        '- **An entry of parts.** It has three:', '  - the first, which goes on', '    over two lines;',
+        '  - the second', '  - and a third - with a spaced', '    hyphen in it.', '',
         '- **An entry.** Text that goes on', '  over two lines.', '', '---', '',
         '## [6.3.5](https://gitlab.com/p/h/-/releases/v6.3.5) - 2026-09-28', '', 'Its introduction.', '',
         '### Operations', '', '- **One.** Text.', '',
@@ -156,6 +197,12 @@ def self_test():
         'a "Full notes" line that links another release': good.replace(
             'Full notes: [the 6.3.5 release](https://gitlab.com/p/h/-/releases/v6.3.5).',
             'Full notes: [the 6.3.5 release](https://gitlab.com/p/h/-/releases/v6.3.4).'),
+        'a spaced hyphen first on a line of an entry': good.replace(
+            '  over two lines.', '  over two lines - the level a lost link\n  - has - and more.'),
+        'a spaced hyphen first on the line after an entry\'s first': good.replace(
+            'Text that goes on\n  over two lines.', 'Text that goes on\n  - over two lines.'),
+        'a spaced hyphen first on a line of a list\'s item': good.replace(
+            '  - the first, which goes on\n    over two lines;', '  - the first, which goes on\n    - over two lines;'),
         'a "Full notes" line not in its form': good.replace(
             'Full notes: [the 6.3.5 release](https://gitlab.com/p/h/-/releases/v6.3.5).', 'Full notes: on the release page.'),
     }

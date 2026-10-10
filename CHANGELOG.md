@@ -1847,12 +1847,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the cards; each row ended in an unlabelled "2", "per entry" or "-"; every row's link read "Settings…" and the lists
   card's "Open…" sat some 600 pixels from its label; and with an external engine attached (rspamd, FilterHookUrl) the
   list of checks left it out, so the overview could state a highest total of 12 that the engine's own score made
-  false. The cards are level-2 headings and the phases small strong overlines under them at level 3, over a header row
-  - Spam check, State, Adds - in which a score reads "+2", "the entry's score" or "adds nothing"; each link names the
-  page it opens, and a list's name is its link with its count beside it; the external filtering engine is the eleventh
-  check, after SpamAssassin, adding the engine's score or the reject score, so that with it on the total is open-ended
-  and the size limit's note names it among the checks that need the body; and the subtitle reads "Each spam check in
-  the order the server runs it, what it adds to the score, and what the total does to a message."
+  false. The cards are level-2 headings and the phases small strong overlines under them at level 3, over a header
+  row - Spam check, State, Adds - in which a score reads "+2", "the entry's score" or "adds nothing"; each link names
+  the page it opens, and a list's name is its link with its count beside it; the external filtering engine is the
+  eleventh check, after SpamAssassin, adding the engine's score or the reject score, so that with it on the total is
+  open-ended and the size limit's note names it among the checks that need the body; and the subtitle reads "Each spam
+  check in the order the server runs it, what it adds to the score, and what the total does to a message."
 
 - **Fixed: a field's caption was the quietest text of its row, and a field's message did not mark the field and sat
   under its hint.** A caption above a box was 12-pixel secondary text over a 12-pixel hint four points of alpha
@@ -3693,9 +3693,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 
 - **Fixed: the Administrator roles page said a missing address or role in an amber notice under its form, said
   nothing when a role was given or taken away, and nothing on it said where custom roles are made.** "An account
-  address is required." and "Choose a role to give." were a Warning notice under the form - the level a lost link has
-  - often below the window's edge; they are now said on their boxes, both at once, with the keyboard put in the first,
-  and Give the role and Take the role away stay beside the boxes when a message appears. A role given now says
+  address is required." and "Choose a role to give." were a Warning notice under the form - the level a lost link
+  has - often below the window's edge; they are now said on their boxes, both at once, with the keyboard put in the
+  first, and Give the role and Take the role away stay beside the boxes when a message appears. A role given now says
   "helen@example.com now holds helpdesk." and selects the assignment, and a role taken away says that the account no
   longer holds it and holds what its admin level gives it, where the boxes emptied and the list reloaded without a
   word. A new administrator looked for an Add role button: the Roles card says "The built-in roles cannot be changed.
@@ -4198,6 +4198,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   gone; the catch by which a Start on the indexer's own thread takes back a Stop made there was empty
   (`bugprone-empty-catch`) and now notes that it took the stop back, which the test after it reads; and the
   tester's two asks that do the same are one branch (`bugprone-branch-clone`). What the server does is unchanged.
+- **`build/check-changelog.py` refuses a line of an entry that a spaced hyphen begins in the middle of a sentence.**
+  "- " at the start of a line opens a list there, as GitLab renders the file, so that an entry wrapped with the hyphen
+  of "under the form - the level a lost link has - often below" first on a line broke after "has" and went on as a
+  list of one item nested in it. The two older entries of the shape, the spam filtering overview's under Control Panel
+  and that of the SURBL entries' hosts under 6.3.6, are wrapped again as well; a line after one that ends a sentence
+  or a clause still begins a list, as the entries that list their parts do, and the self-test holds both.
 
 ### Documentation
 
@@ -6309,10 +6315,10 @@ project's own review.
   entry named `evil.example` where the link goes to `good.example`. An entry's host is now read as the SURBL test
   reads a link's (above): the part after the last `@`, up to a port, `/`, `?`, `#` or `\`, percent-decoded, each
   leading `www.` dropped while two labels or more are left (`http://www.www.example.com/` is `example.com/`), and an
-  address in any form a browser takes (`0xC0.0.2.61`) written in dotted decimal. An entry whose host no link can have
-  - neither an IPv4 address nor a name of two labels or more, of letters, digits, `-` and `_`, within the lengths DNS
-  allows and not ending in a number - is refused: an IPv6 address and a name of one label were refused already, and
-  the rest (a name with a `!` in it, an empty label, a label of 64 characters) were stored and matched nothing.
+  address in any form a browser takes (`0xC0.0.2.61`) written in dotted decimal. An entry whose host no link can
+  have - neither an IPv4 address nor a name of two labels or more, of letters, digits, `-` and `_`, within the lengths
+  DNS allows and not ending in a number - is refused: an IPv6 address and a name of one label were refused already,
+  and the rest (a name with a `!` in it, an empty label, a label of 64 characters) were stored and matched nothing.
   Entries stored before are read the new way when the server loads them, which mends the first two forms; one stored
   from the third names `evil.example` and has to be entered again, and one of a host now refused stays in its list,
   matching nothing as it did. The cases run in `SURBLTester`, in ClassTester and, on Linux, in `public-suffix-tests`.
