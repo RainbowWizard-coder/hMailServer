@@ -132,7 +132,9 @@ namespace hMailServer.ControlPanel
             open.Add(ShellPart.Page);
          if (helpOpen_ && FirstFocusable_(HelpPanel) != null)
             open.Add(ShellPart.Help);
-         if (PendingBar.IsVisible && FirstFocusable_(PendingBar) != null)
+         // The foot of the window: the pending bar, and the paused server's bar
+         // under it (MainWindow.ServerPaused.cs), one part for F6.
+         if ((PendingBar.IsVisible && FirstFocusable_(PendingBar) != null) || FirstFocusable_(PausedBar) != null)
             open.Add(ShellPart.PendingBar);
          return open;
       }
@@ -151,7 +153,7 @@ namespace hMailServer.ControlPanel
             return ShellPart.Page;
          if (IsWithin_(focused, HelpPanel))
             return ShellPart.Help;
-         if (IsWithin_(focused, PendingBar))
+         if (IsWithin_(focused, PendingBar) || IsWithin_(focused, PausedBar))
             return ShellPart.PendingBar;
          return null;
       }
@@ -168,7 +170,7 @@ namespace hMailServer.ControlPanel
             ShellPart.Navigation => NavigationTarget_(),
             ShellPart.Page => RememberedPageFocus_() ?? FirstFocusable_(ContentHost),
             ShellPart.Help => FirstFocusable_(HelpPanel),
-            ShellPart.PendingBar => FirstFocusable_(PendingBar),
+            ShellPart.PendingBar => FirstFocusable_(PendingBar) ?? FirstFocusable_(PausedBar),
             _ => null
          };
 

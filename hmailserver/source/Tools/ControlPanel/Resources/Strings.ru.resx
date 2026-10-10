@@ -2791,6 +2791,9 @@ Control Panel может читать файлы сообщений только
   <data name="Connected to {0} as {1}" xml:space="preserve">
     <value>Подключено к {0} от имени {1}</value>
   </data>
+  <data name="Connected to {0} as {1} - the mail server is paused" xml:space="preserve">
+    <value>Подключено к {0} от имени {1} - почтовый сервер приостановлен</value>
+  </data>
   <data name="Connected to {0} over {1}." xml:space="preserve">
     <value>Подключено к {0} по {1}.</value>
   </data>
@@ -8539,6 +8542,9 @@ Control Panel может читать файлы сообщений только
 
 До возобновления новые подключения приниматься не будут и почта доставляться не будет. Служба Windows продолжает работать, поэтому этот Control Panel остаётся подключённым.</value>
   </data>
+  <data name="Paused" xml:space="preserve">
+    <value>Приостановлен</value>
+  </data>
   <data name="Paused at {0}: 1 new line of {1} is waiting." xml:space="preserve">
     <value>Приостановлено в {0}. Новых строк из {1} ожидает: 1.</value>
   </data>
@@ -8956,8 +8962,11 @@ Control Panel может читать файлы сообщений только
   <data name="R_emote domain" xml:space="preserve">
     <value>_Удалённый домен</value>
   </data>
-  <data name="R_esume" xml:space="preserve">
-    <value>_Возобновить</value>
+  <data name="R_esume the mail server" xml:space="preserve">
+    <value>_Возобновить почтовый сервер</value>
+  </data>
+  <data name="R_esume view" xml:space="preserve">
+    <value>_Возобновить просмотр</value>
   </data>
   <data name="R_ole" xml:space="preserve">
     <value>_Роль</value>
@@ -9784,6 +9793,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Restricted: named domains only" xml:space="preserve">
     <value>Ограничено: только указанные домены</value>
+  </data>
+  <data name="Resume the server" xml:space="preserve">
+    <value>Возобновить сервер</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Время жизни возобновления для кэшированных сеансов и билетов, секунды (0 — значение OpenSSL по умолчанию, 300)</value>
@@ -12669,6 +12681,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>По умолчанию адрес обратной петли и частные сети. Если очистить, ваша собственная сеть будет оцениваться как любая другая, что строгий список разрешённых отклонит — включая веб-почту и Control Deck.</value>
   </data>
+  <data name="The mail server is paused - nothing is accepted or delivered." xml:space="preserve">
+    <value>Почтовый сервер приостановлен - ничего не принимается и не доставляется.</value>
+  </data>
   <data name="The mailbox could not be moved: {0}" xml:space="preserve">
     <value>Не удалось перенести ящик: {0}</value>
   </data>
@@ -15072,11 +15087,11 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Password" xml:space="preserve">
     <value>П_ароль</value>
   </data>
-  <data name="_Pause" xml:space="preserve">
-    <value>_Приостановить</value>
-  </data>
   <data name="_Pause the mail server" xml:space="preserve">
     <value>_Приостановить почтовый сервер</value>
+  </data>
+  <data name="_Pause view" xml:space="preserve">
+    <value>_Приостановить просмотр</value>
   </data>
   <data name="_Permissions" xml:space="preserve">
     <value>_Разрешения</value>
@@ -17121,9 +17136,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} stops here: the next thing it points at is not on this screen." xml:space="preserve">
     <value>«{0}» останавливается здесь: следующее, на что она указывает, отсутствует на этом экране.</value>
-  </data>
-  <data name="{0} the mail server engine" xml:space="preserve">
-    <value>{0} движок почтового сервера</value>
   </data>
   <data name="{0} thing needs attention." xml:space="preserve">
     <value>{0} пункт требует внимания.</value>

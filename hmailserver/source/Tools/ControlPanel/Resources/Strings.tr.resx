@@ -2767,6 +2767,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Connected to {0} as {1}" xml:space="preserve">
     <value>{1} olarak {0} sunucusuna bağlanıldı</value>
   </data>
+  <data name="Connected to {0} as {1} - the mail server is paused" xml:space="preserve">
+    <value>{1} olarak {0} sunucusuna bağlanıldı - posta sunucusu duraklatıldı</value>
+  </data>
   <data name="Connected to {0} over {1}." xml:space="preserve">
     <value>{1} üzerinden {0} sunucusuna bağlanıldı.</value>
   </data>
@@ -8451,6 +8454,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
 
 Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Windows hizmeti çalışmayı sürdürür; bu yüzden bu Denetim Masası bağlı kalır.</value>
   </data>
+  <data name="Paused" xml:space="preserve">
+    <value>Duraklatıldı</value>
+  </data>
   <data name="Paused at {0}: 1 new line of {1} is waiting." xml:space="preserve">
     <value>{0} itibarıyla duraklatıldı: {1} dosyasından 1 yeni satır bekliyor.</value>
   </data>
@@ -8868,8 +8874,11 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   <data name="R_emote domain" xml:space="preserve">
     <value>_Uzak etki alanı</value>
   </data>
-  <data name="R_esume" xml:space="preserve">
-    <value>_Sürdür</value>
+  <data name="R_esume the mail server" xml:space="preserve">
+    <value>Posta sunucusunu _sürdür</value>
+  </data>
+  <data name="R_esume view" xml:space="preserve">
+    <value>Görünümü _sürdür</value>
   </data>
   <data name="R_ole" xml:space="preserve">
     <value>_Rol</value>
@@ -9684,6 +9693,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Restricted: named domains only" xml:space="preserve">
     <value>Kısıtlı: yalnızca belirtilen etki alanları</value>
+  </data>
+  <data name="Resume the server" xml:space="preserve">
+    <value>Sunucuyu sürdür</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Önbelleğe alınan oturumlar ve biletler için sürdürme ömrü, saniye (0 = OpenSSL'in varsayılanı olan 300)</value>
@@ -12506,6 +12518,9 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>Varsayılan, geri döngü adresi ve özel ağlardır. Temizlemek kendi ağınızın diğerleri gibi değerlendirilmesine yol açar ve katı bir izin listesi onu - web postası ve Control Deck dahil - reddeder.</value>
   </data>
+  <data name="The mail server is paused - nothing is accepted or delivered." xml:space="preserve">
+    <value>Posta sunucusu duraklatıldı - hiçbir şey kabul edilmiyor ya da teslim edilmiyor.</value>
+  </data>
   <data name="The mailbox could not be moved: {0}" xml:space="preserve">
     <value>Posta kutusu taşınamadı: {0}</value>
   </data>
@@ -14900,11 +14915,11 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="_Password" xml:space="preserve">
     <value>_Parola</value>
   </data>
-  <data name="_Pause" xml:space="preserve">
-    <value>_Duraklat</value>
-  </data>
   <data name="_Pause the mail server" xml:space="preserve">
     <value>Posta sunucusunu _duraklat</value>
+  </data>
+  <data name="_Pause view" xml:space="preserve">
+    <value>Görünümü _duraklat</value>
   </data>
   <data name="_Permissions" xml:space="preserve">
     <value>_İzinler</value>
@@ -16763,9 +16778,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0} stops here: the next thing it points at is not on this screen." xml:space="preserve">
     <value>“{0}” burada duruyor: gösterdiği bir sonraki öğe bu ekranda değil.</value>
-  </data>
-  <data name="{0} the mail server engine" xml:space="preserve">
-    <value>Posta sunucusu motorunu {0}</value>
   </data>
   <data name="{0} thing needs attention." xml:space="preserve">
     <value>{0} öğe dikkat gerektiriyor.</value>

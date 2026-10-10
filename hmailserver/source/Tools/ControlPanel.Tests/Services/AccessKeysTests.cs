@@ -42,8 +42,8 @@ namespace hMailServer.ControlPanel.Tests.Services
 
       /// <summary>One verb, one key; and Resume is not Refresh's key.</summary>
       [Theory]
-      [InlineData("StatusView.xaml.cs", "PauseButton.Content = L(\"R_esume\");")]
-      [InlineData("LogsView.xaml.cs", "PauseButton.Content = paused_ ? L(\"R_esume\") : L(\"_Pause\");")]
+      [InlineData("StatusView.xaml.cs", "PauseButton.Content = L(\"R_esume the mail server\");")]
+      [InlineData("LogsView.xaml.cs", "PauseButton.Content = paused_ ? L(\"R_esume view\") : L(\"_Pause view\");")]
       [InlineData("TcpIpPortsView.xaml", "Content=\"{loc:L 'Restore de_faults'}\"")]
       [InlineData("IPRangesView.xaml", "Content=\"{loc:L 'Restore de_faults'}\"")]
       [InlineData("AccountTwoFactorPanel.cs", "MakeButton(L(\"Re_move\")")]

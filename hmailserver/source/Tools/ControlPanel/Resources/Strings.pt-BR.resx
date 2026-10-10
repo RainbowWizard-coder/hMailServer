@@ -2767,6 +2767,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Connected to {0} as {1}" xml:space="preserve">
     <value>Conectado a {0} como {1}</value>
   </data>
+  <data name="Connected to {0} as {1} - the mail server is paused" xml:space="preserve">
+    <value>Conectado a {0} como {1} - o servidor de e-mail está pausado</value>
+  </data>
   <data name="Connected to {0} over {1}." xml:space="preserve">
     <value>Conectado a {0} por {1}.</value>
   </data>
@@ -8451,6 +8454,9 @@ Nada do que já está lá é removido.</value>
 
 Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele seja retomado. O serviço do Windows continua em execução, então este Control Panel permanece conectado.</value>
   </data>
+  <data name="Paused" xml:space="preserve">
+    <value>Pausado</value>
+  </data>
   <data name="Paused at {0}: 1 new line of {1} is waiting." xml:space="preserve">
     <value>Pausado às {0}: 1 nova linha de {1} está aguardando.</value>
   </data>
@@ -8868,8 +8874,11 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   <data name="R_emote domain" xml:space="preserve">
     <value>Domínio _remoto</value>
   </data>
-  <data name="R_esume" xml:space="preserve">
-    <value>_Retomar</value>
+  <data name="R_esume the mail server" xml:space="preserve">
+    <value>_Retomar o servidor de e-mail</value>
+  </data>
+  <data name="R_esume view" xml:space="preserve">
+    <value>_Retomar a exibição</value>
   </data>
   <data name="R_ole" xml:space="preserve">
     <value>_Função</value>
@@ -9684,6 +9693,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="Restricted: named domains only" xml:space="preserve">
     <value>Restrito: somente domínios indicados</value>
+  </data>
+  <data name="Resume the server" xml:space="preserve">
+    <value>Retomar o servidor</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Tempo de vida da retomada para sessões e tíquetes em cache, segundos (0 = o padrão de 300 do OpenSSL)</value>
@@ -12506,6 +12518,9 @@ não pôde ser carregado. A mensagem provavelmente já foi entregue e não está
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>O endereço de loopback e as redes privadas por padrão. Esvaziar isto faz sua própria rede ser avaliada como qualquer outra, o que uma lista de permissão rígida vai recusar - o webmail e o Control Deck inclusive.</value>
   </data>
+  <data name="The mail server is paused - nothing is accepted or delivered." xml:space="preserve">
+    <value>O servidor de e-mail está pausado - nada é aceito nem entregue.</value>
+  </data>
   <data name="The mailbox could not be moved: {0}" xml:space="preserve">
     <value>Não foi possível mover a caixa postal: {0}</value>
   </data>
@@ -14900,11 +14915,11 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="_Password" xml:space="preserve">
     <value>S_enha</value>
   </data>
-  <data name="_Pause" xml:space="preserve">
-    <value>_Pausar</value>
-  </data>
   <data name="_Pause the mail server" xml:space="preserve">
     <value>_Pausar o servidor de e-mail</value>
+  </data>
+  <data name="_Pause view" xml:space="preserve">
+    <value>_Pausar a exibição</value>
   </data>
   <data name="_Permissions" xml:space="preserve">
     <value>_Permissões</value>
@@ -16763,9 +16778,6 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="{0} stops here: the next thing it points at is not on this screen." xml:space="preserve">
     <value>“{0}” para por aqui: o próximo item que o tour indica não está nesta tela.</value>
-  </data>
-  <data name="{0} the mail server engine" xml:space="preserve">
-    <value>{0} o mecanismo do servidor de e-mail</value>
   </data>
   <data name="{0} thing needs attention." xml:space="preserve">
     <value>{0} item precisa de atenção.</value>

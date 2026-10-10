@@ -121,7 +121,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          // captions in the scope of every page the window shows.
          string checker = ReadRepositoryFile_(Path.Join("build", "check-mnemonics.py"));
          Assert.Contains("\"Apply now\", \"Restart the service…\"", checker, StringComparison.Ordinal);
-         Assert.Contains("WINDOW_BARS = {\"MainWindow.xaml\": [\"PendingBar\"]}", checker, StringComparison.Ordinal);
+         // The paused server's bar is one of the window's bars too (review finding F019).
+         Assert.Contains("WINDOW_BARS = {\"MainWindow.xaml\": [\"PendingBar\", \"PausedBar\"]}", checker, StringComparison.Ordinal);
          Assert.Contains("placed += bar_captions(files)", checker, StringComparison.Ordinal);
       }
 

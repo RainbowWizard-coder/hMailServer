@@ -17,7 +17,10 @@
                                  Subtitle="{loc:L 'Server, database and health overview.'}">
                 <scaffold:PageHeader.Actions>
                     <StackPanel Orientation="Horizontal">
-                        <ui:Button x:Name="PauseButton" Content="{loc:L '_Pause'}" Click="PauseResume_Click" IsEnabled="False"
+                        <!-- What it pauses, in its words (review finding F019): Live
+                             logs' Pause, beside it in the sidebar with the same glyph,
+                             freezes a view and nothing else. -->
+                        <ui:Button x:Name="PauseButton" Content="{loc:L '_Pause the mail server'}" Click="PauseResume_Click" IsEnabled="False"
                                    Margin="0,0,8,0"
                                    ToolTip="{loc:L 'Stops the mail server engine while the Windows service keeps running: no new connections are accepted and nothing is delivered until it is resumed.'}">
                             <ui:Button.Icon><ui:SymbolIcon x:Name="PauseButtonIcon" Symbol="Pause24" /></ui:Button.Icon>

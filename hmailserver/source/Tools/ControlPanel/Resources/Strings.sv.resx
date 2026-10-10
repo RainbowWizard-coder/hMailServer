@@ -2767,6 +2767,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Connected to {0} as {1}" xml:space="preserve">
     <value>Ansluten till {0} som {1}</value>
   </data>
+  <data name="Connected to {0} as {1} - the mail server is paused" xml:space="preserve">
+    <value>Ansluten till {0} som {1} - e-postservern är pausad</value>
+  </data>
   <data name="Connected to {0} over {1}." xml:space="preserve">
     <value>Ansluten till {0} över {1}.</value>
   </data>
@@ -8451,6 +8454,9 @@ Inget som redan finns där tas bort.</value>
 
 Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas. Windows-tjänsten fortsätter köra, så den här Kontrollpanelen förblir ansluten.</value>
   </data>
+  <data name="Paused" xml:space="preserve">
+    <value>Pausad</value>
+  </data>
   <data name="Paused at {0}: 1 new line of {1} is waiting." xml:space="preserve">
     <value>Pausad kl. {0}: 1 ny rad från {1} väntar.</value>
   </data>
@@ -8868,8 +8874,11 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="R_emote domain" xml:space="preserve">
     <value>_Fjärrdomän</value>
   </data>
-  <data name="R_esume" xml:space="preserve">
-    <value>_Återuppta</value>
+  <data name="R_esume the mail server" xml:space="preserve">
+    <value>_Återuppta e-postservern</value>
+  </data>
+  <data name="R_esume view" xml:space="preserve">
+    <value>_Återuppta vyn</value>
   </data>
   <data name="R_ole" xml:space="preserve">
     <value>_Roll</value>
@@ -9684,6 +9693,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Restricted: named domains only" xml:space="preserve">
     <value>Begränsad: endast namngivna domäner</value>
+  </data>
+  <data name="Resume the server" xml:space="preserve">
+    <value>Återuppta servern</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Återupptagningens livstid för cachade sessioner och biljetter, sekunder (0 = OpenSSL:s standard på 300)</value>
@@ -12506,6 +12518,9 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>Loopback-adressen och de privata näten som standard. Om du tömmer den bedöms ditt eget nät som alla andras, vilket en sträng tillåtlista avvisar - webbmejlen och Control Deck inräknade.</value>
   </data>
+  <data name="The mail server is paused - nothing is accepted or delivered." xml:space="preserve">
+    <value>E-postservern är pausad - inget tas emot eller levereras.</value>
+  </data>
   <data name="The mailbox could not be moved: {0}" xml:space="preserve">
     <value>Brevlådan kunde inte flyttas: {0}</value>
   </data>
@@ -14900,11 +14915,11 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="_Password" xml:space="preserve">
     <value>_Lösenord</value>
   </data>
-  <data name="_Pause" xml:space="preserve">
-    <value>_Pausa</value>
-  </data>
   <data name="_Pause the mail server" xml:space="preserve">
     <value>_Pausa e-postservern</value>
+  </data>
+  <data name="_Pause view" xml:space="preserve">
+    <value>_Pausa vyn</value>
   </data>
   <data name="_Permissions" xml:space="preserve">
     <value>Be_hörigheter</value>
@@ -16763,9 +16778,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} stops here: the next thing it points at is not on this screen." xml:space="preserve">
     <value>”{0}” stannar här: nästa sak den pekar på finns inte på den här skärmen.</value>
-  </data>
-  <data name="{0} the mail server engine" xml:space="preserve">
-    <value>{0} e-postserverns motor</value>
   </data>
   <data name="{0} thing needs attention." xml:space="preserve">
     <value>{0} sak behöver åtgärdas.</value>

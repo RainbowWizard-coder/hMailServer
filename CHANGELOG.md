@@ -2631,6 +2631,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   action; nothing can be saved until it is back". `SignOutTests` holds the menu, the steps and the session's end, and
   `ConnectionStatusTests` the sentences.
 
+- **Fixed: Pause meant two things on neighbouring pages, and a paused server was invisible everywhere else.** Server
+  status's Pause stops the mail server's engine - no connection is accepted and nothing is delivered - and Live logs'
+  Pause, with the same glyph, only freezes the view; once the engine was paused, the status pill still said Connected
+  in green on every page, since only the link fed it and nothing outside Server status read the server's state, so a
+  pause that was forgotten was a server that took no mail with no sign of it. Server status's buttons are now Pause the
+  mail server and Resume the mail server, and Live logs' Pause view and Resume view, with a glyph of their own. While
+  the server reports Stopped, the window shows a Warning bar at its foot under every page, "The mail server is paused -
+  nothing is accepted or delivered.", with Resume the server, and the pill says Paused at the Warning level, "Connected
+  to mail.example.com as Administrator - the mail server is paused" in its tool tip; the state is asked as each page is
+  entered and on the Dashboard's two-second refresh, and Server status hands it the state it reads, so that its Pause
+  and Resume show at once. F6 reaches the bar with the pending bar. `ServerPausedTests` holds the words, the bar, the
+  pill and where the state is asked.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

@@ -2767,6 +2767,9 @@ Los detalles completos se escribieron en:
   <data name="Connected to {0} as {1}" xml:space="preserve">
     <value>Conectado a {0} como {1}</value>
   </data>
+  <data name="Connected to {0} as {1} - the mail server is paused" xml:space="preserve">
+    <value>Conectado a {0} como {1} - el servidor de correo está en pausa</value>
+  </data>
   <data name="Connected to {0} over {1}." xml:space="preserve">
     <value>Conectado a {0} por {1}.</value>
   </data>
@@ -8451,6 +8454,9 @@ No se elimina nada de lo que ya está.</value>
 
 No se aceptarán conexiones nuevas ni se entregará correo hasta que se reanude. El servicio de Windows sigue en marcha, así que este Control Panel permanece conectado.</value>
   </data>
+  <data name="Paused" xml:space="preserve">
+    <value>En pausa</value>
+  </data>
   <data name="Paused at {0}: 1 new line of {1} is waiting." xml:space="preserve">
     <value>En pausa desde las {0}: espera 1 línea nueva de {1}.</value>
   </data>
@@ -8868,8 +8874,11 @@ No se aceptarán conexiones nuevas ni se entregará correo hasta que se reanude.
   <data name="R_emote domain" xml:space="preserve">
     <value>Dominio _remoto</value>
   </data>
-  <data name="R_esume" xml:space="preserve">
-    <value>_Reanudar</value>
+  <data name="R_esume the mail server" xml:space="preserve">
+    <value>_Reanudar el servidor de correo</value>
+  </data>
+  <data name="R_esume view" xml:space="preserve">
+    <value>_Reanudar la vista</value>
   </data>
   <data name="R_ole" xml:space="preserve">
     <value>_Rol</value>
@@ -9684,6 +9693,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="Restricted: named domains only" xml:space="preserve">
     <value>Restringida: solo dominios indicados</value>
+  </data>
+  <data name="Resume the server" xml:space="preserve">
+    <value>Reanudar el servidor</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Duración de la reanudación para las sesiones y los tickets en caché, en segundos (0 = el valor por defecto de OpenSSL, 300)</value>
@@ -12506,6 +12518,9 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>La dirección de bucle invertido y las redes privadas por defecto. Vaciarlo hace que su propia red se evalúe como cualquier otra, lo que una lista de permitidos estricta rechazará - el webmail y el Control Deck incluidos.</value>
   </data>
+  <data name="The mail server is paused - nothing is accepted or delivered." xml:space="preserve">
+    <value>El servidor de correo está en pausa - no se acepta ni se entrega nada.</value>
+  </data>
   <data name="The mailbox could not be moved: {0}" xml:space="preserve">
     <value>No se pudo mover el buzón: {0}</value>
   </data>
@@ -14900,11 +14915,11 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="_Password" xml:space="preserve">
     <value>Con_traseña</value>
   </data>
-  <data name="_Pause" xml:space="preserve">
-    <value>_Pausar</value>
-  </data>
   <data name="_Pause the mail server" xml:space="preserve">
     <value>_Pausar el servidor de correo</value>
+  </data>
+  <data name="_Pause view" xml:space="preserve">
+    <value>_Pausar la vista</value>
   </data>
   <data name="_Permissions" xml:space="preserve">
     <value>_Permisos</value>
@@ -16763,9 +16778,6 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="{0} stops here: the next thing it points at is not on this screen." xml:space="preserve">
     <value>«{0}» se detiene aquí: lo siguiente que señala no está en esta pantalla.</value>
-  </data>
-  <data name="{0} the mail server engine" xml:space="preserve">
-    <value>{0} el motor del servidor de correo</value>
   </data>
   <data name="{0} thing needs attention." xml:space="preserve">
     <value>{0} asunto necesita atención.</value>

@@ -2791,6 +2791,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Connected to {0} as {1}" xml:space="preserve">
     <value>Připojeno k {0} jako {1}</value>
   </data>
+  <data name="Connected to {0} as {1} - the mail server is paused" xml:space="preserve">
+    <value>Připojeno k {0} jako {1} - poštovní server je pozastaven</value>
+  </data>
   <data name="Connected to {0} over {1}." xml:space="preserve">
     <value>Připojeno k {0} přes {1}.</value>
   </data>
@@ -8539,6 +8542,9 @@ Nic, co tam již je, se neodstraní.</value>
 
 Do obnovení nebudou přijímána žádná nová připojení a nebude doručována žádná pošta. Služba Windows běží dál, takže tento Control Panel zůstane připojený.</value>
   </data>
+  <data name="Paused" xml:space="preserve">
+    <value>Pozastaveno</value>
+  </data>
   <data name="Paused at {0}: 1 new line of {1} is waiting." xml:space="preserve">
     <value>Pozastaveno v {0}. Nové řádky z {1}, které čekají: 1.</value>
   </data>
@@ -8956,8 +8962,11 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="R_emote domain" xml:space="preserve">
     <value>_Vzdálená doména</value>
   </data>
-  <data name="R_esume" xml:space="preserve">
-    <value>Po_kračovat</value>
+  <data name="R_esume the mail server" xml:space="preserve">
+    <value>Po_kračovat v provozu poštovního serveru</value>
+  </data>
+  <data name="R_esume view" xml:space="preserve">
+    <value>Po_kračovat v zobrazení</value>
   </data>
   <data name="R_ole" xml:space="preserve">
     <value>_Role</value>
@@ -9784,6 +9793,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Restricted: named domains only" xml:space="preserve">
     <value>Omezeno: pouze vyjmenované domény</value>
+  </data>
+  <data name="Resume the server" xml:space="preserve">
+    <value>Obnovit provoz serveru</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Životnost obnovení relace pro relace a tickety v cache, sekundy (0 = výchozí hodnota OpenSSL 300)</value>
@@ -12669,6 +12681,9 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>Výchozí je adresa zpětné smyčky a soukromé sítě. Vyprázdnění způsobí, že vaše vlastní síť se posuzuje jako kterákoli jiná, což přísný seznam povolených odmítne - včetně webové pošty a Control Deck.</value>
   </data>
+  <data name="The mail server is paused - nothing is accepted or delivered." xml:space="preserve">
+    <value>Poštovní server je pozastaven - nic se nepřijímá ani nedoručuje.</value>
+  </data>
   <data name="The mailbox could not be moved: {0}" xml:space="preserve">
     <value>Schránku se nepodařilo přesunout: {0}</value>
   </data>
@@ -15072,11 +15087,11 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Password" xml:space="preserve">
     <value>_Heslo</value>
   </data>
-  <data name="_Pause" xml:space="preserve">
-    <value>Po_zastavit</value>
-  </data>
   <data name="_Pause the mail server" xml:space="preserve">
     <value>_Pozastavit poštovní server</value>
+  </data>
+  <data name="_Pause view" xml:space="preserve">
+    <value>Po_zastavit zobrazení</value>
   </data>
   <data name="_Permissions" xml:space="preserve">
     <value>_Oprávnění</value>
@@ -17121,9 +17136,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} stops here: the next thing it points at is not on this screen." xml:space="preserve">
     <value>„{0}“ zde končí: to další, na co ukazuje, není na této obrazovce.</value>
-  </data>
-  <data name="{0} the mail server engine" xml:space="preserve">
-    <value>{0} engine poštovního serveru</value>
   </data>
   <data name="{0} thing needs attention." xml:space="preserve">
     <value>{0} věc vyžaduje pozornost.</value>

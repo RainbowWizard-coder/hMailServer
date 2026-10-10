@@ -402,6 +402,10 @@ namespace hMailServer.ControlPanel.Views
             ShowQueue_(snap.QueueLength);
             NameKpiCards_();
 
+            // On the two-second refresh, whether the server's engine is paused: the
+            // window says so under every page (review finding F019).
+            (Application.Current?.MainWindow as MainWindow)?.RefreshServerPaused();
+
             // Two clocks on purpose. The table's Time column has to be local time
             // to mean anything to the reader, but the throughput rate is a division
             // by an elapsed interval, and a daylight-saving change or a clock

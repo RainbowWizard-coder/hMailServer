@@ -2791,6 +2791,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Connected to {0} as {1}" xml:space="preserve">
     <value>Połączono z {0} jako {1}</value>
   </data>
+  <data name="Connected to {0} as {1} - the mail server is paused" xml:space="preserve">
+    <value>Połączono z {0} jako {1} - serwer poczty jest wstrzymany</value>
+  </data>
   <data name="Connected to {0} over {1}." xml:space="preserve">
     <value>Połączono z {0} przez {1}.</value>
   </data>
@@ -8539,6 +8542,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
 
 Do czasu wznowienia nie będą przyjmowane nowe połączenia ani dostarczana poczta. Usługa systemu Windows nadal działa, więc ta aplikacja Control Panel pozostaje połączona.</value>
   </data>
+  <data name="Paused" xml:space="preserve">
+    <value>Wstrzymany</value>
+  </data>
   <data name="Paused at {0}: 1 new line of {1} is waiting." xml:space="preserve">
     <value>Wstrzymano o {0}. Nowe wiersze z {1} czekające na wyświetlenie: 1.</value>
   </data>
@@ -8956,8 +8962,11 @@ Do czasu wznowienia nie będą przyjmowane nowe połączenia ani dostarczana poc
   <data name="R_emote domain" xml:space="preserve">
     <value>Domena _zdalna</value>
   </data>
-  <data name="R_esume" xml:space="preserve">
-    <value>Wz_nów</value>
+  <data name="R_esume the mail server" xml:space="preserve">
+    <value>Wz_nów serwer poczty</value>
+  </data>
+  <data name="R_esume view" xml:space="preserve">
+    <value>Wz_nów widok</value>
   </data>
   <data name="R_ole" xml:space="preserve">
     <value>_Rola</value>
@@ -9784,6 +9793,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="Restricted: named domains only" xml:space="preserve">
     <value>Ograniczone: tylko wskazane domeny</value>
+  </data>
+  <data name="Resume the server" xml:space="preserve">
+    <value>Wznów serwer</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Czas życia wznawiania dla sesji i biletów w pamięci podręcznej, w sekundach (0 = domyślne 300 z OpenSSL)</value>
@@ -12669,6 +12681,9 @@ Wiadomość została prawdopodobnie dostarczona i nie ma jej już w kolejce.</va
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>Domyślnie adres pętli zwrotnej i sieci prywatne. Opróżnienie sprawia, że twoja sieć jest oceniana jak każda inna, co surowa lista dozwolonych odrzuci - łącznie z pocztą w przeglądarce i Control Deck.</value>
   </data>
+  <data name="The mail server is paused - nothing is accepted or delivered." xml:space="preserve">
+    <value>Serwer poczty jest wstrzymany - nic nie jest przyjmowane ani dostarczane.</value>
+  </data>
   <data name="The mailbox could not be moved: {0}" xml:space="preserve">
     <value>Nie udało się przenieść skrzynki: {0}</value>
   </data>
@@ -15072,11 +15087,11 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="_Password" xml:space="preserve">
     <value>_Hasło</value>
   </data>
-  <data name="_Pause" xml:space="preserve">
-    <value>W_strzymaj</value>
-  </data>
   <data name="_Pause the mail server" xml:space="preserve">
-    <value>_Wstrzymaj serwer poczty</value>
+    <value>W_strzymaj serwer poczty</value>
+  </data>
+  <data name="_Pause view" xml:space="preserve">
+    <value>W_strzymaj widok</value>
   </data>
   <data name="_Permissions" xml:space="preserve">
     <value>_Uprawnienia</value>
@@ -17121,9 +17136,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} stops here: the next thing it points at is not on this screen." xml:space="preserve">
     <value>„{0}” kończy się tutaj: kolejny element, który wskazuje, nie znajduje się na tym ekranie.</value>
-  </data>
-  <data name="{0} the mail server engine" xml:space="preserve">
-    <value>{0} silnik serwera pocztowego</value>
   </data>
   <data name="{0} thing needs attention." xml:space="preserve">
     <value>{0} rzecz wymaga uwagi.</value>

@@ -81,6 +81,21 @@ namespace hMailServer.ControlPanel.Services
       }
 
       /// <summary>
+      /// The pill's level while the link is up and the server's engine is paused -
+      /// Server status's Pause, which takes no connection and delivers nothing while
+      /// the service and the link keep running (review finding F019): a Warning, so
+      /// that a paused server is never drawn in the colour of a working one.
+      /// </summary>
+      public static StatusLevel PausedLevel => StatusLevel.Warning;
+
+      /// <summary>The pill's word while the link is up and the server is paused.</summary>
+      public static string PausedWord => L("Paused");
+
+      /// <summary>The pill's sentence while the link is up and the server is paused.</summary>
+      public static string DescribePaused(string host, string userName)
+         => string.IsNullOrEmpty(host) ? PausedWord : F("Connected to {0} as {1} - the mail server is paused", host, userName ?? "");
+
+      /// <summary>
       /// The sentence a screen reader hears for the pill, and its tool tip: for a
       /// live session the host and the account, which is what "connected" means;
       /// while the link heals or after it went, the host and what happens next

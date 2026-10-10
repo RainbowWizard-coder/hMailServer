@@ -95,14 +95,16 @@ namespace hMailServer.ControlPanel.Views
          switch (state)
          {
             case ServerStateRunning_:
-               PauseButton.Content = L("_Pause");
+               // The verb names what it pauses (review finding F019): Live logs'
+               // Pause view, beside it, freezes a view.
+               PauseButton.Content = L("_Pause the mail server");
                PauseButtonIcon.Symbol = Wpf.Ui.Controls.SymbolRegular.Pause24;
                PauseButton.IsEnabled = true;
                break;
             case ServerStateStopped_:
                // The glyph swaps with the verb - a "Resume" button wearing a
                // pause icon says two things at once, and one of them is wrong.
-               PauseButton.Content = L("R_esume");
+               PauseButton.Content = L("R_esume the mail server");
                PauseButtonIcon.Symbol = Wpf.Ui.Controls.SymbolRegular.Play24;
                PauseButton.IsEnabled = true;
                break;
@@ -112,7 +114,7 @@ namespace hMailServer.ControlPanel.Views
                break;
          }
 
-         AutomationProperties.SetName(PauseButton, F("{0} the mail server engine", MnemonicText.Strip((string)PauseButton.Content)));
+         // Named by its caption, which now says what it acts on (label in name).
       }
 
       private static string DatabaseTypeName(int type) => type switch
@@ -171,6 +173,10 @@ namespace hMailServer.ControlPanel.Views
             int state = (int)app.ServerState;
             SetValue_(StateValue, L("State"), ServerStateName(state));
             UpdatePauseButton_(state);
+
+            // The window says a paused server under every page, from what this
+            // page has just read, so that Pause and Resume show at once.
+            (Application.Current?.MainWindow as MainWindow)?.ShowServerState(state);
          }
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
          {

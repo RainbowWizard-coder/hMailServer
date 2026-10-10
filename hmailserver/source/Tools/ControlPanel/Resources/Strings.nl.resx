@@ -2767,6 +2767,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Connected to {0} as {1}" xml:space="preserve">
     <value>Verbonden met {0} als {1}</value>
   </data>
+  <data name="Connected to {0} as {1} - the mail server is paused" xml:space="preserve">
+    <value>Verbonden met {0} als {1} - de mailserver is gepauzeerd</value>
+  </data>
   <data name="Connected to {0} over {1}." xml:space="preserve">
     <value>Verbonden met {0} via {1}.</value>
   </data>
@@ -8451,6 +8454,9 @@ Niets wat er al staat wordt verwijderd.</value>
 
 Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd totdat hij wordt hervat. De Windows-service blijft draaien, dus dit Control Panel blijft verbonden.</value>
   </data>
+  <data name="Paused" xml:space="preserve">
+    <value>Gepauzeerd</value>
+  </data>
   <data name="Paused at {0}: 1 new line of {1} is waiting." xml:space="preserve">
     <value>Gepauzeerd om {0}: 1 nieuwe regel uit {1} wacht.</value>
   </data>
@@ -8868,8 +8874,11 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="R_emote domain" xml:space="preserve">
     <value>_Extern domein</value>
   </data>
-  <data name="R_esume" xml:space="preserve">
-    <value>_Hervatten</value>
+  <data name="R_esume the mail server" xml:space="preserve">
+    <value>Mailserver _hervatten</value>
+  </data>
+  <data name="R_esume view" xml:space="preserve">
+    <value>Weergave _hervatten</value>
   </data>
   <data name="R_ole" xml:space="preserve">
     <value>_Rol</value>
@@ -9684,6 +9693,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Restricted: named domains only" xml:space="preserve">
     <value>Beperkt: alleen genoemde domeinen</value>
+  </data>
+  <data name="Resume the server" xml:space="preserve">
+    <value>Server hervatten</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Levensduur voor het hervatten van sessies en tickets in de cache, seconden (0 = de standaard van OpenSSL, 300)</value>
@@ -12506,6 +12518,9 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>Standaard het loopbackadres en de privénetwerken. Leegmaken laat uw eigen netwerk beoordelen als ieder ander, wat een strenge toegestaan-lijst zal weigeren - de webmail en het Control Deck inbegrepen.</value>
   </data>
+  <data name="The mail server is paused - nothing is accepted or delivered." xml:space="preserve">
+    <value>De mailserver is gepauzeerd - er wordt niets aangenomen of bezorgd.</value>
+  </data>
   <data name="The mailbox could not be moved: {0}" xml:space="preserve">
     <value>De postbus kon niet worden verplaatst: {0}</value>
   </data>
@@ -14900,11 +14915,11 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_Password" xml:space="preserve">
     <value>_Wachtwoord</value>
   </data>
-  <data name="_Pause" xml:space="preserve">
-    <value>_Pauzeren</value>
-  </data>
   <data name="_Pause the mail server" xml:space="preserve">
     <value>Mailserver _pauzeren</value>
+  </data>
+  <data name="_Pause view" xml:space="preserve">
+    <value>Weergave _pauzeren</value>
   </data>
   <data name="_Permissions" xml:space="preserve">
     <value>_Rechten</value>
@@ -16763,9 +16778,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} stops here: the next thing it points at is not on this screen." xml:space="preserve">
     <value>“{0}” stopt hier: het volgende waarnaar de rondleiding wijst, staat niet op dit scherm.</value>
-  </data>
-  <data name="{0} the mail server engine" xml:space="preserve">
-    <value>{0} de mailserver-engine</value>
   </data>
   <data name="{0} thing needs attention." xml:space="preserve">
     <value>{0} punt vraagt aandacht.</value>

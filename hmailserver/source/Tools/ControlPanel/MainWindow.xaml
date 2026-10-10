@@ -30,6 +30,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <ui:TitleBar Grid.Row="0" Title="{loc:L 'hMailServer Control Panel'}" ShowMaximize="True" ShowMinimize="True">
@@ -408,6 +409,28 @@
                 </StackPanel>
                 <scaffold:InlineNotice x:Name="PendingNotice" Level="Warning" VerticalAlignment="Center"
                                        AutomationProperties.AutomationId="pending-settings-notice" />
+            </DockPanel>
+        </Border>
+
+        <!-- The paused server, at the foot of the window under the pending bar
+             (MainWindow.ServerPaused.cs, review finding F019): while the server
+             reports Stopped - Server status's Pause, which no connection is accepted
+             and nothing delivered through, while the service and this Control
+             Panel's link keep running - a Warning that says so under every page,
+             with Resume the server. Its button carries no Alt key, as the
+             pending bar's do not: it is on screen with every page, Server status's
+             own Resume among them. -->
+        <Border x:Name="PausedBar" Grid.Row="4" Visibility="Collapsed" Padding="16,6,16,8"
+                BorderThickness="0,1,0,0" BorderBrush="{DynamicResource AppDividerBrush}"
+                AutomationProperties.AutomationId="server-paused-bar">
+            <DockPanel LastChildFill="True">
+                <ui:Button x:Name="ResumeServerButton" DockPanel.Dock="Right" Margin="12,0,0,0"
+                           Content="{loc:L 'Resume the server'}" Appearance="Primary" VerticalAlignment="Center"
+                           AutomationProperties.AutomationId="resume-paused-server"
+                           Click="ResumePausedServer_Click" />
+                <scaffold:InlineNotice x:Name="PausedNotice" Level="Warning" VerticalAlignment="Center"
+                                       Text="{loc:L 'The mail server is paused - nothing is accepted or delivered.'}"
+                                       AutomationProperties.AutomationId="server-paused-notice" />
             </DockPanel>
         </Border>
     </Grid>

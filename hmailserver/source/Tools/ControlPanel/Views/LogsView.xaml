@@ -28,8 +28,12 @@
                     <ComboBox x:Name="LogPicker" MinWidth="170" Margin="0,0,8,0" VerticalAlignment="Center"
                               SelectionChanged="LogPicker_SelectionChanged"
                               AutomationProperties.AutomationId="logs-picker" />
-                    <ui:Button x:Name="PauseButton" Content="{loc:L '_Pause'}" Click="Pause_Click" Margin="0,0,8,0">
-                        <ui:Button.Icon><ui:SymbolIcon x:Name="PauseButtonIcon" Symbol="Pause24" /></ui:Button.Icon>
+                    <!-- Pause view, with a glyph of its own: it freezes the lines shown,
+                         where Server status's Pause the mail server, beside it in the
+                         sidebar with the same glyph and word, stops the server (review
+                         finding F019). -->
+                    <ui:Button x:Name="PauseButton" Content="{loc:L '_Pause view'}" Click="Pause_Click" Margin="0,0,8,0">
+                        <ui:Button.Icon><ui:SymbolIcon x:Name="PauseButtonIcon" Symbol="PauseCircle24" /></ui:Button.Icon>
                     </ui:Button>
                     <ui:Button Content="{loc:L '_Clear view'}" Click="Clear_Click"
                                ToolTip="{loc:L 'Clears the lines shown here. The log file is not changed.'}">

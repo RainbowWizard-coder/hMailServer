@@ -2767,6 +2767,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Connected to {0} as {1}" xml:space="preserve">
     <value>Connesso a {0} come {1}</value>
   </data>
+  <data name="Connected to {0} as {1} - the mail server is paused" xml:space="preserve">
+    <value>Connesso a {0} come {1} - il server di posta è in pausa</value>
+  </data>
   <data name="Connected to {0} over {1}." xml:space="preserve">
     <value>Connesso a {0} su {1}.</value>
   </data>
@@ -8451,6 +8454,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
 
 Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna posta finché non viene ripreso. Il servizio Windows resta in esecuzione, quindi questo Control Panel rimane connesso.</value>
   </data>
+  <data name="Paused" xml:space="preserve">
+    <value>In pausa</value>
+  </data>
   <data name="Paused at {0}: 1 new line of {1} is waiting." xml:space="preserve">
     <value>In pausa dalle {0}: 1 nuova riga di {1} è in attesa.</value>
   </data>
@@ -8868,8 +8874,11 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   <data name="R_emote domain" xml:space="preserve">
     <value>D_ominio remoto</value>
   </data>
-  <data name="R_esume" xml:space="preserve">
-    <value>Ri_prendi</value>
+  <data name="R_esume the mail server" xml:space="preserve">
+    <value>Ri_prendi il server di posta</value>
+  </data>
+  <data name="R_esume view" xml:space="preserve">
+    <value>Ri_prendi la vista</value>
   </data>
   <data name="R_ole" xml:space="preserve">
     <value>R_uolo</value>
@@ -9684,6 +9693,9 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   </data>
   <data name="Restricted: named domains only" xml:space="preserve">
     <value>Limitato: solo domini indicati</value>
+  </data>
+  <data name="Resume the server" xml:space="preserve">
+    <value>Riprendi il server</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Durata della ripresa per sessioni e ticket in cache, secondi (0 = il valore predefinito di OpenSSL, 300)</value>
@@ -12506,6 +12518,9 @@ non ha potuto essere caricato. Il messaggio è probabilmente già stato consegna
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>L'indirizzo di loopback e le reti private per impostazione predefinita. Svuotarlo fa valutare la tua rete come qualsiasi altra, cosa che una lista di consentiti rigida rifiuterà - webmail e Control Deck compresi.</value>
   </data>
+  <data name="The mail server is paused - nothing is accepted or delivered." xml:space="preserve">
+    <value>Il server di posta è in pausa - non viene accettato né consegnato nulla.</value>
+  </data>
   <data name="The mailbox could not be moved: {0}" xml:space="preserve">
     <value>Non è stato possibile spostare la casella: {0}</value>
   </data>
@@ -14900,11 +14915,11 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="_Password" xml:space="preserve">
     <value>_Password</value>
   </data>
-  <data name="_Pause" xml:space="preserve">
-    <value>S_ospendi</value>
-  </data>
   <data name="_Pause the mail server" xml:space="preserve">
     <value>_Sospendi il server di posta</value>
+  </data>
+  <data name="_Pause view" xml:space="preserve">
+    <value>S_ospendi la vista</value>
   </data>
   <data name="_Permissions" xml:space="preserve">
     <value>A_utorizzazioni</value>
@@ -16763,9 +16778,6 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="{0} stops here: the next thing it points at is not on this screen." xml:space="preserve">
     <value>«{0}» si ferma qui: l'elemento successivo che indica non è su questo schermo.</value>
-  </data>
-  <data name="{0} the mail server engine" xml:space="preserve">
-    <value>{0} il motore del server di posta</value>
   </data>
   <data name="{0} thing needs attention." xml:space="preserve">
     <value>{0} elemento richiede attenzione.</value>

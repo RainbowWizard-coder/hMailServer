@@ -1158,10 +1158,15 @@ namespace hMailServer.ControlPanel
          ServerSession session = ServerSession.Current;
          string host = state == LinkState.NotConnected ? null : session?.Host;
          string user = state == LinkState.NotConnected ? null : session?.UserName;
-         string sentence = ConnectionStatus.Describe(state, host, user);
 
-         ServerStatusPill.Level = ConnectionStatus.LevelFor(state);
-         ServerStatusPill.Text = ConnectionStatus.WordFor(state);
+         // A live link to a server whose engine is paused says Paused, at Warning
+         // (MainWindow.ServerPaused.cs, review finding F019): the pill said
+         // Connected in green over a server that took no mail.
+         bool paused = serverPaused_ && state == LinkState.Connected;
+         string sentence = paused ? ConnectionStatus.DescribePaused(host, user) : ConnectionStatus.Describe(state, host, user);
+
+         ServerStatusPill.Level = paused ? ConnectionStatus.PausedLevel : ConnectionStatus.LevelFor(state);
+         ServerStatusPill.Text = paused ? ConnectionStatus.PausedWord : ConnectionStatus.WordFor(state);
          ServerStatusPill.ToolTip = sentence;
          System.Windows.Automation.AutomationProperties.SetName(ServerStatusPill, sentence);
 
@@ -1472,6 +1477,10 @@ namespace hMailServer.ControlPanel
             // fields that show them; asked afresh, since another administrator's
             // save is the kind of thing a page visit is for noticing.
             RefreshPendingBar_(fresh: true);
+
+            // And whether the server is paused, which a page visit is for noticing
+            // as well (MainWindow.ServerPaused.cs).
+            RefreshServerPaused();
          }
       }
 
@@ -2166,6 +2175,7 @@ namespace hMailServer.ControlPanel
          }
          BreadcrumbBar.Visibility = Visibility.Collapsed;
          HidePendingBar_();
+         ShowServerPaused_(false);
          currentPage_ = null;
          VersionText.Text = "";
 

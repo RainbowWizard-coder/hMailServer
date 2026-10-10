@@ -2767,6 +2767,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Connected to {0} as {1}" xml:space="preserve">
     <value>Koblet til {0} som {1}</value>
   </data>
+  <data name="Connected to {0} as {1} - the mail server is paused" xml:space="preserve">
+    <value>Koblet til {0} som {1} - e-postserveren er satt på pause</value>
+  </data>
   <data name="Connected to {0} over {1}." xml:space="preserve">
     <value>Koblet til {0} over {1}.</value>
   </data>
@@ -8451,6 +8454,9 @@ Ingenting som allerede er der, fjernes.</value>
 
 Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows-tjenesten fortsetter å kjøre, så dette Control Panel forblir tilkoblet.</value>
   </data>
+  <data name="Paused" xml:space="preserve">
+    <value>Satt på pause</value>
+  </data>
   <data name="Paused at {0}: 1 new line of {1} is waiting." xml:space="preserve">
     <value>Satt på pause kl. {0}: 1 ny linje fra {1} venter.</value>
   </data>
@@ -8868,8 +8874,11 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   <data name="R_emote domain" xml:space="preserve">
     <value>_Eksternt domene</value>
   </data>
-  <data name="R_esume" xml:space="preserve">
-    <value>_Gjenoppta</value>
+  <data name="R_esume the mail server" xml:space="preserve">
+    <value>_Gjenoppta e-postserveren</value>
+  </data>
+  <data name="R_esume view" xml:space="preserve">
+    <value>_Gjenoppta visningen</value>
   </data>
   <data name="R_ole" xml:space="preserve">
     <value>_Rolle</value>
@@ -9684,6 +9693,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   </data>
   <data name="Restricted: named domains only" xml:space="preserve">
     <value>Begrenset: bare navngitte domener</value>
+  </data>
+  <data name="Resume the server" xml:space="preserve">
+    <value>Gjenoppta serveren</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Levetid for gjenopptakelse av bufrede økter og billetter, sekunder (0 = OpenSSLs standard på 300)</value>
@@ -12506,6 +12518,9 @@ kunne ikke lastes. Meldingen er sannsynligvis levert og ikke lenger i køen.</va
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>Loopback-adressen og de private nettverkene som standard. Tømmes den, vurderes ditt eget nettverk som alle andres, noe en streng tillatelsesliste avviser - webmailen og Control Deck medregnet.</value>
   </data>
+  <data name="The mail server is paused - nothing is accepted or delivered." xml:space="preserve">
+    <value>E-postserveren er satt på pause - ingenting tas imot eller leveres.</value>
+  </data>
   <data name="The mailbox could not be moved: {0}" xml:space="preserve">
     <value>Postboksen kunne ikke flyttes: {0}</value>
   </data>
@@ -14900,11 +14915,11 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="_Password" xml:space="preserve">
     <value>_Passord</value>
   </data>
-  <data name="_Pause" xml:space="preserve">
-    <value>_Pause</value>
-  </data>
   <data name="_Pause the mail server" xml:space="preserve">
     <value>_Sett e-postserveren på pause</value>
+  </data>
+  <data name="_Pause view" xml:space="preserve">
+    <value>_Pause visningen</value>
   </data>
   <data name="_Permissions" xml:space="preserve">
     <value>_Tillatelser</value>
@@ -16763,9 +16778,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="{0} stops here: the next thing it points at is not on this screen." xml:space="preserve">
     <value>«{0}» stopper her: det neste den peker på, finnes ikke på denne skjermen.</value>
-  </data>
-  <data name="{0} the mail server engine" xml:space="preserve">
-    <value>{0} e-postservermotoren</value>
   </data>
   <data name="{0} thing needs attention." xml:space="preserve">
     <value>{0} ting trenger oppmerksomhet.</value>

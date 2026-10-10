@@ -104,7 +104,12 @@ EXEMPT = {"Cancel", "OK", "Close", "…", "...",
           # six pages or more and A of Apply now on eighteen, and the bar is in the
           # window's one access-key scope (WINDOW_BARS), so neither carries a key in
           # any language and both are reached by Tab.
-          "Apply now", "Restart the service…"}
+          "Apply now", "Restart the service…",
+          # The paused server's bar (MainWindow.xaml, review finding F019), on screen
+          # with every page while the server is paused - Server status among them,
+          # whose own R_esume the mail server takes E - and in the window's one
+          # access-key scope (WINDOW_BARS), so its one button carries no key either.
+          "Resume the server"}
 
 # Shared helpers, each with the call that places its captions on a page: every
 # caption of the helper joins the scope of every page whose code makes the call.
@@ -117,7 +122,7 @@ SHARED = {os.path.join("Services", "ReadFailure.cs"): "ReadFailure.Show("}
 # neither. A bar's captions join the scope of every page MainWindow.xaml.cs
 # makes (its pageFactories_), as a shared helper's join the pages that call it;
 # a dialog is a window of its own and is not one of them.
-WINDOW_BARS = {"MainWindow.xaml": ["PendingBar"]}
+WINDOW_BARS = {"MainWindow.xaml": ["PendingBar", "PausedBar"]}
 
 
 def parse(caption):

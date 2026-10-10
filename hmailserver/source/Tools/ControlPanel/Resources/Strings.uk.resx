@@ -2791,6 +2791,9 @@
   <data name="Connected to {0} as {1}" xml:space="preserve">
     <value>Підключено до {0} від імені {1}</value>
   </data>
+  <data name="Connected to {0} as {1} - the mail server is paused" xml:space="preserve">
+    <value>Підключено до {0} від імені {1} - поштовий сервер призупинено</value>
+  </data>
   <data name="Connected to {0} over {1}." xml:space="preserve">
     <value>Підключено до {0} через {1}.</value>
   </data>
@@ -8539,6 +8542,9 @@
 
 Нові підключення не прийматимуться, а пошта не доставлятиметься, доки роботу не буде відновлено. Служба Windows працює далі, тому ця Панель керування залишається підключеною.</value>
   </data>
+  <data name="Paused" xml:space="preserve">
+    <value>Призупинено</value>
+  </data>
   <data name="Paused at {0}: 1 new line of {1} is waiting." xml:space="preserve">
     <value>Призупинено о {0}. Нових рядків із {1} очікує: 1.</value>
   </data>
@@ -8956,8 +8962,11 @@
   <data name="R_emote domain" xml:space="preserve">
     <value>Віддалений _домен</value>
   </data>
-  <data name="R_esume" xml:space="preserve">
-    <value>Про_довжити</value>
+  <data name="R_esume the mail server" xml:space="preserve">
+    <value>Про_довжити роботу поштового сервера</value>
+  </data>
+  <data name="R_esume view" xml:space="preserve">
+    <value>Про_довжити перегляд</value>
   </data>
   <data name="R_ole" xml:space="preserve">
     <value>_Роль</value>
@@ -9784,6 +9793,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Restricted: named domains only" xml:space="preserve">
     <value>Обмежено: лише вказані домени</value>
+  </data>
+  <data name="Resume the server" xml:space="preserve">
+    <value>Продовжити роботу сервера</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Час життя відновлення для кешованих сеансів і квитків, секунд (0 = типові 300 в OpenSSL)</value>
@@ -12669,6 +12681,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>Типово адреса зворотної петлі та приватні мережі. Якщо очистити, ваша власна мережа оцінюватиметься як будь-яка інша, що суворий список дозволених відхилить — зокрема вебпошту й Control Deck.</value>
   </data>
+  <data name="The mail server is paused - nothing is accepted or delivered." xml:space="preserve">
+    <value>Поштовий сервер призупинено - нічого не приймається і не доставляється.</value>
+  </data>
   <data name="The mailbox could not be moved: {0}" xml:space="preserve">
     <value>Не вдалося перенести скриньку: {0}</value>
   </data>
@@ -15072,11 +15087,11 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_Password" xml:space="preserve">
     <value>Па_роль</value>
   </data>
-  <data name="_Pause" xml:space="preserve">
-    <value>П_ризупинити</value>
-  </data>
   <data name="_Pause the mail server" xml:space="preserve">
     <value>_Призупинити поштовий сервер</value>
+  </data>
+  <data name="_Pause view" xml:space="preserve">
+    <value>П_ризупинити перегляд</value>
   </data>
   <data name="_Permissions" xml:space="preserve">
     <value>Д_озволи</value>
@@ -17121,9 +17136,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} stops here: the next thing it points at is not on this screen." xml:space="preserve">
     <value>«{0}» зупиняється тут: наступне, на що вона вказує, відсутнє на цьому екрані.</value>
-  </data>
-  <data name="{0} the mail server engine" xml:space="preserve">
-    <value>{0} рушій поштового сервера</value>
   </data>
   <data name="{0} thing needs attention." xml:space="preserve">
     <value>{0} пункт потребує уваги.</value>

@@ -2767,6 +2767,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Connected to {0} as {1}" xml:space="preserve">
     <value>Yhdistetty kohteeseen {0} tilillä {1}</value>
   </data>
+  <data name="Connected to {0} as {1} - the mail server is paused" xml:space="preserve">
+    <value>Yhdistetty kohteeseen {0} tilillä {1} - postipalvelin on keskeytetty</value>
+  </data>
   <data name="Connected to {0} over {1}." xml:space="preserve">
     <value>Yhdistetty kohteeseen {0} yhteydellä {1}.</value>
   </data>
@@ -8451,6 +8454,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
 
 Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan. Windows-palvelu pysyy käynnissä, joten tämä Control Panel pysyy yhteydessä.</value>
   </data>
+  <data name="Paused" xml:space="preserve">
+    <value>Keskeytetty</value>
+  </data>
   <data name="Paused at {0}: 1 new line of {1} is waiting." xml:space="preserve">
     <value>Keskeytetty klo {0}: 1 uusi rivi tiedostosta {1} odottaa.</value>
   </data>
@@ -8868,8 +8874,11 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="R_emote domain" xml:space="preserve">
     <value>_Etäverkkotunnus</value>
   </data>
-  <data name="R_esume" xml:space="preserve">
-    <value>_Jatka</value>
+  <data name="R_esume the mail server" xml:space="preserve">
+    <value>_Jatka postipalvelimen toimintaa</value>
+  </data>
+  <data name="R_esume view" xml:space="preserve">
+    <value>_Jatka näkymää</value>
   </data>
   <data name="R_ole" xml:space="preserve">
     <value>_Rooli</value>
@@ -9684,6 +9693,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Restricted: named domains only" xml:space="preserve">
     <value>Rajoitettu: vain nimetyt verkkotunnukset</value>
+  </data>
+  <data name="Resume the server" xml:space="preserve">
+    <value>Jatka palvelimen toimintaa</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Välimuistiin tallennettujen istuntojen ja lippujen jatkamisen elinikä sekunteina (0 = OpenSSL:n oletus 300)</value>
@@ -12506,6 +12518,9 @@ ei voitu ladata. Viesti on todennäköisesti toimitettu eikä ole enää jonossa
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>Oletuksena silmukkaosoite ja yksityiset verkot. Sen tyhjentäminen saa oman verkkosi arvioiduksi kuten kenen tahansa muun, minkä tiukka sallittujen luettelo hylkää - verkkoposti ja Control Deck mukaan lukien.</value>
   </data>
+  <data name="The mail server is paused - nothing is accepted or delivered." xml:space="preserve">
+    <value>Postipalvelin on keskeytetty - mitään ei vastaanoteta eikä toimiteta.</value>
+  </data>
   <data name="The mailbox could not be moved: {0}" xml:space="preserve">
     <value>Postilaatikkoa ei voitu siirtää: {0}</value>
   </data>
@@ -14900,11 +14915,11 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="_Password" xml:space="preserve">
     <value>_Salasana</value>
   </data>
-  <data name="_Pause" xml:space="preserve">
-    <value>_Keskeytä</value>
-  </data>
   <data name="_Pause the mail server" xml:space="preserve">
     <value>_Keskeytä postipalvelin</value>
+  </data>
+  <data name="_Pause view" xml:space="preserve">
+    <value>_Keskeytä näkymä</value>
   </data>
   <data name="_Permissions" xml:space="preserve">
     <value>_Käyttöoikeudet</value>
@@ -16763,9 +16778,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} stops here: the next thing it points at is not on this screen." xml:space="preserve">
     <value>”{0}” päättyy tähän: seuraava kohde, johon se osoittaa, ei ole tällä näytöllä.</value>
-  </data>
-  <data name="{0} the mail server engine" xml:space="preserve">
-    <value>{0} postipalvelinmoottori</value>
   </data>
   <data name="{0} thing needs attention." xml:space="preserve">
     <value>{0} asia vaatii huomiota.</value>
