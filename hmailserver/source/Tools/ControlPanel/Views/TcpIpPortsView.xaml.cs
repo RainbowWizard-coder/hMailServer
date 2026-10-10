@@ -170,6 +170,8 @@ namespace hMailServer.ControlPanel.Views
                AddPortButton, RestoreDefaultsButton);
             CountPill.Visibility = Visibility.Collapsed;
             HideSummary_();
+            PortsChangedNotice.Content = null;
+            PortsChangedNotice.Visibility = Visibility.Collapsed;
          }
       }
 
@@ -238,8 +240,105 @@ namespace hMailServer.ControlPanel.Views
          PortGrid.ItemsSource = rows;
          CountPill.Visibility = Visibility.Visible;
          ShowListState_();
+         FillCertificates_(certNames);
 
+         // The changes waiting for a reinitialise first: their notice takes the
+         // Reinitialise now that the listening warning offers otherwise.
+         ShowPortsChanged_();
          ShowListenerSummary(rows, local, serverState);
+      }
+
+      // How many certificates the server has, read with the ports, which the add
+      // form's refusal of a TLS port without one says.
+      private int certificateCount_;
+
+      /// <summary>The add form's certificates: (none) and each certificate by name, keeping the one chosen.</summary>
+      private void FillCertificates_(Dictionary<int, string> names)
+      {
+         int chosen = DialogFields.ComboValue(NewCertificate);
+         NewCertificate.Items.Clear();
+         NewCertificate.Items.Add(DialogFields.Combo(L("(none)"), 0));
+         foreach (KeyValuePair<int, string> certificate in names)
+            NewCertificate.Items.Add(DialogFields.Combo(certificate.Value, certificate.Key));
+         DialogFields.SelectCombo(NewCertificate, chosen, orFirst: true);
+         certificateCount_ = names.Count;
+      }
+
+      /// <summary>
+      /// The notice above the list while the ports changed in this session wait for
+      /// the server to read them (Services/PortChanges), with Reinitialise now; none
+      /// once they do. It took the place of a question after every change.
+      /// </summary>
+      private void ShowPortsChanged_()
+      {
+         bool pending = PortChanges.ArePending(ServerSession.Current);
+         Wpf.Ui.Controls.Button reinitialise = ReinitialiseButton_();
+         if (pending)
+         {
+            if (ReferenceEquals(ListenerSummary.Content, reinitialise))
+            {
+               if (ListenerSummary.IsKeyboardFocusWithin)
+                  MoveFocusFromSummary_();
+               ListenerSummary.Content = null;
+            }
+
+            PortsChangedNotice.Text = PortChanges.PendingNotice;
+            PortsChangedNotice.Content = reinitialise;
+            PortsChangedNotice.Visibility = Visibility.Visible;
+            return;
+         }
+
+         if (ReferenceEquals(PortsChangedNotice.Content, reinitialise) && PortsChangedNotice.IsKeyboardFocusWithin
+             && !(PortGrid.IsVisible && PortGrid.Focus()))
+            PortsChangedNotice.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
+         PortsChangedNotice.Content = null;
+         PortsChangedNotice.Visibility = Visibility.Collapsed;
+      }
+
+      /// <summary>The width from which the add form's six parts are on one line.</summary>
+      private const double AddFormOneLineWidth = 840;
+
+      /// <summary>
+      /// The add form on one line where the card is wide enough for its six parts,
+      /// and on two below that - the protocol, the address and the port, then the
+      /// security, the certificate and Add - so that no box is narrower than what it
+      /// holds: with the certificate, one line of six left the security box too
+      /// narrow for "STARTTLS (required)" in the narrowest window.
+      /// </summary>
+      private void AddPortForm_SizeChanged(object sender, SizeChangedEventArgs e)
+      {
+         if (!e.WidthChanged)
+            return;
+
+         bool oneLine = e.NewSize.Width >= AddFormOneLineWidth;
+         Place_(PortProtocolRow, 0, 0, 1);
+         Place_(PortAddressRow, 0, 1, oneLine ? 1 : 3);
+         Place_(PortNumberRow, 0, oneLine ? 2 : 4, oneLine ? 1 : 2);
+         Place_(PortSecurityRow, oneLine ? 0 : 1, oneLine ? 3 : 0, oneLine ? 1 : 2);
+         Place_(PortCertificateRow, oneLine ? 0 : 1, oneLine ? 4 : 2, oneLine ? 1 : 3);
+         Place_(AddPortLine, oneLine ? 0 : 1, 5, 1);
+
+         // The second line a gap below the first, as the lines of every form are.
+         Thickness second = oneLine ? new Thickness(0, 0, 8, 0) : new Thickness(0, 12, 8, 0);
+         PortSecurityRow.Margin = second;
+         PortCertificateRow.Margin = second;
+         AddPortLine.Margin = oneLine ? new Thickness(0) : new Thickness(0, 12, 0, 0);
+      }
+
+      private static void Place_(UIElement element, int row, int column, int span)
+      {
+         Grid.SetRow(element, row);
+         Grid.SetColumn(element, column);
+         Grid.SetColumnSpan(element, span);
+      }
+
+      /// <summary>The certificate box follows the security: enabled while it is not None.</summary>
+      private void NewSecurity_SelectionChanged(object sender, SelectionChangedEventArgs e)
+      {
+         if (NewCertificate == null || PortCertificateRow == null)
+            return;
+         NewCertificate.IsEnabled = NewSecurity.SelectedIndex > 0;
+         PortCertificateRow.Error = null;
       }
 
       /// <summary>The header's Refresh: the list read again, as F5 reads it.</summary>
@@ -316,7 +415,8 @@ namespace hMailServer.ControlPanel.Views
          // With the action that the commonest cause needs: the server reads its
          // port list when it starts, and Reinitialise now starts its services
          // again in place.
-         ShowSummary_(StatusLevel.Warning, ListenerProbe.NotListeningSummary(names), ReinitialiseButton_());
+         ShowSummary_(StatusLevel.Warning, ListenerProbe.NotListeningSummary(names),
+            PortChanges.ArePending(ServerSession.Current) ? null : ReinitialiseButton_());
       }
 
       /// <summary>
@@ -499,9 +599,12 @@ namespace hMailServer.ControlPanel.Views
 
          var dialog = new TcpIpPortDialog(Window.GetWindow(this), row.Id);
          dialog.ShowDialog();
-         Reload();
+
+         // A saved port waits for a reinitialise, which the notice above the list
+         // says until there is one, where a question asked to reinitialise now.
          if (dialog.Saved)
-            OfferReinitialize_();
+            PortChanges.Changed(ServerSession.Current);
+         Reload();
       }
 
       /// <summary>
@@ -510,7 +613,10 @@ namespace hMailServer.ControlPanel.Views
       /// reading the ports afresh). Nothing said so but the page's subtitle, so a
       /// first setup that gave the submission port TLS went on serving it in the
       /// clear with every sign of being done. Offered, not done: it disconnects
-      /// whoever is connected.
+      /// whoever is connected. Asked after Restore defaults alone, which replaces
+      /// every port; an add, an edit or a delete is said by the notice above the
+      /// list (ShowPortsChanged_), where the question came after every one of them
+      /// (review finding F222).
       /// </summary>
       private void OfferReinitialize_()
       {
@@ -556,7 +662,10 @@ namespace hMailServer.ControlPanel.Views
          }
 
          if (failure == null)
+         {
+            PortChanges.Applied(ServerSession.Current);
             Services.Toast.Success(L("Reinitialised - the server now listens on the ports as this page lists them."));
+         }
          else
             Services.Toast.Failure(F("Could not reinitialise: {0}", failure), L("Control Panel"));
 
@@ -568,12 +677,17 @@ namespace hMailServer.ControlPanel.Views
          // Said on the box at fault, both on one press, with the keyboard in the
          // first, where a message box said the port away from its box and the
          // address went to the server as typed (review finding F212).
-         DialogFields.ClearErrors(PortAddressRow, PortNumberRow);
+         DialogFields.ClearErrors(PortAddressRow, PortNumberRow, PortCertificateRow);
          if (!InlineFormChecks.IsAddress(NewAddress.Text))
             PortAddressRow.Error = L("Enter the address to listen on, such as 0.0.0.0 for every IPv4 address.");
          if (!InlineFormChecks.TryPort(NewPort.Text, out int portNumber))
             PortNumberRow.Error = L("Enter a port from 1 to 65535.");
-         if (DialogFields.ShowFirstError(PortAddressRow, PortNumberRow))
+         // A port with connection security presents a certificate, chosen here,
+         // where the form had no box for it and a TLS port it added did not start.
+         int security = NewSecurity.SelectedIndex;
+         int certificate = DialogFields.ComboValue(NewCertificate);
+         PortCertificateRow.Error = PortChanges.CertificateProblem(security, certificate, certificateCount_);
+         if (DialogFields.ShowFirstError(PortAddressRow, PortNumberRow, PortCertificateRow))
             return;
 
          int protocol = NewProtocol.SelectedIndex switch
@@ -590,7 +704,9 @@ namespace hMailServer.ControlPanel.Views
             port.Protocol = protocol;
             port.Address = NewAddress.Text.Trim();
             port.PortNumber = portNumber;
-            port.ConnectionSecurity = NewSecurity.SelectedIndex;
+            port.ConnectionSecurity = security;
+            if (security > 0)
+               port.SSLCertificateID = certificate;
             port.Save();
             ServerSession.Release(port);
          }
@@ -605,8 +721,8 @@ namespace hMailServer.ControlPanel.Views
          }
 
          NewPort.Text = "";
+         PortChanges.Changed(ServerSession.Current);
          Reload();
-         OfferReinitialize_();
       }
 
       /// <summary>
@@ -640,6 +756,8 @@ namespace hMailServer.ControlPanel.Views
             ServerSession.Release(ports);
          }
 
+         if (restored)
+            PortChanges.Changed(ServerSession.Current);
          Reload();
          if (restored)
             OfferReinitialize_();
@@ -683,9 +801,9 @@ namespace hMailServer.ControlPanel.Views
             ServerSession.Release(ports);
          }
 
-         Reload();
          if (deleted)
-            OfferReinitialize_();
+            PortChanges.Changed(ServerSession.Current);
+         Reload();
       }
    }
 }

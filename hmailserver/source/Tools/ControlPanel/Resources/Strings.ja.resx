@@ -576,6 +576,9 @@
   <data name="A piece of equipment" xml:space="preserve">
     <value>設備</value>
   </data>
+  <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the SSL certificates page first." xml:space="preserve">
+    <value>SSL/TLS または STARTTLS のポートは証明書を提示しますが、サーバーにはまだ証明書がありません。先に SSL 証明書ページで追加してください。</value>
+  </data>
   <data name="A profile for this server" xml:space="preserve">
     <value>このサーバーのプロファイル</value>
   </data>
@@ -2236,6 +2239,9 @@
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>クライアント証明書のチェーン先となる CA 証明書バンドル (PEM)(_A)</value>
   </data>
+  <data name="C_ertificate" xml:space="preserve">
+    <value>証明書(_E)</value>
+  </data>
   <data name="C_hange the password" xml:space="preserve">
     <value>パスワードを変更(_H)</value>
   </data>
@@ -2541,6 +2547,9 @@
   </data>
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>解析ツールが行を読めるように NCSA Common Log Format を、ログ シッパー向けには JSON を選択してください。</value>
+  </data>
+  <data name="Choose the certificate this port presents." xml:space="preserve">
+    <value>このポートが提示する証明書を選んでください。</value>
   </data>
   <data name="Choose the day the range expires." xml:space="preserve">
     <value>範囲の有効期限の日を選択してください。</value>
@@ -8610,6 +8619,9 @@
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>ポート {0} は TLS なしでサブミッションを受け付けているため、パスワードとメールが平文でネットワークを流れます。</value>
   </data>
+  <data name="Ports changed - the server goes on listening on the old set until it is reinitialised." xml:space="preserve">
+    <value>ポートが変更されました - サーバーは再初期化されるまで、以前のポートで待ち受けを続けます。</value>
+  </data>
   <data name="Ports…" xml:space="preserve">
     <value>ポート…</value>
   </data>
@@ -12671,8 +12683,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The port to ask on" xml:space="preserve">
     <value>問い合わせに使うポート</value>
   </data>
-  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one." xml:space="preserve">
-    <value>各プロトコルが待ち受けるポート、そのバインド アドレス、接続セキュリティ。変更はサーバーを再初期化したときに有効になり、このページは変更のたびに再初期化を提案します。</value>
+  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which the notice above the list offers until it is." xml:space="preserve">
+    <value>各プロトコルが待ち受けるポート、そのバインド アドレス、接続セキュリティ。変更はサーバーを再初期化したときに有効になり、それまで一覧の上の通知が再初期化を提案します。</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>秘密鍵はこの証明書のものではありません。公開鍵が異なります。このペアは読み込まれず (サーバー エラー 5113)、この証明書を使うすべての TLS ポートが起動に失敗します。このエントリを、この証明書と共に生成された鍵ファイルに向けてください。</value>

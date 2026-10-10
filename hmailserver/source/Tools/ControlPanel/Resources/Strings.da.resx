@@ -576,6 +576,9 @@
   <data name="A piece of equipment" xml:space="preserve">
     <value>Et stykke udstyr</value>
   </data>
+  <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the SSL certificates page first." xml:space="preserve">
+    <value>En port med SSL/TLS eller STARTTLS præsenterer et certifikat, og serveren har endnu ingen: tilføj først et på siden SSL-certifikater.</value>
+  </data>
   <data name="A profile for this server" xml:space="preserve">
     <value>En profil til denne server</value>
   </data>
@@ -2236,6 +2239,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>C_A-certifikatbundt (PEM), som klientcertifikater skal kæde til</value>
   </data>
+  <data name="C_ertificate" xml:space="preserve">
+    <value>_Certifikat</value>
+  </data>
   <data name="C_hange the password" xml:space="preserve">
     <value>_Skift adgangskoden</value>
   </data>
@@ -2541,6 +2547,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   </data>
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Vælg NCSA Common Log Format, så et analyseværktøj kan læse linjerne, eller JSON til en logafsender.</value>
+  </data>
+  <data name="Choose the certificate this port presents." xml:space="preserve">
+    <value>Vælg det certifikat, denne port præsenterer.</value>
   </data>
   <data name="Choose the day the range expires." xml:space="preserve">
     <value>Vælg den dag, intervallet udløber.</value>
@@ -8610,6 +8619,9 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>Port {0} tager imod indlevering uden TLS, så adgangskoder og post ville gå i klartekst over nettet.</value>
   </data>
+  <data name="Ports changed - the server goes on listening on the old set until it is reinitialised." xml:space="preserve">
+    <value>Portene er ændret - serveren lytter fortsat på de gamle, indtil den reinitialiseres.</value>
+  </data>
   <data name="Ports…" xml:space="preserve">
     <value>Porte…</value>
   </data>
@@ -12671,8 +12683,8 @@ kunne ikke indlæses. Meddelelsen er sandsynligvis leveret og ikke længere i k�
   <data name="The port to ask on" xml:space="preserve">
     <value>Porten der spørges på</value>
   </data>
-  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one." xml:space="preserve">
-    <value>De porte, hver protokol lytter på, deres bindingsadresse og forbindelsessikkerhed. En ændring træder i kraft, når serveren reinitialiseres, hvilket denne side tilbyder efter hver ændring.</value>
+  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which the notice above the list offers until it is." xml:space="preserve">
+    <value>De porte, hver protokol lytter på, deres bindingsadresse og forbindelsessikkerhed. En ændring træder i kraft, når serveren reinitialiseres, hvilket meddelelsen over listen tilbyder, indtil det sker.</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>Den private nøgle hører ikke til dette certifikat: deres offentlige nøgler er forskellige. Parret indlæses ikke (serverfejl 5113), og enhver TLS-port, der bruger dette certifikat, vil ikke kunne starte. Peg denne post på den nøglefil, der blev genereret sammen med dette certifikat.</value>

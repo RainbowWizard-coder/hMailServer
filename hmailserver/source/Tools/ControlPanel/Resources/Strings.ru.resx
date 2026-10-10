@@ -579,6 +579,9 @@
   <data name="A piece of equipment" xml:space="preserve">
     <value>Оборудование</value>
   </data>
+  <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the SSL certificates page first." xml:space="preserve">
+    <value>Порт с SSL/TLS или STARTTLS предъявляет сертификат, а на сервере ещё нет ни одного: сначала добавьте его на странице «Сертификаты SSL».</value>
+  </data>
   <data name="A profile for this server" xml:space="preserve">
     <value>Профиль для этого сервера</value>
   </data>
@@ -2260,6 +2263,9 @@ Control Panel может читать файлы сообщений только
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>Набор сертификатов _ЦС (PEM), до которого должна выстраиваться цепочка клиентских сертификатов</value>
   </data>
+  <data name="C_ertificate" xml:space="preserve">
+    <value>Сер_тификат</value>
+  </data>
   <data name="C_hange the password" xml:space="preserve">
     <value>_Изменить пароль</value>
   </data>
@@ -2565,6 +2571,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Выберите NCSA Common Log Format, чтобы строки читал анализатор, или JSON — для системы сбора журналов.</value>
+  </data>
+  <data name="Choose the certificate this port presents." xml:space="preserve">
+    <value>Выберите сертификат, который предъявляет этот порт.</value>
   </data>
   <data name="Choose the day the range expires." xml:space="preserve">
     <value>Выберите день, когда диапазон истекает.</value>
@@ -8701,6 +8710,9 @@ Control Panel может читать файлы сообщений только
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>Порт {0} принимает отправку без TLS, поэтому пароли и почта шли бы по сети открытым текстом.</value>
   </data>
+  <data name="Ports changed - the server goes on listening on the old set until it is reinitialised." xml:space="preserve">
+    <value>Порты изменены - сервер продолжает прослушивать прежние, пока не будет повторно инициализирован.</value>
+  </data>
   <data name="Ports…" xml:space="preserve">
     <value>Порты…</value>
   </data>
@@ -12837,8 +12849,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The port to ask on" xml:space="preserve">
     <value>Порт, на котором спрашивать</value>
   </data>
-  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one." xml:space="preserve">
-    <value>Порты, которые слушает каждый протокол, их адрес привязки и безопасность соединения. Изменение вступает в силу при повторной инициализации сервера, которую эта страница предлагает после каждого изменения.</value>
+  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which the notice above the list offers until it is." xml:space="preserve">
+    <value>Порты, которые слушает каждый протокол, их адрес привязки и безопасность соединения. Изменение вступает в силу при повторной инициализации сервера, которую уведомление над списком предлагает, пока она не выполнена.</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>Закрытый ключ не принадлежит этому сертификату: их открытые ключи различаются. Пара не загрузится (ошибка сервера 5113), и ни один порт TLS, использующий этот сертификат, не запустится. Укажите в этой записи файл ключа, который был сгенерирован вместе с этим сертификатом.</value>

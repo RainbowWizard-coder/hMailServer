@@ -694,7 +694,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | `PortNumber` | TcpIpPortDialog, TcpIpPortsView | `POST /api/v1/ports` (setter)<br>`PUT /api/v1/ports/{id}` (setter)<br>`POST /api/v1/webhooks` (words, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (words, scope unknown) | ports, webhooks |
 | `Protocol` | TcpIpPortDialog, TcpIpPortsView | `POST /api/v1/ports` (setter)<br>`PUT /api/v1/ports/{id}` (setter) | ports |
 | `SMTPAuthentication` | TcpIpPortDialog | `POST /api/v1/ports` (setter)<br>`PUT /api/v1/ports/{id}` (setter) | ports |
-| `SSLCertificateID` | TcpIpPortDialog | `POST /api/v1/ports` (setter)<br>`PUT /api/v1/ports/{id}` (setter) | ports |
+| `SSLCertificateID` | TcpIpPortDialog, TcpIpPortsView | `POST /api/v1/ports` (setter)<br>`PUT /api/v1/ports/{id}` (setter) | ports |
 
 ### WhiteListAddress
 

@@ -44,7 +44,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("if (!InlineFormChecks.IsAddress(NewAddress.Text))", add, StringComparison.Ordinal);
          Assert.Contains("PortAddressRow.Error = L(\"Enter the address to listen on, such as 0.0.0.0 for every IPv4 address.\");", add, StringComparison.Ordinal);
          Assert.Contains("PortNumberRow.Error = L(\"Enter a port from 1 to 65535.\");", add, StringComparison.Ordinal);
-         Assert.Contains("if (DialogFields.ShowFirstError(PortAddressRow, PortNumberRow))", add, StringComparison.Ordinal);
+         Assert.Contains("if (DialogFields.ShowFirstError(PortAddressRow, PortNumberRow, PortCertificateRow))", add, StringComparison.Ordinal);
          Assert.DoesNotContain("MessageBox.Show(L(\"Enter a valid port number.\")", add, StringComparison.Ordinal);
       }
 

@@ -576,6 +576,9 @@
   <data name="A piece of equipment" xml:space="preserve">
     <value>Um equipamento</value>
   </data>
+  <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the SSL certificates page first." xml:space="preserve">
+    <value>Uma porta com SSL/TLS ou STARTTLS apresenta um certificado, e o servidor ainda não tem nenhum: adicione um primeiro na página Certificados SSL.</value>
+  </data>
   <data name="A profile for this server" xml:space="preserve">
     <value>Um perfil para este servidor</value>
   </data>
@@ -2236,6 +2239,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>Pacote de certificados de C_A (PEM) ao qual os certificados de cliente devem encadear</value>
   </data>
+  <data name="C_ertificate" xml:space="preserve">
+    <value>_Certificado</value>
+  </data>
   <data name="C_hange the password" xml:space="preserve">
     <value>Al_terar a senha</value>
   </data>
@@ -2541,6 +2547,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   </data>
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Escolha o NCSA Common Log Format para que um analisador consiga ler as linhas, ou JSON para um encaminhador de logs.</value>
+  </data>
+  <data name="Choose the certificate this port presents." xml:space="preserve">
+    <value>Escolha o certificado que esta porta apresenta.</value>
   </data>
   <data name="Choose the day the range expires." xml:space="preserve">
     <value>Escolha o dia em que a faixa expira.</value>
@@ -8610,6 +8619,9 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>A porta {0} aceita envio sem TLS, então senhas e e-mails cruzariam a rede em texto claro.</value>
   </data>
+  <data name="Ports changed - the server goes on listening on the old set until it is reinitialised." xml:space="preserve">
+    <value>Portas alteradas - o servidor continua escutando nas anteriores até ser reinicializado.</value>
+  </data>
   <data name="Ports…" xml:space="preserve">
     <value>Portas…</value>
   </data>
@@ -12671,8 +12683,8 @@ não pôde ser carregado. A mensagem provavelmente já foi entregue e não está
   <data name="The port to ask on" xml:space="preserve">
     <value>A porta usada para consultar</value>
   </data>
-  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one." xml:space="preserve">
-    <value>As portas em que cada protocolo escuta, seu endereço de vínculo e a segurança da conexão. Uma alteração vale quando o servidor é reinicializado, o que esta página oferece após cada uma.</value>
+  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which the notice above the list offers until it is." xml:space="preserve">
+    <value>As portas em que cada protocolo escuta, seu endereço de vínculo e a segurança da conexão. Uma alteração vale quando o servidor é reinicializado, o que o aviso acima da lista oferece até que isso aconteça.</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>A chave privada não pertence a este certificado: as chaves públicas delas diferem. O par não será carregado (erro do servidor 5113) e toda porta TLS que use este certificado falhará ao iniciar. Aponte esta entrada para o arquivo de chave que foi gerado junto com este certificado.</value>

@@ -18,7 +18,7 @@
         </Grid.RowDefinitions>
 
         <scaffold:PageHeader PageKey="ports"
-                             Subtitle="{loc:L 'The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one.'}">
+                             Subtitle="{loc:L 'The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which the notice above the list offers until it is.'}">
             <!-- The list page pattern (docs/ControlPanelDesign.md, List pages): the
                  count beside the title and Refresh in the header, the list's own
                  verbs in the toolbar above it (review finding F288). -->
@@ -62,6 +62,13 @@
         <!-- A read that failed: Critical, with Try again, in place of the empty
              state, which would say there are no ports (Services/ReadFailure). -->
         <scaffold:InlineNotice x:Name="Notice" Visibility="Collapsed" />
+
+        <!-- Ports changed in this session and not yet reinitialised: what the server
+             listens on until it is, with Reinitialise now, where a question after
+             every add, edit and delete asked to reinitialise there and then
+             (review finding F222; Services/PortChanges). -->
+        <scaffold:InlineNotice x:Name="PortsChangedNotice" Level="Warning" Visibility="Collapsed"
+                               AutomationProperties.AutomationId="ports-changed" />
 
         <!-- The floor: three rows on the grid's own FillPanel and the empty
              state laid over them, as the IP ranges page's list card. -->
@@ -129,17 +136,23 @@
 
         <!-- The captions of the line share one height (FieldRow.LabelGroup) and Add
              sits under a row of it, so that a message under one box moves none of
-             the others. -->
+             the others. One line where the card is wide enough for its six parts,
+             two in a narrower window (TcpIpPortsView.AddPortForm_SizeChanged). -->
         <scaffold:Card Title="{loc:L 'Add port'}" Margin="0,12,0,0">
-            <Grid x:Name="AddPortForm" Grid.IsSharedSizeScope="True">
+            <Grid x:Name="AddPortForm" Grid.IsSharedSizeScope="True" SizeChanged="AddPortForm_SizeChanged">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" MinWidth="110" />
                     <ColumnDefinition Width="2*" />
                     <ColumnDefinition Width="*" MinWidth="80" />
                     <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="2*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <scaffold:FieldRow Label="{loc:L 'Proto_col'}" Margin="0,0,8,0" LabelGroup="PortLine">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <scaffold:FieldRow x:Name="PortProtocolRow" Label="{loc:L 'Proto_col'}" Margin="0,0,8,0" LabelGroup="PortLine">
                     <ComboBox x:Name="NewProtocol" SelectedIndex="0">
                         <ComboBoxItem Content="SMTP" />
                         <ComboBoxItem Content="POP3" />
@@ -152,15 +165,21 @@
                 <scaffold:FieldRow x:Name="PortNumberRow" Grid.Column="2" Label="{loc:L 'Por_t'}" Margin="0,0,8,0" LabelGroup="PortLine">
                     <ui:TextBox x:Name="NewPort" />
                 </scaffold:FieldRow>
-                <scaffold:FieldRow Grid.Column="3" Label="{loc:L '_Security'}" Margin="0,0,8,0" LabelGroup="PortLine">
-                    <ComboBox x:Name="NewSecurity" SelectedIndex="0">
+                <scaffold:FieldRow x:Name="PortSecurityRow" Grid.Column="3" Label="{loc:L '_Security'}" Margin="0,0,8,0" LabelGroup="PortLine">
+                    <ComboBox x:Name="NewSecurity" SelectedIndex="0" SelectionChanged="NewSecurity_SelectionChanged">
                         <ComboBoxItem Content="{loc:L 'None'}" />
                         <ComboBoxItem Content="SSL/TLS" />
                         <ComboBoxItem Content="{loc:L 'STARTTLS (optional)'}" />
                         <ComboBoxItem Content="{loc:L 'STARTTLS (required)'}" />
                     </ComboBox>
                 </scaffold:FieldRow>
-                <Grid Grid.Column="4">
+                <!-- The certificate a TLS port presents, which the form could not set: a
+                     port added with SSL/TLS or STARTTLS and no certificate did not start
+                     (review finding F222). Enabled while the security is not None. -->
+                <scaffold:FieldRow x:Name="PortCertificateRow" Grid.Column="4" Label="{loc:L 'C_ertificate'}" Margin="0,0,8,0" LabelGroup="PortLine">
+                    <ComboBox x:Name="NewCertificate" IsEnabled="False" AutomationProperties.AutomationId="ports-new-certificate" />
+                </scaffold:FieldRow>
+                <Grid x:Name="AddPortLine" Grid.Column="5">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" SharedSizeGroup="PortLine" />
                         <RowDefinition Height="Auto" />

@@ -579,6 +579,9 @@
   <data name="A piece of equipment" xml:space="preserve">
     <value>Vybavení</value>
   </data>
+  <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the SSL certificates page first." xml:space="preserve">
+    <value>Port s SSL/TLS nebo STARTTLS předkládá certifikát a server zatím žádný nemá: nejprve jej přidejte na stránce Certifikáty SSL.</value>
+  </data>
   <data name="A profile for this server" xml:space="preserve">
     <value>Profil pro tento server</value>
   </data>
@@ -2260,6 +2263,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>_Balík certifikátů CA (PEM), ke kterému musí klientské certifikáty vést řetězem</value>
   </data>
+  <data name="C_ertificate" xml:space="preserve">
+    <value>C_ertifikát</value>
+  </data>
   <data name="C_hange the password" xml:space="preserve">
     <value>_Změnit heslo</value>
   </data>
@@ -2565,6 +2571,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Zvolte NCSA Common Log Format, aby řádky dokázal přečíst analyzátor, nebo JSON pro nástroj odesílající logy.</value>
+  </data>
+  <data name="Choose the certificate this port presents." xml:space="preserve">
+    <value>Vyberte certifikát, který tento port předkládá.</value>
   </data>
   <data name="Choose the day the range expires." xml:space="preserve">
     <value>Vyberte den, kdy rozsah vyprší.</value>
@@ -8701,6 +8710,9 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>Port {0} přijímá odesílání bez TLS, takže hesla a pošta by putovaly sítí v otevřené podobě.</value>
   </data>
+  <data name="Ports changed - the server goes on listening on the old set until it is reinitialised." xml:space="preserve">
+    <value>Porty se změnily - server dál naslouchá na původních, dokud nebude reinicializován.</value>
+  </data>
   <data name="Ports…" xml:space="preserve">
     <value>Porty…</value>
   </data>
@@ -12837,8 +12849,8 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   <data name="The port to ask on" xml:space="preserve">
     <value>Port, na kterém se ptát</value>
   </data>
-  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one." xml:space="preserve">
-    <value>Porty, na kterých každý protokol naslouchá, jejich adresa bind a zabezpečení spojení. Změna se projeví po reinicializaci serveru, kterou tato stránka po každé změně nabídne.</value>
+  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which the notice above the list offers until it is." xml:space="preserve">
+    <value>Porty, na kterých každý protokol naslouchá, jejich adresa bind a zabezpečení spojení. Změna se projeví po reinicializaci serveru, kterou oznámení nad seznamem nabízí, dokud k ní nedojde.</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>Soukromý klíč nepatří k tomuto certifikátu: jejich veřejné klíče se liší. Dvojice se nenačte (chyba serveru 5113) a žádný port TLS používající tento certifikát se nespustí. Nasměrujte tuto položku na soubor klíče, který byl vygenerován s tímto certifikátem.</value>

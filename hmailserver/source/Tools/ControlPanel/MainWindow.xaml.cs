@@ -1656,6 +1656,11 @@ namespace hMailServer.ControlPanel
          else if (outcome == ServiceRestartOutcome.NotReattached)
             Services.Toast.Failure(F("The service was restarted but the Control Panel could not reconnect to it: {0}\n\nIt will keep trying as you use the application.", reason), L("Control Panel"));
 
+         // A restarted service reads its ports afresh: the TCP/IP ports page's
+         // notice of changes waiting for a reinitialise goes (Services/PortChanges).
+         if (outcome == ServiceRestartOutcome.Restarted)
+            PortChanges.Applied(ServerSession.Current);
+
          if (outcome != ServiceRestartOutcome.Restarted)
             RefreshPendingBar_(fresh: true);
       }
@@ -1741,6 +1746,9 @@ namespace hMailServer.ControlPanel
             IReadOnlyList<string> stillPending = IniFeatureStore.PendingNames() ?? Array.Empty<string>();
             int stillWaitingForRestart = stillPending.Count(name => IniFeatureStore.AppliesFor(name) == SettingApplies.Restart);
             Services.Toast.Success(SettingApplies.AppliedSentence(stillWaitingForRestart));
+
+            // The ports the TCP/IP ports page changed are read afresh too.
+            PortChanges.Applied(session);
          }
          else
          {

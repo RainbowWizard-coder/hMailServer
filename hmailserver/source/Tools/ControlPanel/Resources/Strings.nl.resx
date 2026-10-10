@@ -576,6 +576,9 @@
   <data name="A piece of equipment" xml:space="preserve">
     <value>Een apparaat</value>
   </data>
+  <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the SSL certificates page first." xml:space="preserve">
+    <value>Een poort met SSL/TLS of STARTTLS toont een certificaat, en de server heeft er nog geen: voeg er eerst een toe op de pagina SSL-certificaten.</value>
+  </data>
   <data name="A profile for this server" xml:space="preserve">
     <value>Een profiel voor deze server</value>
   </data>
@@ -2236,6 +2239,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>C_A-certificaatbundel (PEM) waarnaar clientcertificaten moeten ketenen</value>
   </data>
+  <data name="C_ertificate" xml:space="preserve">
+    <value>_Certificaat</value>
+  </data>
   <data name="C_hange the password" xml:space="preserve">
     <value>Wachtwoord _wijzigen</value>
   </data>
@@ -2541,6 +2547,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Kies het NCSA Common Log Format zodat een analysetool de regels kan lezen, of JSON voor een log shipper.</value>
+  </data>
+  <data name="Choose the certificate this port presents." xml:space="preserve">
+    <value>Kies het certificaat dat deze poort toont.</value>
   </data>
   <data name="Choose the day the range expires." xml:space="preserve">
     <value>Kies de dag waarop het bereik verloopt.</value>
@@ -8610,6 +8619,9 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>Poort {0} neemt berichten aan zonder TLS, dus wachtwoorden en mail zouden onversleuteld over het netwerk gaan.</value>
   </data>
+  <data name="Ports changed - the server goes on listening on the old set until it is reinitialised." xml:space="preserve">
+    <value>Poorten gewijzigd - de server blijft op de oude luisteren totdat hij wordt geherinitialiseerd.</value>
+  </data>
   <data name="Ports…" xml:space="preserve">
     <value>Poorten…</value>
   </data>
@@ -12671,8 +12683,8 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   <data name="The port to ask on" xml:space="preserve">
     <value>De poort waarop wordt gevraagd</value>
   </data>
-  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one." xml:space="preserve">
-    <value>De poorten waarop elk protocol luistert, hun bindadres en verbindingsbeveiliging. Een wijziging gaat in wanneer de server wordt geherinitialiseerd, wat deze pagina na elke wijziging aanbiedt.</value>
+  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which the notice above the list offers until it is." xml:space="preserve">
+    <value>De poorten waarop elk protocol luistert, hun bindadres en verbindingsbeveiliging. Een wijziging gaat in wanneer de server wordt geherinitialiseerd, wat de melding boven de lijst aanbiedt totdat het gebeurd is.</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>De privésleutel hoort niet bij dit certificaat: hun openbare sleutels verschillen. Het paar laadt niet (serverfout 5113) en elke TLS-poort die dit certificaat gebruikt, start niet. Laat deze vermelding wijzen naar het sleutelbestand dat samen met dit certificaat is gegenereerd.</value>

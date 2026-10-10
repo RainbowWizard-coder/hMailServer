@@ -2697,6 +2697,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   dialog looked for at the top alone. `PublicFolderTreeTests` holds the tree, the checks, the words and the page's
   reads and writes.
 
+- **Fixed: a TLS port added on the TCP/IP ports page had no certificate and did not start, and every change to a port
+  asked to reinitialise the server there and then.** The add form offered SSL/TLS and both STARTTLS modes but no
+  certificate, so the port it added had none and came up "Not listening"; the port's dialog saved such a port with
+  "(none)" too; and a Yes/No question to reinitialise followed every add, edit, delete and restore. The add form now has
+  a Certificate box, enabled while the security is not None, and refuses a TLS port without one under the box ("Choose
+  the certificate this port presents.", or, where the server has none yet, that one is to be added on the SSL
+  certificates page first); the dialog's Save refuses it the same way. A change is said by a notice above the list -
+  "Ports changed - the server goes on listening on the old set until it is reinitialised." - with Reinitialise now,
+  from the first change in a session until the server is reinitialised from the page or the pending bar's Apply now,
+  or the service restarted; Restore defaults, which replaces every port, still asks. The form is on two lines where
+  one line would leave its boxes too narrow. `PortChangesTests` holds the rules, the words and the page's wiring.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

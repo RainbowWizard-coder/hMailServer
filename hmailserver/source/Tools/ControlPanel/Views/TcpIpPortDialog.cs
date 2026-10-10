@@ -31,6 +31,11 @@ namespace hMailServer.ControlPanel.Views
       private readonly TextBox port_ = new();
       private readonly FieldRow portRow_;
       private readonly ComboBox security_ = new();
+
+      // The certificate's row, which says a TLS port without one (review finding
+      // F222): the dialog saved such a port with "(none)", and it did not start.
+      private readonly FieldRow certificateRow_;
+      private int certificateCount_;
       private readonly ComboBox certificate_ = new();
       private readonly ComboBox clientCertPolicy_ = new();
       private readonly ComboBox smtpAuth_ = new();
@@ -76,7 +81,10 @@ namespace hMailServer.ControlPanel.Views
          security_.Items.Add(DialogFields.Combo(L("STARTTLS (required)"), 3));
          body.Children.Add(Label(L("_Connection security"), security_));
 
-         body.Children.Add(Label(L("SSL c_ertificate (required for SSL/TLS and STARTTLS)"), certificate_));
+         certificateRow_ = Label(L("SSL c_ertificate (required for SSL/TLS and STARTTLS)"), certificate_);
+         body.Children.Add(certificateRow_);
+         security_.SelectionChanged += (s, e) => UpdateCertificate_();
+         certificate_.SelectionChanged += (s, e) => certificateRow_.Error = null;
 
          // What an SMTP port does with AUTH (GitLab work item #54): the three values
          // of SMTPAuthenticationMode in SocketConstants.h, spelled out as what each
@@ -149,8 +157,9 @@ namespace hMailServer.ControlPanel.Views
          UpdateClientCertificateRows();
          frame_ = UseFrame(L("TCP/IP port"), body, save, cancel, width: 520);
 
-         // Room for the port's message, where the dialog is not at its cap.
-         KeepRoomForFieldErrors(1, portRow_);
+         // Room for the port's or the certificate's message, where the dialog is
+         // not at its cap; a press refuses one of them at a time.
+         KeepRoomForFieldErrors(2, portRow_, certificateRow_);
          Loaded += (s, e) => Load();
       }
 
@@ -171,6 +180,14 @@ namespace hMailServer.ControlPanel.Views
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* Deliberately ignored: best effort only, and the outcome of the surrounding operation does not depend on this succeeding. */ }
          finally { ServerSession.Release(certs); }
          DialogFields.SelectCombo(certificate_, selectedId, orFirst: true);
+         certificateCount_ = certificate_.Items.Count - 1;
+      }
+
+      /// <summary>The certificate box follows the security: enabled while it is not None, its message gone with a change of either.</summary>
+      private void UpdateCertificate_()
+      {
+         certificate_.IsEnabled = DialogFields.ComboValue(security_) != 0;
+         certificateRow_.Error = null;
       }
 
       private dynamic FindPort(dynamic ports)
@@ -202,6 +219,7 @@ namespace hMailServer.ControlPanel.Views
             clientCertCaFile_.Text = (string)p.ClientCertificateCAFile ?? "";
             DialogFields.SelectCombo(smtpAuth_, SmtpAuthentication((object)p), orFirst: true);
             UpdateSmtpAuthentication();
+            UpdateCertificate_();
             UpdateClientCertificateRows();
             UpdateClientCertificateValidation();
             // The window and its heading say which port this is, as it was read.
@@ -226,11 +244,20 @@ namespace hMailServer.ControlPanel.Views
       private void Save()
       {
          notice_.Hide();
-         DialogFields.ClearErrors(portRow_);
+         DialogFields.ClearErrors(portRow_, certificateRow_);
 
          if (!int.TryParse(port_.Text.Trim(), out int portNumber) || portNumber <= 0 || portNumber > 65535)
          {
             DialogFields.ShowError(portRow_, L("Enter a valid port number."));
+            return;
+         }
+
+         // A port with connection security presents a certificate: saved with
+         // "(none)", it did not start (review finding F222).
+         string certificateProblem = PortChanges.CertificateProblem(DialogFields.ComboValue(security_), DialogFields.ComboValue(certificate_), certificateCount_);
+         if (certificateProblem != null)
+         {
+            DialogFields.ShowError(certificateRow_, certificateProblem);
             return;
          }
 

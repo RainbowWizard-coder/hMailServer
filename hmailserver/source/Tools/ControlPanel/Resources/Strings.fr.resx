@@ -576,6 +576,9 @@
   <data name="A piece of equipment" xml:space="preserve">
     <value>Un équipement</value>
   </data>
+  <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the SSL certificates page first." xml:space="preserve">
+    <value>Un port en SSL/TLS ou STARTTLS présente un certificat, et le serveur n'en a encore aucun : ajoutez-en d'abord un sur la page Certificats SSL.</value>
+  </data>
   <data name="A profile for this server" xml:space="preserve">
     <value>Un profil pour ce serveur</value>
   </data>
@@ -2236,6 +2239,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>Bundle de certificats d'_AC (PEM) auquel les certificats client doivent se rattacher</value>
   </data>
+  <data name="C_ertificate" xml:space="preserve">
+    <value>Cert_ificat</value>
+  </data>
   <data name="C_hange the password" xml:space="preserve">
     <value>C_hanger le mot de passe</value>
   </data>
@@ -2541,6 +2547,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   </data>
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Choisissez le NCSA Common Log Format pour qu'un analyseur puisse lire les lignes, ou JSON pour un expéditeur de journaux.</value>
+  </data>
+  <data name="Choose the certificate this port presents." xml:space="preserve">
+    <value>Choisissez le certificat que ce port présente.</value>
   </data>
   <data name="Choose the day the range expires." xml:space="preserve">
     <value>Choisissez le jour où la plage expire.</value>
@@ -8610,6 +8619,9 @@ Aucune nouvelle connexion ne sera acceptée et aucun courrier ne sera livré jus
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>Le port {0} accepte la soumission sans TLS ; les mots de passe et le courrier traverseraient donc le réseau en clair.</value>
   </data>
+  <data name="Ports changed - the server goes on listening on the old set until it is reinitialised." xml:space="preserve">
+    <value>Ports modifiés - le serveur continue d'écouter sur les anciens jusqu'à sa réinitialisation.</value>
+  </data>
   <data name="Ports…" xml:space="preserve">
     <value>Ports…</value>
   </data>
@@ -12671,8 +12683,8 @@ n'a pas pu être chargé. Le message a probablement été livré et n'est plus d
   <data name="The port to ask on" xml:space="preserve">
     <value>Le port sur lequel interroger</value>
   </data>
-  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one." xml:space="preserve">
-    <value>Les ports sur lesquels chaque protocole écoute, leur adresse de liaison et la sécurité de connexion. Un changement prend effet à la réinitialisation du serveur, que cette page propose après chaque changement.</value>
+  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which the notice above the list offers until it is." xml:space="preserve">
+    <value>Les ports sur lesquels chaque protocole écoute, leur adresse de liaison et la sécurité de connexion. Un changement prend effet à la réinitialisation du serveur, que l'avis au-dessus de la liste propose tant qu'elle n'a pas eu lieu.</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>La clé privée n'appartient pas à ce certificat : leurs clés publiques diffèrent. La paire ne se chargera pas (erreur serveur 5113) et chaque port TLS utilisant ce certificat ne démarrera pas. Faites pointer cette entrée vers le fichier de clé qui a été généré avec ce certificat.</value>

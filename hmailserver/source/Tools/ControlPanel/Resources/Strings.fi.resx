@@ -576,6 +576,9 @@
   <data name="A piece of equipment" xml:space="preserve">
     <value>Laite</value>
   </data>
+  <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the SSL certificates page first." xml:space="preserve">
+    <value>SSL/TLS- tai STARTTLS-portti esittää varmenteen, eikä palvelimella ole vielä yhtään: lisää ensin varmenne SSL-varmenteet-sivulla.</value>
+  </data>
   <data name="A profile for this server" xml:space="preserve">
     <value>Profiili tälle palvelimelle</value>
   </data>
@@ -2236,6 +2239,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>_CA-varmennepaketti (PEM), johon asiakasvarmenteiden on ketjuuduttava</value>
   </data>
+  <data name="C_ertificate" xml:space="preserve">
+    <value>Var_menne</value>
+  </data>
   <data name="C_hange the password" xml:space="preserve">
     <value>Vaihda _salasana</value>
   </data>
@@ -2541,6 +2547,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Valitse NCSA Common Log Format, jotta analysointityökalu voi lukea rivit, tai JSON lokien lähettäjälle.</value>
+  </data>
+  <data name="Choose the certificate this port presents." xml:space="preserve">
+    <value>Valitse varmenne, jonka tämä portti esittää.</value>
   </data>
   <data name="Choose the day the range expires." xml:space="preserve">
     <value>Valitse päivä, jona alue vanhenee.</value>
@@ -8610,6 +8619,9 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>Portti {0} ottaa lähetyksiä vastaan ilman TLS:ää, joten salasanat ja posti kulkisivat verkossa selväkielisinä.</value>
   </data>
+  <data name="Ports changed - the server goes on listening on the old set until it is reinitialised." xml:space="preserve">
+    <value>Portteja muutettu - palvelin kuuntelee edelleen vanhoja portteja, kunnes se alustetaan uudelleen.</value>
+  </data>
   <data name="Ports…" xml:space="preserve">
     <value>Portit…</value>
   </data>
@@ -12671,8 +12683,8 @@ ei voitu ladata. Viesti on todennäköisesti toimitettu eikä ole enää jonossa
   <data name="The port to ask on" xml:space="preserve">
     <value>Portti, jolta kysytään</value>
   </data>
-  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one." xml:space="preserve">
-    <value>Portit, joita kukin protokolla kuuntelee, niiden sidontaosoite ja yhteyden suojaus. Muutos tulee voimaan, kun palvelin alustetaan uudelleen, mitä tämä sivu tarjoaa jokaisen muutoksen jälkeen.</value>
+  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which the notice above the list offers until it is." xml:space="preserve">
+    <value>Portit, joita kukin protokolla kuuntelee, niiden sidontaosoite ja yhteyden suojaus. Muutos tulee voimaan, kun palvelin alustetaan uudelleen, mitä luettelon yläpuolella oleva ilmoitus tarjoaa siihen asti.</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>Yksityinen avain ei kuulu tähän varmenteeseen: niiden julkiset avaimet eroavat. Pari ei lataudu (palvelinvirhe 5113), eikä yksikään tätä varmennetta käyttävä TLS-portti käynnisty. Osoita tämä merkintä avaintiedostoon, joka luotiin tämän varmenteen kanssa.</value>

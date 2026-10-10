@@ -576,6 +576,9 @@
   <data name="A piece of equipment" xml:space="preserve">
     <value>Un'attrezzatura</value>
   </data>
+  <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the SSL certificates page first." xml:space="preserve">
+    <value>Una porta con SSL/TLS o STARTTLS presenta un certificato, e il server non ne ha ancora nessuno: aggiungine prima uno nella pagina Certificati SSL.</value>
+  </data>
   <data name="A profile for this server" xml:space="preserve">
     <value>Un profilo per questo server</value>
   </data>
@@ -2236,6 +2239,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>Bundle di certificati C_A (PEM) a cui i certificati client devono ricondursi</value>
   </data>
+  <data name="C_ertificate" xml:space="preserve">
+    <value>_Certificato</value>
+  </data>
   <data name="C_hange the password" xml:space="preserve">
     <value>Ca_mbia la password</value>
   </data>
@@ -2541,6 +2547,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   </data>
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Scegli il formato NCSA Common Log Format perché un analizzatore possa leggere le righe, oppure JSON per un log shipper.</value>
+  </data>
+  <data name="Choose the certificate this port presents." xml:space="preserve">
+    <value>Scegli il certificato che questa porta presenta.</value>
   </data>
   <data name="Choose the day the range expires." xml:space="preserve">
     <value>Scegli il giorno in cui l'intervallo scade.</value>
@@ -8610,6 +8619,9 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>La porta {0} accetta l'invio senza TLS, quindi password e posta attraverserebbero la rete in chiaro.</value>
   </data>
+  <data name="Ports changed - the server goes on listening on the old set until it is reinitialised." xml:space="preserve">
+    <value>Porte modificate - il server continua ad ascoltare sulle precedenti finché non viene reinizializzato.</value>
+  </data>
   <data name="Ports…" xml:space="preserve">
     <value>Porte…</value>
   </data>
@@ -12671,8 +12683,8 @@ non ha potuto essere caricato. Il messaggio è probabilmente già stato consegna
   <data name="The port to ask on" xml:space="preserve">
     <value>La porta su cui chiedere</value>
   </data>
-  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one." xml:space="preserve">
-    <value>Le porte su cui ogni protocollo è in ascolto, il loro indirizzo di binding e la sicurezza della connessione. Una modifica ha effetto alla reinizializzazione del server, che questa pagina propone dopo ciascuna modifica.</value>
+  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which the notice above the list offers until it is." xml:space="preserve">
+    <value>Le porte su cui ogni protocollo è in ascolto, il loro indirizzo di binding e la sicurezza della connessione. Una modifica ha effetto alla reinizializzazione del server, che l'avviso sopra l'elenco propone finché non avviene.</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>La chiave privata non appartiene a questo certificato: le loro chiavi pubbliche sono diverse. La coppia non verrà caricata (errore del server 5113) e ogni porta TLS che usa questo certificato non riuscirà ad avviarsi. Puntare questa voce al file della chiave generato insieme a questo certificato.</value>

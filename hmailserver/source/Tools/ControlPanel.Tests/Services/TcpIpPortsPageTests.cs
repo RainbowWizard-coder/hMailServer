@@ -108,7 +108,9 @@ namespace hMailServer.ControlPanel.Tests.Services
          string code = Source();
          string summary = WithheldRowTests.MemberText(code, "private void ShowListenerSummary(List<PortRow> rows, bool local, int? state)");
          Assert.True(summary != null, "ShowListenerSummary is gone.");
-         Assert.Contains("ListenerProbe.NotListeningSummary(names), ReinitialiseButton_()", summary, StringComparison.Ordinal);
+         // While a change waits, the notice above the list carries the button (PortChangesTests).
+         Assert.Contains("PortChanges.ArePending(ServerSession.Current) ? null : ReinitialiseButton_()", summary, StringComparison.Ordinal);
+         Assert.Contains("ListenerProbe.NotListeningSummary(names)", summary, StringComparison.Ordinal);
          Assert.Contains("ListenerProbe.Endpoint(row.Address, row.Port)", summary, StringComparison.Ordinal);
 
          string button = WithheldRowTests.MemberText(code, "private Wpf.Ui.Controls.Button ReinitialiseButton_()");

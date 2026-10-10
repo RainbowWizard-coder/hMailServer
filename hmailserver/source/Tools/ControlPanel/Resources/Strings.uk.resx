@@ -579,6 +579,9 @@
   <data name="A piece of equipment" xml:space="preserve">
     <value>Обладнання</value>
   </data>
+  <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the SSL certificates page first." xml:space="preserve">
+    <value>Порт із SSL/TLS або STARTTLS пред'являє сертифікат, а на сервері ще немає жодного: спочатку додайте його на сторінці «Сертифікати SSL».</value>
+  </data>
   <data name="A profile for this server" xml:space="preserve">
     <value>Профіль для цього сервера</value>
   </data>
@@ -2260,6 +2263,9 @@
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>Пакет _сертифікатів ЦС (PEM), до якого мають вибудовувати ланцюжок клієнтські сертифікати</value>
   </data>
+  <data name="C_ertificate" xml:space="preserve">
+    <value>_Сертифікат</value>
+  </data>
   <data name="C_hange the password" xml:space="preserve">
     <value>_Змінити пароль</value>
   </data>
@@ -2565,6 +2571,9 @@
   </data>
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Виберіть NCSA Common Log Format, щоб рядки міг читати аналізатор, або JSON — для засобу пересилання журналів.</value>
+  </data>
+  <data name="Choose the certificate this port presents." xml:space="preserve">
+    <value>Виберіть сертифікат, який пред'являє цей порт.</value>
   </data>
   <data name="Choose the day the range expires." xml:space="preserve">
     <value>Виберіть день, коли діапазон спливає.</value>
@@ -8701,6 +8710,9 @@
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>Порт {0} приймає надсилання без TLS, тому паролі й пошта йшли б мережею відкритим текстом.</value>
   </data>
+  <data name="Ports changed - the server goes on listening on the old set until it is reinitialised." xml:space="preserve">
+    <value>Порти змінено - сервер і далі слухає попередні, доки його не буде повторно ініціалізовано.</value>
+  </data>
   <data name="Ports…" xml:space="preserve">
     <value>Порти…</value>
   </data>
@@ -12837,8 +12849,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The port to ask on" xml:space="preserve">
     <value>Порт, на якому питати</value>
   </data>
-  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one." xml:space="preserve">
-    <value>Порти, які слухає кожен протокол, їхня адреса прив'язки та безпека з'єднання. Зміна набуває чинності після повторної ініціалізації сервера, яку ця сторінка пропонує після кожної зміни.</value>
+  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which the notice above the list offers until it is." xml:space="preserve">
+    <value>Порти, які слухає кожен протокол, їхня адреса прив'язки та безпека з'єднання. Зміна набуває чинності після повторної ініціалізації сервера, яку повідомлення над списком пропонує, доки її не виконано.</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>Закритий ключ не належить цьому сертифікату: їхні відкриті ключі різняться. Пара не завантажиться (помилка сервера 5113), і жоден порт TLS, що використовує цей сертифікат, не запуститься. Вкажіть у цьому записі файл ключа, який було згенеровано разом із цим сертифікатом.</value>

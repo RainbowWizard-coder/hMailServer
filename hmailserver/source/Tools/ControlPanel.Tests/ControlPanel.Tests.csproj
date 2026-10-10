@@ -279,6 +279,12 @@
     <Compile Include="..\ControlPanel\Services\PublicFolderTree.cs" />
   </ItemGroup>
 
+  <!-- The TCP/IP ports page's changes waiting for a reinitialise, and a TLS port's
+       certificate (review finding F222). -->
+  <ItemGroup>
+    <Compile Include="..\ControlPanel\Services\PortChanges.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <!-- WindowsServiceInfo queries Win32_Service; the app gets this through its
          own reference and the test assembly needs its own. -->

@@ -579,6 +579,9 @@
   <data name="A piece of equipment" xml:space="preserve">
     <value>Sprzęt</value>
   </data>
+  <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the SSL certificates page first." xml:space="preserve">
+    <value>Port z SSL/TLS lub STARTTLS przedstawia certyfikat, a serwer nie ma jeszcze żadnego: najpierw należy dodać go na stronie Certyfikaty SSL.</value>
+  </data>
   <data name="A profile for this server" xml:space="preserve">
     <value>Profil dla tego serwera</value>
   </data>
@@ -2260,6 +2263,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>Pakiet _certyfikatów CA (PEM), do którego muszą prowadzić certyfikaty klienta</value>
   </data>
+  <data name="C_ertificate" xml:space="preserve">
+    <value>C_ertyfikat</value>
+  </data>
   <data name="C_hange the password" xml:space="preserve">
     <value>_Zmień hasło</value>
   </data>
@@ -2565,6 +2571,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   </data>
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Należy wybrać NCSA Common Log Format, aby wiersze mógł czytać analizator, albo JSON dla programu przesyłającego dzienniki.</value>
+  </data>
+  <data name="Choose the certificate this port presents." xml:space="preserve">
+    <value>Należy wybrać certyfikat, który przedstawia ten port.</value>
   </data>
   <data name="Choose the day the range expires." xml:space="preserve">
     <value>Wybierz dzień, w którym zakres wygasa.</value>
@@ -8701,6 +8710,9 @@ Do czasu wznowienia nie będą przyjmowane nowe połączenia ani dostarczana poc
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>Port {0} przyjmuje nadawanie bez TLS, więc hasła i poczta przechodziłyby przez sieć jawnym tekstem.</value>
   </data>
+  <data name="Ports changed - the server goes on listening on the old set until it is reinitialised." xml:space="preserve">
+    <value>Porty zmienione - serwer nasłuchuje dalej na dotychczasowych, dopóki nie zostanie ponownie zainicjalizowany.</value>
+  </data>
   <data name="Ports…" xml:space="preserve">
     <value>Porty…</value>
   </data>
@@ -12837,8 +12849,8 @@ Wiadomość została prawdopodobnie dostarczona i nie ma jej już w kolejce.</va
   <data name="The port to ask on" xml:space="preserve">
     <value>Port, na którym pytać</value>
   </data>
-  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one." xml:space="preserve">
-    <value>Porty, na których nasłuchuje każdy protokół, ich adres powiązania i zabezpieczenie połączenia. Zmiana zaczyna obowiązywać po ponownej inicjalizacji serwera, którą ta strona proponuje po każdej zmianie.</value>
+  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which the notice above the list offers until it is." xml:space="preserve">
+    <value>Porty, na których nasłuchuje każdy protokół, ich adres powiązania i zabezpieczenie połączenia. Zmiana zaczyna obowiązywać po ponownej inicjalizacji serwera, którą powiadomienie nad listą proponuje, dopóki do niej nie dojdzie.</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>Klucz prywatny nie należy do tego certyfikatu: ich klucze publiczne są różne. Para się nie wczyta (błąd serwera 5113), a każdy port TLS używający tego certyfikatu nie uruchomi się. Należy wskazać w tym wpisie plik klucza wygenerowany razem z tym certyfikatem.</value>

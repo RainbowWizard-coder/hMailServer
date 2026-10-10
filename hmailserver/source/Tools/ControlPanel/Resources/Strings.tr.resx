@@ -576,6 +576,9 @@
   <data name="A piece of equipment" xml:space="preserve">
     <value>Bir ekipman</value>
   </data>
+  <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the SSL certificates page first." xml:space="preserve">
+    <value>SSL/TLS veya STARTTLS kullanan bir port bir sertifika sunar ve sunucuda henüz hiç sertifika yok: önce SSL sertifikaları sayfasında bir tane ekleyin.</value>
+  </data>
   <data name="A profile for this server" xml:space="preserve">
     <value>Bu sunucu için bir profil</value>
   </data>
@@ -2236,6 +2239,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>_İstemci sertifikalarının zincirleneceği CA sertifika paketi (PEM)</value>
   </data>
+  <data name="C_ertificate" xml:space="preserve">
+    <value>S_ertifika</value>
+  </data>
   <data name="C_hange the password" xml:space="preserve">
     <value>_Parolayı değiştir</value>
   </data>
@@ -2541,6 +2547,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Bir çözümleyicinin satırları okuyabilmesi için NCSA Common Log Format'ı, bir günlük göndericisi için JSON'u seçin.</value>
+  </data>
+  <data name="Choose the certificate this port presents." xml:space="preserve">
+    <value>Bu portun sunduğu sertifikayı seçin.</value>
   </data>
   <data name="Choose the day the range expires." xml:space="preserve">
     <value>Aralığın süresinin dolacağı günü seçin.</value>
@@ -8610,6 +8619,9 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>{0} numaralı bağlantı noktası gönderimi TLS olmadan kabul ediyor; parolalar ve posta ağdan açık metin olarak geçerdi.</value>
   </data>
+  <data name="Ports changed - the server goes on listening on the old set until it is reinitialised." xml:space="preserve">
+    <value>Portlar değişti - sunucu yeniden başlatılana (Reinitialize) kadar eski portları dinlemeyi sürdürür.</value>
+  </data>
   <data name="Ports…" xml:space="preserve">
     <value>Portlar…</value>
   </data>
@@ -12671,8 +12683,8 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   <data name="The port to ask on" xml:space="preserve">
     <value>Sorulacak bağlantı noktası</value>
   </data>
-  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one." xml:space="preserve">
-    <value>Her protokolün dinlediği portlar, bağlama adresleri ve bağlantı güvenliği. Bir değişiklik, sunucu yeniden başlatıldığında (Reinitialize) geçerli olur; bu sayfa bunu her değişiklikten sonra önerir.</value>
+  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which the notice above the list offers until it is." xml:space="preserve">
+    <value>Her protokolün dinlediği portlar, bağlama adresleri ve bağlantı güvenliği. Bir değişiklik, sunucu yeniden başlatıldığında (Reinitialize) geçerli olur; listenin üstündeki bildirim bu yapılana kadar bunu önerir.</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>Özel anahtar bu sertifikaya ait değil: ortak anahtarları farklı. Çift yüklenmez (sunucu hatası 5113) ve bu sertifikayı kullanan her TLS portu başlatılamaz. Bu girdiyi, bu sertifikayla birlikte üretilen anahtar dosyasına yönlendirin.</value>

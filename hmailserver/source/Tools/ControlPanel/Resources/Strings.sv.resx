@@ -576,6 +576,9 @@
   <data name="A piece of equipment" xml:space="preserve">
     <value>Utrustning</value>
   </data>
+  <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the SSL certificates page first." xml:space="preserve">
+    <value>En port med SSL/TLS eller STARTTLS visar ett certifikat, och servern har inget ännu: lägg först till ett på sidan SSL-certifikat.</value>
+  </data>
   <data name="A profile for this server" xml:space="preserve">
     <value>En profil för den här servern</value>
   </data>
@@ -2236,6 +2239,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>_CA-certifikatpaket (PEM) som klientcertifikat måste kedja till</value>
   </data>
+  <data name="C_ertificate" xml:space="preserve">
+    <value>_Certifikat</value>
+  </data>
   <data name="C_hange the password" xml:space="preserve">
     <value>Byt _lösenordet</value>
   </data>
@@ -2541,6 +2547,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Välj NCSA Common Log Format så att ett analysverktyg kan läsa raderna, eller JSON för en loggförmedlare.</value>
+  </data>
+  <data name="Choose the certificate this port presents." xml:space="preserve">
+    <value>Välj certifikatet som den här porten visar.</value>
   </data>
   <data name="Choose the day the range expires." xml:space="preserve">
     <value>Välj dagen då intervallet går ut.</value>
@@ -8610,6 +8619,9 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>Port {0} tar emot inlämning utan TLS, så lösenord och post skulle gå i klartext över nätet.</value>
   </data>
+  <data name="Ports changed - the server goes on listening on the old set until it is reinitialised." xml:space="preserve">
+    <value>Portarna har ändrats - servern lyssnar fortfarande på de gamla tills den ominitieras.</value>
+  </data>
   <data name="Ports…" xml:space="preserve">
     <value>Portar…</value>
   </data>
@@ -12671,8 +12683,8 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   <data name="The port to ask on" xml:space="preserve">
     <value>Porten som frågan går på</value>
   </data>
-  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one." xml:space="preserve">
-    <value>Portarna varje protokoll lyssnar på, deras bindningsadress och anslutningssäkerhet. En ändring träder i kraft när servern ominitieras, vilket den här sidan erbjuder efter varje ändring.</value>
+  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which the notice above the list offers until it is." xml:space="preserve">
+    <value>Portarna varje protokoll lyssnar på, deras bindningsadress och anslutningssäkerhet. En ändring träder i kraft när servern ominitieras, vilket meddelandet ovanför listan erbjuder tills det har skett.</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>Den privata nyckeln hör inte till det här certifikatet: deras publika nycklar skiljer sig. Paret läses inte in (serverfel 5113) och varje TLS-port som använder det här certifikatet kommer att misslyckas att starta. Peka den här posten på nyckelfilen som genererades med det här certifikatet.</value>

@@ -576,6 +576,9 @@
   <data name="A piece of equipment" xml:space="preserve">
     <value>设备</value>
   </data>
+  <data name="A port with SSL/TLS or STARTTLS presents a certificate, and the server has none yet: add one on the SSL certificates page first." xml:space="preserve">
+    <value>使用 SSL/TLS 或 STARTTLS 的端口要出示证书，而服务器上还没有证书：请先在“SSL 证书”页添加一个。</value>
+  </data>
   <data name="A profile for this server" xml:space="preserve">
     <value>此服务器的配置方案</value>
   </data>
@@ -2236,6 +2239,9 @@
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>客户端证书必须链接到的 CA 证书包(_A)（PEM）</value>
   </data>
+  <data name="C_ertificate" xml:space="preserve">
+    <value>证书(_E)</value>
+  </data>
   <data name="C_hange the password" xml:space="preserve">
     <value>更改密码(_H)</value>
   </data>
@@ -2541,6 +2547,9 @@
   </data>
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>选择 NCSA 通用日志格式以便分析器读取这些行，或者选择 JSON 供日志传送器使用。</value>
+  </data>
+  <data name="Choose the certificate this port presents." xml:space="preserve">
+    <value>请选择此端口出示的证书。</value>
   </data>
   <data name="Choose the day the range expires." xml:space="preserve">
     <value>请选择此范围过期的日期。</value>
@@ -8610,6 +8619,9 @@
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>端口 {0} 在没有 TLS 的情况下接受提交，密码和邮件会以明文穿过网络。</value>
   </data>
+  <data name="Ports changed - the server goes on listening on the old set until it is reinitialised." xml:space="preserve">
+    <value>端口已更改 - 在重新初始化之前，服务器会继续监听原来的端口。</value>
+  </data>
   <data name="Ports…" xml:space="preserve">
     <value>端口…</value>
   </data>
@@ -12671,8 +12683,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The port to ask on" xml:space="preserve">
     <value>询问使用的端口</value>
   </data>
-  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one." xml:space="preserve">
-    <value>各协议监听的端口、其绑定地址和连接安全性。更改在重新初始化服务器后生效，本页会在每次更改后提供重新初始化。</value>
+  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which the notice above the list offers until it is." xml:space="preserve">
+    <value>各协议监听的端口、其绑定地址和连接安全性。更改在重新初始化服务器后生效，在此之前列表上方的通知会提供重新初始化。</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>私钥不属于此证书: 它们的公钥不同。这一对不会加载 (服务器错误 5113)，使用此证书的每个 TLS 端口都将无法启动。请将此条目指向与此证书一起生成的密钥文件。</value>
