@@ -2428,8 +2428,11 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Cannot tell" xml:space="preserve">
     <value>Impossible à déterminer</value>
   </data>
-  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one." xml:space="preserve">
-    <value>Impossible à déterminer d'ici - la liste des domaines du serveur n'a pas pu être lue, on ignore donc quels domaines sont liés à un annuaire. C'est un problème de connexion plutôt que de configuration.</value>
+  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. Press Reload to read it again. Why: {0}" xml:space="preserve">
+    <value>Impossible à déterminer d'ici - la liste des domaines du serveur n'a pas pu être lue, on ignore donc quels domaines sont liés à un annuaire. Appuyez sur Recharger pour la relire. Raison : {0}</value>
+  </data>
+  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one: press Reload once the connection is back." xml:space="preserve">
+    <value>Impossible à déterminer d'ici - la liste des domaines du serveur n'a pas pu être lue, on ignore donc quels domaines sont liés à un annuaire. C'est un problème de connexion plutôt que de configuration : appuyez sur Recharger une fois la connexion rétablie.</value>
   </data>
   <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>Impossible de le dire d'ici. hMailServer.ini n'a pas pu être lu, et c'est la section [LDAP] de ce fichier, et rien sur cette page, qui décide si une exécution peut avoir lieu. Appuyez sur Aperçu : il s'exécute dans le serveur et dira exactement ce qui manque, le cas échéant.</value>

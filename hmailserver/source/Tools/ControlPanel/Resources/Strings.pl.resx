@@ -2461,8 +2461,11 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Cannot tell" xml:space="preserve">
     <value>Nie da się stwierdzić</value>
   </data>
-  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one." xml:space="preserve">
-    <value>Nie da się tego stwierdzić z tego miejsca - nie udało się odczytać listy domen serwera, więc nie wiadomo, które domeny są powiązane z katalogiem. To problem z połączeniem, a nie z konfiguracją.</value>
+  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. Press Reload to read it again. Why: {0}" xml:space="preserve">
+    <value>Nie da się tego stwierdzić z tego miejsca - nie udało się odczytać listy domen serwera, więc nie wiadomo, które domeny są powiązane z katalogiem. Naciśnij Załaduj ponownie, aby odczytać ją jeszcze raz. Powód: {0}</value>
+  </data>
+  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one: press Reload once the connection is back." xml:space="preserve">
+    <value>Nie da się tego stwierdzić z tego miejsca - nie udało się odczytać listy domen serwera, więc nie wiadomo, które domeny są powiązane z katalogiem. To problem z połączeniem, a nie z konfiguracją: gdy połączenie wróci, naciśnij Załaduj ponownie.</value>
   </data>
   <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>Stąd nie można stwierdzić. Nie udało się odczytać pliku hMailServer.ini, a o tym, czy uruchomienie jest możliwe, decyduje sekcja [LDAP] tego pliku, a nie cokolwiek na tej stronie. Naciśnij Podgląd: działa wewnątrz serwera i powie dokładnie, czego ewentualnie brakuje.</value>

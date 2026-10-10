@@ -2428,8 +2428,11 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Cannot tell" xml:space="preserve">
     <value>Kan ikke avgjøre</value>
   </data>
-  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one." xml:space="preserve">
-    <value>Kan ikke avgjøres herfra - serverens domeneliste kunne ikke leses, så hvilke domener som er knyttet til en katalog, er ukjent. Det er et tilkoblingsproblem, ikke et konfigurasjonsproblem.</value>
+  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. Press Reload to read it again. Why: {0}" xml:space="preserve">
+    <value>Kan ikke avgjøres herfra - serverens domeneliste kunne ikke leses, så hvilke domener som er knyttet til en katalog, er ukjent. Trykk på Last på nytt for å lese den igjen. Hvorfor: {0}</value>
+  </data>
+  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one: press Reload once the connection is back." xml:space="preserve">
+    <value>Kan ikke avgjøres herfra - serverens domeneliste kunne ikke leses, så hvilke domener som er knyttet til en katalog, er ukjent. Det er et tilkoblingsproblem, ikke et konfigurasjonsproblem: trykk på Last på nytt når tilkoblingen er tilbake.</value>
   </data>
   <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>Kan ikke avgjøres herfra. hMailServer.ini kunne ikke leses, og det er filens [LDAP]-seksjon, ikke noe på denne siden, som avgjør om en kjøring kan skje. Trykk på Forhåndsvisning: den kjører inne i serveren og sier nøyaktig hva som eventuelt mangler.</value>

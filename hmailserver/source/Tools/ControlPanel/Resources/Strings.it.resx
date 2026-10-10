@@ -2428,8 +2428,11 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Cannot tell" xml:space="preserve">
     <value>Impossibile stabilirlo</value>
   </data>
-  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one." xml:space="preserve">
-    <value>Impossibile stabilirlo da qui - non è stato possibile leggere l'elenco dei domini del server, quindi non si sa quali domini siano collegati a una directory. È un problema di connessione, non di configurazione.</value>
+  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. Press Reload to read it again. Why: {0}" xml:space="preserve">
+    <value>Impossibile stabilirlo da qui - non è stato possibile leggere l'elenco dei domini del server, quindi non si sa quali domini siano collegati a una directory. Premere Ricarica per leggerlo di nuovo. Motivo: {0}</value>
+  </data>
+  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one: press Reload once the connection is back." xml:space="preserve">
+    <value>Impossibile stabilirlo da qui - non è stato possibile leggere l'elenco dei domini del server, quindi non si sa quali domini siano collegati a una directory. È un problema di connessione, non di configurazione: premere Ricarica quando la connessione è tornata.</value>
   </data>
   <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>Non si può dire da qui. Impossibile leggere hMailServer.ini, ed è la sezione [LDAP] di quel file, non qualcosa in questa pagina, a decidere se un'esecuzione può avvenire. Premere Anteprima: viene eseguita dentro il server e dirà esattamente cosa manca, se manca qualcosa.</value>

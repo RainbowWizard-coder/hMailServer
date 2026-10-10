@@ -2428,8 +2428,11 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Cannot tell" xml:space="preserve">
     <value>Ei voida sanoa</value>
   </data>
-  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one." xml:space="preserve">
-    <value>Ei voida sanoa täältä - palvelimen verkkotunnusluetteloa ei voitu lukea, joten ei tiedetä, mitkä verkkotunnukset on liitetty hakemistoon. Kyse on yhteysongelmasta eikä määritysongelmasta.</value>
+  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. Press Reload to read it again. Why: {0}" xml:space="preserve">
+    <value>Ei voida sanoa täältä - palvelimen verkkotunnusluetteloa ei voitu lukea, joten ei tiedetä, mitkä verkkotunnukset on liitetty hakemistoon. Lue se uudelleen painamalla Lataa uudelleen. Syy: {0}</value>
+  </data>
+  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one: press Reload once the connection is back." xml:space="preserve">
+    <value>Ei voida sanoa täältä - palvelimen verkkotunnusluetteloa ei voitu lukea, joten ei tiedetä, mitkä verkkotunnukset on liitetty hakemistoon. Kyse on yhteysongelmasta eikä määritysongelmasta: paina Lataa uudelleen, kun yhteys on palannut.</value>
   </data>
   <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>Tästä ei voi sanoa. Tiedostoa hMailServer.ini ei voitu lukea, ja sen, voiko ajo tapahtua, ratkaisee tiedoston [LDAP]-osio, ei mikään tällä sivulla. Paina Esikatselu: se suoritetaan palvelimen sisällä ja kertoo tarkalleen, mitä mahdollisesti puuttuu.</value>

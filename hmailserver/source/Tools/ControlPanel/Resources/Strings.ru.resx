@@ -2461,8 +2461,11 @@ Control Panel может читать файлы сообщений только
   <data name="Cannot tell" xml:space="preserve">
     <value>Определить нельзя</value>
   </data>
-  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one." xml:space="preserve">
-    <value>Отсюда определить нельзя — список доменов сервера прочитать не удалось, поэтому неизвестно, какие домены связаны с каталогом. Это проблема подключения, а не конфигурации.</value>
+  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. Press Reload to read it again. Why: {0}" xml:space="preserve">
+    <value>Отсюда определить нельзя — список доменов сервера прочитать не удалось, поэтому неизвестно, какие домены связаны с каталогом. Нажмите «Перезагрузить», чтобы прочитать его снова. Причина: {0}</value>
+  </data>
+  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one: press Reload once the connection is back." xml:space="preserve">
+    <value>Отсюда определить нельзя — список доменов сервера прочитать не удалось, поэтому неизвестно, какие домены связаны с каталогом. Это проблема подключения, а не конфигурации: нажмите «Перезагрузить», когда подключение восстановится.</value>
   </data>
   <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>Отсюда не определить. Не удалось прочитать hMailServer.ini, а возможность запуска решает раздел [LDAP] этого файла, а не что-либо на этой странице. Нажмите «Предварительный просмотр»: он выполняется внутри сервера и точно скажет, чего не хватает, если чего-то не хватает.</value>

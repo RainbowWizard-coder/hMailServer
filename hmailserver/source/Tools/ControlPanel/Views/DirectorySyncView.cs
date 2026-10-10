@@ -152,6 +152,13 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private bool domainsRead_;
 
+      // Why the domain list could not be read, when it could not: a lost link,
+      // Critical as the shell's pill calls it, or a server that answered and could
+      // not give it, a Warning with its words - each with what to press. The state
+      // card said either as Information with no next step (review finding F141).
+      private StatusLevel domainsReadLevel_ = StatusLevel.Warning;
+      private string domainsReadWhy_;
+
       public DirectorySyncView()
       {
          // The keyboard's home is Save changes, the header's control above the notice:
@@ -762,9 +769,11 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
          {
-            // No server connection. The state card says so, and says it is a
-            // connection problem rather than a configuration one; the list keeps its
-            // "All" entry so the control is never empty.
+            // The state card says so at the level of the cause, and says a lost link
+            // is a connection problem rather than a configuration one; the list keeps
+            // its "All" entry so the control is never empty.
+            domainsReadLevel_ = ComErrorText.LevelFor(fatalCheck);
+            domainsReadWhy_ = ServerSession.DescribeComError(fatalCheck);
          }
          finally
          {
@@ -804,7 +813,9 @@ namespace hMailServer.ControlPanel.Views
 
          if (!domainsRead_)
          {
-            State_(StatusLevel.Information, L("Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one."));
+            State_(domainsReadLevel_, domainsReadLevel_ == StatusLevel.Critical
+               ? L("Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one: press Reload once the connection is back.")
+               : F("Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. Press Reload to read it again. Why: {0}", domainsReadWhy_));
             return;
          }
 

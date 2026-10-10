@@ -2428,8 +2428,11 @@
   <data name="Cannot tell" xml:space="preserve">
     <value>无法判断</value>
   </data>
-  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one." xml:space="preserve">
-    <value>无法从此处判断 - 无法读取服务器的域列表，因此不知道哪些域关联了目录。这是连接问题，而不是配置问题。</value>
+  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. Press Reload to read it again. Why: {0}" xml:space="preserve">
+    <value>无法从此处判断 - 无法读取服务器的域列表，因此不知道哪些域关联了目录。请按“重新加载”再次读取。原因：{0}</value>
+  </data>
+  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one: press Reload once the connection is back." xml:space="preserve">
+    <value>无法从此处判断 - 无法读取服务器的域列表，因此不知道哪些域关联了目录。这是连接问题，而不是配置问题：连接恢复后请按“重新加载”。</value>
   </data>
   <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>无法从这里判断。无法读取 hMailServer.ini，而决定能否运行的是该文件的 [LDAP] 节，而不是此页面上的任何内容。请按“预览”：它在服务器内运行，并会准确说明缺少什么（如果有的话）。</value>

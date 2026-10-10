@@ -3678,6 +3678,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   where it gives them, are shown as before. `ScannerTestFallbackTests` holds the three sentences and the page to
   using them.
 
+- **Fixed: Directory synchronisation said a failed read of the server's domain list as Information, with no next
+  step.** "Cannot tell from here - the server's domain list could not be read..." was a violet Information notice in
+  its readiness card, which understated a read that failed. It is now said at the level of the cause, as the other
+  pages say a failed read: Critical when the link to the service was lost, ending "That is a connection problem
+  rather than a configuration one: press Reload once the connection is back.", and a Warning when the server
+  answered and could not give the list, ending "Press Reload to read it again. Why:" and the server's reason.
+  `DirectorySyncDomainReadTests` holds the levels and the sentences.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

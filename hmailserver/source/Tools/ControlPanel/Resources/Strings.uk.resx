@@ -2461,8 +2461,11 @@
   <data name="Cannot tell" xml:space="preserve">
     <value>Неможливо визначити</value>
   </data>
-  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one." xml:space="preserve">
-    <value>Звідси визначити неможливо — не вдалося прочитати список доменів сервера, тож невідомо, які домени пов’язані з каталогом. Це радше проблема підключення, ніж конфігурації.</value>
+  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. Press Reload to read it again. Why: {0}" xml:space="preserve">
+    <value>Звідси визначити неможливо — не вдалося прочитати список доменів сервера, тож невідомо, які домени пов’язані з каталогом. Натисніть «Перезавантажити», щоб прочитати його знову. Причина: {0}</value>
+  </data>
+  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one: press Reload once the connection is back." xml:space="preserve">
+    <value>Звідси визначити неможливо — не вдалося прочитати список доменів сервера, тож невідомо, які домени пов’язані з каталогом. Це радше проблема підключення, ніж конфігурації: натисніть «Перезавантажити», коли підключення відновиться.</value>
   </data>
   <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>Звідси не визначити. Не вдалося прочитати hMailServer.ini, а чи можливий запуск, вирішує розділ [LDAP] цього файлу, а не щось на цій сторінці. Натисніть «Попередній перегляд»: він виконується всередині сервера й точно скаже, чого бракує, якщо чогось бракує.</value>

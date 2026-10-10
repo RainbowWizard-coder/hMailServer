@@ -2438,8 +2438,11 @@
   <data name="Cannot tell" xml:space="preserve">
     <value>判断できません</value>
   </data>
-  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one." xml:space="preserve">
-    <value>ここからは判断できません。サーバーのドメイン リストを読み取れなかったため、どのドメインがディレクトリに連携しているか不明です。これは設定の問題ではなく接続の問題です。</value>
+  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. Press Reload to read it again. Why: {0}" xml:space="preserve">
+    <value>ここからは判断できません。サーバーのドメイン リストを読み取れなかったため、どのドメインがディレクトリに連携しているか不明です。「再読み込み」を押すと読み直します。理由: {0}</value>
+  </data>
+  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one: press Reload once the connection is back." xml:space="preserve">
+    <value>ここからは判断できません。サーバーのドメイン リストを読み取れなかったため、どのドメインがディレクトリに連携しているか不明です。これは設定の問題ではなく接続の問題です。接続が戻ったら「再読み込み」を押してください。</value>
   </data>
   <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>ここからは判断できません。hMailServer.ini を読み取れず、実行できるかどうかを判断するのはこのページの内容ではなく、そのファイルの [LDAP] セクションです。「プレビュー」を押してください: サーバー内で実行され、不足があればその内容を正確に示します。</value>

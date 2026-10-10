@@ -2461,8 +2461,11 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Cannot tell" xml:space="preserve">
     <value>Nelze určit</value>
   </data>
-  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one." xml:space="preserve">
-    <value>Odsud to nelze určit – seznam domén serveru se nepodařilo přečíst, takže není známo, které domény jsou propojené s adresářem. Jde spíš o problém s připojením než o problém s konfigurací.</value>
+  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. Press Reload to read it again. Why: {0}" xml:space="preserve">
+    <value>Odsud to nelze určit – seznam domén serveru se nepodařilo přečíst, takže není známo, které domény jsou propojené s adresářem. Znovu ho přečtete tlačítkem Znovu načíst. Důvod: {0}</value>
+  </data>
+  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one: press Reload once the connection is back." xml:space="preserve">
+    <value>Odsud to nelze určit – seznam domén serveru se nepodařilo přečíst, takže není známo, které domény jsou propojené s adresářem. Jde spíš o problém s připojením než o problém s konfigurací: až bude připojení obnoveno, stiskněte Znovu načíst.</value>
   </data>
   <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>Odsud nelze říci. Soubor hMailServer.ini se nepodařilo přečíst a o tom, zda může běh proběhnout, rozhoduje sekce [LDAP] tohoto souboru, nikoli cokoli na této stránce. Stiskněte Náhled: běží uvnitř serveru a přesně řekne, co případně chybí.</value>

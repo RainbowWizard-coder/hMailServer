@@ -2428,8 +2428,11 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Cannot tell" xml:space="preserve">
     <value>Nicht feststellbar</value>
   </data>
-  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one." xml:space="preserve">
-    <value>Von hier aus nicht feststellbar - die Domainliste des Servers konnte nicht gelesen werden, welche Domains mit einem Verzeichnis verknüpft sind, ist also unbekannt. Das ist ein Verbindungsproblem, kein Konfigurationsproblem.</value>
+  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. Press Reload to read it again. Why: {0}" xml:space="preserve">
+    <value>Von hier aus nicht feststellbar - die Domainliste des Servers konnte nicht gelesen werden, welche Domains mit einem Verzeichnis verknüpft sind, ist also unbekannt. Drücken Sie Neu laden, um sie erneut zu lesen. Grund: {0}</value>
+  </data>
+  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one: press Reload once the connection is back." xml:space="preserve">
+    <value>Von hier aus nicht feststellbar - die Domainliste des Servers konnte nicht gelesen werden, welche Domains mit einem Verzeichnis verknüpft sind, ist also unbekannt. Das ist ein Verbindungsproblem, kein Konfigurationsproblem: Drücken Sie Neu laden, sobald die Verbindung wieder besteht.</value>
   </data>
   <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>Von hier aus nicht feststellbar. hMailServer.ini konnte nicht gelesen werden, und ob ein Lauf stattfinden kann, entscheidet der Abschnitt [LDAP] dieser Datei, nicht etwas auf dieser Seite. Drücken Sie Vorschau: sie läuft im Server und sagt genau, was gegebenenfalls fehlt.</value>

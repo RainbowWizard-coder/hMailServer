@@ -2428,8 +2428,11 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Cannot tell" xml:space="preserve">
     <value>Kan inte avgöra</value>
   </data>
-  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one." xml:space="preserve">
-    <value>Kan inte avgöra härifrån - serverns domänlista kunde inte läsas, så vilka domäner som är kopplade till en katalog är okänt. Det är ett anslutningsproblem snarare än ett konfigurationsproblem.</value>
+  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. Press Reload to read it again. Why: {0}" xml:space="preserve">
+    <value>Kan inte avgöra härifrån - serverns domänlista kunde inte läsas, så vilka domäner som är kopplade till en katalog är okänt. Tryck på Ladda om för att läsa den igen. Varför: {0}</value>
+  </data>
+  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one: press Reload once the connection is back." xml:space="preserve">
+    <value>Kan inte avgöra härifrån - serverns domänlista kunde inte läsas, så vilka domäner som är kopplade till en katalog är okänt. Det är ett anslutningsproblem snarare än ett konfigurationsproblem: tryck på Ladda om när anslutningen är tillbaka.</value>
   </data>
   <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>Går inte att avgöra härifrån. hMailServer.ini kunde inte läsas, och det är filens [LDAP]-avsnitt, inte något på den här sidan, som avgör om en körning kan ske. Tryck på Förhandsgranska: den körs inne i servern och säger exakt vad som eventuellt saknas.</value>

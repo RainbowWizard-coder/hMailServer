@@ -2428,8 +2428,11 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Cannot tell" xml:space="preserve">
     <value>Belirlenemiyor</value>
   </data>
-  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one." xml:space="preserve">
-    <value>Buradan belirlenemiyor - sunucunun etki alanı listesi okunamadı; bu yüzden hangi etki alanlarının bir dizine bağlı olduğu bilinmiyor. Bu bir yapılandırma sorunu değil, bağlantı sorunu.</value>
+  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. Press Reload to read it again. Why: {0}" xml:space="preserve">
+    <value>Buradan belirlenemiyor - sunucunun etki alanı listesi okunamadı; bu yüzden hangi etki alanlarının bir dizine bağlı olduğu bilinmiyor. Yeniden okumak için Yeniden yükle'ye basın. Nedeni: {0}</value>
+  </data>
+  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one: press Reload once the connection is back." xml:space="preserve">
+    <value>Buradan belirlenemiyor - sunucunun etki alanı listesi okunamadı; bu yüzden hangi etki alanlarının bir dizine bağlı olduğu bilinmiyor. Bu bir yapılandırma sorunu değil, bağlantı sorunu: bağlantı geri geldiğinde Yeniden yükle'ye basın.</value>
   </data>
   <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>Buradan söylenemez. hMailServer.ini okunamadı ve bir çalıştırmanın yapılıp yapılamayacağına bu sayfadaki hiçbir şey değil, o dosyanın [LDAP] bölümü karar verir. Önizleme'ye basın: sunucunun içinde çalışır ve eksik bir şey varsa tam olarak neyin eksik olduğunu söyler.</value>

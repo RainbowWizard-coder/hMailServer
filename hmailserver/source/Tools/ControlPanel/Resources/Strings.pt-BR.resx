@@ -2428,8 +2428,11 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Cannot tell" xml:space="preserve">
     <value>Não é possível dizer</value>
   </data>
-  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one." xml:space="preserve">
-    <value>Não é possível dizer daqui - a lista de domínios do servidor não pôde ser lida, então não se sabe quais domínios estão vinculados a um diretório. Isso é um problema de conexão, e não de configuração.</value>
+  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. Press Reload to read it again. Why: {0}" xml:space="preserve">
+    <value>Não é possível dizer daqui - a lista de domínios do servidor não pôde ser lida, então não se sabe quais domínios estão vinculados a um diretório. Pressione Recarregar para lê-la de novo. Motivo: {0}</value>
+  </data>
+  <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one: press Reload once the connection is back." xml:space="preserve">
+    <value>Não é possível dizer daqui - a lista de domínios do servidor não pôde ser lida, então não se sabe quais domínios estão vinculados a um diretório. Isso é um problema de conexão, e não de configuração: pressione Recarregar quando a conexão voltar.</value>
   </data>
   <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>Não é possível dizer daqui. Não foi possível ler hMailServer.ini, e é a seção [LDAP] desse arquivo, não algo nesta página, que decide se uma execução pode acontecer. Pressione Visualizar: ela roda dentro do servidor e dirá exatamente o que falta, se faltar algo.</value>
