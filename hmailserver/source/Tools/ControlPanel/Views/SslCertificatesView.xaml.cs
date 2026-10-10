@@ -78,16 +78,20 @@ namespace hMailServer.ControlPanel.Views
          /// <summary>The TCP/IP ports that present it, "SMTP 465, IMAP 993", or Not used (Services/CertificateRows).</summary>
          public string UsedBy { get; set; }
 
+         /// <summary>
+         /// The two files' names alone, which the columns show; the paths are their tool
+         /// tips (review finding F236). Public for the columns' bindings; the search,
+         /// which reads every public property, finds in them what it finds in the paths.
+         /// </summary>
+         public string CertificateFileName => CertificateRows.FileName(CertificateFile);
+         public string PrivateKeyFileName => CertificateRows.FileName(PrivateKeyFile);
+
          // What a screen reader says for the row: its cells, not the name of
          // this class, which is what a grid row is announced as otherwise.
          public override string ToString() => Name + ", " + CertificateState + ", " + PrivateKeyState;
 
          // Internal on purpose: ListSearch reflects over public properties, and
          // a finding's ToString would only add noise to the search.
-         /// <summary>The two files' names alone, which the columns show; the paths are their tool tips (review finding F236).</summary>
-         public string CertificateFileName => CertificateRows.FileName(CertificateFile);
-         public string PrivateKeyFileName => CertificateRows.FileName(PrivateKeyFile);
-
          internal int Id;
          internal StoredPassphrase Passphrase;
          internal CertificateHealth Health;

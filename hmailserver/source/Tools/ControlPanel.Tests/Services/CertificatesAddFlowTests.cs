@@ -111,9 +111,36 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void TheNameColumn_HasAShareAndAFloor_AndThePathsTheirFilesNames()
       {
          string xaml = Read("SslCertificatesView.xaml");
-         Assert.Contains("Header=\"{loc:L 'Name'}\" Binding=\"{Binding Name}\" Width=\"1.2*\" MinWidth=\"160\"", xaml, StringComparison.Ordinal);
+         Assert.Contains("Header=\"{loc:L 'Name'}\" Binding=\"{Binding Name}\" Width=\"1.5*\" MinWidth=\"160\"", xaml, StringComparison.Ordinal);
          Assert.Contains("Text=\"{Binding CertificateFileName}\" ToolTip=\"{Binding CertificateFile}\"", xaml, StringComparison.Ordinal);
          Assert.Contains("Text=\"{Binding PrivateKeyFileName}\" ToolTip=\"{Binding PrivateKeyFile}\"", xaml, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// Every column is a share of the grid with a floor, the name's the largest: with
+      /// the status columns and Used by fixed at 570 pixels, the name was held at its
+      /// floor at 1280 by 800 and cut there - narrower than the 170 pixels the finding
+      /// reported it cut at.
+      /// </summary>
+      [Fact]
+      public void EveryColumn_IsAShareWithAFloor_TheNamesTheLargest()
+      {
+         XElement page = XElement.Parse(Read("SslCertificatesView.xaml"));
+         XElement grid = page.DescendantsAndSelf().First(e => (string)e.Attribute(X + "Name") == "CertGrid");
+         var columns = grid.Descendants().Where(e => e.Name.LocalName is "DataGridTextColumn" or "DataGridTemplateColumn").ToList();
+         Assert.Equal(6, columns.Count);
+
+         double Share(XElement column)
+         {
+            string width = (string)column.Attribute("Width") ?? "";
+            Assert.True(width.EndsWith("*", StringComparison.Ordinal), "A column of the certificates grid has the fixed width " + width + ".");
+            Assert.True(column.Attribute("MinWidth") != null, "A column of the certificates grid has no floor.");
+            return width == "*" ? 1 : double.Parse(width.TrimEnd('*'), System.Globalization.CultureInfo.InvariantCulture);
+         }
+
+         double name = Share(columns[0]);
+         foreach (XElement column in columns.Skip(1))
+            Assert.True(Share(column) < name, "The name's share is not the largest.");
       }
 
       private static XElement Named(XElement root, string name)

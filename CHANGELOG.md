@@ -2807,9 +2807,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   it for a port on the TCP/IP ports page to use it." with Open TCP/IP ports; Remove stored passphrase can be pressed
   while one is stored or the page cannot tell, and Save passphrase while its box holds one; for a key the page read as
   unencrypted with none stored, the editor waits behind Set a passphrase anyway…; a saved or removed passphrase, and a
-  refusal, is said on the page where it was a message box; and the Name column takes a share with a floor of 160
-  pixels while the path columns show the file's name, the whole path in the tool tip. `CertificatesAddFlowTests` holds
-  the form, the name, the outcome, the buttons and the columns.
+  refusal, is said on the page where it was a message box; and every column of the grid is a share of its width over
+  a floor, the Name column's the largest, so that a name is whole at 1280 by 800, while the path columns show the
+  file's name, the whole path in the tool tip. `CertificatesAddFlowTests` holds the form, the name, the outcome, the
+  buttons and the columns.
 
 - **Fixed: the Automatic certificates (ACME) page put its issued certificate below the fold, and blamed the network
   for a host-name list that was empty.** The card's one live fact - a certificate issued and valid until a date, near

@@ -96,12 +96,16 @@
                         <!-- The name takes a share and a floor, and the two path columns the
                              file's name alone, the whole path in its tool tip: the name was
                              cut at 170 pixels while the paths, the same folder on every row,
-                             took the rest (review finding F236). Every column has a floor,
-                             as the IP ranges page's have, so that a narrow window scrolls the
-                             grid sideways rather than squeezing the status columns to a word
-                             a line and the paths to nothing. -->
-                        <DataGridTextColumn Header="{loc:L 'Name'}" Binding="{Binding Name}" Width="1.2*" MinWidth="160" ElementStyle="{StaticResource GridTrimmedText}" />
-                        <DataGridTemplateColumn Header="{loc:L 'Certificate file'}" Width="*" MinWidth="110" SortMemberPath="CertificateFile">
+                             took the rest (review finding F236). Every column is a share of
+                             the grid's width with a floor, the name's the largest and the
+                             file names', which their tool tips give whole, the smallest: with
+                             the two status columns and Used by fixed at 570 pixels, the name
+                             was held at its floor at 1280 by 800 and cut there. A narrow window
+                             scrolls the grid sideways rather than squeezing the status columns
+                             to a word a line and the paths to nothing, as the IP ranges
+                             page's floors have it. -->
+                        <DataGridTextColumn Header="{loc:L 'Name'}" Binding="{Binding Name}" Width="1.5*" MinWidth="160" ElementStyle="{StaticResource GridTrimmedText}" />
+                        <DataGridTemplateColumn Header="{loc:L 'Certificate file'}" Width="0.8*" MinWidth="110" SortMemberPath="CertificateFile">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding CertificateFileName}" ToolTip="{Binding CertificateFile}" TextTrimming="CharacterEllipsis"
@@ -109,7 +113,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="{loc:L 'Private key file'}" Width="*" MinWidth="110" SortMemberPath="PrivateKeyFile">
+                        <DataGridTemplateColumn Header="{loc:L 'Private key file'}" Width="0.8*" MinWidth="110" SortMemberPath="PrivateKeyFile">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding PrivateKeyFileName}" ToolTip="{Binding PrivateKeyFile}" TextTrimming="CharacterEllipsis"
@@ -119,14 +123,14 @@
                         </DataGridTemplateColumn>
                         <!-- Sorted by how much the certificate asks for attention, then by how
                              soon it expires (CertGrid_Sorting), not by its status word. -->
-                        <DataGridTemplateColumn x:Name="CertificateColumn" Header="{loc:L 'Certificate'}" Width="210" MinWidth="180" SortMemberPath="CertificateState">
+                        <DataGridTemplateColumn x:Name="CertificateColumn" Header="{loc:L 'Certificate'}" Width="1.3*" MinWidth="170" SortMemberPath="CertificateState">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <ContentControl Loaded="CertificateBadge_Loaded" IsTabStop="False" Focusable="False" />
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="{loc:L 'Private key'}" Width="210" MinWidth="180" SortMemberPath="PrivateKeyState">
+                        <DataGridTemplateColumn Header="{loc:L 'Private key'}" Width="1.1*" MinWidth="160" SortMemberPath="PrivateKeyState">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <ContentControl Loaded="KeyBadge_Loaded" IsTabStop="False" Focusable="False" />
@@ -136,7 +140,7 @@
                         <!-- The TCP/IP ports that present it, "SMTP 465, IMAP 993" or Not
                              used: the page's purpose is which port uses which, and no
                              column said it (review finding F235). -->
-                        <DataGridTextColumn Header="{loc:L 'Used by'}" Binding="{Binding UsedBy}" Width="150" MinWidth="110" ElementStyle="{StaticResource GridTrimmedText}" />
+                        <DataGridTextColumn Header="{loc:L 'Used by'}" Binding="{Binding UsedBy}" Width="*" MinWidth="110" ElementStyle="{StaticResource GridTrimmedText}" />
                     </DataGrid.Columns>
                 </DataGrid>
                 </scaffold:FillPanel>
