@@ -7720,6 +7720,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Off - do not offer AUTH; refuse it and ban the address" xml:space="preserve">
     <value>Uit - AUTH niet aanbieden; weigeren en het adres verbannen</value>
   </data>
+  <data name="Off and Honeypot refuse AUTH and ban the address that sends it, Honeypot going on offering it as bait; mail clients sign in on 587, not on port 25." xml:space="preserve">
+    <value>Uit en Honeypot weigeren AUTH en verbannen het adres dat het stuurt, waarbij Honeypot het als lokaas blijft aanbieden; mailclients melden zich aan op 587, niet op poort 25.</value>
+  </data>
   <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
     <value>Staat standaard uit, omdat het een termentabel van een paar kilobytes per bericht kost plus een inhaaldoorloop over elk al bezorgd bericht - een beslissing van de beheerder, nooit van een upgrade. De resultaten zijn aan en uit identiek: de index beperkt alleen welke berichten de substringscan moet lezen. Vereist dat berichtindexering (hierboven) is ingeschakeld; op zichzelf indexeert dit niets.</value>
   </data>
@@ -8520,14 +8523,8 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Port 25 is judged differently from the rest and deliberately so: the peer there is normally another mail server, and requiring encryption on it refuses mail from senders that cannot offer any. On every other port the peer is a client with a password." xml:space="preserve">
     <value>Poort 25 wordt anders beoordeeld dan de rest, en dat is bewust: de tegenpartij is daar normaal een andere mailserver, en versleuteling erop vereisen weigert mail van afzenders die er geen kunnen aanbieden. Op elke andere poort is de tegenpartij een client met een wachtwoord.</value>
   </data>
-  <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there. Off and Honeypot never look at a password: AUTH is answered 502, and the first one of a session bans the address for the auto-ban minutes - never this computer, nor an address on the never-ban lists. Honeypot goes on offering AUTH, as bait. Mail clients sign in on 587." xml:space="preserve">
-    <value>Poort 25 is waar andere servers mail afleveren, en geen mailclient hoort zich daar aan te melden. Uit en Honeypot kijken nooit naar een wachtwoord: AUTH krijgt 502, en de eerste in een sessie verbant het adres voor de auto-ban-minuten - nooit deze computer, en nooit een adres op de lijsten van adressen die nooit worden verbannen. Honeypot blijft AUTH aanbieden, als lokaas. Mailclients melden zich aan op 587.</value>
-  </data>
   <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there: an AUTH on it is a password being guessed." xml:space="preserve">
     <value>Poort 25 is waar andere servers mail afleveren, en geen mailclient hoort zich daar aan te melden: een AUTH daarop is een wachtwoord dat wordt geraden.</value>
-  </data>
-  <data name="Port binding" xml:space="preserve">
-    <value>Poortbinding</value>
   </data>
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>Poort voor http-01-challenges</value>
@@ -16589,6 +16586,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} port" xml:space="preserve">
     <value>{0} poort</value>
+  </data>
+  <data name="{0} port {1}" xml:space="preserve">
+    <value>{0}-poort {1}</value>
   </data>
   <data name="{0} ports" xml:space="preserve">
     <value>{0} poorten</value>

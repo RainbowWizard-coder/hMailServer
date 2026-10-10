@@ -7720,6 +7720,9 @@ Inget som redan finns där tas bort.</value>
   <data name="Off - do not offer AUTH; refuse it and ban the address" xml:space="preserve">
     <value>Av - erbjud inte AUTH; avvisa det och spärra adressen</value>
   </data>
+  <data name="Off and Honeypot refuse AUTH and ban the address that sends it, Honeypot going on offering it as bait; mail clients sign in on 587, not on port 25." xml:space="preserve">
+    <value>Av och Honungsfälla avvisar AUTH och spärrar adressen som skickar det, och Honungsfälla fortsätter att erbjuda det som bete; e-postklienter loggar in på 587, inte på port 25.</value>
+  </data>
   <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
     <value>Av som standard eftersom det kostar en termtabell på några kilobyte per meddelande och en ifyllnadskörning över varje redan levererat meddelande - en administratörs beslut, aldrig en uppgraderings. Resultaten är identiska på och av: indexet begränsar bara vilka meddelanden delsträngsskanningen behöver läsa. Kräver att meddelandeindexering (ovan) är aktiverad; på egen hand indexerar detta ingenting.</value>
   </data>
@@ -8520,14 +8523,8 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="Port 25 is judged differently from the rest and deliberately so: the peer there is normally another mail server, and requiring encryption on it refuses mail from senders that cannot offer any. On every other port the peer is a client with a password." xml:space="preserve">
     <value>Port 25 bedöms annorlunda än de övriga och det med avsikt: motparten där är normalt en annan e-postserver, och att kräva kryptering på den avvisar post från avsändare som inte kan erbjuda någon. På varje annan port är motparten en klient med ett lösenord.</value>
   </data>
-  <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there. Off and Honeypot never look at a password: AUTH is answered 502, and the first one of a session bans the address for the auto-ban minutes - never this computer, nor an address on the never-ban lists. Honeypot goes on offering AUTH, as bait. Mail clients sign in on 587." xml:space="preserve">
-    <value>Port 25 är där andra servrar levererar e-post, och ingen e-postklient ska logga in där. Av och Honungsfälla tittar aldrig på ett lösenord: AUTH besvaras med 502, och det första i en session spärrar adressen i auto-ban-minuterna - aldrig den här datorn och aldrig en adress på listorna över adresser som aldrig spärras. Honungsfälla fortsätter att erbjuda AUTH, som bete. E-postklienter loggar in på 587.</value>
-  </data>
   <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there: an AUTH on it is a password being guessed." xml:space="preserve">
     <value>Port 25 är där andra servrar levererar e-post, och ingen e-postklient ska logga in där: ett AUTH där är ett lösenord som gissas.</value>
-  </data>
-  <data name="Port binding" xml:space="preserve">
-    <value>Portbindning</value>
   </data>
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>Port för http-01-utmaningar</value>
@@ -16589,6 +16586,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} port" xml:space="preserve">
     <value>{0} port</value>
+  </data>
+  <data name="{0} port {1}" xml:space="preserve">
+    <value>{0}-port {1}</value>
   </data>
   <data name="{0} ports" xml:space="preserve">
     <value>{0} portar</value>

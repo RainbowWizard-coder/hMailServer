@@ -7720,6 +7720,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Off - do not offer AUTH; refuse it and ban the address" xml:space="preserve">
     <value>Disattivato - non offrire AUTH; rifiutalo e blocca l'indirizzo</value>
   </data>
+  <data name="Off and Honeypot refuse AUTH and ban the address that sends it, Honeypot going on offering it as bait; mail clients sign in on 587, not on port 25." xml:space="preserve">
+    <value>Disattivato ed Esca rifiutano AUTH e bloccano l'indirizzo che lo invia, ed Esca continua a offrirlo come esca; i client di posta accedono sulla 587, non sulla porta 25.</value>
+  </data>
   <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
     <value>Disattivato per impostazione predefinita perché costa una tabella di termini di qualche kilobyte per messaggio e una passata di riempimento retroattivo su ogni messaggio già consegnato - è una decisione dell'amministratore, mai di un aggiornamento. I risultati sono identici sia attivo sia disattivato: l'indice restringe soltanto quali messaggi la scansione delle sottostringhe deve leggere. Richiede che l'indicizzazione dei messaggi (qui sopra) sia attiva; da solo non indicizza nulla.</value>
   </data>
@@ -8520,14 +8523,8 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   <data name="Port 25 is judged differently from the rest and deliberately so: the peer there is normally another mail server, and requiring encryption on it refuses mail from senders that cannot offer any. On every other port the peer is a client with a password." xml:space="preserve">
     <value>La porta 25 viene giudicata diversamente dalle altre, ed è voluto: lì il peer è normalmente un altro server di posta, e richiedere la cifratura su di essa rifiuta la posta dai mittenti che non possono offrirne alcuna. Su ogni altra porta il peer è un client dotato di password.</value>
   </data>
-  <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there. Off and Honeypot never look at a password: AUTH is answered 502, and the first one of a session bans the address for the auto-ban minutes - never this computer, nor an address on the never-ban lists. Honeypot goes on offering AUTH, as bait. Mail clients sign in on 587." xml:space="preserve">
-    <value>La porta 25 è quella a cui gli altri server consegnano la posta, e nessun client di posta dovrebbe accedervi. Disattivato ed Esca non guardano mai una password: AUTH riceve 502, e il primo di una sessione blocca l'indirizzo per i minuti di blocco automatico - mai questo computer, né un indirizzo degli elenchi di indirizzi mai bloccati. Esca continua a offrire AUTH, come esca. I client di posta accedono sulla 587.</value>
-  </data>
   <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there: an AUTH on it is a password being guessed." xml:space="preserve">
     <value>La porta 25 è quella a cui gli altri server consegnano la posta, e nessun client di posta dovrebbe accedervi: un AUTH su di essa è una password tirata a indovinare.</value>
-  </data>
-  <data name="Port binding" xml:space="preserve">
-    <value>Binding della porta</value>
   </data>
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>Porta per le challenge http-01</value>
@@ -16589,6 +16586,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="{0} port" xml:space="preserve">
     <value>{0} porta</value>
+  </data>
+  <data name="{0} port {1}" xml:space="preserve">
+    <value>Porta {0} {1}</value>
   </data>
   <data name="{0} ports" xml:space="preserve">
     <value>{0} porte</value>

@@ -2532,6 +2532,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Critical there where it was a message box. `IncomingRelaysPageTests` holds the grid, the id, the delete, the toolbar
   and the dialog.
 
+- **Fixed: the TCP/IP port dialog was taller than the smallest window, showed rows that did not apply, and never said
+  which port it edited.** At 520 by 880 pixels it was taller than a 760 by 520 window, so its body scrolled behind
+  Save; SMTP authentication's five-line hint about port 25 stood on POP3 and IMAP ports, where its box was disabled;
+  the client-certificate policy's hint and the CA bundle's row stood under a policy of Off; and the title "TCP/IP
+  port" and the heading "Port binding" named no port. SMTP authentication is now shown for an SMTP port alone, its
+  hint one sentence - the rest is in docs/SmtpAuthOnDeliveryPorts.md - and the CA bundle and what Request and Require
+  do are shown while the policy is one of them; the title and the heading name the port as it was read, "SMTP port
+  587". `TcpIpPortDialogTests` holds the rows, the hint and the name.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

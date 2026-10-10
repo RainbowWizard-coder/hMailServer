@@ -7808,6 +7808,9 @@
   <data name="Off - do not offer AUTH; refuse it and ban the address" xml:space="preserve">
     <value>Вимкнено — не пропонувати AUTH; відхиляти його й блокувати адресу</value>
   </data>
+  <data name="Off and Honeypot refuse AUTH and ban the address that sends it, Honeypot going on offering it as bait; mail clients sign in on 587, not on port 25." xml:space="preserve">
+    <value>«Вимкнено» і «Пастка» відхиляють AUTH і блокують адресу, яка його надіслала, причому «Пастка» далі пропонує AUTH як приманку; поштові клієнти входять через порт 587, а не через порт 25.</value>
+  </data>
   <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
     <value>Типово вимкнено, бо коштує таблиці термів у кілька кілобайтів на повідомлення та проходу заповнення по кожному вже доставленому повідомленню — це рішення адміністратора, а ніколи не оновлення. Результати однакові як з увімкненим, так і з вимкненим: індекс лише звужує, які повідомлення має читати пошук підрядка. Потребує ввімкненого індексування повідомлень (вище); саме по собі нічого не індексує.</value>
   </data>
@@ -8608,14 +8611,8 @@
   <data name="Port 25 is judged differently from the rest and deliberately so: the peer there is normally another mail server, and requiring encryption on it refuses mail from senders that cannot offer any. On every other port the peer is a client with a password." xml:space="preserve">
     <value>Порт 25 оцінюється інакше, ніж решта, і навмисно: співрозмовник там зазвичай інший поштовий сервер, і вимога шифрування на ньому відхиляє пошту від відправників, які не можуть його запропонувати. На кожному іншому порту співрозмовник — клієнт із паролем.</value>
   </data>
-  <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there. Off and Honeypot never look at a password: AUTH is answered 502, and the first one of a session bans the address for the auto-ban minutes - never this computer, nor an address on the never-ban lists. Honeypot goes on offering AUTH, as bait. Mail clients sign in on 587." xml:space="preserve">
-    <value>На порт 25 інші сервери доставляють пошту, і жоден поштовий клієнт не повинен входити через нього. «Вимкнено» і «Пастка» ніколи не дивляться на пароль: на AUTH відповідається 502, а перший AUTH у сеансі блокує адресу на хвилини автоблокування — але ніколи не цей комп’ютер і не адресу зі списків адрес, які ніколи не блокуються. «Пастка» далі пропонує AUTH як приманку. Поштові клієнти входять через порт 587.</value>
-  </data>
   <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there: an AUTH on it is a password being guessed." xml:space="preserve">
     <value>На порт 25 інші сервери доставляють пошту, і жоден поштовий клієнт не повинен входити через нього: AUTH на ньому — це підбирання пароля.</value>
-  </data>
-  <data name="Port binding" xml:space="preserve">
-    <value>Прив’язка порту</value>
   </data>
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>Порт для викликів http-01</value>
@@ -16893,6 +16890,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} port" xml:space="preserve">
     <value>{0} порт</value>
+  </data>
+  <data name="{0} port {1}" xml:space="preserve">
+    <value>Порт {0} {1}</value>
   </data>
   <data name="{0} ports" xml:space="preserve">
     <value>{0} портів</value>

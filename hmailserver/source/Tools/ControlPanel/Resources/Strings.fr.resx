@@ -7720,6 +7720,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="Off - do not offer AUTH; refuse it and ban the address" xml:space="preserve">
     <value>Désactivé - ne pas proposer AUTH ; le refuser et bannir l'adresse</value>
   </data>
+  <data name="Off and Honeypot refuse AUTH and ban the address that sends it, Honeypot going on offering it as bait; mail clients sign in on 587, not on port 25." xml:space="preserve">
+    <value>Désactivé et Leurre refusent AUTH et bannissent l'adresse qui l'envoie, Leurre continuant de le proposer comme appât ; les clients de messagerie s'authentifient sur le 587, pas sur le port 25.</value>
+  </data>
   <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
     <value>Désactivé par défaut, parce que cela coûte une table de termes de quelques kilooctets par message et une passe de rattrapage sur chaque message déjà livré - c'est la décision d'un administrateur, jamais celle d'une mise à niveau. Les résultats sont identiques, activé ou désactivé : l'index ne fait que restreindre les messages que le balayage de sous-chaîne doit lire. Nécessite que l'indexation des messages (ci-dessus) soit activée ; à lui seul, ceci n'indexe rien.</value>
   </data>
@@ -8520,14 +8523,8 @@ Aucune nouvelle connexion ne sera acceptée et aucun courrier ne sera livré jus
   <data name="Port 25 is judged differently from the rest and deliberately so: the peer there is normally another mail server, and requiring encryption on it refuses mail from senders that cannot offer any. On every other port the peer is a client with a password." xml:space="preserve">
     <value>Le port 25 est jugé différemment des autres, et délibérément : le pair y est normalement un autre serveur de messagerie, et y exiger le chiffrement refuse le courrier des expéditeurs qui ne peuvent en offrir aucun. Sur tous les autres ports, le pair est un client avec un mot de passe.</value>
   </data>
-  <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there. Off and Honeypot never look at a password: AUTH is answered 502, and the first one of a session bans the address for the auto-ban minutes - never this computer, nor an address on the never-ban lists. Honeypot goes on offering AUTH, as bait. Mail clients sign in on 587." xml:space="preserve">
-    <value>Le port 25 est celui où les autres serveurs remettent le courrier, et aucun client de messagerie ne devrait s'y authentifier. Désactivé et Leurre ne regardent jamais un mot de passe : AUTH reçoit 502, et le premier d'une session bannit l'adresse pour les minutes de bannissement automatique - jamais cet ordinateur, ni une adresse des listes d'adresses jamais bannies. Leurre continue de proposer AUTH, comme appât. Les clients de messagerie s'authentifient sur le 587.</value>
-  </data>
   <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there: an AUTH on it is a password being guessed." xml:space="preserve">
     <value>Le port 25 est celui où les autres serveurs remettent le courrier, et aucun client de messagerie ne devrait s'y authentifier : un AUTH sur ce port est un mot de passe que l'on tente de deviner.</value>
-  </data>
-  <data name="Port binding" xml:space="preserve">
-    <value>Liaison de port</value>
   </data>
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>Port pour les défis http-01</value>
@@ -16589,6 +16586,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="{0} port" xml:space="preserve">
     <value>{0} port</value>
+  </data>
+  <data name="{0} port {1}" xml:space="preserve">
+    <value>Port {0} {1}</value>
   </data>
   <data name="{0} ports" xml:space="preserve">
     <value>{0} ports</value>

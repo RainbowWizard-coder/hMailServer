@@ -7720,6 +7720,9 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Off - do not offer AUTH; refuse it and ban the address" xml:space="preserve">
     <value>Fra - tilbyd ikke AUTH; afvis det og bloker adressen</value>
   </data>
+  <data name="Off and Honeypot refuse AUTH and ban the address that sends it, Honeypot going on offering it as bait; mail clients sign in on 587, not on port 25." xml:space="preserve">
+    <value>Fra og Honeypot afviser AUTH og blokerer adressen, der sender det, og Honeypot bliver ved med at tilbyde det som lokkemad; mailklienter logger på port 587, ikke på port 25.</value>
+  </data>
   <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
     <value>Slået fra som standard, fordi det koster en termtabel på nogle få kilobyte pr. meddelelse og et backfill-gennemløb over hver meddelelse, der allerede er leveret - en administrators beslutning, aldrig en opgraderings. Resultaterne er identiske, uanset om det er slået til eller fra: indekset indsnævrer kun, hvilke meddelelser delstrengsscanningen skal læse. Kræver, at meddelelsesindeksering (ovenfor) er aktiveret; alene indekserer dette ingenting.</value>
   </data>
@@ -8520,14 +8523,8 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   <data name="Port 25 is judged differently from the rest and deliberately so: the peer there is normally another mail server, and requiring encryption on it refuses mail from senders that cannot offer any. On every other port the peer is a client with a password." xml:space="preserve">
     <value>Port 25 bedømmes anderledes end resten, og det er med vilje: modparten dér er normalt en anden mailserver, og at kræve kryptering på den afviser post fra afsendere, der ikke kan tilbyde nogen. På hver anden port er modparten en klient med en adgangskode.</value>
   </data>
-  <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there. Off and Honeypot never look at a password: AUTH is answered 502, and the first one of a session bans the address for the auto-ban minutes - never this computer, nor an address on the never-ban lists. Honeypot goes on offering AUTH, as bait. Mail clients sign in on 587." xml:space="preserve">
-    <value>Port 25 er der, hvor andre servere leverer mail, og ingen mailklient bør logge på der. Fra og Honeypot ser aldrig på en adgangskode: AUTH besvares med 502, og den første i en session blokerer adressen i auto-ban-minutterne - aldrig denne computer og aldrig en adresse på listerne over adresser, der aldrig blokeres. Honeypot bliver ved med at tilbyde AUTH som lokkemad. Mailklienter logger på port 587.</value>
-  </data>
   <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there: an AUTH on it is a password being guessed." xml:space="preserve">
     <value>Port 25 er der, hvor andre servere leverer mail, og ingen mailklient bør logge på der: en AUTH der er en adgangskode, der gættes.</value>
-  </data>
-  <data name="Port binding" xml:space="preserve">
-    <value>Portbinding</value>
   </data>
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>Port til http-01-udfordringer</value>
@@ -16589,6 +16586,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="{0} port" xml:space="preserve">
     <value>{0} port</value>
+  </data>
+  <data name="{0} port {1}" xml:space="preserve">
+    <value>{0}-port {1}</value>
   </data>
   <data name="{0} ports" xml:space="preserve">
     <value>{0} porte</value>

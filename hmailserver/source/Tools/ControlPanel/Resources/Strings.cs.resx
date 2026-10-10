@@ -7808,6 +7808,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Off - do not offer AUTH; refuse it and ban the address" xml:space="preserve">
     <value>Vypnuto – nenabízet AUTH; odmítnout jej a zablokovat adresu</value>
   </data>
+  <data name="Off and Honeypot refuse AUTH and ban the address that sends it, Honeypot going on offering it as bait; mail clients sign in on 587, not on port 25." xml:space="preserve">
+    <value>Vypnuto a Návnada AUTH odmítnou a zablokují adresu, která ho pošle, přičemž Návnada ho dál nabízí jako návnadu; poštovní klienti se přihlašují na portu 587, ne na portu 25.</value>
+  </data>
   <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
     <value>Ve výchozím nastavení vypnuto, protože to stojí tabulku termů o několika kilobajtech na zprávu a doplňovací průchod přes každou už doručenou zprávu – to je rozhodnutí správce, nikdy ne aktualizace. Výsledky jsou zapnuto i vypnuto stejné: index jen zužuje, které zprávy musí prohledávání podřetězců přečíst. Vyžaduje zapnuté indexování zpráv (výše); samo o sobě neindexuje nic.</value>
   </data>
@@ -8608,14 +8611,8 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Port 25 is judged differently from the rest and deliberately so: the peer there is normally another mail server, and requiring encryption on it refuses mail from senders that cannot offer any. On every other port the peer is a client with a password." xml:space="preserve">
     <value>Port 25 se posuzuje jinak než ostatní, a to záměrně: protějškem je tam obvykle jiný poštovní server a vyžadování šifrování na něm odmítne poštu od odesílatelů, kteří žádné nabídnout neumějí. Na každém jiném portu je protějškem klient s heslem.</value>
   </data>
-  <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there. Off and Honeypot never look at a password: AUTH is answered 502, and the first one of a session bans the address for the auto-ban minutes - never this computer, nor an address on the never-ban lists. Honeypot goes on offering AUTH, as bait. Mail clients sign in on 587." xml:space="preserve">
-    <value>Port 25 je místo, kam doručují poštu ostatní servery, a žádný poštovní klient by se na něm neměl přihlašovat. Vypnuto a Návnada se na heslo nikdy nedívají: AUTH dostane odpověď 502 a první AUTH relace zablokuje adresu na dobu automatického blokování – nikdy však tento počítač ani adresu ze seznamů adres, které se nikdy neblokují. Návnada nabízí AUTH dál, jako návnadu. Poštovní klienti se přihlašují na portu 587.</value>
-  </data>
   <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there: an AUTH on it is a password being guessed." xml:space="preserve">
     <value>Port 25 je místo, kam doručují poštu ostatní servery, a žádný poštovní klient by se na něm neměl přihlašovat: AUTH na něm je hádání hesla.</value>
-  </data>
-  <data name="Port binding" xml:space="preserve">
-    <value>Vazba portu</value>
   </data>
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>Port pro výzvy http-01</value>
@@ -16893,6 +16890,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} port" xml:space="preserve">
     <value>{0} port</value>
+  </data>
+  <data name="{0} port {1}" xml:space="preserve">
+    <value>{0} port {1}</value>
   </data>
   <data name="{0} ports" xml:space="preserve">
     <value>{0} portů</value>

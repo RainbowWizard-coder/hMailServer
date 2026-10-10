@@ -38,10 +38,24 @@ namespace hMailServer.ControlPanel.Views
       private readonly InlineNotice clientCertNotice_ = DialogFields.Notice();
       private readonly InlineNotice notice_ = DialogFields.Notice();
 
+      // The rows that apply only sometimes (review finding F223): SMTP
+      // authentication to an SMTP port, the CA bundle and the policy's hint to a
+      // policy that is not Off. The dialog was 880 pixels tall at 520, taller
+      // than the smallest window, with SMTP's five-line hint on a POP3 or IMAP
+      // port where its box was disabled, and the CA bundle under a policy of Off.
+      private readonly FieldRow smtpAuthRow_;
+      private readonly FieldRow clientCertPolicyRow_;
+      private readonly FieldRow caFieldRow_;
+
+      // The frame, whose heading names the port once it is read.
+      private readonly DialogFrame frame_;
+
       public TcpIpPortDialog(Window owner, int portId)
       {
          portId_ = portId;
          Owner = owner;
+         // Named for the port once it is read (Load): "TCP/IP port" over "Port
+         // binding", opened by Properties, never said which port it was.
          Title = L("TCP/IP port");
 
          var body = new StackPanel();
@@ -71,8 +85,11 @@ namespace hMailServer.ControlPanel.Views
          smtpAuth_.Items.Add(DialogFields.Combo(L("On - offer AUTH and check the password"), 0));
          smtpAuth_.Items.Add(DialogFields.Combo(L("Off - do not offer AUTH; refuse it and ban the address"), 1));
          smtpAuth_.Items.Add(DialogFields.Combo(L("Honeypot - offer AUTH; refuse it and ban the address"), 2));
-         body.Children.Add(Label(L("S_MTP authentication"), smtpAuth_)
-            .WithHint(L("Port 25 is where other servers deliver mail, and no mail client should sign in there. Off and Honeypot never look at a password: AUTH is answered 502, and the first one of a session bans the address for the auto-ban minutes - never this computer, nor an address on the never-ban lists. Honeypot goes on offering AUTH, as bait. Mail clients sign in on 587.")));
+         // One sentence; the rest - the 502, the ban's length and who is never
+         // banned - is docs/SmtpAuthOnDeliveryPorts.md's.
+         smtpAuthRow_ = Label(L("S_MTP authentication"), smtpAuth_)
+            .WithHint(L("Off and Honeypot refuse AUTH and ban the address that sends it, Honeypot going on offering it as bait; mail clients sign in on 587, not on port 25."));
+         body.Children.Add(smtpAuthRow_);
          protocol_.SelectionChanged += (s, e) => UpdateSmtpAuthentication();
 
          // Client certificates (mutual TLS), per port. The three options are the
@@ -82,8 +99,8 @@ namespace hMailServer.ControlPanel.Views
          clientCertPolicy_.Items.Add(DialogFields.Combo(L("Off"), 0));
          clientCertPolicy_.Items.Add(DialogFields.Combo(L("Request (verify and log, never refuse)"), 1));
          clientCertPolicy_.Items.Add(DialogFields.Combo(L("Require (refuse a connection without a trusted certificate)"), 2));
-         body.Children.Add(Label(L("Client certificate polic_y (mutual TLS)"), clientCertPolicy_)
-            .WithHint(L("Request asks every client for a certificate, verifies and logs one if it is offered, and never refuses the connection - use it to inventory which clients would survive Require before enforcing it. Require refuses the connection unless the client presents a certificate that chains to the CA bundle below.")));
+         clientCertPolicyRow_ = Label(L("Client certificate polic_y (mutual TLS)"), clientCertPolicy_);
+         body.Children.Add(clientCertPolicyRow_);
 
          var caRow = new Grid();
          caRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -108,9 +125,9 @@ namespace hMailServer.ControlPanel.Views
          // it under the box; the box itself is told it as help text, because the
          // row only sees the grid the box and its browse button share.
          string caNote = L("hMailServer does not create or manage client certificates. The certificate authority and the client certificates themselves must be produced outside hMailServer (for example with OpenSSL or an internal PKI) - the server only trusts the CA bundle it is given here.");
-         FieldRow caFieldRow = Label(L("C_A certificate bundle (PEM) that client certificates must chain to"), caRow).WithHint(caNote);
+         caFieldRow_ = Label(L("C_A certificate bundle (PEM) that client certificates must chain to"), caRow).WithHint(caNote);
          AutomationProperties.SetHelpText(clientCertCaFile_, caNote);
-         body.Children.Add(caFieldRow);
+         body.Children.Add(caFieldRow_);
 
          // Inline validation for the combinations the server refuses to save, so
          // the dialog says so while the user is still choosing rather than
@@ -120,7 +137,7 @@ namespace hMailServer.ControlPanel.Views
          body.Children.Add(clientCertNotice_);
 
          security_.SelectionChanged += (s, e) => UpdateClientCertificateValidation();
-         clientCertPolicy_.SelectionChanged += (s, e) => UpdateClientCertificateValidation();
+         clientCertPolicy_.SelectionChanged += (s, e) => { UpdateClientCertificateRows(); UpdateClientCertificateValidation(); };
          clientCertCaFile_.TextChanged += (s, e) => UpdateClientCertificateValidation();
 
          // Enter saves and Escape cancels.
@@ -129,7 +146,8 @@ namespace hMailServer.ControlPanel.Views
          var cancel = new Wpf.Ui.Controls.Button { Content = L("Cancel"), MinWidth = 88 };
          cancel.Click += (s, e) => Close();
 
-         UseFrame(L("Port binding"), body, save, cancel, width: 520);
+         UpdateClientCertificateRows();
+         frame_ = UseFrame(L("TCP/IP port"), body, save, cancel, width: 520);
 
          // Room for the port's message, where the dialog is not at its cap.
          KeepRoomForFieldErrors(1, portRow_);
@@ -184,7 +202,11 @@ namespace hMailServer.ControlPanel.Views
             clientCertCaFile_.Text = (string)p.ClientCertificateCAFile ?? "";
             DialogFields.SelectCombo(smtpAuth_, SmtpAuthentication((object)p), orFirst: true);
             UpdateSmtpAuthentication();
+            UpdateClientCertificateRows();
             UpdateClientCertificateValidation();
+            // The window and its heading say which port this is, as it was read.
+            Title = PortName(DialogFields.ComboValue(protocol_), (int)p.PortNumber);
+            frame_.Heading = Title;
             ServerSession.Release(p);
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
@@ -276,8 +298,9 @@ namespace hMailServer.ControlPanel.Views
 
       /// <summary>
       /// AUTH is a question for an SMTP port only; the server refuses Off and
-      /// Honeypot on any other (PersistentTCPIPPort), so the box is On and fixed
-      /// while the protocol is POP3 or IMAP.
+      /// Honeypot on any other (PersistentTCPIPPort), so the box is On, and its
+      /// row is not shown, while the protocol is POP3 or IMAP: a disabled box
+      /// under a hint about port 25 said nothing about the port being edited.
       /// </summary>
       private void UpdateSmtpAuthentication()
       {
@@ -285,6 +308,34 @@ namespace hMailServer.ControlPanel.Views
          if (!smtp)
             DialogFields.SelectCombo(smtpAuth_, 0, orFirst: true);
          smtpAuth_.IsEnabled = smtp;
+         smtpAuthRow_.Visibility = smtp ? Visibility.Visible : Visibility.Collapsed;
+      }
+
+      /// <summary>
+      /// The port's name as the dialog's title and heading say it: "SMTP port
+      /// 587" (F("{0} port {1}")), the protocol by its own name.
+      /// </summary>
+      internal static string PortName(int protocol, int number)
+      {
+         string name = protocol == ServerSession.SessionPop3 ? "POP3" : protocol == ServerSession.SessionImap ? "IMAP" : "SMTP"; // no-loc: the protocols' names
+         return F("{0} port {1}", name, number.ToString(System.Globalization.CultureInfo.InvariantCulture));
+      }
+
+      // ---- client certificate rows ----
+
+      /// <summary>
+      /// What Request and Require do, and the CA bundle they verify against, while
+      /// the policy is one of them; neither while it is Off, when no certificate
+      /// is asked for and no bundle is read.
+      /// </summary>
+      private void UpdateClientCertificateRows()
+      {
+         bool asked = DialogFields.ComboValue(clientCertPolicy_) != 0;
+         if (asked)
+            clientCertPolicyRow_.Hint = L("Request asks every client for a certificate, verifies and logs one if it is offered, and never refuses the connection - use it to inventory which clients would survive Require before enforcing it. Require refuses the connection unless the client presents a certificate that chains to the CA bundle below.");
+         else
+            clientCertPolicyRow_.Hint = null;
+         caFieldRow_.Visibility = asked ? Visibility.Visible : Visibility.Collapsed;
       }
 
       // ---- client certificate validation ----

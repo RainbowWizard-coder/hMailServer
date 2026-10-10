@@ -7720,6 +7720,9 @@
   <data name="Off - do not offer AUTH; refuse it and ban the address" xml:space="preserve">
     <value>关闭 - 不提供 AUTH；拒绝并封禁该地址</value>
   </data>
+  <data name="Off and Honeypot refuse AUTH and ban the address that sends it, Honeypot going on offering it as bait; mail clients sign in on 587, not on port 25." xml:space="preserve">
+    <value>“关闭”和“蜜罐”拒绝 AUTH 并封禁发送它的地址，“蜜罐”还会继续提供 AUTH 作为诱饵；邮件客户端在 587 登录，而不是在端口 25。</value>
+  </data>
   <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
     <value>默认关闭，因为它的代价是每封邮件几千字节的词条表，以及对每封已投递邮件的一次回填遍历 - 这是管理员的决定，绝不是升级的决定。打开和关闭的结果完全相同：索引只是缩小了子串扫描必须读取的邮件范围。需要启用（上面的）邮件索引；单独打开此项不会索引任何内容。</value>
   </data>
@@ -8520,14 +8523,8 @@
   <data name="Port 25 is judged differently from the rest and deliberately so: the peer there is normally another mail server, and requiring encryption on it refuses mail from senders that cannot offer any. On every other port the peer is a client with a password." xml:space="preserve">
     <value>端口 25 的判定标准与其他端口不同，而且是有意如此：那里的对端通常是另一台邮件服务器，在它上面要求加密会拒绝来自无法提供任何加密的发件方的邮件。在其他所有端口上，对端都是带密码的客户端。</value>
   </data>
-  <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there. Off and Honeypot never look at a password: AUTH is answered 502, and the first one of a session bans the address for the auto-ban minutes - never this computer, nor an address on the never-ban lists. Honeypot goes on offering AUTH, as bait. Mail clients sign in on 587." xml:space="preserve">
-    <value>端口 25 是其他服务器投递邮件的端口，任何邮件客户端都不应在那里登录。“关闭”和“蜜罐”从不查看密码：AUTH 一律答复 502，会话中的第一个 AUTH 会在自动封禁的分钟数内封禁该地址——但从不封禁本机，也不封禁永不封禁列表中的地址。“蜜罐”继续提供 AUTH，作为诱饵。邮件客户端在 587 登录。</value>
-  </data>
   <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there: an AUTH on it is a password being guessed." xml:space="preserve">
     <value>端口 25 是其他服务器投递邮件的端口，任何邮件客户端都不应在那里登录：在该端口上的 AUTH 就是在猜密码。</value>
-  </data>
-  <data name="Port binding" xml:space="preserve">
-    <value>端口绑定</value>
   </data>
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>http-01 质询使用的端口</value>
@@ -16589,6 +16586,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} port" xml:space="preserve">
     <value>{0} 个端口</value>
+  </data>
+  <data name="{0} port {1}" xml:space="preserve">
+    <value>{0} 端口 {1}</value>
   </data>
   <data name="{0} ports" xml:space="preserve">
     <value>{0} 个端口</value>

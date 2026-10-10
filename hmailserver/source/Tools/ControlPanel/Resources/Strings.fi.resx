@@ -7720,6 +7720,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Off - do not offer AUTH; refuse it and ban the address" xml:space="preserve">
     <value>Pois - älä tarjoa AUTHia; hylkää se ja estä osoite</value>
   </data>
+  <data name="Off and Honeypot refuse AUTH and ban the address that sends it, Honeypot going on offering it as bait; mail clients sign in on 587, not on port 25." xml:space="preserve">
+    <value>Pois ja Hunajapurkki hylkäävät AUTHin ja estävät osoitteen, joka sen lähettää, ja Hunajapurkki tarjoaa sitä edelleen syöttinä; postiohjelmat kirjautuvat porttiin 587, eivät porttiin 25.</value>
+  </data>
   <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
     <value>Oletuksena pois päältä, koska se maksaa muutaman kilotavun termitaulun viestiä kohden ja täydennysajon jokaisen jo toimitetun viestin yli - ylläpitäjän päätös, ei koskaan päivityksen. Tulokset ovat samat päällä ja pois: indeksi vain kaventaa, mitkä viestit osajonoskannauksen on luettava. Vaatii viestien indeksoinnin (yllä) käyttöönottoa; yksinään tämä ei indeksoi mitään.</value>
   </data>
@@ -8520,14 +8523,8 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Port 25 is judged differently from the rest and deliberately so: the peer there is normally another mail server, and requiring encryption on it refuses mail from senders that cannot offer any. On every other port the peer is a client with a password." xml:space="preserve">
     <value>Porttia 25 arvioidaan eri tavalla kuin muita, ja tarkoituksella: vastapuoli siellä on yleensä toinen postipalvelin, ja salauksen vaatiminen siinä hylkää postin lähettäjiltä, jotka eivät voi tarjota sitä. Jokaisessa muussa portissa vastapuoli on asiakas, jolla on salasana.</value>
   </data>
-  <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there. Off and Honeypot never look at a password: AUTH is answered 502, and the first one of a session bans the address for the auto-ban minutes - never this computer, nor an address on the never-ban lists. Honeypot goes on offering AUTH, as bait. Mail clients sign in on 587." xml:space="preserve">
-    <value>Porttiin 25 muut palvelimet toimittavat postia, eikä mikään postiohjelma saisi kirjautua siihen. Pois ja Hunajapurkki eivät koskaan katso salasanaa: AUTHiin vastataan 502, ja istunnon ensimmäinen estää osoitteen automaattisen eston minuuteiksi - ei koskaan tätä tietokonetta eikä osoitetta, joka on koskaan estämättömien luetteloissa. Hunajapurkki tarjoaa AUTHia edelleen, syöttinä. Postiohjelmat kirjautuvat porttiin 587.</value>
-  </data>
   <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there: an AUTH on it is a password being guessed." xml:space="preserve">
     <value>Porttiin 25 muut palvelimet toimittavat postia, eikä mikään postiohjelma saisi kirjautua siihen: siihen tuleva AUTH on salasanan arvaamista.</value>
-  </data>
-  <data name="Port binding" xml:space="preserve">
-    <value>Portin sidonta</value>
   </data>
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>Portti http-01-haasteille</value>
@@ -16589,6 +16586,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} port" xml:space="preserve">
     <value>{0} portti</value>
+  </data>
+  <data name="{0} port {1}" xml:space="preserve">
+    <value>{0}-portti {1}</value>
   </data>
   <data name="{0} ports" xml:space="preserve">
     <value>{0} porttia</value>

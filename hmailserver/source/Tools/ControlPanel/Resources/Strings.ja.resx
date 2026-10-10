@@ -7720,6 +7720,9 @@
   <data name="Off - do not offer AUTH; refuse it and ban the address" xml:space="preserve">
     <value>オフ - AUTH を提示せず、拒否してアドレスを禁止する</value>
   </data>
+  <data name="Off and Honeypot refuse AUTH and ban the address that sends it, Honeypot going on offering it as bait; mail clients sign in on 587, not on port 25." xml:space="preserve">
+    <value>[オフ] と [ハニーポット] は AUTH を拒否して送ってきたアドレスを禁止し ([ハニーポット] はおとりとして AUTH を提示し続けます)、メール クライアントはポート 25 ではなく 587 でサインインします。</value>
+  </data>
   <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
     <value>既定ではオフです。メッセージごとに数キロバイトの語テーブルと、すでに配信済みのすべてのメッセージに対するバックフィル パスというコストがかかるためで、これは管理者の決定であり、アップグレードが決めることではありません。結果はオンでもオフでも同一です。インデックスは、部分文字列スキャンが読み取るべきメッセージを絞り込むだけです。メッセージ インデックス (上) が有効である必要があり、これ単独では何もインデックス化しません。</value>
   </data>
@@ -8520,14 +8523,8 @@
   <data name="Port 25 is judged differently from the rest and deliberately so: the peer there is normally another mail server, and requiring encryption on it refuses mail from senders that cannot offer any. On every other port the peer is a client with a password." xml:space="preserve">
     <value>ポート 25 はほかとは別の基準で判断されます。これは意図的です。そこでの相手は通常もう 1 つのメール サーバーであり、暗号化を要求すると、暗号化を提供できない送信者からのメールを拒否することになります。ほかのすべてのポートでは、相手はパスワードを持つクライアントです。</value>
   </data>
-  <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there. Off and Honeypot never look at a password: AUTH is answered 502, and the first one of a session bans the address for the auto-ban minutes - never this computer, nor an address on the never-ban lists. Honeypot goes on offering AUTH, as bait. Mail clients sign in on 587." xml:space="preserve">
-    <value>ポート 25 は他のサーバーがメールを配送するポートで、メール クライアントがそこでサインインすることはありません。[オフ] と [ハニーポット] はパスワードを一切見ません。AUTH には 502 で応答し、セッションの最初の AUTH でアドレスを自動禁止の分数だけ禁止します。ただし、このコンピューターと、禁止しないアドレスの一覧にあるアドレスは禁止しません。[ハニーポット] はおとりとして AUTH を提示し続けます。メール クライアントは 587 でサインインします。</value>
-  </data>
   <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there: an AUTH on it is a password being guessed." xml:space="preserve">
     <value>ポート 25 は他のサーバーがメールを配送するポートで、メール クライアントがそこでサインインすることはありません。そこへの AUTH はパスワードの推測です。</value>
-  </data>
-  <data name="Port binding" xml:space="preserve">
-    <value>ポートのバインド</value>
   </data>
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>http-01 チャレンジ用のポート</value>
@@ -16589,6 +16586,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} port" xml:space="preserve">
     <value>ポート {0} 件</value>
+  </data>
+  <data name="{0} port {1}" xml:space="preserve">
+    <value>{0} ポート {1}</value>
   </data>
   <data name="{0} ports" xml:space="preserve">
     <value>ポート {0} 件</value>

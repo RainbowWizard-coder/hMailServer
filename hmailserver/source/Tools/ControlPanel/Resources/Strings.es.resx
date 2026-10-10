@@ -7720,6 +7720,9 @@ No se elimina nada de lo que ya está.</value>
   <data name="Off - do not offer AUTH; refuse it and ban the address" xml:space="preserve">
     <value>Desactivado - no ofrecer AUTH; rechazarlo y bloquear la dirección</value>
   </data>
+  <data name="Off and Honeypot refuse AUTH and ban the address that sends it, Honeypot going on offering it as bait; mail clients sign in on 587, not on port 25." xml:space="preserve">
+    <value>Desactivado y Señuelo rechazan AUTH y bloquean la dirección que lo envía, y Señuelo lo sigue ofreciendo como cebo; los clientes de correo inician sesión en el 587, no en el puerto 25.</value>
+  </data>
   <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
     <value>Desactivado por defecto porque cuesta una tabla de términos de unos pocos kilobytes por mensaje y una pasada de relleno sobre cada mensaje ya entregado - una decisión del administrador, nunca de una actualización. Los resultados son idénticos activado y desactivado: el índice solo reduce qué mensajes tiene que leer el escaneo de subcadenas. Requiere que la indexación de mensajes (arriba) esté activada; por sí solo esto no indexa nada.</value>
   </data>
@@ -8520,14 +8523,8 @@ No se aceptarán conexiones nuevas ni se entregará correo hasta que se reanude.
   <data name="Port 25 is judged differently from the rest and deliberately so: the peer there is normally another mail server, and requiring encryption on it refuses mail from senders that cannot offer any. On every other port the peer is a client with a password." xml:space="preserve">
     <value>El puerto 25 se juzga de forma distinta al resto, y deliberadamente: allí el par suele ser otro servidor de correo, y exigir cifrado en él rechaza correo de remitentes que no pueden ofrecer ninguno. En todos los demás puertos el par es un cliente con contraseña.</value>
   </data>
-  <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there. Off and Honeypot never look at a password: AUTH is answered 502, and the first one of a session bans the address for the auto-ban minutes - never this computer, nor an address on the never-ban lists. Honeypot goes on offering AUTH, as bait. Mail clients sign in on 587." xml:space="preserve">
-    <value>El puerto 25 es al que los demás servidores entregan el correo, y ningún cliente de correo debería iniciar sesión en él. Desactivado y Señuelo nunca miran una contraseña: AUTH se responde con 502, y el primero de una sesión bloquea la dirección durante los minutos de bloqueo automático, nunca este equipo ni una dirección de las listas de direcciones que nunca se bloquean. Señuelo sigue ofreciendo AUTH, como cebo. Los clientes de correo inician sesión en el 587.</value>
-  </data>
   <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there: an AUTH on it is a password being guessed." xml:space="preserve">
     <value>El puerto 25 es al que los demás servidores entregan el correo, y ningún cliente de correo debería iniciar sesión en él: un AUTH en él es una contraseña que alguien intenta adivinar.</value>
-  </data>
-  <data name="Port binding" xml:space="preserve">
-    <value>Enlace de puerto</value>
   </data>
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>Puerto para los desafíos http-01</value>
@@ -16589,6 +16586,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="{0} port" xml:space="preserve">
     <value>{0} puerto</value>
+  </data>
+  <data name="{0} port {1}" xml:space="preserve">
+    <value>Puerto {0} {1}</value>
   </data>
   <data name="{0} ports" xml:space="preserve">
     <value>{0} puertos</value>

@@ -7808,6 +7808,9 @@ Control Panel может читать файлы сообщений только
   <data name="Off - do not offer AUTH; refuse it and ban the address" xml:space="preserve">
     <value>Выкл. — не предлагать AUTH; отклонять его и блокировать адрес</value>
   </data>
+  <data name="Off and Honeypot refuse AUTH and ban the address that sends it, Honeypot going on offering it as bait; mail clients sign in on 587, not on port 25." xml:space="preserve">
+    <value>«Выкл.» и «Ловушка» отклоняют AUTH и блокируют адрес, который его отправил, причём «Ловушка» продолжает предлагать AUTH как приманку; почтовые клиенты входят через порт 587, а не через порт 25.</value>
+  </data>
   <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
     <value>По умолчанию выключено, потому что обходится в таблицу терминов размером в несколько килобайт на сообщение и в проход дозаполнения по каждому уже доставленному сообщению — это решение администратора, а никак не обновления. Результаты одинаковы и при включении, и при выключении: индекс лишь сужает круг сообщений, которые придётся прочитать при поиске подстроки. Требует включённого индексирования сообщений (выше); само по себе оно не индексирует ничего.</value>
   </data>
@@ -8608,14 +8611,8 @@ Control Panel может читать файлы сообщений только
   <data name="Port 25 is judged differently from the rest and deliberately so: the peer there is normally another mail server, and requiring encryption on it refuses mail from senders that cannot offer any. On every other port the peer is a client with a password." xml:space="preserve">
     <value>Порт 25 оценивается иначе, чем остальные, и это сделано намеренно: собеседником на нём обычно является другой почтовый сервер, и требование шифрования на этом порту приводит к отказу в приёме почты от отправителей, которые шифрование предложить не могут. На любом другом порту собеседником является клиент с паролем.</value>
   </data>
-  <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there. Off and Honeypot never look at a password: AUTH is answered 502, and the first one of a session bans the address for the auto-ban minutes - never this computer, nor an address on the never-ban lists. Honeypot goes on offering AUTH, as bait. Mail clients sign in on 587." xml:space="preserve">
-    <value>На порт 25 другие серверы доставляют почту, и ни один почтовый клиент не должен входить через него. «Выкл.» и «Ловушка» никогда не смотрят на пароль: на AUTH отвечается 502, а первый AUTH в сеансе блокирует адрес на время автоблокировки — но никогда не этот компьютер и не адрес из списков адресов, которые никогда не блокируются. «Ловушка» продолжает предлагать AUTH как приманку. Почтовые клиенты входят через порт 587.</value>
-  </data>
   <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there: an AUTH on it is a password being guessed." xml:space="preserve">
     <value>На порт 25 другие серверы доставляют почту, и ни один почтовый клиент не должен входить через него: AUTH на нём — это подбор пароля.</value>
-  </data>
-  <data name="Port binding" xml:space="preserve">
-    <value>Привязка порта</value>
   </data>
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>Порт для проверок http-01</value>
@@ -16893,6 +16890,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} port" xml:space="preserve">
     <value>{0} порт</value>
+  </data>
+  <data name="{0} port {1}" xml:space="preserve">
+    <value>Порт {0} {1}</value>
   </data>
   <data name="{0} ports" xml:space="preserve">
     <value>{0} портов</value>

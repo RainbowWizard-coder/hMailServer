@@ -7808,6 +7808,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Off - do not offer AUTH; refuse it and ban the address" xml:space="preserve">
     <value>Wyłączone - nie oferuj AUTH; odrzuć je i zablokuj adres</value>
   </data>
+  <data name="Off and Honeypot refuse AUTH and ban the address that sends it, Honeypot going on offering it as bait; mail clients sign in on 587, not on port 25." xml:space="preserve">
+    <value>Wyłączone i Pułapka odrzucają AUTH i blokują adres, który go wysyła, a Pułapka nadal oferuje je jako przynętę; klienci poczty logują się na porcie 587, nie na porcie 25.</value>
+  </data>
   <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
     <value>Domyślnie wyłączone, ponieważ kosztuje tablicę terminów o rozmiarze kilku kilobajtów na wiadomość oraz przebieg uzupełniający po każdej już dostarczonej wiadomości - to decyzja administratora, nigdy aktualizacji. Wyniki są identyczne przy włączonej i wyłączonej opcji: indeks jedynie zawęża zbiór wiadomości, które musi odczytać skanowanie po podciągu. Wymaga włączonego indeksowania wiadomości (powyżej); samo z siebie nie indeksuje niczego.</value>
   </data>
@@ -8608,14 +8611,8 @@ Do czasu wznowienia nie będą przyjmowane nowe połączenia ani dostarczana poc
   <data name="Port 25 is judged differently from the rest and deliberately so: the peer there is normally another mail server, and requiring encryption on it refuses mail from senders that cannot offer any. On every other port the peer is a client with a password." xml:space="preserve">
     <value>Port 25 jest oceniany inaczej niż pozostałe i jest to zamierzone: drugą stroną jest tam zwykle inny serwer pocztowy, a wymaganie na nim szyfrowania odrzuca pocztę od nadawców, którzy nie potrafią go zaoferować. Na każdym innym porcie drugą stroną jest klient z hasłem.</value>
   </data>
-  <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there. Off and Honeypot never look at a password: AUTH is answered 502, and the first one of a session bans the address for the auto-ban minutes - never this computer, nor an address on the never-ban lists. Honeypot goes on offering AUTH, as bait. Mail clients sign in on 587." xml:space="preserve">
-    <value>Na port 25 inne serwery dostarczają pocztę i żaden klient poczty nie powinien się na nim logować. Wyłączone i Pułapka nigdy nie sprawdzają hasła: AUTH dostaje odpowiedź 502, a pierwsze w sesji blokuje adres na minuty automatycznej blokady - nigdy ten komputer ani adresu z list adresów nigdy nieblokowanych. Pułapka nadal oferuje AUTH jako przynętę. Klienci poczty logują się na porcie 587.</value>
-  </data>
   <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there: an AUTH on it is a password being guessed." xml:space="preserve">
     <value>Na port 25 inne serwery dostarczają pocztę i żaden klient poczty nie powinien się na nim logować: AUTH na nim to zgadywanie hasła.</value>
-  </data>
-  <data name="Port binding" xml:space="preserve">
-    <value>Powiązanie portu</value>
   </data>
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>Port dla wyzwań http-01</value>
@@ -16893,6 +16890,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} port" xml:space="preserve">
     <value>{0} port</value>
+  </data>
+  <data name="{0} port {1}" xml:space="preserve">
+    <value>Port {0} {1}</value>
   </data>
   <data name="{0} ports" xml:space="preserve">
     <value>{0} portów</value>
