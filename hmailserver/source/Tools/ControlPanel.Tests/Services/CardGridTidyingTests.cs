@@ -136,6 +136,17 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("TextOptions.GetTextFormattingMode(window)", width, StringComparison.Ordinal);
          Assert.Contains("VisualTreeHelper.GetDpi(window).PixelsPerDip", width, StringComparison.Ordinal);
          Assert.Contains("Brushes.Black, null, mode, pixelsPerDip)", width, StringComparison.Ordinal);
+         // And in whole device pixels, up: at 150 % a column floored at 147 was drawn
+         // 146.67 wide and cut its header by a third of a pixel.
+         Assert.Contains("return WholeDevicePixels(words.WidthIncludingTrailingWhitespace + padding.Left + padding.Right);", width, StringComparison.Ordinal);
+         string styles = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Services", "GridStyles.cs"));
+         string whole = WithheldRowTests.MemberText(styles, "public static double WholeDevicePixels(double width)");
+         Assert.True(whole != null, "GridStyles.WholeDevicePixels is gone.");
+         Assert.Contains("Math.Ceiling(width * pixelsPerDip - 1e-6) / pixelsPerDip", whole, StringComparison.Ordinal);
+         string words = WithheldRowTests.MemberText(styles, "public static void FloorAtTheirWords(DataGrid grid, System.Collections.IEnumerable items, params DataGridColumn[] except)");
+         Assert.True(words != null, "GridStyles.FloorAtTheirWords is gone.");
+         Assert.Contains("floor = Math.Max(floor, CellWidth(value as string ?? value?.ToString()));", words, StringComparison.Ordinal);
+         Assert.Contains("column.MinWidth = WholeDevicePixels(floor);", words, StringComparison.Ordinal);
          Assert.Contains("RowSpeech.Labelled(L(\"Retries\"),", code, StringComparison.Ordinal);
          Assert.Contains("RowSpeech.Labelled(L(\"Authentication\"), Auth)", code, StringComparison.Ordinal);
       }
@@ -189,6 +200,24 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain("Padding = new Thickness(8)", build, StringComparison.Ordinal);
          Assert.Contains("EmptyStateUnderHeaders.Keep(empty_, rows_);", build, StringComparison.Ordinal);
          Assert.Contains("body.Children.Add(englishNote_);", build, StringComparison.Ordinal);
+         // Every column floored at its header, the two star columns among them, after
+         // the columns are added: German cut "Verlangt eine Bestätigung" at 1280.
+         int floor = build.IndexOf("foreach (DataGridColumn column in rows_.Columns)", StringComparison.Ordinal);
+         Assert.True(floor >= 0, "ProfilesView.Build no longer floors its columns at their headers.");
+         Assert.Contains("column.MinWidth = Math.Max(column.MinWidth, GridStyles.HeaderWidth(column.Header as string));", build.Substring(floor), StringComparison.Ordinal);
+         Assert.True(floor > build.IndexOf("rows_.Columns.Add(note_);", StringComparison.Ordinal),
+            "ProfilesView floors its columns before the last is added.");
+         // Why keeps a reason's first words, where floored at its header alone it was
+         // 61 pixels at 760; the grid then scrolls sideways and keeps its upright bar.
+         Assert.Contains("why_.MinWidth = Math.Max(why_.MinWidth, 100);", build, StringComparison.Ordinal);
+         Assert.Contains("ScrollViewer.SetVerticalScrollBarVisibility(rows_, ScrollBarVisibility.Visible);", build, StringComparison.Ordinal);
+         // And the columns before the two are floored at their words once a profile is
+         // shown, which a grid narrowed after it was laid out wider would otherwise cut.
+         string shown = WithheldRowTests.MemberText(code, "private void ShowDiff_()");
+         Assert.True(shown != null, "ProfilesView.ShowDiff_ is gone.");
+         Assert.Contains("GridStyles.FloorAtTheirWords(rows_, rows, why_, note_);", shown, StringComparison.Ordinal);
+         Assert.True(shown.IndexOf("rows_.ItemsSource = rows;", StringComparison.Ordinal) < shown.IndexOf("GridStyles.FloorAtTheirWords(", StringComparison.Ordinal),
+            "ProfilesView floors its columns before the rows they are floored at are shown.");
 
          string nothing = WithheldRowTests.MemberText(code, "private void ShowNothingToCompare_(bool unread)");
          Assert.True(nothing != null, "ProfilesView.ShowNothingToCompare_ is gone.");

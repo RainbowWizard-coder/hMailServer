@@ -73,7 +73,56 @@ namespace hMailServer.ControlPanel.Services
          double pixelsPerDip = window != null ? VisualTreeHelper.GetDpi(window).PixelsPerDip : 1.0;
          var words = new FormattedText(header, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,
             new Typeface(family, FontStyles.Normal, weight, FontStretches.Normal), size, Brushes.Black, null, mode, pixelsPerDip);
-         return Math.Ceiling(words.WidthIncludingTrailingWhitespace) + padding.Left + padding.Right;
+         // In whole device pixels, up, as the header is drawn: at 150 % a column floored
+         // at 147 was drawn 146.67 wide and cut "Asks for a confirmation" by a third of
+         // a pixel.
+         return WholeDevicePixels(words.WidthIncludingTrailingWhitespace + padding.Left + padding.Right);
+      }
+
+      /// <summary>
+      /// A width rounded up to the window's whole device pixels. Layout rounding draws
+      /// an element at the nearest device pixel, so that a column floored at a width
+      /// that falls between two - 147 at 150 % is 220.5 of them - is drawn at the one
+      /// below and cuts by a fraction of a pixel the words it was floored for.
+      /// </summary>
+      public static double WholeDevicePixels(double width)
+      {
+         Window window = Application.Current?.MainWindow;
+         double pixelsPerDip = window != null ? VisualTreeHelper.GetDpi(window).PixelsPerDip : 1.0;
+         return Math.Ceiling(width * pixelsPerDip - 1e-6) / pixelsPerDip;
+      }
+
+      /// <summary>
+      /// Floors each of a grid's bound columns, but those named, at its header and at
+      /// the widest of its words among the items shown, in whole device pixels. A grid
+      /// whose star column is floored takes what the star lacks from its other columns
+      /// once it is narrowed, down to 20 pixels each, and cuts their words - the audit
+      /// trail's at 1280 once the window had been wider; floored at their words they
+      /// keep them, and the grid scrolls sideways. Each item's value is read by the
+      /// column's binding path, a property of the item.
+      /// </summary>
+      public static void FloorAtTheirWords(DataGrid grid, System.Collections.IEnumerable items, params DataGridColumn[] except)
+      {
+         if (grid == null)
+            return;
+
+         foreach (DataGridColumn column in grid.Columns)
+         {
+            if (Array.IndexOf(except, column) >= 0 || column is not DataGridBoundColumn bound || bound.Binding is not System.Windows.Data.Binding binding || binding.Path == null)
+               continue;
+
+            double floor = HeaderWidth(column.Header as string);
+            if (items != null)
+            {
+               foreach (object item in items)
+               {
+                  object value = item?.GetType().GetProperty(binding.Path.Path)?.GetValue(item);
+                  floor = Math.Max(floor, CellWidth(value as string ?? value?.ToString()));
+               }
+            }
+
+            column.MinWidth = WholeDevicePixels(floor);
+         }
       }
 
       /// <summary>

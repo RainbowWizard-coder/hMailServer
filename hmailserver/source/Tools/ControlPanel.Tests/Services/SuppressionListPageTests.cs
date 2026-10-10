@@ -159,7 +159,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("Setting(style, Control.FontWeightProperty, FontWeights.SemiBold)", width, StringComparison.Ordinal);
          Assert.Contains("Setting(style, Control.PaddingProperty, new Thickness(10, 8, 10, 8))", width, StringComparison.Ordinal);
          Assert.Contains("new FormattedText(header, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,", width, StringComparison.Ordinal);
-         Assert.Contains("Math.Ceiling(words.WidthIncludingTrailingWhitespace) + padding.Left + padding.Right", width, StringComparison.Ordinal);
+         Assert.Contains("WholeDevicePixels(words.WidthIncludingTrailingWhitespace + padding.Left + padding.Right)", width, StringComparison.Ordinal);
       }
 
       private static string Build() => WithheldRowTests.MemberText(Source(), "private void Build()");

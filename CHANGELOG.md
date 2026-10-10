@@ -3626,12 +3626,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the two grids' right columns end where the notices above them do; the walk's and the sample domain's offers are
   Normal notices where they carried the Information word. The setting profiles card took eight pixels of inset where
   every content card takes the card's own, was an empty rectangle of column headers when the server could not be read,
-  and in another language put its translated heading over the server's English: it takes the card's inset, says
-  "Nothing to compare until the server can be read." or "Choose a profile to compare it with this server." in the
-  table's place, and says that the profiles' own words come from the server in English. And the domain rows' globe
-  is the secondary text, as the account rows' glyph is, where it spent the brand blue on every row (review
-  findings F318, F320, F322, F307, F308, F098; T3.3 work item 11). `CardGridTidyingTests` holds them. Seven new
-  strings in all seventeen languages; six that nothing uses any more are gone.
+  and in another language put its translated heading over the server's English: it takes the card's inset, each of its
+  columns floored at its header so that the inset does not cut German's "Verlangt eine Bestätigung", says "Nothing to
+  compare until the server can be read." or "Choose a profile to compare it with this server." in the table's place,
+  and says that the profiles' own words come from the server in English. And the domain rows' globe is the secondary
+  text, as the account rows' glyph is, where it spent the brand blue on every row (review findings F318, F320, F322,
+  F307, F308, F098; T3.3 work item 11). `CardGridTidyingTests` holds them. Seven new strings in all seventeen
+  languages; six that nothing uses any more are gone.
 
 ### Administration
 

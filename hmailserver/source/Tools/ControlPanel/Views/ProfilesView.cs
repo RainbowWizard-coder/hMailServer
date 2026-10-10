@@ -35,6 +35,11 @@ namespace hMailServer.ControlPanel.Views
    {
       private readonly ComboBox profiles_ = new() { MinWidth = 280, Margin = new Thickness(0, 0, 8, 0) };
 
+      // The table's two columns of sentences, floored in Build; the others are
+      // floored at their words as each profile is shown (ShowDiff_).
+      private DataGridTextColumn why_;
+      private DataGridTextColumn note_;
+
       // The floor: the column headers, three rows and a pixel for layout
       // rounding, 136, as the rules page's lists; held by the FillPanel in the
       // card, so that the card's floor is its summary, its three rows and the
@@ -388,6 +393,7 @@ namespace hMailServer.ControlPanel.Views
                });
             }
             rows_.ItemsSource = rows;
+            GridStyles.FloorAtTheirWords(rows_, rows, why_, note_);
 
             var stepLines = new List<string>();
             if (root.TryGetProperty("steps", out JsonElement steps) && steps.ValueKind == JsonValueKind.Array)
@@ -649,10 +655,26 @@ namespace hMailServer.ControlPanel.Views
          rows_.Columns.Add(Column_(L("Setting"), nameof(RowView.Setting), DataGridLength.Auto));
          rows_.Columns.Add(Column_(L("This server now"), nameof(RowView.Now), DataGridLength.Auto));
          rows_.Columns.Add(Column_(L("The profile"), nameof(RowView.Profile), DataGridLength.Auto));
-         rows_.Columns.Add(Column_(L("Why"), nameof(RowView.Why), new DataGridLength(2, DataGridLengthUnitType.Star)));
+         why_ = Column_(L("Why"), nameof(RowView.Why), new DataGridLength(2, DataGridLengthUnitType.Star));
+         rows_.Columns.Add(why_);
          // Notes: the confirmation a change asks for, and what the environment
          // sets, a refusal or the profile's own note (review finding F278).
-         rows_.Columns.Add(Column_(L("Notes"), nameof(RowView.Note), new DataGridLength(1, DataGridLengthUnitType.Star)));
+         note_ = Column_(L("Notes"), nameof(RowView.Note), new DataGridLength(1, DataGridLengthUnitType.Star));
+         rows_.Columns.Add(note_);
+         // No column narrower than its own header in the language in force, as the
+         // routes grid floors its columns: the two star columns had no floor, and with
+         // the card's own inset beside the wider sidebar German cut the last header to
+         // "Verlangt eine Bestätig..." at 1280 (review finding F308). Why, the column
+         // the table is for, keeps a reason's first words as well - floored at its short
+         // header alone it was 61 pixels at 760, "A ne..." - so that where the floors do
+         // not fit the grid scrolls sideways, keeping its upright bar as such a grid
+         // does (docs/ControlPanelDesign.md, Grids); the three columns before them are
+         // floored at their words as each profile is shown (ShowDiff_), since such a
+         // grid narrowed after it was laid out wider takes what the two lack from them.
+         foreach (DataGridColumn column in rows_.Columns)
+            column.MinWidth = Math.Max(column.MinWidth, GridStyles.HeaderWidth(column.Header as string));
+         why_.MinWidth = Math.Max(why_.MinWidth, 100);
+         ScrollViewer.SetVerticalScrollBarVisibility(rows_, ScrollBarVisibility.Visible);
          AutomationProperties.SetName(rows_, L("Setting profiles"));
 
          // The card's own FillPanel: the table is its filling part, the summary
