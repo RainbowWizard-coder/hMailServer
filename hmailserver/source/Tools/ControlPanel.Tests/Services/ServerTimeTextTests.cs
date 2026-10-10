@@ -104,6 +104,17 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       [Fact]
+      public void ADueTime_ThatHasCome_IsAsSoonAsPossible_WhereTheClocksAreOne()
+      {
+         var now = new DateTime(2026, 10, 8, 2, 48, 53);
+         Assert.Equal("As soon as possible", ServerTimeText.DueCell("2026-10-08 02:36:53", now, "As soon as possible"));
+         Assert.Equal("As soon as possible", ServerTimeText.DueCell("1901-01-01 00:00:00", now, "As soon as possible"));
+         Assert.Equal("in 12 min", ServerTimeText.DueCell("2026-10-08 03:00:53", now, "As soon as possible"));
+         // From another computer the time is the server's own, said as it is.
+         Assert.Equal("08/10/2026 02:36", ServerTimeText.DueCell("2026-10-08 02:36:53", null, "As soon as possible"));
+      }
+
+      [Fact]
       public void AUnixTime_IsThisComputersLocalTime_AndNoneIsNull()
       {
          Assert.Null(ServerTimeText.FromUnix(0));
@@ -130,7 +141,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("CreatedColumn.Header = now == null ? L(\"Created (server time)\") : L(\"Created\");", reload, StringComparison.Ordinal);
          Assert.Contains("NextTryColumn.Header = now == null ? L(\"Next try (server time)\") : L(\"Next try\");", reload, StringComparison.Ordinal);
          Assert.Contains("Created = ServerTimeText.GridCell(columns[1], now),", reload, StringComparison.Ordinal);
-         Assert.Contains("NextTry = ServerTimeText.GridCell(columns[4], now, L(\"As soon as possible\")),", reload, StringComparison.Ordinal);
+         Assert.Contains("NextTry = ServerTimeText.DueCell(columns[4], now, L(\"As soon as possible\")),", reload, StringComparison.Ordinal);
 
          XElement grid = XDocument.Parse(Read("QueueView.xaml")).Root.Descendants(Wpf + "DataGrid").Single();
          foreach ((string name, string sort, string tip) in new[] { ("CreatedColumn", "CreatedAt", "{Binding CreatedTip}"), ("NextTryColumn", "NextTryAt", "{Binding NextTryTip}") })

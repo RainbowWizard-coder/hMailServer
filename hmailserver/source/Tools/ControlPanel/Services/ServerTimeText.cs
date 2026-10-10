@@ -89,6 +89,21 @@ namespace hMailServer.ControlPanel.Services
          return IsNoDate(serverText) ? noDate : (serverText ?? "").Trim();
       }
 
+      /// <summary>
+      /// A grid cell for a time something is due at - the queue's next try - as
+      /// <see cref="GridCell"/> says it, but <paramref name="due"/> for the server's "no
+      /// date" and, where the clocks are one, for a time already passed: a message whose
+      /// next try has come is waiting for a delivery thread, and "12 min ago" under Next
+      /// try said it had been tried.
+      /// </summary>
+      public static string DueCell(string serverText, DateTime? now, string due)
+      {
+         if (Parse(serverText) is DateTime when && now is DateTime clock && when <= clock)
+            return due;
+
+         return GridCell(serverText, now, due);
+      }
+
       /// <summary>The whole time of a grid cell, marked as the server's, for its tool tip; null where there is no time.</summary>
       public static string GridTip(string serverText) => Parse(serverText) is DateTime when ? Full(when) : null;
 
