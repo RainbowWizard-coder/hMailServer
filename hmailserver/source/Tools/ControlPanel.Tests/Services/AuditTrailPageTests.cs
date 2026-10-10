@@ -154,6 +154,28 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       [Fact]
+      public void ThePagersSteps_HandTheKeyboardOn_BeforeOneIsDisabled()
+      {
+         string code = ReadControlPanelFile(Path.Join("Views", "AuditTrailView.cs")).Replace("\r\n", "\n");
+
+         // Older pressed from the keyboard onto the last page disabled the button that
+         // held the keyboard, which dropped to the window.
+         string pager = WithheldRowTests.MemberText(code, "private void ShowPager_()");
+         Assert.True(pager != null, "AuditTrailView.ShowPager_ is gone.");
+         int keep = pager.IndexOf("KeepPagerKeyboard_(pages && offset_ > 0, pages && offset_ + PageSize < total_);", StringComparison.Ordinal);
+         Assert.True(keep >= 0 && keep < pager.IndexOf("pager_.Visibility =", StringComparison.Ordinal) && keep < pager.IndexOf("newer_.IsEnabled =", StringComparison.Ordinal),
+            "The keyboard is not handed on before the pager is hidden or a step disabled.");
+
+         // To the other step where it stays pressable, else to the list, else the search.
+         string hand = WithheldRowTests.MemberText(code, "private void KeepPagerKeyboard_(bool newerStays, bool olderStays)");
+         Assert.True(hand != null, "AuditTrailView.KeepPagerKeyboard_ is gone.");
+         Assert.Contains("other.IsEnabled = true;", hand, StringComparison.Ordinal);
+         Assert.Contains("ReferenceEquals(System.Windows.Input.Keyboard.Focus(other), other)", hand, StringComparison.Ordinal);
+         Assert.Contains("GridKeys.FocusSelectedRow(rows_);", hand, StringComparison.Ordinal);
+         Assert.Contains("toolbar_.FocusSearch();", hand, StringComparison.Ordinal);
+      }
+
+      [Fact]
       public void ARead_AskedForAgainWhileTheTrailIsRead_StartsWhenThatReadEnds()
       {
          string code = ReadControlPanelFile(Path.Join("Views", "AuditTrailView.cs")).Replace("\r\n", "\n");

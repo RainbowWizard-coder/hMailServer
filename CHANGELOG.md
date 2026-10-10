@@ -2929,13 +2929,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   pressable only on a setting's change that records its values - not on a secret's, whose row says "(changed)" - with
   a tool tip that says why on any other row, and its question names both values: "Put AutoBanMinutes back from "120"
   to "60"?". Newer and Older are under the list with the page between them, each pressable only where there is a page
-  that way. The interfaces, the objects and the actions are the reader's words - "Control Panel or script" for COM,
-  "REST API", "Control Deck", "Role assignment", "Password reset" - and a token the page does not know is shown
-  readable ("Mailbox key forfeited"). The time and the address keep their widths, the columns of words share the rest,
-  and Detail takes twice a share and never less than 200 pixels, its arrow drawn as one ("60 → 120"). The search looks
-  in who, what, how and the detail of every change: the trail is read whole off the window's thread the first time, a
-  thousand rows a call, and each word typed in after is looked for in it. `AuditTrailPageTests` holds the words, the
-  search and the page's wiring.
+  that way, and one pressed from the keyboard onto the first or the last page hands the keyboard to the other. The
+  interfaces, the objects and the actions are the reader's words - "Control Panel or script" for COM, "REST API",
+  "Control Deck", "Role assignment", "Password reset" - and a token the page does not know is shown readable ("Mailbox
+  key forfeited"). The time and the address keep their widths, the columns of words share the rest, and Detail takes
+  twice a share and never less than 200 pixels, its arrow drawn as one ("60 → 120"). The search looks in who, what,
+  how and the detail of every change: the trail is read whole off the window's thread the first time, a thousand rows
+  a call, and each word typed in after is looked for in it. `AuditTrailPageTests` holds the words, the search and the
+  page's wiring.
 
 - **Fixed: the quarantine's allow and block icons differed only by colour, its header's four icons acted with nothing
   checked, and a group's row showed neither the pointer nor the keyboard inside it.** Each row, group and the header
@@ -2945,10 +2946,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   rows' (review finding F260). Allow and block are now a person each - PersonAvailable and PersonProhibited - outlined
   as the other two are. The header's four icons are gone: a bar under the toolbar says how many messages are checked
   ("2 messages checked", a polite live region) and carries Release, Allow sender..., Block sender... and Delete
-  permanently in words, each pressable only while a message is checked, and the column of each row's icons is headed
-  Actions. A group's row takes the grid's hover grey under the pointer, keeping its selection fill when selected, and
-  its focus ring while the keyboard is on its box or one of its icons, and its box and icons line up with the rows'.
-  Release's question answers with Re_lease, Alt+L, as the bar's Release does, where Refresh has R on the page.
+  permanently in words, each pressable only while a message is checked - one pressed from the keyboard leaves the
+  keyboard on the list once its act has cleared the checks - and the column of each row's icons is headed Actions. A
+  group's row takes the grid's hover grey under the pointer, keeping its selection fill when selected, and its focus
+  ring while the keyboard is on its box or one of its icons, and its box and icons line up with the rows'. Release's
+  question answers with Re_lease, Alt+L, as the bar's Release does, where Refresh has R on the page.
   `QuarantinePageTests` holds the shapes, the bar and the group's states.
 
 - **Fixed: the quarantine's allow chose the list that does not stop the next hold, and the list dialog's failures were

@@ -877,8 +877,39 @@ namespace hMailServer.ControlPanel.Views
             Announce.Request(checkedCount_);
          }
 
+         if (count == 0)
+            KeepBulkKeyboard_();
+
          foreach (Button button in bulk_)
             button.IsEnabled = count > 0;
+      }
+
+      /// <summary>
+      /// The keyboard off the bar's button that holds it before the four are disabled:
+      /// onto the list, where the next messages are checked, or the search where the
+      /// list is not shown. Release, Allow sender…, Block sender… or Delete permanently
+      /// pressed from the keyboard read the page again, which clears the checks, and the
+      /// button disabled under the keyboard dropped it to the window, so that a keyboard
+      /// user started again from the top of the window. The window's own focus is asked
+      /// as well: while the act's question is open the question has the keyboard, and
+      /// the window gives it back, as it closes, to what it last had - here the list.
+      /// </summary>
+      private void KeepBulkKeyboard_()
+      {
+         DependencyObject scope = FocusManager.GetFocusScope(list_);
+         IInputElement windowFocus = scope == null ? null : FocusManager.GetFocusedElement(scope);
+         if (!bulk_.Any(button => button.IsKeyboardFocused || ReferenceEquals(windowFocus, button)))
+            return;
+
+         if (list_.IsVisible)
+         {
+            // The keyboard where the window has it, the window's own focus otherwise.
+            list_.Focus();
+            FocusRowAfter_();
+            return;
+         }
+
+         search_.FocusSearch();
       }
 
       /// <summary>Every icon and box on a row, and a group's fold, arrive here by their Tag.</summary>

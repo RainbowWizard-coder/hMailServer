@@ -299,10 +299,39 @@ namespace hMailServer.ControlPanel.Views
       private void ShowPager_()
       {
          bool pages = total_ > PageSize && !ReadFailure.IsShown(status_) && !readingTrail_;
+         KeepPagerKeyboard_(pages && offset_ > 0, pages && offset_ + PageSize < total_);
          pager_.Visibility = pages ? Visibility.Visible : Visibility.Collapsed;
          newer_.IsEnabled = offset_ > 0;
          older_.IsEnabled = offset_ + PageSize < total_;
          pageText_.Text = F("Page {0} of {1}", offset_ / PageSize + 1, (total_ + PageSize - 1) / PageSize);
+      }
+
+      /// <summary>
+      /// The keyboard off a step of the pager that is about to be disabled or hidden:
+      /// onto the other step where that stays pressable, otherwise onto the list. A
+      /// button disabled or hidden while it holds the keyboard drops it to the window,
+      /// so that Older pressed from the keyboard onto the last page, or Newer onto the
+      /// first, left a keyboard user to start again from the top of the window.
+      /// </summary>
+      private void KeepPagerKeyboard_(bool newerStays, bool olderStays)
+      {
+         Button leaving = newer_.IsKeyboardFocused && !newerStays ? newer_
+            : older_.IsKeyboardFocused && !olderStays ? older_
+            : null;
+         if (leaving == null)
+            return;
+
+         Button other = ReferenceEquals(leaving, newer_) ? older_ : newer_;
+         if (ReferenceEquals(leaving, newer_) ? olderStays : newerStays)
+         {
+            other.IsEnabled = true;
+            if (ReferenceEquals(System.Windows.Input.Keyboard.Focus(other), other))
+               return;
+         }
+
+         GridKeys.FocusSelectedRow(rows_);
+         if (leaving.IsKeyboardFocused)
+            toolbar_.FocusSearch();
       }
 
       /// <summary>Put back is pressable on a setting's change it can put back, and says why not on any other row.</summary>

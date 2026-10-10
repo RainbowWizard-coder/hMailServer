@@ -84,6 +84,27 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("line.AppendChild(CheckBox_(BoxWidth, new Thickness(10, 0, CheckWidth - BoxWidth, 0)));", source, StringComparison.Ordinal);
       }
 
+      [Fact]
+      public void TheBarsButtons_HandTheKeyboardToTheList_BeforeTheyAreDisabled()
+      {
+         string source = ReadView("QuarantineView.cs").Replace("\r\n", "\n");
+
+         // An act pressed from the keyboard reads the page again, which clears the
+         // checks; the button disabled under the keyboard dropped it to the window.
+         string update = WithheldRowTests.MemberText(source, "private void UpdateBulkBar_()");
+         Assert.True(update != null, "QuarantineView.UpdateBulkBar_ is gone.");
+         Assert.True(update.IndexOf("KeepBulkKeyboard_();", StringComparison.Ordinal) >= 0 &&
+            update.IndexOf("KeepBulkKeyboard_();", StringComparison.Ordinal) < update.IndexOf("button.IsEnabled = count > 0;", StringComparison.Ordinal),
+            "The keyboard is not moved off the bar before its buttons are disabled.");
+
+         string keep = WithheldRowTests.MemberText(source, "private void KeepBulkKeyboard_()");
+         Assert.True(keep != null, "QuarantineView.KeepBulkKeyboard_ is gone.");
+         // The window's own focus too: the act's question has the keyboard while it is open.
+         Assert.Contains("button.IsKeyboardFocused || ReferenceEquals(windowFocus, button)", keep, StringComparison.Ordinal);
+         Assert.Contains("list_.Focus();\n            FocusRowAfter_();", keep, StringComparison.Ordinal);
+         Assert.Contains("search_.FocusSearch();", keep, StringComparison.Ordinal);
+      }
+
       private static string ReadView(string file)
       {
          var directory = new DirectoryInfo(AppContext.BaseDirectory);
