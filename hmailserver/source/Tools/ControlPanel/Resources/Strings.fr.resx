@@ -11645,7 +11645,7 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
     <value>Le filtre LDAP qui sélectionne les personnes qui doivent avoir une boîte. Le filtre par défaut prend les objets personne activés qui portent une adresse de messagerie - ce qui exclut délibérément les partants désactivés, les comptes de service et les ordinateurs, à qui un filtre plus large créerait des boîtes.</value>
   </data>
   <data name="The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
-    <value>La colonne Écoute est lue depuis les ports ouverts de cette machine, pas depuis la configuration : elle montre donc ce qui se passe réellement plutôt que ce qui a été demandé.</value>
+    <value>La colonne « À l'écoute » est lue depuis les ports ouverts de cette machine, pas depuis la configuration : elle montre donc ce qui se passe réellement plutôt que ce qui a été demandé.</value>
   </data>
   <data name="The MTA-STS hosting settings could not be read: {0}" xml:space="preserve">
     <value>Les réglages d'hébergement MTA-STS n'ont pas pu être lus : {0}</value>

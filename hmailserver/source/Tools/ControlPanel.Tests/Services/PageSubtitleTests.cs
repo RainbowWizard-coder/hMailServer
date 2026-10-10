@@ -8,6 +8,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using hMailServer.ControlPanel.Services;
 using Xunit;
 
@@ -144,8 +145,39 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void TheListeningColumn_SaysWhatItReads_InItsHeader()
       {
          string page = File.ReadAllText(ControlPanelFile(Path.Join("Views", "TcpIpPortsView.xaml.cs")));
-         Assert.Contains("GridStyles.HeaderCaption(ListeningColumn, L(\"The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for.\"));", page, StringComparison.Ordinal);
+         Assert.Contains("GridStyles.HeaderCaption(ListeningColumn, L(\"" + ListeningTip + "\"));", page, StringComparison.Ordinal);
       }
+
+      /// <summary>
+      /// The sentence sits on the Listening column's header, so it names the column by the
+      /// header's own word in every language: the French one said "La colonne Écoute" under
+      /// a header that reads "À l'écoute", carried over from the subtitle it was cut from.
+      /// </summary>
+      [Fact]
+      public void TheListeningColumnsToolTip_NamesTheColumnAsItsHeaderReads_InEveryLanguage()
+      {
+         string resources = Path.GetDirectoryName(ControlPanelFile(Path.Join("Resources", "Strings.resx")));
+         var problems = new List<string>();
+         int seen = 0;
+         foreach (string path in Directory.GetFiles(resources, "Strings.*.resx"))
+         {
+            seen++;
+            string tag = Path.GetFileNameWithoutExtension(path).Substring("Strings.".Length);
+            var catalogue = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (XElement data in XDocument.Load(path).Root.Elements("data"))
+               catalogue[(string)data.Attribute("name")] = data.Element("value")?.Value ?? "";
+
+            if (!catalogue.TryGetValue("Listening", out string header) || !catalogue.TryGetValue(ListeningTip, out string tip))
+               problems.Add(tag + ": the Listening header or its tool tip is not translated");
+            else if (!tip.Contains(header, StringComparison.Ordinal))
+               problems.Add(tag + ": the header reads '" + header + "' and its tool tip says '" + tip + "'");
+         }
+
+         Assert.True(seen >= 17, "Only " + seen + " catalogues were found beside Strings.resx.");
+         Assert.True(problems.Count == 0, string.Join("\n", problems));
+      }
+
+      private const string ListeningTip = "The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for.";
 
       /// <summary>The number of sentences in an English text: a full stop, a question or an exclamation mark, then a space and a capital, a quotation or a bracket, or the end.</summary>
       internal static int Sentences(string text)
