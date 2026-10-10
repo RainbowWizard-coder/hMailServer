@@ -814,9 +814,9 @@
     <value>Åtkomstnyckel-ID (S3) eller lagringskontots namn (Azure)</value>
   </data>
   <data name="Access to the message file was denied:&#13;&#10;   {0}&#13;&#10;&#13;&#10;The Control Panel can only read message files when it runs on the same machine as the server, with sufficient permissions." xml:space="preserve">
-    <value>Åtkomst till meddelandefilen nekades:&#13;
-   {0}&#13;
-&#13;
+    <value>Åtkomst till meddelandefilen nekades:
+   {0}
+
 Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator som servern, med tillräckliga behörigheter.</value>
   </data>
   <data name="Access-control entries for {0}" xml:space="preserve">
@@ -2989,9 +2989,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
     <value>Kunde inte läsa loggningstillståndet: {0}</value>
   </data>
   <data name="Could not read the message file:&#13;&#10;   {0}&#13;&#10;&#13;&#10;{1}" xml:space="preserve">
-    <value>Kunde inte läsa meddelandefilen:&#13;
-   {0}&#13;
-&#13;
+    <value>Kunde inte läsa meddelandefilen:
+   {0}
+
 {1}</value>
   </data>
   <data name="Could not read the outcome: {0}" xml:space="preserve">
@@ -9062,8 +9062,8 @@ En adress som den skonade kan spärras automatiskt igen från och med nästa sp�
 Nästa meddelande till adressen skickas, och den hamnar på listan igen först efter så många hårda studsar i följd som tröskeln kräver.</value>
   </data>
   <data name="Remove {0} from {1}?&#13;&#10;&#13;&#10;Any access this group has been granted stops applying to that account." xml:space="preserve">
-    <value>Ta bort {0} från {1}?&#13;
-&#13;
+    <value>Ta bort {0} från {1}?
+
 All åtkomst den här gruppen har fått slutar gälla för det kontot.</value>
   </data>
   <data name="Rename {0} to {1}?&#10;&#10;Every account, alias and distribution list moves to the new name, and forwards or memberships in other domains that point at {0} addresses are updated to match. Mail sent to the old name will no longer be accepted." xml:space="preserve">
@@ -11621,8 +11621,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Den b
     <value>Chifferlistan är förinställningen AEAD-ONLY medan TLS 1.0 eller 1.1 är aktiverat. De versionerna har ingen AEAD-svit alls, så de annonseras och kan sedan inte fullborda en handskakning - vilket för klienten ser ut som en trasig server snarare än en policy.</value>
   </data>
   <data name="The clipboard could not be written: {0}&#13;&#10;&#13;&#10;Select the key above and copy it by hand - it will not be shown again." xml:space="preserve">
-    <value>Urklipp kunde inte skrivas: {0}&#13;
-&#13;
+    <value>Urklipp kunde inte skrivas: {0}
+
 Markera nyckeln ovan och kopiera den för hand - den visas inte igen.</value>
   </data>
   <data name="The common one by default; a tenant's own or a national cloud's otherwise." xml:space="preserve">
@@ -11755,8 +11755,8 @@ Markera nyckeln ovan och kopiera den för hand - den visas inte igen.</value>
     <value>Själva hämtningen misslyckades: {0} Det säger inget om policyn.</value>
   </data>
   <data name="The file&#13;&#10;   {0}&#13;&#10;could not be loaded. The message has probably been delivered and is no longer in the queue." xml:space="preserve">
-    <value>Filen&#13;
-   {0}&#13;
+    <value>Filen
+   {0}
 kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre i kön.</value>
   </data>
   <data name="The file could not be parsed as a PEM certificate. The server loads certificates in PEM format only, so this file will not load and every TLS port using it will fail to start (server error 5113)." xml:space="preserve">

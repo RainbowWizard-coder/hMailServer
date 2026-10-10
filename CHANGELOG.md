@@ -1441,6 +1441,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   secret)* as a secondary button, and asks first - the new secret replaces the current one and the app's codes stop
   working until it scans the new QR code - with *Replace the secret* and Cancel the answer Enter gives; *Remove* asks
   first as well, saying that the account's own password signs in to mail clients again.
+- **Fixed: five Swedish texts stood a blank line further apart than in every other language.** The group members'
+  *Remove user01@example.com from Sales?*, three messages about reading a message file and the new API key's clipboard
+  error carried an escaped carriage return before each of their line breaks in the Swedish catalogue, which a Windows
+  build keeps as two breaks. They are written as the sixteen other catalogues write them, and the Control Panel's
+  tests refuse a catalogue that escapes a carriage return before a line break.
 
 - **Fixed: status words on the Control Panel's dark cards, and the live log's lines, were under the contrast a word
   needs.** The danger and information colours were chosen against the darkest surface the window has, and on the dark
