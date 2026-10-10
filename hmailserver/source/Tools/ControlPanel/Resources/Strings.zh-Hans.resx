@@ -5297,7 +5297,7 @@
     <value>沿用域设置</value>
   </data>
   <data name="For Administrator, the password chosen when hMailServer was installed; for your own account, its own password." xml:space="preserve">
-    <value>Administrator 使用安装 hMailServer 时选择的密码；你自己的账户使用它自己的密码。</value>
+    <value>Administrator 使用安装 hMailServer 时选择的密码；您自己的账户使用它自己的密码。</value>
   </data>
   <data name="For LDAPS or StartTLS: a certificate on the directory server that THIS machine trusts - issued by a CA in the Windows machine certificate store, with the host name above in it. A domain controller does not have one out of the box. The Negotiate bind method needs no certificate at all, because the password never crosses the network." xml:space="preserve">
     <value>用于 LDAPS 或 StartTLS：目录服务器上有一个本机信任的证书 - 由 Windows 计算机证书存储中的某个 CA 颁发，并且包含上面的主机名。域控制器出厂时没有这样的证书。Negotiate 绑定方法完全不需要证书，因为密码从不经过网络。</value>
@@ -11629,7 +11629,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
     <value>重新登录</value>
   </data>
   <data name="Sign in as the server's Administrator, or with your own account if it administers a domain or holds a role." xml:space="preserve">
-    <value>以服务器的 Administrator 登录，或者如果你自己的账户管理某个域或拥有某个角色，则用它登录。</value>
+    <value>以服务器的 Administrator 身份登录，或者如果您自己的账户管理某个域或拥有某个角色，则用它登录。</value>
   </data>
   <data name="Sign in to a server first." xml:space="preserve">
     <value>请先登录到服务器。</value>

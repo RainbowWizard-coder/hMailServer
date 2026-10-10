@@ -5367,7 +5367,7 @@ Control Panel может читать файлы сообщений только
     <value>Как у домена</value>
   </data>
   <data name="For Administrator, the password chosen when hMailServer was installed; for your own account, its own password." xml:space="preserve">
-    <value>Для Administrator — пароль, выбранный при установке hMailServer; для своей учётной записи — её собственный пароль.</value>
+    <value>Для Administrator - пароль, выбранный при установке hMailServer; для своей учётной записи - её собственный пароль.</value>
   </data>
   <data name="For LDAPS or StartTLS: a certificate on the directory server that THIS machine trusts - issued by a CA in the Windows machine certificate store, with the host name above in it. A domain controller does not have one out of the box. The Negotiate bind method needs no certificate at all, because the password never crosses the network." xml:space="preserve">
     <value>Для LDAPS или StartTLS: на сервере каталога нужен сертификат, которому доверяет ЭТОТ компьютер, — выпущенный ЦС из хранилища сертификатов компьютера Windows и содержащий указанное выше имя узла. У контроллера домена такого сертификата из коробки нет. Методу привязки Negotiate сертификат не нужен вовсе, поскольку пароль по сети не передаётся никогда.</value>

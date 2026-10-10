@@ -95,6 +95,45 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(failures.Count == 0, string.Join(Environment.NewLine, failures));
       }
 
+      /// <summary>
+      /// The card's two sentences keep each catalogue's house style on the
+      /// program's first screen: the spaced hyphen for a dash, the owner's choice
+      /// (decision 8, 9 October 2026), where Russian and Ukrainian wrote the hint
+      /// with two em dashes; and in Chinese the reader addressed as 您, as the
+      /// catalogue and the Welcome page's purpose address them, where both
+      /// sentences said 你.
+      /// </summary>
+      [Fact]
+      public void InEveryLanguage_TheCardsSentences_KeepTheCataloguesDashAndRegister()
+      {
+         string[] sentences =
+         {
+            "Sign in as the server's Administrator, or with your own account if it administers a domain or holds a role.",
+            "For Administrator, the password chosen when hMailServer was installed; for your own account, its own password.",
+         };
+         var failures = new List<string>();
+         foreach (string path in Directory.GetFiles(ResourcesDirectory(), "Strings.*.resx"))
+         {
+            Dictionary<string, string> catalogue = ReadResx(path);
+            string tag = Path.GetFileNameWithoutExtension(path).Substring("Strings.".Length);
+            foreach (string key in sentences)
+            {
+               if (!catalogue.TryGetValue(key, out string value))
+               {
+                  failures.Add(tag + ": no translation of " + key);
+                  continue;
+               }
+
+               if (value.IndexOfAny(new[] { '\u2014', '\u2013' }) >= 0)
+                  failures.Add(tag + ": a dash that is not the spaced hyphen: " + value);
+               if (tag == "zh-Hans" && (value.Contains('\u4F60', StringComparison.Ordinal) || !value.Contains('\u60A8', StringComparison.Ordinal)))
+                  failures.Add(tag + ": the reader is not addressed as the catalogue addresses them: " + value);
+            }
+         }
+
+         Assert.True(failures.Count == 0, string.Join(Environment.NewLine, failures));
+      }
+
       [Fact]
       public void TheWelcomeIntent_ProtectsTheAdministratorPassword()
       {

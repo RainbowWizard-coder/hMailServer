@@ -5367,7 +5367,7 @@
     <value>Як у домену</value>
   </data>
   <data name="For Administrator, the password chosen when hMailServer was installed; for your own account, its own password." xml:space="preserve">
-    <value>Для Administrator — пароль, вибраний під час встановлення hMailServer; для власного облікового запису — його власний пароль.</value>
+    <value>Для Administrator - пароль, вибраний під час встановлення hMailServer; для власного облікового запису - його власний пароль.</value>
   </data>
   <data name="For LDAPS or StartTLS: a certificate on the directory server that THIS machine trusts - issued by a CA in the Windows machine certificate store, with the host name above in it. A domain controller does not have one out of the box. The Negotiate bind method needs no certificate at all, because the password never crosses the network." xml:space="preserve">
     <value>Для LDAPS або StartTLS: сертифікат на сервері каталогу, якому довіряє ЦЕЙ комп'ютер - виданий ЦС зі сховища сертифікатів комп'ютера Windows, з іменем вузла вище в ньому. Контролер домену не має такого одразу після встановлення. Метод прив'язки Negotiate взагалі не потребує сертифіката, бо пароль ніколи не перетинає мережу.</value>
