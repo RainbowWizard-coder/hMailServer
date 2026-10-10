@@ -2336,7 +2336,7 @@ int main(int argc, char *argv[])
    // A fault from here on is recorded as one during shutdown, which is a
    // different finding from one in service.
    HM::CrashOracle::NotifyShutdownStarted();
-   HM::Application::Instance()->StopServers();
+   HM::Application::Instance()->StopServers(HM::Application::StopBeforeExit);
    HM::Application::Instance()->ExitInstance();
 
    HM::Logger::Instance()->LogApplication(_T("Stopped."));

@@ -1598,7 +1598,7 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
       ClassTester oTester;
       oTester.DoTests();
 
-      HM::Application::Instance()->StopServers();
+      HM::Application::Instance()->StopServers(HM::Application::StopBeforeExit);
 
       HM::Application::Instance()->ExitInstance();
    }
@@ -1643,7 +1643,7 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
          DispatchMessage(&msg);
       }
 
-      HM::Application::Instance()->StopServers();
+      HM::Application::Instance()->StopServers(HM::Application::StopBeforeExit);
       HM::Application::Instance()->ExitInstance();
    }
    else if (sLastParam.CompareNoCase(_T("--upgrade-database")) == 0)
@@ -2098,7 +2098,9 @@ TerminateServer()
          SetServiceStatus(ServiceStatusHandle, &ServiceStatus);
    });
 
-   HM::Application::Instance()->StopServers();
+   // The process ends after it: the message indexer is waited for a minute at
+   // most (Application::StopBeforeExit), the checkpoint advancing meanwhile.
+   HM::Application::Instance()->StopServers(HM::Application::StopBeforeExit);
 
    HM::Application::Instance()->SetStopProgressCallback(std::function<void()>());
 

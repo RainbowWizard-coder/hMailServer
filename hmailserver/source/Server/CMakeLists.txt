@@ -901,10 +901,11 @@ set_target_properties(trust-anchor-tests PROPERTIES OUTPUT_NAME trust-anchor-tes
 # sends on is from (SieveFromAddressTester, Common/Sieve/SieveVacationResponder.h);
 # and an exception on a worker's thread is answered as a failure rather than passed
 # on to std::terminate (ExceptionHandler::Run, Common/Application/ExceptionHandler.h);
-# and the message indexer's thread is waited for when it is stopped, begun again by a
-# Start straight after, neither joined nor ended by a Start on its own thread, and
-# ended alone by an exception on it (MessageIndexerTester,
-# Common/Application/MessageIndexer.h, over a stand-in pass).
+# and the message indexer's thread is waited for when it is stopped - for as long as
+# the stop's limit, when it has one - begun again by a Start straight after, neither
+# joined nor ended by a Start on its own thread, not held up by its own Start and
+# Stop while a stop waits for it, and ended alone by an exception on it
+# (MessageIndexerTester, Common/Application/MessageIndexer.h, over a stand-in pass).
 # No database, configuration or network. Not installed; a bench tool.
 add_executable(business-object-tests ${SERVER_DIR}/platform/business_object_tests_main.cpp)
 target_link_libraries(business-object-tests PRIVATE hmailserver_core)

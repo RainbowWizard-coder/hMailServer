@@ -1952,10 +1952,26 @@ namespace HM
       // where the indexer had been started or stopped already.
       GetSettings()->SetBool(PROPERTY_MESSAGE_INDEXING, enable);
 
-      if (enable)
-         MessageIndexer::Instance()->Start();
-      else
-         MessageIndexer::Instance()->Stop();
+      // Acted on, and again as the setting stands if it has changed meanwhile, so
+      // that two saves at once leave the indexer as the later of them has the
+      // setting: COM's and the REST API's, or an OnError script's on the indexer's
+      // own thread while a stop on another waits for it - a Start there returns at
+      // once and leaves the indexer to that stop (MessageIndexer::Start), and the
+      // stop's caller, turning it off, then finds the setting on and starts it.
+      bool indexing = enable;
+      for (;;)
+      {
+         if (indexing)
+            MessageIndexer::Instance()->Start();
+         else
+            MessageIndexer::Instance()->Stop();
+
+         const bool now = GetMessageIndexing();
+         if (now == indexing)
+            break;
+
+         indexing = now;
+      }
    }
 
    bool

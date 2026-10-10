@@ -1509,7 +1509,7 @@ namespace HM
    }
 
    void 
-   Application::StopServers()
+   Application::StopServers(StopPurpose purpose)
    {
       LOG_APPLICATION("Stopping servers...")
 
@@ -1708,8 +1708,18 @@ namespace HM
       // closes the database as soon as this returns (ExitInstance), and until 10
       // October 2026 the indexer was interrupted and not waited for, so that a pass
       // in the middle of a batch made its next statement through the empty database
-      // manager - which on Linux ended the process (MessageIndexer::Stop).
-      MessageIndexer::Instance()->Stop(stop_progress_);
+      // manager - which on Linux ended the process (MessageIndexer::Stop). Until it
+      // has ended when the servers may start again. Before the process ends, a
+      // minute at most: twice DatabaseStatementTimeout's default, which ends a
+      // statement on most engines, and past that the indexer is in a statement a
+      // database that has stopped answering holds - a MySQL write, which no
+      // statement timeout ends there, or any statement with the timeout at 0 or on
+      // a connection gone silent. Until 10 October 2026 such a stop waited for it
+      // without end while the service controller was told it was progressing. The
+      // stop now goes on, and the process's end cuts the statement, as it cuts a
+      // work queue's thread that has not left in ten seconds (WorkQueue::Stop).
+      const int indexerWaitBeforeExitSeconds = 60;
+      MessageIndexer::Instance()->Stop(stop_progress_, purpose == StopBeforeExit ? indexerWaitBeforeExitSeconds : 0);
 
       ServerStatus::Instance()->SetState(ServerStatus::StateStopped);
 
@@ -1885,7 +1895,7 @@ namespace HM
       // which is what it asked for.
       boost::lock_guard<boost::mutex> guard(reinitialize_mutex_);
 
-      StopServers();
+      StopServers(StopToStartAgain);
       ExitInstance();
 
       // The reconciled [Settings] map belongs to the database connection that has

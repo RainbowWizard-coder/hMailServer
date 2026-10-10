@@ -28,12 +28,32 @@ namespace HM
 
       // Asks the thread to stop and waits until it has ended, so that nothing
       // it does comes after what it uses is gone - the database manager, which
-      // a Reinitialize resets straight after StopServers. It ends at its next
-      // interruption point: a message of a batch, a slice of a sweep, a pause
-      // or the minute's wait - one statement or one message at most. progress
-      // is called about once a second while it waits (the service controller's
-      // checkpoint, as Sandbox::Stop calls it).
-      void Stop(const std::function<void()> &progress = std::function<void()>());
+      // a Reinitialize resets straight after StopServers - and answers whether
+      // it has. The thread ends at its next interruption point: before each
+      // message of a batch, between two slices of the full-text terms' orphan
+      // sweep, in the pause between two backfill passes and in the minute's
+      // wait. That can be several statements away - a pass reads what it is to
+      // index with several before its first message, and at the indexer's start
+      // the sweep of the message metadata's orphans is one statement over the
+      // whole table - and a statement takes as long as the database takes to
+      // answer it, or DatabaseStatementTimeout where the database applies that:
+      // not to a write on MySQL, not at all when it is 0.
+      //
+      // maxWaitSeconds 0 waits until the thread has ended, as a Reinitialize
+      // must, the database closed straight after. Above 0 it gives up after so
+      // long, says so in the log and answers false, the thread left to end by
+      // itself: StopServers before the process ends (Application::StopBeforeExit),
+      // so that a database that has stopped answering does not hold a service
+      // stop for ever while the service controller is told it is progressing.
+      // progress is called about once a second while it waits (the service
+      // controller's checkpoint, as Sandbox::Stop calls it).
+      //
+      // Made on the indexer's own thread - by an OnError script it runs - it asks
+      // the thread to stop at its next interruption point and answers false: the
+      // thread cannot wait for itself. The lock is let go of while a stop waits,
+      // so that such a script's Start or Stop, which return at once on that
+      // thread, are never made to wait for the stop that waits for them.
+      bool Stop(const std::function<void()> &progress = std::function<void()>(), int maxWaitSeconds = 0);
 
       void IndexNow();
 
@@ -51,8 +71,16 @@ namespace HM
 
       // A Start on the indexer's own thread after a Stop on it - an OnError
       // script turning MessageIndexing off and on again - takes the Stop back,
-      // the thread going on as the indexer. Under starterMutex_.
-      void TakeBackStopOnItsThread_();
+      // the thread going on as the indexer. Under starterMutex_, with the
+      // caller's interruptions turned off by noInterruption.
+      void TakeBackStopOnItsThread_(boost::this_thread::disable_interruption &noInterruption);
+
+      // Waits, starterMutex_ held by lock on the way in and out but let go of
+      // while it waits, until the thread a Stop has interrupted has ended (true),
+      // or for maxWaitSeconds when that is above 0 (false), calling progress
+      // about once a second. One caller at a time joins the thread, in turns of a
+      // second with joining_ set; another waits for the turn to be over.
+      bool WaitForEnd_(boost::unique_lock<boost::mutex> &lock, const std::function<void()> &progress, int maxWaitSeconds);
 
       void IndexMessages_();
 
@@ -69,17 +97,43 @@ namespace HM
       // its minute rather than asking again at once.
       bool IndexFullTextMessages_(const std::vector<PersistentMessageIndex::IndexableMessage> &messages, bool &skipped);
 
+      // starterMutex_ guards what follows to turn_over_. It is never held while
+      // the thread is waited for: from 6ebf39d39 Stop joined under it, and an
+      // OnError script the indexer ran then, turning MessageIndexing on or off,
+      // waited for the lock on the indexer's thread while the stop waited for
+      // that thread - for ever.
+      boost::mutex starterMutex_;
+
       boost::thread workerThread_;
+
+      // workerThread_'s id from its start until it is joined; none otherwise.
+      // What the checks for the indexer's own thread ask, since a caller may be
+      // joining workerThread_ outside the lock (joining_), and nothing else
+      // touches workerThread_ then.
+      boost::thread::id worker_id_;
+
+      // Counts the threads Start has begun, so that a waiter for one knows it
+      // has ended once a Start has begun the next.
+      unsigned long generation_;
+
+      // The thread has been interrupted by a Stop and not yet joined: by a Stop
+      // made on the thread itself, which cannot wait for itself; by one that
+      // gave up waiting; or by one waiting now. A Start waits for it to end - or,
+      // made on that thread while no one else waits for it, takes the stop back
+      // - rather than taking it for the running indexer. Set whenever joining_
+      // is.
+      bool stop_asked_;
+
+      // The callers in WaitForEnd_ for the thread of this generation.
+      int waiters_;
+
+      // A caller is joining workerThread_ with starterMutex_ let go of
+      // (WaitForEnd_), and turn_over_ is notified when its turn is over.
+      bool joining_;
+      boost::condition_variable turn_over_;
 
       // What workerThread_ runs: WorkerFuncInternal, or a tester's stand-in.
       boost::function<void()> work_;
-
-      // The thread was asked to stop from the thread itself - Stop called on it
-      // by something the indexer ran, an OnError script - which cannot wait for
-      // itself; it ends at its next interruption point, and a Start meanwhile
-      // waits for it rather than taking it for the running indexer, or, made on
-      // that thread too, takes the stop back.
-      bool stop_asked_on_its_thread_;
 
       int iIndexRunCount;
 
@@ -93,8 +147,6 @@ namespace HM
       // batch per hourly gate.
       bool full_text_reconcile_active_;
 
-      boost::recursive_mutex starterMutex_;
-
       Event index_now_;
    };
 
@@ -106,7 +158,13 @@ namespace HM
    // stopping thread for the running indexer and started none. And a Start made
    // on the indexer's own thread, as an OnError script would make it, neither
    // asks the thread to join itself - boost throws, as it did until 10 October
-   // 2026 - nor ends the indexer when it follows a Stop there. ClassTester runs
+   // 2026 - nor ends the indexer when it follows a Stop there. A Stop with a
+   // limit gives up on a pass that outlasts it and answers false, and the Start
+   // after it waits for that pass to end and begins a new indexer. And a Stop
+   // and a Start the indexer's own thread makes while a Stop on another waits
+   // for it return at once, the Start taking back no stop, where the wait held
+   // the lock they need and the stop and the indexer waited for each other for
+   // ever. ClassTester runs
    // Test on Windows, business-object-tests on Linux; TestAnExceptionOnItsThread
    // only business-object-tests, since on Windows the exception handler writes a
    // minidump of the server it runs in.
@@ -125,5 +183,7 @@ namespace HM
       void TestStopWaitsForThePassInFlight_();
       void TestAStartAfterAStopIsANewIndexer_();
       void TestAStartOnItsOwnThread_();
+      void TestAStopBeforeExitGivesUp_();
+      void TestItsOwnStartAndStopWhileAStopWaits_();
    };
 }

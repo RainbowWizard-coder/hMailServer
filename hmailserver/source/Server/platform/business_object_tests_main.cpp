@@ -59,7 +59,10 @@
 //     the check above, as it reports the exception too). And a Start on the
 //     indexer's own thread, as an OnError script makes one, neither asks the
 //     thread to join itself - boost threw, until 10 October 2026 - nor ends the
-//     indexer when it follows a Stop there.
+//     indexer when it follows a Stop there. A Stop with a limit, as StopServers
+//     makes one before the process ends, gives up on a pass that outlasts it;
+//     and a Stop and a Start the indexer's own thread makes while a Stop waits
+//     for it return at once, where the wait held the lock they take.
 //   - A message's X-hMailServer-LoopCount, which comes with mail from anyone, is a
 //     count only when it is digits, and never above the limit (LoopCountTester,
 //     Common/Rules/RuleGuard.cpp): MessageData and the Sieve evaluator read it with
@@ -523,7 +526,7 @@ main(int /*argc*/, char * /*argv*/[])
    failed += Run(&TestArcAuthenticationResults, "an ARC seal's spf= is the server's own SPF result, carried by copies, the queue row and a quarantined copy's name, never a Received-SPF field the message carries, and the seal names header.d and smtp.mailfrom");
    failed += Run(&TestSieveFromAddress, "a Sieve vacation reply or notification is from its :from only when that reaches the account, and no Sieve edit changes who a message is from");
    failed += Run(&TestManageSieveQuoting, "a ManageSieve quoted string holds no line break: a refusal quoting a script's line with one in it is one line");
-   failed += Run(&TestMessageIndexerStopAndStart, "the message indexer's Stop waits for the pass in flight, a Start straight after a Stop begins a new indexer, and a Start on the indexer's own thread neither joins it nor ends it");
+   failed += Run(&TestMessageIndexerStopAndStart, "the message indexer's Stop waits for the pass in flight, or gives up at its limit, a Start straight after a Stop begins a new indexer, and a Start or a Stop on the indexer's own thread neither joins it nor waits for a Stop that waits for it");
    failed += Run(&TestWorkerException, "an exception on a worker's thread is reported and answered as a failure, and ends nothing more than the work");
    failed += Run(&TestMessageIndexerException, "an exception on the message indexer's thread is reported and ends that thread, not the process, and the next Start begins the indexer again");
 

@@ -92,7 +92,25 @@ namespace HM
       void SetStartedForDatabaseUpgrade() { started_for_database_upgrade_ = true; }
 
       bool StartServers();
-      void StopServers();
+
+      // What a stop of the servers is for, which decides how long it waits for
+      // the message indexer's thread (MessageIndexer::Stop). StopToStartAgain:
+      // the servers may be started again in this process - after a Reinitialize,
+      // which closes the database as soon as the stop returns and opens it
+      // again, or after COM's Application.Stop, which leaves it open - so the
+      // indexer is waited for until it has ended, however long its statement
+      // takes. StopBeforeExit: the process ends after this stop - the service's
+      // stop, a signal's on Linux, the end of a /Debug or a test run - and the
+      // indexer is waited for a minute at most, so that a database that has
+      // stopped answering does not hold the stop for ever while the service
+      // controller is told that it is progressing.
+      enum StopPurpose
+      {
+         StopToStartAgain,
+         StopBeforeExit
+      };
+
+      void StopServers(StopPurpose purpose);
       void SubmitPendingEmail();
 
       // Maintenance mode - a drain without a stop - and what a stop does first.

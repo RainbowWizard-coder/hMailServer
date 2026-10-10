@@ -116,7 +116,9 @@ STDMETHODIMP InterfaceApplication::Stop()
       if (!authentication_->GetIsServerAdmin())
          return authentication_->GetAccessDenied();
        
-      HM::Application::Instance()->StopServers();
+      // The servers may be started again over COM, on the database this leaves
+      // open.
+      HM::Application::Instance()->StopServers(HM::Application::StopToStartAgain);
    
       return S_OK;
    }

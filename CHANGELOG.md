@@ -445,30 +445,43 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   way through (below).
 - **Fixed: a reinitialise or a service stop while the message indexer was in the middle of a batch could end the
   server on Linux, and left the indexer stopped until its setting was saved again.** Stopping the indexer
-  interrupted its thread and did not wait for it (in every version). The thread went on to the end of the message
-  it was indexing, and a reinitialise closes the database as soon as the servers have stopped, so its next
-  statement went through a database manager that was no longer there and threw ("boost unique_lock has no mutex",
-  HM4208), or faulted, the close shutting the connection a statement was using too - which on Linux ended the
-  process (the exception above; a fault ends it still) and on Windows wrote a minidump. And the start that followed
-  found the thread still ending, took it for the running indexer and started none. The stop now waits for the
-  thread to end - at most the statement or the message it is in, since a batch's messages, the sweeps' slices and
-  the pauses are where it stops - telling the service controller meanwhile; a start after it begins a new thread;
-  and no indexer is started while the servers are stopped, from a reinitialise's stop to its start, the start of
-  the servers starting it from its setting - which is now saved before the indexer is started or stopped, where a
-  save that came after the start of the servers had read it left the indexer stopped with the setting on, and a
-  save refused for a setting the environment manages had started or stopped the indexer all the same. A start
-  made on the indexer's own thread, by an `OnError` script turning message indexing on while the indexer reported
-  an error, asked the thread to join itself, which Boost refuses with an exception (in every version): the script
-  met an error and the setting was not saved. Such a start now leaves the indexer as it is, and after a stop made
-  on that thread too takes the stop back. `MessageIndexerTester` (`TestInternals` on Windows,
-  `business-object-tests` on Linux)
-  runs the indexer's thread over a stand-in pass that holds no interruption point for 300 ms: with the stop and
-  the start as they were, the pass made a statement after the stop had returned, and a start straight after a
-  stop began no indexer. Found by the batch's Alpine suite: the teardown of
-  `FullTextSearch.AMailboxLargerThanOneLookupIsSearchedAWindowAtATime` reinitialised while the indexer was in the
-  second batch of the test's 450 messages, and every fixture after it was refused a connection. With the test's
-  backfill made one batch, so that its teardown always comes in the middle of it, the server died there in three
-  Alpine runs of three (twice a segmentation fault, once the exception) and lives through it with the fix.
+  interrupted its thread and did not wait for it (in every version). The thread went on to its next interruption
+  point, the next message of the batch, and a reinitialise closes the database as soon as the servers have stopped,
+  so its next statement went through a database manager that was no longer there and threw ("boost unique_lock has
+  no mutex", HM4208), or faulted, the close shutting the connection a statement was using too - which on Linux ended
+  the process (the exception above; a fault ends it still) and on Windows wrote a minidump. And the start that
+  followed found the thread still ending, took it for the running indexer and started none. The stop now waits for
+  the thread to end, telling the service controller meanwhile. The thread ends at its next interruption point -
+  before each message of a batch, between two slices of the full-text sweep, in the pauses - which can be several
+  statements away: a pass reads what it is to index with several before its first message, and at the indexer's
+  start the sweep of the message metadata's orphans is one statement over the whole table. A statement lasts as long
+  as the database takes to answer it, or `DatabaseStatementTimeout` where the database applies that (not to a write
+  on MySQL, and not at all when it is 0). A reinitialise waits for as long as that takes, since it closes the
+  database straight after; a stop after which the process ends - the service's, or a signal's on Linux - waits a
+  minute at most, says so in the log and goes on, so that a database that has stopped answering no longer holds the
+  stop for ever while the service controller is told that it is progressing. A start after a stop begins a new
+  thread, and no indexer is started while the servers are stopped, from a reinitialise's stop to its start, the
+  start of the servers starting it from its setting - which is now saved before the indexer is started or stopped,
+  where a save that came after the start of the servers had read it left the indexer stopped with the setting on,
+  and a save refused for a setting the environment manages had started or stopped the indexer all the same; and the
+  indexer is started or stopped again as the setting stands when another save has changed it meanwhile. A start made
+  on the indexer's own thread, by an `OnError` script turning message indexing on while the indexer reported an
+  error, asked the thread to join itself, which Boost refuses with an exception (in every version): the script met
+  an error and the setting was not saved. Such a start now leaves the indexer as it is, and after a stop made on
+  that thread too takes the stop back. And a stop no longer waits for the thread holding the lock that such a
+  script's start or stop takes, which made the stop and the indexer wait for each other for ever.
+  `MessageIndexerTester` (`TestInternals` on Windows, `business-object-tests` on Linux) runs the indexer's thread
+  over a stand-in pass that holds no interruption point for a while: with the stop and the start as they were, the
+  pass made a statement after the stop had returned, a start straight after a stop began no indexer, and a start on
+  the indexer's own thread threw; with the lock held across the wait, the indexer's own stop and start while a stop
+  waited for it waited for that stop, and it for them, until its limit; and a stop with a limit gives up on a pass
+  that outlasts it, the start after it beginning a new indexer once the pass has ended. Found by the batch's Alpine
+  suite: the teardown of `FullTextSearch.AMailboxLargerThanOneLookupIsSearchedAWindowAtATime` reinitialised while
+  the indexer was in the second batch of the test's 450 messages, and every fixture after it was refused a
+  connection. With the test's backfill made one batch, so that its teardown always comes in the middle of it, the
+  server died there in three Alpine runs of three (twice a segmentation fault, once the exception) and lives through
+  it with the fix. The limit, the lock, the order of the save and the start on the indexer's own thread were found
+  by the re-check of the fix.
 
 ### Downloads and the release
 
