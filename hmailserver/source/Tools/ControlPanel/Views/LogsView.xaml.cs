@@ -427,8 +427,7 @@ namespace hMailServer.ControlPanel.Views
 
          if (LiveLogTail.Follows(atEnd, read.Count))
          {
-            if (LogList.Items.Count > 0)
-               LogList.ScrollIntoView(LogList.Items[LogList.Items.Count - 1]);
+            FollowEnd_();
          }
          else if (scroller != null && LiveLogTail.OffsetAfterDrop(atEnd, offset, dropped) is double back)
          {
@@ -498,8 +497,28 @@ namespace hMailServer.ControlPanel.Views
          bool atEnd = scroller == null || LiveLogTail.IsAtEnd(scroller.VerticalOffset, scroller.ScrollableHeight);
          shown_.Refresh();
          SayCount_();
-         if (atEnd && LogList.Items.Count > 0)
-            LogList.ScrollIntoView(LogList.Items[LogList.Items.Count - 1]);
+         if (atEnd)
+            FollowEnd_();
+      }
+
+      /// <summary>
+      /// The newest line into view by the list's own scroller, which leaves the page
+      /// where it is and the sideways position where the reader put it. The list's
+      /// ScrollIntoView asks every scroller above the line to bring it into view, the
+      /// page's among them: in the narrowest window, where the header wraps (German,
+      /// Japanese), the page scrolled to the newest line at every line streamed, the
+      /// filter box and Wrap lines pushed off its top and pulled back - while
+      /// somebody typed in the filter too (review finding F250).
+      /// </summary>
+      private void FollowEnd_()
+      {
+         if (LogList.Items.Count == 0)
+            return;
+
+         if (Scroller_() is ScrollViewer scroller)
+            scroller.ScrollToBottom();
+         else
+            Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() => Scroller_()?.ScrollToBottom()));
       }
 
       /// <summary>

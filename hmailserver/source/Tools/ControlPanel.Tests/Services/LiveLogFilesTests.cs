@@ -212,6 +212,25 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("scroller.ComputedHorizontalScrollBarVisibility == Visibility.Visible ? DesignTokens.Space.Md : 0", code, StringComparison.Ordinal);
       }
 
+      [Fact]
+      public void FollowingTheNewestLine_ScrollsTheLogAlone_NotThePage()
+      {
+         string code = ReadControlPanelFile(Path.Join("Views", "LogsView.xaml.cs"));
+         string xaml = ReadControlPanelFile(Path.Join("Views", "LogsView.xaml"));
+
+         // The log is inside the page's own scroller in the narrowest window, and the
+         // list's ScrollIntoView brings a line into view through every scroller above
+         // it: the page followed the log, the filter box and Wrap lines pushed off its
+         // top at every line streamed (review finding F250).
+         Assert.Contains("<ScrollViewer x:Name=\"PageScroll\"", xaml, StringComparison.Ordinal);
+         Assert.DoesNotContain("LogList.ScrollIntoView(", code, StringComparison.Ordinal);
+         Assert.Contains("if (Scroller_() is ScrollViewer scroller)\r\n            scroller.ScrollToBottom();", code.Replace("\r\n", "\n").Replace("\n", "\r\n"), StringComparison.Ordinal);
+
+         // The streamed lines and the filter applied again both follow the end that way.
+         Assert.Contains("if (LiveLogTail.Follows(atEnd, read.Count))\r\n         {\r\n            FollowEnd_();", code.Replace("\r\n", "\n").Replace("\n", "\r\n"), StringComparison.Ordinal);
+         Assert.Contains("if (atEnd)\r\n            FollowEnd_();", code.Replace("\r\n", "\n").Replace("\n", "\r\n"), StringComparison.Ordinal);
+      }
+
       // ---- whether a log may be read ---------------------------------------------------
 
       [Fact]

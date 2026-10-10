@@ -2904,7 +2904,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   filter or a box hides some, and a filter that hides every line says so in the log's place; the log keeps its newest
   line clear of the sideways scroll bar, which WPF-UI draws over it; and the toolbar and the log scroll under the
   header in the narrowest window, the log floored at three lines' height, where its empty state's sentence was cut to
-  its glyph. `LiveLogFilesTests` holds the line types, the filter and the page's wiring.
+  its glyph, and the page stays where it is while the log follows its newest line, so that the filter box stays in
+  view as lines stream in. `LiveLogFilesTests` holds the line types, the filter and the page's wiring.
 
 - **Fixed: the Message trace page never said whether tracing was on, following a message threw the search's results
   away, and its Status column was a bare reply code.** The same Information notice - that the trace records nothing
