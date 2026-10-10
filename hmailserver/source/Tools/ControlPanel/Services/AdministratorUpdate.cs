@@ -314,7 +314,7 @@ namespace hMailServer.ControlPanel.Services
             case StageExit.Permissions: why = L("the permissions of the installation changed after the check; click Install update again to see which"); break;
             case StageExit.Busy: why = L("another administrator's install of an update is under way on this server"); break;
             case StageExit.Parent: why = L("Windows did not start it from this Control Panel"); break;
-            case StageExit.TrustFile: why = L("a trust file hMailServer.INI names may be changed by someone other than the administrators"); break;
+            case StageExit.TrustFile: why = L("a trust file hMailServer.ini names may be changed by someone other than the administrators"); break;
             case StageExit.DiskSpace: why = L("there is less than 1 GB free on the installation's drive"); break;
             case StageExit.NameTaken: why = L("its work folder was already there"); break;
             case StageExit.Cancelled: return L("The update was stopped; nothing was installed.");

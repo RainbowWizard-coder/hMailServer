@@ -3939,7 +3939,7 @@ namespace hMailServer.ControlPanel.Views
             Label = L("Log folder"),
             ButtonText = L("Open log folder"),
             Blurb = string.IsNullOrWhiteSpace(logFolder)
-               ? L("Read from [Directories] LogFolder in hMailServer.INI, which is not readable from this machine - the Control Panel is running somewhere other than the server.")
+               ? L("Read from [Directories] LogFolder in hMailServer.ini, which is not readable from this machine - the Control Panel is running somewhere other than the server.")
                : logFolder,
             Outcome = () => OpenLogFolder(logFolder)
          });
@@ -4177,7 +4177,7 @@ namespace hMailServer.ControlPanel.Views
          // The ordinary case of a Control Panel away from the server: said, not
          // drawn as a failure.
          if (string.IsNullOrWhiteSpace(path))
-            return (StatusLevel.Information, L("No log folder could be read from hMailServer.INI on this machine."));
+            return (StatusLevel.Information, L("No log folder could be read from hMailServer.ini on this machine."));
 
          if (!System.IO.Directory.Exists(path))
             return (StatusLevel.Warning, F("The configured log folder does not exist on this machine: {0}", path));

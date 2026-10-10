@@ -225,7 +225,7 @@ namespace hMailServer.ControlPanel.Views
          bool anything = first >= 0;
          resultsList_.Visibility = anything ? Visibility.Visible : Visibility.Collapsed;
          emptyHint_.Visibility = anything ? Visibility.Collapsed : Visibility.Visible;
-         emptyHint_.Text = F("Nothing matched \"{0}\". Try what you are trying to achieve (\"stop spam\", \"let a device send mail\"), a page name, or an hMailServer.INI key.", searchBox_.Text.Trim());
+         emptyHint_.Text = F("Nothing matched \"{0}\". Try what you are trying to achieve (\"stop spam\", \"let a device send mail\"), a page name, or an hMailServer.ini key.", searchBox_.Text.Trim());
 
          // What the typing found: the row the selection is on, or that nothing was.
          if (IsLoaded)

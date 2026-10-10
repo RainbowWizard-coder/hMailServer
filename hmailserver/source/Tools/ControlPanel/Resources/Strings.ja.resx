@@ -387,8 +387,8 @@
   <data name="A backup destination - until one is set there is no backup" xml:space="preserve">
     <value>バックアップ先 - 設定されるまでバックアップは存在しません</value>
   </data>
-  <data name="A ceiling on one pass, so a search base pointed one level too high cannot be answered by reading an entire forest. If it is hit, the run says so and disables nothing at all - beyond the limit, an entry that exists is indistinguishable from one that was deleted." xml:space="preserve">
-    <value>1 回の処理に対する上限です。これにより、検索ベースを 1 階層上に指定してしまっても、フォレスト全体を読み取って応答することはできなくなります。上限に達した場合、実行はその旨を報告し、何も無効化しません。上限を超えた先では、存在するエントリと削除されたエントリを区別できないためです。</value>
+  <data name="A ceiling on one pass - 5000 when left empty - so a search base pointed one level too high cannot be answered by reading an entire forest. If it is hit, the run says so and disables nothing at all - beyond the limit, an entry that exists is indistinguishable from one that was deleted." xml:space="preserve">
+    <value>1 回の処理に対する上限です (空のままなら 5000)。これにより、検索ベースを 1 階層上に指定してしまっても、フォレスト全体を読み取って応答することはできなくなります。上限に達した場合、実行はその旨を報告し、何も無効化しません。上限を超えた先では、存在するエントリと削除されたエントリを区別できないためです。</value>
   </data>
   <data name="A certificate has been issued into {0}, but its expiry could not be read: {1}" xml:space="preserve">
     <value>証明書が {0} に発行されていますが、有効期限を読み取れませんでした: {1}</value>
@@ -675,8 +675,8 @@
   <data name="A separate password for one mail client. Losing a laptop then means revoking one line here, rather than changing the account password and reconfiguring every other client." xml:space="preserve">
     <value>1 台のメール クライアント専用のパスワードです。ノート PC を紛失しても、ここで 1 行を失効させるだけで済み、アカウントのパスワードを変更してほかのクライアントをすべて設定し直す必要はありません。</value>
   </data>
-  <data name="A service account password from an earlier version is stored in hMailServer.INI in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.INI with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
-    <value>以前のバージョンのサービス アカウントのパスワードが hMailServer.INI に平文で保存されていますが、もう何もそれを読み取りません。サービスはインストーラーまたは「Windows サービス アカウント」カードのボタンで登録され、Windows はすべてのパスワードの独自のコピーを保持します。管理者として実行したエディターで hMailServer.INI から ServiceAccountPassword の行を削除し、DELETE /api/v1/settings/ini/ServiceAccountPassword で設定も削除して、データベースのコピーも消してください。</value>
+  <data name="A service account password from an earlier version is stored in hMailServer.ini in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.ini with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
+    <value>以前のバージョンのサービス アカウントのパスワードが hMailServer.ini に平文で保存されていますが、もう何もそれを読み取りません。サービスはインストーラーまたは「Windows サービス アカウント」カードのボタンで登録され、Windows はすべてのパスワードの独自のコピーを保持します。管理者として実行したエディターで hMailServer.ini から ServiceAccountPassword の行を削除し、DELETE /api/v1/settings/ini/ServiceAccountPassword で設定も削除して、データベースのコピーも消してください。</value>
   </data>
   <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender in the spam exemptions, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
     <value>HELO 192.0.2.7、HELO [192.0.2.7]、HELO localhost で挨拶する、または MAIL FROM:&lt;user@192.0.2.7&gt; を送るセッションは、自分の名前を何も示しておらず、そのセッションが送るメッセージは、リストに載せる手がかりがないまま保留またはスコア付けされます。オフの場合、サーバーは従来どおり受け入れます。オンの場合、スパムテストの実行前に MAIL FROM で 550 5.7.1 を返します。角かっこの有無にかかわらずアドレス、単一ラベル、co.uk のようなパブリック接尾辞、ホスト名でないものはすべて拒否され、mail.co.uk は名前として扱われます。DNS には何も問い合わせません。接尾辞は、検疫がグループ化に使うリストである Public Suffix List のものです。判定の対象は、スパムテストを実行する IP 範囲からの未認証セッションのみで、AUTH の機会が過ぎた後に行います。スパム対策の除外にある送信者と、HELO が自組織のゲートウェイのものである受信リレーは決して対象になりません。</value>
@@ -927,8 +927,8 @@
   <data name="Accounts in the group {0}" xml:space="preserve">
     <value>グループ {0} のアカウント</value>
   </data>
-  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
-    <value>ディレクトリ連携としてマークされたアカウントは、LDAP バインドを通じてドメインのパスワードでログオンします。Windows のログオンとは異なり、ドメインに参加していないホストからでも機能します。DMZ に置かれたメール サーバーでは、それが通常の状況です。この設定は hMailServer.INI の [LDAP] セクションを書き換えます。サーバーは保存から 2 秒以内にそのセクションを読み直すため、これらの設定にはサービスの再起動は不要です。</value>
+  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.ini; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
+    <value>ディレクトリ連携としてマークされたアカウントは、LDAP バインドを通じてドメインのパスワードでログオンします。Windows のログオンとは異なり、ドメインに参加していないホストからでも機能します。DMZ に置かれたメール サーバーでは、それが通常の状況です。この設定は hMailServer.ini の [LDAP] セクションを書き換えます。サーバーは保存から 2 秒以内にそのセクションを読み直すため、これらの設定にはサービスの再起動は不要です。</value>
   </data>
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Windows directory tab tick 'Check this password against Windows (Active Directory, or a local Windows account)' and fill in 'Windows user name' - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>ディレクトリ連携としてマークされたアカウントが必要です。その部分はすでにこの GUI にあります。「ドメイン」を開いてアカウントを編集し、その [Windows ディレクトリ] タブで「このパスワードを Windows (Active Directory またはローカルの Windows アカウント) で確認する」をオンにして、「Windows ユーザー名」(sAMAccountName、%u が運ぶ値です) を入力してください。このマークが付いていないアカウントは、通常の hMailServer のパスワードを使い続け、ディレクトリには一切触れません。</value>
@@ -1326,8 +1326,8 @@
   <data name="After the body has been received — a refusal here is a 554" xml:space="preserve">
     <value>本文の受信後 — ここでの拒否は 554 になります</value>
   </data>
-  <data name="Against {0} over {1}. Set ServiceUsername (and its password), or switch to a UserDnTemplate or the Negotiate bind method, neither of which searches at all." xml:space="preserve">
-    <value>{1} 経由で {0} に対して実行します。ServiceUsername (とそのパスワード) を設定するか、UserDnTemplate または Negotiate のバインド方式に切り替えてください。どちらも検索を一切行いません。</value>
+  <data name="Against {0} over {1}. Set the service account user name (and its password), or switch to a user DN template or the Negotiate bind method, neither of which searches at all." xml:space="preserve">
+    <value>{1} 経由で {0} に対して実行します。サービス アカウントのユーザー名 (とそのパスワード) を設定するか、ユーザー DN テンプレートまたは Negotiate のバインド方式に切り替えてください。どちらも検索を一切行いません。</value>
   </data>
   <data name="Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990" xml:space="preserve">
     <value>このサーバーが送信する集約レポートのスキーマ: 1 = RFC 7489 付録 C、2 = RFC 9990</value>
@@ -2119,8 +2119,14 @@
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>/metrics 用のベアラー トークン (空 = なし)</value>
   </data>
-  <data name="Before enabling, the section is also missing: {0}." xml:space="preserve">
-    <value>有効にする前に、セクションも不足しています: {0}。</value>
+  <data name="Before enabling, fill in Directory server host name and Search base, or User DN template to bind without searching." xml:space="preserve">
+    <value>有効にする前に、ディレクトリ サーバーのホスト名と検索ベース (または、検索せずにバインドするならユーザー DN テンプレート) を入力してください。</value>
+  </data>
+  <data name="Before enabling, fill in Directory server host name." xml:space="preserve">
+    <value>有効にする前に、ディレクトリ サーバーのホスト名を入力してください。</value>
+  </data>
+  <data name="Before enabling, fill in Search base, or User DN template to bind without searching." xml:space="preserve">
+    <value>有効にする前に、検索ベース (または、検索せずにバインドするならユーザー DN テンプレート) を入力してください。</value>
   </data>
   <data name="Before you copy: {0}" xml:space="preserve">
     <value>コピーする前に: {0}</value>
@@ -2377,11 +2383,11 @@
   <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one." xml:space="preserve">
     <value>ここからは判断できません。サーバーのドメイン リストを読み取れなかったため、どのドメインがディレクトリに連携しているか不明です。これは設定の問題ではなく接続の問題です。</value>
   </data>
-  <data name="Cannot tell from here. hMailServer.INI is not reachable from this computer, so the [LDAP] section cannot be read - and it is that section, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
-    <value>ここからは判断できません。hMailServer.INI にこのコンピューターから到達できないため、[LDAP] セクションを読み取れません。実行できるかどうかを決めるのは、このページのどの項目でもなく、そのセクションです。「プレビュー」を押してください。サーバー内部で実行され、不足しているものがあれば正確に報告します。</value>
-  </data>
   <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>ここからは判断できません。hMailServer.ini を読み取れず、実行できるかどうかを判断するのはこのページの内容ではなく、そのファイルの [LDAP] セクションです。「プレビュー」を押してください: サーバー内で実行され、不足があればその内容を正確に示します。</value>
+  </data>
+  <data name="Cannot tell from here. hMailServer.ini is not reachable from this computer, so the [LDAP] section cannot be read - and it is that section, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
+    <value>ここからは判断できません。hMailServer.ini にこのコンピューターから到達できないため、[LDAP] セクションを読み取れません。実行できるかどうかを決めるのは、このページのどの項目でもなく、そのセクションです。「プレビュー」を押してください。サーバー内部で実行され、不足しているものがあれば正確に報告します。</value>
   </data>
   <data name="Cannot tell from here: hMailServer.ini could not be read, and it is the [LDAP] section of that file which decides. Start the Control Panel as administrator to see it." xml:space="preserve">
     <value>ここからは判断できません: hMailServer.ini を読み取れず、判断するのはそのファイルの [LDAP] セクションです。確認するには、コントロール パネルを管理者として起動してください。</value>
@@ -2422,8 +2428,8 @@
   <data name="Certificate output folder (empty = Data\ACME)" xml:space="preserve">
     <value>証明書の出力フォルダー (空 = Data\ACME)</value>
   </data>
-  <data name="Certificate validation was DISABLED for this test, matching VerifyCertificate=0." xml:space="preserve">
-    <value>このテストでは証明書の検証は無効でした。VerifyCertificate=0 に合わせています。</value>
+  <data name="Certificate validation was off for this test, as 'Verify the directory server's certificate' is off." xml:space="preserve">
+    <value>「ディレクトリ サーバーの証明書を検証する」がオフのため、このテストでは証明書の検証はオフでした。</value>
   </data>
   <data name="Certificate: {0}" xml:space="preserve">
     <value>証明書: {0}</value>
@@ -2860,8 +2866,8 @@
   <data name="Connected server: hMailServer {0} @ {1}" xml:space="preserve">
     <value>接続中のサーバー: hMailServer {0} @ {1}</value>
   </data>
-  <data name="Connected to a remote server: hMailServer.INI cannot be read from here, so mode and max_age shown are the shipped defaults." xml:space="preserve">
-    <value>リモート サーバーに接続しています: hMailServer.INI をここから読み取れないため、表示されている mode と max_age は出荷時の既定値です。</value>
+  <data name="Connected to a remote server: hMailServer.ini cannot be read from here, so mode and max_age shown are the shipped defaults." xml:space="preserve">
+    <value>リモート サーバーに接続しています: hMailServer.ini をここから読み取れないため、表示されている mode と max_age は出荷時の既定値です。</value>
   </data>
   <data name="Connected to another host, so whether these ports are being listened on cannot be read from here - open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>別のホストに接続しているため、これらのポートが待ち受けされているかどうかをここから読み取ることはできません。サーバー自身でコントロールパネルを開いて確認してください。</value>
@@ -4178,8 +4184,8 @@
   <data name="Directory server" xml:space="preserve">
     <value>ディレクトリ サーバー</value>
   </data>
-  <data name="Directory server _host name (Server)" xml:space="preserve">
-    <value>ディレクトリ サーバーのホスト名 (Server)(_H)</value>
+  <data name="Directory server _host name" xml:space="preserve">
+    <value>ディレクトリ サーバーのホスト名(_H)</value>
   </data>
   <data name="Directory synchronisation" xml:space="preserve">
     <value>ディレクトリ同期</value>
@@ -4594,8 +4600,14 @@
   <data name="Enabled" xml:space="preserve">
     <value>有効</value>
   </data>
-  <data name="Enabled but not configured: {0} is not set." xml:space="preserve">
-    <value>有効ですが設定されていません: {0} が設定されていません。</value>
+  <data name="Enabled but not configured: Directory server host name and Search base are empty." xml:space="preserve">
+    <value>有効ですが設定されていません: ディレクトリ サーバーのホスト名と検索ベースが空です。</value>
+  </data>
+  <data name="Enabled but not configured: Directory server host name is empty." xml:space="preserve">
+    <value>有効ですが設定されていません: ディレクトリ サーバーのホスト名が空です。</value>
+  </data>
+  <data name="Enabled but not configured: Search base is empty, and a simple bind without a user DN template searches under it." xml:space="preserve">
+    <value>有効ですが設定されていません: 検索ベースが空です。ユーザー DN テンプレートのない簡易バインドは、その下を検索します。</value>
   </data>
   <data name="Enabled once &quot;Check&quot; has confirmed the published record carries this key's public key." xml:space="preserve">
     <value>「確認」で、公開されているレコードにこの鍵の公開鍵が含まれることを確認すると有効になります。</value>
@@ -4858,8 +4870,8 @@
   <data name="Evaluate DMARC policies" xml:space="preserve">
     <value>DMARC ポリシーを評価する</value>
   </data>
-  <data name="Evaluated from the values in the editors on this page, saved or not. The server applies the same checks to what is actually saved in hMailServer.INI." xml:space="preserve">
-    <value>このページのエディターにある値から評価しています (保存済みかどうかを問いません)。サーバーは、hMailServer.INI に実際に保存されている内容に同じチェックを適用します。</value>
+  <data name="Evaluated from the values in the editors on this page, saved or not. The server applies the same checks to what is actually saved in hMailServer.ini." xml:space="preserve">
+    <value>このページのエディターにある値から評価しています (保存済みかどうかを問いません)。サーバーは、hMailServer.ini に実際に保存されている内容に同じチェックを適用します。</value>
   </data>
   <data name="Evaluates the From: domain's DMARC policy, using its own SPF and DKIM results." xml:space="preserve">
     <value>From: ドメインの DMARC ポリシーを、自身の SPF と DKIM の結果を使って評価します。</value>
@@ -4897,8 +4909,8 @@
   <data name="Events are kept {0} days." xml:space="preserve">
     <value>イベントは {0} 日間保持されます。</value>
   </data>
-  <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
-    <value>すべての LDAP ログオンが拒否されます: 保護されていない LDAP でのシンプル バインドはパスワードを平文で送信することになり、AllowUnprotectedPassword がオフだからです。</value>
+  <data name="Every LDAP sign-in will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and 'Allow sending the password over an unprotected connection' is off." xml:space="preserve">
+    <value>すべての LDAP サインインが拒否されます: 保護されていない LDAP でのシンプル バインドはパスワードを平文で送信することになり、「保護されていない接続でのパスワード送信を許可する」がオフだからです。</value>
   </data>
   <data name="Every account on this server is a member of this group already." xml:space="preserve">
     <value>このサーバーのすべてのアカウントが既にこのグループのメンバーです。</value>
@@ -6135,8 +6147,8 @@
   <data name="Issues and renews certificates automatically, but only if the certificate authority can fetch the http-01 challenge from this server." xml:space="preserve">
     <value>証明書を自動的に発行・更新しますが、認証局がこのサーバーから http-01 チャレンジを取得できる場合に限られます。</value>
   </data>
-  <data name="It governs two kinds of stored secret. Those bound to this machine - the database password in hMailServer.INI, the SMTP relayer password, and the passwords, tokens and passphrases of routes, external fetch accounts, SSL certificates and the rest kept in the database - are put in a Windows DPAPI envelope when they are next saved, or in the legacy Blowfish scheme while this is switched off. The secrets in the [Settings] section - the SRS and BATV secrets, the OAuth2 secrets, the metrics bearer token and HTTP Basic password, the Windows service account password and the GSSAPI service password - and each account's second factor are sealed under the installation's stored-secrets key once it has one, at the next start and at every save; switched off, the next start stores them as written again. Only the password pepper is always stored as you typed it, so hMailServer.INI should still be readable only by Administrators and by the account the service runs as." xml:space="preserve">
-    <value>二種類の保存シークレットを管理します。このコンピューターに結び付いたもの - hMailServer.INI のデータベース パスワード、SMTP リレーのパスワード、そしてルート、外部取り込みアカウント、SSL 証明書などデータベースに保存されるもののパスワード、トークン、パスフレーズ - は、次に保存されるときに Windows DPAPI の封筒に入れられ、これがオフの間は従来の Blowfish 方式になります。[Settings] セクションのシークレット - SRS と BATV のシークレット、OAuth2 のシークレット、メトリクス ベアラー トークンと HTTP Basic パスワード、Windows サービス アカウントのパスワード、GSSAPI サービスのパスワード - と各アカウントの第二要素は、インストールに保存シークレットの鍵ができしだい、次の起動時と保存のたびにその鍵で封印されます。オフにすると、次の起動時に書かれたままの形に戻して保存されます。パスワード ペッパーだけは常に入力したとおりに保存されるため、hMailServer.INI は引き続き Administrators と、サービスの実行アカウントだけが読み取れるようにしてください。</value>
+  <data name="It governs two kinds of stored secret. Those bound to this machine - the database password in hMailServer.ini, the SMTP relayer password, and the passwords, tokens and passphrases of routes, external fetch accounts, SSL certificates and the rest kept in the database - are put in a Windows DPAPI envelope when they are next saved, or in the legacy Blowfish scheme while this is switched off. The secrets in the [Settings] section - the SRS and BATV secrets, the OAuth2 secrets, the metrics bearer token and HTTP Basic password, the Windows service account password and the GSSAPI service password - and each account's second factor are sealed under the installation's stored-secrets key once it has one, at the next start and at every save; switched off, the next start stores them as written again. Only the password pepper is always stored as you typed it, so hMailServer.ini should still be readable only by Administrators and by the account the service runs as." xml:space="preserve">
+    <value>二種類の保存シークレットを管理します。このコンピューターに結び付いたもの - hMailServer.ini のデータベース パスワード、SMTP リレーのパスワード、そしてルート、外部取り込みアカウント、SSL 証明書などデータベースに保存されるもののパスワード、トークン、パスフレーズ - は、次に保存されるときに Windows DPAPI の封筒に入れられ、これがオフの間は従来の Blowfish 方式になります。[Settings] セクションのシークレット - SRS と BATV のシークレット、OAuth2 のシークレット、メトリクス ベアラー トークンと HTTP Basic パスワード、Windows サービス アカウントのパスワード、GSSAPI サービスのパスワード - と各アカウントの第二要素は、インストールに保存シークレットの鍵ができしだい、次の起動時と保存のたびにその鍵で封印されます。オフにすると、次の起動時に書かれたままの形に戻して保存されます。パスワード ペッパーだけは常に入力したとおりに保存されるため、hMailServer.ini は引き続き Administrators と、サービスの実行アカウントだけが読み取れるようにしてください。</value>
   </data>
   <data name="It has no rua= tag, so nobody sends you reports - fine, but you learn nothing; add one when you have a mailbox for it." xml:space="preserve">
     <value>rua= タグがないため、誰もレポートを送ってきません。それ自体は問題ありませんが、何も分かりません。受け取るメールボックスを用意できたら追加してください。</value>
@@ -7222,8 +7234,8 @@
   <data name="Mo_ve or rename..." xml:space="preserve">
     <value>移動または名前の変更...(_V)</value>
   </data>
-  <data name="Mode and max_age read from hMailServer.INI on this machine." xml:space="preserve">
-    <value>mode と max_age は、このコンピューターの hMailServer.INI から読み取りました。</value>
+  <data name="Mode and max_age read from hMailServer.ini on this machine." xml:space="preserve">
+    <value>mode と max_age は、このコンピューターの hMailServer.ini から読み取りました。</value>
   </data>
   <data name="Monitoring" xml:space="preserve">
     <value>監視</value>
@@ -7747,11 +7759,11 @@
   <data name="No listeners are configured." xml:space="preserve">
     <value>リスナーが設定されていません。</value>
   </data>
-  <data name="No log folder could be read from hMailServer.INI on this machine." xml:space="preserve">
-    <value>このコンピューターの hMailServer.INI からログ フォルダーを読み取れませんでした。</value>
+  <data name="No log folder could be read from hMailServer.ini on this machine." xml:space="preserve">
+    <value>このコンピューターの hMailServer.ini からログ フォルダーを読み取れませんでした。</value>
   </data>
-  <data name="No log folder is configured in hMailServer.INI, so the server has nowhere to write the recovery report." xml:space="preserve">
-    <value>hMailServer.INI にログ フォルダーが設定されていないため、サーバーには復旧レポートを書き出す場所がありません。</value>
+  <data name="No log folder is configured in hMailServer.ini, so the server has nowhere to write the recovery report." xml:space="preserve">
+    <value>hMailServer.ini にログ フォルダーが設定されていないため、サーバーには復旧レポートを書き出す場所がありません。</value>
   </data>
   <data name="No match" xml:space="preserve">
     <value>一致なし</value>
@@ -8029,8 +8041,8 @@
   <data name="Not served" xml:space="preserve">
     <value>未配信</value>
   </data>
-  <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
-    <value>テストしていません: この構成では、保護されていない LDAP でシンプル バインドによりパスワードを送信することになり、AllowUnprotectedPassword がオフです。そのためサーバーはこの構成下のすべてのログオンを拒否し、このテストも同じ理由で何も送信しません。LDAPS か StartTLS、または Negotiate バインド方式を選ぶか、保護されていないパスワードを明示的に許可してください。</value>
+  <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and 'Allow sending the password over an unprotected connection' is off - so the server refuses every sign-in under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
+    <value>テストしていません: この構成では、保護されていない LDAP でシンプル バインドによりパスワードを送信することになり、「保護されていない接続でのパスワード送信を許可する」がオフです。そのためサーバーはこの構成下のすべてのサインインを拒否し、このテストも同じ理由で何も送信しません。LDAPS か StartTLS、または Negotiate バインド方式を選ぶか、保護されていないパスワードを明示的に許可してください。</value>
   </data>
   <data name="Not used" xml:space="preserve">
     <value>未使用</value>
@@ -8095,8 +8107,8 @@
   <data name="Nothing is held. Quarantining is switched off: until it is turned on under Anti-spam settings, spam over the refuse threshold is refused during the SMTP conversation rather than stored." xml:space="preserve">
     <value>保留中のメッセージはありません。検疫は無効です: スパム対策の設定で有効にするまで、拒否しきい値を超えるスパムは保存されず、SMTP セッション中に拒否されます。</value>
   </data>
-  <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.INI key." xml:space="preserve">
-    <value>"{0}" に一致するものはありません。達成したいこと (「スパムを止める」「機器にメールを送らせる」)、ページ名、または hMailServer.INI のキーで試してください。</value>
+  <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.ini key." xml:space="preserve">
+    <value>"{0}" に一致するものはありません。達成したいこと (「スパムを止める」「機器にメールを送らせる」)、ページ名、または hMailServer.ini のキーで試してください。</value>
   </data>
   <data name="Nothing needs action - all {0} external setup checks are done or not needed." xml:space="preserve">
     <value>対応が必要な項目はありません。{0} 件の外部セットアップ チェックはすべて完了しているか不要です。</value>
@@ -9396,8 +9408,8 @@
   <data name="Re-check the external prerequisites" xml:space="preserve">
     <value>外部の前提条件を再確認する</value>
   </data>
-  <data name="Re-read the LDAP settings from hMailServer.INI" xml:space="preserve">
-    <value>hMailServer.INI から LDAP の設定を再読み込みする</value>
+  <data name="Re-read the LDAP settings from hMailServer.ini" xml:space="preserve">
+    <value>hMailServer.ini から LDAP の設定を再読み込みする</value>
   </data>
   <data name="Re-read the anti-virus configuration from the server" xml:space="preserve">
     <value>サーバーからウイルス対策の構成を再読み込みする</value>
@@ -9420,8 +9432,8 @@
   <data name="Re-read the transport security configuration from the server" xml:space="preserve">
     <value>サーバーからトランスポート セキュリティの構成を再読み込みする</value>
   </data>
-  <data name="Re-read these settings from hMailServer.INI" xml:space="preserve">
-    <value>これらの設定を hMailServer.INI から再読み込みする</value>
+  <data name="Re-read these settings from hMailServer.ini" xml:space="preserve">
+    <value>これらの設定を hMailServer.ini から再読み込みする</value>
   </data>
   <data name="Re_lease" xml:space="preserve">
     <value>解放(_L)</value>
@@ -9474,8 +9486,8 @@
   <data name="Read delivery reports that arrive for this server's senders" xml:space="preserve">
     <value>このサーバーの送信者宛てに届く配信レポートを読む</value>
   </data>
-  <data name="Read from [Directories] LogFolder in hMailServer.INI, which is not readable from this machine - the Control Panel is running somewhere other than the server." xml:space="preserve">
-    <value>hMailServer.INI の [Directories] LogFolder から読み取りますが、このコンピューターからは読み取れません。コントロールパネルがサーバー以外の場所で動作しています。</value>
+  <data name="Read from [Directories] LogFolder in hMailServer.ini, which is not readable from this machine - the Control Panel is running somewhere other than the server." xml:space="preserve">
+    <value>hMailServer.ini の [Directories] LogFolder から読み取りますが、このコンピューターからは読み取れません。コントロールパネルがサーバー以外の場所で動作しています。</value>
   </data>
   <data name="Read from file" xml:space="preserve">
     <value>ファイルから読み取り</value>
@@ -10233,8 +10245,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Retiring key" xml:space="preserve">
     <value>廃止中の鍵</value>
   </data>
-  <data name="Retr_y through Windows logon when the directory is unavailable (FallbackToWindowsLogon)" xml:space="preserve">
-    <value>ディレクトリが利用できないときに Windows ログオンで再試行する (FallbackToWindowsLogon)(_Y)</value>
+  <data name="Retr_y through Windows logon when the directory is unavailable" xml:space="preserve">
+    <value>ディレクトリが利用できないときに Windows ログオンで再試行する(_Y)</value>
   </data>
   <data name="Retried" xml:space="preserve">
     <value>再試行済み</value>
@@ -10410,8 +10422,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Runs event scripts (OnAcceptMessage, OnDeliveryStart...) from the Events folder; the script itself is edited on the Event scripts page. The engine reloads when you save." xml:space="preserve">
     <value>Events フォルダーからイベント スクリプト (OnAcceptMessage、OnDeliveryStart など) を実行します。スクリプト自体は「イベント スクリプト」ページで編集します。保存するとエンジンが再読み込みされます。</value>
   </data>
-  <data name="Runs hMailServer.exe /GrantServiceAccess as an administrator, after Windows asks: NT SERVICE\hMailServer is given Modify on the program folder's own Data, Logs, Temp and Database folders and on the folders an administrator has approved, and Read on the program folder - never hMailServer.INI. A folder the configuration names elsewhere, such as a backup or archive folder set later, is approved only after a question that names it; key files outside those folders are listed. It can be run again at any time, and removes nobody else's permission." xml:space="preserve">
-    <value>Windows の確認の後、hMailServer.exe /GrantServiceAccess を管理者として実行します。NT SERVICE\hMailServer には、プログラム フォルダー自身の Data、Logs、Temp、Database フォルダーと管理者が承認したフォルダーに対する変更権限、プログラム フォルダーに対する読み取り権限が与えられます。hMailServer.INI には決して与えられません。構成が別の場所に指定しているフォルダー (後から設定したバックアップ フォルダーやアーカイブ フォルダーなど) は、それを名指しした確認の後でのみ承認されます。それらのフォルダーの外にあるキー ファイルは一覧表示されます。いつでも再実行でき、他の誰の権限も削除しません。</value>
+  <data name="Runs hMailServer.exe /GrantServiceAccess as an administrator, after Windows asks: NT SERVICE\hMailServer is given Modify on the program folder's own Data, Logs, Temp and Database folders and on the folders an administrator has approved, and Read on the program folder - never hMailServer.ini. A folder the configuration names elsewhere, such as a backup or archive folder set later, is approved only after a question that names it; key files outside those folders are listed. It can be run again at any time, and removes nobody else's permission." xml:space="preserve">
+    <value>Windows の確認の後、hMailServer.exe /GrantServiceAccess を管理者として実行します。NT SERVICE\hMailServer には、プログラム フォルダー自身の Data、Logs、Temp、Database フォルダーと管理者が承認したフォルダーに対する変更権限、プログラム フォルダーに対する読み取り権限が与えられます。hMailServer.ini には決して与えられません。構成が別の場所に指定しているフォルダー (後から設定したバックアップ フォルダーやアーカイブ フォルダーなど) は、それを名指しした確認の後でのみ承認されます。それらのフォルダーの外にあるキー ファイルは一覧表示されます。いつでも再実行でき、他の誰の権限も削除しません。</value>
   </data>
   <data name="Runs the same steps the server runs, in the same order, using the values in the editors above as they stand: connect, protect the transport, bind the service credential, search for the user - and, only if a password is typed below, bind as that user to prove it. The password is used once and never stored, and the test refuses to run any configuration that would put a password on the network unprotected. One honest caveat: the test runs from this computer, so a firewall that treats this machine and the hMailServer service differently can make the two disagree." xml:space="preserve">
     <value>サーバーが実行するのと同じ手順を、同じ順序で、上のエディターにある現在の値を使って実行します: 接続し、トランスポートを保護し、サービスの資格情報でバインドし、ユーザーを検索します。そして、下にパスワードを入力した場合に限り、そのユーザーとしてバインドして確認します。パスワードは 1 回だけ使われ、保存されることはありません。また、このテストは、保護されないままパスワードをネットワークに流すような構成では実行を拒否します。正直に付け加えるなら、テストはこのコンピューターから実行されるため、このコンピューターと hMailServer サービスを別々に扱うファイアウォールがあると、両者の結果が食い違うことがあります。</value>
@@ -10614,8 +10626,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Save the DKIM private key" xml:space="preserve">
     <value>DKIM 秘密鍵を保存</value>
   </data>
-  <data name="Save the LDAP settings to hMailServer.INI" xml:space="preserve">
-    <value>LDAP 設定を hMailServer.INI に保存</value>
+  <data name="Save the LDAP settings to hMailServer.ini" xml:space="preserve">
+    <value>LDAP 設定を hMailServer.ini に保存</value>
   </data>
   <data name="Save the account and reopen it - a recovery address belongs to an account that exists." xml:space="preserve">
     <value>アカウントを保存して開き直してください。回復用アドレスは存在するアカウントに属します。</value>
@@ -10647,11 +10659,11 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>選択した証明書の秘密鍵パスフレーズを保存</value>
   </data>
-  <data name="Save the selection to hMailServer.INI, then show what a synchronisation would do with it" xml:space="preserve">
-    <value>選択内容を hMailServer.INI に保存してから、同期がそれで何を行うかを表示</value>
+  <data name="Save the selection to hMailServer.ini, then show what a synchronisation would do with it" xml:space="preserve">
+    <value>選択内容を hMailServer.ini に保存してから、同期がそれで何を行うかを表示</value>
   </data>
-  <data name="Save these settings to hMailServer.INI" xml:space="preserve">
-    <value>これらの設定を hMailServer.INI に保存</value>
+  <data name="Save these settings to hMailServer.ini" xml:space="preserve">
+    <value>これらの設定を hMailServer.ini に保存</value>
   </data>
   <data name="Save this weak password anyway?" xml:space="preserve">
     <value>この脆弱なパスワードをそれでも保存しますか?</value>
@@ -10914,8 +10926,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Search accounts" xml:space="preserve">
     <value>アカウントを検索</value>
   </data>
-  <data name="Search bas_e (SearchBase)" xml:space="preserve">
-    <value>検索ベース (SearchBase)(_E)</value>
+  <data name="Search bas_e" xml:space="preserve">
+    <value>検索ベース(_E)</value>
   </data>
   <data name="Search blocked attachment patterns" xml:space="preserve">
     <value>ブロックする添付ファイルのパターンを検索</value>
@@ -10994,9 +11006,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>検索するか、やりたいことを入力してください - 「スパムを止める」「IP をブロックする」</value>
-  </data>
-  <data name="SearchBase (or UserDnTemplate, to bind directly without searching)" xml:space="preserve">
-    <value>SearchBase (または UserDnTemplate を指定すると検索せずに直接バインド)</value>
   </data>
   <data name="Searched" xml:space="preserve">
     <value>検索済み</value>
@@ -11286,8 +11295,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Separately, this server sends such reports to other domains: its TLS report sender address is {0}, so its own reports go out." xml:space="preserve">
     <value>これとは別に、このサーバーは他のドメインにそのようなレポートを送信しています。TLS レポートの送信者アドレスが {0} のため、自身のレポートが送信されます。</value>
   </data>
-  <data name="Serv_ice account password (ServicePassword)" xml:space="preserve">
-    <value>サービス アカウントのパスワード (ServicePassword)(_I)</value>
+  <data name="Serv_ice account password" xml:space="preserve">
+    <value>サービス アカウントのパスワード(_I)</value>
   </data>
   <data name="Serve MTA-STS policies for local domains" xml:space="preserve">
     <value>ローカル ドメインの MTA-STS ポリシーを提供する</value>
@@ -11379,8 +11388,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Service account (search mode only)" xml:space="preserve">
     <value>サービス アカウント (検索モードのみ)</value>
   </data>
-  <data name="Service account user _name (ServiceUsername)" xml:space="preserve">
-    <value>サービス アカウントのユーザー名 (ServiceUsername)(_N)</value>
+  <data name="Service account user _name" xml:space="preserve">
+    <value>サービス アカウントのユーザー名(_N)</value>
   </data>
   <data name="Service credential accepted." xml:space="preserve">
     <value>サービス資格情報が受け入れられました。</value>
@@ -11391,8 +11400,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Service start" xml:space="preserve">
     <value>サービスの起動</value>
   </data>
-  <data name="ServiceDomain {0}, and is shown here rather than offered for editing because the server reads the key and then never uses it: the service credential binds with ServiceUsername and ServicePassword alone. Put the domain in the user name instead (DOMAIN\name or a UPN)." xml:space="preserve">
-    <value>ServiceDomain は {0} です。編集用に提供せずここに表示しているのは、サーバーがこのキーを読み取った後まったく使用しないためです。サービス資格情報は ServiceUsername と ServicePassword だけでバインドします。代わりにユーザー名にドメインを含めてください (DOMAIN\name または UPN)。</value>
+  <data name="ServiceDomain {0}, and is shown here rather than offered for editing because the server reads the key and then never uses it: the service credential binds with the service account user name and password alone. Put the domain in the user name instead (DOMAIN\name or a UPN)." xml:space="preserve">
+    <value>ServiceDomain は {0} です。編集用に提供せずここに表示しているのは、サーバーがこのキーを読み取った後まったく使用しないためです。サービス資格情報は サービス アカウントのユーザー名とパスワードだけでバインドします。代わりにユーザー名にドメインを含めてください (DOMAIN\name または UPN)。</value>
   </data>
   <data name="Services" xml:space="preserve">
     <value>サービス</value>
@@ -11703,8 +11712,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Simple bind - the password is sent to the directory (use with TLS)" xml:space="preserve">
     <value>簡易バインド - パスワードはディレクトリに送信されます (TLS と併用してください)</value>
   </data>
-  <data name="Simple is the default. Negotiate runs an SSPI exchange (Kerberos, falling back to NTLM) that never transmits the password and signs the connection - it is the only method a default-configured modern domain controller accepts when it has no certificate installed, it needs no search, no SearchBase and no service account, and it works from a host that is not domain-joined." xml:space="preserve">
-    <value>既定は Simple です。Negotiate は SSPI 交換 (Kerberos、フォールバックで NTLM) を実行し、パスワードを送信せず接続に署名します。証明書がインストールされていない既定構成の最新のドメイン コントローラーが受け入れる唯一の方式であり、検索も SearchBase もサービス アカウントも不要で、ドメインに参加していないホストからでも動作します。</value>
+  <data name="Simple is the default. Negotiate runs an SSPI exchange (Kerberos, falling back to NTLM) that never transmits the password and signs the connection - it is the only method a default-configured modern domain controller accepts when it has no certificate installed, it needs no search, no search base and no service account, and it works from a host that is not domain-joined." xml:space="preserve">
+    <value>既定は Simple です。Negotiate は SSPI 交換 (Kerberos、フォールバックで NTLM) を実行し、パスワードを送信せず接続に署名します。証明書がインストールされていない既定構成の最新のドメイン コントローラーが受け入れる唯一の方式であり、検索も検索ベースもサービス アカウントも不要で、ドメインに参加していないホストからでも動作します。</value>
   </data>
   <data name="Simultaneous connections (0 is unlimited)" xml:space="preserve">
     <value>同時接続数（0 は無制限）</value>
@@ -11856,9 +11865,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Specific addresses to rou_te" xml:space="preserve">
     <value>ルーティングする特定のアドレス(_T)</value>
   </data>
-  <data name="Split into first and last name, and only ever written to an account that has neither. A name typed here by an administrator is never overwritten by the directory." xml:space="preserve">
-    <value>名と姓に分割され、どちらも持たないアカウントにのみ書き込まれます。管理者がここに入力した名前がディレクトリによって上書きされることはありません。</value>
-  </data>
   <data name="Sta_rt date" xml:space="preserve">
     <value>開始日(_R)</value>
   </data>
@@ -11957,6 +11963,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Store: " xml:space="preserve">
     <value>ストア: </value>
+  </data>
+  <data name="Stored as [LDAP] {0}." xml:space="preserve">
+    <value>[LDAP] {0} として保存されます。</value>
   </data>
   <data name="Stored in hMailServer.ini on the server. The token it buys is cached in memory until 80% of its lifetime has passed and refetched automatically." xml:space="preserve">
     <value>サーバー上の hMailServer.ini に保存されます。取得したトークンは有効期間の 80% が経過するまでメモリにキャッシュされ、自動的に再取得されます。</value>
@@ -12785,8 +12794,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The consistency check is switched off, so no scan has run. Turn on 'Periodically cross-check message rows against files on disk' on the {0} page; the server then scans at start-up and hourly and writes {1}." xml:space="preserve">
     <value>整合性チェックが無効になっているため、スキャンは実行されていません。{0} ページで「メッセージの行とディスク上のファイルを定期的に突き合わせる」を有効にしてください。サーバーはその後、起動時と 1 時間ごとにスキャンし、{1} を書き出します。</value>
   </data>
-  <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page." xml:space="preserve">
-    <value>ARC シール付与の対になる機能です。受信メールにおいて、信頼されたシーラーからの有効な ARC チェーンは、転送によって DMARC 合格が壊れたメッセージの DMARC 失敗スコアを相殺できます (RFC 8617)。この設定は hMailServer.INI ではなく他のスパム対策設定と一緒に保存されるため、[スパム対策の設定] ページの [送信者認証] タブで構成します。信頼されたシーラーのリストが空の場合、この機能は意図的に何もしません。誰でも ARC チェーン全体を捏造し、自分の DNS で公開した鍵でシールを付けることができ、それは完璧に検証を通過します。したがって、シーラーを既に信頼していない限り、合格したチェーンは何も証明しません。このリストは機能のオプションではなく、機能そのものです。相殺量が DMARC 失敗スコアを超えることはなく、[スパム対策の設定] ページで DMARC スコアリングが有効な間だけ適用されます。</value>
+  <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.ini. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page." xml:space="preserve">
+    <value>ARC シール付与の対になる機能です。受信メールにおいて、信頼されたシーラーからの有効な ARC チェーンは、転送によって DMARC 合格が壊れたメッセージの DMARC 失敗スコアを相殺できます (RFC 8617)。この設定は hMailServer.ini ではなく他のスパム対策設定と一緒に保存されるため、[スパム対策の設定] ページの [送信者認証] タブで構成します。信頼されたシーラーのリストが空の場合、この機能は意図的に何もしません。誰でも ARC チェーン全体を捏造し、自分の DNS で公開した鍵でシールを付けることができ、それは完璧に検証を通過します。したがって、シーラーを既に信頼していない限り、合格したチェーンは何も証明しません。このリストは機能のオプションではなく、機能そのものです。相殺量が DMARC 失敗スコアを超えることはなく、[スパム対策の設定] ページで DMARC スコアリングが有効な間だけ適用されます。</value>
   </data>
   <data name="The current password counts as the most recent one, so setting a password to itself is refused too - the repeat somebody is most likely to try." xml:space="preserve">
     <value>現在のパスワードは最新のものとして数えられるため、パスワードを同じものに設定することも拒否されます。誰かが最も試しそうな繰り返しです。</value>
@@ -13102,8 +13111,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The key store was not found, so there is nothing to revoke." xml:space="preserve">
     <value>キー ストアが見つからないため、失効させるものはありません。</value>
   </data>
-  <data name="The key store's location is not known from here. It sits beside hMailServer.INI, which is found through this machine's registry and service table - so keys can only be managed from the server itself, not from a Control Panel connected to another host." xml:space="preserve">
-    <value>キー ストアの場所はここからは分かりません。キー ストアは hMailServer.INI の隣にあり、そのファイルはこのコンピューターのレジストリとサービス テーブルを通じて見つかります。そのため、キーはサーバー自体からのみ管理でき、別のホストに接続したコントロールパネルからは管理できません。</value>
+  <data name="The key store's location is not known from here. It sits beside hMailServer.ini, which is found through this machine's registry and service table - so keys can only be managed from the server itself, not from a Control Panel connected to another host." xml:space="preserve">
+    <value>キー ストアの場所はここからは分かりません。キー ストアは hMailServer.ini の隣にあり、そのファイルはこのコンピューターのレジストリとサービス テーブルを通じて見つかります。そのため、キーはサーバー自体からのみ管理でき、別のホストに接続したコントロールパネルからは管理できません。</value>
   </data>
   <data name="The keys that work on every page, and the keys of a list" xml:space="preserve">
     <value>どのページでも使えるキーと、一覧で使えるキー</value>
@@ -13243,8 +13252,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The old selector was retired." xml:space="preserve">
     <value>古いセレクターを廃止しました。</value>
   </data>
-  <data name="The other way to reach a DN: set this and the server skips the search - and with it the need for a SearchBase and a service account. A UPN works against Active Directory. Same %u, %d, %m placeholders, escaped for a distinguished name." xml:space="preserve">
-    <value>DN に到達するもう 1 つの方法です。これを設定すると、サーバーは検索をスキップし、SearchBase とサービス アカウントも不要になります。Active Directory に対しては UPN が機能します。同じ %u、%d、%m プレースホルダーを、識別名用にエスケープして使います。</value>
+  <data name="The other way to reach a DN: set this and the server skips the search - and with it the need for a search base and a service account. A UPN works against Active Directory. Same %u, %d, %m placeholders, escaped for a distinguished name." xml:space="preserve">
+    <value>DN に到達するもう 1 つの方法です。これを設定すると、サーバーは検索をスキップし、検索ベースとサービス アカウントも不要になります。Active Directory に対しては UPN が機能します。同じ %u、%d、%m プレースホルダーを、識別名用にエスケープして使います。</value>
   </data>
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>概要には、黙って何もしていない構成が挙げられます。ゼロのしきい値、有効なチェックのどれも到達できないしきい値、スコアがゼロのチェックなどです。</value>
@@ -13440,8 +13449,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The saved schedule takes effect when the service restarts: the server is still running the one it started with." xml:space="preserve">
     <value>保存したスケジュールは、サービスを再起動すると有効になります。サーバーはまだ起動時のスケジュールで動作しています。</value>
   </data>
-  <data name="The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
-    <value>スキャン結果はサーバー マシンでのみ読み取れます。hMailServer.INI がここには見つかりませんでした。サーバーは同じ数値を hmailservermessagestore_missing_files メトリクスとして公開しています。(_M)</value>
+  <data name="The scan result is only readable on the server machine - hMailServer.ini was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
+    <value>スキャン結果はサーバー マシンでのみ読み取れます。hMailServer.ini がここには見つかりませんでした。サーバーは同じ数値を hmailservermessagestore_missing_files メトリクスとして公開しています。(_M)</value>
   </data>
   <data name="The schedule and the retention are stored in hMailServer.ini on the server." xml:space="preserve">
     <value>スケジュールと保持期間はサーバー上の hMailServer.ini に保存されます。</value>
@@ -13458,8 +13467,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The search looks at the {0} most recent changes of the {1} in the trail." xml:space="preserve">
     <value>検索の対象は、ログにある {1} 件の変更のうち最新の {0} 件です。</value>
   </data>
-  <data name="The search matched MORE than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make UserSearchFilter or SearchBase select exactly one entry." xml:space="preserve">
-    <value>検索が複数のディレクトリ エントリに一致しました (フィルター {0}、ベース {1})。サーバーはあいまいな一致に対する認証を拒否します。UserSearchFilter または SearchBase がちょうど 1 つのエントリを選ぶようにしてください。</value>
+  <data name="The search matched more than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make the user search filter or the search base select exactly one entry." xml:space="preserve">
+    <value>検索が複数のディレクトリ エントリに一致しました (フィルター {0}、ベース {1})。サーバーはあいまいな一致に対する認証を拒否します。ユーザー検索フィルターまたは検索ベースがちょうど 1 つのエントリを選ぶようにしてください。</value>
   </data>
   <data name="The search matched nothing (filter {0} under {1}). As a logon this is a refusal, not an outage - check the user name against the account's Windows directory tab, and the filter and search base against the directory." xml:space="preserve">
     <value>検索は何にも一致しませんでした (フィルター {0}、{1} 配下)。ログオンとしては、これは障害ではなく拒否です。ユーザー名をアカウントの [Windows ディレクトリ] タブと、フィルターと検索ベースをディレクトリと照らし合わせてください。</value>
@@ -13840,8 +13849,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="These are counts of the first {0} accounts only; this page stops there rather than making you wait for the rest." xml:space="preserve">
     <value>これは先頭 {0} 件のアカウントのみを数えた結果です。このページは残りを待たせるのではなく、そこで打ち切ります。</value>
   </data>
-  <data name="These are read by the server from the [LDAP] section of hMailServer.INI, and re-read within two seconds of a save, so no restart is needed. The defaults suit Active Directory; a directory that is not Windows will not have sAMAccountName and needs the attribute names changed." xml:space="preserve">
-    <value>これらはサーバーが hMailServer.INI の [LDAP] セクションから読み取り、保存後 2 秒以内に再読み込みするため、再起動は不要です。既定値は Active Directory 向けです。Windows 以外のディレクトリには sAMAccountName がないため、属性名を変更する必要があります。</value>
+  <data name="These are read by the server from the [LDAP] section of hMailServer.ini, and re-read within two seconds of a save, so no restart is needed. The defaults suit Active Directory; a directory that is not Windows will not have sAMAccountName and needs the attribute names changed." xml:space="preserve">
+    <value>これらはサーバーが hMailServer.ini の [LDAP] セクションから読み取り、保存後 2 秒以内に再読み込みするため、再起動は不要です。既定値は Active Directory 向けです。Windows 以外のディレクトリには sAMAccountName がないため、属性名を変更する必要があります。</value>
   </data>
   <data name="These are the ports the server listens on. The submission port, 587, is the one your own people send through." xml:space="preserve">
     <value>サーバーが待ち受けているポートの一覧です。送信用のポート 587 は、社内の利用者が送信に使うポートです。</value>
@@ -13954,8 +13963,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="This page reads an expiry only in the form YYYY-MM-DD HH:MM:SS, so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>このページが読み取る有効期限の形式は YYYY-MM-DD HH:MM:SS だけなので、サーバーがこのキーをまだ受け入れるかどうかはここからは分かりません。行を手で編集した場合は修正してください。そうでなければ、キーを失効させて代わりを作成してください。</value>
   </data>
-  <data name="This page used to collect every hMailServer.INI value without a home, which meant it was filed by where the value is stored rather than by what it does - and where a value is stored is the one thing you never need to know. Each of these now sits with the rest of its own feature. Nothing was removed and no value changed; only the page it is edited on." xml:space="preserve">
-    <value>このページはかつて、行き場のないすべての hMailServer.INI 値を集めていました。つまり、値が何をするかではなく、どこに保存されているかで分類されていたのです。値がどこに保存されているかは、知る必要がまったくない唯一の事柄です。これらはそれぞれ、今は自身の機能の他の設定と一緒に置かれています。何も削除されておらず、値も変わっていません。編集するページが変わっただけです。</value>
+  <data name="This page used to collect every hMailServer.ini value without a home, which meant it was filed by where the value is stored rather than by what it does - and where a value is stored is the one thing you never need to know. Each of these now sits with the rest of its own feature. Nothing was removed and no value changed; only the page it is edited on." xml:space="preserve">
+    <value>このページはかつて、行き場のないすべての hMailServer.ini 値を集めていました。つまり、値が何をするかではなく、どこに保存されているかで分類されていたのです。値がどこに保存されているかは、知る必要がまったくない唯一の事柄です。これらはそれぞれ、今は自身の機能の他の設定と一緒に置かれています。何も削除されておらず、値も変わっていません。編集するページが変わっただけです。</value>
   </data>
   <data name="This panel can compare RSA and ECDSA keys; this key parses as neither, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
     <value>このパネルは RSA と ECDSA の鍵を比較できますが、この鍵はどちらとしても解析できないため、証明書と一致するかどうかはサーバーがペアを読み込んだときにのみ証明されます。</value>
@@ -14089,8 +14098,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Time" xml:space="preserve">
     <value>時刻</value>
   </data>
-  <data name="Time_out in seconds (TimeoutSeconds)" xml:space="preserve">
-    <value>タイムアウト (秒) (TimeoutSeconds)(_O)</value>
+  <data name="Time_out in seconds" xml:space="preserve">
+    <value>タイムアウト (秒)(_O)</value>
   </data>
   <data name="Timed out looking up {0}. Check the name, and that this machine can reach a DNS server." xml:space="preserve">
     <value>{0} の検索がタイムアウトしました。名前と、このコンピューターが DNS サーバーに到達できることを確認してください。</value>
@@ -14419,8 +14428,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Used when “Deliver to all addresses” is off." xml:space="preserve">
     <value>「すべてのアドレスに配信する」がオフのときに使用されます。</value>
   </data>
-  <data name="User _DN template (UserDnTemplate)" xml:space="preserve">
-    <value>ユーザー DN テンプレート (UserDnTemplate)(_D)</value>
+  <data name="User _DN template" xml:space="preserve">
+    <value>ユーザー DN テンプレート(_D)</value>
   </data>
   <data name="User name" xml:space="preserve">
     <value>ユーザー名</value>
@@ -14428,8 +14437,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="User name to _look up" xml:space="preserve">
     <value>検索するユーザー名(_L)</value>
   </data>
-  <data name="User search _filter (UserSearchFilter)" xml:space="preserve">
-    <value>ユーザー検索フィルター (UserSearchFilter)(_F)</value>
+  <data name="User search _filter" xml:space="preserve">
+    <value>ユーザー検索フィルター(_F)</value>
   </data>
   <data name="VAPID private key, to bring the pair from another server (leave empty to keep current)" xml:space="preserve">
     <value>別のサーバーからペアを移すための VAPID 秘密キー (現在のものを維持するには空のまま)</value>
@@ -14623,8 +14632,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="What a takeover-shaped submission does" xml:space="preserve">
     <value>乗っ取りのような送信に対して行うこと</value>
   </data>
-  <data name="What an account of its own changes. hMailServer.INI is read-only to it, on purpose: the administrator password, its second factor, the folders and the database are changed as the Control Panel says when you try, and settings are kept in the database as always. A folder set later outside the program folder - a backup or archive folder - is reached once Grant access approves it. An account other than NT SERVICE\hMailServer is set in services.msc and needs the &quot;Log on as a service&quot; right; an external database with Windows authentication needs a login for it. A service that cannot log on reports error 1069 in the Windows event log and does not start." xml:space="preserve">
-    <value>専用のアカウントで変わること。hMailServer.INI は意図的にこのアカウントからは読み取り専用です。管理者パスワード、その 2 要素目、フォルダー、データベースは、試したときに Control Panel が示す方法で変更し、設定はこれまでどおりデータベースに保存されます。後から設定したプログラム フォルダー外のフォルダー (バックアップ フォルダーやアーカイブ フォルダー) には、「アクセスを許可」で承認するとアクセスできるようになります。NT SERVICE\hMailServer 以外のアカウントは services.msc で設定し、「サービスとしてログオン」の権利が必要です。Windows 認証を使う外部データベースには、そのアカウントのログインが必要です。ログオンできないサービスは Windows イベント ログにエラー 1069 を報告し、起動しません。</value>
+  <data name="What an account of its own changes. hMailServer.ini is read-only to it, on purpose: the administrator password, its second factor, the folders and the database are changed as the Control Panel says when you try, and settings are kept in the database as always. A folder set later outside the program folder - a backup or archive folder - is reached once Grant access approves it. An account other than NT SERVICE\hMailServer is set in services.msc and needs the &quot;Log on as a service&quot; right; an external database with Windows authentication needs a login for it. A service that cannot log on reports error 1069 in the Windows event log and does not start." xml:space="preserve">
+    <value>専用のアカウントで変わること。hMailServer.ini は意図的にこのアカウントからは読み取り専用です。管理者パスワード、その 2 要素目、フォルダー、データベースは、試したときに Control Panel が示す方法で変更し、設定はこれまでどおりデータベースに保存されます。後から設定したプログラム フォルダー外のフォルダー (バックアップ フォルダーやアーカイブ フォルダー) には、「アクセスを許可」で承認するとアクセスできるようになります。NT SERVICE\hMailServer 以外のアカウントは services.msc で設定し、「サービスとしてログオン」の権利が必要です。Windows 認証を使う外部データベースには、そのアカウントのログインが必要です。ログオンできないサービスは Windows イベント ログにエラー 1069 を報告し、起動しません。</value>
   </data>
   <data name="What can be negotiated" xml:space="preserve">
     <value>ネゴシエートできるもの</value>
@@ -14881,11 +14890,14 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Which addresses may connect, which may relay without authenticating, and which must authenticate first." xml:space="preserve">
     <value>どのアドレスが接続でき、どれが認証なしでリレーでき、どれが先に認証しなければならないか。</value>
   </data>
-  <data name="Which attribute holds the mailbox address. proxyAddresses is understood: its scheme prefix is removed and the primary SMTP: value is preferred over the lower-case aliases." xml:space="preserve">
-    <value>メールボックス アドレスを保持する属性。proxyAddresses は解釈されます。スキーム プレフィックスは取り除かれ、小文字のエイリアスよりもプライマリの SMTP: 値が優先されます。</value>
+  <data name="Which attribute holds the mailbox address - mail when left empty. proxyAddresses is understood: its scheme prefix is removed and the primary SMTP: value is preferred over the lower-case aliases." xml:space="preserve">
+    <value>メールボックス アドレスを保持する属性 (空のままなら mail)。proxyAddresses は解釈されます。スキーム プレフィックスは取り除かれ、小文字のエイリアスよりもプライマリの SMTP: 値が優先されます。</value>
   </data>
-  <data name="Which attribute holds the name the person logs in with. This is what is stored against the account and what the directory is asked about at every logon afterwards, so guessing it from the address is not good enough - an entry that does not carry it is reported rather than provisioned." xml:space="preserve">
-    <value>ユーザーがログインする名前を保持する属性。これはアカウントに保存され、以降のすべてのログオンでディレクトリに問い合わせるものなので、アドレスから推測するだけでは不十分です。これを持たないエントリはプロビジョニングされず、報告されます。</value>
+  <data name="Which attribute holds the name the person signs in with - sAMAccountName when left empty. This is what is stored against the account and what the directory is asked about at every sign-in afterwards, so guessing it from the address is not good enough - an entry that does not carry it is reported rather than provisioned." xml:space="preserve">
+    <value>ユーザーがサインインする名前を保持する属性 (空のままなら sAMAccountName)。これはアカウントに保存され、以降のすべてのサインインでディレクトリに問い合わせるものなので、アドレスから推測するだけでは不十分です。これを持たないエントリはプロビジョニングされず、報告されます。</value>
+  </data>
+  <data name="Which attribute holds the person's name - displayName when left empty. It is split into first and last name and only ever written to an account that has neither, so a name an administrator typed is never overwritten by the directory." xml:space="preserve">
+    <value>人の名前を保持する属性 (空のままなら displayName)。名と姓に分割され、どちらも持たないアカウントにのみ書き込まれるため、管理者が入力した名前がディレクトリによって上書きされることはありません。</value>
   </data>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>どのディレクトリ エントリがメールボックスになるか</value>
@@ -15085,8 +15097,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Write the message first: an empty one is not sent." xml:space="preserve">
     <value>先にメッセージを書いてください。空のメッセージは送信されません。</value>
   </data>
-  <data name="Write-only: a stored password is never shown here again - leave the box blank to keep it. It is stored as plain text in hMailServer.INI on the server, because the server has to present it to the directory verbatim and so cannot hash it; restrict file access to the INI accordingly. It only ever leaves the server over the transport configured above." xml:space="preserve">
-    <value>書き込み専用です。保存済みのパスワードがここに再び表示されることはありません。維持する場合はボックスを空のままにしてください。パスワードはサーバー上の hMailServer.INI にプレーン テキストで保存されます。サーバーはそれをそのままディレクトリに提示しなければならず、ハッシュ化できないためです。それに応じて INI へのファイル アクセスを制限してください。このパスワードがサーバーの外に出るのは、上で設定したトランスポート経由の場合だけです。</value>
+  <data name="Write-only: a stored password is never shown here again - leave the box blank to keep it. It is stored as plain text in hMailServer.ini on the server, because the server has to present it to the directory verbatim and so cannot hash it; restrict file access to the INI accordingly. It only ever leaves the server over the transport configured above." xml:space="preserve">
+    <value>書き込み専用です。保存済みのパスワードがここに再び表示されることはありません。維持する場合はボックスを空のままにしてください。パスワードはサーバー上の hMailServer.ini にプレーン テキストで保存されます。サーバーはそれをそのままディレクトリに提示しなければならず、ハッシュ化できないためです。それに応じて INI へのファイル アクセスを制限してください。このパスワードがサーバーの外に出るのは、上で設定したトランスポート経由の場合だけです。</value>
   </data>
   <data name="Writes the conditions an operator alerts on - database unavailable, a listener that would not start, a crash, a failed backup, the disk floor - to the Windows Application log, where Event Viewer, monitoring agents and SIEM collectors can see them. Each condition has an event id of its own that does not change, so an alert can match on it; a healthy server writes nothing at all. Protocol traffic and routine logging never go here - a mail server that logs every session to the Application log gets itself uninstalled." xml:space="preserve">
     <value>オペレーターがアラートを設定する条件 (データベースが利用できない、リスナーが起動しなかった、クラッシュ、バックアップの失敗、ディスク空き容量の下限) を Windows のアプリケーション ログに書き込みます。そこはイベント ビューアー、監視エージェント、SIEM のコレクターが参照できる場所です。条件ごとに変わらない固有のイベント ID があるため、アラートはそれで照合できます。健全なサーバーは何も書き込みません。プロトコルのトラフィックや通常のログがここに書かれることは決してありません。セッションのたびにアプリケーション ログへ記録するようなメール サーバーは、そのうちアンインストールされてしまうからです。</value>
@@ -15184,8 +15196,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Allow sender…" xml:space="preserve">
     <value>送信者を許可(_A)…</value>
   </data>
-  <data name="_Allow sending the password over an unprotected connection (AllowUnprotectedPassword)" xml:space="preserve">
-    <value>保護されていない接続でのパスワード送信を許可する (AllowUnprotectedPassword)(_A)</value>
+  <data name="_Allow sending the password over an unprotected connection" xml:space="preserve">
+    <value>保護されていない接続でのパスワード送信を許可する(_A)</value>
   </data>
   <data name="_Append a disclaimer to mail leaving the organisation" xml:space="preserve">
     <value>組織外へ出るメールに免責事項を付け加える(_A)</value>
@@ -15214,8 +15226,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Bind address (0.0.0.0)" xml:space="preserve">
     <value>バインド アドレス (0.0.0.0)(_B)</value>
   </data>
-  <data name="_Bind method (BindMethod)" xml:space="preserve">
-    <value>バインド方式 (BindMethod)(_B)</value>
+  <data name="_Bind method" xml:space="preserve">
+    <value>バインド方式(_B)</value>
   </data>
   <data name="_Block and delete" xml:space="preserve">
     <value>ブロックして削除(_B)</value>
@@ -15264,9 +15276,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Connection security" xml:space="preserve">
     <value>接続のセキュリティ(_C)</value>
-  </data>
-  <data name="_Connection security (Security)" xml:space="preserve">
-    <value>接続のセキュリティ (Security)(_C)</value>
   </data>
   <data name="_Copy" xml:space="preserve">
     <value>コピー(_C)</value>
@@ -15895,8 +15904,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Upper IP address" xml:space="preserve">
     <value>上限の IP アドレス(_U)</value>
   </data>
-  <data name="_Use LDAP directory authentication (Enabled)" xml:space="preserve">
-    <value>LDAP ディレクトリ認証を使用する (Enabled)(_U)</value>
+  <data name="_Use LDAP directory authentication" xml:space="preserve">
+    <value>LDAP ディレクトリ認証を使用する(_U)</value>
   </data>
   <data name="_User name" xml:space="preserve">
     <value>ユーザー名(_U)</value>
@@ -15919,8 +15928,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Verify the chain" xml:space="preserve">
     <value>チェーンを検証(_V)</value>
   </data>
-  <data name="_Verify the directory server's certificate (VerifyCertificate)" xml:space="preserve">
-    <value>ディレクトリ サーバーの証明書を検証する (VerifyCertificate)(_V)</value>
+  <data name="_Verify the directory server's certificate" xml:space="preserve">
+    <value>ディレクトリ サーバーの証明書を検証する(_V)</value>
   </data>
   <data name="_View source" xml:space="preserve">
     <value>ソースを表示(_V)</value>
@@ -15949,8 +15958,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="a symbol" xml:space="preserve">
     <value>記号</value>
   </data>
-  <data name="a trust file hMailServer.INI names may be changed by someone other than the administrators" xml:space="preserve">
-    <value>hMailServer.INI が指定する信頼ファイルを、管理者以外の誰かが変更できる可能性があります</value>
+  <data name="a trust file hMailServer.ini names may be changed by someone other than the administrators" xml:space="preserve">
+    <value>hMailServer.ini が指定する信頼ファイルを、管理者以外の誰かが変更できる可能性があります</value>
   </data>
   <data name="a value of its own is needed, or untick it to take the level above." xml:space="preserve">
     <value>独自の値が必要です。上のレベルの値を使う場合はチェックを外してください。</value>
@@ -16003,17 +16012,17 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="base64url of the P-256 key; the public half is worked out from it. Every subscription made under the old pair stops working." xml:space="preserve">
     <value>P-256 キーの base64url。公開部分はそこから計算されます。古いペアで行われた購読はすべて機能しなくなります。</value>
   </data>
-  <data name="binding anonymously to search for the user (set ServiceUsername)" xml:space="preserve">
-    <value>ユーザーを検索するために匿名でバインドしています (ServiceUsername を設定してください)</value>
+  <data name="binding anonymously to search for the user (set the service account user name)" xml:space="preserve">
+    <value>ユーザーを検索するために匿名でバインドしています (サービス アカウントのユーザー名を設定してください)</value>
   </data>
   <data name="binding as the user" xml:space="preserve">
     <value>ユーザーとしてバインドしています</value>
   </data>
-  <data name="binding with the configured ServiceUsername" xml:space="preserve">
-    <value>設定された ServiceUsername でバインドしています</value>
+  <data name="binding with the configured service account user name" xml:space="preserve">
+    <value>設定されたサービス アカウントのユーザー名でバインドしています</value>
   </data>
-  <data name="binding with the configured ServiceUsername - no ServicePassword is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
-    <value>設定された ServiceUsername でバインドしています - ServicePassword は保存も入力もされず、空のパスワードは送信される前に拒否されます</value>
+  <data name="binding with the configured service account user name - no service account password is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
+    <value>設定されたサービス アカウントのユーザー名でバインドしています - サービス アカウントのパスワードは保存も入力もされず、空のパスワードは送信される前に拒否されます</value>
   </data>
   <data name="block an ip" xml:space="preserve">
     <value>IP をブロックする</value>
@@ -16131,6 +16140,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="dotted line" xml:space="preserve">
     <value>点線</value>
+  </data>
+  <data name="e.g. {0}" xml:space="preserve">
+    <value>例: {0}</value>
   </data>
   <data name="enforce - senders that honour MTA-STS deliver only over valid TLS to the hosts listed" xml:space="preserve">
     <value>enforce - MTA-STS に従う送信者は、記載されたホストへ有効な TLS でのみ配信します</value>
@@ -16252,27 +16264,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="hMailServer {0} was not installed: {1}. hMailServer {2} is still running, unchanged. The installer's log: {3}" xml:space="preserve">
     <value>hMailServer {0} はインストールされませんでした: {1}。hMailServer {2} は変更されずに動作を続けています。インストーラーのログ: {3}</value>
   </data>
-  <data name="hMailServer.INI cannot be reached from this computer, so these selections cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
-    <value>このコンピューターから hMailServer.INI に到達できないため、これらの選択項目はここでは編集できません。プレビューと適用は引き続き動作します。サーバー内部で実行されるためです。</value>
-  </data>
-  <data name="hMailServer.INI was not found on this machine, so its settings cannot be read from here." xml:space="preserve">
-    <value>このコンピューターに hMailServer.INI が見つからなかったため、その設定をここから読み取ることはできません。</value>
-  </data>
-  <data name="hMailServer.INI was not found on this machine, so mode and max_age shown are the shipped defaults." xml:space="preserve">
-    <value>このコンピューターに hMailServer.INI が見つからなかったため、表示されている mode と max_age は出荷時の既定値です。</value>
-  </data>
-  <data name="hMailServer.INI was not found on this machine, so the key store's location is unknown. API keys can only be managed from the server itself." xml:space="preserve">
-    <value>このコンピューターに hMailServer.INI が見つからなかったため、鍵ストアの場所が不明です。API キーはサーバー自身からしか管理できません。</value>
-  </data>
-  <data name="hMailServer.INI was not found on this machine." xml:space="preserve">
-    <value>このコンピューターに hMailServer.INI が見つかりませんでした。</value>
-  </data>
-  <data name="hMailServer.INI was not found on this machine. These settings can only be edited on the server itself." xml:space="preserve">
-    <value>このコンピューターに hMailServer.INI が見つかりませんでした。これらの設定はサーバー自身でしか編集できません。</value>
-  </data>
-  <data name="hMailServer.INI was not found on this machine. These settings can only be edited on the server itself; the connection test still works with the values typed here." xml:space="preserve">
-    <value>このコンピューターに hMailServer.INI が見つかりませんでした。これらの設定はサーバー自身でしか編集できませんが、接続テストはここに入力した値で引き続き動作します。</value>
-  </data>
   <data name="hMailServer.exe /GrantServiceAccess did not finish its work (exit code {0}):&#10;&#10;{1}" xml:space="preserve">
     <value>hMailServer.exe /GrantServiceAccess は処理を完了しませんでした (終了コード {0}):
 
@@ -16289,11 +16280,32 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="hMailServer.ini and the log folder belong to the administrators from 6.3.6, so this Control Panel may not read them. Close it and start it with Run as administrator to see the live log." xml:space="preserve">
     <value>6.3.6 以降、hMailServer.ini とログ フォルダーは管理者のものであるため、このコントロール パネルでは読み取れません。ライブ ログを表示するには、コントロール パネルを閉じて「管理者として実行」で起動してください。</value>
   </data>
+  <data name="hMailServer.ini cannot be reached from this computer, so these selections cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
+    <value>このコンピューターから hMailServer.ini に到達できないため、これらの選択項目はここでは編集できません。プレビューと適用は引き続き動作します。サーバー内部で実行されるためです。</value>
+  </data>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>hMailServer.ini を読み取れませんでした: {0} 6.3.6 以降、このファイルは管理者のものです。これらの設定を表示・変更するには、コントロール パネルを閉じて「管理者として実行」で起動してください。</value>
   </data>
+  <data name="hMailServer.ini was not found on this machine, so its settings cannot be read from here." xml:space="preserve">
+    <value>このコンピューターに hMailServer.ini が見つからなかったため、その設定をここから読み取ることはできません。</value>
+  </data>
+  <data name="hMailServer.ini was not found on this machine, so mode and max_age shown are the shipped defaults." xml:space="preserve">
+    <value>このコンピューターに hMailServer.ini が見つからなかったため、表示されている mode と max_age は出荷時の既定値です。</value>
+  </data>
+  <data name="hMailServer.ini was not found on this machine, so the key store's location is unknown. API keys can only be managed from the server itself." xml:space="preserve">
+    <value>このコンピューターに hMailServer.ini が見つからなかったため、鍵ストアの場所が不明です。API キーはサーバー自身からしか管理できません。</value>
+  </data>
   <data name="hMailServer.ini was not found on this machine, so this can only be changed on the server itself." xml:space="preserve">
     <value>このコンピューターに hMailServer.ini が見つからなかったため、この設定はサーバー自身でしか変更できません。</value>
+  </data>
+  <data name="hMailServer.ini was not found on this machine." xml:space="preserve">
+    <value>このコンピューターに hMailServer.ini が見つかりませんでした。</value>
+  </data>
+  <data name="hMailServer.ini was not found on this machine. These settings can only be edited on the server itself." xml:space="preserve">
+    <value>このコンピューターに hMailServer.ini が見つかりませんでした。これらの設定はサーバー自身でしか編集できません。</value>
+  </data>
+  <data name="hMailServer.ini was not found on this machine. These settings can only be edited on the server itself; the connection test still works with the values typed here." xml:space="preserve">
+    <value>このコンピューターに hMailServer.ini が見つかりませんでした。これらの設定はサーバー自身でしか編集できませんが、接続テストはここに入力した値で引き続き動作します。</value>
   </data>
   <data name="header '{0}'" xml:space="preserve">
     <value>ヘッダー '{0}'</value>
@@ -16700,8 +16712,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="testing - senders deliver as before and report what would have failed" xml:space="preserve">
     <value>testing - 送信者はこれまでどおり配信し、失敗していたはずの内容を報告します</value>
   </data>
-  <data name="the Control Panel is connected to '{0}'; hMailServer.INI and files on disk can only be inspected on the server machine itself." xml:space="preserve">
-    <value>コントロールパネルは '{0}' に接続しています。hMailServer.INI とディスク上のファイルは、サーバーのコンピューター自身でしか調べられません。</value>
+  <data name="the Control Panel is connected to '{0}'; hMailServer.ini and files on disk can only be inspected on the server machine itself." xml:space="preserve">
+    <value>コントロールパネルは '{0}' に接続しています。hMailServer.ini とディスク上のファイルは、サーバーのコンピューター自身でしか調べられません。</value>
   </data>
   <data name="the account has expired" xml:space="preserve">
     <value>アカウントの有効期限が切れています</value>
@@ -16721,8 +16733,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="the certificate" xml:space="preserve">
     <value>証明書</value>
   </data>
-  <data name="the configured UserSearchFilter is not a valid LDAP filter" xml:space="preserve">
-    <value>設定されている UserSearchFilter は有効な LDAP フィルターではありません</value>
+  <data name="the configured user search filter is not a valid LDAP filter" xml:space="preserve">
+    <value>設定されているユーザー検索フィルターは有効な LDAP フィルターではありません</value>
   </data>
   <data name="the connecting address is one of the sender domain's A or MX records" xml:space="preserve">
     <value>接続元アドレスが、送信者ドメインの A または MX レコードのいずれかです</value>
@@ -16757,8 +16769,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="the engine's score" xml:space="preserve">
     <value>エンジンのスコア</value>
   </data>
-  <data name="the entry does not exist (check SearchBase, or UserDnTemplate)" xml:space="preserve">
-    <value>エントリが存在しません (SearchBase または UserDnTemplate を確認してください)</value>
+  <data name="the entry does not exist (check the search base, or the user DN template)" xml:space="preserve">
+    <value>エントリが存在しません (検索ベースまたはユーザー DN テンプレートを確認してください)</value>
   </data>
   <data name="the entry's score" xml:space="preserve">
     <value>項目のスコア</value>

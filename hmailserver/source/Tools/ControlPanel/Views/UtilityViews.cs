@@ -1257,7 +1257,7 @@ namespace hMailServer.ControlPanel.Views
             return new ConsistencyResult
             {
                Level = Severity.Neutral,
-               Message = L("The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric.")
+               Message = L("The scan result is only readable on the server machine - hMailServer.ini was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric.")
             };
          }
 
@@ -1281,7 +1281,7 @@ namespace hMailServer.ControlPanel.Views
             return new ConsistencyResult
             {
                Level = Severity.Neutral,
-               Message = L("No log folder is configured in hMailServer.INI, so the server has nowhere to write the recovery report.")
+               Message = L("No log folder is configured in hMailServer.ini, so the server has nowhere to write the recovery report.")
             };
          }
 

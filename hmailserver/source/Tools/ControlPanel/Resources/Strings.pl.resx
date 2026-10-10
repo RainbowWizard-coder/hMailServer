@@ -387,8 +387,8 @@
   <data name="A backup destination - until one is set there is no backup" xml:space="preserve">
     <value>Miejsce docelowe kopii zapasowej - dopóki nie jest ustawione, kopii nie ma</value>
   </data>
-  <data name="A ceiling on one pass, so a search base pointed one level too high cannot be answered by reading an entire forest. If it is hit, the run says so and disables nothing at all - beyond the limit, an entry that exists is indistinguishable from one that was deleted." xml:space="preserve">
-    <value>Pułap dla jednego przebiegu, dzięki czemu baza wyszukiwania wskazana o jeden poziom za wysoko nie kończy się czytaniem całego lasu. Po jego osiągnięciu przebieg informuje o tym i niczego nie wyłącza - poza limitem wpis, który istnieje, jest nie do odróżnienia od usuniętego.</value>
+  <data name="A ceiling on one pass - 5000 when left empty - so a search base pointed one level too high cannot be answered by reading an entire forest. If it is hit, the run says so and disables nothing at all - beyond the limit, an entry that exists is indistinguishable from one that was deleted." xml:space="preserve">
+    <value>Pułap dla jednego przebiegu - 5000, gdy pole zostanie puste - dzięki czemu baza wyszukiwania wskazana o jeden poziom za wysoko nie kończy się czytaniem całego lasu. Po jego osiągnięciu przebieg informuje o tym i niczego nie wyłącza - poza limitem wpis, który istnieje, jest nie do odróżnienia od usuniętego.</value>
   </data>
   <data name="A certificate has been issued into {0}, but its expiry could not be read: {1}" xml:space="preserve">
     <value>Certyfikat został wystawiony do {0}, ale nie udało się odczytać jego terminu wygaśnięcia: {1}</value>
@@ -681,8 +681,8 @@
   <data name="A separate password for one mail client. Losing a laptop then means revoking one line here, rather than changing the account password and reconfiguring every other client." xml:space="preserve">
     <value>Osobne hasło dla jednego klienta pocztowego. Utrata laptopa oznacza wtedy unieważnienie jednego wiersza tutaj, zamiast zmiany hasła konta i przekonfigurowania wszystkich pozostałych klientów.</value>
   </data>
-  <data name="A service account password from an earlier version is stored in hMailServer.INI in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.INI with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
-    <value>Hasło konta usługi z wcześniejszej wersji jest zapisane jawnym tekstem w hMailServer.INI i nic go już nie odczytuje: usługa jest rejestrowana przez instalator lub przyciskami na karcie Konto usługi Windows, a Windows przechowuje własną kopię każdego hasła. Usuń wiersz ServiceAccountPassword z hMailServer.INI edytorem z podwyższonymi uprawnieniami, a ustawienie poleceniem DELETE /api/v1/settings/ini/ServiceAccountPassword, aby zniknęła też kopia w bazie danych.</value>
+  <data name="A service account password from an earlier version is stored in hMailServer.ini in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.ini with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
+    <value>Hasło konta usługi z wcześniejszej wersji jest zapisane jawnym tekstem w hMailServer.ini i nic go już nie odczytuje: usługa jest rejestrowana przez instalator lub przyciskami na karcie Konto usługi Windows, a Windows przechowuje własną kopię każdego hasła. Usuń wiersz ServiceAccountPassword z hMailServer.ini edytorem z podwyższonymi uprawnieniami, a ustawienie poleceniem DELETE /api/v1/settings/ini/ServiceAccountPassword, aby zniknęła też kopia w bazie danych.</value>
   </data>
   <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender in the spam exemptions, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
     <value>Sesja, która przedstawia się jako HELO 192.0.2.7, HELO [192.0.2.7] lub HELO localhost albo wysyła MAIL FROM:&lt;user@192.0.2.7&gt;, nie podała dla siebie żadnej nazwy, a wysłana przez nią wiadomość jest wstrzymywana lub punktowana bez niczego, według czego można by ją wpisać na listę. Wyłączone: serwer przyjmuje ją jak zawsze. Włączone: dostaje 550 5.7.1 przy MAIL FROM, zanim zostaną uruchomione testy antyspamowe: adres w nawiasach kwadratowych lub bez nich, pojedyncza etykieta, przyrostek publiczny taki jak co.uk i wszystko, co nie jest nazwą hosta, jest odrzucane, natomiast mail.co.uk jest nazwą. DNS nie jest o nic pytany; przyrostki pochodzą z Public Suffix List, listy, według której grupuje kwarantanna. Oceniane są tylko nieuwierzytelnione sesje z zakresu IP, który wykonuje testy antyspamowe, i dopiero gdy AUTH miał swoją szansę - nigdy nadawca z wyjątków antyspamowych i nigdy przychodzący przekaźnik, którego HELO należy do waszej własnej bramy.</value>
@@ -933,8 +933,8 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   <data name="Accounts in the group {0}" xml:space="preserve">
     <value>Konta w grupie {0}</value>
   </data>
-  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
-    <value>Konta oznaczone jako powiązane z katalogiem logują się hasłem domenowym przez bind LDAP - w odróżnieniu od logowania Windows działa to z hosta nieprzyłączonego do domeny, co jest typową sytuacją serwera pocztowego w strefie DMZ. Edytuje sekcję [LDAP] pliku hMailServer.INI; serwer odczytuje tę sekcję ponownie w ciągu dwóch sekund od zapisu, więc te ustawienia nie wymagają ponownego uruchomienia usługi.</value>
+  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.ini; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
+    <value>Konta oznaczone jako powiązane z katalogiem logują się hasłem domenowym przez bind LDAP - w odróżnieniu od logowania Windows działa to z hosta nieprzyłączonego do domeny, co jest typową sytuacją serwera pocztowego w strefie DMZ. Edytuje sekcję [LDAP] pliku hMailServer.ini; serwer odczytuje tę sekcję ponownie w ciągu dwóch sekund od zapisu, więc te ustawienia nie wymagają ponownego uruchomienia usługi.</value>
   </data>
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Windows directory tab tick 'Check this password against Windows (Active Directory, or a local Windows account)' and fill in 'Windows user name' - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>Konta oznaczone jako powiązane z katalogiem. Ta połowa jest już w tym interfejsie: otwórz Domeny, edytuj konto i na jego karcie Katalog Windows zaznacz „Sprawdzaj to hasło w systemie Windows (Active Directory lub lokalne konto Windows)” oraz wypełnij „Nazwa użytkownika Windows” - sAMAccountName, czyli to, co niesie %u. Konta bez tego oznaczenia zachowują zwykłe hasło hMailServer i nigdy nie sięgają do katalogu.</value>
@@ -1332,8 +1332,8 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   <data name="After the body has been received — a refusal here is a 554" xml:space="preserve">
     <value>Po odebraniu treści — odmowa w tym miejscu to 554</value>
   </data>
-  <data name="Against {0} over {1}. Set ServiceUsername (and its password), or switch to a UserDnTemplate or the Negotiate bind method, neither of which searches at all." xml:space="preserve">
-    <value>Wobec {0} przez {1}. Należy ustawić ServiceUsername (i jego hasło) albo przejść na UserDnTemplate lub metodę bind Negotiate, z których żadna w ogóle nie wyszukuje.</value>
+  <data name="Against {0} over {1}. Set the service account user name (and its password), or switch to a user DN template or the Negotiate bind method, neither of which searches at all." xml:space="preserve">
+    <value>Wobec {0} przez {1}. Należy ustawić nazwę użytkownika konta usługi (i jego hasło) albo przejść na szablon DN użytkownika lub metodę bind Negotiate, z których żadna w ogóle nie wyszukuje.</value>
   </data>
   <data name="Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990" xml:space="preserve">
     <value>Schemat raportu zbiorczego wysyłanego przez ten serwer: 1 = RFC 7489 Appendix C, 2 = RFC 9990</value>
@@ -2140,8 +2140,14 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>Token bearer dla /metrics (puste = brak)</value>
   </data>
-  <data name="Before enabling, the section is also missing: {0}." xml:space="preserve">
-    <value>Zanim będzie można to włączyć: w sekcji brakuje także {0}.</value>
+  <data name="Before enabling, fill in Directory server host name and Search base, or User DN template to bind without searching." xml:space="preserve">
+    <value>Przed włączeniem należy wypełnić pola Nazwa hosta serwera katalogowego i Baza wyszukiwania albo Szablon DN użytkownika, aby wykonać bind bez wyszukiwania.</value>
+  </data>
+  <data name="Before enabling, fill in Directory server host name." xml:space="preserve">
+    <value>Przed włączeniem należy wypełnić pole Nazwa hosta serwera katalogowego.</value>
+  </data>
+  <data name="Before enabling, fill in Search base, or User DN template to bind without searching." xml:space="preserve">
+    <value>Przed włączeniem należy wypełnić pole Baza wyszukiwania albo Szablon DN użytkownika, aby wykonać bind bez wyszukiwania.</value>
   </data>
   <data name="Before you copy: {0}" xml:space="preserve">
     <value>Przed skopiowaniem: {0}</value>
@@ -2401,11 +2407,11 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one." xml:space="preserve">
     <value>Nie da się tego stwierdzić z tego miejsca - nie udało się odczytać listy domen serwera, więc nie wiadomo, które domeny są powiązane z katalogiem. To problem z połączeniem, a nie z konfiguracją.</value>
   </data>
-  <data name="Cannot tell from here. hMailServer.INI is not reachable from this computer, so the [LDAP] section cannot be read - and it is that section, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
-    <value>Nie da się tego stwierdzić z tego miejsca. Plik hMailServer.INI jest nieosiągalny z tego komputera, więc nie można odczytać sekcji [LDAP] - a to właśnie ta sekcja, a nie cokolwiek na tej stronie, rozstrzyga, czy przebieg może się odbyć. Należy nacisnąć Podgląd: uruchamia się on wewnątrz serwera i powie dokładnie, czego brakuje, jeśli czegokolwiek brakuje.</value>
-  </data>
   <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>Stąd nie można stwierdzić. Nie udało się odczytać pliku hMailServer.ini, a o tym, czy uruchomienie jest możliwe, decyduje sekcja [LDAP] tego pliku, a nie cokolwiek na tej stronie. Naciśnij Podgląd: działa wewnątrz serwera i powie dokładnie, czego ewentualnie brakuje.</value>
+  </data>
+  <data name="Cannot tell from here. hMailServer.ini is not reachable from this computer, so the [LDAP] section cannot be read - and it is that section, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
+    <value>Nie da się tego stwierdzić z tego miejsca. Plik hMailServer.ini jest nieosiągalny z tego komputera, więc nie można odczytać sekcji [LDAP] - a to właśnie ta sekcja, a nie cokolwiek na tej stronie, rozstrzyga, czy przebieg może się odbyć. Należy nacisnąć Podgląd: uruchamia się on wewnątrz serwera i powie dokładnie, czego brakuje, jeśli czegokolwiek brakuje.</value>
   </data>
   <data name="Cannot tell from here: hMailServer.ini could not be read, and it is the [LDAP] section of that file which decides. Start the Control Panel as administrator to see it." xml:space="preserve">
     <value>Stąd nie można stwierdzić: nie udało się odczytać pliku hMailServer.ini, a decyduje sekcja [LDAP] tego pliku. Uruchom Panel sterowania jako administrator, aby ją zobaczyć.</value>
@@ -2446,8 +2452,8 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Certificate output folder (empty = Data\ACME)" xml:space="preserve">
     <value>Folder wyjściowy certyfikatów (puste = Data\ACME)</value>
   </data>
-  <data name="Certificate validation was DISABLED for this test, matching VerifyCertificate=0." xml:space="preserve">
-    <value>Weryfikacja certyfikatu była dla tego testu WYŁĄCZONA, zgodnie z VerifyCertificate=0.</value>
+  <data name="Certificate validation was off for this test, as 'Verify the directory server's certificate' is off." xml:space="preserve">
+    <value>Weryfikacja certyfikatu była dla tego testu wyłączona, ponieważ opcja „Weryfikuj certyfikat serwera katalogowego” jest wyłączona.</value>
   </data>
   <data name="Certificate: {0}" xml:space="preserve">
     <value>Certyfikat: {0}</value>
@@ -2884,8 +2890,8 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Connected server: hMailServer {0} @ {1}" xml:space="preserve">
     <value>Połączony serwer: hMailServer {0} @ {1}</value>
   </data>
-  <data name="Connected to a remote server: hMailServer.INI cannot be read from here, so mode and max_age shown are the shipped defaults." xml:space="preserve">
-    <value>Połączenie ze zdalnym serwerem: nie da się stąd odczytać pliku hMailServer.INI, więc pokazane mode i max_age to fabryczne wartości domyślne.</value>
+  <data name="Connected to a remote server: hMailServer.ini cannot be read from here, so mode and max_age shown are the shipped defaults." xml:space="preserve">
+    <value>Połączenie ze zdalnym serwerem: nie da się stąd odczytać pliku hMailServer.ini, więc pokazane mode i max_age to fabryczne wartości domyślne.</value>
   </data>
   <data name="Connected to another host, so whether these ports are being listened on cannot be read from here - open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>Połączenie z innym hostem, więc nie da się stąd odczytać, czy te porty są nasłuchiwane - aby to zobaczyć, należy otworzyć Control Panel na samym serwerze.</value>
@@ -4230,8 +4236,8 @@ Czy mimo to zapisać?</value>
   <data name="Directory server" xml:space="preserve">
     <value>Serwer katalogowy</value>
   </data>
-  <data name="Directory server _host name (Server)" xml:space="preserve">
-    <value>Nazwa _hosta serwera katalogowego (Server)</value>
+  <data name="Directory server _host name" xml:space="preserve">
+    <value>Nazwa _hosta serwera katalogowego</value>
   </data>
   <data name="Directory synchronisation" xml:space="preserve">
     <value>Synchronizacja katalogu</value>
@@ -4646,8 +4652,14 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Enabled" xml:space="preserve">
     <value>Włączone</value>
   </data>
-  <data name="Enabled but not configured: {0} is not set." xml:space="preserve">
-    <value>Włączone, ale nieskonfigurowane: {0} nie jest ustawione.</value>
+  <data name="Enabled but not configured: Directory server host name and Search base are empty." xml:space="preserve">
+    <value>Włączone, ale nieskonfigurowane: Nazwa hosta serwera katalogowego i Baza wyszukiwania są puste.</value>
+  </data>
+  <data name="Enabled but not configured: Directory server host name is empty." xml:space="preserve">
+    <value>Włączone, ale nieskonfigurowane: Nazwa hosta serwera katalogowego jest pusta.</value>
+  </data>
+  <data name="Enabled but not configured: Search base is empty, and a simple bind without a user DN template searches under it." xml:space="preserve">
+    <value>Włączone, ale nieskonfigurowane: Baza wyszukiwania jest pusta, a prosty bind bez szablonu DN użytkownika szuka pod nią.</value>
   </data>
   <data name="Enabled once &quot;Check&quot; has confirmed the published record carries this key's public key." xml:space="preserve">
     <value>Odblokowane, gdy „Sprawdź” potwierdzi, że opublikowany rekord zawiera klucz publiczny tego klucza.</value>
@@ -4913,8 +4925,8 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Evaluate DMARC policies" xml:space="preserve">
     <value>Oceniaj polityki DMARC</value>
   </data>
-  <data name="Evaluated from the values in the editors on this page, saved or not. The server applies the same checks to what is actually saved in hMailServer.INI." xml:space="preserve">
-    <value>Wyliczone z wartości w edytorach na tej stronie, zapisanych lub nie. Serwer stosuje te same kontrole do tego, co jest faktycznie zapisane w hMailServer.INI.</value>
+  <data name="Evaluated from the values in the editors on this page, saved or not. The server applies the same checks to what is actually saved in hMailServer.ini." xml:space="preserve">
+    <value>Wyliczone z wartości w edytorach na tej stronie, zapisanych lub nie. Serwer stosuje te same kontrole do tego, co jest faktycznie zapisane w hMailServer.ini.</value>
   </data>
   <data name="Evaluates the From: domain's DMARC policy, using its own SPF and DKIM results." xml:space="preserve">
     <value>Ocenia politykę DMARC domeny z nagłówka From:, korzystając z własnych wyników SPF i DKIM.</value>
@@ -4955,8 +4967,8 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Events are kept {0} days.|few" xml:space="preserve">
     <value>Zdarzenia są przechowywane przez {0} dni.</value>
   </data>
-  <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
-    <value>Każde logowanie LDAP zostanie odrzucone: niezabezpieczony LDAP z prostym bindem wysyłałby hasła jawnym tekstem, a AllowUnprotectedPassword jest wyłączone.</value>
+  <data name="Every LDAP sign-in will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and 'Allow sending the password over an unprotected connection' is off." xml:space="preserve">
+    <value>Każde logowanie LDAP zostanie odrzucone: niezabezpieczony LDAP z prostym bindem wysyłałby hasła jawnym tekstem, a opcja „Zezwalaj na wysyłanie hasła przez połączenie niezabezpieczone” jest wyłączona.</value>
   </data>
   <data name="Every account on this server is a member of this group already." xml:space="preserve">
     <value>Wszystkie konta na tym serwerze są już członkami tej grupy.</value>
@@ -6205,8 +6217,8 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   <data name="Issues and renews certificates automatically, but only if the certificate authority can fetch the http-01 challenge from this server." xml:space="preserve">
     <value>Wystawia i odnawia certyfikaty automatycznie, ale tylko wtedy, gdy urząd certyfikacji może pobrać z tego serwera wyzwanie http-01.</value>
   </data>
-  <data name="It governs two kinds of stored secret. Those bound to this machine - the database password in hMailServer.INI, the SMTP relayer password, and the passwords, tokens and passphrases of routes, external fetch accounts, SSL certificates and the rest kept in the database - are put in a Windows DPAPI envelope when they are next saved, or in the legacy Blowfish scheme while this is switched off. The secrets in the [Settings] section - the SRS and BATV secrets, the OAuth2 secrets, the metrics bearer token and HTTP Basic password, the Windows service account password and the GSSAPI service password - and each account's second factor are sealed under the installation's stored-secrets key once it has one, at the next start and at every save; switched off, the next start stores them as written again. Only the password pepper is always stored as you typed it, so hMailServer.INI should still be readable only by Administrators and by the account the service runs as." xml:space="preserve">
-    <value>Obejmuje dwa rodzaje przechowywanych sekretów. Te związane z tym komputerem - hasło bazy danych w hMailServer.INI, hasło przekaźnika SMTP oraz hasła, tokeny i frazy hasłowe tras, zewnętrznych kont pobierania, certyfikatów SSL i reszty przechowywanej w bazie danych - są przy następnym zapisie umieszczane w kopercie Windows DPAPI albo, gdy ta opcja jest wyłączona, w starym schemacie Blowfish. Sekrety z sekcji [Settings] - sekrety SRS i BATV, sekrety OAuth2, token bearer i hasło HTTP Basic metryk, hasło konta usługi systemu Windows i hasło usługi GSSAPI - oraz drugi składnik każdego konta są pieczętowane kluczem przechowywanych sekretów instalacji, gdy tylko go ma, przy następnym uruchomieniu i przy każdym zapisie; gdy opcja jest wyłączona, następne uruchomienie znów przechowuje je w takiej postaci, w jakiej je zapisano. Tylko pieprz do haseł jest zawsze przechowywany w takiej postaci, w jakiej go wpisano, więc hMailServer.INI nadal powinien być czytelny wyłącznie dla Administratorów i dla konta, na którym działa usługa.</value>
+  <data name="It governs two kinds of stored secret. Those bound to this machine - the database password in hMailServer.ini, the SMTP relayer password, and the passwords, tokens and passphrases of routes, external fetch accounts, SSL certificates and the rest kept in the database - are put in a Windows DPAPI envelope when they are next saved, or in the legacy Blowfish scheme while this is switched off. The secrets in the [Settings] section - the SRS and BATV secrets, the OAuth2 secrets, the metrics bearer token and HTTP Basic password, the Windows service account password and the GSSAPI service password - and each account's second factor are sealed under the installation's stored-secrets key once it has one, at the next start and at every save; switched off, the next start stores them as written again. Only the password pepper is always stored as you typed it, so hMailServer.ini should still be readable only by Administrators and by the account the service runs as." xml:space="preserve">
+    <value>Obejmuje dwa rodzaje przechowywanych sekretów. Te związane z tym komputerem - hasło bazy danych w hMailServer.ini, hasło przekaźnika SMTP oraz hasła, tokeny i frazy hasłowe tras, zewnętrznych kont pobierania, certyfikatów SSL i reszty przechowywanej w bazie danych - są przy następnym zapisie umieszczane w kopercie Windows DPAPI albo, gdy ta opcja jest wyłączona, w starym schemacie Blowfish. Sekrety z sekcji [Settings] - sekrety SRS i BATV, sekrety OAuth2, token bearer i hasło HTTP Basic metryk, hasło konta usługi systemu Windows i hasło usługi GSSAPI - oraz drugi składnik każdego konta są pieczętowane kluczem przechowywanych sekretów instalacji, gdy tylko go ma, przy następnym uruchomieniu i przy każdym zapisie; gdy opcja jest wyłączona, następne uruchomienie znów przechowuje je w takiej postaci, w jakiej je zapisano. Tylko pieprz do haseł jest zawsze przechowywany w takiej postaci, w jakiej go wpisano, więc hMailServer.ini nadal powinien być czytelny wyłącznie dla Administratorów i dla konta, na którym działa usługa.</value>
   </data>
   <data name="It has no rua= tag, so nobody sends you reports - fine, but you learn nothing; add one when you have a mailbox for it." xml:space="preserve">
     <value>Nie zawiera znacznika rua=, więc nikt nie przysyła raportów - to nie szkodzi, ale nie przynosi też żadnej wiedzy; warto go dodać, gdy będzie dla niego skrzynka pocztowa.</value>
@@ -7298,8 +7310,8 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Mo_ve or rename..." xml:space="preserve">
     <value>P_rzenieś lub zmień nazwę...</value>
   </data>
-  <data name="Mode and max_age read from hMailServer.INI on this machine." xml:space="preserve">
-    <value>Tryb i max_age odczytane z pliku hMailServer.INI na tym komputerze.</value>
+  <data name="Mode and max_age read from hMailServer.ini on this machine." xml:space="preserve">
+    <value>Tryb i max_age odczytane z pliku hMailServer.ini na tym komputerze.</value>
   </data>
   <data name="Monitoring" xml:space="preserve">
     <value>Monitorowanie</value>
@@ -7823,11 +7835,11 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="No listeners are configured." xml:space="preserve">
     <value>Nie skonfigurowano żadnych nasłuchów.</value>
   </data>
-  <data name="No log folder could be read from hMailServer.INI on this machine." xml:space="preserve">
-    <value>Nie udało się odczytać folderu dzienników z pliku hMailServer.INI na tym komputerze.</value>
+  <data name="No log folder could be read from hMailServer.ini on this machine." xml:space="preserve">
+    <value>Nie udało się odczytać folderu dzienników z pliku hMailServer.ini na tym komputerze.</value>
   </data>
-  <data name="No log folder is configured in hMailServer.INI, so the server has nowhere to write the recovery report." xml:space="preserve">
-    <value>W pliku hMailServer.INI nie skonfigurowano folderu dzienników, więc serwer nie ma gdzie zapisać raportu z odzyskiwania.</value>
+  <data name="No log folder is configured in hMailServer.ini, so the server has nowhere to write the recovery report." xml:space="preserve">
+    <value>W pliku hMailServer.ini nie skonfigurowano folderu dzienników, więc serwer nie ma gdzie zapisać raportu z odzyskiwania.</value>
   </data>
   <data name="No match" xml:space="preserve">
     <value>Brak dopasowania</value>
@@ -8117,8 +8129,8 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Not served" xml:space="preserve">
     <value>Nieudostępniane</value>
   </data>
-  <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
-    <value>Nie przetestowano: ta konfiguracja wysłałaby hasło przez niechronione LDAP przy prostym bindzie, a AllowUnprotectedPassword jest wyłączone - serwer odrzuca więc każde logowanie w takim układzie, a ten test z tego samego powodu odmawia przesłania czegokolwiek. Należy wybrać LDAPS albo StartTLS, albo metodę bind Negotiate, albo wyraźnie zezwolić na niechronione hasło.</value>
+  <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and 'Allow sending the password over an unprotected connection' is off - so the server refuses every sign-in under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
+    <value>Nie przetestowano: ta konfiguracja wysłałaby hasło przez niechronione LDAP przy prostym bindzie, a opcja „Zezwalaj na wysyłanie hasła przez połączenie niezabezpieczone” jest wyłączona - serwer odrzuca więc każde logowanie w takim układzie, a ten test z tego samego powodu odmawia przesłania czegokolwiek. Należy wybrać LDAPS albo StartTLS, albo metodę bind Negotiate, albo wyraźnie zezwolić na niechronione hasło.</value>
   </data>
   <data name="Not used" xml:space="preserve">
     <value>Nieużywany</value>
@@ -8183,8 +8195,8 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Nothing is held. Quarantining is switched off: until it is turned on under Anti-spam settings, spam over the refuse threshold is refused during the SMTP conversation rather than stored." xml:space="preserve">
     <value>Nic nie jest wstrzymane. Kwarantanna jest wyłączona: dopóki nie zostanie włączona w Ustawienia antyspamowe, spam powyżej progu odrzucania jest odrzucany podczas sesji SMTP, a nie przechowywany.</value>
   </data>
-  <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.INI key." xml:space="preserve">
-    <value>Nic nie pasuje do „{0}”. Warto spróbować opisać cel („zatrzymaj spam”, „pozwól urządzeniu wysyłać pocztę”), podać nazwę strony albo klucz z pliku hMailServer.INI.</value>
+  <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.ini key." xml:space="preserve">
+    <value>Nic nie pasuje do „{0}”. Warto spróbować opisać cel („zatrzymaj spam”, „pozwól urządzeniu wysyłać pocztę”), podać nazwę strony albo klucz z pliku hMailServer.ini.</value>
   </data>
   <data name="Nothing needs action - all {0} external setup checks are done or not needed." xml:space="preserve">
     <value>Nic nie wymaga działania - wszystkie kontrole konfiguracji zewnętrznej ({0}) są wykonane albo niepotrzebne.</value>
@@ -9490,8 +9502,8 @@ Do czasu wznowienia nie będą przyjmowane nowe połączenia ani dostarczana poc
   <data name="Re-check the external prerequisites" xml:space="preserve">
     <value>Sprawdź ponownie wymagania zewnętrzne</value>
   </data>
-  <data name="Re-read the LDAP settings from hMailServer.INI" xml:space="preserve">
-    <value>Odczytaj ponownie ustawienia LDAP z hMailServer.INI</value>
+  <data name="Re-read the LDAP settings from hMailServer.ini" xml:space="preserve">
+    <value>Odczytaj ponownie ustawienia LDAP z hMailServer.ini</value>
   </data>
   <data name="Re-read the anti-virus configuration from the server" xml:space="preserve">
     <value>Odczytaj ponownie konfigurację antywirusową z serwera</value>
@@ -9514,8 +9526,8 @@ Do czasu wznowienia nie będą przyjmowane nowe połączenia ani dostarczana poc
   <data name="Re-read the transport security configuration from the server" xml:space="preserve">
     <value>Odczytaj ponownie konfigurację bezpieczeństwa transportu z serwera</value>
   </data>
-  <data name="Re-read these settings from hMailServer.INI" xml:space="preserve">
-    <value>Odczytaj ponownie te ustawienia z hMailServer.INI</value>
+  <data name="Re-read these settings from hMailServer.ini" xml:space="preserve">
+    <value>Odczytaj ponownie te ustawienia z hMailServer.ini</value>
   </data>
   <data name="Re_lease" xml:space="preserve">
     <value>_Zwolnij</value>
@@ -9568,8 +9580,8 @@ Do czasu wznowienia nie będą przyjmowane nowe połączenia ani dostarczana poc
   <data name="Read delivery reports that arrive for this server's senders" xml:space="preserve">
     <value>Czytaj raporty doręczenia przychodzące dla nadawców tego serwera</value>
   </data>
-  <data name="Read from [Directories] LogFolder in hMailServer.INI, which is not readable from this machine - the Control Panel is running somewhere other than the server." xml:space="preserve">
-    <value>Odczytane z [Directories] LogFolder w hMailServer.INI; ten folder nie jest czytelny z tego komputera - Control Panel działa gdzie indziej niż serwer.</value>
+  <data name="Read from [Directories] LogFolder in hMailServer.ini, which is not readable from this machine - the Control Panel is running somewhere other than the server." xml:space="preserve">
+    <value>Odczytane z [Directories] LogFolder w hMailServer.ini; ten folder nie jest czytelny z tego komputera - Control Panel działa gdzie indziej niż serwer.</value>
   </data>
   <data name="Read from file" xml:space="preserve">
     <value>Odczytano z pliku</value>
@@ -10342,8 +10354,8 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Retiring key" xml:space="preserve">
     <value>Wycofywany klucz</value>
   </data>
-  <data name="Retr_y through Windows logon when the directory is unavailable (FallbackToWindowsLogon)" xml:space="preserve">
-    <value>Ponów próbę przez logowanie Windows, _gdy katalog jest niedostępny (FallbackToWindowsLogon)</value>
+  <data name="Retr_y through Windows logon when the directory is unavailable" xml:space="preserve">
+    <value>Ponów próbę przez logowanie Windows, _gdy katalog jest niedostępny</value>
   </data>
   <data name="Retried" xml:space="preserve">
     <value>Ponowiono</value>
@@ -10519,8 +10531,8 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Runs event scripts (OnAcceptMessage, OnDeliveryStart...) from the Events folder; the script itself is edited on the Event scripts page. The engine reloads when you save." xml:space="preserve">
     <value>Uruchamia skrypty zdarzeń (OnAcceptMessage, OnDeliveryStart...) z folderu Events; sam skrypt edytuje się na stronie Skrypty zdarzeń. Silnik przeładowuje je przy zapisie.</value>
   </data>
-  <data name="Runs hMailServer.exe /GrantServiceAccess as an administrator, after Windows asks: NT SERVICE\hMailServer is given Modify on the program folder's own Data, Logs, Temp and Database folders and on the folders an administrator has approved, and Read on the program folder - never hMailServer.INI. A folder the configuration names elsewhere, such as a backup or archive folder set later, is approved only after a question that names it; key files outside those folders are listed. It can be run again at any time, and removes nobody else's permission." xml:space="preserve">
-    <value>Uruchamia hMailServer.exe /GrantServiceAccess jako administrator, po pytaniu systemu Windows: NT SERVICE\hMailServer otrzymuje Modyfikację na własnych folderach Data, Logs, Temp i Database folderu programu oraz na folderach zatwierdzonych przez administratora, a Odczyt na folderze programu - nigdy na hMailServer.INI. Folder, który konfiguracja wskazuje gdzie indziej, na przykład ustawiony później folder kopii zapasowych lub archiwum, jest zatwierdzany dopiero po pytaniu, które go wymienia; pliki kluczy poza tymi folderami są wypisywane. Można go uruchomić ponownie w dowolnej chwili i nie odbiera nikomu uprawnień.</value>
+  <data name="Runs hMailServer.exe /GrantServiceAccess as an administrator, after Windows asks: NT SERVICE\hMailServer is given Modify on the program folder's own Data, Logs, Temp and Database folders and on the folders an administrator has approved, and Read on the program folder - never hMailServer.ini. A folder the configuration names elsewhere, such as a backup or archive folder set later, is approved only after a question that names it; key files outside those folders are listed. It can be run again at any time, and removes nobody else's permission." xml:space="preserve">
+    <value>Uruchamia hMailServer.exe /GrantServiceAccess jako administrator, po pytaniu systemu Windows: NT SERVICE\hMailServer otrzymuje Modyfikację na własnych folderach Data, Logs, Temp i Database folderu programu oraz na folderach zatwierdzonych przez administratora, a Odczyt na folderze programu - nigdy na hMailServer.ini. Folder, który konfiguracja wskazuje gdzie indziej, na przykład ustawiony później folder kopii zapasowych lub archiwum, jest zatwierdzany dopiero po pytaniu, które go wymienia; pliki kluczy poza tymi folderami są wypisywane. Można go uruchomić ponownie w dowolnej chwili i nie odbiera nikomu uprawnień.</value>
   </data>
   <data name="Runs the same steps the server runs, in the same order, using the values in the editors above as they stand: connect, protect the transport, bind the service credential, search for the user - and, only if a password is typed below, bind as that user to prove it. The password is used once and never stored, and the test refuses to run any configuration that would put a password on the network unprotected. One honest caveat: the test runs from this computer, so a firewall that treats this machine and the hMailServer service differently can make the two disagree." xml:space="preserve">
     <value>Wykonuje te same kroki co serwer, w tej samej kolejności, na wartościach z pól powyżej w ich obecnym kształcie: połączenie, zabezpieczenie transportu, bind poświadczeniem usługi, wyszukanie użytkownika - a jeśli poniżej wpisano hasło, także bind jako ten użytkownik, aby to potwierdzić. Hasło jest używane jednorazowo i nigdy nie jest przechowywane, a test odmawia uruchomienia każdej konfiguracji, która wysłałaby hasło do sieci bez ochrony. Jedno uczciwe zastrzeżenie: test działa z tego komputera, więc zapora traktująca inaczej ten komputer i usługę hMailServer może sprawić, że wyniki obu się rozejdą.</value>
@@ -10723,8 +10735,8 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Save the DKIM private key" xml:space="preserve">
     <value>Zapisz klucz prywatny DKIM</value>
   </data>
-  <data name="Save the LDAP settings to hMailServer.INI" xml:space="preserve">
-    <value>Zapisz ustawienia LDAP w hMailServer.INI</value>
+  <data name="Save the LDAP settings to hMailServer.ini" xml:space="preserve">
+    <value>Zapisz ustawienia LDAP w hMailServer.ini</value>
   </data>
   <data name="Save the account and reopen it - a recovery address belongs to an account that exists." xml:space="preserve">
     <value>Zapisz konto i otwórz je ponownie - adres odzyskiwania należy do konta, które istnieje.</value>
@@ -10756,11 +10768,11 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Zapisz hasło klucza prywatnego dla wybranego certyfikatu</value>
   </data>
-  <data name="Save the selection to hMailServer.INI, then show what a synchronisation would do with it" xml:space="preserve">
-    <value>Zapisz wybór w hMailServer.INI, a potem pokaż, co zrobiłaby z nim synchronizacja</value>
+  <data name="Save the selection to hMailServer.ini, then show what a synchronisation would do with it" xml:space="preserve">
+    <value>Zapisz wybór w hMailServer.ini, a potem pokaż, co zrobiłaby z nim synchronizacja</value>
   </data>
-  <data name="Save these settings to hMailServer.INI" xml:space="preserve">
-    <value>Zapisz te ustawienia w hMailServer.INI</value>
+  <data name="Save these settings to hMailServer.ini" xml:space="preserve">
+    <value>Zapisz te ustawienia w hMailServer.ini</value>
   </data>
   <data name="Save this weak password anyway?" xml:space="preserve">
     <value>Czy mimo to zapisać to słabe hasło?</value>
@@ -11050,8 +11062,8 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Search accounts" xml:space="preserve">
     <value>Szukaj kont</value>
   </data>
-  <data name="Search bas_e (SearchBase)" xml:space="preserve">
-    <value>Baza _wyszukiwania (SearchBase)</value>
+  <data name="Search bas_e" xml:space="preserve">
+    <value>Baza _wyszukiwania</value>
   </data>
   <data name="Search blocked attachment patterns" xml:space="preserve">
     <value>Szukaj wzorców zablokowanych załączników</value>
@@ -11130,9 +11142,6 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>Szukaj albo napisz, co chcesz zrobić - „zatrzymaj spam”, „zablokuj adres IP”</value>
-  </data>
-  <data name="SearchBase (or UserDnTemplate, to bind directly without searching)" xml:space="preserve">
-    <value>SearchBase (albo UserDnTemplate, aby wykonać bind bezpośrednio, bez wyszukiwania)</value>
   </data>
   <data name="Searched" xml:space="preserve">
     <value>Przeszukano</value>
@@ -11425,8 +11434,8 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Separately, this server sends such reports to other domains: its TLS report sender address is {0}, so its own reports go out." xml:space="preserve">
     <value>Niezależnie od tego ten serwer sam wysyła takie raporty do innych domen: jego adres nadawcy raportów TLS to {0}, więc jego własne raporty są wysyłane.</value>
   </data>
-  <data name="Serv_ice account password (ServicePassword)" xml:space="preserve">
-    <value>Ha_sło konta usługi (ServicePassword)</value>
+  <data name="Serv_ice account password" xml:space="preserve">
+    <value>Ha_sło konta usługi</value>
   </data>
   <data name="Serve MTA-STS policies for local domains" xml:space="preserve">
     <value>Udostępniaj polityki MTA-STS dla domen lokalnych</value>
@@ -11518,8 +11527,8 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Service account (search mode only)" xml:space="preserve">
     <value>Konto usługi (tylko w trybie wyszukiwania)</value>
   </data>
-  <data name="Service account user _name (ServiceUsername)" xml:space="preserve">
-    <value>_Nazwa użytkownika konta usługi (ServiceUsername)</value>
+  <data name="Service account user _name" xml:space="preserve">
+    <value>_Nazwa użytkownika konta usługi</value>
   </data>
   <data name="Service credential accepted." xml:space="preserve">
     <value>Poświadczenie usługi zostało przyjęte.</value>
@@ -11530,8 +11539,8 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Service start" xml:space="preserve">
     <value>Uruchomienie usługi</value>
   </data>
-  <data name="ServiceDomain {0}, and is shown here rather than offered for editing because the server reads the key and then never uses it: the service credential binds with ServiceUsername and ServicePassword alone. Put the domain in the user name instead (DOMAIN\name or a UPN)." xml:space="preserve">
-    <value>ServiceDomain {0} i jest tu pokazywane, a nie udostępniane do edycji, ponieważ serwer odczytuje ten klucz, a potem nigdy go nie używa: poświadczenie usługi wykonuje bind wyłącznie przy użyciu ServiceUsername i ServicePassword. Domenę należy umieścić w nazwie użytkownika (DOMAIN\nazwa lub UPN).</value>
+  <data name="ServiceDomain {0}, and is shown here rather than offered for editing because the server reads the key and then never uses it: the service credential binds with the service account user name and password alone. Put the domain in the user name instead (DOMAIN\name or a UPN)." xml:space="preserve">
+    <value>ServiceDomain {0} i jest tu pokazywane, a nie udostępniane do edycji, ponieważ serwer odczytuje ten klucz, a potem nigdy go nie używa: poświadczenie usługi wykonuje bind wyłącznie przy użyciu nazwy użytkownika i hasła konta usługi. Domenę należy umieścić w nazwie użytkownika (DOMAIN\nazwa lub UPN).</value>
   </data>
   <data name="Services" xml:space="preserve">
     <value>Usługi</value>
@@ -11845,8 +11854,8 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Simple bind - the password is sent to the directory (use with TLS)" xml:space="preserve">
     <value>Prosty bind - hasło jest wysyłane do katalogu (używać razem z TLS)</value>
   </data>
-  <data name="Simple is the default. Negotiate runs an SSPI exchange (Kerberos, falling back to NTLM) that never transmits the password and signs the connection - it is the only method a default-configured modern domain controller accepts when it has no certificate installed, it needs no search, no SearchBase and no service account, and it works from a host that is not domain-joined." xml:space="preserve">
-    <value>Prosty jest wartością domyślną. Negotiate przeprowadza wymianę SSPI (Kerberos, z powrotem do NTLM), która nigdy nie przesyła hasła i podpisuje połączenie - to jedyna metoda, jaką przyjmuje nowoczesny kontroler domeny w konfiguracji domyślnej, gdy nie ma zainstalowanego certyfikatu, nie wymaga żadnego wyszukiwania, żadnego SearchBase ani konta usługi i działa z hosta nieprzyłączonego do domeny.</value>
+  <data name="Simple is the default. Negotiate runs an SSPI exchange (Kerberos, falling back to NTLM) that never transmits the password and signs the connection - it is the only method a default-configured modern domain controller accepts when it has no certificate installed, it needs no search, no search base and no service account, and it works from a host that is not domain-joined." xml:space="preserve">
+    <value>Prosty jest wartością domyślną. Negotiate przeprowadza wymianę SSPI (Kerberos, z powrotem do NTLM), która nigdy nie przesyła hasła i podpisuje połączenie - to jedyna metoda, jaką przyjmuje nowoczesny kontroler domeny w konfiguracji domyślnej, gdy nie ma zainstalowanego certyfikatu, nie wymaga żadnego wyszukiwania, żadnej bazy wyszukiwania ani konta usługi i działa z hosta nieprzyłączonego do domeny.</value>
   </data>
   <data name="Simultaneous connections (0 is unlimited)" xml:space="preserve">
     <value>Jednoczesne połączenia (0 to bez ograniczeń)</value>
@@ -11998,9 +12007,6 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Specific addresses to rou_te" xml:space="preserve">
     <value>_Konkretne adresy do trasowania</value>
   </data>
-  <data name="Split into first and last name, and only ever written to an account that has neither. A name typed here by an administrator is never overwritten by the directory." xml:space="preserve">
-    <value>Dzielone na imię i nazwisko i zapisywane wyłącznie do konta, które nie ma ani jednego, ani drugiego. Nazwiska wpisanego tutaj przez administratora katalog nigdy nie nadpisuje.</value>
-  </data>
   <data name="Sta_rt date" xml:space="preserve">
     <value>Data _rozpoczęcia</value>
   </data>
@@ -12099,6 +12105,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="Store: " xml:space="preserve">
     <value>Magazyn: </value>
+  </data>
+  <data name="Stored as [LDAP] {0}." xml:space="preserve">
+    <value>Zapisywane jako [LDAP] {0}.</value>
   </data>
   <data name="Stored in hMailServer.ini on the server. The token it buys is cached in memory until 80% of its lifetime has passed and refetched automatically." xml:space="preserve">
     <value>Przechowywane w hMailServer.ini na serwerze. Uzyskiwany dzięki temu token jest przechowywany w pamięci, dopóki nie minie 80% jego czasu życia, i pobierany ponownie automatycznie.</value>
@@ -12951,8 +12960,8 @@ Należy zaznaczyć klucz powyżej i skopiować go ręcznie - nie zostanie pokaza
   <data name="The consistency check is switched off, so no scan has run. Turn on 'Periodically cross-check message rows against files on disk' on the {0} page; the server then scans at start-up and hourly and writes {1}." xml:space="preserve">
     <value>Kontrola spójności jest wyłączona, więc żadne skanowanie nie zostało wykonane. Należy włączyć „Okresowo porównuj wiersze wiadomości z plikami na dysku” na stronie {0}; serwer będzie wtedy skanował przy uruchamianiu i co godzinę oraz zapisywał {1}.</value>
   </data>
-  <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page." xml:space="preserve">
-    <value>Odpowiednik pieczętowania ARC po stronie poczty przychodzącej: poprawny łańcuch ARC od zaufanego pieczętującego może zrównoważyć punktację za niepowodzenie DMARC dla wiadomości, której pozytywny wynik DMARC zniszczyło przekazanie (RFC 8617). Konfiguruje się to na karcie Uwierzytelnianie nadawcy strony Ustawienia antyspamowe, ponieważ ustawienie jest przechowywane razem z pozostałymi ustawieniami antyspamowymi, a nie w hMailServer.INI. Przy pustej liście zaufanych pieczętujących funkcja nie robi zupełnie nic i jest to zamierzone: każdy może sfabrykować cały łańcuch ARC i opieczętować go kluczami opublikowanymi we własnym DNS, a taki łańcuch przejdzie weryfikację bez zarzutu - poprawny łańcuch nie dowodzi więc niczego, o ile pieczętujący nie jest już wcześniej darzony zaufaniem. Lista nie jest opcją tej funkcji, lista jest tą funkcją. Zrównoważenie nigdy nie przekracza punktacji za niepowodzenie DMARC i obowiązuje wyłącznie wtedy, gdy na stronie Ustawienia antyspamowe włączone jest punktowanie DMARC.</value>
+  <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.ini. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page." xml:space="preserve">
+    <value>Odpowiednik pieczętowania ARC po stronie poczty przychodzącej: poprawny łańcuch ARC od zaufanego pieczętującego może zrównoważyć punktację za niepowodzenie DMARC dla wiadomości, której pozytywny wynik DMARC zniszczyło przekazanie (RFC 8617). Konfiguruje się to na karcie Uwierzytelnianie nadawcy strony Ustawienia antyspamowe, ponieważ ustawienie jest przechowywane razem z pozostałymi ustawieniami antyspamowymi, a nie w hMailServer.ini. Przy pustej liście zaufanych pieczętujących funkcja nie robi zupełnie nic i jest to zamierzone: każdy może sfabrykować cały łańcuch ARC i opieczętować go kluczami opublikowanymi we własnym DNS, a taki łańcuch przejdzie weryfikację bez zarzutu - poprawny łańcuch nie dowodzi więc niczego, o ile pieczętujący nie jest już wcześniej darzony zaufaniem. Lista nie jest opcją tej funkcji, lista jest tą funkcją. Zrównoważenie nigdy nie przekracza punktacji za niepowodzenie DMARC i obowiązuje wyłącznie wtedy, gdy na stronie Ustawienia antyspamowe włączone jest punktowanie DMARC.</value>
   </data>
   <data name="The current password counts as the most recent one, so setting a password to itself is refused too - the repeat somebody is most likely to try." xml:space="preserve">
     <value>Bieżące hasło liczy się jako najnowsze, więc ustawienie hasła na to samo również jest odrzucane - a to właśnie powtórzenie, które ktoś najpewniej spróbuje wpisać.</value>
@@ -13280,8 +13289,8 @@ Wiadomość została prawdopodobnie dostarczona i nie ma jej już w kolejce.</va
   <data name="The key store was not found, so there is nothing to revoke." xml:space="preserve">
     <value>Nie znaleziono magazynu kluczy, więc nie ma czego unieważniać.</value>
   </data>
-  <data name="The key store's location is not known from here. It sits beside hMailServer.INI, which is found through this machine's registry and service table - so keys can only be managed from the server itself, not from a Control Panel connected to another host." xml:space="preserve">
-    <value>Położenie magazynu kluczy nie jest stąd znane. Znajduje się on obok pliku hMailServer.INI, który jest odnajdywany przez rejestr i tabelę usług tego komputera - kluczami można więc zarządzać wyłącznie z samego serwera, a nie z aplikacji Control Panel połączonej z innym hostem.</value>
+  <data name="The key store's location is not known from here. It sits beside hMailServer.ini, which is found through this machine's registry and service table - so keys can only be managed from the server itself, not from a Control Panel connected to another host." xml:space="preserve">
+    <value>Położenie magazynu kluczy nie jest stąd znane. Znajduje się on obok pliku hMailServer.ini, który jest odnajdywany przez rejestr i tabelę usług tego komputera - kluczami można więc zarządzać wyłącznie z samego serwera, a nie z aplikacji Control Panel połączonej z innym hostem.</value>
   </data>
   <data name="The keys that work on every page, and the keys of a list" xml:space="preserve">
     <value>Klawisze działające na każdej stronie oraz klawisze listy</value>
@@ -13421,8 +13430,8 @@ Wiadomość została prawdopodobnie dostarczona i nie ma jej już w kolejce.</va
   <data name="The old selector was retired." xml:space="preserve">
     <value>Stary selektor został wycofany.</value>
   </data>
-  <data name="The other way to reach a DN: set this and the server skips the search - and with it the need for a SearchBase and a service account. A UPN works against Active Directory. Same %u, %d, %m placeholders, escaped for a distinguished name." xml:space="preserve">
-    <value>Druga droga do nazwy wyróżniającej: po ustawieniu tego serwer pomija wyszukiwanie, a wraz z nim potrzebę SearchBase i konta usługi. Wobec Active Directory działa UPN. Te same symbole zastępcze %u, %d, %m, poprzedzone znakami ucieczki zgodnie z regułami nazwy wyróżniającej.</value>
+  <data name="The other way to reach a DN: set this and the server skips the search - and with it the need for a search base and a service account. A UPN works against Active Directory. Same %u, %d, %m placeholders, escaped for a distinguished name." xml:space="preserve">
+    <value>Druga droga do nazwy wyróżniającej: po ustawieniu tego serwer pomija wyszukiwanie, a wraz z nim potrzebę bazy wyszukiwania i konta usługi. Wobec Active Directory działa UPN. Te same symbole zastępcze %u, %d, %m, poprzedzone znakami ucieczki zgodnie z regułami nazwy wyróżniającej.</value>
   </data>
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>Przegląd wymienia układy ustawień, które po cichu nic nie robią - próg równy zeru, próg nieosiągalny dla żadnej włączonej kontroli, kontrola punktująca na zero.</value>
@@ -13618,8 +13627,8 @@ Dodać mimo to?</value>
   <data name="The saved schedule takes effect when the service restarts: the server is still running the one it started with." xml:space="preserve">
     <value>Zapisany harmonogram zacznie obowiązywać po ponownym uruchomieniu usługi: serwer nadal używa harmonogramu, z którym został uruchomiony.</value>
   </data>
-  <data name="The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
-    <value>Wynik skanowania da się odczytać tylko na komputerze serwera - nie znaleziono tu pliku hMailServer.INI. Serwer udostępnia tę samą liczbę jako metrykę hmailserver_messagestore_missing_files.</value>
+  <data name="The scan result is only readable on the server machine - hMailServer.ini was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
+    <value>Wynik skanowania da się odczytać tylko na komputerze serwera - nie znaleziono tu pliku hMailServer.ini. Serwer udostępnia tę samą liczbę jako metrykę hmailserver_messagestore_missing_files.</value>
   </data>
   <data name="The schedule and the retention are stored in hMailServer.ini on the server." xml:space="preserve">
     <value>Harmonogram i zasady przechowywania są zapisywane w hMailServer.ini na serwerze.</value>
@@ -13636,8 +13645,8 @@ Dodać mimo to?</value>
   <data name="The search looks at the {0} most recent changes of the {1} in the trail." xml:space="preserve">
     <value>Wyszukiwanie obejmuje {0} najnowszych z {1} zmian w dzienniku.</value>
   </data>
-  <data name="The search matched MORE than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make UserSearchFilter or SearchBase select exactly one entry." xml:space="preserve">
-    <value>Wyszukiwanie dopasowało WIĘCEJ niż jeden wpis katalogu (filtr {0}, baza {1}). Serwer odmawia uwierzytelniania wobec niejednoznacznego dopasowania - UserSearchFilter lub SearchBase muszą wybierać dokładnie jeden wpis.</value>
+  <data name="The search matched more than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make the user search filter or the search base select exactly one entry." xml:space="preserve">
+    <value>Wyszukiwanie dopasowało więcej niż jeden wpis katalogu (filtr {0}, baza {1}). Serwer odmawia uwierzytelniania wobec niejednoznacznego dopasowania - filtr wyszukiwania użytkowników lub baza wyszukiwania muszą wybierać dokładnie jeden wpis.</value>
   </data>
   <data name="The search matched nothing (filter {0} under {1}). As a logon this is a refusal, not an outage - check the user name against the account's Windows directory tab, and the filter and search base against the directory." xml:space="preserve">
     <value>Wyszukiwanie nie dopasowało niczego (filtr {0} w {1}). Jako logowanie jest to odmowa, a nie awaria - należy sprawdzić nazwę użytkownika na karcie Katalog Windows konta, a filtr i bazę wyszukiwania wobec katalogu.</value>
@@ -14018,8 +14027,8 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="These are counts of the first {0} accounts only; this page stops there rather than making you wait for the rest." xml:space="preserve">
     <value>To liczby dotyczące tylko pierwszych {0} kont; strona zatrzymuje się w tym miejscu, zamiast kazać czekać na pozostałe.</value>
   </data>
-  <data name="These are read by the server from the [LDAP] section of hMailServer.INI, and re-read within two seconds of a save, so no restart is needed. The defaults suit Active Directory; a directory that is not Windows will not have sAMAccountName and needs the attribute names changed." xml:space="preserve">
-    <value>Odczytuje je serwer z sekcji [LDAP] pliku hMailServer.INI i odczytuje je ponownie w ciągu dwóch sekund od zapisu, więc ponowne uruchomienie nie jest potrzebne. Wartości domyślne pasują do Active Directory; katalog inny niż Windows nie ma sAMAccountName i wymaga zmiany nazw atrybutów.</value>
+  <data name="These are read by the server from the [LDAP] section of hMailServer.ini, and re-read within two seconds of a save, so no restart is needed. The defaults suit Active Directory; a directory that is not Windows will not have sAMAccountName and needs the attribute names changed." xml:space="preserve">
+    <value>Odczytuje je serwer z sekcji [LDAP] pliku hMailServer.ini i odczytuje je ponownie w ciągu dwóch sekund od zapisu, więc ponowne uruchomienie nie jest potrzebne. Wartości domyślne pasują do Active Directory; katalog inny niż Windows nie ma sAMAccountName i wymaga zmiany nazw atrybutów.</value>
   </data>
   <data name="These are the ports the server listens on. The submission port, 587, is the one your own people send through." xml:space="preserve">
     <value>To są porty, na których nasłuchuje serwer. Port wysyłania, 587, to ten, przez który wysyłają własni użytkownicy.</value>
@@ -14132,8 +14141,8 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="This page reads an expiry only in the form YYYY-MM-DD HH:MM:SS, so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>Ta strona odczytuje termin wygaśnięcia tylko w postaci YYYY-MM-DD HH:MM:SS, więc nie da się stąd stwierdzić, czy serwer nadal przyjmuje ten klucz. Jeśli wiersz był edytowany ręcznie, należy go poprawić; w przeciwnym razie należy unieważnić klucz i utworzyć nowy w jego miejsce.</value>
   </data>
-  <data name="This page used to collect every hMailServer.INI value without a home, which meant it was filed by where the value is stored rather than by what it does - and where a value is stored is the one thing you never need to know. Each of these now sits with the rest of its own feature. Nothing was removed and no value changed; only the page it is edited on." xml:space="preserve">
-    <value>Ta strona zbierała dawniej każdą wartość z pliku hMailServer.INI, która nie miała swojego miejsca, przez co porządek wyznaczało to, gdzie wartość jest przechowywana, a nie to, co robi - a miejsce przechowywania to jedyna rzecz, której nigdy nie trzeba znać. Każda z tych wartości znajduje się teraz przy reszcie swojej własnej funkcji. Nic nie zostało usunięte i żadna wartość się nie zmieniła; zmieniła się tylko strona, na której się ją edytuje.</value>
+  <data name="This page used to collect every hMailServer.ini value without a home, which meant it was filed by where the value is stored rather than by what it does - and where a value is stored is the one thing you never need to know. Each of these now sits with the rest of its own feature. Nothing was removed and no value changed; only the page it is edited on." xml:space="preserve">
+    <value>Ta strona zbierała dawniej każdą wartość z pliku hMailServer.ini, która nie miała swojego miejsca, przez co porządek wyznaczało to, gdzie wartość jest przechowywana, a nie to, co robi - a miejsce przechowywania to jedyna rzecz, której nigdy nie trzeba znać. Każda z tych wartości znajduje się teraz przy reszcie swojej własnej funkcji. Nic nie zostało usunięte i żadna wartość się nie zmieniła; zmieniła się tylko strona, na której się ją edytuje.</value>
   </data>
   <data name="This panel can compare RSA and ECDSA keys; this key parses as neither, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
     <value>Ten panel potrafi porównywać klucze RSA i ECDSA; ten klucz nie daje się przetworzyć jako żaden z nich, więc to, czy pasuje do certyfikatu, potwierdzi się dopiero przy wczytaniu pary przez serwer.</value>
@@ -14270,8 +14279,8 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="Time" xml:space="preserve">
     <value>Czas</value>
   </data>
-  <data name="Time_out in seconds (TimeoutSeconds)" xml:space="preserve">
-    <value>_Limit czasu w sekundach (TimeoutSeconds)</value>
+  <data name="Time_out in seconds" xml:space="preserve">
+    <value>_Limit czasu w sekundach</value>
   </data>
   <data name="Timed out looking up {0}. Check the name, and that this machine can reach a DNS server." xml:space="preserve">
     <value>Przekroczono limit czasu wyszukiwania {0}. Sprawdź nazwę i czy ten komputer może dotrzeć do serwera DNS.</value>
@@ -14600,8 +14609,8 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="Used when “Deliver to all addresses” is off." xml:space="preserve">
     <value>Używane, gdy „Dostarczaj na wszystkie adresy” jest wyłączone.</value>
   </data>
-  <data name="User _DN template (UserDnTemplate)" xml:space="preserve">
-    <value>Szablon _DN użytkownika (UserDnTemplate)</value>
+  <data name="User _DN template" xml:space="preserve">
+    <value>Szablon _DN użytkownika</value>
   </data>
   <data name="User name" xml:space="preserve">
     <value>Nazwa użytkownika</value>
@@ -14609,8 +14618,8 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="User name to _look up" xml:space="preserve">
     <value>Nazwa użytkownika do wysz_ukania</value>
   </data>
-  <data name="User search _filter (UserSearchFilter)" xml:space="preserve">
-    <value>_Filtr wyszukiwania użytkowników (UserSearchFilter)</value>
+  <data name="User search _filter" xml:space="preserve">
+    <value>_Filtr wyszukiwania użytkowników</value>
   </data>
   <data name="VAPID private key, to bring the pair from another server (leave empty to keep current)" xml:space="preserve">
     <value>Klucz prywatny VAPID, aby przenieść parę z innego serwera (pozostaw puste, aby zachować bieżący)</value>
@@ -14807,8 +14816,8 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="What a takeover-shaped submission does" xml:space="preserve">
     <value>Co robi wysyłka o kształcie przejęcia</value>
   </data>
-  <data name="What an account of its own changes. hMailServer.INI is read-only to it, on purpose: the administrator password, its second factor, the folders and the database are changed as the Control Panel says when you try, and settings are kept in the database as always. A folder set later outside the program folder - a backup or archive folder - is reached once Grant access approves it. An account other than NT SERVICE\hMailServer is set in services.msc and needs the &quot;Log on as a service&quot; right; an external database with Windows authentication needs a login for it. A service that cannot log on reports error 1069 in the Windows event log and does not start." xml:space="preserve">
-    <value>Co zmienia własne konto. hMailServer.INI jest dla niego celowo tylko do odczytu: hasło administratora, jego drugi składnik, foldery i baza danych zmienia się tak, jak mówi Control Panel przy próbie, a ustawienia są jak zawsze przechowywane w bazie danych. Folder ustawiony później poza folderem programu - folder kopii zapasowych lub archiwum - jest osiągalny, gdy tylko Przyznaj dostęp go zatwierdzi. Konto inne niż NT SERVICE\hMailServer ustawia się w services.msc i potrzebuje prawa „Logowanie w trybie usługi”; zewnętrzna baza danych z uwierzytelnianiem systemu Windows potrzebuje dla niego loginu. Usługa, która nie może się zalogować, zgłasza błąd 1069 w dzienniku zdarzeń systemu Windows i się nie uruchamia.</value>
+  <data name="What an account of its own changes. hMailServer.ini is read-only to it, on purpose: the administrator password, its second factor, the folders and the database are changed as the Control Panel says when you try, and settings are kept in the database as always. A folder set later outside the program folder - a backup or archive folder - is reached once Grant access approves it. An account other than NT SERVICE\hMailServer is set in services.msc and needs the &quot;Log on as a service&quot; right; an external database with Windows authentication needs a login for it. A service that cannot log on reports error 1069 in the Windows event log and does not start." xml:space="preserve">
+    <value>Co zmienia własne konto. hMailServer.ini jest dla niego celowo tylko do odczytu: hasło administratora, jego drugi składnik, foldery i baza danych zmienia się tak, jak mówi Control Panel przy próbie, a ustawienia są jak zawsze przechowywane w bazie danych. Folder ustawiony później poza folderem programu - folder kopii zapasowych lub archiwum - jest osiągalny, gdy tylko Przyznaj dostęp go zatwierdzi. Konto inne niż NT SERVICE\hMailServer ustawia się w services.msc i potrzebuje prawa „Logowanie w trybie usługi”; zewnętrzna baza danych z uwierzytelnianiem systemu Windows potrzebuje dla niego loginu. Usługa, która nie może się zalogować, zgłasza błąd 1069 w dzienniku zdarzeń systemu Windows i się nie uruchamia.</value>
   </data>
   <data name="What can be negotiated" xml:space="preserve">
     <value>Co może być negocjowane</value>
@@ -15065,11 +15074,14 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="Which addresses may connect, which may relay without authenticating, and which must authenticate first." xml:space="preserve">
     <value>Które adresy mogą się łączyć, które mogą przekazywać bez uwierzytelniania, a które muszą się najpierw uwierzytelnić.</value>
   </data>
-  <data name="Which attribute holds the mailbox address. proxyAddresses is understood: its scheme prefix is removed and the primary SMTP: value is preferred over the lower-case aliases." xml:space="preserve">
-    <value>Który atrybut zawiera adres skrzynki pocztowej. proxyAddresses jest rozumiane: prefiks schematu jest usuwany, a główna wartość SMTP: ma pierwszeństwo przed aliasami pisanymi małymi literami.</value>
+  <data name="Which attribute holds the mailbox address - mail when left empty. proxyAddresses is understood: its scheme prefix is removed and the primary SMTP: value is preferred over the lower-case aliases." xml:space="preserve">
+    <value>Który atrybut zawiera adres skrzynki pocztowej - mail, gdy pole zostanie puste. proxyAddresses jest rozumiane: prefiks schematu jest usuwany, a główna wartość SMTP: ma pierwszeństwo przed aliasami pisanymi małymi literami.</value>
   </data>
-  <data name="Which attribute holds the name the person logs in with. This is what is stored against the account and what the directory is asked about at every logon afterwards, so guessing it from the address is not good enough - an entry that does not carry it is reported rather than provisioned." xml:space="preserve">
-    <value>Który atrybut zawiera nazwę, którą osoba się loguje. To ona jest zapisywana przy koncie i o nią pyta się katalog przy każdym późniejszym logowaniu, więc zgadywanie jej z adresu nie wystarczy - wpis, który jej nie zawiera, jest zgłaszany, a nie zakładany.</value>
+  <data name="Which attribute holds the name the person signs in with - sAMAccountName when left empty. This is what is stored against the account and what the directory is asked about at every sign-in afterwards, so guessing it from the address is not good enough - an entry that does not carry it is reported rather than provisioned." xml:space="preserve">
+    <value>Który atrybut zawiera nazwę, którą osoba się loguje - sAMAccountName, gdy pole zostanie puste. To ona jest zapisywana przy koncie i o nią pyta się katalog przy każdym późniejszym logowaniu, więc zgadywanie jej z adresu nie wystarczy - wpis, który jej nie zawiera, jest zgłaszany, a nie zakładany.</value>
+  </data>
+  <data name="Which attribute holds the person's name - displayName when left empty. It is split into first and last name and only ever written to an account that has neither, so a name an administrator typed is never overwritten by the directory." xml:space="preserve">
+    <value>Który atrybut zawiera imię i nazwisko osoby - displayName, gdy pole zostanie puste. Jest dzielony na imię i nazwisko i zapisywany wyłącznie do konta, które nie ma ani jednego, ani drugiego, więc katalog nigdy nie nadpisuje nazwiska wpisanego przez administratora.</value>
   </data>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>Które wpisy katalogu stają się skrzynkami pocztowymi</value>
@@ -15269,8 +15281,8 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="Write the message first: an empty one is not sent." xml:space="preserve">
     <value>Najpierw napisz wiadomość: pusta nie zostanie wysłana.</value>
   </data>
-  <data name="Write-only: a stored password is never shown here again - leave the box blank to keep it. It is stored as plain text in hMailServer.INI on the server, because the server has to present it to the directory verbatim and so cannot hash it; restrict file access to the INI accordingly. It only ever leaves the server over the transport configured above." xml:space="preserve">
-    <value>Tylko do zapisu: zapisane hasło nigdy nie jest tu ponownie pokazywane - pozostaw pole puste, aby je zachować. Jest przechowywane jawnym tekstem w hMailServer.INI na serwerze, ponieważ serwer musi przedstawić je katalogowi dosłownie i dlatego nie może go zapisać w postaci skrótu; należy odpowiednio ograniczyć dostęp do pliku INI. Opuszcza serwer wyłącznie przez transport skonfigurowany powyżej.</value>
+  <data name="Write-only: a stored password is never shown here again - leave the box blank to keep it. It is stored as plain text in hMailServer.ini on the server, because the server has to present it to the directory verbatim and so cannot hash it; restrict file access to the INI accordingly. It only ever leaves the server over the transport configured above." xml:space="preserve">
+    <value>Tylko do zapisu: zapisane hasło nigdy nie jest tu ponownie pokazywane - pozostaw pole puste, aby je zachować. Jest przechowywane jawnym tekstem w hMailServer.ini na serwerze, ponieważ serwer musi przedstawić je katalogowi dosłownie i dlatego nie może go zapisać w postaci skrótu; należy odpowiednio ograniczyć dostęp do pliku INI. Opuszcza serwer wyłącznie przez transport skonfigurowany powyżej.</value>
   </data>
   <data name="Writes the conditions an operator alerts on - database unavailable, a listener that would not start, a crash, a failed backup, the disk floor - to the Windows Application log, where Event Viewer, monitoring agents and SIEM collectors can see them. Each condition has an event id of its own that does not change, so an alert can match on it; a healthy server writes nothing at all. Protocol traffic and routine logging never go here - a mail server that logs every session to the Application log gets itself uninstalled." xml:space="preserve">
     <value>Zapisuje w dzienniku aplikacji systemu Windows warunki, na które reaguje alarmem osoba obsługująca serwer - niedostępna baza danych, nasłuch, który nie chciał się uruchomić, awaria, nieudana kopia zapasowa, próg wolnego miejsca na dysku - a tam widzą je Podgląd zdarzeń, agenty monitorujące i kolektory SIEM. Każdy warunek ma własny, niezmienny identyfikator zdarzenia, więc alarm może się do niego odwoływać; serwer w dobrym stanie nie zapisuje tu nic. Ruch protokołów ani zwykłe zapisywanie w dzienniku nigdy tu nie trafiają - serwer pocztowy, który zapisuje każdą sesję w dzienniku aplikacji, doprowadza do własnego odinstalowania.</value>
@@ -15371,8 +15383,8 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="_Allow sender…" xml:space="preserve">
     <value>_Dopuść nadawcę…</value>
   </data>
-  <data name="_Allow sending the password over an unprotected connection (AllowUnprotectedPassword)" xml:space="preserve">
-    <value>Z_ezwalaj na wysyłanie hasła przez połączenie niezabezpieczone (AllowUnprotectedPassword)</value>
+  <data name="_Allow sending the password over an unprotected connection" xml:space="preserve">
+    <value>Z_ezwalaj na wysyłanie hasła przez połączenie niezabezpieczone</value>
   </data>
   <data name="_Append a disclaimer to mail leaving the organisation" xml:space="preserve">
     <value>Dołącz _oświadczenie do poczty opuszczającej organizację</value>
@@ -15401,8 +15413,8 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="_Bind address (0.0.0.0)" xml:space="preserve">
     <value>_Adres powiązania (0.0.0.0)</value>
   </data>
-  <data name="_Bind method (BindMethod)" xml:space="preserve">
-    <value>_Metoda bind (BindMethod)</value>
+  <data name="_Bind method" xml:space="preserve">
+    <value>_Metoda bind</value>
   </data>
   <data name="_Block and delete" xml:space="preserve">
     <value>_Zablokuj i usuń</value>
@@ -15451,9 +15463,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="_Connection security" xml:space="preserve">
     <value>_Bezpieczeństwo połączenia</value>
-  </data>
-  <data name="_Connection security (Security)" xml:space="preserve">
-    <value>_Bezpieczeństwo połączenia (Security)</value>
   </data>
   <data name="_Copy" xml:space="preserve">
     <value>_Kopiuj</value>
@@ -16082,8 +16091,8 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="_Upper IP address" xml:space="preserve">
     <value>_Górny adres IP</value>
   </data>
-  <data name="_Use LDAP directory authentication (Enabled)" xml:space="preserve">
-    <value>Używaj uwierzytelniania _katalogowego LDAP (Enabled)</value>
+  <data name="_Use LDAP directory authentication" xml:space="preserve">
+    <value>Używaj uwierzytelniania _katalogowego LDAP</value>
   </data>
   <data name="_User name" xml:space="preserve">
     <value>_Nazwa użytkownika</value>
@@ -16106,8 +16115,8 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="_Verify the chain" xml:space="preserve">
     <value>_Zweryfikuj łańcuch</value>
   </data>
-  <data name="_Verify the directory server's certificate (VerifyCertificate)" xml:space="preserve">
-    <value>Weryfikuj _certyfikat serwera katalogowego (VerifyCertificate)</value>
+  <data name="_Verify the directory server's certificate" xml:space="preserve">
+    <value>Weryfikuj _certyfikat serwera katalogowego</value>
   </data>
   <data name="_View source" xml:space="preserve">
     <value>_Pokaż źródło</value>
@@ -16136,8 +16145,8 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="a symbol" xml:space="preserve">
     <value>znak specjalny</value>
   </data>
-  <data name="a trust file hMailServer.INI names may be changed by someone other than the administrators" xml:space="preserve">
-    <value>plik zaufania, który wskazuje hMailServer.INI, może zmienić ktoś inny niż administratorzy</value>
+  <data name="a trust file hMailServer.ini names may be changed by someone other than the administrators" xml:space="preserve">
+    <value>plik zaufania, który wskazuje hMailServer.ini, może zmienić ktoś inny niż administratorzy</value>
   </data>
   <data name="a value of its own is needed, or untick it to take the level above." xml:space="preserve">
     <value>potrzebna jest własna wartość albo odznacz je, aby przyjąć poziom wyżej.</value>
@@ -16190,17 +16199,17 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="base64url of the P-256 key; the public half is worked out from it. Every subscription made under the old pair stops working." xml:space="preserve">
     <value>base64url klucza P-256; połowa publiczna jest z niego wyliczana. Każda subskrypcja utworzona ze starą parą przestaje działać.</value>
   </data>
-  <data name="binding anonymously to search for the user (set ServiceUsername)" xml:space="preserve">
-    <value>bind anonimowy w celu wyszukania użytkownika (należy ustawić ServiceUsername)</value>
+  <data name="binding anonymously to search for the user (set the service account user name)" xml:space="preserve">
+    <value>bind anonimowy w celu wyszukania użytkownika (należy ustawić nazwę użytkownika konta usługi)</value>
   </data>
   <data name="binding as the user" xml:space="preserve">
     <value>bind jako użytkownik</value>
   </data>
-  <data name="binding with the configured ServiceUsername" xml:space="preserve">
-    <value>bind przy użyciu skonfigurowanej wartości ServiceUsername</value>
+  <data name="binding with the configured service account user name" xml:space="preserve">
+    <value>bind przy użyciu skonfigurowanej nazwy użytkownika konta usługi</value>
   </data>
-  <data name="binding with the configured ServiceUsername - no ServicePassword is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
-    <value>bind przy użyciu skonfigurowanej wartości ServiceUsername - żadne ServicePassword nie jest przechowywane ani wpisywane, a puste hasło jest odrzucane, zanim zostanie wysłane</value>
+  <data name="binding with the configured service account user name - no service account password is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
+    <value>bind przy użyciu skonfigurowanej nazwy użytkownika konta usługi - żadne hasło konta usługi nie jest przechowywane ani wpisywane, a puste hasło jest odrzucane, zanim zostanie wysłane</value>
   </data>
   <data name="block an ip" xml:space="preserve">
     <value>zablokuj adres IP</value>
@@ -16318,6 +16327,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="dotted line" xml:space="preserve">
     <value>linia kropkowana</value>
+  </data>
+  <data name="e.g. {0}" xml:space="preserve">
+    <value>np. {0}</value>
   </data>
   <data name="enforce - senders that honour MTA-STS deliver only over valid TLS to the hosts listed" xml:space="preserve">
     <value>enforce - nadawcy przestrzegający MTA-STS dostarczają tylko przez prawidłowe TLS do wymienionych hostów</value>
@@ -16445,27 +16457,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="hMailServer {0} was not installed: {1}. hMailServer {2} is still running, unchanged. The installer's log: {3}" xml:space="preserve">
     <value>hMailServer {0} nie został zainstalowany: {1}. hMailServer {2} nadal działa bez zmian. Dziennik instalatora: {3}</value>
   </data>
-  <data name="hMailServer.INI cannot be reached from this computer, so these selections cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
-    <value>Nie można dosięgnąć hMailServer.INI z tego komputera, więc tych wyborów nie da się tu edytować. Podgląd i Zastosuj nadal działają: wykonują się wewnątrz serwera.</value>
-  </data>
-  <data name="hMailServer.INI was not found on this machine, so its settings cannot be read from here." xml:space="preserve">
-    <value>Nie znaleziono hMailServer.INI na tym komputerze, więc jego ustawień nie da się stąd odczytać.</value>
-  </data>
-  <data name="hMailServer.INI was not found on this machine, so mode and max_age shown are the shipped defaults." xml:space="preserve">
-    <value>Nie znaleziono hMailServer.INI na tym komputerze, więc pokazane mode i max_age to fabryczne wartości domyślne.</value>
-  </data>
-  <data name="hMailServer.INI was not found on this machine, so the key store's location is unknown. API keys can only be managed from the server itself." xml:space="preserve">
-    <value>Nie znaleziono hMailServer.INI na tym komputerze, więc położenie magazynu kluczy jest nieznane. Kluczami API można zarządzać wyłącznie z samego serwera.</value>
-  </data>
-  <data name="hMailServer.INI was not found on this machine." xml:space="preserve">
-    <value>Nie znaleziono hMailServer.INI na tym komputerze.</value>
-  </data>
-  <data name="hMailServer.INI was not found on this machine. These settings can only be edited on the server itself." xml:space="preserve">
-    <value>Nie znaleziono hMailServer.INI na tym komputerze. Te ustawienia można edytować wyłącznie na samym serwerze.</value>
-  </data>
-  <data name="hMailServer.INI was not found on this machine. These settings can only be edited on the server itself; the connection test still works with the values typed here." xml:space="preserve">
-    <value>Nie znaleziono hMailServer.INI na tym komputerze. Te ustawienia można edytować wyłącznie na samym serwerze; test połączenia nadal działa z wartościami wpisanymi tutaj.</value>
-  </data>
   <data name="hMailServer.exe /GrantServiceAccess did not finish its work (exit code {0}):&#10;&#10;{1}" xml:space="preserve">
     <value>hMailServer.exe /GrantServiceAccess nie dokończył pracy (kod wyjścia {0}):
 
@@ -16482,11 +16473,32 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="hMailServer.ini and the log folder belong to the administrators from 6.3.6, so this Control Panel may not read them. Close it and start it with Run as administrator to see the live log." xml:space="preserve">
     <value>Od wersji 6.3.6 plik hMailServer.ini i folder dzienników należą do administratorów, więc ten Panel sterowania nie może ich odczytać. Zamknij go i uruchom przez Uruchom jako administrator, aby zobaczyć dziennik na żywo.</value>
   </data>
+  <data name="hMailServer.ini cannot be reached from this computer, so these selections cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
+    <value>Nie można dosięgnąć hMailServer.ini z tego komputera, więc tych wyborów nie da się tu edytować. Podgląd i Zastosuj nadal działają: wykonują się wewnątrz serwera.</value>
+  </data>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>Nie udało się odczytać pliku hMailServer.ini: {0} Od wersji 6.3.6 plik należy do administratorów. Zamknij Panel sterowania i uruchom go przez Uruchom jako administrator, aby zobaczyć i zmienić te ustawienia.</value>
   </data>
+  <data name="hMailServer.ini was not found on this machine, so its settings cannot be read from here." xml:space="preserve">
+    <value>Nie znaleziono hMailServer.ini na tym komputerze, więc jego ustawień nie da się stąd odczytać.</value>
+  </data>
+  <data name="hMailServer.ini was not found on this machine, so mode and max_age shown are the shipped defaults." xml:space="preserve">
+    <value>Nie znaleziono hMailServer.ini na tym komputerze, więc pokazane mode i max_age to fabryczne wartości domyślne.</value>
+  </data>
+  <data name="hMailServer.ini was not found on this machine, so the key store's location is unknown. API keys can only be managed from the server itself." xml:space="preserve">
+    <value>Nie znaleziono hMailServer.ini na tym komputerze, więc położenie magazynu kluczy jest nieznane. Kluczami API można zarządzać wyłącznie z samego serwera.</value>
+  </data>
   <data name="hMailServer.ini was not found on this machine, so this can only be changed on the server itself." xml:space="preserve">
     <value>Nie znaleziono hMailServer.ini na tym komputerze, więc to ustawienie można zmienić wyłącznie na samym serwerze.</value>
+  </data>
+  <data name="hMailServer.ini was not found on this machine." xml:space="preserve">
+    <value>Nie znaleziono hMailServer.ini na tym komputerze.</value>
+  </data>
+  <data name="hMailServer.ini was not found on this machine. These settings can only be edited on the server itself." xml:space="preserve">
+    <value>Nie znaleziono hMailServer.ini na tym komputerze. Te ustawienia można edytować wyłącznie na samym serwerze.</value>
+  </data>
+  <data name="hMailServer.ini was not found on this machine. These settings can only be edited on the server itself; the connection test still works with the values typed here." xml:space="preserve">
+    <value>Nie znaleziono hMailServer.ini na tym komputerze. Te ustawienia można edytować wyłącznie na samym serwerze; test połączenia nadal działa z wartościami wpisanymi tutaj.</value>
   </data>
   <data name="header '{0}'" xml:space="preserve">
     <value>nagłówek „{0}”</value>
@@ -16902,8 +16914,8 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="testing - senders deliver as before and report what would have failed" xml:space="preserve">
     <value>testing - nadawcy dostarczają jak dotąd i zgłaszają, co by się nie powiodło</value>
   </data>
-  <data name="the Control Panel is connected to '{0}'; hMailServer.INI and files on disk can only be inspected on the server machine itself." xml:space="preserve">
-    <value>Control Panel jest połączony z „{0}”; hMailServer.INI oraz pliki na dysku można obejrzeć wyłącznie na samym komputerze serwera.</value>
+  <data name="the Control Panel is connected to '{0}'; hMailServer.ini and files on disk can only be inspected on the server machine itself." xml:space="preserve">
+    <value>Control Panel jest połączony z „{0}”; hMailServer.ini oraz pliki na dysku można obejrzeć wyłącznie na samym komputerze serwera.</value>
   </data>
   <data name="the account has expired" xml:space="preserve">
     <value>konto wygasło</value>
@@ -16923,8 +16935,8 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="the certificate" xml:space="preserve">
     <value>certyfikat</value>
   </data>
-  <data name="the configured UserSearchFilter is not a valid LDAP filter" xml:space="preserve">
-    <value>skonfigurowana wartość UserSearchFilter nie jest prawidłowym filtrem LDAP</value>
+  <data name="the configured user search filter is not a valid LDAP filter" xml:space="preserve">
+    <value>skonfigurowany filtr wyszukiwania użytkowników nie jest prawidłowym filtrem LDAP</value>
   </data>
   <data name="the connecting address is one of the sender domain's A or MX records" xml:space="preserve">
     <value>adres łączący się jest jednym z rekordów A lub MX domeny nadawcy</value>
@@ -16959,8 +16971,8 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="the engine's score" xml:space="preserve">
     <value>punktacja silnika</value>
   </data>
-  <data name="the entry does not exist (check SearchBase, or UserDnTemplate)" xml:space="preserve">
-    <value>wpis nie istnieje (należy sprawdzić SearchBase lub UserDnTemplate)</value>
+  <data name="the entry does not exist (check the search base, or the user DN template)" xml:space="preserve">
+    <value>wpis nie istnieje (należy sprawdzić bazę wyszukiwania lub szablon DN użytkownika)</value>
   </data>
   <data name="the entry's score" xml:space="preserve">
     <value>punktacja wpisu</value>

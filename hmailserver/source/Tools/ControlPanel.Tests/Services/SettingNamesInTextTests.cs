@@ -109,6 +109,45 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(offenders.Count == 0, "These name a setting by its key; name its caption and its page:\n" + string.Join("\n", offenders));
       }
 
+      /// <summary>
+      /// The two pages that write hMailServer.ini's [LDAP] section by hand, which declare no
+      /// Key = or Path = and so were read by none of the above: Directory authentication
+      /// said "AllowUnprotectedPassword is off", "set ServiceUsername" and "make
+      /// UserSearchFilter or SearchBase select exactly one entry" beside fields captioned
+      /// "Allow sending the password over an unprotected connection", "Service account user
+      /// name", "User search filter" and "Search base" (review finding F137). Their keys are
+      /// the IniWrite_ and Write_ calls; ServiceDomain, which has no editor, may be named.
+      /// </summary>
+      [Fact]
+      public void NoText_NamesADirectorySettingThatHasACaption_ByItsKey()
+      {
+         var names = new HashSet<string>(StringComparer.Ordinal);
+         foreach ((string view, string call) in new[] { ("LdapSettingsView.cs", "IniWrite_"), ("DirectorySyncView.cs", "Write_") })
+         {
+            string source = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", view));
+            foreach (Match match in Regex.Matches(source, @"\b" + call + @"\(\s*""([A-Za-z][A-Za-z0-9]*)"""))
+            {
+               if (Identifier.IsMatch(match.Groups[1].Value))
+                  names.Add(match.Groups[1].Value);
+            }
+         }
+
+         Assert.Contains("AllowUnprotectedPassword", names);
+         Assert.Contains("SearchBase", names);
+         Assert.Contains("SyncMailAttribute", names);
+         Assert.DoesNotContain("ServiceDomain", names);
+
+         var offenders = new List<string>();
+         foreach (string text in EnglishTexts())
+         {
+            var named = names.Where(name => Regex.IsMatch(text, @"(?<![\w.])" + Regex.Escape(name) + @"(?!\w)")).ToList();
+            if (named.Count > 0)
+               offenders.Add(string.Join(", ", named) + ": " + text);
+         }
+
+         Assert.True(offenders.Count == 0, "These name a directory setting by its key; name its caption:\n" + string.Join("\n", offenders));
+      }
+
       [Fact]
       public void NoText_NamesTheServersSourceCode()
       {

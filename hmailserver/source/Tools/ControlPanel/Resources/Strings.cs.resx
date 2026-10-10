@@ -387,8 +387,8 @@
   <data name="A backup destination - until one is set there is no backup" xml:space="preserve">
     <value>Cíl zálohy - dokud není nastaven, žádná záloha není</value>
   </data>
-  <data name="A ceiling on one pass, so a search base pointed one level too high cannot be answered by reading an entire forest. If it is hit, the run says so and disables nothing at all - beyond the limit, an entry that exists is indistinguishable from one that was deleted." xml:space="preserve">
-    <value>Strop pro jeden průchod, aby na příliš vysoko nastavenou bázi hledání nebylo možné odpovědět přečtením celé doménové struktury. Pokud se ho dosáhne, běh to oznámí a nezakáže vůbec nic – za limitem je položka, která existuje, nerozeznatelná od položky, která byla smazána.</value>
+  <data name="A ceiling on one pass - 5000 when left empty - so a search base pointed one level too high cannot be answered by reading an entire forest. If it is hit, the run says so and disables nothing at all - beyond the limit, an entry that exists is indistinguishable from one that was deleted." xml:space="preserve">
+    <value>Strop pro jeden průchod - 5000, když pole zůstane prázdné - aby na příliš vysoko nastavenou bázi hledání nebylo možné odpovědět přečtením celé doménové struktury. Pokud se ho dosáhne, běh to oznámí a nezakáže vůbec nic – za limitem je položka, která existuje, nerozeznatelná od položky, která byla smazána.</value>
   </data>
   <data name="A certificate has been issued into {0}, but its expiry could not be read: {1}" xml:space="preserve">
     <value>Certifikát byl vydán do {0}, ale nepodařilo se přečíst jeho vypršení platnosti: {1}</value>
@@ -681,8 +681,8 @@
   <data name="A separate password for one mail client. Losing a laptop then means revoking one line here, rather than changing the account password and reconfiguring every other client." xml:space="preserve">
     <value>Samostatné heslo pro jednoho poštovního klienta. Ztráta notebooku pak znamená odvolat zde jeden řádek, místo abyste měnili heslo účtu a přenastavovali všechny ostatní klienty.</value>
   </data>
-  <data name="A service account password from an earlier version is stored in hMailServer.INI in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.INI with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
-    <value>Heslo servisního účtu z dřívější verze je uloženo v hMailServer.INI jako prostý text a nic ho už nečte: služba se registruje instalačním programem nebo tlačítky na kartě Servisní účet Windows a Windows si uchovává vlastní kopii každého hesla. Odstraňte řádek ServiceAccountPassword z hMailServer.INI editorem se zvýšenými oprávněními a nastavení příkazem DELETE /api/v1/settings/ini/ServiceAccountPassword, aby zmizela i kopie v databázi.</value>
+  <data name="A service account password from an earlier version is stored in hMailServer.ini in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.ini with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
+    <value>Heslo servisního účtu z dřívější verze je uloženo v hMailServer.ini jako prostý text a nic ho už nečte: služba se registruje instalačním programem nebo tlačítky na kartě Servisní účet Windows a Windows si uchovává vlastní kopii každého hesla. Odstraňte řádek ServiceAccountPassword z hMailServer.ini editorem se zvýšenými oprávněními a nastavení příkazem DELETE /api/v1/settings/ini/ServiceAccountPassword, aby zmizela i kopie v databázi.</value>
   </data>
   <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender in the spam exemptions, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
     <value>Relace, která se představí HELO 192.0.2.7, HELO [192.0.2.7] nebo HELO localhost, nebo pošle MAIL FROM:&lt;user@192.0.2.7&gt;, o sobě neuvedla žádný název, a zprávu, kterou pošle, server zadrží nebo ohodnotí, aniž by ji bylo podle čeho zapsat na listinu. Vypnuto: server ji přijme jako vždy. Zapnuto: dostane 550 5.7.1 při MAIL FROM, dříve než proběhnou antispamové testy: adresa v hranatých závorkách i bez nich, jediný štítek, veřejná přípona jako co.uk a cokoli, co není název hostitele, se odmítne, kdežto mail.co.uk je název. DNS se na nic neptá; přípony jsou ze seznamu Public Suffix List, podle kterého seskupuje karanténa. Posuzují se jen neověřené relace z rozsahu IP, který spouští antispamové testy, a to až poté, co měl AUTH svou příležitost - nikdy odesílatel z výjimek z antispamu a nikdy příchozí relay, jehož HELO patří vaší vlastní bráně.</value>
@@ -933,8 +933,8 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Accounts in the group {0}" xml:space="preserve">
     <value>Účty ve skupině {0}</value>
   </data>
-  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
-    <value>Účty označené jako propojené s adresářem se přihlašují svým doménovým heslem přes LDAP bind – na rozdíl od přihlášení přes Windows to funguje i z hostitele, který není připojen k doméně, což je obvyklá situace poštovního serveru v DMZ. Upravuje sekci [LDAP] v hMailServer.INI; server tuto sekci znovu načte do dvou sekund od uložení, takže tato nastavení nevyžadují restart služby.</value>
+  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.ini; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
+    <value>Účty označené jako propojené s adresářem se přihlašují svým doménovým heslem přes LDAP bind – na rozdíl od přihlášení přes Windows to funguje i z hostitele, který není připojen k doméně, což je obvyklá situace poštovního serveru v DMZ. Upravuje sekci [LDAP] v hMailServer.ini; server tuto sekci znovu načte do dvou sekund od uložení, takže tato nastavení nevyžadují restart služby.</value>
   </data>
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Windows directory tab tick 'Check this password against Windows (Active Directory, or a local Windows account)' and fill in 'Windows user name' - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>Účty označené jako propojené s adresářem. Tato polovina už v tomto GUI je: otevřete Domény, upravte účet a na jeho kartě Adresář Windows zaškrtněte „Ověřit toto heslo proti Windows (Active Directory, nebo místní účet Windows)“ a vyplňte „Uživatelské jméno Windows“ – sAMAccountName, což je to, co nese %u. Účty bez tohoto označení si ponechají své běžné heslo hMailServeru a adresáře se nikdy nedotknou.</value>
@@ -1332,8 +1332,8 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="After the body has been received — a refusal here is a 554" xml:space="preserve">
     <value>Po přijetí těla zprávy — odmítnutí zde je 554</value>
   </data>
-  <data name="Against {0} over {1}. Set ServiceUsername (and its password), or switch to a UserDnTemplate or the Negotiate bind method, neither of which searches at all." xml:space="preserve">
-    <value>Proti {0} přes {1}. Nastavte ServiceUsername (a jeho heslo), nebo přejděte na UserDnTemplate či metodu bindu Negotiate, z nichž ani jedna nic nevyhledává.</value>
+  <data name="Against {0} over {1}. Set the service account user name (and its password), or switch to a user DN template or the Negotiate bind method, neither of which searches at all." xml:space="preserve">
+    <value>Proti {0} přes {1}. Nastavte uživatelské jméno účtu služby (a jeho heslo), nebo přejděte na šablonu DN uživatele či metodu bindu Negotiate, z nichž ani jedna nic nevyhledává.</value>
   </data>
   <data name="Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990" xml:space="preserve">
     <value>Schéma souhrnných hlášení, která tento server odesílá: 1 = RFC 7489 Appendix C, 2 = RFC 9990</value>
@@ -2140,8 +2140,14 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>Bearer token pro /metrics (prázdné = žádný)</value>
   </data>
-  <data name="Before enabling, the section is also missing: {0}." xml:space="preserve">
-    <value>Než to zapnete: v sekci navíc chybí: {0}.</value>
+  <data name="Before enabling, fill in Directory server host name and Search base, or User DN template to bind without searching." xml:space="preserve">
+    <value>Před zapnutím vyplňte Název hostitele adresářového serveru a Báze hledání, nebo Šablona DN uživatele pro bind bez hledání.</value>
+  </data>
+  <data name="Before enabling, fill in Directory server host name." xml:space="preserve">
+    <value>Před zapnutím vyplňte Název hostitele adresářového serveru.</value>
+  </data>
+  <data name="Before enabling, fill in Search base, or User DN template to bind without searching." xml:space="preserve">
+    <value>Před zapnutím vyplňte Báze hledání, nebo Šablona DN uživatele pro bind bez hledání.</value>
   </data>
   <data name="Before you copy: {0}" xml:space="preserve">
     <value>Než budete kopírovat: {0}</value>
@@ -2401,11 +2407,11 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one." xml:space="preserve">
     <value>Odsud to nelze určit – seznam domén serveru se nepodařilo přečíst, takže není známo, které domény jsou propojené s adresářem. Jde spíš o problém s připojením než o problém s konfigurací.</value>
   </data>
-  <data name="Cannot tell from here. hMailServer.INI is not reachable from this computer, so the [LDAP] section cannot be read - and it is that section, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
-    <value>Odsud to nelze určit. hMailServer.INI není z tohoto počítače dostupný, takže nelze přečíst sekci [LDAP] – a právě ta sekce, ne cokoli na této stránce, rozhoduje, zda běh může proběhnout. Stiskněte Náhled: běží uvnitř serveru a přesně řekne, co chybí, pokud něco.</value>
-  </data>
   <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>Odsud nelze říci. Soubor hMailServer.ini se nepodařilo přečíst a o tom, zda může běh proběhnout, rozhoduje sekce [LDAP] tohoto souboru, nikoli cokoli na této stránce. Stiskněte Náhled: běží uvnitř serveru a přesně řekne, co případně chybí.</value>
+  </data>
+  <data name="Cannot tell from here. hMailServer.ini is not reachable from this computer, so the [LDAP] section cannot be read - and it is that section, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
+    <value>Odsud to nelze určit. hMailServer.ini není z tohoto počítače dostupný, takže nelze přečíst sekci [LDAP] – a právě ta sekce, ne cokoli na této stránce, rozhoduje, zda běh může proběhnout. Stiskněte Náhled: běží uvnitř serveru a přesně řekne, co chybí, pokud něco.</value>
   </data>
   <data name="Cannot tell from here: hMailServer.ini could not be read, and it is the [LDAP] section of that file which decides. Start the Control Panel as administrator to see it." xml:space="preserve">
     <value>Odsud nelze říci: soubor hMailServer.ini se nepodařilo přečíst a rozhoduje právě sekce [LDAP] tohoto souboru. Spusťte Ovládací panel jako správce, abyste ji viděli.</value>
@@ -2446,8 +2452,8 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Certificate output folder (empty = Data\ACME)" xml:space="preserve">
     <value>Výstupní složka certifikátů (prázdné = Data\ACME)</value>
   </data>
-  <data name="Certificate validation was DISABLED for this test, matching VerifyCertificate=0." xml:space="preserve">
-    <value>Ověřování certifikátu bylo pro tento test VYPNUTO, což odpovídá VerifyCertificate=0.</value>
+  <data name="Certificate validation was off for this test, as 'Verify the directory server's certificate' is off." xml:space="preserve">
+    <value>Ověřování certifikátu bylo pro tento test vypnuté, protože volba „Ověřovat certifikát adresářového serveru“ je vypnutá.</value>
   </data>
   <data name="Certificate: {0}" xml:space="preserve">
     <value>Certifikát: {0}</value>
@@ -2884,8 +2890,8 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Connected server: hMailServer {0} @ {1}" xml:space="preserve">
     <value>Připojený server: hMailServer {0} @ {1}</value>
   </data>
-  <data name="Connected to a remote server: hMailServer.INI cannot be read from here, so mode and max_age shown are the shipped defaults." xml:space="preserve">
-    <value>Připojeno ke vzdálenému serveru: hMailServer.INI odsud nelze přečíst, takže zobrazený režim a max_age jsou dodávané výchozí hodnoty.</value>
+  <data name="Connected to a remote server: hMailServer.ini cannot be read from here, so mode and max_age shown are the shipped defaults." xml:space="preserve">
+    <value>Připojeno ke vzdálenému serveru: hMailServer.ini odsud nelze přečíst, takže zobrazený režim a max_age jsou dodávané výchozí hodnoty.</value>
   </data>
   <data name="Connected to another host, so whether these ports are being listened on cannot be read from here - open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>Připojeno k jinému hostiteli, takže odsud nelze zjistit, zda se na těchto portech naslouchá – otevřete Control Panel přímo na serveru.</value>
@@ -4230,8 +4236,8 @@ Přesto uložit?</value>
   <data name="Directory server" xml:space="preserve">
     <value>Adresářový server</value>
   </data>
-  <data name="Directory server _host name (Server)" xml:space="preserve">
-    <value>Název _hostitele adresářového serveru (Server)</value>
+  <data name="Directory server _host name" xml:space="preserve">
+    <value>Název _hostitele adresářového serveru</value>
   </data>
   <data name="Directory synchronisation" xml:space="preserve">
     <value>Synchronizace s adresářem</value>
@@ -4646,8 +4652,14 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Enabled" xml:space="preserve">
     <value>Povoleno</value>
   </data>
-  <data name="Enabled but not configured: {0} is not set." xml:space="preserve">
-    <value>Povoleno, ale nenakonfigurováno: {0} není nastaveno.</value>
+  <data name="Enabled but not configured: Directory server host name and Search base are empty." xml:space="preserve">
+    <value>Povoleno, ale nenakonfigurováno: Název hostitele adresářového serveru a Báze hledání jsou prázdné.</value>
+  </data>
+  <data name="Enabled but not configured: Directory server host name is empty." xml:space="preserve">
+    <value>Povoleno, ale nenakonfigurováno: Název hostitele adresářového serveru je prázdný.</value>
+  </data>
+  <data name="Enabled but not configured: Search base is empty, and a simple bind without a user DN template searches under it." xml:space="preserve">
+    <value>Povoleno, ale nenakonfigurováno: Báze hledání je prázdná, a jednoduchý bind bez šablony DN uživatele pod ní hledá.</value>
   </data>
   <data name="Enabled once &quot;Check&quot; has confirmed the published record carries this key's public key." xml:space="preserve">
     <value>Povoleno, jakmile „Zkontrolovat“ potvrdí, že publikovaný záznam nese veřejný klíč tohoto klíče.</value>
@@ -4913,8 +4925,8 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Evaluate DMARC policies" xml:space="preserve">
     <value>Vyhodnocovat politiky DMARC</value>
   </data>
-  <data name="Evaluated from the values in the editors on this page, saved or not. The server applies the same checks to what is actually saved in hMailServer.INI." xml:space="preserve">
-    <value>Vyhodnoceno z hodnot v editorech na této stránce, uložených či ne. Server uplatňuje stejné kontroly na to, co je skutečně uloženo v hMailServer.INI.</value>
+  <data name="Evaluated from the values in the editors on this page, saved or not. The server applies the same checks to what is actually saved in hMailServer.ini." xml:space="preserve">
+    <value>Vyhodnoceno z hodnot v editorech na této stránce, uložených či ne. Server uplatňuje stejné kontroly na to, co je skutečně uloženo v hMailServer.ini.</value>
   </data>
   <data name="Evaluates the From: domain's DMARC policy, using its own SPF and DKIM results." xml:space="preserve">
     <value>Vyhodnocuje politiku DMARC domény From: s použitím vlastních výsledků SPF a DKIM.</value>
@@ -4955,8 +4967,8 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Events are kept {0} days.|few" xml:space="preserve">
     <value>Události se uchovávají {0} dny.</value>
   </data>
-  <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
-    <value>Každé přihlášení přes LDAP bude odmítnuto: nechráněný LDAP s jednoduchým bindem by posílal hesla v otevřeném textu a AllowUnprotectedPassword je vypnuté.</value>
+  <data name="Every LDAP sign-in will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and 'Allow sending the password over an unprotected connection' is off." xml:space="preserve">
+    <value>Každé přihlášení přes LDAP bude odmítnuto: nechráněný LDAP s jednoduchým bindem by posílal hesla v otevřeném textu a volba „Povolit odeslání hesla přes nechráněné připojení“ je vypnutá.</value>
   </data>
   <data name="Every account on this server is a member of this group already." xml:space="preserve">
     <value>Všechny účty na tomto serveru už jsou členy této skupiny.</value>
@@ -6205,8 +6217,8 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Issues and renews certificates automatically, but only if the certificate authority can fetch the http-01 challenge from this server." xml:space="preserve">
     <value>Vydává a obnovuje certifikáty automaticky, ale jen pokud certifikační autorita dokáže stáhnout výzvu http-01 z tohoto serveru.</value>
   </data>
-  <data name="It governs two kinds of stored secret. Those bound to this machine - the database password in hMailServer.INI, the SMTP relayer password, and the passwords, tokens and passphrases of routes, external fetch accounts, SSL certificates and the rest kept in the database - are put in a Windows DPAPI envelope when they are next saved, or in the legacy Blowfish scheme while this is switched off. The secrets in the [Settings] section - the SRS and BATV secrets, the OAuth2 secrets, the metrics bearer token and HTTP Basic password, the Windows service account password and the GSSAPI service password - and each account's second factor are sealed under the installation's stored-secrets key once it has one, at the next start and at every save; switched off, the next start stores them as written again. Only the password pepper is always stored as you typed it, so hMailServer.INI should still be readable only by Administrators and by the account the service runs as." xml:space="preserve">
-    <value>Řídí dva druhy uložených tajemství. Ta vázaná na tento počítač - heslo databáze v hMailServer.INI, heslo SMTP relayeru a hesla, tokeny a přístupová hesla tras, externích účtů pro stahování, certifikátů SSL a všeho ostatního uloženého v databázi - se při příštím uložení zabalí do obálky Windows DPAPI, nebo do starého schématu Blowfish, dokud je tato volba vypnutá. Tajemství v oddílu [Settings] - tajné klíče SRS a BATV, tajemství OAuth2, bearer token a heslo HTTP Basic metrik, heslo účtu služby Windows a heslo služby GSSAPI - a druhý faktor každého účtu se zapečetí klíčem uložených tajemství instalace, jakmile ho instalace má, při příštím startu a při každém uložení; když je volba vypnutá, příští start je znovu uloží tak, jak byly zapsány. Jen pepper hesel se vždy ukládá tak, jak jste ho napsali, takže hMailServer.INI by měl i nadále být čitelný jen pro Administrators a pro účet, pod kterým služba běží.</value>
+  <data name="It governs two kinds of stored secret. Those bound to this machine - the database password in hMailServer.ini, the SMTP relayer password, and the passwords, tokens and passphrases of routes, external fetch accounts, SSL certificates and the rest kept in the database - are put in a Windows DPAPI envelope when they are next saved, or in the legacy Blowfish scheme while this is switched off. The secrets in the [Settings] section - the SRS and BATV secrets, the OAuth2 secrets, the metrics bearer token and HTTP Basic password, the Windows service account password and the GSSAPI service password - and each account's second factor are sealed under the installation's stored-secrets key once it has one, at the next start and at every save; switched off, the next start stores them as written again. Only the password pepper is always stored as you typed it, so hMailServer.ini should still be readable only by Administrators and by the account the service runs as." xml:space="preserve">
+    <value>Řídí dva druhy uložených tajemství. Ta vázaná na tento počítač - heslo databáze v hMailServer.ini, heslo SMTP relayeru a hesla, tokeny a přístupová hesla tras, externích účtů pro stahování, certifikátů SSL a všeho ostatního uloženého v databázi - se při příštím uložení zabalí do obálky Windows DPAPI, nebo do starého schématu Blowfish, dokud je tato volba vypnutá. Tajemství v oddílu [Settings] - tajné klíče SRS a BATV, tajemství OAuth2, bearer token a heslo HTTP Basic metrik, heslo účtu služby Windows a heslo služby GSSAPI - a druhý faktor každého účtu se zapečetí klíčem uložených tajemství instalace, jakmile ho instalace má, při příštím startu a při každém uložení; když je volba vypnutá, příští start je znovu uloží tak, jak byly zapsány. Jen pepper hesel se vždy ukládá tak, jak jste ho napsali, takže hMailServer.ini by měl i nadále být čitelný jen pro Administrators a pro účet, pod kterým služba běží.</value>
   </data>
   <data name="It has no rua= tag, so nobody sends you reports - fine, but you learn nothing; add one when you have a mailbox for it." xml:space="preserve">
     <value>Nemá značku rua=, takže vám nikdo neposílá hlášení – to je v pořádku, ale nic se nedozvíte; přidejte ji, až pro ni budete mít poštovní schránku.</value>
@@ -7298,8 +7310,8 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Mo_ve or rename..." xml:space="preserve">
     <value>Pře_sunout nebo přejmenovat...</value>
   </data>
-  <data name="Mode and max_age read from hMailServer.INI on this machine." xml:space="preserve">
-    <value>Režim a max_age načtené z hMailServer.INI na tomto počítači.</value>
+  <data name="Mode and max_age read from hMailServer.ini on this machine." xml:space="preserve">
+    <value>Režim a max_age načtené z hMailServer.ini na tomto počítači.</value>
   </data>
   <data name="Monitoring" xml:space="preserve">
     <value>Monitorování</value>
@@ -7823,11 +7835,11 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No listeners are configured." xml:space="preserve">
     <value>Nejsou nastaveny žádné listenery.</value>
   </data>
-  <data name="No log folder could be read from hMailServer.INI on this machine." xml:space="preserve">
-    <value>Z hMailServer.INI na tomto počítači se nepodařilo přečíst žádnou složku s logy.</value>
+  <data name="No log folder could be read from hMailServer.ini on this machine." xml:space="preserve">
+    <value>Z hMailServer.ini na tomto počítači se nepodařilo přečíst žádnou složku s logy.</value>
   </data>
-  <data name="No log folder is configured in hMailServer.INI, so the server has nowhere to write the recovery report." xml:space="preserve">
-    <value>V hMailServer.INI není nastavena žádná složka s logy, takže server nemá kam zapsat protokol o obnově.</value>
+  <data name="No log folder is configured in hMailServer.ini, so the server has nowhere to write the recovery report." xml:space="preserve">
+    <value>V hMailServer.ini není nastavena žádná složka s logy, takže server nemá kam zapsat protokol o obnově.</value>
   </data>
   <data name="No match" xml:space="preserve">
     <value>Bez shody</value>
@@ -8117,8 +8129,8 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Not served" xml:space="preserve">
     <value>Neposkytováno</value>
   </data>
-  <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
-    <value>Netestováno: tato konfigurace by odeslala heslo přes nechráněné LDAP s jednoduchým bindem a AllowUnprotectedPassword je vypnuto – server tedy odmítá každé přihlášení pod ní a tento test ze stejného důvodu odmítá cokoli přenášet. Zvolte LDAPS nebo StartTLS, nebo metodu bindu Negotiate, anebo nechráněné heslo výslovně povolte.</value>
+  <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and 'Allow sending the password over an unprotected connection' is off - so the server refuses every sign-in under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
+    <value>Netestováno: tato konfigurace by odeslala heslo přes nechráněné LDAP s jednoduchým bindem a volba „Povolit odeslání hesla přes nechráněné připojení“ je vypnutá – server tedy odmítá každé přihlášení pod ní a tento test ze stejného důvodu odmítá cokoli přenášet. Zvolte LDAPS nebo StartTLS, nebo metodu bindu Negotiate, anebo nechráněné heslo výslovně povolte.</value>
   </data>
   <data name="Not used" xml:space="preserve">
     <value>Nepoužívá se</value>
@@ -8183,8 +8195,8 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Nothing is held. Quarantining is switched off: until it is turned on under Anti-spam settings, spam over the refuse threshold is refused during the SMTP conversation rather than stored." xml:space="preserve">
     <value>Není nic zadrženo. Karanténa je vypnutá: dokud ji nezapnete v Nastavení antispamu, je spam nad prahem pro odmítnutí odmítnut během SMTP relace, nikoli uložen.</value>
   </data>
-  <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.INI key." xml:space="preserve">
-    <value>Dotazu „{0}“ nic neodpovídalo. Zkuste popsat, čeho chcete dosáhnout („zastavit spam“, „nechat zařízení odesílat poštu“), název stránky, nebo klíč z hMailServer.INI.</value>
+  <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.ini key." xml:space="preserve">
+    <value>Dotazu „{0}“ nic neodpovídalo. Zkuste popsat, čeho chcete dosáhnout („zastavit spam“, „nechat zařízení odesílat poštu“), název stránky, nebo klíč z hMailServer.ini.</value>
   </data>
   <data name="Nothing needs action - all {0} external setup checks are done or not needed." xml:space="preserve">
     <value>Nic nevyžaduje zásah - všech {0} kontrol externího nastavení je hotových nebo není potřeba.</value>
@@ -9490,8 +9502,8 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Re-check the external prerequisites" xml:space="preserve">
     <value>Znovu zkontrolovat externí předpoklady</value>
   </data>
-  <data name="Re-read the LDAP settings from hMailServer.INI" xml:space="preserve">
-    <value>Znovu načíst nastavení LDAP z hMailServer.INI</value>
+  <data name="Re-read the LDAP settings from hMailServer.ini" xml:space="preserve">
+    <value>Znovu načíst nastavení LDAP z hMailServer.ini</value>
   </data>
   <data name="Re-read the anti-virus configuration from the server" xml:space="preserve">
     <value>Znovu načíst antivirovou konfiguraci ze serveru</value>
@@ -9514,8 +9526,8 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Re-read the transport security configuration from the server" xml:space="preserve">
     <value>Znovu načíst konfiguraci transportního zabezpečení ze serveru</value>
   </data>
-  <data name="Re-read these settings from hMailServer.INI" xml:space="preserve">
-    <value>Znovu načíst tato nastavení z hMailServer.INI</value>
+  <data name="Re-read these settings from hMailServer.ini" xml:space="preserve">
+    <value>Znovu načíst tato nastavení z hMailServer.ini</value>
   </data>
   <data name="Re_lease" xml:space="preserve">
     <value>Uvol_nit</value>
@@ -9568,8 +9580,8 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Read delivery reports that arrive for this server's senders" xml:space="preserve">
     <value>Číst zprávy o doručení, které přicházejí pro odesílatele tohoto serveru</value>
   </data>
-  <data name="Read from [Directories] LogFolder in hMailServer.INI, which is not readable from this machine - the Control Panel is running somewhere other than the server." xml:space="preserve">
-    <value>Čteno z [Directories] LogFolder v hMailServer.INI, který nelze z tohoto počítače přečíst – Control Panel běží jinde než server.</value>
+  <data name="Read from [Directories] LogFolder in hMailServer.ini, which is not readable from this machine - the Control Panel is running somewhere other than the server." xml:space="preserve">
+    <value>Čteno z [Directories] LogFolder v hMailServer.ini, který nelze z tohoto počítače přečíst – Control Panel běží jinde než server.</value>
   </data>
   <data name="Read from file" xml:space="preserve">
     <value>Načteno ze souboru</value>
@@ -10342,8 +10354,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Retiring key" xml:space="preserve">
     <value>Vyřazovaný klíč</value>
   </data>
-  <data name="Retr_y through Windows logon when the directory is unavailable (FallbackToWindowsLogon)" xml:space="preserve">
-    <value>Při nedostupnosti adresáře zkusit znovu přes přihlášení _Windows (FallbackToWindowsLogon)</value>
+  <data name="Retr_y through Windows logon when the directory is unavailable" xml:space="preserve">
+    <value>Při nedostupnosti adresáře zkusit znovu přes přihlášení _Windows</value>
   </data>
   <data name="Retried" xml:space="preserve">
     <value>Zopakováno</value>
@@ -10519,8 +10531,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Runs event scripts (OnAcceptMessage, OnDeliveryStart...) from the Events folder; the script itself is edited on the Event scripts page. The engine reloads when you save." xml:space="preserve">
     <value>Spouští skripty událostí (OnAcceptMessage, OnDeliveryStart...) ze složky Events; samotný skript se upravuje na stránce Skripty událostí. Engine se po uložení znovu načte.</value>
   </data>
-  <data name="Runs hMailServer.exe /GrantServiceAccess as an administrator, after Windows asks: NT SERVICE\hMailServer is given Modify on the program folder's own Data, Logs, Temp and Database folders and on the folders an administrator has approved, and Read on the program folder - never hMailServer.INI. A folder the configuration names elsewhere, such as a backup or archive folder set later, is approved only after a question that names it; key files outside those folders are listed. It can be run again at any time, and removes nobody else's permission." xml:space="preserve">
-    <value>Spustí hMailServer.exe /GrantServiceAccess jako správce poté, co se Windows zeptá: NT SERVICE\hMailServer dostane Změnu na vlastní složky Data, Logs, Temp a Database složky programu a na složky, které schválil správce, a Čtení na složku programu - nikdy na hMailServer.INI. Složka, kterou konfigurace uvádí jinde, například později nastavená složka záloh nebo archivu, se schválí až po otázce, která ji jmenuje; soubory klíčů mimo tyto složky se vypíší. Lze jej kdykoli spustit znovu a nikomu neodebere oprávnění.</value>
+  <data name="Runs hMailServer.exe /GrantServiceAccess as an administrator, after Windows asks: NT SERVICE\hMailServer is given Modify on the program folder's own Data, Logs, Temp and Database folders and on the folders an administrator has approved, and Read on the program folder - never hMailServer.ini. A folder the configuration names elsewhere, such as a backup or archive folder set later, is approved only after a question that names it; key files outside those folders are listed. It can be run again at any time, and removes nobody else's permission." xml:space="preserve">
+    <value>Spustí hMailServer.exe /GrantServiceAccess jako správce poté, co se Windows zeptá: NT SERVICE\hMailServer dostane Změnu na vlastní složky Data, Logs, Temp a Database složky programu a na složky, které schválil správce, a Čtení na složku programu - nikdy na hMailServer.ini. Složka, kterou konfigurace uvádí jinde, například později nastavená složka záloh nebo archivu, se schválí až po otázce, která ji jmenuje; soubory klíčů mimo tyto složky se vypíší. Lze jej kdykoli spustit znovu a nikomu neodebere oprávnění.</value>
   </data>
   <data name="Runs the same steps the server runs, in the same order, using the values in the editors above as they stand: connect, protect the transport, bind the service credential, search for the user - and, only if a password is typed below, bind as that user to prove it. The password is used once and never stored, and the test refuses to run any configuration that would put a password on the network unprotected. One honest caveat: the test runs from this computer, so a firewall that treats this machine and the hMailServer service differently can make the two disagree." xml:space="preserve">
     <value>Provede tytéž kroky, které provádí server, ve stejném pořadí, s hodnotami v editorech výše tak, jak jsou: připojí se, zabezpečí přenos, provede bind servisními přihlašovacími údaji, vyhledá uživatele – a jen pokud je níže zadáno heslo, provede bind jako tento uživatel, aby to prokázal. Heslo se použije jednou a nikdy se neukládá a test odmítne spustit jakoukoli konfiguraci, která by heslo poslala po síti nechráněné. Jedna poctivá výhrada: test běží z tohoto počítače, takže firewall, který zachází s tímto počítačem a se službou hMailServer různě, může způsobit, že se ti dva neshodnou.</value>
@@ -10723,8 +10735,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Save the DKIM private key" xml:space="preserve">
     <value>Uložit soukromý klíč DKIM</value>
   </data>
-  <data name="Save the LDAP settings to hMailServer.INI" xml:space="preserve">
-    <value>Uložit nastavení LDAP do hMailServer.INI</value>
+  <data name="Save the LDAP settings to hMailServer.ini" xml:space="preserve">
+    <value>Uložit nastavení LDAP do hMailServer.ini</value>
   </data>
   <data name="Save the account and reopen it - a recovery address belongs to an account that exists." xml:space="preserve">
     <value>Uložte účet a otevřete ho znovu - adresa pro obnovu patří účtu, který existuje.</value>
@@ -10756,11 +10768,11 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Uložit přístupové heslo soukromého klíče pro vybraný certifikát</value>
   </data>
-  <data name="Save the selection to hMailServer.INI, then show what a synchronisation would do with it" xml:space="preserve">
-    <value>Uložit výběr do hMailServer.INI a pak ukázat, co by s ním synchronizace udělala</value>
+  <data name="Save the selection to hMailServer.ini, then show what a synchronisation would do with it" xml:space="preserve">
+    <value>Uložit výběr do hMailServer.ini a pak ukázat, co by s ním synchronizace udělala</value>
   </data>
-  <data name="Save these settings to hMailServer.INI" xml:space="preserve">
-    <value>Uložit toto nastavení do hMailServer.INI</value>
+  <data name="Save these settings to hMailServer.ini" xml:space="preserve">
+    <value>Uložit toto nastavení do hMailServer.ini</value>
   </data>
   <data name="Save this weak password anyway?" xml:space="preserve">
     <value>Přesto toto slabé heslo uložit?</value>
@@ -11050,8 +11062,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Search accounts" xml:space="preserve">
     <value>Hledat v účtech</value>
   </data>
-  <data name="Search bas_e (SearchBase)" xml:space="preserve">
-    <value>_Báze hledání (SearchBase)</value>
+  <data name="Search bas_e" xml:space="preserve">
+    <value>_Báze hledání</value>
   </data>
   <data name="Search blocked attachment patterns" xml:space="preserve">
     <value>Hledat ve vzorech blokovaných příloh</value>
@@ -11130,9 +11142,6 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>Hledejte, nebo napište, co chcete udělat – „zastavit spam“, „zablokovat IP“</value>
-  </data>
-  <data name="SearchBase (or UserDnTemplate, to bind directly without searching)" xml:space="preserve">
-    <value>SearchBase (nebo UserDnTemplate pro přímý bind bez hledání)</value>
   </data>
   <data name="Searched" xml:space="preserve">
     <value>Prohledáno</value>
@@ -11425,8 +11434,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Separately, this server sends such reports to other domains: its TLS report sender address is {0}, so its own reports go out." xml:space="preserve">
     <value>Nezávisle na tom tento server takováto hlášení jiným doménám odesílá: jeho adresa odesílatele hlášení TLS je {0}, takže jeho vlastní hlášení odcházejí.</value>
   </data>
-  <data name="Serv_ice account password (ServicePassword)" xml:space="preserve">
-    <value>H_eslo účtu služby (ServicePassword)</value>
+  <data name="Serv_ice account password" xml:space="preserve">
+    <value>H_eslo účtu služby</value>
   </data>
   <data name="Serve MTA-STS policies for local domains" xml:space="preserve">
     <value>Poskytovat politiky MTA-STS pro místní domény</value>
@@ -11518,8 +11527,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Service account (search mode only)" xml:space="preserve">
     <value>Účet služby (pouze v režimu hledání)</value>
   </data>
-  <data name="Service account user _name (ServiceUsername)" xml:space="preserve">
-    <value>Uživatelské _jméno účtu služby (ServiceUsername)</value>
+  <data name="Service account user _name" xml:space="preserve">
+    <value>Uživatelské _jméno účtu služby</value>
   </data>
   <data name="Service credential accepted." xml:space="preserve">
     <value>Přihlašovací údaje služby přijaty.</value>
@@ -11530,8 +11539,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Service start" xml:space="preserve">
     <value>Spuštění služby</value>
   </data>
-  <data name="ServiceDomain {0}, and is shown here rather than offered for editing because the server reads the key and then never uses it: the service credential binds with ServiceUsername and ServicePassword alone. Put the domain in the user name instead (DOMAIN\name or a UPN)." xml:space="preserve">
-    <value>ServiceDomain {0} a zobrazuje se zde místo toho, aby byl nabídnut k úpravám, protože server tento klíč přečte a pak jej nikdy nepoužije: přihlašovací údaje služby se vážou pouze pomocí ServiceUsername a ServicePassword. Doménu uveďte místo toho v uživatelském jménu (DOMAIN\name nebo UPN).</value>
+  <data name="ServiceDomain {0}, and is shown here rather than offered for editing because the server reads the key and then never uses it: the service credential binds with the service account user name and password alone. Put the domain in the user name instead (DOMAIN\name or a UPN)." xml:space="preserve">
+    <value>ServiceDomain {0} a zobrazuje se zde místo toho, aby byl nabídnut k úpravám, protože server tento klíč přečte a pak jej nikdy nepoužije: přihlašovací údaje služby se vážou pouze pomocí uživatelského jména a hesla účtu služby. Doménu uveďte místo toho v uživatelském jménu (DOMAIN\name nebo UPN).</value>
   </data>
   <data name="Services" xml:space="preserve">
     <value>Služby</value>
@@ -11845,8 +11854,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Simple bind - the password is sent to the directory (use with TLS)" xml:space="preserve">
     <value>Jednoduchý bind – heslo se odesílá adresáři (používejte s TLS)</value>
   </data>
-  <data name="Simple is the default. Negotiate runs an SSPI exchange (Kerberos, falling back to NTLM) that never transmits the password and signs the connection - it is the only method a default-configured modern domain controller accepts when it has no certificate installed, it needs no search, no SearchBase and no service account, and it works from a host that is not domain-joined." xml:space="preserve">
-    <value>Výchozí je Jednoduchý. Negotiate provádí výměnu přes SSPI (Kerberos s návratem k NTLM), která heslo nikdy nepřenáší a podepisuje spojení – je to jediná metoda, kterou moderní řadič domény ve výchozí konfiguraci bez nainstalovaného certifikátu přijme, nepotřebuje žádné hledání, žádnou SearchBase ani účet služby a funguje i z hostitele, který není připojen k doméně.</value>
+  <data name="Simple is the default. Negotiate runs an SSPI exchange (Kerberos, falling back to NTLM) that never transmits the password and signs the connection - it is the only method a default-configured modern domain controller accepts when it has no certificate installed, it needs no search, no search base and no service account, and it works from a host that is not domain-joined." xml:space="preserve">
+    <value>Výchozí je Jednoduchý. Negotiate provádí výměnu přes SSPI (Kerberos s návratem k NTLM), která heslo nikdy nepřenáší a podepisuje spojení – je to jediná metoda, kterou moderní řadič domény ve výchozí konfiguraci bez nainstalovaného certifikátu přijme, nepotřebuje žádné hledání, žádnou bázi hledání ani účet služby a funguje i z hostitele, který není připojen k doméně.</value>
   </data>
   <data name="Simultaneous connections (0 is unlimited)" xml:space="preserve">
     <value>Souběžná spojení (0 je bez omezení)</value>
@@ -11998,9 +12007,6 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Specific addresses to rou_te" xml:space="preserve">
     <value>_Konkrétní adresy pro směrování</value>
   </data>
-  <data name="Split into first and last name, and only ever written to an account that has neither. A name typed here by an administrator is never overwritten by the directory." xml:space="preserve">
-    <value>Rozdělí se na jméno a příjmení a zapíše se jen do účtu, který nemá ani jedno. Jméno, které sem zadal správce, adresář nikdy nepřepíše.</value>
-  </data>
   <data name="Sta_rt date" xml:space="preserve">
     <value>Datum za_hájení</value>
   </data>
@@ -12099,6 +12105,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Store: " xml:space="preserve">
     <value>Úložiště: </value>
+  </data>
+  <data name="Stored as [LDAP] {0}." xml:space="preserve">
+    <value>Uloženo jako [LDAP] {0}.</value>
   </data>
   <data name="Stored in hMailServer.ini on the server. The token it buys is cached in memory until 80% of its lifetime has passed and refetched automatically." xml:space="preserve">
     <value>Ukládá se do hMailServer.ini na serveru. Token, který se tím získá, se drží v paměti, dokud neuplyne 80 % jeho životnosti, a poté se automaticky stáhne znovu.</value>
@@ -12951,8 +12960,8 @@ Označte klíč výše a zkopírujte ho ručně - znovu už se nezobrazí.</valu
   <data name="The consistency check is switched off, so no scan has run. Turn on 'Periodically cross-check message rows against files on disk' on the {0} page; the server then scans at start-up and hourly and writes {1}." xml:space="preserve">
     <value>Kontrola konzistence je vypnutá, takže žádný sken neproběhl. Zapněte „Pravidelně porovnávat řádky zpráv se soubory na disku“ na stránce {0}; server pak skenuje při spuštění a každou hodinu a zapisuje {1}.</value>
   </data>
-  <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page." xml:space="preserve">
-    <value>Protějšek pečetění ARC: u příchozí pošty může platný řetězec ARC od důvěryhodného pečetitele vyrovnat skóre za selhání DMARC u zprávy, jejíž úspěšný DMARC zničilo přeposlání (RFC 8617). Konfiguruje se na kartě Ověření odesílatele stránky Nastavení antispamu, protože se ukládá s ostatními antispamovými nastaveními, ne v hMailServer.INI. S prázdným seznamem důvěryhodných pečetitelů funkce záměrně nedělá vůbec nic: kdokoli může vyrobit celý řetězec ARC a zapečetit ho klíči zveřejněnými ve vlastním DNS, a projde ověřením dokonale, takže procházející řetězec nic nedokazuje, pokud pečetiteli už nedůvěřujete. Seznam není volba funkce - seznam je ta funkce. Vyrovnání nikdy nepřekročí skóre za selhání DMARC a platí jen dokud je na stránce Nastavení antispamu zapnuté skórování DMARC.</value>
+  <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.ini. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page." xml:space="preserve">
+    <value>Protějšek pečetění ARC: u příchozí pošty může platný řetězec ARC od důvěryhodného pečetitele vyrovnat skóre za selhání DMARC u zprávy, jejíž úspěšný DMARC zničilo přeposlání (RFC 8617). Konfiguruje se na kartě Ověření odesílatele stránky Nastavení antispamu, protože se ukládá s ostatními antispamovými nastaveními, ne v hMailServer.ini. S prázdným seznamem důvěryhodných pečetitelů funkce záměrně nedělá vůbec nic: kdokoli může vyrobit celý řetězec ARC a zapečetit ho klíči zveřejněnými ve vlastním DNS, a projde ověřením dokonale, takže procházející řetězec nic nedokazuje, pokud pečetiteli už nedůvěřujete. Seznam není volba funkce - seznam je ta funkce. Vyrovnání nikdy nepřekročí skóre za selhání DMARC a platí jen dokud je na stránce Nastavení antispamu zapnuté skórování DMARC.</value>
   </data>
   <data name="The current password counts as the most recent one, so setting a password to itself is refused too - the repeat somebody is most likely to try." xml:space="preserve">
     <value>Současné heslo se počítá jako to nejnovější, takže nastavit heslo na sebe samo je také odmítnuto - to je opakování, které někdo zkusí nejspíš.</value>
@@ -13280,8 +13289,8 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   <data name="The key store was not found, so there is nothing to revoke." xml:space="preserve">
     <value>Úložiště klíčů nebylo nalezeno, takže není co odvolat.</value>
   </data>
-  <data name="The key store's location is not known from here. It sits beside hMailServer.INI, which is found through this machine's registry and service table - so keys can only be managed from the server itself, not from a Control Panel connected to another host." xml:space="preserve">
-    <value>Umístění úložiště klíčů odsud není známo. Leží vedle hMailServer.INI, který se hledá přes registr a tabulku služeb tohoto počítače - klíče lze tedy spravovat jen ze samotného serveru, ne z Control Panelu připojeného k jinému hostiteli.</value>
+  <data name="The key store's location is not known from here. It sits beside hMailServer.ini, which is found through this machine's registry and service table - so keys can only be managed from the server itself, not from a Control Panel connected to another host." xml:space="preserve">
+    <value>Umístění úložiště klíčů odsud není známo. Leží vedle hMailServer.ini, který se hledá přes registr a tabulku služeb tohoto počítače - klíče lze tedy spravovat jen ze samotného serveru, ne z Control Panelu připojeného k jinému hostiteli.</value>
   </data>
   <data name="The keys that work on every page, and the keys of a list" xml:space="preserve">
     <value>Klávesy, které fungují na každé stránce, a klávesy seznamu</value>
@@ -13421,8 +13430,8 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   <data name="The old selector was retired." xml:space="preserve">
     <value>Starý selektor byl vyřazen.</value>
   </data>
-  <data name="The other way to reach a DN: set this and the server skips the search - and with it the need for a SearchBase and a service account. A UPN works against Active Directory. Same %u, %d, %m placeholders, escaped for a distinguished name." xml:space="preserve">
-    <value>Druhá cesta k DN: nastavte toto a server hledání přeskočí - a s ním i potřebu SearchBase a servisního účtu. Proti Active Directory funguje UPN. Stejné zástupné symboly %u, %d, %m, escapované pro rozlišovací název.</value>
+  <data name="The other way to reach a DN: set this and the server skips the search - and with it the need for a search base and a service account. A UPN works against Active Directory. Same %u, %d, %m placeholders, escaped for a distinguished name." xml:space="preserve">
+    <value>Druhá cesta k DN: nastavte toto a server hledání přeskočí - a s ním i potřebu báze hledání a servisního účtu. Proti Active Directory funguje UPN. Stejné zástupné symboly %u, %d, %m, escapované pro rozlišovací název.</value>
   </data>
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>Přehled pojmenovává uspořádání, která potichu nic nedělají - nulový práh, práh, kterého žádná zapnutá kontrola nedosáhne, kontrolu se skóre nula.</value>
@@ -13618,8 +13627,8 @@ Přesto přidat?</value>
   <data name="The saved schedule takes effect when the service restarts: the server is still running the one it started with." xml:space="preserve">
     <value>Uložený plán se projeví po restartu služby: server stále používá plán, se kterým byl spuštěn.</value>
   </data>
-  <data name="The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
-    <value>Výsledek skenu je čitelný jen na počítači serveru - hMailServer.INI zde nebyl nalezen. Server publikuje totéž číslo jako metriku hmailserver_messagestore_missing_files.</value>
+  <data name="The scan result is only readable on the server machine - hMailServer.ini was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
+    <value>Výsledek skenu je čitelný jen na počítači serveru - hMailServer.ini zde nebyl nalezen. Server publikuje totéž číslo jako metriku hmailserver_messagestore_missing_files.</value>
   </data>
   <data name="The schedule and the retention are stored in hMailServer.ini on the server." xml:space="preserve">
     <value>Plán a uchovávání se ukládají do hMailServer.ini na serveru.</value>
@@ -13636,8 +13645,8 @@ Přesto přidat?</value>
   <data name="The search looks at the {0} most recent changes of the {1} in the trail." xml:space="preserve">
     <value>Hledání prochází {0} nejnovějších změn z {1} v záznamu.</value>
   </data>
-  <data name="The search matched MORE than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make UserSearchFilter or SearchBase select exactly one entry." xml:space="preserve">
-    <value>Hledání odpovídalo VÍCE než jedné položce adresáře (filtr {0}, base {1}). Server odmítá ověřovat proti nejednoznačné shodě - upravte UserSearchFilter nebo SearchBase tak, aby vybíraly přesně jednu položku.</value>
+  <data name="The search matched more than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make the user search filter or the search base select exactly one entry." xml:space="preserve">
+    <value>Hledání odpovídalo více než jedné položce adresáře (filtr {0}, base {1}). Server odmítá ověřovat proti nejednoznačné shodě - upravte filtr hledání uživatelů nebo bázi hledání tak, aby vybíraly přesně jednu položku.</value>
   </data>
   <data name="The search matched nothing (filter {0} under {1}). As a logon this is a refusal, not an outage - check the user name against the account's Windows directory tab, and the filter and search base against the directory." xml:space="preserve">
     <value>Hledání nenašlo nic (filtr {0} pod {1}). Jako přihlášení je to odmítnutí, ne výpadek - zkontrolujte uživatelské jméno proti kartě Adresář Windows účtu a filtr a základ hledání proti adresáři.</value>
@@ -14018,8 +14027,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="These are counts of the first {0} accounts only; this page stops there rather than making you wait for the rest." xml:space="preserve">
     <value>Jde o počty pouze z prvních {0} účtů; stránka zde končí, místo aby vás nechala čekat na zbytek.</value>
   </data>
-  <data name="These are read by the server from the [LDAP] section of hMailServer.INI, and re-read within two seconds of a save, so no restart is needed. The defaults suit Active Directory; a directory that is not Windows will not have sAMAccountName and needs the attribute names changed." xml:space="preserve">
-    <value>Server je čte ze sekce [LDAP] v hMailServer.INI a do dvou sekund od uložení je načte znovu, takže restart není potřeba. Výchozí hodnoty vyhovují Active Directory; adresář, který není z Windows, nemá sAMAccountName a potřebuje změnit názvy atributů.</value>
+  <data name="These are read by the server from the [LDAP] section of hMailServer.ini, and re-read within two seconds of a save, so no restart is needed. The defaults suit Active Directory; a directory that is not Windows will not have sAMAccountName and needs the attribute names changed." xml:space="preserve">
+    <value>Server je čte ze sekce [LDAP] v hMailServer.ini a do dvou sekund od uložení je načte znovu, takže restart není potřeba. Výchozí hodnoty vyhovují Active Directory; adresář, který není z Windows, nemá sAMAccountName a potřebuje změnit názvy atributů.</value>
   </data>
   <data name="These are the ports the server listens on. The submission port, 587, is the one your own people send through." xml:space="preserve">
     <value>Toto jsou porty, na kterých server naslouchá. Odesílací port 587 je ten, přes který posílají vaši vlastní lidé.</value>
@@ -14132,8 +14141,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="This page reads an expiry only in the form YYYY-MM-DD HH:MM:SS, so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>Tato stránka čte údaj o vypršení jen v podobě RRRR-MM-DD HH:MM:SS, takže odsud nelze říct, zda server tento klíč ještě přijímá. Pokud byl řádek upraven ručně, opravte ho; jinak klíč odvolejte a vytvořte náhradu.</value>
   </data>
-  <data name="This page used to collect every hMailServer.INI value without a home, which meant it was filed by where the value is stored rather than by what it does - and where a value is stored is the one thing you never need to know. Each of these now sits with the rest of its own feature. Nothing was removed and no value changed; only the page it is edited on." xml:space="preserve">
-    <value>Tato stránka dřív shromažďovala každou hodnotu hMailServer.INI bez domova, což znamenalo, že byla řazena podle toho, kde je hodnota uložená, a ne podle toho, co dělá - a kde je hodnota uložená je to jediné, co nikdy nepotřebujete vědět. Každá z nich teď sedí u zbytku své vlastní funkce. Nic nebylo odstraněno a žádná hodnota se nezměnila; jen stránka, na které se upravuje.</value>
+  <data name="This page used to collect every hMailServer.ini value without a home, which meant it was filed by where the value is stored rather than by what it does - and where a value is stored is the one thing you never need to know. Each of these now sits with the rest of its own feature. Nothing was removed and no value changed; only the page it is edited on." xml:space="preserve">
+    <value>Tato stránka dřív shromažďovala každou hodnotu hMailServer.ini bez domova, což znamenalo, že byla řazena podle toho, kde je hodnota uložená, a ne podle toho, co dělá - a kde je hodnota uložená je to jediné, co nikdy nepotřebujete vědět. Každá z nich teď sedí u zbytku své vlastní funkce. Nic nebylo odstraněno a žádná hodnota se nezměnila; jen stránka, na které se upravuje.</value>
   </data>
   <data name="This panel can compare RSA and ECDSA keys; this key parses as neither, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
     <value>Tento panel umí porovnávat klíče RSA a ECDSA; tento klíč se nenačte ani jako jeden z nich, takže zda odpovídá certifikátu, se prokáže až tehdy, když server dvojici načte.</value>
@@ -14270,8 +14279,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Time" xml:space="preserve">
     <value>Čas</value>
   </data>
-  <data name="Time_out in seconds (TimeoutSeconds)" xml:space="preserve">
-    <value>_Timeout v sekundách (TimeoutSeconds)</value>
+  <data name="Time_out in seconds" xml:space="preserve">
+    <value>_Timeout v sekundách</value>
   </data>
   <data name="Timed out looking up {0}. Check the name, and that this machine can reach a DNS server." xml:space="preserve">
     <value>Vypršel čas při hledání {0}. Zkontrolujte název a to, že tento počítač dosáhne na server DNS.</value>
@@ -14600,8 +14609,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Used when “Deliver to all addresses” is off." xml:space="preserve">
     <value>Použije se, když je „Doručovat na všechny adresy“ vypnuto.</value>
   </data>
-  <data name="User _DN template (UserDnTemplate)" xml:space="preserve">
-    <value>Šablona _DN uživatele (UserDnTemplate)</value>
+  <data name="User _DN template" xml:space="preserve">
+    <value>Šablona _DN uživatele</value>
   </data>
   <data name="User name" xml:space="preserve">
     <value>Uživatelské jméno</value>
@@ -14609,8 +14618,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="User name to _look up" xml:space="preserve">
     <value>Uživatelské jméno k _vyhledání</value>
   </data>
-  <data name="User search _filter (UserSearchFilter)" xml:space="preserve">
-    <value>_Filtr hledání uživatelů (UserSearchFilter)</value>
+  <data name="User search _filter" xml:space="preserve">
+    <value>_Filtr hledání uživatelů</value>
   </data>
   <data name="VAPID private key, to bring the pair from another server (leave empty to keep current)" xml:space="preserve">
     <value>Soukromý klíč VAPID pro přenesení páru z jiného serveru (nechte prázdné, aby zůstal současný)</value>
@@ -14807,8 +14816,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="What a takeover-shaped submission does" xml:space="preserve">
     <value>Co udělá odeslání, které vypadá jako převzetí</value>
   </data>
-  <data name="What an account of its own changes. hMailServer.INI is read-only to it, on purpose: the administrator password, its second factor, the folders and the database are changed as the Control Panel says when you try, and settings are kept in the database as always. A folder set later outside the program folder - a backup or archive folder - is reached once Grant access approves it. An account other than NT SERVICE\hMailServer is set in services.msc and needs the &quot;Log on as a service&quot; right; an external database with Windows authentication needs a login for it. A service that cannot log on reports error 1069 in the Windows event log and does not start." xml:space="preserve">
-    <value>Co mění vlastní účet. hMailServer.INI je pro něj záměrně jen pro čtení: heslo správce, jeho druhý faktor, složky a databáze se mění tak, jak Control Panel řekne při pokusu, a nastavení zůstávají jako vždy v databázi. Později nastavená složka mimo složku programu - složka záloh nebo archivu - je dosažitelná, jakmile ji Udělit přístup schválí. Jiný účet než NT SERVICE\hMailServer se nastavuje v services.msc a potřebuje právo „Přihlásit se jako služba“; externí databáze s ověřováním Windows pro něj potřebuje přihlášení. Služba, která se nemůže přihlásit, hlásí chybu 1069 v protokolu událostí Windows a nespustí se.</value>
+  <data name="What an account of its own changes. hMailServer.ini is read-only to it, on purpose: the administrator password, its second factor, the folders and the database are changed as the Control Panel says when you try, and settings are kept in the database as always. A folder set later outside the program folder - a backup or archive folder - is reached once Grant access approves it. An account other than NT SERVICE\hMailServer is set in services.msc and needs the &quot;Log on as a service&quot; right; an external database with Windows authentication needs a login for it. A service that cannot log on reports error 1069 in the Windows event log and does not start." xml:space="preserve">
+    <value>Co mění vlastní účet. hMailServer.ini je pro něj záměrně jen pro čtení: heslo správce, jeho druhý faktor, složky a databáze se mění tak, jak Control Panel řekne při pokusu, a nastavení zůstávají jako vždy v databázi. Později nastavená složka mimo složku programu - složka záloh nebo archivu - je dosažitelná, jakmile ji Udělit přístup schválí. Jiný účet než NT SERVICE\hMailServer se nastavuje v services.msc a potřebuje právo „Přihlásit se jako služba“; externí databáze s ověřováním Windows pro něj potřebuje přihlášení. Služba, která se nemůže přihlásit, hlásí chybu 1069 v protokolu událostí Windows a nespustí se.</value>
   </data>
   <data name="What can be negotiated" xml:space="preserve">
     <value>Co lze vyjednat</value>
@@ -15065,11 +15074,14 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Which addresses may connect, which may relay without authenticating, and which must authenticate first." xml:space="preserve">
     <value>Které adresy se smějí připojit, které smějí přeposílat bez ověření a které se musí nejdřív ověřit.</value>
   </data>
-  <data name="Which attribute holds the mailbox address. proxyAddresses is understood: its scheme prefix is removed and the primary SMTP: value is preferred over the lower-case aliases." xml:space="preserve">
-    <value>Který atribut nese adresu schránky. proxyAddresses je pochopeno: předpona schématu se odstraní a primární hodnota SMTP: má přednost před aliasy malými písmeny.</value>
+  <data name="Which attribute holds the mailbox address - mail when left empty. proxyAddresses is understood: its scheme prefix is removed and the primary SMTP: value is preferred over the lower-case aliases." xml:space="preserve">
+    <value>Který atribut nese adresu schránky - mail, když pole zůstane prázdné. proxyAddresses je pochopeno: předpona schématu se odstraní a primární hodnota SMTP: má přednost před aliasy malými písmeny.</value>
   </data>
-  <data name="Which attribute holds the name the person logs in with. This is what is stored against the account and what the directory is asked about at every logon afterwards, so guessing it from the address is not good enough - an entry that does not carry it is reported rather than provisioned." xml:space="preserve">
-    <value>Který atribut nese jméno, kterým se osoba přihlašuje. To je to, co se ukládá u účtu a na co se adresáře ptá při každém dalším přihlášení, takže odhadovat ho z adresy nestačí - položka, která ho nenese, se nahlásí místo toho, aby se zřídila.</value>
+  <data name="Which attribute holds the name the person signs in with - sAMAccountName when left empty. This is what is stored against the account and what the directory is asked about at every sign-in afterwards, so guessing it from the address is not good enough - an entry that does not carry it is reported rather than provisioned." xml:space="preserve">
+    <value>Který atribut nese jméno, kterým se osoba přihlašuje - sAMAccountName, když pole zůstane prázdné. To je to, co se ukládá u účtu a na co se adresáře ptá při každém dalším přihlášení, takže odhadovat ho z adresy nestačí - položka, která ho nenese, se nahlásí místo toho, aby se zřídila.</value>
+  </data>
+  <data name="Which attribute holds the person's name - displayName when left empty. It is split into first and last name and only ever written to an account that has neither, so a name an administrator typed is never overwritten by the directory." xml:space="preserve">
+    <value>Který atribut nese jméno osoby - displayName, když pole zůstane prázdné. Rozdělí se na jméno a příjmení a zapíše se jen do účtu, který nemá ani jedno, takže jméno, které zadal správce, adresář nikdy nepřepíše.</value>
   </data>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>Které položky adresáře se stanou schránkami</value>
@@ -15269,8 +15281,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Write the message first: an empty one is not sent." xml:space="preserve">
     <value>Nejprve napište zprávu: prázdná se neodešle.</value>
   </data>
-  <data name="Write-only: a stored password is never shown here again - leave the box blank to keep it. It is stored as plain text in hMailServer.INI on the server, because the server has to present it to the directory verbatim and so cannot hash it; restrict file access to the INI accordingly. It only ever leaves the server over the transport configured above." xml:space="preserve">
-    <value>Pouze pro zápis: uložené heslo se zde už nikdy nezobrazí – nechte pole prázdné, aby zůstalo zachováno. Na serveru je uloženo jako prostý text v hMailServer.INI, protože server jej musí adresáři předložit doslovně, a tak jej nemůže hashovat; podle toho omezte přístup k souboru INI. Server opouští jedině přes přenos nastavený výše.</value>
+  <data name="Write-only: a stored password is never shown here again - leave the box blank to keep it. It is stored as plain text in hMailServer.ini on the server, because the server has to present it to the directory verbatim and so cannot hash it; restrict file access to the INI accordingly. It only ever leaves the server over the transport configured above." xml:space="preserve">
+    <value>Pouze pro zápis: uložené heslo se zde už nikdy nezobrazí – nechte pole prázdné, aby zůstalo zachováno. Na serveru je uloženo jako prostý text v hMailServer.ini, protože server jej musí adresáři předložit doslovně, a tak jej nemůže hashovat; podle toho omezte přístup k souboru INI. Server opouští jedině přes přenos nastavený výše.</value>
   </data>
   <data name="Writes the conditions an operator alerts on - database unavailable, a listener that would not start, a crash, a failed backup, the disk floor - to the Windows Application log, where Event Viewer, monitoring agents and SIEM collectors can see them. Each condition has an event id of its own that does not change, so an alert can match on it; a healthy server writes nothing at all. Protocol traffic and routine logging never go here - a mail server that logs every session to the Application log gets itself uninstalled." xml:space="preserve">
     <value>Zapisuje stavy, na které správce nastavuje výstrahy – nedostupná databáze, listener, který se nespustil, pád, neúspěšná záloha, spodní hranice místa na disku – do logu aplikací Windows, kde je vidí Prohlížeč událostí, monitorovací agenti a kolektory SIEM. Každý stav má vlastní ID události, které se nemění, takže na něj lze nastavit výstrahu; zdravý server nezapíše vůbec nic. Provoz protokolů a běžné logování sem nikdy nechodí – poštovní server, který loguje každou relaci do logu aplikací, si vykoleduje odinstalování.</value>
@@ -15371,8 +15383,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Allow sender…" xml:space="preserve">
     <value>_Povolit odesílatele…</value>
   </data>
-  <data name="_Allow sending the password over an unprotected connection (AllowUnprotectedPassword)" xml:space="preserve">
-    <value>Povolit odeslání hesla přes _nechráněné připojení (AllowUnprotectedPassword)</value>
+  <data name="_Allow sending the password over an unprotected connection" xml:space="preserve">
+    <value>Povolit odeslání hesla přes _nechráněné připojení</value>
   </data>
   <data name="_Append a disclaimer to mail leaving the organisation" xml:space="preserve">
     <value>Připojit _doložku k poště odcházející z organizace</value>
@@ -15401,8 +15413,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Bind address (0.0.0.0)" xml:space="preserve">
     <value>_Adresa pro navázání (0.0.0.0)</value>
   </data>
-  <data name="_Bind method (BindMethod)" xml:space="preserve">
-    <value>_Metoda bindu (BindMethod)</value>
+  <data name="_Bind method" xml:space="preserve">
+    <value>_Metoda bindu</value>
   </data>
   <data name="_Block and delete" xml:space="preserve">
     <value>_Zablokovat a odstranit</value>
@@ -15450,10 +15462,7 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
     <value>_Komprimovat cílové soubory (zip)</value>
   </data>
   <data name="_Connection security" xml:space="preserve">
-    <value>_Zabezpečení připojení</value>
-  </data>
-  <data name="_Connection security (Security)" xml:space="preserve">
-    <value>Zabezpečení připojení (_Security)</value>
+    <value>Zabezpe_čení připojení</value>
   </data>
   <data name="_Copy" xml:space="preserve">
     <value>_Kopírovat</value>
@@ -16082,8 +16091,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Upper IP address" xml:space="preserve">
     <value>_Horní IP adresa</value>
   </data>
-  <data name="_Use LDAP directory authentication (Enabled)" xml:space="preserve">
-    <value>Použít ověřování proti adresáři _LDAP (Enabled)</value>
+  <data name="_Use LDAP directory authentication" xml:space="preserve">
+    <value>Použít ověřování proti adresáři _LDAP</value>
   </data>
   <data name="_User name" xml:space="preserve">
     <value>Uživatelské _jméno</value>
@@ -16106,8 +16115,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Verify the chain" xml:space="preserve">
     <value>_Ověřit řetěz</value>
   </data>
-  <data name="_Verify the directory server's certificate (VerifyCertificate)" xml:space="preserve">
-    <value>Ověřovat _certifikát adresářového serveru (VerifyCertificate)</value>
+  <data name="_Verify the directory server's certificate" xml:space="preserve">
+    <value>Ověřovat _certifikát adresářového serveru</value>
   </data>
   <data name="_View source" xml:space="preserve">
     <value>_Zobrazit zdroj</value>
@@ -16136,8 +16145,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="a symbol" xml:space="preserve">
     <value>symbol</value>
   </data>
-  <data name="a trust file hMailServer.INI names may be changed by someone other than the administrators" xml:space="preserve">
-    <value>soubor důvěry, který hMailServer.INI uvádí, může měnit někdo jiný než správci</value>
+  <data name="a trust file hMailServer.ini names may be changed by someone other than the administrators" xml:space="preserve">
+    <value>soubor důvěry, který hMailServer.ini uvádí, může měnit někdo jiný než správci</value>
   </data>
   <data name="a value of its own is needed, or untick it to take the level above." xml:space="preserve">
     <value>je potřeba vlastní hodnota, nebo zrušte zaškrtnutí a převezměte úroveň výše.</value>
@@ -16190,17 +16199,17 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="base64url of the P-256 key; the public half is worked out from it. Every subscription made under the old pair stops working." xml:space="preserve">
     <value>base64url klíče P-256; veřejná polovina se z něj odvodí. Každý odběr vytvořený se starým párem přestane fungovat.</value>
   </data>
-  <data name="binding anonymously to search for the user (set ServiceUsername)" xml:space="preserve">
-    <value>anonymní bind pro vyhledání uživatele (nastavte ServiceUsername)</value>
+  <data name="binding anonymously to search for the user (set the service account user name)" xml:space="preserve">
+    <value>anonymní bind pro vyhledání uživatele (nastavte uživatelské jméno účtu služby)</value>
   </data>
   <data name="binding as the user" xml:space="preserve">
     <value>bind jako uživatel</value>
   </data>
-  <data name="binding with the configured ServiceUsername" xml:space="preserve">
-    <value>bind s nastaveným ServiceUsername</value>
+  <data name="binding with the configured service account user name" xml:space="preserve">
+    <value>bind s nastaveným uživatelským jménem účtu služby</value>
   </data>
-  <data name="binding with the configured ServiceUsername - no ServicePassword is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
-    <value>bind s nastaveným ServiceUsername – žádné ServicePassword se neukládá ani nezadává a prázdné heslo je odmítnuto ještě před odesláním</value>
+  <data name="binding with the configured service account user name - no service account password is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
+    <value>bind s nastaveným uživatelským jménem účtu služby – žádné heslo účtu služby se neukládá ani nezadává a prázdné heslo je odmítnuto ještě před odesláním</value>
   </data>
   <data name="block an ip" xml:space="preserve">
     <value>zablokovat ip</value>
@@ -16318,6 +16327,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="dotted line" xml:space="preserve">
     <value>tečkovaná čára</value>
+  </data>
+  <data name="e.g. {0}" xml:space="preserve">
+    <value>např. {0}</value>
   </data>
   <data name="enforce - senders that honour MTA-STS deliver only over valid TLS to the hosts listed" xml:space="preserve">
     <value>enforce - odesílatelé, kteří MTA-STS dodržují, doručují jen přes platné TLS na uvedené hostitele</value>
@@ -16445,27 +16457,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="hMailServer {0} was not installed: {1}. hMailServer {2} is still running, unchanged. The installer's log: {3}" xml:space="preserve">
     <value>hMailServer {0} nebyl nainstalován: {1}. hMailServer {2} stále běží beze změny. Protokol instalátoru: {3}</value>
   </data>
-  <data name="hMailServer.INI cannot be reached from this computer, so these selections cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
-    <value>hMailServer.INI není z tohoto počítače dostupný, takže tyto volby zde nelze upravovat. Náhled a Použít fungují dál: běží uvnitř serveru.</value>
-  </data>
-  <data name="hMailServer.INI was not found on this machine, so its settings cannot be read from here." xml:space="preserve">
-    <value>hMailServer.INI nebyl na tomto počítači nalezen, takže jeho nastavení odsud nelze přečíst.</value>
-  </data>
-  <data name="hMailServer.INI was not found on this machine, so mode and max_age shown are the shipped defaults." xml:space="preserve">
-    <value>hMailServer.INI nebyl na tomto počítači nalezen, takže zobrazené mode a max_age jsou dodávané výchozí hodnoty.</value>
-  </data>
-  <data name="hMailServer.INI was not found on this machine, so the key store's location is unknown. API keys can only be managed from the server itself." xml:space="preserve">
-    <value>hMailServer.INI nebyl na tomto počítači nalezen, takže umístění úložiště klíčů není známo. Klíče API lze spravovat pouze přímo na serveru.</value>
-  </data>
-  <data name="hMailServer.INI was not found on this machine." xml:space="preserve">
-    <value>hMailServer.INI nebyl na tomto počítači nalezen.</value>
-  </data>
-  <data name="hMailServer.INI was not found on this machine. These settings can only be edited on the server itself." xml:space="preserve">
-    <value>hMailServer.INI nebyl na tomto počítači nalezen. Tato nastavení lze upravovat pouze přímo na serveru.</value>
-  </data>
-  <data name="hMailServer.INI was not found on this machine. These settings can only be edited on the server itself; the connection test still works with the values typed here." xml:space="preserve">
-    <value>hMailServer.INI nebyl na tomto počítači nalezen. Tato nastavení lze upravovat pouze přímo na serveru; test připojení s hodnotami zadanými zde přesto funguje.</value>
-  </data>
   <data name="hMailServer.exe /GrantServiceAccess did not finish its work (exit code {0}):&#10;&#10;{1}" xml:space="preserve">
     <value>hMailServer.exe /GrantServiceAccess nedokončil svou práci (návratový kód {0}):
 
@@ -16482,11 +16473,32 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="hMailServer.ini and the log folder belong to the administrators from 6.3.6, so this Control Panel may not read them. Close it and start it with Run as administrator to see the live log." xml:space="preserve">
     <value>Soubor hMailServer.ini a složka logů od verze 6.3.6 patří správcům, takže je tento Ovládací panel nesmí číst. Zavřete jej a spusťte pomocí Spustit jako správce, abyste viděli živý log.</value>
   </data>
+  <data name="hMailServer.ini cannot be reached from this computer, so these selections cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
+    <value>hMailServer.ini není z tohoto počítače dostupný, takže tyto volby zde nelze upravovat. Náhled a Použít fungují dál: běží uvnitř serveru.</value>
+  </data>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>Soubor hMailServer.ini se nepodařilo přečíst: {0} Od verze 6.3.6 soubor patří správcům. Zavřete Ovládací panel a spusťte jej pomocí Spustit jako správce, abyste tato nastavení viděli a mohli měnit.</value>
   </data>
+  <data name="hMailServer.ini was not found on this machine, so its settings cannot be read from here." xml:space="preserve">
+    <value>hMailServer.ini nebyl na tomto počítači nalezen, takže jeho nastavení odsud nelze přečíst.</value>
+  </data>
+  <data name="hMailServer.ini was not found on this machine, so mode and max_age shown are the shipped defaults." xml:space="preserve">
+    <value>hMailServer.ini nebyl na tomto počítači nalezen, takže zobrazené mode a max_age jsou dodávané výchozí hodnoty.</value>
+  </data>
+  <data name="hMailServer.ini was not found on this machine, so the key store's location is unknown. API keys can only be managed from the server itself." xml:space="preserve">
+    <value>hMailServer.ini nebyl na tomto počítači nalezen, takže umístění úložiště klíčů není známo. Klíče API lze spravovat pouze přímo na serveru.</value>
+  </data>
   <data name="hMailServer.ini was not found on this machine, so this can only be changed on the server itself." xml:space="preserve">
     <value>hMailServer.ini nebyl na tomto počítači nalezen, takže toto nastavení lze změnit pouze přímo na serveru.</value>
+  </data>
+  <data name="hMailServer.ini was not found on this machine." xml:space="preserve">
+    <value>hMailServer.ini nebyl na tomto počítači nalezen.</value>
+  </data>
+  <data name="hMailServer.ini was not found on this machine. These settings can only be edited on the server itself." xml:space="preserve">
+    <value>hMailServer.ini nebyl na tomto počítači nalezen. Tato nastavení lze upravovat pouze přímo na serveru.</value>
+  </data>
+  <data name="hMailServer.ini was not found on this machine. These settings can only be edited on the server itself; the connection test still works with the values typed here." xml:space="preserve">
+    <value>hMailServer.ini nebyl na tomto počítači nalezen. Tato nastavení lze upravovat pouze přímo na serveru; test připojení s hodnotami zadanými zde přesto funguje.</value>
   </data>
   <data name="header '{0}'" xml:space="preserve">
     <value>hlavička '{0}'</value>
@@ -16902,8 +16914,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="testing - senders deliver as before and report what would have failed" xml:space="preserve">
     <value>testing - odesílatelé doručují jako dosud a hlásí, co by selhalo</value>
   </data>
-  <data name="the Control Panel is connected to '{0}'; hMailServer.INI and files on disk can only be inspected on the server machine itself." xml:space="preserve">
-    <value>Control Panel je připojen k '{0}'; hMailServer.INI a soubory na disku lze prohlížet pouze přímo na počítači serveru.</value>
+  <data name="the Control Panel is connected to '{0}'; hMailServer.ini and files on disk can only be inspected on the server machine itself." xml:space="preserve">
+    <value>Control Panel je připojen k '{0}'; hMailServer.ini a soubory na disku lze prohlížet pouze přímo na počítači serveru.</value>
   </data>
   <data name="the account has expired" xml:space="preserve">
     <value>platnost účtu vypršela</value>
@@ -16923,8 +16935,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="the certificate" xml:space="preserve">
     <value>certifikát</value>
   </data>
-  <data name="the configured UserSearchFilter is not a valid LDAP filter" xml:space="preserve">
-    <value>nastavený UserSearchFilter není platný LDAP filtr</value>
+  <data name="the configured user search filter is not a valid LDAP filter" xml:space="preserve">
+    <value>nastavený filtr hledání uživatelů není platný LDAP filtr</value>
   </data>
   <data name="the connecting address is one of the sender domain's A or MX records" xml:space="preserve">
     <value>připojující se adresa je jedním z A nebo MX záznamů domény odesílatele</value>
@@ -16959,8 +16971,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="the engine's score" xml:space="preserve">
     <value>skóre enginu</value>
   </data>
-  <data name="the entry does not exist (check SearchBase, or UserDnTemplate)" xml:space="preserve">
-    <value>položka neexistuje (zkontrolujte SearchBase nebo UserDnTemplate)</value>
+  <data name="the entry does not exist (check the search base, or the user DN template)" xml:space="preserve">
+    <value>položka neexistuje (zkontrolujte bázi hledání nebo šablonu DN uživatele)</value>
   </data>
   <data name="the entry's score" xml:space="preserve">
     <value>skóre položky</value>

@@ -387,8 +387,8 @@
   <data name="A backup destination - until one is set there is no backup" xml:space="preserve">
     <value>Ett mål för säkerhetskopior - tills ett är angivet finns ingen säkerhetskopia</value>
   </data>
-  <data name="A ceiling on one pass, so a search base pointed one level too high cannot be answered by reading an entire forest. If it is hit, the run says so and disables nothing at all - beyond the limit, an entry that exists is indistinguishable from one that was deleted." xml:space="preserve">
-    <value>Ett tak för en körning, så att en sökbas som pekar en nivå för högt inte kan besvaras genom att läsa en hel skog. Om det nås säger körningen det och inaktiverar ingenting alls - bortom gränsen går en post som finns inte att skilja från en som togs bort.</value>
+  <data name="A ceiling on one pass - 5000 when left empty - so a search base pointed one level too high cannot be answered by reading an entire forest. If it is hit, the run says so and disables nothing at all - beyond the limit, an entry that exists is indistinguishable from one that was deleted." xml:space="preserve">
+    <value>Ett tak för en körning - 5000 när fältet lämnas tomt - så att en sökbas som pekar en nivå för högt inte kan besvaras genom att läsa en hel skog. Om det nås säger körningen det och inaktiverar ingenting alls - bortom gränsen går en post som finns inte att skilja från en som togs bort.</value>
   </data>
   <data name="A certificate has been issued into {0}, but its expiry could not be read: {1}" xml:space="preserve">
     <value>Ett certifikat har utfärdats till {0}, men dess utgångsdatum kunde inte läsas: {1}</value>
@@ -675,8 +675,8 @@
   <data name="A separate password for one mail client. Losing a laptop then means revoking one line here, rather than changing the account password and reconfiguring every other client." xml:space="preserve">
     <value>Ett separat lösenord för en e-postklient. Att förlora en bärbar dator betyder då att återkalla en rad här, i stället för att byta kontolösenordet och konfigurera om varje annan klient.</value>
   </data>
-  <data name="A service account password from an earlier version is stored in hMailServer.INI in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.INI with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
-    <value>Ett tjänstekontolösenord från en tidigare version är sparat i klartext i hMailServer.INI, och inget läser det längre: tjänsten registreras av installationsprogrammet eller med knapparna på kortet Windows-tjänstekonto, och Windows behåller en egen kopia av varje lösenord. Ta bort raden ServiceAccountPassword ur hMailServer.INI med en redigerare med förhöjd behörighet, och inställningen med DELETE /api/v1/settings/ini/ServiceAccountPassword, så att även databasens kopia försvinner.</value>
+  <data name="A service account password from an earlier version is stored in hMailServer.ini in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.ini with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
+    <value>Ett tjänstekontolösenord från en tidigare version är sparat i klartext i hMailServer.ini, och inget läser det längre: tjänsten registreras av installationsprogrammet eller med knapparna på kortet Windows-tjänstekonto, och Windows behåller en egen kopia av varje lösenord. Ta bort raden ServiceAccountPassword ur hMailServer.ini med en redigerare med förhöjd behörighet, och inställningen med DELETE /api/v1/settings/ini/ServiceAccountPassword, så att även databasens kopia försvinner.</value>
   </data>
   <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender in the spam exemptions, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
     <value>En session som hälsar med HELO 192.0.2.7, HELO [192.0.2.7] eller HELO localhost, eller skickar MAIL FROM:&lt;user@192.0.2.7&gt;, har inte gett något namn på sig själv, och ett meddelande den skickar hålls kvar eller poängsätts utan något att föra upp det på en lista efter. Av: servern accepterar den som alltid. På: den besvaras med 550 5.7.1 vid MAIL FROM, innan skräpposttesterna körs: en adress med eller utan hakparenteser, en enda etikett, ett publikt suffix som co.uk och allt som inte är ett värdnamn avvisas, medan mail.co.uk är ett namn. DNS tillfrågas inte; suffixen kommer från Public Suffix List, listan som karantänen grupperar efter. Endast oautentiserade sessioner från ett IP-intervall som kör skräpposttesterna bedöms, och först efter att AUTH har haft sin chans - aldrig en avsändare bland skräppostundantagen och aldrig ett inkommande relä, vars HELO är er egen gateways.</value>
@@ -927,8 +927,8 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Accounts in the group {0}" xml:space="preserve">
     <value>Konton i gruppen {0}</value>
   </data>
-  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
-    <value>Konton markerade som katalogkopplade loggar in med sitt domänlösenord genom en LDAP-bindning - till skillnad från Windows-inloggning fungerar det från en värd som inte är ansluten till domänen, vilket är den vanliga situationen för en e-postserver i en DMZ. Redigerar sektionen [LDAP] i hMailServer.INI; servern läser om den sektionen inom två sekunder efter att den sparats, så de här inställningarna kräver ingen omstart av tjänsten.</value>
+  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.ini; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
+    <value>Konton markerade som katalogkopplade loggar in med sitt domänlösenord genom en LDAP-bindning - till skillnad från Windows-inloggning fungerar det från en värd som inte är ansluten till domänen, vilket är den vanliga situationen för en e-postserver i en DMZ. Redigerar sektionen [LDAP] i hMailServer.ini; servern läser om den sektionen inom två sekunder efter att den sparats, så de här inställningarna kräver ingen omstart av tjänsten.</value>
   </data>
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Windows directory tab tick 'Check this password against Windows (Active Directory, or a local Windows account)' and fill in 'Windows user name' - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>Konton markerade som katalogkopplade. Den halvan finns redan i det här gränssnittet: öppna Domäner, redigera kontot, och kryssa på dess flik Windows-katalog i 'Kontrollera det här lösenordet mot Windows (Active Directory, eller ett lokalt Windows-konto)' och fyll i 'Windows-användarnamn' - sAMAccountName, vilket är vad %u bär. Konton utan den markeringen behåller sitt vanliga hMailServer-lösenord och rör aldrig katalogen.</value>
@@ -1326,8 +1326,8 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="After the body has been received — a refusal here is a 554" xml:space="preserve">
     <value>Efter att kroppen tagits emot — en avvisning här är en 554</value>
   </data>
-  <data name="Against {0} over {1}. Set ServiceUsername (and its password), or switch to a UserDnTemplate or the Negotiate bind method, neither of which searches at all." xml:space="preserve">
-    <value>Mot {0} över {1}. Sätt ServiceUsername (och dess lösenord), eller byt till en UserDnTemplate eller bindningsmetoden Negotiate, som ingen av dem söker alls.</value>
+  <data name="Against {0} over {1}. Set the service account user name (and its password), or switch to a user DN template or the Negotiate bind method, neither of which searches at all." xml:space="preserve">
+    <value>Mot {0} över {1}. Ange tjänstekontots användarnamn (och dess lösenord), eller byt till en DN-mall för användaren eller bindningsmetoden Negotiate, som ingen av dem söker alls.</value>
   </data>
   <data name="Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990" xml:space="preserve">
     <value>Schema för sammanställda rapporter som den här servern skickar: 1 = RFC 7489 bilaga C, 2 = RFC 9990</value>
@@ -2119,8 +2119,14 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>Bearer-token för /metrics (tomt = ingen)</value>
   </data>
-  <data name="Before enabling, the section is also missing: {0}." xml:space="preserve">
-    <value>Innan aktivering saknar sektionen också: {0}.</value>
+  <data name="Before enabling, fill in Directory server host name and Search base, or User DN template to bind without searching." xml:space="preserve">
+    <value>Fyll i Katalogserverns värdnamn och Sökbas före aktivering, eller Användarens DN-mall för att binda utan att söka.</value>
+  </data>
+  <data name="Before enabling, fill in Directory server host name." xml:space="preserve">
+    <value>Fyll i Katalogserverns värdnamn före aktivering.</value>
+  </data>
+  <data name="Before enabling, fill in Search base, or User DN template to bind without searching." xml:space="preserve">
+    <value>Fyll i Sökbas före aktivering, eller Användarens DN-mall för att binda utan att söka.</value>
   </data>
   <data name="Before you copy: {0}" xml:space="preserve">
     <value>Innan du kopierar: {0}</value>
@@ -2377,11 +2383,11 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one." xml:space="preserve">
     <value>Kan inte avgöra härifrån - serverns domänlista kunde inte läsas, så vilka domäner som är kopplade till en katalog är okänt. Det är ett anslutningsproblem snarare än ett konfigurationsproblem.</value>
   </data>
-  <data name="Cannot tell from here. hMailServer.INI is not reachable from this computer, so the [LDAP] section cannot be read - and it is that section, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
-    <value>Kan inte avgöra härifrån. hMailServer.INI kan inte nås från den här datorn, så sektionen [LDAP] kan inte läsas - och det är den sektionen, inte något på den här sidan, som avgör om en körning kan ske. Tryck på Förhandsgranska: den körs inne i servern och säger exakt vad som saknas, om något saknas.</value>
-  </data>
   <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>Går inte att avgöra härifrån. hMailServer.ini kunde inte läsas, och det är filens [LDAP]-avsnitt, inte något på den här sidan, som avgör om en körning kan ske. Tryck på Förhandsgranska: den körs inne i servern och säger exakt vad som eventuellt saknas.</value>
+  </data>
+  <data name="Cannot tell from here. hMailServer.ini is not reachable from this computer, so the [LDAP] section cannot be read - and it is that section, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
+    <value>Kan inte avgöra härifrån. hMailServer.ini kan inte nås från den här datorn, så sektionen [LDAP] kan inte läsas - och det är den sektionen, inte något på den här sidan, som avgör om en körning kan ske. Tryck på Förhandsgranska: den körs inne i servern och säger exakt vad som saknas, om något saknas.</value>
   </data>
   <data name="Cannot tell from here: hMailServer.ini could not be read, and it is the [LDAP] section of that file which decides. Start the Control Panel as administrator to see it." xml:space="preserve">
     <value>Går inte att avgöra härifrån: hMailServer.ini kunde inte läsas, och det är filens [LDAP]-avsnitt som avgör. Starta kontrollpanelen som administratör för att se det.</value>
@@ -2422,8 +2428,8 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Certificate output folder (empty = Data\ACME)" xml:space="preserve">
     <value>Utdatamapp för certifikat (tomt = Data\ACME)</value>
   </data>
-  <data name="Certificate validation was DISABLED for this test, matching VerifyCertificate=0." xml:space="preserve">
-    <value>Certifikatvalidering var AVSTÄNGD för det här testet, i enlighet med VerifyCertificate=0.</value>
+  <data name="Certificate validation was off for this test, as 'Verify the directory server's certificate' is off." xml:space="preserve">
+    <value>Certifikatvalidering var avstängd för det här testet, eftersom 'Verifiera katalogserverns certifikat' är av.</value>
   </data>
   <data name="Certificate: {0}" xml:space="preserve">
     <value>Certifikat: {0}</value>
@@ -2860,8 +2866,8 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Connected server: hMailServer {0} @ {1}" xml:space="preserve">
     <value>Ansluten server: hMailServer {0} @ {1}</value>
   </data>
-  <data name="Connected to a remote server: hMailServer.INI cannot be read from here, so mode and max_age shown are the shipped defaults." xml:space="preserve">
-    <value>Ansluten till en fjärrserver: hMailServer.INI kan inte läsas härifrån, så mode och max_age som visas är standardvärdena vid leverans.</value>
+  <data name="Connected to a remote server: hMailServer.ini cannot be read from here, so mode and max_age shown are the shipped defaults." xml:space="preserve">
+    <value>Ansluten till en fjärrserver: hMailServer.ini kan inte läsas härifrån, så mode och max_age som visas är standardvärdena vid leverans.</value>
   </data>
   <data name="Connected to another host, so whether these ports are being listened on cannot be read from here - open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>Ansluten till en annan värd, så om de här portarna lyssnas på kan inte läsas härifrån - öppna Kontrollpanelen på själva servern för att se det.</value>
@@ -4178,8 +4184,8 @@ Spara ändå?</value>
   <data name="Directory server" xml:space="preserve">
     <value>Katalogserver</value>
   </data>
-  <data name="Directory server _host name (Server)" xml:space="preserve">
-    <value>Katalogserverns _värdnamn (Server)</value>
+  <data name="Directory server _host name" xml:space="preserve">
+    <value>Katalogserverns _värdnamn</value>
   </data>
   <data name="Directory synchronisation" xml:space="preserve">
     <value>Katalogsynkronisering</value>
@@ -4594,8 +4600,14 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Enabled" xml:space="preserve">
     <value>Aktiverad</value>
   </data>
-  <data name="Enabled but not configured: {0} is not set." xml:space="preserve">
-    <value>Aktiverat men inte konfigurerat: {0} är inte satt.</value>
+  <data name="Enabled but not configured: Directory server host name and Search base are empty." xml:space="preserve">
+    <value>Aktiverat men inte konfigurerat: Katalogserverns värdnamn och Sökbas är tomma.</value>
+  </data>
+  <data name="Enabled but not configured: Directory server host name is empty." xml:space="preserve">
+    <value>Aktiverat men inte konfigurerat: Katalogserverns värdnamn är tomt.</value>
+  </data>
+  <data name="Enabled but not configured: Search base is empty, and a simple bind without a user DN template searches under it." xml:space="preserve">
+    <value>Aktiverat men inte konfigurerat: Sökbas är tom, och en enkel bindning utan användarens DN-mall söker under den.</value>
   </data>
   <data name="Enabled once &quot;Check&quot; has confirmed the published record carries this key's public key." xml:space="preserve">
     <value>Aktiveras när "Kontrollera" har bekräftat att den publicerade posten bär den här nyckelns publika nyckel.</value>
@@ -4858,8 +4870,8 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Evaluate DMARC policies" xml:space="preserve">
     <value>Utvärdera DMARC-policyer</value>
   </data>
-  <data name="Evaluated from the values in the editors on this page, saved or not. The server applies the same checks to what is actually saved in hMailServer.INI." xml:space="preserve">
-    <value>Utvärderat från värdena i redigerarna på den här sidan, sparade eller inte. Servern tillämpar samma kontroller på det som faktiskt är sparat i hMailServer.INI.</value>
+  <data name="Evaluated from the values in the editors on this page, saved or not. The server applies the same checks to what is actually saved in hMailServer.ini." xml:space="preserve">
+    <value>Utvärderat från värdena i redigerarna på den här sidan, sparade eller inte. Servern tillämpar samma kontroller på det som faktiskt är sparat i hMailServer.ini.</value>
   </data>
   <data name="Evaluates the From: domain's DMARC policy, using its own SPF and DKIM results." xml:space="preserve">
     <value>Utvärderar From:-domänens DMARC-policy, med sina egna SPF- och DKIM-resultat.</value>
@@ -4897,8 +4909,8 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Events are kept {0} days." xml:space="preserve">
     <value>Händelser sparas i {0} dagar.</value>
   </data>
-  <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
-    <value>Varje LDAP-inloggning avvisas: oskyddad LDAP med en enkel bindning skulle skicka lösenord i klartext, och AllowUnprotectedPassword är av.</value>
+  <data name="Every LDAP sign-in will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and 'Allow sending the password over an unprotected connection' is off." xml:space="preserve">
+    <value>Varje LDAP-inloggning avvisas: oskyddad LDAP med en enkel bindning skulle skicka lösenord i klartext, och 'Tillåt att lösenordet skickas över en oskyddad anslutning' är av.</value>
   </data>
   <data name="Every account on this server is a member of this group already." xml:space="preserve">
     <value>Alla konton på den här servern är redan medlemmar i den här gruppen.</value>
@@ -6135,8 +6147,8 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Issues and renews certificates automatically, but only if the certificate authority can fetch the http-01 challenge from this server." xml:space="preserve">
     <value>Utfärdar och förnyar certifikat automatiskt, men bara om certifikatutfärdaren kan hämta http-01-utmaningen från den här servern.</value>
   </data>
-  <data name="It governs two kinds of stored secret. Those bound to this machine - the database password in hMailServer.INI, the SMTP relayer password, and the passwords, tokens and passphrases of routes, external fetch accounts, SSL certificates and the rest kept in the database - are put in a Windows DPAPI envelope when they are next saved, or in the legacy Blowfish scheme while this is switched off. The secrets in the [Settings] section - the SRS and BATV secrets, the OAuth2 secrets, the metrics bearer token and HTTP Basic password, the Windows service account password and the GSSAPI service password - and each account's second factor are sealed under the installation's stored-secrets key once it has one, at the next start and at every save; switched off, the next start stores them as written again. Only the password pepper is always stored as you typed it, so hMailServer.INI should still be readable only by Administrators and by the account the service runs as." xml:space="preserve">
-    <value>Den styr två slags lagrade hemligheter. De som är bundna till den här datorn - databaslösenordet i hMailServer.INI, SMTP-reläets lösenord, och lösenord, token och lösenfraser för rutter, externa hämtkonton, SSL-certifikat och resten som finns i databasen - läggs i ett Windows DPAPI-kuvert när de sparas nästa gång, eller i det äldre Blowfish-schemat medan detta är avstängt. Hemligheterna i avsnittet [Settings] - SRS- och BATV-hemligheterna, OAuth2-hemligheterna, mätvärdenas bearer-token och HTTP Basic-lösenord, Windows-tjänstekontots lösenord och GSSAPI-tjänstens lösenord - och varje kontos andra faktor förseglas under installationens nyckel för lagrade hemligheter när den har en, vid nästa start och vid varje sparning; avstängt lagrar nästa start dem som de skrevs igen. Bara lösenordspepparn lagras alltid som du skrev den, så hMailServer.INI bör fortfarande bara vara läsbar för Administratörer och för kontot tjänsten körs som.</value>
+  <data name="It governs two kinds of stored secret. Those bound to this machine - the database password in hMailServer.ini, the SMTP relayer password, and the passwords, tokens and passphrases of routes, external fetch accounts, SSL certificates and the rest kept in the database - are put in a Windows DPAPI envelope when they are next saved, or in the legacy Blowfish scheme while this is switched off. The secrets in the [Settings] section - the SRS and BATV secrets, the OAuth2 secrets, the metrics bearer token and HTTP Basic password, the Windows service account password and the GSSAPI service password - and each account's second factor are sealed under the installation's stored-secrets key once it has one, at the next start and at every save; switched off, the next start stores them as written again. Only the password pepper is always stored as you typed it, so hMailServer.ini should still be readable only by Administrators and by the account the service runs as." xml:space="preserve">
+    <value>Den styr två slags lagrade hemligheter. De som är bundna till den här datorn - databaslösenordet i hMailServer.ini, SMTP-reläets lösenord, och lösenord, token och lösenfraser för rutter, externa hämtkonton, SSL-certifikat och resten som finns i databasen - läggs i ett Windows DPAPI-kuvert när de sparas nästa gång, eller i det äldre Blowfish-schemat medan detta är avstängt. Hemligheterna i avsnittet [Settings] - SRS- och BATV-hemligheterna, OAuth2-hemligheterna, mätvärdenas bearer-token och HTTP Basic-lösenord, Windows-tjänstekontots lösenord och GSSAPI-tjänstens lösenord - och varje kontos andra faktor förseglas under installationens nyckel för lagrade hemligheter när den har en, vid nästa start och vid varje sparning; avstängt lagrar nästa start dem som de skrevs igen. Bara lösenordspepparn lagras alltid som du skrev den, så hMailServer.ini bör fortfarande bara vara läsbar för Administratörer och för kontot tjänsten körs som.</value>
   </data>
   <data name="It has no rua= tag, so nobody sends you reports - fine, but you learn nothing; add one when you have a mailbox for it." xml:space="preserve">
     <value>Den har ingen rua=-tagg, så ingen skickar dig rapporter - helt okej, men du lär dig ingenting; lägg till en när du har en brevlåda för den.</value>
@@ -7222,8 +7234,8 @@ Inget som redan finns där tas bort.</value>
   <data name="Mo_ve or rename..." xml:space="preserve">
     <value>Flytta eller byt _namn...</value>
   </data>
-  <data name="Mode and max_age read from hMailServer.INI on this machine." xml:space="preserve">
-    <value>Mode och max_age lästa från hMailServer.INI på den här datorn.</value>
+  <data name="Mode and max_age read from hMailServer.ini on this machine." xml:space="preserve">
+    <value>Mode och max_age lästa från hMailServer.ini på den här datorn.</value>
   </data>
   <data name="Monitoring" xml:space="preserve">
     <value>Övervakning</value>
@@ -7747,11 +7759,11 @@ Inget som redan finns där tas bort.</value>
   <data name="No listeners are configured." xml:space="preserve">
     <value>Inga lyssnare är konfigurerade.</value>
   </data>
-  <data name="No log folder could be read from hMailServer.INI on this machine." xml:space="preserve">
-    <value>Ingen loggmapp kunde läsas från hMailServer.INI på den här datorn.</value>
+  <data name="No log folder could be read from hMailServer.ini on this machine." xml:space="preserve">
+    <value>Ingen loggmapp kunde läsas från hMailServer.ini på den här datorn.</value>
   </data>
-  <data name="No log folder is configured in hMailServer.INI, so the server has nowhere to write the recovery report." xml:space="preserve">
-    <value>Ingen loggmapp är konfigurerad i hMailServer.INI, så servern har ingenstans att skriva återställningsrapporten.</value>
+  <data name="No log folder is configured in hMailServer.ini, so the server has nowhere to write the recovery report." xml:space="preserve">
+    <value>Ingen loggmapp är konfigurerad i hMailServer.ini, så servern har ingenstans att skriva återställningsrapporten.</value>
   </data>
   <data name="No match" xml:space="preserve">
     <value>Ingen träff</value>
@@ -8029,8 +8041,8 @@ Inget som redan finns där tas bort.</value>
   <data name="Not served" xml:space="preserve">
     <value>Serveras inte</value>
   </data>
-  <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
-    <value>Inte testat: den här konfigurationen skulle skicka ett lösenord över oskyddad LDAP med en enkel bindning, och AllowUnprotectedPassword är av - så servern avvisar varje inloggning under den, och det här testet vägrar sända något av samma skäl. Välj LDAPS eller StartTLS, eller bindningsmetoden Negotiate, eller tillåt uttryckligen det oskyddade lösenordet.</value>
+  <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and 'Allow sending the password over an unprotected connection' is off - so the server refuses every sign-in under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
+    <value>Inte testat: den här konfigurationen skulle skicka ett lösenord över oskyddad LDAP med en enkel bindning, och 'Tillåt att lösenordet skickas över en oskyddad anslutning' är av - så servern avvisar varje inloggning under den, och det här testet vägrar sända något av samma skäl. Välj LDAPS eller StartTLS, eller bindningsmetoden Negotiate, eller tillåt uttryckligen det oskyddade lösenordet.</value>
   </data>
   <data name="Not used" xml:space="preserve">
     <value>Används inte</value>
@@ -8095,8 +8107,8 @@ Inget som redan finns där tas bort.</value>
   <data name="Nothing is held. Quarantining is switched off: until it is turned on under Anti-spam settings, spam over the refuse threshold is refused during the SMTP conversation rather than stored." xml:space="preserve">
     <value>Inget hålls kvar. Karantän är avstängd: tills den slås på under Skräppostinställningar avvisas skräppost över avvisningströskeln under SMTP-sessionen i stället för att sparas.</value>
   </data>
-  <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.INI key." xml:space="preserve">
-    <value>Inget matchade "{0}". Prova det du försöker uppnå ("stoppa skräppost", "låt en enhet skicka post"), ett sidnamn, eller en hMailServer.INI-nyckel.</value>
+  <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.ini key." xml:space="preserve">
+    <value>Inget matchade "{0}". Prova det du försöker uppnå ("stoppa skräppost", "låt en enhet skicka post"), ett sidnamn, eller en hMailServer.ini-nyckel.</value>
   </data>
   <data name="Nothing needs action - all {0} external setup checks are done or not needed." xml:space="preserve">
     <value>Inget behöver åtgärdas - alla {0} kontroller av extern konfiguration är klara eller behövs inte.</value>
@@ -9396,8 +9408,8 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="Re-check the external prerequisites" xml:space="preserve">
     <value>Kontrollera de externa förutsättningarna på nytt</value>
   </data>
-  <data name="Re-read the LDAP settings from hMailServer.INI" xml:space="preserve">
-    <value>Läs om LDAP-inställningarna från hMailServer.INI</value>
+  <data name="Re-read the LDAP settings from hMailServer.ini" xml:space="preserve">
+    <value>Läs om LDAP-inställningarna från hMailServer.ini</value>
   </data>
   <data name="Re-read the anti-virus configuration from the server" xml:space="preserve">
     <value>Läs om antiviruskonfigurationen från servern</value>
@@ -9420,8 +9432,8 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="Re-read the transport security configuration from the server" xml:space="preserve">
     <value>Läs om transportsäkerhetskonfigurationen från servern</value>
   </data>
-  <data name="Re-read these settings from hMailServer.INI" xml:space="preserve">
-    <value>Läs om de här inställningarna från hMailServer.INI</value>
+  <data name="Re-read these settings from hMailServer.ini" xml:space="preserve">
+    <value>Läs om de här inställningarna från hMailServer.ini</value>
   </data>
   <data name="Re_lease" xml:space="preserve">
     <value>_Släpp</value>
@@ -9474,8 +9486,8 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="Read delivery reports that arrive for this server's senders" xml:space="preserve">
     <value>Läs leveransrapporter som kommer för den här serverns avsändare</value>
   </data>
-  <data name="Read from [Directories] LogFolder in hMailServer.INI, which is not readable from this machine - the Control Panel is running somewhere other than the server." xml:space="preserve">
-    <value>Läses från [Directories] LogFolder i hMailServer.INI, som inte går att läsa från den här datorn - Kontrollpanelen körs någon annanstans än på servern.</value>
+  <data name="Read from [Directories] LogFolder in hMailServer.ini, which is not readable from this machine - the Control Panel is running somewhere other than the server." xml:space="preserve">
+    <value>Läses från [Directories] LogFolder i hMailServer.ini, som inte går att läsa från den här datorn - Kontrollpanelen körs någon annanstans än på servern.</value>
   </data>
   <data name="Read from file" xml:space="preserve">
     <value>Läst från fil</value>
@@ -10233,8 +10245,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Retiring key" xml:space="preserve">
     <value>Nyckel under avveckling</value>
   </data>
-  <data name="Retr_y through Windows logon when the directory is unavailable (FallbackToWindowsLogon)" xml:space="preserve">
-    <value>Försök igen genom _Windows-inloggning när katalogen inte är tillgänglig (FallbackToWindowsLogon)</value>
+  <data name="Retr_y through Windows logon when the directory is unavailable" xml:space="preserve">
+    <value>Försök igen genom _Windows-inloggning när katalogen inte är tillgänglig</value>
   </data>
   <data name="Retried" xml:space="preserve">
     <value>Försökt igen</value>
@@ -10410,8 +10422,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Runs event scripts (OnAcceptMessage, OnDeliveryStart...) from the Events folder; the script itself is edited on the Event scripts page. The engine reloads when you save." xml:space="preserve">
     <value>Kör händelseskript (OnAcceptMessage, OnDeliveryStart...) från mappen Events; själva skriptet redigeras på sidan Händelseskript. Motorn laddas om när du sparar.</value>
   </data>
-  <data name="Runs hMailServer.exe /GrantServiceAccess as an administrator, after Windows asks: NT SERVICE\hMailServer is given Modify on the program folder's own Data, Logs, Temp and Database folders and on the folders an administrator has approved, and Read on the program folder - never hMailServer.INI. A folder the configuration names elsewhere, such as a backup or archive folder set later, is approved only after a question that names it; key files outside those folders are listed. It can be run again at any time, and removes nobody else's permission." xml:space="preserve">
-    <value>Kör hMailServer.exe /GrantServiceAccess som administratör, efter att Windows har frågat: NT SERVICE\hMailServer får Ändra på programmappens egna mappar Data, Logs, Temp och Database och på de mappar en administratör har godkänt, och Läsa på programmappen - aldrig på hMailServer.INI. En mapp som konfigurationen nämner någon annanstans, till exempel en säkerhetskopierings- eller arkivmapp som anges senare, godkänns först efter en fråga som nämner den; nyckelfiler utanför dessa mappar listas. Den kan köras igen när som helst och tar inte bort någons behörighet.</value>
+  <data name="Runs hMailServer.exe /GrantServiceAccess as an administrator, after Windows asks: NT SERVICE\hMailServer is given Modify on the program folder's own Data, Logs, Temp and Database folders and on the folders an administrator has approved, and Read on the program folder - never hMailServer.ini. A folder the configuration names elsewhere, such as a backup or archive folder set later, is approved only after a question that names it; key files outside those folders are listed. It can be run again at any time, and removes nobody else's permission." xml:space="preserve">
+    <value>Kör hMailServer.exe /GrantServiceAccess som administratör, efter att Windows har frågat: NT SERVICE\hMailServer får Ändra på programmappens egna mappar Data, Logs, Temp och Database och på de mappar en administratör har godkänt, och Läsa på programmappen - aldrig på hMailServer.ini. En mapp som konfigurationen nämner någon annanstans, till exempel en säkerhetskopierings- eller arkivmapp som anges senare, godkänns först efter en fråga som nämner den; nyckelfiler utanför dessa mappar listas. Den kan köras igen när som helst och tar inte bort någons behörighet.</value>
   </data>
   <data name="Runs the same steps the server runs, in the same order, using the values in the editors above as they stand: connect, protect the transport, bind the service credential, search for the user - and, only if a password is typed below, bind as that user to prove it. The password is used once and never stored, and the test refuses to run any configuration that would put a password on the network unprotected. One honest caveat: the test runs from this computer, so a firewall that treats this machine and the hMailServer service differently can make the two disagree." xml:space="preserve">
     <value>Kör samma steg som servern kör, i samma ordning, med värdena i redigerarna ovan som de står: anslut, skydda transporten, bind tjänsteuppgiften, sök efter användaren - och, bara om ett lösenord skrivs in nedan, bind som den användaren för att bevisa det. Lösenordet används en gång och lagras aldrig, och testet vägrar köra en konfiguration som skulle lägga ett lösenord oskyddat på nätverket. En ärlig reservation: testet körs från den här datorn, så en brandvägg som behandlar den här datorn och hMailServer-tjänsten olika kan få de två att vara oense.</value>
@@ -10614,8 +10626,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Save the DKIM private key" xml:space="preserve">
     <value>Spara den privata DKIM-nyckeln</value>
   </data>
-  <data name="Save the LDAP settings to hMailServer.INI" xml:space="preserve">
-    <value>Spara LDAP-inställningarna till hMailServer.INI</value>
+  <data name="Save the LDAP settings to hMailServer.ini" xml:space="preserve">
+    <value>Spara LDAP-inställningarna till hMailServer.ini</value>
   </data>
   <data name="Save the account and reopen it - a recovery address belongs to an account that exists." xml:space="preserve">
     <value>Spara kontot och öppna det igen - en återställningsadress hör till ett konto som finns.</value>
@@ -10647,11 +10659,11 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Spara lösenfrasen för det valda certifikatets privata nyckel</value>
   </data>
-  <data name="Save the selection to hMailServer.INI, then show what a synchronisation would do with it" xml:space="preserve">
-    <value>Spara urvalet i hMailServer.INI och visa sedan vad en synkronisering skulle göra med det</value>
+  <data name="Save the selection to hMailServer.ini, then show what a synchronisation would do with it" xml:space="preserve">
+    <value>Spara urvalet i hMailServer.ini och visa sedan vad en synkronisering skulle göra med det</value>
   </data>
-  <data name="Save these settings to hMailServer.INI" xml:space="preserve">
-    <value>Spara de här inställningarna till hMailServer.INI</value>
+  <data name="Save these settings to hMailServer.ini" xml:space="preserve">
+    <value>Spara de här inställningarna till hMailServer.ini</value>
   </data>
   <data name="Save this weak password anyway?" xml:space="preserve">
     <value>Spara det här svaga lösenordet ändå?</value>
@@ -10914,8 +10926,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Search accounts" xml:space="preserve">
     <value>Sök konton</value>
   </data>
-  <data name="Search bas_e (SearchBase)" xml:space="preserve">
-    <value>Sö_kbas (SearchBase)</value>
+  <data name="Search bas_e" xml:space="preserve">
+    <value>Sökb_as</value>
   </data>
   <data name="Search blocked attachment patterns" xml:space="preserve">
     <value>Sök mönster för blockerade bilagor</value>
@@ -10994,9 +11006,6 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>Sök, eller säg vad du vill göra - "stoppa skräppost", "blockera en IP"</value>
-  </data>
-  <data name="SearchBase (or UserDnTemplate, to bind directly without searching)" xml:space="preserve">
-    <value>SearchBase (eller UserDnTemplate, för att binda direkt utan att söka)</value>
   </data>
   <data name="Searched" xml:space="preserve">
     <value>Genomsökt</value>
@@ -11286,8 +11295,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Separately, this server sends such reports to other domains: its TLS report sender address is {0}, so its own reports go out." xml:space="preserve">
     <value>Separat skickar den här servern sådana rapporter till andra domäner: dess avsändaradress för TLS-rapporter är {0}, så dess egna rapporter går ut.</value>
   </data>
-  <data name="Serv_ice account password (ServicePassword)" xml:space="preserve">
-    <value>Tj_änstekontots lösenord (ServicePassword)</value>
+  <data name="Serv_ice account password" xml:space="preserve">
+    <value>Tj_änstekontots lösenord</value>
   </data>
   <data name="Serve MTA-STS policies for local domains" xml:space="preserve">
     <value>Servera MTA-STS-policyer för lokala domäner</value>
@@ -11379,8 +11388,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Service account (search mode only)" xml:space="preserve">
     <value>Tjänstekonto (bara sökläge)</value>
   </data>
-  <data name="Service account user _name (ServiceUsername)" xml:space="preserve">
-    <value>Tjänstekontots användar_namn (ServiceUsername)</value>
+  <data name="Service account user _name" xml:space="preserve">
+    <value>Tjänstekontots användar_namn</value>
   </data>
   <data name="Service credential accepted." xml:space="preserve">
     <value>Tjänsteuppgiften godtagen.</value>
@@ -11391,8 +11400,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Service start" xml:space="preserve">
     <value>Start av tjänsten</value>
   </data>
-  <data name="ServiceDomain {0}, and is shown here rather than offered for editing because the server reads the key and then never uses it: the service credential binds with ServiceUsername and ServicePassword alone. Put the domain in the user name instead (DOMAIN\name or a UPN)." xml:space="preserve">
-    <value>ServiceDomain {0}, och visas här snarare än erbjuds för redigering eftersom servern läser nyckeln och sedan aldrig använder den: tjänsteuppgiften binder enbart med ServiceUsername och ServicePassword. Sätt domänen i användarnamnet i stället (DOMÄN\namn eller ett UPN).</value>
+  <data name="ServiceDomain {0}, and is shown here rather than offered for editing because the server reads the key and then never uses it: the service credential binds with the service account user name and password alone. Put the domain in the user name instead (DOMAIN\name or a UPN)." xml:space="preserve">
+    <value>ServiceDomain {0}, och visas här snarare än erbjuds för redigering eftersom servern läser nyckeln och sedan aldrig använder den: tjänsteuppgiften binder enbart med tjänstekontots användarnamn och lösenord. Sätt domänen i användarnamnet i stället (DOMÄN\namn eller ett UPN).</value>
   </data>
   <data name="Services" xml:space="preserve">
     <value>Tjänster</value>
@@ -11703,8 +11712,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Simple bind - the password is sent to the directory (use with TLS)" xml:space="preserve">
     <value>Enkel bindning - lösenordet skickas till katalogen (använd med TLS)</value>
   </data>
-  <data name="Simple is the default. Negotiate runs an SSPI exchange (Kerberos, falling back to NTLM) that never transmits the password and signs the connection - it is the only method a default-configured modern domain controller accepts when it has no certificate installed, it needs no search, no SearchBase and no service account, and it works from a host that is not domain-joined." xml:space="preserve">
-    <value>Enkel är standard. Negotiate kör ett SSPI-utbyte (Kerberos, med reserv i NTLM) som aldrig sänder lösenordet och signerar anslutningen - det är den enda metod en standardkonfigurerad modern domänkontrollant godtar när den inte har något certifikat installerat, den behöver ingen sökning, ingen SearchBase och inget tjänstekonto, och den fungerar från en värd som inte är domänansluten.</value>
+  <data name="Simple is the default. Negotiate runs an SSPI exchange (Kerberos, falling back to NTLM) that never transmits the password and signs the connection - it is the only method a default-configured modern domain controller accepts when it has no certificate installed, it needs no search, no search base and no service account, and it works from a host that is not domain-joined." xml:space="preserve">
+    <value>Enkel är standard. Negotiate kör ett SSPI-utbyte (Kerberos, med reserv i NTLM) som aldrig sänder lösenordet och signerar anslutningen - det är den enda metod en standardkonfigurerad modern domänkontrollant godtar när den inte har något certifikat installerat, den behöver ingen sökning, ingen sökbas och inget tjänstekonto, och den fungerar från en värd som inte är domänansluten.</value>
   </data>
   <data name="Simultaneous connections (0 is unlimited)" xml:space="preserve">
     <value>Samtidiga anslutningar (0 är obegränsat)</value>
@@ -11856,9 +11865,6 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Specific addresses to rou_te" xml:space="preserve">
     <value>Specifika adresser att rou_ta</value>
   </data>
-  <data name="Split into first and last name, and only ever written to an account that has neither. A name typed here by an administrator is never overwritten by the directory." xml:space="preserve">
-    <value>Delas i förnamn och efternamn, och skrivs bara någonsin till ett konto som saknar båda. Ett namn en administratör skrivit här skrivs aldrig över av katalogen.</value>
-  </data>
   <data name="Sta_rt date" xml:space="preserve">
     <value>Sta_rtdatum</value>
   </data>
@@ -11957,6 +11963,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   </data>
   <data name="Store: " xml:space="preserve">
     <value>Lager: </value>
+  </data>
+  <data name="Stored as [LDAP] {0}." xml:space="preserve">
+    <value>Sparas som [LDAP] {0}.</value>
   </data>
   <data name="Stored in hMailServer.ini on the server. The token it buys is cached in memory until 80% of its lifetime has passed and refetched automatically." xml:space="preserve">
     <value>Lagras i hMailServer.ini på servern. Den token den köper cachas i minnet tills 80 % av dess livstid har gått och hämtas sedan om automatiskt.</value>
@@ -12785,8 +12794,8 @@ Markera nyckeln ovan och kopiera den för hand - den visas inte igen.</value>
   <data name="The consistency check is switched off, so no scan has run. Turn on 'Periodically cross-check message rows against files on disk' on the {0} page; the server then scans at start-up and hourly and writes {1}." xml:space="preserve">
     <value>Konsistenskontrollen är avstängd, så ingen genomsökning har körts. Slå på 'Stäm regelbundet av meddelanderader mot filer på disk' på sidan {0}; servern genomsöker då vid start och varje timme och skriver {1}.</value>
   </data>
-  <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page." xml:space="preserve">
-    <value>Motsvarigheten till ARC-försegling: på inkommande post kan en giltig ARC-kedja från en betrodd förseglare kvitta DMARC-felpoängen för ett meddelande vars DMARC-godkännande förstördes av vidarebefordran (RFC 8617). Det konfigureras på fliken Avsändaraut. på sidan Skräppostinställningar, eftersom det lagras med de andra skräppostinställningarna snarare än i hMailServer.INI. Med listan över betrodda förseglare tom gör funktionen ingenting alls, med avsikt: vem som helst kan fabricera en hel ARC-kedja och försegla den med nycklar publicerade i sin egen DNS, och den validerar perfekt, så en godkänd kedja bevisar ingenting om du inte redan litar på förseglaren. Listan är inte ett alternativ till funktionen - den är funktionen. Kvittningen överstiger aldrig DMARC-felpoängen, och gäller bara medan DMARC-poängsättning är aktiverad på sidan Skräppostinställningar.</value>
+  <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.ini. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page." xml:space="preserve">
+    <value>Motsvarigheten till ARC-försegling: på inkommande post kan en giltig ARC-kedja från en betrodd förseglare kvitta DMARC-felpoängen för ett meddelande vars DMARC-godkännande förstördes av vidarebefordran (RFC 8617). Det konfigureras på fliken Avsändaraut. på sidan Skräppostinställningar, eftersom det lagras med de andra skräppostinställningarna snarare än i hMailServer.ini. Med listan över betrodda förseglare tom gör funktionen ingenting alls, med avsikt: vem som helst kan fabricera en hel ARC-kedja och försegla den med nycklar publicerade i sin egen DNS, och den validerar perfekt, så en godkänd kedja bevisar ingenting om du inte redan litar på förseglaren. Listan är inte ett alternativ till funktionen - den är funktionen. Kvittningen överstiger aldrig DMARC-felpoängen, och gäller bara medan DMARC-poängsättning är aktiverad på sidan Skräppostinställningar.</value>
   </data>
   <data name="The current password counts as the most recent one, so setting a password to itself is refused too - the repeat somebody is most likely to try." xml:space="preserve">
     <value>Det nuvarande lösenordet räknas som det senaste, så att sätta ett lösenord till sig självt avvisas också - den upprepning någon mest troligt provar.</value>
@@ -13102,8 +13111,8 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   <data name="The key store was not found, so there is nothing to revoke." xml:space="preserve">
     <value>Nyckellagret hittades inte, så det finns inget att återkalla.</value>
   </data>
-  <data name="The key store's location is not known from here. It sits beside hMailServer.INI, which is found through this machine's registry and service table - so keys can only be managed from the server itself, not from a Control Panel connected to another host." xml:space="preserve">
-    <value>Nyckellagrets plats är inte känd härifrån. Det ligger bredvid hMailServer.INI, som hittas genom den här datorns register och tjänstetabell - så nycklar kan bara hanteras från själva servern, inte från en Kontrollpanel ansluten till en annan värd.</value>
+  <data name="The key store's location is not known from here. It sits beside hMailServer.ini, which is found through this machine's registry and service table - so keys can only be managed from the server itself, not from a Control Panel connected to another host." xml:space="preserve">
+    <value>Nyckellagrets plats är inte känd härifrån. Det ligger bredvid hMailServer.ini, som hittas genom den här datorns register och tjänstetabell - så nycklar kan bara hanteras från själva servern, inte från en Kontrollpanel ansluten till en annan värd.</value>
   </data>
   <data name="The keys that work on every page, and the keys of a list" xml:space="preserve">
     <value>Tangenterna som fungerar på varje sida, och tangenterna i en lista</value>
@@ -13243,8 +13252,8 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   <data name="The old selector was retired." xml:space="preserve">
     <value>Den gamla selektorn avvecklades.</value>
   </data>
-  <data name="The other way to reach a DN: set this and the server skips the search - and with it the need for a SearchBase and a service account. A UPN works against Active Directory. Same %u, %d, %m placeholders, escaped for a distinguished name." xml:space="preserve">
-    <value>Det andra sättet att nå ett DN: sätt detta så hoppar servern över sökningen - och med den behovet av en SearchBase och ett tjänstekonto. Ett UPN fungerar mot Active Directory. Samma platshållare %u, %d, %m, escapade för ett distinguished name.</value>
+  <data name="The other way to reach a DN: set this and the server skips the search - and with it the need for a search base and a service account. A UPN works against Active Directory. Same %u, %d, %m placeholders, escaped for a distinguished name." xml:space="preserve">
+    <value>Det andra sättet att nå ett DN: sätt detta så hoppar servern över sökningen - och med den behovet av en sökbas och ett tjänstekonto. Ett UPN fungerar mot Active Directory. Samma platshållare %u, %d, %m, escapade för ett distinguished name.</value>
   </data>
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>Översikten namnger de arrangemang som tyst gör ingenting - en nolltröskel, en tröskel ingen aktiverad kontroll kan nå, en kontroll som ger noll poäng.</value>
@@ -13440,8 +13449,8 @@ Lägg till det ändå?</value>
   <data name="The saved schedule takes effect when the service restarts: the server is still running the one it started with." xml:space="preserve">
     <value>Det sparade schemat gäller när tjänsten startas om: servern kör fortfarande med det schema den startades med.</value>
   </data>
-  <data name="The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
-    <value>Genomsökningsresultatet går bara att läsa på serverdatorn - hMailServer.INI hittades inte här. Servern publicerar samma tal som mätvärdet hmailserver_messagestore_missing_files.</value>
+  <data name="The scan result is only readable on the server machine - hMailServer.ini was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
+    <value>Genomsökningsresultatet går bara att läsa på serverdatorn - hMailServer.ini hittades inte här. Servern publicerar samma tal som mätvärdet hmailserver_messagestore_missing_files.</value>
   </data>
   <data name="The schedule and the retention are stored in hMailServer.ini on the server." xml:space="preserve">
     <value>Schemat och lagringstiden lagras i hMailServer.ini på servern.</value>
@@ -13458,8 +13467,8 @@ Lägg till det ändå?</value>
   <data name="The search looks at the {0} most recent changes of the {1} in the trail." xml:space="preserve">
     <value>Sökningen tittar på de {0} senaste ändringarna av de {1} i loggen.</value>
   </data>
-  <data name="The search matched MORE than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make UserSearchFilter or SearchBase select exactly one entry." xml:space="preserve">
-    <value>Sökningen matchade MER än en katalogpost (filter {0}, bas {1}). Servern vägrar autentisera mot en tvetydig träff - få UserSearchFilter eller SearchBase att välja exakt en post.</value>
+  <data name="The search matched more than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make the user search filter or the search base select exactly one entry." xml:space="preserve">
+    <value>Sökningen matchade mer än en katalogpost (filter {0}, bas {1}). Servern vägrar autentisera mot en tvetydig träff - få sökfiltret för användare eller sökbasen att välja exakt en post.</value>
   </data>
   <data name="The search matched nothing (filter {0} under {1}). As a logon this is a refusal, not an outage - check the user name against the account's Windows directory tab, and the filter and search base against the directory." xml:space="preserve">
     <value>Sökningen matchade ingenting (filter {0} under {1}). Som inloggning är detta en avvisning, inte ett avbrott - kontrollera användarnamnet mot kontots flik Windows-katalog, och filtret och sökbasen mot katalogen.</value>
@@ -13840,8 +13849,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="These are counts of the first {0} accounts only; this page stops there rather than making you wait for the rest." xml:space="preserve">
     <value>Detta är antal för bara de första {0} kontona; den här sidan stannar där i stället för att låta dig vänta på resten.</value>
   </data>
-  <data name="These are read by the server from the [LDAP] section of hMailServer.INI, and re-read within two seconds of a save, so no restart is needed. The defaults suit Active Directory; a directory that is not Windows will not have sAMAccountName and needs the attribute names changed." xml:space="preserve">
-    <value>De här läses av servern från sektionen [LDAP] i hMailServer.INI, och läses om inom två sekunder efter att de sparats, så ingen omstart behövs. Standardvärdena passar Active Directory; en katalog som inte är Windows saknar sAMAccountName och behöver attributnamnen ändrade.</value>
+  <data name="These are read by the server from the [LDAP] section of hMailServer.ini, and re-read within two seconds of a save, so no restart is needed. The defaults suit Active Directory; a directory that is not Windows will not have sAMAccountName and needs the attribute names changed." xml:space="preserve">
+    <value>De här läses av servern från sektionen [LDAP] i hMailServer.ini, och läses om inom två sekunder efter att de sparats, så ingen omstart behövs. Standardvärdena passar Active Directory; en katalog som inte är Windows saknar sAMAccountName och behöver attributnamnen ändrade.</value>
   </data>
   <data name="These are the ports the server listens on. The submission port, 587, is the one your own people send through." xml:space="preserve">
     <value>Detta är portarna som servern lyssnar på. Submission-porten, 587, är den som ditt eget folk skickar genom.</value>
@@ -13954,8 +13963,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="This page reads an expiry only in the form YYYY-MM-DD HH:MM:SS, so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>Den här sidan läser en utgångstid bara i formen YYYY-MM-DD HH:MM:SS, så om servern fortfarande godtar den här nyckeln kan inte avgöras härifrån. Om raden redigerats för hand, rätta den; annars, återkalla nyckeln och skapa en ersättning.</value>
   </data>
-  <data name="This page used to collect every hMailServer.INI value without a home, which meant it was filed by where the value is stored rather than by what it does - and where a value is stored is the one thing you never need to know. Each of these now sits with the rest of its own feature. Nothing was removed and no value changed; only the page it is edited on." xml:space="preserve">
-    <value>Den här sidan brukade samla varje värde i hMailServer.INI utan hem, vilket betydde att det sorterades efter var värdet lagras snarare än efter vad det gör - och var ett värde lagras är det enda du aldrig behöver veta. Vart och ett av dessa sitter nu med resten av sin egen funktion. Inget togs bort och inget värde ändrades; bara sidan det redigeras på.</value>
+  <data name="This page used to collect every hMailServer.ini value without a home, which meant it was filed by where the value is stored rather than by what it does - and where a value is stored is the one thing you never need to know. Each of these now sits with the rest of its own feature. Nothing was removed and no value changed; only the page it is edited on." xml:space="preserve">
+    <value>Den här sidan brukade samla varje värde i hMailServer.ini utan hem, vilket betydde att det sorterades efter var värdet lagras snarare än efter vad det gör - och var ett värde lagras är det enda du aldrig behöver veta. Vart och ett av dessa sitter nu med resten av sin egen funktion. Inget togs bort och inget värde ändrades; bara sidan det redigeras på.</value>
   </data>
   <data name="This panel can compare RSA and ECDSA keys; this key parses as neither, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
     <value>Den här panelen kan jämföra RSA- och ECDSA-nycklar; den här nyckeln tolkas som ingendera, så om den matchar certifikatet bevisas först när servern läser in paret.</value>
@@ -14089,8 +14098,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Time" xml:space="preserve">
     <value>Tid</value>
   </data>
-  <data name="Time_out in seconds (TimeoutSeconds)" xml:space="preserve">
-    <value>Tids_gräns i sekunder (TimeoutSeconds)</value>
+  <data name="Time_out in seconds" xml:space="preserve">
+    <value>Tids_gräns i sekunder</value>
   </data>
   <data name="Timed out looking up {0}. Check the name, and that this machine can reach a DNS server." xml:space="preserve">
     <value>Tidsgränsen nåddes vid uppslagning av {0}. Kontrollera namnet, och att den här datorn kan nå en DNS-server.</value>
@@ -14419,8 +14428,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Used when “Deliver to all addresses” is off." xml:space="preserve">
     <value>Används när ”Leverera till alla adresser” är avstängt.</value>
   </data>
-  <data name="User _DN template (UserDnTemplate)" xml:space="preserve">
-    <value>Användarens _DN-mall (UserDnTemplate)</value>
+  <data name="User _DN template" xml:space="preserve">
+    <value>Användarens _DN-mall</value>
   </data>
   <data name="User name" xml:space="preserve">
     <value>Användarnamn</value>
@@ -14428,8 +14437,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="User name to _look up" xml:space="preserve">
     <value>Användarnamn att s_lå upp</value>
   </data>
-  <data name="User search _filter (UserSearchFilter)" xml:space="preserve">
-    <value>Sök_filter för användare (UserSearchFilter)</value>
+  <data name="User search _filter" xml:space="preserve">
+    <value>Sök_filter för användare</value>
   </data>
   <data name="VAPID private key, to bring the pair from another server (leave empty to keep current)" xml:space="preserve">
     <value>Privat VAPID-nyckel, för att ta med paret från en annan server (lämna tomt för att behålla nuvarande)</value>
@@ -14623,8 +14632,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="What a takeover-shaped submission does" xml:space="preserve">
     <value>Vad en inlämning som ser ut som ett övertagande gör</value>
   </data>
-  <data name="What an account of its own changes. hMailServer.INI is read-only to it, on purpose: the administrator password, its second factor, the folders and the database are changed as the Control Panel says when you try, and settings are kept in the database as always. A folder set later outside the program folder - a backup or archive folder - is reached once Grant access approves it. An account other than NT SERVICE\hMailServer is set in services.msc and needs the &quot;Log on as a service&quot; right; an external database with Windows authentication needs a login for it. A service that cannot log on reports error 1069 in the Windows event log and does not start." xml:space="preserve">
-    <value>Vad ett eget konto ändrar. hMailServer.INI är skrivskyddad för det, med avsikt: administratörslösenordet, dess andra faktor, mapparna och databasen ändras så som Kontrollpanel säger när du försöker, och inställningar sparas i databasen som alltid. En mapp som anges senare utanför programmappen - en säkerhetskopierings- eller arkivmapp - nås så snart Ge åtkomst godkänner den. Ett annat konto än NT SERVICE\hMailServer anges i services.msc och behöver rättigheten "Logga in som tjänst"; en extern databas med Windows-autentisering behöver en inloggning för det. En tjänst som inte kan logga in rapporterar fel 1069 i Windows händelselogg och startar inte.</value>
+  <data name="What an account of its own changes. hMailServer.ini is read-only to it, on purpose: the administrator password, its second factor, the folders and the database are changed as the Control Panel says when you try, and settings are kept in the database as always. A folder set later outside the program folder - a backup or archive folder - is reached once Grant access approves it. An account other than NT SERVICE\hMailServer is set in services.msc and needs the &quot;Log on as a service&quot; right; an external database with Windows authentication needs a login for it. A service that cannot log on reports error 1069 in the Windows event log and does not start." xml:space="preserve">
+    <value>Vad ett eget konto ändrar. hMailServer.ini är skrivskyddad för det, med avsikt: administratörslösenordet, dess andra faktor, mapparna och databasen ändras så som Kontrollpanel säger när du försöker, och inställningar sparas i databasen som alltid. En mapp som anges senare utanför programmappen - en säkerhetskopierings- eller arkivmapp - nås så snart Ge åtkomst godkänner den. Ett annat konto än NT SERVICE\hMailServer anges i services.msc och behöver rättigheten "Logga in som tjänst"; en extern databas med Windows-autentisering behöver en inloggning för det. En tjänst som inte kan logga in rapporterar fel 1069 i Windows händelselogg och startar inte.</value>
   </data>
   <data name="What can be negotiated" xml:space="preserve">
     <value>Vad som kan förhandlas</value>
@@ -14881,11 +14890,14 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Which addresses may connect, which may relay without authenticating, and which must authenticate first." xml:space="preserve">
     <value>Vilka adresser som får ansluta, vilka som får reläa utan att autentisera, och vilka som måste autentisera först.</value>
   </data>
-  <data name="Which attribute holds the mailbox address. proxyAddresses is understood: its scheme prefix is removed and the primary SMTP: value is preferred over the lower-case aliases." xml:space="preserve">
-    <value>Vilket attribut som innehåller brevlådans adress. proxyAddresses förstås: dess schemaprefix tas bort och det primära SMTP:-värdet föredras framför aliasen med gemener.</value>
+  <data name="Which attribute holds the mailbox address - mail when left empty. proxyAddresses is understood: its scheme prefix is removed and the primary SMTP: value is preferred over the lower-case aliases." xml:space="preserve">
+    <value>Vilket attribut som innehåller brevlådans adress - mail när fältet lämnas tomt. proxyAddresses förstås: dess schemaprefix tas bort och det primära SMTP:-värdet föredras framför aliasen med gemener.</value>
   </data>
-  <data name="Which attribute holds the name the person logs in with. This is what is stored against the account and what the directory is asked about at every logon afterwards, so guessing it from the address is not good enough - an entry that does not carry it is reported rather than provisioned." xml:space="preserve">
-    <value>Vilket attribut som innehåller namnet personen loggar in med. Det är vad som lagras på kontot och vad katalogen frågas om vid varje inloggning efteråt, så att gissa det från adressen är inte gott nog - en post som inte bär det rapporteras i stället för att provisioneras.</value>
+  <data name="Which attribute holds the name the person signs in with - sAMAccountName when left empty. This is what is stored against the account and what the directory is asked about at every sign-in afterwards, so guessing it from the address is not good enough - an entry that does not carry it is reported rather than provisioned." xml:space="preserve">
+    <value>Vilket attribut som innehåller namnet personen loggar in med - sAMAccountName när fältet lämnas tomt. Det är vad som lagras på kontot och vad katalogen frågas om vid varje inloggning efteråt, så att gissa det från adressen är inte gott nog - en post som inte bär det rapporteras i stället för att provisioneras.</value>
+  </data>
+  <data name="Which attribute holds the person's name - displayName when left empty. It is split into first and last name and only ever written to an account that has neither, so a name an administrator typed is never overwritten by the directory." xml:space="preserve">
+    <value>Vilket attribut som innehåller personens namn - displayName när fältet lämnas tomt. Det delas i förnamn och efternamn och skrivs bara till ett konto som saknar båda, så ett namn en administratör har skrivit skrivs aldrig över av katalogen.</value>
   </data>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>Vilka katalogposter som blir brevlådor</value>
@@ -15085,8 +15097,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Write the message first: an empty one is not sent." xml:space="preserve">
     <value>Skriv meddelandet först: ett tomt meddelande skickas inte.</value>
   </data>
-  <data name="Write-only: a stored password is never shown here again - leave the box blank to keep it. It is stored as plain text in hMailServer.INI on the server, because the server has to present it to the directory verbatim and so cannot hash it; restrict file access to the INI accordingly. It only ever leaves the server over the transport configured above." xml:space="preserve">
-    <value>Bara skrivbart: ett sparat lösenord visas aldrig här igen - lämna rutan tom för att behålla det. Det lagras i klartext i hMailServer.INI på servern, eftersom servern måste visa upp det ordagrant för katalogen och därför inte kan hasha det; begränsa filåtkomsten till INI-filen därefter. Det lämnar bara någonsin servern över transporten som konfigurerats ovan.</value>
+  <data name="Write-only: a stored password is never shown here again - leave the box blank to keep it. It is stored as plain text in hMailServer.ini on the server, because the server has to present it to the directory verbatim and so cannot hash it; restrict file access to the INI accordingly. It only ever leaves the server over the transport configured above." xml:space="preserve">
+    <value>Bara skrivbart: ett sparat lösenord visas aldrig här igen - lämna rutan tom för att behålla det. Det lagras i klartext i hMailServer.ini på servern, eftersom servern måste visa upp det ordagrant för katalogen och därför inte kan hasha det; begränsa filåtkomsten till INI-filen därefter. Det lämnar bara någonsin servern över transporten som konfigurerats ovan.</value>
   </data>
   <data name="Writes the conditions an operator alerts on - database unavailable, a listener that would not start, a crash, a failed backup, the disk floor - to the Windows Application log, where Event Viewer, monitoring agents and SIEM collectors can see them. Each condition has an event id of its own that does not change, so an alert can match on it; a healthy server writes nothing at all. Protocol traffic and routine logging never go here - a mail server that logs every session to the Application log gets itself uninstalled." xml:space="preserve">
     <value>Skriver de tillstånd en operatör larmar på - databasen otillgänglig, en lyssnare som inte startade, en krasch, en misslyckad säkerhetskopiering, diskgolvet - till Windows programlogg, där Loggboken, övervakningsagenter och SIEM-insamlare kan se dem. Varje tillstånd har ett eget händelse-ID som inte ändras, så att ett larm kan matcha på det; en frisk server skriver ingenting alls. Protokolltrafik och rutinloggning går aldrig hit - en e-postserver som loggar varje session till programloggen får sig själv avinstallerad.</value>
@@ -15184,8 +15196,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="_Allow sender…" xml:space="preserve">
     <value>_Tillåt avsändare…</value>
   </data>
-  <data name="_Allow sending the password over an unprotected connection (AllowUnprotectedPassword)" xml:space="preserve">
-    <value>Tillåt att lösenordet skickas över en osk_yddad anslutning (AllowUnprotectedPassword)</value>
+  <data name="_Allow sending the password over an unprotected connection" xml:space="preserve">
+    <value>Tillåt att lösenordet skickas över en osk_yddad anslutning</value>
   </data>
   <data name="_Append a disclaimer to mail leaving the organisation" xml:space="preserve">
     <value>_Lägg till en ansvarsfriskrivning på post som lämnar organisationen</value>
@@ -15214,8 +15226,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="_Bind address (0.0.0.0)" xml:space="preserve">
     <value>_Bindningsadress (0.0.0.0)</value>
   </data>
-  <data name="_Bind method (BindMethod)" xml:space="preserve">
-    <value>_Bindningsmetod (BindMethod)</value>
+  <data name="_Bind method" xml:space="preserve">
+    <value>_Bindningsmetod</value>
   </data>
   <data name="_Block and delete" xml:space="preserve">
     <value>_Blockera och ta bort</value>
@@ -15264,9 +15276,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="_Connection security" xml:space="preserve">
     <value>Anslutningssä_kerhet</value>
-  </data>
-  <data name="_Connection security (Security)" xml:space="preserve">
-    <value>_Anslutningssäkerhet (Security)</value>
   </data>
   <data name="_Copy" xml:space="preserve">
     <value>_Kopiera</value>
@@ -15895,8 +15904,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="_Upper IP address" xml:space="preserve">
     <value>Ö_vre IP-adress</value>
   </data>
-  <data name="_Use LDAP directory authentication (Enabled)" xml:space="preserve">
-    <value>Använd LDAP-katalogaut_entisering (Enabled)</value>
+  <data name="_Use LDAP directory authentication" xml:space="preserve">
+    <value>Använd LDAP-katalogaut_entisering</value>
   </data>
   <data name="_User name" xml:space="preserve">
     <value>A_nvändarnamn</value>
@@ -15919,8 +15928,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="_Verify the chain" xml:space="preserve">
     <value>_Verifiera kedjan</value>
   </data>
-  <data name="_Verify the directory server's certificate (VerifyCertificate)" xml:space="preserve">
-    <value>Verifiera katalogserverns _certifikat (VerifyCertificate)</value>
+  <data name="_Verify the directory server's certificate" xml:space="preserve">
+    <value>Verifiera katalogserverns _certifikat</value>
   </data>
   <data name="_View source" xml:space="preserve">
     <value>_Visa källa</value>
@@ -15949,8 +15958,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="a symbol" xml:space="preserve">
     <value>ett specialtecken</value>
   </data>
-  <data name="a trust file hMailServer.INI names may be changed by someone other than the administrators" xml:space="preserve">
-    <value>en förtroendefil som hMailServer.INI nämner kan ändras av någon annan än administratörerna</value>
+  <data name="a trust file hMailServer.ini names may be changed by someone other than the administrators" xml:space="preserve">
+    <value>en förtroendefil som hMailServer.ini nämner kan ändras av någon annan än administratörerna</value>
   </data>
   <data name="a value of its own is needed, or untick it to take the level above." xml:space="preserve">
     <value>ett eget värde behövs, eller avmarkera den för att ta nivån ovanför.</value>
@@ -16003,17 +16012,17 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="base64url of the P-256 key; the public half is worked out from it. Every subscription made under the old pair stops working." xml:space="preserve">
     <value>base64url för P-256-nyckeln; den publika halvan räknas fram ur den. Varje prenumeration under det gamla paret slutar fungera.</value>
   </data>
-  <data name="binding anonymously to search for the user (set ServiceUsername)" xml:space="preserve">
-    <value>binder anonymt för att söka efter användaren (sätt ServiceUsername)</value>
+  <data name="binding anonymously to search for the user (set the service account user name)" xml:space="preserve">
+    <value>binder anonymt för att söka efter användaren (ange tjänstekontots användarnamn)</value>
   </data>
   <data name="binding as the user" xml:space="preserve">
     <value>binder som användaren</value>
   </data>
-  <data name="binding with the configured ServiceUsername" xml:space="preserve">
-    <value>binder med det konfigurerade ServiceUsername</value>
+  <data name="binding with the configured service account user name" xml:space="preserve">
+    <value>binder med tjänstekontots konfigurerade användarnamn</value>
   </data>
-  <data name="binding with the configured ServiceUsername - no ServicePassword is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
-    <value>binder med det konfigurerade ServiceUsername - inget ServicePassword är sparat eller inskrivet, och ett tomt lösenord avvisas innan det skickas</value>
+  <data name="binding with the configured service account user name - no service account password is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
+    <value>binder med tjänstekontots konfigurerade användarnamn - inget lösenord för tjänstekontot är sparat eller inskrivet, och ett tomt lösenord avvisas innan det skickas</value>
   </data>
   <data name="block an ip" xml:space="preserve">
     <value>blockera en ip</value>
@@ -16131,6 +16140,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="dotted line" xml:space="preserve">
     <value>prickad linje</value>
+  </data>
+  <data name="e.g. {0}" xml:space="preserve">
+    <value>t.ex. {0}</value>
   </data>
   <data name="enforce - senders that honour MTA-STS deliver only over valid TLS to the hosts listed" xml:space="preserve">
     <value>enforce - avsändare som följer MTA-STS levererar bara över giltig TLS till de angivna värdarna</value>
@@ -16252,27 +16264,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="hMailServer {0} was not installed: {1}. hMailServer {2} is still running, unchanged. The installer's log: {3}" xml:space="preserve">
     <value>hMailServer {0} installerades inte: {1}. hMailServer {2} körs fortfarande, oförändrad. Installationsprogrammets logg: {3}</value>
   </data>
-  <data name="hMailServer.INI cannot be reached from this computer, so these selections cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
-    <value>hMailServer.INI kan inte nås från den här datorn, så de här valen kan inte redigeras här. Förhandsgranska och Tillämpa fungerar ändå: de körs inne i servern.</value>
-  </data>
-  <data name="hMailServer.INI was not found on this machine, so its settings cannot be read from here." xml:space="preserve">
-    <value>hMailServer.INI hittades inte på den här datorn, så dess inställningar kan inte läsas härifrån.</value>
-  </data>
-  <data name="hMailServer.INI was not found on this machine, so mode and max_age shown are the shipped defaults." xml:space="preserve">
-    <value>hMailServer.INI hittades inte på den här datorn, så mode och max_age som visas är standardvärdena vid leverans.</value>
-  </data>
-  <data name="hMailServer.INI was not found on this machine, so the key store's location is unknown. API keys can only be managed from the server itself." xml:space="preserve">
-    <value>hMailServer.INI hittades inte på den här datorn, så nyckellagrets plats är okänd. API-nycklar kan bara hanteras från själva servern.</value>
-  </data>
-  <data name="hMailServer.INI was not found on this machine." xml:space="preserve">
-    <value>hMailServer.INI hittades inte på den här datorn.</value>
-  </data>
-  <data name="hMailServer.INI was not found on this machine. These settings can only be edited on the server itself." xml:space="preserve">
-    <value>hMailServer.INI hittades inte på den här datorn. De här inställningarna kan bara redigeras på själva servern.</value>
-  </data>
-  <data name="hMailServer.INI was not found on this machine. These settings can only be edited on the server itself; the connection test still works with the values typed here." xml:space="preserve">
-    <value>hMailServer.INI hittades inte på den här datorn. De här inställningarna kan bara redigeras på själva servern; anslutningstestet fungerar ändå med värdena som skrivs in här.</value>
-  </data>
   <data name="hMailServer.exe /GrantServiceAccess did not finish its work (exit code {0}):&#10;&#10;{1}" xml:space="preserve">
     <value>hMailServer.exe /GrantServiceAccess slutförde inte sitt arbete (slutkod {0}):
 
@@ -16289,11 +16280,32 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="hMailServer.ini and the log folder belong to the administrators from 6.3.6, so this Control Panel may not read them. Close it and start it with Run as administrator to see the live log." xml:space="preserve">
     <value>hMailServer.ini och loggmappen tillhör från 6.3.6 administratörerna, så den här kontrollpanelen får inte läsa dem. Stäng den och starta den med Kör som administratör för att se direktloggen.</value>
   </data>
+  <data name="hMailServer.ini cannot be reached from this computer, so these selections cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
+    <value>hMailServer.ini kan inte nås från den här datorn, så de här valen kan inte redigeras här. Förhandsgranska och Tillämpa fungerar ändå: de körs inne i servern.</value>
+  </data>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>hMailServer.ini kunde inte läsas: {0} Från 6.3.6 tillhör filen administratörerna. Stäng kontrollpanelen och starta den med Kör som administratör för att se och ändra de här inställningarna.</value>
   </data>
+  <data name="hMailServer.ini was not found on this machine, so its settings cannot be read from here." xml:space="preserve">
+    <value>hMailServer.ini hittades inte på den här datorn, så dess inställningar kan inte läsas härifrån.</value>
+  </data>
+  <data name="hMailServer.ini was not found on this machine, so mode and max_age shown are the shipped defaults." xml:space="preserve">
+    <value>hMailServer.ini hittades inte på den här datorn, så mode och max_age som visas är standardvärdena vid leverans.</value>
+  </data>
+  <data name="hMailServer.ini was not found on this machine, so the key store's location is unknown. API keys can only be managed from the server itself." xml:space="preserve">
+    <value>hMailServer.ini hittades inte på den här datorn, så nyckellagrets plats är okänd. API-nycklar kan bara hanteras från själva servern.</value>
+  </data>
   <data name="hMailServer.ini was not found on this machine, so this can only be changed on the server itself." xml:space="preserve">
     <value>hMailServer.ini hittades inte på den här datorn, så den här inställningen kan bara ändras på själva servern.</value>
+  </data>
+  <data name="hMailServer.ini was not found on this machine." xml:space="preserve">
+    <value>hMailServer.ini hittades inte på den här datorn.</value>
+  </data>
+  <data name="hMailServer.ini was not found on this machine. These settings can only be edited on the server itself." xml:space="preserve">
+    <value>hMailServer.ini hittades inte på den här datorn. De här inställningarna kan bara redigeras på själva servern.</value>
+  </data>
+  <data name="hMailServer.ini was not found on this machine. These settings can only be edited on the server itself; the connection test still works with the values typed here." xml:space="preserve">
+    <value>hMailServer.ini hittades inte på den här datorn. De här inställningarna kan bara redigeras på själva servern; anslutningstestet fungerar ändå med värdena som skrivs in här.</value>
   </data>
   <data name="header '{0}'" xml:space="preserve">
     <value>rubriken '{0}'</value>
@@ -16700,8 +16712,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="testing - senders deliver as before and report what would have failed" xml:space="preserve">
     <value>testing - avsändare levererar som tidigare och rapporterar vad som skulle ha misslyckats</value>
   </data>
-  <data name="the Control Panel is connected to '{0}'; hMailServer.INI and files on disk can only be inspected on the server machine itself." xml:space="preserve">
-    <value>Kontrollpanelen är ansluten till '{0}'; hMailServer.INI och filer på disk kan bara inspekteras på själva serverdatorn.</value>
+  <data name="the Control Panel is connected to '{0}'; hMailServer.ini and files on disk can only be inspected on the server machine itself." xml:space="preserve">
+    <value>Kontrollpanelen är ansluten till '{0}'; hMailServer.ini och filer på disk kan bara inspekteras på själva serverdatorn.</value>
   </data>
   <data name="the account has expired" xml:space="preserve">
     <value>kontot har gått ut</value>
@@ -16721,8 +16733,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="the certificate" xml:space="preserve">
     <value>certifikatet</value>
   </data>
-  <data name="the configured UserSearchFilter is not a valid LDAP filter" xml:space="preserve">
-    <value>det konfigurerade UserSearchFilter är inte ett giltigt LDAP-filter</value>
+  <data name="the configured user search filter is not a valid LDAP filter" xml:space="preserve">
+    <value>det konfigurerade sökfiltret för användare är inte ett giltigt LDAP-filter</value>
   </data>
   <data name="the connecting address is one of the sender domain's A or MX records" xml:space="preserve">
     <value>den anslutande adressen är en av avsändardomänens A- eller MX-poster</value>
@@ -16757,8 +16769,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="the engine's score" xml:space="preserve">
     <value>motorns poäng</value>
   </data>
-  <data name="the entry does not exist (check SearchBase, or UserDnTemplate)" xml:space="preserve">
-    <value>posten finns inte (kontrollera SearchBase, eller UserDnTemplate)</value>
+  <data name="the entry does not exist (check the search base, or the user DN template)" xml:space="preserve">
+    <value>posten finns inte (kontrollera sökbasen, eller användarens DN-mall)</value>
   </data>
   <data name="the entry's score" xml:space="preserve">
     <value>postens poäng</value>

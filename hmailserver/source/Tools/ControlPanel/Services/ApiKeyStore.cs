@@ -278,7 +278,7 @@ namespace hMailServer.ControlPanel.Services
          {
             return new CreateResult
             {
-               Error = L("hMailServer.INI was not found on this machine, so the key store's location is unknown. API keys can only be managed from the server itself.")
+               Error = L("hMailServer.ini was not found on this machine, so the key store's location is unknown. API keys can only be managed from the server itself.")
             };
          }
 

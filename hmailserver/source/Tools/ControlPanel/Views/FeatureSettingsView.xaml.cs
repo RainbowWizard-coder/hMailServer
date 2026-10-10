@@ -959,7 +959,7 @@ namespace hMailServer.ControlPanel.Views
          public static void WriteValue(string iniPath, string section, string key, string value)
          {
             if (string.IsNullOrEmpty(iniPath))
-               throw new InvalidOperationException("hMailServer.INI was not found on this machine.");
+               throw new InvalidOperationException("hMailServer.ini was not found on this machine.");
             ProfileApi.WriteString(section, key, value, iniPath);
          }
 
@@ -975,7 +975,7 @@ namespace hMailServer.ControlPanel.Views
          public static void WriteSectionLines(string iniPath, string section, IReadOnlyList<string> lines)
          {
             if (string.IsNullOrEmpty(iniPath))
-               throw new InvalidOperationException("hMailServer.INI was not found on this machine.");
+               throw new InvalidOperationException("hMailServer.ini was not found on this machine.");
             ProfileApi.WriteSectionLines(section, lines, iniPath);
          }
       }
@@ -2138,7 +2138,7 @@ namespace hMailServer.ControlPanel.Views
                   // could not be edited at all, which stopped being true the moment the COM
                   // properties landed; a card that describes a limitation the product no
                   // longer has is the same defect as one that claims a feature it lacks.
-                  Blurb = L("The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page.")
+                  Blurb = L("The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.ini. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page.")
                });
                cards_.Add(new CardDef
                {
@@ -2992,7 +2992,7 @@ namespace hMailServer.ControlPanel.Views
                         Key = "ProtectStoredSecretsWithDPAPI",
                         Default = true,
                         Label = L("Protect stored secrets with Windows DPAPI"),
-                        Blurb = L("It governs two kinds of stored secret. Those bound to this machine - the database password in hMailServer.INI, the SMTP relayer password, and the passwords, tokens and passphrases of routes, external fetch accounts, SSL certificates and the rest kept in the database - are put in a Windows DPAPI envelope when they are next saved, or in the legacy Blowfish scheme while this is switched off. The secrets in the [Settings] section - the SRS and BATV secrets, the OAuth2 secrets, the metrics bearer token and HTTP Basic password, the Windows service account password and the GSSAPI service password - and each account's second factor are sealed under the installation's stored-secrets key once it has one, at the next start and at every save; switched off, the next start stores them as written again. Only the password pepper is always stored as you typed it, so hMailServer.INI should still be readable only by Administrators and by the account the service runs as.")
+                        Blurb = L("It governs two kinds of stored secret. Those bound to this machine - the database password in hMailServer.ini, the SMTP relayer password, and the passwords, tokens and passphrases of routes, external fetch accounts, SSL certificates and the rest kept in the database - are put in a Windows DPAPI envelope when they are next saved, or in the legacy Blowfish scheme while this is switched off. The secrets in the [Settings] section - the SRS and BATV secrets, the OAuth2 secrets, the metrics bearer token and HTTP Basic password, the Windows service account password and the GSSAPI service password - and each account's second factor are sealed under the installation's stored-secrets key once it has one, at the next start and at every save; switched off, the next start stores them as written again. Only the password pepper is always stored as you typed it, so hMailServer.ini should still be readable only by Administrators and by the account the service runs as.")
                      }
                   }
                });
@@ -3020,7 +3020,7 @@ namespace hMailServer.ControlPanel.Views
                         ButtonText = L("Grant access…"),
                         AutomationId = "ServiceAccountGrant",
                         Label = L("Folders the service account needs"),
-                        Blurb = L("Runs hMailServer.exe /GrantServiceAccess as an administrator, after Windows asks: NT SERVICE\\hMailServer is given Modify on the program folder's own Data, Logs, Temp and Database folders and on the folders an administrator has approved, and Read on the program folder - never hMailServer.INI. A folder the configuration names elsewhere, such as a backup or archive folder set later, is approved only after a question that names it; key files outside those folders are listed. It can be run again at any time, and removes nobody else's permission.")
+                        Blurb = L("Runs hMailServer.exe /GrantServiceAccess as an administrator, after Windows asks: NT SERVICE\\hMailServer is given Modify on the program folder's own Data, Logs, Temp and Database folders and on the folders an administrator has approved, and Read on the program folder - never hMailServer.ini. A folder the configuration names elsewhere, such as a backup or archive folder set later, is approved only after a question that names it; key files outside those folders are listed. It can be run again at any time, and removes nobody else's permission.")
                      },
                      new ServiceAccountActionSetting
                      {
@@ -3063,7 +3063,7 @@ namespace hMailServer.ControlPanel.Views
                            return new WarningState
                            {
                               Level = StatusLevel.Information,
-                              Text = L("What an account of its own changes. hMailServer.INI is read-only to it, on purpose: the administrator password, its second factor, the folders and the database are changed as the Control Panel says when you try, and settings are kept in the database as always. A folder set later outside the program folder - a backup or archive folder - is reached once Grant access approves it. An account other than NT SERVICE\\hMailServer is set in services.msc and needs the \"Log on as a service\" right; an external database with Windows authentication needs a login for it. A service that cannot log on reports error 1069 in the Windows event log and does not start.")
+                              Text = L("What an account of its own changes. hMailServer.ini is read-only to it, on purpose: the administrator password, its second factor, the folders and the database are changed as the Control Panel says when you try, and settings are kept in the database as always. A folder set later outside the program folder - a backup or archive folder - is reached once Grant access approves it. An account other than NT SERVICE\\hMailServer is set in services.msc and needs the \"Log on as a service\" right; an external database with Windows authentication needs a login for it. A service that cannot log on reports error 1069 in the Windows event log and does not start.")
                            };
                         }
                      }
@@ -3072,7 +3072,7 @@ namespace hMailServer.ControlPanel.Views
                cards_.Add(new CardDef
                {
                   Title = L("Settings that used to be on this page"),
-                  Blurb = L("This page used to collect every hMailServer.INI value without a home, which meant it was filed by where the value is stored rather than by what it does - and where a value is stored is the one thing you never need to know. Each of these now sits with the rest of its own feature. Nothing was removed and no value changed; only the page it is edited on."),
+                  Blurb = L("This page used to collect every hMailServer.ini value without a home, which meant it was filed by where the value is stored rather than by what it does - and where a value is stored is the one thing you never need to know. Each of these now sits with the rest of its own feature. Nothing was removed and no value changed; only the page it is edited on."),
                   Settings =
                   {
                      new ElsewhereSetting("antispam", L("Greylisting record expiration, and SpamAssassin move-vs-copy")),
@@ -3101,7 +3101,7 @@ namespace hMailServer.ControlPanel.Views
                   {
                      new BoolSetting { Key = "OAuth2Enabled", Default = false, Label = L("Accept OAuth2 bearer tokens (XOAUTH2)"), Blurb = L("While this is off the server uses none of the settings below, so they cannot be changed until it is on.") },
                      new BoolSetting { Key = "OAuth2RequireTLS", DependsOn = OAuth2Switch, Default = true, Label = L("Require TLS for token authentication") },
-                     new TextSetting { Key = "OAuth2Issuer", DependsOn = OAuth2Switch, Label = L("Expected token issuer (iss)"), Placeholder = "https://login.microsoftonline.com/<tenant>/v2.0" },
+                     new TextSetting { Key = "OAuth2Issuer", DependsOn = OAuth2Switch, Label = L("Expected token issuer (iss)"), Placeholder = ExamplePlaceholder.Of("https://login.microsoftonline.com/<tenant>/v2.0") }, // no-loc: an example issuer, the same in every language
                      new TextSetting { Key = "OAuth2Audience", DependsOn = OAuth2Switch, Label = L("Expected audience (aud)"), Placeholder = L("your application / client id") },
                      new TextSetting { Key = "OAuth2AllowedAlgorithms", DependsOn = OAuth2Switch, Default = "RS256", Label = L("Allowed signing algorithms (comma separated)"), Placeholder = "RS256, ES256" }, // no-loc
                      new TextSetting { Key = "OAuth2UsernameClaim", DependsOn = OAuth2Switch, Default = "email", Label = L("Claim that holds the mailbox address"), Placeholder = "email" },
@@ -3357,7 +3357,7 @@ namespace hMailServer.ControlPanel.Views
          if (!store_.IsAvailable)
          {
             SetState_(SettingsPageState.Unavailable,
-               L("hMailServer.INI was not found on this machine. These settings can only be edited on the server itself."));
+               L("hMailServer.ini was not found on this machine. These settings can only be edited on the server itself."));
             PathText.Visibility = Visibility.Collapsed;
             SaveButton.IsEnabled = false;
             return;

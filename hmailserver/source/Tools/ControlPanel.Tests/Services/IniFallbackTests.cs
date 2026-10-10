@@ -111,7 +111,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("L(\"Stored in the server's settings database.\")", build, StringComparison.Ordinal);
          Assert.DoesNotContain("Editing {0}", source, StringComparison.Ordinal);
 
-         Assert.Empty(Regex.Matches(source, @"Header\.Subtitle = L\(""[^""]*\(hMailServer\.INI\)").Select(m => m.Value));
+         Assert.Empty(Regex.Matches(source, @"(?i)Header\.Subtitle = L\(""[^""]*\(hMailServer\.ini\)").Select(m => m.Value));
       }
 
       /// <summary>

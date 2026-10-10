@@ -507,8 +507,8 @@ namespace hMailServer.ControlPanel.Services
          IniFeatureStore ini = local ? new IniFeatureStore() : null;
          bool iniReadable = ini != null && ini.IsAvailable;
          string iniExcuse = local
-            ? L("hMailServer.INI was not found on this machine, so its settings cannot be read from here.")
-            : F("the Control Panel is connected to '{0}'; hMailServer.INI and files on disk can only be inspected on the server machine itself.", (ServerSession.Current != null ? ServerSession.Current.Host : "?"));
+            ? L("hMailServer.ini was not found on this machine, so its settings cannot be read from here.")
+            : F("the Control Panel is connected to '{0}'; hMailServer.ini and files on disk can only be inspected on the server machine itself.", (ServerSession.Current != null ? ServerSession.Current.Host : "?"));
 
          List<DomainDkim> domains = ReadDomains();
 
@@ -970,7 +970,7 @@ namespace hMailServer.ControlPanel.Services
             // reading the value's length. Only emptiness is tested; the value is
             // never read into the UI.
             item.Add(SetupItemState.ActionNeeded,
-               L("A service account password from an earlier version is stored in hMailServer.INI in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.INI with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too."));
+               L("A service account password from an earlier version is stored in hMailServer.ini in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.ini with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too."));
          }
 
          item.AggregateFromFindings();

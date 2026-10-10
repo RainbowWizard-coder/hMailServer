@@ -397,13 +397,13 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          Assert.Matches(new Regex(@"pathText_\.Text = editable \? F\(""Editing \{0\}"", store_\.IniPath\) : null;"), load);
          Assert.Contains("pathText_.Visibility = editable ? Visibility.Visible : Visibility.Collapsed;", load, StringComparison.Ordinal);
-         Assert.Matches(new Regex(@"saveState_\.Settle\(SettingsPageState\.Unavailable,\s*L\(""hMailServer\.INI cannot be reached from this computer, so these selections cannot be edited here\."), load);
+         Assert.Matches(new Regex(@"saveState_\.Settle\(SettingsPageState\.Unavailable,\s*L\(""hMailServer\.ini cannot be reached from this computer, so these selections cannot be edited here\."), load);
          Assert.Matches(new Regex(@"else if \(denied_ != null\)\s*saveState_\.Settle\(SettingsPageState\.Unavailable, null\);"), load);
          Assert.DoesNotContain("these selections are not shown", load, StringComparison.Ordinal);
 
          // Directory authentication, which this page now matches.
          string ldap = WithheldRowTests.MemberText(ReadControlPanelFile("Views/LdapSettingsView.cs"), "private void Load_()");
-         Assert.True(ldap != null && ldap.Contains("saveState_.Settle(SettingsPageState.Unavailable, L(\"hMailServer.INI was not found on this machine.", StringComparison.Ordinal),
+         Assert.True(ldap != null && ldap.Contains("saveState_.Settle(SettingsPageState.Unavailable, L(\"hMailServer.ini was not found on this machine.", StringComparison.Ordinal),
             "Directory authentication no longer says why it cannot edit in its notice.");
       }
 

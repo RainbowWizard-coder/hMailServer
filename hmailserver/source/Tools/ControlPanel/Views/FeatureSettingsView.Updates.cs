@@ -415,7 +415,7 @@ namespace hMailServer.ControlPanel.Views
       private static IEnumerable<string> ReadTrustFiles_(string installation)
       {
          var files = new List<string>();
-         string ini = System.IO.Path.Combine(installation, "Bin", "hMailServer.INI");
+         string ini = System.IO.Path.Combine(installation, "Bin", "hMailServer.ini");
          foreach (string key in new[] { "UpdateTrustRootsFile", "UpdateLogPublicKeyFile" }) // no-loc: setting names
          {
             string value = ProfileApi.ReadString("Settings", key, "", ini, 4096); // no-loc: the section's name

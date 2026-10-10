@@ -176,6 +176,7 @@ LOCALISED = {
    "Services/SettingsSearchIndex.cs",
    "Views/StalledMailView.cs",
    "Views/ControlDeckLink.cs",
+   "Views/ExamplePlaceholder.cs",
    "Services/ControlDeck.cs",
    "Views/ProfilesView.cs",
    "Views/UtilityViews.cs",

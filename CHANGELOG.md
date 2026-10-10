@@ -3093,6 +3093,23 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   every page that says a failure. `DomainsFailureWordsTests` holds the prefixes, the handlers and DescribeComError's
   catalogue.
 
+- **Fixed: the hMailServer.ini pages spelt the file two ways, Directory authentication captioned its fields with their
+  keys, and example placeholders read as values.** Subtitles, card blurbs, the buttons' help and the notices said
+  "hMailServer.INI" above a line that said "Editing C:\...\hMailServer.ini", the file's own name as the server makes
+  it; every text, message, search alias and path now says hMailServer.ini. Directory authentication (LDAP)'s captions
+  carried their keys in brackets - "Directory server host name (Server)", "Use LDAP directory authentication
+  (Enabled)", in Japanese and Chinese with the Alt key after the bracket - and its state card listed keys, "the
+  section is also missing: Server, SearchBase (or UserDnTemplate, to bind directly without searching)". The captions
+  are plain, each field's hint ends with the key, "Stored as [LDAP] Server.", the card says what is missing in a whole
+  sentence by the fields' captions, "Before enabling, fill in Directory server host name.", and the texts that named a
+  key - "AllowUnprotectedPassword is off", "set ServiceUsername", "make UserSearchFilter or SearchBase select exactly
+  one entry" - name the field. The page's example placeholders and the Authentication page's token issuer say they are
+  examples, "e.g. dc01.example.local", where in the light theme they read as values, the host name's directly under
+  the notice that it was missing; Directory synchronisation's attribute boxes and its entry ceiling say in their hints
+  the default an empty box stands for, as well as in grey. `IniPagesWordingTests` holds the file's name in every text
+  and string, the captions, the keys in the hints, the missing sentences and the placeholders, and
+  `SettingNamesInTextTests` reads the two [LDAP] pages' keys.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

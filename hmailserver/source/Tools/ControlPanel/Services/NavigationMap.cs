@@ -1068,7 +1068,7 @@ namespace hMailServer.ControlPanel.Services
                // bookmark and remembered path still arrives here.
                Page("hardening", N("Server limits & expert settings"),
                   N("Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - the PROXY protocol and XCLIENT, per-account sending limits and the event-script timeout among them."),
-                  aliases: "Advanced INI settings|Advanced hardening|INI settings|hMailServer.INI|Registry|Undocumented|Expert settings|Everything else|" +
+                  aliases: "Advanced INI settings|Advanced hardening|INI settings|hMailServer.ini|Registry|Undocumented|Expert settings|Everything else|" +
                            "Timeouts|Queue bounds|Sending limits|Rate limit|Throttle|fsync|Durability|DPAPI|Received headers|mailer-daemon|" +
                            "PROXY protocol|HAProxy|XCLIENT|Front-end proxy|Sending limits per account|Per-account limits|Script timeout",
                   seeAlso: "advanced|performance|backup")),

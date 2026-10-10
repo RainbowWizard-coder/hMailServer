@@ -387,8 +387,8 @@
   <data name="A backup destination - until one is set there is no backup" xml:space="preserve">
     <value>一个备份目标 - 在设置目标之前没有备份</value>
   </data>
-  <data name="A ceiling on one pass, so a search base pointed one level too high cannot be answered by reading an entire forest. If it is hit, the run says so and disables nothing at all - beyond the limit, an entry that exists is indistinguishable from one that was deleted." xml:space="preserve">
-    <value>对单次遍历的上限，这样即使搜索基准点设得高了一层，也不会靠读取整片林来完成。一旦触及该上限，本次运行会予以说明，并且不会禁用任何内容 - 超出上限之后，存在的条目与已被删除的条目无从区分。</value>
+  <data name="A ceiling on one pass - 5000 when left empty - so a search base pointed one level too high cannot be answered by reading an entire forest. If it is hit, the run says so and disables nothing at all - beyond the limit, an entry that exists is indistinguishable from one that was deleted." xml:space="preserve">
+    <value>对单次遍历的上限（留空时为 5000），这样即使搜索基准点设得高了一层，也不会靠读取整片林来完成。一旦触及该上限，本次运行会予以说明，并且不会禁用任何内容 - 超出上限之后，存在的条目与已被删除的条目无从区分。</value>
   </data>
   <data name="A certificate has been issued into {0}, but its expiry could not be read: {1}" xml:space="preserve">
     <value>已向 {0} 颁发证书，但无法读取它的到期时间：{1}</value>
@@ -675,8 +675,8 @@
   <data name="A separate password for one mail client. Losing a laptop then means revoking one line here, rather than changing the account password and reconfiguring every other client." xml:space="preserve">
     <value>供一个邮件客户端单独使用的密码。这样，丢失一台笔记本电脑只需在此撤销一行，而不必更改账户密码并重新配置其他所有客户端。</value>
   </data>
-  <data name="A service account password from an earlier version is stored in hMailServer.INI in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.INI with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
-    <value>早期版本的服务账户密码以明文形式保存在 hMailServer.INI 中，而且已不再被任何程序读取：服务由安装程序或“Windows 服务账户”卡片上的按钮注册，Windows 会自行保存每个密码的副本。请用以管理员身份运行的编辑器从 hMailServer.INI 中删除 ServiceAccountPassword 行，并用 DELETE /api/v1/settings/ini/ServiceAccountPassword 删除该设置，使数据库中的副本也一并删除。</value>
+  <data name="A service account password from an earlier version is stored in hMailServer.ini in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.ini with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
+    <value>早期版本的服务账户密码以明文形式保存在 hMailServer.ini 中，而且已不再被任何程序读取：服务由安装程序或“Windows 服务账户”卡片上的按钮注册，Windows 会自行保存每个密码的副本。请用以管理员身份运行的编辑器从 hMailServer.ini 中删除 ServiceAccountPassword 行，并用 DELETE /api/v1/settings/ini/ServiceAccountPassword 删除该设置，使数据库中的副本也一并删除。</value>
   </data>
   <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender in the spam exemptions, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
     <value>以 HELO 192.0.2.7、HELO [192.0.2.7] 或 HELO localhost 问候、或发送 MAIL FROM:&lt;user@192.0.2.7&gt; 的会话，没有为自己给出任何名称，它发送的邮件会被暂扣或计分，却没有任何可据以列入名单的依据。关闭时，服务器像以往一样接受它。开启时，在运行反垃圾邮件测试之前，于 MAIL FROM 阶段回应 550 5.7.1：带或不带方括号的地址、单个标签、co.uk 这样的公共后缀，以及任何不是主机名的内容都会被拒绝，而 mail.co.uk 是名称。不查询 DNS；后缀来自 Public Suffix List，即隔离区分组所用的列表。只评判来自运行反垃圾邮件测试的 IP 范围的未认证会话，且在 AUTH 有机会完成之后进行；绝不评判反垃圾邮件豁免中的发件人，也绝不评判 HELO 属于您自己网关的传入中继。</value>
@@ -927,8 +927,8 @@
   <data name="Accounts in the group {0}" xml:space="preserve">
     <value>组 {0} 中的账户</value>
   </data>
-  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
-    <value>标记为目录关联的账户，通过 LDAP 绑定使用其域密码登录 - 与 Windows 登录不同，这在未加入域的主机上同样有效，而这正是 DMZ 中的邮件服务器的常见情形。它会修改 hMailServer.INI 的 [LDAP] 节；服务器会在保存后两秒内重新读取该节，因此这些设置无需重启服务。</value>
+  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.ini; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
+    <value>标记为目录关联的账户，通过 LDAP 绑定使用其域密码登录 - 与 Windows 登录不同，这在未加入域的主机上同样有效，而这正是 DMZ 中的邮件服务器的常见情形。它会修改 hMailServer.ini 的 [LDAP] 节；服务器会在保存后两秒内重新读取该节，因此这些设置无需重启服务。</value>
   </data>
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Windows directory tab tick 'Check this password against Windows (Active Directory, or a local Windows account)' and fill in 'Windows user name' - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>标记为目录关联的账户。这一半功能已经存在于本界面中：打开“域”，编辑该账户，在其“Windows 目录”选项卡上勾选“对照 Windows 检查此密码（Active Directory 或本地 Windows 账户）”并填写“Windows 用户名” - 也就是 sAMAccountName，%u 携带的正是它。没有该标记的账户继续使用普通的 hMailServer 密码，永远不会访问目录。</value>
@@ -1326,8 +1326,8 @@
   <data name="After the body has been received — a refusal here is a 554" xml:space="preserve">
     <value>在正文接收完毕之后 — 此处的拒绝是 554</value>
   </data>
-  <data name="Against {0} over {1}. Set ServiceUsername (and its password), or switch to a UserDnTemplate or the Negotiate bind method, neither of which searches at all." xml:space="preserve">
-    <value>在 {1} 上针对 {0} 进行。请设置 ServiceUsername（及其密码），或者改用 UserDnTemplate 或 Negotiate 绑定方式，这两者都完全不进行搜索。</value>
+  <data name="Against {0} over {1}. Set the service account user name (and its password), or switch to a user DN template or the Negotiate bind method, neither of which searches at all." xml:space="preserve">
+    <value>在 {1} 上针对 {0} 进行。请设置服务账户用户名（及其密码），或者改用用户 DN 模板或 Negotiate 绑定方式，这两者都完全不进行搜索。</value>
   </data>
   <data name="Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990" xml:space="preserve">
     <value>本服务器发送的汇总报告架构：1 = RFC 7489 附录 C，2 = RFC 9990</value>
@@ -2119,8 +2119,14 @@
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>/metrics 的持有者令牌（留空 = 无）</value>
   </data>
-  <data name="Before enabling, the section is also missing: {0}." xml:space="preserve">
-    <value>在启用之前，还缺少该节：{0}。</value>
+  <data name="Before enabling, fill in Directory server host name and Search base, or User DN template to bind without searching." xml:space="preserve">
+    <value>启用之前，请填写目录服务器主机名和搜索基准，或者填写用户 DN 模板以便不经搜索直接绑定。</value>
+  </data>
+  <data name="Before enabling, fill in Directory server host name." xml:space="preserve">
+    <value>启用之前，请填写目录服务器主机名。</value>
+  </data>
+  <data name="Before enabling, fill in Search base, or User DN template to bind without searching." xml:space="preserve">
+    <value>启用之前，请填写搜索基准，或者填写用户 DN 模板以便不经搜索直接绑定。</value>
   </data>
   <data name="Before you copy: {0}" xml:space="preserve">
     <value>在复制之前：{0}</value>
@@ -2377,11 +2383,11 @@
   <data name="Cannot tell from here - the server's domain list could not be read, so which domains are linked to a directory is unknown. That is a connection problem rather than a configuration one." xml:space="preserve">
     <value>无法从此处判断 - 无法读取服务器的域列表，因此不知道哪些域关联了目录。这是连接问题，而不是配置问题。</value>
   </data>
-  <data name="Cannot tell from here. hMailServer.INI is not reachable from this computer, so the [LDAP] section cannot be read - and it is that section, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
-    <value>无法从此处判断。从本计算机无法访问 hMailServer.INI，因此无法读取 [LDAP] 节 - 而决定能否运行的正是该节，而不是本页上的任何内容。请按“预览”：它在服务器内部运行，会准确说明缺少什么（如果确有缺少）。</value>
-  </data>
   <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>无法从这里判断。无法读取 hMailServer.ini，而决定能否运行的是该文件的 [LDAP] 节，而不是此页面上的任何内容。请按“预览”：它在服务器内运行，并会准确说明缺少什么（如果有的话）。</value>
+  </data>
+  <data name="Cannot tell from here. hMailServer.ini is not reachable from this computer, so the [LDAP] section cannot be read - and it is that section, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
+    <value>无法从此处判断。从本计算机无法访问 hMailServer.ini，因此无法读取 [LDAP] 节 - 而决定能否运行的正是该节，而不是本页上的任何内容。请按“预览”：它在服务器内部运行，会准确说明缺少什么（如果确有缺少）。</value>
   </data>
   <data name="Cannot tell from here: hMailServer.ini could not be read, and it is the [LDAP] section of that file which decides. Start the Control Panel as administrator to see it." xml:space="preserve">
     <value>无法从这里判断：无法读取 hMailServer.ini，而起决定作用的正是该文件的 [LDAP] 节。请以管理员身份启动控制面板以查看。</value>
@@ -2422,8 +2428,8 @@
   <data name="Certificate output folder (empty = Data\ACME)" xml:space="preserve">
     <value>证书输出文件夹（留空 = Data\ACME）</value>
   </data>
-  <data name="Certificate validation was DISABLED for this test, matching VerifyCertificate=0." xml:space="preserve">
-    <value>此次测试已禁用证书验证，与 VerifyCertificate=0 一致。</value>
+  <data name="Certificate validation was off for this test, as 'Verify the directory server's certificate' is off." xml:space="preserve">
+    <value>由于“验证目录服务器的证书”已关闭，此次测试未验证证书。</value>
   </data>
   <data name="Certificate: {0}" xml:space="preserve">
     <value>证书：{0}</value>
@@ -2860,8 +2866,8 @@
   <data name="Connected server: hMailServer {0} @ {1}" xml:space="preserve">
     <value>已连接的服务器：hMailServer {0} @ {1}</value>
   </data>
-  <data name="Connected to a remote server: hMailServer.INI cannot be read from here, so mode and max_age shown are the shipped defaults." xml:space="preserve">
-    <value>已连接到远程服务器：无法从此处读取 hMailServer.INI，因此显示的 mode 和 max_age 是出厂默认值。</value>
+  <data name="Connected to a remote server: hMailServer.ini cannot be read from here, so mode and max_age shown are the shipped defaults." xml:space="preserve">
+    <value>已连接到远程服务器：无法从此处读取 hMailServer.ini，因此显示的 mode 和 max_age 是出厂默认值。</value>
   </data>
   <data name="Connected to another host, so whether these ports are being listened on cannot be read from here - open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>已连接到另一台主机，因此无法从此处读取这些端口是否正在被监听 - 请在服务器本机上打开控制面板查看。</value>
@@ -4178,8 +4184,8 @@
   <data name="Directory server" xml:space="preserve">
     <value>目录服务器</value>
   </data>
-  <data name="Directory server _host name (Server)" xml:space="preserve">
-    <value>目录服务器主机名(_H)（Server）</value>
+  <data name="Directory server _host name" xml:space="preserve">
+    <value>目录服务器主机名(_H)</value>
   </data>
   <data name="Directory synchronisation" xml:space="preserve">
     <value>目录同步</value>
@@ -4594,8 +4600,14 @@
   <data name="Enabled" xml:space="preserve">
     <value>已启用</value>
   </data>
-  <data name="Enabled but not configured: {0} is not set." xml:space="preserve">
-    <value>已启用但未配置：{0} 未设置。</value>
+  <data name="Enabled but not configured: Directory server host name and Search base are empty." xml:space="preserve">
+    <value>已启用但未配置：目录服务器主机名和搜索基准为空。</value>
+  </data>
+  <data name="Enabled but not configured: Directory server host name is empty." xml:space="preserve">
+    <value>已启用但未配置：目录服务器主机名为空。</value>
+  </data>
+  <data name="Enabled but not configured: Search base is empty, and a simple bind without a user DN template searches under it." xml:space="preserve">
+    <value>已启用但未配置：搜索基准为空，而没有用户 DN 模板的简单绑定会在其下搜索。</value>
   </data>
   <data name="Enabled once &quot;Check&quot; has confirmed the published record carries this key's public key." xml:space="preserve">
     <value>在“检查”确认已发布的记录带有此密钥的公钥后启用。</value>
@@ -4858,8 +4870,8 @@
   <data name="Evaluate DMARC policies" xml:space="preserve">
     <value>评估 DMARC 策略</value>
   </data>
-  <data name="Evaluated from the values in the editors on this page, saved or not. The server applies the same checks to what is actually saved in hMailServer.INI." xml:space="preserve">
-    <value>根据本页编辑器中的值评估，无论是否已保存。服务器会对实际保存在 hMailServer.INI 中的内容应用同样的检查。</value>
+  <data name="Evaluated from the values in the editors on this page, saved or not. The server applies the same checks to what is actually saved in hMailServer.ini." xml:space="preserve">
+    <value>根据本页编辑器中的值评估，无论是否已保存。服务器会对实际保存在 hMailServer.ini 中的内容应用同样的检查。</value>
   </data>
   <data name="Evaluates the From: domain's DMARC policy, using its own SPF and DKIM results." xml:space="preserve">
     <value>使用自己的 SPF 和 DKIM 结果评估 From: 域的 DMARC 策略。</value>
@@ -4897,8 +4909,8 @@
   <data name="Events are kept {0} days." xml:space="preserve">
     <value>事件保留 {0} 天。</value>
   </data>
-  <data name="Every LDAP logon will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and AllowUnprotectedPassword is off." xml:space="preserve">
-    <value>所有 LDAP 登录都将被拒绝：未受保护的 LDAP 配合简单绑定会以明文发送密码，而 AllowUnprotectedPassword 已关闭。</value>
+  <data name="Every LDAP sign-in will be refused: unprotected LDAP with a simple bind would send passwords in the clear, and 'Allow sending the password over an unprotected connection' is off." xml:space="preserve">
+    <value>所有 LDAP 登录都将被拒绝：未受保护的 LDAP 配合简单绑定会以明文发送密码，而“允许通过未受保护的连接发送密码”已关闭。</value>
   </data>
   <data name="Every account on this server is a member of this group already." xml:space="preserve">
     <value>此服务器上的所有账户都已是此组的成员。</value>
@@ -6135,8 +6147,8 @@
   <data name="Issues and renews certificates automatically, but only if the certificate authority can fetch the http-01 challenge from this server." xml:space="preserve">
     <value>自动颁发和续期证书，但前提是证书颁发机构能够从本服务器获取 http-01 质询。</value>
   </data>
-  <data name="It governs two kinds of stored secret. Those bound to this machine - the database password in hMailServer.INI, the SMTP relayer password, and the passwords, tokens and passphrases of routes, external fetch accounts, SSL certificates and the rest kept in the database - are put in a Windows DPAPI envelope when they are next saved, or in the legacy Blowfish scheme while this is switched off. The secrets in the [Settings] section - the SRS and BATV secrets, the OAuth2 secrets, the metrics bearer token and HTTP Basic password, the Windows service account password and the GSSAPI service password - and each account's second factor are sealed under the installation's stored-secrets key once it has one, at the next start and at every save; switched off, the next start stores them as written again. Only the password pepper is always stored as you typed it, so hMailServer.INI should still be readable only by Administrators and by the account the service runs as." xml:space="preserve">
-    <value>它管理两类存储的机密。绑定到这台计算机的机密 - hMailServer.INI 中的数据库密码、SMTP 中继服务器密码，以及路由、外部收取账户、SSL 证书和数据库中其余内容的密码、令牌和密码短语 - 在下次保存时放入 Windows DPAPI 封装，关闭此项时则使用旧的 Blowfish 方案。[Settings] 部分中的机密 - SRS 和 BATV 机密、OAuth2 机密、指标持有者令牌和 HTTP Basic 密码、Windows 服务账户密码以及 GSSAPI 服务密码 - 和每个账户的第二因素，在安装拥有存储机密密钥后，于下次启动时和每次保存时用该密钥密封；关闭此项后，下次启动会再次按原样存储它们。只有密码 pepper 始终按您输入的原样存储，因此 hMailServer.INI 仍应只允许 Administrators 和服务运行所用的账户读取。</value>
+  <data name="It governs two kinds of stored secret. Those bound to this machine - the database password in hMailServer.ini, the SMTP relayer password, and the passwords, tokens and passphrases of routes, external fetch accounts, SSL certificates and the rest kept in the database - are put in a Windows DPAPI envelope when they are next saved, or in the legacy Blowfish scheme while this is switched off. The secrets in the [Settings] section - the SRS and BATV secrets, the OAuth2 secrets, the metrics bearer token and HTTP Basic password, the Windows service account password and the GSSAPI service password - and each account's second factor are sealed under the installation's stored-secrets key once it has one, at the next start and at every save; switched off, the next start stores them as written again. Only the password pepper is always stored as you typed it, so hMailServer.ini should still be readable only by Administrators and by the account the service runs as." xml:space="preserve">
+    <value>它管理两类存储的机密。绑定到这台计算机的机密 - hMailServer.ini 中的数据库密码、SMTP 中继服务器密码，以及路由、外部收取账户、SSL 证书和数据库中其余内容的密码、令牌和密码短语 - 在下次保存时放入 Windows DPAPI 封装，关闭此项时则使用旧的 Blowfish 方案。[Settings] 部分中的机密 - SRS 和 BATV 机密、OAuth2 机密、指标持有者令牌和 HTTP Basic 密码、Windows 服务账户密码以及 GSSAPI 服务密码 - 和每个账户的第二因素，在安装拥有存储机密密钥后，于下次启动时和每次保存时用该密钥密封；关闭此项后，下次启动会再次按原样存储它们。只有密码 pepper 始终按您输入的原样存储，因此 hMailServer.ini 仍应只允许 Administrators 和服务运行所用的账户读取。</value>
   </data>
   <data name="It has no rua= tag, so nobody sends you reports - fine, but you learn nothing; add one when you have a mailbox for it." xml:space="preserve">
     <value>其中没有 rua= 标记，因此不会有人向您发送报告 - 这没有问题，但您也无从了解情况；等您有了接收报告的邮箱，再加上一个。</value>
@@ -7222,8 +7234,8 @@
   <data name="Mo_ve or rename..." xml:space="preserve">
     <value>迁移或重命名...(_V)</value>
   </data>
-  <data name="Mode and max_age read from hMailServer.INI on this machine." xml:space="preserve">
-    <value>mode 和 max_age 读取自本机上的 hMailServer.INI。</value>
+  <data name="Mode and max_age read from hMailServer.ini on this machine." xml:space="preserve">
+    <value>mode 和 max_age 读取自本机上的 hMailServer.ini。</value>
   </data>
   <data name="Monitoring" xml:space="preserve">
     <value>监控</value>
@@ -7747,11 +7759,11 @@
   <data name="No listeners are configured." xml:space="preserve">
     <value>未配置任何监听器。</value>
   </data>
-  <data name="No log folder could be read from hMailServer.INI on this machine." xml:space="preserve">
-    <value>无法从本机上的 hMailServer.INI 读取日志文件夹。</value>
+  <data name="No log folder could be read from hMailServer.ini on this machine." xml:space="preserve">
+    <value>无法从本机上的 hMailServer.ini 读取日志文件夹。</value>
   </data>
-  <data name="No log folder is configured in hMailServer.INI, so the server has nowhere to write the recovery report." xml:space="preserve">
-    <value>hMailServer.INI 中未配置日志文件夹，因此服务器无处写入恢复报告。</value>
+  <data name="No log folder is configured in hMailServer.ini, so the server has nowhere to write the recovery report." xml:space="preserve">
+    <value>hMailServer.ini 中未配置日志文件夹，因此服务器无处写入恢复报告。</value>
   </data>
   <data name="No match" xml:space="preserve">
     <value>无匹配</value>
@@ -8029,8 +8041,8 @@
   <data name="Not served" xml:space="preserve">
     <value>未提供</value>
   </data>
-  <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and AllowUnprotectedPassword is off - so the server refuses every logon under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
-    <value>未测试：此配置会通过未受保护的 LDAP 以简单绑定发送密码，而 AllowUnprotectedPassword 已关闭 - 因此服务器会拒绝在此配置下的每次登录，而此测试出于同样的原因拒绝传输任何内容。请选择 LDAPS 或 StartTLS，或者 Negotiate 绑定方法，或者明确允许未受保护的密码。</value>
+  <data name="Not tested: this configuration would send a password over unprotected LDAP with a simple bind, and 'Allow sending the password over an unprotected connection' is off - so the server refuses every sign-in under it, and this test refuses to transmit anything for the same reason. Choose LDAPS or StartTLS, or the Negotiate bind method, or explicitly allow the unprotected password." xml:space="preserve">
+    <value>未测试：此配置会通过未受保护的 LDAP 以简单绑定发送密码，而“允许通过未受保护的连接发送密码”已关闭 - 因此服务器会拒绝在此配置下的每次登录，而此测试出于同样的原因拒绝传输任何内容。请选择 LDAPS 或 StartTLS，或者 Negotiate 绑定方法，或者明确允许未受保护的密码。</value>
   </data>
   <data name="Not used" xml:space="preserve">
     <value>未使用</value>
@@ -8095,8 +8107,8 @@
   <data name="Nothing is held. Quarantining is switched off: until it is turned on under Anti-spam settings, spam over the refuse threshold is refused during the SMTP conversation rather than stored." xml:space="preserve">
     <value>没有暂留的邮件。隔离已关闭：在“反垃圾邮件设置”中开启之前，超过拒绝阈值的垃圾邮件会在 SMTP 会话中被拒绝，而不会被保存。</value>
   </data>
-  <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.INI key." xml:space="preserve">
-    <value>没有与 "{0}" 匹配的内容。请尝试输入您想达成的目标（“阻止垃圾邮件”、“允许设备发送邮件”）、页面名称或 hMailServer.INI 键名。</value>
+  <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.ini key." xml:space="preserve">
+    <value>没有与 "{0}" 匹配的内容。请尝试输入您想达成的目标（“阻止垃圾邮件”、“允许设备发送邮件”）、页面名称或 hMailServer.ini 键名。</value>
   </data>
   <data name="Nothing needs action - all {0} external setup checks are done or not needed." xml:space="preserve">
     <value>没有需要处理的项 - 全部 {0} 项外部设置检查都已完成或不需要。</value>
@@ -9396,8 +9408,8 @@
   <data name="Re-check the external prerequisites" xml:space="preserve">
     <value>重新检查外部前提条件</value>
   </data>
-  <data name="Re-read the LDAP settings from hMailServer.INI" xml:space="preserve">
-    <value>从 hMailServer.INI 重新读取 LDAP 设置</value>
+  <data name="Re-read the LDAP settings from hMailServer.ini" xml:space="preserve">
+    <value>从 hMailServer.ini 重新读取 LDAP 设置</value>
   </data>
   <data name="Re-read the anti-virus configuration from the server" xml:space="preserve">
     <value>从服务器重新读取反病毒配置</value>
@@ -9420,8 +9432,8 @@
   <data name="Re-read the transport security configuration from the server" xml:space="preserve">
     <value>从服务器重新读取传输安全配置</value>
   </data>
-  <data name="Re-read these settings from hMailServer.INI" xml:space="preserve">
-    <value>从 hMailServer.INI 重新读取这些设置</value>
+  <data name="Re-read these settings from hMailServer.ini" xml:space="preserve">
+    <value>从 hMailServer.ini 重新读取这些设置</value>
   </data>
   <data name="Re_lease" xml:space="preserve">
     <value>放行(_L)</value>
@@ -9474,8 +9486,8 @@
   <data name="Read delivery reports that arrive for this server's senders" xml:space="preserve">
     <value>读取为本服务器发件人送达的投递报告</value>
   </data>
-  <data name="Read from [Directories] LogFolder in hMailServer.INI, which is not readable from this machine - the Control Panel is running somewhere other than the server." xml:space="preserve">
-    <value>读取自 hMailServer.INI 中的 [Directories] LogFolder，而该文件夹从本机无法读取 - 控制面板运行在服务器以外的地方。</value>
+  <data name="Read from [Directories] LogFolder in hMailServer.ini, which is not readable from this machine - the Control Panel is running somewhere other than the server." xml:space="preserve">
+    <value>读取自 hMailServer.ini 中的 [Directories] LogFolder，而该文件夹从本机无法读取 - 控制面板运行在服务器以外的地方。</value>
   </data>
   <data name="Read from file" xml:space="preserve">
     <value>从文件读取</value>
@@ -10233,8 +10245,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Retiring key" xml:space="preserve">
     <value>正在停用的密钥</value>
   </data>
-  <data name="Retr_y through Windows logon when the directory is unavailable (FallbackToWindowsLogon)" xml:space="preserve">
-    <value>目录不可用时改用 Windows 登录重试(_Y)（FallbackToWindowsLogon）</value>
+  <data name="Retr_y through Windows logon when the directory is unavailable" xml:space="preserve">
+    <value>目录不可用时改用 Windows 登录重试(_Y)</value>
   </data>
   <data name="Retried" xml:space="preserve">
     <value>已重试</value>
@@ -10410,8 +10422,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Runs event scripts (OnAcceptMessage, OnDeliveryStart...) from the Events folder; the script itself is edited on the Event scripts page. The engine reloads when you save." xml:space="preserve">
     <value>从 Events 文件夹运行事件脚本（OnAcceptMessage、OnDeliveryStart...）；脚本本身在“事件脚本”页上编辑。保存时引擎会重新加载。</value>
   </data>
-  <data name="Runs hMailServer.exe /GrantServiceAccess as an administrator, after Windows asks: NT SERVICE\hMailServer is given Modify on the program folder's own Data, Logs, Temp and Database folders and on the folders an administrator has approved, and Read on the program folder - never hMailServer.INI. A folder the configuration names elsewhere, such as a backup or archive folder set later, is approved only after a question that names it; key files outside those folders are listed. It can be run again at any time, and removes nobody else's permission." xml:space="preserve">
-    <value>在 Windows 询问后，以管理员身份运行 hMailServer.exe /GrantServiceAccess：NT SERVICE\hMailServer 获得程序文件夹自身的 Data、Logs、Temp 和 Database 文件夹以及管理员已批准的文件夹的修改权限，以及程序文件夹的读取权限——但绝不包括 hMailServer.INI。配置在其他位置指定的文件夹（例如之后设置的备份或存档文件夹）只有在指明它的询问之后才会被批准；这些文件夹之外的密钥文件会被列出。可以随时再次运行，且不会移除任何人的权限。</value>
+  <data name="Runs hMailServer.exe /GrantServiceAccess as an administrator, after Windows asks: NT SERVICE\hMailServer is given Modify on the program folder's own Data, Logs, Temp and Database folders and on the folders an administrator has approved, and Read on the program folder - never hMailServer.ini. A folder the configuration names elsewhere, such as a backup or archive folder set later, is approved only after a question that names it; key files outside those folders are listed. It can be run again at any time, and removes nobody else's permission." xml:space="preserve">
+    <value>在 Windows 询问后，以管理员身份运行 hMailServer.exe /GrantServiceAccess：NT SERVICE\hMailServer 获得程序文件夹自身的 Data、Logs、Temp 和 Database 文件夹以及管理员已批准的文件夹的修改权限，以及程序文件夹的读取权限——但绝不包括 hMailServer.ini。配置在其他位置指定的文件夹（例如之后设置的备份或存档文件夹）只有在指明它的询问之后才会被批准；这些文件夹之外的密钥文件会被列出。可以随时再次运行，且不会移除任何人的权限。</value>
   </data>
   <data name="Runs the same steps the server runs, in the same order, using the values in the editors above as they stand: connect, protect the transport, bind the service credential, search for the user - and, only if a password is typed below, bind as that user to prove it. The password is used once and never stored, and the test refuses to run any configuration that would put a password on the network unprotected. One honest caveat: the test runs from this computer, so a firewall that treats this machine and the hMailServer service differently can make the two disagree." xml:space="preserve">
     <value>按服务器所用的相同顺序执行相同的步骤，并直接使用上面各编辑框中当前的值：连接、保护传输、绑定服务凭据、搜索用户 - 并且只有在下面输入了密码时，才以该用户的身份绑定来加以证实。密码只使用一次，绝不存储，而且只要某项配置会让密码不加保护地经过网络，测试就会拒绝运行。有一点必须坦白说明：测试是从这台计算机上运行的，因此如果防火墙对这台机器和 hMailServer 服务区别对待，两者的结果就可能不一致。</value>
@@ -10614,8 +10626,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Save the DKIM private key" xml:space="preserve">
     <value>保存 DKIM 私钥</value>
   </data>
-  <data name="Save the LDAP settings to hMailServer.INI" xml:space="preserve">
-    <value>将 LDAP 设置保存到 hMailServer.INI</value>
+  <data name="Save the LDAP settings to hMailServer.ini" xml:space="preserve">
+    <value>将 LDAP 设置保存到 hMailServer.ini</value>
   </data>
   <data name="Save the account and reopen it - a recovery address belongs to an account that exists." xml:space="preserve">
     <value>请先保存账户再重新打开 —— 恢复地址属于一个已经存在的账户。</value>
@@ -10647,11 +10659,11 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>保存所选证书的私钥密码短语</value>
   </data>
-  <data name="Save the selection to hMailServer.INI, then show what a synchronisation would do with it" xml:space="preserve">
-    <value>将所选内容保存到 hMailServer.INI，然后显示同步会对其做什么</value>
+  <data name="Save the selection to hMailServer.ini, then show what a synchronisation would do with it" xml:space="preserve">
+    <value>将所选内容保存到 hMailServer.ini，然后显示同步会对其做什么</value>
   </data>
-  <data name="Save these settings to hMailServer.INI" xml:space="preserve">
-    <value>将这些设置保存到 hMailServer.INI</value>
+  <data name="Save these settings to hMailServer.ini" xml:space="preserve">
+    <value>将这些设置保存到 hMailServer.ini</value>
   </data>
   <data name="Save this weak password anyway?" xml:space="preserve">
     <value>是否仍要保存这个弱密码？</value>
@@ -10914,8 +10926,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Search accounts" xml:space="preserve">
     <value>搜索账户</value>
   </data>
-  <data name="Search bas_e (SearchBase)" xml:space="preserve">
-    <value>搜索基准 (S_earchBase)</value>
+  <data name="Search bas_e" xml:space="preserve">
+    <value>搜索基准(_E)</value>
   </data>
   <data name="Search blocked attachment patterns" xml:space="preserve">
     <value>搜索附件拦截模式</value>
@@ -10994,9 +11006,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>搜索，或说出您想做什么 - “阻止垃圾邮件”、“封禁一个 IP”</value>
-  </data>
-  <data name="SearchBase (or UserDnTemplate, to bind directly without searching)" xml:space="preserve">
-    <value>SearchBase (或 UserDnTemplate，以便不经搜索直接绑定)</value>
   </data>
   <data name="Searched" xml:space="preserve">
     <value>已搜索</value>
@@ -11286,8 +11295,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Separately, this server sends such reports to other domains: its TLS report sender address is {0}, so its own reports go out." xml:space="preserve">
     <value>另外，本服务器会向其他域发送此类报告：它的 TLS 报告发件人地址为 {0}，因此它自己的报告会发出。</value>
   </data>
-  <data name="Serv_ice account password (ServicePassword)" xml:space="preserve">
-    <value>服务账户密码 (ServicePassword)(_I)</value>
+  <data name="Serv_ice account password" xml:space="preserve">
+    <value>服务账户密码(_I)</value>
   </data>
   <data name="Serve MTA-STS policies for local domains" xml:space="preserve">
     <value>为本地域提供 MTA-STS 策略</value>
@@ -11379,8 +11388,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Service account (search mode only)" xml:space="preserve">
     <value>服务账户 (仅搜索模式)</value>
   </data>
-  <data name="Service account user _name (ServiceUsername)" xml:space="preserve">
-    <value>服务账户用户名 (ServiceUser_name)</value>
+  <data name="Service account user _name" xml:space="preserve">
+    <value>服务账户用户名(_N)</value>
   </data>
   <data name="Service credential accepted." xml:space="preserve">
     <value>服务凭据已接受。</value>
@@ -11391,8 +11400,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Service start" xml:space="preserve">
     <value>服务启动</value>
   </data>
-  <data name="ServiceDomain {0}, and is shown here rather than offered for editing because the server reads the key and then never uses it: the service credential binds with ServiceUsername and ServicePassword alone. Put the domain in the user name instead (DOMAIN\name or a UPN)." xml:space="preserve">
-    <value>ServiceDomain 为 {0}，在此显示而不供编辑，因为服务器读取该键后从不使用它: 服务凭据仅用 ServiceUsername 和 ServicePassword 绑定。请改为把域放进用户名 (DOMAIN\name 或 UPN)。</value>
+  <data name="ServiceDomain {0}, and is shown here rather than offered for editing because the server reads the key and then never uses it: the service credential binds with the service account user name and password alone. Put the domain in the user name instead (DOMAIN\name or a UPN)." xml:space="preserve">
+    <value>ServiceDomain 为 {0}，在此显示而不供编辑，因为服务器读取该键后从不使用它: 服务凭据仅用服务账户用户名和密码绑定。请改为把域放进用户名 (DOMAIN\name 或 UPN)。</value>
   </data>
   <data name="Services" xml:space="preserve">
     <value>服务</value>
@@ -11703,8 +11712,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Simple bind - the password is sent to the directory (use with TLS)" xml:space="preserve">
     <value>简单绑定 - 密码会发送到目录 (请与 TLS 一起使用)</value>
   </data>
-  <data name="Simple is the default. Negotiate runs an SSPI exchange (Kerberos, falling back to NTLM) that never transmits the password and signs the connection - it is the only method a default-configured modern domain controller accepts when it has no certificate installed, it needs no search, no SearchBase and no service account, and it works from a host that is not domain-joined." xml:space="preserve">
-    <value>默认为 Simple。Negotiate 执行一次 SSPI 交换 (Kerberos，回退到 NTLM)，从不传输密码并对连接签名 - 它是未安装证书的默认配置现代域控制器唯一接受的方法，不需要搜索、SearchBase 或服务账户，并且可以从未加入域的主机使用。</value>
+  <data name="Simple is the default. Negotiate runs an SSPI exchange (Kerberos, falling back to NTLM) that never transmits the password and signs the connection - it is the only method a default-configured modern domain controller accepts when it has no certificate installed, it needs no search, no search base and no service account, and it works from a host that is not domain-joined." xml:space="preserve">
+    <value>默认为 Simple。Negotiate 执行一次 SSPI 交换 (Kerberos，回退到 NTLM)，从不传输密码并对连接签名 - 它是未安装证书的默认配置现代域控制器唯一接受的方法，不需要搜索、搜索基准或服务账户，并且可以从未加入域的主机使用。</value>
   </data>
   <data name="Simultaneous connections (0 is unlimited)" xml:space="preserve">
     <value>同时连接数（0 表示不限）</value>
@@ -11856,9 +11865,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Specific addresses to rou_te" xml:space="preserve">
     <value>要路由的特定地址(_T)</value>
   </data>
-  <data name="Split into first and last name, and only ever written to an account that has neither. A name typed here by an administrator is never overwritten by the directory." xml:space="preserve">
-    <value>拆分为名和姓，并且只写入两者都没有的账户。管理员在此输入的名称永远不会被目录覆盖。</value>
-  </data>
   <data name="Sta_rt date" xml:space="preserve">
     <value>开始日期(_R)</value>
   </data>
@@ -11957,6 +11963,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Store: " xml:space="preserve">
     <value>存储: </value>
+  </data>
+  <data name="Stored as [LDAP] {0}." xml:space="preserve">
+    <value>存储为 [LDAP] {0}。</value>
   </data>
   <data name="Stored in hMailServer.ini on the server. The token it buys is cached in memory until 80% of its lifetime has passed and refetched automatically." xml:space="preserve">
     <value>存储在服务器上的 hMailServer.ini 中。它获取的令牌会缓存在内存中，直到其生命周期过去 80%，然后自动重新获取。</value>
@@ -12785,8 +12794,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The consistency check is switched off, so no scan has run. Turn on 'Periodically cross-check message rows against files on disk' on the {0} page; the server then scans at start-up and hourly and writes {1}." xml:space="preserve">
     <value>一致性检查已关闭，因此没有运行过扫描。请在 {0} 页启用“定期把邮件行与磁盘上的文件交叉核对”；之后服务器会在启动时和每小时扫描，并写入 {1}。</value>
   </data>
-  <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page." xml:space="preserve">
-    <value>ARC 密封的对应功能: 对于入站邮件，来自受信任密封者的有效 ARC 链可以抵消因转发而破坏了 DMARC 通过结果的邮件的 DMARC 失败分数 (RFC 8617)。它在“反垃圾邮件设置”页的“发件人身份验证”选项卡上配置，因为它与其他反垃圾邮件设置一起存储，而不是存放在 hMailServer.INI 中。受信任密封者列表为空时，此功能有意什么也不做: 任何人都可以伪造一整条 ARC 链，并用发布在自己 DNS 中的密钥密封它，而它会完美地通过验证，所以除非您已经信任该密封者，否则通过验证的链什么也证明不了。这个列表不是该功能的一个选项 - 它就是该功能本身。抵消量永远不会超过 DMARC 失败分数，并且仅在“反垃圾邮件设置”页上启用了 DMARC 评分时才生效。</value>
+  <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.ini. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page." xml:space="preserve">
+    <value>ARC 密封的对应功能: 对于入站邮件，来自受信任密封者的有效 ARC 链可以抵消因转发而破坏了 DMARC 通过结果的邮件的 DMARC 失败分数 (RFC 8617)。它在“反垃圾邮件设置”页的“发件人身份验证”选项卡上配置，因为它与其他反垃圾邮件设置一起存储，而不是存放在 hMailServer.ini 中。受信任密封者列表为空时，此功能有意什么也不做: 任何人都可以伪造一整条 ARC 链，并用发布在自己 DNS 中的密钥密封它，而它会完美地通过验证，所以除非您已经信任该密封者，否则通过验证的链什么也证明不了。这个列表不是该功能的一个选项 - 它就是该功能本身。抵消量永远不会超过 DMARC 失败分数，并且仅在“反垃圾邮件设置”页上启用了 DMARC 评分时才生效。</value>
   </data>
   <data name="The current password counts as the most recent one, so setting a password to itself is refused too - the repeat somebody is most likely to try." xml:space="preserve">
     <value>当前密码算作最近一次使用的密码，因此把密码设为它本身也会被拒绝 - 这是最有可能被尝试的重复。</value>
@@ -13102,8 +13111,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The key store was not found, so there is nothing to revoke." xml:space="preserve">
     <value>未找到密钥存储，因此没有可吊销的内容。</value>
   </data>
-  <data name="The key store's location is not known from here. It sits beside hMailServer.INI, which is found through this machine's registry and service table - so keys can only be managed from the server itself, not from a Control Panel connected to another host." xml:space="preserve">
-    <value>从此处无法得知密钥存储的位置。它位于 hMailServer.INI 旁边，而该文件是通过本机的注册表和服务表找到的 - 因此密钥只能从服务器本身管理，而不能从连接到另一台主机的控制面板管理。</value>
+  <data name="The key store's location is not known from here. It sits beside hMailServer.ini, which is found through this machine's registry and service table - so keys can only be managed from the server itself, not from a Control Panel connected to another host." xml:space="preserve">
+    <value>从此处无法得知密钥存储的位置。它位于 hMailServer.ini 旁边，而该文件是通过本机的注册表和服务表找到的 - 因此密钥只能从服务器本身管理，而不能从连接到另一台主机的控制面板管理。</value>
   </data>
   <data name="The keys that work on every page, and the keys of a list" xml:space="preserve">
     <value>在每个页面上都可用的键，以及列表中的键</value>
@@ -13243,8 +13252,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The old selector was retired." xml:space="preserve">
     <value>旧选择器已停用。</value>
   </data>
-  <data name="The other way to reach a DN: set this and the server skips the search - and with it the need for a SearchBase and a service account. A UPN works against Active Directory. Same %u, %d, %m placeholders, escaped for a distinguished name." xml:space="preserve">
-    <value>获得 DN 的另一种方式: 设置此项后服务器会跳过搜索 - 连同对 SearchBase 和服务账户的需要一起跳过。对 Active Directory 可以使用 UPN。同样的 %u、%d、%m 占位符，按可分辨名称的规则转义。</value>
+  <data name="The other way to reach a DN: set this and the server skips the search - and with it the need for a search base and a service account. A UPN works against Active Directory. Same %u, %d, %m placeholders, escaped for a distinguished name." xml:space="preserve">
+    <value>获得 DN 的另一种方式: 设置此项后服务器会跳过搜索 - 连同对搜索基准和服务账户的需要一起跳过。对 Active Directory 可以使用 UPN。同样的 %u、%d、%m 占位符，按可分辨名称的规则转义。</value>
   </data>
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>概览会指出那些悄悄不起作用的安排 - 为零的阈值、没有任何已启用检查能达到的阈值、评分为零的检查。</value>
@@ -13440,8 +13449,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The saved schedule takes effect when the service restarts: the server is still running the one it started with." xml:space="preserve">
     <value>保存的计划在服务重启后生效：服务器仍在使用启动时的计划。</value>
   </data>
-  <data name="The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
-    <value>扫描结果只能在服务器机器上读取 - 此处未找到 hMailServer.INI。服务器以 hmailserver_messagestore_missing_files 指标发布同一数字。</value>
+  <data name="The scan result is only readable on the server machine - hMailServer.ini was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
+    <value>扫描结果只能在服务器机器上读取 - 此处未找到 hMailServer.ini。服务器以 hmailserver_messagestore_missing_files 指标发布同一数字。</value>
   </data>
   <data name="The schedule and the retention are stored in hMailServer.ini on the server." xml:space="preserve">
     <value>计划和保留设置存储在服务器上的 hMailServer.ini 中。</value>
@@ -13458,8 +13467,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The search looks at the {0} most recent changes of the {1} in the trail." xml:space="preserve">
     <value>搜索只查看记录中 {1} 项更改里最新的 {0} 项。</value>
   </data>
-  <data name="The search matched MORE than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make UserSearchFilter or SearchBase select exactly one entry." xml:space="preserve">
-    <value>搜索匹配了多于一个目录条目 (过滤器 {0}，基准 {1})。服务器拒绝针对有歧义的匹配进行身份验证 - 请让 UserSearchFilter 或 SearchBase 只选出恰好一个条目。</value>
+  <data name="The search matched more than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make the user search filter or the search base select exactly one entry." xml:space="preserve">
+    <value>搜索匹配了多于一个目录条目 (过滤器 {0}，基准 {1})。服务器拒绝针对有歧义的匹配进行身份验证 - 请让用户搜索过滤器或搜索基准只选出恰好一个条目。</value>
   </data>
   <data name="The search matched nothing (filter {0} under {1}). As a logon this is a refusal, not an outage - check the user name against the account's Windows directory tab, and the filter and search base against the directory." xml:space="preserve">
     <value>搜索没有匹配到任何内容 (在 {1} 下使用过滤器 {0})。作为登录，这是拒绝而不是故障 - 请对照账户的“Windows 目录”选项卡检查用户名，对照目录检查过滤器和搜索基准。</value>
@@ -13840,8 +13849,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="These are counts of the first {0} accounts only; this page stops there rather than making you wait for the rest." xml:space="preserve">
     <value>这些只是前 {0} 个账户的统计；本页到此为止，而不是让您等待其余部分。</value>
   </data>
-  <data name="These are read by the server from the [LDAP] section of hMailServer.INI, and re-read within two seconds of a save, so no restart is needed. The defaults suit Active Directory; a directory that is not Windows will not have sAMAccountName and needs the attribute names changed." xml:space="preserve">
-    <value>这些由服务器从 hMailServer.INI 的 [LDAP] 节读取，并在保存后两秒内重新读取，因此无需重启。默认值适合 Active Directory；非 Windows 的目录没有 sAMAccountName，需要更改属性名称。</value>
+  <data name="These are read by the server from the [LDAP] section of hMailServer.ini, and re-read within two seconds of a save, so no restart is needed. The defaults suit Active Directory; a directory that is not Windows will not have sAMAccountName and needs the attribute names changed." xml:space="preserve">
+    <value>这些由服务器从 hMailServer.ini 的 [LDAP] 节读取，并在保存后两秒内重新读取，因此无需重启。默认值适合 Active Directory；非 Windows 的目录没有 sAMAccountName，需要更改属性名称。</value>
   </data>
   <data name="These are the ports the server listens on. The submission port, 587, is the one your own people send through." xml:space="preserve">
     <value>这些是服务器正在监听的端口。提交端口 587 是您自己的用户用来发信的端口。</value>
@@ -13954,8 +13963,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="This page reads an expiry only in the form YYYY-MM-DD HH:MM:SS, so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>本页只读取 YYYY-MM-DD HH:MM:SS 格式的到期时间，因此从此处无法判断服务器是否仍接受此密钥。如果该行是手动编辑的，请更正它；否则请吊销该密钥并创建一个替代。</value>
   </data>
-  <data name="This page used to collect every hMailServer.INI value without a home, which meant it was filed by where the value is stored rather than by what it does - and where a value is stored is the one thing you never need to know. Each of these now sits with the rest of its own feature. Nothing was removed and no value changed; only the page it is edited on." xml:space="preserve">
-    <value>本页以前收集所有没有归属的 hMailServer.INI 值，也就是说它们是按值存放在哪里归档的，而不是按它们做什么 - 而值存放在哪里恰恰是您永远不需要知道的事。现在每一项都和它自己的功能放在一起。没有移除任何内容，也没有更改任何值；只有编辑它的页面变了。</value>
+  <data name="This page used to collect every hMailServer.ini value without a home, which meant it was filed by where the value is stored rather than by what it does - and where a value is stored is the one thing you never need to know. Each of these now sits with the rest of its own feature. Nothing was removed and no value changed; only the page it is edited on." xml:space="preserve">
+    <value>本页以前收集所有没有归属的 hMailServer.ini 值，也就是说它们是按值存放在哪里归档的，而不是按它们做什么 - 而值存放在哪里恰恰是您永远不需要知道的事。现在每一项都和它自己的功能放在一起。没有移除任何内容，也没有更改任何值；只有编辑它的页面变了。</value>
   </data>
   <data name="This panel can compare RSA and ECDSA keys; this key parses as neither, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
     <value>此面板可以比较 RSA 和 ECDSA 密钥；此密钥两者都解析不了，因此它是否与证书匹配只有在服务器加载这一对时才能证明。</value>
@@ -14089,8 +14098,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Time" xml:space="preserve">
     <value>时间</value>
   </data>
-  <data name="Time_out in seconds (TimeoutSeconds)" xml:space="preserve">
-    <value>超时秒数 (Timeo_utSeconds)</value>
+  <data name="Time_out in seconds" xml:space="preserve">
+    <value>超时秒数(_O)</value>
   </data>
   <data name="Timed out looking up {0}. Check the name, and that this machine can reach a DNS server." xml:space="preserve">
     <value>查找 {0} 超时。请检查名称，以及本机能否访问 DNS 服务器。</value>
@@ -14419,8 +14428,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Used when “Deliver to all addresses” is off." xml:space="preserve">
     <value>在“投递到所有地址”关闭时使用。</value>
   </data>
-  <data name="User _DN template (UserDnTemplate)" xml:space="preserve">
-    <value>用户 DN 模板 (User_DnTemplate)</value>
+  <data name="User _DN template" xml:space="preserve">
+    <value>用户 DN 模板(_D)</value>
   </data>
   <data name="User name" xml:space="preserve">
     <value>用户名</value>
@@ -14428,8 +14437,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="User name to _look up" xml:space="preserve">
     <value>要查找的用户名(_L)</value>
   </data>
-  <data name="User search _filter (UserSearchFilter)" xml:space="preserve">
-    <value>用户搜索过滤器 (UserSearch_Filter)</value>
+  <data name="User search _filter" xml:space="preserve">
+    <value>用户搜索过滤器(_F)</value>
   </data>
   <data name="VAPID private key, to bring the pair from another server (leave empty to keep current)" xml:space="preserve">
     <value>VAPID 私钥，用于从其他服务器迁移密钥对（留空则保持当前值）</value>
@@ -14623,8 +14632,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="What a takeover-shaped submission does" xml:space="preserve">
     <value>疑似被盗用的发送会导致什么</value>
   </data>
-  <data name="What an account of its own changes. hMailServer.INI is read-only to it, on purpose: the administrator password, its second factor, the folders and the database are changed as the Control Panel says when you try, and settings are kept in the database as always. A folder set later outside the program folder - a backup or archive folder - is reached once Grant access approves it. An account other than NT SERVICE\hMailServer is set in services.msc and needs the &quot;Log on as a service&quot; right; an external database with Windows authentication needs a login for it. A service that cannot log on reports error 1069 in the Windows event log and does not start." xml:space="preserve">
-    <value>使用自己的账户会带来的变化。hMailServer.INI 对它是有意设为只读的：管理员密码、其第二因素、文件夹和数据库按您尝试时控制面板给出的方式更改，设置仍像往常一样保存在数据库中。之后在程序文件夹之外设置的文件夹（备份或存档文件夹）在“授予访问权限”批准后即可访问。NT SERVICE\hMailServer 以外的账户在 services.msc 中设置，并需要“作为服务登录”权限；使用 Windows 身份验证的外部数据库需要为它建立登录名。无法登录的服务会在 Windows 事件日志中报告错误 1069，并且不会启动。</value>
+  <data name="What an account of its own changes. hMailServer.ini is read-only to it, on purpose: the administrator password, its second factor, the folders and the database are changed as the Control Panel says when you try, and settings are kept in the database as always. A folder set later outside the program folder - a backup or archive folder - is reached once Grant access approves it. An account other than NT SERVICE\hMailServer is set in services.msc and needs the &quot;Log on as a service&quot; right; an external database with Windows authentication needs a login for it. A service that cannot log on reports error 1069 in the Windows event log and does not start." xml:space="preserve">
+    <value>使用自己的账户会带来的变化。hMailServer.ini 对它是有意设为只读的：管理员密码、其第二因素、文件夹和数据库按您尝试时控制面板给出的方式更改，设置仍像往常一样保存在数据库中。之后在程序文件夹之外设置的文件夹（备份或存档文件夹）在“授予访问权限”批准后即可访问。NT SERVICE\hMailServer 以外的账户在 services.msc 中设置，并需要“作为服务登录”权限；使用 Windows 身份验证的外部数据库需要为它建立登录名。无法登录的服务会在 Windows 事件日志中报告错误 1069，并且不会启动。</value>
   </data>
   <data name="What can be negotiated" xml:space="preserve">
     <value>可协商的内容</value>
@@ -14881,11 +14890,14 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Which addresses may connect, which may relay without authenticating, and which must authenticate first." xml:space="preserve">
     <value>哪些地址可以连接，哪些可以不经身份验证中继，哪些必须先通过身份验证。</value>
   </data>
-  <data name="Which attribute holds the mailbox address. proxyAddresses is understood: its scheme prefix is removed and the primary SMTP: value is preferred over the lower-case aliases." xml:space="preserve">
-    <value>哪个属性保存邮箱地址。proxyAddresses 会被理解: 其方案前缀会被去掉，主 SMTP: 值优先于小写的别名。</value>
+  <data name="Which attribute holds the mailbox address - mail when left empty. proxyAddresses is understood: its scheme prefix is removed and the primary SMTP: value is preferred over the lower-case aliases." xml:space="preserve">
+    <value>哪个属性保存邮箱地址（留空时为 mail）。proxyAddresses 会被理解: 其方案前缀会被去掉，主 SMTP: 值优先于小写的别名。</value>
   </data>
-  <data name="Which attribute holds the name the person logs in with. This is what is stored against the account and what the directory is asked about at every logon afterwards, so guessing it from the address is not good enough - an entry that does not carry it is reported rather than provisioned." xml:space="preserve">
-    <value>哪个属性保存此人用于登录的名称。它会被存到账户上，并在此后每次登录时向目录询问，因此仅凭地址猜测是不够的 - 不带该属性的条目会被报告，而不是被预配。</value>
+  <data name="Which attribute holds the name the person signs in with - sAMAccountName when left empty. This is what is stored against the account and what the directory is asked about at every sign-in afterwards, so guessing it from the address is not good enough - an entry that does not carry it is reported rather than provisioned." xml:space="preserve">
+    <value>哪个属性保存此人用于登录的名称（留空时为 sAMAccountName）。它会被存到账户上，并在此后每次登录时向目录询问，因此仅凭地址猜测是不够的 - 不带该属性的条目会被报告，而不是被预配。</value>
+  </data>
+  <data name="Which attribute holds the person's name - displayName when left empty. It is split into first and last name and only ever written to an account that has neither, so a name an administrator typed is never overwritten by the directory." xml:space="preserve">
+    <value>哪个属性保存此人的姓名（留空时为 displayName）。它会拆分为名和姓，并且只写入两者都没有的账户，因此管理员输入的名称永远不会被目录覆盖。</value>
   </data>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>哪些目录条目会成为邮箱</value>
@@ -15085,8 +15097,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Write the message first: an empty one is not sent." xml:space="preserve">
     <value>请先填写邮件内容：空邮件不会发送。</value>
   </data>
-  <data name="Write-only: a stored password is never shown here again - leave the box blank to keep it. It is stored as plain text in hMailServer.INI on the server, because the server has to present it to the directory verbatim and so cannot hash it; restrict file access to the INI accordingly. It only ever leaves the server over the transport configured above." xml:space="preserve">
-    <value>只写：已存储的密码绝不会再在此处显示 - 把框留空即可保留它。它以纯文本形式存储在服务器上的 hMailServer.INI 中，因为服务器必须原样把它出示给目录，所以无法对它做哈希；请相应地限制对该 INI 文件的访问权限。它只会通过上面配置的传输方式离开服务器。</value>
+  <data name="Write-only: a stored password is never shown here again - leave the box blank to keep it. It is stored as plain text in hMailServer.ini on the server, because the server has to present it to the directory verbatim and so cannot hash it; restrict file access to the INI accordingly. It only ever leaves the server over the transport configured above." xml:space="preserve">
+    <value>只写：已存储的密码绝不会再在此处显示 - 把框留空即可保留它。它以纯文本形式存储在服务器上的 hMailServer.ini 中，因为服务器必须原样把它出示给目录，所以无法对它做哈希；请相应地限制对该 INI 文件的访问权限。它只会通过上面配置的传输方式离开服务器。</value>
   </data>
   <data name="Writes the conditions an operator alerts on - database unavailable, a listener that would not start, a crash, a failed backup, the disk floor - to the Windows Application log, where Event Viewer, monitoring agents and SIEM collectors can see them. Each condition has an event id of its own that does not change, so an alert can match on it; a healthy server writes nothing at all. Protocol traffic and routine logging never go here - a mail server that logs every session to the Application log gets itself uninstalled." xml:space="preserve">
     <value>把运维人员会据以告警的情况 - 数据库不可用、无法启动的监听器、崩溃、失败的备份、磁盘下限 - 写入 Windows 应用程序日志，事件查看器、监控代理和 SIEM 收集器都能在那里看到它们。每种情况都有自己固定不变的事件 id，告警可以据此匹配；健康的服务器什么都不会写。协议流量和常规日志绝不会写到这里 - 一台把每个会话都记入应用程序日志的邮件服务器，最后会把自己搞到被卸载。</value>
@@ -15184,8 +15196,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Allow sender…" xml:space="preserve">
     <value>允许发件人(_A)…</value>
   </data>
-  <data name="_Allow sending the password over an unprotected connection (AllowUnprotectedPassword)" xml:space="preserve">
-    <value>允许通过未受保护的连接发送密码(A)（AllowUnprotectedPassword）(_G)</value>
+  <data name="_Allow sending the password over an unprotected connection" xml:space="preserve">
+    <value>允许通过未受保护的连接发送密码(_A)</value>
   </data>
   <data name="_Append a disclaimer to mail leaving the organisation" xml:space="preserve">
     <value>为离开本组织的邮件附加免责声明(_A)</value>
@@ -15214,8 +15226,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Bind address (0.0.0.0)" xml:space="preserve">
     <value>绑定地址（0.0.0.0）(_B)</value>
   </data>
-  <data name="_Bind method (BindMethod)" xml:space="preserve">
-    <value>绑定方法(_B)（BindMethod）</value>
+  <data name="_Bind method" xml:space="preserve">
+    <value>绑定方法(_B)</value>
   </data>
   <data name="_Block and delete" xml:space="preserve">
     <value>拦截并删除(_B)</value>
@@ -15264,9 +15276,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="_Connection security" xml:space="preserve">
     <value>连接安全(_C)</value>
-  </data>
-  <data name="_Connection security (Security)" xml:space="preserve">
-    <value>连接安全(_C)（Security）</value>
   </data>
   <data name="_Copy" xml:space="preserve">
     <value>复制(_C)</value>
@@ -15895,8 +15904,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Upper IP address" xml:space="preserve">
     <value>结束 IP 地址(_U)</value>
   </data>
-  <data name="_Use LDAP directory authentication (Enabled)" xml:space="preserve">
-    <value>使用 LDAP 目录身份验证(U)（Enabled）(_A)</value>
+  <data name="_Use LDAP directory authentication" xml:space="preserve">
+    <value>使用 LDAP 目录身份验证(_U)</value>
   </data>
   <data name="_User name" xml:space="preserve">
     <value>用户名(_U)</value>
@@ -15919,8 +15928,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Verify the chain" xml:space="preserve">
     <value>验证链(_V)</value>
   </data>
-  <data name="_Verify the directory server's certificate (VerifyCertificate)" xml:space="preserve">
-    <value>验证目录服务器的证书(_V)（VerifyCertificate）</value>
+  <data name="_Verify the directory server's certificate" xml:space="preserve">
+    <value>验证目录服务器的证书(_V)</value>
   </data>
   <data name="_View source" xml:space="preserve">
     <value>查看邮件源(_V)</value>
@@ -15949,8 +15958,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="a symbol" xml:space="preserve">
     <value>一个符号</value>
   </data>
-  <data name="a trust file hMailServer.INI names may be changed by someone other than the administrators" xml:space="preserve">
-    <value>hMailServer.INI 指定的某个信任文件可能会被管理员以外的人更改</value>
+  <data name="a trust file hMailServer.ini names may be changed by someone other than the administrators" xml:space="preserve">
+    <value>hMailServer.ini 指定的某个信任文件可能会被管理员以外的人更改</value>
   </data>
   <data name="a value of its own is needed, or untick it to take the level above." xml:space="preserve">
     <value>需要一个自己的值，或者取消勾选以采用上一级的值。</value>
@@ -16003,17 +16012,17 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="base64url of the P-256 key; the public half is worked out from it. Every subscription made under the old pair stops working." xml:space="preserve">
     <value>P-256 密钥的 base64url 形式；公钥部分由它算出。用旧密钥对建立的每个订阅都会失效。</value>
   </data>
-  <data name="binding anonymously to search for the user (set ServiceUsername)" xml:space="preserve">
-    <value>以匿名方式绑定以搜索用户（请设置 ServiceUsername）</value>
+  <data name="binding anonymously to search for the user (set the service account user name)" xml:space="preserve">
+    <value>以匿名方式绑定以搜索用户（请设置服务账户用户名）</value>
   </data>
   <data name="binding as the user" xml:space="preserve">
     <value>以该用户的身份绑定</value>
   </data>
-  <data name="binding with the configured ServiceUsername" xml:space="preserve">
-    <value>使用已配置的 ServiceUsername 绑定</value>
+  <data name="binding with the configured service account user name" xml:space="preserve">
+    <value>使用已配置的服务账户用户名绑定</value>
   </data>
-  <data name="binding with the configured ServiceUsername - no ServicePassword is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
-    <value>使用已配置的 ServiceUsername 绑定 - 不会存储也不会输入 ServicePassword，空密码在发送之前就会被拒绝</value>
+  <data name="binding with the configured service account user name - no service account password is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
+    <value>使用已配置的服务账户用户名绑定 - 不会存储也不会输入服务账户密码，空密码在发送之前就会被拒绝</value>
   </data>
   <data name="block an ip" xml:space="preserve">
     <value>拦截某个 IP</value>
@@ -16131,6 +16140,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="dotted line" xml:space="preserve">
     <value>点线</value>
+  </data>
+  <data name="e.g. {0}" xml:space="preserve">
+    <value>例如 {0}</value>
   </data>
   <data name="enforce - senders that honour MTA-STS deliver only over valid TLS to the hosts listed" xml:space="preserve">
     <value>enforce - 遵守 MTA-STS 的发件方只通过有效的 TLS 投递到列出的主机</value>
@@ -16252,27 +16264,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="hMailServer {0} was not installed: {1}. hMailServer {2} is still running, unchanged. The installer's log: {3}" xml:space="preserve">
     <value>hMailServer {0} 未安装：{1}。hMailServer {2} 仍在运行，未作更改。安装程序日志：{3}</value>
   </data>
-  <data name="hMailServer.INI cannot be reached from this computer, so these selections cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
-    <value>无法从这台计算机访问 hMailServer.INI，因此这些选择无法在此处编辑。预览和应用仍然可用：它们在服务器内部运行。</value>
-  </data>
-  <data name="hMailServer.INI was not found on this machine, so its settings cannot be read from here." xml:space="preserve">
-    <value>在本机上未找到 hMailServer.INI，因此无法从此处读取它的设置。</value>
-  </data>
-  <data name="hMailServer.INI was not found on this machine, so mode and max_age shown are the shipped defaults." xml:space="preserve">
-    <value>在本机上未找到 hMailServer.INI，因此显示的 mode 和 max_age 是出厂默认值。</value>
-  </data>
-  <data name="hMailServer.INI was not found on this machine, so the key store's location is unknown. API keys can only be managed from the server itself." xml:space="preserve">
-    <value>在本机上未找到 hMailServer.INI，因此不知道密钥存储的位置。API 密钥只能从服务器本机管理。</value>
-  </data>
-  <data name="hMailServer.INI was not found on this machine." xml:space="preserve">
-    <value>在本机上未找到 hMailServer.INI。</value>
-  </data>
-  <data name="hMailServer.INI was not found on this machine. These settings can only be edited on the server itself." xml:space="preserve">
-    <value>在本机上未找到 hMailServer.INI。这些设置只能在服务器本机上编辑。</value>
-  </data>
-  <data name="hMailServer.INI was not found on this machine. These settings can only be edited on the server itself; the connection test still works with the values typed here." xml:space="preserve">
-    <value>在本机上未找到 hMailServer.INI。这些设置只能在服务器本机上编辑；连接测试仍然可以用此处输入的值运行。</value>
-  </data>
   <data name="hMailServer.exe /GrantServiceAccess did not finish its work (exit code {0}):&#10;&#10;{1}" xml:space="preserve">
     <value>hMailServer.exe /GrantServiceAccess 未完成其工作（退出代码 {0}）：
 
@@ -16289,11 +16280,32 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="hMailServer.ini and the log folder belong to the administrators from 6.3.6, so this Control Panel may not read them. Close it and start it with Run as administrator to see the live log." xml:space="preserve">
     <value>从 6.3.6 起，hMailServer.ini 和日志文件夹属于管理员，因此本控制面板无法读取它们。请关闭控制面板，并以“以管理员身份运行”启动它，以查看实时日志。</value>
   </data>
+  <data name="hMailServer.ini cannot be reached from this computer, so these selections cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
+    <value>无法从这台计算机访问 hMailServer.ini，因此这些选择无法在此处编辑。预览和应用仍然可用：它们在服务器内部运行。</value>
+  </data>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>无法读取 hMailServer.ini：{0} 从 6.3.6 起，该文件属于管理员。请关闭控制面板，并以“以管理员身份运行”启动它，以查看和更改这些设置。</value>
   </data>
+  <data name="hMailServer.ini was not found on this machine, so its settings cannot be read from here." xml:space="preserve">
+    <value>在本机上未找到 hMailServer.ini，因此无法从此处读取它的设置。</value>
+  </data>
+  <data name="hMailServer.ini was not found on this machine, so mode and max_age shown are the shipped defaults." xml:space="preserve">
+    <value>在本机上未找到 hMailServer.ini，因此显示的 mode 和 max_age 是出厂默认值。</value>
+  </data>
+  <data name="hMailServer.ini was not found on this machine, so the key store's location is unknown. API keys can only be managed from the server itself." xml:space="preserve">
+    <value>在本机上未找到 hMailServer.ini，因此不知道密钥存储的位置。API 密钥只能从服务器本机管理。</value>
+  </data>
   <data name="hMailServer.ini was not found on this machine, so this can only be changed on the server itself." xml:space="preserve">
     <value>在本机上未找到 hMailServer.ini，因此此设置只能在服务器本机上更改。</value>
+  </data>
+  <data name="hMailServer.ini was not found on this machine." xml:space="preserve">
+    <value>在本机上未找到 hMailServer.ini。</value>
+  </data>
+  <data name="hMailServer.ini was not found on this machine. These settings can only be edited on the server itself." xml:space="preserve">
+    <value>在本机上未找到 hMailServer.ini。这些设置只能在服务器本机上编辑。</value>
+  </data>
+  <data name="hMailServer.ini was not found on this machine. These settings can only be edited on the server itself; the connection test still works with the values typed here." xml:space="preserve">
+    <value>在本机上未找到 hMailServer.ini。这些设置只能在服务器本机上编辑；连接测试仍然可以用此处输入的值运行。</value>
   </data>
   <data name="header '{0}'" xml:space="preserve">
     <value>标头 '{0}'</value>
@@ -16700,8 +16712,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="testing - senders deliver as before and report what would have failed" xml:space="preserve">
     <value>testing - 发件方照常投递，并报告哪些投递本会失败</value>
   </data>
-  <data name="the Control Panel is connected to '{0}'; hMailServer.INI and files on disk can only be inspected on the server machine itself." xml:space="preserve">
-    <value>控制面板已连接到 '{0}'；hMailServer.INI 和磁盘上的文件只能在服务器本机上检查。</value>
+  <data name="the Control Panel is connected to '{0}'; hMailServer.ini and files on disk can only be inspected on the server machine itself." xml:space="preserve">
+    <value>控制面板已连接到 '{0}'；hMailServer.ini 和磁盘上的文件只能在服务器本机上检查。</value>
   </data>
   <data name="the account has expired" xml:space="preserve">
     <value>该账户已过期</value>
@@ -16721,8 +16733,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="the certificate" xml:space="preserve">
     <value>该证书</value>
   </data>
-  <data name="the configured UserSearchFilter is not a valid LDAP filter" xml:space="preserve">
-    <value>配置的 UserSearchFilter 不是有效的 LDAP 筛选器</value>
+  <data name="the configured user search filter is not a valid LDAP filter" xml:space="preserve">
+    <value>配置的用户搜索过滤器不是有效的 LDAP 筛选器</value>
   </data>
   <data name="the connecting address is one of the sender domain's A or MX records" xml:space="preserve">
     <value>连接地址是发件人域的 A 或 MX 记录之一</value>
@@ -16757,8 +16769,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="the engine's score" xml:space="preserve">
     <value>引擎的分数</value>
   </data>
-  <data name="the entry does not exist (check SearchBase, or UserDnTemplate)" xml:space="preserve">
-    <value>该条目不存在（请检查 SearchBase 或 UserDnTemplate）</value>
+  <data name="the entry does not exist (check the search base, or the user DN template)" xml:space="preserve">
+    <value>该条目不存在（请检查搜索基准或用户 DN 模板）</value>
   </data>
   <data name="the entry's score" xml:space="preserve">
     <value>条目的分数</value>

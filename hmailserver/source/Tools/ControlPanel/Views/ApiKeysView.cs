@@ -288,7 +288,7 @@ namespace hMailServer.ControlPanel.Views
          if (path == null)
          {
             SetSummary_(StatusLevel.Information,
-               L("The key store's location is not known from here. It sits beside hMailServer.INI, which is found through this machine's registry and service table - so keys can only be managed from the server itself, not from a Control Panel connected to another host."));
+               L("The key store's location is not known from here. It sits beside hMailServer.ini, which is found through this machine's registry and service table - so keys can only be managed from the server itself, not from a Control Panel connected to another host."));
             storePath_.Text = "";
             empty_.Visibility = Visibility.Collapsed;
             return;

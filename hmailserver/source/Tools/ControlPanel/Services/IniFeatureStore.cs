@@ -342,11 +342,11 @@ namespace hMailServer.ControlPanel.Services
                if (string.IsNullOrEmpty(install))
                   continue;
 
-               string path = Path.Join(install, "Bin", "hMailServer.INI");
+               string path = Path.Join(install, "Bin", "hMailServer.ini");
                if (File.Exists(path))
                   return path;
 
-               path = Path.Join(install, "hMailServer.INI");
+               path = Path.Join(install, "hMailServer.ini");
                if (File.Exists(path))
                   return path;
             }
@@ -478,7 +478,7 @@ namespace hMailServer.ControlPanel.Services
          if (write == null)
             throw new InvalidOperationException(
                "Settings are stored in the server's database, so changing one needs a connection to the server. " +
-               "Editing hMailServer.INI by hand does not change a setting: the stored value is used, and the edit is " +
+               "Editing hMailServer.ini by hand does not change a setting: the stored value is used, and the edit is " +
                "reported in the server's error log and undone at the next start.");
 
          write(key, value);
@@ -517,7 +517,7 @@ namespace hMailServer.ControlPanel.Services
       public void WriteTo(string section, string key, string value)
       {
          if (!IsAvailable)
-            throw new InvalidOperationException("hMailServer.INI was not found on this machine.");
+            throw new InvalidOperationException("hMailServer.ini was not found on this machine.");
          ProfileApi.WriteString(section, key, value, IniPath);
       }
 

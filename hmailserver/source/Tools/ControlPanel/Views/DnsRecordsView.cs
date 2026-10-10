@@ -1133,10 +1133,10 @@ namespace hMailServer.ControlPanel.Views
          }
 
          string caveat = iniReadable
-            ? L("Mode and max_age read from hMailServer.INI on this machine.")
+            ? L("Mode and max_age read from hMailServer.ini on this machine.")
             : (local
-               ? L("hMailServer.INI was not found on this machine, so mode and max_age shown are the shipped defaults.")
-               : L("Connected to a remote server: hMailServer.INI cannot be read from here, so mode and max_age shown are the shipped defaults."));
+               ? L("hMailServer.ini was not found on this machine, so mode and max_age shown are the shipped defaults.")
+               : L("Connected to a remote server: hMailServer.ini cannot be read from here, so mode and max_age shown are the shipped defaults."));
 
          if (iniReadable && !hosting)
             caveat = Sentences(caveat, L("Note: 'Serve MTA-STS policies for local domains' is off on the Web services & autoconfiguration page, so the server does not serve this policy."));

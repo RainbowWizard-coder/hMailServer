@@ -267,7 +267,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [Theory]
       [InlineData("Advanced hardening", "hardening")]
       [InlineData("Advanced INI settings", "hardening")]
-      [InlineData("hMailServer.INI", "hardening")]
+      [InlineData("hMailServer.ini", "hardening")]
       [InlineData("Anti-spam white list", "spamwhitelist")]
       [InlineData("DNS blacklists (DNSBL)", "dnsbl")]
       [InlineData("MX-query", "mxquery")]

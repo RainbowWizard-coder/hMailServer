@@ -353,7 +353,7 @@ namespace hMailServer.ControlPanel.Services
          finding = CheckTree_(bin, app, true);
          if (finding.Failed)
             return finding;
-         string ini = Path.Combine(bin, "hMailServer.INI");
+         string ini = Path.Combine(bin, "hMailServer.ini");
          if (File.Exists(ini))
          {
             finding = CheckObject(ini, Place.Inside, app);

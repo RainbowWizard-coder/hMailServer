@@ -334,7 +334,7 @@ namespace hMailServer.ControlPanel.Views
       private Card BuildSelectionCard_()
       {
          Card card = Section_(L("Which directory entries become mailboxes"),
-            L("These are read by the server from the [LDAP] section of hMailServer.INI, and re-read within two seconds of a save, so no restart is needed. The defaults suit Active Directory; a directory that is not Windows will not have sAMAccountName and needs the attribute names changed."),
+            L("These are read by the server from the [LDAP] section of hMailServer.ini, and re-read within two seconds of a save, so no restart is needed. The defaults suit Active Directory; a directory that is not Windows will not have sAMAccountName and needs the attribute names changed."),
             out StackPanel content);
 
          content.Children.Add(LabelledBox_(L("Search _filter"), filter_, "dirsync-filter",
@@ -359,19 +359,19 @@ namespace hMailServer.ControlPanel.Views
          LdapFilterField.ShowWhole(filter_);
 
          content.Children.Add(LabelledBox_(L("Address attri_bute"), mailAttribute_, "dirsync-mail-attribute",
-            L("Which attribute holds the mailbox address. proxyAddresses is understood: its scheme prefix is removed and the primary SMTP: value is preferred over the lower-case aliases."),
+            L("Which attribute holds the mailbox address - mail when left empty. proxyAddresses is understood: its scheme prefix is removed and the primary SMTP: value is preferred over the lower-case aliases."),
             placeholder: "mail"));
 
          content.Children.Add(LabelledBox_(L("_Logon name attribute"), usernameAttribute_, "dirsync-username-attribute",
-            L("Which attribute holds the name the person logs in with. This is what is stored against the account and what the directory is asked about at every logon afterwards, so guessing it from the address is not good enough - an entry that does not carry it is reported rather than provisioned."),
+            L("Which attribute holds the name the person signs in with - sAMAccountName when left empty. This is what is stored against the account and what the directory is asked about at every sign-in afterwards, so guessing it from the address is not good enough - an entry that does not carry it is reported rather than provisioned."),
             placeholder: "sAMAccountName"));
 
          content.Children.Add(LabelledBox_(L("_Display name attribute"), displayNameAttribute_, "dirsync-displayname-attribute",
-            L("Split into first and last name, and only ever written to an account that has neither. A name typed here by an administrator is never overwritten by the directory."),
+            L("Which attribute holds the person's name - displayName when left empty. It is split into first and last name and only ever written to an account that has neither, so a name an administrator typed is never overwritten by the directory."),
             placeholder: "displayName"));
 
          content.Children.Add(LabelledBox_(L("_Maximum entries to read"), maxUsers_, "dirsync-max-users",
-            L("A ceiling on one pass, so a search base pointed one level too high cannot be answered by reading an entire forest. If it is hit, the run says so and disables nothing at all - beyond the limit, an entry that exists is indistinguishable from one that was deleted."),
+            L("A ceiling on one pass - 5000 when left empty - so a search base pointed one level too high cannot be answered by reading an entire forest. If it is hit, the run says so and disables nothing at all - beyond the limit, an entry that exists is indistinguishable from one that was deleted."),
             placeholder: "5000"));
 
          return card;
@@ -429,7 +429,7 @@ namespace hMailServer.ControlPanel.Views
             Visibility = Visibility.Collapsed
          };
          ControlHelp.Explain(saveAndPreviewButton_,
-            L("Save the selection to hMailServer.INI, then show what a synchronisation would do with it"));
+            L("Save the selection to hMailServer.ini, then show what a synchronisation would do with it"));
          System.Windows.Automation.AutomationProperties.SetAutomationId(saveAndPreviewButton_, "dirsync-save-and-preview");
          saveAndPreviewButton_.Click += async (s, e) => await SaveAndPreviewAsync_();
          buttons.Children.Add(saveAndPreviewButton_);
@@ -492,7 +492,7 @@ namespace hMailServer.ControlPanel.Views
          var buttons = new StackPanel { Orientation = Orientation.Horizontal };
 
          var reload = new Wpf.Ui.Controls.Button { Content = L("_Reload"), Margin = new Thickness(0, 0, 8, 0) };
-         ControlHelp.Explain(reload, L("Re-read these settings from hMailServer.INI"));
+         ControlHelp.Explain(reload, L("Re-read these settings from hMailServer.ini"));
          System.Windows.Automation.AutomationProperties.SetAutomationId(reload, "dirsync-reload");
          reload.Click += (s, e) => Reload_();
          buttons.Children.Add(reload);
@@ -502,7 +502,7 @@ namespace hMailServer.ControlPanel.Views
             Content = L("_Save changes"),
             Appearance = Wpf.Ui.Controls.ControlAppearance.Primary
          };
-         ControlHelp.Explain(saveButton_, L("Save these settings to hMailServer.INI"));
+         ControlHelp.Explain(saveButton_, L("Save these settings to hMailServer.ini"));
          System.Windows.Automation.AutomationProperties.SetAutomationId(saveButton_, "dirsync-save");
          saveButton_.Click += (s, e) => Save_();
          buttons.Children.Add(saveButton_);
@@ -616,7 +616,7 @@ namespace hMailServer.ControlPanel.Views
             saveState_.Settle(SettingsPageState.Unavailable, null);
          else
             saveState_.Settle(SettingsPageState.Unavailable,
-               L("hMailServer.INI cannot be reached from this computer, so these selections cannot be edited here. Preview and Apply still work: they run inside the server."));
+               L("hMailServer.ini cannot be reached from this computer, so these selections cannot be edited here. Preview and Apply still work: they run inside the server."));
          InvalidatePreview_();
          FollowSelection_();
       }
@@ -796,7 +796,7 @@ namespace hMailServer.ControlPanel.Views
 
          if (!store_.IsAvailable)
          {
-            State_(StatusLevel.Information, L("Cannot tell from here. hMailServer.INI is not reachable from this computer, so the [LDAP] section cannot be read - and it is that section, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is."));
+            State_(StatusLevel.Information, L("Cannot tell from here. hMailServer.ini is not reachable from this computer, so the [LDAP] section cannot be read - and it is that section, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is."));
             return;
          }
 
